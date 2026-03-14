@@ -20,7 +20,7 @@ interface Journal {
   id: string;
   code: string;
   libelle: string;
-  type: 'VT' | 'AC' | 'BQ' | 'CA' | 'OD' | 'AN';
+  type: 'VE' | 'AC' | 'BQ' | 'CA' | 'OD' | 'AN';
   entries: number;
   totalDebit: number;
   totalCredit: number;
@@ -64,7 +64,7 @@ const JournalsPage: React.FC = () => {
       const testEntry = {
         mvt: '001',
         piece: 'FAC-2025-123',
-        jnl: 'VT',
+        jnl: 'VE',
         date: '10/09/2025',
         echeance: '10/10/2025',
         tiers: 'CLIENT A',
@@ -113,7 +113,7 @@ const JournalsPage: React.FC = () => {
       filterable: true,
       filterType: 'select',
       filterOptions: [
-        { value: 'VT', label: 'VT' },
+        { value: 'VE', label: 'VE' },
         { value: 'AC', label: 'AC' },
         { value: 'BQ', label: 'BQ' },
         { value: 'CA', label: 'CA' },
@@ -245,9 +245,9 @@ const JournalsPage: React.FC = () => {
   const journaux: Journal[] = [
     {
       id: '1',
-      code: 'VT',
+      code: 'VE',
       libelle: t('accounting.salesJournal'),
-      type: 'VT',
+      type: 'VE',
       entries: 156,
       totalDebit: 0,
       totalCredit: 2450000,
@@ -313,9 +313,9 @@ const JournalsPage: React.FC = () => {
 
   // Sous-journaux par journal principal
   const sousJournaux = {
-    'VT': [
-      { id: 'VT01', code: 'VT01', libelle: 'Ventes Export', entries: 45, color: 'var(--color-primary)' },
-      { id: 'VT02', code: 'VT02', libelle: 'Ventes Locales', entries: 78, color: 'var(--color-primary)' }
+    'VE': [
+      { id: 'VE01', code: 'VE01', libelle: 'Ventes Export', entries: 45, color: 'var(--color-primary)' },
+      { id: 'VE02', code: 'VE02', libelle: 'Ventes Locales', entries: 78, color: 'var(--color-primary)' }
     ],
     'AC': [
       { id: 'AC01', code: 'AC01', libelle: 'Achats Locaux', entries: 32, color: 'var(--color-primary)' },
@@ -335,6 +335,12 @@ const JournalsPage: React.FC = () => {
   };
 
   const handleDoubleClickEntry = (entry: Record<string, unknown>) => {
+    // Prevent editing validated/posted entries
+    if (entry.status === 'validated' || entry.status === 'posted') {
+      toast.error(t('messages.entryNotEditable') || 'Les écritures validées ne peuvent pas être modifiées');
+      return;
+    }
+
     setSelectedEntry(entry);
 
     // Récupérer toutes les lignes de l'écriture (même numéro de mouvement)
@@ -423,14 +429,14 @@ const JournalsPage: React.FC = () => {
   // Données d'écritures par journal
   const getEcrituresJournal = (journalCode: string) => {
     switch (journalCode) {
-      case 'VT':
+      case 'VE':
         return [
-          { mvt: '1', jnl: 'VT', date: '01/03/19', piece: 'FCT2', echeance: '', compte: '701', compteLib: 'Ventes de produits finis', libelle: 'Produit 01 de ma société', debit: '', credit: '100,00' },
-          { mvt: '1', jnl: 'VT', date: '01/03/19', piece: 'FCT2', echeance: '', compte: '4457', compteLib: 'TVA collectée', libelle: 'Produit 01 de ma société', debit: '', credit: '20,00' },
-          { mvt: '1', jnl: 'VT', date: '01/03/19', piece: 'FCT2', echeance: '06/03/19', compte: '411', compteLib: t('navigation.clients'), libelle: 'Produit 01 de ma société', debit: '120,00', credit: '' },
-          { mvt: '6', jnl: 'VT', date: '05/03/19', piece: 'FCT3', echeance: '', compte: '701', compteLib: 'Ventes de produits finis', libelle: 'Vente CLIENT XYZ', debit: '', credit: '200,00' },
-          { mvt: '6', jnl: 'VT', date: '05/03/19', piece: 'FCT3', echeance: '', compte: '4457', compteLib: 'TVA collectée', libelle: 'Vente CLIENT XYZ', debit: '', credit: '40,00' },
-          { mvt: '6', jnl: 'VT', date: '05/03/19', piece: 'FCT3', echeance: '10/03/19', compte: '411', compteLib: t('navigation.clients'), libelle: 'Vente CLIENT XYZ', debit: '240,00', credit: '' }
+          { mvt: '1', jnl: 'VE', date: '01/03/19', piece: 'FCT2', echeance: '', compte: '701', compteLib: 'Ventes de produits finis', libelle: 'Produit 01 de ma société', debit: '', credit: '100,00' },
+          { mvt: '1', jnl: 'VE', date: '01/03/19', piece: 'FCT2', echeance: '', compte: '4457', compteLib: 'TVA collectée', libelle: 'Produit 01 de ma société', debit: '', credit: '20,00' },
+          { mvt: '1', jnl: 'VE', date: '01/03/19', piece: 'FCT2', echeance: '06/03/19', compte: '411', compteLib: t('navigation.clients'), libelle: 'Produit 01 de ma société', debit: '120,00', credit: '' },
+          { mvt: '6', jnl: 'VE', date: '05/03/19', piece: 'FCT3', echeance: '', compte: '701', compteLib: 'Ventes de produits finis', libelle: 'Vente CLIENT XYZ', debit: '', credit: '200,00' },
+          { mvt: '6', jnl: 'VE', date: '05/03/19', piece: 'FCT3', echeance: '', compte: '4457', compteLib: 'TVA collectée', libelle: 'Vente CLIENT XYZ', debit: '', credit: '40,00' },
+          { mvt: '6', jnl: 'VE', date: '05/03/19', piece: 'FCT3', echeance: '10/03/19', compte: '411', compteLib: t('navigation.clients'), libelle: 'Vente CLIENT XYZ', debit: '240,00', credit: '' }
         ];
       case 'AC':
         return [
@@ -468,9 +474,9 @@ const JournalsPage: React.FC = () => {
       case 'TOUS':
       default:
         return [
-          { mvt: '1', jnl: 'VT', date: '01/03/19', piece: 'FCT2', echeance: '', compte: '701', compteLib: 'Ventes de produits finis', libelle: 'Produit 01 de ma société', debit: '', credit: '100,00' },
-          { mvt: '1', jnl: 'VT', date: '01/03/19', piece: 'FCT2', echeance: '', compte: '4457', compteLib: 'TVA collectée', libelle: 'Produit 01 de ma société', debit: '', credit: '20,00' },
-          { mvt: '1', jnl: 'VT', date: '01/03/19', piece: 'FCT2', echeance: '06/03/19', compte: '411', compteLib: t('navigation.clients'), libelle: 'Produit 01 de ma société', debit: '120,00', credit: '' },
+          { mvt: '1', jnl: 'VE', date: '01/03/19', piece: 'FCT2', echeance: '', compte: '701', compteLib: 'Ventes de produits finis', libelle: 'Produit 01 de ma société', debit: '', credit: '100,00' },
+          { mvt: '1', jnl: 'VE', date: '01/03/19', piece: 'FCT2', echeance: '', compte: '4457', compteLib: 'TVA collectée', libelle: 'Produit 01 de ma société', debit: '', credit: '20,00' },
+          { mvt: '1', jnl: 'VE', date: '01/03/19', piece: 'FCT2', echeance: '06/03/19', compte: '411', compteLib: t('navigation.clients'), libelle: 'Produit 01 de ma société', debit: '120,00', credit: '' },
           { mvt: '2', jnl: 'AC', date: '15/11/19', piece: 'FFR1', echeance: '', compte: '601', compteLib: 'Achats stockés - Matières premières', libelle: 'Produit 01 de ma société', debit: '120,00', credit: '' },
           { mvt: '2', jnl: 'AC', date: '15/11/19', piece: 'FFR1', echeance: '', compte: '44566', compteLib: 'TVA déductible sur achats', libelle: 'Produit 01 de ma société', debit: '24,00', credit: '' },
           { mvt: '2', jnl: 'AC', date: '15/11/19', piece: 'FFR1', echeance: '22/11/19', compte: '401', compteLib: t('navigation.suppliers'), libelle: 'Produit 01 de ma société', debit: '', credit: '144,00' },
@@ -1153,7 +1159,7 @@ const JournalsPage: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Journal parent *</label>
                   <select className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]" required>
                     <option value="">Choisir le journal principal</option>
-                    <option value="VT">VT - Journal des Ventes</option>
+                    <option value="VE">VE - Journal des Ventes</option>
                     <option value="AC">AC - Journal des Achats</option>
                     <option value="BQ">BQ - Journal de Banque</option>
                     <option value="CA">CA - Journal de Caisse</option>

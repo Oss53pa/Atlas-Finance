@@ -14,10 +14,15 @@ export interface BilanActif {
 export interface BilanPassif {
   capitalSocial: number;
   reserves: number;
+  resultatEnInstance?: number;
+  provisionsReglementees?: number;
+  subventionsInvestissement?: number;
   resultatExercice: number;
   capitauxPropres: number;
   emprunts: number;
   dettesFinancieres: number;
+  dettesParticipations?: number;
+  provisionsRisques?: number;
   dettesFournisseurs: number;
   autresDettes: number;
   totalPassif: number;

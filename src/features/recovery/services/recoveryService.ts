@@ -75,7 +75,7 @@ async function createDossier(
 
   const c = await adapter.create<DBRecoveryCase>('recoveryCases', {
     numeroRef: data.numeroRef || `REC-${Date.now()}`,
-    clientId: '',
+    clientId: (data as any).clientId || data.id || '',
     clientName: data.client || '',
     montantPrincipal: data.montantPrincipal || 0,
     interets: data.interets || 0,
@@ -174,7 +174,7 @@ async function getCreances(adapter: DataAdapter): Promise<Creance[]> {
   const now = new Date();
 
   // Agréger les soldes clients (comptes 411x)
-  const clientBalances = new Map<string, { debit: number; credit: number; name: string; lastDate: string }>();
+  const clientBalances = new Map<string, { debit: number; credit: number; name: string; lastDate: string; dateEcheance?: string }>();
 
   for (const entry of entries) {
     for (const line of entry.lines) {
@@ -184,6 +184,10 @@ async function getCreances(adapter: DataAdapter): Promise<Creance[]> {
       existing.debit += line.debit;
       existing.credit += line.credit;
       if (entry.date > existing.lastDate) existing.lastDate = entry.date;
+      // Track the latest due date from line-level dateEcheance
+      if (line.dateEcheance && (!existing.dateEcheance || line.dateEcheance > existing.dateEcheance)) {
+        existing.dateEcheance = line.dateEcheance;
+      }
       clientBalances.set(key, existing);
     }
   }
@@ -193,8 +197,8 @@ async function getCreances(adapter: DataAdapter): Promise<Creance[]> {
     const solde = money(balance.debit).subtract(balance.credit).toNumber();
     if (solde <= 0) continue; // Pas de créance si solde créditeur
 
-    const lastDate = new Date(balance.lastDate);
-    const joursRetard = Math.floor((now.getTime() - lastDate.getTime()) / 86400000);
+    const dueDate = new Date(balance.dateEcheance || balance.lastDate);
+    const joursRetard = Math.floor((now.getTime() - dueDate.getTime()) / 86400000);
 
     let niveauRisque: 'faible' | 'moyen' | 'eleve' | 'critique';
     if (joursRetard <= 30) niveauRisque = 'faible';

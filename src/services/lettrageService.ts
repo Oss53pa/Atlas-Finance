@@ -139,7 +139,7 @@ function matchExact(
     if (usedDebits.has(d.lineId)) continue;
     for (const c of credits) {
       if (usedCredits.has(c.lineId)) continue;
-      if (d.debit === c.credit && d.debit > 0) {
+      if (d.debit > 0 && Math.abs(d.debit - c.credit) < 0.01) {
         matches.push([[d], [c]]);
         usedDebits.add(d.lineId);
         usedCredits.add(c.lineId);
@@ -223,7 +223,8 @@ export async function autoLettrage(
   config: Partial<LettrageConfig> = {},
 ): Promise<LettrageResult> {
   const cfg = { ...DEFAULT_CONFIG, ...config };
-  const entries = await adapter.getAll('journalEntries');
+  const allEntries = await adapter.getAll('journalEntries');
+  const entries = allEntries.filter(e => e.status !== 'draft');
   const allLines = flattenEntries(entries);
 
   // Group by account code
@@ -344,6 +345,10 @@ export async function applyLettrage(adapter: DataAdapter, matches: LettrageMatch
       }
 
       if (modified) {
+        // TODO AF-021: Recalculate SHA-256 hash after modifying lines.
+        // Hash is chained (depends on previousHash), so recomputing here
+        // would require rebuilding the entire chain from this entry onward.
+        // See src/utils/integrity.ts — hashEntry(entry, previousHash).
         await adapter.update('journalEntries', entryId, { lines: entry.lines, updatedAt: new Date().toISOString() });
         applied++;
       }
@@ -367,6 +372,24 @@ export async function applyManualLettrage(
   adapter: DataAdapter,
   selections: Array<{ entryId: string; lineId: string }>,
 ): Promise<string> {
+  // AF-023: Validate that selected lines balance before applying lettrage
+  let totalDebit = 0;
+  let totalCredit = 0;
+  for (const s of selections) {
+    const entry = await adapter.getById('journalEntries', s.entryId);
+    if (!entry) continue;
+    const line = entry.lines.find((l: DBJournalLine) => l.id === s.lineId);
+    if (line) {
+      totalDebit += line.debit;
+      totalCredit += line.credit;
+    }
+  }
+  if (Math.abs(totalDebit - totalCredit) > 0.01) {
+    throw new Error(
+      `Lettrage déséquilibré : total débit (${totalDebit}) ≠ total crédit (${totalCredit}), écart = ${Math.abs(totalDebit - totalCredit).toFixed(2)}`
+    );
+  }
+
   const code = await getNextLettrageCode(adapter);
 
   const byEntry = new Map<string, string[]>();
@@ -386,6 +409,10 @@ export async function applyManualLettrage(
         line.lettrageCode = code;
       }
     }
+    // TODO AF-021: Recalculate SHA-256 hash after modifying lines.
+    // Hash is chained (depends on previousHash), so recomputing here
+    // would require rebuilding the entire chain from this entry onward.
+    // See src/utils/integrity.ts — hashEntry(entry, previousHash).
     await adapter.update('journalEntries', entryId, { lines: entry.lines, updatedAt: new Date().toISOString() });
   }
 

@@ -48,6 +48,25 @@ export const planComptableSYSCOHADA: CompteComptable[] = [
   { code: '28154', libelle: 'Amortissements mobilier', categorie: 'Amortissements', nature: 'credit', actif: true },
   { code: '28182', libelle: 'Amortissements matériel de transport', categorie: 'Amortissements', nature: 'credit', actif: true },
 
+  // CLASSE 3 - COMPTES DE STOCKS
+  { code: '311', libelle: 'Marchandises', categorie: 'Stocks marchandises', nature: 'debit', actif: true, keywords: ['marchandise', 'stock'] },
+  { code: '312', libelle: 'Marchandises B', categorie: 'Stocks marchandises', nature: 'debit', actif: true },
+  { code: '321', libelle: 'Matières premières', categorie: 'Stocks matières premières', nature: 'debit', actif: true, keywords: ['matière', 'première', 'stock'] },
+  { code: '322', libelle: 'Fournitures liées', categorie: 'Stocks matières premières', nature: 'debit', actif: true },
+  { code: '331', libelle: 'Matières consommables', categorie: 'Autres approvisionnements', nature: 'debit', actif: true, keywords: ['consommable', 'approvisionnement'] },
+  { code: '332', libelle: 'Fournitures d\'atelier et d\'usine', categorie: 'Autres approvisionnements', nature: 'debit', actif: true },
+  { code: '334', libelle: 'Fournitures de bureau', categorie: 'Autres approvisionnements', nature: 'debit', actif: true },
+  { code: '335', libelle: 'Emballages', categorie: 'Autres approvisionnements', nature: 'debit', actif: true, keywords: ['emballage'] },
+  { code: '341', libelle: 'Produits en cours', categorie: 'Produits en cours', nature: 'debit', actif: true, keywords: ['en-cours', 'production'] },
+  { code: '351', libelle: 'Études en cours', categorie: 'Services en cours', nature: 'debit', actif: true },
+  { code: '361', libelle: 'Produits finis', categorie: 'Stocks produits finis', nature: 'debit', actif: true, keywords: ['produit', 'fini', 'stock'] },
+  { code: '371', libelle: 'Produits intermédiaires', categorie: 'Produits intermédiaires', nature: 'debit', actif: true },
+  { code: '372', libelle: 'Produits résiduels', categorie: 'Produits intermédiaires', nature: 'debit', actif: true },
+  { code: '381', libelle: 'Marchandises en cours de route', categorie: 'Stocks en transit', nature: 'debit', actif: true },
+  { code: '391', libelle: 'Dépréciation des marchandises', categorie: 'Dépréciations stocks', nature: 'credit', actif: true, keywords: ['dépréciation', 'provision', 'stock'] },
+  { code: '392', libelle: 'Dépréciation des matières premières', categorie: 'Dépréciations stocks', nature: 'credit', actif: true },
+  { code: '396', libelle: 'Dépréciation des produits finis', categorie: 'Dépréciations stocks', nature: 'credit', actif: true },
+
   // CLASSE 4 - COMPTES DE TIERS
   { code: '401', libelle: 'Fournisseurs', categorie: 'Dettes fournisseurs', nature: 'credit', actif: true, keywords: ['fournisseur', 'dette'] },
   { code: '4011', libelle: 'Fournisseurs - Factures non parvenues', categorie: 'Dettes fournisseurs', nature: 'credit', actif: true },
@@ -200,7 +219,41 @@ export const planComptableSYSCOHADA: CompteComptable[] = [
   { code: '771', libelle: 'Produits exceptionnels sur opérations en capital', categorie: 'Produits exceptionnels', nature: 'credit', actif: true },
   { code: '775', libelle: 'Produits des cessions d\'immobilisations', categorie: 'Produits exceptionnels', nature: 'credit', actif: true },
   { code: '781', libelle: 'Reprises d\'amortissements', categorie: 'Reprises', nature: 'credit', actif: true },
-  { code: '786', libelle: 'Reprises de provisions', categorie: 'Reprises', nature: 'credit', actif: true }
+  { code: '786', libelle: 'Reprises de provisions', categorie: 'Reprises', nature: 'credit', actif: true },
+
+  // CLASSE 8 - COMPTES DE CHARGES ET PRODUITS HAO
+  { code: '811', libelle: 'Valeurs comptables cessions immo. incorporelles', categorie: 'Valeurs comptables cessions', nature: 'debit', actif: true, keywords: ['cession', 'VNC', 'immobilisation'] },
+  { code: '812', libelle: 'Valeurs comptables cessions immo. corporelles', categorie: 'Valeurs comptables cessions', nature: 'debit', actif: true },
+  { code: '816', libelle: 'Valeurs comptables cessions immo. financières', categorie: 'Valeurs comptables cessions', nature: 'debit', actif: true },
+  { code: '821', libelle: 'Produits des cessions d\'immobilisations incorporelles', categorie: 'Produits des cessions', nature: 'credit', actif: true, keywords: ['cession', 'produit', 'immobilisation'] },
+  { code: '822', libelle: 'Produits des cessions d\'immobilisations corporelles', categorie: 'Produits des cessions', nature: 'credit', actif: true },
+  { code: '826', libelle: 'Produits des cessions d\'immobilisations financières', categorie: 'Produits des cessions', nature: 'credit', actif: true },
+  { code: '831', libelle: 'Charges HAO constatées', categorie: 'Charges HAO', nature: 'debit', actif: true, keywords: ['HAO', 'exceptionnel', 'charge'] },
+  { code: '835', libelle: 'Dons et libéralités accordés', categorie: 'Charges HAO', nature: 'debit', actif: true, keywords: ['don', 'libéralité'] },
+  { code: '838', libelle: 'Autres charges HAO', categorie: 'Charges HAO', nature: 'debit', actif: true },
+  { code: '841', libelle: 'Produits HAO constatés', categorie: 'Produits HAO', nature: 'credit', actif: true, keywords: ['HAO', 'exceptionnel', 'produit'] },
+  { code: '845', libelle: 'Dons et libéralités obtenus', categorie: 'Produits HAO', nature: 'credit', actif: true },
+  { code: '848', libelle: 'Autres produits HAO', categorie: 'Produits HAO', nature: 'credit', actif: true },
+  { code: '851', libelle: 'Dotations provisions risques HAO', categorie: 'Dotations HAO', nature: 'debit', actif: true, keywords: ['dotation', 'HAO', 'provision'] },
+  { code: '852', libelle: 'Dotations dépréciations HAO', categorie: 'Dotations HAO', nature: 'debit', actif: true },
+  { code: '861', libelle: 'Reprises provisions risques HAO', categorie: 'Reprises HAO', nature: 'credit', actif: true, keywords: ['reprise', 'HAO', 'provision'] },
+  { code: '862', libelle: 'Reprises dépréciations HAO', categorie: 'Reprises HAO', nature: 'credit', actif: true },
+  { code: '871', libelle: 'Participation légale des travailleurs', categorie: 'Participation', nature: 'debit', actif: true, keywords: ['participation', 'travailleur'] },
+  { code: '891', libelle: 'Impôts sur les bénéfices', categorie: 'Impôt sur le résultat', nature: 'debit', actif: true, keywords: ['impôt', 'bénéfice', 'IS'] },
+  { code: '895', libelle: 'Impôt minimum forfaitaire (IMF)', categorie: 'Impôt sur le résultat', nature: 'debit', actif: true, keywords: ['IMF', 'impôt', 'minimum'] },
+
+  // CLASSE 9 - COMPTES ANALYTIQUES ET ENGAGEMENTS
+  { code: '901', libelle: 'Engagements de financement obtenus', categorie: 'Engagements hors bilan', nature: 'debit', actif: true, keywords: ['engagement', 'financement', 'hors-bilan'] },
+  { code: '902', libelle: 'Engagements de financement accordés', categorie: 'Engagements hors bilan', nature: 'credit', actif: true },
+  { code: '903', libelle: 'Engagements de garantie obtenus', categorie: 'Engagements hors bilan', nature: 'debit', actif: true, keywords: ['garantie', 'engagement'] },
+  { code: '904', libelle: 'Engagements de garantie accordés', categorie: 'Engagements hors bilan', nature: 'credit', actif: true },
+  { code: '911', libelle: 'Comptes de reclassement bilan', categorie: 'Comptes de reclassement', nature: 'debit', actif: true },
+  { code: '921', libelle: 'Centres d\'analyse principaux', categorie: 'Centres d\'analyse', nature: 'debit', actif: true, keywords: ['analytique', 'centre', 'coût'] },
+  { code: '922', libelle: 'Centres d\'analyse auxiliaires', categorie: 'Centres d\'analyse', nature: 'debit', actif: true },
+  { code: '931', libelle: 'Coûts matières premières', categorie: 'Coûts analytiques', nature: 'debit', actif: true, keywords: ['coût', 'matière', 'analytique'] },
+  { code: '941', libelle: 'Coûts produits finis', categorie: 'Coûts analytiques', nature: 'debit', actif: true },
+  { code: '971', libelle: 'Résultats analytiques', categorie: 'Résultats analytiques', nature: 'debit', actif: true, keywords: ['résultat', 'analytique'] },
+  { code: '981', libelle: 'Comptes de liaison internes', categorie: 'Comptes de liaison', nature: 'debit', actif: true, keywords: ['liaison', 'interne'] }
 ];
 
 export class PlanComptableService {

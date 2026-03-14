@@ -81,6 +81,7 @@ export interface ThirdParty {
   taxId?: string
   balance: number
   isActive: boolean
+  accountCode?: string
   tenantId?: string
 }
 

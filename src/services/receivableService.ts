@@ -67,12 +67,38 @@ export interface ProvisionResult {
 // COMPTES SYSCOHADA
 // ============================================================================
 
-const COMPTES = {
+const COMPTES_DEFAULTS = {
   PROVISION_CREANCES: '491',       // Provisions pour dépréciation des comptes clients
   DOTATION_PROVISION: '6594',      // Charges provisionnées — créances
   REPRISE_PROVISION: '7594',       // Reprises de provisions — créances
   CREANCES_DOUTEUSES: '416',       // Clients douteux ou litigieux
 };
+
+/**
+ * Read provision account codes from settings, with SYSCOHADA defaults.
+ */
+async function getProvisionComptes(adapter: DataAdapter): Promise<{
+  PROVISION_CREANCES: string;
+  DOTATION_PROVISION: string;
+  REPRISE_PROVISION: string;
+  CREANCES_DOUTEUSES: string;
+}> {
+  try {
+    const settings = await adapter.getAll('settings');
+    const getSetting = (key: string, defaultVal: string) => {
+      const s = settings.find((s: any) => s.key === key);
+      return s?.value || defaultVal;
+    };
+    return {
+      PROVISION_CREANCES: getSetting('compte_provision_creances', COMPTES_DEFAULTS.PROVISION_CREANCES),
+      DOTATION_PROVISION: getSetting('compte_dotation_provision', COMPTES_DEFAULTS.DOTATION_PROVISION),
+      REPRISE_PROVISION: getSetting('compte_reprise_provision', COMPTES_DEFAULTS.REPRISE_PROVISION),
+      CREANCES_DOUTEUSES: getSetting('compte_creances_douteuses', COMPTES_DEFAULTS.CREANCES_DOUTEUSES),
+    };
+  } catch {
+    return { ...COMPTES_DEFAULTS };
+  }
+}
 
 /** Default aging buckets matching SYSCOHADA presentation */
 const DEFAULT_AGING_BUCKETS = [
@@ -206,7 +232,7 @@ export async function getAgingAnalysis(
           : line.credit - line.debit;
 
         if (amount > 0) {
-          openLines.push({ date: entry.date, amount });
+          openLines.push({ date: line.dateEcheance || entry.date, amount });
         }
       }
     }
@@ -335,6 +361,18 @@ export async function posterProvisions(
   }
 
   const totalProvision = provisions.reduce((s, p) => s + p.montantProvision, 0);
+  const COMPTES = await getProvisionComptes(adapter);
+
+  // Check for existing provisions for this period to prevent duplicates
+  const now0 = new Date().toISOString();
+  const datePart0 = now0.split('T')[0].replace(/-/g, '');
+  const allEntries = await adapter.getAll('journalEntries');
+  const existingEntries = allEntries.filter((e: any) =>
+    e.entryNumber && e.entryNumber.startsWith('PROV-' + datePart0)
+  );
+  if (existingEntries.length > 0) {
+    throw new Error('Des provisions existent déjà pour cette période. Supprimez-les ou utilisez la reprise.');
+  }
 
   const lines: DBJournalLine[] = [
     {
@@ -386,6 +424,34 @@ export async function posterProvisions(
     entryId,
     errors: [],
   };
+}
+
+/**
+ * Generate reversal entry for doubtful receivable provisions (reprise).
+ * Debit: 491 (Provision créances) / Credit: 7594 (Reprise provision)
+ */
+export async function posterRepriseProvision(
+  adapter: DataAdapter,
+  clientId: string,
+  montant: number,
+  description?: string
+): Promise<void> {
+  const COMPTES = await getProvisionComptes(adapter);
+  const datePart = new Date().toISOString().split('T')[0].replace(/-/g, '');
+
+  await safeAddEntry(adapter, {
+    journal: 'OD',
+    date: new Date().toISOString().split('T')[0],
+    entryNumber: `REPRISE-${datePart}-${clientId.substring(0, 4)}`,
+    description: description || `Reprise de provision client ${clientId}`,
+    status: 'validated',
+    lines: [
+      { accountCode: COMPTES.PROVISION_CREANCES, debit: montant, credit: 0, label: 'Reprise provision créances' },
+      { accountCode: COMPTES.REPRISE_PROVISION, debit: 0, credit: montant, label: 'Reprise provision' },
+    ],
+    totalDebit: montant,
+    totalCredit: montant,
+  } as any, { skipSyncValidation: true });
 }
 
 /**

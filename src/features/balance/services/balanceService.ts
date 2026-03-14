@@ -5,6 +5,7 @@
 import type { DataAdapter } from '@atlas/data';
 import { BalanceAccount, BalanceFilters, BalanceTotals } from '../types/balance.types';
 import { formatCurrency } from '@/utils/formatters';
+import { money } from '@/utils/money';
 
 // SYSCOHADA account class hierarchy
 const SYSCOHADA_CLASSES: Record<string, string> = {
@@ -21,7 +22,8 @@ const SYSCOHADA_CLASSES: Record<string, string> = {
 
 class BalanceService {
   async getBalance(adapter: DataAdapter, filters: BalanceFilters): Promise<BalanceAccount[]> {
-    const entries = await adapter.getAll<any>('journalEntries');
+    const allEntries = await adapter.getAll<any>('journalEntries');
+    const entries = allEntries.filter(e => e.status !== 'draft');
     const accounts = await adapter.getAll<any>('accounts');
 
     // Build account metadata map from chart of accounts
@@ -37,8 +39,8 @@ class BalanceService {
       if (entry.date < filters.period.from || entry.date > filters.period.to) continue;
       for (const line of entry.lines) {
         const existing = openingBalances.get(line.accountCode) || { debit: 0, credit: 0 };
-        existing.debit += line.debit;
-        existing.credit += line.credit;
+        existing.debit = money(existing.debit).add(money(line.debit)).toNumber();
+        existing.credit = money(existing.credit).add(money(line.credit)).toNumber();
         openingBalances.set(line.accountCode, existing);
       }
     }
@@ -64,8 +66,8 @@ class BalanceService {
         }
 
         const existing = movements.get(line.accountCode) || { debit: 0, credit: 0, name: line.accountName };
-        existing.debit += line.debit;
-        existing.credit += line.credit;
+        existing.debit = money(existing.debit).add(money(line.debit)).toNumber();
+        existing.credit = money(existing.credit).add(money(line.credit)).toNumber();
         if (!existing.name && line.accountName) existing.name = line.accountName;
         movements.set(line.accountCode, existing);
       }
@@ -104,12 +106,12 @@ class BalanceService {
 
     const addAccountTotals = (account: BalanceAccount) => {
       if (!account.children || account.children.length === 0) {
-        totals.soldeDebiteurAN += account.soldeDebiteurAN;
-        totals.soldeCrediteurAN += account.soldeCrediteurAN;
-        totals.mouvementsDebit += account.mouvementsDebit;
-        totals.mouvementsCredit += account.mouvementsCredit;
-        totals.soldeDebiteur += account.soldeDebiteur;
-        totals.soldeCrediteur += account.soldeCrediteur;
+        totals.soldeDebiteurAN = money(totals.soldeDebiteurAN).add(money(account.soldeDebiteurAN)).toNumber();
+        totals.soldeCrediteurAN = money(totals.soldeCrediteurAN).add(money(account.soldeCrediteurAN)).toNumber();
+        totals.mouvementsDebit = money(totals.mouvementsDebit).add(money(account.mouvementsDebit)).toNumber();
+        totals.mouvementsCredit = money(totals.mouvementsCredit).add(money(account.mouvementsCredit)).toNumber();
+        totals.soldeDebiteur = money(totals.soldeDebiteur).add(money(account.soldeDebiteur)).toNumber();
+        totals.soldeCrediteur = money(totals.soldeCrediteur).add(money(account.soldeCrediteur)).toNumber();
       } else {
         account.children.forEach(addAccountTotals);
       }
@@ -188,11 +190,13 @@ class BalanceService {
 
     for (const [code, data] of movements) {
       const classCode = code.charAt(0);
-      const soldeNet = data.debit - data.credit;
-
       // P1-3: Opening balances from AN/RAN journal entries
       const opening = openingBalances.get(code) || { debit: 0, credit: 0 };
-      const openingNet = opening.debit - opening.credit;
+      const openingNet = money(opening.debit).subtract(money(opening.credit)).toNumber();
+
+      // AF-054: Include opening balance in closing balance calculation
+      const soldeOuvertureNet = money(opening.debit || 0).subtract(money(opening.credit || 0)).toNumber();
+      const soldeNet = money(soldeOuvertureNet).add(money(data.debit)).subtract(money(data.credit)).toNumber();
 
       // Leaf account
       const leaf: BalanceAccount = {
@@ -227,12 +231,14 @@ class BalanceService {
       }
 
       const classNode = classMap.get(classCode)!;
-      classNode.soldeDebiteurAN += leaf.soldeDebiteurAN;
-      classNode.soldeCrediteurAN += leaf.soldeCrediteurAN;
-      classNode.mouvementsDebit += data.debit;
-      classNode.mouvementsCredit += data.credit;
+      classNode.soldeDebiteurAN = money(classNode.soldeDebiteurAN).add(money(leaf.soldeDebiteurAN)).toNumber();
+      classNode.soldeCrediteurAN = money(classNode.soldeCrediteurAN).add(money(leaf.soldeCrediteurAN)).toNumber();
+      classNode.mouvementsDebit = money(classNode.mouvementsDebit).add(money(data.debit)).toNumber();
+      classNode.mouvementsCredit = money(classNode.mouvementsCredit).add(money(data.credit)).toNumber();
 
-      const classSolde = classNode.mouvementsDebit - classNode.mouvementsCredit;
+      // AF-054: Include opening balance in class-level closing balance
+      const classOpeningNet = money(classNode.soldeDebiteurAN).subtract(money(classNode.soldeCrediteurAN)).toNumber();
+      const classSolde = money(classOpeningNet).add(money(classNode.mouvementsDebit)).subtract(money(classNode.mouvementsCredit)).toNumber();
       classNode.soldeDebiteur = classSolde > 0 ? classSolde : 0;
       classNode.soldeCrediteur = classSolde < 0 ? Math.abs(classSolde) : 0;
 
@@ -317,6 +323,79 @@ export async function detectAbnormalBalances(
 
   checkLeaves(accounts);
   return alerts;
+}
+
+// ============================================================================
+// AF-060 : Auxiliary balance reconciliation verification
+// ============================================================================
+
+export interface AuxiliaryReconciliationResult {
+  collectiveBalance: number;
+  auxiliaryTotal: number;
+  difference: number;
+  isReconciled: boolean;
+  auxiliaryCount: number;
+}
+
+/**
+ * Vérifie la concordance entre un compte collectif (ex: 411, 401) et ses
+ * comptes auxiliaires (ex: 411001, 411002…).
+ *
+ * Le solde du compte collectif doit être égal à la somme des soldes de tous
+ * ses auxiliaires. Un écart < 0.01 est toléré (arrondis).
+ *
+ * Utilise uniquement les écritures validées (hors brouillons).
+ */
+export async function verifyAuxiliaryReconciliation(
+  adapter: DataAdapter,
+  collectiveAccountCode: string,
+): Promise<AuxiliaryReconciliationResult> {
+  const allEntries = await adapter.getAll<any>('journalEntries');
+  const entries = allEntries.filter(e => e.status !== 'draft');
+
+  let collectiveDebit = money(0);
+  let collectiveCredit = money(0);
+
+  // Map of auxiliary account code -> { debit, credit }
+  const auxiliaryBalances = new Map<string, { debit: typeof collectiveDebit; credit: typeof collectiveCredit }>();
+
+  for (const entry of entries) {
+    for (const line of entry.lines) {
+      const code: string = line.accountCode;
+
+      if (code === collectiveAccountCode) {
+        // Exact match: this is the collective account itself
+        collectiveDebit = collectiveDebit.add(money(line.debit || 0));
+        collectiveCredit = collectiveCredit.add(money(line.credit || 0));
+      } else if (code.startsWith(collectiveAccountCode) && code.length > collectiveAccountCode.length) {
+        // Auxiliary account (starts with collective code but is longer)
+        const existing = auxiliaryBalances.get(code) || { debit: money(0), credit: money(0) };
+        existing.debit = existing.debit.add(money(line.debit || 0));
+        existing.credit = existing.credit.add(money(line.credit || 0));
+        auxiliaryBalances.set(code, existing);
+      }
+    }
+  }
+
+  // Net balance of the collective account (debit - credit)
+  const collectiveBalance = collectiveDebit.subtract(collectiveCredit).toNumber();
+
+  // Sum of net balances of all auxiliary accounts
+  let auxiliarySum = money(0);
+  for (const [, bal] of auxiliaryBalances) {
+    auxiliarySum = auxiliarySum.add(bal.debit.subtract(bal.credit));
+  }
+  const auxiliaryTotal = auxiliarySum.toNumber();
+
+  const difference = money(collectiveBalance).subtract(money(auxiliaryTotal)).abs().toNumber();
+
+  return {
+    collectiveBalance,
+    auxiliaryTotal,
+    difference,
+    isReconciled: difference < 0.01,
+    auxiliaryCount: auxiliaryBalances.size,
+  };
 }
 
 export const balanceService = new BalanceService();

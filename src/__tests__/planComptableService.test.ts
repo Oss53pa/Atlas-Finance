@@ -188,7 +188,7 @@ describe('PlanComptableService (Dexie)', () => {
       expect(found!.isActive).toBe(false);
     });
 
-    it('should throw for account with entries', async () => {
+    it('should deactivate account even with entries', async () => {
       const account = await planComptableService.createAccount(adapter, {
         code: '411000', name: 'Clients', accountClass: '4', accountType: 'bilan',
         level: 4, normalBalance: 'debit', isReconcilable: true, isActive: true,
@@ -213,9 +213,11 @@ describe('PlanComptableService (Dexie)', () => {
         updatedAt: '2025-06-15T10:00:00Z',
       });
 
-      await expect(
-        planComptableService.deactivateAccount(adapter, account.id)
-      ).rejects.toThrow('a des écritures');
+      // AF-058: deactivation is allowed even when account has entries (soft delete)
+      await planComptableService.deactivateAccount(adapter, account.id);
+
+      const found = await planComptableService.getAccountByCode(adapter, '411000');
+      expect(found!.isActive).toBe(false);
     });
   });
 

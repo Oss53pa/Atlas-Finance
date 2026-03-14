@@ -44,7 +44,8 @@ export interface TrialBalanceResult {
  * Run full trial balance verification.
  */
 export async function verifyTrialBalance(adapter: DataAdapter, fiscalYear?: string): Promise<TrialBalanceResult> {
-  let entries = await adapter.getAll('journalEntries');
+  let entries = (await adapter.getAll('journalEntries'))
+    .filter(e => e.status !== 'draft');
 
   // Filter by fiscal year if specified
   if (fiscalYear) {
@@ -110,11 +111,25 @@ export async function verifyTrialBalance(adapter: DataAdapter, fiscalYear?: stri
       } else if (cls === '1') {
         passif = passif.add(money(-net)); // Credit balance = positive passif
       } else if (cls === '4') {
-        // Class 4: tiers — 40x fournisseurs (passif), 41x clients (actif)
+        // Class 4: tiers
         if (line.accountCode.startsWith('40')) {
+          // 40x Fournisseurs → passif (credit balance normally)
           passif = passif.add(money(-net));
         } else if (line.accountCode.startsWith('41')) {
+          // 41x Clients → actif (debit balance normally)
           actif = actif.add(money(net));
+        } else if (line.accountCode.startsWith('42') || line.accountCode.startsWith('43')) {
+          // 42x Personnel, 43x Organismes sociaux → passif (credit balance normally)
+          passif = passif.add(money(-net));
+        } else {
+          // 44x État, 45x Associés, 46x Débiteurs/Créditeurs divers,
+          // 47x Comptes transitoires, 48x Comptes de régularisation
+          // → actif if net debit, passif if net credit
+          if (net > 0) {
+            actif = actif.add(money(net));
+          } else if (net < 0) {
+            passif = passif.add(money(-net));
+          }
         }
       }
     }

@@ -22,6 +22,106 @@ import {
 } from '../types/financialStatements.types';
 
 // ============================================================================
+// RPC HELPER (Supabase SaaS mode)
+// ============================================================================
+
+/**
+ * Try to call a Supabase RPC function via the adapter.
+ * Returns null if the adapter doesn't support RPC (Dexie/local mode).
+ */
+async function tryRPC(adapter: DataAdapter, rpcName: string, params: Record<string, unknown>): Promise<any | null> {
+  try {
+    if (typeof adapter.rpc === 'function') {
+      return await adapter.rpc(rpcName, params);
+    }
+    return null;
+  } catch (err) {
+    console.warn(`[FinancialStatements] RPC ${rpcName} failed, falling back to JS calculation:`, err);
+    return null;
+  }
+}
+
+/**
+ * Map RPC bilan result to the TypeScript Bilan type.
+ * The RPC returns snake_case fields; we map to our camelCase interfaces.
+ */
+function mapRPCToBilan(rpcData: any, exercice: string): Bilan {
+  const d = rpcData;
+  const actif: BilanActif = {
+    immobilisationsIncorporelles: d.immobilisations_incorporelles ?? d.immobilisationsIncorporelles ?? 0,
+    immobilisationsCorporelles: d.immobilisations_corporelles ?? d.immobilisationsCorporelles ?? 0,
+    immobilisationsFinancieres: d.immobilisations_financieres ?? d.immobilisationsFinancieres ?? 0,
+    totalActifImmobilise: d.total_actif_immobilise ?? d.totalActifImmobilise ?? 0,
+    stocks: d.stocks ?? 0,
+    creancesClients: d.creances_clients ?? d.creancesClients ?? 0,
+    autresCreances: d.autres_creances ?? d.autresCreances ?? 0,
+    tresorerieActif: d.tresorerie_actif ?? d.tresorerieActif ?? 0,
+    totalActifCirculant: d.total_actif_circulant ?? d.totalActifCirculant ?? 0,
+    totalActif: d.total_actif ?? d.totalActif ?? 0,
+  };
+
+  const passif: BilanPassif = {
+    capitalSocial: d.capital_social ?? d.capitalSocial ?? 0,
+    reserves: d.reserves ?? 0,
+    resultatEnInstance: d.resultat_en_instance ?? d.resultatEnInstance ?? 0,
+    provisionsReglementees: d.provisions_reglementees ?? d.provisionsReglementees ?? 0,
+    subventionsInvestissement: d.subventions_investissement ?? d.subventionsInvestissement ?? 0,
+    resultatExercice: d.resultat_exercice ?? d.resultatExercice ?? 0,
+    capitauxPropres: d.capitaux_propres ?? d.capitauxPropres ?? 0,
+    emprunts: d.emprunts ?? 0,
+    dettesFinancieres: d.dettes_financieres ?? d.dettesFinancieres ?? 0,
+    dettesParticipations: d.dettes_participations ?? d.dettesParticipations ?? 0,
+    provisionsRisques: d.provisions_risques ?? d.provisionsRisques ?? 0,
+    dettesFournisseurs: d.dettes_fournisseurs ?? d.dettesFournisseurs ?? 0,
+    autresDettes: d.autres_dettes ?? d.autresDettes ?? 0,
+    totalPassif: d.total_passif ?? d.totalPassif ?? 0,
+  };
+
+  return {
+    actif,
+    passif,
+    exercice,
+    dateEtablissement: d.date_etablissement ?? new Date().toISOString(),
+    tresoreriePassive: d.tresorerie_passive ?? d.tresoreriePassive ?? 0,
+    warnings: d.warnings ?? [],
+  };
+}
+
+/**
+ * Map RPC compte de résultat result to the TypeScript CompteResultat type.
+ */
+function mapRPCToCompteResultat(rpcData: any, exercice: string): CompteResultat {
+  const d = rpcData;
+  return {
+    chiffreAffaires: d.chiffre_affaires ?? d.chiffreAffaires ?? 0,
+    productionVendue: d.production_vendue ?? d.productionVendue ?? 0,
+    productionStockee: d.production_stockee ?? d.productionStockee ?? 0,
+    productionImmobilisee: d.production_immobilisee ?? d.productionImmobilisee ?? 0,
+    subventionsExploitation: d.subventions_exploitation ?? d.subventionsExploitation ?? 0,
+    autresProduitsExploitation: d.autres_produits_exploitation ?? d.autresProduitsExploitation ?? 0,
+    totalProduitsExploitation: d.total_produits_exploitation ?? d.totalProduitsExploitation ?? 0,
+    achatsConsommes: d.achats_consommes ?? d.achatsConsommes ?? 0,
+    servicesExterieurs: d.services_exterieurs ?? d.servicesExterieurs ?? 0,
+    chargesPersonnel: d.charges_personnel ?? d.chargesPersonnel ?? 0,
+    impotsTaxes: d.impots_taxes ?? d.impotsTaxes ?? 0,
+    dotationsAmortissements: d.dotations_amortissements ?? d.dotationsAmortissements ?? 0,
+    autresChargesExploitation: d.autres_charges_exploitation ?? d.autresChargesExploitation ?? 0,
+    totalChargesExploitation: d.total_charges_exploitation ?? d.totalChargesExploitation ?? 0,
+    resultatExploitation: d.resultat_exploitation ?? d.resultatExploitation ?? 0,
+    produitsFinanciers: d.produits_financiers ?? d.produitsFinanciers ?? 0,
+    chargesFinancieres: d.charges_financieres ?? d.chargesFinancieres ?? 0,
+    resultatFinancier: d.resultat_financier ?? d.resultatFinancier ?? 0,
+    resultatCourant: d.resultat_courant ?? d.resultatCourant ?? 0,
+    produitsExceptionnels: d.produits_exceptionnels ?? d.produitsExceptionnels ?? 0,
+    chargesExceptionnelles: d.charges_exceptionnelles ?? d.chargesExceptionnelles ?? 0,
+    resultatExceptionnel: d.resultat_exceptionnel ?? d.resultatExceptionnel ?? 0,
+    impotsSocietes: d.impots_societes ?? d.impotsSocietes ?? 0,
+    resultatNet: d.resultat_net ?? d.resultatNet ?? 0,
+    exercice,
+  };
+}
+
+// ============================================================================
 // HELPERS
 // ============================================================================
 
@@ -354,6 +454,43 @@ function computeSIG(cr: CompteResultat, entries: DBJournalEntry[]): SIG {
   };
 }
 
+/**
+ * Compute SIG from CDR fields only (no raw entries needed).
+ * Used when bilan/CDR come from Supabase RPC.
+ * Approximations: margeCommerciale uses chiffreAffaires - achatsConsommes,
+ * CAF uses dotationsAmortissements as proxy for non-cash items.
+ */
+function computeSIGFromCDR(cr: CompteResultat): SIG {
+  // Approximate: margeCommerciale = CA - achatsConsommes (assumes all is trade)
+  const margeCommerciale = money(cr.chiffreAffaires).subtract(cr.achatsConsommes).toNumber();
+  const productionExercice = money(cr.productionVendue).add(cr.productionStockee).add(cr.productionImmobilisee).toNumber();
+  const consommations = money(cr.achatsConsommes).add(cr.servicesExterieurs).toNumber();
+  const valeurAjoutee = money(margeCommerciale).add(productionExercice).subtract(consommations).toNumber();
+  const excedentBrutExploitation = money(valeurAjoutee)
+    .add(cr.subventionsExploitation)
+    .subtract(cr.chargesPersonnel)
+    .subtract(cr.impotsTaxes)
+    .toNumber();
+
+  // CAF approximation from CDR: resultatNet + dotations - (autresProduitsExploitation as reprises proxy)
+  const capaciteAutofinancement = money(cr.resultatNet)
+    .add(cr.dotationsAmortissements)
+    .toNumber();
+
+  return {
+    margeCommerciale,
+    productionExercice,
+    valeurAjoutee,
+    excedentBrutExploitation,
+    resultatExploitation: cr.resultatExploitation,
+    resultatCourant: cr.resultatCourant,
+    resultatExceptionnel: cr.resultatExceptionnel,
+    resultatNet: cr.resultatNet,
+    capaciteAutofinancement,
+    exercice: cr.exercice,
+  };
+}
+
 // ============================================================================
 // RATIOS FINANCIERS
 // ============================================================================
@@ -425,7 +562,17 @@ function computeBilanFonctionnel(bilan: Bilan): BilanFonctionnel {
 // ============================================================================
 
 class FinancialStatementsService {
-  async getFinancialStatements(adapter: DataAdapter, exercice: string): Promise<FinancialStatementsData> {
+  async getFinancialStatements(adapter: DataAdapter, exercice: string, archive: boolean = false): Promise<FinancialStatementsData> {
+    // --- Try Supabase RPC first (server-side, faster for SaaS mode) ---
+    const rpcResult = await this.tryRPCFinancialStatements(adapter, exercice);
+    if (rpcResult) {
+      if (archive) {
+        await this.archiveEtat(adapter, 'bilan', exercice, rpcResult);
+      }
+      return rpcResult;
+    }
+
+    // --- Fallback: JavaScript calculation (Dexie/local mode) ---
     const entries = await loadEntriesForExercice(adapter, exercice);
     const bilan = computeBilan(entries, exercice);
     const compteResultat = computeCompteResultat(entries, exercice);
@@ -433,15 +580,33 @@ class FinancialStatementsService {
     const ratios = computeRatios(bilan, compteResultat);
     const bilanFonctionnel = computeBilanFonctionnel(bilan);
 
-    return { bilan, compteResultat, sig, ratios, bilanFonctionnel };
+    const result = { bilan, compteResultat, sig, ratios, bilanFonctionnel };
+
+    if (archive) {
+      await this.archiveEtat(adapter, 'bilan', exercice, result);
+    }
+
+    return result;
   }
 
   async getBilan(adapter: DataAdapter, exercice: string): Promise<Bilan> {
+    // Try RPC first
+    const rpcBilan = await tryRPC(adapter, 'generate_bilan', { p_fiscal_year_id: exercice });
+    if (rpcBilan) {
+      return mapRPCToBilan(rpcBilan, exercice);
+    }
+    // Fallback: JS calculation
     const entries = await loadEntriesForExercice(adapter, exercice);
     return computeBilan(entries, exercice);
   }
 
   async getCompteResultat(adapter: DataAdapter, exercice: string): Promise<CompteResultat> {
+    // Try RPC first
+    const rpcCdr = await tryRPC(adapter, 'generate_cdr', { p_fiscal_year_id: exercice });
+    if (rpcCdr) {
+      return mapRPCToCompteResultat(rpcCdr, exercice);
+    }
+    // Fallback: JS calculation
     const entries = await loadEntriesForExercice(adapter, exercice);
     return computeCompteResultat(entries, exercice);
   }
@@ -486,9 +651,10 @@ class FinancialStatementsService {
   async exportStatements(
     adapter: DataAdapter,
     format: 'excel' | 'pdf',
-    exercice: string
+    exercice: string,
+    archive: boolean = true
   ): Promise<Blob> {
-    const data = await this.getFinancialStatements(adapter, exercice);
+    const data = await this.getFinancialStatements(adapter, exercice, archive);
 
     if (format === 'pdf') {
       try {
@@ -503,6 +669,32 @@ class FinancialStatementsService {
 
     const json = JSON.stringify(data, null, 2);
     return new Blob([json], { type: 'application/json' });
+  }
+
+  /**
+   * Try to generate full financial statements via Supabase RPC.
+   * Returns null if RPC is not available (Dexie mode) or fails.
+   */
+  private async tryRPCFinancialStatements(adapter: DataAdapter, exercice: string): Promise<FinancialStatementsData | null> {
+    // Both RPCs must succeed for a complete result
+    const [rpcBilan, rpcCdr] = await Promise.all([
+      tryRPC(adapter, 'generate_bilan', { p_fiscal_year_id: exercice }),
+      tryRPC(adapter, 'generate_cdr', { p_fiscal_year_id: exercice }),
+    ]);
+
+    if (!rpcBilan || !rpcCdr) return null;
+
+    const bilan = mapRPCToBilan(rpcBilan, exercice);
+    const compteResultat = mapRPCToCompteResultat(rpcCdr, exercice);
+
+    // SIG, ratios, and bilan fonctionnel are derived from bilan + CDR
+    // computeSIG normally needs raw entries for sub-breakdowns (701, 601, etc.)
+    // When using RPC, we approximate SIG from CDR aggregate fields
+    const sig = computeSIGFromCDR(compteResultat);
+    const ratios = computeRatios(bilan, compteResultat);
+    const bilanFonctionnel = computeBilanFonctionnel(bilan);
+
+    return { bilan, compteResultat, sig, ratios, bilanFonctionnel };
   }
 
   /**

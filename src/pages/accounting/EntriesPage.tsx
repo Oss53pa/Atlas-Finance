@@ -83,7 +83,7 @@ const EntriesPage: React.FC = () => {
       filterable: true,
       filterType: 'select',
       filterOptions: [
-        { value: 'VT', label: 'VT' },
+        { value: 'VE', label: 'VE' },
         { value: 'AC', label: 'AC' },
         { value: 'BQ', label: 'BQ' },
         { value: 'CA', label: 'CA' },
@@ -195,7 +195,7 @@ const EntriesPage: React.FC = () => {
 
   // Modèles de saisie
   const modelesSaisie = [
-    { id: 1, nom: 'Facture vente standard', journal: 'VT' },
+    { id: 1, nom: 'Facture vente standard', journal: 'VE' },
     { id: 2, nom: 'Achat avec TVA', journal: 'AC' },
     { id: 3, nom: 'Paiement fournisseur', journal: 'BQ' },
   ];
@@ -386,6 +386,7 @@ const EntriesPage: React.FC = () => {
                       >
                         <Eye className="w-4 h-4 text-[var(--color-info)]" />
                       </button>
+                      {item.statut === t('accounting.draft') && (
                       <button
                         onClick={() => handleEditEntry({
                           id: item.id,
@@ -404,6 +405,7 @@ const EntriesPage: React.FC = () => {
                       >
                         <Edit className="w-4 h-4" />
                       </button>
+                      )}
                     </div>
                   )}
                   emptyMessage="Aucune écriture en brouillard"

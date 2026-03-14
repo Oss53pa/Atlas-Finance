@@ -4,6 +4,7 @@
  */
 import type { DataAdapter } from '@atlas/data';
 import type { DBJournalEntry } from '../../../lib/db';
+import { money } from '../../../utils/money';
 import {
   AccountLedger,
   LedgerStats,
@@ -19,13 +20,26 @@ class GeneralLedgerService {
   async getLedgerAccounts(adapter: DataAdapter, filters: GeneralLedgerFilters): Promise<AccountLedger[]> {
     const entries = await this.queryEntries(adapter, filters);
 
-    // P1-3: Compute opening balances from AN/RAN journal entries
+    // AF-055: Compute cumulative opening balances from ALL entries before dateDebut
     const openingBalances = new Map<string, number>();
-    for (const entry of entries) {
-      if (entry.journal !== 'AN' && entry.journal !== 'RAN') continue;
-      for (const line of entry.lines) {
-        const current = openingBalances.get(line.accountCode) || 0;
-        openingBalances.set(line.accountCode, current + line.debit - line.credit);
+    if (filters.dateDebut) {
+      // Fetch all entries (unfiltered) to find pre-period movements
+      const allEntries = await adapter.getAll<DBJournalEntry>('journalEntries');
+      for (const entry of allEntries) {
+        if (entry.date >= filters.dateDebut) continue; // only entries BEFORE the period
+        for (const line of entry.lines) {
+          const current = openingBalances.get(line.accountCode) || 0;
+          openingBalances.set(line.accountCode, money(current).add(money(line.debit)).subtract(money(line.credit)).toNumber());
+        }
+      }
+    } else {
+      // No date filter: opening balances from AN/RAN entries only
+      for (const entry of entries) {
+        if (entry.journal !== 'AN' && entry.journal !== 'RAN') continue;
+        for (const line of entry.lines) {
+          const current = openingBalances.get(line.accountCode) || 0;
+          openingBalances.set(line.accountCode, money(current).add(money(line.debit)).subtract(money(line.credit)).toNumber());
+        }
       }
     }
 
@@ -40,8 +54,8 @@ class GeneralLedgerService {
           credit: 0,
           entries: [],
         };
-        existing.debit += line.debit;
-        existing.credit += line.credit;
+        existing.debit = money(existing.debit).add(money(line.debit)).toNumber();
+        existing.credit = money(existing.credit).add(money(line.credit)).toNumber();
         existing.entries.push({
           id: entry.id,
           date: entry.date,
@@ -72,10 +86,9 @@ class GeneralLedgerService {
         if (b.journal === 'AN' || b.journal === 'RAN') return 1;
         return a.date.localeCompare(b.date);
       });
-      // Reset running balance — AN entries are already in totalDebit/totalCredit
-      runningBalance = 0;
+      // AF-019: Do NOT reset runningBalance — soldeOuverture must carry forward
       for (const e of sorted) {
-        runningBalance += e.debit - e.credit;
+        runningBalance = money(runningBalance).add(money(e.debit)).subtract(money(e.credit)).toNumber();
         e.solde = runningBalance;
       }
 
@@ -85,7 +98,7 @@ class GeneralLedgerService {
         soldeOuverture,
         totalDebit: data.debit,
         totalCredit: data.credit,
-        soldeFermeture: data.debit - data.credit,
+        soldeFermeture: money(soldeOuverture).add(money(data.debit)).subtract(money(data.credit)).toNumber(),
         nombreEcritures: data.entries.length,
         entries: sorted,
       });
@@ -99,7 +112,8 @@ class GeneralLedgerService {
     accountNumber: string,
     filters: Partial<GeneralLedgerFilters>
   ): Promise<AccountLedger> {
-    const allEntries = await adapter.getAll<DBJournalEntry>('journalEntries');
+    const allEntries = (await adapter.getAll<DBJournalEntry>('journalEntries'))
+      .filter(e => e.status !== 'draft');
 
     const lines: Array<{ id: string; date: string; piece: string; libelle: string; debit: number; credit: number; solde: number; journal: string; tiers: string }> = [];
     let totalDebit = 0;
@@ -113,8 +127,8 @@ class GeneralLedgerService {
       for (const line of entry.lines) {
         if (line.accountCode === accountNumber) {
           libelle = line.accountName || accountNumber;
-          totalDebit += line.debit;
-          totalCredit += line.credit;
+          totalDebit = money(totalDebit).add(money(line.debit)).toNumber();
+          totalCredit = money(totalCredit).add(money(line.credit)).toNumber();
           lines.push({
             id: entry.id,
             date: entry.date,
@@ -130,11 +144,22 @@ class GeneralLedgerService {
       }
     }
 
-    // P1-3: Compute solde d'ouverture from AN/RAN entries for this account
+    // AF-055: Compute cumulative opening balance from ALL entries before dateDebut
     let soldeOuverture = 0;
-    for (const l of lines) {
-      if (l.journal === 'AN' || l.journal === 'RAN') {
-        soldeOuverture += l.debit - l.credit;
+    if (filters.dateDebut) {
+      for (const entry of allEntries) {
+        if (entry.date >= filters.dateDebut) continue;
+        for (const line of entry.lines) {
+          if (line.accountCode === accountNumber) {
+            soldeOuverture = money(soldeOuverture).add(money(line.debit)).subtract(money(line.credit)).toNumber();
+          }
+        }
+      }
+    } else {
+      for (const l of lines) {
+        if (l.journal === 'AN' || l.journal === 'RAN') {
+          soldeOuverture = money(soldeOuverture).add(money(l.debit)).subtract(money(l.credit)).toNumber();
+        }
       }
     }
 
@@ -144,9 +169,9 @@ class GeneralLedgerService {
       if (b.journal === 'AN' || b.journal === 'RAN') return 1;
       return a.date.localeCompare(b.date);
     });
-    let runningBalance = 0;
+    let runningBalance = soldeOuverture;
     for (const l of lines) {
-      runningBalance += l.debit - l.credit;
+      runningBalance = money(runningBalance).add(money(l.debit)).subtract(money(l.credit)).toNumber();
       l.solde = runningBalance;
     }
 
@@ -156,14 +181,15 @@ class GeneralLedgerService {
       soldeOuverture,
       totalDebit,
       totalCredit,
-      soldeFermeture: totalDebit - totalCredit,
+      soldeFermeture: money(soldeOuverture).add(money(totalDebit)).subtract(money(totalCredit)).toNumber(),
       nombreEcritures: lines.length,
       entries: lines,
     };
   }
 
   async getStats(adapter: DataAdapter, filters: Partial<GeneralLedgerFilters>): Promise<LedgerStats> {
-    const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
+    const entries = (await adapter.getAll<DBJournalEntry>('journalEntries'))
+      .filter(e => e.status !== 'draft');
     const accountCodes = new Set<string>();
     let totalDebit = 0;
     let totalCredit = 0;
@@ -176,8 +202,8 @@ class GeneralLedgerService {
       entryCount++;
       for (const line of entry.lines) {
         accountCodes.add(line.accountCode);
-        totalDebit += line.debit;
-        totalCredit += line.credit;
+        totalDebit = money(totalDebit).add(money(line.debit)).toNumber();
+        totalCredit = money(totalCredit).add(money(line.credit)).toNumber();
       }
     }
 
@@ -186,7 +212,7 @@ class GeneralLedgerService {
       totalEntries: entryCount,
       totalDebit,
       totalCredit,
-      balance: totalDebit - totalCredit,
+      balance: money(totalDebit).subtract(money(totalCredit)).toNumber(),
       period: `${filters.dateDebut || ''} - ${filters.dateFin || ''}`,
     };
   }
@@ -194,7 +220,8 @@ class GeneralLedgerService {
   async search(adapter: DataAdapter, query: string, filters?: Partial<GeneralLedgerFilters>): Promise<LedgerSearchResult> {
     const startTime = Date.now();
     const q = query.toLowerCase();
-    const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
+    const entries = (await adapter.getAll<DBJournalEntry>('journalEntries'))
+      .filter(e => e.status !== 'draft');
 
     const matchingAccounts = new Map<string, AccountLedger>();
     const matchingEntries: Array<{ id: string; date: string; piece: string; libelle: string; debit: number; credit: number; solde: number; journal: string }> = [];
@@ -319,7 +346,8 @@ class GeneralLedgerService {
   // ---- Private helpers ----
 
   private async queryEntries(adapter: DataAdapter, filters: GeneralLedgerFilters): Promise<DBJournalEntry[]> {
-    let entries = await adapter.getAll<DBJournalEntry>('journalEntries');
+    let entries = (await adapter.getAll<DBJournalEntry>('journalEntries'))
+      .filter(e => e.status !== 'draft');
 
     if (filters.dateDebut) {
       entries = entries.filter(e => e.date >= filters.dateDebut);
