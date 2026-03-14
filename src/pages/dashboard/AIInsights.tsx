@@ -552,6 +552,16 @@ const AIInsights: React.FC = () => {
 
   return (
     <div className="p-6">
+      {/* Demo data warning banner */}
+      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+        <div className="flex items-center gap-2">
+          <AlertTriangle className="h-5 w-5 text-amber-600" />
+          <p className="text-sm text-amber-800 font-medium">
+            Module IA en cours de développement — Les données affichées sont des exemples de démonstration.
+          </p>
+        </div>
+      </div>
+
       {/* AI Service Status Banner */}
       {!aiServiceAvailable && (
         <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center space-x-3">

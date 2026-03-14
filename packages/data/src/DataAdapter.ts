@@ -81,6 +81,9 @@ export interface DataAdapter {
   logAudit(event: Omit<AuditEntry, 'id' | 'hash'>): Promise<void>
   getAuditTrail(filters?: QueryFilters): Promise<AuditEntry[]>
 
+  // RPC (Supabase uniquement — retourne null si non disponible)
+  rpc?(rpcName: string, params: Record<string, unknown>): Promise<any | null>
+
   // Sync (hybride uniquement)
   getLastSyncTimestamp?(): Promise<string | null>
   pushChanges?(changes: ChangeSet): Promise<SyncResult>

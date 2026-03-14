@@ -194,7 +194,7 @@ function App() {
                       <Route path="/" element={<LandingPage />} />
                       <Route path="/login" element={<LoginPage />} />
 
-                      {/* Workspaces - EN DEHORS du layout principal */}
+                      {/* Workspaces — pages autonomes SANS sidebar ERP */}
                       <Route path="/workspace" element={<WorkspaceDashboard />} />
                       <Route path="/workspace/comptable" element={<ComptableWorkspace />} />
                       <Route path="/workspace/manager" element={<ManagerWorkspace />} />

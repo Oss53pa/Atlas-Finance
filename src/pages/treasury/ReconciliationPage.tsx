@@ -1,7 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useData } from '../../contexts/DataContext';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import ExportMenu from '../../components/shared/ExportMenu';
+import {
+  rapprochementAutomatique,
+  genererEtatRapprochement,
+  appliquerRapprochement,
+  parseBankStatementCSV,
+} from '../../services/rapprochementBancaireService';
+import type {
+  RapprochementResult,
+  BankTransaction,
+  EtatRapprochement,
+} from '../../services/rapprochementBancaireService';
 import {
   GitCompare,
   Plus,
@@ -73,6 +85,12 @@ interface ReconciliationFilters {
 
 const ReconciliationPage: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [rapprochementResult, setRapprochementResult] = useState<RapprochementResult | null>(null);
+  const [etatRapprochement, setEtatRapprochement] = useState<EtatRapprochement | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [bankTransactions, setBankTransactions] = useState<BankTransaction[]>([]);
   const [filters, setFilters] = useState<ReconciliationFilters>({
     compte: '',
     periode_debut: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
@@ -100,25 +118,97 @@ const ReconciliationPage: React.FC = () => {
     page_size: 100,
   });
 
+  // Derive display data from rapprochementResult
+  const reconciliationItems: ReconciliationItem[] = rapprochementResult
+    ? [
+        ...rapprochementResult.matches.map((m) => ({
+          id: m.bankTransactionId,
+          date: bankTransactions.find((tx) => tx.id === m.bankTransactionId)?.date || '',
+          type_mouvement: m.bankAmount >= 0 ? 'Crédit' : 'Débit',
+          libelle: bankTransactions.find((tx) => tx.id === m.bankTransactionId)?.label || '',
+          reference_comptable: m.entryIds.join(', '),
+          reference_banque: m.bankTransactionId,
+          montant_comptable: m.comptaAmount,
+          montant_banque: m.bankAmount,
+          ecart_montant: m.ecart,
+          type_ecart: m.ecart > 0 ? 'montant' : undefined,
+          statut: 'rapproche' as const,
+        })),
+        ...rapprochementResult.unmatchedBank.map((tx) => ({
+          id: tx.id,
+          date: tx.date,
+          type_mouvement: tx.amount >= 0 ? 'Crédit' : 'Débit',
+          libelle: tx.label,
+          reference_banque: tx.reference,
+          montant_comptable: 0,
+          montant_banque: tx.amount,
+          ecart_montant: Math.abs(tx.amount),
+          type_ecart: 'absent_comptable',
+          statut: 'non_rapproche' as const,
+        })),
+        ...rapprochementResult.unmatchedCompta.map((cl) => ({
+          id: cl.lineId,
+          date: cl.date,
+          type_mouvement: cl.amount >= 0 ? 'Crédit' : 'Débit',
+          libelle: cl.label,
+          reference_comptable: cl.entryId,
+          montant_comptable: cl.amount,
+          montant_banque: 0,
+          ecart_montant: Math.abs(cl.amount),
+          type_ecart: 'absent_banque',
+          statut: 'non_rapproche' as const,
+        })),
+      ]
+    : [];
+
   const reconciliationData = {
-    count: 0,
-    results: [],
+    count: reconciliationItems.length,
+    results: reconciliationItems,
+    matched_count: rapprochementResult?.matches.length || 0,
+    unmatched_count: (rapprochementResult?.unmatchedBank.length || 0) + (rapprochementResult?.unmatchedCompta.length || 0),
+    total_difference: rapprochementResult?.ecart || 0,
+    match_rate: rapprochementResult?.tauxRapprochement ? Math.round(rapprochementResult.tauxRapprochement) : 0,
   };
 
-  const isLoading = false;
+  // CSV Import handler
+  const handleImportCSV = useCallback(async (csvContent: string) => {
+    const transactions = parseBankStatementCSV(csvContent);
+    if (transactions.length === 0) {
+      toast.error('Aucune transaction trouvée dans le fichier CSV');
+      return;
+    }
+    setBankTransactions(transactions);
+    toast.success(`${transactions.length} transactions bancaires importées`);
+    // Auto-run rapprochement
+    setIsLoading(true);
+    try {
+      const result = await rapprochementAutomatique(adapter, transactions);
+      setRapprochementResult(result);
+      // Generate état de rapprochement
+      const compte = filters.compte || '512';
+      const etat = await genererEtatRapprochement(compte, transactions, result);
+      setEtatRapprochement(etat);
+      toast.success(`Rapprochement terminé : ${result.matches.length} correspondances trouvées`);
+    } catch (error) {
+      toast.error('Erreur lors du rapprochement automatique');
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [adapter, filters.compte]);
 
-  const autoReconciliationMutation = {
-    mutate: (_data: { compte_id: string; periode_debut: string; periode_fin: string }) => {
-      toast.success('Rapprochement automatique simulé');
-    },
-  };
-
-  const manualReconciliationMutation = {
-    mutate: (_data: { items: string[] }) => {
-      toast.success('Rapprochement manuel simulé');
-      setSelectedItems(new Set());
-    },
-  };
+  const handleFileUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const csvContent = event.target?.result as string;
+      if (csvContent) handleImportCSV(csvContent);
+    };
+    reader.readAsText(file);
+    // Reset file input so the same file can be re-imported
+    e.target.value = '';
+  }, [handleImportCSV]);
 
   const handleFilterChange = (key: keyof ReconciliationFilters, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }));
@@ -154,26 +244,64 @@ const ReconciliationPage: React.FC = () => {
     }
   };
 
-  const handleAutoReconciliation = () => {
-    if (confirm('Lancer le rapprochement automatique pour ce compte ?')) {
-      autoReconciliationMutation.mutate({
-        compte_id: filters.compte,
-        periode_debut: filters.periode_debut,
-        periode_fin: filters.periode_fin
-      });
+  const handleAutoReconciliation = async () => {
+    if (bankTransactions.length === 0) {
+      toast.error('Veuillez d\'abord importer un relevé bancaire (CSV)');
+      return;
+    }
+    if (!confirm('Lancer le rapprochement automatique pour ce compte ?')) return;
+    setIsLoading(true);
+    try {
+      const result = await rapprochementAutomatique(adapter, bankTransactions);
+      setRapprochementResult(result);
+      const compte = filters.compte || '512';
+      const etat = await genererEtatRapprochement(compte, bankTransactions, result);
+      setEtatRapprochement(etat);
+      toast.success(`Rapprochement terminé : ${result.matches.length} correspondances`);
+    } catch (error) {
+      toast.error('Erreur lors du rapprochement automatique');
+      console.error(error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleManualReconciliation = () => {
+  const handleManualReconciliation = async () => {
     if (selectedItems.size === 0) {
       toast.error('Veuillez sélectionner au moins un élément');
       return;
     }
-    
-    if (confirm(`Rapprocher ${selectedItems.size} élément(s) sélectionné(s) ?`)) {
-      manualReconciliationMutation.mutate({
-        items: Array.from(selectedItems)
-      });
+    if (!rapprochementResult) {
+      toast.error('Aucun résultat de rapprochement disponible');
+      return;
+    }
+    if (!confirm(`Rapprocher ${selectedItems.size} élément(s) sélectionné(s) ?`)) return;
+
+    // Filter matches that correspond to selected items
+    const selectedMatches = rapprochementResult.matches.filter(m =>
+      selectedItems.has(m.bankTransactionId)
+    );
+
+    if (selectedMatches.length === 0) {
+      toast.error('Aucune correspondance trouvée pour les éléments sélectionnés');
+      return;
+    }
+
+    try {
+      const applied = await appliquerRapprochement(adapter, selectedMatches);
+      toast.success(`${applied} écritures rapprochées avec succès`);
+      setSelectedItems(new Set());
+      // Refresh rapprochement
+      if (bankTransactions.length > 0) {
+        const result = await rapprochementAutomatique(adapter, bankTransactions);
+        setRapprochementResult(result);
+        const compte = filters.compte || '512';
+        const etat = await genererEtatRapprochement(compte, bankTransactions, result);
+        setEtatRapprochement(etat);
+      }
+    } catch (error) {
+      toast.error('Erreur lors du rapprochement');
+      console.error(error);
     }
   };
 
@@ -214,10 +342,30 @@ const ReconciliationPage: React.FC = () => {
     setShowDetailModal(true);
   };
 
-  const handleReconcileSingle = (item: ReconciliationItem) => {
-    if (confirm(`Confirmer le rapprochement de l'élément "${item.libelle}" ?`)) {
-      toast.success(`Élément "${item.libelle}" rapproché avec succès`);
-      // TODO: Appel API pour rapprocher l'élément
+  const handleReconcileSingle = async (item: ReconciliationItem) => {
+    if (!rapprochementResult) return;
+    if (!confirm(`Confirmer le rapprochement de l'élément "${item.libelle}" ?`)) return;
+
+    const match = rapprochementResult.matches.find(m => m.bankTransactionId === item.id);
+    if (!match) {
+      toast.error('Aucune correspondance trouvée pour cet élément');
+      return;
+    }
+
+    try {
+      const applied = await appliquerRapprochement(adapter, [match]);
+      toast.success(`${applied} écriture(s) rapprochée(s) pour "${item.libelle}"`);
+      // Refresh
+      if (bankTransactions.length > 0) {
+        const result = await rapprochementAutomatique(adapter, bankTransactions);
+        setRapprochementResult(result);
+        const compte = filters.compte || '512';
+        const etat = await genererEtatRapprochement(compte, bankTransactions, result);
+        setEtatRapprochement(etat);
+      }
+    } catch (error) {
+      toast.error('Erreur lors du rapprochement');
+      console.error(error);
     }
   };
 
@@ -277,10 +425,17 @@ const ReconciliationPage: React.FC = () => {
               buttonText="Exporter"
               buttonVariant="outline"
             />
-            <Button variant="outline">
+            <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
               <Upload className="mr-2 h-4 w-4" />
               Importer Relevé
             </Button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".csv"
+              onChange={handleFileUpload}
+              className="hidden"
+            />
           </div>
         </div>
       </div>
@@ -364,10 +519,10 @@ const ReconciliationPage: React.FC = () => {
               {reconciliationMode === 'auto' && (
                 <Button
                   onClick={handleAutoReconciliation}
-                  disabled={!filters.compte || autoReconciliationMutation.isPending}
+                  disabled={isLoading}
                   className="bg-[#171717] hover:bg-[#171717]/80 text-white"
                 >
-                  {autoReconciliationMutation.isPending ? (
+                  {isLoading ? (
                     <>
                       <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
                       Rapprochement...
@@ -383,7 +538,7 @@ const ReconciliationPage: React.FC = () => {
               {reconciliationMode === 'manual' && selectedItems.size > 0 && (
                 <Button
                   onClick={handleManualReconciliation}
-                  disabled={manualReconciliationMutation.isPending}
+                  disabled={isLoading}
                   className="bg-green-600 hover:bg-green-700 text-white"
                 >
                   <Check className="mr-2 h-4 w-4" />
@@ -683,6 +838,101 @@ const ReconciliationPage: React.FC = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* État de Rapprochement SYSCOHADA */}
+      {etatRapprochement && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <CreditCard className="mr-2 h-5 w-5" />
+              État de Rapprochement Bancaire — SYSCOHADA
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-6 md:grid-cols-2">
+              {/* Côté Banque */}
+              <div className="space-y-3">
+                <h3 className="font-semibold text-gray-900 border-b pb-2">Relevé Bancaire</h3>
+                <div className="flex justify-between">
+                  <span>Solde du relevé</span>
+                  <span className="font-semibold">{formatCurrency(etatRapprochement.soldeReleve)}</span>
+                </div>
+                {etatRapprochement.operationsNonComptabilisees.length > 0 && (
+                  <div className="ml-4 space-y-1">
+                    <p className="text-sm font-medium text-red-600">
+                      − Opérations non comptabilisées ({etatRapprochement.operationsNonComptabilisees.length})
+                    </p>
+                    {etatRapprochement.operationsNonComptabilisees.map((op, i) => (
+                      <div key={i} className="flex justify-between text-sm text-gray-600">
+                        <span>{formatDate(op.date)} — {op.label}</span>
+                        <span>{formatCurrency(op.amount)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div className="flex justify-between border-t pt-2 font-bold">
+                  <span>Solde banque corrigé</span>
+                  <span>{formatCurrency(etatRapprochement.soldeBanqueCorrige)}</span>
+                </div>
+              </div>
+
+              {/* Côté Comptabilité */}
+              <div className="space-y-3">
+                <h3 className="font-semibold text-gray-900 border-b pb-2">Comptabilité</h3>
+                <div className="flex justify-between">
+                  <span>Solde comptable</span>
+                  <span className="font-semibold">{formatCurrency(etatRapprochement.soldeComptable)}</span>
+                </div>
+                {etatRapprochement.ecrituresNonPointees.length > 0 && (
+                  <div className="ml-4 space-y-1">
+                    <p className="text-sm font-medium text-orange-600">
+                      − Écritures non pointées ({etatRapprochement.ecrituresNonPointees.length})
+                    </p>
+                    {etatRapprochement.ecrituresNonPointees.map((e, i) => (
+                      <div key={i} className="flex justify-between text-sm text-gray-600">
+                        <span>{formatDate(e.date)} — {e.label}</span>
+                        <span>
+                          {e.debit > 0 ? `D ${formatCurrency(e.debit)}` : `C ${formatCurrency(e.credit)}`}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div className="flex justify-between border-t pt-2 font-bold">
+                  <span>Solde compta corrigé</span>
+                  <span>{formatCurrency(etatRapprochement.soldeComptaCorrige)}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Résultat rapprochement */}
+            <div className={`mt-6 p-4 rounded-lg text-center ${
+              etatRapprochement.isRapproche
+                ? 'bg-green-50 border border-green-200'
+                : 'bg-red-50 border border-red-200'
+            }`}>
+              {etatRapprochement.isRapproche ? (
+                <div className="flex items-center justify-center space-x-2">
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                  <span className="font-semibold text-green-800">
+                    Rapprochement équilibré — les soldes corrigés sont identiques
+                  </span>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center space-x-2">
+                  <AlertCircle className="h-5 w-5 text-red-600" />
+                  <span className="font-semibold text-red-800">
+                    Écart de rapprochement : {formatCurrency(Math.abs(etatRapprochement.soldeBanqueCorrige - etatRapprochement.soldeComptaCorrige))}
+                  </span>
+                </div>
+              )}
+              <p className="text-xs text-gray-500 mt-1">
+                Date du rapprochement : {formatDate(etatRapprochement.dateRapprochement)} — Compte {etatRapprochement.compte}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Modal de sélection de période */}
       <PeriodSelectorModal

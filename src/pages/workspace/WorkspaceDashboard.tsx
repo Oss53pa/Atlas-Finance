@@ -182,11 +182,19 @@ const WorkspaceDashboard: React.FC = () => {
               </button>
               <button
                 onClick={() => navigate('/settings')}
-                className="px-4 py-2 rounded-lg flex items-center gap-2 hover:opacity-90 transition-opacity"
-                style={{ backgroundColor: '#404040', color: '#FFFFFF' }}
+                className="px-4 py-2 rounded-lg border flex items-center gap-2 hover:opacity-80 transition-opacity"
+                style={{ borderColor: '#e5e5e5', color: '#404040' }}
               >
                 <Settings size={18} />
                 Personnaliser
+              </button>
+              <button
+                onClick={() => navigate('/dashboard')}
+                className="px-4 py-2 rounded-lg flex items-center gap-2 hover:opacity-90 transition-opacity"
+                style={{ backgroundColor: '#171717', color: '#FFFFFF' }}
+              >
+                <ArrowRight size={18} />
+                Accéder à Atlas Finance
               </button>
             </div>
           </div>
