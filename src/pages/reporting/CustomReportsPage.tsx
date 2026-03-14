@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../contexts/LanguageContext';
 import {
   LayoutDashboard, Plus, FolderOpen, Calendar, RefreshCw,
@@ -14,11 +15,17 @@ import {
   ShoppingBag, Calculator
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
+import { default as BarChartReal } from '../../components/charts/BarChart';
+import { default as PieChartReal } from '../../components/charts/PieChart';
+import { default as LineChartReal } from '../../components/charts/LineChart';
+import EasyViewBI from '../../components/reporting/EasyViewBI';
 import { Alert, AlertDescription } from '../../components/ui/Alert';
 import { Badge } from '../../components/ui/Badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/Tabs';
 import { Progress } from '../../components/ui/Progress';
-import NewReportCreator from '../../components/reporting/NewReportCreator';
+import DataImportModal from '../../components/reporting/DataImportModal';
+import ReportManagementModal from '../../components/reporting/ReportManagementModal';
+import GenerateReportModal from '../../components/reporting/GenerateReportModal';
 import {
   ViewReportModal,
   EditReportModal,
@@ -87,9 +94,11 @@ interface ScheduleData {
 
 const CustomReportsPage: React.FC = () => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedReport, setSelectedReport] = useState<string | null>(null);
-  const [showNewReportModal, setShowNewReportModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [showManagementModal, setShowManagementModal] = useState(false);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [showViewReportModal, setShowViewReportModal] = useState(false);
   const [showEditReportModal, setShowEditReportModal] = useState(false);
@@ -104,6 +113,7 @@ const CustomReportsPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTemplateTab, setActiveTemplateTab] = useState('predefined');
   const [activePlanningTab, setActivePlanningTab] = useState('executions');
+  const [activeCatalogTab, setActiveCatalogTab] = useState<'dashboards' | 'tables' | 'graphiques'>('dashboards');
   const [formData, setFormData] = useState({
     rapport_id: '',
     frequence: 'mensuelle' as 'quotidienne' | 'hebdomadaire' | 'mensuelle' | 'trimestrielle' | 'annuelle',
@@ -436,7 +446,7 @@ const CustomReportsPage: React.FC = () => {
           </div>
           <div className="flex items-center space-x-3">
             <button
-              onClick={() => setShowNewReportModal(true)}
+              onClick={() => navigate('/reporting/builder')}
               className="px-4 py-2 bg-[var(--color-primary)] text-[var(--color-text-inverse)] rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center space-x-2"
             >
               <Plus className="w-4 h-4" />
@@ -650,6 +660,10 @@ const CustomReportsPage: React.FC = () => {
             <BarChart3 className="w-4 h-4 mr-2" />
             Analytique
           </TabsTrigger>
+          <TabsTrigger value="catalogue">
+            <Database className="w-4 h-4 mr-2" />
+            Catalogue
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="dashboard">
@@ -667,7 +681,7 @@ const CustomReportsPage: React.FC = () => {
                 </div>
                 <div className="flex items-center space-x-3">
                   <button
-                    onClick={() => setShowNewReportModal(true)}
+                    onClick={() => navigate('/reporting/builder')}
                     className="px-4 py-2 bg-[var(--color-primary)] text-[var(--color-text-inverse)] rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center space-x-2"
                   >
                     <Plus className="w-4 h-4" />
@@ -885,7 +899,7 @@ const CustomReportsPage: React.FC = () => {
                 </div>
                 <div className="flex items-center space-x-3">
                   <button
-                    onClick={() => setShowNewReportModal(true)}
+                    onClick={() => navigate('/reporting/builder')}
                     className="px-4 py-2 bg-[var(--color-primary)] text-[var(--color-text-inverse)] rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center space-x-2"
                   >
                     <Plus className="w-4 h-4" />
@@ -951,69 +965,189 @@ const CustomReportsPage: React.FC = () => {
                   <div className="bg-[var(--color-background-primary)] rounded-lg p-6 border border-[var(--color-border)]">
                     <div className="flex items-center justify-between mb-4">
                       <h4 className="text-base font-semibold text-[var(--color-text-primary)]">Modèles Prédéfinis</h4>
-                      <Badge variant="outline">12 modèles</Badge>
+                      <Badge variant="outline">18 modeles</Badge>
                     </div>
                     <div className="grid grid-cols-3 gap-6">
                       {[
                         {
                           id: 1,
-                          nom: 'Rapport Financier Standard',
+                          nom: 'Bilan SYSCOHADA',
                           type: 'financier',
-                          description: 'Modèle complet pour rapports financiers avec bilan, compte de résultat et tableaux de flux',
-                          modules: ['Finance', 'Comptabilité'],
+                          description: 'Bilan comptable conforme SYSCOHADA avec structure Actif Immobilise / Circulant / Tresorerie',
+                          modules: ['Comptabilite', 'Etats Financiers'],
                           utilisations: 156,
                           dateCreation: '01/01/2025',
-                          preview: 'https://example.com/preview1.jpg'
+                          format: 'PDF'
                         },
                         {
                           id: 2,
-                          nom: 'Dashboard Commercial',
-                          type: 'commercial',
-                          description: 'Tableau de bord commercial avec indicateurs de vente, pipeline et performance équipes',
-                          modules: ['CRM', 'Ventes'],
-                          utilisations: 89,
-                          dateCreation: '15/01/2025',
-                          preview: 'https://example.com/preview2.jpg'
+                          nom: 'Compte de Resultat',
+                          type: 'financier',
+                          description: 'Compte de resultat par nature conforme SYSCOHADA — charges et produits',
+                          modules: ['Comptabilite', 'Etats Financiers'],
+                          utilisations: 142,
+                          dateCreation: '01/01/2025',
+                          format: 'PDF'
                         },
                         {
                           id: 3,
-                          nom: 'Bilan RH Mensuel',
-                          type: 'rh',
-                          description: 'Rapport RH avec effectifs, recrutements, formations et indicateurs sociaux',
-                          modules: ['RH', 'Paie'],
-                          utilisations: 67,
-                          dateCreation: '20/01/2025',
-                          preview: 'https://example.com/preview3.jpg'
+                          nom: 'TAFIRE',
+                          type: 'financier',
+                          description: 'Tableau Financier des Ressources et Emplois — flux de tresorerie SYSCOHADA',
+                          modules: ['Etats Financiers', 'Tresorerie'],
+                          utilisations: 89,
+                          dateCreation: '01/01/2025',
+                          format: 'PDF'
                         },
                         {
                           id: 4,
-                          nom: 'Analyse Marketing',
-                          type: 'commercial',
-                          description: 'Rapport marketing avec ROI campagnes, leads générés et conversion',
-                          modules: ['Marketing', 'CRM'],
-                          utilisations: 43,
-                          dateCreation: '05/02/2025',
-                          preview: 'https://example.com/preview4.jpg'
+                          nom: 'SIG — Cascade de Gestion',
+                          type: 'financier',
+                          description: 'MC, VA, EBE, RE, RAO, RHAO, RN en cascade visuelle SYSCOHADA',
+                          modules: ['Analyse', 'Gestion'],
+                          utilisations: 98,
+                          dateCreation: '15/01/2025',
+                          format: 'PDF / Dashboard'
                         },
                         {
                           id: 5,
-                          nom: 'Consolidation Groupe',
-                          type: 'consolidation',
-                          description: 'Rapport de consolidation multi-entités avec éliminations et retraitements',
-                          modules: ['Consolidation', 'Finance'],
-                          utilisations: 28,
-                          dateCreation: '10/02/2025',
-                          preview: 'https://example.com/preview5.jpg'
+                          nom: 'Ratios Financiers',
+                          type: 'financier',
+                          description: 'Dashboard interactif avec jauges et graphiques radar — liquidite, rentabilite, structure',
+                          modules: ['Analyse', 'Direction'],
+                          utilisations: 112,
+                          dateCreation: '15/01/2025',
+                          format: 'Dashboard'
                         },
                         {
                           id: 6,
-                          nom: 'Tableau de Bord Direction',
-                          type: 'consolidation',
-                          description: 'Dashboard exécutif avec KPIs stratégiques et analyses de performance',
-                          modules: ['Direction', 'Finance', 'Commercial'],
+                          nom: 'Analyse du BFR',
+                          type: 'financier',
+                          description: 'Decomposition du BFR avec graphiques DSO/DPO/DIO et tendances mensuelles',
+                          modules: ['Analyse', 'Tresorerie'],
+                          utilisations: 76,
+                          dateCreation: '20/01/2025',
+                          format: 'Dashboard'
+                        },
+                        {
+                          id: 7,
+                          nom: 'Comparatif N / N-1',
+                          type: 'financier',
+                          description: 'Bilan et resultat compares sur 2 exercices avec ecarts absolus et en %',
+                          modules: ['Comptabilite', 'Analyse'],
+                          utilisations: 67,
+                          dateCreation: '20/01/2025',
+                          format: 'PDF'
+                        },
+                        {
+                          id: 8,
+                          nom: 'Analyse des Marges',
+                          type: 'financier',
+                          description: 'Waterfall chart marge commerciale → marge nette avec decomposition des charges',
+                          modules: ['Analyse', 'Gestion'],
+                          utilisations: 54,
+                          dateCreation: '05/02/2025',
+                          format: 'Dashboard'
+                        },
+                        {
+                          id: 9,
+                          nom: 'Budget vs Realise',
+                          type: 'financier',
+                          description: 'Graphique barres groupees budget/reel avec ecarts en % et alertes depassement',
+                          modules: ['Budget', 'Controle'],
                           utilisations: 91,
+                          dateCreation: '05/02/2025',
+                          format: 'Excel'
+                        },
+                        {
+                          id: 10,
+                          nom: 'Plan de Tresorerie Previsionnel',
+                          type: 'financier',
+                          description: 'Prevision de tresorerie sur 12 mois glissants avec scenarios optimiste/pessimiste',
+                          modules: ['Tresorerie', 'Direction'],
+                          utilisations: 43,
+                          dateCreation: '10/02/2025',
+                          format: 'Dashboard'
+                        },
+                        {
+                          id: 11,
+                          nom: 'Balance Agee Tiers',
+                          type: 'financier',
+                          description: 'Clients et fournisseurs par tranche d\'anciennete (0-30, 30-60, 60-90, >90j) avec barres empilees',
+                          modules: ['Tiers', 'Recouvrement'],
+                          utilisations: 78,
+                          dateCreation: '10/02/2025',
+                          format: 'Excel'
+                        },
+                        {
+                          id: 12,
+                          nom: 'Top Clients & Fournisseurs',
+                          type: 'financier',
+                          description: 'Classement Pareto (80/20) des tiers par volume avec courbe ABC',
+                          modules: ['Commercial', 'Achats'],
+                          utilisations: 65,
+                          dateCreation: '15/02/2025',
+                          format: 'Dashboard'
+                        },
+                        {
+                          id: 13,
+                          nom: 'Tableau des Immobilisations',
+                          type: 'financier',
+                          description: 'Acquisitions, cessions, amortissements et VNC par categorie d\'immobilisation',
+                          modules: ['Patrimoine', 'Comptabilite'],
+                          utilisations: 34,
+                          dateCreation: '20/02/2025',
+                          format: 'Excel'
+                        },
+                        {
+                          id: 14,
+                          nom: 'FEC Standard',
+                          type: 'financier',
+                          description: 'Export FEC 18 colonnes conforme au LPF — fichier reglementaire',
+                          modules: ['Fiscalite', 'Audit'],
+                          utilisations: 28,
                           dateCreation: '25/02/2025',
-                          preview: 'https://example.com/preview6.jpg'
+                          format: 'Excel / CSV'
+                        },
+                        {
+                          id: 15,
+                          nom: 'DSF Complete',
+                          type: 'financier',
+                          description: 'Declaration Statistique et Fiscale — 24 tableaux reglementaires OHADA',
+                          modules: ['Fiscalite', 'Reglementaire'],
+                          utilisations: 22,
+                          dateCreation: '01/03/2025',
+                          format: 'PDF'
+                        },
+                        {
+                          id: 16,
+                          nom: 'Variation des Capitaux Propres',
+                          type: 'financier',
+                          description: 'Mouvements de capitaux propres sur l\'exercice — capital, reserves, resultat',
+                          modules: ['Etats Financiers'],
+                          utilisations: 31,
+                          dateCreation: '01/03/2025',
+                          format: 'PDF'
+                        },
+                        {
+                          id: 17,
+                          nom: 'Capacite d\'Autofinancement',
+                          type: 'financier',
+                          description: 'CAF par methode additive et soustractive — autofinancement et distribution',
+                          modules: ['Analyse', 'Tresorerie'],
+                          utilisations: 45,
+                          dateCreation: '10/03/2025',
+                          format: 'PDF'
+                        },
+                        {
+                          id: 18,
+                          nom: 'Rapport d\'Audit',
+                          type: 'financier',
+                          description: 'Piste d\'audit avec chaine de hachage SHA-256 et journal des operations',
+                          modules: ['Audit', 'Conformite'],
+                          utilisations: 19,
+                          dateCreation: '15/03/2025',
+                          format: 'PDF'
                         }
                       ].map(modele => (
                         <div key={modele.id} className="border border-[var(--color-border)] rounded-lg overflow-hidden hover:shadow-md transition-shadow">
@@ -1651,23 +1785,45 @@ const CustomReportsPage: React.FC = () => {
                     <option>Par mois</option>
                   </select>
                 </div>
-                <div className="h-64 bg-[var(--color-background-secondary)] rounded-lg flex items-center justify-center">
-                  <div className="text-center">
-                    <BarChart3 className="w-12 h-12 text-[var(--color-primary)] mx-auto mb-2" />
-                    <p className="text-sm text-[var(--color-text-secondary)]">Graphique volume des rapports</p>
-                    <p className="text-xs text-[var(--color-text-secondary)] mt-1">247 rapports générés ce mois</p>
-                  </div>
+                <div className="h-64">
+                  <BarChartReal
+                    data={[
+                      { mois: 'Jan', rapports: 18 },
+                      { mois: 'Fev', rapports: 22 },
+                      { mois: 'Mar', rapports: 31 },
+                      { mois: 'Avr', rapports: 28 },
+                      { mois: 'Mai', rapports: 35 },
+                      { mois: 'Jun', rapports: 42 },
+                      { mois: 'Jul', rapports: 38 },
+                      { mois: 'Aou', rapports: 25 },
+                      { mois: 'Sep', rapports: 45 },
+                      { mois: 'Oct', rapports: 40 },
+                      { mois: 'Nov', rapports: 37 },
+                      { mois: 'Dec', rapports: 47 },
+                    ]}
+                    xAxisKey="mois"
+                    bars={[{ key: 'rapports', name: 'Rapports generes', color: '#171717' }]}
+                    height={240}
+                  />
                 </div>
               </div>
 
               {/* Performance par type */}
               <div className="bg-[var(--color-background-primary)] rounded-lg p-6 border border-[var(--color-border)]">
                 <h4 className="text-base font-semibold text-[var(--color-text-primary)] mb-4">Performance par Type</h4>
-                <div className="h-64 bg-[var(--color-background-secondary)] rounded-lg flex items-center justify-center">
-                  <div className="text-center">
-                    <PieChart className="w-12 h-12 text-[var(--color-primary)] mx-auto mb-2" />
-                    <p className="text-sm text-[var(--color-text-secondary)]">Répartition par type de rapport</p>
-                  </div>
+                <div className="h-64">
+                  <PieChartReal
+                    data={[
+                      { type: 'Financier', count: 112 },
+                      { type: 'Analytique', count: 58 },
+                      { type: 'Gestion', count: 47 },
+                      { type: 'Reglementaire', count: 30 },
+                    ]}
+                    dataKey="count"
+                    nameKey="type"
+                    height={240}
+                    colors={['#171717', '#525252', '#22c55e', '#f59e0b']}
+                  />
                 </div>
               </div>
             </div>
@@ -1676,27 +1832,47 @@ const CustomReportsPage: React.FC = () => {
             {/* Tendances et insights */}
             <div className="bg-[var(--color-background-primary)] rounded-lg p-6 border border-[var(--color-border)]">
               <h4 className="text-base font-semibold text-[var(--color-text-primary)] mb-4">Tendances et Insights</h4>
+              <div className="h-64 mb-6">
+                <LineChartReal
+                  data={[
+                    { mois: 'Jan', financier: 12, analytique: 4, gestion: 2 },
+                    { mois: 'Fev', financier: 15, analytique: 5, gestion: 2 },
+                    { mois: 'Mar', financier: 20, analytique: 7, gestion: 4 },
+                    { mois: 'Avr', financier: 18, analytique: 6, gestion: 4 },
+                    { mois: 'Mai', financier: 22, analytique: 8, gestion: 5 },
+                    { mois: 'Jun', financier: 28, analytique: 9, gestion: 5 },
+                    { mois: 'Jul', financier: 25, analytique: 8, gestion: 5 },
+                    { mois: 'Aou', financier: 16, analytique: 5, gestion: 4 },
+                    { mois: 'Sep', financier: 30, analytique: 10, gestion: 5 },
+                    { mois: 'Oct', financier: 27, analytique: 8, gestion: 5 },
+                    { mois: 'Nov', financier: 24, analytique: 8, gestion: 5 },
+                    { mois: 'Dec', financier: 32, analytique: 10, gestion: 5 },
+                  ]}
+                  xAxisKey="mois"
+                  lines={[
+                    { key: 'financier', name: 'Financier', color: '#171717' },
+                    { key: 'analytique', name: 'Analytique', color: '#525252' },
+                    { key: 'gestion', name: 'Gestion', color: '#22c55e' },
+                  ]}
+                  height={240}
+                  fill
+                />
+              </div>
               <div className="grid grid-cols-3 gap-6">
-                <div className="text-center">
-                  <div className="h-32 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg flex items-center justify-center mb-3">
-                    <LineChart className="w-8 h-8 text-[var(--color-blue-primary)]" />
-                  </div>
-                  <h5 className="font-medium text-sm text-[var(--color-text-primary)] mb-1">Pic d'activité</h5>
-                  <p className="text-xs text-[var(--color-text-secondary)]">Les rapports sont principalement générés entre 9h et 11h</p>
+                <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg">
+                  <p className="text-lg font-bold text-blue-900">9h — 11h</p>
+                  <h5 className="font-medium text-sm text-blue-800 mb-1">Pic d'activite</h5>
+                  <p className="text-xs text-blue-600">Rapports principalement generes le matin</p>
                 </div>
-                <div className="text-center">
-                  <div className="h-32 bg-gradient-to-br from-green-50 to-green-100 rounded-lg flex items-center justify-center mb-3">
-                    <Target className="w-8 h-8 text-[var(--color-green-primary)]" />
-                  </div>
-                  <h5 className="font-medium text-sm text-[var(--color-text-primary)] mb-1">Optimisation</h5>
-                  <p className="text-xs text-[var(--color-text-secondary)]">Temps de génération réduit de 15% ce mois grâce aux optimisations</p>
+                <div className="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg">
+                  <p className="text-lg font-bold text-green-900">-15%</p>
+                  <h5 className="font-medium text-sm text-green-800 mb-1">Optimisation</h5>
+                  <p className="text-xs text-green-600">Temps de generation reduit ce mois</p>
                 </div>
-                <div className="text-center">
-                  <div className="h-32 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg flex items-center justify-center mb-3">
-                    <Award className="w-8 h-8 text-[var(--color-purple-primary)]" />
-                  </div>
-                  <h5 className="font-medium text-sm text-[var(--color-text-primary)] mb-1">Popularité</h5>
-                  <p className="text-xs text-[var(--color-text-secondary)]">Les rapports financiers représentent 45% du volume total</p>
+                <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg">
+                  <p className="text-lg font-bold text-purple-900">45%</p>
+                  <h5 className="font-medium text-sm text-purple-800 mb-1">Popularite</h5>
+                  <p className="text-xs text-purple-600">Rapports financiers = volume principal</p>
                 </div>
               </div>
             </div>
@@ -1727,13 +1903,12 @@ const CustomReportsPage: React.FC = () => {
             </div>
           </div>
         </TabsContent>
+
+        <TabsContent value="catalogue">
+          <EasyViewBI />
+        </TabsContent>
       </Tabs>
 
-      {/* Modal de création de nouveau rapport */}
-      <NewReportCreator
-        isOpen={showNewReportModal}
-        onClose={() => setShowNewReportModal(false)}
-      />
 
       {/* Schedule Modal */}
       {showScheduleModal && (
@@ -2012,6 +2187,27 @@ const CustomReportsPage: React.FC = () => {
         onClose={() => setShowScheduleSettingsModal(false)}
         schedule={selectedScheduleData}
         onSave={handleSaveSchedule}
+      />
+
+
+      {/* Data Import Modal */}
+      <DataImportModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        onSubmit={(data) => {
+          console.log('Import data:', data);
+          setShowImportModal(false);
+        }}
+      />
+
+      {/* Report Management Modal */}
+      <ReportManagementModal
+        isOpen={showManagementModal}
+        onClose={() => setShowManagementModal(false)}
+        onSubmit={(data) => {
+          console.log('Report management:', data);
+          setShowManagementModal(false);
+        }}
       />
     </div>
   );

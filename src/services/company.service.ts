@@ -3,6 +3,8 @@
  * Données société en mode frontend-only
  */
 
+export type ActivityType = 'production' | 'negoce' | 'services';
+
 const defaultCompany = {
   id: 'local-company',
   code: 'DEMO',
@@ -22,6 +24,8 @@ const defaultCompany = {
   longueur_compte: 6,
   gestion_analytique: false,
   logo: null as string | null,
+  /** Type d'activité : production, négoce (vente de produits) ou services */
+  activite_type: 'negoce' as ActivityType,
 };
 
 export const companyService = {

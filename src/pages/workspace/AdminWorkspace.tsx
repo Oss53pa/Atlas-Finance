@@ -1,28 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useData } from '../../contexts/DataContext';
 import CompleteTasksModule from '../../components/tasks/CompleteTasksModule';
 import CollaborationModule from '../../components/collaboration/CollaborationModule';
 import DataMigrationImport from '../../components/admin/DataMigrationImport';
+import AdminUsers from '../../components/admin/sections/AdminUsers';
+import AdminSecurity from '../../components/admin/sections/AdminSecurity';
+import AdminCompany from '../../components/admin/sections/AdminCompany';
+import AdminBackup from '../../components/admin/sections/AdminBackup';
+import AdminImportExport from '../../components/admin/sections/AdminImportExport';
+import AdminAuditTrail from '../../components/admin/sections/AdminAuditTrail';
+import AdminAPI from '../../components/admin/sections/AdminAPI';
 import {
-  Shield, FileText, BarChart3, Users, PieChart, TrendingUp, Briefcase,
-  Clock, CheckCircle, DollarSign, Zap, ArrowUpRight, ArrowDownRight, ExternalLink,
-  Home, ArrowLeft, Bell, HelpCircle, User, Search, Menu, X, Settings, LogOut, ChevronDown,
-  Mail, Calendar, Award, BookMarked, MessageCircle, FileQuestion, Video, Headphones,
-  Target, Activity, Layers, FolderOpen, ListTodo, MessageSquare, LayoutDashboard,
-  Server, Database, Lock, AlertTriangle, Cog, Upload
+  Shield, FileText, BarChart3, Users, Upload,
+  CheckCircle, ExternalLink,
+  ArrowLeft, Bell, HelpCircle, User, Search, Menu, X, Settings, LogOut, ChevronDown,
+  Mail, BookMarked, MessageCircle, FileQuestion, Video, Headphones,
+  Activity, FolderOpen, ListTodo, MessageSquare, LayoutDashboard,
+  Server, Database, Lock, AlertTriangle, Cog, Briefcase
 } from 'lucide-react';
 
 const AdminWorkspace: React.FC = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { adapter } = useData();
+  const [adminStats, setAdminStats] = useState({ entries: 0, accounts: 0, thirdParties: 0, drafts: 0 });
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [workspaceSwitcherOpen, setWorkspaceSwitcherOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState<string>('workspace');
+  const [activeSection, setActiveSection] = useState('workspace');
   const [adminSubTab, setAdminSubTab] = useState(0);
+
+  const changeSection = (section: string) => { setActiveSection(section); setAdminSubTab(0); };
 
   const workspaceOptions = [
     { label: 'Espace Admin', path: '/workspace/admin', icon: Shield, color: '#ef4444', current: true },
@@ -30,20 +42,41 @@ const AdminWorkspace: React.FC = () => {
     { label: 'Espace Comptable', path: '/workspace/comptable', icon: BarChart3, color: '#525252', current: false },
   ];
 
-  const atlasFinanceLinks = [
-    { id: 'workspace', label: 'Tableau de bord Admin', icon: LayoutDashboard, section: 'workspace' },
-    { id: 'users', label: 'Utilisateurs & Droits', icon: Users, badge: '12', section: 'users' },
-    { id: 'security', label: 'Securite & Roles', icon: Lock, section: 'security' },
-    { id: 'settings', label: 'Parametres Systeme', icon: Settings, section: 'settings' },
-    { id: 'company', label: 'Configuration & Comptabilite', icon: Briefcase, section: 'company' },
-    { id: 'backup', label: 'Sauvegardes', icon: Database, section: 'backup' },
-    { id: 'import-export', label: 'Import/Export', icon: FolderOpen, section: 'import-export' },
-    { id: 'audit-trail', label: 'Piste d\'Audit', icon: FileText, section: 'audit-trail' },
-    { id: 'api', label: 'API & Integrations', icon: Server, section: 'api' },
+  const sidebarAdminLinks = [
+    { id: 'users', label: 'Utilisateurs & Droits', icon: Users },
+    { id: 'security', label: 'Securite & Roles', icon: Lock },
+    { id: 'company', label: 'Societe & Comptabilite', icon: Briefcase },
+    { id: 'backup', label: 'Sauvegardes', icon: Database },
+    { id: 'import-export', label: 'Import / Export', icon: FolderOpen },
+    { id: 'migration', label: 'Migration donnees', icon: Upload },
+    { id: 'audit-trail', label: 'Piste d\'Audit', icon: FileText },
+    { id: 'api', label: 'API & Integrations', icon: Server },
   ];
 
-  const handleLogout = () => { logout(); navigate('/login'); };
-  const userData = { name: user?.name || 'Admin System', email: user?.email || 'admin@atlasfinance.com', role: user?.role || 'Administrateur', phone: '+225 07 00 00 00', department: 'IT' };
+  const handleLogout = () => { logout(); navigate('/'); };
+  const userData = { name: user?.name || 'Administrateur', email: user?.email || '', role: user?.role || 'Administrateur', phone: (user as any)?.phone || '', department: (user as any)?.department || 'Administration' };
+
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        const [entries, accounts, thirdParties] = await Promise.all([
+          adapter.getAll<any>('journalEntries'),
+          adapter.getAll<any>('accounts'),
+          adapter.getAll<any>('thirdParties'),
+        ]);
+        const drafts = entries.filter((e: any) => e.status === 'draft').length;
+        setAdminStats({
+          entries: entries.length,
+          accounts: accounts.length,
+          thirdParties: thirdParties.length,
+          drafts,
+        });
+      } catch (err) {
+        console.error('Erreur chargement stats admin:', err);
+      }
+    };
+    loadStats();
+  }, [adapter]);
 
   const renderProfile = () => (
     <div className="p-6 space-y-6">
@@ -130,18 +163,18 @@ const AdminWorkspace: React.FC = () => {
   const renderWorkspace = () => (
     <div className="p-6 space-y-6">
       <div className="grid grid-cols-4 gap-4">
-        {[{title:'Utilisateurs',value:'156',icon:Users,color:'#ef4444',change:'+8',up:true},{title:'Sessions actives',value:'42',icon:Activity,color:'#171717',change:'+12',up:true},{title:'Uptime',value:'99.9%',icon:Server,color:'#737373',change:'+0.1%',up:true},{title:'Alertes',value:'3',icon:AlertTriangle,color:'#F59E0B',change:'-2',up:false}].map((m,i) => (
+        {[{title:'Ecritures',value:String(adminStats.entries),icon:FileText,color:'#ef4444',change:'',up:true},{title:'Plan comptable',value:String(adminStats.accounts),icon:BarChart3,color:'#171717',change:'',up:true},{title:'Tiers',value:String(adminStats.thirdParties),icon:Users,color:'#737373',change:'',up:true},{title:'Brouillons',value:String(adminStats.drafts),icon:AlertTriangle,color:'#F59E0B',change:adminStats.drafts > 0 ? `${adminStats.drafts} en attente` : '',up:adminStats.drafts === 0}].map((m,i) => (
           <div key={i} className="bg-white rounded-lg p-4 border hover:shadow-md">
             <div className="flex justify-between mb-3"><div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{backgroundColor:m.color+'20'}}><m.icon className="w-5 h-5" style={{color:m.color}} /></div><span className={m.up?'text-green-600 text-xs':'text-red-600 text-xs'}>{m.change}</span></div>
             <h3 className="text-lg font-bold">{m.value}</h3><p className="text-sm text-gray-600">{m.title}</p>
           </div>
         ))}
       </div>
-      <div className="bg-white rounded-lg p-6 border-2 border-[#ef4444]">
-        <div className="flex justify-between mb-4"><h2 className="text-lg font-semibold">Administration Atlas Finance</h2><button onClick={() => navigate('/executive')} className="px-4 py-2 bg-[#ef4444] text-white rounded-lg flex items-center space-x-2"><Home className="w-4 h-4" /><span>ATLAS FINANCE</span></button></div>
+      <div className="bg-white rounded-lg p-6 border">
+        <h2 className="text-lg font-semibold mb-4">Raccourcis Administration</h2>
         <div className="grid grid-cols-4 gap-3">
           {[{label:'Utilisateurs',icon:Users,section:'users',color:'#ef4444'},{label:'Securite',icon:Lock,section:'security',color:'#171717'},{label:'Sauvegardes',icon:Database,section:'backup',color:'#737373'},{label:'Piste d\'Audit',icon:FileText,section:'audit-trail',color:'#ef4444'}].map((a,i) => (
-            <button key={i} onClick={() => setActiveSection(a.section)} className="p-4 rounded-lg border-2 border-dashed border-[#ef4444]/50 hover:border-[#ef4444]">
+            <button key={i} onClick={() => changeSection(a.section)} className="p-4 rounded-lg border-2 border-dashed border-[#ef4444]/50 hover:border-[#ef4444]">
               <div className="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-2" style={{backgroundColor:a.color+'20'}}><a.icon className="w-5 h-5" style={{color:a.color}} /></div>
               <span className="text-sm font-medium block text-center">{a.label}</span>
             </button>
@@ -158,7 +191,7 @@ const AdminWorkspace: React.FC = () => {
               <p className="text-xs text-gray-500">Importez vos donnees depuis Sage, Ciel, EBP, Odoo, Excel, FEC...</p>
             </div>
           </div>
-          <button onClick={() => setActiveSection('migration')} className="px-4 py-2 bg-[#ef4444] text-white rounded-lg text-sm hover:bg-[#dc2626] flex items-center space-x-2">
+          <button onClick={() => changeSection('migration')} className="px-4 py-2 bg-[#ef4444] text-white rounded-lg text-sm hover:bg-[#dc2626] flex items-center space-x-2">
             <Upload className="w-4 h-4" /><span>Lancer une migration</span>
           </button>
         </div>
@@ -167,132 +200,24 @@ const AdminWorkspace: React.FC = () => {
       <div className="bg-white rounded-lg p-6 border">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold flex items-center"><ListTodo className="w-5 h-5 mr-2 text-[#ef4444]" />Taches Admin</h2>
-          <button onClick={() => setActiveSection('tasks')} className="text-sm text-[#ef4444] hover:underline">Voir tout</button>
+          <button onClick={() => changeSection('tasks')} className="text-sm text-[#ef4444] hover:underline">Voir tout</button>
         </div>
         <div className="space-y-2">
-          {['Mettre a jour certificats SSL', 'Reviser politiques securite', 'Audit des acces'].map((t, i) => (
-            <div key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <div className="flex items-center space-x-3"><CheckCircle className="w-5 h-5 text-gray-300" /><span className="text-sm">{t}</span></div>
-              <span className="text-xs text-gray-500">Urgent</span>
-            </div>
-          ))}
+          <div className="text-center py-4 text-gray-400 text-sm">Aucune tache en cours</div>
         </div>
       </div>
       {/* Apercu Chat */}
       <div className="bg-white rounded-lg p-6 border">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold flex items-center"><MessageSquare className="w-5 h-5 mr-2 text-[#ef4444]" />Messages support</h2>
-          <button onClick={() => setActiveSection('chat')} className="text-sm text-[#ef4444] hover:underline">Voir tout</button>
+          <button onClick={() => changeSection('chat')} className="text-sm text-[#ef4444] hover:underline">Voir tout</button>
         </div>
         <div className="space-y-2">
-          {[{name:'Support L1', msg:'Ticket #234 escalade', time:'10:30'},{name:'DevOps', msg:'Deploiement planifie', time:'09:15'}].map((m, i) => (
-            <div key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 rounded-full bg-[#ef4444] flex items-center justify-center text-white text-xs">{m.name[0]}</div>
-                <div><p className="text-sm font-medium">{m.name}</p><p className="text-xs text-gray-500">{m.msg}</p></div>
-              </div>
-              <span className="text-xs text-gray-500">{m.time}</span>
-            </div>
-          ))}
+          <div className="text-center py-4 text-gray-400 text-sm">Aucun message recent</div>
         </div>
       </div>
     </div>
   );
-
-  const renderAdminSection = (title: string, description: string, Icon: any, items: { label: string; desc: string; action?: string }[]) => {
-    const idx = adminSubTab < items.length ? adminSubTab : 0;
-    return (
-      <div className="p-6 space-y-0">
-        <div className="flex items-center space-x-3 mb-4">
-          <div className="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center"><Icon className="w-5 h-5 text-[#ef4444]" /></div>
-          <div><h2 className="text-lg font-bold">{title}</h2><p className="text-sm text-gray-500">{description}</p></div>
-        </div>
-        <div className="border-b border-gray-200 mb-6 overflow-x-auto">
-          <nav className="flex space-x-1 -mb-px">
-            {items.map((item, i) => (
-              <button key={i} onClick={() => setAdminSubTab(i)}
-                className={`whitespace-nowrap px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${idx === i ? 'border-[#ef4444] text-[#ef4444]' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>
-                {item.label}
-              </button>
-            ))}
-          </nav>
-        </div>
-        <div className="bg-white rounded-xl p-6 border">
-          <h3 className="text-lg font-semibold text-gray-900 mb-1">{items[idx].label}</h3>
-          <p className="text-sm text-gray-500 mb-6">{items[idx].desc}</p>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Nom</label><input className="w-full px-3 py-2 border rounded-lg text-sm" placeholder="Saisir..." /></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Valeur</label><input className="w-full px-3 py-2 border rounded-lg text-sm" placeholder="Saisir..." /></div>
-            </div>
-            <div className="flex justify-end space-x-3">
-              <button className="px-4 py-2 text-sm border rounded-lg hover:bg-gray-50">Annuler</button>
-              <button className="px-4 py-2 text-sm bg-[#ef4444] text-white rounded-lg hover:bg-[#dc2626]">{items[idx].action || 'Enregistrer'}</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const renderUsers = () => renderAdminSection('Utilisateurs & Droits', 'Gestion des comptes et permissions', Users, [
-    { label: 'Liste des utilisateurs', desc: 'Creer, modifier, desactiver des comptes utilisateurs' },
-    { label: 'Attribution des roles', desc: 'Admin, Manager, Comptable, Lecteur — definir le role de chaque utilisateur' },
-    { label: 'Permissions par module', desc: 'Definir les acces par module et par action (lecture/ecriture/suppression)' },
-    { label: 'Sessions actives', desc: 'Voir les utilisateurs connectes et forcer la deconnexion si necessaire', action: 'Voir les sessions' },
-    { label: 'Historique connexions', desc: 'Journal des connexions avec IP, navigateur et duree', action: 'Consulter' },
-  ]);
-
-  const renderSecurity = () => renderAdminSection('Securite & Roles', 'Politiques de securite et controle d\'acces', Lock, [
-    { label: 'Roles & Permissions', desc: 'Configurer les roles (Admin, Manager, Comptable, Lecteur) et leurs droits' },
-    { label: 'Politique mots de passe', desc: 'Longueur minimale, complexite, expiration, historique' },
-    { label: 'Authentification 2FA', desc: 'Activer/desactiver la double authentification par utilisateur', action: 'Configurer' },
-    { label: 'Adresses IP autorisees', desc: 'Restreindre l\'acces a des plages IP specifiques' },
-    { label: 'Journal de securite', desc: 'Tentatives de connexion echouees, changements de droits', action: 'Consulter' },
-  ]);
-
-  const renderCompany = () => renderAdminSection('Configuration Societe & Comptabilite', 'Parametres de la societe, plan comptable et fiscalite', Briefcase, [
-    { label: 'Informations legales', desc: 'Raison sociale, NIF, RCCM, regime fiscal, adresse du siege' },
-    { label: 'Logo & En-tete', desc: 'Logo de la societe pour les documents PDF et les etats financiers' },
-    { label: 'Exercice comptable', desc: 'Dates de debut/fin, periode en cours, historique des exercices' },
-    { label: 'Devise & Localisation', desc: 'Devise principale (FCFA), pays OHADA, fuseau horaire' },
-    { label: 'Multi-societes', desc: 'Gerer plusieurs entites juridiques et leurs relations', action: 'Configurer' },
-    { label: 'Plan Comptable SYSCOHADA', desc: 'Classes 1-9, comptes et sous-comptes conformes OHADA revise 2017', action: 'Configurer' },
-    { label: 'TVA & Taxes', desc: 'Taux de TVA (18%, 9%, 0%), retenues a la source, patente', action: 'Configurer' },
-    { label: 'Categories immobilisations', desc: 'Durees, taux, comptes de dotation et d\'amortissement par categorie', action: 'Configurer' },
-  ]);
-
-  const renderBackup = () => renderAdminSection('Sauvegardes & Restauration', 'Protection et recuperation des donnees', Database, [
-    { label: 'Sauvegarde manuelle', desc: 'Creer une sauvegarde complete de la base de donnees maintenant', action: 'Sauvegarder' },
-    { label: 'Sauvegardes automatiques', desc: 'Planification : quotidienne, hebdomadaire, mensuelle', action: 'Configurer' },
-    { label: 'Historique des sauvegardes', desc: 'Liste des sauvegardes avec date, taille et statut', action: 'Consulter' },
-    { label: 'Restauration', desc: 'Restaurer la base depuis une sauvegarde precedente', action: 'Restaurer' },
-    { label: 'Export complet', desc: 'Exporter toutes les donnees au format FEC, CSV ou JSON', action: 'Exporter' },
-  ]);
-
-  const renderImportExport = () => renderAdminSection('Import / Export', 'Echange de donnees avec l\'exterieur', FolderOpen, [
-    { label: 'Import Plan Comptable', desc: 'Importer un plan comptable SYSCOHADA depuis un fichier Excel/CSV' },
-    { label: 'Import Ecritures', desc: 'Importer des ecritures comptables (FEC, CSV, Sage, Ciel)' },
-    { label: 'Import Tiers', desc: 'Importer la base clients/fournisseurs depuis un fichier' },
-    { label: 'Export FEC', desc: 'Fichier des Ecritures Comptables — format legal pour l\'administration fiscale', action: 'Generer' },
-    { label: 'Export Grand Livre', desc: 'Export complet du grand livre en Excel ou PDF', action: 'Exporter' },
-  ]);
-
-  const renderAuditTrail = () => renderAdminSection('Piste d\'Audit', 'Tracabilite complete des operations', FileText, [
-    { label: 'Journal des ecritures', desc: 'Creation, modification, validation, suppression de chaque ecriture', action: 'Consulter' },
-    { label: 'Journal des clotures', desc: 'Clotures mensuelles et annuelles avec checklist et resultat', action: 'Consulter' },
-    { label: 'Journal des connexions', desc: 'Connexions, deconnexions, tentatives echouees par utilisateur', action: 'Consulter' },
-    { label: 'Journal des modifications', desc: 'Tout changement de parametre, role ou configuration', action: 'Consulter' },
-    { label: 'Export piste d\'audit', desc: 'Generer un PDF certifie de la piste d\'audit pour le CAC', action: 'Exporter PDF' },
-  ]);
-
-  const renderAPI = () => renderAdminSection('API & Integrations', 'Connexions avec les systemes externes', Server, [
-    { label: 'Cles API', desc: 'Generer et gerer les cles d\'acces pour les integrations tierces' },
-    { label: 'Webhooks', desc: 'Configurer des notifications automatiques vers des systemes externes' },
-    { label: 'Integration bancaire', desc: 'Connexion EBICS / SWIFT pour les releves automatiques', action: 'Configurer' },
-    { label: 'Integration paie', desc: 'Connexion avec le logiciel de paie pour import automatique des OD' },
-    { label: 'Logs API', desc: 'Historique des appels API avec codes de reponse et durees', action: 'Consulter' },
-  ]);
 
   return (
     <div className="min-h-screen bg-[#e5e5e5]">
@@ -336,7 +261,7 @@ const AdminWorkspace: React.FC = () => {
               <ExternalLink className="w-4 h-4 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
             </button>
             <button className="relative p-2 rounded-lg hover:bg-gray-100"><Bell className="w-5 h-5 text-gray-500" /><span className="absolute -top-1 -right-1 w-5 h-5 text-xs font-bold text-white bg-[#ef4444] rounded-full flex items-center justify-center">7</span></button>
-            <button onClick={() => setActiveSection('help')} className="p-2 rounded-lg hover:bg-gray-100"><HelpCircle className="w-5 h-5 text-gray-500" /></button>
+            <button onClick={() => changeSection('help')} className="p-2 rounded-lg hover:bg-gray-100"><HelpCircle className="w-5 h-5 text-gray-500" /></button>
             <div className="relative">
               <button onClick={() => setUserMenuOpen(!userMenuOpen)} className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-100">
                 <div className="w-8 h-8 rounded-full bg-gradient-to-r from-[#ef4444] to-[#ef4444] flex items-center justify-center"><Shield className="w-4 h-4 text-white" /></div>
@@ -345,9 +270,9 @@ const AdminWorkspace: React.FC = () => {
               </button>
               {userMenuOpen && (
                 <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border py-2 z-50">
-                  <button onClick={() => { setActiveSection('profile'); setUserMenuOpen(false); }} className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50"><User className="w-5 h-5 text-[#ef4444]" /><span>Mon profil</span></button>
-                  <button onClick={() => { setActiveSection('settings'); setUserMenuOpen(false); }} className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50"><Settings className="w-5 h-5 text-[#ef4444]" /><span>Parametres</span></button>
-                  <button onClick={() => { setActiveSection('help'); setUserMenuOpen(false); }} className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50"><HelpCircle className="w-5 h-5 text-[#ef4444]" /><span>Aide</span></button>
+                  <button onClick={() => { changeSection('profile'); setUserMenuOpen(false); }} className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50"><User className="w-5 h-5 text-[#ef4444]" /><span>Mon profil</span></button>
+                  <button onClick={() => { changeSection('settings'); setUserMenuOpen(false); }} className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50"><Settings className="w-5 h-5 text-[#ef4444]" /><span>Parametres</span></button>
+                  <button onClick={() => { changeSection('help'); setUserMenuOpen(false); }} className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50"><HelpCircle className="w-5 h-5 text-[#ef4444]" /><span>Aide</span></button>
                   <div className="border-t my-2"></div>
                   <button onClick={handleLogout} className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-red-50 text-red-600"><LogOut className="w-5 h-5" /><span>Deconnexion</span></button>
                 </div>
@@ -356,7 +281,7 @@ const AdminWorkspace: React.FC = () => {
           </div>
         </div>
       </header>
-      <div className={`flex ${activeSection === 'migration' ? 'hidden' : ''}`}>
+      <div className="flex">
         <aside className={`${sidebarOpen ? 'w-64' : 'w-0 overflow-hidden'} lg:w-64 bg-white border-r min-h-[calc(100vh-73px)] transition-all`}>
           <div className="p-4">
             {/* Mon espace */}
@@ -370,9 +295,9 @@ const AdminWorkspace: React.FC = () => {
                   {id:'settings',label:'Parametres',icon:Settings},
                   {id:'help',label:'Aide',icon:HelpCircle}
                 ].map(item => (
-                  <button key={item.id} onClick={() => setActiveSection(item.id)} className={`${activeSection===item.id?'bg-[#ef4444]/10 text-[#ef4444]':'text-gray-600 hover:bg-gray-50'} w-full flex items-center justify-between px-3 py-2 rounded-lg`}>
+                  <button key={item.id} onClick={() => changeSection(item.id)} className={`${activeSection===item.id?'bg-[#ef4444]/10 text-[#ef4444]':'text-gray-600 hover:bg-gray-50'} w-full flex items-center justify-between px-3 py-2 rounded-lg`}>
                     <div className="flex items-center space-x-3"><item.icon className="w-4 h-4" /><span className="text-sm font-medium">{item.label}</span></div>
-                    {item.badge && <span className="px-2 py-0.5 text-xs rounded-full bg-red-100 text-red-600">{item.badge}</span>}
+                    {'badge' in item && item.badge && <span className="px-2 py-0.5 text-xs rounded-full bg-red-100 text-red-600">{item.badge}</span>}
                   </button>
                 ))}
               </div>
@@ -381,11 +306,10 @@ const AdminWorkspace: React.FC = () => {
             {/* Modules Admin */}
             <div className="text-xs font-semibold text-gray-500 uppercase mb-3">Administration</div>
             <div className="space-y-1">
-              {atlasFinanceLinks.map(item => (
-                <button key={item.id} onClick={() => setActiveSection(item.section)}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-lg hover:text-[#ef4444] hover:bg-gray-50 ${activeSection === item.section ? 'text-[#ef4444] bg-red-50 font-medium' : 'text-gray-600'}`}>
+              {sidebarAdminLinks.map(item => (
+                <button key={item.id} onClick={() => changeSection(item.id)}
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded-lg hover:text-[#ef4444] hover:bg-gray-50 ${activeSection === item.id ? 'text-[#ef4444] bg-red-50 font-medium' : 'text-gray-600'}`}>
                   <div className="flex items-center space-x-3"><item.icon className="w-4 h-4" /><span className="text-sm">{item.label}</span></div>
-                  {item.badge && <span className="px-2 py-0.5 text-xs rounded-full bg-red-100 text-red-600">{item.badge}</span>}
                 </button>
               ))}
             </div>
@@ -398,20 +322,16 @@ const AdminWorkspace: React.FC = () => {
           {activeSection === 'profile' && renderProfile()}
           {activeSection === 'settings' && renderSettings()}
           {activeSection === 'help' && renderHelp()}
-          {activeSection === 'users' && renderUsers()}
-          {activeSection === 'security' && renderSecurity()}
-          {activeSection === 'company' && renderCompany()}
-          {activeSection === 'backup' && renderBackup()}
-          {activeSection === 'import-export' && renderImportExport()}
-          {activeSection === 'audit-trail' && renderAuditTrail()}
-          {activeSection === 'api' && renderAPI()}
+          {activeSection === 'users' && <AdminUsers subTab={adminSubTab} setSubTab={setAdminSubTab} />}
+          {activeSection === 'security' && <AdminSecurity subTab={adminSubTab} setSubTab={setAdminSubTab} />}
+          {activeSection === 'company' && <AdminCompany subTab={adminSubTab} setSubTab={setAdminSubTab} />}
+          {activeSection === 'backup' && <AdminBackup subTab={adminSubTab} setSubTab={setAdminSubTab} />}
+          {activeSection === 'import-export' && <AdminImportExport subTab={adminSubTab} setSubTab={setAdminSubTab} />}
+          {activeSection === 'audit-trail' && <AdminAuditTrail subTab={adminSubTab} setSubTab={setAdminSubTab} />}
+          {activeSection === 'api' && <AdminAPI subTab={adminSubTab} setSubTab={setAdminSubTab} />}
+          {activeSection === 'migration' && <DataMigrationImport onBack={() => changeSection('workspace')} />}
         </main>
       </div>
-      {activeSection === 'migration' && (
-        <div className="min-h-[calc(100vh-73px)] overflow-auto bg-white">
-          <DataMigrationImport onBack={() => setActiveSection('workspace')} />
-        </div>
-      )}
       {userMenuOpen && <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />}
     </div>
   );

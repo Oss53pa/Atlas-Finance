@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useData } from '../../contexts/DataContext';
 import {
   Brain, TrendingUp, TrendingDown, Target, Zap, LineChart,
   AlertTriangle, CheckCircle, Info, DollarSign, Users, Package,
@@ -48,142 +49,225 @@ interface Insight {
 }
 
 const AIInsights: React.FC = () => {
+  const { adapter } = useData();
   const [activeTab, setActiveTab] = useState('predictions');
   const [selectedModel, setSelectedModel] = useState('revenue_forecast');
   const [timeHorizon, setTimeHorizon] = useState('3months');
   const [refreshing, setRefreshing] = useState(false);
   const [selectedInsight, setSelectedInsight] = useState<Insight | null>(null);
 
-  // Prédictions IA
-  const [predictions] = useState<Prediction[]>([
-    {
-      id: '1',
-      type: 'revenue',
-      title: 'Prévision de Chiffre d\'Affaires',
-      description: 'Augmentation prévue de 18% du CA au prochain trimestre',
-      value: 2890000,
-      confidence: 87,
-      impact: 'high',
-      timeframe: 'Q2 2024',
-      factors: ['Saisonnalité', 'Tendance marché', 'Nouveaux clients', 'Expansion produits'],
-      recommendation: 'Augmenter les stocks pour répondre à la demande prévue',
-      probability: 0.87
-    },
-    {
-      id: '2',
-      type: 'cashflow',
-      title: 'Prévision de Trésorerie',
-      description: 'Risque de tension de trésorerie dans 45 jours',
-      value: -150000,
-      confidence: 72,
-      impact: 'high',
-      timeframe: '45 jours',
-      factors: ['Délais paiement clients', 'Échéances fournisseurs', 'Investissements prévus'],
-      recommendation: 'Négocier des délais de paiement ou accélérer le recouvrement',
-      probability: 0.72
-    },
-    {
-      id: '3',
-      type: 'demand',
-      title: 'Prévision de Demande',
-      description: 'Pic de demande prévu pour 3 produits phares',
-      value: 450,
-      confidence: 91,
-      impact: 'medium',
-      timeframe: '2 semaines',
-      factors: ['Historique ventes', 'Tendances marché', 'Campagne marketing'],
-      recommendation: 'Commander 30% de stock supplémentaire',
-      probability: 0.91
-    }
-  ]);
-
-  // Anomalies détectées
-  const [anomalies] = useState<Anomaly[]>([
-    {
-      id: '1',
-      category: 'Ventes',
-      description: 'Chute inhabituelle des ventes produit X',
-      severity: 'critical',
-      detectedAt: new Date(),
-      pattern: 'Diminution de 35% par rapport à la moyenne mobile',
-      affectedMetric: 'Chiffre d\'affaires',
-      deviation: -35,
-      suggestion: 'Vérifier la disponibilité des stocks et analyser la concurrence'
-    },
-    {
-      id: '2',
-      category: 'Trésorerie',
-      description: 'Délais de paiement anormalement élevés',
-      severity: 'warning',
-      detectedAt: new Date(Date.now() - 3600000),
-      pattern: 'DSO augmenté de 12 jours ce mois',
-      affectedMetric: 'Délai de recouvrement',
-      deviation: 28,
-      suggestion: 'Relancer les clients en retard et revoir les conditions de paiement'
-    }
-  ]);
-
-  // Insights actionnables
-  const [insights] = useState<Insight[]>([
-    {
-      id: '1',
-      category: 'opportunity',
-      title: 'Optimisation des prix produit premium',
-      description: 'Potentiel d\'augmentation de marge sur les produits haut de gamme',
-      actionableSteps: [
-        'Analyser l\'élasticité prix de la demande',
-        'Tester une augmentation de 5% sur un échantillon',
-        'Déployer si les résultats sont concluants'
-      ],
-      potentialGain: 125000,
-      confidence: 82,
-      priority: 'high'
-    },
-    {
-      id: '2',
-      category: 'optimization',
-      title: 'Réduction des coûts logistiques',
-      description: 'Optimisation des tournées de livraison',
-      actionableSteps: [
-        'Regrouper les livraisons par zone',
-        'Optimiser les itinéraires avec IA',
-        'Négocier de nouveaux contrats transport'
-      ],
-      potentialGain: 85000,
-      confidence: 76,
-      priority: 'medium'
-    }
-  ]);
-
-  // Données pour les graphiques
-  const forecastData = [
-    { date: 'Jan', actual: 850000, predicted: 880000, upper: 950000, lower: 810000 },
-    { date: 'Fév', actual: 920000, predicted: 940000, upper: 1020000, lower: 860000 },
-    { date: 'Mar', actual: 1100000, predicted: 1080000, upper: 1180000, lower: 980000 },
-    { date: 'Avr', actual: null, predicted: 1150000, upper: 1250000, lower: 1050000 },
-    { date: 'Mai', actual: null, predicted: 1200000, upper: 1300000, lower: 1100000 },
-    { date: 'Juin', actual: null, predicted: 1180000, upper: 1280000, lower: 1080000 }
-  ];
-
-  const scoringData = [
-    { metric: 'Précision', score: 94, benchmark: 88 },
-    { metric: 'Rapidité', score: 87, benchmark: 82 },
-    { metric: 'Fiabilité', score: 92, benchmark: 85 },
-    { metric: 'Couverture', score: 89, benchmark: 83 },
-    { metric: 'Innovation', score: 91, benchmark: 78 }
-  ];
-
-  const correlationData = [
-    { x: 250, y: 15, category: 'A' },
-    { x: 180, y: 22, category: 'B' },
-    { x: 320, y: 18, category: 'A' },
-    { x: 140, y: 12, category: 'C' },
-    { x: 290, y: 25, category: 'B' },
-    { x: 210, y: 19, category: 'A' },
-    { x: 160, y: 14, category: 'C' }
-  ];
-
+  const [predictions, setPredictions] = useState<Prediction[]>([]);
+  const [anomalies, setAnomalies] = useState<Anomaly[]>([]);
+  const [insights, setInsights] = useState<Insight[]>([]);
+  const [forecastData, setForecastData] = useState<any[]>([]);
+  const [scoringData, setScoringData] = useState<any[]>([]);
+  const [correlationData, setCorrelationData] = useState<any[]>([]);
   const [aiServiceAvailable] = useState(false);
+  const [totalEntries, setTotalEntries] = useState(0);
+
+  // Load and compute insights from real journal data
+  useEffect(() => {
+    const analyzeData = async () => {
+      try {
+        const entries = await adapter.getAll<any>('journalEntries');
+        setTotalEntries(entries.length);
+        const posted = entries.filter((e: any) => e.status === 'posted');
+
+        // Compute monthly revenue for trend analysis
+        const monthlyRevenue: Record<string, number> = {};
+        const monthlyCharges: Record<string, number> = {};
+        let totalCA = 0;
+        let totalCharges = 0;
+        let totalTresorerie = 0;
+
+        for (const entry of posted) {
+          if (!entry.lines) continue;
+          const month = entry.date ? entry.date.substring(0, 7) : 'inconnu';
+          for (const line of entry.lines) {
+            const code = line.accountCode || '';
+            if (code.startsWith('7')) {
+              const val = (line.credit || 0) - (line.debit || 0);
+              totalCA += val;
+              monthlyRevenue[month] = (monthlyRevenue[month] || 0) + val;
+            }
+            if (code.startsWith('6')) {
+              const val = (line.debit || 0) - (line.credit || 0);
+              totalCharges += val;
+              monthlyCharges[month] = (monthlyCharges[month] || 0) + val;
+            }
+            if (code.startsWith('5')) {
+              totalTresorerie += (line.debit || 0) - (line.credit || 0);
+            }
+          }
+        }
+
+        // Build predictions from real data
+        const builtPredictions: Prediction[] = [];
+        if (totalCA > 0) {
+          builtPredictions.push({
+            id: '1',
+            type: 'revenue',
+            title: 'Chiffre d\'Affaires actuel',
+            description: `CA total comptabilisé: ${formatCurrency(totalCA)}`,
+            value: Math.round(totalCA),
+            confidence: 100,
+            impact: 'high',
+            timeframe: 'Cumulé',
+            factors: ['Données comptables réelles'],
+            recommendation: 'Analyse en cours...',
+            probability: 1
+          });
+        }
+        if (totalTresorerie !== 0) {
+          builtPredictions.push({
+            id: '2',
+            type: 'cashflow',
+            title: 'Situation Trésorerie',
+            description: totalTresorerie < 0
+              ? `Trésorerie négative: ${formatCurrency(totalTresorerie)}`
+              : `Trésorerie positive: ${formatCurrency(totalTresorerie)}`,
+            value: Math.round(totalTresorerie),
+            confidence: 100,
+            impact: totalTresorerie < 0 ? 'high' : 'medium',
+            timeframe: 'Actuel',
+            factors: ['Soldes comptes classe 5'],
+            recommendation: totalTresorerie < 0
+              ? 'Accélérer le recouvrement ou négocier un découvert'
+              : 'Analyse en cours...',
+            probability: 1
+          });
+        }
+        if (builtPredictions.length === 0) {
+          builtPredictions.push({
+            id: '0',
+            type: 'revenue',
+            title: 'Analyse en cours...',
+            description: 'Aucune écriture comptabilisée pour générer des prévisions',
+            value: 0,
+            confidence: 0,
+            impact: 'low',
+            timeframe: '-',
+            factors: ['Données insuffisantes'],
+            recommendation: 'Saisir et comptabiliser des écritures pour activer l\'analyse',
+            probability: 0
+          });
+        }
+        setPredictions(builtPredictions);
+
+        // Detect real anomalies
+        const builtAnomalies: Anomaly[] = [];
+        let anomalyId = 0;
+        for (const entry of entries) {
+          if (entry.lines) {
+            const d = entry.lines.reduce((s: number, l: any) => s + (l.debit || 0), 0);
+            const c = entry.lines.reduce((s: number, l: any) => s + (l.credit || 0), 0);
+            if (Math.abs(d - c) > 0.01) {
+              anomalyId++;
+              builtAnomalies.push({
+                id: String(anomalyId),
+                category: 'Comptabilité',
+                description: `Écriture ${entry.entryNumber || entry.id} déséquilibrée`,
+                severity: 'critical',
+                detectedAt: new Date(entry.createdAt || Date.now()),
+                pattern: `Écart D/C: ${formatCurrency(Math.abs(d - c))}`,
+                affectedMetric: 'Équilibre comptable',
+                deviation: Math.round(Math.abs(d - c)),
+                suggestion: 'Corriger l\'écriture pour rétablir l\'équilibre débit/crédit'
+              });
+            }
+            // Detect unusually large amounts (> 10x average)
+            const avgAmount = posted.length > 0
+              ? posted.reduce((s: number, e: any) => s + (e.totalDebit || 0), 0) / posted.length
+              : 0;
+            if (avgAmount > 0 && (entry.totalDebit || 0) > avgAmount * 10) {
+              anomalyId++;
+              builtAnomalies.push({
+                id: String(anomalyId),
+                category: 'Montant',
+                description: `Montant inhabituel: ${entry.entryNumber || entry.id}`,
+                severity: 'warning',
+                detectedAt: new Date(entry.createdAt || Date.now()),
+                pattern: `Montant ${formatCurrency(entry.totalDebit || 0)} vs moyenne ${formatCurrency(avgAmount)}`,
+                affectedMetric: 'Montant écriture',
+                deviation: Math.round(((entry.totalDebit || 0) / avgAmount - 1) * 100),
+                suggestion: 'Vérifier que le montant est correct'
+              });
+            }
+          }
+        }
+        setAnomalies(builtAnomalies);
+
+        // Build insights from data analysis
+        const builtInsights: Insight[] = [];
+        const marge = totalCA > 0 ? ((totalCA - totalCharges) / totalCA) * 100 : 0;
+        if (marge > 0 && marge < 25) {
+          builtInsights.push({
+            id: '1',
+            category: 'risk',
+            title: 'Marge brute faible',
+            description: `La marge brute est de ${marge.toFixed(1)}%, en dessous du seuil recommandé de 25%`,
+            actionableSteps: [
+              'Analyser les postes de charges les plus élevés',
+              'Identifier les opportunités de réduction de coûts',
+              'Revoir la politique tarifaire'
+            ],
+            potentialGain: Math.round(totalCA * 0.05),
+            confidence: 90,
+            priority: 'high'
+          });
+        }
+        const draftCount = entries.filter((e: any) => e.status === 'draft').length;
+        if (draftCount > 5) {
+          builtInsights.push({
+            id: '2',
+            category: 'optimization',
+            title: 'Écritures en attente de validation',
+            description: `${draftCount} écritures en brouillon ralentissent le processus comptable`,
+            actionableSteps: [
+              'Valider les écritures en attente',
+              'Mettre en place un processus de validation régulier',
+              'Automatiser la validation des écritures récurrentes'
+            ],
+            potentialGain: 0,
+            confidence: 95,
+            priority: 'medium'
+          });
+        }
+        setInsights(builtInsights);
+
+        // Build forecast data from monthly revenue
+        const months = Object.keys(monthlyRevenue).sort();
+        setForecastData(months.map(m => ({
+          date: m,
+          actual: Math.round(monthlyRevenue[m] || 0),
+          predicted: null,
+          upper: null,
+          lower: null
+        })));
+
+        // Scoring based on data quality
+        const balancedPct = posted.length > 0
+          ? Math.round((posted.filter((e: any) => {
+              if (!e.lines) return true;
+              const dd = e.lines.reduce((s: number, l: any) => s + (l.debit || 0), 0);
+              const cc = e.lines.reduce((s: number, l: any) => s + (l.credit || 0), 0);
+              return Math.abs(dd - cc) < 0.01;
+            }).length / posted.length) * 100)
+          : 0;
+        setScoringData([
+          { metric: 'Équilibre D/C', score: balancedPct, benchmark: 100 },
+          { metric: 'Couverture', score: entries.length > 0 ? Math.min(100, entries.length * 2) : 0, benchmark: 80 },
+          { metric: 'Validation', score: posted.length > 0 ? Math.round((posted.length / entries.length) * 100) : 0, benchmark: 90 },
+          { metric: 'Exhaustivité', score: totalCA > 0 && totalCharges > 0 ? 80 : 20, benchmark: 85 },
+        ]);
+
+        setCorrelationData([]);
+      } catch (err) {
+        console.error('Erreur analyse IA:', err);
+      }
+    };
+    analyzeData();
+  }, [adapter]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -230,26 +314,26 @@ const AIInsights: React.FC = () => {
           <div>
             <div className="flex items-center gap-2 mb-2">
               <Target className="w-5 h-5" />
-              <span className="text-sm opacity-90">Précision Globale</span>
+              <span className="text-sm opacity-90">Écritures analysées</span>
             </div>
-            <p className="text-lg font-bold">92%</p>
-            <p className="text-sm opacity-75 mt-1">Sur 30 jours</p>
+            <p className="text-lg font-bold">{totalEntries}</p>
+            <p className="text-sm opacity-75 mt-1">Total</p>
           </div>
           <div>
             <div className="flex items-center gap-2 mb-2">
               <Sparkles className="w-5 h-5" />
-              <span className="text-sm opacity-90">Insights Générés</span>
+              <span className="text-sm opacity-90">Anomalies détectées</span>
             </div>
-            <p className="text-lg font-bold">156</p>
-            <p className="text-sm opacity-75 mt-1">Ce mois</p>
+            <p className="text-lg font-bold">{anomalies.length}</p>
+            <p className="text-sm opacity-75 mt-1">À traiter</p>
           </div>
           <div>
             <div className="flex items-center gap-2 mb-2">
               <DollarSign className="w-5 h-5" />
-              <span className="text-sm opacity-90">Valeur Créée</span>
+              <span className="text-sm opacity-90">Insights</span>
             </div>
-            <p className="text-lg font-bold">1.2M DH</p>
-            <p className="text-sm opacity-75 mt-1">Économies + Opportunités</p>
+            <p className="text-lg font-bold">{insights.length}</p>
+            <p className="text-sm opacity-75 mt-1">Recommandations</p>
           </div>
         </div>
       </div>
@@ -502,48 +586,34 @@ const AIInsights: React.FC = () => {
 
       <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Métriques de Performance Détaillées</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
           <div className="text-center p-4 bg-gradient-to-br from-[#171717]/10 to-[#171717]/5 rounded-lg">
             <div className="w-12 h-12 mx-auto bg-[#171717]/20 rounded-lg flex items-center justify-center mb-2">
               <Target className="w-6 h-6 text-[#171717]" />
             </div>
-            <div className="text-lg font-bold text-gray-900">94.2%</div>
-            <div className="text-sm text-gray-900">Précision Prédictions</div>
+            <div className="text-lg font-bold text-gray-900">{totalEntries}</div>
+            <div className="text-sm text-gray-900">Écritures analysées</div>
           </div>
           <div className="text-center p-4 bg-gradient-to-br from-green-100 to-green-50 rounded-lg">
             <div className="w-12 h-12 mx-auto bg-[#D1FAE5] rounded-lg flex items-center justify-center mb-2">
               <CheckCircle className="w-6 h-6 text-[#22c55e]" />
             </div>
-            <div className="text-lg font-bold text-gray-900">98.1%</div>
-            <div className="text-sm text-gray-900">Disponibilité Système</div>
+            <div className="text-lg font-bold text-gray-900">{predictions.length}</div>
+            <div className="text-sm text-gray-900">Indicateurs suivis</div>
           </div>
           <div className="text-center p-4 bg-gradient-to-br from-[#525252]/10 to-[#525252]/5 rounded-lg">
             <div className="w-12 h-12 mx-auto bg-[#525252]/20 rounded-lg flex items-center justify-center mb-2">
-              <Clock className="w-6 h-6 text-[#525252]" />
+              <AlertTriangle className="w-6 h-6 text-[#525252]" />
             </div>
-            <div className="text-lg font-bold text-gray-900">1.2s</div>
-            <div className="text-sm text-gray-900">Temps de Réponse</div>
+            <div className="text-lg font-bold text-gray-900">{anomalies.length}</div>
+            <div className="text-sm text-gray-900">Anomalies détectées</div>
           </div>
           <div className="text-center p-4 bg-gradient-to-br from-blue-100 to-blue-50 rounded-lg">
             <div className="w-12 h-12 mx-auto bg-[#e5e5e5] rounded-lg flex items-center justify-center mb-2">
-              <Activity className="w-6 h-6 text-[#737373]" />
+              <Lightbulb className="w-6 h-6 text-[#737373]" />
             </div>
-            <div className="text-lg font-bold text-gray-900">24/7</div>
-            <div className="text-sm text-gray-900">Surveillance Active</div>
-          </div>
-          <div className="text-center p-4 bg-gradient-to-br from-purple-100 to-purple-50 rounded-lg">
-            <div className="w-12 h-12 mx-auto bg-[#DBEAFE] rounded-lg flex items-center justify-center mb-2">
-              <Shield className="w-6 h-6 text-[#3B82F6]" />
-            </div>
-            <div className="text-lg font-bold text-gray-900">100%</div>
-            <div className="text-sm text-gray-900">Sécurité Données</div>
-          </div>
-          <div className="text-center p-4 bg-gradient-to-br from-orange-100 to-orange-50 rounded-lg">
-            <div className="w-12 h-12 mx-auto bg-amber-200 rounded-lg flex items-center justify-center mb-2">
-              <Cpu className="w-6 h-6 text-[#F59E0B]" />
-            </div>
-            <div className="text-lg font-bold text-gray-900">85%</div>
-            <div className="text-sm text-gray-900">Efficacité CPU</div>
+            <div className="text-lg font-bold text-gray-900">{insights.length}</div>
+            <div className="text-sm text-gray-900">Recommandations</div>
           </div>
         </div>
       </div>

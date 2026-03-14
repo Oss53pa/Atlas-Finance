@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useData } from '../../contexts/DataContext';
 import {
   AlertTriangle, Bell, Info, CheckCircle, XCircle, TrendingUp,
   TrendingDown, Clock, DollarSign, Users, Package, Settings,
@@ -45,119 +46,140 @@ interface AlertRule {
 
 const AlertsSystem: React.FC = () => {
   const { t } = useLanguage();
-  const [alerts, setAlerts] = useState<Alert[]>([
-    {
-      id: '1',
-      type: 'critical',
-      category: 'finance',
-      title: 'Trésorerie critique',
-      message: 'Le niveau de trésorerie est tombé en dessous du seuil minimal de 500,000 DH',
-      timestamp: new Date(Date.now() - 300000),
-      priority: 'high',
-      status: 'new',
-      source: 'Système de monitoring',
-      impact: 'Risque de rupture de paiement fournisseurs',
-      suggestedAction: 'Accélérer le recouvrement client ou négocier un découvert bancaire',
-      value: 450000,
-      threshold: 500000,
-      trend: 'down'
-    },
-    {
-      id: '2',
-      type: 'warning',
-      category: 'clients',
-      title: 'Créances vieillissantes',
-      message: '12 factures dépassent 60 jours d\'échéance pour un total de 234,000 DH',
-      timestamp: new Date(Date.now() - 3600000),
-      priority: 'medium',
-      status: 'acknowledged',
-      source: 'Module Recouvrement',
-      impact: 'Risque de créances irrécouvrables',
-      suggestedAction: 'Lancer une campagne de relance intensive',
-      assignedTo: 'Service Recouvrement',
-      value: 234000,
-      trend: 'up'
-    },
-    {
-      id: '3',
-      type: 'success',
-      category: 'performance',
-      title: 'Objectif CA atteint',
-      message: 'Le chiffre d\'affaires mensuel a dépassé l\'objectif de 15%',
-      timestamp: new Date(Date.now() - 7200000),
-      priority: 'low',
-      status: 'resolved',
-      source: 'KPI Dashboard',
-      impact: 'Impact positif sur la rentabilité',
-      value: 2300000,
-      threshold: 2000000,
-      trend: 'up',
-      autoResolve: true,
-      resolveTime: new Date()
-    },
-    {
-      id: '4',
-      type: 'warning',
-      category: 'stock',
-      title: 'Rupture de stock imminente',
-      message: 'Stock critique pour 5 produits best-sellers',
-      timestamp: new Date(Date.now() - 10800000),
-      priority: 'high',
-      status: 'new',
-      source: 'Gestion des stocks',
-      impact: 'Perte potentielle de ventes',
-      suggestedAction: 'Commander en urgence auprès des fournisseurs',
-      relatedKPI: 'inventory_turnover'
-    },
-    {
-      id: '5',
-      type: 'info',
-      category: 'operations',
-      title: 'Maintenance planifiée',
-      message: 'Maintenance du système prévue ce soir de 22h à 23h',
-      timestamp: new Date(Date.now() - 14400000),
-      priority: 'low',
-      status: 'acknowledged',
-      source: 'IT Department',
-      impact: 'Indisponibilité temporaire du système'
-    }
-  ]);
+  const { adapter } = useData();
+  const [alerts, setAlerts] = useState<Alert[]>([]);
 
-  const [alertRules, setAlertRules] = useState<AlertRule[]>([
-    {
-      id: '1',
-      name: 'Trésorerie minimale',
-      condition: 'cash_balance',
-      threshold: 500000,
-      comparison: 'less',
-      frequency: 'realtime',
-      enabled: true,
-      notifications: ['email', 'dashboard', 'sms'],
-      recipients: ['cfo@company.com', 'treasurer@company.com']
-    },
-    {
-      id: '2',
-      name: 'Créances > 60 jours',
-      condition: 'overdue_invoices',
-      threshold: 60,
-      comparison: 'greater',
-      frequency: 'daily',
-      enabled: true,
-      notifications: ['email', 'dashboard'],
-      recipients: ['ar@company.com']
-    },
-    {
-      id: '3',
-      name: 'Taux de conversion',
-      condition: 'conversion_rate',
-      threshold: 2,
-      comparison: 'less',
-      frequency: 'hourly',
-      enabled: true,
-      notifications: ['dashboard'],
-      recipients: ['sales@company.com']
-    }
-  ]);
+  const [alertRules, setAlertRules] = useState<AlertRule[]>([]);
+
+  // Load real alerts from journal data anomalies
+  useEffect(() => {
+    const loadAlerts = async () => {
+      try {
+        const entries = await adapter.getAll<any>('journalEntries');
+        const generatedAlerts: Alert[] = [];
+        let alertId = 0;
+
+        // Check for unbalanced entries
+        for (const entry of entries) {
+          if (entry.lines && Array.isArray(entry.lines)) {
+            const totalDebit = entry.lines.reduce((s: number, l: any) => s + (l.debit || 0), 0);
+            const totalCredit = entry.lines.reduce((s: number, l: any) => s + (l.credit || 0), 0);
+            if (Math.abs(totalDebit - totalCredit) > 0.01) {
+              alertId++;
+              generatedAlerts.push({
+                id: String(alertId),
+                type: 'critical',
+                category: 'finance',
+                title: 'Écriture déséquilibrée',
+                message: `L'écriture ${entry.entryNumber || entry.id} a un écart de ${formatCurrency(Math.abs(totalDebit - totalCredit))}`,
+                timestamp: new Date(entry.createdAt || Date.now()),
+                priority: 'high',
+                status: 'new',
+                source: 'Contrôle écritures',
+                impact: 'Incohérence comptable',
+                suggestedAction: 'Corriger l\'écriture pour équilibrer débit et crédit',
+                value: Math.abs(totalDebit - totalCredit),
+                trend: 'stable'
+              });
+            }
+          }
+        }
+
+        // Check for draft entries (pending validation)
+        const draftEntries = entries.filter((e: any) => e.status === 'draft');
+        if (draftEntries.length > 0) {
+          alertId++;
+          generatedAlerts.push({
+            id: String(alertId),
+            type: 'warning',
+            category: 'operations',
+            title: 'Écritures en brouillon',
+            message: `${draftEntries.length} écriture(s) en attente de validation`,
+            timestamp: new Date(),
+            priority: 'medium',
+            status: 'new',
+            source: 'Journal comptable',
+            impact: 'Écritures non validées',
+            suggestedAction: 'Valider ou supprimer les écritures en brouillon',
+            value: draftEntries.length
+          });
+        }
+
+        // Check for overdue receivables (class 41x with old dates)
+        const sixtyDaysAgo = new Date();
+        sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+        let overdueTotal = 0;
+        let overdueCount = 0;
+        for (const entry of entries) {
+          if (entry.status === 'posted' && entry.lines) {
+            for (const line of entry.lines) {
+              if (line.accountCode?.startsWith('41') && line.debit > 0) {
+                const entryDate = new Date(entry.date);
+                if (entryDate < sixtyDaysAgo) {
+                  overdueTotal += line.debit;
+                  overdueCount++;
+                }
+              }
+            }
+          }
+        }
+        if (overdueCount > 0) {
+          alertId++;
+          generatedAlerts.push({
+            id: String(alertId),
+            type: 'warning',
+            category: 'clients',
+            title: 'Créances vieillissantes',
+            message: `${overdueCount} ligne(s) client dépassent 60 jours pour un total de ${formatCurrency(overdueTotal)}`,
+            timestamp: new Date(),
+            priority: 'medium',
+            status: 'new',
+            source: 'Analyse créances',
+            impact: 'Risque de créances irrécouvrables',
+            suggestedAction: 'Relancer les clients concernés',
+            value: overdueTotal,
+            trend: 'up'
+          });
+        }
+
+        // Check treasury level (class 5)
+        let treasuryBalance = 0;
+        for (const entry of entries) {
+          if (entry.status === 'posted' && entry.lines) {
+            for (const line of entry.lines) {
+              if (line.accountCode?.startsWith('5')) {
+                treasuryBalance += (line.debit || 0) - (line.credit || 0);
+              }
+            }
+          }
+        }
+        if (treasuryBalance < 0) {
+          alertId++;
+          generatedAlerts.push({
+            id: String(alertId),
+            type: 'critical',
+            category: 'finance',
+            title: 'Trésorerie négative',
+            message: `Le solde de trésorerie est négatif: ${formatCurrency(treasuryBalance)}`,
+            timestamp: new Date(),
+            priority: 'high',
+            status: 'new',
+            source: 'Trésorerie',
+            impact: 'Risque de rupture de paiement',
+            suggestedAction: 'Accélérer le recouvrement ou négocier un découvert',
+            value: treasuryBalance,
+            trend: 'down'
+          });
+        }
+
+        setAlerts(generatedAlerts);
+      } catch (err) {
+        console.error('Erreur chargement alertes:', err);
+        setAlerts([]);
+      }
+    };
+    loadAlerts();
+  }, [adapter]);
 
   const [filter, setFilter] = useState({
     type: 'all',
@@ -171,9 +193,6 @@ const AlertsSystem: React.FC = () => {
   const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [showCreateRule, setShowCreateRule] = useState(false);
-
-  // TODO: wire to real alert system via Dexie/Supabase
-  // No random alert generation in production
 
   const getAlertIcon = (type: string) => {
     switch (type) {
@@ -390,6 +409,13 @@ const AlertsSystem: React.FC = () => {
 
       {/* Alerts List */}
       <div className="space-y-4">
+        {filteredAlerts.length === 0 && (
+          <div className="bg-green-50 rounded-lg border border-green-200 p-8 text-center">
+            <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-3" />
+            <h3 className="text-lg font-semibold text-green-700">Aucune alerte active</h3>
+            <p className="text-sm text-green-600 mt-1">Tous les indicateurs sont dans les seuils normaux</p>
+          </div>
+        )}
         {filteredAlerts.map((alert) => (
           <div
             key={alert.id}

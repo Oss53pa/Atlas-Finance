@@ -6,6 +6,8 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useData } from '../../contexts/DataContext';
+import type { DBThirdParty, DBJournalEntry } from '@/lib/db';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -67,11 +69,14 @@ interface EcheancesDashboard {
 
 const ModernSupplierDashboard: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
+
   // État principal
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [allSuppliers, setAllSuppliers] = useState<Supplier[]>([]);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [echeancesData, setEcheancesData] = useState<EcheancesDashboard | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // États de filtres et recherche
@@ -100,7 +105,6 @@ const ModernSupplierDashboard: React.FC = () => {
   };
 
   const handlePaymentSupplier = (supplier: Supplier) => {
-    // Naviguer vers le module de paiement ou ouvrir un modal de paiement
     toast(`Gestion des paiements pour: ${supplier.legal_name}`);
   };
 
@@ -120,103 +124,194 @@ const ModernSupplierDashboard: React.FC = () => {
     }
   };
 
-  // Chargement initial
+  // Chargement initial depuis l'adapter
   useEffect(() => {
-    chargerDashboardStats();
-    chargerFournisseurs();
-    chargerEcheances();
-  }, []);
+    const loadData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const [thirdParties, entries] = await Promise.all([
+          adapter.getAll('thirdParties').catch(() => [] as any[]) as Promise<DBThirdParty[]>,
+          adapter.getAll('journalEntries').catch(() => [] as any[]) as Promise<DBJournalEntry[]>,
+        ]);
 
-  const chargerDashboardStats = async () => {
-    try {
-      const response = await fetch('/api/suppliers/api/suppliers/dashboard-stats/', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
+        // Filter suppliers (type = supplier or both)
+        const supplierParties = thirdParties.filter(
+          (tp) => tp.type === 'supplier' || tp.type === 'both'
+        );
 
-      if (response.ok) {
-        const data = await response.json();
-        setStats(data);
-      } else {
-        setError('Erreur lors du chargement des statistiques');
-      }
-    } catch (error) {
-      setError('Erreur de connexion');
-      console.error('Erreur stats:', error);
-    }
-  };
+        // Compute outstanding balances from 401xxx journal lines (credit - debit = outstanding for suppliers)
+        const outstandingByCode: Record<string, number> = {};
+        const lastEntryDateByCode: Record<string, string> = {};
+        const entryCountByCode: Record<string, number> = {};
 
-  const chargerFournisseurs = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch('/api/suppliers/api/suppliers/', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setSuppliers(Array.isArray(data) ? data : data.results || []);
-      } else {
-        setError('Erreur lors du chargement des fournisseurs');
-      }
-    } catch (error) {
-      setError('Erreur de connexion');
-      console.error('Erreur fournisseurs:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const chargerEcheances = async () => {
-    try {
-      const response = await fetch('/api/suppliers/api/echeances/tableau-bord/', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setEcheancesData(data);
-      }
-    } catch (error) {
-      console.error('Erreur échéances:', error);
-    }
-  };
-
-  const rechercheAvancee = async () => {
-    setLoading(true);
-    try {
-      const criteres = {
-        query: searchQuery,
-        filters: {
-          supplier_type: selectedType || undefined,
-          status: selectedStatus || undefined,
-          rating: selectedRating || undefined,
+        for (const entry of entries) {
+          if (!entry.lines) continue;
+          for (const line of entry.lines) {
+            if (line.accountCode?.startsWith('401')) {
+              const code = line.thirdPartyCode || line.accountCode;
+              outstandingByCode[code] = (outstandingByCode[code] || 0) + (line.credit - line.debit);
+              entryCountByCode[code] = (entryCountByCode[code] || 0) + 1;
+              if (!lastEntryDateByCode[code] || entry.date > lastEntryDateByCode[code]) {
+                lastEntryDateByCode[code] = entry.date;
+              }
+            }
+          }
         }
-      };
 
-      const response = await fetch('/api/suppliers/api/suppliers/search/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify(criteres),
-      });
+        // Map to Supplier interface
+        const mappedSuppliers: Supplier[] = supplierParties.map((tp) => {
+          const outstanding = outstandingByCode[tp.code] || 0;
+          const txCount = entryCountByCode[tp.code] || 0;
+          // Simple performance heuristic: active with transactions = better score
+          const performance = tp.isActive ? Math.min(100, 50 + txCount * 5) : 20;
 
-      if (response.ok) {
-        const data = await response.json();
-        setSuppliers(Array.isArray(data) ? data : data.results || []);
+          return {
+            id: tp.id,
+            code: tp.code,
+            legal_name: tp.name,
+            commercial_name: undefined,
+            supplier_type: tp.type === 'both' ? 'Mixte' : 'Fournisseur',
+            legal_form: tp.regimeFiscal || '-',
+            status: tp.isActive ? 'ACTIVE' as const : 'BLOCKED' as const,
+            supplier_rating: performance >= 80 ? 'A' as const : performance >= 60 ? 'B' as const : performance >= 40 ? 'C' as const : 'D' as const,
+            overall_performance: performance,
+            current_outstanding: Math.abs(outstanding),
+            city: tp.address || '-',
+            main_phone: tp.phone,
+            email: tp.email,
+            last_order_date: lastEntryDateByCode[tp.code],
+            created_at: new Date().toISOString(),
+          };
+        });
+
+        setAllSuppliers(mappedSuppliers);
+        setSuppliers(mappedSuppliers);
+
+        // Compute dashboard stats
+        const activeSuppliers = mappedSuppliers.filter((s) => s.status === 'ACTIVE');
+        const blockedSuppliers = mappedSuppliers.filter((s) => s.status === 'BLOCKED');
+        const totalEncours = mappedSuppliers.reduce((sum, s) => sum + s.current_outstanding, 0);
+        const avgPerformance = mappedSuppliers.length > 0
+          ? mappedSuppliers.reduce((sum, s) => sum + s.overall_performance, 0) / mappedSuppliers.length
+          : 0;
+
+        // Repartition by type
+        const repartition: Record<string, number> = {};
+        for (const s of mappedSuppliers) {
+          repartition[s.supplier_type] = (repartition[s.supplier_type] || 0) + 1;
+        }
+
+        // Top encours
+        const topEncours = [...mappedSuppliers]
+          .sort((a, b) => b.current_outstanding - a.current_outstanding)
+          .slice(0, 5)
+          .map((s) => ({ code: s.code, legal_name: s.legal_name, current_outstanding: s.current_outstanding }));
+
+        setStats({
+          total_fournisseurs: mappedSuppliers.length,
+          fournisseurs_actifs: activeSuppliers.length,
+          fournisseurs_bloques: blockedSuppliers.length,
+          fournisseurs_evalues: mappedSuppliers.filter((s) => s.overall_performance > 0).length,
+          encours_total: totalEncours,
+          performance_moyenne: avgPerformance,
+          repartition_type: repartition,
+          top_encours: topEncours,
+        });
+
+        // Compute echeances from 401xxx lines with dateEcheance
+        const now = new Date();
+        const todayStr = now.toISOString().slice(0, 10);
+        const weekEnd = new Date(now);
+        weekEnd.setDate(weekEnd.getDate() + (7 - weekEnd.getDay()));
+        const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+        let todayCount = 0, todayAmount = 0;
+        let weekCount = 0, weekAmount = 0;
+        let monthCount = 0, monthAmount = 0;
+        let overdueCount = 0, overdueAmount = 0;
+        let totalOverdueDays = 0;
+
+        for (const entry of entries) {
+          if (!entry.lines) continue;
+          for (const line of entry.lines) {
+            if (!line.accountCode?.startsWith('401')) continue;
+            const balance = line.credit - line.debit;
+            if (balance <= 0) continue; // only open payables
+            if (line.lettrageCode) continue; // already reconciled
+
+            const dueDate = line.dateEcheance || entry.date;
+            const due = new Date(dueDate);
+
+            if (dueDate === todayStr) {
+              todayCount++;
+              todayAmount += balance;
+            }
+            if (due <= weekEnd && due >= now) {
+              weekCount++;
+              weekAmount += balance;
+            }
+            if (due <= monthEnd && due >= now) {
+              monthCount++;
+              monthAmount += balance;
+            }
+            if (due < now) {
+              overdueCount++;
+              overdueAmount += balance;
+              totalOverdueDays += Math.floor((now.getTime() - due.getTime()) / (1000 * 60 * 60 * 24));
+            }
+          }
+        }
+
+        setEcheancesData({
+          echeances: {
+            aujourd_hui: { nombre: todayCount, montant_total: todayAmount, factures: [] },
+            cette_semaine: { nombre: weekCount, montant_total: weekAmount, factures: [] },
+            ce_mois: { nombre: monthCount, montant_total: monthAmount, factures: [] },
+            en_retard: {
+              nombre: overdueCount,
+              montant_total: overdueAmount,
+              retard_moyen_jours: overdueCount > 0 ? Math.round(totalOverdueDays / overdueCount) : 0,
+            },
+          },
+          statistiques_globales: {},
+          top_fournisseurs_encours: topEncours,
+        });
+      } catch (err) {
+        console.error('Erreur chargement fournisseurs:', err);
+        setError('Erreur lors du chargement des données fournisseurs');
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      setError('Erreur lors de la recherche');
-    } finally {
-      setLoading(false);
+    };
+
+    loadData();
+  }, [adapter]);
+
+  // Client-side filtering
+  const rechercheAvancee = () => {
+    let filtered = [...allSuppliers];
+
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (s) =>
+          s.legal_name.toLowerCase().includes(q) ||
+          s.code.toLowerCase().includes(q) ||
+          (s.email || '').toLowerCase().includes(q)
+      );
     }
+    if (selectedStatus) {
+      filtered = filtered.filter((s) => s.status === selectedStatus);
+    }
+    if (selectedRating) {
+      filtered = filtered.filter((s) => s.supplier_rating === selectedRating);
+    }
+    if (selectedType) {
+      filtered = filtered.filter((s) => s.supplier_type === selectedType);
+    }
+
+    setSuppliers(filtered);
   };
 
   // Formatage des données

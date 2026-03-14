@@ -1,6 +1,8 @@
 import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useData } from '../../contexts/DataContext';
+import type { DBThirdParty, DBJournalEntry } from '@/lib/db';
 import {
   TrendingUp,
   Clock,
@@ -81,15 +83,149 @@ interface RadiationCreance {
 
 const RecouvrementDashboard: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
+
   const [activeTab, setActiveTab] = useState('creances');
   const [creances, setCreances] = useState<CreanceClient[]>([]);
-
   const [dossiersRecouvrement, setDossiersRecouvrement] = useState<DossierRecouvrement[]>([]);
-
   const [radiations, setRadiations] = useState<RadiationCreance[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const [selectedStatut, setSelectedStatut] = useState<string>('tous');
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Load real data from adapter
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        const [thirdParties, entries] = await Promise.all([
+          adapter.getAll('thirdParties').catch(() => [] as any[]) as Promise<DBThirdParty[]>,
+          adapter.getAll('journalEntries').catch(() => [] as any[]) as Promise<DBJournalEntry[]>,
+        ]);
+
+        const now = new Date();
+        const customerMap = new Map<string, DBThirdParty>();
+        for (const tp of thirdParties) {
+          if (tp.type === 'customer' || tp.type === 'both') {
+            customerMap.set(tp.code, tp);
+          }
+        }
+
+        // Build receivables from 411xxx lines (debit - credit = outstanding for customers)
+        // Group by thirdPartyCode
+        const receivablesByClient: Record<string, {
+          totalDebit: number;
+          totalCredit: number;
+          lines: Array<{ debit: number; credit: number; dueDate: string; entryDate: string; lettrageCode?: string }>;
+          clientName: string;
+          clientCode: string;
+        }> = {};
+
+        for (const entry of entries) {
+          if (!entry.lines) continue;
+          for (const line of entry.lines) {
+            if (!line.accountCode?.startsWith('411')) continue;
+            const code = line.thirdPartyCode || line.accountCode;
+            if (!receivablesByClient[code]) {
+              const tp = customerMap.get(code);
+              receivablesByClient[code] = {
+                totalDebit: 0,
+                totalCredit: 0,
+                lines: [],
+                clientName: tp?.name || line.thirdPartyName || code,
+                clientCode: code,
+              };
+            }
+            receivablesByClient[code].totalDebit += line.debit;
+            receivablesByClient[code].totalCredit += line.credit;
+            receivablesByClient[code].lines.push({
+              debit: line.debit,
+              credit: line.credit,
+              dueDate: line.dateEcheance || entry.date,
+              entryDate: entry.date,
+              lettrageCode: line.lettrageCode,
+            });
+          }
+        }
+
+        // Build creances from grouped receivables
+        const creancesList: CreanceClient[] = [];
+        const dossiersList: DossierRecouvrement[] = [];
+
+        for (const [code, data] of Object.entries(receivablesByClient)) {
+          const montantTotal = data.totalDebit;
+          const montantPaye = data.totalCredit;
+          const montantRestant = montantTotal - montantPaye;
+
+          if (montantRestant <= 0) continue; // fully paid, skip
+
+          // Find the earliest unreconciled due date
+          const openLines = data.lines.filter((l) => !l.lettrageCode && l.debit > 0);
+          const earliestDueDate = openLines.length > 0
+            ? openLines.reduce((min, l) => l.dueDate < min ? l.dueDate : min, openLines[0].dueDate)
+            : data.lines[0]?.entryDate || now.toISOString().slice(0, 10);
+
+          const dueDate = new Date(earliestDueDate);
+          const jourRetard = dueDate < now ? Math.floor((now.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24)) : 0;
+
+          let statut: CreanceClient['statut'] = 'en_cours';
+          if (montantRestant <= 0) statut = 'recouvre';
+          else if (jourRetard > 90) statut = 'critique';
+          else if (jourRetard > 0) statut = 'en_retard';
+
+          creancesList.push({
+            id: code,
+            clientName: data.clientName,
+            clientCode: data.clientCode,
+            montantTotal,
+            montantPaye,
+            montantRestant,
+            dateEcheance: earliestDueDate,
+            jourRetard,
+            statut,
+            dernierContact: data.lines[data.lines.length - 1]?.entryDate || '-',
+            prochainContact: '-',
+          });
+
+          // Create recovery dossiers for overdue items (>30 days)
+          if (jourRetard > 30) {
+            const typeRecouvrement: DossierRecouvrement['typeRecouvrement'] =
+              jourRetard > 180 ? 'judiciaire' : jourRetard > 90 ? 'huissier' : 'amiable';
+            const dossierStatut: DossierRecouvrement['statut'] =
+              jourRetard > 180 ? 'juridique' : 'actif';
+
+            dossiersList.push({
+              id: `REC-${code}`,
+              numeroRef: `REC-${code}`,
+              client: data.clientName,
+              montantPrincipal: montantRestant,
+              interets: 0,
+              frais: 0,
+              montantTotal: montantRestant,
+              dateOuverture: earliestDueDate,
+              statut: dossierStatut,
+              typeRecouvrement,
+              responsable: '-',
+              derniereAction: `Retard de ${jourRetard} jours`,
+              prochainEtape: typeRecouvrement === 'amiable' ? 'Relance courrier' : typeRecouvrement === 'huissier' ? 'Mise en demeure' : 'Assignation',
+            });
+          }
+        }
+
+        setCreances(creancesList);
+        setDossiersRecouvrement(dossiersList);
+        // Radiations remain empty unless explicitly created by the user
+        setRadiations([]);
+      } catch (err) {
+        console.error('Erreur chargement recouvrement:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, [adapter]);
 
   const stats = {
     totalCreances: creances.reduce((sum, c) => sum + c.montantTotal, 0),
@@ -159,6 +295,21 @@ const RecouvrementDashboard: React.FC = () => {
     { id: 'dossiers', label: 'Dossiers en Recouvrement', icon: FolderOpen },
     { id: 'radiation', label: 'Radiation de Créances', icon: XCircle },
   ];
+
+  if (loading) {
+    return (
+      <div className="p-6">
+        <div className="mb-8">
+          <h1 className="text-lg font-bold text-[var(--color-text-primary)]">{t('thirdParty.collection')}</h1>
+          <p className="text-[var(--color-text-primary)] mt-2">Gestion et suivi du recouvrement des créances clients</p>
+        </div>
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--color-primary)] mx-auto"></div>
+          <p className="mt-4 text-[var(--color-text-primary)]">Chargement des données de recouvrement...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6">
@@ -313,6 +464,15 @@ const RecouvrementDashboard: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredCreances.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="px-6 py-12 text-center">
+                        <DollarSign className="w-12 h-12 text-[var(--color-text-secondary)] mx-auto mb-4" />
+                        <p className="text-[var(--color-text-primary)]">Aucune créance client trouvée</p>
+                        <p className="text-sm text-[var(--color-text-secondary)] mt-1">Les créances seront calculées depuis les écritures comptables sur les comptes 411</p>
+                      </td>
+                    </tr>
+                  )}
                   {filteredCreances.map((creance) => (
                     <tr key={creance.id} className="hover:bg-[var(--color-background-secondary)]">
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -688,19 +848,19 @@ const RecouvrementDashboard: React.FC = () => {
               <div className="space-y-2">
                 <button className="w-full text-left p-3 bg-[var(--color-primary-lightest)] rounded-lg hover:bg-[var(--color-primary-lighter)]">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-[var(--color-primary-dark)]">3 Appels à passer</span>
+                    <span className="text-sm font-medium text-[var(--color-primary-dark)]">{dossiersRecouvrement.filter(d => d.typeRecouvrement === 'amiable' && d.statut === 'actif').length} Appels à passer</span>
                     <Phone className="w-4 h-4 text-[var(--color-primary)]" />
                   </div>
                 </button>
                 <button className="w-full text-left p-3 bg-[var(--color-success-lightest)] rounded-lg hover:bg-[var(--color-success-lighter)]">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-[var(--color-success-dark)]">2 Relances à envoyer</span>
+                    <span className="text-sm font-medium text-[var(--color-success-dark)]">{dossiersRecouvrement.filter(d => d.typeRecouvrement === 'huissier' && d.statut === 'actif').length} Relances à envoyer</span>
                     <Mail className="w-4 h-4 text-[var(--color-success)]" />
                   </div>
                 </button>
                 <button className="w-full text-left p-3 bg-[var(--color-info-lightest)] rounded-lg hover:bg-[var(--color-info-lighter)]">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-[var(--color-info-dark)]">1 Audience prévue</span>
+                    <span className="text-sm font-medium text-[var(--color-info-dark)]">{dossiersRecouvrement.filter(d => d.statut === 'juridique').length} Audiences prévues</span>
                     <Gavel className="w-4 h-4 text-purple-500" />
                   </div>
                 </button>
@@ -915,7 +1075,7 @@ const RecouvrementDashboard: React.FC = () => {
                     <span className="text-sm text-[var(--color-text-primary)]">Faillite</span>
                   </div>
                   <span className="text-sm font-medium">
-                    {radiations.filter(r => r.motifRadiation === 'faillite').length} ({((radiations.filter(r => r.motifRadiation === 'faillite').length / radiations.length) * 100).toFixed(0)}%)
+                    {radiations.filter(r => r.motifRadiation === 'faillite').length} ({((radiations.filter(r => r.motifRadiation === 'faillite').length / (radiations.length || 1)) * 100).toFixed(0)}%)
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
@@ -924,7 +1084,7 @@ const RecouvrementDashboard: React.FC = () => {
                     <span className="text-sm text-[var(--color-text-primary)]">Prescription</span>
                   </div>
                   <span className="text-sm font-medium">
-                    {radiations.filter(r => r.motifRadiation === 'prescription').length} ({((radiations.filter(r => r.motifRadiation === 'prescription').length / radiations.length) * 100).toFixed(0)}%)
+                    {radiations.filter(r => r.motifRadiation === 'prescription').length} ({((radiations.filter(r => r.motifRadiation === 'prescription').length / (radiations.length || 1)) * 100).toFixed(0)}%)
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
@@ -933,7 +1093,7 @@ const RecouvrementDashboard: React.FC = () => {
                     <span className="text-sm text-[var(--color-text-primary)]">Accord amiable</span>
                   </div>
                   <span className="text-sm font-medium">
-                    {radiations.filter(r => r.motifRadiation === 'accord').length} ({((radiations.filter(r => r.motifRadiation === 'accord').length / radiations.length) * 100).toFixed(0)}%)
+                    {radiations.filter(r => r.motifRadiation === 'accord').length} ({((radiations.filter(r => r.motifRadiation === 'accord').length / (radiations.length || 1)) * 100).toFixed(0)}%)
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
@@ -942,7 +1102,7 @@ const RecouvrementDashboard: React.FC = () => {
                     <span className="text-sm text-[var(--color-text-primary)]">Irrécupérable</span>
                   </div>
                   <span className="text-sm font-medium">
-                    {radiations.filter(r => r.motifRadiation === 'irrecuperable').length} ({((radiations.filter(r => r.motifRadiation === 'irrecuperable').length / radiations.length) * 100).toFixed(0)}%)
+                    {radiations.filter(r => r.motifRadiation === 'irrecuperable').length} ({((radiations.filter(r => r.motifRadiation === 'irrecuperable').length / (radiations.length || 1)) * 100).toFixed(0)}%)
                   </span>
                 </div>
               </div>

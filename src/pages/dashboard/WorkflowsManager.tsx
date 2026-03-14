@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useData } from '../../contexts/DataContext';
 import {
   GitBranch, CheckCircle, XCircle, Clock, Play, Pause,
   SkipForward, AlertTriangle, User, Users, Calendar,
@@ -59,252 +60,104 @@ interface ApprovalRequest {
 
 const WorkflowsManager: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   const [activeTab, setActiveTab] = useState<'workflows' | 'approvals' | 'templates'>('workflows');
   const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow | null>(null);
   const [selectedApproval, setSelectedApproval] = useState<ApprovalRequest | null>(null);
   const [filter, setFilter] = useState({ status: 'all', category: 'all' });
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Workflows actifs
-  const [workflows] = useState<Workflow[]>([
-    {
-      id: 'wf-001',
-      name: 'Approbation Commande > 50,000',
-      category: 'purchase',
-      status: 'active',
-      priority: 'high',
-      currentStep: 2,
-      totalSteps: 4,
-      progress: 50,
-      createdBy: 'Admin',
-      createdAt: new Date(Date.now() - 86400000),
-      lastModified: new Date(),
-      description: 'Workflow d\'approbation pour les commandes dépassant 50,000',
-      triggers: ['Commande créée', 'Montant > 50,000'],
-      steps: [
-        {
-          id: 's1',
-          name: 'Vérification Budget',
-          type: 'condition',
-          status: 'completed',
-          completedAt: new Date(Date.now() - 3600000)
-        },
-        {
-          id: 's2',
-          name: 'Approbation Manager',
-          type: 'approval',
-          status: 'in_progress',
-          assignee: 'Manager Finance',
-          dueDate: new Date(Date.now() + 86400000)
-        },
-        {
-          id: 's3',
-          name: 'Approbation Direction',
-          type: 'approval',
-          status: 'pending',
-          assignee: 'Directeur'
-        },
-        {
-          id: 's4',
-          name: 'Notification & Exécution',
-          type: 'notification',
-          status: 'pending'
-        }
-      ]
-    },
-    {
-      id: 'wf-002',
-      name: 'Onboarding Nouveau Client',
-      category: 'sales',
-      status: 'active',
-      priority: 'medium',
-      currentStep: 3,
-      totalSteps: 6,
-      progress: 50,
-      createdBy: 'Commercial',
-      createdAt: new Date(Date.now() - 172800000),
-      lastModified: new Date(),
-      description: 'Processus d\'intégration des nouveaux clients',
-      triggers: ['Nouveau client créé'],
-      steps: [
-        {
-          id: 's1',
-          name: 'Collecte Documents',
-          type: 'action',
-          status: 'completed'
-        },
-        {
-          id: 's2',
-          name: 'Vérification KYC',
-          type: 'action',
-          status: 'completed'
-        },
-        {
-          id: 's3',
-          name: 'Création Compte',
-          type: 'action',
-          status: 'in_progress',
-          assignee: 'Service Client'
-        },
-        {
-          id: 's4',
-          name: 'Configuration Accès',
-          type: 'action',
-          status: 'pending'
-        },
-        {
-          id: 's5',
-          name: 'Formation Client',
-          type: 'action',
-          status: 'pending'
-        },
-        {
-          id: 's6',
-          name: 'Activation Finale',
-          type: 'notification',
-          status: 'pending'
-        }
-      ]
-    },
-    {
-      id: 'wf-003',
-      name: 'Clôture Mensuelle',
-      category: 'finance',
-      status: 'paused',
-      priority: 'critical',
-      currentStep: 1,
-      totalSteps: 5,
-      progress: 20,
-      createdBy: 'Comptable',
-      createdAt: new Date(Date.now() - 259200000),
-      lastModified: new Date(),
-      description: 'Workflow de clôture comptable mensuelle',
-      triggers: ['Fin du mois', 'Déclenchement manuel'],
-      steps: [
-        {
-          id: 's1',
-          name: 'Rapprochement Bancaire',
-          type: 'action',
-          status: 'completed'
-        },
-        {
-          id: 's2',
-          name: 'Validation Écritures',
-          type: 'approval',
-          status: 'pending',
-          assignee: 'Chef Comptable'
-        },
-        {
-          id: 's3',
-          name: 'Calcul Provisions',
-          type: 'action',
-          status: 'pending'
-        },
-        {
-          id: 's4',
-          name: 'Génération États',
-          type: 'action',
-          status: 'pending'
-        },
-        {
-          id: 's5',
-          name: 'Archivage',
-          type: 'action',
-          status: 'pending'
-        }
-      ]
-    }
-  ]);
-
-  // Demandes d'approbation
-  const [approvals] = useState<ApprovalRequest[]>([
-    {
-      id: 'apr-001',
-      workflowId: 'wf-001',
-      type: 'Commande Fournisseur',
-      title: 'Achat équipement informatique',
-      description: 'Commande de 20 ordinateurs portables et accessoires',
-      requester: 'Service IT',
-      amount: 75000,
-      priority: 'high',
-      status: 'pending',
-      createdAt: new Date(Date.now() - 7200000),
-      dueDate: new Date(Date.now() + 86400000),
-      attachments: ['devis.pdf', 'specifications.xlsx'],
-      comments: [
-        {
-          user: 'Manager IT',
-          text: 'Urgent pour le nouveau projet',
-          timestamp: new Date(Date.now() - 3600000)
-        }
-      ]
-    },
-    {
-      id: 'apr-002',
-      workflowId: 'wf-002',
-      type: 'Validation Client',
-      title: 'Nouveau compte - Société XYZ',
-      description: 'Validation des documents et ouverture de compte',
-      requester: 'Commercial',
-      priority: 'medium',
-      status: 'pending',
-      createdAt: new Date(Date.now() - 14400000),
-      dueDate: new Date(Date.now() + 172800000),
-      attachments: ['kbis.pdf', 'rib.pdf']
-    },
-    {
-      id: 'apr-003',
-      workflowId: 'wf-001',
-      type: 'Note de Frais',
-      title: 'Remboursement déplacement client',
-      description: 'Frais de déplacement pour visite client à Paris',
-      requester: 'Commercial Senior',
-      amount: 2500,
-      priority: 'low',
-      status: 'approved',
-      createdAt: new Date(Date.now() - 86400000),
-      dueDate: new Date(Date.now() + 259200000),
-      comments: [
-        {
-          user: 'Manager',
-          text: 'Approuvé',
-          timestamp: new Date(Date.now() - 21600000)
-        }
-      ]
-    }
-  ]);
-
-  // Templates de workflows
+  // Workflows built from real journal entry statuses
+  const [workflows, setWorkflows] = useState<Workflow[]>([]);
+  const [approvals, setApprovals] = useState<ApprovalRequest[]>([]);
   const [templates] = useState([
-    {
-      id: 't1',
-      name: 'Approbation Achat Standard',
-      category: 'purchase',
-      steps: 3,
-      uses: 156
-    },
-    {
-      id: 't2',
-      name: 'Processus RH - Congés',
-      category: 'hr',
-      steps: 4,
-      uses: 89
-    },
-    {
-      id: 't3',
-      name: 'Validation Facture Client',
-      category: 'sales',
-      steps: 5,
-      uses: 234
-    },
-    {
-      id: 't4',
-      name: 'Contrôle Qualité Produit',
-      category: 'inventory',
-      steps: 6,
-      uses: 67
-    }
+    { id: 't1', name: 'Validation écriture comptable', category: 'finance' as const, steps: 3, uses: 0 },
+    { id: 't2', name: 'Clôture mensuelle', category: 'finance' as const, steps: 5, uses: 0 },
   ]);
+
+  useEffect(() => {
+    const loadWorkflowData = async () => {
+      try {
+        const entries = await adapter.getAll<any>('journalEntries');
+
+        const draftEntries = entries.filter((e: any) => e.status === 'draft');
+        const validatedEntries = entries.filter((e: any) => e.status === 'validated');
+        const postedEntries = entries.filter((e: any) => e.status === 'posted');
+
+        // Build workflows from entry status groups
+        const builtWorkflows: Workflow[] = [];
+
+        if (draftEntries.length > 0) {
+          builtWorkflows.push({
+            id: 'wf-draft',
+            name: `Validation écritures brouillon (${draftEntries.length})`,
+            category: 'finance',
+            status: 'active',
+            priority: 'high',
+            currentStep: 1,
+            totalSteps: 3,
+            progress: 33,
+            createdBy: 'Système',
+            createdAt: new Date(draftEntries[0]?.createdAt || Date.now()),
+            lastModified: new Date(),
+            description: `${draftEntries.length} écriture(s) en brouillon nécessitent validation`,
+            triggers: ['Écriture créée'],
+            steps: [
+              { id: 's1', name: 'Saisie écriture', type: 'action', status: 'completed' },
+              { id: 's2', name: 'Validation comptable', type: 'approval', status: 'in_progress', assignee: 'Comptable' },
+              { id: 's3', name: 'Comptabilisation', type: 'action', status: 'pending' },
+            ]
+          });
+        }
+
+        if (validatedEntries.length > 0) {
+          builtWorkflows.push({
+            id: 'wf-validated',
+            name: `Comptabilisation écritures (${validatedEntries.length})`,
+            category: 'finance',
+            status: 'active',
+            priority: 'medium',
+            currentStep: 2,
+            totalSteps: 3,
+            progress: 66,
+            createdBy: 'Système',
+            createdAt: new Date(validatedEntries[0]?.createdAt || Date.now()),
+            lastModified: new Date(),
+            description: `${validatedEntries.length} écriture(s) validée(s) en attente de comptabilisation`,
+            triggers: ['Écriture validée'],
+            steps: [
+              { id: 's1', name: 'Saisie écriture', type: 'action', status: 'completed' },
+              { id: 's2', name: 'Validation comptable', type: 'approval', status: 'completed' },
+              { id: 's3', name: 'Comptabilisation', type: 'action', status: 'in_progress', assignee: 'Chef Comptable' },
+            ]
+          });
+        }
+
+        setWorkflows(builtWorkflows);
+
+        // Build approval requests from draft entries
+        const builtApprovals: ApprovalRequest[] = draftEntries.slice(0, 10).map((entry: any) => ({
+          id: `apr-${entry.id}`,
+          workflowId: 'wf-draft',
+          type: 'Écriture comptable',
+          title: entry.label || `Écriture ${entry.entryNumber || entry.id}`,
+          description: `Journal: ${entry.journal || '-'} | Réf: ${entry.reference || '-'}`,
+          requester: entry.createdBy || 'Système',
+          amount: entry.totalDebit || 0,
+          priority: (entry.totalDebit || 0) > 50000 ? 'high' : 'medium' as any,
+          status: 'pending',
+          createdAt: new Date(entry.createdAt || Date.now()),
+          dueDate: new Date(Date.now() + 86400000 * 7),
+        }));
+        setApprovals(builtApprovals);
+      } catch (err) {
+        console.error('Erreur chargement workflows:', err);
+        setWorkflows([]);
+        setApprovals([]);
+      }
+    };
+    loadWorkflowData();
+  }, [adapter]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -376,7 +229,7 @@ const WorkflowsManager: React.FC = () => {
     pendingApprovals: approvals.filter(a => a.status === 'pending').length,
     completedToday: workflows.filter(w => w.status === 'completed' &&
       new Date(w.lastModified).toDateString() === new Date().toDateString()).length,
-    avgCompletionTime: '2.5 jours'
+    avgCompletionTime: '-'
   };
 
   return (
@@ -509,6 +362,13 @@ const WorkflowsManager: React.FC = () => {
           {/* Workflows Tab */}
           {activeTab === 'workflows' && (
             <div className="space-y-4">
+              {filteredWorkflows.length === 0 && (
+                <div className="text-center py-12 text-gray-500">
+                  <GitBranch className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                  <h3 className="text-lg font-semibold">Aucun workflow en cours</h3>
+                  <p className="text-sm mt-1">Toutes les écritures sont comptabilisées</p>
+                </div>
+              )}
               {filteredWorkflows.map((workflow) => (
                 <div
                   key={workflow.id}

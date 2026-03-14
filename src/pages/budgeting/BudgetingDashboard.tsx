@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
 import { motion } from 'framer-motion';
@@ -16,7 +16,14 @@ import {
   Download,
   Zap,
   Users,
-  Clock
+  Clock,
+  Plus,
+  Eye,
+  ShieldCheck,
+  LayoutDashboard,
+  Building2,
+  ArrowUpDown,
+  GitCompareArrows
 } from 'lucide-react';
 import {
   UnifiedCard,
@@ -29,9 +36,34 @@ import {
 } from '../../components/ui/DesignSystem';
 import { Link } from 'react-router-dom';
 
+// Lazy imports des pages existantes
+const BudgetsPage = lazy(() => import('./BudgetsPage'));
+const BudgetControlPage = lazy(() => import('./BudgetControlPage'));
+const BudgetRecapPage = lazy(() => import('./BudgetRecapPage'));
+const CostCentersPage = lazy(() => import('../analytics/CostCentersPage'));
+
+const TABS = [
+  { id: 'dashboard', label: 'Tableau de Bord', icon: LayoutDashboard },
+  { id: 'elaboration', label: 'Elaboration & Creation', icon: Plus },
+  { id: 'overview', label: 'Overview', icon: Eye },
+  { id: 'controle', label: 'Controle', icon: ShieldCheck },
+  { id: 'centres-couts', label: 'Centres de Couts', icon: Building2 },
+  { id: 'tendances', label: 'Tendances', icon: TrendingUp },
+  { id: 'ecarts', label: 'Analyse des Ecarts', icon: GitCompareArrows },
+] as const;
+
+type TabId = typeof TABS[number]['id'];
+
+const TabLoader = () => (
+  <div className="flex justify-center items-center py-20">
+    <div className="w-10 h-10 border-4 border-[var(--color-border)] border-t-[var(--color-primary)] rounded-full animate-spin" />
+  </div>
+);
+
 const BudgetingDashboard: React.FC = () => {
   const { t } = useLanguage();
   const { adapter } = useData();
+  const [activeTab, setActiveTab] = useState<TabId>('dashboard');
   const [period, setPeriod] = useState<'month' | 'quarter' | 'year'>('year');
   const [isLoading, setIsLoading] = useState(true);
   const [budgetLines, setBudgetLines] = useState<any[]>([]);
@@ -108,46 +140,353 @@ const BudgetingDashboard: React.FC = () => {
     };
   }, [budgetLines, journalEntries]);
 
-  if (isLoading) {
-    return (
-      <PageContainer background="gradient" padding="lg">
-        <div className="flex justify-center items-center min-h-[60vh]">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="flex flex-col items-center space-y-6 bg-white/90 backdrop-blur-sm p-12 rounded-xl shadow-md"
-          >
-            <div className="w-20 h-20 border-4 border-[var(--color-primary-light)] border-t-blue-600 rounded-full animate-spin"></div>
-            <p className="text-lg font-semibold text-neutral-700">Chargement du tableau de bord...</p>
-          </motion.div>
-        </div>
-      </PageContainer>
-    );
-  }
+  // ═══ ONGLET TENDANCES ════════════════════════════
+  const tendancesData = useMemo(() => {
+    const monthNames = ['Jan', 'Fev', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Aout', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthlyRevenue = new Array(12).fill(0);
+    const monthlyCharges = new Array(12).fill(0);
+    const monthlyResult = new Array(12).fill(0);
+
+    for (const entry of journalEntries) {
+      if (!entry.lines) continue;
+      const month = new Date(entry.date).getMonth();
+      for (const line of entry.lines) {
+        if (line.accountCode?.startsWith('7')) {
+          const val = (line.credit || 0) - (line.debit || 0);
+          monthlyRevenue[month] += val;
+        }
+        if (line.accountCode?.startsWith('6')) {
+          const val = (line.debit || 0) - (line.credit || 0);
+          monthlyCharges[month] += val;
+        }
+      }
+    }
+    for (let i = 0; i < 12; i++) monthlyResult[i] = monthlyRevenue[i] - monthlyCharges[i];
+
+    return monthNames.map((label, i) => ({
+      label,
+      revenue: monthlyRevenue[i],
+      charges: monthlyCharges[i],
+      result: monthlyResult[i],
+    })).filter(d => d.revenue > 0 || d.charges > 0);
+  }, [journalEntries]);
+
+  // ═══ ONGLET ANALYSE DES ECARTS ══════════════════
+  const ecartsData = useMemo(() => {
+    const grouped = new Map<string, { label: string; budget: number; actual: number }>();
+    for (const bl of budgetLines) {
+      const cat = bl.category || bl.label || bl.account_label || 'Divers';
+      const existing = grouped.get(cat) || { label: cat, budget: 0, actual: 0 };
+      existing.budget += bl.amount || bl.total_budget || bl.budgeted || 0;
+      existing.actual += bl.consumed || bl.total_consumed || 0;
+      grouped.set(cat, existing);
+    }
+    return Array.from(grouped.values()).map(d => ({
+      ...d,
+      ecart: d.budget - d.actual,
+      ecartPct: d.budget > 0 ? Math.round(((d.actual - d.budget) / d.budget) * 100) : 0,
+    }));
+  }, [budgetLines]);
+
+  const formatValue = (v: number) => {
+    if (Math.abs(v) >= 1_000_000) return `${(v / 1_000_000).toFixed(2)}M FCFA`;
+    if (Math.abs(v) >= 1_000) return `${(v / 1_000).toFixed(0)}K FCFA`;
+    return `${v} FCFA`;
+  };
 
   return (
     <PageContainer background="warm" padding="lg">
-      <div className="space-y-8">
+      <div className="space-y-6">
         {/* Header */}
         <SectionHeader
-          title="Tableau de Bord Budgetaire"
-          subtitle="Suivi et controle budgetaire en temps reel"
+          title="Budget & Previsions"
+          subtitle="Elaboration, suivi et controle budgetaire"
           icon={Target}
-          action={
-            <div className="flex gap-3">
-              {(['month', 'quarter', 'year'] as const).map((p) => (
-                <ElegantButton
-                  key={p}
-                  variant={period === p ? 'primary' : 'outline'}
-                  size="sm"
-                  onClick={() => setPeriod(p)}
-                >
-                  {p === 'month' ? 'Mois' : p === 'quarter' ? 'Trimestre' : 'Annee'}
-                </ElegantButton>
-              ))}
-            </div>
-          }
         />
+
+        {/* Tab Navigation */}
+        <div className="flex gap-1 overflow-x-auto pb-1 border-b border-[var(--color-border)]">
+          {TABS.map(tab => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
+                  isActive
+                    ? 'border-[var(--color-primary)] text-[var(--color-text-primary)]'
+                    : 'border-transparent text-[var(--color-text-tertiary)] hover:text-[var(--color-text-secondary)] hover:border-[var(--color-border)]'
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* ═══ TAB: Elaboration & Creation ═══ */}
+        {activeTab === 'elaboration' && (
+          <Suspense fallback={<TabLoader />}>
+            <BudgetsPage />
+          </Suspense>
+        )}
+
+        {/* ═══ TAB: Overview ═══ */}
+        {activeTab === 'overview' && (
+          <Suspense fallback={<TabLoader />}>
+            <BudgetRecapPage />
+          </Suspense>
+        )}
+
+        {/* ═══ TAB: Controle ═══ */}
+        {activeTab === 'controle' && (
+          <Suspense fallback={<TabLoader />}>
+            <BudgetControlPage />
+          </Suspense>
+        )}
+
+        {/* ═══ TAB: Centres de Couts ═══ */}
+        {activeTab === 'centres-couts' && (
+          <Suspense fallback={<TabLoader />}>
+            <CostCentersPage />
+          </Suspense>
+        )}
+
+        {/* ═══ TAB: Tendances ═══ */}
+        {activeTab === 'tendances' && (
+          <div className="space-y-6">
+            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
+              <KPICard
+                title="Revenus Cumules"
+                value={formatValue(tendancesData.reduce((s, d) => s + d.revenue, 0))}
+                subtitle="Total exercice"
+                icon={TrendingUp}
+                color="success"
+                delay={0.1}
+              />
+              <KPICard
+                title="Charges Cumulees"
+                value={formatValue(tendancesData.reduce((s, d) => s + d.charges, 0))}
+                subtitle="Total exercice"
+                icon={TrendingDown}
+                color="warning"
+                delay={0.2}
+              />
+              <KPICard
+                title="Resultat Cumule"
+                value={formatValue(tendancesData.reduce((s, d) => s + d.result, 0))}
+                subtitle="Revenus - Charges"
+                icon={BarChart3}
+                color="primary"
+                delay={0.3}
+              />
+              <KPICard
+                title="Mois Analyses"
+                value={`${tendancesData.length}`}
+                subtitle="Mois avec donnees"
+                icon={Calendar}
+                color="neutral"
+                delay={0.4}
+              />
+            </div>
+
+            <ModernChartCard
+              title="Tendance Revenus vs Charges"
+              subtitle="Evolution mensuelle comparee"
+              icon={TrendingUp}
+            >
+              {tendancesData.length > 0 ? (
+                <ColorfulBarChart
+                  data={tendancesData.map(d => ({
+                    label: d.label,
+                    value: d.revenue > 0 ? Math.round((d.result / d.revenue) * 100) : 0,
+                    color: d.result >= 0 ? 'bg-[var(--color-success)]' : 'bg-[var(--color-error)]',
+                  }))}
+                  height={200}
+                />
+              ) : (
+                <p className="text-center text-[var(--color-text-tertiary)] py-12">Aucune donnee disponible</p>
+              )}
+            </ModernChartCard>
+
+            <UnifiedCard variant="glass" size="lg">
+              <div className="space-y-4">
+                <h3 className="text-lg font-bold text-[var(--color-text-primary)]">Detail Mensuel</h3>
+                <div className="overflow-hidden rounded-xl border border-[var(--color-border)]">
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-[var(--color-surface-hover)]">
+                        <tr>
+                          <th className="text-left p-4 font-bold text-[var(--color-text-secondary)] text-sm">Mois</th>
+                          <th className="text-right p-4 font-bold text-[var(--color-text-secondary)] text-sm">Revenus</th>
+                          <th className="text-right p-4 font-bold text-[var(--color-text-secondary)] text-sm">Charges</th>
+                          <th className="text-right p-4 font-bold text-[var(--color-text-secondary)] text-sm">Resultat</th>
+                          <th className="text-right p-4 font-bold text-[var(--color-text-secondary)] text-sm">Marge %</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[var(--color-border-light)]">
+                        {tendancesData.map((d, i) => {
+                          const marge = d.revenue > 0 ? Math.round((d.result / d.revenue) * 100) : 0;
+                          return (
+                            <tr key={i} className="hover:bg-[var(--color-surface-hover)] transition-colors">
+                              <td className="p-4 font-medium text-[var(--color-text-primary)]">{d.label}</td>
+                              <td className="p-4 text-right text-[var(--color-success)] font-semibold">{formatValue(d.revenue)}</td>
+                              <td className="p-4 text-right text-[var(--color-error)] font-semibold">{formatValue(d.charges)}</td>
+                              <td className={`p-4 text-right font-bold ${d.result >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'}`}>{formatValue(d.result)}</td>
+                              <td className="p-4 text-right">
+                                <span className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold ${marge >= 10 ? 'bg-[var(--color-success-light)] text-[var(--color-success)]' : marge >= 0 ? 'bg-[var(--color-warning-light)] text-[var(--color-warning)]' : 'bg-[var(--color-error-light)] text-[var(--color-error)]'}`}>
+                                  {marge}%
+                                </span>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                        {tendancesData.length === 0 && (
+                          <tr><td colSpan={5} className="p-6 text-center text-[var(--color-text-tertiary)]">Aucune donnee</td></tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </UnifiedCard>
+          </div>
+        )}
+
+        {/* ═══ TAB: Analyse des Ecarts ═══ */}
+        {activeTab === 'ecarts' && (
+          <div className="space-y-6">
+            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
+              <KPICard
+                title="Budget Total"
+                value={formatValue(ecartsData.reduce((s, d) => s + d.budget, 0))}
+                subtitle="Toutes categories"
+                icon={Target}
+                color="primary"
+                delay={0.1}
+              />
+              <KPICard
+                title="Realise Total"
+                value={formatValue(ecartsData.reduce((s, d) => s + d.actual, 0))}
+                subtitle="Consomme"
+                icon={BarChart3}
+                color="success"
+                delay={0.2}
+              />
+              <KPICard
+                title="Ecart Total"
+                value={formatValue(ecartsData.reduce((s, d) => s + d.ecart, 0))}
+                subtitle={ecartsData.reduce((s, d) => s + d.ecart, 0) >= 0 ? 'Sous-consommation' : 'Depassement'}
+                icon={ArrowUpDown}
+                color="warning"
+                delay={0.3}
+              />
+              <KPICard
+                title="Postes en Depassement"
+                value={`${ecartsData.filter(d => d.ecartPct > 0).length}`}
+                subtitle={`sur ${ecartsData.length} postes`}
+                icon={AlertCircle}
+                color="neutral"
+                delay={0.4}
+              />
+            </div>
+
+            <ModernChartCard
+              title="Ecarts Budget vs Realise"
+              subtitle="Par poste budgetaire"
+              icon={GitCompareArrows}
+            >
+              {ecartsData.length > 0 ? (
+                <ColorfulBarChart
+                  data={ecartsData.map(d => ({
+                    label: d.label.length > 15 ? d.label.substring(0, 15) + '...' : d.label,
+                    value: Math.abs(d.ecartPct),
+                    color: d.ecartPct > 10 ? 'bg-[var(--color-error)]' : d.ecartPct > 0 ? 'bg-[var(--color-warning)]' : 'bg-[var(--color-success)]',
+                  }))}
+                  height={200}
+                />
+              ) : (
+                <p className="text-center text-[var(--color-text-tertiary)] py-12">Aucune donnee budgetaire disponible</p>
+              )}
+            </ModernChartCard>
+
+            <UnifiedCard variant="glass" size="lg">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-bold text-[var(--color-text-primary)]">Detail des Ecarts par Poste</h3>
+                  <ElegantButton variant="outline" size="sm" icon={Download}>
+                    Exporter
+                  </ElegantButton>
+                </div>
+                <div className="overflow-hidden rounded-xl border border-[var(--color-border)]">
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-[var(--color-surface-hover)]">
+                        <tr>
+                          <th className="text-left p-4 font-bold text-[var(--color-text-secondary)] text-sm">Poste</th>
+                          <th className="text-right p-4 font-bold text-[var(--color-text-secondary)] text-sm">Budget</th>
+                          <th className="text-right p-4 font-bold text-[var(--color-text-secondary)] text-sm">Realise</th>
+                          <th className="text-right p-4 font-bold text-[var(--color-text-secondary)] text-sm">Ecart</th>
+                          <th className="text-right p-4 font-bold text-[var(--color-text-secondary)] text-sm">Ecart %</th>
+                          <th className="text-center p-4 font-bold text-[var(--color-text-secondary)] text-sm">Statut</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[var(--color-border-light)]">
+                        {ecartsData.map((d, i) => (
+                          <tr key={i} className="hover:bg-[var(--color-surface-hover)] transition-colors">
+                            <td className="p-4 font-medium text-[var(--color-text-primary)]">{d.label}</td>
+                            <td className="p-4 text-right font-semibold text-[var(--color-text-secondary)]">{formatValue(d.budget)}</td>
+                            <td className="p-4 text-right font-semibold text-[var(--color-text-secondary)]">{formatValue(d.actual)}</td>
+                            <td className={`p-4 text-right font-bold ${d.ecart >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'}`}>
+                              {d.ecart >= 0 ? '+' : ''}{formatValue(d.ecart)}
+                            </td>
+                            <td className="p-4 text-right">
+                              <span className={`font-bold ${d.ecartPct > 10 ? 'text-[var(--color-error)]' : d.ecartPct > 0 ? 'text-[var(--color-warning)]' : 'text-[var(--color-success)]'}`}>
+                                {d.ecartPct > 0 ? '+' : ''}{d.ecartPct}%
+                              </span>
+                            </td>
+                            <td className="p-4 text-center">
+                              <span className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold ${
+                                d.ecartPct > 10 ? 'bg-[var(--color-error-light)] text-[var(--color-error)]' :
+                                d.ecartPct > 0 ? 'bg-[var(--color-warning-light)] text-[var(--color-warning)]' :
+                                d.ecartPct > -10 ? 'bg-[var(--color-success-light)] text-[var(--color-success)]' :
+                                'bg-[var(--color-info-light)] text-[var(--color-info)]'
+                              }`}>
+                                {d.ecartPct > 10 ? 'Depassement' : d.ecartPct > 0 ? 'Attention' : d.ecartPct > -10 ? 'Conforme' : 'Sous-exec.'}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                        {ecartsData.length === 0 && (
+                          <tr><td colSpan={6} className="p-6 text-center text-[var(--color-text-tertiary)]">Aucune ligne budgetaire enregistree</td></tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </UnifiedCard>
+          </div>
+        )}
+
+        {/* ═══ TAB: Tableau de Bord (contenu original) ═══ */}
+        {activeTab === 'dashboard' && <>
+
+        {/* Period selector */}
+        <div className="flex gap-3 justify-end">
+          {(['month', 'quarter', 'year'] as const).map((p) => (
+            <ElegantButton
+              key={p}
+              variant={period === p ? 'primary' : 'outline'}
+              size="sm"
+              onClick={() => setPeriod(p)}
+            >
+              {p === 'month' ? 'Mois' : p === 'quarter' ? 'Trimestre' : 'Annee'}
+            </ElegantButton>
+          ))}
+        </div>
 
         {/* KPIs */}
         {(() => {
@@ -155,11 +494,6 @@ const BudgetingDashboard: React.FC = () => {
           const realise = dashboardData.totalActual;
           const ecart = budgetTotal - realise;
           const performance = budgetTotal > 0 ? Math.round((realise / budgetTotal) * 100) : 0;
-          const formatValue = (v: number) => {
-            if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(2)}M FCFA`;
-            if (v >= 1_000) return `${(v / 1_000).toFixed(0)}K FCFA`;
-            return `${v} FCFA`;
-          };
           return (
             <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
               <KPICard
@@ -508,6 +842,8 @@ const BudgetingDashboard: React.FC = () => {
             </div>
           </UnifiedCard>
         </motion.div>
+
+        </>}
       </div>
     </PageContainer>
   );

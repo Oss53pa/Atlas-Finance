@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
+import { useData } from '../../contexts/DataContext';
 import { motion } from 'framer-motion';
 import { 
   Shield,
@@ -28,39 +29,117 @@ import {
 import { formatDate } from '../../lib/utils';
 
 const SecurityDashboard: React.FC = () => {
-  // Fetch security overview
+  const { adapter } = useData();
+
+  // Fetch security overview from real audit data
   const { data: securityOverview, isLoading: isLoadingOverview } = useQuery({
     queryKey: ['security', 'overview'],
-    queryFn: async () => ({
-      utilisateurs_actifs: 12,
-      total_utilisateurs: 15,
-      sessions_actives: 8,
-      utilisateurs_mfa: 6,
-      alertes_securite: 2,
-    }),
+    queryFn: async () => {
+      try {
+        const auditLogs = await adapter.getAuditTrail();
+        const uniqueUsers = new Set(auditLogs.map((l: any) => l.userId || l.user || l.createdBy).filter(Boolean));
+        const loginEvents = auditLogs.filter((l: any) => (l.action || l.event || '').toLowerCase().includes('login'));
+        const alertEvents = auditLogs.filter((l: any) => {
+          const action = (l.action || l.event || '').toLowerCase();
+          return action.includes('error') || action.includes('fail') || action.includes('denied');
+        });
+        return {
+          utilisateurs_actifs: uniqueUsers.size,
+          total_utilisateurs: uniqueUsers.size,
+          sessions_actives: 0,
+          utilisateurs_mfa: 0,
+          alertes_securite: alertEvents.length,
+        };
+      } catch {
+        return {
+          utilisateurs_actifs: 0,
+          total_utilisateurs: 0,
+          sessions_actives: 0,
+          utilisateurs_mfa: 0,
+          alertes_securite: 0,
+        };
+      }
+    },
   });
 
-  // Fetch recent security events
+  // Fetch recent security events from audit log
   const { data: recentEvents, isLoading: isLoadingEvents } = useQuery({
     queryKey: ['security', 'recent-events'],
-    queryFn: async () => [] as Array<{ id: string; type_evenement: string; description: string; utilisateur?: { nom: string; prenom: string }; adresse_ip: string; timestamp: string; niveau_gravite: string }>,
+    queryFn: async () => {
+      try {
+        const auditLogs = await adapter.getAuditTrail({ limit: 20, orderBy: { field: 'timestamp', direction: 'desc' } });
+        return auditLogs.map((log: any) => ({
+          id: log.id || String(Math.random()),
+          type_evenement: log.action || log.event || 'system',
+          description: log.description || log.details || log.action || 'Action système',
+          utilisateur: log.userId ? { nom: String(log.userId), prenom: '' } : undefined,
+          adresse_ip: log.ipAddress || log.ip || '-',
+          timestamp: log.timestamp || log.createdAt || new Date().toISOString(),
+          niveau_gravite: (log.action || '').toLowerCase().includes('error') ? 'high' :
+                         (log.action || '').toLowerCase().includes('delete') ? 'medium' : 'low',
+        }));
+      } catch {
+        return [] as Array<{ id: string; type_evenement: string; description: string; utilisateur?: { nom: string; prenom: string }; adresse_ip: string; timestamp: string; niveau_gravite: string }>;
+      }
+    },
   });
 
-  // Fetch user activity summary
+  // Fetch user activity summary from real audit data
   const { data: userActivity, isLoading: isLoadingActivity } = useQuery({
     queryKey: ['security', 'user-activity'],
-    queryFn: async () => ({
-      connexions_24h: 245,
-      echecs_connexion_24h: 12,
-      actions_24h: 847,
-      duree_moyenne_session: '45 min',
-    }),
+    queryFn: async () => {
+      try {
+        const auditLogs = await adapter.getAuditTrail();
+        const now = Date.now();
+        const dayMs = 24 * 60 * 60 * 1000;
+        const last24h = auditLogs.filter((l: any) => {
+          const ts = new Date(l.timestamp || l.createdAt || 0).getTime();
+          return (now - ts) < dayMs;
+        });
+        const loginCount = last24h.filter((l: any) => (l.action || l.event || '').toLowerCase().includes('login')).length;
+        const failCount = last24h.filter((l: any) => {
+          const action = (l.action || l.event || '').toLowerCase();
+          return action.includes('fail') || action.includes('error');
+        }).length;
+        return {
+          connexions_24h: loginCount,
+          echecs_connexion_24h: failCount,
+          actions_24h: last24h.length,
+          duree_moyenne_session: '-',
+        };
+      } catch {
+        return {
+          connexions_24h: 0,
+          echecs_connexion_24h: 0,
+          actions_24h: 0,
+          duree_moyenne_session: '-',
+        };
+      }
+    },
   });
 
-  // Fetch security alerts
+  // Fetch security alerts from audit log
   const { data: securityAlerts, isLoading: isLoadingAlerts } = useQuery({
     queryKey: ['security', 'alerts'],
-    queryFn: async () => [] as Array<{ id: string; titre: string; description: string; statut: string; date_creation: string; actions_recommandees?: string }>,
+    queryFn: async () => {
+      try {
+        const auditLogs = await adapter.getAuditTrail();
+        const alertLogs = auditLogs.filter((l: any) => {
+          const action = (l.action || l.event || '').toLowerCase();
+          return action.includes('error') || action.includes('fail') || action.includes('denied') || action.includes('alert');
+        });
+        return alertLogs.slice(0, 10).map((log: any) => ({
+          id: log.id || String(Math.random()),
+          titre: log.action || log.event || 'Alerte',
+          description: log.description || log.details || 'Événement de sécurité détecté',
+          statut: 'nouveau',
+          date_creation: log.timestamp || log.createdAt || new Date().toISOString(),
+          actions_recommandees: 'Vérifier les logs système',
+        }));
+      } catch {
+        return [] as Array<{ id: string; titre: string; description: string; statut: string; date_creation: string; actions_recommandees?: string }>;
+      }
+    },
   });
 
   if (isLoadingOverview) {
@@ -169,10 +248,10 @@ const SecurityDashboard: React.FC = () => {
           >
             <ColorfulBarChart
               data={[
-                { label: 'Connexions', value: userActivity?.connexions_24h || 245, color: 'bg-emerald-400' },
-                { label: 'Échecs', value: userActivity?.echecs_connexion_24h || 12, color: 'bg-red-400' },
-                { label: 'Actions', value: userActivity?.actions_24h || 847, color: 'bg-blue-400' },
-                { label: 'Alertes', value: securityOverview?.alertes_securite || 3, color: 'bg-orange-400' }
+                { label: 'Connexions', value: userActivity?.connexions_24h || 0, color: 'bg-emerald-400' },
+                { label: 'Échecs', value: userActivity?.echecs_connexion_24h || 0, color: 'bg-red-400' },
+                { label: 'Actions', value: userActivity?.actions_24h || 0, color: 'bg-blue-400' },
+                { label: 'Alertes', value: securityOverview?.alertes_securite || 0, color: 'bg-orange-400' }
               ]}
               height={200}
             />
