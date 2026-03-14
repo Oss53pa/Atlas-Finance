@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useData } from '../../contexts/DataContext';
 import { toast } from 'react-hot-toast';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import {
@@ -189,8 +190,9 @@ const FournisseurDetailView: React.FC = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const { fournisseurId } = useParams();
+  const { adapter } = useData();
   const [activeTab, setActiveTab] = useState('synthese');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [showPeriodModal, setShowPeriodModal] = useState(false);
   const [dateRange, setDateRange] = useState({
     startDate: new Date(new Date().getFullYear() - 1, new Date().getMonth(), 1).toISOString().split('T')[0],
@@ -232,222 +234,151 @@ const FournisseurDetailView: React.FC = () => {
     setSelectedEcheance(null);
   };
 
-  // Mock Fournisseur Data
-  const fournisseurDetail: FournisseurDetail = {
-    id: '1',
-    code: 'FRN001',
-    raisonSociale: 'CAMTEL SA',
-    nomCommercial: 'Camtel Telecom',
-    formeJuridique: 'SA',
-    siret: '98765432101234',
-    codeAPE: '6110Z',
-    numeroTVA: 'CM98765432101',
-    capitalSocial: 5000000,
-    dateCreation: '2010-03-15',
-    dateDebutRelation: '2018-06-01',
-    secteurActivite: 'Télécommunications',
-    effectif: 1250,
-    chiffreAffairesConnu: 85000000,
-    groupe: 'Groupe CAMTEL International',
+  // State for real data
+  const [fournisseurDetail, setFournisseurDetail] = useState<FournisseurDetail | null>(null);
+  const [mouvements, setMouvements] = useState<MouvementComptable[]>([]);
+  const [echeances, setEcheances] = useState<Echeance[]>([]);
+  const [commandes, setCommandes] = useState<Commande[]>([]);
+  const [evolutionAchats, setEvolutionAchats] = useState<{ mois: string; achats: number; budget: number }[]>([]);
+  const [repartitionDepenses, setRepartitionDepenses] = useState<{ categorie: string; montant: number; pourcentage: number }[]>([]);
 
-    adresseFacturation: {
-      rue: '456 Boulevard de la Liberté',
-      ville: 'Yaoundé',
-      codePostal: '00237',
-      pays: 'Cameroun'
-    },
+  // Load data from adapter
+  useEffect(() => {
+    let mounted = true;
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        const [allThirdParties, allEntries] = await Promise.all([
+          adapter.getAll('thirdParties'),
+          adapter.getAll('journalEntries')
+        ]);
 
-    contacts: {
-      comptabilite: {
-        nom: 'Marie NGONO',
-        email: 'm.ngono@camtel.cm',
-        telephone: '+237 693 456 789'
-      },
-      commercial: {
-        nom: 'Paul ATANGANA',
-        fonction: 'Directeur Commercial B2B',
-        email: 'p.atangana@camtel.cm',
-        telephone: '+237 677 890 123'
-      }
-    },
+        const tp = allThirdParties.find((t: any) => t.id === fournisseurId);
+        if (!tp || !mounted) { if (mounted) setLoading(false); return; }
 
-    comptabilite: {
-      compteCollectif: '401000',
-      comptesAuxiliaires: ['401001', '401002'],
-      compteTVA: '445660',
-      regimeTVA: 'NORMAL',
-      tauxTVADefaut: 19.25,
-      tvaEncaissement: false,
-      compteCharges: '606100',
-      journalAchat: 'ACH',
-      modeReglement: 'VIREMENT',
-      conditionsPaiement: '60 jours net',
-      delaiPaiement: 60,
-      escompte: 2,
-      penalitesRetard: 3,
-      deviseFacturation: 'XAF'
-    },
+        const relatedLines: { debit: number; credit: number; date: string; label: string; ref: string; entryNum: string }[] = [];
+        allEntries.forEach((entry: any) => {
+          if (entry.status === 'draft') return;
+          (entry.lines || []).forEach((line: any) => {
+            if (line.thirdPartyCode === tp.code || line.accountCode === tp.accountCode) {
+              relatedLines.push({
+                debit: line.debit || 0,
+                credit: line.credit || 0,
+                date: entry.date,
+                label: line.label || entry.label || '',
+                ref: entry.reference || '',
+                entryNum: entry.entryNumber || ''
+              });
+            }
+          });
+        });
 
-    banque: {
-      iban: 'CM21 1003 1000 0000 0012 3456 7890',
-      bic: 'AFRICDCM',
-      domiciliation: 'Afriland First Bank Cameroun',
-      instructionsPaiement: 'Référencer le numéro de facture'
-    },
+        const totalDebit = relatedLines.reduce((s, l) => s + l.debit, 0);
+        const totalCredit = relatedLines.reduce((s, l) => s + l.credit, 0);
+        const encours = totalCredit - totalDebit;
 
-    classification: {
-      categorie: 'STRATEGIQUE',
-      typeDépense: 'SERVICES',
-      zoneGeographique: 'Afrique Centrale',
-      acheteurResponsable: 'Jean MBARGA',
-      notationInterne: 'A',
-      fournisseurReference: true,
-      criticite: 'HAUTE'
-    },
+        const detail: FournisseurDetail = {
+          id: tp.id,
+          code: tp.code || '',
+          raisonSociale: tp.name || '',
+          nomCommercial: tp.name,
+          formeJuridique: '',
+          dateCreation: '',
+          dateDebutRelation: '',
+          secteurActivite: '',
+          siret: tp.taxId || '',
+          adresseFacturation: { rue: tp.address || '', ville: '', codePostal: '', pays: '' },
+          contacts: {
+            comptabilite: { nom: '', email: tp.email || '', telephone: tp.phone || '' },
+            commercial: { nom: '', fonction: '', email: tp.email || '', telephone: tp.phone || '' }
+          },
+          comptabilite: {
+            compteCollectif: tp.accountCode || '401000',
+            comptesAuxiliaires: tp.accountCode ? [tp.accountCode] : [],
+            compteTVA: '445660',
+            regimeTVA: 'NORMAL',
+            tauxTVADefaut: 19.25,
+            tvaEncaissement: false,
+            compteCharges: '606100',
+            journalAchat: 'ACH',
+            modeReglement: (tp.conditionsPaiement?.modePaiement === 'virement' ? 'VIREMENT' : 'CHEQUE') as any,
+            conditionsPaiement: tp.conditionsPaiement ? `${tp.conditionsPaiement.delaiJours} jours net` : '30 jours net',
+            delaiPaiement: tp.conditionsPaiement?.delaiJours || 30,
+            deviseFacturation: 'XAF'
+          },
+          banque: {
+            iban: tp.banque?.iban || '',
+            bic: tp.banque?.swift || '',
+            domiciliation: tp.banque?.nomBanque || ''
+          },
+          classification: {
+            categorie: 'RECURRENT',
+            typeDépense: 'SERVICES',
+            zoneGeographique: '',
+            acheteurResponsable: '',
+            notationInterne: 'B',
+            fournisseurReference: false,
+            criticite: 'MOYENNE'
+          },
+          financier: {
+            volumeAchatsAnnuel: totalCredit,
+            encoursActuel: Math.max(encours, 0),
+            soldeFournisseur: -encours,
+            dpo: tp.conditionsPaiement?.delaiJours || 30,
+            limiteCredit: 0,
+            scoreRisque: tp.isActive ? 80 : 40,
+            montantFacturesAttente: 0,
+            montantLitiges: 0
+          },
+          analyses: {
+            performance: { respectDelais: 0, qualiteProduits: 0, conformiteCommandes: 0, tauxServiceLevel: 0, tauxDefaut: 0 },
+            achats: { evolutionVolume: 0, partDansAchatsTotal: 0, economiesRealisees: 0, surCoutsIdentifies: 0, tauxNegociation: 0 }
+          },
+          conformite: {
+            certifications: [],
+            attestationsFiscales: false,
+            attestationsSociales: false,
+            assuranceRC: false,
+            rgpdConforme: false,
+            scoreConformite: 0
+          }
+        };
 
-    financier: {
-      volumeAchatsAnnuel: 850000,
-      encoursActuel: 125000,
-      soldeFournisseur: -125000,
-      dpo: 45,
-      limiteCredit: 500000,
-      scoreRisque: 92,
-      montantFacturesAttente: 85000,
-      montantLitiges: 0
-    },
+        let runSolde = 0;
+        const mvts: MouvementComptable[] = relatedLines
+          .sort((a, b) => a.date.localeCompare(b.date))
+          .map((l, i) => {
+            runSolde += l.credit - l.debit;
+            return {
+              id: String(i + 1),
+              dateComptable: l.date,
+              datePiece: l.date,
+              numeroPiece: l.entryNum,
+              libelle: l.label,
+              debit: l.debit,
+              credit: l.credit,
+              solde: runSolde,
+              type: l.credit > 0 ? 'FACTURE' as const : 'REGLEMENT' as const
+            };
+          });
 
-    analyses: {
-      performance: {
-        respectDelais: 95.5,
-        qualiteProduits: 92.0,
-        conformiteCommandes: 98.2,
-        tauxServiceLevel: 94.0,
-        tauxDefaut: 0.8
-      },
-      achats: {
-        evolutionVolume: 12.5,
-        partDansAchatsTotal: 8.5,
-        economiesRealisees: 45000,
-        surCoutsIdentifies: 5000,
-        tauxNegociation: 5.2
-      }
-    },
-
-    conformite: {
-      certifications: [
-        {
-          type: 'ISO 9001:2015',
-          numero: 'QMS-2024-1234',
-          dateValidite: '2025-06-30',
-          statut: 'VALIDE'
-        },
-        {
-          type: 'ISO 27001',
-          numero: 'ISMS-2024-5678',
-          dateValidite: '2025-03-15',
-          statut: 'VALIDE'
+        if (mounted) {
+          setFournisseurDetail(detail);
+          setMouvements(mvts);
+          setEcheances([]);
+          setCommandes([]);
+          setEvolutionAchats([]);
+          setRepartitionDepenses([]);
         }
-      ],
-      attestationsFiscales: true,
-      attestationsSociales: true,
-      assuranceRC: true,
-      rgpdConforme: true,
-      dernierAudit: '2024-06-15',
-      scoreConformite: 95
-    }
-  };
-
-  // Mock Mouvements Comptables
-  const mouvements: MouvementComptable[] = [
-    {
-      id: '1',
-      dateComptable: '2024-09-15',
-      datePiece: '2024-09-15',
-      numeroPiece: 'ACH-2024-0456',
-      numeroFacture: 'FCT-CM-2024-0789',
-      libelle: 'Services télécom - Septembre 2024',
-      debit: 0,
-      credit: 85000,
-      solde: -125000,
-      type: 'FACTURE'
-    },
-    {
-      id: '2',
-      dateComptable: '2024-09-10',
-      datePiece: '2024-09-10',
-      numeroPiece: 'REG-2024-0234',
-      libelle: 'Règlement facture FCT-CM-2024-0750',
-      debit: 120000,
-      credit: 0,
-      solde: -40000,
-      lettrage: 'B001',
-      type: 'REGLEMENT'
-    }
-  ];
-
-  // Mock Échéances
-  const echeances: Echeance[] = [
-    {
-      id: '1',
-      numeroFacture: 'FCT-CM-2024-0789',
-      dateEcheance: '2024-11-15',
-      montant: 85000,
-      montantRestant: 85000,
-      statut: 'EN_COURS',
-      escomptePossible: true
-    },
-    {
-      id: '2',
-      numeroFacture: 'FCT-CM-2024-0765',
-      dateEcheance: '2024-10-30',
-      montant: 40000,
-      montantRestant: 40000,
-      statut: 'EN_COURS'
-    }
-  ];
-
-  // Mock Commandes
-  const commandes: Commande[] = [
-    {
-      id: '1',
-      numero: 'CMD-2024-0234',
-      date: '2024-09-01',
-      montantHT: 85000,
-      montantTTC: 101362.50,
-      statut: 'FACTUREE',
-      dateReceptionPrevue: '2024-09-10',
-      tauxRealisation: 100
-    },
-    {
-      id: '2',
-      numero: 'CMD-2024-0225',
-      date: '2024-08-15',
-      montantHT: 120000,
-      montantTTC: 143100,
-      statut: 'RECUE',
-      dateReceptionPrevue: '2024-08-25',
-      tauxRealisation: 100
-    }
-  ];
-
-  // Mock Analytics Data
-  const evolutionAchats = [
-    { mois: 'Jan', achats: 65000, budget: 70000 },
-    { mois: 'Fév', achats: 72000, budget: 70000 },
-    { mois: 'Mar', achats: 68000, budget: 70000 },
-    { mois: 'Avr', achats: 75000, budget: 75000 },
-    { mois: 'Mai', achats: 82000, budget: 75000 },
-    { mois: 'Juin', achats: 78000, budget: 75000 },
-    { mois: 'Juil', achats: 70000, budget: 70000 },
-    { mois: 'Août', achats: 88000, budget: 80000 },
-    { mois: 'Sept', achats: 85000, budget: 80000 }
-  ];
-
-  const repartitionDepenses = [
-    { categorie: 'Services Télécom', montant: 450000, pourcentage: 52.9 },
-    { categorie: 'Connectivité Internet', montant: 280000, pourcentage: 32.9 },
-    { categorie: 'Infrastructure Cloud', montant: 120000, pourcentage: 14.2 }
-  ];
+      } catch (err) {
+        console.error('Error loading fournisseur detail:', err);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+    loadData();
+    return () => { mounted = false; };
+  }, [adapter, fournisseurId]);
 
   const tabs = [
     { id: 'synthese', label: 'Synthèse', icon: BarChart3 },
@@ -1375,6 +1306,31 @@ const FournisseurDetailView: React.FC = () => {
       </div>
     </div>
   );
+
+  if (loading) {
+    return (
+      <div className="p-6 flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <RefreshCw className="w-8 h-8 animate-spin text-[#525252] mx-auto mb-4" />
+          <p className="text-[#525252]">Chargement du fournisseur...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!fournisseurDetail) {
+    return (
+      <div className="p-6 flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <AlertTriangle className="w-8 h-8 text-orange-500 mx-auto mb-4" />
+          <p className="text-[#525252]">Fournisseur introuvable</p>
+          <button onClick={() => navigate('/tiers/fournisseurs')} className="mt-4 px-4 py-2 bg-[#171717] text-white rounded-lg">
+            Retour à la liste
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 bg-[#e5e5e5] min-h-screen ">

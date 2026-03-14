@@ -195,7 +195,7 @@ const OCRInvoices: React.FC = () => {
     const fileId = `file-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     setProcessingFiles(prev => [...prev, fileId]);
 
-    // Simulation du traitement OCR
+    // File is registered but not extracted - OCR service not connected
     setTimeout(() => {
       const newInvoice: ScannedInvoice = {
         id: fileId,
@@ -203,18 +203,18 @@ const OCRInvoices: React.FC = () => {
         fileSize: file.size,
         fileType: file.type,
         uploadDate: new Date(),
-        processedDate: new Date(),
-        status: 'review',
+        processedDate: undefined as unknown as Date,
+        status: 'error',
         confidence: 0,
         extractedData: {
           documentType: 'invoice',
-          documentNumber: `INV-${Date.now()}`,
-          documentDate: new Date().toISOString().split('T')[0],
-          dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          supplierName: 'Nouveau Fournisseur',
-          supplierAddress: 'Adresse à confirmer',
-          supplierCountry: 'CM',
-          supplierTaxId: 'À vérifier',
+          documentNumber: '',
+          documentDate: '',
+          dueDate: '',
+          supplierName: '',
+          supplierAddress: '',
+          supplierCountry: '',
+          supplierTaxId: '',
           subtotal: 0,
           taxAmount: 0,
           discountAmount: 0,
@@ -225,6 +225,7 @@ const OCRInvoices: React.FC = () => {
         },
         originalFileUrl: URL.createObjectURL(file),
         tags: [],
+        notes: 'Service OCR non connecte - extraction impossible',
         auditLog: [
           {
             action: 'uploaded',
@@ -236,7 +237,7 @@ const OCRInvoices: React.FC = () => {
 
       setScannedInvoices(prev => [newInvoice, ...prev]);
       setProcessingFiles(prev => prev.filter(id => id !== fileId));
-    }, 3000);
+    }, 1000);
   };
 
   const validateInvoice = (invoice: ScannedInvoice) => {
@@ -305,8 +306,8 @@ const OCRInvoices: React.FC = () => {
         <div className="mx-6 mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-center space-x-3">
           <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0" />
           <div>
-            <p className="text-sm font-medium text-amber-800">OCR — Apercu de la fonctionnalite</p>
-            <p className="text-xs text-amber-600">L'extraction OCR necessite un service externe (Mindee, Google Vision, etc.). Les donnees ci-dessous sont illustratives.</p>
+            <p className="text-sm font-medium text-amber-800">Module OCR en cours de deploiement — connectez un service OCR pour activer l'extraction automatique</p>
+            <p className="text-xs text-amber-600">Les fichiers deposes seront enregistres mais non extraits tant qu'un service OCR (Mindee, Google Vision, etc.) n'est pas configure.</p>
           </div>
         </div>
         {/* Header */}

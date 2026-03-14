@@ -1529,14 +1529,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                       <button
                         onClick={() => {
                           const allCodes = new Set<string>();
-                          const baseData = [
-                            { code: '411001', libelle: 'Client A SARL', classe: 'Clients et comptes rattachés', solde: { debit: 2200000, credit: 0 }, mouvements: [] },
-                            { code: '401001', libelle: 'Fournisseur B SA', classe: 'Fournisseurs et comptes rattachés', solde: { debit: 0, credit: 1800000 }, mouvements: [] },
-                            { code: '512001', libelle: 'Banque XYZ', classe: 'Comptes bancaires', solde: { debit: 5000000, credit: 0 }, mouvements: [] },
-                            { code: '701001', libelle: 'Ventes de marchandises', classe: 'Produits des activités ordinaires', solde: { debit: 0, credit: 10000000 }, mouvements: [] },
-                            { code: '601001', libelle: 'Achats de marchandises', classe: 'Charges des activités ordinaires', solde: { debit: 6000000, credit: 0 }, mouvements: [] }
-                          ];
-                          baseData.forEach(compte => allCodes.add(compte.code));
+                          accountsData.forEach(acc => allCodes.add(acc.compte));
                           setExpandedAccounts(allCodes);
                         }}
                         className="px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-50 rounded-md transition-all"
@@ -1582,120 +1575,46 @@ const AdvancedGeneralLedger: React.FC = () => {
               {(() => {
                 // Fonction pour récupérer les données selon le type de grand livre
                 const getLedgerData = () => {
-                  const baseData = [
-                    {
-                      code: '411001',
-                      libelle: 'Client A SARL',
-                      classe: 'Clients et comptes rattachés',
-                      solde: { debit: 2200000, credit: 0 },
-                      mouvements: [
-                        {
-                          date: '2024-03-15',
-                          piece: 'FAC-2024-001',
-                          libelle: 'Facture de vente - Client A SARL',
-                          journal: 'VTE',
-                          contrepartie: '701001',
-                          lettrage: '',
-                          debit: 1500000,
-                          credit: 0,
-                          solde: 1500000
-                        },
-                        {
-                          date: '2024-03-20',
-                          piece: 'CHQ-001',
-                          libelle: 'Règlement par chèque',
-                          journal: 'BQ1',
-                          contrepartie: '512001',
-                          lettrage: 'A001',
-                          debit: 0,
-                          credit: 800000,
-                          solde: 700000
-                        },
-                        {
-                          date: '2024-03-25',
-                          piece: 'FAC-2024-015',
-                          libelle: 'Facture de vente complémentaire',
-                          journal: 'VTE',
-                          contrepartie: '701001',
-                          lettrage: '',
-                          debit: 1500000,
-                          credit: 0,
-                          solde: 2200000
-                        }
-                      ]
-                    },
-                    {
-                      code: '512001',
-                      libelle: 'Banque SGBCI - Compte Courant',
-                      classe: 'Banques, établissements financiers',
-                      solde: { debit: 18500000, credit: 0 },
-                      mouvements: [
-                        {
-                          date: '2024-03-01',
-                          piece: 'OUV-2024-001',
-                          libelle: 'Solde à nouveau - Report exercice précédent',
-                          journal: 'OUV',
-                          contrepartie: '890001',
-                          lettrage: '',
-                          debit: 15000000,
-                          credit: 0,
-                          solde: 15000000
-                        },
-                        {
-                          date: '2024-03-10',
-                          piece: 'VIR-2024-025',
-                          libelle: 'Virement reçu de partenaire commercial',
-                          journal: 'BQ1',
-                          contrepartie: '411005',
-                          lettrage: '',
-                          debit: 5000000,
-                          credit: 0,
-                          solde: 20000000
-                        },
-                        {
-                          date: '2024-03-15',
-                          piece: 'PREL-AUTO-001',
-                          libelle: 'Prélèvement automatique charges sociales',
-                          journal: 'BQ1',
-                          contrepartie: '431001',
-                          lettrage: '',
-                          debit: 0,
-                          credit: 1500000,
-                          solde: 18500000
-                        }
-                      ]
-                    },
-                    {
-                      code: '601001',
-                      libelle: 'Achats de marchandises',
-                      classe: 'Achats et variations de stocks',
-                      solde: { debit: 12000000, credit: 0 },
-                      mouvements: [
-                        {
-                          date: '2024-03-05',
-                          piece: 'FF-2024-001',
-                          libelle: 'Facture fournisseur Marchandises diverses',
-                          journal: 'ACH',
-                          contrepartie: '401001',
-                          lettrage: 'B001',
-                          debit: 8000000,
-                          credit: 0,
-                          solde: 8000000
-                        },
-                        {
-                          date: '2024-03-18',
-                          piece: 'FF-2024-015',
-                          libelle: 'Facture fournisseur Stock saisonnier',
-                          journal: 'ACH',
-                          contrepartie: '401002',
-                          lettrage: '',
-                          debit: 4000000,
-                          credit: 0,
-                          solde: 12000000
-                        }
-                      ]
-                    }
-                  ];
+                  // Build ledger view data from real accountsData (loaded via useQuery from adapter)
+                  const getClasseLabel = (code: string): string => {
+                    const c = code.charAt(0);
+                    const labels: Record<string, string> = {
+                      '1': 'Comptes de ressources durables',
+                      '2': "Comptes d'actif immobilise",
+                      '3': 'Comptes de stocks',
+                      '4': 'Comptes de tiers',
+                      '5': 'Comptes de tresorerie',
+                      '6': 'Comptes de charges',
+                      '7': 'Comptes de produits',
+                      '8': 'Comptes speciaux',
+                      '9': 'Comptes analytiques',
+                    };
+                    return labels[c] || 'Autres';
+                  };
+
+                  const baseData = accountsData.map(acc => {
+                    const soldeNet = acc.totalDebit - acc.totalCredit;
+                    return {
+                      code: acc.compte,
+                      libelle: acc.libelle,
+                      classe: getClasseLabel(acc.compte),
+                      solde: {
+                        debit: soldeNet >= 0 ? soldeNet : 0,
+                        credit: soldeNet < 0 ? Math.abs(soldeNet) : 0,
+                      },
+                      mouvements: acc.entries.map((e) => ({
+                        date: e.date,
+                        piece: e.piece,
+                        libelle: e.libelle,
+                        journal: '',
+                        contrepartie: '',
+                        lettrage: '',
+                        debit: e.debit,
+                        credit: e.credit,
+                        solde: e.solde,
+                      })),
+                    };
+                  });
 
                   switch (ledgerType) {
                     case 'account':
@@ -1909,121 +1828,31 @@ const AdvancedGeneralLedger: React.FC = () => {
               {/* Les autres modes d'affichage restent inchangés pour l'instant */}
               {ledgerViewMode === 'detailed' && null /* Déjà géré au-dessus */}
               {ledgerViewMode === 'detailed' && (
-                <div style={{display: 'none'}}> {/* Cache l'ancien code */}
-                  {[
-                    {
-                      code: '411001',
-                      libelle: 'Client A SARL',
-                      classe: 'Clients et comptes rattachés',
-                      solde: { debit: 2200000, credit: 0 },
-                      mouvements: [
-                        {
-                          date: '2024-03-15',
-                          piece: 'FAC-2024-001',
-                          libelle: 'Facture de vente - Client A SARL',
-                          journal: 'VTE',
-                          contrepartie: '701001',
-                          lettrage: '',
-                          debit: 1500000,
-                          credit: 0,
-                          solde: 1500000
-                        },
-                        {
-                          date: '2024-03-20',
-                          piece: 'CHQ-001',
-                          libelle: 'Règlement par chèque',
-                          journal: 'BQ1',
-                          contrepartie: '512001',
-                          lettrage: 'A001',
-                          debit: 0,
-                          credit: 800000,
-                          solde: 700000
-                        },
-                        {
-                          date: '2024-03-25',
-                          piece: 'FAC-2024-015',
-                          libelle: 'Facture de vente complémentaire',
-                          journal: 'VTE',
-                          contrepartie: '701001',
-                          lettrage: '',
-                          debit: 1500000,
-                          credit: 0,
-                          solde: 2200000
-                        }
-                      ]
-                    },
-                    {
-                      code: '512001',
-                      libelle: 'Banque SGBCI - Compte Courant',
-                      classe: 'Banques, établissements financiers',
-                      solde: { debit: 18500000, credit: 0 },
-                      mouvements: [
-                        {
-                          date: '2024-03-01',
-                          piece: 'OUV-2024-001',
-                          libelle: 'Solde à nouveau - Report exercice précédent',
-                          journal: 'OUV',
-                          contrepartie: '890001',
-                          lettrage: '',
-                          debit: 15000000,
-                          credit: 0,
-                          solde: 15000000
-                        },
-                        {
-                          date: '2024-03-10',
-                          piece: 'VIR-2024-025',
-                          libelle: 'Virement reçu de partenaire commercial',
-                          journal: 'BQ1',
-                          contrepartie: '411005',
-                          lettrage: '',
-                          debit: 5000000,
-                          credit: 0,
-                          solde: 20000000
-                        },
-                        {
-                          date: '2024-03-15',
-                          piece: 'PREL-AUTO-001',
-                          libelle: 'Prélèvement automatique charges sociales',
-                          journal: 'BQ1',
-                          contrepartie: '431001',
-                          lettrage: '',
-                          debit: 0,
-                          credit: 1500000,
-                          solde: 18500000
-                        }
-                      ]
-                    },
-                    {
-                      code: '601001',
-                      libelle: 'Achats de marchandises',
-                      classe: 'Achats et variations de stocks',
-                      solde: { debit: 12000000, credit: 0 },
-                      mouvements: [
-                        {
-                          date: '2024-03-05',
-                          piece: 'FF-2024-001',
-                          libelle: 'Facture fournisseur Marchandises diverses',
-                          journal: 'ACH',
-                          contrepartie: '401001',
-                          lettrage: 'B001',
-                          debit: 8000000,
-                          credit: 0,
-                          solde: 8000000
-                        },
-                        {
-                          date: '2024-03-18',
-                          piece: 'FF-2024-015',
-                          libelle: 'Facture fournisseur Stock saisonnier',
-                          journal: 'ACH',
-                          contrepartie: '401002',
-                          lettrage: '',
-                          debit: 4000000,
-                          credit: 0,
-                          solde: 12000000
-                        }
-                      ]
-                    }
-                  ].map((compte, index) => (
+                <div style={{display: 'none'}}> {/* Legacy detailed view - uses real data */}
+                  {accountsData.map((acc) => {
+                    const soldeNet = acc.totalDebit - acc.totalCredit;
+                    const compte = {
+                      code: acc.compte,
+                      libelle: acc.libelle,
+                      classe: '',
+                      solde: {
+                        debit: soldeNet >= 0 ? soldeNet : 0,
+                        credit: soldeNet < 0 ? Math.abs(soldeNet) : 0,
+                      },
+                      mouvements: acc.entries.map(e => ({
+                        date: e.date,
+                        piece: e.piece,
+                        libelle: e.libelle,
+                        journal: '',
+                        contrepartie: '',
+                        lettrage: '',
+                        debit: e.debit,
+                        credit: e.credit,
+                        solde: e.solde,
+                      })),
+                    };
+                    return compte;
+                  }).map((compte, index) => (
                     <div key={index} className="border border-gray-200 rounded-lg overflow-hidden">
                       {/* En-tête du compte */}
                       <div className="bg-gradient-to-r from-[#171717] to-[#737373] text-white p-4">
@@ -2122,161 +1951,91 @@ const AdvancedGeneralLedger: React.FC = () => {
               {/* Mode Arborescence */}
               {ledgerViewMode === 'tree' && (
                 <div className="space-y-4">
-                  {/* Structure hiérarchique par classes */}
                   <div className="bg-white border border-gray-200 rounded-lg h-[600px] overflow-y-auto">
                     <div className="space-y-1">
-                      {/* Classe 4 - Comptes de tiers */}
-                      <div className="border-b border-gray-100 last:border-b-0">
-                        <div
-                          className="flex items-center justify-between p-3 hover:bg-gray-50 cursor-pointer"
-                          onClick={() => {}}
-                        >
-                          <div className="flex items-center space-x-3">
-                            <ChevronRight className="w-4 h-4 text-gray-700" />
-                            <div className="w-8 h-8 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-sm font-bold">4</div>
-                            <div>
-                              <div className="font-semibold text-gray-900">Comptes de tiers</div>
-                              <div className="text-sm text-gray-700">3 comptes actifs</div>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-lg font-bold text-gray-900">2 200 000 FCFA</div>
-                            <div className="text-sm text-gray-700">Solde total</div>
-                          </div>
-                        </div>
+                      {(() => {
+                        // Group accounts by class (first digit)
+                        const classeColors: Record<string, { bg: string; text: string }> = {
+                          '1': { bg: 'bg-purple-100', text: 'text-purple-700' },
+                          '2': { bg: 'bg-indigo-100', text: 'text-indigo-700' },
+                          '3': { bg: 'bg-cyan-100', text: 'text-cyan-700' },
+                          '4': { bg: 'bg-blue-100', text: 'text-blue-700' },
+                          '5': { bg: 'bg-green-100', text: 'text-green-700' },
+                          '6': { bg: 'bg-red-100', text: 'text-red-700' },
+                          '7': { bg: 'bg-emerald-100', text: 'text-emerald-700' },
+                          '8': { bg: 'bg-gray-100', text: 'text-gray-700' },
+                          '9': { bg: 'bg-amber-100', text: 'text-amber-700' },
+                        };
+                        const classeLabels: Record<string, string> = {
+                          '1': 'Comptes de ressources durables',
+                          '2': "Comptes d'actif immobilise",
+                          '3': 'Comptes de stocks',
+                          '4': 'Comptes de tiers',
+                          '5': 'Comptes de tresorerie',
+                          '6': 'Comptes de charges',
+                          '7': 'Comptes de produits',
+                          '8': 'Comptes speciaux',
+                          '9': 'Comptes analytiques',
+                        };
+                        const grouped = new Map<string, typeof accountsData>();
+                        accountsData.forEach(acc => {
+                          const cls = acc.compte.charAt(0);
+                          if (!grouped.has(cls)) grouped.set(cls, []);
+                          grouped.get(cls)!.push(acc);
+                        });
 
-                        {/* Sous-comptes */}
-                        <div className="pl-10 bg-gray-50/50">
-                          <div className="flex items-center justify-between p-2 hover:bg-gray-100 cursor-pointer border-l-2 border-blue-200">
-                            <div className="flex items-center space-x-3">
-                              <div className="text-sm font-mono text-blue-700 font-bold">411</div>
-                              <div>
-                                <div className="text-sm font-medium">Clients et comptes rattachés</div>
-                                <div className="text-xs text-gray-700">1 compte</div>
-                              </div>
+                        if (grouped.size === 0) {
+                          return (
+                            <div className="p-8 text-center text-sm text-gray-500">
+                              Aucun compte a afficher
                             </div>
-                            <div className="text-right">
-                              <div className="text-sm font-semibold">2 200 000</div>
-                              <div className="text-xs text-gray-700">D</div>
-                            </div>
-                          </div>
+                          );
+                        }
 
-                          <div className="pl-8">
-                            <div className="flex items-center justify-between p-2 hover:bg-gray-100 cursor-pointer">
-                              <div className="flex items-center space-x-3">
-                                <div className="text-xs font-mono text-gray-600">411001</div>
-                                <div className="text-sm text-gray-900">Client A SARL</div>
+                        return Array.from(grouped.entries()).sort(([a], [b]) => a.localeCompare(b)).map(([cls, accs]) => {
+                          const colors = classeColors[cls] || { bg: 'bg-gray-100', text: 'text-gray-700' };
+                          const totalSolde = accs.reduce((s, a) => s + a.totalDebit - a.totalCredit, 0);
+                          return (
+                            <div key={cls} className="border-b border-gray-100 last:border-b-0">
+                              <div className="flex items-center justify-between p-3 hover:bg-gray-50 cursor-pointer">
+                                <div className="flex items-center space-x-3">
+                                  <ChevronRight className="w-4 h-4 text-gray-700" />
+                                  <div className={`w-8 h-8 ${colors.bg} ${colors.text} rounded-full flex items-center justify-center text-sm font-bold`}>{cls}</div>
+                                  <div>
+                                    <div className="font-semibold text-gray-900">{classeLabels[cls] || `Classe ${cls}`}</div>
+                                    <div className="text-sm text-gray-700">{accs.length} compte{accs.length > 1 ? 's' : ''}</div>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <div className="text-lg font-bold text-gray-900">{formatCurrency(Math.abs(totalSolde))}</div>
+                                  <div className="text-sm text-gray-700">{totalSolde >= 0 ? 'Debiteur' : 'Crediteur'}</div>
+                                </div>
                               </div>
-                              <div className="text-right">
-                                <div className="text-sm font-medium">2 200 000</div>
-                                <div className="text-xs text-red-600">Débiteur</div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Classe 5 - Comptes de trésorerie */}
-                      <div className="border-b border-gray-100 last:border-b-0">
-                        <div
-                          className="flex items-center justify-between p-3 hover:bg-gray-50 cursor-pointer"
-                          onClick={() => {}}
-                        >
-                          <div className="flex items-center space-x-3">
-                            <ChevronRight className="w-4 h-4 text-gray-700" />
-                            <div className="w-8 h-8 bg-green-100 text-green-700 rounded-full flex items-center justify-center text-sm font-bold">5</div>
-                            <div>
-                              <div className="font-semibold text-gray-900">Comptes de trésorerie</div>
-                              <div className="text-sm text-gray-700">1 compte actif</div>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-lg font-bold text-gray-900">18 500 000 FCFA</div>
-                            <div className="text-sm text-gray-700">Solde total</div>
-                          </div>
-                        </div>
-
-                        {/* Sous-comptes */}
-                        <div className="pl-10 bg-gray-50/50">
-                          <div className="flex items-center justify-between p-2 hover:bg-gray-100 cursor-pointer border-l-2 border-green-200">
-                            <div className="flex items-center space-x-3">
-                              <div className="text-sm font-mono text-green-700 font-bold">512</div>
-                              <div>
-                                <div className="text-sm font-medium">Banques</div>
-                                <div className="text-xs text-gray-700">1 compte</div>
+                              <div className="pl-10 bg-gray-50/50">
+                                {accs.map(acc => {
+                                  const solde = acc.totalDebit - acc.totalCredit;
+                                  return (
+                                    <div key={acc.compte} className="pl-8">
+                                      <div className="flex items-center justify-between p-2 hover:bg-gray-100 cursor-pointer">
+                                        <div className="flex items-center space-x-3">
+                                          <div className="text-xs font-mono text-gray-600">{acc.compte}</div>
+                                          <div className="text-sm text-gray-900">{acc.libelle}</div>
+                                        </div>
+                                        <div className="text-right">
+                                          <div className="text-sm font-medium">{formatCurrency(Math.abs(solde))}</div>
+                                          <div className={`text-xs ${solde >= 0 ? 'text-red-600' : 'text-green-600'}`}>
+                                            {solde >= 0 ? 'Debiteur' : 'Crediteur'}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
                               </div>
                             </div>
-                            <div className="text-right">
-                              <div className="text-sm font-semibold">18 500 000</div>
-                              <div className="text-xs text-gray-700">D</div>
-                            </div>
-                          </div>
-
-                          <div className="pl-8">
-                            <div className="flex items-center justify-between p-2 hover:bg-gray-100 cursor-pointer">
-                              <div className="flex items-center space-x-3">
-                                <div className="text-xs font-mono text-gray-600">512001</div>
-                                <div className="text-sm text-gray-900">Banque SGBCI - Compte Courant</div>
-                              </div>
-                              <div className="text-right">
-                                <div className="text-sm font-medium">18 500 000</div>
-                                <div className="text-xs text-green-600">Débiteur</div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Classe 6 - Comptes de charges */}
-                      <div className="border-b border-gray-100 last:border-b-0">
-                        <div
-                          className="flex items-center justify-between p-3 hover:bg-gray-50 cursor-pointer"
-                          onClick={() => {}}
-                        >
-                          <div className="flex items-center space-x-3">
-                            <ChevronRight className="w-4 h-4 text-gray-700" />
-                            <div className="w-8 h-8 bg-red-100 text-red-700 rounded-full flex items-center justify-center text-sm font-bold">6</div>
-                            <div>
-                              <div className="font-semibold text-gray-900">Comptes de charges</div>
-                              <div className="text-sm text-gray-700">1 compte actif</div>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-lg font-bold text-gray-900">12 000 000 FCFA</div>
-                            <div className="text-sm text-gray-700">Solde total</div>
-                          </div>
-                        </div>
-
-                        {/* Sous-comptes */}
-                        <div className="pl-10 bg-gray-50/50">
-                          <div className="flex items-center justify-between p-2 hover:bg-gray-100 cursor-pointer border-l-2 border-red-200">
-                            <div className="flex items-center space-x-3">
-                              <div className="text-sm font-mono text-red-700 font-bold">601</div>
-                              <div>
-                                <div className="text-sm font-medium">Achats de marchandises</div>
-                                <div className="text-xs text-gray-700">1 compte</div>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <div className="text-sm font-semibold">12 000 000</div>
-                              <div className="text-xs text-gray-700">D</div>
-                            </div>
-                          </div>
-
-                          <div className="pl-8">
-                            <div className="flex items-center justify-between p-2 hover:bg-gray-100 cursor-pointer">
-                              <div className="flex items-center space-x-3">
-                                <div className="text-xs font-mono text-gray-600">601001</div>
-                                <div className="text-sm text-gray-900">Achats de marchandises</div>
-                              </div>
-                              <div className="text-right">
-                                <div className="text-sm font-medium">12 000 000</div>
-                                <div className="text-xs text-red-600">Débiteur</div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+                          );
+                        });
+                      })()}
                     </div>
                   </div>
                 </div>
@@ -2292,109 +2051,57 @@ const AdvancedGeneralLedger: React.FC = () => {
                         <th className="px-3 py-3 text-left font-semibold text-gray-700 text-xs">{t('accounting.account')}</th>
                         <th className="px-4 py-3 text-left font-semibold text-gray-700 text-xs">{t('accounting.label')}</th>
                         <th className="px-3 py-3 text-left font-semibold text-gray-700 text-xs">Classe</th>
-                        <th className="px-2 py-3 text-center font-semibold text-gray-700 text-xs">Journal Principal</th>
-                        <th className="px-3 py-3 text-right font-semibold text-gray-700 text-xs">Total Débit</th>
-                        <th className="px-3 py-3 text-right font-semibold text-gray-700 text-xs">Total Crédit</th>
+                        <th className="px-3 py-3 text-right font-semibold text-gray-700 text-xs">Total Debit</th>
+                        <th className="px-3 py-3 text-right font-semibold text-gray-700 text-xs">Total Credit</th>
                         <th className="px-3 py-3 text-right font-semibold text-gray-700 text-xs">{t('accounting.balance')}</th>
                         <th className="px-2 py-3 text-center font-semibold text-gray-700 text-xs">Mvts</th>
-                        <th className="px-2 py-3 text-center font-semibold text-gray-700 text-xs">Lettré</th>
                         <th className="px-3 py-3 text-center font-semibold text-gray-700 text-xs">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
-                      <tr className="hover:bg-gray-50 border-b">
-                        <td className="px-3 py-2 font-mono text-[#171717] font-bold text-xs">411001</td>
-                        <td className="px-4 py-2 text-gray-900 text-xs">Client A SARL</td>
-                        <td className="px-3 py-2 text-gray-600 text-xs">Classe 4 - Tiers</td>
-                        <td className="px-2 py-2 text-center text-xs">
-                          <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-mono">VTE</span>
-                        </td>
-                        <td className="px-3 py-2 text-right text-red-600 font-medium text-xs">3 000 000</td>
-                        <td className="px-3 py-2 text-right text-green-600 font-medium text-xs">800 000</td>
-                        <td className="px-3 py-2 text-right font-bold text-gray-900 text-xs">2 200 000</td>
-                        <td className="px-2 py-2 text-center">
-                          <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">3</span>
-                        </td>
-                        <td className="px-2 py-2 text-center">
-                          <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">33%</span>
-                        </td>
-                        <td className="px-3 py-2 text-center">
-                          <div className="flex items-center justify-center space-x-1">
-                            <button className="p-1 text-blue-600 hover:text-blue-900" title="Voir détails" aria-label="Voir les détails">
-                              <Eye className="w-3 h-3" />
-                            </button>
-                            <button className="p-1 text-orange-600 hover:text-orange-900" title={t('common.print')} aria-label="Imprimer">
-                              <Printer className="w-3 h-3" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-
-                      <tr className="hover:bg-gray-50 border-b">
-                        <td className="px-3 py-2 font-mono text-[#171717] font-bold text-xs">512001</td>
-                        <td className="px-4 py-2 text-gray-900 text-xs">Banque SGBCI - Compte Courant</td>
-                        <td className="px-3 py-2 text-gray-600 text-xs">Classe 5 - Trésorerie</td>
-                        <td className="px-2 py-2 text-center text-xs">
-                          <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-mono">BQ1</span>
-                        </td>
-                        <td className="px-3 py-2 text-right text-red-600 font-medium text-xs">20 000 000</td>
-                        <td className="px-3 py-2 text-right text-green-600 font-medium text-xs">1 500 000</td>
-                        <td className="px-3 py-2 text-right font-bold text-gray-900 text-xs">18 500 000</td>
-                        <td className="px-2 py-2 text-center">
-                          <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">3</span>
-                        </td>
-                        <td className="px-2 py-2 text-center">
-                          <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">0%</span>
-                        </td>
-                        <td className="px-3 py-2 text-center">
-                          <div className="flex items-center justify-center space-x-1">
-                            <button className="p-1 text-blue-600 hover:text-blue-900" title="Voir détails" aria-label="Voir les détails">
-                              <Eye className="w-3 h-3" />
-                            </button>
-                            <button className="p-1 text-orange-600 hover:text-orange-900" title={t('common.print')} aria-label="Imprimer">
-                              <Printer className="w-3 h-3" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-
-                      <tr className="hover:bg-gray-50 border-b">
-                        <td className="px-3 py-2 font-mono text-[#171717] font-bold text-xs">601001</td>
-                        <td className="px-4 py-2 text-gray-900 text-xs">Achats de marchandises</td>
-                        <td className="px-3 py-2 text-gray-600 text-xs">Classe 6 - Charges</td>
-                        <td className="px-2 py-2 text-center text-xs">
-                          <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-mono">ACH</span>
-                        </td>
-                        <td className="px-3 py-2 text-right text-red-600 font-medium text-xs">12 000 000</td>
-                        <td className="px-3 py-2 text-right text-green-600 font-medium text-xs">0</td>
-                        <td className="px-3 py-2 text-right font-bold text-gray-900 text-xs">12 000 000</td>
-                        <td className="px-2 py-2 text-center">
-                          <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">2</span>
-                        </td>
-                        <td className="px-2 py-2 text-center">
-                          <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">50%</span>
-                        </td>
-                        <td className="px-3 py-2 text-center">
-                          <div className="flex items-center justify-center space-x-1">
-                            <button className="p-1 text-blue-600 hover:text-blue-900" title="Voir détails" aria-label="Voir les détails">
-                              <Eye className="w-3 h-3" />
-                            </button>
-                            <button className="p-1 text-orange-600 hover:text-orange-900" title={t('common.print')} aria-label="Imprimer">
-                              <Printer className="w-3 h-3" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
+                      {accountsData.length === 0 ? (
+                        <tr>
+                          <td colSpan={8} className="px-3 py-8 text-center text-sm text-gray-500">Aucun compte a afficher</td>
+                        </tr>
+                      ) : accountsData.map((acc) => {
+                        const solde = acc.totalDebit - acc.totalCredit;
+                        const classeNum = acc.compte.charAt(0);
+                        return (
+                          <tr key={acc.compte} className="hover:bg-gray-50 border-b">
+                            <td className="px-3 py-2 font-mono text-[#171717] font-bold text-xs">{acc.compte}</td>
+                            <td className="px-4 py-2 text-gray-900 text-xs">{acc.libelle}</td>
+                            <td className="px-3 py-2 text-gray-600 text-xs">Classe {classeNum}</td>
+                            <td className="px-3 py-2 text-right text-red-600 font-medium text-xs">{formatCurrency(acc.totalDebit)}</td>
+                            <td className="px-3 py-2 text-right text-green-600 font-medium text-xs">{formatCurrency(acc.totalCredit)}</td>
+                            <td className="px-3 py-2 text-right font-bold text-gray-900 text-xs">{formatCurrency(solde)}</td>
+                            <td className="px-2 py-2 text-center">
+                              <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">{acc.nombreEcritures}</span>
+                            </td>
+                            <td className="px-3 py-2 text-center">
+                              <div className="flex items-center justify-center space-x-1">
+                                <button className="p-1 text-blue-600 hover:text-blue-900" title="Voir details" aria-label="Voir les details">
+                                  <Eye className="w-3 h-3" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                     <tfoot className="bg-gray-50">
                       <tr>
-                        <td colSpan={4} className="px-3 py-3 font-bold text-gray-900 text-xs">TOTAUX GÉNÉRAUX</td>
-                        <td className="px-3 py-3 text-right font-bold text-red-600 text-xs">35 000 000</td>
-                        <td className="px-3 py-3 text-right font-bold text-green-600 text-xs">2 300 000</td>
-                        <td className="px-3 py-3 text-right font-bold text-gray-900 text-xs">32 700 000</td>
-                        <td className="px-2 py-3 text-center font-bold text-xs">8</td>
-                        <td className="px-2 py-3 text-center text-xs">
-                          <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-bold">28%</span>
+                        <td colSpan={3} className="px-3 py-3 font-bold text-gray-900 text-xs">TOTAUX GENERAUX</td>
+                        <td className="px-3 py-3 text-right font-bold text-red-600 text-xs">
+                          {formatCurrency(accountsData.reduce((s, a) => s + a.totalDebit, 0))}
+                        </td>
+                        <td className="px-3 py-3 text-right font-bold text-green-600 text-xs">
+                          {formatCurrency(accountsData.reduce((s, a) => s + a.totalCredit, 0))}
+                        </td>
+                        <td className="px-3 py-3 text-right font-bold text-gray-900 text-xs">
+                          {formatCurrency(accountsData.reduce((s, a) => s + a.totalDebit - a.totalCredit, 0))}
+                        </td>
+                        <td className="px-2 py-3 text-center font-bold text-xs">
+                          {accountsData.reduce((s, a) => s + a.nombreEcritures, 0)}
                         </td>
                         <td></td>
                       </tr>
@@ -2416,22 +2123,22 @@ const AdvancedGeneralLedger: React.FC = () => {
               <div className="text-center p-3 bg-blue-50 rounded-lg">
                 <p className="text-sm text-[#737373]">Balance A Nouveau</p>
                 <div className="mt-2">
-                  <p className="text-sm">Débit: <span className="font-bold">445 000,00</span></p>
-                  <p className="text-sm">Crédit: <span className="font-bold">510 000,00</span></p>
+                  <p className="text-sm">Debit: <span className="font-bold">{formatCurrency(accountsData.reduce((s, a) => s + a.soldeOuverture, 0))}</span></p>
+                  <p className="text-sm">Credit: <span className="font-bold">0</span></p>
                 </div>
               </div>
               <div className="text-center p-3 bg-orange-50 rounded-lg">
-                <p className="text-sm text-[#737373]">Mouvements Période</p>
+                <p className="text-sm text-[#737373]">Mouvements Periode</p>
                 <div className="mt-2">
-                  <p className="text-sm">Débit: <span className="font-bold text-red-600">397 583,00</span></p>
-                  <p className="text-sm">Crédit: <span className="font-bold text-green-600">281 000,00</span></p>
+                  <p className="text-sm">Debit: <span className="font-bold text-red-600">{formatCurrency(accountsData.reduce((s, a) => s + a.totalDebit, 0))}</span></p>
+                  <p className="text-sm">Credit: <span className="font-bold text-green-600">{formatCurrency(accountsData.reduce((s, a) => s + a.totalCredit, 0))}</span></p>
                 </div>
               </div>
               <div className="text-center p-3 bg-green-50 rounded-lg">
-                <p className="text-sm text-[#737373]">Soldes Fin Période</p>
+                <p className="text-sm text-[#737373]">Soldes Fin Periode</p>
                 <div className="mt-2">
-                  <p className="text-sm">Débiteur: <span className="font-bold text-red-600">544 583,00</span></p>
-                  <p className="text-sm">Créditeur: <span className="font-bold text-green-600">678 000,00</span></p>
+                  <p className="text-sm">Debiteur: <span className="font-bold text-red-600">{formatCurrency(accountsData.filter(a => a.soldeFermeture > 0).reduce((s, a) => s + a.soldeFermeture, 0))}</span></p>
+                  <p className="text-sm">Crediteur: <span className="font-bold text-green-600">{formatCurrency(Math.abs(accountsData.filter(a => a.soldeFermeture < 0).reduce((s, a) => s + a.soldeFermeture, 0)))}</span></p>
                 </div>
               </div>
             </div>

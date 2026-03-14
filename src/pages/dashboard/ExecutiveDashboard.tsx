@@ -258,7 +258,7 @@ const ExecutiveDashboard: React.FC = () => {
                 <Users className="w-6 h-6 text-[var(--color-info)]" />
               </div>
               <span className="text-xs text-[var(--color-info)] font-medium">
-                NPS: 72
+                N/A
               </span>
             </div>
             <div className="text-lg font-bold text-[var(--color-text-primary)]">
@@ -285,7 +285,7 @@ const ExecutiveDashboard: React.FC = () => {
                 <Globe className="w-6 h-6 text-[var(--color-warning)]" />
               </div>
               <span className="text-xs text-[var(--color-warning)] font-medium">
-                +2.3pts
+                N/A
               </span>
             </div>
             <div className="text-lg font-bold text-[var(--color-text-primary)]">
@@ -537,50 +537,50 @@ const ExecutiveDashboard: React.FC = () => {
             <div className="p-4 bg-[var(--color-background)] rounded-lg">
               <div className="flex items-center gap-2 mb-2">
                 <Activity className="w-4 h-4 text-[var(--color-primary)]" />
-                <span className="text-sm text-[var(--color-text-secondary)]">Taux de Conversion</span>
+                <span className="text-sm text-[var(--color-text-secondary)]">Marge Nette</span>
               </div>
-              <div className="text-lg font-bold text-[var(--color-text-primary)]">24.5%</div>
-              <div className="text-xs text-[var(--color-success)]">+2.3% vs mois dernier</div>
+              <div className="text-lg font-bold text-[var(--color-text-primary)]">{liveExec.netMargin.toFixed(1)}%</div>
+              <div className="text-xs text-[var(--color-text-secondary)]">Depuis écritures comptables</div>
             </div>
             <div className="p-4 bg-[var(--color-background)] rounded-lg">
               <div className="flex items-center gap-2 mb-2">
                 <Clock className="w-4 h-4 text-[var(--color-primary)]" />
-                <span className="text-sm text-[var(--color-text-secondary)]">Délai Moyen</span>
+                <span className="text-sm text-[var(--color-text-secondary)]">Trésorerie</span>
               </div>
-              <div className="text-lg font-bold text-[var(--color-text-primary)]">3.2 jours</div>
-              <div className="text-xs text-[var(--color-success)]">-0.5j vs objectif</div>
+              <div className="text-lg font-bold text-[var(--color-text-primary)]">{(liveExec.treasury / 1000000).toFixed(2)}M</div>
+              <div className="text-xs text-[var(--color-text-secondary)]">Comptes classe 5</div>
             </div>
             <div className="p-4 bg-[var(--color-background)] rounded-lg">
               <div className="flex items-center gap-2 mb-2">
                 <Award className="w-4 h-4 text-[var(--color-primary)]" />
-                <span className="text-sm text-[var(--color-text-secondary)]">Qualité</span>
+                <span className="text-sm text-[var(--color-text-secondary)]">Marge Brute</span>
               </div>
-              <div className="text-lg font-bold text-[var(--color-text-primary)]">98.5%</div>
-              <div className="text-xs text-[var(--color-success)]">Top niveau</div>
+              <div className="text-lg font-bold text-[var(--color-text-primary)]">{liveExec.grossMargin.toFixed(1)}%</div>
+              <div className="text-xs text-[var(--color-text-secondary)]">CA - Charges</div>
             </div>
             <div className="p-4 bg-[var(--color-background)] rounded-lg">
               <div className="flex items-center gap-2 mb-2">
                 <DollarSign className="w-4 h-4 text-[var(--color-primary)]" />
-                <span className="text-sm text-[var(--color-text-secondary)]">Coût d'Acquisition</span>
+                <span className="text-sm text-[var(--color-text-secondary)]">Charges Totales</span>
               </div>
-              <div className="text-lg font-bold text-[var(--color-text-primary)]">125€</div>
-              <div className="text-xs text-[var(--color-warning)]">+5€ vs objectif</div>
+              <div className="text-lg font-bold text-[var(--color-text-primary)]">{(liveExec.expenses / 1000000).toFixed(2)}M</div>
+              <div className="text-xs text-[var(--color-text-secondary)]">Comptes classe 6</div>
             </div>
             <div className="p-4 bg-[var(--color-background)] rounded-lg">
               <div className="flex items-center gap-2 mb-2">
                 <Users className="w-4 h-4 text-[var(--color-primary)]" />
-                <span className="text-sm text-[var(--color-text-secondary)]">Rétention</span>
+                <span className="text-sm text-[var(--color-text-secondary)]">Ratio Charges/CA</span>
               </div>
-              <div className="text-lg font-bold text-[var(--color-text-primary)]">94%</div>
-              <div className="text-xs text-[var(--color-success)]">+1% vs trimestre</div>
+              <div className="text-lg font-bold text-[var(--color-text-primary)]">{liveExec.revenue > 0 ? ((liveExec.expenses / liveExec.revenue) * 100).toFixed(1) : 0}%</div>
+              <div className="text-xs text-[var(--color-text-secondary)]">Efficacité opérationnelle</div>
             </div>
             <div className="p-4 bg-[var(--color-background)] rounded-lg">
               <div className="flex items-center gap-2 mb-2">
                 <Target className="w-4 h-4 text-[var(--color-primary)]" />
-                <span className="text-sm text-[var(--color-text-secondary)]">Objectifs Atteints</span>
+                <span className="text-sm text-[var(--color-text-secondary)]">Résultat Net</span>
               </div>
-              <div className="text-lg font-bold text-[var(--color-text-primary)]">87%</div>
-              <div className="text-xs text-[var(--color-primary)]">12/14 objectifs</div>
+              <div className="text-lg font-bold text-[var(--color-text-primary)]">{((liveExec.revenue - liveExec.expenses) / 1000000).toFixed(2)}M</div>
+              <div className="text-xs text-[var(--color-text-secondary)]">CA - Total charges</div>
             </div>
           </div>
         </div>

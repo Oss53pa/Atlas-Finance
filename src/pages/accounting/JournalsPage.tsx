@@ -56,31 +56,6 @@ const JournalsPage: React.FC = () => {
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [savedEntry, setSavedEntry] = useState<Record<string, unknown> | null>(null);
 
-  // Pour tester le modal via URL: /accounting/journals?test-modal=true
-  React.useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('test-modal') === 'true') {
-      // Données de test pour le modal
-      const testEntry = {
-        mvt: '001',
-        piece: 'FAC-2025-123',
-        jnl: 'VE',
-        date: '10/09/2025',
-        echeance: '10/10/2025',
-        tiers: 'CLIENT A',
-        lines: [
-          { compte: '411000', compteLib: 'Clients', libelle: 'Vente CLIENT A', debit: '150 000', credit: '' },
-          { compte: '445671', compteLib: 'TVA collectée', libelle: 'TVA sur vente', debit: '', credit: '30 000' },
-          { compte: '701000', compteLib: 'Ventes', libelle: 'Vente marchandises', debit: '', credit: '120 000' }
-        ],
-        totalDebit: 150000,
-        totalCredit: 150000
-      };
-      setSavedEntry(testEntry);
-      setShowConfirmationModal(true);
-    }
-  }, []);
-
   // Hook d'impression pour les rapports
   const { printRef, handlePrint, isPrinting, PrintWrapper } = usePrintReport({
     title: `Journal ${selectedJournal?.code || ''} - ${new Date().toLocaleDateString('fr-FR')}`,

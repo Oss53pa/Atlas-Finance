@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { useQuery } from '@tanstack/react-query';
+import { useData } from '../../contexts/DataContext';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
+import {
   BarChart3,
   PieChart,
   TrendingUp,
@@ -16,7 +16,7 @@ import {
   Filter,
   Download
 } from 'lucide-react';
-import { 
+import {
   UnifiedCard,
   KPICard,
   SectionHeader,
@@ -25,31 +25,94 @@ import {
   ModernChartCard,
   ColorfulBarChart
 } from '../../components/ui/DesignSystem';
-import { analyticsService } from '../../services/analytics.service';
 import { formatCurrency, formatDate, formatPercentage } from '../../lib/utils';
 
 const AnalyticsDashboard: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   const [period, setPeriod] = useState<'month' | 'quarter' | 'year'>('year');
   const [axeFilter, setAxeFilter] = useState<string>('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [journalEntries, setJournalEntries] = useState<any[]>([]);
 
-  // Fetch dashboard data
-  const { data: dashboardData, isLoading } = useQuery({
-    queryKey: ['analytics', 'dashboard', period, axeFilter],
-    queryFn: () => analyticsService.getDashboardData({ period, axe: axeFilter }),
-  });
+  useEffect(() => {
+    const load = async () => {
+      setIsLoading(true);
+      try {
+        const je = await adapter.getAll('journalEntries');
+        setJournalEntries(je as any[]);
+      } catch (e) {
+        console.error('AnalyticsDashboard load error:', e);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    load();
+  }, [adapter]);
 
-  // Fetch axes for filtering
-  const { data: axes } = useQuery({
-    queryKey: ['analytical-axes', 'list'],
-    queryFn: () => analyticsService.getAnalyticalAxes({ page: 1, limit: 100 }),
-  });
+  const dashboardData = useMemo(() => {
+    let chiffre_affaires = 0;
+    let couts_directs = 0;
+    const costByPrefix: Record<string, number> = {};
+
+    for (const entry of journalEntries) {
+      if (!entry.lines) continue;
+      for (const line of entry.lines) {
+        if (line.accountCode?.startsWith('7')) {
+          chiffre_affaires += (line.credit || 0) - (line.debit || 0);
+        }
+        if (line.accountCode?.startsWith('6')) {
+          const amount = (line.debit || 0) - (line.credit || 0);
+          couts_directs += amount;
+          const prefix = line.accountCode?.substring(0, 2) || '6X';
+          costByPrefix[prefix] = (costByPrefix[prefix] || 0) + amount;
+        }
+      }
+    }
+
+    const marge_brute = chiffre_affaires - couts_directs;
+    const taux_marge = chiffre_affaires > 0 ? (marge_brute / chiffre_affaires) * 100 : 0;
+    const rentabilite_globale = taux_marge;
+
+    const costCenterColors = ['bg-emerald-400', 'bg-blue-400', 'bg-purple-400', 'bg-orange-400', 'bg-yellow-400', 'bg-red-400', 'bg-pink-400'];
+    const accountLabels: Record<string, string> = {
+      '60': 'Achats', '61': 'Services ext.', '62': 'Autres services', '63': 'Impots',
+      '64': 'Personnel', '65': 'Autres charges', '66': 'Charges fin.', '67': 'Charges except.',
+      '68': 'Dotations', '69': 'Participation',
+    };
+    const costCenterChart = Object.entries(costByPrefix)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 7)
+      .map(([prefix, value], i) => ({
+        label: accountLabels[prefix] || `Compte ${prefix}x`,
+        value: Math.round(Math.abs(value) / 1000),
+        color: costCenterColors[i % costCenterColors.length],
+      }));
+
+    return {
+      chiffre_affaires,
+      couts_directs,
+      marge_brute,
+      taux_marge,
+      nombre_axes: 0,
+      nombre_centres: 0,
+      ecritures_ventilees: 0,
+      rentabilite_globale,
+      evolution_rentabilite: 0,
+      indice_productivite: chiffre_affaires > 0 && couts_directs > 0 ? +(chiffre_affaires / couts_directs).toFixed(2) : 0,
+      taux_efficacite: 0,
+      top_centres: [] as any[],
+      repartition_couts: [] as any[],
+      dernieres_ventilations: [] as any[],
+      costCenterChart: costCenterChart.length > 0 ? costCenterChart : [{ label: '\u2014', value: 0, color: 'bg-neutral-300' }],
+    };
+  }, [journalEntries]);
 
   if (isLoading) {
     return (
       <PageContainer background="warm" padding="lg">
         <div className="flex justify-center items-center min-h-[60vh]">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             className="flex flex-col items-center space-y-6 bg-white/90 backdrop-blur-sm p-12 rounded-xl shadow-md"
@@ -68,22 +131,10 @@ const AnalyticsDashboard: React.FC = () => {
         {/* Header */}
         <SectionHeader
           title="Tableau de Bord Analytique"
-          subtitle="Vue d'ensemble de la comptabilité analytique par axes et centres"
+          subtitle="Vue d'ensemble de la comptabilite analytique par axes et centres"
           icon={BarChart3}
           action={
             <div className="flex items-center space-x-4">
-              <select 
-                value={axeFilter} 
-                onChange={(e) => setAxeFilter(e.target.value)}
-                className="bg-white border border-neutral-200 rounded-2xl px-4 py-2 text-sm font-medium"
-              >
-                <option value="">Tous les axes</option>
-                {axes?.results?.map((axe) => (
-                  <option key={axe.id} value={axe.code}>
-                    {axe.libelle}
-                  </option>
-                ))}
-              </select>
               <div className="flex bg-white rounded-2xl p-1 shadow-lg border border-neutral-200">
                 {(['month', 'quarter', 'year'] as const).map((p) => (
                   <button
@@ -95,7 +146,7 @@ const AnalyticsDashboard: React.FC = () => {
                         : 'text-neutral-600 hover:text-[var(--color-primary)]'
                     }`}
                   >
-                    {p === 'month' ? 'Mois' : p === 'quarter' ? 'Trimestre' : 'Année'}
+                    {p === 'month' ? 'Mois' : p === 'quarter' ? 'Trimestre' : 'Annee'}
                   </button>
                 ))}
               </div>
@@ -107,7 +158,7 @@ const AnalyticsDashboard: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <KPICard
             title="Chiffre d'Affaires"
-            value={formatCurrency(dashboardData?.chiffre_affaires || 0)}
+            value={formatCurrency(dashboardData.chiffre_affaires)}
             subtitle="Performance globale"
             icon={DollarSign}
             color="success"
@@ -115,9 +166,9 @@ const AnalyticsDashboard: React.FC = () => {
             withChart={true}
           />
           <KPICard
-            title="Coûts Directs"
-            value={formatCurrency(dashboardData?.couts_directs || 0)}
-            subtitle="Charges opérationnelles"
+            title="Couts Directs"
+            value={formatCurrency(dashboardData.couts_directs)}
+            subtitle="Charges operationnelles"
             icon={TrendingDown}
             color="warning"
             delay={0.2}
@@ -125,8 +176,8 @@ const AnalyticsDashboard: React.FC = () => {
           />
           <KPICard
             title="Marge Brute"
-            value={formatCurrency(dashboardData?.marge_brute || 0)}
-            subtitle="Bénéfice brut"
+            value={formatCurrency(dashboardData.marge_brute)}
+            subtitle="Benefice brut"
             icon={TrendingUp}
             color="primary"
             delay={0.3}
@@ -134,8 +185,8 @@ const AnalyticsDashboard: React.FC = () => {
           />
           <KPICard
             title="Taux de Marge"
-            value={formatPercentage(dashboardData?.taux_marge || 0)}
-            subtitle="Rentabilité"
+            value={formatPercentage(dashboardData.taux_marge)}
+            subtitle="Rentabilite"
             icon={Target}
             color="neutral"
             delay={0.4}
@@ -155,7 +206,7 @@ const AnalyticsDashboard: React.FC = () => {
                 <div>
                   <p className="text-sm font-medium text-neutral-600">Axes Analytiques</p>
                   <p className="text-lg font-bold text-neutral-900">
-                    {dashboardData?.nombre_axes || 0}
+                    {dashboardData.nombre_axes}
                   </p>
                 </div>
                 <div className="p-3 bg-[var(--color-primary-lighter)] rounded-2xl">
@@ -173,9 +224,9 @@ const AnalyticsDashboard: React.FC = () => {
             <UnifiedCard variant="elevated" size="md">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-neutral-600">Centres de Coûts</p>
+                  <p className="text-sm font-medium text-neutral-600">Centres de Couts</p>
                   <p className="text-lg font-bold text-neutral-900">
-                    {dashboardData?.nombre_centres || 0}
+                    {dashboardData.nombre_centres}
                   </p>
                 </div>
                 <div className="p-3 bg-emerald-100 rounded-2xl">
@@ -193,9 +244,9 @@ const AnalyticsDashboard: React.FC = () => {
             <UnifiedCard variant="elevated" size="md">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-neutral-600">Écritures Ventilées</p>
+                  <p className="text-sm font-medium text-neutral-600">Ecritures Ventilees</p>
                   <p className="text-lg font-bold text-neutral-900">
-                    {dashboardData?.ecritures_ventilees || 0}
+                    {dashboardData.ecritures_ventilees}
                   </p>
                 </div>
                 <div className="p-3 bg-[var(--color-info-lighter)] rounded-2xl">
@@ -213,18 +264,12 @@ const AnalyticsDashboard: React.FC = () => {
           transition={{ delay: 0.8 }}
         >
           <ModernChartCard
-            title="Performance par Centres de Coûts"
-            subtitle="Répartition de la rentabilité par centre analytique"
+            title="Performance par Centres de Couts"
+            subtitle="Repartition de la rentabilite par centre analytique"
             icon={PieChart}
           >
             <ColorfulBarChart
-              data={[
-                { label: 'Production', value: 15750, color: 'bg-emerald-400' },
-                { label: 'Commercial', value: 12300, color: 'bg-blue-400' },
-                { label: 'Support', value: 8950, color: 'bg-purple-400' },
-                { label: 'R&D', value: 18200, color: 'bg-orange-400' },
-                { label: 'Marketing', value: 6450, color: 'bg-yellow-400' }
-              ]}
+              data={dashboardData.costCenterChart}
               height={200}
             />
           </ModernChartCard>
@@ -238,12 +283,12 @@ const AnalyticsDashboard: React.FC = () => {
                 <TrendingUp className="h-6 w-6 text-emerald-600" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-neutral-900">Top Centres de Coûts</h2>
+                <h2 className="text-lg font-bold text-neutral-900">Top Centres de Couts</h2>
                 <p className="text-neutral-600">Meilleure performance</p>
               </div>
             </div>
             <div className="space-y-6">
-              {dashboardData?.top_centres?.map((centre, index) => (
+              {dashboardData.top_centres?.length > 0 ? dashboardData.top_centres.map((centre: any, index: number) => (
                 <motion.div
                   key={index}
                   initial={{ opacity: 0, x: -20 }}
@@ -272,7 +317,9 @@ const AnalyticsDashboard: React.FC = () => {
                     </div>
                   </div>
                 </motion.div>
-              )) || []}
+              )) : (
+                <p className="text-neutral-500 text-center py-4">Aucune donnee de centre analytique</p>
+              )}
             </div>
           </UnifiedCard>
 
@@ -283,12 +330,12 @@ const AnalyticsDashboard: React.FC = () => {
                 <PieChart className="h-6 w-6 text-[var(--color-info)]" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-neutral-900">Répartition des Coûts</h2>
-                <p className="text-neutral-600">Par catégorie</p>
+                <h2 className="text-lg font-bold text-neutral-900">Repartition des Couts</h2>
+                <p className="text-neutral-600">Par categorie</p>
               </div>
             </div>
             <div className="space-y-6">
-              {dashboardData?.repartition_couts?.map((cout, index) => (
+              {dashboardData.repartition_couts?.length > 0 ? dashboardData.repartition_couts.map((cout: any, index: number) => (
                 <motion.div
                   key={index}
                   initial={{ opacity: 0, x: 20 }}
@@ -310,7 +357,9 @@ const AnalyticsDashboard: React.FC = () => {
                     </span>
                   </div>
                 </motion.div>
-              )) || []}
+              )) : (
+                <p className="text-neutral-500 text-center py-4">Aucune donnee de repartition</p>
+              )}
             </div>
           </UnifiedCard>
         </div>
@@ -323,8 +372,8 @@ const AnalyticsDashboard: React.FC = () => {
                 <Calendar className="h-6 w-6 text-[var(--color-primary)]" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-neutral-900">Dernières Ventilations Analytiques</h2>
-                <p className="text-neutral-600">Activité récente</p>
+                <h2 className="text-lg font-bold text-neutral-900">Dernieres Ventilations Analytiques</h2>
+                <p className="text-neutral-600">Activite recente</p>
               </div>
             </div>
             <ElegantButton variant="outline" icon={Download}>
@@ -337,7 +386,7 @@ const AnalyticsDashboard: React.FC = () => {
                 <tr className="border-b border-neutral-200">
                   <th className="text-left py-4 px-2 font-semibold text-neutral-900">{t('common.date')}</th>
                   <th className="text-left py-4 px-2 font-semibold text-neutral-900">{t('accounting.journal')}</th>
-                  <th className="text-left py-4 px-2 font-semibold text-neutral-900">N° Pièce</th>
+                  <th className="text-left py-4 px-2 font-semibold text-neutral-900">N Piece</th>
                   <th className="text-left py-4 px-2 font-semibold text-neutral-900">{t('accounting.label')}</th>
                   <th className="text-left py-4 px-2 font-semibold text-neutral-900">Centre</th>
                   <th className="text-right py-4 px-2 font-semibold text-neutral-900">Montant</th>
@@ -345,7 +394,7 @@ const AnalyticsDashboard: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {dashboardData?.dernieres_ventilations?.map((ventilation, index) => (
+                {dashboardData.dernieres_ventilations?.length > 0 ? dashboardData.dernieres_ventilations.map((ventilation: any, index: number) => (
                   <motion.tr
                     key={index}
                     initial={{ opacity: 0, y: 10 }}
@@ -395,7 +444,13 @@ const AnalyticsDashboard: React.FC = () => {
                       </div>
                     </td>
                   </motion.tr>
-                )) || []}
+                )) : (
+                  <tr>
+                    <td colSpan={7} className="py-8 text-center text-neutral-500">
+                      Aucune ventilation analytique enregistree
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -405,7 +460,7 @@ const AnalyticsDashboard: React.FC = () => {
         <UnifiedCard variant="elevated" size="lg">
           <div className="mb-8">
             <h2 className="text-lg font-bold text-neutral-900 mb-2">Actions Rapides</h2>
-            <p className="text-neutral-600">Gestion de la comptabilité analytique</p>
+            <p className="text-neutral-600">Gestion de la comptabilite analytique</p>
           </div>
           <div className="grid gap-6 md:grid-cols-4">
             <Link to="/analytics/axes">
@@ -420,7 +475,7 @@ const AnalyticsDashboard: React.FC = () => {
                   <Layers className="h-6 w-6 text-[var(--color-primary)]" />
                 </div>
                 <h3 className="font-bold text-neutral-900 mb-1">Axes Analytiques</h3>
-                <p className="text-sm text-neutral-600">Gérer les dimensions</p>
+                <p className="text-sm text-neutral-600">Gerer les dimensions</p>
               </motion.div>
             </Link>
 
@@ -435,8 +490,8 @@ const AnalyticsDashboard: React.FC = () => {
                 <div className="flex items-center justify-center w-12 h-12 bg-emerald-100 rounded-2xl mb-4 group-hover:scale-110 transition-transform">
                   <Users className="h-6 w-6 text-emerald-600" />
                 </div>
-                <h3 className="font-bold text-neutral-900 mb-1">Centres de Coûts</h3>
-                <p className="text-sm text-neutral-600">Créer et organiser</p>
+                <h3 className="font-bold text-neutral-900 mb-1">Centres de Couts</h3>
+                <p className="text-sm text-neutral-600">Creer et organiser</p>
               </motion.div>
             </Link>
 
@@ -452,7 +507,7 @@ const AnalyticsDashboard: React.FC = () => {
                   <BarChart3 className="h-6 w-6 text-[var(--color-info)]" />
                 </div>
                 <h3 className="font-bold text-neutral-900 mb-1">Rapports</h3>
-                <p className="text-sm text-neutral-600">Analyses détaillées</p>
+                <p className="text-sm text-neutral-600">Analyses detaillees</p>
               </motion.div>
             </Link>
 
@@ -468,7 +523,7 @@ const AnalyticsDashboard: React.FC = () => {
                   <Target className="h-6 w-6 text-[var(--color-warning)]" />
                 </div>
                 <h3 className="font-bold text-neutral-900 mb-1">Budgets</h3>
-                <p className="text-sm text-neutral-600">Suivi et contrôle</p>
+                <p className="text-sm text-neutral-600">Suivi et controle</p>
               </motion.div>
             </Link>
           </div>
@@ -483,7 +538,7 @@ const AnalyticsDashboard: React.FC = () => {
               </div>
               <div>
                 <h2 className="text-lg font-bold text-neutral-900">Indicateurs de Performance</h2>
-                <p className="text-neutral-600">Métriques clés</p>
+                <p className="text-neutral-600">Metriques cles</p>
               </div>
             </div>
             <ElegantButton variant="outline" icon={Download}>
@@ -498,14 +553,14 @@ const AnalyticsDashboard: React.FC = () => {
               className="p-6 rounded-2xl border bg-emerald-50/80 border-emerald-200/60"
             >
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-semibold text-emerald-900">Rentabilité Globale</span>
+                <span className="text-sm font-semibold text-emerald-900">Rentabilite Globale</span>
                 <TrendingUp className="h-4 w-4 text-emerald-600" />
               </div>
               <p className="text-lg font-bold text-emerald-700">
-                {formatPercentage(dashboardData?.rentabilite_globale || 0)}
+                {formatPercentage(dashboardData.rentabilite_globale)}
               </p>
               <p className="text-sm text-emerald-600 mt-1">
-                +{formatPercentage(dashboardData?.evolution_rentabilite || 0)} vs période précédente
+                +{formatPercentage(dashboardData.evolution_rentabilite)} vs periode precedente
               </p>
             </motion.div>
 
@@ -516,14 +571,14 @@ const AnalyticsDashboard: React.FC = () => {
               className="p-6 rounded-2xl border bg-[var(--color-primary-lightest)]/80 border-[var(--color-primary-light)]/60"
             >
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-semibold text-[var(--color-primary-darker)]">Productivité</span>
+                <span className="text-sm font-semibold text-[var(--color-primary-darker)]">Productivite</span>
                 <BarChart3 className="h-4 w-4 text-[var(--color-primary)]" />
               </div>
               <p className="text-lg font-bold text-[var(--color-primary-dark)]">
-                {dashboardData?.indice_productivite || 0}
+                {dashboardData.indice_productivite}
               </p>
               <p className="text-sm text-[var(--color-primary)] mt-1">
-                Index basé sur le CA/coût
+                Index base sur le CA/cout
               </p>
             </motion.div>
 
@@ -534,11 +589,11 @@ const AnalyticsDashboard: React.FC = () => {
               className="p-6 rounded-2xl border bg-[var(--color-info-lightest)]/80 border-purple-200/60"
             >
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-semibold text-purple-900">Efficacité</span>
+                <span className="text-sm font-semibold text-purple-900">Efficacite</span>
                 <Target className="h-4 w-4 text-[var(--color-info)]" />
               </div>
               <p className="text-lg font-bold text-[var(--color-info-dark)]">
-                {formatPercentage(dashboardData?.taux_efficacite || 0)}
+                {formatPercentage(dashboardData.taux_efficacite)}
               </p>
               <p className="text-sm text-[var(--color-info)] mt-1">
                 Objectifs atteints

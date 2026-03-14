@@ -1,7 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
+import { useData } from '../../contexts/DataContext';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import ExportMenu from '../../components/shared/ExportMenu';
 import {
@@ -84,6 +85,9 @@ interface BalanceAgeeFournisseurItem {
 const FournisseursModule: React.FC = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const { adapter } = useData();
+  const [isLoading, setIsLoading] = useState(true);
+  const [fournisseurs, setFournisseurs] = useState<Fournisseur[]>([]);
   const [activeTab, setActiveTab] = useState('liste');
   const [balanceAgeeSubTab, setBalanceAgeeSubTab] = useState<'repartition' | 'detail' | 'risques'>('repartition');
   const [searchTerm, setSearchTerm] = useState('');
@@ -98,238 +102,82 @@ const FournisseursModule: React.FC = () => {
   });
   const [compareMode, setCompareMode] = useState(false);
 
-  // Mock Data Fournisseurs CEMAC
-  const fournisseurs: Fournisseur[] = [
-    {
-      id: '1',
-      code: 'FRN001',
-      raisonSociale: 'CAMTEL SA',
-      nomCommercial: 'Camtel Telecom',
-      categorie: 'STRATEGIQUE',
-      typeDépense: 'SERVICES',
-      pays: 'Cameroun',
-      secteurActivite: 'Télécommunications',
-      volumeAchats: 850000,
-      encoursActuel: 125000,
-      dpo: 45,
-      limiteCredit: 500000,
-      delaiPaiement: 60,
-      escompte: 2,
-      modeReglement: 'VIREMENT',
-      devise: 'XAF',
-      scoreQualite: 92,
-      respectDelais: 95,
-      notationInterne: 'A',
-      conformite: true,
-      contactComptable: 'Marie NGONO',
-      emailComptable: 'm.ngono@camtel.cm',
-      telephoneComptable: '+237 693 456 789',
-      statut: 'ACTIF',
-      derniereFacture: '2024-09-10',
-      prochainPaiement: '2024-10-10',
-      alertes: 0,
-      nonEchu: 80000,
-      echu0_30: 30000,
-      echu31_60: 15000,
-      echu61_90: 0,
-      echuPlus90: 0
-    },
-    {
-      id: '2',
-      code: 'FRN002',
-      raisonSociale: 'TOTAL GABON',
-      nomCommercial: 'Total Energy',
-      categorie: 'RECURRENT',
-      typeDépense: 'PRODUCTION',
-      pays: 'Gabon',
-      secteurActivite: 'Énergie - Carburants',
-      volumeAchats: 1250000,
-      encoursActuel: 280000,
-      dpo: 35,
-      limiteCredit: 800000,
-      delaiPaiement: 30,
-      modeReglement: 'VIREMENT',
-      devise: 'XAF',
-      scoreQualite: 88,
-      respectDelais: 92,
-      notationInterne: 'A',
-      conformite: true,
-      contactComptable: 'Jean MBOUMBA',
-      emailComptable: 'j.mboumba@total.ga',
-      telephoneComptable: '+241 01 234 567',
-      statut: 'ACTIF',
-      derniereFacture: '2024-09-15',
-      prochainPaiement: '2024-10-15',
-      alertes: 1,
-      nonEchu: 180000,
-      echu0_30: 60000,
-      echu31_60: 30000,
-      echu61_90: 10000,
-      echuPlus90: 0
-    },
-    {
-      id: '3',
-      code: 'FRN003',
-      raisonSociale: 'CONGO EQUIPEMENTS SARL',
-      nomCommercial: 'Congo Équip',
-      categorie: 'STRATEGIQUE',
-      typeDépense: 'INVESTISSEMENT',
-      pays: 'Congo',
-      secteurActivite: 'Équipements industriels',
-      volumeAchats: 2100000,
-      encoursActuel: 450000,
-      dpo: 55,
-      limiteCredit: 1000000,
-      delaiPaiement: 90,
-      escompte: 3,
-      modeReglement: 'TRAITE',
-      devise: 'XAF',
-      scoreQualite: 85,
-      respectDelais: 88,
-      notationInterne: 'B',
-      conformite: true,
-      contactComptable: 'Pierre MAKOSSO',
-      emailComptable: 'p.makosso@congoequip.cg',
-      telephoneComptable: '+242 06 789 012',
-      statut: 'ACTIF',
-      derniereFacture: '2024-08-25',
-      prochainPaiement: '2024-11-25',
-      alertes: 0,
-      nonEchu: 300000,
-      echu0_30: 100000,
-      echu31_60: 50000,
-      echu61_90: 0,
-      echuPlus90: 0
-    },
-    {
-      id: '4',
-      code: 'FRN004',
-      raisonSociale: 'TCHAD LOGISTICS',
-      categorie: 'RECURRENT',
-      typeDépense: 'SERVICES',
-      pays: 'Tchad',
-      secteurActivite: 'Transport & Logistique',
-      volumeAchats: 680000,
-      encoursActuel: 95000,
-      dpo: 42,
-      limiteCredit: 300000,
-      delaiPaiement: 45,
-      modeReglement: 'CHEQUE',
-      devise: 'XAF',
-      scoreQualite: 79,
-      respectDelais: 85,
-      notationInterne: 'B',
-      conformite: true,
-      contactComptable: 'Fatouma HASSAN',
-      emailComptable: 'f.hassan@tchadlog.td',
-      telephoneComptable: '+235 66 345 678',
-      statut: 'ACTIF',
-      derniereFacture: '2024-09-05',
-      prochainPaiement: '2024-10-20',
-      alertes: 2,
-      nonEchu: 40000,
-      echu0_30: 25000,
-      echu31_60: 20000,
-      echu61_90: 10000,
-      echuPlus90: 0
-    },
-    {
-      id: '5',
-      code: 'FRN005',
-      raisonSociale: 'BEAC SERVICES',
-      nomCommercial: 'BEAC',
-      categorie: 'STRATEGIQUE',
-      typeDépense: 'SERVICES',
-      pays: 'Cameroun',
-      secteurActivite: 'Services bancaires',
-      volumeAchats: 320000,
-      encoursActuel: 0,
-      dpo: 15,
-      limiteCredit: 200000,
-      delaiPaiement: 15,
-      modeReglement: 'PRELEVEMENT',
-      devise: 'XAF',
-      scoreQualite: 95,
-      respectDelais: 100,
-      notationInterne: 'A',
-      conformite: true,
-      contactComptable: 'Alain FOTSO',
-      emailComptable: 'a.fotso@beac.int',
-      telephoneComptable: '+237 222 234 500',
-      statut: 'ACTIF',
-      derniereFacture: '2024-09-01',
-      prochainPaiement: '2024-09-16',
-      alertes: 0,
-      nonEchu: 0,
-      echu0_30: 0,
-      echu31_60: 0,
-      echu61_90: 0,
-      echuPlus90: 0
-    },
-    {
-      id: '6',
-      code: 'FRN006',
-      raisonSociale: 'GUINEE EQUATORIALE TECH',
-      categorie: 'PONCTUEL',
-      typeDépense: 'SERVICES',
-      pays: 'Guinée Équatoriale',
-      secteurActivite: 'Services informatiques',
-      volumeAchats: 150000,
-      encoursActuel: 75000,
-      dpo: 60,
-      limiteCredit: 100000,
-      delaiPaiement: 60,
-      modeReglement: 'VIREMENT',
-      devise: 'XAF',
-      scoreQualite: 72,
-      respectDelais: 78,
-      notationInterne: 'C',
-      conformite: false,
-      contactComptable: 'Carlos NGUEMA',
-      emailComptable: 'c.nguema@gqtech.gq',
-      telephoneComptable: '+240 222 456 789',
-      statut: 'BLOQUE',
-      derniereFacture: '2024-07-15',
-      alertes: 5,
-      nonEchu: 15000,
-      echu0_30: 20000,
-      echu31_60: 15000,
-      echu61_90: 15000,
-      echuPlus90: 10000
-    },
-    {
-      id: '7',
-      code: 'FRN007',
-      raisonSociale: 'RCA FOURNITURES',
-      categorie: 'RECURRENT',
-      typeDépense: 'FRAIS_GENERAUX',
-      pays: 'République Centrafricaine',
-      secteurActivite: 'Fournitures bureau',
-      volumeAchats: 280000,
-      encoursActuel: 45000,
-      dpo: 38,
-      limiteCredit: 150000,
-      delaiPaiement: 30,
-      modeReglement: 'VIREMENT',
-      devise: 'XAF',
-      scoreQualite: 82,
-      respectDelais: 90,
-      notationInterne: 'B',
-      conformite: true,
-      contactComptable: 'Jeanne KOYAMBA',
-      emailComptable: 'j.koyamba@rcafournitures.cf',
-      telephoneComptable: '+236 70 123 456',
-      statut: 'ACTIF',
-      derniereFacture: '2024-09-12',
-      prochainPaiement: '2024-10-12',
-      alertes: 0,
-      nonEchu: 25000,
-      echu0_30: 15000,
-      echu31_60: 5000,
-      echu61_90: 0,
-      echuPlus90: 0
-    }
-  ];
+  // Chargement des données réelles depuis l'adaptateur
+  useEffect(() => {
+    let mounted = true;
+    const loadData = async () => {
+      setIsLoading(true);
+      try {
+        const [allThirdParties, allEntries] = await Promise.all([
+          adapter.getAll('thirdParties'),
+          adapter.getAll('journalEntries')
+        ]);
+
+        const suppliers = allThirdParties.filter(
+          (tp: any) => tp.type === 'supplier' || tp.type === 'both'
+        );
+
+        const fournisseursData: Fournisseur[] = suppliers.map((tp: any) => {
+          const relatedLines: { debit: number; credit: number }[] = [];
+          allEntries.forEach((entry: any) => {
+            if (entry.status === 'draft') return;
+            (entry.lines || []).forEach((line: any) => {
+              if (line.thirdPartyCode === tp.code || line.accountCode === tp.accountCode) {
+                relatedLines.push({ debit: line.debit || 0, credit: line.credit || 0 });
+              }
+            });
+          });
+
+          const totalDebit = relatedLines.reduce((s, l) => s + l.debit, 0);
+          const totalCredit = relatedLines.reduce((s, l) => s + l.credit, 0);
+          const encours = totalCredit - totalDebit;
+
+          return {
+            id: tp.id,
+            code: tp.code || '',
+            raisonSociale: tp.name || '',
+            nomCommercial: tp.name,
+            categorie: 'RECURRENT' as const,
+            typeDépense: 'SERVICES' as const,
+            pays: '',
+            secteurActivite: '',
+            volumeAchats: totalCredit,
+            encoursActuel: Math.max(encours, 0),
+            dpo: tp.conditionsPaiement?.delaiJours || 30,
+            limiteCredit: 0,
+            delaiPaiement: tp.conditionsPaiement?.delaiJours || 30,
+            escompte: tp.conditionsPaiement?.escompte || 0,
+            modeReglement: (tp.conditionsPaiement?.modePaiement === 'virement' ? 'VIREMENT' : tp.conditionsPaiement?.modePaiement === 'cheque' ? 'CHEQUE' : 'VIREMENT') as any,
+            devise: 'XAF',
+            scoreQualite: tp.isActive ? 80 : 40,
+            respectDelais: 0,
+            notationInterne: 'B' as const,
+            conformite: tp.isActive,
+            contactComptable: '',
+            emailComptable: tp.email || '',
+            telephoneComptable: tp.phone || '',
+            statut: tp.isActive ? 'ACTIF' as const : 'INACTIF' as const,
+            alertes: 0,
+            nonEchu: Math.max(encours, 0),
+            echu0_30: 0,
+            echu31_60: 0,
+            echu61_90: 0,
+            echuPlus90: 0
+          };
+        });
+
+        if (mounted) {
+          setFournisseurs(fournisseursData);
+        }
+      } catch (err) {
+        console.error('Error loading fournisseurs:', err);
+      } finally {
+        if (mounted) setIsLoading(false);
+      }
+    };
+    loadData();
+    return () => { mounted = false; };
+  }, [adapter]);
 
   const filteredFournisseurs = useMemo(() => fournisseurs.filter(fournisseur => {
     const matchSearch = fournisseur.raisonSociale.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -396,30 +244,25 @@ const FournisseursModule: React.FC = () => {
     fournisseursActifs: fournisseurs.filter(f => f.statut === 'ACTIF').length,
   }), [fournisseurs]);
 
-  // Analytics Data
-  const analyticsData = {
-    fournisseursParCategorie: [
-      { categorie: 'STRATEGIQUE', count: 8, montant: 4500000 },
-      { categorie: 'RECURRENT', count: 15, montant: 2800000 },
-      { categorie: 'PONCTUEL', count: 22, montant: 850000 },
-      { categorie: 'CRITIQUE', count: 5, montant: 1200000 }
-    ],
-    evolutionAchats: [
-      { mois: 'Jan', achats2024: 750000, achats2025: 890000 },
-      { mois: 'Fév', achats2024: 820000, achats2025: 950000 },
-      { mois: 'Mar', achats2024: 900000, achats2025: 1100000 },
-      { mois: 'Avr', achats2024: 780000, achats2025: 920000 },
-      { mois: 'Mai', achats2024: 950000, achats2025: 1150000 },
-      { mois: 'Juin', achats2024: 1020000, achats2025: 1280000 }
-    ],
-    performanceFournisseurs: [
-      { critere: 'Prix', score: 82 },
-      { critere: 'Qualité', score: 88 },
-      { critere: 'Délais', score: 75 },
-      { critere: 'Service', score: 90 },
-      { critere: 'Conformité', score: 85 }
-    ]
-  };
+  // Analytics Data computed from real data
+  const analyticsData = useMemo(() => {
+    const categories = ['STRATEGIQUE', 'RECURRENT', 'PONCTUEL', 'CRITIQUE'] as const;
+    return {
+      fournisseursParCategorie: categories.map(cat => ({
+        categorie: cat,
+        count: fournisseurs.filter(f => f.categorie === cat).length,
+        montant: fournisseurs.filter(f => f.categorie === cat).reduce((s, f) => s + f.volumeAchats, 0)
+      })),
+      evolutionAchats: [] as { mois: string; achats2024: number; achats2025: number }[],
+      performanceFournisseurs: [
+        { critere: 'Prix', score: 0 },
+        { critere: 'Qualité', score: fournisseurs.length > 0 ? Math.round(fournisseurs.reduce((s, f) => s + f.scoreQualite, 0) / fournisseurs.length) : 0 },
+        { critere: 'Délais', score: fournisseurs.length > 0 ? Math.round(fournisseurs.reduce((s, f) => s + f.respectDelais, 0) / fournisseurs.length) : 0 },
+        { critere: 'Service', score: 0 },
+        { critere: 'Conformité', score: fournisseurs.length > 0 ? Math.round(fournisseurs.filter(f => f.conformite).length / fournisseurs.length * 100) : 0 }
+      ]
+    };
+  }, [fournisseurs]);
 
   const COLORS = ['#171717', '#525252', '#a3a3a3', '#3b82f6', '#22c55e', '#f59e0b'];
 
@@ -465,6 +308,17 @@ const FournisseursModule: React.FC = () => {
     { id: 'balance-agee', label: 'Balance Âgée', icon: Receipt },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 }
   ];
+
+  if (isLoading) {
+    return (
+      <div className="p-6 flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <RefreshCw className="w-8 h-8 animate-spin text-[#525252] mx-auto mb-4" />
+          <p className="text-[#525252]">Chargement des fournisseurs...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6 ">
