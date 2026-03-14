@@ -1,18 +1,19 @@
 -- =================================================================
--- Migration 6: Integrity Triggers & Security Hardening
--- Fixes: AF-001, AF-002, AF-003, AF-004, AF-011, AF-012, AF-015,
---        AF-025, AF-029, AF-030, AF-031
+-- Migration 006: Integrity Triggers & Security Hardening
+-- ADAPTED TO REAL SCHEMA (workspace_id, journal_entry_lines, etc.)
 -- =================================================================
 
 -- ============================================================
--- P0.1 — AF-001, AF-030: CHECK constraints on journal_lines
+-- 1. CHECK constraints on journal_entry_lines
 -- ============================================================
-ALTER TABLE journal_lines
+ALTER TABLE journal_entry_lines
   ADD CONSTRAINT chk_debit_positive CHECK (debit >= 0),
   ADD CONSTRAINT chk_credit_positive CHECK (credit >= 0),
   ADD CONSTRAINT chk_not_bilateral CHECK (debit = 0 OR credit = 0);
 
--- Trigger DEFERRED for D=C balance check
+-- ============================================================
+-- 2. Trigger DEFERRED: balance check (SUM debit = SUM credit)
+-- ============================================================
 CREATE OR REPLACE FUNCTION validate_entry_balance()
 RETURNS TRIGGER AS $$
 DECLARE
@@ -20,38 +21,37 @@ DECLARE
 BEGIN
   SELECT ABS(COALESCE(SUM(debit), 0) - COALESCE(SUM(credit), 0))
   INTO v_diff
-  FROM journal_lines
+  FROM journal_entry_lines
   WHERE entry_id = COALESCE(NEW.entry_id, OLD.entry_id);
 
   IF v_diff > 0.01 THEN
-    RAISE EXCEPTION 'Écriture déséquilibrée (écart: % FCFA). Σ Débit doit = Σ Crédit.', v_diff;
+    RAISE EXCEPTION 'Ecriture desequilibree (ecart: % FCFA). Total Debit doit = Total Credit.', v_diff;
   END IF;
   RETURN NULL;
 END;
 $$ LANGUAGE plpgsql;
 
 CREATE CONSTRAINT TRIGGER trg_validate_balance
-AFTER INSERT OR UPDATE OR DELETE ON journal_lines
+AFTER INSERT OR UPDATE OR DELETE ON journal_entry_lines
 DEFERRABLE INITIALLY DEFERRED
 FOR EACH ROW EXECUTE FUNCTION validate_entry_balance();
 
 -- ============================================================
--- P0.2 — AF-003: Immutability of posted entries
+-- 3. Trigger: immutability of posted entries (SYSCOHADA Art. 19)
 -- ============================================================
 CREATE OR REPLACE FUNCTION protect_posted_entries()
 RETURNS TRIGGER AS $$
 BEGIN
   IF TG_OP = 'DELETE' AND OLD.status = 'posted' THEN
-    RAISE EXCEPTION 'Suppression interdite — écriture comptabilisée (SYSCOHADA Art. 19)';
+    RAISE EXCEPTION 'Suppression interdite - ecriture comptabilisee (SYSCOHADA Art. 19)';
   END IF;
   IF TG_OP = 'UPDATE' AND OLD.status = 'posted' THEN
-    -- Allow only: reversed flag update, and status staying 'posted'
-    IF NEW.status != OLD.status THEN
-      RAISE EXCEPTION 'Modification du statut interdite — écriture comptabilisée. Utilisez une contrepassation.';
+    IF NEW.status IS DISTINCT FROM OLD.status THEN
+      RAISE EXCEPTION 'Modification du statut interdite - ecriture comptabilisee. Utilisez une contrepassation.';
     END IF;
-    IF ROW(NEW.journal, NEW.date, NEW.entry_number, NEW.description)
-        IS DISTINCT FROM ROW(OLD.journal, OLD.date, OLD.entry_number, OLD.description) THEN
-      RAISE EXCEPTION 'Modification interdite — écriture comptabilisée (SYSCOHADA Art. 19)';
+    IF ROW(NEW.journal_id, NEW.entry_date, NEW.entry_number, NEW.description)
+        IS DISTINCT FROM ROW(OLD.journal_id, OLD.entry_date, OLD.entry_number, OLD.description) THEN
+      RAISE EXCEPTION 'Modification interdite - ecriture comptabilisee (SYSCOHADA Art. 19)';
     END IF;
   END IF;
   RETURN NEW;
@@ -63,119 +63,35 @@ BEFORE UPDATE OR DELETE ON journal_entries
 FOR EACH ROW EXECUTE FUNCTION protect_posted_entries();
 
 -- ============================================================
--- P0.2 — AF-029: Change CASCADE to RESTRICT on journal_lines
+-- 4. ON DELETE RESTRICT on journal_entry_lines.entry_id
 -- ============================================================
-ALTER TABLE journal_lines DROP CONSTRAINT IF EXISTS journal_lines_entry_id_fkey;
-ALTER TABLE journal_lines ADD CONSTRAINT journal_lines_entry_id_fkey
-  FOREIGN KEY (entry_id) REFERENCES journal_entries(id) ON DELETE RESTRICT;
-
--- ============================================================
--- P0.3 — AF-004: RLS on profiles
--- ============================================================
-ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY profiles_select ON profiles FOR SELECT
-  USING (id = auth.uid());
-
-CREATE POLICY profiles_insert ON profiles FOR INSERT
-  WITH CHECK (id = auth.uid());
-
-CREATE POLICY profiles_update ON profiles FOR UPDATE
-  USING (id = auth.uid())
-  WITH CHECK (company_id = (SELECT p.company_id FROM profiles p WHERE p.id = auth.uid()));
-
--- ============================================================
--- P0.3 — AF-011: Fix settings PK (key alone -> tenant_id + key)
--- ============================================================
-ALTER TABLE settings DROP CONSTRAINT IF EXISTS settings_pkey;
-ALTER TABLE settings ADD PRIMARY KEY (tenant_id, key);
-
--- ============================================================
--- P0.3 — AF-012: Protect audit_logs from deletion/modification
--- ============================================================
--- Remove any existing DELETE policy on audit_logs
 DO $$
-DECLARE
-  pol RECORD;
 BEGIN
-  FOR pol IN
-    SELECT policyname FROM pg_policies
-    WHERE tablename = 'audit_logs' AND cmd = 'DELETE'
-  LOOP
-    EXECUTE format('DROP POLICY IF EXISTS %I ON audit_logs', pol.policyname);
-  END LOOP;
+  IF EXISTS (
+    SELECT 1 FROM information_schema.table_constraints
+    WHERE constraint_name = 'journal_entry_lines_entry_id_fkey'
+      AND table_name = 'journal_entry_lines'
+  ) THEN
+    ALTER TABLE journal_entry_lines DROP CONSTRAINT journal_entry_lines_entry_id_fkey;
+  END IF;
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION protect_audit_logs()
-RETURNS TRIGGER AS $$
-BEGIN
-  RAISE EXCEPTION 'Le journal d''audit est immuable — % interdit', TG_OP;
-  RETURN NULL;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trg_protect_audit
-BEFORE UPDATE OR DELETE ON audit_logs
-FOR EACH ROW EXECUTE FUNCTION protect_audit_logs();
+ALTER TABLE journal_entry_lines ADD CONSTRAINT journal_entry_lines_entry_id_fkey
+  FOREIGN KEY (entry_id) REFERENCES journal_entries(id) ON DELETE RESTRICT;
 
 -- ============================================================
--- P0.4 — AF-002, AF-025: Table periodes_comptables
+-- 5. Trigger: block entries on closed fiscal years
 -- ============================================================
-CREATE TABLE IF NOT EXISTS periodes_comptables (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  tenant_id UUID NOT NULL REFERENCES societes(id),
-  fiscal_year_id UUID NOT NULL REFERENCES fiscal_years(id),
-  code TEXT NOT NULL,
-  label TEXT NOT NULL,
-  start_date DATE NOT NULL,
-  end_date DATE NOT NULL,
-  status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'closed', 'locked')),
-  closed_at TIMESTAMPTZ,
-  closed_by UUID REFERENCES profiles(id),
-  reopened_at TIMESTAMPTZ,
-  reopened_by UUID REFERENCES profiles(id),
-  created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now(),
-  UNIQUE(tenant_id, code)
-);
-
-ALTER TABLE periodes_comptables ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY periodes_tenant_select ON periodes_comptables FOR SELECT
-  USING (tenant_id = get_user_company_id());
-CREATE POLICY periodes_tenant_insert ON periodes_comptables FOR INSERT
-  WITH CHECK (tenant_id = get_user_company_id());
-CREATE POLICY periodes_tenant_update ON periodes_comptables FOR UPDATE
-  USING (tenant_id = get_user_company_id());
-CREATE POLICY periodes_tenant_delete ON periodes_comptables FOR DELETE
-  USING (tenant_id = get_user_company_id());
-
-CREATE TRIGGER set_updated_at_periodes
-  BEFORE UPDATE ON periodes_comptables
-  FOR EACH ROW EXECUTE FUNCTION update_updated_at();
-
--- Trigger: block entries on closed periods
 CREATE OR REPLACE FUNCTION block_closed_period()
 RETURNS TRIGGER AS $$
 BEGIN
-  -- Check fiscal year
   IF EXISTS (
     SELECT 1 FROM fiscal_years fy
-    WHERE fy.tenant_id = NEW.tenant_id
-      AND NEW.date BETWEEN fy.start_date AND fy.end_date
-      AND fy.is_closed = true
+    WHERE fy.id = NEW.fiscal_year_id
+      AND (fy.status = 'closed' OR fy.status = 'locked')
   ) THEN
-    RAISE EXCEPTION 'Saisie impossible : l''exercice comptable est clôturé';
-  END IF;
-  -- Check accounting period
-  IF EXISTS (
-    SELECT 1 FROM periodes_comptables pc
-    WHERE pc.tenant_id = NEW.tenant_id
-      AND NEW.date BETWEEN pc.start_date AND pc.end_date
-      AND pc.status = 'closed'
-  ) THEN
-    RAISE EXCEPTION 'Saisie impossible : la période comptable est clôturée';
+    RAISE EXCEPTION 'Saisie impossible : exercice comptable cloture';
   END IF;
   RETURN NEW;
 END;
@@ -186,57 +102,43 @@ BEFORE INSERT OR UPDATE ON journal_entries
 FOR EACH ROW EXECUTE FUNCTION block_closed_period();
 
 -- ============================================================
--- P1.3 — AF-015: Table journaux
+-- 6. Protect audit_log from deletion/modification
 -- ============================================================
-CREATE TABLE IF NOT EXISTS journaux (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  tenant_id UUID NOT NULL REFERENCES societes(id),
-  code TEXT NOT NULL,
-  libelle TEXT NOT NULL,
-  type TEXT NOT NULL CHECK (type IN ('achat', 'vente', 'banque', 'caisse', 'od', 'an', 'cloture')),
-  compte_contrepartie TEXT,
-  last_sequence INTEGER DEFAULT 0,
-  is_active BOOLEAN DEFAULT true,
-  created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now(),
-  UNIQUE(tenant_id, code)
-);
+CREATE OR REPLACE FUNCTION protect_audit_log()
+RETURNS TRIGGER AS $$
+BEGIN
+  RAISE EXCEPTION 'Le journal audit est immuable - % interdit', TG_OP;
+  RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
 
-ALTER TABLE journaux ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY journaux_tenant_select ON journaux FOR SELECT
-  USING (tenant_id = get_user_company_id());
-CREATE POLICY journaux_tenant_insert ON journaux FOR INSERT
-  WITH CHECK (tenant_id = get_user_company_id());
-CREATE POLICY journaux_tenant_update ON journaux FOR UPDATE
-  USING (tenant_id = get_user_company_id());
-CREATE POLICY journaux_tenant_delete ON journaux FOR DELETE
-  USING (tenant_id = get_user_company_id());
-
-CREATE TRIGGER set_updated_at_journaux
-  BEFORE UPDATE ON journaux
-  FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+CREATE TRIGGER trg_protect_audit
+BEFORE UPDATE OR DELETE ON audit_log
+FOR EACH ROW EXECUTE FUNCTION protect_audit_log();
 
 -- ============================================================
--- P1.3 — AF-031: Sequential entry numbering trigger
+-- 7. Sequential entry numbering per journal
 -- ============================================================
 CREATE OR REPLACE FUNCTION generate_sequential_entry_number()
 RETURNS TRIGGER AS $$
 DECLARE
   v_seq INTEGER;
-  v_journal TEXT;
+  v_journal_code TEXT;
 BEGIN
-  v_journal := COALESCE(NEW.journal, 'OD');
   IF NEW.entry_number IS NULL OR NEW.entry_number = '' THEN
+    SELECT code INTO v_journal_code FROM journals WHERE id = NEW.journal_id;
+    v_journal_code := COALESCE(v_journal_code, 'OD');
+
     SELECT COALESCE(MAX(
       CAST(REGEXP_REPLACE(entry_number, '^[A-Z]+-', '') AS INTEGER)
     ), 0) + 1
     INTO v_seq
     FROM journal_entries
-    WHERE tenant_id = NEW.tenant_id
-      AND journal = v_journal
-      AND entry_number ~ ('^' || v_journal || E'-\\d+$');
-    NEW.entry_number := v_journal || '-' || LPAD(v_seq::TEXT, 6, '0');
+    WHERE workspace_id = NEW.workspace_id
+      AND journal_id = NEW.journal_id
+      AND entry_number ~ ('^' || v_journal_code || E'-\\d+$');
+
+    NEW.entry_number := v_journal_code || '-' || LPAD(v_seq::TEXT, 6, '0');
   END IF;
   RETURN NEW;
 END;
@@ -247,118 +149,204 @@ BEFORE INSERT ON journal_entries
 FOR EACH ROW EXECUTE FUNCTION generate_sequential_entry_number();
 
 -- ============================================================
--- P1.4 — AF-008: Add date_echeance to journal_lines
+-- 8. RLS on profiles
 -- ============================================================
-ALTER TABLE journal_lines ADD COLUMN IF NOT EXISTS date_echeance DATE;
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE c.relname = 'profiles' AND c.relrowsecurity = true
+  ) THEN
+    ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+  END IF;
+END;
+$$;
+
+DROP POLICY IF EXISTS profiles_select ON profiles;
+DROP POLICY IF EXISTS profiles_insert ON profiles;
+DROP POLICY IF EXISTS profiles_update ON profiles;
+
+CREATE POLICY profiles_select ON profiles FOR SELECT
+  USING (id = auth.uid());
+CREATE POLICY profiles_insert ON profiles FOR INSERT
+  WITH CHECK (id = auth.uid());
+CREATE POLICY profiles_update ON profiles FOR UPDATE
+  USING (id = auth.uid());
 
 -- ============================================================
--- P1.6 — AF-016: Table lettrages
+-- 9. Add missing columns to journal_entry_lines
 -- ============================================================
-CREATE TABLE IF NOT EXISTS lettrages (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  tenant_id UUID NOT NULL REFERENCES societes(id),
-  reference TEXT NOT NULL,
-  account_code TEXT NOT NULL,
-  date_lettrage TIMESTAMPTZ DEFAULT now(),
-  user_id UUID REFERENCES profiles(id),
-  montant NUMERIC(18,2) NOT NULL,
-  type TEXT DEFAULT 'complet' CHECK (type IN ('complet', 'partiel')),
-  method TEXT CHECK (method IN ('exact', 'reference', 'sum_n', 'manual')),
+ALTER TABLE journal_entry_lines
+  ADD COLUMN IF NOT EXISTS date_echeance DATE,
+  ADD COLUMN IF NOT EXISTS lettrage_code TEXT;
+
+-- ============================================================
+-- 10. Add missing columns to chart_of_accounts
+-- ============================================================
+ALTER TABLE chart_of_accounts
+  ADD COLUMN IF NOT EXISTS collective_account_id UUID REFERENCES chart_of_accounts(id),
+  ADD COLUMN IF NOT EXISTS is_system BOOLEAN DEFAULT false,
+  ADD COLUMN IF NOT EXISTS normal_balance VARCHAR DEFAULT 'debit';
+
+-- ============================================================
+-- 11. Add OHADA fields to contacts (tiers)
+-- ============================================================
+ALTER TABLE contacts
+  ADD COLUMN IF NOT EXISTS rccm TEXT,
+  ADD COLUMN IF NOT EXISTS regime_fiscal TEXT,
+  ADD COLUMN IF NOT EXISTS forme_juridique TEXT,
+  ADD COLUMN IF NOT EXISTS account_number TEXT,
+  ADD COLUMN IF NOT EXISTS collective_account TEXT,
+  ADD COLUMN IF NOT EXISTS payment_terms_days INTEGER DEFAULT 30;
+
+-- ============================================================
+-- 12. Table: periodes_comptables
+-- ============================================================
+CREATE TABLE IF NOT EXISTS periodes_comptables (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  workspace_id UUID NOT NULL REFERENCES workspaces(id),
+  fiscal_year_id UUID NOT NULL REFERENCES fiscal_years(id),
+  code VARCHAR NOT NULL,
+  label VARCHAR NOT NULL,
+  start_date DATE NOT NULL,
+  end_date DATE NOT NULL,
+  status VARCHAR NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'closed', 'locked')),
+  closed_at TIMESTAMPTZ,
+  closed_by UUID,
   created_at TIMESTAMPTZ DEFAULT now(),
-  UNIQUE(tenant_id, reference)
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(workspace_id, code)
 );
 
+-- ============================================================
+-- 13. Table: lettrages
+-- ============================================================
+CREATE TABLE IF NOT EXISTS lettrages (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  workspace_id UUID NOT NULL REFERENCES workspaces(id),
+  reference VARCHAR NOT NULL,
+  account_number VARCHAR NOT NULL,
+  date_lettrage TIMESTAMPTZ DEFAULT now(),
+  user_id UUID,
+  montant NUMERIC(18,2) NOT NULL,
+  type VARCHAR DEFAULT 'complet' CHECK (type IN ('complet', 'partiel')),
+  method VARCHAR CHECK (method IN ('exact', 'reference', 'sum_n', 'manual')),
+  created_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(workspace_id, reference)
+);
+
+-- ============================================================
+-- 14. Table: settings
+-- ============================================================
+CREATE TABLE IF NOT EXISTS settings (
+  workspace_id UUID NOT NULL REFERENCES workspaces(id),
+  key VARCHAR NOT NULL,
+  value JSONB,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  PRIMARY KEY (workspace_id, key)
+);
+
+-- ============================================================
+-- 15. RLS on new tables
+-- ============================================================
+CREATE OR REPLACE FUNCTION get_user_workspace_id()
+RETURNS UUID AS $$
+  SELECT workspace_id FROM workspace_members WHERE user_id = auth.uid() LIMIT 1;
+$$ LANGUAGE sql SECURITY DEFINER STABLE;
+
+ALTER TABLE periodes_comptables ENABLE ROW LEVEL SECURITY;
+CREATE POLICY periodes_select ON periodes_comptables FOR SELECT
+  USING (workspace_id = get_user_workspace_id());
+CREATE POLICY periodes_insert ON periodes_comptables FOR INSERT
+  WITH CHECK (workspace_id = get_user_workspace_id());
+CREATE POLICY periodes_update ON periodes_comptables FOR UPDATE
+  USING (workspace_id = get_user_workspace_id());
+CREATE POLICY periodes_delete ON periodes_comptables FOR DELETE
+  USING (workspace_id = get_user_workspace_id());
+
 ALTER TABLE lettrages ENABLE ROW LEVEL SECURITY;
+CREATE POLICY lettrages_select ON lettrages FOR SELECT
+  USING (workspace_id = get_user_workspace_id());
+CREATE POLICY lettrages_insert ON lettrages FOR INSERT
+  WITH CHECK (workspace_id = get_user_workspace_id());
+CREATE POLICY lettrages_update ON lettrages FOR UPDATE
+  USING (workspace_id = get_user_workspace_id());
+CREATE POLICY lettrages_delete ON lettrages FOR DELETE
+  USING (workspace_id = get_user_workspace_id());
 
-CREATE POLICY lettrages_tenant_select ON lettrages FOR SELECT
-  USING (tenant_id = get_user_company_id());
-CREATE POLICY lettrages_tenant_insert ON lettrages FOR INSERT
-  WITH CHECK (tenant_id = get_user_company_id());
-CREATE POLICY lettrages_tenant_update ON lettrages FOR UPDATE
-  USING (tenant_id = get_user_company_id());
-CREATE POLICY lettrages_tenant_delete ON lettrages FOR DELETE
-  USING (tenant_id = get_user_company_id());
-
--- ============================================================
--- P1.11 — AF-056: Add RCCM and OHADA fields to third_parties
--- ============================================================
-ALTER TABLE third_parties ADD COLUMN IF NOT EXISTS rccm TEXT;
-ALTER TABLE third_parties ADD COLUMN IF NOT EXISTS regime_fiscal TEXT;
-ALTER TABLE third_parties ADD COLUMN IF NOT EXISTS forme_juridique TEXT;
-ALTER TABLE third_parties ADD COLUMN IF NOT EXISTS account_code TEXT;
-ALTER TABLE third_parties ADD COLUMN IF NOT EXISTS collective_account_code TEXT;
+ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
+CREATE POLICY settings_select ON settings FOR SELECT
+  USING (workspace_id = get_user_workspace_id());
+CREATE POLICY settings_insert ON settings FOR INSERT
+  WITH CHECK (workspace_id = get_user_workspace_id());
+CREATE POLICY settings_update ON settings FOR UPDATE
+  USING (workspace_id = get_user_workspace_id());
 
 -- ============================================================
--- P2.3 — AF-020: Add auxiliary account fields
--- ============================================================
-ALTER TABLE accounts ADD COLUMN IF NOT EXISTS is_auxiliary BOOLEAN DEFAULT false;
-ALTER TABLE accounts ADD COLUMN IF NOT EXISTS collective_account_id UUID REFERENCES accounts(id);
-ALTER TABLE accounts ADD COLUMN IF NOT EXISTS is_system BOOLEAN DEFAULT false;
-
--- ============================================================
--- P0.5 — AF-006: RPC validate_journal_entry
+-- 16. RPC: validate_journal_entry
 -- ============================================================
 CREATE OR REPLACE FUNCTION validate_journal_entry(p_entry_id UUID)
 RETURNS void AS $$
 DECLARE
-  v_entry journal_entries;
+  v_entry RECORD;
   v_diff NUMERIC(18,2);
 BEGIN
   SELECT * INTO v_entry FROM journal_entries WHERE id = p_entry_id;
   IF v_entry IS NULL THEN
-    RAISE EXCEPTION 'Écriture non trouvée';
+    RAISE EXCEPTION 'Ecriture non trouvee';
   END IF;
   IF v_entry.status != 'draft' THEN
-    RAISE EXCEPTION 'Seules les écritures en brouillon peuvent être validées (statut actuel: %)', v_entry.status;
+    RAISE EXCEPTION 'Seules les ecritures brouillon peuvent etre validees (statut: %)', v_entry.status;
   END IF;
 
   SELECT ABS(COALESCE(SUM(debit), 0) - COALESCE(SUM(credit), 0))
-  INTO v_diff
-  FROM journal_lines WHERE entry_id = p_entry_id;
+  INTO v_diff FROM journal_entry_lines WHERE entry_id = p_entry_id;
 
   IF v_diff > 0.01 THEN
-    RAISE EXCEPTION 'Écriture déséquilibrée (écart: % FCFA)', v_diff;
+    RAISE EXCEPTION 'Ecriture desequilibree (ecart: %)', v_diff;
   END IF;
 
-  UPDATE journal_entries SET status = 'validated', updated_at = now()
+  UPDATE journal_entries SET status = 'validated', validated_at = now()
   WHERE id = p_entry_id;
 
-  INSERT INTO audit_logs (tenant_id, action, entity_type, entity_id, details, timestamp)
-  VALUES (v_entry.tenant_id, 'STATUS_CHANGE', 'journal_entry', p_entry_id::TEXT,
+  INSERT INTO audit_log (workspace_id, user_id, module, action, table_name, record_id, new_data, created_at)
+  VALUES (v_entry.workspace_id, COALESCE(v_entry.created_by, auth.uid()), 'accounting', 'validate',
+          'journal_entries', p_entry_id,
           jsonb_build_object('from', 'draft', 'to', 'validated'), now());
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- ============================================================
--- P0.5 — AF-006: RPC post_journal_entry
+-- 17. RPC: post_journal_entry
 -- ============================================================
 CREATE OR REPLACE FUNCTION post_journal_entry(p_entry_id UUID)
 RETURNS void AS $$
 DECLARE
-  v_entry journal_entries;
+  v_entry RECORD;
 BEGIN
   SELECT * INTO v_entry FROM journal_entries WHERE id = p_entry_id;
   IF v_entry IS NULL THEN
-    RAISE EXCEPTION 'Écriture non trouvée';
+    RAISE EXCEPTION 'Ecriture non trouvee';
   END IF;
   IF v_entry.status != 'validated' THEN
-    RAISE EXCEPTION 'Seules les écritures validées peuvent être comptabilisées (statut actuel: %)', v_entry.status;
+    RAISE EXCEPTION 'Seules les ecritures validees peuvent etre comptabilisees (statut: %)', v_entry.status;
   END IF;
 
-  UPDATE journal_entries SET status = 'posted', updated_at = now()
-  WHERE id = p_entry_id;
+  UPDATE journal_entries SET status = 'posted' WHERE id = p_entry_id;
 
-  INSERT INTO audit_logs (tenant_id, action, entity_type, entity_id, details, timestamp)
-  VALUES (v_entry.tenant_id, 'STATUS_CHANGE', 'journal_entry', p_entry_id::TEXT,
+  INSERT INTO audit_log (workspace_id, user_id, module, action, table_name, record_id, new_data, created_at)
+  VALUES (v_entry.workspace_id, COALESCE(v_entry.created_by, auth.uid()), 'accounting', 'post',
+          'journal_entries', p_entry_id,
           jsonb_build_object('from', 'validated', 'to', 'posted'), now());
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- ============================================================
--- P0.5 — AF-006: RPC apply_lettrage
+-- 18. RPC: apply_lettrage
 -- ============================================================
 CREATE OR REPLACE FUNCTION apply_lettrage(
-  p_tenant_id UUID,
+  p_workspace_id UUID,
   p_line_ids UUID[],
   p_lettrage_code TEXT
 )
@@ -366,98 +354,90 @@ RETURNS void AS $$
 DECLARE
   v_total_debit NUMERIC(18,2);
   v_total_credit NUMERIC(18,2);
-  v_account_code TEXT;
+  v_account VARCHAR;
 BEGIN
   SELECT COALESCE(SUM(debit), 0), COALESCE(SUM(credit), 0)
   INTO v_total_debit, v_total_credit
-  FROM journal_lines WHERE id = ANY(p_line_ids);
+  FROM journal_entry_lines WHERE id = ANY(p_line_ids);
 
   IF ABS(v_total_debit - v_total_credit) > 0.01 THEN
-    RAISE EXCEPTION 'Lettrage déséquilibré (Débit: % / Crédit: %)', v_total_debit, v_total_credit;
+    RAISE EXCEPTION 'Lettrage desequilibre (Debit: % / Credit: %)', v_total_debit, v_total_credit;
   END IF;
 
-  SELECT account_code INTO v_account_code
-  FROM journal_lines WHERE id = p_line_ids[1];
+  SELECT account_number INTO v_account
+  FROM journal_entry_lines WHERE id = p_line_ids[1];
 
-  UPDATE journal_lines SET lettrage_code = p_lettrage_code
+  UPDATE journal_entry_lines SET lettrage_code = p_lettrage_code
   WHERE id = ANY(p_line_ids);
 
-  INSERT INTO lettrages (tenant_id, reference, account_code, montant, type, method)
-  VALUES (p_tenant_id, p_lettrage_code, v_account_code, v_total_debit, 'complet', 'manual');
+  INSERT INTO lettrages (workspace_id, reference, account_number, montant, type, method)
+  VALUES (p_workspace_id, p_lettrage_code, v_account, v_total_debit, 'complet', 'manual');
 
-  INSERT INTO audit_logs (tenant_id, action, entity_type, entity_id, details, timestamp)
-  VALUES (p_tenant_id, 'LETTRAGE', 'lettrage', p_lettrage_code,
-          jsonb_build_object('lines', array_length(p_line_ids, 1), 'montant', v_total_debit), now());
+  INSERT INTO audit_log (workspace_id, user_id, module, action, table_name, record_id, new_data, created_at)
+  VALUES (p_workspace_id, auth.uid(), 'accounting', 'lettrage',
+          'journal_entry_lines', NULL,
+          jsonb_build_object('code', p_lettrage_code, 'lines', array_length(p_line_ids, 1), 'montant', v_total_debit),
+          now());
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- ============================================================
--- P3.1 — AF-041: Fix treasury KPI calculation
+-- 19. RPC: get_dashboard_kpis
 -- ============================================================
 CREATE OR REPLACE FUNCTION get_dashboard_kpis(p_fiscal_year_id UUID)
 RETURNS JSON AS $$
 DECLARE
-  result JSON;
+  v_produits NUMERIC;
+  v_charges NUMERIC;
+  v_tresorerie NUMERIC;
+  v_count BIGINT;
 BEGIN
-  SELECT json_build_object(
-    'produits', COALESCE((
-      SELECT SUM(jl.credit - jl.debit)
-      FROM journal_lines jl
-      JOIN journal_entries je ON je.id = jl.entry_id
-      JOIN fiscal_years fy ON fy.id = p_fiscal_year_id
-      WHERE je.status IN ('validated', 'posted')
-        AND je.date BETWEEN fy.start_date AND fy.end_date
-        AND jl.account_code LIKE '7%'
-    ), 0),
-    'charges', COALESCE((
-      SELECT SUM(jl.debit - jl.credit)
-      FROM journal_lines jl
-      JOIN journal_entries je ON je.id = jl.entry_id
-      JOIN fiscal_years fy ON fy.id = p_fiscal_year_id
-      WHERE je.status IN ('validated', 'posted')
-        AND je.date BETWEEN fy.start_date AND fy.end_date
-        AND jl.account_code LIKE '6%'
-    ), 0),
-    'resultat', COALESCE((
-      SELECT SUM(CASE
-        WHEN jl.account_code LIKE '7%' THEN jl.credit - jl.debit
-        WHEN jl.account_code LIKE '6%' THEN -(jl.debit - jl.credit)
-        ELSE 0 END)
-      FROM journal_lines jl
-      JOIN journal_entries je ON je.id = jl.entry_id
-      JOIN fiscal_years fy ON fy.id = p_fiscal_year_id
-      WHERE je.status IN ('validated', 'posted')
-        AND je.date BETWEEN fy.start_date AND fy.end_date
-        AND (jl.account_code LIKE '6%' OR jl.account_code LIKE '7%')
-    ), 0),
-    'tresorerie', COALESCE((
-      SELECT SUM(jl.debit - jl.credit)
-      FROM journal_lines jl
-      JOIN journal_entries je ON je.id = jl.entry_id
-      JOIN fiscal_years fy ON fy.id = p_fiscal_year_id
-      WHERE je.status IN ('validated', 'posted')
-        AND je.date BETWEEN fy.start_date AND fy.end_date
-        AND jl.account_code LIKE '5%'
-    ), 0),
-    'entryCount', COALESCE((
-      SELECT COUNT(*)
-      FROM journal_entries je
-      JOIN fiscal_years fy ON fy.id = p_fiscal_year_id
-      WHERE je.status IN ('validated', 'posted')
-        AND je.date BETWEEN fy.start_date AND fy.end_date
-    ), 0)
-  ) INTO result;
-  RETURN result;
+  SELECT COALESCE(SUM(jl.credit - jl.debit), 0) INTO v_produits
+  FROM journal_entry_lines jl
+  JOIN journal_entries je ON je.id = jl.entry_id
+  WHERE je.fiscal_year_id = p_fiscal_year_id
+    AND je.status IN ('validated', 'posted')
+    AND jl.account_number LIKE '7%';
+
+  SELECT COALESCE(SUM(jl.debit - jl.credit), 0) INTO v_charges
+  FROM journal_entry_lines jl
+  JOIN journal_entries je ON je.id = jl.entry_id
+  WHERE je.fiscal_year_id = p_fiscal_year_id
+    AND je.status IN ('validated', 'posted')
+    AND jl.account_number LIKE '6%';
+
+  SELECT COALESCE(SUM(jl.debit - jl.credit), 0) INTO v_tresorerie
+  FROM journal_entry_lines jl
+  JOIN journal_entries je ON je.id = jl.entry_id
+  WHERE je.fiscal_year_id = p_fiscal_year_id
+    AND je.status IN ('validated', 'posted')
+    AND jl.account_number LIKE '5%';
+
+  SELECT COUNT(*) INTO v_count
+  FROM journal_entries
+  WHERE fiscal_year_id = p_fiscal_year_id
+    AND status IN ('validated', 'posted');
+
+  RETURN json_build_object(
+    'produits', v_produits,
+    'charges', v_charges,
+    'resultat', v_produits - v_charges,
+    'tresorerie', v_tresorerie,
+    'entryCount', v_count
+  );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER STABLE;
 
 -- ============================================================
--- Indexes on new tables
+-- 20. Indexes
 -- ============================================================
-CREATE INDEX IF NOT EXISTS idx_periodes_tenant_fy ON periodes_comptables(tenant_id, fiscal_year_id);
-CREATE INDEX IF NOT EXISTS idx_periodes_dates ON periodes_comptables(tenant_id, start_date, end_date);
-CREATE INDEX IF NOT EXISTS idx_journaux_tenant ON journaux(tenant_id, code);
-CREATE INDEX IF NOT EXISTS idx_lettrages_tenant ON lettrages(tenant_id, reference);
-CREATE INDEX IF NOT EXISTS idx_lettrages_account ON lettrages(tenant_id, account_code);
-CREATE INDEX IF NOT EXISTS idx_journal_lines_lettrage ON journal_lines(lettrage_code) WHERE lettrage_code IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_journal_lines_echeance ON journal_lines(date_echeance) WHERE date_echeance IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_periodes_ws_fy ON periodes_comptables(workspace_id, fiscal_year_id);
+CREATE INDEX IF NOT EXISTS idx_periodes_dates ON periodes_comptables(workspace_id, start_date, end_date);
+CREATE INDEX IF NOT EXISTS idx_lettrages_ws ON lettrages(workspace_id, reference);
+CREATE INDEX IF NOT EXISTS idx_lettrages_account ON lettrages(workspace_id, account_number);
+CREATE INDEX IF NOT EXISTS idx_jel_lettrage ON journal_entry_lines(lettrage_code) WHERE lettrage_code IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_jel_echeance ON journal_entry_lines(date_echeance) WHERE date_echeance IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_jel_account ON journal_entry_lines(account_number);
+CREATE INDEX IF NOT EXISTS idx_je_status ON journal_entries(workspace_id, status);
+CREATE INDEX IF NOT EXISTS idx_je_date ON journal_entries(workspace_id, entry_date);
+CREATE INDEX IF NOT EXISTS idx_je_journal ON journal_entries(workspace_id, journal_id);
