@@ -84,7 +84,10 @@ async function getActualForPeriod(
   const endDate = `${year}-${String(month).padStart(2, '0')}-${lastDay}`;
 
   const allEntries = await adapter.getAll('journalEntries');
-  const entries = allEntries.filter(e => e.date >= startDate && e.date <= endDate);
+  const entries = allEntries.filter(
+    e => e.date >= startDate && e.date <= endDate
+      && (e.status === 'validated' || e.status === 'posted')
+  );
 
   let total = 0;
   const cls = accountCode.charAt(0);

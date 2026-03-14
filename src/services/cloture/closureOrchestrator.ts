@@ -21,7 +21,7 @@
  */
 import type { DataAdapter } from '@atlas/data';
 import type { DBFiscalYear } from '../../lib/db';
-import { previewClosure, executerCloture, canClose } from '../closureService';
+import { previewClosure, executerCloture, canClose, generateResultatEntry } from '../closureService';
 import type { ClosureConfig, ClosurePreview } from '../closureService';
 import { posterAmortissements } from '../postingService';
 import { executerCarryForward, previewCarryForward } from './carryForwardService';
@@ -243,7 +243,15 @@ export const closureOrchestrator = {
       case 'CALCUL_RESULTAT': {
         const preview = await previewClosure(ctx.adapter, ctx.exerciceId);
         const { resultatNet, isBenefice, totalProduits, totalCharges } = preview;
-        return `${isBenefice ? 'Bénéfice' : 'Perte'} : ${formatCurrency(resultatNet)} (Produits: ${formatCurrency(totalProduits)}, Charges: ${formatCurrency(totalCharges)})`;
+
+        // AF-007: Generate the actual result determination entry
+        const resultatResult = await generateResultatEntry(
+          ctx.adapter,
+          ctx.exerciceId,
+          `${ctx.mode}:${ctx.userId}`,
+        );
+
+        return `${isBenefice ? 'Bénéfice' : 'Perte'} : ${formatCurrency(resultatNet)} (Produits: ${formatCurrency(totalProduits)}, Charges: ${formatCurrency(totalCharges)}) — écriture ${resultatResult.entryId} (${resultatResult.linesCount} lignes)`;
       }
 
       case 'REPORTS': {
@@ -265,6 +273,25 @@ export const closureOrchestrator = {
       }
 
       case 'FINALISATION': {
+        // AF-CL05: Vérifier que le résultat a été affecté avant finalisation
+        const allEntries = await ctx.adapter.getAll('journalEntries');
+        const validEntries = allEntries.filter((e: any) => e.status !== 'draft');
+        let solde120 = 0;
+        let solde129 = 0;
+        for (const entry of validEntries) {
+          for (const line of (entry as any).lines || []) {
+            if (line.accountCode?.startsWith('120')) solde120 += line.credit - line.debit;
+            if (line.accountCode?.startsWith('129')) solde129 += line.debit - line.credit;
+          }
+        }
+        if (Math.abs(solde120) > 1 || Math.abs(solde129) > 1) {
+          throw new Error(
+            `Clôture impossible : le résultat n'a pas été affecté. ` +
+            `Solde compte 120: ${solde120} FCFA, Solde compte 129: ${solde129} FCFA. ` +
+            `Affectez le résultat aux réserves (131) ou report à nouveau (139) avant la finalisation.`
+          );
+        }
+
         await ctx.adapter.update('fiscalYears', ctx.exerciceId, { isClosed: true });
         await ctx.adapter.logAudit({
           action: 'CLOSURE_COMPLETE',

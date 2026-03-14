@@ -40,6 +40,8 @@ export interface DBJournalLine {
   credit: number;
   analyticalCode?: string;
   lettrageCode?: string;
+  /** AF-008: Due date for aging analysis (falls back to entry.date if absent) */
+  dateEcheance?: string;
 }
 
 export interface DBAccount {
@@ -100,6 +102,7 @@ export interface DBAsset {
   accountCode: string;
   depreciationAccountCode: string;
   status: 'active' | 'disposed' | 'scrapped';
+  cumulDepreciation?: number;
 }
 
 export interface DBFiscalYear {

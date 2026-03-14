@@ -6,7 +6,7 @@
  * Conforme SYSCOHADA révisé — Plan comptable OHADA.
  */
 import type { DataAdapter } from '@atlas/data';
-import type { DBJournalEntry } from '../../../lib/db';
+import type { DBJournalEntry, DBFiscalYear } from '../../../lib/db';
 import { money } from '../../../utils/money';
 import {
   Bilan,
@@ -76,15 +76,15 @@ function creditByPrefix(entries: DBJournalEntry[], ...prefixes: string[]): numbe
  */
 async function loadEntriesForExercice(adapter: DataAdapter, exercice: string): Promise<DBJournalEntry[]> {
   // Try to find fiscal year by ID or code
-  let fy = await adapter.getById('fiscalYears', exercice);
+  let fy = await adapter.getById('fiscalYears', exercice) as DBFiscalYear | undefined;
   if (!fy) {
-    const allFY = await adapter.getAll('fiscalYears', { where: { code: exercice } });
+    const allFY = await adapter.getAll('fiscalYears', { where: { code: exercice } }) as DBFiscalYear[];
     fy = allFY[0] || undefined;
   }
 
   if (fy) {
     const allEntries = await adapter.getAll('journalEntries');
-    return allEntries.filter((e: DBJournalEntry) => e.date >= fy.startDate && e.date <= fy.endDate);
+    return allEntries.filter((e: DBJournalEntry) => e.date >= fy!.startDate && e.date <= fy!.endDate);
   }
 
   // Fallback: treat as year string (e.g. "2025") → Jan 1 to Dec 31
@@ -165,11 +165,20 @@ function computeBilan(entries: DBJournalEntry[], exercice: string): Bilan {
   const capitalSocial = Math.abs(netByPrefix(entries, '10'));
   const reserves = Math.abs(netByPrefix(entries, '11'));
   const reportANouveau = -netByPrefix(entries, '12');
+  // AF-024: Comptes 13-15 manquants dans capitaux propres
+  const resultatEnInstance = -netByPrefix(entries, '13'); // Résultat net en instance d'affectation
+  const provisionsReglementees = Math.abs(netByPrefix(entries, '14')); // Provisions réglementées
+  const subventionsInvestissement = Math.abs(netByPrefix(entries, '15')); // Subventions d'investissement
   const resultatExercice = computeResultatNet(entries);
-  const capitauxPropres = money(capitalSocial).add(reserves).add(reportANouveau).add(resultatExercice).toNumber();
+  const capitauxPropres = money(capitalSocial).add(reserves).add(reportANouveau)
+    .add(resultatEnInstance).add(provisionsReglementees).add(subventionsInvestissement)
+    .add(resultatExercice).toNumber();
 
   const emprunts = Math.abs(netByPrefix(entries, '16'));
   const dettesFinancieres = Math.abs(netByPrefix(entries, '17'));
+  // AF-024: Comptes 18-19 manquants dans passif
+  const dettesParticipations = Math.abs(netByPrefix(entries, '18')); // Dettes liées à des participations
+  const provisionsRisques = Math.abs(netByPrefix(entries, '19')); // Provisions pour risques et charges
   const dettesFournisseurs = Math.abs(netByPrefix(entries, '40'));
   // P1-1b: autresDettes = soldes créditeurs des comptes 42-47 séparés
   const autresDettes = autresDettesFromCreances;
@@ -177,6 +186,8 @@ function computeBilan(entries: DBJournalEntry[], exercice: string): Bilan {
   const totalPassif = money(capitauxPropres)
     .add(emprunts)
     .add(dettesFinancieres)
+    .add(dettesParticipations)
+    .add(provisionsRisques)
     .add(dettesFournisseurs)
     .add(autresDettes)
     .add(tresoreriePassive)
@@ -185,10 +196,15 @@ function computeBilan(entries: DBJournalEntry[], exercice: string): Bilan {
   const passif: BilanPassif = {
     capitalSocial,
     reserves: money(reserves).add(reportANouveau).toNumber(),
+    resultatEnInstance: resultatEnInstance,
+    provisionsReglementees,
+    subventionsInvestissement,
     resultatExercice,
     capitauxPropres,
     emprunts,
     dettesFinancieres,
+    dettesParticipations,
+    provisionsRisques,
     dettesFournisseurs,
     autresDettes,
     totalPassif,
@@ -476,6 +492,26 @@ class FinancialStatementsService {
     const json = JSON.stringify(data, null, 2);
     return new Blob([json], { type: 'application/json' });
   }
+}
+
+/**
+ * AF-ER02: Contrôle croisé Résultat Bilan = Résultat CDR.
+ * SYSCOHADA exige que le résultat net inscrit au bilan soit identique
+ * au résultat net du compte de résultat.
+ */
+export function verifierCoherenceResultat(
+  resultatBilan: number,
+  resultatCDR: number
+): { isValid: boolean; ecart: number; message: string } {
+  const ecart = Math.abs(resultatBilan - resultatCDR);
+  const isValid = ecart < 1; // tolérance 1 FCFA
+  return {
+    isValid,
+    ecart,
+    message: isValid
+      ? 'Cohérence vérifiée : Résultat Bilan = Résultat CDR'
+      : `INCOHÉRENCE : Résultat Bilan (${resultatBilan}) ≠ Résultat CDR (${resultatCDR}), écart = ${ecart} FCFA`,
+  };
 }
 
 export const financialStatementsService = new FinancialStatementsService();

@@ -100,6 +100,7 @@ export interface Asset {
   usefulLifeYears: number
   accountCode: string
   depreciationAccountCode: string
+  cumulDepreciation?: number
   status: 'active' | 'disposed' | 'scrapped'
   tenantId?: string
 }

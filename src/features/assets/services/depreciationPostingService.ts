@@ -34,7 +34,13 @@ export function computeDepreciations(assets: DBAsset[], date: string): Depreciat
     // Check if fully depreciated
     const acqDate = new Date(asset.acquisitionDate);
     const currentDate = new Date(date);
-    const yearsElapsed = (currentDate.getTime() - acqDate.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
+    // SYSCOHADA : année commerciale 360 jours (12 × 30)
+    const moisDebut = acqDate.getFullYear() * 12 + acqDate.getMonth();
+    const moisFin = currentDate.getFullYear() * 12 + currentDate.getMonth();
+    const joursDebut = Math.min(acqDate.getDate(), 30);
+    const joursFin = Math.min(currentDate.getDate(), 30);
+    const totalJours = (moisFin - moisDebut) * 30 + (joursFin - joursDebut);
+    const yearsElapsed = Math.max(0, totalJours) / 360;
 
     if (yearsElapsed >= asset.usefulLifeYears) continue;
 
@@ -62,7 +68,7 @@ export async function postDepreciations(adapter: DataAdapter, depreciations: Dep
   for (const dep of depreciations) {
     const id = crypto.randomUUID();
     const allEntries = await adapter.getAll('journalEntries', { orderBy: { field: 'entryNumber', direction: 'asc' } });
-    const lastEntry = allEntries.length > 0 ? allEntries[allEntries.length - 1] : undefined;
+    const lastEntry = allEntries.length > 0 ? allEntries[allEntries.length - 1] as DBJournalEntry : undefined;
     const nextNum = lastEntry ? parseInt(lastEntry.entryNumber.replace(/\D/g, '') || '0') + 1 : 1;
     const entryNumber = `OD-${String(nextNum).padStart(6, '0')}`;
 
@@ -101,6 +107,14 @@ export async function postDepreciations(adapter: DataAdapter, depreciations: Dep
     await adapter.create('journalEntries', entry);
     ids.push(id);
 
+    // AF-CL08: Synchroniser cumulDepreciation sur l'immobilisation
+    const existingAsset = await adapter.getById<DBAsset>('assets', dep.assetId);
+    if (existingAsset) {
+      await adapter.update('assets', dep.assetId, {
+        cumulDepreciation: (existingAsset.cumulDepreciation || 0) + dep.amount,
+      });
+    }
+
     await logAudit(
       'DEPRECIATION_POSTING',
       'journalEntry',
@@ -116,7 +130,7 @@ export async function postDepreciations(adapter: DataAdapter, depreciations: Dep
  * Run depreciation for all active assets and post entries.
  */
 export async function runDepreciation(adapter: DataAdapter, date: string): Promise<string[]> {
-  const assets = await adapter.getAll('assets', { where: { status: 'active' } });
+  const assets = await adapter.getAll('assets', { where: { status: 'active' } }) as DBAsset[];
   const depreciations = computeDepreciations(assets, date);
   return postDepreciations(adapter, depreciations);
 }
@@ -170,8 +184,14 @@ export async function disposeAsset(
   // Calculer amortissements cumulés jusqu'à la date de cession
   const acqDate = new Date(asset.acquisitionDate);
   const dispDate = new Date(input.disposalDate);
+  // SYSCOHADA : année commerciale 360 jours (12 × 30)
+  const moisDebut = acqDate.getFullYear() * 12 + acqDate.getMonth();
+  const moisFin = dispDate.getFullYear() * 12 + dispDate.getMonth();
+  const joursDebut = Math.min(acqDate.getDate(), 30);
+  const joursFin = Math.min(dispDate.getDate(), 30);
+  const totalJours = (moisFin - moisDebut) * 30 + (joursFin - joursDebut);
   const yearsElapsed = Math.min(
-    (dispDate.getTime() - acqDate.getTime()) / (1000 * 60 * 60 * 24 * 365.25),
+    Math.max(0, totalJours) / 360,
     asset.usefulLifeYears,
   );
   const amortissementsCumules = new Money(annualDep).multiply(yearsElapsed).round().toNumber();
