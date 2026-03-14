@@ -408,7 +408,7 @@ const ReconciliationPage: React.FC = () => {
               )}
             </Button>
             <ExportMenu
-              data={reconciliationData?.results || []}
+              data={(reconciliationData?.results || []) as unknown as Record<string, unknown>[]}
               filename="rapprochement_bancaire"
               columns={{
                 date: 'Date',
@@ -558,7 +558,7 @@ const ReconciliationPage: React.FC = () => {
                 <SelectItem value="">Tous les comptes</SelectItem>
                 {bankAccounts?.results?.map((account) => (
                   <SelectItem key={account.id} value={account.id}>
-                    {account.numero_compte} - {account.libelle_compte}
+                    {(account as any).numero_compte || account.id} - {(account as any).libelle_compte || ''}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -622,9 +622,11 @@ const ReconciliationPage: React.FC = () => {
             <div className="flex items-center space-x-4">
               {reconciliationMode === 'manual' && (
                 <div className="flex items-center space-x-2">
-                  <Checkbox
-                    checked={selectedItems.size === reconciliationData?.results?.length && selectedItems.size > 0}
-                    onCheckedChange={handleSelectAll}
+                  <input
+                    type="checkbox"
+                    checked={selectedItems.size === (reconciliationData?.results?.length || 0) && selectedItems.size > 0}
+                    onChange={handleSelectAll}
+                    className="h-4 w-4 rounded border-gray-300"
                   />
                   <span className="text-sm text-gray-600">Tout sélectionner</span>
                 </div>
@@ -673,9 +675,11 @@ const ReconciliationPage: React.FC = () => {
                       >
                         {reconciliationMode === 'manual' && (
                           <TableCell>
-                            <Checkbox
+                            <input
+                              type="checkbox"
                               checked={selectedItems.has(item.id)}
-                              onCheckedChange={() => handleItemSelect(item.id)}
+                              onChange={() => handleItemSelect(item.id)}
+                              className="h-4 w-4 rounded border-gray-300"
                             />
                           </TableCell>
                         )}
@@ -754,9 +758,9 @@ const ReconciliationPage: React.FC = () => {
                                   {formatCurrency(Math.abs(item.ecart_montant))}
                                 </span>
                                 {item.type_ecart && (
-                                  <Badge className={getEcartTypeColor(item.type_ecart)} size="sm">
+                                  <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getEcartTypeColor(item.type_ecart)}`}>
                                     {item.type_ecart}
-                                  </Badge>
+                                  </span>
                                 )}
                               </div>
                             </div>
