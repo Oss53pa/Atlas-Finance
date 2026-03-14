@@ -113,6 +113,15 @@ const ModernDoubleSidebarLayout: React.FC = () => {
       ariaLabel: "Retour à la page d'accueil"
     },
     {
+      id: 'workspace',
+      label: 'Mon Espace',
+      icon: <Layers className="w-5 h-5" />,
+      path: user?.role === 'admin' ? '/workspace/admin'
+           : user?.role === 'manager' ? '/workspace/manager'
+           : '/workspace/comptable',
+      ariaLabel: 'Accéder à mon espace de travail'
+    },
+    {
       id: 'dashboard',
       label: 'Tableau de Bord',
       icon: <LayoutDashboard className="w-5 h-5" />,

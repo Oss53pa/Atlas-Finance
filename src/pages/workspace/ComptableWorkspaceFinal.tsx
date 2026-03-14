@@ -9,7 +9,7 @@ import {
   Clock, CheckCircle, Plus, DollarSign, Zap, ArrowUpRight, ArrowDownRight, ExternalLink,
   Home, ArrowLeft, Bell, HelpCircle, User, Search, Menu, X, Settings, LogOut, ChevronDown,
   Shield, Mail, Calendar, Award, BookMarked, MessageCircle, FileQuestion, Video, Headphones,
-  ListTodo, MessageSquare, LayoutDashboard
+  ListTodo, MessageSquare, LayoutDashboard, Briefcase
 } from 'lucide-react';
 
 const ComptableWorkspaceFinal: React.FC = () => {
@@ -18,7 +18,19 @@ const ComptableWorkspaceFinal: React.FC = () => {
   const { user, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [workspaceSwitcherOpen, setWorkspaceSwitcherOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<'workspace' | 'tasks' | 'chat' | 'profile' | 'settings' | 'help'>('workspace');
+
+  const workspaceOptions = user?.role === 'admin' ? [
+    { label: 'Espace Admin', path: '/workspace/admin', icon: Shield, color: '#ef4444', current: false },
+    { label: 'Espace Manager', path: '/workspace/manager', icon: Briefcase, color: '#525252', current: false },
+    { label: 'Espace Comptable', path: '/workspace/comptable', icon: Calculator, color: '#171717', current: true },
+  ] : user?.role === 'manager' ? [
+    { label: 'Espace Manager', path: '/workspace/manager', icon: Briefcase, color: '#525252', current: false },
+    { label: 'Espace Comptable', path: '/workspace/comptable', icon: Calculator, color: '#171717', current: true },
+  ] : [
+    { label: 'Espace Comptable', path: '/workspace/comptable', icon: Calculator, color: '#171717', current: true },
+  ];
 
   const atlasFinanceLinks = [
     { id: 'entries', label: "Saisie ecritures", icon: FileText, badge: '5', path: '/accounting/entries' },
@@ -169,7 +181,31 @@ const ComptableWorkspaceFinal: React.FC = () => {
             <button onClick={() => navigate('/login')} className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 border-2 border-gray-300"><ArrowLeft className="w-5 h-5" /><span className="text-sm font-semibold">Retour</span></button>
             <button onClick={() => setSidebarOpen(!sidebarOpen)} className="lg:hidden p-2 rounded-lg hover:bg-gray-100">{sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}</button>
             <div className="flex items-center space-x-3"><div className="w-10 h-10 rounded-lg bg-gradient-to-r from-[#171717] to-[#262626] flex items-center justify-center"><BarChart3 className="w-5 h-5 text-white" /></div><div className="hidden sm:block"><h1 className="text-lg font-bold">Atlas Finance</h1><p className="text-xs text-gray-500">v3.0</p></div></div>
-            <div className="hidden md:flex items-center space-x-2 px-3 py-1 rounded-lg bg-green-50"><Calculator className="w-4 h-4 text-[#171717]" /><span className="text-sm font-medium text-[#171717]">Espace Comptable</span></div>
+            <div className="hidden md:block relative">
+              <button
+                onClick={() => setWorkspaceSwitcherOpen(!workspaceSwitcherOpen)}
+                className="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-green-50 hover:bg-green-100 transition-colors"
+              >
+                <Calculator className="w-4 h-4 text-[#171717]" />
+                <span className="text-sm font-medium text-[#171717]">Espace Comptable</span>
+                {workspaceOptions.length > 1 && <ChevronDown className={`w-3 h-3 text-[#171717] transition-transform ${workspaceSwitcherOpen ? 'rotate-180' : ''}`} />}
+              </button>
+              {workspaceSwitcherOpen && workspaceOptions.length > 1 && (
+                <div className="absolute top-full left-0 mt-1 w-56 bg-white rounded-lg shadow-lg border z-50">
+                  {workspaceOptions.map(ws => (
+                    <button
+                      key={ws.path}
+                      onClick={() => { setWorkspaceSwitcherOpen(false); if (!ws.current) navigate(ws.path); }}
+                      className={`w-full flex items-center space-x-3 px-4 py-3 text-left text-sm hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg ${ws.current ? 'bg-gray-50 font-semibold' : ''}`}
+                    >
+                      <ws.icon className="w-4 h-4" style={{ color: ws.color }} />
+                      <span>{ws.label}</span>
+                      {ws.current && <span className="ml-auto text-xs text-gray-400">actuel</span>}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
           <div className="flex-1 max-w-md mx-6 hidden md:block"><div className="relative"><Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" /><input placeholder="Recherche..." className="w-full pl-10 pr-4 py-2 border rounded-lg text-sm" /></div></div>
           <div className="flex items-center space-x-3">
