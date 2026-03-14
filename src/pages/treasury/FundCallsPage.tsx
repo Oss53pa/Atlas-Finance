@@ -30,7 +30,8 @@ import {
   Target,
   TrendingUp,
   ArrowDownToLine,
-  ArrowUpFromLine
+  ArrowUpFromLine,
+  Calculator
 } from 'lucide-react';
 import {
   Card,

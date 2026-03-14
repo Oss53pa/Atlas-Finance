@@ -81,50 +81,63 @@ const BudgetingDashboard: React.FC = () => {
           }
         />
 
-        {/* KPIs modernes avec graphiques */}
-        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
-          <KPICard
-            title="Budget Total"
-            value="15.75M €"
-            subtitle="Exercice 2024"
-            icon={DollarSign}
-            color="primary"
-            delay={0.1}
-            withChart={true}
-          />
-          
-          <KPICard
-            title="Réalisé"
-            value="12.45M €"
-            subtitle="79% du budget"
-            icon={BarChart3}
-            trend={{ value: "+8.2%", isPositive: true }}
-            color="success"
-            delay={0.2}
-            withChart={true}
-          />
-          
-          <KPICard
-            title="Écart"
-            value="3.30M €"
-            subtitle="Sous-réalisation"
-            icon={Target}
-            trend={{ value: "-21%", isPositive: false }}
-            color="warning"
-            delay={0.3}
-            withChart={true}
-          />
-          
-          <KPICard
-            title="Performance"
-            value="79%"
-            subtitle="Objectif: 85%"
-            icon={TrendingUp}
-            color="neutral"
-            delay={0.4}
-            withChart={true}
-          />
-        </div>
+        {/* KPIs modernes avec graphiques — données dynamiques depuis le service budget */}
+        {(() => {
+          const budgetTotal = dashboardData?.totalBudgeted || 0;
+          const realise = dashboardData?.totalActual || 0;
+          const ecart = budgetTotal - realise;
+          const performance = budgetTotal > 0 ? Math.round((realise / budgetTotal) * 100) : 0;
+          const formatValue = (v: number) => {
+            if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(2)}M FCFA`;
+            if (v >= 1_000) return `${(v / 1_000).toFixed(0)}K FCFA`;
+            return `${v} FCFA`;
+          };
+          return (
+            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
+              <KPICard
+                title="Budget Total"
+                value={formatValue(budgetTotal)}
+                subtitle={`Période: ${period === 'month' ? 'Mois' : period === 'quarter' ? 'Trimestre' : 'Année'}`}
+                icon={DollarSign}
+                color="primary"
+                delay={0.1}
+                withChart={true}
+              />
+
+              <KPICard
+                title="Réalisé"
+                value={formatValue(realise)}
+                subtitle={`${performance}% du budget`}
+                icon={BarChart3}
+                trend={dashboardData ? { value: `${performance}%`, isPositive: performance >= 80 } : undefined}
+                color="success"
+                delay={0.2}
+                withChart={true}
+              />
+
+              <KPICard
+                title="Écart"
+                value={formatValue(ecart)}
+                subtitle={ecart > 0 ? 'Sous-réalisation' : ecart < 0 ? 'Dépassement' : 'À l\'équilibre'}
+                icon={Target}
+                trend={budgetTotal > 0 ? { value: `${ecart > 0 ? '-' : '+'}${Math.round(Math.abs(ecart) / budgetTotal * 100)}%`, isPositive: ecart <= 0 } : undefined}
+                color="warning"
+                delay={0.3}
+                withChart={true}
+              />
+
+              <KPICard
+                title="Performance"
+                value={`${performance}%`}
+                subtitle="Objectif: 85%"
+                icon={TrendingUp}
+                color="neutral"
+                delay={0.4}
+                withChart={true}
+              />
+            </div>
+          );
+        })()}
 
         {/* Section graphique budgétaire moderne */}
         <motion.div

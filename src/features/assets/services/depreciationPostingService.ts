@@ -158,16 +158,27 @@ export interface DisposalResult {
 }
 
 /**
- * Automatise la cession d'une immobilisation SYSCOHADA :
- * 1. Calcule la VNC (Valeur Nette Comptable)
- * 2. Calcule la plus/moins-value
- * 3. Génère l'écriture comptable :
- *    - Débit 28x : Reprise amortissements cumulés
- *    - Débit 81  : VNC cessions (charge HAO)
- *    - Crédit 2x : Sortie de l'immobilisation (valeur brute)
- *    - Débit 485/521 : Produit de cession (trésorerie/créance)
- *    - Crédit 82  : Produits cessions (produit HAO)
- * 4. Met à jour le statut de l'immobilisation → 'disposed'
+ * Cession d'immobilisation SYSCOHADA en 4 étapes via le compte 481.
+ *
+ * Étape 1 — Sortie du bien :
+ *   D 481 (Valeur comptable des cessions) = Valeur brute
+ *   C 2xxx (Compte d'immobilisation)      = Valeur brute
+ *
+ * Étape 2 — Annulation des amortissements cumulés :
+ *   D 28xx (Amortissements cumulés) = cumulDepreciation
+ *   C 481                           = cumulDepreciation
+ *   → Solde 481 = Valeur brute − cumulDepreciation = VNC
+ *
+ * Étape 3 — Constatation du produit de cession (si prixCession > 0) :
+ *   D 485 (Créances sur cessions) = prixCession
+ *   C 82 (Produits de cessions)   = prixCession
+ *
+ * Étape 4 — Résultat de cession (solder le compte 481) :
+ *   Si prixCession > VNC (plus-value)  : D 81 = VNC / C 481 = VNC
+ *   Si prixCession < VNC (moins-value) : D 81 = VNC / C 481 = VNC
+ *   Le résultat (plus/moins-value) ressort de la comparaison 82 − 81.
+ *
+ * Validation : le compte 481 DOIT être soldé (somme D − C = 0).
  */
 export async function disposeAsset(
   adapter: DataAdapter,
@@ -181,7 +192,7 @@ export async function disposeAsset(
   const depBase = valeurBrute - asset.residualValue;
   const annualDep = depBase / asset.usefulLifeYears;
 
-  // Calculer amortissements cumulés jusqu'à la date de cession
+  // Calculer amortissements cumulés jusqu'à la date de cession (prorata temporis)
   const acqDate = new Date(asset.acquisitionDate);
   const dispDate = new Date(input.disposalDate);
   // SYSCOHADA : année commerciale 360 jours (12 × 30)
@@ -201,46 +212,70 @@ export async function disposeAsset(
 
   const amortAccountCode = asset.depreciationAccountCode || '28' + asset.accountCode.substring(1);
 
-  const lines = [
-    // Reprise des amortissements cumulés
-    {
+  const lines: Array<{
+    id: string;
+    accountCode: string;
+    accountName: string;
+    label: string;
+    debit: number;
+    credit: number;
+  }> = [];
+
+  // ── Étape 1 — Sortie du bien ──────────────────────────────────────────
+  // D 481 = Valeur brute
+  lines.push({
+    id: crypto.randomUUID(),
+    accountCode: '481',
+    accountName: 'Valeur comptable des cessions d\'immobilisations',
+    label: `Sortie immobilisation ${asset.name} — valeur brute`,
+    debit: valeurBrute,
+    credit: 0,
+  });
+  // C 2xxx = Valeur brute
+  lines.push({
+    id: crypto.randomUUID(),
+    accountCode: asset.accountCode,
+    accountName: asset.name,
+    label: `Sortie immobilisation ${asset.name}`,
+    debit: 0,
+    credit: valeurBrute,
+  });
+
+  // ── Étape 2 — Annulation des amortissements cumulés ───────────────────
+  if (amortissementsCumules > 0) {
+    // D 28xx = cumulDepreciation
+    lines.push({
       id: crypto.randomUUID(),
       accountCode: amortAccountCode,
       accountName: `Amortissements ${asset.name}`,
       label: `Reprise amort. cession ${asset.name}`,
       debit: amortissementsCumules,
       credit: 0,
-    },
-    // VNC = charge HAO (compte 81)
-    {
-      id: crypto.randomUUID(),
-      accountCode: '81',
-      accountName: 'VNC des cessions d\'immobilisations',
-      label: `VNC cession ${asset.name}`,
-      debit: vnc,
-      credit: 0,
-    },
-    // Sortie de l'immobilisation (valeur brute)
-    {
-      id: crypto.randomUUID(),
-      accountCode: asset.accountCode,
-      accountName: asset.name,
-      label: `Sortie immobilisation ${asset.name}`,
-      debit: 0,
-      credit: valeurBrute,
-    },
-  ];
-
-  // Produit de cession si prix > 0
-  if (input.prixCession > 0) {
+    });
+    // C 481 = cumulDepreciation
     lines.push({
       id: crypto.randomUUID(),
-      accountCode: '521',
-      accountName: 'Banque',
-      label: `Produit cession ${asset.name}`,
+      accountCode: '481',
+      accountName: 'Valeur comptable des cessions d\'immobilisations',
+      label: `Annulation amort. cumulés ${asset.name}`,
+      debit: 0,
+      credit: amortissementsCumules,
+    });
+  }
+  // → Solde 481 = valeurBrute − amortissementsCumules = VNC
+
+  // ── Étape 3 — Constatation du produit de cession ──────────────────────
+  if (input.prixCession > 0) {
+    // D 485 (créance sur cession d'immobilisation)
+    lines.push({
+      id: crypto.randomUUID(),
+      accountCode: '485',
+      accountName: 'Créances sur cessions d\'immobilisations',
+      label: `Créance cession ${asset.name}`,
       debit: input.prixCession,
       credit: 0,
     });
+    // C 82 = prixCession
     lines.push({
       id: crypto.randomUUID(),
       accountCode: '82',
@@ -251,6 +286,38 @@ export async function disposeAsset(
     });
   }
 
+  // ── Étape 4 — Résultat de cession (solder le compte 481) ──────────────
+  // Solde 481 = VNC (débiteur). On le vide : D 81 = VNC / C 481 = VNC.
+  // Le résultat (plus-value ou moins-value) ressort de la comparaison 82 − 81.
+  if (vnc > 0) {
+    // D 81 = VNC (Valeurs comptables des cessions d'immobilisations)
+    lines.push({
+      id: crypto.randomUUID(),
+      accountCode: '81',
+      accountName: 'Valeurs comptables des cessions d\'immobilisations',
+      label: `VNC cession ${asset.name}`,
+      debit: vnc,
+      credit: 0,
+    });
+    // C 481 = VNC → solde 481 à zéro
+    lines.push({
+      id: crypto.randomUUID(),
+      accountCode: '481',
+      accountName: 'Valeur comptable des cessions d\'immobilisations',
+      label: `Solde 481 cession ${asset.name}`,
+      debit: 0,
+      credit: vnc,
+    });
+  }
+
+  // ── Validation : le compte 481 doit être soldé ─────────────────────────
+  const solde481 = lines
+    .filter(l => l.accountCode === '481')
+    .reduce((s, l) => s + l.debit - l.credit, 0);
+  if (Math.abs(solde481) > 0.01) {
+    throw new Error(`Cession incohérente : compte 481 non soldé (solde=${solde481})`);
+  }
+
   const totalDebit = lines.reduce((s, l) => s + l.debit, 0);
   const totalCredit = lines.reduce((s, l) => s + l.credit, 0);
 
@@ -259,7 +326,7 @@ export async function disposeAsset(
   const entry: DBJournalEntry = {
     id: entryId,
     entryNumber: `CESS-${asset.code}`,
-    journal: 'OD',
+    journal: 'CL',
     date: input.disposalDate,
     reference: `Cession ${asset.code}`,
     label: `Cession immobilisation — ${asset.name}`,

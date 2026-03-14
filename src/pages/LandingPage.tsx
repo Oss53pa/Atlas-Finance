@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, FilePlus, BookOpen, Users, Settings,
-  ArrowRight, AlertCircle, Calendar, Clock,
+  ArrowRight, AlertCircle, Calendar, Clock, Layers,
 } from 'lucide-react';
 import { useData } from '../contexts/DataContext';
+import { useAuth } from '../contexts/AuthContext';
 
 interface Stats {
   ecritures: number;
@@ -19,9 +20,19 @@ interface Alerts {
   derniereActivite: string;
 }
 
+function getWorkspacePath(role?: string): string {
+  switch (role) {
+    case 'admin': return '/workspace/admin';
+    case 'manager': return '/workspace/manager';
+    default: return '/workspace/comptable';
+  }
+}
+
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const { adapter } = useData();
+  const { user } = useAuth();
+  const workspacePath = getWorkspacePath(user?.role);
   const [stats, setStats] = useState<Stats>({ ecritures: 0, comptes: 0, tiers: 0, immobilisations: 0 });
   const [alerts, setAlerts] = useState<Alerts>({ brouillons: 0, exercice: '', derniereActivite: '' });
 
@@ -63,8 +74,13 @@ const LandingPage: React.FC = () => {
     return () => { mounted = false; };
   }, [adapter]);
 
+  const workspaceLabel = user?.role === 'admin' ? 'Espace Admin'
+    : user?.role === 'manager' ? 'Espace Manager'
+    : 'Espace Comptable';
+
   const navItems = [
-    { label: 'Tableau de bord', icon: LayoutDashboard, path: '/dashboard' },
+    { label: workspaceLabel, icon: Layers, path: workspacePath },
+    { label: 'Atlas Finance', icon: LayoutDashboard, path: '/dashboard' },
     { label: 'Nouvelle écriture', icon: FilePlus, path: '/accounting/entries' },
     { label: 'Journaux', icon: BookOpen, path: '/accounting/journals' },
     { label: 'Tiers', icon: Users, path: '/tiers/clients' },
@@ -79,10 +95,10 @@ const LandingPage: React.FC = () => {
           Atlas Finance
         </span>
         <button
-          onClick={() => navigate('/dashboard')}
+          onClick={() => navigate(workspacePath)}
           className="flex items-center gap-1.5 text-sm text-neutral-700 hover:text-neutral-900 transition-colors cursor-pointer"
         >
-          Tableau de bord <ArrowRight className="w-4 h-4" />
+          Mon Espace <ArrowRight className="w-4 h-4" />
         </button>
       </header>
 

@@ -234,4 +234,11 @@ export class SupabaseAdapter implements DataAdapter {
   async getAuditTrail(filters?: QueryFilters): Promise<AuditEntry[]> {
     return this.getAll<AuditEntry>('auditLogs', filters)
   }
+
+  async rpc(rpcName: string, params: Record<string, unknown>): Promise<any | null> {
+    const rpcParams = { ...params, p_tenant_id: this.tenantId }
+    const { data, error } = await this.client.rpc(rpcName, rpcParams)
+    if (error) throw new Error(`RPC ${rpcName} failed: ${error.message}`)
+    return data
+  }
 }

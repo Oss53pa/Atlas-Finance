@@ -227,17 +227,8 @@ const BankMovementsPage: React.FC = () => {
                   <div style={{maxHeight: '400px', overflowY: 'auto', overflowX: 'auto'}}>
                     <table className="w-full">
                       <tbody className="divide-y divide-[#e5e5e5]">
-                          {[
-                            { doc: 'O4152', collDate: '25/03/2025', payDate: '03/12/2025', ref: 'BNI VERSEMENT JANVIER 2025', account: '521006 B3 bni cash collection', description: 'Bni versementmode by nf rglt janvier 2025', debit: '', credit: '100' },
-                            { doc: 'O8621', collDate: '12/09/2025', payDate: '12/09/2025', ref: 'PC1 0286', account: '57110 Pc petty cash cy', description: 'Repas du personnel cosmos yopougon', debit: '50,000', credit: '' },
-                            { doc: 'O8619', collDate: '11/09/2025', payDate: '11/09/2025', ref: 'PC1 0284', account: '57110 Pc petty cash cy', description: 'Dotation téléphonique aout pour tanoh guy finance', debit: '20,000', credit: '' },
-                            { doc: 'O8620', collDate: '11/09/2025', payDate: '11/09/2025', ref: 'PC1 0285', account: '57110 Pc petty cash cy', description: 'Dotation téléphonique aout pour lehi ange security', debit: '20,000', credit: '' },
-                            { doc: 'O8614', collDate: '10/09/2025', payDate: '10/09/2025', ref: 'PC1 0281', account: '57110 Pc petty cash cy', description: 'Achat de souris sans fil mm240 rouge optique pour lehi et maibey', debit: '13,740', credit: '' },
-                            { doc: 'O8618', collDate: '10/09/2025', payDate: '10/09/2025', ref: 'PC1 0283', account: '57110 Pc petty cash cy', description: 'Visite technique vehicule 4155jc01 outtara yacou', debit: '69,950', credit: '' },
-                            { doc: 'O8617', collDate: '10/09/2025', payDate: '10/09/2025', ref: 'PC1 0282', account: '57110 Pc petty cash cy', description: 'Retour sur pc1 0130 repas du personnel cosmos yopouon du 16/05/2025', debit: '', credit: '110' },
-                            { doc: 'O8577', collDate: '08/09/2025', payDate: '08/09/2025', ref: 'PC1 0279', account: '57110 Pc petty cash cy', description: 'Retour sur pc1 0278 repas du personnel cosmos yopougon du 05/09/2025', debit: '', credit: '20' },
-                            { doc: 'O8446', collDate: '05/09/2025', payDate: '05/09/2025', ref: 'PC1 0278', account: '57110 Pc petty cash cy', description: 'Repas du personnel cosmos yopougon du 05/09/2025', debit: '50,000', credit: '' }
-                          ].map((transaction, index) => (
+                          {/* TODO: Load from real journal entries via adapter */}
+                          {([] as { doc: string; collDate: string; payDate: string; ref: string; account: string; description: string; debit: string; credit: string }[]).map((transaction, index) => (
                             <tr key={index} className="hover:bg-gray-50">
                               <td className="px-3 py-3 text-sm font-mono font-medium">{transaction.doc}</td>
                               <td className="px-3 py-3 text-sm">{transaction.collDate}</td>
@@ -598,20 +589,8 @@ const BankMovementsPage: React.FC = () => {
                   <div style={{maxHeight: '400px', overflowY: 'auto', overflowX: 'auto'}}>
                     <table className="w-full">
                       <tbody className="divide-y divide-gray-200">
-                        {[
-                          { month: 'Janvier', opening: 0, cashIn: 88466647, cashOut: 50453264, closing: 38013383 },
-                          { month: 'Février', opening: 38013383, cashIn: 86544760, cashOut: 174261888, closing: -49703745 },
-                          { month: 'Mars', opening: -49703745, cashIn: 600500, cashOut: 1222115, closing: -50325360 },
-                          { month: 'Avril', opening: -50325360, cashIn: 952355, cashOut: 1777133, closing: -51150138 },
-                          { month: 'Mai', opening: -51150138, cashIn: 618080, cashOut: 1408878, closing: -51940936 },
-                          { month: 'Juin', opening: -51940936, cashIn: 1299455, cashOut: 2351200, closing: -52992681 },
-                          { month: 'Juillet', opening: -52992681, cashIn: 610145, cashOut: 39671298, closing: -92053834 },
-                          { month: 'Août', opening: -92053834, cashIn: 308465, cashOut: 753395, closing: -92498764 },
-                          { month: 'Septembre', opening: -92498764, cashIn: 130, cashOut: 293390, closing: -92792024 },
-                          { month: 'Octobre', opening: -92792024, cashIn: 0, cashOut: 0, closing: -92792024 },
-                          { month: 'Novembre', opening: -92792024, cashIn: 0, cashOut: 0, closing: -92792024 },
-                          { month: 'Décembre', opening: -92792024, cashIn: 0, cashOut: 2400100, closing: -95192124 }
-                        ].map((row, index) => (
+                        {/* TODO: Load from real journal entries via adapter */}
+                        {([] as { month: string; opening: number; cashIn: number; cashOut: number; closing: number }[]).map((row, index) => (
                           <tr key={index} className="hover:bg-gray-50">
                             <td className="px-4 py-3 font-medium">{row.month}</td>
                             <td className="px-4 py-3 text-right text-[var(--color-text-primary)] font-medium">
