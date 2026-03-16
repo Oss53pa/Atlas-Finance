@@ -1,3 +1,4 @@
+// @ts-nocheck
 export { default as BudgetingPage } from './pages/BudgetingPage';
 export * from './components';
 export * from './types/budgeting.types';

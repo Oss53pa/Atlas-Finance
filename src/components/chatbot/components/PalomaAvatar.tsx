@@ -1,6 +1,6 @@
 /**
- * Paloma Avatar Component
- * Avatar de l'assistante virtuelle Paloma - Jeune fille africaine
+ * Proph3t Avatar Component
+ * Icône IA minimaliste pour l'assistant virtuel Proph3t
  */
 
 import React from 'react';
@@ -37,109 +37,52 @@ export const PalomaAvatar: React.FC<PalomaAvatarProps> = ({
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
         >
-          {/* Fond cercle */}
-          <circle cx="40" cy="40" r="38" fill="url(#gradient)" stroke="#FFFFFF" strokeWidth="2"/>
+          {/* Fond cercle dégradé */}
+          <circle cx="40" cy="40" r="38" fill="url(#botGradient)" stroke="#FFFFFF" strokeWidth="2"/>
 
-          {/* Dégradé de fond */}
           <defs>
-            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <linearGradient id="botGradient" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="#6A8A82" />
               <stop offset="100%" stopColor="#4A6A62" />
             </linearGradient>
-
-            {/* Dégradé pour la peau */}
-            <linearGradient id="skinGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#8B4513" />
-              <stop offset="100%" stopColor="#A0522D" />
-            </linearGradient>
           </defs>
 
-          {/* Cheveux - Coiffure afro */}
-          <ellipse cx="40" cy="28" rx="22" ry="20" fill="#1C1C1C"/>
-          <ellipse cx="30" cy="26" rx="14" ry="16" fill="#1C1C1C"/>
-          <ellipse cx="50" cy="26" rx="14" ry="16" fill="#1C1C1C"/>
-          <ellipse cx="40" cy="22" rx="18" ry="16" fill="#1C1C1C"/>
-
-          {/* Accessoire cheveux - Bandeau coloré */}
-          <rect x="20" y="20" width="40" height="4" fill="#B87333" rx="2"/>
-          <circle cx="25" cy="22" r="2" fill="#FFD700"/>
-
-          {/* Visage */}
-          <ellipse cx="40" cy="40" rx="18" ry="20" fill="url(#skinGradient)"/>
-
-          {/* Oreilles */}
-          <ellipse cx="22" cy="40" rx="5" ry="8" fill="#8B4513"/>
-          <ellipse cx="58" cy="40" rx="5" ry="8" fill="#8B4513"/>
-
-          {/* Boucles d'oreilles */}
-          <circle cx="22" cy="45" r="3" fill="#FFD700" stroke="#FFA500" strokeWidth="1"/>
-          <circle cx="58" cy="45" r="3" fill="#FFD700" stroke="#FFA500" strokeWidth="1"/>
-
-          {/* Yeux */}
-          <ellipse cx="33" cy="38" rx="5" ry="6" fill="#FFFFFF"/>
-          <ellipse cx="47" cy="38" rx="5" ry="6" fill="#FFFFFF"/>
-
-          {/* Pupilles avec animation si typing */}
-          <circle cx="33" cy="38" r="4" fill="#4A2C2A">
+          {/* Cerveau / Circuit IA */}
+          <circle cx="40" cy="34" r="14" fill="none" stroke="#FFFFFF" strokeWidth="2" opacity="0.9"/>
+          <circle cx="40" cy="34" r="8" fill="none" stroke="#FFFFFF" strokeWidth="1.5" opacity="0.7"/>
+          <circle cx="40" cy="34" r="3" fill="#FFFFFF" opacity="0.9">
             {isTyping && (
               <animate
-                attributeName="cy"
-                values="38;36;38"
-                dur="0.8s"
-                repeatCount="indefinite"
-              />
-            )}
-          </circle>
-          <circle cx="47" cy="38" r="4" fill="#4A2C2A">
-            {isTyping && (
-              <animate
-                attributeName="cy"
-                values="38;36;38"
-                dur="0.8s"
+                attributeName="r"
+                values="3;5;3"
+                dur="1s"
                 repeatCount="indefinite"
               />
             )}
           </circle>
 
-          {/* Reflets dans les yeux */}
-          <circle cx="34" cy="37" r="1.5" fill="#FFFFFF" opacity="0.9"/>
-          <circle cx="48" cy="37" r="1.5" fill="#FFFFFF" opacity="0.9"/>
+          {/* Connexions neuronales */}
+          <line x1="40" y1="20" x2="40" y2="26" stroke="#FFFFFF" strokeWidth="1.5" opacity="0.6"/>
+          <line x1="40" y1="42" x2="40" y2="48" stroke="#FFFFFF" strokeWidth="1.5" opacity="0.6"/>
+          <line x1="26" y1="34" x2="32" y2="34" stroke="#FFFFFF" strokeWidth="1.5" opacity="0.6"/>
+          <line x1="48" y1="34" x2="54" y2="34" stroke="#FFFFFF" strokeWidth="1.5" opacity="0.6"/>
 
-          {/* Sourcils */}
-          <path d="M 28 32 Q 33 30 38 32" stroke="#1C1C1C" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
-          <path d="M 42 32 Q 47 30 52 32" stroke="#1C1C1C" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+          {/* Diagonales */}
+          <line x1="30" y1="24" x2="34" y2="28" stroke="#FFFFFF" strokeWidth="1.2" opacity="0.5"/>
+          <line x1="50" y1="24" x2="46" y2="28" stroke="#FFFFFF" strokeWidth="1.2" opacity="0.5"/>
+          <line x1="30" y1="44" x2="34" y2="40" stroke="#FFFFFF" strokeWidth="1.2" opacity="0.5"/>
+          <line x1="50" y1="44" x2="46" y2="40" stroke="#FFFFFF" strokeWidth="1.2" opacity="0.5"/>
 
-          {/* Nez */}
-          <path d="M 40 40 L 38 44 Q 40 45 42 44 Z" fill="#7B3F00" opacity="0.3"/>
+          {/* Points de connexion */}
+          <circle cx="40" cy="20" r="2" fill="#FFFFFF" opacity="0.7"/>
+          <circle cx="40" cy="48" r="2" fill="#FFFFFF" opacity="0.7"/>
+          <circle cx="26" cy="34" r="2" fill="#FFFFFF" opacity="0.7"/>
+          <circle cx="54" cy="34" r="2" fill="#FFFFFF" opacity="0.7"/>
 
-          {/* Bouche souriante */}
-          {isTyping ? (
-            <ellipse cx="40" cy="50" rx="8" ry="4" fill="#8B2252">
-              <animate
-                attributeName="ry"
-                values="4;6;4"
-                dur="0.5s"
-                repeatCount="indefinite"
-              />
-            </ellipse>
-          ) : (
-            <>
-              <path d="M 32 48 Q 40 54 48 48" stroke="#8B2252" strokeWidth="2" fill="none" strokeLinecap="round"/>
-              <path d="M 32 48 Q 40 52 48 48" fill="#D4A574" opacity="0.3"/>
-            </>
-          )}
-
-          {/* Joues rosées */}
-          <ellipse cx="25" cy="44" rx="4" ry="3" fill="#D4A574" opacity="0.3"/>
-          <ellipse cx="55" cy="44" rx="4" ry="3" fill="#D4A574" opacity="0.3"/>
-
-          {/* Cou et épaules */}
-          <rect x="35" y="55" width="10" height="10" fill="#8B4513" rx="2"/>
-          <path d="M 25 65 Q 40 70 55 65 L 55 80 L 25 80 Z" fill="#6A8A82" opacity="0.8"/>
-
-          {/* Collier */}
-          <ellipse cx="40" cy="62" rx="12" ry="4" fill="none" stroke="#FFD700" strokeWidth="1.5"/>
-          <circle cx="40" cy="64" r="2" fill="#FFD700"/>
+          {/* Label "AI" */}
+          <text x="40" y="60" textAnchor="middle" fill="#FFFFFF" fontSize="10" fontWeight="bold" fontFamily="sans-serif" opacity="0.9">
+            AI
+          </text>
         </svg>
 
         {/* Indicateur de typing */}
@@ -152,11 +95,11 @@ export const PalomaAvatar: React.FC<PalomaAvatarProps> = ({
         )}
       </div>
 
-      {/* Nom Proph3t bien visible */}
+      {/* Nom Proph3t */}
       {(showName || size === 'lg' || size === 'xl') && (
         <div className="paloma-name">
           <span className="paloma-name__text proph3t-font">Proph3t</span>
-          <span className="paloma-name__subtitle">Assistante Atlas Finance</span>
+          <span className="paloma-name__subtitle">Assistante Atlas Studio</span>
         </div>
       )}
     </div>

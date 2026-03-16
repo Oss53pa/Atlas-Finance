@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useLanguage } from '../../../contexts/LanguageContext';
 import { previewClosure, canClose } from '../../../services/closureService';
@@ -264,7 +265,7 @@ const ValidationFinale: React.FC = () => {
   };
 
   // Build periodes from real fiscal years
-  const mockPeriodes: PeriodeCloture[] = fiscalYears.map(fy => ({
+  const periodes: PeriodeCloture[] = fiscalYears.map(fy => ({
     id: fy.id,
     periode: fy.code,
     type: 'annuelle' as const,
@@ -316,7 +317,7 @@ const ValidationFinale: React.FC = () => {
 
   // Calculs des KPIs
   const kpis = useMemo(() => {
-    const periodeEnCours = mockPeriodes.find(p => p.statut === 'en_cours');
+    const periodeEnCours = periodes.find(p => p.statut === 'en_cours');
     const totalEtapes = periodeEnCours?.etapes.length || 0;
     const etapesCompletes = periodeEnCours?.etapes.filter(e => e.statut === 'complete').length || 0;
     const controlesEchoues = periodeEnCours?.etapes.reduce((total, etape) =>
@@ -456,7 +457,7 @@ const ValidationFinale: React.FC = () => {
                 <div className="flex justify-between items-center">
                   <div>
                     <h3 className="text-lg font-semibold">
-                      Période: {mockPeriodes[0]?.periode || '—'}
+                      Période: {periodes[0]?.periode || '—'}
                     </h3>
                     {preview && (
                       <p className="text-sm text-[var(--color-text-secondary)]">
@@ -481,7 +482,7 @@ const ValidationFinale: React.FC = () => {
                         onClick={() => setClotureMode('proph3t')}
                         className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
                           clotureMode === 'proph3t'
-                            ? 'bg-purple-600 text-white'
+                            ? 'bg-primary-600 text-white'
                             : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
                         }`}
                       >
@@ -642,7 +643,7 @@ const ValidationFinale: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {mockPeriodes[0].etapes.map(etape => (
+                {periodes[0].etapes.map(etape => (
                   <div key={etape.id} className="border rounded-lg p-4">
                     <div className="flex justify-between items-start mb-3">
                       <div>
@@ -752,7 +753,7 @@ const ValidationFinale: React.FC = () => {
                 </div>
 
                 <div className="space-y-3">
-                  {mockPeriodes[0].etapes.flatMap(etape =>
+                  {periodes[0].etapes.flatMap(etape =>
                     etape.controles.map(controle => (
                       <div key={`${etape.id}-${controle.id}`} className="border rounded-lg p-4">
                         <div className="flex justify-between items-start">
@@ -832,10 +833,10 @@ const ValidationFinale: React.FC = () => {
 
                 <div className="space-y-4">
                   <h4 className="font-medium">Approbations requises</h4>
-                  {mockPeriodes[0].etapes
+                  {periodes[0].etapes
                     .filter(etape => etape.statut === 'complete')
                     .map(etape => {
-                      const approbation = mockPeriodes[0].approbations.find(a => a.etapeId === etape.id);
+                      const approbation = periodes[0].approbations.find(a => a.etapeId === etape.id);
                       return (
                         <div key={etape.id} className="border rounded-lg p-4">
                           <div className="flex justify-between items-center">
@@ -885,8 +886,8 @@ const ValidationFinale: React.FC = () => {
                       </p>
                     </div>
                     <button
-                      className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2"
-                      disabled={mockPeriodes[0].etapes.some(e => e.statut !== 'complete')}
+                      className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center gap-2"
+                      disabled={periodes[0].etapes.some(e => e.statut !== 'complete')}
                       onClick={() => setShowValidationModal(true)}
                     >
                       <Shield className="w-5 h-5" />

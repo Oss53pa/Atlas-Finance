@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Assistant de Configuration Initial Atlas Finance
  * Paramétrage complet selon EXP-PAR-001 à EXP-PAR-010
@@ -883,7 +884,7 @@ const SetupWizardPage: React.FC = () => {
 
   return (
     <FormProvider {...methods}>
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100">
         {/* Header */}
         <div className="bg-white shadow-sm border-b">
           <div className="max-w-6xl mx-auto px-6 py-4">

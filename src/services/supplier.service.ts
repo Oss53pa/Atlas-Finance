@@ -389,7 +389,7 @@ class SupplierService {
     categorie?: string;
   }): Promise<{ results: Supplier[]; count: number; next: string | null; previous: string | null }> {
     const response = await apiService.get(`${BASE_PATH}/suppliers/`, { params });
-    return response.data;
+    return response.data as { results: Supplier[]; count: number; next: string | null; previous: string | null };
   }
 
   /**
@@ -402,7 +402,7 @@ class SupplierService {
    */
   async getSupplier(supplierId: string): Promise<Supplier> {
     const response = await apiService.get(`${BASE_PATH}/suppliers/${supplierId}/`);
-    return response.data;
+    return response.data as Supplier;
   }
 
   /**
@@ -433,7 +433,7 @@ class SupplierService {
     }>;
   }): Promise<Supplier> {
     const response = await apiService.post(`${BASE_PATH}/suppliers/`, data);
-    return response.data;
+    return response.data as Supplier;
   }
 
   /**
@@ -447,7 +447,7 @@ class SupplierService {
    */
   async updateSupplier(supplierId: string, data: Partial<Supplier>): Promise<Supplier> {
     const response = await apiService.patch(`${BASE_PATH}/suppliers/${supplierId}/`, data);
-    return response.data;
+    return response.data as Supplier;
   }
 
   /**
@@ -480,7 +480,7 @@ class SupplierService {
       query,
       ...filters
     });
-    return response.data;
+    return response.data as { results: Supplier[] };
   }
 
   /**
@@ -499,7 +499,7 @@ class SupplierService {
     comments?: string;
   }): Promise<{ message: string; evaluation: PerformanceEvaluation }> {
     const response = await apiService.post(`${BASE_PATH}/suppliers/${supplierId}/evaluer/`, data);
-    return response.data;
+    return response.data as { message: string; evaluation: PerformanceEvaluation };
   }
 
   /**
@@ -516,7 +516,7 @@ class SupplierService {
     message: string;
   }> {
     const response = await apiService.post(`${BASE_PATH}/suppliers/${supplierId}/valider-siret/`);
-    return response.data;
+    return response.data as { valid: boolean; company_data?: Record<string, unknown>; message: string; };
   }
 
   // ==========================================================================
@@ -540,7 +540,7 @@ class SupplierService {
     date_to?: string;
   }): Promise<{ results: SupplierInvoice[]; count: number }> {
     const response = await apiService.get(`${BASE_PATH}/invoices/`, { params });
-    return response.data;
+    return response.data as { results: SupplierInvoice[]; count: number };
   }
 
   /**
@@ -553,7 +553,7 @@ class SupplierService {
    */
   async getInvoice(invoiceId: string): Promise<SupplierInvoice> {
     const response = await apiService.get(`${BASE_PATH}/invoices/${invoiceId}/`);
-    return response.data;
+    return response.data as SupplierInvoice;
   }
 
   /**
@@ -582,7 +582,7 @@ class SupplierService {
     }>;
   }): Promise<SupplierInvoice> {
     const response = await apiService.post(`${BASE_PATH}/invoices/`, data);
-    return response.data;
+    return response.data as SupplierInvoice;
   }
 
   /**
@@ -596,7 +596,7 @@ class SupplierService {
    */
   async updateInvoice(invoiceId: string, data: Partial<SupplierInvoice>): Promise<SupplierInvoice> {
     const response = await apiService.patch(`${BASE_PATH}/invoices/${invoiceId}/`, data);
-    return response.data;
+    return response.data as SupplierInvoice;
   }
 
   /**
@@ -624,7 +624,7 @@ class SupplierService {
     approved: boolean;
   }): Promise<{ message: string; invoice: SupplierInvoice }> {
     const response = await apiService.post(`${BASE_PATH}/invoices/${invoiceId}/valider-technique/`, data || { approved: true });
-    return response.data;
+    return response.data as { message: string; invoice: SupplierInvoice };
   }
 
   /**
@@ -642,7 +642,7 @@ class SupplierService {
     imputation_comptable?: string;
   }): Promise<{ message: string; invoice: SupplierInvoice }> {
     const response = await apiService.post(`${BASE_PATH}/invoices/${invoiceId}/valider-comptable/`, data || { approved: true });
-    return response.data;
+    return response.data as { message: string; invoice: SupplierInvoice };
   }
 
   /**
@@ -659,7 +659,7 @@ class SupplierService {
     date_comptabilisation?: string;
   }): Promise<{ message: string; invoice: SupplierInvoice; ecriture_id?: string }> {
     const response = await apiService.post(`${BASE_PATH}/invoices/${invoiceId}/comptabiliser/`, data || {});
-    return response.data;
+    return response.data as { message: string; invoice: SupplierInvoice; ecriture_id?: string };
   }
 
   /**
@@ -679,7 +679,7 @@ class SupplierService {
     reference?: string;
   }): Promise<{ message: string; invoice: SupplierInvoice }> {
     const response = await apiService.post(`${BASE_PATH}/invoices/${invoiceId}/mark-paid/`, data);
-    return response.data;
+    return response.data as { message: string; invoice: SupplierInvoice };
   }
 
   // ==========================================================================
@@ -699,7 +699,7 @@ class SupplierService {
     type_document?: string;
   }): Promise<{ results: SupplierDocument[]; count: number }> {
     const response = await apiService.get(`${BASE_PATH}/documents/`, { params });
-    return response.data;
+    return response.data as { results: SupplierDocument[]; count: number };
   }
 
   /**
@@ -729,7 +729,7 @@ class SupplierService {
     const response = await apiService.post(`${BASE_PATH}/documents/`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
-    return response.data;
+    return response.data as SupplierDocument;
   }
 
   /**
@@ -743,8 +743,8 @@ class SupplierService {
   async downloadDocument(documentId: string): Promise<Blob> {
     const response = await apiService.get(`${BASE_PATH}/documents/${documentId}/download/`, {
       responseType: 'blob'
-    });
-    return response.data;
+    } as any);
+    return response.data as Blob;
   }
 
   /**
@@ -758,7 +758,7 @@ class SupplierService {
    */
   async updateDocument(documentId: string, data: Partial<SupplierDocument>): Promise<SupplierDocument> {
     const response = await apiService.patch(`${BASE_PATH}/documents/${documentId}/`, data);
-    return response.data;
+    return response.data as SupplierDocument;
   }
 
   /**
@@ -784,7 +784,7 @@ class SupplierService {
     days_before?: number;
   }): Promise<{ results: SupplierDocument[] }> {
     const response = await apiService.get(`${BASE_PATH}/documents/expires/`, { params });
-    return response.data;
+    return response.data as { results: SupplierDocument[] };
   }
 
   // ==========================================================================
@@ -800,7 +800,7 @@ class SupplierService {
    */
   async getDashboardStats(): Promise<DashboardStats> {
     const response = await apiService.get(`${BASE_PATH}/suppliers/dashboard-stats/`);
-    return response.data;
+    return response.data as DashboardStats;
   }
 
   /**
@@ -826,7 +826,7 @@ class SupplierService {
         ...params
       }
     });
-    return response.data;
+    return response.data as SupplierKPIs;
   }
 
   /**
@@ -847,7 +847,7 @@ class SupplierService {
         ...params?.filters
       }
     });
-    return response.data;
+    return response.data as Record<string, unknown>;
   }
 
   /**
@@ -868,7 +868,7 @@ class SupplierService {
         fiscal_year_id: params?.fiscalYearId
       }
     });
-    return response.data;
+    return response.data as Record<string, unknown>;
   }
 
   /**
@@ -883,7 +883,7 @@ class SupplierService {
     const response = await apiService.get(`${BASE_PATH}/analytics/realtime-metrics/`, {
       params: { company_id: companyId }
     });
-    return response.data;
+    return response.data as Record<string, unknown>;
   }
 
   // ==========================================================================
@@ -908,7 +908,7 @@ class SupplierService {
         fiscal_year_id: params?.fiscalYearId
       }
     });
-    return response.data;
+    return response.data as ABCAnalysis;
   }
 
   /**
@@ -927,7 +927,7 @@ class SupplierService {
         company_id: params?.companyId
       }
     });
-    return response.data;
+    return response.data as RiskMatrix;
   }
 
   /**
@@ -948,7 +948,7 @@ class SupplierService {
         fiscal_year_id: params?.fiscalYearId
       }
     });
-    return response.data;
+    return response.data as Record<string, unknown>;
   }
 
   /**
@@ -967,7 +967,7 @@ class SupplierService {
     date_range: { from: string; to: string };
   }): Promise<Record<string, unknown>> {
     const response = await apiService.post(`${BASE_PATH}/analytics/rapport-personnalise/`, config);
-    return response.data;
+    return response.data as Record<string, unknown>;
   }
 
   /**
@@ -986,7 +986,7 @@ class SupplierService {
         company_id: params?.companyId
       }
     });
-    return response.data;
+    return response.data as ConcentrationAnalysis;
   }
 
   /**
@@ -1007,7 +1007,7 @@ class SupplierService {
         period_months: params.periodMonths
       }
     });
-    return response.data;
+    return response.data as ROIAnalysis;
   }
 
   /**
@@ -1034,7 +1034,7 @@ class SupplierService {
         company_id: params?.companyId
       }
     });
-    return response.data;
+    return response.data as Array<{ type: string; severity: string; supplier_id: string; supplier_name: string; message: string; action_required: string; due_date?: string; }>;
   }
 
   // ==========================================================================
@@ -1071,7 +1071,7 @@ class SupplierService {
         date_to: params?.dateTo
       }
     });
-    return response.data;
+    return response.data as { total_echeances: number; total_montant: number; echeances_jour: number; echeances_semaine: number; echeances_mois: number; retards: number; retards_montant: number; par_statut: Record<string, number>; par_priorite: Record<string, number>; };
   }
 
   /**
@@ -1090,7 +1090,7 @@ class SupplierService {
         company_id: params?.companyId
       }
     });
-    return response.data;
+    return response.data as { results: Echeance[] };
   }
 
   /**
@@ -1114,7 +1114,7 @@ class SupplierService {
     payment_date: string;
   }> {
     const response = await apiService.post(`${BASE_PATH}/echeances/planifier-paiements/`, data);
-    return response.data;
+    return response.data as { planned: boolean; total_amount: number; payment_count: number; payment_date: string; };
   }
 
   /**
@@ -1137,7 +1137,7 @@ class SupplierService {
     file_name: string;
   }> {
     const response = await apiService.post(`${BASE_PATH}/echeances/generer-sepa/`, data);
-    return response.data;
+    return response.data as { sepa_file_url: string; total_amount: number; payment_count: number; file_name: string; };
   }
 
   /**
@@ -1160,7 +1160,7 @@ class SupplierService {
         include_optimizations: params?.includeOptimizations
       }
     });
-    return response.data;
+    return response.data as Record<string, unknown>;
   }
 
   /**
@@ -1178,7 +1178,7 @@ class SupplierService {
     const response = await apiService.post(`${BASE_PATH}/echeances/refresh-outstanding/`, {
       company_id: companyId
     });
-    return response.data;
+    return response.data as { refreshed: boolean; timestamp: string; };
   }
 
   /**
@@ -1211,7 +1211,7 @@ class SupplierService {
     const response = await apiService.post(`${BASE_PATH}/suppliers/import/`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
-    return response.data;
+    return response.data as { message: string; statistiques: { total_lignes: number; importes: number; erreurs: number; }; };
   }
 
   /**
@@ -1229,10 +1229,10 @@ class SupplierService {
   }): Promise<void> {
     const response = await apiService.post(`${BASE_PATH}/suppliers/export/`, params, {
       responseType: 'blob'
-    });
+    } as any);
 
     // Téléchargement automatique
-    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const url = window.URL.createObjectURL(new Blob([response.data as BlobPart]));
     const link = document.createElement('a');
     link.href = url;
     const ext = params.format_export.toLowerCase();
@@ -1268,7 +1268,7 @@ class SupplierService {
         ...params?.filters
       }
     });
-    return response.data;
+    return response.data as PaymentOptimization;
   }
 
   /**
@@ -1298,7 +1298,7 @@ class SupplierService {
         company_id: params?.companyId
       }
     });
-    return response.data;
+    return response.data as Array<{ supplier_id: string; supplier_name: string; invoice_id: string; invoice_number: string; invoice_amount: number; discount_amount: number; discount_percentage: number; discount_deadline: string; days_remaining: number; roi_percentage: number; }>;
   }
 
   /**
@@ -1323,7 +1323,7 @@ class SupplierService {
         prioritize_discounts: params?.prioritizeDiscounts
       }
     });
-    return response.data;
+    return response.data as { proposals: SmartPaymentProposal[] };
   }
 
   /**
@@ -1345,7 +1345,7 @@ class SupplierService {
     timestamp: string;
   }> {
     const response = await apiService.post(`${BASE_PATH}/analytics/execute-payment/`, data);
-    return response.data;
+    return response.data as { executed: boolean; payment_batch_id: string; total_amount: number; timestamp: string; };
   }
 
   /**
@@ -1367,7 +1367,7 @@ class SupplierService {
     }>;
   }): Promise<BulkPaymentResult> {
     const response = await apiService.post(`${BASE_PATH}/analytics/bulk-payment/`, data);
-    return response.data;
+    return response.data as BulkPaymentResult;
   }
 
   /**
@@ -1398,7 +1398,7 @@ class SupplierService {
     recommendations: string[];
   }> {
     const response = await apiService.post(`${BASE_PATH}/analytics/simulate-payment-impact/`, data);
-    return response.data;
+    return response.data as { scenarios: Array<{ scenario_id: string; cash_before: number; cash_after: number; impact: number; discount_captured: number; roi: number; }>; recommendations: string[]; };
   }
 
   /**
@@ -1427,7 +1427,7 @@ class SupplierService {
         date_to: params?.dateTo
       }
     });
-    return response.data;
+    return response.data as Array<{ date: string; total_optimized: number; discount_captured: number; payments_count: number; roi_percentage: number; }>;
   }
 
   // ==========================================================================
@@ -1458,7 +1458,7 @@ class SupplierService {
     recommendation: string;
   }): Promise<PerformanceEvaluation> {
     const response = await apiService.post(`${BASE_PATH}/evaluations/`, data);
-    return response.data;
+    return response.data as PerformanceEvaluation;
   }
 
   /**
@@ -1471,7 +1471,7 @@ class SupplierService {
    */
   async getEvaluationHistory(supplierId: string): Promise<{ results: PerformanceEvaluation[] }> {
     const response = await apiService.get(`${BASE_PATH}/suppliers/${supplierId}/evaluations/`);
-    return response.data;
+    return response.data as { results: PerformanceEvaluation[] };
   }
 
   /**
@@ -1485,7 +1485,7 @@ class SupplierService {
    */
   async updateEvaluation(evaluationId: string, data: Partial<PerformanceEvaluation>): Promise<PerformanceEvaluation> {
     const response = await apiService.patch(`${BASE_PATH}/evaluations/${evaluationId}/`, data);
-    return response.data;
+    return response.data as PerformanceEvaluation;
   }
 
   /**
@@ -1521,7 +1521,7 @@ class SupplierService {
         include_evaluations: params.includeEvaluations
       }
     });
-    return response.data;
+    return response.data as Record<string, unknown>;
   }
 
   /**
@@ -1544,7 +1544,7 @@ class SupplierService {
     rating: string;
   }> {
     const response = await apiService.post(`${BASE_PATH}/suppliers/${supplierId}/calculate-score/`, params || {});
-    return response.data;
+    return response.data as { overall_score: number; quality_score: number; delivery_score: number; service_score: number; price_score: number; rating: string; };
   }
 
   // ==========================================================================
@@ -1569,7 +1569,7 @@ class SupplierService {
     details: Array<{ invoice_id: string; payment_id: string; amount: number }>;
   }> {
     const response = await apiService.post(`${BASE_PATH}/lettrage/automatique-global/`, params);
-    return response.data;
+    return response.data as { matched_count: number; total_amount: number; details: Array<{ invoice_id: string; payment_id: string; amount: number }>; };
   }
 
   /**
@@ -1589,7 +1589,7 @@ class SupplierService {
     details: Array<{ invoice_id: string; payment_id: string; amount: number }>;
   }> {
     const response = await apiService.post(`${BASE_PATH}/lettrage/fournisseur/`, data);
-    return response.data;
+    return response.data as { matched_count: number; total_amount: number; details: Array<{ invoice_id: string; payment_id: string; amount: number }>; };
   }
 
   /**
@@ -1612,7 +1612,7 @@ class SupplierService {
     }>;
   }> {
     const response = await apiService.post(`${BASE_PATH}/lettrage/propositions/`, params);
-    return response.data;
+    return response.data as { proposals: Array<{ invoice_id: string; payment_id: string; amount: number; confidence_score: number; }>; };
   }
 
   /**
@@ -1635,7 +1635,7 @@ class SupplierService {
     total_amount: number;
   }> {
     const response = await apiService.post(`${BASE_PATH}/lettrage/executer-manuel/`, data);
-    return response.data;
+    return response.data as { matched_count: number; total_amount: number; };
   }
 
   // ==========================================================================
@@ -1664,7 +1664,7 @@ class SupplierService {
     timestamp: string;
   }> {
     const response = await apiService.post(`${BASE_PATH}/wise-procure/sync/`, params);
-    return response.data;
+    return response.data as { synced: boolean; invoices_imported: number; suppliers_updated: number; timestamp: string; };
   }
 
   /**
@@ -1685,7 +1685,7 @@ class SupplierService {
     message: string;
   }> {
     const response = await apiService.post(`${BASE_PATH}/wise-procure/process-invoice/`, data);
-    return response.data;
+    return response.data as { invoice_id: string; invoice_number: string; created: boolean; message: string; };
   }
 
   /**
@@ -1705,7 +1705,7 @@ class SupplierService {
     const response = await apiService.get(`${BASE_PATH}/wise-procure/status/`, {
       params: { company_id: companyId }
     });
-    return response.data;
+    return response.data as { connected: boolean; last_sync: string; pending_invoices: number; sync_errors: number; };
   }
 
   /**
@@ -1727,7 +1727,7 @@ class SupplierService {
     message: string;
   }> {
     const response = await apiService.post(`${BASE_PATH}/wise-procure/configure/`, data);
-    return response.data;
+    return response.data as { configured: boolean; message: string; };
   }
 
   /**
@@ -1754,7 +1754,7 @@ class SupplierService {
         limit: params?.limit || 50
       }
     });
-    return response.data;
+    return response.data as Array<{ sync_date: string; invoices_imported: number; suppliers_updated: number; errors: number; status: string; }>;
   }
 
   // ==========================================================================
@@ -1789,7 +1789,7 @@ class SupplierService {
         ...params.filters
       }
     });
-    return response.data;
+    return response.data as { download_url: string; format: string; generated_at: string; };
   }
 
   /**
@@ -1814,7 +1814,7 @@ class SupplierService {
         include_evaluations: params.includeEvaluations
       }
     });
-    return response.data;
+    return response.data as { download_url: string; generated_at: string };
   }
 
   /**
@@ -1837,10 +1837,10 @@ class SupplierService {
         metrics: params.metrics.join(',')
       },
       responseType: 'blob'
-    });
+    } as any);
 
     // Téléchargement automatique
-    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const url = window.URL.createObjectURL(new Blob([response.data as BlobPart]));
     const link = document.createElement('a');
     link.href = url;
     link.setAttribute('download', `kpis-fournisseurs-${new Date().toISOString().split('T')[0]}.csv`);
@@ -1869,10 +1869,10 @@ class SupplierService {
         include_details: params.includeDetails
       },
       responseType: 'blob'
-    });
+    } as any);
 
     // Téléchargement automatique
-    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const url = window.URL.createObjectURL(new Blob([response.data as BlobPart]));
     const link = document.createElement('a');
     link.href = url;
     link.setAttribute('download', `balance-agee-fournisseurs-${new Date().toISOString().split('T')[0]}.xlsx`);
@@ -1902,7 +1902,7 @@ class SupplierService {
     next_run: string;
   }> {
     const response = await apiService.post(`${BASE_PATH}/reports/schedule/`, config);
-    return response.data;
+    return response.data as { scheduled: boolean; schedule_id: string; next_run: string; };
   }
 
   /**
@@ -1929,7 +1929,7 @@ class SupplierService {
         format: params.format
       }
     });
-    return response.data;
+    return response.data as { download_url: string; generated_at: string };
   }
 
   // ==========================================================================
@@ -1958,7 +1958,7 @@ class SupplierService {
     rules_count: number;
   }> {
     const response = await apiService.post(`${BASE_PATH}/alerts/configure/`, data);
-    return response.data;
+    return response.data as { configured: boolean; rules_count: number; };
   }
 
   /**
@@ -1988,7 +1988,7 @@ class SupplierService {
         severity: params?.severity
       }
     });
-    return response.data;
+    return response.data as Array<{ alert_id: string; type: string; severity: string; message: string; supplier_id?: string; supplier_name?: string; created_at: string; acknowledged: boolean; }>;
   }
 
   /**
@@ -2004,7 +2004,7 @@ class SupplierService {
     timestamp: string;
   }> {
     const response = await apiService.post(`${BASE_PATH}/alerts/${alertId}/acknowledge/`);
-    return response.data;
+    return response.data as { acknowledged: boolean; timestamp: string; };
   }
 
   /**
@@ -2037,7 +2037,7 @@ class SupplierService {
         limit: params?.limit || 100
       }
     });
-    return response.data;
+    return response.data as Array<{ alert_id: string; type: string; severity: string; message: string; created_at: string; acknowledged_at?: string; resolved_at?: string; }>;
   }
 }
 

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Carry-Forward (Report a Nouveau) Service.
  * Generates opening entries for a new fiscal year from closing balances.

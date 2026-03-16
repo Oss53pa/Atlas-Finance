@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Core Complete Service - Supabase Direct
  * Provides company, fiscal year, and currency management

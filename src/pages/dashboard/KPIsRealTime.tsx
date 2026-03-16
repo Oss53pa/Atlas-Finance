@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { useActivityType } from '../../hooks/useActivityType';
+import { formatCurrency } from '../../utils/formatters';
 import {
   Activity, TrendingUp, Users, DollarSign, Package, Clock,
   Target, Zap, BarChart3, PieChart, AlertCircle, CheckCircle,
@@ -40,6 +41,13 @@ const KPIsRealTime: React.FC = () => {
   const [refreshInterval, setRefreshInterval] = useState(5000);
   const [fullscreenKPI, setFullscreenKPI] = useState<string | null>(null);
   const [filterCategory, setFilterCategory] = useState('all');
+  const [activeTab, setActiveTab] = useState<'kpis' | 'charts' | 'alerts'>('kpis');
+
+  const tabsList = [
+    { key: 'kpis' as const, label: 'Indicateurs', icon: Activity },
+    { key: 'charts' as const, label: 'Graphiques', icon: BarChart3 },
+    { key: 'alerts' as const, label: 'Alertes', icon: Bell },
+  ];
 
   // KPIs computed from real data
   const [kpis, setKpis] = useState<KPIMetric[]>([]);
@@ -378,7 +386,7 @@ const KPIsRealTime: React.FC = () => {
                 onChange={(e) => setAutoRefresh(e.target.checked)}
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#d4d4d4] rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#171717]"></div>
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#d4d4d4] rounded-full peer peer-checked:after:tranprimary-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#171717]"></div>
             </label>
             <span className="text-sm font-medium">Live</span>
           </div>
@@ -407,227 +415,294 @@ const KPIsRealTime: React.FC = () => {
         </div>
       </div>
 
-      {/* Category Filter */}
-      <div className="flex items-center gap-2 p-4 bg-white rounded-lg shadow">
-        <Filter className="w-5 h-5 text-gray-700" />
-        <div className="flex gap-2">
-          {['all', ...new Set(kpis.map(k => k.category))].map(cat => (
+      {/* Tabs */}
+      <div className="flex items-center bg-white rounded-xl p-1 border shadow-sm w-fit">
+        {tabsList.map((tab) => {
+          const Icon = tab.icon;
+          return (
             <button
-              key={cat}
-              onClick={() => setFilterCategory(cat)}
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
               className={cn(
-                "px-3 py-1 rounded-lg text-sm font-medium transition-all",
-                filterCategory === cat
-                  ? "bg-[#171717] text-white"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                "flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all",
+                activeTab === tab.key
+                  ? "bg-[#171717] text-white shadow-md"
+                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
               )}
             >
-              {cat === 'all' ? 'Tous' : cat.charAt(0).toUpperCase() + cat.slice(1)}
+              <Icon className="w-4 h-4" />
+              {tab.label}
             </button>
-          ))}
-        </div>
+          );
+        })}
       </div>
 
-      {/* KPI Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {filteredKPIs.map((kpi) => (
-          <div
-            key={kpi.id}
-            className={cn(
-              "bg-white rounded-lg shadow p-4 cursor-pointer transition-all hover:shadow-lg",
-              selectedKPI === kpi.id && "ring-2 ring-[#737373]",
-              fullscreenKPI === kpi.id && "fixed inset-4 z-50"
-            )}
-            onClick={() => setSelectedKPI(kpi.id)}
-          >
-            <div className="flex items-start justify-between mb-3">
-              <div>
-                <h3 className="text-sm font-medium text-gray-600">{kpi.name}</h3>
-                <div className="flex items-baseline gap-1 mt-1">
-                  <span className="text-lg font-bold text-gray-900">
-                    {kpi.value}
-                  </span>
-                  <span className="text-sm text-gray-700">{kpi.unit}</span>
-                </div>
-              </div>
-              <div className="flex flex-col items-end gap-2">
-                <span className={cn("px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1", getStatusColor(kpi.status))}>
-                  {getStatusIcon(kpi.status)}
-                  {kpi.status}
-                </span>
+      {/* Tab: Indicateurs */}
+      {activeTab === 'kpis' && (
+        <div className="space-y-6">
+          {/* Category Filter */}
+          <div className="flex items-center gap-2 p-4 bg-white rounded-lg shadow">
+            <Filter className="w-5 h-5 text-gray-700" />
+            <div className="flex gap-2">
+              {['all', ...new Set(kpis.map(k => k.category))].map(cat => (
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setFullscreenKPI(fullscreenKPI === kpi.id ? null : kpi.id);
-                  }}
-                  className="p-1 hover:bg-gray-100 rounded"
-                >
-                  {fullscreenKPI === kpi.id ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-
-            {/* Progress Bar */}
-            <div className="mb-3">
-              <div className="flex justify-between text-xs text-gray-700 mb-1">
-                <span>Objectif: {kpi.target}{kpi.unit}</span>
-                <span>{((kpi.value / kpi.target) * 100).toFixed(1)}%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div
+                  key={cat}
+                  onClick={() => setFilterCategory(cat)}
                   className={cn(
-                    "h-2 rounded-full transition-all",
-                    kpi.status === 'success' && "bg-green-500",
-                    kpi.status === 'warning' && "bg-amber-500",
-                    kpi.status === 'danger' && "bg-red-500"
+                    "px-3 py-1 rounded-lg text-sm font-medium transition-all",
+                    filterCategory === cat
+                      ? "bg-[#171717] text-white"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                   )}
-                  style={{ width: `${Math.min((kpi.value / kpi.target) * 100, 100)}%` }}
-                />
-              </div>
+                >
+                  {cat === 'all' ? 'Tous' : cat.charAt(0).toUpperCase() + cat.slice(1)}
+                </button>
+              ))}
             </div>
-
-            {/* Trend */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1">
-                {kpi.trend > 0 ? (
-                  <ArrowUp className="w-4 h-4 text-green-600" />
-                ) : (
-                  <ArrowDown className="w-4 h-4 text-red-600" />
-                )}
-                <span className={cn(
-                  "text-sm font-medium",
-                  kpi.trend > 0 ? "text-green-600" : "text-red-600"
-                )}>
-                  {Math.abs(kpi.trend).toFixed(1)}%
-                </span>
-              </div>
-              <span className="text-xs text-gray-700">
-                Mis à jour: {kpi.lastUpdate.toLocaleTimeString()}
-              </span>
-            </div>
-
-            {/* Mini Chart */}
-            {kpi.history.length > 0 && (
-              <div className="mt-3">
-                <ResponsiveContainer width="100%" height={60}>
-                  <AreaChart data={kpi.history}>
-                    <defs>
-                      <linearGradient id={`gradient-${kpi.id}`} x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#737373" stopOpacity={0.8} />
-                        <stop offset="95%" stopColor="#737373" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <Area
-                      type="monotone"
-                      dataKey="value"
-                      stroke="#737373"
-                      fillOpacity={1}
-                      fill={`url(#gradient-${kpi.id})`}
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            )}
           </div>
-        ))}
-      </div>
 
-      {/* Real-time Chart */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Performance Temps Réel</h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={realTimeData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#d4d4d4" />
-              <XAxis
-                dataKey="timestamp"
-                tickFormatter={(value) => new Date(value).toLocaleTimeString()}
-                stroke="#737373"
-              />
-              <YAxis stroke="#737373" />
-              <Tooltip
-                labelFormatter={(value) => new Date(value).toLocaleTimeString()}
-              />
-              <Legend />
-              <Line type="monotone" dataKey="sales" stroke="#737373" name="Ventes" strokeWidth={2} dot={false} />
-              <Line type="monotone" dataKey="orders" stroke="#22c55e" name="Commandes" strokeWidth={2} dot={false} />
-              <Line type="monotone" dataKey="conversion" stroke="#F59E0B" name="Conversion (%)" strokeWidth={2} dot={false} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Score Global Performance</h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <RadarChart data={radarData}>
-              <PolarGrid stroke="#d4d4d4" />
-              <PolarAngleAxis dataKey="subject" stroke="#737373" />
-              <PolarRadiusAxis angle={90} domain={[0, 100]} stroke="#737373" />
-              <Radar name="Performance" dataKey="A" stroke="#737373" fill="#737373" fillOpacity={0.6} />
-              <Tooltip />
-            </RadarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      {/* Top Performers */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Top Performances</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {kpis.length === 0 ? (
-            <div className="col-span-3 text-center py-8 text-gray-500">
-              <Activity className="w-8 h-8 mx-auto mb-2 opacity-30" />
-              <p>Aucune donnée disponible</p>
-            </div>
-          ) : kpis.slice(0, 3).map((kpi, index) => (
-            <div key={kpi.id} className="text-center">
-              <h3 className="text-sm font-medium text-gray-600 mb-2">{kpi.name}</h3>
-              <div className="flex items-center justify-center mb-2">
-                <div className={cn(
-                  "w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-xl",
-                  index === 0 && "bg-gradient-to-br from-amber-400 to-amber-600",
-                  index === 1 && "bg-gradient-to-br from-[#a3a3a3] to-[#171717]",
-                  index === 2 && "bg-gradient-to-br from-purple-400 to-purple-600"
-                )}>
-                  #{index + 1}
+          {/* KPI Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {filteredKPIs.map((kpi) => (
+              <div
+                key={kpi.id}
+                className={cn(
+                  "bg-white rounded-lg shadow p-4 cursor-pointer transition-all hover:shadow-lg",
+                  selectedKPI === kpi.id && "ring-2 ring-[#737373]",
+                  fullscreenKPI === kpi.id && "fixed inset-4 z-50"
+                )}
+                onClick={() => setSelectedKPI(kpi.id)}
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-600">{kpi.name}</h3>
+                    <div className="flex items-baseline gap-1 mt-1">
+                      <span className="text-lg font-bold text-gray-900">{kpi.value}</span>
+                      <span className="text-sm text-gray-700">{kpi.unit}</span>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-2">
+                    <span className={cn("px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1", getStatusColor(kpi.status))}>
+                      {getStatusIcon(kpi.status)}
+                      {kpi.status}
+                    </span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setFullscreenKPI(fullscreenKPI === kpi.id ? null : kpi.id);
+                      }}
+                      className="p-1 hover:bg-gray-100 rounded"
+                    >
+                      {fullscreenKPI === kpi.id ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
-              </div>
-              <p className="font-semibold text-gray-900">
-                {kpi.value}{kpi.unit}
-              </p>
-              <p className="text-sm text-gray-700">
-                Objectif: {kpi.target}{kpi.unit}
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
 
-      {/* Alerts & Notifications */}
-      <div className="bg-gradient-to-r from-[#f5f5f5] to-indigo-50 rounded-lg p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <Bell className="w-6 h-6 text-[#171717]" />
-          <h2 className="text-lg font-semibold text-gray-900">Alertes KPI</h2>
+                <div className="mb-3">
+                  <div className="flex justify-between text-xs text-gray-700 mb-1">
+                    <span>Objectif: {kpi.target}{kpi.unit}</span>
+                    <span>{((kpi.value / kpi.target) * 100).toFixed(1)}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className={cn(
+                        "h-2 rounded-full transition-all",
+                        kpi.status === 'success' && "bg-green-500",
+                        kpi.status === 'warning' && "bg-amber-500",
+                        kpi.status === 'danger' && "bg-red-500"
+                      )}
+                      style={{ width: `${Math.min((kpi.value / kpi.target) * 100, 100)}%` }}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1">
+                    {kpi.trend > 0 ? (
+                      <ArrowUp className="w-4 h-4 text-green-600" />
+                    ) : (
+                      <ArrowDown className="w-4 h-4 text-red-600" />
+                    )}
+                    <span className={cn("text-sm font-medium", kpi.trend > 0 ? "text-green-600" : "text-red-600")}>
+                      {Math.abs(kpi.trend).toFixed(1)}%
+                    </span>
+                  </div>
+                  <span className="text-xs text-gray-700">
+                    Mis à jour: {kpi.lastUpdate.toLocaleTimeString()}
+                  </span>
+                </div>
+
+                {kpi.history.length > 0 && (
+                  <div className="mt-3">
+                    <ResponsiveContainer width="100%" height={60}>
+                      <AreaChart data={kpi.history}>
+                        <defs>
+                          <linearGradient id={`gradient-${kpi.id}`} x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#737373" stopOpacity={0.8} />
+                            <stop offset="95%" stopColor="#737373" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <Area type="monotone" dataKey="value" stroke="#737373" fillOpacity={1} fill={`url(#gradient-${kpi.id})`} />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {kpis.filter(k => k.status === 'warning' || k.status === 'danger').length === 0 ? (
-            <div className="col-span-2 bg-white rounded-lg p-4 border-l-4 border-green-500">
-              <h4 className="font-medium text-gray-900">Aucune alerte</h4>
-              <p className="text-sm text-gray-600 mt-1">Tous les KPIs sont dans les seuils normaux</p>
-            </div>
-          ) : kpis.filter(k => k.status === 'warning' || k.status === 'danger').map(kpi => (
-            <div key={`alert-${kpi.id}`} className={cn(
-              "bg-white rounded-lg p-4 border-l-4",
-              kpi.status === 'danger' ? "border-red-500" : "border-amber-500"
-            )}>
-              <h4 className="font-medium text-gray-900">{kpi.name}</h4>
-              <p className="text-sm text-gray-600 mt-1">
-                Valeur actuelle: {kpi.value}{kpi.unit} (objectif: {kpi.target}{kpi.unit})
-              </p>
-            </div>
-          ))}
+      )}
+
+      {/* Tab: Graphiques */}
+      {activeTab === 'charts' && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-white rounded-lg shadow p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Performance Temps Réel</h2>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={realTimeData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#d4d4d4" />
+                <XAxis dataKey="timestamp" tickFormatter={(value) => new Date(value).toLocaleTimeString()} stroke="#737373" />
+                <YAxis stroke="#737373" />
+                <Tooltip labelFormatter={(value) => new Date(value).toLocaleTimeString()} />
+                <Legend />
+                <Line type="monotone" dataKey="sales" stroke="#737373" name="Ventes" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="orders" stroke="#22c55e" name="Commandes" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="conversion" stroke="#F59E0B" name="Conversion (%)" strokeWidth={2} dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="bg-white rounded-lg shadow p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Score Global Performance</h2>
+            <ResponsiveContainer width="100%" height={300}>
+              <RadarChart data={radarData}>
+                <PolarGrid stroke="#d4d4d4" />
+                <PolarAngleAxis dataKey="subject" stroke="#737373" />
+                <PolarRadiusAxis angle={90} domain={[0, 100]} stroke="#737373" />
+                <Radar name="Performance" dataKey="A" stroke="#737373" fill="#737373" fillOpacity={0.6} />
+                <Tooltip />
+              </RadarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Tab: Alertes */}
+      {activeTab === 'alerts' && (
+        <div className="space-y-6">
+          {/* Top Performers */}
+          <div className="bg-white rounded-lg shadow p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Top Performances</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {kpis.length === 0 ? (
+                <div className="col-span-3 text-center py-8 text-gray-500">
+                  <Activity className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                  <p>Aucune donnée disponible</p>
+                </div>
+              ) : kpis.slice(0, 3).map((kpi, index) => (
+                <div key={kpi.id} className="text-center">
+                  <h3 className="text-sm font-medium text-gray-600 mb-2">{kpi.name}</h3>
+                  <div className="flex items-center justify-center mb-2">
+                    <div className={cn(
+                      "w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-xl",
+                      index === 0 && "bg-gradient-to-br from-amber-400 to-amber-600",
+                      index === 1 && "bg-gradient-to-br from-[#a3a3a3] to-[#171717]",
+                      index === 2 && "bg-gradient-to-br from-primary-400 to-primary-600"
+                    )}>
+                      #{index + 1}
+                    </div>
+                  </div>
+                  <p className="font-semibold text-gray-900">{kpi.value}{kpi.unit}</p>
+                  <p className="text-sm text-gray-700">Objectif: {kpi.target}{kpi.unit}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Alerts */}
+          <div className="bg-gradient-to-r from-[#f5f5f5] to-primary-50 rounded-lg p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <Bell className="w-6 h-6 text-[#171717]" />
+              <h2 className="text-lg font-semibold text-gray-900">Alertes KPI</h2>
+            </div>
+            {(() => {
+              const hasData = kpis.some(k => k.value !== 0);
+              const alertKpis = kpis.filter(k => k.status === 'warning' || k.status === 'danger');
+
+              if (!hasData) {
+                return (
+                  <div className="bg-white rounded-lg p-8 text-center">
+                    <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                      <BarChart3 className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <h4 className="font-semibold text-gray-900 mb-2">Aucune donnée comptable</h4>
+                    <p className="text-sm text-gray-500 max-w-md mx-auto">
+                      Les alertes KPI s'activeront automatiquement lorsque des écritures comptables seront saisies et validées dans le système.
+                    </p>
+                  </div>
+                );
+              }
+
+              if (alertKpis.length === 0) {
+                return (
+                  <div className="bg-white rounded-lg p-4 border-l-4 border-green-500">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                      <h4 className="font-medium text-gray-900">Tous les indicateurs sont dans les seuils normaux</h4>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1 ml-7">Aucune alerte active</p>
+                  </div>
+                );
+              }
+
+              return (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {alertKpis.map(kpi => {
+                    const formattedValue = kpi.unit === '%'
+                      ? `${kpi.value}%`
+                      : formatCurrency(kpi.value);
+                    const formattedTarget = kpi.unit === '%'
+                      ? `${kpi.target}%`
+                      : formatCurrency(kpi.target);
+                    const pct = kpi.target > 0 ? Math.round((kpi.value / kpi.target) * 100) : 0;
+
+                    return (
+                      <div key={`alert-${kpi.id}`} className={cn(
+                        "bg-white rounded-lg p-4 border-l-4",
+                        kpi.status === 'danger' ? "border-red-500" : "border-amber-500"
+                      )}>
+                        <div className="flex items-start justify-between mb-2">
+                          <h4 className="font-medium text-gray-900">{kpi.name}</h4>
+                          <span className={cn(
+                            "px-2 py-0.5 rounded-full text-xs font-medium",
+                            kpi.status === 'danger' ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700"
+                          )}>
+                            {kpi.status === 'danger' ? 'Critique' : 'Attention'}
+                          </span>
+                        </div>
+                        <div className="flex items-baseline gap-2 mb-2">
+                          <span className="text-lg font-bold text-gray-900">{formattedValue}</span>
+                          <span className="text-sm text-gray-500">/ objectif {formattedTarget}</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-1.5">
+                          <div
+                            className={cn(
+                              "h-1.5 rounded-full",
+                              kpi.status === 'danger' ? "bg-red-500" : "bg-amber-500"
+                            )}
+                            style={{ width: `${Math.min(pct, 100)}%` }}
+                          />
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">{pct}% de l'objectif atteint</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

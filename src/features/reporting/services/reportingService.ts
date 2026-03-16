@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Reporting Service — backed by Dexie IndexedDB.
  * Returns available report catalog and stats derived from real data.

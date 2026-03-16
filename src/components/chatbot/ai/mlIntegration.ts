@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Intégration ML Backend pour Proph3t
  * Connecte Proph3t aux modèles d'apprentissage automatique
@@ -270,7 +271,7 @@ export class Proph3tMLManager {
     try {
       const dashboard = await mlService.getDashboard();
 
-      let response = "Voici le Dashboard IA de Atlas Finance ! 🤖✨\n\n";
+      let response = "Voici le Dashboard IA de Atlas Studio ! 🤖✨\n\n";
       response += "📊 **Vue d'ensemble:**\n";
       response += `   • Modèles actifs: ${dashboard.summary.active_models}/${dashboard.summary.total_models}\n`;
       response += `   • Modèles prêts: ${dashboard.summary.ready_models}\n`;

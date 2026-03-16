@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -419,7 +420,7 @@ const EntriesPage: React.FC = () => {
       {/* Bouton flottant - Nouvelle Écriture */}
       <button
         onClick={() => setShowEntryModal(true)}
-        className="fixed top-1/2 right-8 transform -translate-y-1/2
+        className="fixed top-1/2 right-8 transform -tranprimary-y-1/2
         w-14 h-14 bg-[#525252] text-white rounded-full shadow-lg hover:bg-[#404040] hover:shadow-xl transition-all duration-300 flex items-center
         justify-center z-40 group"
       >

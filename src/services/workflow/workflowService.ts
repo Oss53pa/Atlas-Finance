@@ -14,7 +14,7 @@
  */
 
 import { logAudit } from '../../lib/db';
-import type { DBJournalEntry } from '../../lib/db';
+import type { DBJournalEntry, DBAuditLog } from '../../lib/db';
 import type { DataAdapter } from '@atlas/data';
 import { money, Money } from '../../utils/money';
 import { validateJournalEntry } from '../../validators/journalEntryValidator';
@@ -124,7 +124,7 @@ export async function validateEntry(
   const errors: string[] = [];
 
   // 1. Récupérer l'écriture
-  const entry = await adapter.getById('journalEntries', entryId);
+  const entry = await adapter.getById<DBJournalEntry>('journalEntries', entryId);
   if (!entry) {
     return { success: false, errors: ['Écriture introuvable'] };
   }
@@ -184,7 +184,7 @@ export async function postEntry(
   const errors: string[] = [];
 
   // 1. Récupérer l'écriture
-  const entry = await adapter.getById('journalEntries', entryId);
+  const entry = await adapter.getById<DBJournalEntry>('journalEntries', entryId);
   if (!entry) {
     return { success: false, errors: ['Écriture introuvable'] };
   }
@@ -206,7 +206,7 @@ export async function postEntry(
   // 4. Générer le hash d'intégrité final si absent
   let finalHash = entry.hash;
   if (!finalHash) {
-    const allEntries = await adapter.getAll('journalEntries', { orderBy: { field: 'date', direction: 'asc' } });
+    const allEntries = await adapter.getAll<DBJournalEntry>('journalEntries', { orderBy: { field: 'date', direction: 'asc' } });
     const lastEntry = allEntries.length > 0 ? allEntries[allEntries.length - 1] : undefined;
     const previousHash = lastEntry?.hash ?? '';
     finalHash = await hashEntry(
@@ -263,7 +263,7 @@ export async function rejectEntry(
   const errors: string[] = [];
 
   // 1. Récupérer l'écriture
-  const entry = await adapter.getById('journalEntries', entryId);
+  const entry = await adapter.getById<DBJournalEntry>('journalEntries', entryId);
   if (!entry) {
     return { success: false, errors: ['Écriture introuvable'] };
   }
@@ -343,7 +343,7 @@ export async function bulkValidate(
  * Parse les logs d'audit de type WORKFLOW_TRANSITION pour l'écriture donnée.
  */
 export async function getWorkflowHistory(adapter: DataAdapter, entryId: string): Promise<WorkflowTransition[]> {
-  const logs = await adapter.getAll('auditLogs', { where: { entityId: entryId } });
+  const logs = await adapter.getAll<DBAuditLog>('auditLogs', { where: { entityId: entryId } });
 
   const workflowLogs = logs.filter(log => log.action === 'WORKFLOW_TRANSITION');
 

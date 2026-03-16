@@ -65,7 +65,7 @@ canvas {
   border-radius: 8px;
   padding: 0.75rem;
   pointer-events: none;
-  transform: translate(-50%, -100%);
+  transform: tranprimary(-50%, -100%);
   transition: all 0.1s ease;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   z-index: 9999;
@@ -98,11 +98,11 @@ canvas {
 @keyframes fadeInChart {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: tranprimaryY(10px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: tranprimaryY(0);
   }
 }
 

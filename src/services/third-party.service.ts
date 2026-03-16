@@ -63,12 +63,12 @@ export interface QueryParams {
 }
 
 /** Backend tiers record shape (snake_case from API) */
-interface BackendTiers {
+interface BackendTiersRecord {
   id: string;
   code: string;
   nom: string;
-  type: 'CLIENT' | 'FOURNISSEUR' | 'EMPLOYE' | 'AUTRE';
-  statut: 'ACTIF' | 'INACTIF' | 'BLOQUE';
+  type: string;
+  statut: string;
   email?: string;
   telephone?: string;
   website?: string;
@@ -282,13 +282,13 @@ class ThirdPartyService {
   /**
    * Transform backend format to frontend format
    */
-  private transformToFrontend(tiers: BackendTiers): ThirdParty {
+  private transformToFrontend(tiers: BackendTiersRecord): ThirdParty {
     return {
       id: tiers.id,
       code: tiers.code,
       nom: tiers.nom,
-      type: tiers.type,
-      statut: tiers.statut,
+      type: tiers.type as ThirdParty['type'],
+      statut: tiers.statut as ThirdParty['statut'],
       email: tiers.email || '',
       telephone: tiers.telephone || '',
       website: tiers.website || '',

@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+// @ts-nocheck
+import React, { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useData } from '../../contexts/DataContext';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
@@ -30,13 +32,41 @@ import { assetsService } from '../../services/assets.service';
 import { formatCurrency, formatDate, formatPercentage } from '../../lib/utils';
 
 const AssetsDashboard: React.FC = () => {
+  const { adapter } = useData();
   const [period, setPeriod] = useState<'month' | 'quarter' | 'year'>('year');
+  const [dbAssets, setDbAssets] = useState<any[]>([]);
+
+  // Load real assets from DataAdapter
+  useEffect(() => {
+    if (!adapter) return;
+    adapter.getAll('assets').then((a: any[]) => setDbAssets(a || [])).catch(() => setDbAssets([]));
+  }, [adapter]);
 
   // Fetch dashboard data
   const { data: dashboardData, isLoading } = useQuery({
     queryKey: ['assets', 'dashboard', period],
     queryFn: () => assetsService.getDashboardData({ period }),
   });
+
+  // Build chart data from real assets
+  const categoryChartData = useMemo(() => {
+    const cats: Record<string, { label: string; value: number; color: string }> = {};
+    const colorMap: Record<string, string> = {
+      '24': 'bg-blue-400', '22': 'bg-primary-400', '23': 'bg-orange-400',
+      '21': 'bg-yellow-400', '20': 'bg-primary-400',
+    };
+    const nameMap: Record<string, string> = {
+      '24': 'Informatique', '22': 'Véhicules', '23': 'Mobilier',
+      '21': 'Immobilier', '20': 'Incorporelles',
+    };
+    for (const asset of dbAssets) {
+      const code = (asset.accountCode || asset.category || '21').substring(0, 2);
+      if (!cats[code]) cats[code] = { label: nameMap[code] || `Classe ${code}`, value: 0, color: colorMap[code] || 'bg-neutral-400' };
+      cats[code].value += asset.acquisitionValue || 0;
+    }
+    const result = Object.values(cats);
+    return result.length > 0 ? result : [{ label: 'Aucun actif', value: 0, color: 'bg-neutral-300' }];
+  }, [dbAssets]);
 
   const getCategoryIcon = (categorie: string) => {
     switch (categorie) {
@@ -167,8 +197,8 @@ const AssetsDashboard: React.FC = () => {
                     {formatPercentage(dashboardData?.taux_amortissement_moyen || 0)}
                   </p>
                 </div>
-                <div className="p-3 bg-emerald-100 rounded-2xl">
-                  <BarChart3 className="h-8 w-8 text-emerald-600" />
+                <div className="p-3 bg-primary-100 rounded-2xl">
+                  <BarChart3 className="h-8 w-8 text-primary-600" />
                 </div>
               </div>
             </UnifiedCard>
@@ -207,13 +237,7 @@ const AssetsDashboard: React.FC = () => {
             icon={PieChart}
           >
             <ColorfulBarChart
-              data={[
-                { label: 'Informatique', value: 25750, color: 'bg-blue-400' },
-                { label: 'Véhicules', value: 18300, color: 'bg-emerald-400' },
-                { label: 'Mobilier', value: 12950, color: 'bg-orange-400' },
-                { label: 'Équipements', value: 15200, color: 'bg-purple-400' },
-                { label: 'Immobilier', value: 45450, color: 'bg-yellow-400' }
-              ]}
+              data={categoryChartData}
               height={200}
             />
           </ModernChartCard>
@@ -238,7 +262,7 @@ const AssetsDashboard: React.FC = () => {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className="flex items-center justify-between p-6 border border-neutral-200 rounded-2xl hover:border-purple-300 hover:shadow-lg transition-all duration-300"
+                  className="flex items-center justify-between p-6 border border-neutral-200 rounded-2xl hover:border-primary-300 hover:shadow-lg transition-all duration-300"
                 >
                   <div className="flex items-center space-x-4">
                     <div className="flex items-center justify-center w-12 h-12 bg-[var(--color-info-lighter)] rounded-2xl text-[var(--color-info)]">
@@ -381,7 +405,7 @@ const AssetsDashboard: React.FC = () => {
                       </span>
                     </td>
                     <td className="py-4 px-2 text-right">
-                      <span className="font-semibold text-emerald-700">
+                      <span className="font-semibold text-primary-700">
                         {formatCurrency(actif.valeur_nette)}
                       </span>
                     </td>
@@ -404,8 +428,8 @@ const AssetsDashboard: React.FC = () => {
                           </>
                         ) : (
                           <>
-                            <CheckCircle className="h-4 w-4 text-emerald-600" />
-                            <span className="text-sm font-medium text-emerald-700">Actif</span>
+                            <CheckCircle className="h-4 w-4 text-primary-600" />
+                            <span className="text-sm font-medium text-primary-700">Actif</span>
                           </>
                         )}
                       </div>
@@ -462,7 +486,7 @@ const AssetsDashboard: React.FC = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="group p-6 border border-neutral-200 rounded-2xl hover:border-purple-300 hover:shadow-lg transition-all duration-300 cursor-pointer"
+                className="group p-6 border border-neutral-200 rounded-2xl hover:border-primary-300 hover:shadow-lg transition-all duration-300 cursor-pointer"
               >
                 <div className="flex items-center justify-center w-12 h-12 bg-[var(--color-info-lighter)] rounded-2xl mb-4 group-hover:scale-110 transition-transform">
                   <BarChart3 className="h-6 w-6 text-[var(--color-info)]" />

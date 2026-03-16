@@ -67,7 +67,7 @@ const ThirdPartyDashboard: React.FC = () => {
     let newCustomersMonth = 0;
     const monthNames = ['Jan', 'Fev', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Aout', 'Sep', 'Oct', 'Nov', 'Dec'];
     const monthlyValues = new Array(12).fill(0);
-    const colors = ['bg-blue-400', 'bg-green-400', 'bg-purple-400', 'bg-[var(--color-primary)]', 'bg-[var(--color-success)]', 'bg-[var(--color-info)]', 'bg-[var(--color-primary)]', 'bg-blue-400', 'bg-green-400', 'bg-purple-400', 'bg-amber-400', 'bg-red-400'];
+    const colors = ['bg-blue-400', 'bg-green-400', 'bg-primary-400', 'bg-[var(--color-primary)]', 'bg-[var(--color-success)]', 'bg-[var(--color-info)]', 'bg-[var(--color-primary)]', 'bg-blue-400', 'bg-green-400', 'bg-primary-400', 'bg-amber-400', 'bg-red-400'];
 
     for (const entry of journalEntries) {
       if (!entry.lines) continue;

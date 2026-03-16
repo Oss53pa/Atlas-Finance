@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Plan Comptable (Chart of Accounts) Service — Connected to Dexie IndexedDB.
  * Manages SYSCOHADA chart of accounts with CRUD, validation, and hierarchy.

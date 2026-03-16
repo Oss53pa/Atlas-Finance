@@ -365,7 +365,7 @@ const sahelGoldTheme: Theme = {
 // ============================================================================
 const royalIndigoTheme: Theme = {
   name: 'Royal Indigo',
-  description: 'Accent indigo premium et sophistiqué',
+  description: 'Accent primary premium et sophistiqué',
   colors: {
     primary: '#4f46e5',
     primaryHover: '#6366f1',

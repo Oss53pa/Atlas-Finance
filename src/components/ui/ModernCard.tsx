@@ -28,7 +28,7 @@ export const ModernCard: React.FC<ModernCardProps> = ({
         'bg-[var(--color-surface)] rounded-xl transition-all duration-300',
         bordered && 'border border-[var(--color-border)]',
         elevated && 'shadow-[var(--shadow-md)]',
-        hoverable && 'hover:shadow-[var(--shadow-lg)] hover:-translate-y-1 cursor-pointer',
+        hoverable && 'hover:shadow-[var(--shadow-lg)] hover:-tranprimary-y-1 cursor-pointer',
         gradient && 'bg-gradient-to-br from-[var(--color-surface)] to-[var(--color-surface-hover)]',
         onClick && 'cursor-pointer',
         className

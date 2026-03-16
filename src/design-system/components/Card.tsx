@@ -32,7 +32,7 @@ const cardVariants = cva(
       },
       hover: {
         none: '',
-        lift: 'hover:shadow-md hover:-translate-y-0.5',
+        lift: 'hover:shadow-md hover:-tranprimary-y-0.5',
         glow: 'hover:shadow-lg hover:shadow-primary-500/10',
         scale: 'hover:scale-[1.02]',
       },

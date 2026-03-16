@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState, useEffect } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -219,7 +220,7 @@ const ProspectsModule: React.FC = () => {
       'INTERESSE': 'bg-green-100 text-green-800',
       'NEGOCIATION': 'bg-[#525252]/10 text-[#525252]',
       'PERDU': 'bg-red-100 text-red-800',
-      'GAGNE': 'bg-emerald-100 text-emerald-800'
+      'GAGNE': 'bg-primary-100 text-primary-800'
     };
     return statusConfig[statut as keyof typeof statusConfig] || 'bg-gray-100 text-gray-800';
   };

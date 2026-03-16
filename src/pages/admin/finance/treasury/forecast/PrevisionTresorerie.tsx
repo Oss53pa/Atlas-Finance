@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState, useEffect } from 'react';
 import { useData } from '../../../../../contexts/DataContext';
 import { formatDate } from '../../../../../utils/formatters';

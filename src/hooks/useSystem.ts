@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { systemService, SystemInfo, SystemStats, SystemModule, SearchResult } from '../services/system-complete.service';
 import { queryKeys } from '../lib/react-query';

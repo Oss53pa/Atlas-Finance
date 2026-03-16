@@ -201,7 +201,7 @@ const LettrageAutomatiquePage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-primary-50">
       <div className="container mx-auto px-4 py-6">
         {/* En-tête */}
         <div className="mb-8">
@@ -330,15 +330,15 @@ const LettrageAutomatiquePage: React.FC = () => {
               </div>
             </div>
 
-            <div className="p-4 border border-purple-200 rounded-lg bg-purple-50">
+            <div className="p-4 border border-primary-200 rounded-lg bg-primary-50">
               <div className="flex items-center mb-3">
-                <Zap className="h-5 w-5 text-purple-600 mr-2" />
-                <h3 className="font-semibold text-purple-900">Machine Learning</h3>
+                <Zap className="h-5 w-5 text-primary-600 mr-2" />
+                <h3 className="font-semibold text-primary-900">Machine Learning</h3>
               </div>
-              <p className="text-sm text-purple-700 mb-3">
+              <p className="text-sm text-primary-700 mb-3">
                 Suggestions basées sur l'historique et patterns
               </p>
-              <div className="text-xs text-purple-600">
+              <div className="text-xs text-primary-600">
                 ✓ Apprentissage continu<br />
                 ✓ Confiance variable
               </div>
@@ -369,14 +369,14 @@ const LettrageAutomatiquePage: React.FC = () => {
                     <div className="flex-shrink-0">
                       <div className={`p-2 rounded-lg ${
                         match.type === 'exact' ? 'bg-green-100' :
-                        match.type === 'partial' ? 'bg-yellow-100' : 'bg-purple-100'
+                        match.type === 'partial' ? 'bg-yellow-100' : 'bg-primary-100'
                       }`}>
                         {match.type === 'exact' ? (
                           <CheckCircle className="h-5 w-5 text-green-600" />
                         ) : match.type === 'partial' ? (
                           <AlertTriangle className="h-5 w-5 text-yellow-600" />
                         ) : (
-                          <Zap className="h-5 w-5 text-purple-600" />
+                          <Zap className="h-5 w-5 text-primary-600" />
                         )}
                       </div>
                     </div>
@@ -388,7 +388,7 @@ const LettrageAutomatiquePage: React.FC = () => {
                         </span>
                         <span className={`text-sm px-2 py-1 rounded-full ${
                           match.type === 'exact' ? 'bg-green-100 text-green-800' :
-                          match.type === 'partial' ? 'bg-yellow-100 text-yellow-800' : 'bg-purple-100 text-purple-800'
+                          match.type === 'partial' ? 'bg-yellow-100 text-yellow-800' : 'bg-primary-100 text-primary-800'
                         }`}>
                           {getMatchTypeLabel(match.type)}
                         </span>

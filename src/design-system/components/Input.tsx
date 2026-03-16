@@ -230,7 +230,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         <div className="relative">
           {/* Start Icon */}
           {startIcon && (
-            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+            <div className="absolute left-3 top-1/2 transform -tranprimary-y-1/2 pointer-events-none">
               <span className="text-neutral-500" aria-hidden="true">
                 {startIcon}
               </span>
@@ -256,7 +256,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 
           {/* End Icons Container */}
           {(endIcon || stateIcon || shouldShowPasswordToggle) && (
-            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
+            <div className="absolute right-3 top-1/2 transform -tranprimary-y-1/2 flex items-center gap-1">
               {/* State Icon */}
               {stateIcon && (
                 <span aria-hidden="true">

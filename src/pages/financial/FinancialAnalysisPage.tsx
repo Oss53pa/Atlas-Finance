@@ -327,7 +327,7 @@ const FinancialAnalysisPage: React.FC = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600"></div>
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>
       </div>
     );
   }
@@ -345,13 +345,13 @@ const FinancialAnalysisPage: React.FC = () => {
             <select
               value={selectedPeriod}
               onChange={(e) => setSelectedPeriod(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
             >
               <option value="current">Exercice courant</option>
               <option value="previous">Exercice précédent</option>
               <option value="comparison">Comparaison N/N-1</option>
             </select>
-            <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2">
+            <button className="bg-primary hover:bg-primary-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2">
               <DocumentTextIcon className="h-5 w-5" />
               <span>Exporter Rapport</span>
             </button>
@@ -375,7 +375,7 @@ const FinancialAnalysisPage: React.FC = () => {
               onClick={() => setSelectedView(id as typeof selectedView)}
               className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm ${
                 selectedView === id
-                  ? 'border-indigo-500 text-indigo-600'
+                  ? 'border-primary-500 text-primary-600'
                   : 'border-transparent text-gray-700 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
@@ -425,10 +425,10 @@ const FinancialAnalysisPage: React.FC = () => {
                 <div>
                   <p className="text-sm font-medium text-gray-600">FRNG</p>
                   <p className="text-lg font-bold text-gray-900">{formatCurrency(financialData?.functionalBalance.workingCapitalFund || 0)}</p>
-                  <p className="text-sm text-purple-600">BFR: {formatCurrency(financialData?.functionalBalance.totalWorkingCapitalNeed || 0)}</p>
+                  <p className="text-sm text-primary-600">BFR: {formatCurrency(financialData?.functionalBalance.totalWorkingCapitalNeed || 0)}</p>
                 </div>
-                <div className="h-12 w-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <DocumentTextIcon className="h-6 w-6 text-purple-600" />
+                <div className="h-12 w-12 bg-primary-100 rounded-lg flex items-center justify-center">
+                  <DocumentTextIcon className="h-6 w-6 text-primary-600" />
                 </div>
               </div>
             </div>
@@ -622,9 +622,9 @@ const FinancialAnalysisPage: React.FC = () => {
                 <p className="text-sm text-green-600 font-medium">Runway</p>
                 <p className="text-lg font-bold text-green-700">{formatNumber(financialData.cashFlowForecast.runway)} mois</p>
               </div>
-              <div className="text-center p-4 bg-purple-50 rounded-lg">
-                <p className="text-sm text-purple-600 font-medium">Scénarios</p>
-                <p className="text-lg font-bold text-purple-700">{financialData.cashFlowForecast.scenarios.length}</p>
+              <div className="text-center p-4 bg-primary-50 rounded-lg">
+                <p className="text-sm text-primary-600 font-medium">Scénarios</p>
+                <p className="text-lg font-bold text-primary-700">{financialData.cashFlowForecast.scenarios.length}</p>
               </div>
             </div>
 

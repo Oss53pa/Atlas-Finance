@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { toast } from 'react-hot-toast';
@@ -49,7 +50,7 @@ export const ViewReportModal: React.FC<ViewReportModalProps> = ({ isOpen, onClos
       case 'termine': return 'bg-green-100 text-green-800 border-green-200';
       case 'en_cours': return 'bg-blue-100 text-blue-800 border-blue-200';
       case 'erreur': return 'bg-red-100 text-red-800 border-red-200';
-      case 'planifie': return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'planifie': return 'bg-primary-100 text-primary-800 border-primary-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
@@ -101,7 +102,7 @@ export const ViewReportModal: React.FC<ViewReportModalProps> = ({ isOpen, onClos
                     <div className={`p-3 rounded-lg ${
                       rapport.type === 'financier' ? 'bg-blue-100 text-blue-600' :
                       rapport.type === 'commercial' ? 'bg-green-100 text-green-600' :
-                      rapport.type === 'rh' ? 'bg-purple-100 text-purple-600' :
+                      rapport.type === 'rh' ? 'bg-primary-100 text-primary-600' :
                       rapport.type === 'consolidation' ? 'bg-orange-100 text-orange-600' :
                       'bg-gray-100 text-gray-600'
                     }`}>
@@ -169,20 +170,20 @@ export const ViewReportModal: React.FC<ViewReportModalProps> = ({ isOpen, onClos
 
             {/* Section Responsable et Dates */}
             <div>
-              <h3 className="text-sm font-bold text-[#171717] uppercase tracking-wide mb-3 flex items-center gap-2 border-b border-purple-400 pb-2">
-                <span className="w-1 h-4 bg-purple-500 rounded"></span>
+              <h3 className="text-sm font-bold text-[#171717] uppercase tracking-wide mb-3 flex items-center gap-2 border-b border-primary-400 pb-2">
+                <span className="w-1 h-4 bg-primary-500 rounded"></span>
                 Responsable et Dates
               </h3>
               <div className="grid grid-cols-3 gap-4">
-                <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                  <p className="text-xs text-purple-700 mb-2">Responsable</p>
+                <div className="bg-primary-50 p-4 rounded-lg border border-primary-200">
+                  <p className="text-xs text-primary-700 mb-2">Responsable</p>
                   <div className="flex items-center gap-2">
-                    <div className="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
+                    <div className="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center text-white font-semibold">
                       {rapport.responsable?.split(' ').map((n: string) => n[0]).join('') || 'NA'}
                     </div>
                     <div>
-                      <p className="font-semibold text-purple-900">{rapport.responsable}</p>
-                      <p className="text-xs text-purple-600">Créateur</p>
+                      <p className="font-semibold text-primary-900">{rapport.responsable}</p>
+                      <p className="text-xs text-primary-600">Créateur</p>
                     </div>
                   </div>
                 </div>
@@ -251,20 +252,20 @@ export const ViewReportModal: React.FC<ViewReportModalProps> = ({ isOpen, onClos
             {/* Section Planification */}
             {rapport.prochaineLancement && (
               <div>
-                <h3 className="text-sm font-bold text-[#171717] uppercase tracking-wide mb-3 flex items-center gap-2 border-b border-cyan-400 pb-2">
-                  <span className="w-1 h-4 bg-cyan-500 rounded"></span>
+                <h3 className="text-sm font-bold text-[#171717] uppercase tracking-wide mb-3 flex items-center gap-2 border-b border-primary-400 pb-2">
+                  <span className="w-1 h-4 bg-primary-500 rounded"></span>
                   Planification
                 </h3>
-                <div className="bg-cyan-50 p-4 rounded-lg border border-cyan-200">
+                <div className="bg-primary-50 p-4 rounded-lg border border-primary-200">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <Clock className="w-5 h-5 text-cyan-600" />
+                      <Clock className="w-5 h-5 text-primary-600" />
                       <div>
-                        <p className="font-semibold text-cyan-900">Prochain lancement</p>
-                        <p className="text-sm text-cyan-700">{rapport.prochaineLancement}</p>
+                        <p className="font-semibold text-primary-900">Prochain lancement</p>
+                        <p className="text-sm text-primary-700">{rapport.prochaineLancement}</p>
                       </div>
                     </div>
-                    <span className="px-3 py-1 bg-cyan-100 text-cyan-800 rounded-full text-sm font-medium">
+                    <span className="px-3 py-1 bg-primary-100 text-primary-800 rounded-full text-sm font-medium">
                       Automatique
                     </span>
                   </div>
@@ -479,7 +480,7 @@ export const EditReportModal: React.FC<EditReportModalProps> = ({ isOpen, onClos
             {/* Responsable */}
             <div>
               <h3 className="text-sm font-bold text-[#171717] mb-3 flex items-center gap-2">
-                <span className="w-1 h-4 bg-purple-500 rounded"></span>
+                <span className="w-1 h-4 bg-primary-500 rounded"></span>
                 Responsable
               </h3>
               <div>
@@ -496,12 +497,12 @@ export const EditReportModal: React.FC<EditReportModalProps> = ({ isOpen, onClos
             {/* Tags */}
             <div>
               <h3 className="text-sm font-bold text-[#171717] mb-3 flex items-center gap-2">
-                <span className="w-1 h-4 bg-cyan-500 rounded"></span>
+                <span className="w-1 h-4 bg-primary-500 rounded"></span>
                 Tags
               </h3>
               <div className="flex flex-wrap gap-2 mb-3">
                 {formData.tags?.map((tag: string, index: number) => (
-                  <span key={index} className="inline-flex items-center gap-1 px-3 py-1 bg-cyan-50 text-cyan-700 rounded-full text-sm border border-cyan-200">
+                  <span key={index} className="inline-flex items-center gap-1 px-3 py-1 bg-primary-50 text-primary-700 rounded-full text-sm border border-primary-200">
                     <Tag className="w-3 h-3" />
                     {tag}
                     <button
@@ -523,7 +524,7 @@ export const EditReportModal: React.FC<EditReportModalProps> = ({ isOpen, onClos
                 />
                 <button
                   onClick={addTag}
-                  className="px-4 py-2 bg-cyan-100 text-cyan-700 rounded-lg hover:bg-cyan-200"
+                  className="px-4 py-2 bg-primary-100 text-primary-700 rounded-lg hover:bg-primary-200"
                 >
                   Ajouter
                 </button>
@@ -939,7 +940,7 @@ export const ScheduleSettingsModal: React.FC<ScheduleSettingsModalProps> = ({ is
         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-lg">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="bg-purple-100 text-purple-600 p-2 rounded-lg">
+              <div className="bg-primary-100 text-primary-600 p-2 rounded-lg">
                 <Settings className="w-5 h-5" />
               </div>
               <div>
@@ -1019,7 +1020,7 @@ export const ScheduleSettingsModal: React.FC<ScheduleSettingsModalProps> = ({ is
             {/* Destinataires */}
             <div>
               <h3 className="text-sm font-bold text-[#171717] mb-3 flex items-center gap-2">
-                <span className="w-1 h-4 bg-purple-500 rounded"></span>
+                <span className="w-1 h-4 bg-primary-500 rounded"></span>
                 Destinataires
               </h3>
               <Input

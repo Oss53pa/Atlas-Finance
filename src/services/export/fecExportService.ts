@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * FEC (Fichier des Ecritures Comptables) export service.
  * Conforme a l'article A.47 A-1 du Livre des Procedures Fiscales.

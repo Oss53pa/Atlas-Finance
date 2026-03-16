@@ -230,7 +230,7 @@ const AdminDashboard: React.FC = () => {
                   className={`
                     flex items-center space-x-2 py-4 border-b-2 font-medium text-sm transition-colors
                     ${activeTab === tab.id 
-                      ? 'border-purple-500 text-[var(--color-info)]' 
+                      ? 'border-primary-500 text-[var(--color-info)]' 
                       : 'border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
                     }
                   `}
@@ -302,7 +302,7 @@ const AdminDashboard: React.FC = () => {
 
               <div className="bg-white rounded-xl p-6 shadow-sm border border-[var(--color-border)]">
                 <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Activité Réseau</h2>
-                <div className="h-48 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-lg flex items-center justify-center">
+                <div className="h-48 bg-gradient-to-br from-blue-50 to-primary-100 rounded-lg flex items-center justify-center">
                   <div className="text-center">
                     <Activity className="w-12 h-12 text-[var(--color-primary)] mx-auto mb-2" />
                     <p className="text-[var(--color-text-primary)] text-sm">Graphique réseau temps réel</p>
@@ -320,7 +320,7 @@ const AdminDashboard: React.FC = () => {
                 <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Gestion des Utilisateurs</h2>
                 <button
                   onClick={() => setShowNewUserModal(true)}
-                  className="bg-[var(--color-info)] text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-purple-700 transition-colors"
+                  className="bg-[var(--color-info)] text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-primary-700 transition-colors"
                 >
                   <UserPlus className="w-4 h-4" />
                   <span>Nouvel utilisateur</span>
@@ -516,7 +516,7 @@ const AdminDashboard: React.FC = () => {
                   type="text"
                   value={newUser.name}
                   onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   placeholder="Nom Prénom"
                 />
               </div>
@@ -526,7 +526,7 @@ const AdminDashboard: React.FC = () => {
                   type="email"
                   value={newUser.email}
                   onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   placeholder="email@example.com"
                 />
               </div>
@@ -535,7 +535,7 @@ const AdminDashboard: React.FC = () => {
                 <select
                   value={newUser.role}
                   onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 >
                   <option value="Comptable">Comptable</option>
                   <option value="Manager">Manager</option>
@@ -548,7 +548,7 @@ const AdminDashboard: React.FC = () => {
                   type="password"
                   value={newUser.password}
                   onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   placeholder="••••••••"
                 />
               </div>
@@ -562,7 +562,7 @@ const AdminDashboard: React.FC = () => {
               </button>
               <button
                 onClick={handleCreateUser}
-                className="px-4 py-2 bg-[var(--color-info)] text-white rounded-lg hover:bg-purple-700"
+                className="px-4 py-2 bg-[var(--color-info)] text-white rounded-lg hover:bg-primary-700"
               >
                 Créer l'utilisateur
               </button>

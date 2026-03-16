@@ -409,7 +409,7 @@ const RecouvrementDashboard: React.FC = () => {
 
                 <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[var(--color-text-secondary)]" />
+                    <Search className="absolute left-3 top-1/2 transform -tranprimary-y-1/2 w-4 h-4 text-[var(--color-text-secondary)]" />
                     <input
                       type="text"
                       placeholder="Rechercher..."
@@ -608,7 +608,7 @@ const RecouvrementDashboard: React.FC = () => {
 
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center justify-between mb-4">
-                <Scale className="w-8 h-8 text-purple-500" />
+                <Scale className="w-8 h-8 text-primary-500" />
                 <span className="text-sm font-medium text-[var(--color-info)]">Judiciaire</span>
               </div>
               <p className="text-lg font-bold text-[var(--color-text-primary)]">
@@ -747,7 +747,7 @@ const RecouvrementDashboard: React.FC = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           {dossier.typeRecouvrement === 'judiciaire' ? (
-                            <Gavel className="w-4 h-4 text-purple-500 mr-1" />
+                            <Gavel className="w-4 h-4 text-primary-500 mr-1" />
                           ) : dossier.typeRecouvrement === 'huissier' ? (
                             <Shield className="w-4 h-4 text-orange-500 mr-1" />
                           ) : (
@@ -861,7 +861,7 @@ const RecouvrementDashboard: React.FC = () => {
                 <button className="w-full text-left p-3 bg-[var(--color-info-lightest)] rounded-lg hover:bg-[var(--color-info-lighter)]">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium text-[var(--color-info-dark)]">{dossiersRecouvrement.filter(d => d.statut === 'juridique').length} Audiences prévues</span>
-                    <Gavel className="w-4 h-4 text-purple-500" />
+                    <Gavel className="w-4 h-4 text-primary-500" />
                   </div>
                 </button>
               </div>

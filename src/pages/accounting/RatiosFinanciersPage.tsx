@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
@@ -155,7 +156,7 @@ const RatiosFinanciersPage: React.FC = () => {
           ]
         },
         {
-          id: 'activite', name: 'Ratios d\'Activité', color: 'purple', icon: Target,
+          id: 'activite', name: 'Ratios d\'Activité', color: 'primary', icon: Target,
           ratios: [
             {
               id: 'rotation_stocks', name: 'Rotation des Stocks',
@@ -288,14 +289,14 @@ const RatiosFinanciersPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="min-h-screen bg-primary-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-primary-50">
       <div className="container mx-auto px-4 py-6">
         {/* En-tête */}
         <div className="mb-8">

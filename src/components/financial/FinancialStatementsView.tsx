@@ -101,7 +101,7 @@ const FinancialStatementsView: React.FC = () => {
       case 'income':
         return <CalculatorIcon className="h-5 w-5 text-green-500" />;
       case 'cashflow':
-        return <DocumentChartBarIcon className="h-5 w-5 text-purple-500" />;
+        return <DocumentChartBarIcon className="h-5 w-5 text-primary-500" />;
       default:
         return <DocumentChartBarIcon className="h-5 w-5 text-gray-700" />;
     }
@@ -327,15 +327,15 @@ const FinancialStatementsView: React.FC = () => {
             <p className="text-sm text-green-700 mt-2">+18% vs N-1</p>
           </div>
 
-          <div className="bg-purple-50 p-4 rounded-lg">
+          <div className="bg-primary-50 p-4 rounded-lg">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-purple-600">ROE</p>
-                <p className="text-lg font-bold text-purple-900">15.2%</p>
+                <p className="text-sm text-primary-600">ROE</p>
+                <p className="text-lg font-bold text-primary-900">15.2%</p>
               </div>
-              <DocumentChartBarIcon className="h-8 w-8 text-purple-500" />
+              <DocumentChartBarIcon className="h-8 w-8 text-primary-500" />
             </div>
-            <p className="text-sm text-purple-700 mt-2">Excellent</p>
+            <p className="text-sm text-primary-700 mt-2">Excellent</p>
           </div>
 
           <div className="bg-yellow-50 p-4 rounded-lg">

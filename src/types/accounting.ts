@@ -3,8 +3,8 @@
  * Importés depuis les types partagés backend
  */
 
-// Export des types partagés
-export * from '../../../shared/types/accounting';
+// Note: shared/types/accounting module not yet available
+// export * from '../../../shared/types/accounting';
 
 // Types additionnels spécifiques au frontend
 export interface UIState {

@@ -6,7 +6,7 @@ interface KadsCardProps {
   value: string | number;
   change?: string;
   trend?: 'up' | 'down' | 'neutral';
-  color: 'blue' | 'green' | 'orange' | 'purple' | 'red' | 'yellow';
+  color: 'blue' | 'green' | 'orange' | 'primary' | 'red' | 'yellow';
   icon: LucideIcon;
   description?: string;
   target?: string;
@@ -30,7 +30,7 @@ const KadsCard: React.FC<KadsCardProps> = ({
     blue: 'bg-blue-100 text-blue-600',
     green: 'bg-green-100 text-green-600',
     orange: 'bg-orange-100 text-orange-600',
-    purple: 'bg-purple-100 text-purple-600',
+    primary: 'bg-primary-100 text-primary-600',
     red: 'bg-red-100 text-red-600',
     yellow: 'bg-yellow-100 text-yellow-600'
   };
@@ -39,7 +39,7 @@ const KadsCard: React.FC<KadsCardProps> = ({
     blue: 'from-blue-500 to-blue-600',
     green: 'from-green-500 to-green-600',
     orange: 'from-orange-500 to-orange-600',
-    purple: 'from-purple-500 to-purple-600',
+    primary: 'from-primary-500 to-primary-600',
     red: 'from-red-500 to-red-600',
     yellow: 'from-yellow-500 to-yellow-600'
   };

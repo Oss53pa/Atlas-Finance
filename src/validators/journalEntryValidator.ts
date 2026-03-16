@@ -7,7 +7,8 @@
 
 import { money, Money } from '../utils/money';
 import type { DataAdapter } from '@atlas/data';
-import type { DBJournalLine, DBJournalEntry } from '../lib/db';
+import type { DBJournalLine, DBJournalEntry, DBFiscalYear, DBAccount } from '../lib/db';
+import { getPeriodeStatus } from '../services/periodeComptableService';
 
 export interface ValidationResult {
   isValid: boolean;
@@ -92,7 +93,7 @@ export async function validateJournalEntry(
 
   // --- Règle 6 : Période ouverte ---
   if (date) {
-    const fiscalYears = await adapter.getAll('fiscalYears');
+    const fiscalYears = await adapter.getAll<DBFiscalYear>('fiscalYears');
     const matchingYear = fiscalYears.find(
       fy => date >= fy.startDate && date <= fy.endDate
     );
@@ -105,13 +106,31 @@ export async function validateJournalEntry(
       errors.push(
         `L'exercice "${matchingYear.name}" (${matchingYear.startDate} au ${matchingYear.endDate}) est clôturé. Impossible de saisir des écritures.`
       );
+    } else {
+      // Règle 6bis : Vérification verrouillage période mensuelle (AF-025)
+      const periodStatus = await getPeriodeStatus(adapter, date);
+      if (periodStatus === 'closed') {
+        errors.push(
+          `La période mensuelle couvrant le ${date} est clôturée — aucune écriture possible.`
+        );
+      } else if (periodStatus === 'locked') {
+        errors.push(
+          `La période mensuelle couvrant le ${date} est verrouillée — saisie bloquée.`
+        );
+      }
+      // 'open' → OK, 'no_period' → pas de période définie, on laisse passer (warning)
+      if (periodStatus === 'no_period') {
+        warnings.push(
+          `Aucune période mensuelle définie pour le ${date}. Pensez à créer les périodes comptables.`
+        );
+      }
     }
   }
 
   // --- Règle 7 : Comptes existants ---
   const accountCodes = [...new Set(lines.map(l => l.accountCode))];
-  const existingAccounts = await adapter.getAll('accounts', { whereIn: { field: 'code', values: accountCodes } });
-  const existingCodes = new Set((existingAccounts as any[]).map(a => a.code));
+  const existingAccounts = await adapter.getAll<DBAccount>('accounts', { whereIn: { field: 'code', values: accountCodes } });
+  const existingCodes = new Set(existingAccounts.map(a => a.code));
 
   for (const code of accountCodes) {
     if (!existingCodes.has(code)) {
@@ -188,7 +207,7 @@ export function validateJournalEntrySync(
  * Génère le prochain numéro de pièce séquentiel pour un journal donné.
  */
 export async function getNextPieceNumber(adapter: DataAdapter, journalCode: string): Promise<string> {
-  const entries = await adapter.getAll('journalEntries', { where: { journal: journalCode } });
+  const entries = await adapter.getAll<DBJournalEntry>('journalEntries', { where: { journal: journalCode } });
 
   let maxNum = 0;
   for (const entry of entries) {

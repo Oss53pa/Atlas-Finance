@@ -302,38 +302,38 @@ const AIInsights: React.FC = () => {
   const renderPredictionsTab = () => (
     <div className="space-y-6">
       {/* AI Performance Overview */}
-      <div className="bg-gradient-to-r from-[#171717] to-[#525252] text-white rounded-lg p-6">
+      <div className="bg-gradient-to-r from-[#171717] to-[#525252] rounded-lg p-6">
         <div className="flex items-center gap-3 mb-4">
-          <Brain className="w-8 h-8" />
+          <Brain className="w-8 h-8 text-white" />
           <div>
-            <h2 className="text-lg font-semibold">Performance des Modèles IA</h2>
+            <h2 className="text-lg font-semibold text-white">Performance des Modèles IA</h2>
             <p className="text-white/80">Précision et fiabilité en temps réel</p>
           </div>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <Target className="w-5 h-5" />
-              <span className="text-sm opacity-90">Écritures analysées</span>
+              <Target className="w-5 h-5 text-white" />
+              <span className="text-sm text-white/90">Écritures analysées</span>
             </div>
-            <p className="text-lg font-bold">{totalEntries}</p>
-            <p className="text-sm opacity-75 mt-1">Total</p>
+            <p className="text-lg font-bold text-white">{totalEntries}</p>
+            <p className="text-sm text-white/75 mt-1">Total</p>
           </div>
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="w-5 h-5" />
-              <span className="text-sm opacity-90">Anomalies détectées</span>
+              <Sparkles className="w-5 h-5 text-white" />
+              <span className="text-sm text-white/90">Anomalies détectées</span>
             </div>
-            <p className="text-lg font-bold">{anomalies.length}</p>
-            <p className="text-sm opacity-75 mt-1">À traiter</p>
+            <p className="text-lg font-bold text-white">{anomalies.length}</p>
+            <p className="text-sm text-white/75 mt-1">À traiter</p>
           </div>
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <DollarSign className="w-5 h-5" />
-              <span className="text-sm opacity-90">Insights</span>
+              <DollarSign className="w-5 h-5 text-white" />
+              <span className="text-sm text-white/90">Insights</span>
             </div>
-            <p className="text-lg font-bold">{insights.length}</p>
-            <p className="text-sm opacity-75 mt-1">Recommandations</p>
+            <p className="text-lg font-bold text-white">{insights.length}</p>
+            <p className="text-sm text-white/75 mt-1">Recommandations</p>
           </div>
         </div>
       </div>
@@ -646,7 +646,7 @@ const AIInsights: React.FC = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
           <h1 className="text-lg font-bold text-gray-900">IA Insights & Analyses Prédictives</h1>
-          <p className="text-gray-900 mt-2">Intelligence artificielle avancée pour la prise de décision stratégique</p>
+          <p className="text-gray-500 mt-2">Intelligence artificielle avancée pour la prise de décision stratégique</p>
         </div>
         <div className="flex items-center gap-3">
           <select
@@ -681,7 +681,26 @@ const AIInsights: React.FC = () => {
             <RefreshCw className="w-5 h-5" />
           </button>
 
-          <button className="flex items-center gap-2 px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/90">
+          <button
+            onClick={() => {
+              const report = {
+                generatedAt: new Date().toISOString(),
+                totalEntries,
+                predictions,
+                anomalies: anomalies.map(a => ({ ...a, detectedAt: new Date(a.detectedAt).toISOString() })),
+                insights,
+                scoringData,
+              };
+              const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+              const url = URL.createObjectURL(blob);
+              const link = document.createElement('a');
+              link.href = url;
+              link.download = `rapport-ia-${new Date().toISOString().slice(0, 10)}.json`;
+              link.click();
+              URL.revokeObjectURL(url);
+            }}
+            className="flex items-center gap-2 px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/90"
+          >
             <Download className="w-4 h-4" />
             Rapport IA
           </button>

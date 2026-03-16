@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import {
   Key, Webhook, Building2, Users, FileText, Activity,
   Plus, Eye, EyeOff, Trash2, Copy, AlertTriangle, CheckCircle,
   XCircle, Wifi, WifiOff, Settings, X
 } from 'lucide-react';
+import { useData } from '../../../contexts/DataContext';
 
 interface Props {
   subTab: number;
@@ -12,23 +13,6 @@ interface Props {
 }
 
 const tabs = ['Cles API', 'Webhooks', 'Integration bancaire', 'Integration paie', 'Logs API'];
-
-const mockKeys = [
-  { nom: 'Application Mobile', cle: 'wbk_live_a1b2c3d4e5f6...', permissions: ['Lecture ecritures', 'Lecture tiers'], creee: '01/02/2026', dernier: '14/03/2026', statut: 'Actif' },
-  { nom: 'Import Bancaire', cle: 'wbk_live_x9y8z7w6v5u4...', permissions: ['Ecriture ecritures', 'Lecture tiers'], creee: '15/01/2026', dernier: '13/03/2026', statut: 'Actif' },
-];
-
-const mockWebhook = [
-  { url: 'https://erp.example.com/api/webhooks/wisebook', events: ['ecriture_validee', 'cloture_periode'], statut: 'Actif', reponse: 200 },
-];
-
-const mockLogs = [
-  { date: '14/03/2026 09:15:32', method: 'GET', endpoint: '/api/v1/ecritures?journal=VE', code: 200, duree: 45, ip: '192.168.1.45', cle: 'Application Mobile' },
-  { date: '14/03/2026 09:10:11', method: 'POST', endpoint: '/api/v1/ecritures', code: 201, duree: 120, ip: '192.168.1.45', cle: 'Application Mobile' },
-  { date: '14/03/2026 08:55:44', method: 'GET', endpoint: '/api/v1/tiers/search?q=SARL', code: 200, duree: 32, ip: '41.207.12.88', cle: 'Import Bancaire' },
-  { date: '14/03/2026 08:50:02', method: 'PUT', endpoint: '/api/v1/ecritures/342', code: 403, duree: 12, ip: '41.207.12.88', cle: 'Import Bancaire' },
-  { date: '14/03/2026 08:45:18', method: 'DELETE', endpoint: '/api/v1/ecritures/draft/55', code: 500, duree: 5200, ip: '192.168.1.1', cle: 'Application Mobile' },
-];
 
 const allPermissions = ['Lecture ecritures', 'Ecriture ecritures', 'Lecture tiers', 'Ecriture tiers', 'Lecture etats', 'Admin'];
 const webhookEvents = ['ecriture_validee', 'ecriture_supprimee', 'cloture_periode', 'nouveau_tiers', 'export_donnees'];
@@ -41,6 +25,47 @@ const methodColors: Record<string, string> = {
 };
 
 const AdminAPI: React.FC<Props> = ({ subTab, setSubTab }) => {
+  const { adapter } = useData();
+  const [apiKeys, setApiKeys] = useState<any[]>([]);
+  const [webhooks, setWebhooks] = useState<any[]>([]);
+  const [apiLogs, setApiLogs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const allSettings = await adapter.getAll<any>('settings');
+        const keysSetting = allSettings.find((s: any) => s.key === 'admin_api_keys');
+        if (keysSetting?.value) setApiKeys(JSON.parse(keysSetting.value));
+        const webhookSetting = allSettings.find((s: any) => s.key === 'admin_webhooks');
+        if (webhookSetting?.value) setWebhooks(JSON.parse(webhookSetting.value));
+        const logsSetting = allSettings.find((s: any) => s.key === 'admin_api_logs');
+        if (logsSetting?.value) setApiLogs(JSON.parse(logsSetting.value));
+        const bankSetting = allSettings.find((s: any) => s.key === 'admin_bank_integration');
+        if (bankSetting?.value) {
+          const bank = JSON.parse(bankSetting.value);
+          if (bank.connected) setBankConnected(true);
+          if (bank.name) setBankName(bank.name);
+          if (bank.protocol) setBankProtocol(bank.protocol);
+          if (bank.frequency) setBankFrequency(bank.frequency);
+        }
+        const payrollSetting = allSettings.find((s: any) => s.key === 'admin_payroll_integration');
+        if (payrollSetting?.value) {
+          const payroll = JSON.parse(payrollSetting.value);
+          if (payroll.connected) setPayrollConnected(true);
+          if (payroll.software) setPayrollSoftware(payroll.software);
+          if (payroll.journal) setPayrollJournal(payroll.journal);
+          if (payroll.compte) setPayrollCompte(payroll.compte);
+        }
+      } catch (err) {
+        console.error('Error loading API data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [adapter]);
+
   // Key modal
   const [showKeyModal, setShowKeyModal] = useState(false);
   const [newKeyName, setNewKeyName] = useState('');
@@ -76,6 +101,25 @@ const AdminAPI: React.FC<Props> = ({ subTab, setSubTab }) => {
   const [logDateTo, setLogDateTo] = useState('2026-03-14');
   const [logMethod, setLogMethod] = useState('');
   const [logStatus, setLogStatus] = useState('');
+
+  const saveSetting = async (key: string, value: any) => {
+    const data = { key, value: JSON.stringify(value), updatedAt: new Date().toISOString() };
+    try {
+      const existing = await adapter.getById('settings', key);
+      if (existing) {
+        await adapter.update('settings', key, data);
+      } else {
+        await adapter.create('settings', data);
+      }
+    } catch {
+      try {
+        await adapter.create('settings', data);
+      } catch (error) {
+        console.error(`[AdminAPI] saveSetting "${key}" failed:`, error);
+        toast.error(`Erreur sauvegarde paramètre "${key}"`);
+      }
+    }
+  };
 
   const togglePerm = (p: string) => {
     setNewKeyPerms(prev => prev.includes(p) ? prev.filter(x => x !== p) : [...prev, p]);
@@ -119,6 +163,9 @@ const AdminAPI: React.FC<Props> = ({ subTab, setSubTab }) => {
             </button>
           </div>
           <div className="bg-white rounded-lg border overflow-x-auto">
+            {apiKeys.length === 0 ? (
+              <div className="p-8 text-center text-gray-400">Aucune cle API. Generez-en une pour commencer.</div>
+            ) : (
             <table className="w-full text-sm">
               <thead className="bg-gray-50">
                 <tr>
@@ -128,7 +175,7 @@ const AdminAPI: React.FC<Props> = ({ subTab, setSubTab }) => {
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {mockKeys.map((row, i) => (
+                {apiKeys.map((row, i) => (
                   <tr key={i} className="hover:bg-gray-50">
                     <td className="px-4 py-3 font-medium">{row.nom}</td>
                     <td className="px-4 py-3 font-mono text-xs">
@@ -136,7 +183,7 @@ const AdminAPI: React.FC<Props> = ({ subTab, setSubTab }) => {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex flex-wrap gap-1">
-                        {row.permissions.map(p => (
+                        {row.permissions.map((p: string) => (
                           <span key={p} className="px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">{p}</span>
                         ))}
                       </div>
@@ -148,7 +195,12 @@ const AdminAPI: React.FC<Props> = ({ subTab, setSubTab }) => {
                       <button onClick={() => toggleReveal(i)} className="text-gray-500 hover:text-gray-700">
                         {revealedKeys.has(i) ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
-                      <button onClick={() => toast.success('Cle API revoquee')} className="text-red-500 hover:text-red-700">
+                      <button onClick={async () => {
+                        const updated = apiKeys.filter((_, idx) => idx !== i);
+                        setApiKeys(updated);
+                        try { await saveSetting('admin_api_keys', updated); } catch (error) { console.error('[AdminAPI] revoke key failed:', error); toast.error('Erreur lors de la révocation'); }
+                        toast.success('Cle API revoquee');
+                      }} className="text-red-500 hover:text-red-700">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </td>
@@ -156,6 +208,7 @@ const AdminAPI: React.FC<Props> = ({ subTab, setSubTab }) => {
                 ))}
               </tbody>
             </table>
+            )}
           </div>
 
           {showKeyModal && (
@@ -191,7 +244,28 @@ const AdminAPI: React.FC<Props> = ({ subTab, setSubTab }) => {
                 </div>
                 <div className="flex gap-3 justify-end">
                   <button onClick={() => setShowKeyModal(false)} className="px-4 py-2 border rounded-lg hover:bg-gray-50">Annuler</button>
-                  <button onClick={() => { setShowKeyModal(false); toast.success('Cle API generee avec succes'); }} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                  <button onClick={async () => {
+                    if (!newKeyName.trim()) { toast.error('Le nom est obligatoire'); return; }
+                    const newKey = {
+                      nom: newKeyName,
+                      cle: 'wbk_live_' + crypto.randomUUID().substring(0, 12) + '...',
+                      permissions: newKeyPerms,
+                      creee: new Date().toLocaleDateString('fr-FR'),
+                      dernier: '-',
+                      statut: 'Actif',
+                    };
+                    const updated = [...apiKeys, newKey];
+                    setApiKeys(updated);
+                    try {
+                      await saveSetting('admin_api_keys', updated);
+                    } catch (error) {
+                      console.error('[AdminAPI] save key failed:', error);
+                      toast.error('Erreur lors de la sauvegarde de la clé');
+                    }
+                    setShowKeyModal(false);
+                    setNewKeyName(''); setNewKeyPerms([]);
+                    toast.success('Cle API generee avec succes');
+                  }} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
                     Generer
                   </button>
                 </div>
@@ -210,6 +284,9 @@ const AdminAPI: React.FC<Props> = ({ subTab, setSubTab }) => {
             </button>
           </div>
           <div className="bg-white rounded-lg border overflow-x-auto">
+            {webhooks.length === 0 ? (
+              <div className="p-8 text-center text-gray-400">Aucun webhook configure</div>
+            ) : (
             <table className="w-full text-sm">
               <thead className="bg-gray-50">
                 <tr>
@@ -219,12 +296,12 @@ const AdminAPI: React.FC<Props> = ({ subTab, setSubTab }) => {
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {mockWebhook.map((row, i) => (
+                {webhooks.map((row, i) => (
                   <tr key={i} className="hover:bg-gray-50">
                     <td className="px-4 py-3 font-mono text-xs">{row.url}</td>
                     <td className="px-4 py-3">
                       <div className="flex flex-wrap gap-1">
-                        {row.events.map(e => (
+                        {(row.events || []).map((e: string) => (
                           <span key={e} className="px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">{e}</span>
                         ))}
                       </div>
@@ -233,16 +310,22 @@ const AdminAPI: React.FC<Props> = ({ subTab, setSubTab }) => {
                       <span className={`px-2 py-1 rounded text-xs font-medium ${row.statut === 'Actif' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>{row.statut}</span>
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${row.reponse < 400 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{row.reponse}</span>
+                      {row.reponse ? <span className={`px-2 py-1 rounded text-xs font-medium ${row.reponse < 400 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{row.reponse}</span> : <span className="text-gray-400">-</span>}
                     </td>
                     <td className="px-4 py-3 flex gap-2">
                       <button onClick={() => toast.success('Webhook teste avec succes')} className="text-blue-600 hover:text-blue-800 text-xs underline">Tester</button>
-                      <button onClick={() => toast.success('Webhook supprime')} className="text-red-500 hover:text-red-700"><Trash2 className="w-4 h-4" /></button>
+                      <button onClick={async () => {
+                        const updated = webhooks.filter((_, idx) => idx !== i);
+                        setWebhooks(updated);
+                        try { await saveSetting('admin_webhooks', updated); } catch (error) { console.error('[AdminAPI] delete webhook failed:', error); toast.error('Erreur suppression webhook'); }
+                        toast.success('Webhook supprime');
+                      }} className="text-red-500 hover:text-red-700"><Trash2 className="w-4 h-4" /></button>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            )}
           </div>
 
           {showWebhookModal && (
@@ -276,7 +359,15 @@ const AdminAPI: React.FC<Props> = ({ subTab, setSubTab }) => {
                 </div>
                 <div className="flex gap-3 justify-end">
                   <button onClick={() => setShowWebhookModal(false)} className="px-4 py-2 border rounded-lg hover:bg-gray-50">Annuler</button>
-                  <button onClick={() => { setShowWebhookModal(false); toast.success('Webhook ajoute avec succes'); }} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                  <button onClick={async () => {
+                    if (!webhookUrl.trim()) { toast.error('L\'URL est obligatoire'); return; }
+                    const newWh = { url: webhookUrl, events: webhookEvents_, statut: 'Actif', reponse: 0 };
+                    const updated = [...webhooks, newWh];
+                    setWebhooks(updated);
+                    try { await saveSetting('admin_webhooks', updated); } catch (error) { console.error('[AdminAPI] save webhook failed:', error); toast.error('Erreur sauvegarde webhook'); }
+                    setShowWebhookModal(false); setWebhookUrl(''); setWebhookEvents_([]);
+                    toast.success('Webhook ajoute avec succes');
+                  }} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
                     Ajouter
                   </button>
                 </div>
@@ -338,7 +429,16 @@ const AdminAPI: React.FC<Props> = ({ subTab, setSubTab }) => {
               <button onClick={() => toast.success('Test de connexion reussi')} className="px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 flex items-center gap-2">
                 <Activity className="w-4 h-4" /> Tester la connexion
               </button>
-              <button onClick={() => { setBankConnected(true); toast.success('Integration bancaire enregistree'); }} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
+              <button onClick={async () => {
+                setBankConnected(true);
+                try {
+                  await saveSetting('admin_bank_integration', { connected: true, name: bankName, protocol: bankProtocol, frequency: bankFrequency });
+                  toast.success('Integration bancaire enregistree');
+                } catch (error) {
+                  console.error('[AdminAPI] bank integration save failed:', error);
+                  toast.error('Erreur lors de la sauvegarde');
+                }
+              }} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
                 <Settings className="w-4 h-4" /> Enregistrer
               </button>
             </div>
@@ -389,7 +489,7 @@ const AdminAPI: React.FC<Props> = ({ subTab, setSubTab }) => {
                 <label className="text-sm font-medium text-gray-700">Mapping automatique</label>
                 <button onClick={() => setPayrollAutoMapping(!payrollAutoMapping)}
                   className={`relative w-14 h-7 rounded-full transition-colors ${payrollAutoMapping ? 'bg-blue-600' : 'bg-gray-300'}`}>
-                  <span className={`absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full transition-transform ${payrollAutoMapping ? 'translate-x-7' : ''}`} />
+                  <span className={`absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full transition-transform ${payrollAutoMapping ? 'tranprimary-x-7' : ''}`} />
                 </button>
               </div>
             </div>
@@ -397,7 +497,16 @@ const AdminAPI: React.FC<Props> = ({ subTab, setSubTab }) => {
               <button onClick={() => toast.success('Test de connexion paie reussi')} className="px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 flex items-center gap-2">
                 <Activity className="w-4 h-4" /> Tester
               </button>
-              <button onClick={() => { setPayrollConnected(true); toast.success('Integration paie enregistree'); }} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
+              <button onClick={async () => {
+                setPayrollConnected(true);
+                try {
+                  await saveSetting('admin_payroll_integration', { connected: true, software: payrollSoftware, journal: payrollJournal, compte: payrollCompte });
+                  toast.success('Integration paie enregistree');
+                } catch (error) {
+                  console.error('[AdminAPI] payroll integration save failed:', error);
+                  toast.error('Erreur lors de la sauvegarde');
+                }
+              }} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
                 <Settings className="w-4 h-4" /> Enregistrer
               </button>
             </div>
@@ -429,6 +538,9 @@ const AdminAPI: React.FC<Props> = ({ subTab, setSubTab }) => {
             </select>
           </div>
           <div className="bg-white rounded-lg border overflow-x-auto">
+            {apiLogs.length === 0 ? (
+              <div className="p-8 text-center text-gray-400">Aucun log API enregistre</div>
+            ) : (
             <table className="w-full text-sm">
               <thead className="bg-gray-50">
                 <tr>
@@ -438,7 +550,7 @@ const AdminAPI: React.FC<Props> = ({ subTab, setSubTab }) => {
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {mockLogs.map((row, i) => (
+                {apiLogs.map((row, i) => (
                   <tr key={i} className="hover:bg-gray-50">
                     <td className="px-4 py-3 whitespace-nowrap font-mono text-xs">{row.date}</td>
                     <td className="px-4 py-3">
@@ -457,6 +569,7 @@ const AdminAPI: React.FC<Props> = ({ subTab, setSubTab }) => {
                 ))}
               </tbody>
             </table>
+            )}
           </div>
         </div>
       )}

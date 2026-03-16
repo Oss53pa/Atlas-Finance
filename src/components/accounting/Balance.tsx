@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useData } from '../../contexts/DataContext';
 import PeriodSelectorModal from '../shared/PeriodSelectorModal';
 import ExportMenu from '../shared/ExportMenu';
 import {
@@ -12,6 +13,7 @@ import {
 } from 'lucide-react';
 import PrintableArea from '../ui/PrintableArea';
 import { usePrintReport } from '../../hooks/usePrint';
+import { formatCurrency } from '../../utils/formatters';
 
 interface BalanceAccount {
   code: string;
@@ -28,8 +30,21 @@ interface BalanceAccount {
   children?: BalanceAccount[];
 }
 
+const CLASSE_LABELS: Record<string, string> = {
+  '1': 'COMPTES DE RESSOURCES DURABLES',
+  '2': "COMPTES D'ACTIF IMMOBILISÉ",
+  '3': 'COMPTES DE STOCKS',
+  '4': 'COMPTES DE TIERS',
+  '5': 'COMPTES DE TRÉSORERIE',
+  '6': 'COMPTES DE CHARGES',
+  '7': 'COMPTES DE PRODUITS',
+  '8': 'COMPTES DE RÉSULTATS',
+  '9': 'COMPTES ANALYTIQUES',
+};
+
 const Balance: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   const { printRef, handlePrint } = usePrintReport({
     title: 'Balance Comptable',
     orientation: 'landscape',
@@ -59,274 +74,147 @@ const Balance: React.FC = () => {
     soldeCrediteur: true
   });
 
-  // Données mockées structurées selon SYSCOHADA
-  const [accounts, setAccounts] = useState<BalanceAccount[]>([
-    {
-      code: '1',
-      libelle: 'COMPTES DE RESSOURCES DURABLES',
-      niveau: 1,
-      soldeDebiteurAN: 0,
-      soldeCrediteurAN: 500000,
-      mouvementsDebit: 50000,
-      mouvementsCredit: 150000,
-      soldeDebiteur: 0,
-      soldeCrediteur: 600000,
-      isExpanded: true,
-      children: [
-        {
-          code: '10',
-          libelle: 'Capital',
-          niveau: 2,
-          parent: '1',
-          soldeDebiteurAN: 0,
-          soldeCrediteurAN: 500000,
-          mouvementsDebit: 0,
-          mouvementsCredit: 100000,
-          soldeDebiteur: 0,
-          soldeCrediteur: 600000,
-          isExpanded: false,
-          children: [
-            {
-              code: '101',
-              libelle: 'Capital social',
-              niveau: 3,
-              parent: '10',
-              soldeDebiteurAN: 0,
-              soldeCrediteurAN: 500000,
-              mouvementsDebit: 0,
-              mouvementsCredit: 100000,
-              soldeDebiteur: 0,
-              soldeCrediteur: 600000,
-              isExpanded: false
-            }
-          ]
+  // Load real data from adapter
+  const [accounts, setAccounts] = useState<BalanceAccount[]>([]);
+
+  useEffect(() => {
+    const loadBalance = async () => {
+      try {
+        const [dbAccounts, dbEntries] = await Promise.all([
+          adapter.getAll<any>('accounts'),
+          adapter.getAll<any>('journalEntries'),
+        ]);
+
+        // Compute debit/credit per account code from journal lines
+        const stats: Record<string, { debit: number; credit: number }> = {};
+        for (const entry of dbEntries) {
+          if (!entry.lines) continue;
+          for (const line of entry.lines) {
+            const code = String(line.accountCode || '');
+            if (!code) continue;
+            if (!stats[code]) stats[code] = { debit: 0, credit: 0 };
+            stats[code].debit += (line.debit || 0);
+            stats[code].credit += (line.credit || 0);
+          }
         }
-      ]
-    },
-    {
-      code: '2',
-      libelle: 'COMPTES D\'ACTIF IMMOBILISÉ',
-      niveau: 1,
-      soldeDebiteurAN: 250000,
-      soldeCrediteurAN: 0,
-      mouvementsDebit: 80000,
-      mouvementsCredit: 20000,
-      soldeDebiteur: 310000,
-      soldeCrediteur: 0,
-      isExpanded: false,
-      children: [
-        {
-          code: '24',
-          libelle: 'Matériel',
-          niveau: 2,
-          parent: '2',
-          soldeDebiteurAN: 250000,
-          soldeCrediteurAN: 0,
-          mouvementsDebit: 80000,
-          mouvementsCredit: 20000,
-          soldeDebiteur: 310000,
-          soldeCrediteur: 0,
-          isExpanded: false
+
+        // Build flat account list with computed soldes
+        const flatAccounts: { code: string; name: string; debit: number; credit: number }[] = [];
+
+        // From DB accounts
+        for (const acc of dbAccounts) {
+          const code = String(acc.code || acc.number || '');
+          if (!code) continue;
+          const s = stats[code] || { debit: 0, credit: 0 };
+          flatAccounts.push({ code, name: acc.name || acc.libelle || code, debit: s.debit, credit: s.credit });
         }
-      ]
-    },
-    {
-      code: '4',
-      libelle: 'COMPTES DE TIERS',
-      niveau: 1,
-      soldeDebiteurAN: 45000,
-      soldeCrediteurAN: 35000,
-      mouvementsDebit: 288000,
-      mouvementsCredit: 255500,
-      soldeDebiteur: 205000,
-      soldeCrediteur: 188500,
-      isExpanded: true,
-      children: [
-        {
-          code: '40',
-          libelle: 'Fournisseurs et comptes rattachés',
-          niveau: 2,
-          parent: '4',
-          soldeDebiteurAN: 0,
-          soldeCrediteurAN: 10000,
-          mouvementsDebit: 20000,
-          mouvementsCredit: 35500,
-          soldeDebiteur: 0,
-          soldeCrediteur: 25500,
-          isExpanded: true,
-          children: [
-            {
-              code: '401',
-              libelle: t('navigation.suppliers'),
-              niveau: 3,
-              parent: '40',
-              soldeDebiteurAN: 0,
-              soldeCrediteurAN: 10000,
-              mouvementsDebit: 20000,
-              mouvementsCredit: 35500,
-              soldeDebiteur: 0,
-              soldeCrediteur: 15500,
-              isExpanded: false
-            }
-          ]
-        },
-        {
-          code: '41',
-          libelle: 'Clients et comptes rattachés',
-          niveau: 2,
-          parent: '4',
-          soldeDebiteurAN: 45000,
-          soldeCrediteurAN: 0,
-          mouvementsDebit: 75000,
-          mouvementsCredit: 43000,
-          soldeDebiteur: 32000,
-          soldeCrediteur: 0,
-          isExpanded: true,
-          children: [
-            {
-              code: '411',
-              libelle: t('navigation.clients'),
-              niveau: 3,
-              parent: '41',
-              soldeDebiteurAN: 45000,
-              soldeCrediteurAN: 0,
-              mouvementsDebit: 75000,
-              mouvementsCredit: 43000,
-              soldeDebiteur: 32000,
-              soldeCrediteur: 0,
-              isExpanded: false
-            }
-          ]
+
+        // Also include accounts found only in entries (not in chart)
+        const dbCodes = new Set(flatAccounts.map(a => a.code));
+        for (const [code, s] of Object.entries(stats)) {
+          if (!dbCodes.has(code)) {
+            flatAccounts.push({ code, name: code, debit: s.debit, credit: s.credit });
+          }
         }
-      ]
-    },
-    {
-      code: '5',
-      libelle: 'COMPTES DE TRÉSORERIE',
-      niveau: 1,
-      soldeDebiteurAN: 150000,
-      soldeCrediteurAN: 0,
-      mouvementsDebit: 193000,
-      mouvementsCredit: 20000,
-      soldeDebiteur: 323000,
-      soldeCrediteur: 0,
-      isExpanded: false,
-      children: [
-        {
-          code: '51',
-          libelle: 'Valeurs à encaisser',
-          niveau: 2,
-          parent: '5',
-          soldeDebiteurAN: 150000,
-          soldeCrediteurAN: 0,
-          mouvementsDebit: 193000,
-          mouvementsCredit: 20000,
-          soldeDebiteur: 173000,
-          soldeCrediteur: 0,
-          isExpanded: false,
-          children: [
-            {
-              code: '512',
-              libelle: 'Banques',
+
+        // Build hierarchical structure: Class > 2-digit > 3-digit
+        const classeMap: Record<string, BalanceAccount> = {};
+
+        for (const acc of flatAccounts) {
+          const cls = acc.code.charAt(0);
+          if (cls < '1' || cls > '9') continue;
+
+          // Ensure class node exists
+          if (!classeMap[cls]) {
+            classeMap[cls] = {
+              code: cls,
+              libelle: CLASSE_LABELS[cls] || `CLASSE ${cls}`,
+              niveau: 1,
+              soldeDebiteurAN: 0, soldeCrediteurAN: 0,
+              mouvementsDebit: 0, mouvementsCredit: 0,
+              soldeDebiteur: 0, soldeCrediteur: 0,
+              isExpanded: false,
+              children: [],
+            };
+          }
+          const classeNode = classeMap[cls];
+
+          // Find or create 2-digit parent
+          const code2 = acc.code.substring(0, 2);
+          let parent2 = classeNode.children?.find(c => c.code === code2);
+          if (!parent2 && acc.code.length >= 2) {
+            parent2 = {
+              code: code2,
+              libelle: acc.code.length === 2 ? acc.name : code2,
+              niveau: 2,
+              parent: cls,
+              soldeDebiteurAN: 0, soldeCrediteurAN: 0,
+              mouvementsDebit: 0, mouvementsCredit: 0,
+              soldeDebiteur: 0, soldeCrediteur: 0,
+              isExpanded: false,
+              children: [],
+            };
+            classeNode.children!.push(parent2);
+          }
+
+          // Add as level 3 if code >= 3 digits
+          if (acc.code.length >= 3 && parent2) {
+            const soldeNet = acc.debit - acc.credit;
+            const leaf: BalanceAccount = {
+              code: acc.code,
+              libelle: acc.name,
               niveau: 3,
-              parent: '51',
-              soldeDebiteurAN: 150000,
-              soldeCrediteurAN: 0,
-              mouvementsDebit: 193000,
-              mouvementsCredit: 20000,
-              soldeDebiteur: 173000,
-              soldeCrediteur: 0,
-              isExpanded: false
-            }
-          ]
+              parent: code2,
+              soldeDebiteurAN: 0, soldeCrediteurAN: 0,
+              mouvementsDebit: acc.debit,
+              mouvementsCredit: acc.credit,
+              soldeDebiteur: soldeNet > 0 ? soldeNet : 0,
+              soldeCrediteur: soldeNet < 0 ? Math.abs(soldeNet) : 0,
+              isExpanded: false,
+            };
+            parent2.children!.push(leaf);
+
+            // Aggregate to parent
+            parent2.mouvementsDebit += acc.debit;
+            parent2.mouvementsCredit += acc.credit;
+            const p2Net = parent2.mouvementsDebit - parent2.mouvementsCredit;
+            parent2.soldeDebiteur = p2Net > 0 ? p2Net : 0;
+            parent2.soldeCrediteur = p2Net < 0 ? Math.abs(p2Net) : 0;
+          } else if (acc.code.length === 2 && parent2) {
+            // 2-digit account: update its own name
+            parent2.libelle = acc.name;
+            parent2.mouvementsDebit += acc.debit;
+            parent2.mouvementsCredit += acc.credit;
+            const p2Net = parent2.mouvementsDebit - parent2.mouvementsCredit;
+            parent2.soldeDebiteur = p2Net > 0 ? p2Net : 0;
+            parent2.soldeCrediteur = p2Net < 0 ? Math.abs(p2Net) : 0;
+          } else if (acc.code.length === 1) {
+            // 1-digit only — aggregate directly
+            classeNode.mouvementsDebit += acc.debit;
+            classeNode.mouvementsCredit += acc.credit;
+          }
         }
-      ]
-    },
-    {
-      code: '6',
-      libelle: 'COMPTES DE CHARGES',
-      niveau: 1,
-      soldeDebiteurAN: 0,
-      soldeCrediteurAN: 0,
-      mouvementsDebit: 29583,
-      mouvementsCredit: 0,
-      soldeDebiteur: 29583,
-      soldeCrediteur: 0,
-      isExpanded: false,
-      children: [
-        {
-          code: '60',
-          libelle: 'Achats et variations de stocks',
-          niveau: 2,
-          parent: '6',
-          soldeDebiteurAN: 0,
-          soldeCrediteurAN: 0,
-          mouvementsDebit: 29583,
-          mouvementsCredit: 0,
-          soldeDebiteur: 29583,
-          soldeCrediteur: 0,
-          isExpanded: false,
-          children: [
-            {
-              code: '601',
-              libelle: 'Achats de marchandises',
-              niveau: 3,
-              parent: '60',
-              soldeDebiteurAN: 0,
-              soldeCrediteurAN: 0,
-              mouvementsDebit: 29583,
-              mouvementsCredit: 0,
-              soldeDebiteur: 29583,
-              soldeCrediteur: 0,
-              isExpanded: false
-            }
-          ]
+
+        // Aggregate class totals from children
+        for (const cls of Object.values(classeMap)) {
+          cls.mouvementsDebit = (cls.children || []).reduce((s, c) => s + c.mouvementsDebit, 0);
+          cls.mouvementsCredit = (cls.children || []).reduce((s, c) => s + c.mouvementsCredit, 0);
+          const netCls = cls.mouvementsDebit - cls.mouvementsCredit;
+          cls.soldeDebiteur = netCls > 0 ? netCls : 0;
+          cls.soldeCrediteur = netCls < 0 ? Math.abs(netCls) : 0;
         }
-      ]
-    },
-    {
-      code: '7',
-      libelle: 'COMPTES DE PRODUITS',
-      niveau: 1,
-      soldeDebiteurAN: 0,
-      soldeCrediteurAN: 0,
-      mouvementsDebit: 0,
-      mouvementsCredit: 62500,
-      soldeDebiteur: 0,
-      soldeCrediteur: 62500,
-      isExpanded: false,
-      children: [
-        {
-          code: '70',
-          libelle: 'Ventes',
-          niveau: 2,
-          parent: '7',
-          soldeDebiteurAN: 0,
-          soldeCrediteurAN: 0,
-          mouvementsDebit: 0,
-          mouvementsCredit: 62500,
-          soldeDebiteur: 0,
-          soldeCrediteur: 62500,
-          isExpanded: false,
-          children: [
-            {
-              code: '701',
-              libelle: 'Ventes de marchandises',
-              niveau: 3,
-              parent: '70',
-              soldeDebiteurAN: 0,
-              soldeCrediteurAN: 0,
-              mouvementsDebit: 0,
-              mouvementsCredit: 62500,
-              soldeDebiteur: 0,
-              soldeCrediteur: 62500,
-              isExpanded: false
-            }
-          ]
-        }
-      ]
-    }
-  ]);
+
+        // Sort and set
+        const result = Object.values(classeMap).sort((a, b) => a.code.localeCompare(b.code));
+        // Expand first class by default
+        if (result.length > 0) result[0].isExpanded = true;
+        setAccounts(result);
+      } catch (err) {
+        console.error('Erreur chargement balance:', err);
+      }
+    };
+    loadBalance();
+  }, [adapter]);
 
   const toggleAccount = (code: string, accounts: BalanceAccount[]): BalanceAccount[] => {
     return accounts.map(account => {
@@ -1949,7 +1837,7 @@ const Balance: React.FC = () => {
                 />
                 <button
                   onClick={handleGeneratePDF}
-                  className="px-3 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 text-sm font-medium flex items-center justify-center transition-all"
+                  className="px-3 py-2 bg-primary-100 text-primary-700 rounded-lg hover:bg-primary-200 text-sm font-medium flex items-center justify-center transition-all"
                 >
                   <FileText className="w-4 h-4 mr-2" />
                   Rapport PDF

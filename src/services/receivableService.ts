@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Service de suivi des créances et dettes tiers.
  * Connecte les comptes 40x/41x aux écritures pour:

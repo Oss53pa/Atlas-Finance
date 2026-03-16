@@ -225,7 +225,7 @@ const UsersPage: React.FC = () => {
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+          className="bg-primary hover:bg-primary-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
         >
           <PlusIcon className="h-5 w-5" />
           <span>Nouvel Utilisateur</span>
@@ -288,13 +288,13 @@ const UsersPage: React.FC = () => {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
           <div className="flex items-center space-x-4">
             <div className="relative">
-              <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-700" />
+              <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-1/2 transform -tranprimary-y-1/2 text-gray-700" />
               <input
                 type="text"
                 placeholder="Rechercher un utilisateur..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
             </div>
             <button
@@ -314,7 +314,7 @@ const UsersPage: React.FC = () => {
               <select
                 value={selectedDepartment}
                 onChange={(e) => setSelectedDepartment(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
                 <option value="all">Tous les départements</option>
                 <option value="Finance">Finance</option>
@@ -331,7 +331,7 @@ const UsersPage: React.FC = () => {
               <select
                 value={selectedRole}
                 onChange={(e) => setSelectedRole(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
                 <option value="all">Tous les rôles</option>
                 {roles.map((role) => (
@@ -345,7 +345,7 @@ const UsersPage: React.FC = () => {
               <select
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
                 <option value="all">Tous les statuts</option>
                 <option value="active">Actif</option>
@@ -513,7 +513,7 @@ const UsersPage: React.FC = () => {
                             setSelectedUser(user);
                             setShowViewModal(true);
                           }}
-                          className="p-2 text-gray-700 hover:text-indigo-600 transition-colors"
+                          className="p-2 text-gray-700 hover:text-primary-600 transition-colors"
                           title="Voir les détails"
                         >
                           <EyeIcon className="h-4 w-4" />
@@ -524,7 +524,7 @@ const UsersPage: React.FC = () => {
                             setSelectedUser(user);
                             setShowEditModal(true);
                           }}
-                          className="p-2 text-gray-700 hover:text-indigo-600 transition-colors"
+                          className="p-2 text-gray-700 hover:text-primary-600 transition-colors"
                           title={t('common.edit')}
                         >
                           <PencilIcon className="h-4 w-4" />
@@ -567,7 +567,7 @@ const UsersPage: React.FC = () => {
                             setSelectedUser(user);
                             setShowPermissionsModal(true);
                           }}
-                          className="p-2 text-gray-700 hover:text-purple-600 transition-colors"
+                          className="p-2 text-gray-700 hover:text-primary-600 transition-colors"
                           title="Gérer les permissions"
                         >
                           <UserIcon className="h-4 w-4" />
@@ -649,7 +649,7 @@ const UsersPage: React.FC = () => {
                   </label>
                   <input
                     type="text"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     placeholder="Marie"
                   />
                 </div>
@@ -660,7 +660,7 @@ const UsersPage: React.FC = () => {
                   </label>
                   <input
                     type="text"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     placeholder="Nom"
                   />
                 </div>
@@ -673,7 +673,7 @@ const UsersPage: React.FC = () => {
                   </label>
                   <input
                     type="email"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     placeholder="marie.dubois@atlasfinance.com"
                   />
                 </div>
@@ -682,7 +682,7 @@ const UsersPage: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
                   <input
                     type="tel"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     placeholder="+225 01 23 45 67"
                   />
                 </div>
@@ -693,7 +693,7 @@ const UsersPage: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Rôle <span className="text-red-500">*</span>
                   </label>
-                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent">
                     <option value="">Sélectionner...</option>
                     {roles.map((role) => (
                       <option key={role.id} value={role.name}>{role.name}</option>
@@ -705,7 +705,7 @@ const UsersPage: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Département <span className="text-red-500">*</span>
                   </label>
-                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent">
                     <option value="">Sélectionner...</option>
                     <option value="Finance">Finance</option>
                     <option value="Commercial">Commercial</option>
@@ -718,7 +718,7 @@ const UsersPage: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
-                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent">
                     <option value="active">Actif</option>
                     <option value="inactive">Inactif</option>
                     <option value="suspended">Suspendu</option>
@@ -732,7 +732,7 @@ const UsersPage: React.FC = () => {
                 </label>
                 <input
                   type="text"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   placeholder="Directrice Financière"
                 />
               </div>
@@ -744,7 +744,7 @@ const UsersPage: React.FC = () => {
                   </label>
                   <input
                     type="password"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     placeholder="••••••••"
                   />
                 </div>
@@ -755,7 +755,7 @@ const UsersPage: React.FC = () => {
                   </label>
                   <input
                     type="password"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     placeholder="••••••••"
                   />
                 </div>
@@ -763,17 +763,17 @@ const UsersPage: React.FC = () => {
 
               <div className="space-y-2">
                 <label className="flex items-center">
-                  <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500" />
+                  <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500" />
                   <span className="ml-2 text-sm text-gray-700">Envoyer un email d'activation</span>
                 </label>
 
                 <label className="flex items-center">
-                  <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500" />
+                  <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500" />
                   <span className="ml-2 text-sm text-gray-700">Activer l'authentification à deux facteurs (2FA)</span>
                 </label>
 
                 <label className="flex items-center">
-                  <input type="checkbox" defaultChecked className="rounded text-indigo-600 focus:ring-indigo-500" />
+                  <input type="checkbox" defaultChecked className="rounded text-primary-600 focus:ring-primary-500" />
                   <span className="ml-2 text-sm text-gray-700">Forcer le changement de mot de passe à la première connexion</span>
                 </label>
               </div>
@@ -792,7 +792,7 @@ const UsersPage: React.FC = () => {
               >
                 Annuler
               </button>
-              <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+              <button className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-700 transition-colors">
                 Créer l'utilisateur
               </button>
             </div>
@@ -911,7 +911,7 @@ const UsersPage: React.FC = () => {
                 <h4 className="font-medium text-gray-900 mb-3">Permissions</h4>
                 <div className="flex flex-wrap gap-2">
                   {selectedUser.permissions.map((permission, idx) => (
-                    <span key={idx} className="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm">
+                    <span key={idx} className="px-3 py-1 bg-primary-100 text-primary-800 rounded-full text-sm">
                       {permission}
                     </span>
                   ))}
@@ -1010,7 +1010,7 @@ const UsersPage: React.FC = () => {
                   <input
                     type="text"
                     defaultValue={selectedUser.firstName}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
 
@@ -1021,7 +1021,7 @@ const UsersPage: React.FC = () => {
                   <input
                     type="text"
                     defaultValue={selectedUser.lastName}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
               </div>
@@ -1034,7 +1034,7 @@ const UsersPage: React.FC = () => {
                   <input
                     type="email"
                     defaultValue={selectedUser.email}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
 
@@ -1043,7 +1043,7 @@ const UsersPage: React.FC = () => {
                   <input
                     type="tel"
                     defaultValue={selectedUser.phone}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
               </div>
@@ -1055,7 +1055,7 @@ const UsersPage: React.FC = () => {
                   </label>
                   <select
                     defaultValue={selectedUser.role}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   >
                     {roles.map((role) => (
                       <option key={role.id} value={role.name}>{role.name}</option>
@@ -1069,7 +1069,7 @@ const UsersPage: React.FC = () => {
                   </label>
                   <select
                     defaultValue={selectedUser.department}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   >
                     <option value="Finance">Finance</option>
                     <option value="Commercial">Commercial</option>
@@ -1084,7 +1084,7 @@ const UsersPage: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
                   <select
                     defaultValue={selectedUser.status}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   >
                     <option value="active">Actif</option>
                     <option value="inactive">Inactif</option>
@@ -1101,7 +1101,7 @@ const UsersPage: React.FC = () => {
                 <input
                   type="text"
                   defaultValue={selectedUser.position}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
               </div>
 
@@ -1110,7 +1110,7 @@ const UsersPage: React.FC = () => {
                   <input
                     type="checkbox"
                     defaultChecked={selectedUser.isEmailVerified}
-                    className="rounded text-indigo-600 focus:ring-indigo-500"
+                    className="rounded text-primary-600 focus:ring-primary-500"
                   />
                   <span className="ml-2 text-sm text-gray-700">Email vérifié</span>
                 </label>
@@ -1119,7 +1119,7 @@ const UsersPage: React.FC = () => {
                   <input
                     type="checkbox"
                     defaultChecked={selectedUser.is2FAEnabled}
-                    className="rounded text-indigo-600 focus:ring-indigo-500"
+                    className="rounded text-primary-600 focus:ring-primary-500"
                   />
                   <span className="ml-2 text-sm text-gray-700">Authentification à deux facteurs (2FA)</span>
                 </label>
@@ -1145,7 +1145,7 @@ const UsersPage: React.FC = () => {
               >
                 Annuler
               </button>
-              <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+              <button className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-700 transition-colors">
                 Enregistrer
               </button>
             </div>
@@ -1188,7 +1188,7 @@ const UsersPage: React.FC = () => {
                 <h4 className="font-medium text-gray-900 mb-3">Permissions Actuelles</h4>
                 <div className="flex flex-wrap gap-2 mb-4">
                   {selectedUser.permissions.map((permission, idx) => (
-                    <span key={idx} className="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm flex items-center space-x-2">
+                    <span key={idx} className="px-3 py-1 bg-primary-100 text-primary-800 rounded-full text-sm flex items-center space-x-2">
                       <span>{permission}</span>
                       <button className="hover:text-red-600">×</button>
                     </span>
@@ -1201,21 +1201,21 @@ const UsersPage: React.FC = () => {
                 <div className="space-y-3">
                   <div className="border border-gray-200 rounded-lg p-4">
                     <label className="flex items-start space-x-3">
-                      <input type="checkbox" className="mt-1 rounded text-indigo-600 focus:ring-indigo-500" />
+                      <input type="checkbox" className="mt-1 rounded text-primary-600 focus:ring-primary-500" />
                       <div className="flex-1">
                         <div className="font-medium text-gray-900">{t('accounting.title')}</div>
                         <p className="text-sm text-gray-600">Accès complet aux écritures, journaux et grand livre</p>
                         <div className="flex items-center space-x-4 mt-2 text-sm">
                           <label className="flex items-center">
-                            <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500 mr-1" />
+                            <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-1" />
                             <span className="text-gray-600">Lecture</span>
                           </label>
                           <label className="flex items-center">
-                            <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500 mr-1" />
+                            <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-1" />
                             <span className="text-gray-600">{t('accounting.entry')}</span>
                           </label>
                           <label className="flex items-center">
-                            <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500 mr-1" />
+                            <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-1" />
                             <span className="text-gray-600">Validation</span>
                           </label>
                         </div>
@@ -1225,17 +1225,17 @@ const UsersPage: React.FC = () => {
 
                   <div className="border border-gray-200 rounded-lg p-4">
                     <label className="flex items-start space-x-3">
-                      <input type="checkbox" className="mt-1 rounded text-indigo-600 focus:ring-indigo-500" />
+                      <input type="checkbox" className="mt-1 rounded text-primary-600 focus:ring-primary-500" />
                       <div className="flex-1">
                         <div className="font-medium text-gray-900">{t('navigation.treasury')}</div>
                         <p className="text-sm text-gray-600">Gestion des flux de trésorerie et rapprochements bancaires</p>
                         <div className="flex items-center space-x-4 mt-2 text-sm">
                           <label className="flex items-center">
-                            <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500 mr-1" />
+                            <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-1" />
                             <span className="text-gray-600">Lecture</span>
                           </label>
                           <label className="flex items-center">
-                            <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500 mr-1" />
+                            <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-1" />
                             <span className="text-gray-600">{t('accounting.entry')}</span>
                           </label>
                         </div>
@@ -1245,17 +1245,17 @@ const UsersPage: React.FC = () => {
 
                   <div className="border border-gray-200 rounded-lg p-4">
                     <label className="flex items-start space-x-3">
-                      <input type="checkbox" className="mt-1 rounded text-indigo-600 focus:ring-indigo-500" />
+                      <input type="checkbox" className="mt-1 rounded text-primary-600 focus:ring-primary-500" />
                       <div className="flex-1">
                         <div className="font-medium text-gray-900">Budget & Analytique</div>
                         <p className="text-sm text-gray-600">Suivi budgétaire et analyse par centres de coûts</p>
                         <div className="flex items-center space-x-4 mt-2 text-sm">
                           <label className="flex items-center">
-                            <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500 mr-1" />
+                            <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-1" />
                             <span className="text-gray-600">Lecture</span>
                           </label>
                           <label className="flex items-center">
-                            <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500 mr-1" />
+                            <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-1" />
                             <span className="text-gray-600">{t('accounting.entry')}</span>
                           </label>
                         </div>
@@ -1265,17 +1265,17 @@ const UsersPage: React.FC = () => {
 
                   <div className="border border-gray-200 rounded-lg p-4">
                     <label className="flex items-start space-x-3">
-                      <input type="checkbox" className="mt-1 rounded text-indigo-600 focus:ring-indigo-500" />
+                      <input type="checkbox" className="mt-1 rounded text-primary-600 focus:ring-primary-500" />
                       <div className="flex-1">
                         <div className="font-medium text-gray-900">Gestion Commerciale</div>
                         <p className="text-sm text-gray-600">Gestion clients, devis, factures et recouvrement</p>
                         <div className="flex items-center space-x-4 mt-2 text-sm">
                           <label className="flex items-center">
-                            <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500 mr-1" />
+                            <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-1" />
                             <span className="text-gray-600">Lecture</span>
                           </label>
                           <label className="flex items-center">
-                            <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500 mr-1" />
+                            <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-1" />
                             <span className="text-gray-600">{t('accounting.entry')}</span>
                           </label>
                         </div>
@@ -1285,21 +1285,21 @@ const UsersPage: React.FC = () => {
 
                   <div className="border border-gray-200 rounded-lg p-4">
                     <label className="flex items-start space-x-3">
-                      <input type="checkbox" className="mt-1 rounded text-indigo-600 focus:ring-indigo-500" />
+                      <input type="checkbox" className="mt-1 rounded text-primary-600 focus:ring-primary-500" />
                       <div className="flex-1">
                         <div className="font-medium text-gray-900">Administration</div>
                         <p className="text-sm text-gray-600">Gestion utilisateurs, rôles et configuration système</p>
                         <div className="flex items-center space-x-4 mt-2 text-sm">
                           <label className="flex items-center">
-                            <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500 mr-1" />
+                            <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-1" />
                             <span className="text-gray-600">Lecture</span>
                           </label>
                           <label className="flex items-center">
-                            <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500 mr-1" />
+                            <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-1" />
                             <span className="text-gray-600">{t('accounting.entry')}</span>
                           </label>
                           <label className="flex items-center">
-                            <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500 mr-1" />
+                            <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-1" />
                             <span className="text-gray-600">Admin</span>
                           </label>
                         </div>
@@ -1326,7 +1326,7 @@ const UsersPage: React.FC = () => {
               >
                 Annuler
               </button>
-              <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+              <button className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-700 transition-colors">
                 Enregistrer les permissions
               </button>
             </div>

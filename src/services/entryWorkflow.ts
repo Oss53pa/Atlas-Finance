@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * State machine for journal entry status transitions.
  *

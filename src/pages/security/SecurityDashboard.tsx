@@ -248,7 +248,7 @@ const SecurityDashboard: React.FC = () => {
           >
             <ColorfulBarChart
               data={[
-                { label: 'Connexions', value: userActivity?.connexions_24h || 0, color: 'bg-emerald-400' },
+                { label: 'Connexions', value: userActivity?.connexions_24h || 0, color: 'bg-primary-400' },
                 { label: 'Échecs', value: userActivity?.echecs_connexion_24h || 0, color: 'bg-red-400' },
                 { label: 'Actions', value: userActivity?.actions_24h || 0, color: 'bg-blue-400' },
                 { label: 'Alertes', value: securityOverview?.alertes_securite || 0, color: 'bg-orange-400' }
@@ -328,8 +328,8 @@ const SecurityDashboard: React.FC = () => {
                     className="p-6 bg-white/90 rounded-2xl text-center"
                   >
                     <div className="flex justify-center mb-4">
-                      <div className="p-3 bg-emerald-100 rounded-2xl">
-                        <Shield className="w-8 h-8 text-emerald-600" />
+                      <div className="p-3 bg-primary-100 rounded-2xl">
+                        <Shield className="w-8 h-8 text-primary-600" />
                       </div>
                     </div>
                     <h3 className="font-bold text-neutral-900 mb-2">Aucun événement récent</h3>
@@ -370,7 +370,7 @@ const SecurityDashboard: React.FC = () => {
                       <h4 className="font-semibold text-red-900">{alert.titre}</h4>
                       <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
                         alert.statut === 'nouveau' ? 'bg-[var(--color-error-lighter)] text-[var(--color-error-dark)]' :
-                        alert.statut === 'en_cours' ? 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]' : 'bg-emerald-100 text-emerald-700'
+                        alert.statut === 'en_cours' ? 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]' : 'bg-primary-100 text-primary-700'
                       }`}>
                         {alert.statut === 'nouveau' ? 'Nouveau' : 
                          alert.statut === 'en_cours' ? 'En cours' : 'Résolu'}
@@ -390,15 +390,15 @@ const SecurityDashboard: React.FC = () => {
                   <motion.div 
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="p-6 bg-emerald-50/80 rounded-2xl text-center border border-emerald-200/60"
+                    className="p-6 bg-primary-50/80 rounded-2xl text-center border border-primary-200/60"
                   >
                     <div className="flex justify-center mb-4">
-                      <div className="p-3 bg-emerald-100 rounded-2xl">
-                        <Shield className="w-8 h-8 text-emerald-600" />
+                      <div className="p-3 bg-primary-100 rounded-2xl">
+                        <Shield className="w-8 h-8 text-primary-600" />
                       </div>
                     </div>
-                    <h3 className="font-bold text-emerald-900 mb-2">Aucune alerte de sécurité</h3>
-                    <p className="text-sm text-emerald-700">Système sécurisé</p>
+                    <h3 className="font-bold text-primary-900 mb-2">Aucune alerte de sécurité</h3>
+                    <p className="text-sm text-primary-700">Système sécurisé</p>
                   </motion.div>
                 )}
               </div>
@@ -421,7 +421,7 @@ const SecurityDashboard: React.FC = () => {
 
             {isLoadingActivity ? (
               <div className="flex justify-center items-center py-16">
-                <div className="w-12 h-12 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
+                <div className="w-12 h-12 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin"></div>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -459,13 +459,13 @@ const SecurityDashboard: React.FC = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 }}
-                  className="p-6 rounded-2xl border bg-emerald-50/80 border-emerald-200/60"
+                  className="p-6 rounded-2xl border bg-primary-50/80 border-primary-200/60"
                 >
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-semibold text-emerald-900">Actions</span>
-                    <Activity className="h-4 w-4 text-emerald-600" />
+                    <span className="text-sm font-semibold text-primary-900">Actions</span>
+                    <Activity className="h-4 w-4 text-primary-600" />
                   </div>
-                  <p className="text-lg font-bold text-emerald-900">
+                  <p className="text-lg font-bold text-primary-900">
                     {userActivity.actions_24h}
                   </p>
                 </motion.div>
@@ -474,13 +474,13 @@ const SecurityDashboard: React.FC = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 }}
-                  className="p-6 rounded-2xl border bg-[var(--color-info-lightest)]/80 border-purple-200/60"
+                  className="p-6 rounded-2xl border bg-[var(--color-info-lightest)]/80 border-primary-200/60"
                 >
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-semibold text-purple-900">Temps moyen</span>
+                    <span className="text-sm font-semibold text-primary-900">Temps moyen</span>
                     <Clock className="h-4 w-4 text-[var(--color-info)]" />
                   </div>
-                  <p className="text-lg font-bold text-purple-900">
+                  <p className="text-lg font-bold text-primary-900">
                     {userActivity.duree_moyenne_session}
                   </p>
                 </motion.div>
@@ -520,10 +520,10 @@ const SecurityDashboard: React.FC = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-                className="group p-6 border border-neutral-200 rounded-2xl hover:border-emerald-300 hover:shadow-lg transition-all duration-300 cursor-pointer"
+                className="group p-6 border border-neutral-200 rounded-2xl hover:border-primary-300 hover:shadow-lg transition-all duration-300 cursor-pointer"
               >
-                <div className="flex items-center justify-center w-12 h-12 bg-emerald-100 rounded-2xl mb-4 group-hover:scale-110 transition-transform">
-                  <Key className="h-6 w-6 text-emerald-600" />
+                <div className="flex items-center justify-center w-12 h-12 bg-primary-100 rounded-2xl mb-4 group-hover:scale-110 transition-transform">
+                  <Key className="h-6 w-6 text-primary-600" />
                 </div>
                 <h3 className="font-bold text-neutral-900 mb-1">Rôles & Permissions</h3>
                 <p className="text-sm text-neutral-600">Configuration des droits</p>
@@ -536,7 +536,7 @@ const SecurityDashboard: React.FC = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="group p-6 border border-neutral-200 rounded-2xl hover:border-purple-300 hover:shadow-lg transition-all duration-300 cursor-pointer"
+                className="group p-6 border border-neutral-200 rounded-2xl hover:border-primary-300 hover:shadow-lg transition-all duration-300 cursor-pointer"
               >
                 <div className="flex items-center justify-center w-12 h-12 bg-[var(--color-info-lighter)] rounded-2xl mb-4 group-hover:scale-110 transition-transform">
                   <Activity className="h-6 w-6 text-[var(--color-info)]" />

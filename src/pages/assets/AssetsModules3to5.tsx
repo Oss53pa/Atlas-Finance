@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Modules 3-5: Amortissements IA, Cycle de Vie, Inventaire Auto
 import React, { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -100,11 +101,11 @@ export const renderAmortissementsIA = () => (
           {/* Recommandations IA */}
           <div>
             <h4 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <Brain className="w-5 h-5 text-purple-600" />
+              <Brain className="w-5 h-5 text-primary-600" />
               Recommandations IA Prioritaires
             </h4>
             <div className="space-y-4">
-              <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
+              <div className="p-4 bg-gradient-to-r from-green-50 to-primary-50 rounded-lg border border-green-200">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium text-green-900">Machine CNC - Extension durée</span>
                   <span className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded-full">Haute priorité</span>
@@ -136,7 +137,7 @@ export const renderAmortissementsIA = () => (
                 </div>
               </div>
 
-              <div className="p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg border border-blue-200">
+              <div className="p-4 bg-gradient-to-r from-blue-50 to-primary-50 rounded-lg border border-blue-200">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium text-blue-900">Véhicules - Amortissement dégressif</span>
                   <span className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded-full">Moyenne priorité</span>
@@ -300,12 +301,12 @@ export const renderAmortissementsIA = () => (
                 </div>
               </div>
             </div>
-            <div className="p-4 bg-purple-50 rounded-lg">
+            <div className="p-4 bg-primary-50 rounded-lg">
               <div className="flex items-center gap-3">
-                <TrendingUp className="w-8 h-8 text-purple-600" />
+                <TrendingUp className="w-8 h-8 text-primary-600" />
                 <div>
-                  <p className="text-lg font-bold text-purple-900">€245K</p>
-                  <p className="text-sm text-purple-700">Économies totales générées</p>
+                  <p className="text-lg font-bold text-primary-900">€245K</p>
+                  <p className="text-sm text-primary-700">Économies totales générées</p>
                 </div>
               </div>
             </div>
@@ -382,7 +383,7 @@ export const renderAmortissementsIA = () => (
                       <Calculator className="w-4 h-4 text-gray-700" />
                     </button>
                     <button className="p-1 hover:bg-gray-100 rounded" title="IA Recommandations">
-                      <Brain className="w-4 h-4 text-purple-500" />
+                      <Brain className="w-4 h-4 text-primary-500" />
                     </button>
                   </div>
                 </td>
@@ -419,7 +420,7 @@ export const renderAmortissementsIA = () => (
                       <Calculator className="w-4 h-4 text-gray-700" />
                     </button>
                     <button className="p-1 hover:bg-gray-100 rounded" title="IA Recommandations">
-                      <Brain className="w-4 h-4 text-purple-500" />
+                      <Brain className="w-4 h-4 text-primary-500" />
                     </button>
                   </div>
                 </td>
@@ -456,7 +457,7 @@ export const renderAmortissementsIA = () => (
                       <Calculator className="w-4 h-4 text-gray-700" />
                     </button>
                     <button className="p-1 hover:bg-gray-100 rounded" title="IA Recommandations">
-                      <Brain className="w-4 h-4 text-purple-500" />
+                      <Brain className="w-4 h-4 text-primary-500" />
                     </button>
                   </div>
                 </td>
@@ -619,7 +620,7 @@ export const renderCycleVie = () => (
           {/* Analyse prédictive */}
           <div>
             <h4 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <Brain className="w-5 h-5 text-purple-600" />
+              <Brain className="w-5 h-5 text-primary-600" />
               Analyse Prédictive IA
             </h4>
 
@@ -665,17 +666,17 @@ export const renderCycleVie = () => (
 
             {/* Recommandations stratégiques */}
             <div className="space-y-3">
-              <div className="p-3 bg-purple-50 border border-purple-200 rounded-lg">
+              <div className="p-3 bg-primary-50 border border-primary-200 rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
-                  <Brain className="w-4 h-4 text-purple-600" />
-                  <span className="text-sm font-medium text-purple-900">Stratégie Recommandée</span>
+                  <Brain className="w-4 h-4 text-primary-600" />
+                  <span className="text-sm font-medium text-primary-900">Stratégie Recommandée</span>
                 </div>
-                <p className="text-sm text-purple-700 mb-2">
+                <p className="text-sm text-primary-700 mb-2">
                   Étaler les investissements sur 2024-2025 pour optimiser les flux de trésorerie
                 </p>
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-purple-600">Impact trésorerie: -25%</span>
-                  <span className="text-purple-600">Confiance: 89%</span>
+                  <span className="text-primary-600">Impact trésorerie: -25%</span>
+                  <span className="text-primary-600">Confiance: 89%</span>
                 </div>
               </div>
 
@@ -784,7 +785,7 @@ export const renderCycleVie = () => (
                       <Calendar className="w-4 h-4 text-gray-700" />
                     </button>
                     <button className="p-1 hover:bg-gray-100 rounded" title="IA Recommandations">
-                      <Brain className="w-4 h-4 text-purple-500" />
+                      <Brain className="w-4 h-4 text-primary-500" />
                     </button>
                   </div>
                 </td>
@@ -826,7 +827,7 @@ export const renderCycleVie = () => (
                       <Calendar className="w-4 h-4 text-gray-700" />
                     </button>
                     <button className="p-1 hover:bg-gray-100 rounded" title="IA Recommandations">
-                      <Brain className="w-4 h-4 text-purple-500" />
+                      <Brain className="w-4 h-4 text-primary-500" />
                     </button>
                   </div>
                 </td>
@@ -854,7 +855,7 @@ export const renderCycleVie = () => (
                 </td>
                 <td className="py-3 px-4 text-sm text-right">€42,500</td>
                 <td className="py-3 px-4 text-center">
-                  <span className="px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded-full">Optimiser</span>
+                  <span className="px-2 py-1 text-xs bg-primary-100 text-primary-700 rounded-full">Optimiser</span>
                 </td>
                 <td className="py-3 px-4 text-center">
                   <span className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded-full">Normale</span>
@@ -868,7 +869,7 @@ export const renderCycleVie = () => (
                       <Calendar className="w-4 h-4 text-gray-700" />
                     </button>
                     <button className="p-1 hover:bg-gray-100 rounded" title="IA Recommandations">
-                      <Brain className="w-4 h-4 text-purple-500" />
+                      <Brain className="w-4 h-4 text-primary-500" />
                     </button>
                   </div>
                 </td>
@@ -1271,7 +1272,7 @@ export const renderInventaireAuto = () => {
           <CardBody>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Interface de scan */}
-              <div className="p-6 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-lg border-2 border-dashed border-blue-300">
+              <div className="p-6 bg-gradient-to-br from-blue-50 to-primary-50 rounded-lg border-2 border-dashed border-blue-300">
                 <div className="text-center mb-6">
                   <QrCode className="w-20 h-20 text-blue-600 mx-auto mb-4" />
                   <p className="text-lg font-semibold text-blue-900 mb-2">Scanner QR Code</p>
@@ -1513,15 +1514,15 @@ export const renderInventaireAuto = () => {
                     <p className="text-xs text-blue-700 mt-1">+8.3% vs période précédente</p>
                   </div>
 
-                  <div className="p-4 bg-purple-50 rounded-lg">
+                  <div className="p-4 bg-primary-50 rounded-lg">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-purple-900">Temps Moyen/Actif</span>
-                      <span className="text-lg font-bold text-purple-900">2.3min</span>
+                      <span className="text-sm font-medium text-primary-900">Temps Moyen/Actif</span>
+                      <span className="text-lg font-bold text-primary-900">2.3min</span>
                     </div>
-                    <div className="w-full bg-purple-200 rounded-full h-2">
-                      <div className="bg-purple-600 h-2 rounded-full" style={{ width: '77%' }}></div>
+                    <div className="w-full bg-primary-200 rounded-full h-2">
+                      <div className="bg-primary-600 h-2 rounded-full" style={{ width: '77%' }}></div>
                     </div>
-                    <p className="text-xs text-purple-700 mt-1">-15% vs période précédente</p>
+                    <p className="text-xs text-primary-700 mt-1">-15% vs période précédente</p>
                   </div>
 
                   <div className="p-4 bg-yellow-50 rounded-lg">

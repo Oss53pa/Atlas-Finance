@@ -33,19 +33,19 @@ const FinancialStatementsIndexPage: React.FC = () => {
           transition={{ delay: 0.2 }}
         >
           <UnifiedCard variant="elevated" size="lg">
-            <div className="grid gap-8 sm:grid-cols-1 lg:grid-cols-3">
+            <div className="grid gap-8 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
               <Link to="/financial-statements/balance" className="group">
                 <motion.div
                   whileHover={{ scale: 1.03, y: -5 }}
-                  className="bg-gradient-to-br from-slate-50/90 to-slate-100/70 rounded-2xl p-8 border border-slate-200/50 shadow-sm hover:shadow-xl transition-all duration-300"
+                  className="bg-gradient-to-br from-primary-50/90 to-primary-100/70 rounded-2xl p-8 border border-primary-200/50 shadow-sm hover:shadow-xl transition-all duration-300"
                 >
                   <div className="flex flex-col items-center text-center space-y-6">
-                    <div className="p-4 bg-slate-100 rounded-2xl group-hover:scale-110 transition-transform duration-300">
-                      <BarChart3 className="h-12 w-12 text-slate-600" />
+                    <div className="p-4 bg-primary-100 rounded-2xl group-hover:scale-110 transition-transform duration-300">
+                      <BarChart3 className="h-12 w-12 text-primary-600" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-slate-800 text-xl mb-2">Bilan SYSCOHADA</h3>
-                      <p className="text-slate-600">Situation patrimoniale détaillée</p>
+                      <h3 className="font-bold text-primary-800 text-xl mb-2">Bilan SYSCOHADA</h3>
+                      <p className="text-primary-600">Situation patrimoniale détaillée</p>
                     </div>
                   </div>
                 </motion.div>
@@ -68,7 +68,7 @@ const FinancialStatementsIndexPage: React.FC = () => {
                 </motion.div>
               </Link>
 
-              <Link to="/financial-statements/analysis" className="group">
+              <Link to="/financial-statements/cash-flow" className="group">
                 <motion.div
                   whileHover={{ scale: 1.03, y: -5 }}
                   className="bg-gradient-to-br from-amber-50/90 to-amber-100/70 rounded-2xl p-8 border border-amber-200/50 shadow-sm hover:shadow-xl transition-all duration-300"
@@ -80,6 +80,23 @@ const FinancialStatementsIndexPage: React.FC = () => {
                     <div>
                       <h3 className="font-bold text-amber-800 text-xl mb-2">Tableau de Flux</h3>
                       <p className="text-amber-600">TAFIRE - Flux de trésorerie</p>
+                    </div>
+                  </div>
+                </motion.div>
+              </Link>
+
+              <Link to="/financial-statements/analysis" className="group">
+                <motion.div
+                  whileHover={{ scale: 1.03, y: -5 }}
+                  className="bg-gradient-to-br from-violet-50/90 to-violet-100/70 rounded-2xl p-8 border border-violet-200/50 shadow-sm hover:shadow-xl transition-all duration-300"
+                >
+                  <div className="flex flex-col items-center text-center space-y-6">
+                    <div className="p-4 bg-violet-100 rounded-2xl group-hover:scale-110 transition-transform duration-300">
+                      <Target className="h-12 w-12 text-violet-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-violet-800 text-xl mb-2">Analyse Financière</h3>
+                      <p className="text-violet-600">Ratios et indicateurs</p>
                     </div>
                   </div>
                 </motion.div>
@@ -97,7 +114,7 @@ const FinancialStatementsIndexPage: React.FC = () => {
           <UnifiedCard variant="glass" size="lg">
             <div className="space-y-6">
               <div className="flex items-center space-x-4">
-                <div className="p-3 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-2xl shadow-lg">
+                <div className="p-3 bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl shadow-lg">
                   <Calculator className="h-8 w-8 text-white" />
                 </div>
                 <div>
@@ -120,8 +137,8 @@ const FinancialStatementsIndexPage: React.FC = () => {
                 <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-white/40">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="font-semibold text-neutral-800">Multi-devises</h3>
-                    <div className="p-2 bg-emerald-100 rounded-xl">
-                      <TrendingUp className="h-5 w-5 text-emerald-600" />
+                    <div className="p-2 bg-primary-100 rounded-xl">
+                      <TrendingUp className="h-5 w-5 text-primary-600" />
                     </div>
                   </div>
                   <p className="text-sm text-neutral-600">FCFA, EUR, USD - Conversion automatique</p>
@@ -130,8 +147,8 @@ const FinancialStatementsIndexPage: React.FC = () => {
                 <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-white/40">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="font-semibold text-neutral-800">Export PDF/Excel</h3>
-                    <div className="p-2 bg-purple-100 rounded-xl">
-                      <FileText className="h-5 w-5 text-purple-600" />
+                    <div className="p-2 bg-primary-100 rounded-xl">
+                      <FileText className="h-5 w-5 text-primary-600" />
                     </div>
                   </div>
                   <p className="text-sm text-neutral-600">Prêt pour audits et déclarations</p>

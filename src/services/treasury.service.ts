@@ -284,7 +284,7 @@ class TreasuryService {
    */
   async getRealtimeTreasuryPosition(params?: { companyId?: string }): Promise<TreasuryPosition> {
     const response = await apiService.get(`${BASE_PATH}/dashboard/position/`, { params });
-    return response.data;
+    return response.data as TreasuryPosition;
   }
 
   /**
@@ -293,7 +293,7 @@ class TreasuryService {
    */
   async getKPIs(params?: { companyId?: string }): Promise<TreasuryKPIs> {
     const response = await apiService.get(`${BASE_PATH}/dashboard/kpis/`, { params });
-    return response.data;
+    return response.data as TreasuryKPIs;
   }
 
   /**
@@ -302,7 +302,7 @@ class TreasuryService {
    */
   async getTrends(params?: { companyId?: string; months?: number }): Promise<TreasuryTrendData[]> {
     const response = await apiService.get(`${BASE_PATH}/dashboard/trends/`, { params });
-    return response.data;
+    return response.data as TreasuryTrendData[];
   }
 
   /**
@@ -311,7 +311,7 @@ class TreasuryService {
    */
   async getAlerts(params?: { companyId?: string }): Promise<TreasuryAlert[]> {
     const response = await apiService.get(`${BASE_PATH}/dashboard/alertes/`, { params });
-    return response.data;
+    return response.data as TreasuryAlert[];
   }
 
   /**
@@ -331,7 +331,7 @@ class TreasuryService {
    */
   async getBankAccounts(params?: TreasuryListParams): Promise<{ results: BankAccount[]; count: number }> {
     const response = await apiService.get(`${BASE_PATH}/accounts/`, { params });
-    return response.data;
+    return response.data as { results: BankAccount[]; count: number };
   }
 
   /**
@@ -340,7 +340,7 @@ class TreasuryService {
    */
   async getBankAccount(id: string): Promise<BankAccount> {
     const response = await apiService.get(`${BASE_PATH}/accounts/${id}/`);
-    return response.data;
+    return response.data as BankAccount;
   }
 
   /**
@@ -349,7 +349,7 @@ class TreasuryService {
    */
   async createBankAccount(data: Partial<BankAccount>): Promise<BankAccount> {
     const response = await apiService.post(`${BASE_PATH}/accounts/`, data);
-    return response.data;
+    return response.data as BankAccount;
   }
 
   /**
@@ -358,7 +358,7 @@ class TreasuryService {
    */
   async updateBankAccount(id: string, data: Partial<BankAccount>): Promise<BankAccount> {
     const response = await apiService.patch(`${BASE_PATH}/accounts/${id}/`, data);
-    return response.data;
+    return response.data as BankAccount;
   }
 
   /**
@@ -367,7 +367,7 @@ class TreasuryService {
    */
   async deleteBankAccount(id: string): Promise<{ success: boolean }> {
     const response = await apiService.delete(`${BASE_PATH}/accounts/${id}/`);
-    return response.data;
+    return response.data as { success: boolean };
   }
 
   /**
@@ -376,7 +376,7 @@ class TreasuryService {
    */
   async getAccountConsolidation(params?: { companyId?: string }): Promise<AccountConsolidation> {
     const response = await apiService.get(`${BASE_PATH}/accounts/consolidation/`, { params });
-    return response.data;
+    return response.data as AccountConsolidation;
   }
 
   /**
@@ -385,7 +385,7 @@ class TreasuryService {
    */
   async validateIBAN(accountId: string, data: { iban: string; swift?: string }): Promise<IBANValidationResult> {
     const response = await apiService.post(`${BASE_PATH}/accounts/${accountId}/valider-iban/`, data);
-    return response.data;
+    return response.data as IBANValidationResult;
   }
 
   // ==========================================================================
@@ -398,7 +398,7 @@ class TreasuryService {
    */
   async getBankMovements(params?: TreasuryListParams): Promise<{ results: CashMovement[]; count: number }> {
     const response = await apiService.get(`${BASE_PATH}/movements/`, { params });
-    return response.data;
+    return response.data as { results: CashMovement[]; count: number };
   }
 
   /**
@@ -407,7 +407,7 @@ class TreasuryService {
    */
   async getMovement(id: string): Promise<CashMovement> {
     const response = await apiService.get(`${BASE_PATH}/movements/${id}/`);
-    return response.data;
+    return response.data as CashMovement;
   }
 
   /**
@@ -416,7 +416,7 @@ class TreasuryService {
    */
   async createMovement(data: Partial<CashMovement>): Promise<CashMovement> {
     const response = await apiService.post(`${BASE_PATH}/movements/`, data);
-    return response.data;
+    return response.data as CashMovement;
   }
 
   /**
@@ -425,7 +425,7 @@ class TreasuryService {
    */
   async updateMovement(id: string, data: Partial<CashMovement>): Promise<CashMovement> {
     const response = await apiService.patch(`${BASE_PATH}/movements/${id}/`, data);
-    return response.data;
+    return response.data as CashMovement;
   }
 
   /**
@@ -434,7 +434,7 @@ class TreasuryService {
    */
   async deleteMovement(id: string): Promise<{ success: boolean }> {
     const response = await apiService.delete(`${BASE_PATH}/movements/${id}/`);
-    return response.data;
+    return response.data as { success: boolean };
   }
 
   /**
@@ -443,7 +443,7 @@ class TreasuryService {
    */
   async getLatestTransactions(params?: { companyId?: string; limit?: number }): Promise<CashMovement[]> {
     const response = await apiService.get(`${BASE_PATH}/movements/dernieres/`, { params });
-    return response.data;
+    return response.data as CashMovement[];
   }
 
   /**
@@ -452,7 +452,7 @@ class TreasuryService {
    */
   async bulkValidateMovements(data: { movementIds: string[] }): Promise<BulkValidationResult> {
     const response = await apiService.post(`${BASE_PATH}/movements/validation-lot/`, data);
-    return response.data;
+    return response.data as BulkValidationResult;
   }
 
   /**
@@ -461,7 +461,7 @@ class TreasuryService {
    */
   async exportToAccounting(data: { movementIds: string[]; journalId?: string }): Promise<AccountingExportResult> {
     const response = await apiService.post(`${BASE_PATH}/movements/export-comptable/`, data);
-    return response.data;
+    return response.data as AccountingExportResult;
   }
 
   // ==========================================================================
@@ -474,7 +474,7 @@ class TreasuryService {
    */
   async get13WeeksForecast(params?: { companyId?: string }): Promise<CashForecast> {
     const response = await apiService.get(`${BASE_PATH}/forecasting/13-semaines/`, { params });
-    return response.data;
+    return response.data as CashForecast;
   }
 
   /**
@@ -490,7 +490,7 @@ class TreasuryService {
    */
   async simulateScenarios(data: { companyId: string; scenarios: ForecastScenario[] }): Promise<CashForecast[]> {
     const response = await apiService.post(`${BASE_PATH}/forecasting/simulation/`, data);
-    return response.data;
+    return response.data as CashForecast[];
   }
 
   /**
@@ -499,7 +499,7 @@ class TreasuryService {
    */
   async getForecastedInflows(params: { companyId: string; startDate: string; endDate: string }): Promise<ForecastedFlowData> {
     const response = await apiService.get(`${BASE_PATH}/forecasting/encaissements/`, { params });
-    return response.data;
+    return response.data as ForecastedFlowData;
   }
 
   /**
@@ -508,7 +508,7 @@ class TreasuryService {
    */
   async getForecastedOutflows(params: { companyId: string; startDate: string; endDate: string }): Promise<ForecastedFlowData> {
     const response = await apiService.get(`${BASE_PATH}/forecasting/decaissements/`, { params });
-    return response.data;
+    return response.data as ForecastedFlowData;
   }
 
   /**
@@ -542,7 +542,7 @@ class TreasuryService {
    */
   async getFundCalls(params?: TreasuryListParams): Promise<{ results: FundCall[]; count: number }> {
     const response = await apiService.get(`${BASE_PATH}/fund-calls/`, { params });
-    return response.data;
+    return response.data as { results: FundCall[]; count: number };
   }
 
   /**
@@ -551,7 +551,7 @@ class TreasuryService {
    */
   async getFundCall(id: string): Promise<FundCall> {
     const response = await apiService.get(`${BASE_PATH}/fund-calls/${id}/`);
-    return response.data;
+    return response.data as FundCall;
   }
 
   /**
@@ -560,7 +560,7 @@ class TreasuryService {
    */
   async createFundCall(data: Partial<FundCall>): Promise<FundCall> {
     const response = await apiService.post(`${BASE_PATH}/fund-calls/`, data);
-    return response.data;
+    return response.data as FundCall;
   }
 
   /**
@@ -569,7 +569,7 @@ class TreasuryService {
    */
   async updateFundCall(id: string, data: Partial<FundCall>): Promise<FundCall> {
     const response = await apiService.patch(`${BASE_PATH}/fund-calls/${id}/`, data);
-    return response.data;
+    return response.data as FundCall;
   }
 
   /**
@@ -578,7 +578,7 @@ class TreasuryService {
    */
   async deleteFundCall(id: string): Promise<{ success: boolean }> {
     const response = await apiService.delete(`${BASE_PATH}/fund-calls/${id}/`);
-    return response.data;
+    return response.data as { success: boolean };
   }
 
   /**
@@ -594,7 +594,7 @@ class TreasuryService {
    */
   async analyzeFundingNeeds(data: { companyId: string; period: string }): Promise<FundingNeedsAnalysis> {
     const response = await apiService.post(`${BASE_PATH}/fund-calls/analyser-besoins/`, data);
-    return response.data;
+    return response.data as FundingNeedsAnalysis;
   }
 
   /**
@@ -603,7 +603,7 @@ class TreasuryService {
    */
   async createAutoFundCall(data: { companyId: string; amount: number; dueDate: string }): Promise<FundCall> {
     const response = await apiService.post(`${BASE_PATH}/fund-calls/creer-automatique/`, data);
-    return response.data;
+    return response.data as FundCall;
   }
 
   /**
@@ -619,7 +619,7 @@ class TreasuryService {
    */
   async getFundCallAging(fundCallId: string): Promise<FundCallAgingData> {
     const response = await apiService.get(`${BASE_PATH}/fund-calls/${fundCallId}/aging/`);
-    return response.data;
+    return response.data as FundCallAgingData;
   }
 
   // ==========================================================================
@@ -632,7 +632,7 @@ class TreasuryService {
    */
   async autoReconcile(data: { accountId: string; statementData: StatementData }): Promise<ReconciliationResult> {
     const response = await apiService.post(`${BASE_PATH}/reconciliation/automatique/`, data);
-    return response.data;
+    return response.data as ReconciliationResult;
   }
 
   /**
@@ -643,7 +643,7 @@ class TreasuryService {
     const response = await apiService.post(`${BASE_PATH}/reconciliation/import-releve/`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
-    return response.data;
+    return response.data as BankingImportResult;
   }
 
   /**
@@ -673,7 +673,7 @@ class TreasuryService {
    */
   async getBanks(): Promise<BankInfo[]> {
     const response = await apiService.get(`${BASE_PATH}/banks/`);
-    return response.data;
+    return response.data as BankInfo[];
   }
 
   /**
@@ -682,7 +682,7 @@ class TreasuryService {
    */
   async getBankConnections(params?: { companyId?: string }): Promise<BankConnectionStatus[]> {
     const response = await apiService.get(`${BASE_PATH}/connections/status/`, { params });
-    return response.data;
+    return response.data as BankConnectionStatus[];
   }
 
   /**
@@ -702,7 +702,7 @@ class TreasuryService {
    */
   async predictCashFlow(data: { companyId: string; horizon: number }): Promise<CashFlowPrediction[]> {
     const response = await apiService.post(`${BASE_PATH}/ml/predict-cash-flow/`, data);
-    return response.data;
+    return response.data as CashFlowPrediction[];
   }
 
   /**
@@ -711,7 +711,7 @@ class TreasuryService {
    */
   async getPerformanceAnalytics(params: { companyId: string; period: string }): Promise<PerformanceAnalytics> {
     const response = await apiService.get(`${BASE_PATH}/analytics/performance/`, { params });
-    return response.data;
+    return response.data as PerformanceAnalytics;
   }
 
   /**
@@ -720,7 +720,7 @@ class TreasuryService {
    */
   async optimizeCashManagement(data: { companyId: string; constraints: CashOptimizationConstraints }): Promise<CashOptimizationResult> {
     const response = await apiService.post(`${BASE_PATH}/optimize/cash-management/`, data);
-    return response.data;
+    return response.data as CashOptimizationResult;
   }
 
   // ==========================================================================
@@ -733,7 +733,7 @@ class TreasuryService {
    */
   async getAuditTrail(params?: { companyId?: string; startDate?: string; endDate?: string }): Promise<AuditTrailEntry[]> {
     const response = await apiService.get(`${BASE_PATH}/audit/operations/`, { params });
-    return response.data;
+    return response.data as AuditTrailEntry[];
   }
 
   /**
@@ -742,7 +742,7 @@ class TreasuryService {
    */
   async getSecurityControls(params?: { companyId?: string }): Promise<SecurityControl[]> {
     const response = await apiService.get(`${BASE_PATH}/security/controls/`, { params });
-    return response.data;
+    return response.data as SecurityControl[];
   }
 
   // ==========================================================================
@@ -755,7 +755,7 @@ class TreasuryService {
    */
   async exportToERP(data: { companyId: string; erpType: string; dataToExport: Record<string, unknown> }): Promise<ERPExportResult> {
     const response = await apiService.post(`${BASE_PATH}/export/erp/`, data);
-    return response.data;
+    return response.data as ERPExportResult;
   }
 
   /**
@@ -764,7 +764,7 @@ class TreasuryService {
    */
   async importFromBankingAPI(data: { companyId: string; bankId: string; params: BankingImportParams }): Promise<BankingImportResult> {
     const response = await apiService.post(`${BASE_PATH}/import/banking-api/`, data);
-    return response.data;
+    return response.data as BankingImportResult;
   }
 
   /**
@@ -775,7 +775,7 @@ class TreasuryService {
     const response = await apiService.post(`${BASE_PATH}/reports/generate/`, data, {
       responseType: 'blob'
     });
-    return response.data;
+    return response.data as Blob;
   }
 
   /**
@@ -784,7 +784,7 @@ class TreasuryService {
    */
   async getCashPlan(params: { companyId: string; startDate: string; endDate: string }): Promise<CashPlanData> {
     const response = await apiService.get(`${BASE_PATH}/reports/planning/`, { params });
-    return response.data;
+    return response.data as CashPlanData;
   }
 
   // ==========================================================================

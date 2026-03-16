@@ -105,20 +105,20 @@ const REPORT_CATEGORIES = [
   { value: 'autre', label: 'Autre', critical: false },
 ];
 
-const MOCK_FOLDERS: ReportFolder[] = [
+const DEFAULT_FOLDERS: ReportFolder[] = [
   { id: 'f1', name: 'Rapports Mensuels 2025', reportCount: 8 },
   { id: 'f2', name: 'Analyses Trimestrielles', reportCount: 12 },
   { id: 'f3', name: 'Rapports Direction', reportCount: 5 },
   { id: 'f4', name: 'Audits Internes', reportCount: 3 },
 ];
 
-const MOCK_EXISTING_REPORTS: ExistingReport[] = [
+const DEFAULT_REPORTS: ExistingReport[] = [
   { id: 'rpt1', reportNumber: 'RPT-2025-00089', name: 'Bilan Financier Q4 2024', version: 'v2.0', period: 'Oct - Déc 2024', createdAt: '2025-01-10', isCritical: true },
   { id: 'rpt2', reportNumber: 'RPT-2025-00076', name: 'Performance Commerciale', version: 'v1.2', period: 'Année 2024', createdAt: '2025-01-05', isCritical: false },
   { id: 'rpt3', reportNumber: 'RPT-2024-00342', name: 'Rapport Conformité OHADA', version: 'v3.1', period: '2024', createdAt: '2024-12-15', isCritical: true },
 ];
 
-const MOCK_REVIEWERS: Reviewer[] = [
+const DEFAULT_REVIEWERS: Reviewer[] = [
   { id: 'rev1', name: 'Aminata Koné', role: 'Directrice Financière', email: 'a.kone@entreprise.com' },
   { id: 'rev2', name: 'Kouamé Yao', role: 'Responsable Audit', email: 'k.yao@entreprise.com' },
   { id: 'rev3', name: 'Jean-Pierre Mensah', role: 'Directeur Général', email: 'jp.mensah@entreprise.com' },
@@ -160,7 +160,7 @@ const ReportManagementModal: React.FC<ReportManagementModalProps> = ({
   const [workflowSteps, setWorkflowSteps] = useState<WorkflowStep[]>([]);
   const [showStakeholderDropdown, setShowStakeholderDropdown] = useState<string | null>(null);
 
-  const totalReportCount = useMemo(() => MOCK_FOLDERS.reduce((acc, f) => acc + f.reportCount, 0), []);
+  const totalReportCount = useMemo(() => DEFAULT_FOLDERS.reduce((acc, f) => acc + f.reportCount, 0), []);
   const selectedCategory = REPORT_CATEGORIES.find(c => c.value === category);
   const isCategoryCritical = selectedCategory?.critical || false;
 
@@ -170,14 +170,14 @@ const ReportManagementModal: React.FC<ReportManagementModalProps> = ({
 
   const reportNumber = useMemo(() => {
     if (isNewVersion && selectedExistingReport) {
-      return MOCK_EXISTING_REPORTS.find(r => r.id === selectedExistingReport)?.reportNumber || generateReportNumber();
+      return DEFAULT_REPORTS.find(r => r.id === selectedExistingReport)?.reportNumber || generateReportNumber();
     }
     return generateReportNumber();
   }, [isNewVersion, selectedExistingReport]);
 
   const version = useMemo(() => {
     if (isNewVersion && selectedExistingReport) {
-      const existing = MOCK_EXISTING_REPORTS.find(r => r.id === selectedExistingReport);
+      const existing = DEFAULT_REPORTS.find(r => r.id === selectedExistingReport);
       return existing ? incrementVersion(existing.version) : 'v1.0';
     }
     return 'v1.0';
@@ -270,13 +270,13 @@ const ReportManagementModal: React.FC<ReportManagementModalProps> = ({
               <button type="button" onClick={() => setShowExistingReports(!showExistingReports)}
                 className="w-full flex items-center justify-between px-4 py-3 border border-gray-200 rounded-xl bg-white hover:border-gray-300">
                 {selectedExistingReport ? (
-                  <div className="text-left"><p className="font-medium text-gray-900">{MOCK_EXISTING_REPORTS.find(r => r.id === selectedExistingReport)?.name}</p></div>
+                  <div className="text-left"><p className="font-medium text-gray-900">{DEFAULT_REPORTS.find(r => r.id === selectedExistingReport)?.name}</p></div>
                 ) : (<span className="text-gray-400">Sélectionner un rapport...</span>)}
                 <ChevronDown className={cn('w-4 h-4 text-gray-400', showExistingReports && 'rotate-180')} />
               </button>
               {showExistingReports && (
                 <div className="absolute z-10 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
-                  {MOCK_EXISTING_REPORTS.map((rpt) => (
+                  {DEFAULT_REPORTS.map((rpt) => (
                     <button key={rpt.id} type="button" onClick={() => { setSelectedExistingReport(rpt.id); setShowExistingReports(false); setName(rpt.name); if (rpt.isCritical) { setIsCritical(true); setRequiresReview(true); } }}
                       className={cn('w-full flex items-center justify-between p-3 text-left hover:bg-gray-50', selectedExistingReport === rpt.id && 'bg-gray-50')}>
                       <div className="flex items-center gap-3">
@@ -313,7 +313,7 @@ const ReportManagementModal: React.FC<ReportManagementModalProps> = ({
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Date d'émission</label>
             <div className="relative">
-              <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Calendar className="absolute left-4 top-1/2 -tranprimary-y-1/2 w-4 h-4 text-gray-400" />
               <input type="date" value={emissionDate} onChange={(e) => setEmissionDate(e.target.value)}
                 className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
@@ -346,7 +346,7 @@ const ReportManagementModal: React.FC<ReportManagementModalProps> = ({
               </div>
               <button type="button" onClick={() => { setIsCritical(!isCritical); if (!isCritical) setRequiresReview(true); }} disabled={isCategoryCritical}
                 className={cn('relative w-12 h-6 rounded-full transition-colors', isCritical ? 'bg-amber-500' : 'bg-gray-300', isCategoryCritical && 'opacity-70 cursor-not-allowed')}>
-                <span className={cn('absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform', isCritical ? 'translate-x-7' : 'translate-x-1')} />
+                <span className={cn('absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform', isCritical ? 'tranprimary-x-7' : 'tranprimary-x-1')} />
               </button>
             </div>
 
@@ -359,7 +359,7 @@ const ReportManagementModal: React.FC<ReportManagementModalProps> = ({
                   </div>
                   <button type="button" onClick={() => setRequiresReview(!requiresReview)}
                     className={cn('relative w-12 h-6 rounded-full transition-colors', requiresReview ? 'bg-amber-500' : 'bg-gray-300')}>
-                    <span className={cn('absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform', requiresReview ? 'translate-x-7' : 'translate-x-1')} />
+                    <span className={cn('absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform', requiresReview ? 'tranprimary-x-7' : 'tranprimary-x-1')} />
                   </button>
                 </div>
 
@@ -400,7 +400,7 @@ const ReportManagementModal: React.FC<ReportManagementModalProps> = ({
                                 </button>
                                 {showStakeholderDropdown === step.id && (
                                   <div className="absolute z-20 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                                    {MOCK_REVIEWERS.map((reviewer) => (
+                                    {DEFAULT_REVIEWERS.map((reviewer) => (
                                       <button key={reviewer.id} type="button" onClick={() => assignStakeholder(step.id, reviewer)}
                                         className={cn('w-full flex items-center gap-2 p-2 text-left hover:bg-gray-50', step.stakeholderId === reviewer.id && 'bg-gray-50')}>
                                         <div className="w-7 h-7 bg-gray-100 rounded-full flex items-center justify-center"><UserCheck className="w-3.5 h-3.5 text-gray-600" /></div>

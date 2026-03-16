@@ -94,21 +94,21 @@ const ReportingDashboardPage: React.FC = () => {
                 <p className="text-sm text-green-700">PDF, Excel, Dashboard</p>
               </div>
 
-              <div className="p-4 rounded-lg bg-purple-50 border border-purple-200">
+              <div className="p-4 rounded-lg bg-primary-50 border border-primary-200">
                 <div className="flex justify-between items-center mb-1">
-                  <span className="text-sm font-semibold text-purple-900">
+                  <span className="text-sm font-semibold text-primary-900">
                     Fréquence Moyenne
                   </span>
-                  <span className="font-bold text-xl text-purple-900">
+                  <span className="font-bold text-xl text-primary-900">
                     {stats?.averageFrequency || 0}
                   </span>
                 </div>
-                <p className="text-sm text-purple-700">Générations par semaine</p>
+                <p className="text-sm text-primary-700">Générations par semaine</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200 p-6">
+          <div className="bg-gradient-to-br from-blue-50 to-primary-50 rounded-lg border border-blue-200 p-6">
             <h3 className="font-semibold text-gray-900 mb-2">Actions Rapides</h3>
             <div className="space-y-2">
               <button className="w-full text-left px-3 py-2 rounded hover:bg-white/50 transition-colors text-sm">

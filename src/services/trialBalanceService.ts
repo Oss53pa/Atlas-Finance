@@ -44,7 +44,7 @@ export interface TrialBalanceResult {
  * Run full trial balance verification.
  */
 export async function verifyTrialBalance(adapter: DataAdapter, fiscalYear?: string): Promise<TrialBalanceResult> {
-  let entries = (await adapter.getAll('journalEntries'))
+  let entries = (await adapter.getAll<DBJournalEntry>('journalEntries'))
     .filter(e => e.status !== 'draft');
 
   // Filter by fiscal year if specified

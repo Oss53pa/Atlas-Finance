@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import pkg from '../../package.json';
 
 const rootDir = path.resolve(__dirname, '../../');
 
@@ -26,6 +27,7 @@ export default defineConfig({
   },
   define: {
     'import.meta.env.VITE_DATA_MODE': JSON.stringify('local'),
+    __APP_VERSION__: JSON.stringify(pkg.version),
   },
   server: {
     port: 5181,

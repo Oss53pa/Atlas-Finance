@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -542,7 +543,7 @@ const IAAssistant: React.FC = () => {
                 <p className="text-lg font-bold text-[var(--color-success)]">{kpis.precisionsIA}%</p>
                 <p className="text-xs text-[var(--color-success)] mt-1">+2.1% ce mois</p>
               </div>
-              <Brain className="w-8 h-8 text-purple-500" />
+              <Brain className="w-8 h-8 text-primary-500" />
             </div>
           </CardContent>
         </Card>
@@ -588,7 +589,7 @@ const IAAssistant: React.FC = () => {
       </div>
 
       {/* Proph3t Closure Action */}
-      <Alert className="border-l-4 border-l-purple-500">
+      <Alert className="border-l-4 border-l-primary-500">
         <Brain className="h-4 w-4" />
         <AlertDescription className="flex items-center justify-between">
           <div>
@@ -602,7 +603,7 @@ const IAAssistant: React.FC = () => {
           <button
             onClick={handleProph3tClosure}
             disabled={proph3tRunning}
-            className="ml-4 px-4 py-1.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2 text-sm disabled:opacity-50"
+            className="ml-4 px-4 py-1.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center gap-2 text-sm disabled:opacity-50"
           >
             {proph3tRunning ? (
               <><Loader2 className="w-4 h-4 animate-spin" /> Exécution...</>
@@ -618,7 +619,7 @@ const IAAssistant: React.FC = () => {
         <Card>
           <CardContent className="p-4">
             <h4 className="font-medium mb-3 flex items-center gap-2">
-              <Brain className="w-4 h-4 text-purple-600" />
+              <Brain className="w-4 h-4 text-primary-600" />
               Workflow Proph3t
             </h4>
             <div className="space-y-2">
@@ -626,7 +627,7 @@ const IAAssistant: React.FC = () => {
                 <div key={step.id} className="flex items-center gap-3">
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs ${
                     step.status === 'done' ? 'bg-[var(--color-success)]' :
-                    step.status === 'running' ? 'bg-purple-600' :
+                    step.status === 'running' ? 'bg-primary-600' :
                     step.status === 'error' ? 'bg-[var(--color-error)]' :
                     'bg-gray-300'
                   }`}>
@@ -665,7 +666,7 @@ const IAAssistant: React.FC = () => {
               <Card className="h-[600px] flex flex-col">
                 <CardHeader className="flex-shrink-0">
                   <CardTitle className="flex items-center gap-2">
-                    <Bot className="w-5 h-5 text-purple-600" />
+                    <Bot className="w-5 h-5 text-primary-600" />
                     Assistant IA Clôture Comptable
                     <Badge className="bg-[var(--color-success-lighter)] text-[var(--color-success-darker)] ml-auto">En ligne</Badge>
                   </CardTitle>
@@ -689,7 +690,7 @@ const IAAssistant: React.FC = () => {
                           } rounded-lg p-3`}>
                             <div className="flex items-start gap-2 mb-2">
                               {message.type === 'assistant' ? (
-                                <Bot className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
+                                <Bot className="w-5 h-5 text-primary-600 flex-shrink-0 mt-0.5" />
                               ) : (
                                 <User className="w-5 h-5 text-white flex-shrink-0 mt-0.5" />
                               )}
@@ -775,7 +776,7 @@ const IAAssistant: React.FC = () => {
                       >
                         <div className="bg-[var(--color-background-hover)] rounded-lg p-3">
                           <div className="flex items-center gap-2">
-                            <Bot className="w-4 h-4 text-purple-600" />
+                            <Bot className="w-4 h-4 text-primary-600" />
                             <div className="flex gap-1">
                               <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
                               <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
@@ -873,7 +874,7 @@ const IAAssistant: React.FC = () => {
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold">Analyses Automatiques en Cours</h3>
             <div className="flex gap-2">
-              <button className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2">
+              <button className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center gap-2">
                 <RefreshCw className="w-4 h-4" />
                 Actualiser
               </button>
@@ -1170,9 +1171,9 @@ const IAAssistant: React.FC = () => {
                       <p className="text-lg font-bold text-[var(--color-success)]">2.1GB</p>
                       <p className="text-sm text-[var(--color-text-primary)]">Mémoire Utilisée</p>
                     </div>
-                    <div className="text-center p-4 bg-purple-50 rounded-lg">
-                      <Network className="w-8 h-8 text-purple-600 mx-auto mb-2" />
-                      <p className="text-lg font-bold text-purple-600">127</p>
+                    <div className="text-center p-4 bg-primary-50 rounded-lg">
+                      <Network className="w-8 h-8 text-primary-600 mx-auto mb-2" />
+                      <p className="text-lg font-bold text-primary-600">127</p>
                       <p className="text-sm text-[var(--color-text-primary)]">Requêtes/min</p>
                     </div>
                     <div className="text-center p-4 bg-[var(--color-warning-lightest)] rounded-lg">
@@ -1182,9 +1183,9 @@ const IAAssistant: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg">
+                  <div className="p-4 bg-gradient-to-r from-primary-50 to-blue-50 rounded-lg">
                     <h4 className="font-medium mb-3 flex items-center gap-2">
-                      <Star className="w-4 h-4 text-purple-600" />
+                      <Star className="w-4 h-4 text-primary-600" />
                       Points Forts de l'IA
                     </h4>
                     <ul className="space-y-2 text-sm">

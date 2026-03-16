@@ -29,7 +29,7 @@ const ClosureModulesIndex: React.FC = () => {
       description: 'Module unifié : clôture mensuelle réversible (6 étapes) et annuelle irréversible (7 étapes) conformes SYSCOHADA',
       path: '/closures/periodic',
       icon: Calendar,
-      color: 'bg-purple-500',
+      color: 'bg-primary-500',
       features: [
         'Clôture mensuelle (vérification, régularisations, verrouillage)',
         '17 contrôles de cohérence (9 mensuels, 7 bloquants annuels)',
@@ -86,7 +86,7 @@ const ClosureModulesIndex: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center">
-                  <Lock className="h-8 w-8 mr-3 text-purple-600" />
+                  <Lock className="h-8 w-8 mr-3 text-primary-600" />
                   Gestion des Clôtures
                 </h1>
                 <p className="mt-2 text-[var(--color-text-secondary)]">
@@ -108,7 +108,7 @@ const ClosureModulesIndex: React.FC = () => {
               <Link
                 key={module.id}
                 to={module.path}
-                className="group bg-white rounded-xl border border-[var(--color-border)] p-6 hover:border-blue-300 hover:shadow-lg transition-all duration-200 transform hover:-translate-y-1"
+                className="group bg-white rounded-xl border border-[var(--color-border)] p-6 hover:border-blue-300 hover:shadow-lg transition-all duration-200 transform hover:-tranprimary-y-1"
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className={`${module.color} p-3 rounded-lg group-hover:scale-110 transition-transform`}>
@@ -135,7 +135,7 @@ const ClosureModulesIndex: React.FC = () => {
 
                 <div className="flex items-center text-[var(--color-primary)] font-medium text-sm group-hover:text-[var(--color-primary-dark)]">
                   <span>Accéder au module</span>
-                  <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="ml-2 h-4 w-4 group-hover:tranprimary-x-1 transition-transform" />
                 </div>
               </Link>
             );
@@ -152,12 +152,12 @@ const ClosureModulesIndex: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Link
               to="/closures/periodic"
-              className="flex items-center space-x-3 p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors"
+              className="flex items-center space-x-3 p-4 bg-primary-50 rounded-lg hover:bg-primary-100 transition-colors"
             >
-              <Calendar className="h-8 w-8 text-purple-600" />
+              <Calendar className="h-8 w-8 text-primary-600" />
               <div>
-                <div className="font-medium text-purple-900">Démarrer Clôture</div>
-                <div className="text-sm text-purple-700">Workflow périodique</div>
+                <div className="font-medium text-primary-900">Démarrer Clôture</div>
+                <div className="text-sm text-primary-700">Workflow périodique</div>
               </div>
             </Link>
 

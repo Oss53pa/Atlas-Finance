@@ -744,8 +744,8 @@ const RevisionsModule: React.FC = () => {
       case 'anomalie': return 'text-red-700 bg-red-50 border-red-200';
       case 'correction': return 'text-blue-700 bg-blue-50 border-blue-200';
       case 'ajustement': return 'text-orange-700 bg-orange-50 border-orange-200';
-      case 'regularisation': return 'text-purple-700 bg-purple-50 border-purple-200';
-      case 'reclassement': return 'text-cyan-700 bg-cyan-50 border-cyan-200';
+      case 'regularisation': return 'text-primary-700 bg-primary-50 border-primary-200';
+      case 'reclassement': return 'text-primary-700 bg-primary-50 border-primary-200';
       default: return 'text-gray-700 bg-gray-50 border-gray-200';
     }
   };
@@ -775,7 +775,7 @@ const RevisionsModule: React.FC = () => {
       case 'valide': return <CheckCircle className="w-5 h-5 text-green-600" />;
       case 'rejete': return <XCircle className="w-5 h-5 text-red-600" />;
       case 'en_cours': return <Clock className="w-5 h-5 text-blue-600" />;
-      case 'revise': return <Eye className="w-5 h-5 text-purple-600" />;
+      case 'revise': return <Eye className="w-5 h-5 text-primary-600" />;
       default: return <AlertCircle className="w-5 h-5 text-gray-500" />;
     }
   };
@@ -784,7 +784,7 @@ const RevisionsModule: React.FC = () => {
     switch (statut) {
       case 'approuve': return 'bg-green-100 text-green-800';
       case 'revise': return 'bg-blue-100 text-blue-800';
-      case 'termine': return 'bg-purple-100 text-purple-800';
+      case 'termine': return 'bg-primary-100 text-primary-800';
       case 'en_cours': return 'bg-yellow-100 text-yellow-800';
       default: return 'bg-gray-100 text-gray-800';
     }
@@ -814,7 +814,7 @@ const RevisionsModule: React.FC = () => {
             <button
               onClick={handleLancerAnalyseIA}
               disabled={isAnalyzing}
-              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 flex items-center space-x-2"
+              className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 flex items-center space-x-2"
             >
               {isAnalyzing ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Bot className="w-4 h-4" />}
               <span>{isAnalyzing ? 'Analyse...' : 'Analyse IA'}</span>
@@ -894,28 +894,28 @@ const RevisionsModule: React.FC = () => {
             <p className="text-lg font-bold text-red-900">{stats.critiques}</p>
           </div>
 
-          <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
+          <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-lg p-4 border border-primary-200">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-purple-700">Impact Total</span>
-              <TrendingDown className="w-5 h-5 text-purple-600" />
+              <span className="text-sm text-primary-700">Impact Total</span>
+              <TrendingDown className="w-5 h-5 text-primary-600" />
             </div>
-            <p className="text-lg font-bold text-purple-900">{formatMontant(stats.montantTotal)}</p>
+            <p className="text-lg font-bold text-primary-900">{formatMontant(stats.montantTotal)}</p>
           </div>
 
-          <div className="bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-lg p-4 border border-cyan-200">
+          <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-lg p-4 border border-primary-200">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-cyan-700">PAJE Proposés</span>
-              <Scale className="w-5 h-5 text-cyan-600" />
+              <span className="text-sm text-primary-700">PAJE Proposés</span>
+              <Scale className="w-5 h-5 text-primary-600" />
             </div>
-            <p className="text-lg font-bold text-cyan-900">{formatMontant(stats.montantAjustements)}</p>
+            <p className="text-lg font-bold text-primary-900">{formatMontant(stats.montantAjustements)}</p>
           </div>
 
-          <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg p-4 border border-indigo-200">
+          <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-lg p-4 border border-primary-200">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-indigo-700">Complétion</span>
-              <Activity className="w-5 h-5 text-indigo-600" />
+              <span className="text-sm text-primary-700">Complétion</span>
+              <Activity className="w-5 h-5 text-primary-600" />
             </div>
-            <p className="text-lg font-bold text-indigo-900">{stats.tauxCompletion}%</p>
+            <p className="text-lg font-bold text-primary-900">{stats.tauxCompletion}%</p>
             <Progress value={stats.tauxCompletion} className="h-1 mt-2" />
           </div>
         </div>
@@ -1009,7 +1009,7 @@ const RevisionsModule: React.FC = () => {
 
               {/* Recherche */}
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -tranprimary-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
                   placeholder="Rechercher par compte, référence..."
@@ -1076,7 +1076,7 @@ const RevisionsModule: React.FC = () => {
                           {revision.assertions.slice(0, 2).map(assertion => (
                             <span
                               key={assertion}
-                              className="px-1.5 py-0.5 bg-indigo-50 text-indigo-700 rounded text-xs"
+                              className="px-1.5 py-0.5 bg-primary-50 text-primary-700 rounded text-xs"
                               title={assertionsAudit[assertion]?.description}
                             >
                               {assertion.substring(0, 4).toUpperCase()}
@@ -1126,7 +1126,7 @@ const RevisionsModule: React.FC = () => {
                           {revision.statut !== 'valide' && (
                             <button
                               onClick={(e) => { e.stopPropagation(); handleCreateAjustement(revision); }}
-                              className="p-1.5 text-purple-600 hover:bg-purple-50 rounded"
+                              className="p-1.5 text-primary-600 hover:bg-primary-50 rounded"
                               title="Créer PAJE"
                             >
                               <Scale className="w-4 h-4" />
@@ -1319,7 +1319,7 @@ const RevisionsModule: React.FC = () => {
                     <td className="p-4 font-medium text-[#171717]">{rc.cycle}</td>
                     <td className="p-4 text-sm">{rc.risque}</td>
                     <td className="p-4 text-center">
-                      <span className="px-2 py-1 bg-indigo-50 text-indigo-700 rounded text-xs">
+                      <span className="px-2 py-1 bg-primary-50 text-primary-700 rounded text-xs">
                         {assertionsAudit[rc.assertion]?.libelle || rc.assertion}
                       </span>
                     </td>
@@ -1391,9 +1391,9 @@ const RevisionsModule: React.FC = () => {
                   {revisions.filter(r => r.ecritureProposee?.statut === 'comptabilise').length}
                 </p>
               </div>
-              <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
-                <p className="text-sm text-purple-700">Montant Total</p>
-                <p className="text-lg font-bold text-purple-900">
+              <div className="bg-primary-50 rounded-lg p-4 border border-primary-200">
+                <p className="text-sm text-primary-700">Montant Total</p>
+                <p className="text-lg font-bold text-primary-900">
                   {formatMontant(stats.montantAjustements)}
                 </p>
               </div>
@@ -1490,7 +1490,7 @@ const RevisionsModule: React.FC = () => {
                   Analyse des variations significatives et des ratios clés
                 </p>
               </div>
-              <button className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center space-x-2">
+              <button className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center space-x-2">
                 <Zap className="w-4 h-4" />
                 <span>Lancer analyse IA</span>
               </button>
@@ -1667,7 +1667,7 @@ const RevisionsModule: React.FC = () => {
                     className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100"
                   >
                     <h3 className="text-sm font-bold text-[#171717] uppercase tracking-wide flex items-center gap-2">
-                      <span className="w-1 h-4 bg-indigo-500 rounded"></span>
+                      <span className="w-1 h-4 bg-primary-500 rounded"></span>
                       Assertions d'Audit (ISA)
                     </h3>
                     {expandedSections.includes('assertions') ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
@@ -1676,11 +1676,11 @@ const RevisionsModule: React.FC = () => {
                     <div className="p-4">
                       <div className="grid grid-cols-2 gap-3">
                         {selectedRevision.assertions.map((assertion) => (
-                          <div key={assertion} className="flex items-start gap-3 p-3 bg-indigo-50 rounded-lg border border-indigo-200">
-                            <Target className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
+                          <div key={assertion} className="flex items-start gap-3 p-3 bg-primary-50 rounded-lg border border-primary-200">
+                            <Target className="w-5 h-5 text-primary-600 flex-shrink-0 mt-0.5" />
                             <div>
-                              <p className="font-medium text-indigo-900">{assertionsAudit[assertion]?.libelle}</p>
-                              <p className="text-xs text-indigo-700 mt-1">{assertionsAudit[assertion]?.description}</p>
+                              <p className="font-medium text-primary-900">{assertionsAudit[assertion]?.libelle}</p>
+                              <p className="text-xs text-primary-700 mt-1">{assertionsAudit[assertion]?.description}</p>
                             </div>
                           </div>
                         ))}
@@ -1697,15 +1697,15 @@ const RevisionsModule: React.FC = () => {
                       className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100"
                     >
                       <h3 className="text-sm font-bold text-[#171717] uppercase tracking-wide flex items-center gap-2">
-                        <span className="w-1 h-4 bg-purple-500 rounded"></span>
+                        <span className="w-1 h-4 bg-primary-500 rounded"></span>
                         Écriture d'Ajustement ({selectedRevision.ecritureProposee.type})
                       </h3>
                       {expandedSections.includes('comptable') ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                     </button>
                     {expandedSections.includes('comptable') && (
                       <div className="p-4">
-                        <div className="mb-4 p-3 bg-purple-50 rounded-lg border border-purple-200">
-                          <p className="text-sm text-purple-800">{selectedRevision.ecritureProposee.justification}</p>
+                        <div className="mb-4 p-3 bg-primary-50 rounded-lg border border-primary-200">
+                          <p className="text-sm text-primary-800">{selectedRevision.ecritureProposee.justification}</p>
                         </div>
                         <table className="w-full">
                           <thead>
@@ -1895,9 +1895,9 @@ const RevisionsModule: React.FC = () => {
                       {selectedLeadSchedule.variation >= 0 ? '+' : ''}{selectedLeadSchedule.variationPourcent}%
                     </p>
                   </div>
-                  <div className="p-4 bg-purple-50 rounded-lg">
+                  <div className="p-4 bg-primary-50 rounded-lg">
                     <p className="text-xs text-[#737373]">Seuil de significativité</p>
-                    <p className="text-lg font-bold text-purple-800">{formatMontant(selectedLeadSchedule.seuilSignificativite)}</p>
+                    <p className="text-lg font-bold text-primary-800">{formatMontant(selectedLeadSchedule.seuilSignificativite)}</p>
                   </div>
                 </div>
 
@@ -2164,7 +2164,7 @@ const RevisionsModule: React.FC = () => {
             <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-lg">
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-3">
-                  <div className="bg-purple-100 text-purple-600 p-2 rounded-lg">
+                  <div className="bg-primary-100 text-primary-600 p-2 rounded-lg">
                     <Scale className="w-5 h-5" />
                   </div>
                   <div>
@@ -2189,7 +2189,7 @@ const RevisionsModule: React.FC = () => {
                 {/* Type d'ajustement */}
                 <div>
                   <h3 className="text-sm font-bold text-[#171717] mb-3 flex items-center gap-2">
-                    <span className="w-1 h-4 bg-purple-500 rounded"></span>
+                    <span className="w-1 h-4 bg-primary-500 rounded"></span>
                     Type d'Écriture
                   </h3>
                   <div className="grid grid-cols-2 gap-4">
@@ -2371,14 +2371,14 @@ const RevisionsModule: React.FC = () => {
                 {/* Assertions concernées */}
                 <div>
                   <h3 className="text-sm font-bold text-[#171717] mb-3 flex items-center gap-2">
-                    <span className="w-1 h-4 bg-indigo-500 rounded"></span>
+                    <span className="w-1 h-4 bg-primary-500 rounded"></span>
                     Assertions ISA Concernées
                   </h3>
                   <div className="flex flex-wrap gap-2">
                     {selectedRevision.assertions.map((assertion) => (
                       <span
                         key={assertion}
-                        className="px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-lg text-sm border border-indigo-200"
+                        className="px-3 py-1.5 bg-primary-50 text-primary-700 rounded-lg text-sm border border-primary-200"
                       >
                         {assertionsAudit[assertion]?.libelle}
                       </span>
@@ -2454,7 +2454,7 @@ const RevisionsModule: React.FC = () => {
                       toast.success('PAJE créé et soumis à validation');
                       setShowAjustementModal(false);
                     }}
-                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2"
+                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center gap-2"
                   >
                     <Scale className="w-4 h-4" />
                     Créer le PAJE
@@ -2571,7 +2571,7 @@ const RevisionsModule: React.FC = () => {
                 {/* Montant et Risque */}
                 <div>
                   <h3 className="text-sm font-bold text-[#171717] mb-3 flex items-center gap-2">
-                    <span className="w-1 h-4 bg-purple-500 rounded"></span>
+                    <span className="w-1 h-4 bg-primary-500 rounded"></span>
                     Montant et Évaluation
                   </h3>
                   <div className="grid grid-cols-3 gap-4">
@@ -2643,7 +2643,7 @@ const RevisionsModule: React.FC = () => {
                 {/* Assertions ISA */}
                 <div>
                   <h3 className="text-sm font-bold text-[#171717] mb-3 flex items-center gap-2">
-                    <span className="w-1 h-4 bg-indigo-500 rounded"></span>
+                    <span className="w-1 h-4 bg-primary-500 rounded"></span>
                     Assertions ISA Concernées
                   </h3>
                   <div className="grid grid-cols-2 gap-2">
@@ -2652,7 +2652,7 @@ const RevisionsModule: React.FC = () => {
                         <input
                           type="checkbox"
                           defaultChecked={selectedRevision.assertions.includes(code as AssertionAudit)}
-                          className="rounded border-gray-300 text-indigo-600"
+                          className="rounded border-gray-300 text-primary-600"
                         />
                         <span className="text-sm">{info.libelle}</span>
                       </label>

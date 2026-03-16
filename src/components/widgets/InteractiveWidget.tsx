@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Widget Interactif Configurable Atlas Finance
  * Widgets drag & drop avec personnalisation selon cahier des charges

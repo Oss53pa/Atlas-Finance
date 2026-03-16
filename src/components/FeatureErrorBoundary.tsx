@@ -57,7 +57,7 @@ class FeatureErrorBoundary extends Component<Props, State> {
             )}
             <button
               onClick={this.handleReset}
-              className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 text-sm font-medium"
+              className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-700 text-sm font-medium"
             >
               Réessayer
             </button>

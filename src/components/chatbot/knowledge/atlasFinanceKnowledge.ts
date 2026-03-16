@@ -1,5 +1,5 @@
 /**
- * Base de Connaissances Atlas Finance
+ * Base de Connaissances Atlas Studio
  * Documentation complète du système pour Paloma
  */
 
@@ -27,7 +27,7 @@ export const atlasFinanceKnowledge: KnowledgeEntry[] = [
     title: 'Module Finance et Comptabilité',
     description: 'Gestion complète de la comptabilité et des finances',
     keywords: ['finance', 'comptabilité', 'comptable', 'argent', 'financier'],
-    content: `Le module Finance de Atlas Finance permet de gérer l'ensemble de votre comptabilité d'entreprise :
+    content: `Le module Finance de Atlas Studio permet de gérer l'ensemble de votre comptabilité d'entreprise :
     - Plan comptable complet
     - Saisie des écritures comptables
     - Gestion des journaux
@@ -47,7 +47,7 @@ export const atlasFinanceKnowledge: KnowledgeEntry[] = [
     title: 'Créer un budget',
     description: 'Comment créer et gérer un budget prévisionnel',
     keywords: ['budget', 'prévisionnel', 'planification', 'créer budget', 'nouveau budget'],
-    content: `Pour créer un nouveau budget dans Atlas Finance :
+    content: `Pour créer un nouveau budget dans Atlas Studio :
     1. Allez dans Finance > Budgétisation
     2. Cliquez sur "Nouveau Budget"
     3. Remplissez les informations :
@@ -276,7 +276,7 @@ export const atlasFinanceKnowledge: KnowledgeEntry[] = [
     category: 'Projets',
     title: 'Gestion de Projets',
     description: 'Suivi et pilotage des projets',
-    keywords: ['projet', 'planning', 'gantt', 'tâche', 'milestone'],
+    keywords: ['projet', 'planning', 'gantt', 'tâche', 'mileprimary'],
     content: `Le module Projets permet :
     - Création et structuration projets
     - Planning et Gantt
@@ -332,7 +332,7 @@ export const atlasFinanceKnowledge: KnowledgeEntry[] = [
     title: 'Rapports et Tableaux de bord',
     description: 'Génération de rapports et analyses',
     keywords: ['rapport', 'reporting', 'tableau de bord', 'dashboard', 'analyse'],
-    content: `Atlas Finance propose :
+    content: `Atlas Studio propose :
     - Tableaux de bord personnalisables
     - Rapports standards et personnalisés
     - Export multi-formats (PDF, Excel, CSV)
@@ -494,7 +494,7 @@ export const atlasFinanceKnowledge: KnowledgeEntry[] = [
     title: 'API REST',
     description: 'Intégration via API REST',
     keywords: ['api', 'rest', 'intégration', 'webhook', 'automatisation'],
-    content: `L'API Atlas Finance permet :
+    content: `L'API Atlas Studio permet :
     - Accès lecture/écriture aux données
     - Authentification OAuth2
     - Webhooks pour événements

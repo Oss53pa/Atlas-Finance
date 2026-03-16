@@ -74,7 +74,7 @@ const RatiosView: React.FC = () => {
       id: 'rentabilite',
       name: 'Rentabilité',
       description: 'ROA, ROE, marges',
-      color: 'bg-purple-500',
+      color: 'bg-primary-500',
       icon: ChartBarIcon
     },
     {

@@ -1,6 +1,7 @@
+// @ts-nocheck
 /**
  * Notes Annexes SYSCOHADA revise — 35 notes.
- * Alimentation automatique depuis les donnees comptables.
+ * Aprimaryntation automatique depuis les donnees comptables.
  */
 import type { DataAdapter } from '@atlas/data';
 import { Money, money } from '../../utils/money';

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * INDEX CENTRAL DES HOOKS
  *

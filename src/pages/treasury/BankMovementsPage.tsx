@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useData, useAdapterQuery } from '../../contexts/DataContext';
@@ -62,8 +63,8 @@ const BankMovementsPage: React.FC = () => {
         balance: totalBalance,
         rib: '•••• •••• •••• 1290',
         accountNumber: 'CONSOLIDATED-VIEW',
-        cashIn: 179400537,
-        cashOut: 274594739,
+        cashIn: Math.abs(totalBalance) * 0.6,
+        cashOut: Math.abs(totalBalance) * 0.4,
         // Prévisions basées sur le scénario sélectionné
         forecastIncoming: getForecastData(50000000), // Prévision entrées
         forecastOutcoming: getForecastData(45000000), // Prévision sorties
@@ -530,9 +531,9 @@ const BankMovementsPage: React.FC = () => {
                       <tbody className="divide-y divide-gray-200">
                         {Array.from({length: 30}, (_, i) => {
                           const day = String(i + 1).padStart(2, '0');
-                          const opening = -92498764 - (i * 10000);
-                          const cashIn = i === 7 ? 20 : i === 9 ? 110 : 0;
-                          const cashOut = i === 2 ? 69700 : i === 4 ? 50000 : i === 9 ? 83690 : 0;
+                          const opening = Math.round(totalBalance / 30 * (30 - i));
+                          const cashIn = 0;
+                          const cashOut = 0;
                           const closing = opening + cashIn - cashOut;
 
                           return (

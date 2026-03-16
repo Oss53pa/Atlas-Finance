@@ -21,7 +21,7 @@ const TABLE_MAP: Record<TableName, string> = {
   assets: 'assets',
   fiscalYears: 'fiscal_years',
   budgetLines: 'budget_lines',
-  auditLogs: 'audit_trail',
+  auditLogs: 'audit_logs',
   settings: 'settings',
   closureSessions: 'closure_sessions',
   provisions: 'provisions',
@@ -32,7 +32,7 @@ const TABLE_MAP: Record<TableName, string> = {
   stockMovements: 'stock_movements',
   aliasTiers: 'alias_tiers',
   aliasPrefixConfig: 'alias_prefix_config',
-  fiscalPeriods: 'fiscal_periods',
+  fiscalPeriods: 'periodes_comptables',
   recoveryCases: 'recovery_cases',
 }
 
@@ -223,7 +223,7 @@ export class SupabaseAdapter implements DataAdapter {
 
   async logAudit(event: Omit<AuditEntry, 'id' | 'hash'>): Promise<void> {
     // Hash is computed by Postgres trigger
-    await this.client.from('audit_trail').insert({
+    await this.client.from('audit_logs').insert({
       ...event,
       id: crypto.randomUUID(),
       tenant_id: this.tenantId,

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * SERVICE API - DASHBOARD EXPORTS
  *

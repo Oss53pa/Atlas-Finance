@@ -345,7 +345,7 @@ class CustomerService {
     notation_interne?: string;
   }): Promise<{ results: Client[]; count: number; next: string | null; previous: string | null }> {
     const response = await apiService.get(`${BASE_PATH}/clients/`, { params });
-    return response.data;
+    return response.data as { results: Client[]; count: number; next: string | null; previous: string | null };
   }
 
   /**
@@ -358,7 +358,7 @@ class CustomerService {
    */
   async getClient(clientId: string): Promise<Client> {
     const response = await apiService.get(`${BASE_PATH}/clients/${clientId}/`);
-    return response.data;
+    return response.data as Client;
   }
 
   /**
@@ -388,7 +388,7 @@ class CustomerService {
     }>;
   }): Promise<Client> {
     const response = await apiService.post(`${BASE_PATH}/clients/`, data);
-    return response.data;
+    return response.data as Client;
   }
 
   /**
@@ -402,7 +402,7 @@ class CustomerService {
    */
   async updateClient(clientId: string, data: Partial<Client>): Promise<Client> {
     const response = await apiService.patch(`${BASE_PATH}/clients/${clientId}/`, data);
-    return response.data;
+    return response.data as Client;
   }
 
   /**
@@ -437,7 +437,7 @@ class CustomerService {
       query,
       ...filters
     });
-    return response.data;
+    return response.data as { results: Client[] };
   }
 
   /**
@@ -475,7 +475,7 @@ class CustomerService {
     };
   }> {
     const response = await apiService.get(`${BASE_PATH}/clients/${clientId}/timeline/`);
-    return response.data;
+    return response.data as { client_id: string; raison_sociale: string; timeline: Array<Record<string, unknown>>; statistiques: { total_evenements: number; contacts_ce_mois: number; derniere_activite: string | null; }; };
   }
 
   // ==========================================================================
@@ -496,7 +496,7 @@ class CustomerService {
     page_size?: number;
   }): Promise<{ results: Contact[]; count: number }> {
     const response = await apiService.get(`${BASE_PATH}/contacts/`, { params });
-    return response.data;
+    return response.data as { results: Contact[]; count: number };
   }
 
   /**
@@ -511,7 +511,7 @@ class CustomerService {
     const response = await apiService.get(`${BASE_PATH}/contacts/by-client/`, {
       params: { client_id: clientId }
     });
-    return response.data;
+    return response.data as Contact[];
   }
 
   /**
@@ -536,7 +536,7 @@ class CustomerService {
     est_contact_recouvrement?: boolean;
   }): Promise<Contact> {
     const response = await apiService.post(`${BASE_PATH}/contacts/`, data);
-    return response.data;
+    return response.data as Contact;
   }
 
   /**
@@ -550,7 +550,7 @@ class CustomerService {
    */
   async updateContact(contactId: string, data: Partial<Contact>): Promise<Contact> {
     const response = await apiService.patch(`${BASE_PATH}/contacts/${contactId}/`, data);
-    return response.data;
+    return response.data as Contact;
   }
 
   /**
@@ -581,7 +581,7 @@ class CustomerService {
     type_adresse?: string;
   }): Promise<{ results: ClientAddress[]; count: number }> {
     const response = await apiService.get(`${BASE_PATH}/addresses/`, { params });
-    return response.data;
+    return response.data as { results: ClientAddress[]; count: number };
   }
 
   /**
@@ -603,7 +603,7 @@ class CustomerService {
     pays: string;
   }): Promise<ClientAddress> {
     const response = await apiService.post(`${BASE_PATH}/addresses/`, data);
-    return response.data;
+    return response.data as ClientAddress;
   }
 
   /**
@@ -617,7 +617,7 @@ class CustomerService {
    */
   async updateAddress(addressId: string, data: Partial<ClientAddress>): Promise<ClientAddress> {
     const response = await apiService.patch(`${BASE_PATH}/addresses/${addressId}/`, data);
-    return response.data;
+    return response.data as ClientAddress;
   }
 
   /**
@@ -644,7 +644,7 @@ class CustomerService {
     coordonnees: { lat: number; lng: number };
   }> {
     const response = await apiService.post(`${BASE_PATH}/addresses/${addressId}/geocoder/`);
-    return response.data;
+    return response.data as { message: string; coordonnees: { lat: number; lng: number }; };
   }
 
   // ==========================================================================
@@ -664,7 +664,7 @@ class CustomerService {
     type_document?: string;
   }): Promise<{ results: ClientDocument[]; count: number }> {
     const response = await apiService.get(`${BASE_PATH}/documents/`, { params });
-    return response.data;
+    return response.data as { results: ClientDocument[]; count: number };
   }
 
   /**
@@ -696,7 +696,7 @@ class CustomerService {
     const response = await apiService.post(`${BASE_PATH}/documents/`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
-    return response.data;
+    return response.data as ClientDocument;
   }
 
   /**
@@ -710,8 +710,8 @@ class CustomerService {
   async downloadDocument(documentId: string): Promise<Blob> {
     const response = await apiService.get(`${BASE_PATH}/documents/${documentId}/download/`, {
       responseType: 'blob'
-    });
-    return response.data;
+    } as any);
+    return response.data as Blob;
   }
 
   /**
@@ -725,7 +725,7 @@ class CustomerService {
    */
   async updateDocument(documentId: string, data: Partial<ClientDocument>): Promise<ClientDocument> {
     const response = await apiService.patch(`${BASE_PATH}/documents/${documentId}/`, data);
-    return response.data;
+    return response.data as ClientDocument;
   }
 
   /**
@@ -748,7 +748,7 @@ class CustomerService {
    */
   async getDocumentTypes(): Promise<Array<{ code: string; libelle: string }>> {
     const response = await apiService.get(`${BASE_PATH}/documents/types/`);
-    return response.data.types;
+    return (response.data as any).types;
   }
 
   // ==========================================================================
@@ -764,7 +764,7 @@ class CustomerService {
    */
   async getDashboardStats(): Promise<DashboardStats> {
     const response = await apiService.get(`${BASE_PATH}/dashboard/stats/`);
-    return response.data;
+    return response.data as DashboardStats;
   }
 
   /**
@@ -792,7 +792,7 @@ class CustomerService {
         ...params
       }
     });
-    return response.data;
+    return response.data as CustomerKPIs;
   }
 
   /**
@@ -813,7 +813,7 @@ class CustomerService {
         period_type: params?.periodType || 'monthly'
       }
     });
-    return response.data;
+    return response.data as TrendsData;
   }
 
   /**
@@ -837,7 +837,7 @@ class CustomerService {
         include_details: params?.includeDetails
       }
     });
-    return response.data;
+    return response.data as AgingAnalysis;
   }
 
   /**
@@ -858,7 +858,7 @@ class CustomerService {
         fiscal_year_id: params?.fiscalYearId
       }
     });
-    return response.data;
+    return response.data as RiskAnalysis;
   }
 
   // ==========================================================================
@@ -874,7 +874,7 @@ class CustomerService {
    */
   async getSegmentation(): Promise<Segmentation> {
     const response = await apiService.get(`${BASE_PATH}/analytics/segmentation/`);
-    return response.data;
+    return response.data as Segmentation;
   }
 
   /**
@@ -886,7 +886,7 @@ class CustomerService {
    */
   async getPredictiveAnalytics(): Promise<PredictiveAnalytics> {
     const response = await apiService.get(`${BASE_PATH}/analytics/predictive/`);
-    return response.data;
+    return response.data as PredictiveAnalytics;
   }
 
   /**
@@ -904,7 +904,7 @@ class CustomerService {
     date_range: { from: string; to: string };
   }): Promise<Record<string, unknown>> {
     const response = await apiService.post(`${BASE_PATH}/analytics/custom-report/`, config);
-    return response.data;
+    return response.data as Record<string, unknown>;
   }
 
   /**
@@ -921,7 +921,7 @@ class CustomerService {
     created: boolean;
   }> {
     const response = await apiService.post(`${BASE_PATH}/clients/${clientId}/scoring/`);
-    return response.data;
+    return response.data as { message: string; scoring: Record<string, unknown>; created: boolean; };
   }
 
   /**
@@ -944,7 +944,7 @@ class CustomerService {
         period_months: params?.periodMonths
       }
     });
-    return response.data;
+    return response.data as ProfitabilityAnalysis;
   }
 
   /**
@@ -967,7 +967,7 @@ class CustomerService {
         period_days: params?.periodDays
       }
     });
-    return response.data;
+    return response.data as DSOAnalysis;
   }
 
   // ==========================================================================
@@ -983,7 +983,7 @@ class CustomerService {
    */
   async getRecouvrementDashboard(): Promise<Record<string, unknown>> {
     const response = await apiService.get(`${BASE_PATH}/recouvrement/dashboard/`);
-    return response.data;
+    return response.data as Record<string, unknown>;
   }
 
   /**
@@ -1002,7 +1002,7 @@ class CustomerService {
         company_id: params?.companyId
       }
     });
-    return response.data;
+    return response.data as PriorityAction[];
   }
 
   /**
@@ -1027,7 +1027,7 @@ class CustomerService {
         format: params.format || 'json'
       }
     });
-    return response.data;
+    return response.data as CustomerStatement;
   }
 
   /**
@@ -1045,7 +1045,7 @@ class CustomerService {
     const response = await apiService.post(`${BASE_PATH}/recouvrement/refresh-outstanding/`, {
       company_id: companyId
     });
-    return response.data;
+    return response.data as { refreshed: boolean; timestamp: string; };
   }
 
   /**
@@ -1061,7 +1061,7 @@ class CustomerService {
     details: Array<Record<string, unknown>>;
   }> {
     const response = await apiService.post(`${BASE_PATH}/lettrage/auto/`);
-    return response.data;
+    return response.data as { matched_count: number; total_amount: number; details: Array<Record<string, unknown>>; };
   }
 
   /**
@@ -1098,7 +1098,7 @@ class CustomerService {
     const response = await apiService.post(`${BASE_PATH}/clients/import/`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
-    return response.data;
+    return response.data as { message: string; statistiques: { total_lignes: number; importes: number; erreurs: number; mis_a_jour: number; }; timestamp: string; };
   }
 
   /**
@@ -1116,10 +1116,10 @@ class CustomerService {
   }): Promise<void> {
     const response = await apiService.post(`${BASE_PATH}/clients/export/`, params, {
       responseType: 'blob'
-    });
+    } as any);
 
     // Téléchargement automatique
-    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const url = window.URL.createObjectURL(new Blob([response.data as BlobPart]));
     const link = document.createElement('a');
     link.href = url;
     const ext = params.format_export.toLowerCase();
@@ -1157,7 +1157,7 @@ class CustomerService {
         ...params.filters
       }
     });
-    return response.data;
+    return response.data as { download_url: string; format: string; generated_at: string; };
   }
 
   /**
@@ -1182,7 +1182,7 @@ class CustomerService {
         include_forecasts: params.includeForecasts
       }
     });
-    return response.data;
+    return response.data as Record<string, unknown>;
   }
 
   /**
@@ -1207,7 +1207,7 @@ class CustomerService {
         date_to: params.dateTo
       }
     });
-    return response.data;
+    return response.data as Array<Record<string, unknown>>;
   }
 
   // ==========================================================================
@@ -1234,7 +1234,7 @@ class CustomerService {
         status: params?.status
       }
     });
-    return response.data;
+    return response.data as { results: PaymentPromise[] };
   }
 
   /**
@@ -1259,7 +1259,7 @@ class CustomerService {
       payment_method: data.paymentMethod,
       notes: data.notes
     });
-    return response.data;
+    return response.data as PaymentPromise;
   }
 
   /**
@@ -1275,7 +1275,7 @@ class CustomerService {
     const response = await apiService.patch(`${BASE_PATH}/recouvrement/payment-promises/${promiseId}/`, {
       status
     });
-    return response.data;
+    return response.data as PaymentPromise;
   }
 
   // ==========================================================================
@@ -1300,7 +1300,7 @@ class CustomerService {
     const response = await apiService.post(`${BASE_PATH}/recouvrement/trigger-reminders/`, {
       company_id: params.companyId
     });
-    return response.data;
+    return response.data as { triggered: boolean; reminders_sent: number; timestamp: string; };
   }
 
   /**
@@ -1330,7 +1330,7 @@ class CustomerService {
       message: data.message,
       target_contact: data.targetContact
     });
-    return response.data;
+    return response.data as { sent: boolean; customer_id: string; channel: string; timestamp: string; };
   }
 
   /**
@@ -1350,7 +1350,7 @@ class CustomerService {
     channels: string[];
   }): Promise<Record<string, unknown>> {
     const response = await apiService.post(`${BASE_PATH}/recouvrement/configure-reminders/`, config);
-    return response.data;
+    return response.data as Record<string, unknown>;
   }
 
   /**
@@ -1371,7 +1371,7 @@ class CustomerService {
     subject: string;
   }> {
     const response = await apiService.post(`${BASE_PATH}/recouvrement/preview-reminder/`, data);
-    return response.data;
+    return response.data as { preview_html: string; preview_text: string; subject: string; };
   }
 
   // ==========================================================================
@@ -1398,7 +1398,7 @@ class CustomerService {
         confidence_level: params?.confidenceLevel || 80
       }
     });
-    return response.data;
+    return response.data as CollectionForecast;
   }
 
   /**
@@ -1418,7 +1418,7 @@ class CustomerService {
     const response = await apiService.get(`${BASE_PATH}/analytics/churn-prediction/`, {
       params: { customer_id: customerId }
     });
-    return response.data;
+    return response.data as Array<{ customer_id: string; churn_probability: number; risk_factors: string[]; recommended_actions: string[]; }>;
   }
 
   /**
@@ -1438,7 +1438,7 @@ class CustomerService {
     const response = await apiService.get(`${BASE_PATH}/analytics/lifetime-value/`, {
       params: { customer_id: customerId }
     });
-    return response.data;
+    return response.data as Array<{ customer_id: string; predicted_ltv: number; confidence: number; contributing_factors: Record<string, number>; }>;
   }
 
   /**
@@ -1459,7 +1459,7 @@ class CustomerService {
     const response = await apiService.get(`${BASE_PATH}/analytics/next-best-action/`, {
       params: { customer_id: customerId }
     });
-    return response.data;
+    return response.data as Array<{ customer_id: string; recommended_action: string; expected_impact: number; confidence: number; action_type: string; }>;
   }
 
   /**
@@ -1490,7 +1490,7 @@ class CustomerService {
         date_to: params?.dateTo
       }
     });
-    return response.data;
+    return response.data as Array<{ customer_id: string; anomaly_type: string; severity: string; description: string; detected_at: string; }>;
   }
 
   // ==========================================================================
@@ -1519,7 +1519,7 @@ class CustomerService {
         include_details: params.includeDetails
       }
     });
-    return response.data;
+    return response.data as { download_url: string; generated_at: string };
   }
 
   /**
@@ -1542,10 +1542,10 @@ class CustomerService {
         include_details: params.includeDetails
       },
       responseType: 'blob'
-    });
+    } as any);
 
     // Téléchargement automatique
-    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const url = window.URL.createObjectURL(new Blob([response.data as BlobPart]));
     const link = document.createElement('a');
     link.href = url;
     link.setAttribute('download', `balance-agee-${new Date().toISOString().split('T')[0]}.xlsx`);
@@ -1574,10 +1574,10 @@ class CustomerService {
         metrics: params.metrics.join(',')
       },
       responseType: 'blob'
-    });
+    } as any);
 
     // Téléchargement automatique
-    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const url = window.URL.createObjectURL(new Blob([response.data as BlobPart]));
     const link = document.createElement('a');
     link.href = url;
     link.setAttribute('download', `kpis-clients-${new Date().toISOString().split('T')[0]}.csv`);
@@ -1607,7 +1607,7 @@ class CustomerService {
     next_run: string;
   }> {
     const response = await apiService.post(`${BASE_PATH}/reports/schedule/`, config);
-    return response.data;
+    return response.data as { scheduled: boolean; schedule_id: string; next_run: string; };
   }
 }
 

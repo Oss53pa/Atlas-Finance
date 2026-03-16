@@ -214,6 +214,53 @@ export interface Tiers {
   updatedAt: string;
 }
 
+// ===== ATTACHMENT TYPES =====
+
+export interface PieceJustificative {
+  id: string;
+  nom: string;
+  type: string;
+  taille: number;
+  url: string;
+  createdAt: string;
+}
+
+// ===== THIRD PARTY SUB-TYPES =====
+
+export interface ContactTiers {
+  id: string;
+  nom: string;
+  prenom?: string;
+  fonction?: string;
+  email?: string;
+  telephone?: string;
+  mobile?: string;
+  estPrincipal: boolean;
+  remarques?: string;
+}
+
+export interface AdresseTiers {
+  id: string;
+  typeAdresse: 'PRINCIPALE' | 'FACTURATION' | 'LIVRAISON' | 'AUTRE';
+  adresseLigne1: string;
+  adresseLigne2?: string;
+  ville: string;
+  codePostal?: string;
+  region?: string;
+  pays: string;
+  estPrincipale: boolean;
+}
+
+// ===== PERMISSION =====
+
+export interface Permission {
+  id: string;
+  code: string;
+  name: string;
+  module: string;
+  description?: string;
+}
+
 // ===== ENUMS =====
 
 export enum UserRole {
@@ -339,6 +386,37 @@ export interface PaginatedResponse<T> {
     hasNext: boolean;
     hasPrev: boolean;
   };
+}
+
+export enum BookStatus {
+  AVAILABLE = 'AVAILABLE',
+  BORROWED = 'BORROWED',
+  RESERVED = 'RESERVED',
+  MAINTENANCE = 'MAINTENANCE',
+  LOST = 'LOST',
+}
+
+export enum LoanStatus {
+  ACTIVE = 'ACTIVE',
+  RETURNED = 'RETURNED',
+  OVERDUE = 'OVERDUE',
+  CANCELLED = 'CANCELLED',
+}
+
+export interface Book {
+  id: string;
+  title: string;
+  author: string;
+  isbn?: string;
+  category?: string;
+  publisher?: string;
+  publishedDate?: string;
+  language?: string;
+  description?: string;
+  coverImage?: string;
+  status: BookStatus;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface BookSearchParams {

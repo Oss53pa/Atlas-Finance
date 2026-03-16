@@ -396,7 +396,7 @@ const ModernSupplierDashboard: React.FC = () => {
                   {Math.round(stats.performance_moyenne)}%
                 </p>
               </div>
-              <TrendingUp className="h-8 w-8 text-purple-500" />
+              <TrendingUp className="h-8 w-8 text-primary-500" />
             </div>
             <div className="mt-4">
               <Progress value={stats.performance_moyenne} className="h-2" />

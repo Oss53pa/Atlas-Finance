@@ -363,18 +363,18 @@ const IntelligentEntryAssistant: React.FC = () => {
         {/* Panel principal */}
         <div className="lg:col-span-3 space-y-6">
           {/* Header intelligent */}
-          <Card className="bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-200">
+          <Card className="bg-gradient-to-r from-primary-50 to-primary-50 border-primary-200">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <BrainIcon className="h-8 w-8 text-indigo-600" />
+                  <BrainIcon className="h-8 w-8 text-primary-600" />
                   <div>
-                    <CardTitle className="text-xl text-indigo-900">Assistant IA de Saisie</CardTitle>
-                    <p className="text-indigo-700">Saisie intelligente avec suggestions automatiques</p>
+                    <CardTitle className="text-xl text-primary-900">Assistant IA de Saisie</CardTitle>
+                    <p className="text-primary-700">Saisie intelligente avec suggestions automatiques</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-4">
-                  <Badge className="bg-indigo-100 text-indigo-800">
+                  <Badge className="bg-primary-100 text-primary-800">
                     Mode {assistantMode}
                   </Badge>
                   <Select value={assistantMode} onValueChange={(v: string) => setAssistantMode(v as 'GUIDED' | 'SMART' | 'EXPERT')}>
@@ -479,7 +479,7 @@ const IntelligentEntryAssistant: React.FC = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Description * 
                       {assistantMode === 'SMART' && (
-                        <span className="text-xs text-indigo-600 ml-2">(L'IA analyse pendant la saisie)</span>
+                        <span className="text-xs text-primary-600 ml-2">(L'IA analyse pendant la saisie)</span>
                       )}
                     </label>
                     <Controller
@@ -499,7 +499,7 @@ const IntelligentEntryAssistant: React.FC = () => {
                                   contextAnalysis.confidence > 80 ? 'bg-green-400' :
                                   contextAnalysis.confidence > 60 ? 'bg-yellow-400' : 'bg-red-400'
                                 }`}></div>
-                                <SparklesIcon className="h-4 w-4 text-indigo-500" />
+                                <SparklesIcon className="h-4 w-4 text-primary-500" />
                               </div>
                             </div>
                           )}
@@ -634,7 +634,7 @@ const IntelligentEntryAssistant: React.FC = () => {
                     <Button
                       type="submit"
                       disabled={!calculatedMetrics.isBalanced}
-                      className="bg-indigo-600 hover:bg-indigo-700"
+                      className="bg-primary hover:bg-primary-700"
                     >
                       <CheckCircleIcon className="h-4 w-4 mr-2" />
                       Enregistrer & Valider
@@ -650,10 +650,10 @@ const IntelligentEntryAssistant: React.FC = () => {
         {showAIPanel && (
           <div className="space-y-6">
             {/* Panel de suggestions */}
-            <Card className="border-purple-200">
+            <Card className="border-primary-200">
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg flex items-center text-purple-900">
+                  <CardTitle className="text-lg flex items-center text-primary-900">
                     <SparklesIcon className="h-5 w-5 mr-2" />
                     Assistant IA
                   </CardTitle>
@@ -844,7 +844,7 @@ const IntelligentEntryLine: React.FC<{
         <div className="flex items-center space-x-2">
           <span className="text-sm font-medium text-gray-700">Ligne {index + 1}</span>
           {entry.aiSuggested && (
-            <Badge className="bg-purple-100 text-purple-800">
+            <Badge className="bg-primary-100 text-primary-800">
               <SparklesIcon className="h-3 w-3 mr-1" />
               IA
             </Badge>
@@ -864,7 +864,7 @@ const IntelligentEntryLine: React.FC<{
             variant="ghost"
             size="sm"
             onClick={() => setShowVentilation(!showVentilation)}
-            className={entry.intelligentSplit?.enabled ? 'text-purple-600' : 'text-gray-600'}
+            className={entry.intelligentSplit?.enabled ? 'text-primary-600' : 'text-gray-600'}
           >
             <SplitSquareHorizontalIcon className="h-4 w-4" />
           </Button>
@@ -897,7 +897,7 @@ const IntelligentEntryLine: React.FC<{
                     {contextAnalysis?.suggestedAccounts?.map((account: SuggestedAccount) => (
                       <SelectItem key={account.id} value={account.id}>
                         <div className="flex items-center">
-                          <Badge className="bg-purple-100 text-purple-800 mr-2 text-xs">Suggéré</Badge>
+                          <Badge className="bg-primary-100 text-primary-800 mr-2 text-xs">Suggéré</Badge>
                           {account.code} - {account.name}
                         </div>
                       </SelectItem>
@@ -909,7 +909,7 @@ const IntelligentEntryLine: React.FC<{
                   </SelectContent>
                 </Select>
                 {assistantMode === 'SMART' && (contextAnalysis?.suggestedAccounts?.length ?? 0) > 0 && (
-                  <MagicWandIcon className="absolute right-8 top-2 h-4 w-4 text-purple-500" />
+                  <MagicWandIcon className="absolute right-8 top-2 h-4 w-4 text-primary-500" />
                 )}
               </div>
             )}
@@ -990,8 +990,8 @@ const IntelligentVentilationPanel: React.FC<{
   setValue: UseFormSetValue<FieldValues>;
 }> = ({ control, lineIndex, entry, contextAnalysis, setValue }) => {
   return (
-    <div className="mt-4 p-4 bg-purple-50 border border-purple-200 rounded-lg">
-      <h4 className="font-medium text-purple-900 mb-3 flex items-center">
+    <div className="mt-4 p-4 bg-primary-50 border border-primary-200 rounded-lg">
+      <h4 className="font-medium text-primary-900 mb-3 flex items-center">
         <SplitSquareHorizontalIcon className="h-4 w-4 mr-2" />
         Ventilation Intelligente
       </h4>
@@ -1076,14 +1076,14 @@ const SuggestionCard: React.FC<{
     switch (type) {
       case 'ACCOUNT': return <TargetIcon className="h-4 w-4 text-blue-500" />;
       case 'AMOUNT': return <CurrencyDollarIcon className="h-4 w-4 text-green-500" />;
-      case 'SPLIT': return <SplitSquareHorizontalIcon className="h-4 w-4 text-purple-500" />;
-      case 'TEMPLATE': return <DocumentTextIcon className="h-4 w-4 text-indigo-500" />;
+      case 'SPLIT': return <SplitSquareHorizontalIcon className="h-4 w-4 text-primary-500" />;
+      case 'TEMPLATE': return <DocumentTextIcon className="h-4 w-4 text-primary-500" />;
       default: return <LightBulbIcon className="h-4 w-4 text-yellow-500" />;
     }
   };
 
   return (
-    <div className="p-3 border border-gray-200 rounded-lg hover:border-purple-300 transition-colors">
+    <div className="p-3 border border-gray-200 rounded-lg hover:border-primary-300 transition-colors">
       <div className="flex items-start justify-between">
         <div className="flex items-start space-x-2">
           {getTypeIcon(suggestion.type)}

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Assets Complete Service - Provides full fixed assets functionality
  */

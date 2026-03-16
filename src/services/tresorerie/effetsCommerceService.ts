@@ -5,7 +5,7 @@
 import type { DataAdapter } from '@atlas/data';
 import { Money, money } from '../../utils/money';
 import { logAudit } from '../../lib/db';
-import type { DBJournalLine } from '../../lib/db';
+import type { DBJournalLine, DBJournalEntry } from '../../lib/db';
 import { safeAddEntry } from '../entryGuard';
 
 // ============================================================================
@@ -295,10 +295,10 @@ export async function transitionEffet(
     numero: effet.numero,
     from: effet.statut,
     to: newStatut,
-    ecritureId: entry.id,
+    ecritureId: entryId,
   }));
 
-  return { success: true, effet, ecriture: entry };
+  return { success: true, effet };
 }
 
 /**

@@ -77,7 +77,7 @@ const Pagination: React.FC<PaginationProps> = ({
                 className={cn(
                   "px-3 py-2 text-sm font-medium rounded-md",
                   page === currentPage
-                    ? "bg-indigo-600 text-white"
+                    ? "bg-primary text-white"
                     : "text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-gray-700"
                 )}
               >

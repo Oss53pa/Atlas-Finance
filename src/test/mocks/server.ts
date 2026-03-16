@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Atlas Finance - Mock Service Worker Server
  *

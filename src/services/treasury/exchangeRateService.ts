@@ -254,7 +254,7 @@ class ExchangeRateService {
         currency: BASE_CURRENCY,
         balance: totalBalance,
         equivalentXAF: totalBalance,
-        accounts: new Set(entries.flatMap(e => e.lines.map(l => l.accountCode))).size,
+        accounts: new Set(entries.flatMap((e: any) => e.lines.map((l: any) => l.accountCode))).size,
         averageRate: 1,
         lastUpdate: new Date().toISOString(),
         exposure: 'low',

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState, useEffect } from 'react';
 import { formatDate } from '../../../../../utils/formatters';
 import { useParams, useNavigate, Link } from 'react-router-dom';

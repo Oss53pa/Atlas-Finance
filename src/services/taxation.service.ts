@@ -349,7 +349,7 @@ class TaxationService {
     is_active?: boolean;
   }): Promise<{ results: RegimeFiscal[]; count: number }> {
     const response = await apiService.get(`${BASE_PATH}/regimes-fiscaux/`, { params });
-    return response.data;
+    return response.data as { results: RegimeFiscal[]; count: number };
   }
 
   /**
@@ -357,7 +357,7 @@ class TaxationService {
    */
   async getRegimeFiscalById(id: number): Promise<RegimeFiscal> {
     const response = await apiService.get(`${BASE_PATH}/regimes-fiscaux/${id}/`);
-    return response.data;
+    return response.data as RegimeFiscal;
   }
 
   /**
@@ -365,7 +365,7 @@ class TaxationService {
    */
   async getRegimeFiscalActif(): Promise<RegimeFiscal> {
     const response = await apiService.get(`${BASE_PATH}/regimes-fiscaux/actif/`);
-    return response.data;
+    return response.data as RegimeFiscal;
   }
 
   /**
@@ -373,7 +373,7 @@ class TaxationService {
    */
   async createRegimeFiscal(data: Partial<RegimeFiscal>): Promise<RegimeFiscal> {
     const response = await apiService.post(`${BASE_PATH}/regimes-fiscaux/`, data);
-    return response.data;
+    return response.data as RegimeFiscal;
   }
 
   /**
@@ -381,7 +381,7 @@ class TaxationService {
    */
   async updateRegimeFiscal(id: number, data: Partial<RegimeFiscal>): Promise<RegimeFiscal> {
     const response = await apiService.patch(`${BASE_PATH}/regimes-fiscaux/${id}/`, data);
-    return response.data;
+    return response.data as RegimeFiscal;
   }
 
   /**
@@ -396,7 +396,7 @@ class TaxationService {
    */
   async activerRegimeFiscal(id: number): Promise<RegimeFiscal> {
     const response = await apiService.post(`${BASE_PATH}/regimes-fiscaux/${id}/activer/`);
-    return response.data;
+    return response.data as RegimeFiscal;
   }
 
   // ============================================================================
@@ -413,7 +413,7 @@ class TaxationService {
     statut?: string;
   }): Promise<{ results: TypeDeclaration[]; count: number }> {
     const response = await apiService.get(`${BASE_PATH}/types-declarations/`, { params });
-    return response.data;
+    return response.data as { results: TypeDeclaration[]; count: number };
   }
 
   /**
@@ -421,7 +421,7 @@ class TaxationService {
    */
   async getTypeDeclarationById(id: number): Promise<TypeDeclaration> {
     const response = await apiService.get(`${BASE_PATH}/types-declarations/${id}/`);
-    return response.data;
+    return response.data as TypeDeclaration;
   }
 
   /**
@@ -429,7 +429,7 @@ class TaxationService {
    */
   async getTypesDeclarationsObligatoires(): Promise<TypeDeclaration[]> {
     const response = await apiService.get(`${BASE_PATH}/types-declarations/obligatoires/`);
-    return response.data;
+    return response.data as TypeDeclaration[];
   }
 
   /**
@@ -437,7 +437,7 @@ class TaxationService {
    */
   async createTypeDeclaration(data: Partial<TypeDeclaration>): Promise<TypeDeclaration> {
     const response = await apiService.post(`${BASE_PATH}/types-declarations/`, data);
-    return response.data;
+    return response.data as TypeDeclaration;
   }
 
   /**
@@ -445,7 +445,7 @@ class TaxationService {
    */
   async updateTypeDeclaration(id: number, data: Partial<TypeDeclaration>): Promise<TypeDeclaration> {
     const response = await apiService.patch(`${BASE_PATH}/types-declarations/${id}/`, data);
-    return response.data;
+    return response.data as TypeDeclaration;
   }
 
   /**
@@ -470,7 +470,7 @@ class TaxationService {
     page_size?: number;
   }): Promise<{ results: DeclarationFiscale[]; count: number; next: string | null; previous: string | null }> {
     const response = await apiService.get(`${BASE_PATH}/declarations/`, { params });
-    return response.data;
+    return response.data as { results: DeclarationFiscale[]; count: number; next: string | null; previous: string | null };
   }
 
   /**
@@ -478,7 +478,7 @@ class TaxationService {
    */
   async getDeclarationFiscale(id: number): Promise<DeclarationFiscale> {
     const response = await apiService.get(`${BASE_PATH}/declarations/${id}/`);
-    return response.data;
+    return response.data as DeclarationFiscale;
   }
 
   /**
@@ -486,7 +486,7 @@ class TaxationService {
    */
   async createDeclaration(data: Partial<DeclarationFiscale>): Promise<DeclarationFiscale> {
     const response = await apiService.post(`${BASE_PATH}/declarations/`, data);
-    return response.data;
+    return response.data as DeclarationFiscale;
   }
 
   /**
@@ -494,7 +494,7 @@ class TaxationService {
    */
   async updateDeclaration(id: number, data: Partial<DeclarationFiscale>): Promise<DeclarationFiscale> {
     const response = await apiService.patch(`${BASE_PATH}/declarations/${id}/`, data);
-    return response.data;
+    return response.data as DeclarationFiscale;
   }
 
   /**
@@ -509,7 +509,7 @@ class TaxationService {
    */
   async genererDeclarationAutomatique(data: DeclarationCreateRequest): Promise<DeclarationFiscale> {
     const response = await apiService.post(`${BASE_PATH}/declarations/generer_automatique/`, data);
-    return response.data;
+    return response.data as DeclarationFiscale;
   }
 
   /**
@@ -517,7 +517,7 @@ class TaxationService {
    */
   async validerDeclaration(id: number): Promise<DeclarationFiscale> {
     const response = await apiService.post(`${BASE_PATH}/declarations/${id}/valider/`);
-    return response.data;
+    return response.data as DeclarationFiscale;
   }
 
   /**
@@ -525,7 +525,7 @@ class TaxationService {
    */
   async transmettreDeclaration(id: number): Promise<DeclarationFiscale> {
     const response = await apiService.post(`${BASE_PATH}/declarations/${id}/transmettre/`);
-    return response.data;
+    return response.data as DeclarationFiscale;
   }
 
   /**
@@ -533,7 +533,7 @@ class TaxationService {
    */
   async exporterDeclarationPDF(id: number): Promise<{ download_url: string; filename: string }> {
     const response = await apiService.get(`${BASE_PATH}/declarations/${id}/export_pdf/`);
-    return response.data;
+    return response.data as { download_url: string; filename: string };
   }
 
   /**
@@ -541,7 +541,7 @@ class TaxationService {
    */
   async getDashboardStats(): Promise<DashboardStats> {
     const response = await apiService.get(`${BASE_PATH}/declarations/dashboard_stats/`);
-    return response.data;
+    return response.data as DashboardStats;
   }
 
   // ============================================================================
@@ -557,7 +557,7 @@ class TaxationService {
     page_size?: number;
   }): Promise<{ results: LigneDeclaration[]; count: number }> {
     const response = await apiService.get(`${BASE_PATH}/lignes-declarations/`, { params });
-    return response.data;
+    return response.data as { results: LigneDeclaration[]; count: number };
   }
 
   /**
@@ -565,7 +565,7 @@ class TaxationService {
    */
   async getLigneDeclarationById(id: number): Promise<LigneDeclaration> {
     const response = await apiService.get(`${BASE_PATH}/lignes-declarations/${id}/`);
-    return response.data;
+    return response.data as LigneDeclaration;
   }
 
   /**
@@ -573,7 +573,7 @@ class TaxationService {
    */
   async createLigneDeclaration(data: Partial<LigneDeclaration>): Promise<LigneDeclaration> {
     const response = await apiService.post(`${BASE_PATH}/lignes-declarations/`, data);
-    return response.data;
+    return response.data as LigneDeclaration;
   }
 
   /**
@@ -581,7 +581,7 @@ class TaxationService {
    */
   async updateLigneDeclaration(id: number, data: Partial<LigneDeclaration>): Promise<LigneDeclaration> {
     const response = await apiService.patch(`${BASE_PATH}/lignes-declarations/${id}/`, data);
-    return response.data;
+    return response.data as LigneDeclaration;
   }
 
   /**
@@ -604,7 +604,7 @@ class TaxationService {
     page_size?: number;
   }): Promise<{ results: ObligationFiscale[]; count: number }> {
     const response = await apiService.get(`${BASE_PATH}/obligations/`, { params });
-    return response.data;
+    return response.data as { results: ObligationFiscale[]; count: number };
   }
 
   /**
@@ -612,7 +612,7 @@ class TaxationService {
    */
   async getObligationFiscaleById(id: number): Promise<ObligationFiscale> {
     const response = await apiService.get(`${BASE_PATH}/obligations/${id}/`);
-    return response.data;
+    return response.data as ObligationFiscale;
   }
 
   /**
@@ -620,7 +620,7 @@ class TaxationService {
    */
   async createObligationFiscale(data: Partial<ObligationFiscale>): Promise<ObligationFiscale> {
     const response = await apiService.post(`${BASE_PATH}/obligations/`, data);
-    return response.data;
+    return response.data as ObligationFiscale;
   }
 
   /**
@@ -628,7 +628,7 @@ class TaxationService {
    */
   async updateObligationFiscale(id: number, data: Partial<ObligationFiscale>): Promise<ObligationFiscale> {
     const response = await apiService.patch(`${BASE_PATH}/obligations/${id}/`, data);
-    return response.data;
+    return response.data as ObligationFiscale;
   }
 
   /**
@@ -645,7 +645,7 @@ class TaxationService {
     jours?: number;
   }): Promise<EcheanceProchaine[]> {
     const response = await apiService.get(`${BASE_PATH}/obligations/echeances_prochaines/`, { params });
-    return response.data;
+    return response.data as EcheanceProchaine[];
   }
 
   // ============================================================================
@@ -663,7 +663,7 @@ class TaxationService {
     page_size?: number;
   }): Promise<{ results: AlerteFiscale[]; count: number }> {
     const response = await apiService.get(`${BASE_PATH}/alertes/`, { params });
-    return response.data;
+    return response.data as { results: AlerteFiscale[]; count: number };
   }
 
   /**
@@ -671,7 +671,7 @@ class TaxationService {
    */
   async getAlerteFiscaleById(id: number): Promise<AlerteFiscale> {
     const response = await apiService.get(`${BASE_PATH}/alertes/${id}/`);
-    return response.data;
+    return response.data as AlerteFiscale;
   }
 
   /**
@@ -679,7 +679,7 @@ class TaxationService {
    */
   async createAlerteFiscale(data: Partial<AlerteFiscale>): Promise<AlerteFiscale> {
     const response = await apiService.post(`${BASE_PATH}/alertes/`, data);
-    return response.data;
+    return response.data as AlerteFiscale;
   }
 
   /**
@@ -687,7 +687,7 @@ class TaxationService {
    */
   async updateAlerteFiscale(id: number, data: Partial<AlerteFiscale>): Promise<AlerteFiscale> {
     const response = await apiService.patch(`${BASE_PATH}/alertes/${id}/`, data);
-    return response.data;
+    return response.data as AlerteFiscale;
   }
 
   /**
@@ -702,7 +702,7 @@ class TaxationService {
    */
   async getAlertesNonLues(): Promise<AlerteFiscale[]> {
     const response = await apiService.get(`${BASE_PATH}/alertes/non_lues/`);
-    return response.data;
+    return response.data as AlerteFiscale[];
   }
 
   /**
@@ -710,7 +710,7 @@ class TaxationService {
    */
   async acquitterAlerte(id: number, commentaires?: string): Promise<AlerteFiscale> {
     const response = await apiService.post(`${BASE_PATH}/alertes/${id}/acquitter/`, { commentaires });
-    return response.data;
+    return response.data as AlerteFiscale;
   }
 
   // ============================================================================
@@ -726,7 +726,7 @@ class TaxationService {
     page_size?: number;
   }): Promise<{ results: ControleFiscal[]; count: number }> {
     const response = await apiService.get(`${BASE_PATH}/controles/`, { params });
-    return response.data;
+    return response.data as { results: ControleFiscal[]; count: number };
   }
 
   /**
@@ -734,7 +734,7 @@ class TaxationService {
    */
   async getControleFiscalById(id: number): Promise<ControleFiscal> {
     const response = await apiService.get(`${BASE_PATH}/controles/${id}/`);
-    return response.data;
+    return response.data as ControleFiscal;
   }
 
   /**
@@ -742,7 +742,7 @@ class TaxationService {
    */
   async createControleFiscal(data: Partial<ControleFiscal>): Promise<ControleFiscal> {
     const response = await apiService.post(`${BASE_PATH}/controles/`, data);
-    return response.data;
+    return response.data as ControleFiscal;
   }
 
   /**
@@ -750,7 +750,7 @@ class TaxationService {
    */
   async updateControleFiscal(id: number, data: Partial<ControleFiscal>): Promise<ControleFiscal> {
     const response = await apiService.patch(`${BASE_PATH}/controles/${id}/`, data);
-    return response.data;
+    return response.data as ControleFiscal;
   }
 
   /**
@@ -774,7 +774,7 @@ class TaxationService {
     page_size?: number;
   }): Promise<{ results: DocumentFiscal[]; count: number }> {
     const response = await apiService.get(`${BASE_PATH}/documents/`, { params });
-    return response.data;
+    return response.data as { results: DocumentFiscal[]; count: number };
   }
 
   /**
@@ -782,7 +782,7 @@ class TaxationService {
    */
   async getDocumentFiscalById(id: number): Promise<DocumentFiscal> {
     const response = await apiService.get(`${BASE_PATH}/documents/${id}/`);
-    return response.data;
+    return response.data as DocumentFiscal;
   }
 
   /**
@@ -794,7 +794,7 @@ class TaxationService {
         'Content-Type': 'multipart/form-data',
       },
     });
-    return response.data;
+    return response.data as DocumentFiscal;
   }
 
   /**
@@ -802,7 +802,7 @@ class TaxationService {
    */
   async updateDocumentFiscal(id: number, data: Partial<DocumentFiscal>): Promise<DocumentFiscal> {
     const response = await apiService.patch(`${BASE_PATH}/documents/${id}/`, data);
-    return response.data;
+    return response.data as DocumentFiscal;
   }
 
   /**
@@ -826,7 +826,7 @@ class TaxationService {
     page_size?: number;
   }): Promise<{ results: EvenementFiscal[]; count: number }> {
     const response = await apiService.get(`${BASE_PATH}/evenements/`, { params });
-    return response.data;
+    return response.data as { results: EvenementFiscal[]; count: number };
   }
 
   /**
@@ -834,7 +834,7 @@ class TaxationService {
    */
   async getEvenementFiscalById(id: number): Promise<EvenementFiscal> {
     const response = await apiService.get(`${BASE_PATH}/evenements/${id}/`);
-    return response.data;
+    return response.data as EvenementFiscal;
   }
 
   /**
@@ -842,7 +842,7 @@ class TaxationService {
    */
   async createEvenementFiscal(data: Partial<EvenementFiscal>): Promise<EvenementFiscal> {
     const response = await apiService.post(`${BASE_PATH}/evenements/`, data);
-    return response.data;
+    return response.data as EvenementFiscal;
   }
 
   /**
@@ -850,7 +850,7 @@ class TaxationService {
    */
   async updateEvenementFiscal(id: number, data: Partial<EvenementFiscal>): Promise<EvenementFiscal> {
     const response = await apiService.patch(`${BASE_PATH}/evenements/${id}/`, data);
-    return response.data;
+    return response.data as EvenementFiscal;
   }
 
   /**
@@ -865,7 +865,7 @@ class TaxationService {
    */
   async marquerEvenementTraite(id: number, commentaires?: string): Promise<EvenementFiscal> {
     const response = await apiService.post(`${BASE_PATH}/evenements/${id}/marquer_traite/`, { commentaires });
-    return response.data;
+    return response.data as EvenementFiscal;
   }
 
   // ============================================================================
@@ -880,7 +880,7 @@ class TaxationService {
     exercice?: number;
   }): Promise<RapportConformite> {
     const response = await apiService.get(`${BASE_PATH}/analytics/rapport_conformite/`, { params });
-    return response.data;
+    return response.data as RapportConformite;
   }
 
   /**
@@ -891,7 +891,7 @@ class TaxationService {
     periode_fin?: string;
   }): Promise<Anomalie[]> {
     const response = await apiService.get(`${BASE_PATH}/analytics/detecter_anomalies/`, { params });
-    return response.data;
+    return response.data as Anomalie[];
   }
 
   /**
@@ -901,7 +901,7 @@ class TaxationService {
     annee?: number;
   }): Promise<ObligationFiscaleVerification[]> {
     const response = await apiService.get(`${BASE_PATH}/analytics/obligations_fiscales/`, { params });
-    return response.data;
+    return response.data as ObligationFiscaleVerification[];
   }
 
   /**
@@ -909,7 +909,7 @@ class TaxationService {
    */
   async calculerImpot(request: CalculImpotRequest): Promise<CalculImpotResponse> {
     const response = await apiService.post(`${BASE_PATH}/analytics/calcul-impot/`, request);
-    return response.data;
+    return response.data as CalculImpotResponse;
   }
 
   /**
@@ -926,7 +926,13 @@ class TaxationService {
     score_conformite: number;
   }> {
     const response = await apiService.get(`${BASE_PATH}/analytics/stats/`, { params });
-    return response.data;
+    return response.data as {
+      declarations_total: number;
+      declarations_en_retard: number;
+      montant_total_impots: number;
+      montant_penalites: number;
+      score_conformite: number;
+    };
   }
 }
 

@@ -150,7 +150,7 @@ const CompteComptableSearch: React.FC<CompteComptableSearchProps> = ({
               disabled={disabled}
               className="w-full px-3 py-2 pr-8 border border-[#d4d4d4] rounded-md focus:ring-2 focus:ring-[#171717]/20 focus:border-[#171717] text-sm"
             />
-            <Search className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-700" />
+            <Search className="absolute right-2 top-1/2 transform -tranprimary-y-1/2 w-4 h-4 text-gray-700" />
           </div>
 
           {/* Bouton de basculement mode */}

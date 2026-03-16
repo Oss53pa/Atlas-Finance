@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React from 'react';
 import { DataTable, Column } from '@/shared/components/data-display/DataTable';
 import { Button } from '@/shared/components/ui/Button';

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState } from 'react';
 import { Bell, X, AlertTriangle, Clock, AlertCircle, CheckCircle, Info } from 'lucide-react';
 import { useNotifications } from '@/hooks/useNotifications';

@@ -13,6 +13,9 @@ interface User {
   company_id?: string;
   permissions?: string[];
   photo_url?: string;
+  phone?: string;
+  department?: string;
+  twoFactorEnabled?: boolean;
 }
 
 interface AuthContextType {
@@ -50,6 +53,9 @@ function mapProfileToUser(profile: Record<string, unknown>): User {
     company: (profile.company as Record<string, unknown>)?.nom as string | undefined,
     company_id: profile.company_id as string | undefined,
     photo_url: profile.photo_url as string | undefined,
+    phone: profile.phone as string | undefined,
+    department: profile.department as string | undefined,
+    twoFactorEnabled: Boolean(profile.two_factor_enabled),
   };
 }
 
@@ -76,10 +82,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
+  const isDev = import.meta.env.VITE_APP_ENV === 'development';
+
   // Initialize auth state
   useEffect(() => {
-    if (!isSupabaseConfigured) {
-      console.warn('[AuthContext] Supabase not configured — dev mode, auto-login as admin');
+    if (!isSupabaseConfigured || isDev) {
+      console.warn('[AuthContext] Dev mode — auto-login as admin (auth bypassed)');
       setUser({
         id: 'dev-user',
         name: 'Dev Admin',
@@ -118,8 +126,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [loadUserProfile]);
 
   const login = useCallback(async (email: string, password: string) => {
-    if (!isSupabaseConfigured) {
-      throw new Error('Supabase n\'est pas configuré. Vérifiez les variables d\'environnement VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY.');
+    if (!isSupabaseConfigured || isDev) {
+      // Dev mode: auto-login without Supabase
+      return;
     }
 
     setLoading(true);
@@ -143,7 +152,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [loadUserProfile]);
 
   const signUp = useCallback(async (email: string, password: string, metadata?: Record<string, unknown>) => {
-    if (!isSupabaseConfigured) return;
+    if (!isSupabaseConfigured || isDev) return;
 
     setLoading(true);
     try {
@@ -155,7 +164,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const logout = useCallback(async () => {
-    if (isSupabaseConfigured) {
+    if (isSupabaseConfigured && !isDev) {
       await supabase.auth.signOut();
     }
     setUser(null);
@@ -163,16 +172,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const refreshUserProfile = useCallback(async () => {
-    if (isSupabaseConfigured) {
+    if (isSupabaseConfigured && !isDev) {
       await loadUserProfile();
     }
-  }, [loadUserProfile]);
+  }, [loadUserProfile, isDev]);
 
   const isAdmin = useMemo(() => user?.role === 'admin', [user]);
   const isAuthenticated = useMemo(() => {
-    if (!isSupabaseConfigured) return !!user;
+    if (!isSupabaseConfigured || isDev) return !!user;
     return !!session && !!user;
-  }, [session, user]);
+  }, [session, user, isDev]);
 
   const contextValue = useMemo(() => ({
     user,

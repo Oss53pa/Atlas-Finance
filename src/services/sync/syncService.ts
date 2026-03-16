@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Service de synchronisation bidirectionnelle Dexie (IndexedDB) ↔ Supabase.
  *

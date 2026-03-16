@@ -105,7 +105,7 @@ const ControlePeriodes: React.FC = () => {
     };
   });
 
-  // Règles de clôture
+  // Règles de clôture SYSCOHADA (référentiel métier — personnalisables via paramètres)
   const regles: RegleCloture[] = [
     {
       id: '1',

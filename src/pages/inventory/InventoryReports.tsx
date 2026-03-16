@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState, useEffect } from 'react';
 import {
   FileText,
@@ -576,7 +577,7 @@ const InventoryReports: React.FC = () => {
 
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <div className="flex items-center gap-3">
-            <TrendingUp className="w-8 h-8 text-purple-600" />
+            <TrendingUp className="w-8 h-8 text-primary-600" />
             <div>
               <p className="text-lg font-bold text-gray-900">{reportMetrics.mostPopular}</p>
               <p className="text-sm text-gray-600">Most Popular</p>

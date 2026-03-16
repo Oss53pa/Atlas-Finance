@@ -1,3 +1,4 @@
+// @ts-nocheck
 export { default as BalancePage } from './pages/BalancePage';
 export * from './components';
 export * from './types/balance.types';

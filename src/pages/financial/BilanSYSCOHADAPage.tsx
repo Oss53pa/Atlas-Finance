@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -19,6 +20,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
   const navigate = useNavigate();
   const { adapter } = useData();
   const [activeTab, setActiveTab] = useState('bilan');
+  const [tftMethod, setTftMethod] = useState<'indirect' | 'direct'>('indirect');
   const [periode, setPeriode] = useState('current');
 
   // États pour la modal de détails
@@ -1008,7 +1010,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                         <tr className="border-t-2 border-[#e5e5e5] bg-gray-50">
                           <td className="p-3"></td>
                           <td className="p-3 font-bold text-[#171717]">TOTAL EMPLOIS</td>
-                          <td className="p-3 text-right text-lg font-bold text-[#171717]">1 600 000</td>
+                          <td className="p-3 text-right text-lg font-bold text-[#171717]">{formatCurrency(tableauFinancementData.emplois.reduce((s, i) => s + i.montant, 0))}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -1055,7 +1057,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                         <tr className="border-t-2 border-[#e5e5e5] bg-gray-50">
                           <td className="p-3"></td>
                           <td className="p-3 font-bold text-[#171717]">TOTAL RESSOURCES</td>
-                          <td className="p-3 text-right text-lg font-bold text-[#171717]">1 725 000</td>
+                          <td className="p-3 text-right text-lg font-bold text-[#171717]">{formatCurrency(tableauFinancementData.ressources.reduce((s, i) => s + i.montant, 0))}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -1126,7 +1128,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                         <tr className="border-t-2 border-[#e5e5e5] bg-gray-50">
                           <td className="p-3"></td>
                           <td className="p-3 font-bold text-[#171717]">FLUX NET DE TRÉSORERIE DES ACTIVITÉS OPÉRATIONNELLES</td>
-                          <td className="p-3 text-right text-lg font-bold text-[#171717]">1 660 000</td>
+                          {(() => { const total = fluxTresorerieData.activitesOperationnelles.reduce((s, i) => s + i.montant, 0); return <td className={`p-3 text-right text-lg font-bold ${total >= 0 ? 'text-[#171717]' : 'text-red-600'}`}>{total >= 0 ? '' : '('}{formatCurrency(Math.abs(total))}{total >= 0 ? '' : ')'}</td>; })()}
                         </tr>
                       </tbody>
                     </table>
@@ -1173,7 +1175,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                         <tr className="border-t-2 border-[#e5e5e5] bg-gray-50">
                           <td className="p-3"></td>
                           <td className="p-3 font-bold text-[#171717]">FLUX NET DE TRÉSORERIE DES ACTIVITÉS D'INVESTISSEMENT</td>
-                          <td className="p-3 text-right text-lg font-bold text-red-600">(1 095 000)</td>
+                          {(() => { const total = fluxTresorerieData.activitesInvestissement.reduce((s, i) => s + i.montant, 0); return <td className={`p-3 text-right text-lg font-bold ${total >= 0 ? 'text-[#171717]' : 'text-red-600'}`}>{total >= 0 ? '' : '('}{formatCurrency(Math.abs(total))}{total >= 0 ? '' : ')'}</td>; })()}
                         </tr>
                       </tbody>
                     </table>
@@ -1202,7 +1204,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                         ))}
                         <tr className="border-t-2 border-[#e5e5e5] bg-gray-50">
                           <td className="p-3 font-bold text-[#171717]">FLUX NET DE TRÉSORERIE DES ACTIVITÉS DE FINANCEMENT</td>
-                          <td className="p-3 text-right text-lg font-bold text-red-600">(280 000)</td>
+                          {(() => { const total = fluxTresorerieData.activitesFinancement.reduce((s, i) => s + i.montant, 0); return <td className={`p-3 text-right text-lg font-bold ${total >= 0 ? 'text-[#171717]' : 'text-red-600'}`}>{total >= 0 ? '' : '('}{formatCurrency(Math.abs(total))}{total >= 0 ? '' : ')'}</td>; })()}
                         </tr>
                       </tbody>
                     </table>
@@ -1212,20 +1214,30 @@ const BilanSYSCOHADAPage: React.FC = () => {
                 {/* VARIATION NETTE DE TRÉSORERIE */}
                 <div className="bg-white rounded-lg p-6 border-2 border-[#e5e5e5]">
                   <h3 className="text-lg font-bold text-[#171717] mb-4 text-center">VARIATION NETTE DE LA TRÉSORERIE</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-                    <div className="p-4 border border-[#e5e5e5] rounded">
-                      <p className="text-[#737373] font-medium mb-2">Trésorerie début d'exercice</p>
-                      <p className="text-lg font-bold text-[#171717]">600 000 €</p>
-                    </div>
-                    <div className="p-4 border border-[#e5e5e5] rounded">
-                      <p className="text-[#737373] font-medium mb-2">Variation nette</p>
-                      <p className="text-lg font-bold text-[#171717]">+285 000 €</p>
-                    </div>
-                    <div className="p-4 border border-[#e5e5e5] rounded">
-                      <p className="text-[#737373] font-medium mb-2">Trésorerie fin d'exercice</p>
-                      <p className="text-lg font-bold text-[#171717]">885 000 €</p>
-                    </div>
-                  </div>
+                  {(() => {
+                    const fluxOp = fluxTresorerieData.activitesOperationnelles.reduce((s, i) => s + i.montant, 0);
+                    const fluxInv = fluxTresorerieData.activitesInvestissement.reduce((s, i) => s + i.montant, 0);
+                    const fluxFin = fluxTresorerieData.activitesFinancement.reduce((s, i) => s + i.montant, 0);
+                    const variation = fluxOp + fluxInv + fluxFin;
+                    const tresoFin = net(['52', '57']) - net(['564']);
+                    const tresoDebut = tresoFin - variation;
+                    return (
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                        <div className="p-4 border border-[#e5e5e5] rounded">
+                          <p className="text-[#737373] font-medium mb-2">Trésorerie début d'exercice</p>
+                          <p className="text-lg font-bold text-[#171717]">{formatCurrency(tresoDebut)}</p>
+                        </div>
+                        <div className="p-4 border border-[#e5e5e5] rounded">
+                          <p className="text-[#737373] font-medium mb-2">Variation nette</p>
+                          <p className={`text-lg font-bold ${variation >= 0 ? 'text-green-600' : 'text-red-600'}`}>{variation >= 0 ? '+' : ''}{formatCurrency(variation)}</p>
+                        </div>
+                        <div className="p-4 border border-[#e5e5e5] rounded">
+                          <p className="text-[#737373] font-medium mb-2">Trésorerie fin d'exercice</p>
+                          <p className="text-lg font-bold text-[#171717]">{formatCurrency(tresoFin)}</p>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             </div>

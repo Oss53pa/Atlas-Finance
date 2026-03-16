@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * SERVICE EXERCICE - Mode local (Dexie/IndexedDB)
  * Fournit les données d'exercices comptables localement

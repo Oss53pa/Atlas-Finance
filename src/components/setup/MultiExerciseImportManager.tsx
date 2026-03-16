@@ -162,7 +162,7 @@ const MultiExerciseImportManager: React.FC = () => {
       id: 'ecritures',
       name: 'Écritures comptables',
       icon: DocumentTextIcon,
-      color: 'purple',
+      color: 'primary',
       required: false,
       description: 'Mouvements comptables détaillés'
     },
@@ -178,7 +178,7 @@ const MultiExerciseImportManager: React.FC = () => {
       id: 'immobilisations',
       name: 'Immobilisations',
       icon: BuildingOfficeIcon,
-      color: 'indigo',
+      color: 'primary',
       required: false,
       description: 'Actifs et tableaux d\'amortissement'
     },
@@ -186,7 +186,7 @@ const MultiExerciseImportManager: React.FC = () => {
       id: 'analytique',
       name: 'Sections analytiques',
       icon: BanknotesIcon,
-      color: 'pink',
+      color: 'primary',
       required: false,
       description: 'Centres de coûts et sections'
     },
@@ -253,7 +253,7 @@ const MultiExerciseImportManager: React.FC = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-lg font-bold text-gray-900 flex items-center">
-              <DocumentArrowUpIcon className="h-8 w-8 mr-3 text-indigo-600" />
+              <DocumentArrowUpIcon className="h-8 w-8 mr-3 text-primary-600" />
               Import Comptable Multi-Exercices
             </h1>
             <p className="text-gray-600 mt-2">
@@ -261,7 +261,7 @@ const MultiExerciseImportManager: React.FC = () => {
             </p>
           </div>
           <div className="flex items-center space-x-4">
-            <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center">
+            <button className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-700 transition-colors flex items-center">
               <DocumentDuplicateIcon className="h-5 w-5 mr-2" />
               Nouvel Import
             </button>
@@ -276,7 +276,7 @@ const MultiExerciseImportManager: React.FC = () => {
             onClick={() => setActiveTab('new-import')}
             className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
               activeTab === 'new-import'
-                ? 'border-indigo-600 text-indigo-600'
+                ? 'border-primary-600 text-primary-600'
                 : 'border-transparent text-gray-600 hover:text-gray-900'
             }`}
           >
@@ -286,7 +286,7 @@ const MultiExerciseImportManager: React.FC = () => {
             onClick={() => setActiveTab('history')}
             className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
               activeTab === 'history'
-                ? 'border-indigo-600 text-indigo-600'
+                ? 'border-primary-600 text-primary-600'
                 : 'border-transparent text-gray-600 hover:text-gray-900'
             }`}
           >
@@ -296,7 +296,7 @@ const MultiExerciseImportManager: React.FC = () => {
             onClick={() => setActiveTab('templates')}
             className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
               activeTab === 'templates'
-                ? 'border-indigo-600 text-indigo-600'
+                ? 'border-primary-600 text-primary-600'
                 : 'border-transparent text-gray-600 hover:text-gray-900'
             }`}
           >
@@ -306,7 +306,7 @@ const MultiExerciseImportManager: React.FC = () => {
             onClick={() => setActiveTab('mapping')}
             className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
               activeTab === 'mapping'
-                ? 'border-indigo-600 text-indigo-600'
+                ? 'border-primary-600 text-primary-600'
                 : 'border-transparent text-gray-600 hover:text-gray-900'
             }`}
           >
@@ -326,7 +326,7 @@ const MultiExerciseImportManager: React.FC = () => {
                       <div className="flex items-center">
                         <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
                           currentStep >= step.id
-                            ? 'bg-indigo-600 text-white'
+                            ? 'bg-primary text-white'
                             : 'bg-gray-200 text-gray-600'
                         }`}>
                           {currentStep > step.id ? (
@@ -337,7 +337,7 @@ const MultiExerciseImportManager: React.FC = () => {
                         </div>
                         {index < importSteps.length - 1 && (
                           <div className={`flex-1 h-1 mx-2 ${
-                            currentStep > step.id ? 'bg-indigo-600' : 'bg-gray-200'
+                            currentStep > step.id ? 'bg-primary' : 'bg-gray-200'
                           }`} />
                         )}
                       </div>
@@ -363,7 +363,7 @@ const MultiExerciseImportManager: React.FC = () => {
                         onClick={() => setSelectedSource(system.id)}
                         className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
                           selectedSource === system.id
-                            ? 'border-indigo-600 bg-indigo-50'
+                            ? 'border-primary-600 bg-primary-50'
                             : 'border-gray-200 hover:border-gray-300'
                         }`}
                       >
@@ -389,7 +389,7 @@ const MultiExerciseImportManager: React.FC = () => {
                                 e.stopPropagation();
                                 downloadTemplate(system.id);
                               }}
-                              className="text-indigo-600 hover:text-indigo-700"
+                              className="text-primary-600 hover:text-primary-700"
                               title="Télécharger le template"
                             >
                               <ArrowDownTrayIcon className="h-5 w-5" />
@@ -430,7 +430,7 @@ const MultiExerciseImportManager: React.FC = () => {
                         }}
                         className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
                           selectedExercises.includes(exercise.year)
-                            ? 'border-indigo-600 bg-indigo-50'
+                            ? 'border-primary-600 bg-primary-50'
                             : 'border-gray-200 hover:border-gray-300'
                         }`}
                       >
@@ -438,7 +438,7 @@ const MultiExerciseImportManager: React.FC = () => {
                           <div className="flex items-center space-x-4">
                             <div className={`w-4 h-4 rounded-full ${
                               selectedExercises.includes(exercise.year)
-                                ? 'bg-indigo-600'
+                                ? 'bg-primary'
                                 : 'bg-gray-300'
                             }`} />
                             <div>
@@ -483,7 +483,7 @@ const MultiExerciseImportManager: React.FC = () => {
                         key={type.id}
                         className={`p-4 border-2 rounded-lg ${
                           type.required
-                            ? 'border-indigo-600 bg-indigo-50'
+                            ? 'border-primary-600 bg-primary-50'
                             : 'border-gray-200'
                         }`}
                       >
@@ -501,7 +501,7 @@ const MultiExerciseImportManager: React.FC = () => {
                                 type="checkbox"
                                 checked={type.required || false}
                                 disabled={type.required}
-                                className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                                className="h-4 w-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
                               />
                             </div>
                             <p className="text-sm text-gray-600 mt-1">{type.description}</p>
@@ -510,7 +510,7 @@ const MultiExerciseImportManager: React.FC = () => {
                                 onClick={() => fileInputRef.current?.click()}
                                 className={`w-full px-3 py-2 text-sm border rounded-lg flex items-center justify-center space-x-2 ${
                                   type.required
-                                    ? 'border-indigo-300 text-indigo-700 bg-indigo-50 hover:bg-indigo-100'
+                                    ? 'border-primary-300 text-primary-700 bg-primary-50 hover:bg-primary-100'
                                     : 'border-gray-300 text-gray-700 bg-white hover:bg-gray-50'
                                 }`}
                               >
@@ -652,7 +652,7 @@ const MultiExerciseImportManager: React.FC = () => {
                         <span className="text-sm font-medium">45%</span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-3">
-                        <div className="bg-indigo-600 h-3 rounded-full transition-all duration-500" style={{ width: '45%' }}></div>
+                        <div className="bg-primary h-3 rounded-full transition-all duration-500" style={{ width: '45%' }}></div>
                       </div>
 
                       <div className="space-y-3 mt-6">
@@ -725,7 +725,7 @@ const MultiExerciseImportManager: React.FC = () => {
                       ? 'bg-gray-200 text-gray-700 cursor-not-allowed'
                       : currentStep === 5
                       ? 'bg-green-600 text-white hover:bg-green-700'
-                      : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                      : 'bg-primary text-white hover:bg-primary-700'
                   }`}
                 >
                   {currentStep === 5 ? 'Lancer l\'import' : currentStep === 6 ? 'Terminer' : 'Suivant'}
@@ -796,7 +796,7 @@ const MultiExerciseImportManager: React.FC = () => {
                             <div className="flex-1 mr-2">
                               <div className="w-full bg-gray-200 rounded-full h-2">
                                 <div
-                                  className="bg-indigo-600 h-2 rounded-full"
+                                  className="bg-primary h-2 rounded-full"
                                   style={{ width: `${session.progress}%` }}
                                 ></div>
                               </div>
@@ -805,7 +805,7 @@ const MultiExerciseImportManager: React.FC = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                          <button className="text-indigo-600 hover:text-indigo-900">
+                          <button className="text-primary-600 hover:text-primary-900">
                             Détails
                           </button>
                         </td>
@@ -840,7 +840,7 @@ const MultiExerciseImportManager: React.FC = () => {
                           <h3 className="font-medium text-gray-900">{type.name}</h3>
                           <p className="text-sm text-gray-600 mt-1">{type.description}</p>
                           <div className="mt-3 flex items-center space-x-4">
-                            <button className="text-sm text-indigo-600 hover:text-indigo-700 flex items-center">
+                            <button className="text-sm text-primary-600 hover:text-primary-700 flex items-center">
                               <ArrowDownTrayIcon className="h-4 w-4 mr-1" />
                               Télécharger (.xlsx)
                             </button>
@@ -865,7 +865,7 @@ const MultiExerciseImportManager: React.FC = () => {
                 <h2 className="text-lg font-semibold text-gray-900">
                   Règles de mapping sauvegardées
                 </h2>
-                <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                <button className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-700 transition-colors">
                   Nouvelle règle
                 </button>
               </div>
@@ -906,7 +906,7 @@ const MultiExerciseImportManager: React.FC = () => {
                         15/10/2024
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <button className="text-indigo-600 hover:text-indigo-900 mr-3">
+                        <button className="text-primary-600 hover:text-primary-900 mr-3">
                           Modifier
                         </button>
                         <button className="text-red-600 hover:text-red-900">

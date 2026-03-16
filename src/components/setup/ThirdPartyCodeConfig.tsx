@@ -267,7 +267,7 @@ const ThirdPartyCodeConfig: React.FC = () => {
     switch (type) {
       case 'CUSTOMER': return 'green';
       case 'SUPPLIER': return 'blue';
-      case 'OTHER': return 'purple';
+      case 'OTHER': return 'primary';
       default: return 'gray';
     }
   };
@@ -288,7 +288,7 @@ const ThirdPartyCodeConfig: React.FC = () => {
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-lg font-bold text-gray-900 flex items-center">
-              <HashtagIcon className="h-8 w-8 mr-3 text-indigo-600" />
+              <HashtagIcon className="h-8 w-8 mr-3 text-primary-600" />
               Codification Automatique des Tiers
             </h1>
             <p className="text-gray-600 mt-2">
@@ -297,7 +297,7 @@ const ThirdPartyCodeConfig: React.FC = () => {
           </div>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
+            className="bg-primary hover:bg-primary-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
           >
             <PlusIcon className="h-5 w-5" />
             <span>Nouvelle Règle</span>
@@ -319,7 +319,7 @@ const ThirdPartyCodeConfig: React.FC = () => {
               onClick={() => setActiveTab(id as typeof activeTab)}
               className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === id
-                  ? 'border-indigo-500 text-indigo-600'
+                  ? 'border-primary-500 text-primary-600'
                   : 'border-transparent text-gray-700 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
@@ -440,7 +440,7 @@ const ThirdPartyCodeConfig: React.FC = () => {
                         <span className="text-gray-700">Code pays:</span>
                         <span className="font-medium">{rule.countryCode ? 'Oui' : 'Non'}</span>
                       </div>
-                      <div className="flex justify-between p-3 bg-purple-50 rounded-lg">
+                      <div className="flex justify-between p-3 bg-primary-50 rounded-lg">
                         <span className="text-gray-700">Longueur séquence:</span>
                         <span className="font-medium">{rule.sequenceLength} positions</span>
                       </div>
@@ -515,9 +515,9 @@ const ThirdPartyCodeConfig: React.FC = () => {
                   <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
                     account.type === 'NATIONAL' ? 'bg-green-100 text-green-800' :
                     account.type === 'EXPORT' ? 'bg-blue-100 text-blue-800' :
-                    account.type === 'LOCAL' ? 'bg-purple-100 text-purple-800' :
+                    account.type === 'LOCAL' ? 'bg-primary-100 text-primary-800' :
                     account.type === 'FOREIGN' ? 'bg-orange-100 text-orange-800' :
-                    account.type === 'EMPLOYEE' ? 'bg-pink-100 text-pink-800' :
+                    account.type === 'EMPLOYEE' ? 'bg-primary-100 text-primary-800' :
                     'bg-gray-100 text-gray-800'
                   }`}>
                     {account.type}
@@ -556,7 +556,7 @@ const ThirdPartyCodeConfig: React.FC = () => {
       {activeTab === 'countries' && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center">
-            <GlobeAltIcon className="h-6 w-6 mr-2 text-indigo-600" />
+            <GlobeAltIcon className="h-6 w-6 mr-2 text-primary-600" />
             Configuration par Pays
           </h2>
           
@@ -654,7 +654,7 @@ const ThirdPartyCodeConfig: React.FC = () => {
         <div className="space-y-6">
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center">
-              <SparklesIcon className="h-6 w-6 mr-2 text-indigo-600" />
+              <SparklesIcon className="h-6 w-6 mr-2 text-primary-600" />
               Aperçu Génération de Codes
             </h2>
             
@@ -667,7 +667,7 @@ const ThirdPartyCodeConfig: React.FC = () => {
                     <select
                       value={previewType}
                       onChange={(e) => setPreviewType(e.target.value as typeof previewType)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500"
                     >
                       <option value="CUSTOMER">Client</option>
                       <option value="SUPPLIER">Fournisseur</option>
@@ -676,7 +676,7 @@ const ThirdPartyCodeConfig: React.FC = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Pays du tiers</label>
-                    <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500">
+                    <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500">
                       {countriesConfig.map((country) => (
                         <option key={country.code} value={country.code}>
                           {country.flag} {country.name}
@@ -690,11 +690,11 @@ const ThirdPartyCodeConfig: React.FC = () => {
                     <input
                       type="text"
                       placeholder="ABC SARL"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500"
                     />
                   </div>
 
-                  <button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center justify-center space-x-2">
+                  <button className="w-full bg-primary hover:bg-primary-700 text-white px-4 py-2 rounded-lg flex items-center justify-center space-x-2">
                     <ArrowPathIcon className="h-5 w-5" />
                     <span>Générer Code</span>
                   </button>
@@ -703,10 +703,10 @@ const ThirdPartyCodeConfig: React.FC = () => {
 
               <div>
                 <h3 className="text-lg font-medium text-gray-900 mb-4">Résultat de Génération</h3>
-                <div className="bg-gradient-to-br from-indigo-50 to-purple-50 border-2 border-indigo-200 rounded-lg p-6">
+                <div className="bg-gradient-to-br from-primary-50 to-primary-50 border-2 border-primary-200 rounded-lg p-6">
                   <div className="text-center">
-                    <div className="text-sm text-indigo-600 mb-2">Code généré automatiquement:</div>
-                    <div className="text-xl font-mono font-bold text-indigo-900 mb-4">
+                    <div className="text-sm text-primary-600 mb-2">Code généré automatiquement:</div>
+                    <div className="text-xl font-mono font-bold text-primary-900 mb-4">
                       {(() => {
                         const rule = codificationRules.find(r => r.type === previewType);
                         const country = countriesConfig.find(c => c.code === 'CM'); // Cameroun par défaut

@@ -1,4 +1,4 @@
-import { AssetClassificationService } from '../data/assetClassification';
+import { AssetClassificationService, type AssetClassification } from '../data/assetClassification';
 
 export interface AssetDetectionRule {
   accountCodes: string[];
@@ -125,7 +125,7 @@ export class AssetDetectionEngine {
 
   static detectAsset(invoice: InvoiceData): AssetDetectionResult {
     let maxConfidence = 0;
-    let bestClassification: { category: string; account: string; confidence: number } | null = null;
+    let bestClassification: AssetClassification | null = null;
 
     // Recherche par classification d'actifs
     const classifications = AssetClassificationService.getAllClassifications();

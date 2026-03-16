@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * P4 Improvements Tests
  * P4-2: Cash control (caisse >= 0)

@@ -76,8 +76,8 @@ const CATEGORIES = [
   { value: 'autre', label: 'Autre' },
 ];
 
-// Mock folders
-const MOCK_FOLDERS: DataFolder[] = [
+// Données par défaut — remplacées par les données DataAdapter quand disponibles
+const DEFAULT_FOLDERS: DataFolder[] = [
   { id: 'f1', name: 'Données Financières 2025', importCount: 12 },
   { id: 'f2', name: 'RH - Paie', importCount: 24 },
   { id: 'f3', name: 'Ventes Trimestrielles', importCount: 8 },
@@ -85,7 +85,7 @@ const MOCK_FOLDERS: DataFolder[] = [
 ];
 
 // Mock existing imports for versioning
-const MOCK_EXISTING_IMPORTS: ExistingImport[] = [
+const DEFAULT_IMPORTS: ExistingImport[] = [
   { id: 'imp1', importNumber: 'IMP-2025-00138', name: 'Budget Q1 2025', version: 'v2.1', period: 'Jan - Mar 2025', importedAt: '2025-01-15' },
   { id: 'imp2', importNumber: 'IMP-2025-00125', name: 'Ventes Décembre', version: 'v1.0', period: 'Déc 2024', importedAt: '2025-01-02' },
   { id: 'imp3', importNumber: 'IMP-2024-00089', name: 'Comptabilité Générale', version: 'v3.2', period: 'Année 2024', importedAt: '2024-12-20' },
@@ -142,13 +142,13 @@ const DataImportModal: React.FC<DataImportModalProps> = ({
 
   // Total import count
   const totalImportCount = useMemo(() => {
-    return MOCK_FOLDERS.reduce((acc, folder) => acc + folder.importCount, 0);
+    return DEFAULT_FOLDERS.reduce((acc, folder) => acc + folder.importCount, 0);
   }, []);
 
   // Generated values
   const importNumber = useMemo(() => {
     if (isNewVersion && selectedExistingImport) {
-      const existing = MOCK_EXISTING_IMPORTS.find(i => i.id === selectedExistingImport);
+      const existing = DEFAULT_IMPORTS.find(i => i.id === selectedExistingImport);
       return existing?.importNumber || generateImportNumber();
     }
     return generateImportNumber();
@@ -156,7 +156,7 @@ const DataImportModal: React.FC<DataImportModalProps> = ({
 
   const version = useMemo(() => {
     if (isNewVersion && selectedExistingImport) {
-      const existing = MOCK_EXISTING_IMPORTS.find(i => i.id === selectedExistingImport);
+      const existing = DEFAULT_IMPORTS.find(i => i.id === selectedExistingImport);
       return existing ? incrementVersion(existing.version) : 'v1.0';
     }
     return 'v1.0';
@@ -288,10 +288,10 @@ const DataImportModal: React.FC<DataImportModalProps> = ({
                 {selectedExistingImport ? (
                   <div className="text-left">
                     <p className="font-medium text-primary-900">
-                      {MOCK_EXISTING_IMPORTS.find(i => i.id === selectedExistingImport)?.name}
+                      {DEFAULT_IMPORTS.find(i => i.id === selectedExistingImport)?.name}
                     </p>
                     <p className="text-xs text-primary-500">
-                      {MOCK_EXISTING_IMPORTS.find(i => i.id === selectedExistingImport)?.importNumber} • {MOCK_EXISTING_IMPORTS.find(i => i.id === selectedExistingImport)?.version}
+                      {DEFAULT_IMPORTS.find(i => i.id === selectedExistingImport)?.importNumber} • {DEFAULT_IMPORTS.find(i => i.id === selectedExistingImport)?.version}
                     </p>
                   </div>
                 ) : (
@@ -302,7 +302,7 @@ const DataImportModal: React.FC<DataImportModalProps> = ({
 
               {showExistingImports && (
                 <div className="absolute z-10 w-full mt-2 bg-white border border-primary-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
-                  {MOCK_EXISTING_IMPORTS.map((imp) => (
+                  {DEFAULT_IMPORTS.map((imp) => (
                     <button
                       key={imp.id}
                       type="button"
@@ -369,7 +369,7 @@ const DataImportModal: React.FC<DataImportModalProps> = ({
               Date d'import
             </label>
             <div className="relative">
-              <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary-400" />
+              <Calendar className="absolute left-4 top-1/2 -tranprimary-y-1/2 w-4 h-4 text-primary-400" />
               <input
                 type="date"
                 value={importDate}
@@ -433,10 +433,10 @@ const DataImportModal: React.FC<DataImportModalProps> = ({
                         <Folder className="w-5 h-5 text-amber-500" />
                         <div className="text-left">
                           <p className="font-medium text-primary-900">
-                            {MOCK_FOLDERS.find(f => f.id === folderId)?.name}
+                            {DEFAULT_FOLDERS.find(f => f.id === folderId)?.name}
                           </p>
                           <p className="text-xs text-primary-500">
-                            {MOCK_FOLDERS.find(f => f.id === folderId)?.importCount} imports
+                            {DEFAULT_FOLDERS.find(f => f.id === folderId)?.importCount} imports
                           </p>
                         </div>
                       </>
@@ -475,7 +475,7 @@ const DataImportModal: React.FC<DataImportModalProps> = ({
                     <div className="border-t border-primary-100" />
 
                     {/* Folders */}
-                    {MOCK_FOLDERS.map((folder) => (
+                    {DEFAULT_FOLDERS.map((folder) => (
                       <button
                         key={folder.id}
                         type="button"
@@ -522,7 +522,7 @@ const DataImportModal: React.FC<DataImportModalProps> = ({
             ) : (
               <div className="flex gap-2">
                 <div className="flex-1 relative">
-                  <FolderPlus className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary-400" />
+                  <FolderPlus className="absolute left-4 top-1/2 -tranprimary-y-1/2 w-4 h-4 text-primary-400" />
                   <input
                     type="text"
                     value={newFolderName}

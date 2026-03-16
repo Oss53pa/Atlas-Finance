@@ -253,17 +253,17 @@ const SigPage: React.FC = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+        <Card className="bg-gradient-to-br from-primary-50 to-primary-100 border-primary-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-purple-700">Résultat Net</p>
-                <p className="text-lg font-bold text-purple-900">
+                <p className="text-sm font-medium text-primary-700">Résultat Net</p>
+                <p className="text-lg font-bold text-primary-900">
                   {formatCurrency(4275000)}
                 </p>
-                <p className="text-sm text-purple-600">14.25% du CA</p>
+                <p className="text-sm text-primary-600">14.25% du CA</p>
               </div>
-              <Target className="h-8 w-8 text-purple-600" />
+              <Target className="h-8 w-8 text-primary-600" />
             </div>
           </CardContent>
         </Card>
@@ -286,7 +286,7 @@ const SigPage: React.FC = () => {
 
       {/* Tableau des SIG */}
       <Card>
-        <CardHeader className="bg-gradient-to-r from-slate-700 to-slate-800">
+        <CardHeader className="bg-gradient-to-r from-primary-700 to-primary-800">
           <CardTitle className="text-white flex items-center gap-2">
             <Calculator className="h-5 w-5" />
             Soldes Intermédiaires de Gestion - Exercice {selectedPeriod}
@@ -306,8 +306,8 @@ const SigPage: React.FC = () => {
             </TableHeader>
             <TableBody>
               {soldesIntermediaires.map((sig) => (
-                <TableRow key={sig.id} className="hover:bg-slate-50">
-                  <TableCell className="font-semibold text-slate-800">
+                <TableRow key={sig.id} className="hover:bg-primary-50">
+                  <TableCell className="font-semibold text-primary-800">
                     {sig.libelle}
                   </TableCell>
                   <TableCell className="text-right font-mono">
@@ -345,7 +345,7 @@ const SigPage: React.FC = () => {
       <div className="space-y-8">
         {Object.entries(categoriesRatios).map(([categorie, ratios]) => (
           <Card key={categorie}>
-            <CardHeader className="bg-gradient-to-r from-indigo-600 to-indigo-700">
+            <CardHeader className="bg-gradient-to-r from-primary-600 to-primary-700">
               <CardTitle className="text-white flex items-center gap-2">
                 <PieChart className="h-5 w-5" />
                 Ratios de {categorie}
@@ -421,16 +421,16 @@ const SigPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 p-8">
+    <div className="min-h-screen bg-primary-100 p-8">
       {/* Header */}
-      <div className="bg-gradient-to-br from-slate-800 to-slate-700 rounded-xl p-8 mb-8 shadow-lg">
+      <div className="bg-gradient-to-br from-primary-800 to-primary-700 rounded-xl p-8 mb-8 shadow-lg">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-lg font-bold text-white flex items-center gap-3">
               <Calculator className="h-10 w-10" />
               SIG & Ratios Financiers
             </h1>
-            <p className="text-slate-200 text-lg mt-2">
+            <p className="text-primary-200 text-lg mt-2">
               Analyse de performance et diagnostic financier SYSCOHADA
             </p>
           </div>
@@ -445,7 +445,7 @@ const SigPage: React.FC = () => {
                 <SelectItem value="2022">Exercice 2022</SelectItem>
               </SelectContent>
             </Select>
-            <Button className="bg-white text-slate-800 hover:bg-slate-100 gap-2">
+            <Button className="bg-white text-primary-800 hover:bg-primary-100 gap-2">
               <Download className="h-4 w-4" />
               Exporter
             </Button>
@@ -467,8 +467,8 @@ const SigPage: React.FC = () => {
                 onClick={() => setViewMode(tab.key)}
                 className={`flex-1 flex items-center justify-center gap-2 py-3 px-6 rounded-lg font-medium transition-all ${
                   viewMode === tab.key
-                    ? 'bg-slate-800 text-white shadow-md'
-                    : 'text-slate-600 hover:bg-slate-50'
+                    ? 'bg-primary-800 text-white shadow-md'
+                    : 'text-primary-600 hover:bg-primary-50'
                 }`}
               >
                 <Icon className="h-5 w-5" />

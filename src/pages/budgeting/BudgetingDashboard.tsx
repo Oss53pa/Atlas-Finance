@@ -598,15 +598,15 @@ const BudgetingDashboard: React.FC = () => {
                 <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-white/40">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="font-semibold text-neutral-800">Revenus</h3>
-                    <div className="p-2 bg-emerald-100 rounded-xl">
-                      <TrendingUp className="h-5 w-5 text-emerald-600" />
+                    <div className="p-2 bg-green-100 rounded-xl">
+                      <TrendingUp className="h-5 w-5 text-green-600" />
                     </div>
                   </div>
                   <div className="space-y-3">
-                    <p className="text-lg font-bold text-emerald-700">{dashboardData.totalBudgeted > 0 ? `${revPct}%` : 'N/A'}</p>
+                    <p className="text-lg font-bold text-green-700">{dashboardData.totalBudgeted > 0 ? `${revPct}%` : 'N/A'}</p>
                     <p className="text-sm text-neutral-600">{revPct > 100 ? `Objectif depasse de ${revPct - 100}%` : revPct > 0 ? `${100 - revPct}% restant` : 'Aucune donnee'}</p>
-                    <div className="w-full bg-emerald-100 rounded-full h-2">
-                      <div className="bg-emerald-500 h-2 rounded-full" style={{ width: `${Math.min(revPct, 100)}%` }}></div>
+                    <div className="w-full bg-green-100 rounded-full h-2">
+                      <div className="bg-green-500 h-2 rounded-full" style={{ width: `${Math.min(revPct, 100)}%` }}></div>
                     </div>
                   </div>
                 </div>
@@ -674,12 +674,12 @@ const BudgetingDashboard: React.FC = () => {
                     className="bg-white/90"
                   >
                     <div className="flex flex-col items-center text-center space-y-4">
-                      <div className="p-4 bg-slate-100 rounded-2xl group-hover:scale-110 transition-transform duration-300">
-                        <Target className="h-8 w-8 text-slate-600" />
+                      <div className="p-4 bg-gray-100 rounded-2xl group-hover:scale-110 transition-transform duration-300">
+                        <Target className="h-8 w-8 text-[#525252]" />
                       </div>
                       <div>
-                        <h3 className="font-bold text-slate-800 text-lg">Gerer Budgets</h3>
-                        <p className="text-sm text-slate-600 mt-1">Creer et modifier</p>
+                        <h3 className="font-bold text-[#171717] text-lg">Gerer Budgets</h3>
+                        <p className="text-sm text-[#525252] mt-1">Creer et modifier</p>
                       </div>
                     </div>
                   </motion.div>
@@ -708,12 +708,12 @@ const BudgetingDashboard: React.FC = () => {
                     className="bg-white/90"
                   >
                     <div className="flex flex-col items-center text-center space-y-4">
-                      <div className="p-4 bg-slate-100 rounded-2xl group-hover:scale-110 transition-transform duration-300">
-                        <PieChart className="h-8 w-8 text-slate-600" />
+                      <div className="p-4 bg-gray-100 rounded-2xl group-hover:scale-110 transition-transform duration-300">
+                        <PieChart className="h-8 w-8 text-[#525252]" />
                       </div>
                       <div>
-                        <h3 className="font-bold text-slate-800 text-lg">Rapports</h3>
-                        <p className="text-sm text-slate-600 mt-1">Analyses detaillees</p>
+                        <h3 className="font-bold text-[#171717] text-lg">Rapports</h3>
+                        <p className="text-sm text-[#525252] mt-1">Analyses detaillees</p>
                       </div>
                     </div>
                   </motion.div>
@@ -792,7 +792,7 @@ const BudgetingDashboard: React.FC = () => {
                           return v.toString();
                         };
                         const statusLabel = perf >= 90 ? 'Excellent' : perf >= 70 ? 'En bonne voie' : perf >= 50 ? 'A surveiller' : 'Critique';
-                        const statusColor = perf >= 90 ? 'bg-emerald-100 text-emerald-800' : perf >= 70 ? 'bg-blue-100 text-blue-800' : perf >= 50 ? 'bg-amber-100 text-amber-800' : 'bg-[var(--color-error-lighter)] text-[var(--color-error-darker)]';
+                        const statusColor = perf >= 90 ? 'bg-green-100 text-green-800' : perf >= 70 ? 'bg-[#e5e5e5] text-[#171717]' : perf >= 50 ? 'bg-amber-100 text-amber-800' : 'bg-[var(--color-error-lighter)] text-[var(--color-error-darker)]';
                         return (
                         <tr key={bl.id || idx} className="hover:bg-[var(--color-primary-lightest)]/30 transition-colors duration-200">
                           <td className="p-6">
@@ -813,12 +813,12 @@ const BudgetingDashboard: React.FC = () => {
                             <span className="font-bold text-neutral-700 text-lg">{formatVal(budgeted)} FCFA</span>
                           </td>
                           <td className="text-right p-6">
-                            <span className={`font-bold text-lg ${perf >= 80 ? 'text-emerald-700' : perf >= 50 ? 'text-amber-700' : 'text-[var(--color-error-dark)]'}`}>{formatVal(actual)} FCFA</span>
+                            <span className={`font-bold text-lg ${perf >= 80 ? 'text-green-700' : perf >= 50 ? 'text-amber-700' : 'text-[var(--color-error-dark)]'}`}>{formatVal(actual)} FCFA</span>
                           </td>
                           <td className="text-right p-6">
                             <div className="flex items-center justify-end space-x-2">
-                              {perf >= 80 ? <TrendingUp className="h-4 w-4 text-emerald-600" /> : <TrendingDown className="h-4 w-4 text-amber-600" />}
-                              <span className={`font-bold text-lg ${perf >= 80 ? 'text-emerald-700' : perf >= 50 ? 'text-amber-700' : 'text-[var(--color-error-dark)]'}`}>{perf}%</span>
+                              {perf >= 80 ? <TrendingUp className="h-4 w-4 text-green-600" /> : <TrendingDown className="h-4 w-4 text-amber-600" />}
+                              <span className={`font-bold text-lg ${perf >= 80 ? 'text-green-700' : perf >= 50 ? 'text-amber-700' : 'text-[var(--color-error-dark)]'}`}>{perf}%</span>
                             </div>
                           </td>
                           <td className="text-center p-6">

@@ -2,7 +2,7 @@
  * Dashboard Comptabilité Client Avancé
  * KPIs temps réel et analytics selon spécifications détaillées
  */
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
 import PeriodSelectorModal from '../shared/PeriodSelectorModal';
@@ -23,7 +23,6 @@ import {
   Eye,
   Phone,
   Mail,
-  FileText,
   Clock
 } from 'lucide-react';
 import {
@@ -103,32 +102,32 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
   const [autoRefresh, setAutoRefresh] = useState(true);
 
   // Queries principales
-  const { data: kpiData, isLoading: kpiLoading, refetch: refetchKPIs } = useQuery({
+  const { data: kpiData, isLoading: kpiLoading, refetch: refetchKPIs } = useQuery<any>({
     queryKey: ['customer-kpis', companyId, fiscalYearId, filters, dateRange],
-    queryFn: () => customerService.getKPIData({ companyId, fiscalYearId, filters, dateRange }),
+    queryFn: () => customerService.getKPIs({ companyId, fiscalYearId }) as Promise<any>,
     refetchInterval: autoRefresh ? 300000 : false, // 5 minutes si auto-refresh
   });
 
-  const { data: agingData, isLoading: agingLoading } = useQuery({
+  const { data: agingData, isLoading: agingLoading } = useQuery<any>({
     queryKey: ['customer-aging', companyId, fiscalYearId, filters, dateRange],
-    queryFn: () => customerService.getAgingAnalysis({ companyId, fiscalYearId, filters, dateRange }),
+    queryFn: () => customerService.getAgingAnalysis({ companyId, fiscalYearId }) as Promise<any>,
     refetchInterval: autoRefresh ? 300000 : false,
   });
 
-  const { data: trendsData, isLoading: trendsLoading } = useQuery({
+  const { data: trendsData, isLoading: trendsLoading } = useQuery<any>({
     queryKey: ['customer-trends', companyId, filters, dateRange],
-    queryFn: () => customerService.getTrendsData({ companyId, filters, dateRange }),
+    queryFn: () => customerService.getTrends({ companyId }) as Promise<any>,
     refetchInterval: autoRefresh ? 600000 : false, // 10 minutes
   });
 
-  const { data: riskAnalysis, isLoading: riskLoading } = useQuery({
+  const { data: riskAnalysis, isLoading: riskLoading } = useQuery<any>({
     queryKey: ['customer-risk', companyId, fiscalYearId],
-    queryFn: () => customerService.getRiskAnalysis({ companyId, fiscalYearId }),
+    queryFn: () => customerService.getRiskAnalysis({ companyId, fiscalYearId }) as Promise<any>,
   });
 
-  const { data: priorityActions } = useQuery({
+  const { data: priorityActions } = useQuery<any>({
     queryKey: ['customer-actions', companyId],
-    queryFn: () => customerService.getPriorityActions({ companyId }),
+    queryFn: () => customerService.getPriorityActions({ companyId }) as Promise<any>,
     refetchInterval: 60000, // 1 minute pour actions urgentes
   });
 
@@ -196,17 +195,16 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
     customerService.exportDashboard({
       companyId,
       fiscalYearId,
-      filters,
-      dateRange,
+      filters: filters as any,
       format,
       view: selectedView
     });
   };
 
   const getStatusColor = (status: string) => {
-    const colors = {
+    const colors: Record<string, string> = {
       'current': 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]',
-      'overdue': 'bg-[var(--color-error-lighter)] text-[var(--color-error-darker)]', 
+      'overdue': 'bg-[var(--color-error-lighter)] text-[var(--color-error-darker)]',
       'disputed': 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]',
       'critical': 'bg-[var(--color-error-light)] text-red-900',
     };
@@ -450,7 +448,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {priorityActions.slice(0, 5).map((action, index) => (
+                  {priorityActions.slice(0, 5).map((action: any, index: number) => (
                     <div key={index} className="flex items-center justify-between p-3 bg-[var(--color-warning-lightest)] rounded-lg border border-[var(--color-warning-light)]">
                       <div className="flex items-center space-x-3">
                         <Badge className={`
@@ -563,7 +561,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {agingData?.topRiskCustomers?.map((customer) => (
+                        {agingData?.topRiskCustomers?.map((customer: any) => (
                           <TableRow key={customer.id} className="hover:bg-[var(--color-background-secondary)]">
                             <TableCell>
                               <div>
@@ -750,7 +748,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                {trendsData?.geographicBreakdown?.map((zone) => (
+                {trendsData?.geographicBreakdown?.map((zone: any) => (
                   <div key={zone.region} className="p-4 border rounded-lg">
                     <h4 className="font-medium text-[var(--color-text-primary)]">{zone.region}</h4>
                     <p className="text-lg font-bold text-[var(--color-primary)] mt-2">
@@ -795,7 +793,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {trendsData?.segmentAnalysis?.map((segment) => (
+                    {trendsData?.segmentAnalysis?.map((segment: any) => (
                       <TableRow key={segment.name}>
                         <TableCell className="font-medium">{segment.name}</TableCell>
                         <TableCell>{segment.customerCount}</TableCell>
@@ -845,9 +843,9 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
       <PeriodSelectorModal
         isOpen={showPeriodModal}
         onClose={() => setShowPeriodModal(false)}
-        currentRange={dateRange}
-        onPeriodChange={(newRange) => {
-          setDateRange(newRange);
+        initialDateRange={{ start: dateRange.startDate, end: dateRange.endDate }}
+        onApply={(newRange) => {
+          setDateRange({ ...dateRange, startDate: newRange.start, endDate: newRange.end });
           setShowPeriodModal(false);
         }}
       />

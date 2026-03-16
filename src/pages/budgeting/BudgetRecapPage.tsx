@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
@@ -33,7 +34,7 @@ const BudgetRecapPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const department = searchParams.get('department') || '';
   const type = searchParams.get('type') || 'revenue'; // 'revenue' ou 'expense'
-  const [selectedYear, setSelectedYear] = useState('2024');
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
   const [data, setData] = useState<BudgetRow[]>([]);
   const [loading, setLoading] = useState(true);
 

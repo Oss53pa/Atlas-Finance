@@ -2,6 +2,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import pkg from '../../package.json';
 
 /**
  * Vite config for the SaaS build (`apps/web`).
@@ -41,6 +42,7 @@ export default defineConfig({
   // Force SaaS data mode at compile time
   define: {
     'import.meta.env.VITE_DATA_MODE': JSON.stringify('saas'),
+    __APP_VERSION__: JSON.stringify(pkg.version),
   },
 
   server: {

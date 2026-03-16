@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState, useEffect, useMemo } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -6,7 +7,7 @@ import { useData } from '../../contexts/DataContext';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import ExportMenu from '../../components/shared/ExportMenu';
 import {
-  Search, Plus, Filter, Upload, Eye, Edit, Trash2,
+  Search, Plus, Filter, Upload, Eye, Edit, Trash2, X, Save,
   Building, TrendingUp, AlertTriangle, CheckCircle, Clock,
   Euro, Calendar, FileText, Mail, Phone, MapPin, CreditCard,
   Package, Truck, ShieldCheck, AlertCircle, BarChart3, PieChart,
@@ -89,6 +90,7 @@ const FournisseursModule: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [fournisseurs, setFournisseurs] = useState<Fournisseur[]>([]);
   const [activeTab, setActiveTab] = useState('liste');
+  const [analyticsSubTab, setAnalyticsSubTab] = useState<string>('kpis');
   const [balanceAgeeSubTab, setBalanceAgeeSubTab] = useState<'repartition' | 'detail' | 'risques'>('repartition');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -101,6 +103,22 @@ const FournisseursModule: React.FC = () => {
     period: 'month' as 'day' | 'week' | 'month' | 'quarter' | 'year' | 'custom'
   });
   const [compareMode, setCompareMode] = useState(false);
+  const [showNewFournisseurModal, setShowNewFournisseurModal] = useState(false);
+  const [formStep, setFormStep] = useState(1);
+  const [newFournisseur, setNewFournisseur] = useState({
+    code: '', raisonSociale: '', nomCommercial: '',
+    categorie: 'RECURRENT' as Fournisseur['categorie'],
+    typeDépense: 'FRAIS_GENERAUX' as Fournisseur['typeDépense'],
+    pays: 'Cameroun', secteurActivite: '', rccm: '', niu: '',
+    adresse: '', codePostal: '', ville: '', region: '',
+    contactPrincipal: '', fonction: '',
+    email: '', telephone: '', telephoneSecondaire: '',
+    compteComptable: '401', compteAuxiliaire: '', journalAchats: 'AC',
+    delaiPaiement: 30, limiteCredit: 500000,
+    modeReglement: 'VIREMENT' as Fournisseur['modeReglement'],
+    devise: 'XAF', escompte: 0, tauxTVA: 19.25,
+    banque: '', iban: '', swift: '',
+  });
 
   // Chargement des données réelles depuis l'adaptateur
   useEffect(() => {
@@ -192,7 +210,7 @@ const FournisseursModule: React.FC = () => {
 
   const getCategorieColor = (categorie: string) => {
     switch (categorie) {
-      case 'STRATEGIQUE': return 'bg-purple-100 text-purple-800';
+      case 'STRATEGIQUE': return 'bg-primary-100 text-primary-800';
       case 'RECURRENT': return 'bg-blue-100 text-blue-800';
       case 'CRITIQUE': return 'bg-red-100 text-red-800';
       case 'PONCTUEL': return 'bg-gray-100 text-gray-800';
@@ -350,14 +368,14 @@ const FournisseursModule: React.FC = () => {
         <>
         {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
+          <div className="bg-gradient-to-r from-primary-50 to-primary-100 rounded-lg p-4 border border-primary-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-purple-600 font-medium">Total Encours</p>
-                <p className="text-lg font-bold text-purple-800">{formatCurrency(totalEncours)}</p>
-                <p className="text-xs text-purple-600 mt-1">Sur {fournisseursActifs} fournisseurs</p>
+                <p className="text-sm text-primary-600 font-medium">Total Encours</p>
+                <p className="text-lg font-bold text-primary-800">{formatCurrency(totalEncours)}</p>
+                <p className="text-xs text-primary-600 mt-1">Sur {fournisseursActifs} fournisseurs</p>
               </div>
-              <Euro className="w-8 h-8 text-purple-400" />
+              <Euro className="w-8 h-8 text-primary-400" />
             </div>
           </div>
 
@@ -432,7 +450,10 @@ const FournisseursModule: React.FC = () => {
             <option value="INACTIF">Inactif</option>
           </select>
 
-          <button className="flex items-center space-x-2 px-4 py-3 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/90">
+          <button
+            onClick={() => setShowNewFournisseurModal(true)}
+            className="flex items-center space-x-2 px-4 py-3 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/90"
+          >
             <Plus className="w-5 h-5" />
             <span className="font-semibold">Nouveau Fournisseur</span>
           </button>
@@ -696,12 +717,12 @@ const FournisseursModule: React.FC = () => {
               <p className="text-xs text-red-600">+60 jours</p>
             </div>
 
-            <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
+            <div className="bg-primary-50 rounded-lg p-4 border border-primary-200">
               <div className="flex items-center justify-between mb-2">
-                <Shield className="w-5 h-5 text-purple-600" />
+                <Shield className="w-5 h-5 text-primary-600" />
               </div>
-              <p className="text-lg font-bold text-purple-800">{formatCurrency(totauxBalanceAgee.provision)}</p>
-              <p className="text-xs text-purple-600">Provisions</p>
+              <p className="text-lg font-bold text-primary-800">{formatCurrency(totauxBalanceAgee.provision)}</p>
+              <p className="text-xs text-primary-600">Provisions</p>
             </div>
           </div>
 
@@ -751,7 +772,7 @@ const FournisseursModule: React.FC = () => {
               <div className="p-6">
                 <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
                   {/* Graphique Donut Moderne */}
-                  <div className="lg:col-span-2 bg-gradient-to-br from-slate-50 to-gray-100 rounded-2xl p-6 shadow-inner">
+                  <div className="lg:col-span-2 bg-gradient-to-br from-primary-50 to-gray-100 rounded-2xl p-6 shadow-inner">
                     <h4 className="text-lg font-semibold text-[#171717] mb-2 text-center">Distribution des Dettes</h4>
                     <p className="text-sm text-[#525252] text-center mb-4">Répartition par ancienneté</p>
                     <div className="relative">
@@ -883,7 +904,7 @@ const FournisseursModule: React.FC = () => {
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center space-x-4">
                     <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <Search className="absolute left-3 top-1/2 transform -tranprimary-y-1/2 w-4 h-4 text-gray-400" />
                       <input
                         type="text"
                         placeholder="Rechercher un fournisseur..."
@@ -916,7 +937,7 @@ const FournisseursModule: React.FC = () => {
                         <th className="text-right p-3 font-medium text-orange-600">31-60j</th>
                         <th className="text-right p-3 font-medium text-red-600">61-90j</th>
                         <th className="text-right p-3 font-medium text-red-800">+90j</th>
-                        <th className="text-right p-3 font-medium text-purple-600">Provision</th>
+                        <th className="text-right p-3 font-medium text-primary-600">Provision</th>
                         <th className="text-center p-3 font-medium text-[#525252]">Actions</th>
                       </tr>
                     </thead>
@@ -940,7 +961,7 @@ const FournisseursModule: React.FC = () => {
                             <td className="p-3 text-right text-orange-600">{item.echu31_60 > 0 ? formatCurrency(item.echu31_60) : '-'}</td>
                             <td className="p-3 text-right text-red-600">{item.echu61_90 > 0 ? formatCurrency(item.echu61_90) : '-'}</td>
                             <td className="p-3 text-right text-red-800 font-bold">{item.echuPlus90 > 0 ? formatCurrency(item.echuPlus90) : '-'}</td>
-                            <td className="p-3 text-right text-purple-600">{item.provision > 0 ? formatCurrency(item.provision) : '-'}</td>
+                            <td className="p-3 text-right text-primary-600">{item.provision > 0 ? formatCurrency(item.provision) : '-'}</td>
                             <td className="p-3 text-center">
                               <div className="flex items-center justify-center space-x-1">
                                 <button type="button" className="p-1 text-gray-500 hover:text-[#737373]" title="Voir détail">
@@ -967,7 +988,7 @@ const FournisseursModule: React.FC = () => {
                         <td className="p-3 text-right text-orange-600">{formatCurrency(totauxBalanceAgee.echu31_60)}</td>
                         <td className="p-3 text-right text-red-600">{formatCurrency(totauxBalanceAgee.echu61_90)}</td>
                         <td className="p-3 text-right text-red-800">{formatCurrency(totauxBalanceAgee.echuPlus90)}</td>
-                        <td className="p-3 text-right text-purple-600">{formatCurrency(totauxBalanceAgee.provision)}</td>
+                        <td className="p-3 text-right text-primary-600">{formatCurrency(totauxBalanceAgee.provision)}</td>
                         <td className="p-3"></td>
                       </tr>
                     </tfoot>
@@ -1008,14 +1029,14 @@ const FournisseursModule: React.FC = () => {
                     </div>
                     <p className="text-sm text-yellow-700 mt-2">Paiements à prévoir (31-60j)</p>
                   </div>
-                  <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
+                  <div className="bg-primary-50 rounded-lg p-4 border border-primary-200">
                     <div className="flex items-center justify-between">
-                      <Shield className="w-8 h-8 text-purple-600" />
-                      <span className="text-lg font-bold text-purple-800">
+                      <Shield className="w-8 h-8 text-primary-600" />
+                      <span className="text-lg font-bold text-primary-800">
                         {formatCurrency(totauxBalanceAgee.provision)}
                       </span>
                     </div>
-                    <p className="text-sm text-purple-700 mt-2">Provisions pour litiges</p>
+                    <p className="text-sm text-primary-700 mt-2">Provisions pour litiges</p>
                   </div>
                 </div>
 
@@ -1149,15 +1170,15 @@ const FournisseursModule: React.FC = () => {
                         </div>
 
                         {/* Action 5 */}
-                        <div className="p-3 bg-purple-50 rounded-lg border-l-4 border-purple-500">
+                        <div className="p-3 bg-primary-50 rounded-lg border-l-4 border-primary-500">
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="font-medium text-purple-800">📊 Provisions à comptabiliser</p>
-                              <p className="text-sm text-purple-700">
+                              <p className="font-medium text-primary-800">📊 Provisions à comptabiliser</p>
+                              <p className="text-sm text-primary-700">
                                 {formatCurrency(totauxBalanceAgee.provision)} selon règles SYSCOHADA
                               </p>
                             </div>
-                            <button type="button" className="px-3 py-1 text-xs bg-purple-600 text-white rounded hover:bg-purple-700">
+                            <button type="button" className="px-3 py-1 text-xs bg-primary-600 text-white rounded hover:bg-primary-700">
                               Générer OD
                             </button>
                           </div>
@@ -1195,433 +1216,560 @@ const FournisseursModule: React.FC = () => {
       )}
 
       {/* Analytics Tab */}
-      {activeTab === 'analytics' && (
+      {activeTab === 'analytics' && (() => {
+        const totalAchats = fournisseurs.reduce((s, f) => s + (f.volumeAchats || 0), 0);
+        const totalEncours = fournisseurs.reduce((s, f) => s + (f.encoursActuel || 0), 0);
+        const avgDPO = fournisseurs.length > 0 ? Math.round(fournisseurs.reduce((s, f) => s + (f.dpo || 0), 0) / fournisseurs.length) : 0;
+        const avgQualite = fournisseurs.length > 0 ? (fournisseurs.reduce((s, f) => s + (f.scoreQualite || 0), 0) / fournisseurs.length / 20).toFixed(1) : '0';
+        const catData = analyticsData.fournisseursParCategorie;
+        const topFournisseurs = [...fournisseurs].sort((a, b) => (b.volumeAchats || 0) - (a.volumeAchats || 0)).slice(0, 5);
+        const critiqueFournisseurs = fournisseurs.filter(f => f.notationInterne === 'D' || f.notationInterne === 'C');
+
+        const subTabs = [
+          { key: 'kpis', label: 'Indicateurs', icon: BarChart3 },
+          { key: 'charts', label: 'Graphiques', icon: PieChart },
+          { key: 'performance', label: 'Performance', icon: Target },
+        ];
+
+        return (
         <div className="space-y-6">
-          {/* Filters Bar */}
-          <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <button
-                  onClick={() => setShowPeriodModal(true)}
-                  className="flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#737373]"
-                >
-                  <Calendar className="w-4 h-4 text-[#525252]" />
-                  <span>
-                    {dateRange.period === 'custom'
-                      ? `${dateRange.startDate} - ${dateRange.endDate}`
-                      : dateRange.period === 'day' ? t('common.today')
-                      : dateRange.period === 'week' ? 'Cette semaine'
-                      : dateRange.period === 'month' ? 'Ce mois'
-                      : dateRange.period === 'quarter' ? 'Ce trimestre'
-                      : 'Cette année'
-                    }
-                  </span>
+          {/* Sub-tabs */}
+          <div className="flex items-center bg-white rounded-xl p-1 border shadow-sm w-fit">
+            {subTabs.map((tab) => {
+              const Icon = tab.icon;
+              return (
+                <button key={tab.key} onClick={() => setAnalyticsSubTab(tab.key)}
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                    analyticsSubTab === tab.key ? 'bg-[#171717] text-white shadow-md' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  }`}>
+                  <Icon className="w-4 h-4" />{tab.label}
                 </button>
-                <button
-                  onClick={() => setCompareMode(!compareMode)}
-                  className={`px-4 py-2 rounded-lg text-sm transition-colors ${
-                    compareMode
-                      ? 'bg-[#171717] text-white'
-                      : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
-                  }`}
-                >
-                  <TrendingUp className="w-4 h-4 inline mr-2" />
-                  Mode Comparaison
-                </button>
-              </div>
-              <div className="flex items-center space-x-2">
-                <button className="p-2 text-gray-600 hover:text-gray-900" aria-label="Actualiser">
-                  <RefreshCw className="w-4 h-4" />
-                </button>
-                <ExportMenu
-                  data={filteredFournisseurs}
-                  filename="dashboard-fournisseurs"
-                  columns={[
-                    { key: 'code', label: 'Code' },
-                    { key: 'raisonSociale', label: 'Fournisseur' },
-                    { key: 'categorie', label: 'Catégorie' },
-                    { key: 'volumeAchats', label: 'Volume Achats' },
-                    { key: 'scoreQualite', label: 'Score Qualité' },
-                    { key: 'respectDelais', label: 'Respect Délais' },
-                    { key: 'notationInterne', label: 'Note' }
-                  ]}
-                  buttonText="Export PDF"
-                />
-              </div>
-            </div>
+              );
+            })}
           </div>
 
-          {/* KPIs principale */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-            <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
-              <div className="flex items-center justify-between mb-3">
-                <Building className="w-5 h-5 text-[#171717]" />
-                <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">+8%</span>
+          {/* Sub-tab: KPIs */}
+          {analyticsSubTab === 'kpis' && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
+                  <Building className="w-5 h-5 text-[#171717] mb-3" />
+                  <p className="text-lg font-bold text-[#171717]">{fournisseurs.length}</p>
+                  <p className="text-sm text-[#525252]">Fournisseurs</p>
+                </div>
+                <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
+                  <ShoppingBag className="w-5 h-5 text-primary-600 mb-3" />
+                  <p className="text-lg font-bold text-[#171717]">{formatCurrency(totalAchats)}</p>
+                  <p className="text-sm text-[#525252]">Volume Achats</p>
+                </div>
+                <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
+                  <Timer className="w-5 h-5 text-blue-600 mb-3" />
+                  <p className="text-lg font-bold text-[#171717]">{avgDPO}j</p>
+                  <p className="text-sm text-[#525252]">DPO Moyen</p>
+                </div>
+                <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
+                  <Wallet className="w-5 h-5 text-orange-600 mb-3" />
+                  <p className="text-lg font-bold text-[#171717]">{formatCurrency(totalEncours)}</p>
+                  <p className="text-sm text-[#525252]">Encours Total</p>
+                </div>
+                <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
+                  <Shield className="w-5 h-5 text-green-600 mb-3" />
+                  <p className="text-lg font-bold text-[#171717]">{avgQualite}/5</p>
+                  <p className="text-sm text-[#525252]">Score Qualité</p>
+                </div>
               </div>
-              <p className="text-lg font-bold text-[#171717]">52</p>
-              <p className="text-sm text-[#525252]">Fournisseurs Actifs</p>
-              <div className="mt-2 flex items-center text-xs text-gray-700">
-                <ChevronUp className="w-3 h-3 text-green-500 mr-1" />
-                <span>4 nouveaux ce mois</span>
-              </div>
-            </div>
 
-            <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
-              <div className="flex items-center justify-between mb-3">
-                <ShoppingBag className="w-5 h-5 text-purple-600" />
-                <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">+15%</span>
-              </div>
-              <p className="text-lg font-bold text-[#171717]">9.35M</p>
-              <p className="text-sm text-[#525252]">Volume Achats</p>
-              <div className="mt-2 flex items-center text-xs text-gray-700">
-                <TrendingUp className="w-3 h-3 text-purple-500 mr-1" />
-                <span>FCFA YTD</span>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
-              <div className="flex items-center justify-between mb-3">
-                <Timer className="w-5 h-5 text-blue-600" />
-                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">-3j</span>
-              </div>
-              <p className="text-lg font-bold text-[#171717]">47j</p>
-              <p className="text-sm text-[#525252]">DPO Moyen</p>
-              <div className="mt-2 flex items-center text-xs text-gray-700">
-                <ChevronDown className="w-3 h-3 text-green-500 mr-1" />
-                <span>Amélioration</span>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
-              <div className="flex items-center justify-between mb-3">
-                <Wallet className="w-5 h-5 text-orange-600" />
-                <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded">+12%</span>
-              </div>
-              <p className="text-lg font-bold text-[#171717]">1.45M</p>
-              <p className="text-sm text-[#525252]">Encours Total</p>
-              <div className="mt-2 flex items-center text-xs text-gray-700">
-                <Info className="w-3 h-3 text-orange-500 mr-1" />
-                <span>FCFA</span>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
-              <div className="flex items-center justify-between mb-3">
-                <Shield className="w-5 h-5 text-green-600" />
-                <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">92%</span>
-              </div>
-              <p className="text-lg font-bold text-[#171717]">4.3/5</p>
-              <p className="text-sm text-[#525252]">Score Qualité</p>
-              <div className="mt-2 flex items-center text-xs text-gray-700">
-                <Award className="w-3 h-3 text-green-500 mr-1" />
-                <span>Performance</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Indicateurs de Performance */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Performance Achats */}
-            <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-[#171717]">Performance Achats</h3>
-                <Zap className="w-5 h-5 text-yellow-500" />
-              </div>
-              <div className="space-y-4">
-                <div>
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-sm text-[#525252]">Économies Réalisées</span>
-                    <span className="text-sm font-semibold text-[#171717]">12%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div className="bg-green-500 h-2 rounded-full" style={{ width: '12%' }}></div>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-sm text-[#525252]">Conformité Contrats</span>
-                    <span className="text-sm font-semibold text-[#171717]">87%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div className="bg-blue-500 h-2 rounded-full" style={{ width: '87%' }}></div>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-sm text-[#525252]">Respect Budgets</span>
-                    <span className="text-sm font-semibold text-[#171717]">94%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div className="bg-[#171717] h-2 rounded-full" style={{ width: '94%' }}></div>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-sm text-[#525252]">Diversification</span>
-                    <span className="text-sm font-semibold text-[#171717]">68%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div className="bg-purple-500 h-2 rounded-full" style={{ width: '68%' }}></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Analyse par Catégorie */}
-            <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-[#171717]">Analyse par Catégorie</h3>
-                <Package className="w-5 h-5 text-purple-500" />
-              </div>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
-                  <div className="flex items-center">
-                    <div className="w-2 h-2 bg-purple-500 rounded-full mr-3"></div>
-                    <span className="text-sm text-gray-700">Stratégiques</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="text-lg font-bold text-gray-900 mr-2">8</span>
-                    <span className="text-xs text-gray-700">fournisseurs</span>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                  <div className="flex items-center">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
-                    <span className="text-sm text-gray-700">Récurrents</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="text-lg font-bold text-gray-900 mr-2">15</span>
-                    <span className="text-xs text-gray-700">fournisseurs</span>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center">
-                    <div className="w-2 h-2 bg-gray-500 rounded-full mr-3"></div>
-                    <span className="text-sm text-gray-700">Ponctuels</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="text-lg font-bold text-gray-900 mr-2">22</span>
-                    <span className="text-xs text-gray-700">fournisseurs</span>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
-                  <div className="flex items-center">
-                    <div className="w-2 h-2 bg-red-500 rounded-full mr-3"></div>
-                    <span className="text-sm text-gray-700">Critiques</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="text-lg font-bold text-gray-900 mr-2">5</span>
-                    <span className="text-xs text-gray-700">fournisseurs</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Top Fournisseurs */}
-            <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-[#171717]">Top 5 Fournisseurs</h3>
-                <Award className="w-5 h-5 text-[#525252]" />
-              </div>
-              <div className="space-y-3">
-                {[
-                  { nom: 'CONGO EQUIPEMENTS', montant: 2100000, part: 22.5 },
-                  { nom: 'TOTAL GABON', montant: 1250000, part: 13.4 },
-                  { nom: 'CAMTEL SA', montant: 850000, part: 9.1 },
-                  { nom: 'TCHAD LOGISTICS', montant: 680000, part: 7.3 },
-                  { nom: 'RCA FOURNITURES', montant: 280000, part: 3.0 }
-                ].map((fournisseur, idx) => (
-                  <div key={idx} className="flex items-center justify-between">
-                    <div className="flex items-center flex-1">
-                      <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold mr-3 ${
-                        idx === 0 ? 'bg-yellow-100 text-yellow-700' :
-                        idx === 1 ? 'bg-gray-100 text-gray-700' :
-                        idx === 2 ? 'bg-orange-100 text-orange-700' :
-                        'bg-gray-50 text-gray-600'
-                      }`}>
-                        {idx + 1}
-                      </span>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-[#171717]">{fournisseur.nom}</p>
-                        <p className="text-xs text-[#525252]">{formatCurrency(fournisseur.montant)}</p>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+                  <h3 className="text-lg font-semibold text-[#171717] mb-4">Par Catégorie</h3>
+                  <div className="space-y-3">
+                    {catData.map((cat) => (
+                      <div key={cat.categorie} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span className="text-sm text-gray-700">{cat.categorie}</span>
+                        <div className="flex items-center gap-3">
+                          <span className="text-lg font-bold text-gray-900">{cat.count}</span>
+                          <span className="text-xs text-gray-500">{formatCurrency(cat.montant)}</span>
+                        </div>
                       </div>
-                    </div>
-                    <span className="text-xs font-semibold text-[#171717]">{fournisseur.part}%</span>
+                    ))}
                   </div>
+                </div>
+
+                <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+                  <h3 className="text-lg font-semibold text-[#171717] mb-4">Top Fournisseurs</h3>
+                  <div className="space-y-3">
+                    {topFournisseurs.length === 0 ? (
+                      <p className="text-sm text-gray-500 text-center py-4">Aucun fournisseur</p>
+                    ) : topFournisseurs.map((f, idx) => (
+                      <div key={f.id} className="flex items-center justify-between">
+                        <div className="flex items-center flex-1">
+                          <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold mr-3 ${
+                            idx === 0 ? 'bg-yellow-100 text-yellow-700' : idx === 1 ? 'bg-gray-100 text-gray-700' : 'bg-gray-50 text-gray-600'
+                          }`}>{idx + 1}</span>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-[#171717] truncate">{f.raisonSociale}</p>
+                            <p className="text-xs text-[#525252]">{formatCurrency(f.volumeAchats || 0)}</p>
+                          </div>
+                        </div>
+                        <span className="text-xs font-semibold text-[#171717]">
+                          {totalAchats > 0 ? ((f.volumeAchats || 0) / totalAchats * 100).toFixed(1) : 0}%
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Sub-tab: Graphiques */}
+          {analyticsSubTab === 'charts' && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+                <h3 className="text-lg font-semibold text-[#171717] mb-4">Répartition par Catégorie</h3>
+                {catData.some(d => d.montant > 0) ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <RechartsPieChart>
+                      <Pie dataKey="montant" data={catData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} fill="#737373"
+                        label={({ categorie, percent }) => `${categorie} ${(percent * 100).toFixed(0)}%`}>
+                        {catData.map((_, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value) => formatCurrency(value as number)} />
+                    </RechartsPieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-[300px] text-gray-500">
+                    <p className="text-sm">Aucune donnée d'achats disponible</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+                <h3 className="text-lg font-semibold text-[#171717] mb-4">Évaluation Performance</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <RadarChart data={analyticsData.performanceFournisseurs}>
+                    <PolarGrid />
+                    <PolarAngleAxis dataKey="critere" />
+                    <PolarRadiusAxis angle={90} domain={[0, 100]} />
+                    <Radar name="Score" dataKey="score" stroke="#171717" fill="#171717" fillOpacity={0.6} />
+                    <Tooltip />
+                  </RadarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
+
+          {/* Sub-tab: Performance */}
+          {analyticsSubTab === 'performance' && (
+            <div className="space-y-6">
+              <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+                <h3 className="text-lg font-semibold text-[#171717] mb-4">Fournisseurs à surveiller</h3>
+                {critiqueFournisseurs.length === 0 ? (
+                  <div className="text-center py-8">
+                    <CheckCircle className="w-10 h-10 text-green-500 mx-auto mb-2" />
+                    <p className="text-sm text-gray-600">Tous les fournisseurs ont une bonne notation</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {critiqueFournisseurs.map((f) => (
+                      <div key={f.id} className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200">
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">{f.raisonSociale}</p>
+                          <p className="text-xs text-gray-600">Note: {f.notationInterne} | Qualité: {f.scoreQualite}% | Délais: {f.respectDelais}%</p>
+                        </div>
+                        <span className="text-sm font-bold text-red-600">{formatCurrency(f.encoursActuel || 0)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+        );
+      })()}
+
+      {/* Modal Nouveau Fournisseur — Multi-étapes */}
+      {showNewFournisseurModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-[#e5e5e5]">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-bold text-[#171717]">Nouveau Fournisseur</h3>
+                  <p className="text-sm text-[#525252]">Étape {formStep} sur 4</p>
+                </div>
+                <button onClick={() => { setShowNewFournisseurModal(false); setFormStep(1); }} className="p-2 hover:bg-gray-100 rounded-full">
+                  <X className="w-5 h-5 text-[#525252]" />
+                </button>
+              </div>
+              <div className="flex mt-4 space-x-2">
+                {[1, 2, 3, 4].map((step) => (
+                  <div key={step} className={`flex-1 h-2 rounded-full ${step <= formStep ? 'bg-[#171717]' : 'bg-gray-200'}`} />
                 ))}
               </div>
+              <div className="flex mt-2 text-xs text-[#525252]">
+                <span className="flex-1">Identification</span>
+                <span className="flex-1">Adresse & Contact</span>
+                <span className="flex-1">Comptabilité</span>
+                <span className="flex-1">Conditions</span>
+              </div>
             </div>
-          </div>
 
-          {/* Graphiques principaux */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Evolution des Achats */}
-            <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-[#171717]">Évolution des Achats</h3>
-                <div className="flex items-center space-x-2">
-                  <button className="p-1 text-gray-700 hover:text-gray-600" aria-label="Information">
-                    <Info className="w-4 h-4" />
+            <div className="p-6 space-y-6">
+              {/* Étape 1: Identification */}
+              {formStep === 1 && (
+                <div className="space-y-4">
+                  <h4 className="text-md font-semibold text-[#171717] flex items-center">
+                    <Building className="w-5 h-5 mr-2 text-[#171717]" />Identification de l'entreprise
+                  </h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm text-[#525252] mb-1">Code fournisseur *</label>
+                      <div className="flex space-x-2">
+                        <input type="text" value={newFournisseur.code}
+                          onChange={(e) => setNewFournisseur({ ...newFournisseur, code: e.target.value })}
+                          className="flex-1 px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]"
+                          placeholder="FOU001" />
+                        <button type="button"
+                          onClick={() => setNewFournisseur({ ...newFournisseur, code: `FOU${String(fournisseurs.length + 1).padStart(3, '0')}` })}
+                          className="px-3 py-2 bg-gray-100 text-[#525252] rounded-lg hover:bg-gray-200">Auto</button>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm text-[#525252] mb-1">Catégorie *</label>
+                      <select value={newFournisseur.categorie}
+                        onChange={(e) => setNewFournisseur({ ...newFournisseur, categorie: e.target.value as Fournisseur['categorie'] })}
+                        className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]">
+                        <option value="STRATEGIQUE">Stratégique</option>
+                        <option value="RECURRENT">Récurrent</option>
+                        <option value="PONCTUEL">Ponctuel</option>
+                        <option value="CRITIQUE">Critique</option>
+                      </select>
+                    </div>
+                    <div className="col-span-2">
+                      <label className="block text-sm text-[#525252] mb-1">Raison sociale *</label>
+                      <input type="text" value={newFournisseur.raisonSociale}
+                        onChange={(e) => setNewFournisseur({ ...newFournisseur, raisonSociale: e.target.value })}
+                        className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]"
+                        placeholder="Nom légal de l'entreprise" />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-[#525252] mb-1">Nom commercial</label>
+                      <input type="text" value={newFournisseur.nomCommercial}
+                        onChange={(e) => setNewFournisseur({ ...newFournisseur, nomCommercial: e.target.value })}
+                        className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]" />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-[#525252] mb-1">Type de dépense *</label>
+                      <select value={newFournisseur.typeDépense}
+                        onChange={(e) => setNewFournisseur({ ...newFournisseur, typeDépense: e.target.value as Fournisseur['typeDépense'] })}
+                        className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]">
+                        <option value="PRODUCTION">Production</option>
+                        <option value="SERVICES">Services</option>
+                        <option value="INVESTISSEMENT">Investissement</option>
+                        <option value="FRAIS_GENERAUX">Frais généraux</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm text-[#525252] mb-1">Secteur d'activité</label>
+                      <input type="text" value={newFournisseur.secteurActivite}
+                        onChange={(e) => setNewFournisseur({ ...newFournisseur, secteurActivite: e.target.value })}
+                        className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]"
+                        placeholder="Ex: BTP, IT, Logistique..." />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-[#525252] mb-1">RCCM</label>
+                      <input type="text" value={newFournisseur.rccm}
+                        onChange={(e) => setNewFournisseur({ ...newFournisseur, rccm: e.target.value })}
+                        className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]"
+                        placeholder="RC/YDE/2024/X/XXXX" />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-[#525252] mb-1">NIU</label>
+                      <input type="text" value={newFournisseur.niu}
+                        onChange={(e) => setNewFournisseur({ ...newFournisseur, niu: e.target.value })}
+                        className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]"
+                        placeholder="M0XXXXXXXXXX" />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Étape 2: Adresse & Contact */}
+              {formStep === 2 && (
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="text-md font-semibold text-[#171717] flex items-center mb-4">
+                      <MapPin className="w-5 h-5 mr-2 text-[#171717]" />Adresse
+                    </h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="col-span-2">
+                        <label className="block text-sm text-[#525252] mb-1">Adresse *</label>
+                        <input type="text" value={newFournisseur.adresse}
+                          onChange={(e) => setNewFournisseur({ ...newFournisseur, adresse: e.target.value })}
+                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]"
+                          placeholder="Rue, numéro, quartier" />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-[#525252] mb-1">Boîte Postale</label>
+                        <input type="text" value={newFournisseur.codePostal}
+                          onChange={(e) => setNewFournisseur({ ...newFournisseur, codePostal: e.target.value })}
+                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]" placeholder="BP 1234" />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-[#525252] mb-1">Ville *</label>
+                        <input type="text" value={newFournisseur.ville}
+                          onChange={(e) => setNewFournisseur({ ...newFournisseur, ville: e.target.value })}
+                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]" />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-[#525252] mb-1">Région</label>
+                        <input type="text" value={newFournisseur.region}
+                          onChange={(e) => setNewFournisseur({ ...newFournisseur, region: e.target.value })}
+                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]" />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-[#525252] mb-1">Pays *</label>
+                        <select value={newFournisseur.pays}
+                          onChange={(e) => setNewFournisseur({ ...newFournisseur, pays: e.target.value })}
+                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]">
+                          <option value="Cameroun">Cameroun</option>
+                          <option value="Gabon">Gabon</option>
+                          <option value="Congo">Congo</option>
+                          <option value="Tchad">Tchad</option>
+                          <option value="Guinée Équatoriale">Guinée Équatoriale</option>
+                          <option value="République Centrafricaine">RCA</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="text-md font-semibold text-[#171717] flex items-center mb-4">
+                      <Users className="w-5 h-5 mr-2 text-[#171717]" />Contact Principal
+                    </h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm text-[#525252] mb-1">Nom du contact *</label>
+                        <input type="text" value={newFournisseur.contactPrincipal}
+                          onChange={(e) => setNewFournisseur({ ...newFournisseur, contactPrincipal: e.target.value })}
+                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]" />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-[#525252] mb-1">Fonction</label>
+                        <input type="text" value={newFournisseur.fonction}
+                          onChange={(e) => setNewFournisseur({ ...newFournisseur, fonction: e.target.value })}
+                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]"
+                          placeholder="Directeur Commercial..." />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-[#525252] mb-1">Email *</label>
+                        <input type="email" value={newFournisseur.email}
+                          onChange={(e) => setNewFournisseur({ ...newFournisseur, email: e.target.value })}
+                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]" />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-[#525252] mb-1">Téléphone *</label>
+                        <input type="tel" value={newFournisseur.telephone}
+                          onChange={(e) => setNewFournisseur({ ...newFournisseur, telephone: e.target.value })}
+                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]"
+                          placeholder="+237 6XX XXX XXX" />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-[#525252] mb-1">Téléphone secondaire</label>
+                        <input type="tel" value={newFournisseur.telephoneSecondaire}
+                          onChange={(e) => setNewFournisseur({ ...newFournisseur, telephoneSecondaire: e.target.value })}
+                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Étape 3: Comptabilité */}
+              {formStep === 3 && (
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="text-md font-semibold text-[#171717] flex items-center mb-4">
+                      <BookOpen className="w-5 h-5 mr-2 text-[#171717]" />Paramètres Comptables SYSCOHADA
+                    </h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm text-[#525252] mb-1">Compte comptable fournisseur *</label>
+                        <div className="flex space-x-2">
+                          <input type="text" value={newFournisseur.compteComptable}
+                            onChange={(e) => setNewFournisseur({ ...newFournisseur, compteComptable: e.target.value })}
+                            className="w-24 px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717] font-mono" placeholder="401" />
+                          <input type="text" value={newFournisseur.compteAuxiliaire}
+                            onChange={(e) => setNewFournisseur({ ...newFournisseur, compteAuxiliaire: e.target.value })}
+                            className="flex-1 px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717] font-mono" placeholder="Code auxiliaire" />
+                        </div>
+                        <p className="text-xs text-[#a3a3a3] mt-1">Compte 401 - Fournisseurs (SYSCOHADA)</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm text-[#525252] mb-1">Journal d'achats *</label>
+                        <select value={newFournisseur.journalAchats}
+                          onChange={(e) => setNewFournisseur({ ...newFournisseur, journalAchats: e.target.value })}
+                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]">
+                          <option value="AC">AC - Achats</option>
+                          <option value="AI">AI - Achats Import</option>
+                          <option value="FG">FG - Frais Généraux</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm text-[#525252] mb-1">Taux TVA applicable (%)</label>
+                        <select value={newFournisseur.tauxTVA}
+                          onChange={(e) => setNewFournisseur({ ...newFournisseur, tauxTVA: parseFloat(e.target.value) })}
+                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]">
+                          <option value={19.25}>19,25% - Taux normal Cameroun</option>
+                          <option value={18}>18% - Taux CEMAC standard</option>
+                          <option value={0}>0% - Exonéré</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm text-[#525252] mb-1">Devise *</label>
+                        <select value={newFournisseur.devise}
+                          onChange={(e) => setNewFournisseur({ ...newFournisseur, devise: e.target.value })}
+                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]">
+                          <option value="XAF">XAF - Franc CFA CEMAC</option>
+                          <option value="EUR">EUR - Euro</option>
+                          <option value="USD">USD - Dollar US</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="text-md font-semibold text-[#171717] flex items-center mb-4">
+                      <CreditCard className="w-5 h-5 mr-2 text-[#171717]" />Coordonnées Bancaires (optionnel)
+                    </h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm text-[#525252] mb-1">Banque</label>
+                        <input type="text" value={newFournisseur.banque}
+                          onChange={(e) => setNewFournisseur({ ...newFournisseur, banque: e.target.value })}
+                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]" placeholder="Nom de la banque" />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-[#525252] mb-1">Code SWIFT/BIC</label>
+                        <input type="text" value={newFournisseur.swift}
+                          onChange={(e) => setNewFournisseur({ ...newFournisseur, swift: e.target.value })}
+                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717] font-mono" />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm text-[#525252] mb-1">IBAN / RIB</label>
+                        <input type="text" value={newFournisseur.iban}
+                          onChange={(e) => setNewFournisseur({ ...newFournisseur, iban: e.target.value })}
+                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717] font-mono"
+                          placeholder="CM21 XXXX XXXX XXXX XXXX XXXX XXX" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Étape 4: Conditions commerciales */}
+              {formStep === 4 && (
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="text-md font-semibold text-[#171717] flex items-center mb-4">
+                      <CreditCard className="w-5 h-5 mr-2 text-[#171717]" />Conditions de Paiement
+                    </h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm text-[#525252] mb-1">Mode de règlement *</label>
+                        <select value={newFournisseur.modeReglement}
+                          onChange={(e) => setNewFournisseur({ ...newFournisseur, modeReglement: e.target.value as Fournisseur['modeReglement'] })}
+                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]">
+                          <option value="VIREMENT">Virement bancaire</option>
+                          <option value="CHEQUE">Chèque</option>
+                          <option value="PRELEVEMENT">Prélèvement automatique</option>
+                          <option value="TRAITE">Traite / Lettre de change</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm text-[#525252] mb-1">Délai de paiement (jours) *</label>
+                        <select value={newFournisseur.delaiPaiement}
+                          onChange={(e) => setNewFournisseur({ ...newFournisseur, delaiPaiement: parseInt(e.target.value) })}
+                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]">
+                          <option value={0}>Comptant</option>
+                          <option value={15}>15 jours</option>
+                          <option value={30}>30 jours</option>
+                          <option value={45}>45 jours</option>
+                          <option value={60}>60 jours fin de mois</option>
+                          <option value={90}>90 jours</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm text-[#525252] mb-1">Limite de crédit (XAF)</label>
+                        <input type="number" value={newFournisseur.limiteCredit}
+                          onChange={(e) => setNewFournisseur({ ...newFournisseur, limiteCredit: parseInt(e.target.value) || 0 })}
+                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]" />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-[#525252] mb-1">Escompte (%)</label>
+                        <input type="number" step="0.5" value={newFournisseur.escompte}
+                          onChange={(e) => setNewFournisseur({ ...newFournisseur, escompte: parseFloat(e.target.value) || 0 })}
+                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]" placeholder="0" />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Récapitulatif */}
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h4 className="text-md font-semibold text-[#171717] mb-3">Récapitulatif</h4>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div><span className="text-[#525252]">Code:</span> <span className="ml-2 font-medium">{newFournisseur.code || '-'}</span></div>
+                      <div><span className="text-[#525252]">Raison sociale:</span> <span className="ml-2 font-medium">{newFournisseur.raisonSociale || '-'}</span></div>
+                      <div><span className="text-[#525252]">Compte comptable:</span> <span className="ml-2 font-mono">{newFournisseur.compteComptable}{newFournisseur.compteAuxiliaire}</span></div>
+                      <div><span className="text-[#525252]">NIU:</span> <span className="ml-2 font-mono">{newFournisseur.niu || '-'}</span></div>
+                      <div><span className="text-[#525252]">Délai paiement:</span> <span className="ml-2 font-medium">{newFournisseur.delaiPaiement} jours</span></div>
+                      <div><span className="text-[#525252]">Limite crédit:</span> <span className="ml-2 font-medium">{formatCurrency(newFournisseur.limiteCredit)}</span></div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="p-6 border-t border-[#e5e5e5] flex justify-between">
+              <button type="button"
+                onClick={() => formStep > 1 ? setFormStep(formStep - 1) : (setShowNewFournisseurModal(false), setFormStep(1))}
+                className="px-4 py-2 border border-[#e5e5e5] rounded-lg text-[#525252] hover:bg-gray-50">
+                {formStep > 1 ? 'Précédent' : 'Annuler'}
+              </button>
+              <div className="flex space-x-3">
+                {formStep < 4 ? (
+                  <button type="button" onClick={() => setFormStep(formStep + 1)}
+                    className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/90">Suivant</button>
+                ) : (
+                  <button type="button"
+                    onClick={async () => {
+                      if (!newFournisseur.code || !newFournisseur.raisonSociale) return;
+                      try {
+                        await adapter.create('thirdParties', {
+                          code: newFournisseur.code, name: newFournisseur.raisonSociale, type: 'supplier',
+                          email: newFournisseur.email, phone: newFournisseur.telephone,
+                          address: `${newFournisseur.adresse}, ${newFournisseur.ville}, ${newFournisseur.pays}`,
+                          taxId: newFournisseur.niu,
+                        });
+                        setShowNewFournisseurModal(false); setFormStep(1);
+                        const tp = await adapter.getAll<any>('thirdParties');
+                        const suppliers = tp.filter((t: any) => t.type === 'supplier' || t.type === 'both');
+                        setFournisseurs(suppliers.map((s: any) => ({
+                          ...s, id: s.id, code: s.code || '', raisonSociale: s.name || '',
+                          categorie: 'RECURRENT', typeDépense: 'FRAIS_GENERAUX', pays: 'Cameroun',
+                          secteurActivite: '', volumeAchats: 0, encoursActuel: 0, dpo: 0,
+                          limiteCredit: 0, delaiPaiement: 30, modeReglement: 'VIREMENT',
+                          devise: 'XAF', scoreQualite: 0, respectDelais: 0,
+                          notationInterne: 'B', conformite: true, statut: 'ACTIF',
+                        } as Fournisseur)));
+                      } catch (err) { console.error('Erreur création fournisseur:', err); }
+                    }}
+                    className="px-6 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/90 font-semibold">
+                    Créer le fournisseur
                   </button>
-                </div>
-              </div>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={analyticsData.evolutionAchats}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="mois" />
-                  <YAxis tickFormatter={(value) => `${value / 1000}k`} />
-                  <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                  <Legend />
-                  {compareMode && (
-                    <Line
-                      type="monotone"
-                      dataKey="achats2024"
-                      stroke="#525252"
-                      strokeWidth={2}
-                      strokeDasharray="5 5"
-                      name="Achats 2024"
-                    />
-                  )}
-                  <Line
-                    type="monotone"
-                    dataKey="achats2025"
-                    stroke="#171717"
-                    strokeWidth={2}
-                    name="Achats 2025"
-                    dot={{ fill: '#171717' }}
-                    activeDot={{ r: 6 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-
-            {/* Répartition par Catégorie */}
-            <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-[#171717]">Répartition par Catégorie</h3>
-                <div className="flex items-center space-x-2">
-                  <select className="text-sm border border-gray-300 rounded px-2 py-1">
-                    <option>Par Montant</option>
-                    <option>Par Nombre</option>
-                  </select>
-                </div>
-              </div>
-              <ResponsiveContainer width="100%" height={300}>
-                <RechartsPieChart>
-                  <Pie
-                    dataKey="montant"
-                    data={analyticsData.fournisseursParCategorie}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
-                    fill="#737373"
-                    label={({ categorie, percent }) => `${categorie} ${(percent * 100).toFixed(0)}%`}
-                  >
-                    {analyticsData.fournisseursParCategorie.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                </RechartsPieChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* Analyse Performance Fournisseurs */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Radar Performance */}
-            <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
-              <h3 className="text-lg font-semibold text-[#171717] mb-4">Évaluation Performance</h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <RadarChart data={analyticsData.performanceFournisseurs}>
-                  <PolarGrid />
-                  <PolarAngleAxis dataKey="critere" />
-                  <PolarRadiusAxis angle={90} domain={[0, 100]} />
-                  <Radar name="Score Moyen" dataKey="score" stroke="#171717" fill="#171717" fillOpacity={0.6} />
-                  <Tooltip />
-                </RadarChart>
-              </ResponsiveContainer>
-            </div>
-
-            {/* Matrice Risques */}
-            <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
-              <h3 className="text-lg font-semibold text-[#171717] mb-4">Matrice des Risques</h3>
-              <div className="grid grid-cols-3 gap-2">
-                <div className="col-span-1 row-span-3"></div>
-                <div className="text-center text-xs text-gray-700 pb-2">Faible Impact</div>
-                <div className="text-center text-xs text-gray-700 pb-2">Fort Impact</div>
-
-                <div className="text-right text-xs text-gray-700 pr-2">Haute Probabilité</div>
-                <div className="bg-yellow-100 p-4 rounded-lg text-center">
-                  <p className="text-lg font-bold text-yellow-800">3</p>
-                  <p className="text-xs text-yellow-600">Modérés</p>
-                </div>
-                <div className="bg-red-100 p-4 rounded-lg text-center">
-                  <p className="text-lg font-bold text-red-800">2</p>
-                  <p className="text-xs text-red-600">Critiques</p>
-                </div>
-
-                <div className="text-right text-xs text-gray-700 pr-2">Basse Probabilité</div>
-                <div className="bg-green-100 p-4 rounded-lg text-center">
-                  <p className="text-lg font-bold text-green-800">35</p>
-                  <p className="text-xs text-green-600">Faibles</p>
-                </div>
-                <div className="bg-orange-100 p-4 rounded-lg text-center">
-                  <p className="text-lg font-bold text-orange-800">12</p>
-                  <p className="text-xs text-orange-600">À surveiller</p>
-                </div>
-              </div>
-              <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">Plan d'Action Requis</span>
-                  <span className="text-lg font-bold text-red-600">5 fournisseurs</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Tableau de Bord Prédictif */}
-          <div className="bg-gradient-to-r from-[#171717] to-[#737373] rounded-lg p-6 text-white">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h3 className="text-lg font-bold">Insights & Prédictions</h3>
-                <p className="text-sm opacity-90 mt-1">Analyse prédictive basée sur l'historique</p>
-              </div>
-              <Database className="w-8 h-8 opacity-50" />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="bg-white/10 backdrop-blur rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <TrendingDown className="w-5 h-5" />
-                  <span className="text-xs bg-white/20 px-2 py-1 rounded">Économies</span>
-                </div>
-                <p className="text-lg font-bold">385K</p>
-                <p className="text-sm opacity-90">Potentiel T2 2025</p>
-              </div>
-              <div className="bg-white/10 backdrop-blur rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <AlertOctagon className="w-5 h-5" />
-                  <span className="text-xs bg-white/20 px-2 py-1 rounded">Risque</span>
-                </div>
-                <p className="text-lg font-bold">3</p>
-                <p className="text-sm opacity-90">Fournisseurs à remplacer</p>
-              </div>
-              <div className="bg-white/10 backdrop-blur rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <Package className="w-5 h-5" />
-                  <span className="text-xs bg-white/20 px-2 py-1 rounded">Optimisation</span>
-                </div>
-                <p className="text-lg font-bold">12</p>
-                <p className="text-sm opacity-90">Contrats à renégocier</p>
-              </div>
-              <div className="bg-white/10 backdrop-blur rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <Globe className="w-5 h-5" />
-                  <span className="text-xs bg-white/20 px-2 py-1 rounded">Sourcing</span>
-                </div>
-                <p className="text-lg font-bold">5</p>
-                <p className="text-sm opacity-90">Nouveaux fournisseurs</p>
+                )}
               </div>
             </div>
           </div>

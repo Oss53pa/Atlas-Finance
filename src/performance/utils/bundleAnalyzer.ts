@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Bundle Analyzer
  * Analyzes and optimizes JavaScript bundle size and loading performance

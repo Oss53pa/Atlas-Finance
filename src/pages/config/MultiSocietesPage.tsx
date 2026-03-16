@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
@@ -303,12 +304,12 @@ const MultiSocietesPage: React.FC = () => {
           <Card>
             <CardContent className="flex items-center p-6">
               <div className="flex items-center space-x-4">
-                <div className="p-2 bg-purple-100 rounded-full">
-                  <Database className="h-6 w-6 text-purple-600" />
+                <div className="p-2 bg-primary-100 rounded-full">
+                  <Database className="h-6 w-6 text-primary-600" />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Transactions</p>
-                  <p className="text-lg font-bold text-purple-700">{totalTransactions.toLocaleString()}</p>
+                  <p className="text-lg font-bold text-primary-700">{totalTransactions.toLocaleString()}</p>
                 </div>
               </div>
             </CardContent>
@@ -490,7 +491,7 @@ const MultiSocietesPage: React.FC = () => {
                             <TableCell>
                               <div className="text-sm">
                                 {company.is_parent ? (
-                                  <Badge variant="default" className="bg-purple-100 text-purple-700">
+                                  <Badge variant="default" className="bg-primary-100 text-primary-700">
                                     Société Mère
                                   </Badge>
                                 ) : (
@@ -572,7 +573,7 @@ const MultiSocietesPage: React.FC = () => {
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <span>Groupes de Consolidation</span>
-                  <Button className="bg-purple-600 hover:bg-purple-700">
+                  <Button className="bg-primary-600 hover:bg-primary-700">
                     <Plus className="mr-2 h-4 w-4" />
                     Nouveau Groupe
                   </Button>

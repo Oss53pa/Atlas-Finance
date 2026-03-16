@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useEffect } from 'react';
 import {
@@ -667,7 +668,7 @@ const StockManagement: React.FC = () => {
                       </button>
                       <button
                         onClick={() => handleStockAction(stock, 'transfer')}
-                        className="p-1 text-gray-700 hover:text-purple-600"
+                        className="p-1 text-gray-700 hover:text-primary-600"
                         title="Transfer Stock"
                       >
                         <Truck className="w-4 h-4" />

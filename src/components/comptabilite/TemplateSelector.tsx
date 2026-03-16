@@ -43,7 +43,7 @@ const CATEGORY_COLORS: Record<TemplateCategorie, string> = {
   ACHATS: 'bg-orange-100 text-orange-700 border-orange-200',
   VENTES: 'bg-green-100 text-green-700 border-green-200',
   TRESORERIE: 'bg-blue-100 text-blue-700 border-blue-200',
-  PAIE: 'bg-purple-100 text-purple-700 border-purple-200',
+  PAIE: 'bg-primary-100 text-primary-700 border-primary-200',
   OD: 'bg-gray-100 text-gray-700 border-gray-200',
   FISCALITE: 'bg-red-100 text-red-700 border-red-200',
 };
@@ -122,7 +122,7 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({ isOpen, onClose, on
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-600">
+        <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-blue-600 to-primary-600">
           <div className="flex items-center space-x-3">
             <FileText className="w-5 h-5 text-white" />
             <h2 className="text-lg font-semibold text-white">
@@ -140,7 +140,7 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({ isOpen, onClose, on
             {/* Search + Category filter */}
             <div className="px-6 py-3 border-b border-gray-100 space-y-3">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -tranprimary-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
                   placeholder="Rechercher un modele..."
