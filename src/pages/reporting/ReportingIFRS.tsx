@@ -98,7 +98,7 @@ const ReportingIFRS: React.FC = () => {
   const [filterPeriod, setFilterPeriod] = useState('all');
   const [viewMode, setViewMode] = useState<'reports' | 'standards' | 'consolidation'>('reports');
   const [reportModal, setReportModal] = useState<ReportModal>({ isOpen: false, mode: 'view' });
-  const [selectedPeriod, setSelectedPeriod] = useState('2024');
+  const [selectedPeriod, setSelectedPeriod] = useState(new Date().getFullYear().toString());
 
   // Load fiscal years from Dexie to generate IFRS reports
   const { data: fiscalYears = [] } = useQuery({
@@ -378,9 +378,14 @@ const ReportingIFRS: React.FC = () => {
                 onChange={(e) => setSelectedPeriod(e.target.value)}
                 className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#171717]"
               >
-                <option value="2024">2024</option>
-                <option value="2023">2023</option>
-                <option value="2022">2022</option>
+                {fiscalYears.length > 0 ? (
+                  fiscalYears.map(fy => {
+                    const year = fy.startDate?.substring(0, 4) || '';
+                    return <option key={fy.id} value={year}>{year}</option>;
+                  })
+                ) : (
+                  <option value={new Date().getFullYear().toString()}>{new Date().getFullYear()}</option>
+                )}
               </select>
             </div>
           </div>
@@ -456,9 +461,10 @@ const ReportingIFRS: React.FC = () => {
                     className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#171717]"
                   >
                     <option value="all">Toutes les périodes</option>
-                    <option value="2024-Q3">2024-Q3</option>
-                    <option value="2024-Q2">2024-Q2</option>
-                    <option value="2024-Q1">2024-Q1</option>
+                    {fiscalYears.map(fy => {
+                      const year = fy.startDate?.substring(0, 4) || '';
+                      return <option key={fy.id} value={year}>{year}</option>;
+                    })}
                   </select>
                 </div>
               </div>

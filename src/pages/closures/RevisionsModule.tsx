@@ -238,8 +238,9 @@ const RevisionsModule: React.FC = () => {
     { id: 'comptes_speciaux', label: 'Comptes Spéciaux (Classe 8)', comptes: ['80', '81', '82', '83', '84', '85', '86', '87', '88'] }
   ];
 
-  // Données de révision enrichies
-  const [revisions] = useState<RevisionItem[]>([
+  // Données de révision — initialement vides, créées via le bouton "Nouvelle Révision"
+  const [revisions] = useState<RevisionItem[]>([]);
+  const [_legacyRevisions] = useState<RevisionItem[]>([
     {
       id: 'REV-2025-001',
       compte: '401100',
