@@ -208,12 +208,12 @@ function App() {
                     <ErrorBoundary>
                     <Suspense fallback={<LoadingFallback />}>
                     <Routes>
-                      {/* Login — seule page publique */}
+                      {/* Pages publiques — pas d'auth */}
+                      <Route path="/" element={<LandingPage />} />
                       <Route path="/login" element={<LoginPage />} />
 
-                      {/* Hub Atlas Studio — après login, choisir l'application */}
+                      {/* Hub — après login, choisir l'application */}
                       <Route element={<RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant', 'user', 'viewer', 'super_admin']}><Outlet /></RBACGuard>}>
-                        <Route path="/" element={<AtlasStudioHub />} />
                         <Route path="/hub" element={<AtlasStudioHub />} />
                       </Route>
 
