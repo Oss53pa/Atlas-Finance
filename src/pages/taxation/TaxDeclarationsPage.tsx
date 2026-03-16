@@ -1,10 +1,28 @@
 // @ts-nocheck
-import React, { useState, useEffect, useMemo } from 'react';
+/**
+ * TaxDeclarationsPage — Déclarations Fiscales
+ *
+ * Connecté au moteur de détection automatique TaxDetectionEngine.
+ * Les taxes sont détectées depuis les comptes SYSCOHADA actifs.
+ * Les paramètres des taxes sont gérés dans Admin → Registre Fiscal.
+ *
+ * Fonctionnalités :
+ * 1. Détection automatique des taxes depuis les écritures comptables
+ * 2. Calcul des montants (TVA, IS, IRPP, CNPS, RAS, etc.)
+ * 3. Workflow : draft → calculated → validated → declared → paid
+ * 4. Alertes retard / échéances
+ * 5. Détail par déclaration avec écritures sources
+ */
+import React, { useState, useMemo, useCallback } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
+import { TaxDetectionEngine } from '../../services/fiscal/TaxDetectionEngine';
+import { seedTaxRegistryCI, seedIRPPBracketsCI } from '../../services/fiscal/taxRegistrySeeds';
+import type { DBTaxDeclaration, DBTaxRegistry } from '../../lib/db';
 import {
   PlusIcon,
   MagnifyingGlassIcon,
@@ -18,107 +36,172 @@ import {
   CheckCircleIcon,
   ClockIcon,
   CalendarDaysIcon,
-  CurrencyDollarIcon
+  CurrencyDollarIcon,
+  ArrowPathIcon,
+  CalculatorIcon,
+  BoltIcon,
+  ChevronDownIcon
 } from '@heroicons/react/24/outline';
-import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 
-interface TaxDeclaration {
-  id: string;
-  type: 'tva' | 'impot_societes' | 'bic' | 'patente' | 'taux_apprentissage' | 'cfu' | 'tpp';
-  reference: string;
-  period: string;
-  status: 'draft' | 'submitted' | 'validated' | 'paid' | 'overdue' | 'rejected';
-  dueDate: string;
-  amount: number;
-  paidAmount: number;
-  penalty: number;
-  submittedDate?: string;
-  validatedDate?: string;
-  paidDate?: string;
-  rejectedDate?: string;
-  rejectionReason?: string;
-  createdBy: string;
-  createdAt: string;
-  lastModified: string;
-  attachments: string[];
-}
+const MONTHS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
 
 const TaxDeclarationsPage: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
+  const queryClient = useQueryClient();
+
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
-  const [showPeriodModal, setShowPeriodModal] = useState(false);
-  const [dateRange, setDateRange] = useState({ startDate: '', endDate: '' });
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [showFilters, setShowFilters] = useState(false);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [selectedDeclaration, setSelectedDeclaration] = useState<TaxDeclaration | null>(null);
+  const [selectedDeclaration, setSelectedDeclaration] = useState<DBTaxDeclaration | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDetectionPanel, setShowDetectionPanel] = useState(false);
+  const [isCalculating, setIsCalculating] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-  const { adapter } = useData();
-  const [declarationsSetting, setDeclarationsSetting] = useState<any>(undefined);
 
-  useEffect(() => {
-    const load = async () => {
-      const s = await adapter.getById('settings', 'tax_declarations');
-      setDeclarationsSetting(s);
-    };
-    load();
-  }, [adapter]);
+  // Period selector
+  const now = new Date();
+  const [selectedMonth, setSelectedMonth] = useState(now.getMonth() === 0 ? 12 : now.getMonth());
+  const [selectedYear, setSelectedYear] = useState(now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear());
 
-  const allDeclarations: TaxDeclaration[] = useMemo(() => {
-    try {
-      if (declarationsSetting?.value) {
-        const parsed = JSON.parse(declarationsSetting.value);
-        if (Array.isArray(parsed)) return parsed;
-      }
-    } catch { /* ignore parse errors */ }
-    return [];
-  }, [declarationsSetting]);
+  const periodStart = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-01`;
+  const lastDay = new Date(selectedYear, selectedMonth, 0).getDate();
+  const periodEnd = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${lastDay}`;
 
-  // Apply client-side filtering
-  const declarations: TaxDeclaration[] = useMemo(() => {
-    return allDeclarations.filter(decl =>
-      (searchTerm === '' ||
-        decl.reference.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        decl.period.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        decl.createdBy.toLowerCase().includes(searchTerm.toLowerCase())) &&
-      (selectedType === 'all' || decl.type === selectedType) &&
-      (selectedStatus === 'all' || decl.status === selectedStatus)
-    );
-  }, [allDeclarations, searchTerm, selectedType, selectedStatus]);
+  // Load tax registry
+  const { data: taxRegistry = [], isLoading: loadingRegistry } = useQuery({
+    queryKey: ['tax-registry'],
+    queryFn: () => adapter.getAll<DBTaxRegistry>('taxRegistry'),
+  });
 
-  const isLoading = declarationsSetting === undefined;
+  // Load declarations from Dexie
+  const { data: declarations = [], isLoading: loadingDeclarations } = useQuery({
+    queryKey: ['tax-declarations'],
+    queryFn: () => adapter.getAll<DBTaxDeclaration>('taxDeclarations'),
+  });
 
-  const deleteDeclarationMutation = {
-    mutate: async (declarationId: string) => {
-      try {
-        const updated = allDeclarations.filter(d => d.id !== declarationId);
-        await adapter.update('settings', 'tax_declarations', {
-          key: 'tax_declarations',
-          value: JSON.stringify(updated),
-          updatedAt: new Date().toISOString(),
-        });
-        setDeclarationsSetting({ key: 'tax_declarations', value: JSON.stringify(updated), updatedAt: new Date().toISOString() });
-        toast.success('Déclaration supprimée');
-      } catch {
-        toast.error('Erreur lors de la suppression');
-      }
+  // Detection results
+  const { data: detectionResults = [], isLoading: loadingDetection, refetch: refetchDetection } = useQuery({
+    queryKey: ['tax-detection', periodStart, periodEnd],
+    queryFn: async () => {
+      if (taxRegistry.length === 0) return [];
+      const engine = new TaxDetectionEngine(adapter, 'CI');
+      return engine.detectTaxesFromAccounts(periodStart, periodEnd);
     },
-    isPending: false,
+    enabled: taxRegistry.length > 0,
+  });
+
+  // Get unique tax codes from registry for filter
+  const taxTypes = useMemo(() => {
+    const types = new Map<string, string>();
+    for (const t of taxRegistry) types.set(t.taxCode, t.taxShortName);
+    return [...types.entries()];
+  }, [taxRegistry]);
+
+  // Filter declarations
+  const filteredDeclarations = useMemo(() => {
+    return declarations
+      .filter(d => {
+        if (searchTerm) {
+          const term = searchTerm.toLowerCase();
+          if (!d.taxCode.toLowerCase().includes(term) && !d.periodLabel?.toLowerCase().includes(term)) return false;
+        }
+        if (selectedType !== 'all' && d.taxCode !== selectedType) return false;
+        if (selectedStatus !== 'all' && d.status !== selectedStatus) return false;
+        if (selectedCategory !== 'all') {
+          const reg = taxRegistry.find(r => r.taxCode === d.taxCode);
+          if (reg && reg.taxCategory !== selectedCategory) return false;
+        }
+        return true;
+      })
+      .sort((a, b) => b.periodStart.localeCompare(a.periodStart));
+  }, [declarations, searchTerm, selectedType, selectedStatus, selectedCategory, taxRegistry]);
+
+  const paginatedDeclarations = filteredDeclarations.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const totalPages = Math.ceil(filteredDeclarations.length / itemsPerPage);
+  const isLoading = loadingRegistry || loadingDeclarations;
+
+  // Stats
+  const totalAmount = filteredDeclarations.reduce((s, d) => s + (d.netTax || 0), 0);
+  const totalPaid = filteredDeclarations.filter(d => d.status === 'paid').reduce((s, d) => s + (d.netTax || 0), 0);
+  const totalPending = totalAmount - totalPaid;
+  const overdueCount = filteredDeclarations.filter(d =>
+    d.declarationDeadline && new Date(d.declarationDeadline) < new Date() && d.status !== 'paid' && d.status !== 'declared'
+  ).length;
+
+  // Triggered taxes from detection
+  const triggeredTaxes = detectionResults.filter(r => r.isTriggered);
+  const overdueTaxes = triggeredTaxes.filter(r => r.isOverdue);
+  const dueSoonTaxes = triggeredTaxes.filter(r => !r.isOverdue && (r.daysUntilDeadline ?? 999) <= 7);
+
+  // ── Actions ─────────────────────────────────────────────────
+
+  const handleCalculateAll = useCallback(async () => {
+    if (taxRegistry.length === 0) {
+      toast.error('Aucune taxe configurée. Allez dans Admin → Registre Fiscal pour initialiser.');
+      return;
+    }
+    setIsCalculating(true);
+    try {
+      const engine = new TaxDetectionEngine(adapter, 'CI');
+      const results = await engine.detectTaxesFromAccounts(periodStart, periodEnd);
+      let count = 0;
+      for (const r of results) {
+        if (r.isTriggered && r.amounts) {
+          await engine.createDeclaration(r.tax, periodStart, periodEnd, r.amounts);
+          count++;
+        }
+      }
+      await queryClient.invalidateQueries({ queryKey: ['tax-declarations'] });
+      await refetchDetection();
+      toast.success(`${count} déclaration(s) calculée(s) pour ${MONTHS[selectedMonth - 1]} ${selectedYear}`);
+    } catch (err) {
+      toast.error('Erreur lors du calcul: ' + (err instanceof Error ? err.message : String(err)));
+    } finally {
+      setIsCalculating(false);
+    }
+  }, [adapter, taxRegistry, periodStart, periodEnd, selectedMonth, selectedYear, queryClient, refetchDetection]);
+
+  const handleStatusChange = useCallback(async (decl: DBTaxDeclaration, newStatus: string) => {
+    const now = new Date().toISOString();
+    const updates: Partial<DBTaxDeclaration> = { status: newStatus as DBTaxDeclaration['status'], updatedAt: now };
+    if (newStatus === 'declared') updates.declaredAt = now;
+    if (newStatus === 'paid') updates.paidAt = now;
+    await adapter.update('taxDeclarations', decl.id, updates);
+    await queryClient.invalidateQueries({ queryKey: ['tax-declarations'] });
+    toast.success(`Déclaration ${decl.taxCode} → ${newStatus}`);
+  }, [adapter, queryClient]);
+
+  const handleSeedRegistry = useCallback(async () => {
+    await seedTaxRegistryCI(adapter);
+    await seedIRPPBracketsCI(adapter);
+    await queryClient.invalidateQueries({ queryKey: ['tax-registry'] });
+    toast.success('15 taxes CI initialisées dans le registre');
+  }, [adapter, queryClient]);
+
+  const handleDelete = useCallback(async (id: string) => {
+    await adapter.delete('taxDeclarations', id);
+    await queryClient.invalidateQueries({ queryKey: ['tax-declarations'] });
+    toast.success('Déclaration supprimée');
+  }, [adapter, queryClient]);
+
+  // ── Helpers ─────────────────────────────────────────────────
+
+  const getTaxName = (code: string) => {
+    const reg = taxRegistry.find(r => r.taxCode === code);
+    return reg?.taxShortName || code;
   };
 
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case 'tva': return 'bg-blue-100 text-blue-800';
-      case 'impot_societes': return 'bg-primary-100 text-primary-800';
-      case 'bic': return 'bg-green-100 text-green-800';
-      case 'patente': return 'bg-orange-100 text-orange-800';
-      case 'taux_apprentissage': return 'bg-primary-100 text-primary-800';
-      case 'cfu': return 'bg-primary-100 text-primary-800';
-      case 'tpp': return 'bg-yellow-100 text-yellow-800';
+  const getTypeColor = (code: string) => {
+    const reg = taxRegistry.find(r => r.taxCode === code);
+    switch (reg?.taxCategory) {
+      case 'INDIRECT': return 'bg-blue-100 text-blue-800';
+      case 'DIRECT': return 'bg-purple-100 text-purple-800';
+      case 'SOCIAL': return 'bg-green-100 text-green-800';
+      case 'RETENUE': return 'bg-orange-100 text-orange-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -126,72 +209,43 @@ const TaxDeclarationsPage: React.FC = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'paid': return 'bg-green-100 text-green-800';
+      case 'declared': return 'bg-indigo-100 text-indigo-800';
       case 'validated': return 'bg-blue-100 text-blue-800';
-      case 'submitted': return 'bg-yellow-100 text-yellow-800';
+      case 'calculated': return 'bg-yellow-100 text-yellow-800';
       case 'draft': return 'bg-gray-100 text-gray-800';
       case 'overdue': return 'bg-red-100 text-red-800';
-      case 'rejected': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'paid': return 'Payée';
+      case 'declared': return 'Déclarée';
+      case 'validated': return 'Validée';
+      case 'calculated': return 'Calculée';
+      case 'draft': return 'Brouillon';
+      case 'overdue': return 'En retard';
+      case 'rectified': return 'Rectifiée';
+      default: return status;
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'paid': return <CheckCircleIcon className="h-5 w-5 text-green-600" />;
-      case 'validated': return <CheckCircleIcon className="h-5 w-5 text-blue-600" />;
-      case 'submitted': return <ClockIcon className="h-5 w-5 text-yellow-600" />;
-      case 'draft': return <DocumentTextIcon className="h-5 w-5 text-gray-600" />;
-      case 'overdue': return <ExclamationTriangleIcon className="h-5 w-5 text-red-600" />;
-      case 'rejected': return <ExclamationTriangleIcon className="h-5 w-5 text-red-600" />;
-      default: return <DocumentTextIcon className="h-5 w-5 text-gray-600" />;
+      case 'paid': return <CheckCircleIcon className="h-4 w-4 text-green-600" />;
+      case 'declared': return <DocumentArrowDownIcon className="h-4 w-4 text-indigo-600" />;
+      case 'validated': return <CheckCircleIcon className="h-4 w-4 text-blue-600" />;
+      case 'calculated': return <CalculatorIcon className="h-4 w-4 text-yellow-600" />;
+      case 'draft': return <DocumentTextIcon className="h-4 w-4 text-gray-600" />;
+      case 'overdue': return <ExclamationTriangleIcon className="h-4 w-4 text-red-600" />;
+      default: return <DocumentTextIcon className="h-4 w-4 text-gray-600" />;
     }
   };
 
-  const getTaxTypeName = (type: string) => {
-    switch (type) {
-      case 'tva': return 'TVA';
-      case 'impot_societes': return 'Impôt sur les Sociétés';
-      case 'bic': return 'BIC';
-      case 'patente': return 'Patente';
-      case 'taux_apprentissage': return 'Taxe d\'Apprentissage';
-      case 'cfu': return 'CFU';
-      case 'tpp': return 'TPP';
-      default: return type;
-    }
-  };
+  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; id: string | null }>({ isOpen: false, id: null });
 
-
-  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; declaration: TaxDeclaration | null }>({
-    isOpen: false,
-    declaration: null
-  });
-
-  const handleDeleteClick = (declaration: TaxDeclaration) => {
-    setDeleteConfirm({ isOpen: true, declaration });
-  };
-
-  const handleConfirmDelete = () => {
-    if (deleteConfirm.declaration) {
-      deleteDeclarationMutation.mutate(deleteConfirm.declaration.id);
-      setDeleteConfirm({ isOpen: false, declaration: null });
-    }
-  };
-
-  const isOverdue = (dueDate: string, status: string) => {
-    return new Date(dueDate) < new Date() && status !== 'paid' && status !== 'validated';
-  };
-
-  const filteredDeclarations = declarations.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
-  const totalPages = Math.ceil(declarations.length / itemsPerPage);
-
-  const totalAmount = declarations.reduce((sum, decl) => sum + decl.amount, 0);
-  const totalPaid = declarations.reduce((sum, decl) => sum + decl.paidAmount, 0);
-  const totalPending = totalAmount - totalPaid;
-  const overdueCount = declarations.filter(decl => decl.status === 'overdue' || isOverdue(decl.dueDate, decl.status)).length;
+  // ── Render ──────────────────────────────────────────────────
 
   return (
     <div className="space-y-6">
@@ -199,169 +253,188 @@ const TaxDeclarationsPage: React.FC = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-lg font-bold text-gray-900">Déclarations Fiscales</h1>
-          <p className="text-gray-600">Gestion des déclarations et obligations fiscales</p>
+          <p className="text-gray-600">Détection automatique et calcul depuis les comptes SYSCOHADA</p>
         </div>
         <div className="flex space-x-3">
+          {taxRegistry.length === 0 && (
+            <button
+              onClick={handleSeedRegistry}
+              className="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+            >
+              <BoltIcon className="h-5 w-5" />
+              <span>Initialiser taxes CI</span>
+            </button>
+          )}
           <button
-            onClick={() => {
-              toast.success('Export des déclarations fiscales en cours...');
-              setTimeout(() => toast.success('Export terminé - fichier téléchargé'), 1500);
-            }}
-            className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
-            aria-label="Télécharger"
+            onClick={handleCalculateAll}
+            disabled={isCalculating || taxRegistry.length === 0}
+            className="bg-primary hover:bg-primary-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors disabled:opacity-50"
           >
-            <DocumentArrowDownIcon className="h-5 w-5" />
-            <span>{t('common.export')}</span>
-          </button>
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="bg-primary hover:bg-primary-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
-          >
-            <PlusIcon className="h-5 w-5" />
-            <span>Nouvelle Déclaration</span>
+            {isCalculating ? <ArrowPathIcon className="h-5 w-5 animate-spin" /> : <CalculatorIcon className="h-5 w-5" />}
+            <span>Calculer {MONTHS[selectedMonth - 1]} {selectedYear}</span>
           </button>
         </div>
       </div>
+
+      {/* Alertes urgentes */}
+      {(overdueTaxes.length > 0 || dueSoonTaxes.length > 0) && (
+        <div className="space-y-2">
+          {overdueTaxes.length > 0 && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center space-x-3">
+              <ExclamationTriangleIcon className="h-5 w-5 text-red-600 flex-shrink-0" />
+              <div>
+                <span className="font-medium text-red-800">{overdueTaxes.length} déclaration(s) EN RETARD : </span>
+                <span className="text-red-700">{overdueTaxes.map(r => r.tax.taxShortName).join(', ')}</span>
+              </div>
+            </div>
+          )}
+          {dueSoonTaxes.length > 0 && (
+            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 flex items-center space-x-3">
+              <ClockIcon className="h-5 w-5 text-orange-600 flex-shrink-0" />
+              <div>
+                <span className="font-medium text-orange-800">{dueSoonTaxes.length} déclaration(s) dues sous 7 jours : </span>
+                <span className="text-orange-700">{dueSoonTaxes.map(r => `${r.tax.taxShortName} (J-${r.daysUntilDeadline})`).join(', ')}</span>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Statistiques */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Déclarations</p>
-              <p className="text-lg font-bold text-gray-900">{declarations.length}</p>
-            </div>
-            <div className="h-12 w-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <DocumentTextIcon className="h-6 w-6 text-blue-600" />
-            </div>
-          </div>
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+          <p className="text-sm font-medium text-gray-600">Déclarations</p>
+          <p className="text-xl font-bold text-gray-900">{filteredDeclarations.length}</p>
         </div>
-
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Montant Total</p>
-              <p className="text-lg font-bold text-gray-900">{formatCurrency(totalAmount)}</p>
-            </div>
-            <div className="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center">
-              <CurrencyDollarIcon className="h-6 w-6 text-green-600" />
-            </div>
-          </div>
+        <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+          <p className="text-sm font-medium text-gray-600">Total dû</p>
+          <p className="text-xl font-bold text-gray-900">{formatCurrency(totalAmount)}</p>
         </div>
-
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">En Attente</p>
-              <p className="text-lg font-bold text-orange-600">{formatCurrency(totalPending)}</p>
-            </div>
-            <div className="h-12 w-12 bg-orange-100 rounded-lg flex items-center justify-center">
-              <ClockIcon className="h-6 w-6 text-orange-600" />
-            </div>
-          </div>
+        <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+          <p className="text-sm font-medium text-gray-600">Payé</p>
+          <p className="text-xl font-bold text-green-600">{formatCurrency(totalPaid)}</p>
         </div>
-
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">En Retard</p>
-              <p className="text-lg font-bold text-red-600">{overdueCount}</p>
-            </div>
-            <div className="h-12 w-12 bg-red-100 rounded-lg flex items-center justify-center">
-              <ExclamationTriangleIcon className="h-6 w-6 text-red-600" />
-            </div>
-          </div>
+        <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+          <p className="text-sm font-medium text-gray-600">En attente</p>
+          <p className="text-xl font-bold text-orange-600">{formatCurrency(totalPending)}</p>
+        </div>
+        <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+          <p className="text-sm font-medium text-gray-600">En retard</p>
+          <p className="text-xl font-bold text-red-600">{overdueCount}</p>
         </div>
       </div>
 
-      {/* Filtres et recherche */}
-      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
-          <div className="flex items-center space-x-4">
-            <div className="relative">
-              <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-1/2 transform -tranprimary-y-1/2 text-gray-700" />
+      {/* Détection automatique — panneau dépliable */}
+      {triggeredTaxes.length > 0 && (
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          <button
+            onClick={() => setShowDetectionPanel(!showDetectionPanel)}
+            className="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+          >
+            <div className="flex items-center space-x-3">
+              <BoltIcon className="h-5 w-5 text-primary" />
+              <span className="font-medium text-gray-900">
+                {triggeredTaxes.length} taxe(s) détectée(s) pour {MONTHS[selectedMonth - 1]} {selectedYear}
+              </span>
+            </div>
+            <ChevronDownIcon className={`h-5 w-5 text-gray-500 transition-transform ${showDetectionPanel ? 'rotate-180' : ''}`} />
+          </button>
+          {showDetectionPanel && (
+            <div className="border-t border-gray-200 p-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {triggeredTaxes.map(r => (
+                  <div key={r.tax.taxCode} className={`p-3 rounded-lg border ${r.isOverdue ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-gray-50'}`}>
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <span className="font-medium text-gray-900">{r.tax.taxShortName}</span>
+                        <span className={`ml-2 text-xs px-2 py-0.5 rounded-full ${getTypeColor(r.tax.taxCode)}`}>{r.tax.taxCategory}</span>
+                      </div>
+                      {r.isOverdue && <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-800">Retard</span>}
+                    </div>
+                    <div className="mt-2 text-sm space-y-1">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Montant :</span>
+                        <span className="font-medium">{r.amounts?.net != null ? formatCurrency(r.amounts.net) : 'Manuel'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Échéance :</span>
+                        <span className={r.isOverdue ? 'text-red-600 font-medium' : 'text-gray-900'}>
+                          {r.declarationDeadline ? new Date(r.declarationDeadline).toLocaleDateString('fr-FR') : '-'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Formule :</span>
+                        <span className="text-gray-700 text-xs">{r.tax.formula}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Sélecteur de période + Filtres */}
+      <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-3 md:space-y-0">
+          <div className="flex items-center space-x-3">
+            {/* Période */}
+            <select value={selectedMonth} onChange={e => setSelectedMonth(Number(e.target.value))} className="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+              {MONTHS.map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
+            </select>
+            <select value={selectedYear} onChange={e => setSelectedYear(Number(e.target.value))} className="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+              {[now.getFullYear(), now.getFullYear() - 1, now.getFullYear() - 2].map(y => <option key={y} value={y}>{y}</option>)}
+            </select>
+
+            <div className="relative ml-3">
+              <MagnifyingGlassIcon className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
-                placeholder="Rechercher une déclaration..."
+                placeholder="Rechercher..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                onChange={e => setSearchTerm(e.target.value)}
+                className="pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm w-48"
               />
             </div>
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <FunnelIcon className="h-5 w-5" />
+            <button onClick={() => setShowFilters(!showFilters)} className="flex items-center space-x-1 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm">
+              <FunnelIcon className="h-4 w-4" />
               <span>Filtres</span>
             </button>
           </div>
+
+          <button
+            onClick={() => { toast.success('Export CSV en cours...'); }}
+            className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg flex items-center space-x-1 text-sm transition-colors"
+          >
+            <DocumentArrowDownIcon className="h-4 w-4" />
+            <span>Export</span>
+          </button>
         </div>
 
         {showFilters && (
-          <div className="mt-4 grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
-              <select
-                value={selectedType}
-                onChange={(e) => setSelectedType(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              >
-                <option value="all">Tous les types</option>
-                <option value="tva">TVA</option>
-                <option value="impot_societes">Impôt sur les Sociétés</option>
-                <option value="bic">BIC</option>
-                <option value="patente">Patente</option>
-                <option value="taux_apprentissage">Taxe d'Apprentissage</option>
-                <option value="cfu">CFU</option>
-                <option value="tpp">TPP</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
-              <select
-                value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              >
-                <option value="all">Tous les statuts</option>
-                <option value="draft">{t('accounting.draft')}</option>
-                <option value="submitted">Soumise</option>
-                <option value="validated">Validée</option>
-                <option value="paid">Payée</option>
-                <option value="overdue">En retard</option>
-                <option value="rejected">Rejetée</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Période</label>
-              <select
-                value={dateRange.startDate || '2024'}
-                onChange={(e) => setSelectedPeriod(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              >
-                <option value="2024">2024</option>
-                <option value="2023">2023</option>
-                <option value="2022">2022</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Actions</label>
-              <button
-                onClick={() => {
-                  setSearchTerm('');
-                  setSelectedType('all');
-                  setSelectedStatus('all');
-                  setSelectedPeriod('2024');
-                }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Réinitialiser
-              </button>
-            </div>
+          <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3 pt-3 border-t border-gray-100">
+            <select value={selectedType} onChange={e => setSelectedType(e.target.value)} className="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+              <option value="all">Toutes les taxes</option>
+              {taxTypes.map(([code, name]) => <option key={code} value={code}>{name}</option>)}
+            </select>
+            <select value={selectedCategory} onChange={e => setSelectedCategory(e.target.value)} className="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+              <option value="all">Toutes catégories</option>
+              <option value="INDIRECT">Indirect (TVA, etc.)</option>
+              <option value="DIRECT">Direct (IS, IRPP, etc.)</option>
+              <option value="SOCIAL">Social (CNPS, CMU, etc.)</option>
+              <option value="RETENUE">Retenues à la source</option>
+              <option value="AUTRE">Autre</option>
+            </select>
+            <select value={selectedStatus} onChange={e => setSelectedStatus(e.target.value)} className="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+              <option value="all">Tous les statuts</option>
+              <option value="draft">Brouillon</option>
+              <option value="calculated">Calculée</option>
+              <option value="validated">Validée</option>
+              <option value="declared">Déclarée</option>
+              <option value="paid">Payée</option>
+              <option value="overdue">En retard</option>
+            </select>
           </div>
         )}
       </div>
@@ -372,758 +445,244 @@ const TaxDeclarationsPage: React.FC = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                  Référence
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                  Type
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                  Période
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                  Statut
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                  Échéance
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                  Montant
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                  Créé par
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
-                  Actions
-                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Taxe</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Période</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Statut</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Échéance</th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase">Base</th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase">Montant dû</th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {isLoading ? (
-                Array.from({ length: 5 }).map((_, index) => (
-                  <tr key={index} className="animate-pulse">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="h-4 bg-gray-200 rounded w-32"></div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="h-4 bg-gray-200 rounded w-20"></div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="h-4 bg-gray-200 rounded w-24"></div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="h-4 bg-gray-200 rounded w-20"></div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="h-4 bg-gray-200 rounded w-24"></div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="h-4 bg-gray-200 rounded w-32"></div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="h-4 bg-gray-200 rounded w-28"></div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
-                      <div className="flex justify-end space-x-2">
-                        <div className="h-8 w-8 bg-gray-200 rounded"></div>
-                        <div className="h-8 w-8 bg-gray-200 rounded"></div>
-                        <div className="h-8 w-8 bg-gray-200 rounded"></div>
-                      </div>
-                    </td>
+                Array.from({ length: 5 }).map((_, i) => (
+                  <tr key={i} className="animate-pulse">
+                    {Array.from({ length: 7 }).map((_, j) => (
+                      <td key={j} className="px-4 py-4"><div className="h-4 bg-gray-200 rounded w-20" /></td>
+                    ))}
                   </tr>
                 ))
-              ) : filteredDeclarations.length === 0 ? (
+              ) : paginatedDeclarations.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-12 text-center text-gray-700">
-                    Aucune déclaration trouvée
+                  <td colSpan={7} className="px-4 py-12 text-center text-gray-500">
+                    {taxRegistry.length === 0
+                      ? 'Aucune taxe configurée. Cliquez sur "Initialiser taxes CI" pour commencer.'
+                      : `Aucune déclaration. Cliquez sur "Calculer ${MONTHS[selectedMonth - 1]} ${selectedYear}" pour détecter les taxes.`}
                   </td>
                 </tr>
               ) : (
-                filteredDeclarations.map((declaration) => (
-                  <tr key={declaration.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{declaration.reference}</div>
-                      <div className="text-sm text-gray-700">
-                        {declaration.attachments.length} pièce(s) jointe(s)
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getTypeColor(declaration.type)}`}>
-                        {getTaxTypeName(declaration.type)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {declaration.period}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center space-x-2">
-                        {getStatusIcon(declaration.status)}
-                        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(declaration.status)}`}>
-                          {declaration.status === 'paid' ? 'Payée' :
-                           declaration.status === 'validated' ? 'Validée' :
-                           declaration.status === 'submitted' ? 'Soumise' :
-                           declaration.status === 'draft' ? 'Brouillon' :
-                           declaration.status === 'rejected' ? 'Rejetée' : 'En retard'}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        {new Date(declaration.dueDate).toLocaleDateString('fr-FR')}
-                      </div>
-                      {isOverdue(declaration.dueDate, declaration.status) && (
-                        <div className="text-xs text-red-600">En retard</div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{formatCurrency(declaration.amount)}</div>
-                      {declaration.penalty > 0 && (
-                        <div className="text-sm text-red-600">
-                          Pénalité: {formatCurrency(declaration.penalty)}
+                paginatedDeclarations.map(decl => {
+                  const isOver = decl.declarationDeadline && new Date(decl.declarationDeadline) < new Date() && decl.status !== 'paid' && decl.status !== 'declared';
+                  return (
+                    <tr key={decl.id} className={`hover:bg-gray-50 ${isOver ? 'bg-red-50/30' : ''}`}>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="flex items-center space-x-2">
+                          <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${getTypeColor(decl.taxCode)}`}>
+                            {getTaxName(decl.taxCode)}
+                          </span>
                         </div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{declaration.createdBy}</div>
-                      <div className="text-sm text-gray-700">
-                        {new Date(declaration.createdAt).toLocaleDateString('fr-FR')}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex justify-end space-x-2">
-                        <button
-                          onClick={() => {
-                            setSelectedDeclaration(declaration);
-                            setShowViewModal(true);
-                          }}
-                          className="p-2 text-gray-700 hover:text-primary-600 transition-colors"
-                          title="Voir les détails"
-                        >
-                          <EyeIcon className="h-5 w-5" />
-                        </button>
-                        <button
-                          onClick={() => {
-                            setSelectedDeclaration(declaration);
-                            setShowEditModal(true);
-                          }}
-                          className="p-2 text-gray-700 hover:text-primary-600 transition-colors"
-                          title={t('common.edit')}
-                          disabled={declaration.status === 'paid' || declaration.status === 'validated'}
-                        >
-                          <PencilIcon className="h-5 w-5" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteClick(declaration)}
-                          className="p-2 text-gray-700 hover:text-red-600 transition-colors"
-                          title={t('common.delete')}
-                          disabled={declaration.status === 'submitted' || declaration.status === 'validated' || declaration.status === 'paid'}
-                        >
-                          <TrashIcon className="h-5 w-5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{decl.periodLabel}</td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="flex items-center space-x-1">
+                          {getStatusIcon(isOver ? 'overdue' : decl.status)}
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${getStatusColor(isOver ? 'overdue' : decl.status)}`}>
+                            {isOver ? 'En retard' : getStatusLabel(decl.status)}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm">
+                        {decl.declarationDeadline ? (
+                          <span className={isOver ? 'text-red-600 font-medium' : 'text-gray-900'}>
+                            {new Date(decl.declarationDeadline).toLocaleDateString('fr-FR')}
+                          </span>
+                        ) : '-'}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-right text-gray-700">
+                        {decl.base ? formatCurrency(decl.base) : '-'}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-right font-medium text-gray-900">
+                        {formatCurrency(decl.netTax)}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-right">
+                        <div className="flex justify-end space-x-1">
+                          <button onClick={() => { setSelectedDeclaration(decl); setShowViewModal(true); }} className="p-1.5 text-gray-500 hover:text-primary transition-colors" title="Détail">
+                            <EyeIcon className="h-4 w-4" />
+                          </button>
+                          {decl.status === 'calculated' && (
+                            <button onClick={() => handleStatusChange(decl, 'validated')} className="p-1.5 text-gray-500 hover:text-blue-600 transition-colors" title="Valider">
+                              <CheckCircleIcon className="h-4 w-4" />
+                            </button>
+                          )}
+                          {decl.status === 'validated' && (
+                            <button onClick={() => handleStatusChange(decl, 'declared')} className="p-1.5 text-gray-500 hover:text-indigo-600 transition-colors" title="Marquer déclarée">
+                              <DocumentArrowDownIcon className="h-4 w-4" />
+                            </button>
+                          )}
+                          {decl.status === 'declared' && (
+                            <button onClick={() => handleStatusChange(decl, 'paid')} className="p-1.5 text-gray-500 hover:text-green-600 transition-colors" title="Marquer payée">
+                              <CurrencyDollarIcon className="h-4 w-4" />
+                            </button>
+                          )}
+                          {(decl.status === 'draft' || decl.status === 'calculated') && (
+                            <button onClick={() => setDeleteConfirm({ isOpen: true, id: decl.id })} className="p-1.5 text-gray-500 hover:text-red-600 transition-colors" title="Supprimer">
+                              <TrashIcon className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
         </div>
 
-        {/* Pagination */}
         {totalPages > 1 && (
-          <div className="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <p className="text-sm text-gray-700">
-                  Affichage de{' '}
-                  <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span>
-                  {' '}à{' '}
-                  <span className="font-medium">
-                    {Math.min(currentPage * itemsPerPage, declarations.length)}
-                  </span>
-                  {' '}sur{' '}
-                  <span className="font-medium">{declarations.length}</span>
-                  {' '}résultats
-                </p>
-              </div>
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => setCurrentPage(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Précédent
-                </button>
-                <button
-                  onClick={() => setCurrentPage(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Suivant
-                </button>
-              </div>
+          <div className="px-4 py-3 border-t border-gray-200 flex items-center justify-between">
+            <p className="text-sm text-gray-600">
+              {(currentPage - 1) * itemsPerPage + 1} à {Math.min(currentPage * itemsPerPage, filteredDeclarations.length)} sur {filteredDeclarations.length}
+            </p>
+            <div className="flex space-x-2">
+              <button onClick={() => setCurrentPage(p => p - 1)} disabled={currentPage === 1} className="px-3 py-1 text-sm border rounded hover:bg-gray-50 disabled:opacity-50">Précédent</button>
+              <button onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage === totalPages} className="px-3 py-1 text-sm border rounded hover:bg-gray-50 disabled:opacity-50">Suivant</button>
             </div>
           </div>
         )}
       </div>
 
-      {showCreateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white z-10">
-              <h2 className="text-lg font-semibold text-gray-900">Nouvelle Déclaration Fiscale</h2>
-              <button
-                onClick={() => setShowCreateModal(false)}
-                className="text-gray-700 hover:text-gray-700"
-              >
-                <span className="text-xl">&times;</span>
-              </button>
-            </div>
-
-            <div className="p-6 space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Type de taxe <span className="text-red-500">*</span>
-                  </label>
-                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent">
-                    <option value="">Sélectionner...</option>
-                    <option value="tva">TVA</option>
-                    <option value="impot_societes">Impôt sur les Sociétés</option>
-                    <option value="bic">BIC</option>
-                    <option value="patente">Patente</option>
-                    <option value="taux_apprentissage">Taxe d'Apprentissage</option>
-                    <option value="cfu">CFU</option>
-                    <option value="tpp">TPP</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Référence <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    placeholder="TVA-2024-09"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Période <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    placeholder="Septembre 2024"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Période de déclaration <span className="text-red-500">*</span>
-                  </label>
-                  <button
-                    onClick={() => setShowPeriodModal(true)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent hover:bg-gray-50 flex items-center gap-2"
-                  >
-                    <CalendarDaysIcon className="w-5 h-5" />
-                    {dateRange.startDate && dateRange.endDate
-                      ? `${dateRange.startDate} - ${dateRange.endDate}`
-                      : 'Sélectionner une période'
-                    }
-                  </button>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Montant (FCFA) <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    placeholder="920000"
-                    min="0"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
-                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent">
-                    <option value="draft">{t('accounting.draft')}</option>
-                    <option value="submitted">Soumise</option>
-                    <option value="validated">Validée</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Notes / Commentaires</label>
-                <textarea
-                  rows={3}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="Notes complémentaires..."
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Pièces jointes
-                </label>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary-400 transition-colors cursor-pointer">
-                  <DocumentArrowDownIcon className="h-12 w-12 text-gray-700 mx-auto mb-2" />
-                  <p className="text-sm text-gray-600">
-                    Cliquez pour ajouter des fichiers ou glissez-déposez
-                  </p>
-                  <p className="text-xs text-gray-700 mt-1">PDF, Excel, Word (max 10MB)</p>
-                </div>
-              </div>
-
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <p className="text-sm text-blue-800">
-                  Assurez-vous que toutes les informations sont correctes avant de soumettre la déclaration.
-                </p>
-              </div>
-            </div>
-
-            <div className="p-6 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3 sticky bottom-0">
-              <button
-                onClick={() => setShowCreateModal(false)}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
-              >
-                Annuler
-              </button>
-              <button className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-700 transition-colors">
-                Créer la déclaration
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
+      {/* Modal détail déclaration */}
       {showViewModal && selectedDeclaration && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white z-10">
-              <h2 className="text-lg font-semibold text-gray-900">Détails de la Déclaration</h2>
-              <button
-                onClick={() => {
-                  setShowViewModal(false);
-                  setSelectedDeclaration(null);
-                }}
-                className="text-gray-700 hover:text-gray-700"
-              >
-                <span className="text-xl">&times;</span>
-              </button>
-            </div>
-
-            <div className="p-6 space-y-6">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="text-lg font-bold text-gray-900">{selectedDeclaration.reference}</h3>
-                  <p className="text-gray-700 mt-1">{selectedDeclaration.period}</p>
-                </div>
-                <div className="flex space-x-2">
-                  <span className={`px-3 py-1 text-sm font-medium rounded-full ${getTypeColor(selectedDeclaration.type)}`}>
-                    {getTaxTypeName(selectedDeclaration.type)}
-                  </span>
-                  <span className={`px-3 py-1 text-sm font-medium rounded-full ${getStatusColor(selectedDeclaration.status)}`}>
-                    {selectedDeclaration.status === 'paid' ? 'Payée' :
-                     selectedDeclaration.status === 'validated' ? 'Validée' :
-                     selectedDeclaration.status === 'submitted' ? 'Soumise' :
-                     selectedDeclaration.status === 'draft' ? 'Brouillon' :
-                     selectedDeclaration.status === 'rejected' ? 'Rejetée' : 'En retard'}
-                  </span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <h4 className="font-medium text-gray-900 mb-3">Informations Principales</h4>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Type:</span>
-                      <span className="text-gray-900 font-medium">{getTaxTypeName(selectedDeclaration.type)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Période:</span>
-                      <span className="text-gray-900 font-medium">{selectedDeclaration.period}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Date d'échéance:</span>
-                      <span className="text-gray-900 font-medium">
-                        {new Date(selectedDeclaration.dueDate).toLocaleDateString('fr-FR')}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Créé par:</span>
-                      <span className="text-gray-900 font-medium">{selectedDeclaration.createdBy}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="font-medium text-gray-900 mb-3">Montants</h4>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Montant déclaré:</span>
-                      <span className="text-gray-900 font-medium">{formatCurrency(selectedDeclaration.amount)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Montant payé:</span>
-                      <span className="text-green-600 font-medium">{formatCurrency(selectedDeclaration.paidAmount)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Reste à payer:</span>
-                      <span className="text-orange-600 font-medium">
-                        {formatCurrency(selectedDeclaration.amount - selectedDeclaration.paidAmount)}
-                      </span>
-                    </div>
-                    {selectedDeclaration.penalty > 0 && (
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Pénalités:</span>
-                        <span className="text-red-600 font-medium">{formatCurrency(selectedDeclaration.penalty)}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <h4 className="font-medium text-gray-900 mb-3">Historique</h4>
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                    <div className="h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center">
-                      <CalendarDaysIcon className="h-5 w-5 text-blue-600" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="text-sm font-medium text-gray-900">Création</div>
-                      <div className="text-xs text-gray-700">
-                        {new Date(selectedDeclaration.createdAt).toLocaleDateString('fr-FR')}
-                      </div>
-                    </div>
-                  </div>
-
-                  {selectedDeclaration.submittedDate && (
-                    <div className="flex items-center space-x-3 p-3 bg-yellow-50 rounded-lg">
-                      <div className="h-10 w-10 bg-yellow-100 rounded-full flex items-center justify-center">
-                        <DocumentTextIcon className="h-5 w-5 text-yellow-600" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="text-sm font-medium text-gray-900">Soumission</div>
-                        <div className="text-xs text-gray-700">
-                          {new Date(selectedDeclaration.submittedDate).toLocaleDateString('fr-FR')}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {selectedDeclaration.validatedDate && (
-                    <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
-                      <div className="h-10 w-10 bg-green-100 rounded-full flex items-center justify-center">
-                        <CheckCircleIcon className="h-5 w-5 text-green-600" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="text-sm font-medium text-gray-900">Validation</div>
-                        <div className="text-xs text-gray-700">
-                          {new Date(selectedDeclaration.validatedDate).toLocaleDateString('fr-FR')}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {selectedDeclaration.paidDate && (
-                    <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
-                      <div className="h-10 w-10 bg-green-100 rounded-full flex items-center justify-center">
-                        <CurrencyDollarIcon className="h-5 w-5 text-green-600" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="text-sm font-medium text-gray-900">Paiement</div>
-                        <div className="text-xs text-gray-700">
-                          {new Date(selectedDeclaration.paidDate).toLocaleDateString('fr-FR')}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {selectedDeclaration.rejectedDate && (
-                    <div className="flex items-center space-x-3 p-3 bg-red-50 rounded-lg">
-                      <div className="h-10 w-10 bg-red-100 rounded-full flex items-center justify-center">
-                        <ExclamationTriangleIcon className="h-5 w-5 text-red-600" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="text-sm font-medium text-gray-900">Rejet</div>
-                        <div className="text-xs text-gray-700">
-                          {new Date(selectedDeclaration.rejectedDate).toLocaleDateString('fr-FR')}
-                        </div>
-                        {selectedDeclaration.rejectionReason && (
-                          <div className="text-xs text-red-600 mt-1">{selectedDeclaration.rejectionReason}</div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {selectedDeclaration.attachments.length > 0 && (
-                <div>
-                  <h4 className="font-medium text-gray-900 mb-3">Pièces jointes</h4>
-                  <div className="space-y-2">
-                    {selectedDeclaration.attachments.map((file, idx) => (
-                      <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <DocumentTextIcon className="h-5 w-5 text-gray-700" />
-                          <span className="text-sm text-gray-900">{file}</span>
-                        </div>
-                        <button className="text-primary-600 hover:text-primary-700 text-sm">
-                          Télécharger
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {selectedDeclaration.status === 'overdue' && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                  <p className="text-sm text-red-800 font-medium">
-                    Cette déclaration est en retard. Des pénalités de {formatCurrency(selectedDeclaration.penalty)} s'appliquent.
-                  </p>
-                </div>
-              )}
-            </div>
-
-            <div className="p-6 bg-gray-50 border-t border-gray-200 flex justify-between sticky bottom-0">
-              <button className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-700 transition-colors flex items-center space-x-2">
-                <DocumentArrowDownIcon className="h-4 w-4" />
-                <span>Télécharger PDF</span>
-              </button>
-              <div className="flex space-x-3">
-                {selectedDeclaration.status !== 'paid' && selectedDeclaration.status !== 'validated' && (
-                  <button
-                    onClick={() => {
-                      setShowViewModal(false);
-                      setShowEditModal(true);
-                    }}
-                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors flex items-center space-x-2"
-                  >
-                    <PencilIcon className="h-4 w-4" />
-                    <span>{t('common.edit')}</span>
-                  </button>
-                )}
-                <button
-                  onClick={() => {
-                    setShowViewModal(false);
-                    setSelectedDeclaration(null);
-                  }}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
-                >
-                  Fermer
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showEditModal && selectedDeclaration && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white z-10">
-              <h2 className="text-lg font-semibold text-gray-900">Modifier la Déclaration</h2>
-              <button
-                onClick={() => {
-                  setShowEditModal(false);
-                  setSelectedDeclaration(null);
-                }}
-                className="text-gray-700 hover:text-gray-700"
-              >
-                <span className="text-xl">&times;</span>
-              </button>
+              <h2 className="text-lg font-semibold text-gray-900">
+                {getTaxName(selectedDeclaration.taxCode)} — {selectedDeclaration.periodLabel}
+              </h2>
+              <button onClick={() => { setShowViewModal(false); setSelectedDeclaration(null); }} className="text-gray-500 hover:text-gray-700 text-xl">&times;</button>
             </div>
 
             <div className="p-6 space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Type de taxe <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    defaultValue={selectedDeclaration.type}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    disabled={selectedDeclaration.status === 'submitted' || selectedDeclaration.status === 'validated'}
-                  >
-                    <option value="tva">TVA</option>
-                    <option value="impot_societes">Impôt sur les Sociétés</option>
-                    <option value="bic">BIC</option>
-                    <option value="patente">Patente</option>
-                    <option value="taux_apprentissage">Taxe d'Apprentissage</option>
-                    <option value="cfu">CFU</option>
-                    <option value="tpp">TPP</option>
-                  </select>
-                </div>
+              {/* Status + badges */}
+              <div className="flex items-center space-x-3">
+                <span className={`px-3 py-1 text-sm font-medium rounded-full ${getTypeColor(selectedDeclaration.taxCode)}`}>
+                  {getTaxName(selectedDeclaration.taxCode)}
+                </span>
+                <span className={`px-3 py-1 text-sm font-medium rounded-full ${getStatusColor(selectedDeclaration.status)}`}>
+                  {getStatusLabel(selectedDeclaration.status)}
+                </span>
+                {selectedDeclaration.declarationDeadline && (
+                  <span className="text-sm text-gray-600">
+                    Échéance : {new Date(selectedDeclaration.declarationDeadline).toLocaleDateString('fr-FR')}
+                  </span>
+                )}
+              </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Référence <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    defaultValue={selectedDeclaration.reference}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    disabled
-                  />
+              {/* Montants */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <p className="text-xs text-gray-500">Base imposable</p>
+                  <p className="text-lg font-bold text-gray-900">{formatCurrency(selectedDeclaration.base)}</p>
+                </div>
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <p className="text-xs text-gray-500">Taxe brute</p>
+                  <p className="text-lg font-bold text-gray-900">{formatCurrency(selectedDeclaration.grossTax)}</p>
+                </div>
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <p className="text-xs text-gray-500">Déductible</p>
+                  <p className="text-lg font-bold text-green-600">{formatCurrency(selectedDeclaration.deductible)}</p>
+                </div>
+                <div className="p-3 bg-blue-50 rounded-lg">
+                  <p className="text-xs text-blue-600">Net à payer</p>
+                  <p className="text-lg font-bold text-blue-800">{formatCurrency(selectedDeclaration.netTax)}</p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              {/* Détail du calcul */}
+              {selectedDeclaration.calculationDetail && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Période <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    defaultValue={selectedDeclaration.period}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Période de déclaration <span className="text-red-500">*</span>
-                  </label>
-                  <button
-                    onClick={() => setShowPeriodModal(true)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent hover:bg-gray-50 flex items-center gap-2"
-                  >
-                    <CalendarDaysIcon className="w-5 h-5" />
-                    {dateRange.startDate && dateRange.endDate
-                      ? `${dateRange.startDate} - ${dateRange.endDate}`
-                      : selectedDeclaration?.period || 'Sélectionner une période'
-                    }
-                  </button>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Montant (FCFA) <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    defaultValue={selectedDeclaration.amount}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    min="0"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
-                  <select
-                    defaultValue={selectedDeclaration.status}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  >
-                    <option value="draft">{t('accounting.draft')}</option>
-                    <option value="submitted">Soumise</option>
-                    <option value="validated">Validée</option>
-                    <option value="paid">Payée</option>
-                  </select>
-                </div>
-              </div>
-
-              {selectedDeclaration.status === 'rejected' && selectedDeclaration.rejectionReason && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                  <h4 className="font-medium text-red-800 mb-2">Motif de rejet:</h4>
-                  <p className="text-sm text-red-700">{selectedDeclaration.rejectionReason}</p>
+                  <h4 className="font-medium text-gray-900 mb-3">Détail du calcul</h4>
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <pre className="text-sm text-gray-700 whitespace-pre-wrap font-mono">
+                      {Object.entries(selectedDeclaration.calculationDetail).map(([key, val]) =>
+                        `${key}: ${typeof val === 'number' ? formatCurrency(val) : JSON.stringify(val)}`
+                      ).join('\n')}
+                    </pre>
+                  </div>
                 </div>
               )}
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Notes / Commentaires</label>
-                <textarea
-                  rows={3}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="Notes complémentaires..."
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Pièces jointes actuelles
-                </label>
-                {selectedDeclaration.attachments.length > 0 ? (
-                  <div className="space-y-2 mb-4">
-                    {selectedDeclaration.attachments.map((file, idx) => (
-                      <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <DocumentTextIcon className="h-5 w-5 text-gray-700" />
-                          <span className="text-sm text-gray-900">{file}</span>
-                        </div>
-                        <button className="text-red-600 hover:text-red-700 text-sm">
-                          Supprimer
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-gray-700 mb-4">Aucune pièce jointe</p>
-                )}
-
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary-400 transition-colors cursor-pointer">
-                  <DocumentArrowDownIcon className="h-12 w-12 text-gray-700 mx-auto mb-2" />
-                  <p className="text-sm text-gray-600">
-                    Cliquez pour ajouter des fichiers ou glissez-déposez
+              {/* Crédit TVA */}
+              {selectedDeclaration.credit > 0 && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <p className="text-sm text-green-800 font-medium">
+                    Crédit de TVA : {formatCurrency(selectedDeclaration.credit)} — reportable sur la période suivante.
                   </p>
-                  <p className="text-xs text-gray-700 mt-1">PDF, Excel, Word (max 10MB)</p>
+                </div>
+              )}
+
+              {/* Historique */}
+              <div>
+                <h4 className="font-medium text-gray-900 mb-3">Historique</h4>
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                    <CalendarDaysIcon className="h-5 w-5 text-gray-500" />
+                    <div>
+                      <p className="text-sm font-medium">Créée le {new Date(selectedDeclaration.createdAt).toLocaleDateString('fr-FR')}</p>
+                    </div>
+                  </div>
+                  {selectedDeclaration.declaredAt && (
+                    <div className="flex items-center space-x-3 p-3 bg-indigo-50 rounded-lg">
+                      <DocumentArrowDownIcon className="h-5 w-5 text-indigo-500" />
+                      <p className="text-sm font-medium">Déclarée le {new Date(selectedDeclaration.declaredAt).toLocaleDateString('fr-FR')}</p>
+                    </div>
+                  )}
+                  {selectedDeclaration.paidAt && (
+                    <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
+                      <CurrencyDollarIcon className="h-5 w-5 text-green-500" />
+                      <p className="text-sm font-medium">Payée le {new Date(selectedDeclaration.paidAt).toLocaleDateString('fr-FR')}</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
 
-            <div className="p-6 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3 sticky bottom-0">
-              <button
-                onClick={() => {
-                  setShowEditModal(false);
-                  setSelectedDeclaration(null);
-                }}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
-              >
-                Annuler
-              </button>
-              <button className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-700 transition-colors">
-                Enregistrer
+            <div className="p-4 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3 sticky bottom-0">
+              {selectedDeclaration.status === 'calculated' && (
+                <button onClick={() => { handleStatusChange(selectedDeclaration, 'validated'); setShowViewModal(false); }} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                  Valider
+                </button>
+              )}
+              {selectedDeclaration.status === 'validated' && (
+                <button onClick={() => { handleStatusChange(selectedDeclaration, 'declared'); setShowViewModal(false); }} className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+                  Marquer déclarée
+                </button>
+              )}
+              {selectedDeclaration.status === 'declared' && (
+                <button onClick={() => { handleStatusChange(selectedDeclaration, 'paid'); setShowViewModal(false); }} className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                  Marquer payée
+                </button>
+              )}
+              <button onClick={() => { setShowViewModal(false); setSelectedDeclaration(null); }} className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100">
+                Fermer
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Modal de sélection de période */}
-      <PeriodSelectorModal
-        isOpen={showPeriodModal}
-        onClose={() => setShowPeriodModal(false)}
-        onPeriodSelect={(period) => {
-          setDateRange(period);
-          setShowPeriodModal(false);
-        }}
-      />
-
-      {/* Confirmation Dialog */}
+      {/* Confirmation suppression */}
       <ConfirmDialog
         isOpen={deleteConfirm.isOpen}
-        onClose={() => setDeleteConfirm({ isOpen: false, declaration: null })}
-        onConfirm={handleConfirmDelete}
+        onClose={() => setDeleteConfirm({ isOpen: false, id: null })}
+        onConfirm={() => { if (deleteConfirm.id) handleDelete(deleteConfirm.id); setDeleteConfirm({ isOpen: false, id: null }); }}
         title="Supprimer la déclaration"
-        message={`Êtes-vous sûr de vouloir supprimer la déclaration "${deleteConfirm.declaration?.reference}" ? Cette action est irréversible.`}
+        message="Êtes-vous sûr de vouloir supprimer cette déclaration ? Cette action est irréversible."
         variant="danger"
         confirmText="Supprimer"
         cancelText="Annuler"
-        confirmLoading={deleteDeclarationMutation.isPending}
       />
     </div>
   );
