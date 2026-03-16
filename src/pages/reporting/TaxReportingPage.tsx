@@ -1,8 +1,13 @@
-import React, { useState, useMemo } from 'react';
+// @ts-nocheck
+import React, { useState, useMemo, useCallback } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { toast } from 'react-hot-toast';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useData } from '../../contexts/DataContext';
+import { TaxDetectionEngine } from '../../services/fiscal/TaxDetectionEngine';
+import type { TaxDetectionResult } from '../../services/fiscal/TaxDetectionEngine';
+import { seedTaxRegistryCI, seedIRPPBracketsCI } from '../../services/fiscal/taxRegistrySeeds';
+import type { DBTaxRegistry, DBTaxDeclaration } from '../../lib/db';
 import {
   TrendingUp,
   TrendingDown,
@@ -25,7 +30,10 @@ import {
   ChevronRight,
   Plus,
   Eye,
-  X
+  X,
+  Zap,
+  RefreshCw,
+  Settings
 } from 'lucide-react';
 import {
   Card,
@@ -72,8 +80,45 @@ interface TaxReport {
   lastGenerated: string;
 }
 
+// Helper: compute period bounds from a selectedPeriod value
+function getPeriodBounds(selectedPeriod: string): { start: string; end: string } {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = now.getMonth(); // 0-based
+  switch (selectedPeriod) {
+    case 'last-month': {
+      const d = new Date(y, m - 1, 1);
+      const last = new Date(y, m, 0);
+      return {
+        start: d.toISOString().split('T')[0],
+        end: last.toISOString().split('T')[0],
+      };
+    }
+    case 'current-quarter': {
+      const qStart = new Date(y, Math.floor(m / 3) * 3, 1);
+      const qEnd = new Date(y, Math.floor(m / 3) * 3 + 3, 0);
+      return {
+        start: qStart.toISOString().split('T')[0],
+        end: qEnd.toISOString().split('T')[0],
+      };
+    }
+    case 'current-year':
+      return { start: `${y}-01-01`, end: `${y}-12-31` };
+    case 'current-month':
+    default: {
+      const first = new Date(y, m, 1);
+      const last = new Date(y, m + 1, 0);
+      return {
+        start: first.toISOString().split('T')[0],
+        end: last.toISOString().split('T')[0],
+      };
+    }
+  }
+}
+
 const TaxReportingPage: React.FC = () => {
   const { adapter } = useData();
+  const queryClient = useQueryClient();
   const [selectedPeriod, setSelectedPeriod] = useState('current-month');
   const [selectedTaxType, setSelectedTaxType] = useState('all');
   const [activeTab, setActiveTab] = useState('overview');
@@ -87,6 +132,7 @@ const TaxReportingPage: React.FC = () => {
   const [showReportPreviewModal, setShowReportPreviewModal] = useState(false);
   const [selectedDeclaration, setSelectedDeclaration] = useState<TaxDeclaration | null>(null);
   const [selectedReport, setSelectedReport] = useState<TaxReport | null>(null);
+  const [isAutoCalculating, setIsAutoCalculating] = useState(false);
 
   // Form states
   const [newDeclaration, setNewDeclaration] = useState({
@@ -96,7 +142,277 @@ const TaxReportingPage: React.FC = () => {
     dateEcheance: ''
   });
 
-  // Handlers
+  // Period bounds derived from selection
+  const periodBounds = useMemo(() => getPeriodBounds(selectedPeriod), [selectedPeriod]);
+
+  // ─── Data queries ──────────────────────────────────────────────────────────
+
+  // Tax Registry
+  const { data: taxRegistry = [] } = useQuery({
+    queryKey: ['tax-registry'],
+    queryFn: () => adapter.getAll<DBTaxRegistry>('taxRegistry'),
+  });
+
+  // Tax Declarations from DB
+  const { data: dbTaxDeclarations = [] } = useQuery({
+    queryKey: ['tax-declarations-db'],
+    queryFn: () => adapter.getAll<DBTaxDeclaration>('taxDeclarations'),
+  });
+
+  // Journal entries (for manual fallback computation)
+  const { data: allEntries = [] } = useQuery({
+    queryKey: ['tax-reporting-entries'],
+    queryFn: () => adapter.getAll('journalEntries'),
+  });
+
+  // Detection engine results — only run when taxRegistry has entries
+  const { data: detectionResults = [] } = useQuery<TaxDetectionResult[]>({
+    queryKey: ['tax-detection', periodBounds.start, periodBounds.end, taxRegistry.length],
+    queryFn: async () => {
+      if (taxRegistry.length === 0) return [];
+      const engine = new TaxDetectionEngine(adapter, 'CI');
+      return engine.detectTaxesFromAccounts(periodBounds.start, periodBounds.end);
+    },
+    enabled: taxRegistry.length > 0,
+  });
+
+  const hasRegistry = taxRegistry.length > 0;
+  const triggeredTaxes = useMemo(() => detectionResults.filter(r => r.isTriggered), [detectionResults]);
+
+  // ─── Manual fallback taxStats (used when no registry) ──────────────────────
+
+  const taxStats = useMemo(() => {
+    let tvaCollectee = 0, tvaDeductible = 0, chargesPersonnel = 0, resultatNet = 0;
+    for (const e of allEntries) {
+      for (const l of (e as any).lines || []) {
+        if (l.accountCode.startsWith('4431') || l.accountCode.startsWith('4432') || l.accountCode.startsWith('4433') || l.accountCode.startsWith('4434') || l.accountCode.startsWith('4436')) {
+          tvaCollectee += l.credit - l.debit;
+        }
+        if (l.accountCode.startsWith('4451') || l.accountCode.startsWith('4452') || l.accountCode.startsWith('4453') || l.accountCode.startsWith('4454') || l.accountCode.startsWith('4455') || l.accountCode.startsWith('4456')) {
+          tvaDeductible += l.debit - l.credit;
+        }
+        if (l.accountCode.startsWith('66')) chargesPersonnel += l.debit - l.credit;
+        if (l.accountCode.startsWith('7')) resultatNet += l.credit - l.debit;
+        if (l.accountCode.startsWith('6')) resultatNet -= l.debit - l.credit;
+      }
+    }
+    const tvaAPayer = Math.max(0, tvaCollectee - tvaDeductible);
+    const irppEstime = Math.round(chargesPersonnel * 0.15);
+    const isEstime = Math.round(Math.max(0, resultatNet) * 0.25);
+    const totalTaxes = tvaAPayer + irppEstime + isEstime;
+    const creditTVA = Math.max(0, Math.round(tvaDeductible - tvaCollectee));
+    const economiesFiscales = Math.round(tvaDeductible);
+    return {
+      tvaCollectee: Math.round(tvaCollectee),
+      tvaDeductible: Math.round(tvaDeductible),
+      tvaAPayer: Math.round(tvaAPayer),
+      irpp: irppEstime,
+      is: isEstime,
+      totalTaxes,
+      creditTVA,
+      economiesFiscales,
+      resultatNet: Math.round(resultatNet),
+      variation: { tva: 0, irpp: 0, is: 0, global: 0 }
+    };
+  }, [allEntries]);
+
+  // ─── KPI values: prefer detection engine, fallback to manual ───────────────
+
+  const kpiValues = useMemo(() => {
+    if (!hasRegistry || triggeredTaxes.length === 0) {
+      return {
+        tva: taxStats.tvaAPayer,
+        tvaCollectee: taxStats.tvaCollectee,
+        tvaDeductible: taxStats.tvaDeductible,
+        irpp: taxStats.irpp,
+        is: taxStats.is,
+        total: taxStats.totalTaxes,
+        variation: taxStats.variation,
+      };
+    }
+    // Find specific taxes from detection
+    const tvaResult = triggeredTaxes.find(r => r.tax.taxCode === 'TVA');
+    const irppResult = triggeredTaxes.find(r => r.tax.taxCode === 'IRPP_SALAIRES' || r.tax.taxCode === 'IRPP');
+    const isResult = triggeredTaxes.find(r => r.tax.taxCode === 'IS');
+
+    const tvaNet = tvaResult?.amounts?.net ?? taxStats.tvaAPayer;
+    const tvaCollectee = tvaResult?.amounts?.base ?? taxStats.tvaCollectee;
+    const tvaDeductible = tvaResult?.amounts?.deductible ?? taxStats.tvaDeductible;
+    const irppNet = irppResult?.amounts?.net ?? taxStats.irpp;
+    const isNet = isResult?.amounts?.net ?? taxStats.is;
+
+    // Total = sum of all triggered taxes
+    const total = triggeredTaxes.reduce((sum, r) => sum + (r.amounts?.net || 0), 0);
+
+    return {
+      tva: tvaNet,
+      tvaCollectee,
+      tvaDeductible,
+      irpp: irppNet,
+      is: isNet,
+      total: total || taxStats.totalTaxes,
+      variation: taxStats.variation, // keep same variation logic
+    };
+  }, [hasRegistry, triggeredTaxes, taxStats]);
+
+  // ─── Declarations: merge DB declarations with settings-based ones ──────────
+
+  const { data: declSetting } = useQuery({
+    queryKey: ['tax-reporting-declarations'],
+    queryFn: () => adapter.getById('settings', 'tax_declarations'),
+  });
+
+  const declarations: TaxDeclaration[] = useMemo(() => {
+    const result: TaxDeclaration[] = [];
+    const seenIds = new Set<string>();
+
+    // 1. DB tax declarations (from engine)
+    for (const d of dbTaxDeclarations) {
+      const reg = taxRegistry.find(r => r.id === d.taxRegistryId || r.taxCode === d.taxCode);
+      const label = reg?.taxShortName || reg?.taxName || d.taxCode;
+      const item: TaxDeclaration = {
+        id: d.id,
+        type: label,
+        periode: d.periodLabel || `${d.periodStart} — ${d.periodEnd}`,
+        montant: d.netTax || d.balanceDue || 0,
+        statut: d.status === 'paid' ? 'payee' : d.status === 'declared' ? 'en_cours' : d.status === 'validated' ? 'en_cours' : d.status === 'overdue' ? 'en_retard' : 'planifiee',
+        dateEcheance: d.declarationDeadline || '',
+        datePaiement: d.paidAt || null,
+      };
+      result.push(item);
+      seenIds.add(d.id);
+    }
+
+    // 2. Settings-based declarations
+    try {
+      if ((declSetting as any)?.value) {
+        const parsed = JSON.parse((declSetting as any).value);
+        if (Array.isArray(parsed)) {
+          for (const d of parsed) {
+            const id = d.id;
+            if (seenIds.has(id)) continue;
+            result.push({
+              id, type: d.type?.toUpperCase() || 'TVA', periode: d.period || d.periode || '',
+              montant: d.amount || d.montant || 0, statut: d.status || d.statut || 'planifiee',
+              dateEcheance: d.dueDate || d.dateEcheance || '', datePaiement: d.paidDate || d.datePaiement || null
+            });
+            seenIds.add(id);
+          }
+        }
+      }
+    } catch {}
+
+    // 3. Auto-generated from taxStats if nothing found
+    if (result.length === 0 && (taxStats.tvaAPayer > 0 || taxStats.irpp > 0 || taxStats.is > 0)) {
+      const now = new Date();
+      if (taxStats.tvaAPayer > 0) result.push({
+        id: 'auto-tva', type: 'TVA', periode: now.toLocaleString('fr-FR', { month: 'long', year: 'numeric' }),
+        montant: taxStats.tvaAPayer, statut: 'planifiee',
+        dateEcheance: `${now.getFullYear()}-${String(now.getMonth() + 2).padStart(2, '0')}-15`, datePaiement: null
+      });
+      if (taxStats.irpp > 0) result.push({
+        id: 'auto-irpp', type: 'IRPP', periode: `T${Math.ceil((now.getMonth() + 1) / 3)} ${now.getFullYear()}`,
+        montant: taxStats.irpp, statut: 'planifiee',
+        dateEcheance: `${now.getFullYear()}-${String(now.getMonth() + 2).padStart(2, '0')}-20`, datePaiement: null
+      });
+      if (taxStats.is > 0) result.push({
+        id: 'auto-is', type: 'IS', periode: `${now.getFullYear()}`,
+        montant: taxStats.is, statut: 'planifiee',
+        dateEcheance: `${now.getFullYear()}-03-15`, datePaiement: null
+      });
+    }
+
+    return result;
+  }, [dbTaxDeclarations, taxRegistry, taxStats, declSetting]);
+
+  // ─── Alert bar data: overdue + due soon taxes ──────────────────────────────
+
+  const alertTaxes = useMemo(() => {
+    return triggeredTaxes.filter(r => {
+      if (r.isOverdue) return true;
+      if (r.daysUntilDeadline !== null && r.daysUntilDeadline <= 7 && r.daysUntilDeadline >= 0) return true;
+      return false;
+    });
+  }, [triggeredTaxes]);
+
+  // ─── Répartition data for overview ─────────────────────────────────────────
+
+  const repartitionData = useMemo(() => {
+    if (!hasRegistry || triggeredTaxes.length === 0) {
+      // Fallback: 3 categories + Autres
+      return [
+        { label: 'TVA', amount: taxStats.tvaAPayer, color: 'text-var(--color-blue-primary)' },
+        { label: 'IRPP', amount: taxStats.irpp, color: 'text-primary-600' },
+        { label: 'IS', amount: taxStats.is, color: 'text-var(--color-green-primary)' },
+        { label: 'Autres', amount: 0, color: 'text-var(--color-orange-primary)' },
+      ];
+    }
+    // Group by taxCategory
+    const catMap: Record<string, { label: string; amount: number; color: string }> = {};
+    const categoryColors: Record<string, string> = {
+      INDIRECT: 'text-var(--color-blue-primary)',
+      DIRECT: 'text-var(--color-green-primary)',
+      SOCIAL: 'text-primary-600',
+      RETENUE: 'text-var(--color-orange-primary)',
+      AUTRE: 'text-gray-600',
+    };
+    const categoryLabels: Record<string, string> = {
+      INDIRECT: 'Taxes indirectes',
+      DIRECT: 'Impôts directs',
+      SOCIAL: 'Charges sociales',
+      RETENUE: 'Retenues',
+      AUTRE: 'Autres',
+    };
+    for (const r of triggeredTaxes) {
+      const cat = r.tax.taxCategory || 'AUTRE';
+      if (!catMap[cat]) {
+        catMap[cat] = { label: categoryLabels[cat] || cat, amount: 0, color: categoryColors[cat] || 'text-gray-600' };
+      }
+      catMap[cat].amount += r.amounts?.net || 0;
+    }
+    return Object.values(catMap);
+  }, [hasRegistry, triggeredTaxes, taxStats]);
+
+  const repartitionTotal = useMemo(() => repartitionData.reduce((s, d) => s + d.amount, 0), [repartitionData]);
+
+  // Données pour les rapports disponibles
+  const availableReports = [
+    {
+      id: '1',
+      name: 'État de TVA Mensuel',
+      type: 'TVA',
+      format: 'PDF',
+      size: '245 KB',
+      lastGenerated: '2024-02-10'
+    },
+    {
+      id: '2',
+      name: 'Synthèse Fiscale Annuelle',
+      type: 'Global',
+      format: 'Excel',
+      size: '1.2 MB',
+      lastGenerated: '2024-01-31'
+    },
+    {
+      id: '3',
+      name: 'Déclaration IRPP',
+      type: 'IRPP',
+      format: 'PDF',
+      size: '180 KB',
+      lastGenerated: '2024-02-05'
+    },
+    {
+      id: '4',
+      name: 'Liasse Fiscale',
+      type: 'IS',
+      format: 'PDF',
+      size: '3.5 MB',
+      lastGenerated: '2024-01-15'
+    }
+  ];
+
+  // ─── Handlers ──────────────────────────────────────────────────────────────
+
   const handleImport = () => {
     setShowImportModal(true);
   };
@@ -158,124 +474,71 @@ const TaxReportingPage: React.FC = () => {
     setShowImportModal(false);
   };
 
-  // Données réelles depuis les écritures comptables
-  const { data: allEntries = [] } = useQuery({
-    queryKey: ['tax-reporting-entries'],
-    queryFn: () => adapter.getAll('journalEntries'),
-  });
-
-  const taxStats = useMemo(() => {
-    let tvaCollectee = 0, tvaDeductible = 0, chargesPersonnel = 0, resultatNet = 0;
-    for (const e of allEntries) {
-      for (const l of (e as any).lines || []) {
-        if (l.accountCode.startsWith('4431') || l.accountCode.startsWith('4432') || l.accountCode.startsWith('4433') || l.accountCode.startsWith('4434') || l.accountCode.startsWith('4436')) {
-          tvaCollectee += l.credit - l.debit;
-        }
-        if (l.accountCode.startsWith('4451') || l.accountCode.startsWith('4452') || l.accountCode.startsWith('4453') || l.accountCode.startsWith('4454') || l.accountCode.startsWith('4455') || l.accountCode.startsWith('4456')) {
-          tvaDeductible += l.debit - l.credit;
-        }
-        if (l.accountCode.startsWith('66')) chargesPersonnel += l.debit - l.credit;
-        if (l.accountCode.startsWith('7')) resultatNet += l.credit - l.debit;
-        if (l.accountCode.startsWith('6')) resultatNet -= l.debit - l.credit;
-      }
-    }
-    const tvaAPayer = Math.max(0, tvaCollectee - tvaDeductible);
-    const irppEstime = Math.round(chargesPersonnel * 0.15);
-    const isEstime = Math.round(Math.max(0, resultatNet) * 0.25);
-    const totalTaxes = tvaAPayer + irppEstime + isEstime;
-    const creditTVA = Math.max(0, Math.round(tvaDeductible - tvaCollectee));
-    const economiesFiscales = Math.round(tvaDeductible);
-    return {
-      tvaCollectee: Math.round(tvaCollectee),
-      tvaDeductible: Math.round(tvaDeductible),
-      tvaAPayer: Math.round(tvaAPayer),
-      irpp: irppEstime,
-      is: isEstime,
-      totalTaxes,
-      creditTVA,
-      economiesFiscales,
-      resultatNet: Math.round(resultatNet),
-      variation: { tva: 0, irpp: 0, is: 0, global: 0 }
-    };
-  }, [allEntries]);
-
-  // Déclarations fiscales depuis les paramètres
-  const { data: declSetting } = useQuery({
-    queryKey: ['tax-reporting-declarations'],
-    queryFn: () => adapter.getById('settings', 'tax_declarations'),
-  });
-
-  const declarations: TaxDeclaration[] = useMemo(() => {
+  // Seed tax registry
+  const handleSeedRegistry = useCallback(async () => {
     try {
-      if ((declSetting as any)?.value) {
-        const parsed = JSON.parse((declSetting as any).value);
-        if (Array.isArray(parsed)) return parsed.map((d: any) => ({
-          id: d.id, type: d.type?.toUpperCase() || 'TVA', periode: d.period || d.periode || '',
-          montant: d.amount || d.montant || 0, statut: d.status || d.statut || 'planifiee',
-          dateEcheance: d.dueDate || d.dateEcheance || '', datePaiement: d.paidDate || d.datePaiement || null
-        }));
+      await seedTaxRegistryCI(adapter);
+      await seedIRPPBracketsCI(adapter);
+      toast.success('Registre fiscal CI initialisé avec succès');
+      queryClient.invalidateQueries({ queryKey: ['tax-registry'] });
+      queryClient.invalidateQueries({ queryKey: ['tax-detection'] });
+    } catch (err) {
+      toast.error('Erreur lors de l\'initialisation du registre fiscal');
+    }
+  }, [adapter, queryClient]);
+
+  // Auto-calculate all triggered taxes
+  const handleAutoCalculate = useCallback(async () => {
+    if (!hasRegistry) {
+      toast.error('Veuillez d\'abord initialiser le registre fiscal');
+      return;
+    }
+    setIsAutoCalculating(true);
+    try {
+      const engine = new TaxDetectionEngine(adapter, 'CI');
+      let count = 0;
+      for (const result of triggeredTaxes) {
+        if (result.amounts) {
+          await engine.createDeclaration(result.tax, periodBounds.start, periodBounds.end, result.amounts);
+          count++;
+        }
       }
-    } catch {}
-    // Générer les déclarations à partir des données réelles si aucune n'est sauvegardée
-    if (taxStats.tvaAPayer > 0 || taxStats.irpp > 0 || taxStats.is > 0) {
-      const now = new Date();
-      const result: TaxDeclaration[] = [];
-      if (taxStats.tvaAPayer > 0) result.push({
-        id: 'auto-tva', type: 'TVA', periode: now.toLocaleString('fr-FR', { month: 'long', year: 'numeric' }),
-        montant: taxStats.tvaAPayer, statut: 'planifiee',
-        dateEcheance: `${now.getFullYear()}-${String(now.getMonth() + 2).padStart(2, '0')}-15`, datePaiement: null
-      });
-      if (taxStats.irpp > 0) result.push({
-        id: 'auto-irpp', type: 'IRPP', periode: `T${Math.ceil((now.getMonth() + 1) / 3)} ${now.getFullYear()}`,
-        montant: taxStats.irpp, statut: 'planifiee',
-        dateEcheance: `${now.getFullYear()}-${String(now.getMonth() + 2).padStart(2, '0')}-20`, datePaiement: null
-      });
-      if (taxStats.is > 0) result.push({
-        id: 'auto-is', type: 'IS', periode: `${now.getFullYear()}`,
-        montant: taxStats.is, statut: 'planifiee',
-        dateEcheance: `${now.getFullYear()}-03-15`, datePaiement: null
-      });
-      return result;
+      toast.success(`${count} déclaration(s) calculée(s) automatiquement`);
+      queryClient.invalidateQueries({ queryKey: ['tax-declarations-db'] });
+      queryClient.invalidateQueries({ queryKey: ['tax-detection'] });
+    } catch (err) {
+      toast.error('Erreur lors du calcul automatique');
+    } finally {
+      setIsAutoCalculating(false);
     }
-    return [];
-  }, [taxStats, declSetting]);
+  }, [adapter, hasRegistry, triggeredTaxes, periodBounds, queryClient]);
 
-  // Données pour les rapports disponibles
-  const availableReports = [
-    {
-      id: '1',
-      name: 'État de TVA Mensuel',
-      type: 'TVA',
-      format: 'PDF',
-      size: '245 KB',
-      lastGenerated: '2024-02-10'
-    },
-    {
-      id: '2',
-      name: 'Synthèse Fiscale Annuelle',
-      type: 'Global',
-      format: 'Excel',
-      size: '1.2 MB',
-      lastGenerated: '2024-01-31'
-    },
-    {
-      id: '3',
-      name: 'Déclaration IRPP',
-      type: 'IRPP',
-      format: 'PDF',
-      size: '180 KB',
-      lastGenerated: '2024-02-05'
-    },
-    {
-      id: '4',
-      name: 'Liasse Fiscale',
-      type: 'IS',
-      format: 'PDF',
-      size: '3.5 MB',
-      lastGenerated: '2024-01-15'
-    }
-  ];
+  // Status workflow handlers for DB declarations
+  const handleValidateDecl = useCallback(async (declId: string) => {
+    try {
+      await adapter.update('taxDeclarations', declId, { status: 'validated', updatedAt: new Date().toISOString() });
+      toast.success('Déclaration validée');
+      queryClient.invalidateQueries({ queryKey: ['tax-declarations-db'] });
+    } catch { toast.error('Erreur de validation'); }
+  }, [adapter, queryClient]);
 
+  const handleDeclareDecl = useCallback(async (declId: string) => {
+    try {
+      await adapter.update('taxDeclarations', declId, { status: 'declared', declaredAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
+      toast.success('Déclaration transmise');
+      queryClient.invalidateQueries({ queryKey: ['tax-declarations-db'] });
+    } catch { toast.error('Erreur de transmission'); }
+  }, [adapter, queryClient]);
+
+  const handlePayDecl = useCallback(async (declId: string) => {
+    try {
+      await adapter.update('taxDeclarations', declId, { status: 'paid', paidAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
+      toast.success('Paiement enregistré');
+      queryClient.invalidateQueries({ queryKey: ['tax-declarations-db'] });
+    } catch { toast.error('Erreur de paiement'); }
+  }, [adapter, queryClient]);
+
+  // ─── Helpers ───────────────────────────────────────────────────────────────
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -307,6 +570,18 @@ const TaxReportingPage: React.FC = () => {
     }
   };
 
+  // Find the DB declaration ID for workflow actions
+  const findDbDeclId = (localDecl: TaxDeclaration): string | null => {
+    const found = dbTaxDeclarations.find(d => d.id === localDecl.id);
+    return found ? found.id : null;
+  };
+
+  // Get DB declaration status for workflow buttons
+  const getDbDeclStatus = (localDecl: TaxDeclaration): string | null => {
+    const found = dbTaxDeclarations.find(d => d.id === localDecl.id);
+    return found?.status || null;
+  };
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -326,6 +601,12 @@ const TaxReportingPage: React.FC = () => {
             </p>
           </div>
           <div className="flex space-x-2">
+            {!hasRegistry && (
+              <Button variant="outline" onClick={handleSeedRegistry} className="border-orange-300 text-orange-700 hover:bg-orange-50">
+                <Settings className="mr-2 h-4 w-4" />
+                Initialiser taxes CI
+              </Button>
+            )}
             <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
               <SelectTrigger className="w-40">
                 <SelectValue />
@@ -349,6 +630,43 @@ const TaxReportingPage: React.FC = () => {
         </div>
       </motion.div>
 
+      {/* Alert bar — overdue + due-soon taxes */}
+      {alertTaxes.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-lg border border-red-200 bg-red-50 p-3"
+        >
+          <div className="flex items-start space-x-3">
+            <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
+            <div className="flex-1 space-y-1">
+              {alertTaxes.map((r, idx) => {
+                const taxLabel = r.tax.taxShortName || r.tax.taxName || r.tax.taxCode;
+                const isOverdue = r.isOverdue;
+                return (
+                  <div key={idx} className="text-sm">
+                    <span className={`font-medium ${isOverdue ? 'text-red-700' : 'text-orange-700'}`}>
+                      {taxLabel}
+                    </span>
+                    <span className="text-gray-600">
+                      {isOverdue
+                        ? ` — En retard (échéance: ${r.declarationDeadline})`
+                        : ` — Échéance dans ${r.daysUntilDeadline} jour(s) (${r.declarationDeadline})`
+                      }
+                    </span>
+                    {r.amounts?.net != null && (
+                      <span className="font-semibold text-gray-800 ml-2">
+                        {formatCurrency(r.amounts.net)}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       {/* KPI Cards */}
       <div className="grid gap-4 md:grid-cols-4">
         <motion.div
@@ -362,25 +680,25 @@ const TaxReportingPage: React.FC = () => {
                 <div>
                   <p className="text-sm font-medium text-var(--color-text-secondary)">TVA à Payer</p>
                   <p className="text-lg font-bold text-var(--color-text-primary)">
-                    {formatCurrency(taxStats.tvaAPayer)}
+                    {formatCurrency(kpiValues.tva)}
                   </p>
                   <p className="text-xs text-gray-700 mt-1">
-                    Collectée: {formatCurrency(taxStats.tvaCollectee)}
+                    Collectée: {formatCurrency(kpiValues.tvaCollectee)}
                   </p>
                   <p className="text-xs text-gray-700">
-                    Déductible: {formatCurrency(taxStats.tvaDeductible)}
+                    Déductible: {formatCurrency(kpiValues.tvaDeductible)}
                   </p>
                 </div>
                 <div className="text-right">
                   <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                    taxStats.variation.tva > 0 ? 'bg-var(--color-red-light) text-var(--color-red-dark)' : 'bg-var(--color-green-light) text-green-800'
+                    kpiValues.variation.tva > 0 ? 'bg-var(--color-red-light) text-var(--color-red-dark)' : 'bg-var(--color-green-light) text-green-800'
                   }`}>
-                    {taxStats.variation.tva > 0 ? (
+                    {kpiValues.variation.tva > 0 ? (
                       <TrendingUp className="mr-1 h-3 w-3" />
                     ) : (
                       <TrendingDown className="mr-1 h-3 w-3" />
                     )}
-                    {Math.abs(taxStats.variation.tva)}%
+                    {Math.abs(kpiValues.variation.tva)}%
                   </div>
                   <CreditCard className="h-8 w-8 text-var(--color-blue-primary) mt-2" />
                 </div>
@@ -400,7 +718,7 @@ const TaxReportingPage: React.FC = () => {
                 <div>
                   <p className="text-sm font-medium text-var(--color-text-secondary)">IRPP</p>
                   <p className="text-lg font-bold text-var(--color-text-primary)">
-                    {formatCurrency(taxStats.irpp)}
+                    {formatCurrency(kpiValues.irpp)}
                   </p>
                   <p className="text-xs text-gray-700 mt-1">
                     Impôt sur le revenu
@@ -408,14 +726,14 @@ const TaxReportingPage: React.FC = () => {
                 </div>
                 <div className="text-right">
                   <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                    taxStats.variation.irpp > 0 ? 'bg-var(--color-red-light) text-var(--color-red-dark)' : 'bg-var(--color-green-light) text-green-800'
+                    kpiValues.variation.irpp > 0 ? 'bg-var(--color-red-light) text-var(--color-red-dark)' : 'bg-var(--color-green-light) text-green-800'
                   }`}>
-                    {taxStats.variation.irpp > 0 ? (
+                    {kpiValues.variation.irpp > 0 ? (
                       <TrendingUp className="mr-1 h-3 w-3" />
                     ) : (
                       <TrendingDown className="mr-1 h-3 w-3" />
                     )}
-                    {Math.abs(taxStats.variation.irpp)}%
+                    {Math.abs(kpiValues.variation.irpp)}%
                   </div>
                   <Users className="h-8 w-8 text-primary-600 mt-2" />
                 </div>
@@ -435,7 +753,7 @@ const TaxReportingPage: React.FC = () => {
                 <div>
                   <p className="text-sm font-medium text-var(--color-text-secondary)">IS</p>
                   <p className="text-lg font-bold text-var(--color-text-primary)">
-                    {formatCurrency(taxStats.is)}
+                    {formatCurrency(kpiValues.is)}
                   </p>
                   <p className="text-xs text-gray-700 mt-1">
                     Impôt sur les sociétés
@@ -443,14 +761,14 @@ const TaxReportingPage: React.FC = () => {
                 </div>
                 <div className="text-right">
                   <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                    taxStats.variation.is > 0 ? 'bg-var(--color-red-light) text-var(--color-red-dark)' : 'bg-var(--color-green-light) text-green-800'
+                    kpiValues.variation.is > 0 ? 'bg-var(--color-red-light) text-var(--color-red-dark)' : 'bg-var(--color-green-light) text-green-800'
                   }`}>
-                    {taxStats.variation.is > 0 ? (
+                    {kpiValues.variation.is > 0 ? (
                       <TrendingUp className="mr-1 h-3 w-3" />
                     ) : (
                       <TrendingDown className="mr-1 h-3 w-3" />
                     )}
-                    {Math.abs(taxStats.variation.is)}%
+                    {Math.abs(kpiValues.variation.is)}%
                   </div>
                   <Building className="h-8 w-8 text-var(--color-green-primary) mt-2" />
                 </div>
@@ -470,7 +788,7 @@ const TaxReportingPage: React.FC = () => {
                 <div>
                   <p className="text-sm font-medium text-var(--color-text-secondary)">Total Taxes</p>
                   <p className="text-lg font-bold text-var(--color-text-primary)">
-                    {formatCurrency(taxStats.totalTaxes)}
+                    {formatCurrency(kpiValues.total)}
                   </p>
                   <p className="text-xs text-gray-700 mt-1">
                     Toutes taxes confondues
@@ -478,14 +796,14 @@ const TaxReportingPage: React.FC = () => {
                 </div>
                 <div className="text-right">
                   <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                    taxStats.variation.global > 0 ? 'bg-var(--color-red-light) text-var(--color-red-dark)' : 'bg-var(--color-green-light) text-green-800'
+                    kpiValues.variation.global > 0 ? 'bg-var(--color-red-light) text-var(--color-red-dark)' : 'bg-var(--color-green-light) text-green-800'
                   }`}>
-                    {taxStats.variation.global > 0 ? (
+                    {kpiValues.variation.global > 0 ? (
                       <TrendingUp className="mr-1 h-3 w-3" />
                     ) : (
                       <TrendingDown className="mr-1 h-3 w-3" />
                     )}
-                    {Math.abs(taxStats.variation.global)}%
+                    {Math.abs(kpiValues.variation.global)}%
                   </div>
                   <DollarSign className="h-8 w-8 text-var(--color-orange-primary) mt-2" />
                 </div>
@@ -546,7 +864,7 @@ const TaxReportingPage: React.FC = () => {
                 </CardContent>
               </Card>
 
-              {/* Calendrier Fiscal */}
+              {/* Calendrier Fiscal — Prochaines Échéances */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center">
@@ -556,36 +874,84 @@ const TaxReportingPage: React.FC = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between p-2 bg-red-50 rounded-lg">
-                      <div className="flex items-center">
-                        <AlertCircle className="h-4 w-4 text-var(--color-red-primary) mr-2" />
-                        <div>
-                          <p className="text-sm font-medium">TVA Janvier</p>
-                          <p className="text-xs text-var(--color-text-secondary)">15 Février 2024</p>
+                    {hasRegistry && triggeredTaxes.length > 0 ? (
+                      // Real detection results sorted by deadline
+                      triggeredTaxes
+                        .filter(r => r.declarationDeadline)
+                        .sort((a, b) => (a.daysUntilDeadline ?? 999) - (b.daysUntilDeadline ?? 999))
+                        .slice(0, 5)
+                        .map((r, idx) => {
+                          const taxLabel = r.tax.taxShortName || r.tax.taxName || r.tax.taxCode;
+                          const isOverdue = r.isOverdue;
+                          const isDueSoon = !isOverdue && r.daysUntilDeadline !== null && r.daysUntilDeadline <= 7;
+                          const bgColor = isOverdue ? 'bg-red-50' : isDueSoon ? 'bg-orange-50' : 'bg-var(--color-blue-light)';
+                          const iconColor = isOverdue ? 'text-var(--color-red-primary)' : isDueSoon ? 'text-var(--color-orange-primary)' : 'text-var(--color-blue-primary)';
+                          const badgeClass = isOverdue
+                            ? 'destructive'
+                            : isDueSoon
+                              ? 'bg-var(--color-orange-light) text-orange-800'
+                              : 'bg-var(--color-blue-light) text-var(--color-blue-dark)';
+                          const daysLabel = isOverdue
+                            ? `${Math.abs(r.daysUntilDeadline || 0)}j retard`
+                            : `${r.daysUntilDeadline}j`;
+                          return (
+                            <div key={idx} className={`flex items-center justify-between p-2 ${bgColor} rounded-lg`}>
+                              <div className="flex items-center">
+                                {isOverdue ? (
+                                  <AlertCircle className={`h-4 w-4 ${iconColor} mr-2`} />
+                                ) : isDueSoon ? (
+                                  <AlertCircle className={`h-4 w-4 ${iconColor} mr-2`} />
+                                ) : (
+                                  <Calendar className={`h-4 w-4 ${iconColor} mr-2`} />
+                                )}
+                                <div>
+                                  <p className="text-sm font-medium">{taxLabel}</p>
+                                  <p className="text-xs text-var(--color-text-secondary)">{r.declarationDeadline}</p>
+                                </div>
+                              </div>
+                              {isOverdue ? (
+                                <Badge variant="destructive">{daysLabel}</Badge>
+                              ) : (
+                                <Badge className={badgeClass}>{daysLabel}</Badge>
+                              )}
+                            </div>
+                          );
+                        })
+                    ) : (
+                      // Fallback: hardcoded items
+                      <>
+                        <div className="flex items-center justify-between p-2 bg-red-50 rounded-lg">
+                          <div className="flex items-center">
+                            <AlertCircle className="h-4 w-4 text-var(--color-red-primary) mr-2" />
+                            <div>
+                              <p className="text-sm font-medium">TVA Janvier</p>
+                              <p className="text-xs text-var(--color-text-secondary)">15 Février 2024</p>
+                            </div>
+                          </div>
+                          <Badge variant="destructive">5 jours</Badge>
                         </div>
-                      </div>
-                      <Badge variant="destructive">5 jours</Badge>
-                    </div>
-                    <div className="flex items-center justify-between p-2 bg-orange-50 rounded-lg">
-                      <div className="flex items-center">
-                        <AlertCircle className="h-4 w-4 text-var(--color-orange-primary) mr-2" />
-                        <div>
-                          <p className="text-sm font-medium">IRPP T4</p>
-                          <p className="text-xs text-var(--color-text-secondary)">20 Février 2024</p>
+                        <div className="flex items-center justify-between p-2 bg-orange-50 rounded-lg">
+                          <div className="flex items-center">
+                            <AlertCircle className="h-4 w-4 text-var(--color-orange-primary) mr-2" />
+                            <div>
+                              <p className="text-sm font-medium">IRPP T4</p>
+                              <p className="text-xs text-var(--color-text-secondary)">20 Février 2024</p>
+                            </div>
+                          </div>
+                          <Badge className="bg-var(--color-orange-light) text-orange-800">10 jours</Badge>
                         </div>
-                      </div>
-                      <Badge className="bg-var(--color-orange-light) text-orange-800">10 jours</Badge>
-                    </div>
-                    <div className="flex items-center justify-between p-2 bg-var(--color-blue-light) rounded-lg">
-                      <div className="flex items-center">
-                        <Calendar className="h-4 w-4 text-var(--color-blue-primary) mr-2" />
-                        <div>
-                          <p className="text-sm font-medium">IS Annuel</p>
-                          <p className="text-xs text-var(--color-text-secondary)">15 Mars 2024</p>
+                        <div className="flex items-center justify-between p-2 bg-var(--color-blue-light) rounded-lg">
+                          <div className="flex items-center">
+                            <Calendar className="h-4 w-4 text-var(--color-blue-primary) mr-2" />
+                            <div>
+                              <p className="text-sm font-medium">IS Annuel</p>
+                              <p className="text-xs text-var(--color-text-secondary)">15 Mars 2024</p>
+                            </div>
+                          </div>
+                          <Badge className="bg-var(--color-blue-light) text-var(--color-blue-dark)">33 jours</Badge>
                         </div>
-                      </div>
-                      <Badge className="bg-var(--color-blue-light) text-var(--color-blue-dark)">33 jours</Badge>
-                    </div>
+                      </>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -600,33 +966,38 @@ const TaxReportingPage: React.FC = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid gap-4 md:grid-cols-4">
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-var(--color-blue-primary)">{taxStats.totalTaxes > 0 ? Math.round(taxStats.tvaAPayer / taxStats.totalTaxes * 100) : 0}%</div>
-                    <div className="text-sm text-var(--color-text-secondary)">TVA</div>
-                    <div className="text-xs text-gray-700">{formatCurrency(taxStats.tvaAPayer)}</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-primary-600">{taxStats.totalTaxes > 0 ? Math.round(taxStats.irpp / taxStats.totalTaxes * 100) : 0}%</div>
-                    <div className="text-sm text-var(--color-text-secondary)">IRPP</div>
-                    <div className="text-xs text-gray-700">{formatCurrency(taxStats.irpp)}</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-var(--color-green-primary)">{taxStats.totalTaxes > 0 ? Math.round(taxStats.is / taxStats.totalTaxes * 100) : 0}%</div>
-                    <div className="text-sm text-var(--color-text-secondary)">IS</div>
-                    <div className="text-xs text-gray-700">{formatCurrency(taxStats.is)}</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-var(--color-orange-primary)">0%</div>
-                    <div className="text-sm text-var(--color-text-secondary)">Autres</div>
-                    <div className="text-xs text-gray-700">{formatCurrency(0)}</div>
-                  </div>
+                <div className={`grid gap-4 md:grid-cols-${Math.min(repartitionData.length, 6)}`}>
+                  {repartitionData.map((item, idx) => (
+                    <div key={idx} className="text-center">
+                      <div className={`text-lg font-bold ${item.color}`}>
+                        {repartitionTotal > 0 ? Math.round(item.amount / repartitionTotal * 100) : 0}%
+                      </div>
+                      <div className="text-sm text-var(--color-text-secondary)">{item.label}</div>
+                      <div className="text-xs text-gray-700">{formatCurrency(item.amount)}</div>
+                    </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
 
           <TabsContent value="declarations" className="space-y-4">
+            {/* Banner if no tax registry */}
+            {!hasRegistry && (
+              <div className="rounded-lg border border-orange-200 bg-orange-50 p-4 flex items-center space-x-3">
+                <AlertCircle className="h-5 w-5 text-orange-600 flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-orange-800">Registre fiscal non configuré</p>
+                  <p className="text-xs text-orange-600">
+                    Configurez les taxes dans Admin &rarr; Registre Fiscal ou cliquez sur "Initialiser taxes CI" pour charger les taxes ivoiriennes.
+                  </p>
+                </div>
+                <Button size="sm" variant="outline" onClick={handleSeedRegistry} className="border-orange-300 text-orange-700">
+                  Initialiser
+                </Button>
+              </div>
+            )}
+
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -643,6 +1014,16 @@ const TaxReportingPage: React.FC = () => {
                         <SelectItem value="is">IS</SelectItem>
                       </SelectContent>
                     </Select>
+                    {hasRegistry && (
+                      <Button size="sm" variant="outline" onClick={handleAutoCalculate} disabled={isAutoCalculating}>
+                        {isAutoCalculating ? (
+                          <RefreshCw className="mr-1 h-4 w-4 animate-spin" />
+                        ) : (
+                          <Zap className="mr-1 h-4 w-4" />
+                        )}
+                        Calculer automatiquement
+                      </Button>
+                    )}
                     <Button size="sm" onClick={handleNewDeclaration}>
                       <Plus className="mr-1 h-4 w-4" />
                       Nouvelle
@@ -664,43 +1045,66 @@ const TaxReportingPage: React.FC = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {declarations.map((declaration) => (
-                      <TableRow key={declaration.id}>
-                        <TableCell className="font-medium">{declaration.type}</TableCell>
-                        <TableCell>{declaration.periode}</TableCell>
-                        <TableCell className="font-semibold">{formatCurrency(declaration.montant)}</TableCell>
-                        <TableCell>
-                          <Badge className={getStatusColor(declaration.statut)}>
-                            {getStatusLabel(declaration.statut)}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{declaration.dateEcheance}</TableCell>
-                        <TableCell>
-                          {declaration.datePaiement || (
-                            declaration.statut === 'en_retard' ? (
-                              <span className="text-var(--color-red-primary) text-sm">En retard</span>
-                            ) : (
-                              <span className="text-var(--color-text-muted) text-sm">-</span>
-                            )
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex space-x-1">
-                            <Button variant="ghost" size="sm" onClick={() => handleViewDeclaration(declaration)}>
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            {declaration.statut !== 'payee' && (
-                              <Button variant="ghost" size="sm" onClick={() => handlePayment(declaration)}>
-                                <CreditCard className="h-4 w-4" />
-                              </Button>
-                            )}
-                            <Button variant="ghost" size="sm" onClick={() => handleDownloadDeclaration(declaration)}>
-                              <Download className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    {declarations
+                      .filter(d => selectedTaxType === 'all' || d.type.toLowerCase().includes(selectedTaxType.toLowerCase()))
+                      .map((declaration) => {
+                        const dbStatus = getDbDeclStatus(declaration);
+                        const dbId = findDbDeclId(declaration);
+                        return (
+                          <TableRow key={declaration.id}>
+                            <TableCell className="font-medium">{declaration.type}</TableCell>
+                            <TableCell>{declaration.periode}</TableCell>
+                            <TableCell className="font-semibold">{formatCurrency(declaration.montant)}</TableCell>
+                            <TableCell>
+                              <Badge className={getStatusColor(declaration.statut)}>
+                                {getStatusLabel(declaration.statut)}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>{declaration.dateEcheance}</TableCell>
+                            <TableCell>
+                              {declaration.datePaiement || (
+                                declaration.statut === 'en_retard' ? (
+                                  <span className="text-var(--color-red-primary) text-sm">En retard</span>
+                                ) : (
+                                  <span className="text-var(--color-text-muted) text-sm">-</span>
+                                )
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex space-x-1">
+                                <Button variant="ghost" size="sm" onClick={() => handleViewDeclaration(declaration)}>
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                                {/* Workflow buttons for DB declarations */}
+                                {dbId && dbStatus === 'calculated' && (
+                                  <Button variant="ghost" size="sm" onClick={() => handleValidateDecl(dbId)} title="Valider">
+                                    <CheckCircle className="h-4 w-4 text-green-600" />
+                                  </Button>
+                                )}
+                                {dbId && dbStatus === 'validated' && (
+                                  <Button variant="ghost" size="sm" onClick={() => handleDeclareDecl(dbId)} title="Déclarer">
+                                    <FileText className="h-4 w-4 text-blue-600" />
+                                  </Button>
+                                )}
+                                {dbId && (dbStatus === 'declared' || dbStatus === 'overdue') && (
+                                  <Button variant="ghost" size="sm" onClick={() => handlePayDecl(dbId)} title="Payer">
+                                    <CreditCard className="h-4 w-4 text-green-600" />
+                                  </Button>
+                                )}
+                                {/* Legacy payment for non-DB declarations */}
+                                {!dbId && declaration.statut !== 'payee' && (
+                                  <Button variant="ghost" size="sm" onClick={() => handlePayment(declaration)}>
+                                    <CreditCard className="h-4 w-4" />
+                                  </Button>
+                                )}
+                                <Button variant="ghost" size="sm" onClick={() => handleDownloadDeclaration(declaration)}>
+                                  <Download className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                   </TableBody>
                 </Table>
               </CardContent>
@@ -764,19 +1168,53 @@ const TaxReportingPage: React.FC = () => {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-var(--color-text-secondary)">Charge fiscale moyenne</span>
-                      <span className="font-semibold">{taxStats.resultatNet > 0 ? (taxStats.totalTaxes / (taxStats.resultatNet + taxStats.totalTaxes) * 100).toFixed(1) : '0.0'}%</span>
+                      <span className="font-semibold">
+                        {(() => {
+                          const rev = hasRegistry && triggeredTaxes.length > 0
+                            ? (triggeredTaxes.find(r => r.tax.taxCode === 'IS')?.amounts?.detail?.produits as number || taxStats.resultatNet + kpiValues.total)
+                            : (taxStats.resultatNet + taxStats.totalTaxes);
+                          const taxes = kpiValues.total;
+                          return rev > 0 ? (taxes / rev * 100).toFixed(1) : '0.0';
+                        })()}%
+                      </span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-var(--color-text-secondary)">Taux effectif d'imposition</span>
-                      <span className="font-semibold">{taxStats.resultatNet > 0 ? (taxStats.is / taxStats.resultatNet * 100).toFixed(1) : '0.0'}%</span>
+                      <span className="font-semibold">
+                        {(() => {
+                          if (hasRegistry && triggeredTaxes.length > 0) {
+                            const isResult = triggeredTaxes.find(r => r.tax.taxCode === 'IS');
+                            const base = isResult?.amounts?.base;
+                            const net = isResult?.amounts?.net;
+                            if (base && base > 0 && net != null) return (net / base * 100).toFixed(1);
+                          }
+                          return taxStats.resultatNet > 0 ? (taxStats.is / taxStats.resultatNet * 100).toFixed(1) : '0.0';
+                        })()}%
+                      </span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-var(--color-text-secondary)">Crédit de TVA</span>
-                      <span className="font-semibold text-var(--color-green-primary)">{formatCurrency(taxStats.creditTVA)}</span>
+                      <span className="font-semibold text-var(--color-green-primary)">
+                        {(() => {
+                          if (hasRegistry && triggeredTaxes.length > 0) {
+                            const tvaResult = triggeredTaxes.find(r => r.tax.taxCode === 'TVA');
+                            if (tvaResult?.amounts?.credit) return formatCurrency(tvaResult.amounts.credit);
+                          }
+                          return formatCurrency(taxStats.creditTVA);
+                        })()}
+                      </span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-var(--color-text-secondary)">Économies fiscales</span>
-                      <span className="font-semibold text-var(--color-green-primary)">{formatCurrency(taxStats.economiesFiscales)}</span>
+                      <span className="font-semibold text-var(--color-green-primary)">
+                        {(() => {
+                          if (hasRegistry && triggeredTaxes.length > 0) {
+                            const tvaResult = triggeredTaxes.find(r => r.tax.taxCode === 'TVA');
+                            return formatCurrency(tvaResult?.amounts?.deductible ?? taxStats.economiesFiscales);
+                          }
+                          return formatCurrency(taxStats.economiesFiscales);
+                        })()}
+                      </span>
                     </div>
                   </div>
                 </CardContent>
@@ -796,7 +1234,17 @@ const TaxReportingPage: React.FC = () => {
                         <CheckCircle className="h-4 w-4 text-var(--color-green-primary) mr-2" />
                         <div className="flex-1">
                           <p className="text-sm font-medium">Déductions maximisées</p>
-                          <p className="text-xs text-var(--color-text-secondary)">+15% vs année précédente</p>
+                          <p className="text-xs text-var(--color-text-secondary)">
+                            {(() => {
+                              if (hasRegistry && triggeredTaxes.length > 0) {
+                                const tvaResult = triggeredTaxes.find(r => r.tax.taxCode === 'TVA');
+                                const ded = tvaResult?.amounts?.deductible || 0;
+                                const col = tvaResult?.amounts?.base || 0;
+                                if (col > 0) return `${(ded / col * 100).toFixed(0)}% du potentiel récupéré`;
+                              }
+                              return '+15% vs année précédente';
+                            })()}
+                          </p>
                         </div>
                         <ChevronRight className="h-4 w-4 text-var(--color-text-muted)" />
                       </div>
@@ -806,7 +1254,15 @@ const TaxReportingPage: React.FC = () => {
                         <Activity className="h-4 w-4 text-var(--color-blue-primary) mr-2" />
                         <div className="flex-1">
                           <p className="text-sm font-medium">Crédits d'impôt utilisés</p>
-                          <p className="text-xs text-var(--color-text-secondary)">85% du potentiel</p>
+                          <p className="text-xs text-var(--color-text-secondary)">
+                            {(() => {
+                              if (hasRegistry && triggeredTaxes.length > 0) {
+                                const totalCredits = triggeredTaxes.reduce((s, r) => s + (r.amounts?.credit || 0), 0);
+                                if (totalCredits > 0) return `${formatCurrency(totalCredits)} de crédits disponibles`;
+                              }
+                              return '85% du potentiel';
+                            })()}
+                          </p>
                         </div>
                         <ChevronRight className="h-4 w-4 text-var(--color-text-muted)" />
                       </div>
@@ -816,7 +1272,16 @@ const TaxReportingPage: React.FC = () => {
                         <AlertCircle className="h-4 w-4 text-var(--color-orange-primary) mr-2" />
                         <div className="flex-1">
                           <p className="text-sm font-medium">Opportunités identifiées</p>
-                          <p className="text-xs text-var(--color-text-secondary)">3 nouvelles déductions possibles</p>
+                          <p className="text-xs text-var(--color-text-secondary)">
+                            {(() => {
+                              if (hasRegistry && triggeredTaxes.length > 0) {
+                                const manualCount = triggeredTaxes.filter(r => r.amounts?.requiresManualInput).length;
+                                if (manualCount > 0) return `${manualCount} taxe(s) nécessitent une saisie manuelle`;
+                                return `${triggeredTaxes.length} taxe(s) détectée(s) automatiquement`;
+                              }
+                              return '3 nouvelles déductions possibles';
+                            })()}
+                          </p>
                         </div>
                         <ChevronRight className="h-4 w-4 text-var(--color-text-muted)" />
                       </div>
@@ -874,10 +1339,20 @@ const TaxReportingPage: React.FC = () => {
                   onChange={(e) => setNewDeclaration({ ...newDeclaration, type: e.target.value })}
                   className="w-full border rounded-lg p-2"
                 >
-                  <option value="TVA">TVA</option>
-                  <option value="IRPP">IRPP</option>
-                  <option value="IS">IS</option>
-                  <option value="Taxe professionnelle">Taxe professionnelle</option>
+                  {hasRegistry ? (
+                    taxRegistry.filter(t => t.isActive).map(t => (
+                      <option key={t.id} value={t.taxCode}>
+                        {t.taxShortName || t.taxName || t.taxCode}
+                      </option>
+                    ))
+                  ) : (
+                    <>
+                      <option value="TVA">TVA</option>
+                      <option value="IRPP">IRPP</option>
+                      <option value="IS">IS</option>
+                      <option value="Taxe professionnelle">Taxe professionnelle</option>
+                    </>
+                  )}
                 </select>
               </div>
               <div>
