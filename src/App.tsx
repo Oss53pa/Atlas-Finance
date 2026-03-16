@@ -192,9 +192,13 @@ function App() {
                     <ErrorBoundary>
                     <Suspense fallback={<LoadingFallback />}>
                     <Routes>
-                      {/* Pages publiques — accessibles sans authentification */}
-                      <Route path="/" element={<LandingPage />} />
+                      {/* Login — seule page publique */}
                       <Route path="/login" element={<LoginPage />} />
+
+                      {/* Landing — protégée, redirige vers /login si non authentifié */}
+                      <Route element={<RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant', 'user', 'viewer']}><Outlet /></RBACGuard>}>
+                        <Route path="/" element={<LandingPage />} />
+                      </Route>
 
                       {/* Workspaces — protégés par authentification Supabase */}
                       <Route element={<RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant', 'user', 'viewer']}><Outlet /></RBACGuard>}>
