@@ -23,9 +23,23 @@ const STATS = [
   { value: '100%', label: 'SYSCOHADA' },
 ];
 
+function getWorkspacePath(role: string): string {
+  if (role === 'admin' || role === 'super_admin') return '/workspace/admin';
+  if (role === 'manager') return '/workspace/manager';
+  if (role === 'comptable') return '/workspace/comptable';
+  return '/dashboard';
+}
+
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+
+  // Si connecté → aller directement dans Atlas Finance
+  React.useEffect(() => {
+    if (isAuthenticated && user) {
+      navigate(getWorkspacePath(user.role), { replace: true });
+    }
+  }, [isAuthenticated, user, navigate]);
 
   return (
     <div className="min-h-screen bg-white">
