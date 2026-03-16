@@ -471,8 +471,8 @@ const BilanSYSCOHADAPage: React.FC = () => {
                         <tr className="bg-gray-50">
                           <td className="p-2 font-bold">AD</td>
                           <td className="p-2 font-bold">ACTIF IMMOBILISE</td>
-                          <td className="p-2 text-right font-bold">9 620 000</td>
-                          <td className="p-2 text-right font-bold">9 380 000</td>
+                          <td className="p-2 text-right font-bold">{formatCurrency(bilanData.actif.slice(0, 7).reduce((s, i) => s + i.exerciceN, 0))}</td>
+                          <td className="p-2 text-right font-bold">{formatCurrency(bilanData.actif.slice(0, 7).reduce((s, i) => s + i.exerciceN1, 0))}</td>
                         </tr>
                         {bilanData.actif.slice(0, 7).map((item, index) => (
                           <tr key={index} className="border-b border-[#e5e5e5] hover:bg-gray-50">
@@ -509,8 +509,8 @@ const BilanSYSCOHADAPage: React.FC = () => {
                         <tr className="bg-gray-50">
                           <td className="p-2 font-bold">AE</td>
                           <td className="p-2 font-bold">ACTIF CIRCULANT</td>
-                          <td className="p-2 text-right font-bold">3 455 000</td>
-                          <td className="p-2 text-right font-bold">3 085 000</td>
+                          <td className="p-2 text-right font-bold">{formatCurrency(bilanData.actif.slice(7).reduce((s, i) => s + i.exerciceN, 0))}</td>
+                          <td className="p-2 text-right font-bold">{formatCurrency(bilanData.actif.slice(7).reduce((s, i) => s + i.exerciceN1, 0))}</td>
                         </tr>
                         {bilanData.actif.slice(7).map((item, index) => (
                           <tr key={index} className="border-b border-[#e5e5e5] hover:bg-gray-50">

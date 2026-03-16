@@ -116,7 +116,7 @@ const RatiosView: React.FC = () => {
         const chargesFin = net('67');
         const today = new Date().toISOString().split('T')[0];
 
-        const mk = (id: string, cat: FinancialRatio['category'], typeR: string, lib: string, val: number, unit: FinancialRatio['unite'], num: number, den: number, form: string, ref: number, interp: string, alerte: boolean, niv: string): FinancialRatio => ({
+        const mk = (id: string, cat: FinancialRatio['category'], typeR: string, lib: string, val: number, unit: FinancialRatio['unite'], num: number, den: number, form: string, ref: number, interp: string, alerte: boolean, niv: FinancialRatio['niveauAlerte']): FinancialRatio => ({
           id, category: cat, typeRatio: typeR, libelle: lib, valeur: Math.round(val * 10) / 10, unite: unit, numerateur: Math.round(num), denominateur: Math.round(den), formule: form, valeurReference: ref, ecartReference: Math.round((val - ref) * 10) / 10, interpretation: interp, alerte, niveauAlerte: niv, calculationDate: today
         });
 
