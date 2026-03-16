@@ -5,6 +5,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Police Grand Hotel pour le branding Atlas Finance */
+.atlas-brand {
+  font-family: 'Grand Hotel', cursive !important;
+  letter-spacing: 0.5px;
+}
+
 /* Empêcher le flash de contenu non stylisé (FOUC) */
 html {
   font-family: 'Exo 2', sans-serif;

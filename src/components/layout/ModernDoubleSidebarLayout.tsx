@@ -353,7 +353,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
             </div>
             {!primaryCollapsed && (
               <div>
-                <h1 className="text-[var(--color-sidebar-text)] font-bold text-lg">Atlas Finance</h1>
+                <h1 className="text-[var(--color-sidebar-text)] font-bold text-lg atlas-brand">Atlas Finance</h1>
                 <p className="text-[var(--color-sidebar-text-secondary)] text-xs">ERP Next-Gen</p>
               </div>
             )}
@@ -546,7 +546,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
                   <span className="text-[var(--color-background)] font-bold text-xl">W</span>
                 </div>
                 <div>
-                  <h1 className="text-white font-bold text-lg">Atlas Finance</h1>
+                  <h1 className="text-white font-bold text-lg atlas-brand">Atlas Finance</h1>
                   <p className="text-[var(--color-sidebar-text-secondary)] text-xs">ERP Next-Gen</p>
                 </div>
               </div>

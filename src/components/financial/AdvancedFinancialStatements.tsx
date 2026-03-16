@@ -1513,7 +1513,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
               {/* Pied de page */}
               <div className="mt-8 pt-4 border-t border-gray-300 flex justify-between items-center text-xs text-gray-700">
                 <div>
-                  <p>Atlas Finance - États Financiers</p>
+                  <p><span className="atlas-brand">Atlas Finance</span> - États Financiers</p>
                   <p>Système conforme {config.norme}</p>
                 </div>
                 <div className="text-right">

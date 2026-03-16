@@ -131,19 +131,21 @@ const LoginPage: React.FC = () => {
         <Card className="shadow-xl border-0">
           <CardHeader className="text-center pb-8">
             <div className="flex justify-center mb-6">
-              <div className="flex items-center space-x-3">
-                <div className="p-3 bg-[var(--color-primary)] text-white rounded-xl">
-                  <Calculator className="h-8 w-8" />
+              <div className="flex flex-col items-center space-y-3">
+                <div className="p-4 bg-[#171717] text-white rounded-2xl">
+                  <Calculator className="h-10 w-10" />
                 </div>
-                <div className="text-left">
-                  <h1 className="text-lg font-bold text-[var(--color-text-primary)]">Atlas Finance</h1>
-                  <p className="text-sm text-[var(--color-text-secondary)]">ERP Comptable V3.0</p>
+                <div className="text-center">
+                  <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Atlas Studio</h1>
+                  <p className="text-sm text-[var(--color-text-secondary)] mt-1">Plateforme de gestion d'entreprise</p>
                 </div>
               </div>
             </div>
-            <CardTitle className="text-[var(--color-text-primary)] text-xl">
-              Connexion à votre compte
-            </CardTitle>
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <div className="h-px flex-1 bg-[var(--color-border)]" />
+              <span className="text-xs text-[var(--color-text-secondary)] px-2 font-medium uppercase tracking-wider">Connexion</span>
+              <div className="h-px flex-1 bg-[var(--color-border)]" />
+            </div>
             {selectedRole && (
               <div className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--color-primary)]/10 text-[var(--color-text-primary)] text-sm font-medium">
                 <Shield className="h-4 w-4" />
@@ -151,7 +153,7 @@ const LoginPage: React.FC = () => {
               </div>
             )}
             <p className="text-sm text-[var(--color-text-secondary)] mt-2">
-              SYSCOHADA - Système comptable pour l'Afrique
+              Connectez-vous pour accéder à vos applications Atlas Studio
             </p>
           </CardHeader>
           <CardContent>
@@ -268,12 +270,13 @@ const LoginPage: React.FC = () => {
               </div>
               <div className="mt-4">
                 <p className="text-sm text-[var(--color-text-secondary)]">
-                  Contactez votre administrateur système pour obtenir vos identifiants d'accès à Atlas Finance.
+                  Contactez votre administrateur pour obtenir vos identifiants d'accès à Atlas Studio.
                 </p>
               </div>
             </div>
 
-            {/* Demo accounts info */}
+            {/* Demo accounts — visible uniquement en développement */}
+            {import.meta.env.VITE_APP_ENV !== 'production' && (
             <div className="mt-6 rounded-lg bg-[var(--color-background-secondary)] border border-[var(--color-border)] p-4">
               <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3 flex items-center gap-2">
                 <Shield className="h-4 w-4" />
@@ -341,7 +344,15 @@ const LoginPage: React.FC = () => {
                 </div>
               </div>
               <p className="text-xs text-[var(--color-text-secondary)] mt-3 italic text-center">
-                ⚠️ Environnement de démonstration - Données fictives uniquement
+                Environnement de démonstration
+              </p>
+            </div>
+            )}
+
+            {/* Footer Atlas Studio */}
+            <div className="mt-6 text-center">
+              <p className="text-xs text-[var(--color-text-secondary)]">
+                Atlas Studio &copy; {new Date().getFullYear()} — Atlas Finance, Atlas HR, Atlas CRM
               </p>
             </div>
           </CardContent>
