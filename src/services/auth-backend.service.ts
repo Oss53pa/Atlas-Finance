@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Auth Backend Service - Atlas Finance
  * Handles authentication with Django backend

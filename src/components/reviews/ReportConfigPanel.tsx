@@ -160,14 +160,14 @@ const ReportConfigPanel: React.FC<ReportConfigPanelProps> = ({
         {/* Modèles appliqués */}
         <section>
           <h3 className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-3">
-            <Layers className="w-4 h-4 text-purple-500" />
+            <Layers className="w-4 h-4 text-primary-500" />
             Modèles appliqués
           </h3>
           <div className="flex flex-wrap gap-2">
             {config.models.map((model) => (
               <span
                 key={model.id}
-                className="px-3 py-1.5 bg-purple-50 text-purple-700 rounded-full text-sm font-medium"
+                className="px-3 py-1.5 bg-primary-50 text-primary-700 rounded-full text-sm font-medium"
               >
                 {model.name}
               </span>

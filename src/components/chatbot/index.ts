@@ -1,5 +1,5 @@
 /**
- * Atlas Finance Chatbot - Export principal
+ * Atlas Studio Chatbot - Export principal
  * Assistant IA intelligent pour l'aide utilisateur
  */
 

@@ -2,7 +2,7 @@
  * Dashboard Principal Executive Atlas Finance
  * Vue d'ensemble consolidée tous modules selon cahier des charges
  */
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -22,11 +22,8 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   RefreshCw,
-  Settings,
   Download,
   Bell,
-  Calendar,
-  PieChart as PieChartIcon,
   LineChart as LineChartIcon
 } from 'lucide-react';
 import {
@@ -64,26 +61,33 @@ interface ConsolidatedKPIs {
   totalLiabilities: number;
   equity: number;
   netIncome: number;
-  
+  netIncomeTrend: number;
+
   // Trésorerie
   cashPosition: number;
+  cashPositionTrend: number;
   cashFlowNet: number;
   liquidityRatio: number;
-  
+  creditLines: number;
+
   // Clients
   totalReceivables: number;
+  receivablesTrend: number;
   dso: number;
   collectionRate: number;
-  
-  // Fournisseurs  
+
+  // Fournisseurs
   totalPayables: number;
+  payablesTrend: number;
   dpo: number;
   discountsCaptured: number;
-  
+
   // Performance globale
   operatingMargin: number;
+  marginTrend: number;
   workingCapitalDays: number;
   cashConversionCycle: number;
+  cccTrend: number;
 }
 
 const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
@@ -98,36 +102,36 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
   const [selectedView, setSelectedView] = useState<'overview' | 'financial' | 'operational' | 'performance'>('overview');
 
   // Queries consolidées
-  const { data: consolidatedKPIs, isLoading: kpiLoading, refetch: refetchKPIs } = useQuery({
+  const { data: consolidatedKPIs, isLoading: kpiLoading, refetch: refetchKPIs } = useQuery<ConsolidatedKPIs>({
     queryKey: ['executive-kpis', companyId, fiscalYearId, selectedPeriod],
-    queryFn: () => dashboardService.getConsolidatedKPIs({ 
-      companyId, 
-      fiscalYearId, 
-      period: selectedPeriod 
-    }),
+    queryFn: () => dashboardService.getConsolidatedKPIs({
+      company_id: companyId,
+      fiscal_year_id: fiscalYearId,
+      period: selectedPeriod
+    }) as Promise<any>,
     refetchInterval: autoRefresh ? 300000 : false, // 5 minutes
   });
 
-  const { data: operationalMetrics, isLoading: metricsLoading } = useQuery({
+  const { data: operationalMetrics, isLoading: metricsLoading } = useQuery<any>({
     queryKey: ['operational-metrics', companyId, selectedPeriod],
-    queryFn: () => dashboardService.getOperationalMetrics({ companyId, period: selectedPeriod }),
+    queryFn: () => dashboardService.getOperationalMetrics({ company_id: companyId, period: selectedPeriod }) as Promise<any>,
     refetchInterval: autoRefresh ? 600000 : false, // 10 minutes
   });
 
-  const { data: financialTrends, isLoading: trendsLoading } = useQuery({
+  const { data: financialTrends, isLoading: trendsLoading } = useQuery<any>({
     queryKey: ['financial-trends', companyId, selectedPeriod],
-    queryFn: () => dashboardService.getFinancialTrends({ companyId, period: selectedPeriod }),
+    queryFn: () => dashboardService.getFinancialTrends({ company_id: companyId, period: selectedPeriod }) as Promise<any>,
   });
 
-  const { data: criticalAlerts } = useQuery({
+  const { data: criticalAlerts } = useQuery<any>({
     queryKey: ['critical-alerts', companyId],
-    queryFn: () => dashboardService.getCriticalAlerts({ companyId }),
+    queryFn: () => dashboardService.getCriticalAlerts({ company_id: companyId }) as Promise<any>,
     refetchInterval: 60000, // 1 minute pour alertes critiques
   });
 
-  const { data: performanceBenchmark } = useQuery({
+  const { data: performanceBenchmark } = useQuery<any>({
     queryKey: ['performance-benchmark', companyId],
-    queryFn: () => dashboardService.getPerformanceBenchmark({ companyId }),
+    queryFn: () => dashboardService.getPerformanceBenchmark({ company_id: companyId }) as Promise<any>,
   });
 
   // KPI Cards principales consolidées
@@ -195,12 +199,12 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
   }, [consolidatedKPIs]);
 
   const getModuleColor = (module: string) => {
-    const colors = {
+    const colors: Record<string, string> = {
       'treasury': 'blue',
-      'accounting': 'purple', 
+      'accounting': 'primary',
       'customers': 'green',
       'suppliers': 'orange',
-      'operational': 'indigo'
+      'operational': 'primary'
     };
     return colors[module] || 'gray';
   };
@@ -278,7 +282,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
           </CardHeader>
           <CardContent>
             <div className="grid gap-3 md:grid-cols-2">
-              {criticalAlerts.alerts.slice(0, 4).map((alert, index) => (
+              {criticalAlerts.alerts.slice(0, 4).map((alert: any, index: number) => (
                 <div key={index} className="flex items-center justify-between p-3 bg-[#f5f5f5] border border-[var(--color-error-light)] rounded-lg">
                   <div className="flex items-center space-x-3">
                     <Badge className="bg-[var(--color-error-lighter)] text-[var(--color-error-darker)]">
@@ -415,7 +419,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {performanceBenchmark?.modules_performance?.map((module, index) => (
+                  {performanceBenchmark?.modules_performance?.map((module: any, index: number) => (
                     <div key={index} className="p-4 border rounded-lg">
                       <div className="flex items-center justify-between mb-2">
                         <h4 className="font-medium text-[#171717]">{module.name}</h4>
@@ -449,7 +453,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {operationalMetrics?.priority_actions?.map((action, index) => (
+                  {operationalMetrics?.priority_actions?.map((action: any, index: number) => (
                     <div key={index} className={`p-3 rounded-lg border ${
                       action.priority === 'CRITICAL' ? 'bg-[var(--color-error-lightest)] border-[var(--color-error-light)]' :
                       action.priority === 'HIGH' ? 'bg-[var(--color-warning-lightest)] border-[var(--color-warning-light)]' :
@@ -502,7 +506,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                 <div className="flex items-center justify-between mt-2">
                   <span className="text-xs text-[#171717]/70">Disponible</span>
                   <span className="text-xs font-medium text-[#171717]">
-                    {formatCurrency(consolidatedKPIs?.cashPosition + consolidatedKPIs?.creditLines || 0)}
+                    {formatCurrency((consolidatedKPIs?.cashPosition ?? 0) + (consolidatedKPIs?.creditLines ?? 0))}
                   </span>
                 </div>
                 <div className="mt-2">
@@ -510,7 +514,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                     <div
                       className="h-1 bg-[#171717] rounded transition-all duration-500"
                       style={{ 
-                        width: `${Math.min(100, (consolidatedKPIs?.cashPosition / (consolidatedKPIs?.cashPosition + consolidatedKPIs?.creditLines) * 100) || 0)}%` 
+                        width: `${Math.min(100, ((consolidatedKPIs?.cashPosition ?? 0) / ((consolidatedKPIs?.cashPosition ?? 0) + (consolidatedKPIs?.creditLines ?? 0)) * 100) || 0)}%`
                       }}
                     />
                   </div>
@@ -533,7 +537,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                 <div className="flex items-center justify-between mt-2">
                   <span className="text-xs text-[#171717]/70">DSO</span>
                   <span className={`text-xs font-medium ${
-                    consolidatedKPIs?.dso <= 30 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'
+                    (consolidatedKPIs?.dso ?? 0) <= 30 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'
                   }`}>
                     {consolidatedKPIs?.dso || 0}j
                   </span>
@@ -589,7 +593,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                 <div className="flex items-center justify-between mt-2">
                   <span className="text-xs text-[#171717]/70">Marge</span>
                   <span className={`text-xs font-medium ${
-                    consolidatedKPIs?.operatingMargin >= 15 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'
+                    (consolidatedKPIs?.operatingMargin ?? 0) >= 15 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'
                   }`}>
                     Objectif: 15%
                   </span>
@@ -633,7 +637,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {financialTrends?.key_ratios?.map((ratio, index) => (
+                  {financialTrends?.key_ratios?.map((ratio: any, index: number) => (
                     <div key={index} className="flex items-center justify-between p-3 border rounded">
                       <div>
                         <p className="font-medium">{ratio.name}</p>
@@ -803,7 +807,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
               <div className="grid gap-6 md:grid-cols-2">
                 <div className="space-y-4">
                   <h4 className="font-semibold text-[#171717]">Objectifs de Performance</h4>
-                  {performanceBenchmark?.performance_targets?.map((target, index) => (
+                  {performanceBenchmark?.performance_targets?.map((target: any, index: number) => (
                     <div key={index} className="flex items-center justify-between p-3 border rounded">
                       <div>
                         <p className="font-medium">{target.metric_name}</p>

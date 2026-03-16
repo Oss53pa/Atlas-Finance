@@ -26,9 +26,9 @@ const ToggleLeft = React.forwardRef<HTMLButtonElement, ToggleLeftProps>(
         disabled={disabled}
         onClick={handleToggle}
         className={cn(
-          "inline-flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2",
+          "inline-flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2",
           checked 
-            ? "bg-indigo-100 text-indigo-700 border-indigo-300" 
+            ? "bg-primary-100 text-primary-700 border-primary-300" 
             : "bg-gray-100 text-gray-700 border-gray-300",
           disabled && "opacity-50 cursor-not-allowed",
           className
@@ -40,7 +40,7 @@ const ToggleLeft = React.forwardRef<HTMLButtonElement, ToggleLeftProps>(
         <div
           className={cn(
             "w-4 h-4 rounded-full transition-colors",
-            checked ? "bg-indigo-600" : "bg-gray-400"
+            checked ? "bg-primary" : "bg-gray-400"
           )}
         />
         {children}

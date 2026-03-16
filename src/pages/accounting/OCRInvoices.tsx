@@ -538,7 +538,7 @@ const OCRInvoices: React.FC = () => {
               {/* Search and Filter Bar */}
               <div className="flex items-center gap-4 mb-6">
                 <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--color-text-tertiary)] w-5 h-5" />
+                  <Search className="absolute left-3 top-1/2 transform -tranprimary-y-1/2 text-[var(--color-text-tertiary)] w-5 h-5" />
                   <input
                     type="text"
                     placeholder="Rechercher par nom de fichier ou fournisseur..."
@@ -867,8 +867,8 @@ const OCRInvoices: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <FileCheck className="w-5 h-5 text-purple-600" />
+                    <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <FileCheck className="w-5 h-5 text-primary-600" />
                     </div>
                     <div>
                       <h4 className="font-medium text-[var(--color-text-primary)]">PEPPOL Ready</h4>

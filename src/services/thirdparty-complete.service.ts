@@ -12,7 +12,7 @@ export interface UpdateThirdPartyDto { name?: string; email?: string; phone?: st
 export interface ThirdPartyQueryParams { page?: number; page_size?: number; search?: string; type?: string; is_active?: boolean; }
 
 class ThirdPartyServiceClass {
-  async getAll(params?: ThirdPartyQueryParams) { try { const r = await apiService.get(`${BASE_PATH}/`, { params }); return r.data; } catch { return { results: [], count: 0 }; } }
+  async getAll(params?: ThirdPartyQueryParams) { try { const r = await apiService.get(`${BASE_PATH}/`, { params: params as Record<string, unknown> }); return r.data; } catch { return { results: [], count: 0 }; } }
   async getById(id: string) { try { const r = await apiService.get(`${BASE_PATH}/${id}/`); return r.data; } catch { return null; } }
   async create(data: CreateThirdPartyDto) { const r = await apiService.post(`${BASE_PATH}/`, data); return r.data; }
   async update(id: string, data: UpdateThirdPartyDto) { const r = await apiService.patch(`${BASE_PATH}/${id}/`, data); return r.data; }
@@ -29,9 +29,9 @@ class ContactsService {
 }
 
 class ThirdPartyReportsService {
-  async getAgingReport(params?: ThirdPartyQueryParams) { try { const r = await apiService.get(`${BASE_PATH}/reports/aging/`, { params }); return r.data; } catch { return { customers: [], suppliers: [] }; } }
-  async getBalanceReport(params?: ThirdPartyQueryParams) { try { const r = await apiService.get(`${BASE_PATH}/reports/balance/`, { params }); return r.data; } catch { return { balances: [] }; } }
-  async getStatementReport(thirdPartyId: string, params?: ThirdPartyQueryParams) { try { const r = await apiService.get(`${BASE_PATH}/${thirdPartyId}/statement/`, { params }); return r.data; } catch { return { transactions: [], balance: 0 }; } }
+  async getAgingReport(params?: ThirdPartyQueryParams) { try { const r = await apiService.get(`${BASE_PATH}/reports/aging/`, { params: params as Record<string, unknown> }); return r.data; } catch { return { customers: [], suppliers: [] }; } }
+  async getBalanceReport(params?: ThirdPartyQueryParams) { try { const r = await apiService.get(`${BASE_PATH}/reports/balance/`, { params: params as Record<string, unknown> }); return r.data; } catch { return { balances: [] }; } }
+  async getStatementReport(thirdPartyId: string, params?: ThirdPartyQueryParams) { try { const r = await apiService.get(`${BASE_PATH}/${thirdPartyId}/statement/`, { params: params as Record<string, unknown> }); return r.data; } catch { return { transactions: [], balance: 0 }; } }
 }
 
 export const thirdPartyService = new ThirdPartyServiceClass();

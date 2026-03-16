@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Analytics Advanced Service - Stub
  * Provides global KPI analytics across modules

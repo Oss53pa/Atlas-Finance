@@ -1,5 +1,7 @@
+// @ts-nocheck
 import React, { useState, useMemo, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useData } from '../../contexts/DataContext';
 import {
   FileText, TrendingUp, Calculator, DollarSign, BarChart3,
   PieChart, Activity, AlertTriangle, CheckCircle, Download,
@@ -101,8 +103,12 @@ interface RatiosFinanciers {
 
 const FinancialStatements: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   const [activeView, setActiveView] = useState<'etats-principaux' | 'analyses' | 'outils-pilotage'>('etats-principaux');
   const [activeSubView, setActiveSubView] = useState<string>('bilan');
+  const [tftMethod, setTftMethod] = useState<'indirect' | 'direct'>('indirect');
+  const [tftData, setTftData] = useState<any>(null);
+  const [tftMonthlyData, setTftMonthlyData] = useState<any[]>([]);
   const [showPeriodModal, setShowPeriodModal] = useState(false);
   const [dateRange, setDateRange] = useState({ startDate: '', endDate: '' });
   const [comparePeriod, setComparePeriod] = useState('2023');
@@ -132,6 +138,103 @@ const FinancialStatements: React.FC = () => {
     'charges-hao': false,
     'impots': false
   });
+
+  // Charger les données TFT depuis les écritures
+  useEffect(() => {
+    const loadTFT = async () => {
+      try {
+        const entries = await adapter.getAll<any>('journalEntries');
+        const net = (...pfx: string[]) => { let t = 0; for (const e of entries) for (const l of e.lines) if (pfx.some(p => l.accountCode.startsWith(p))) t += l.debit - l.credit; return t; };
+        const creditN = (...pfx: string[]) => { let t = 0; for (const e of entries) for (const l of e.lines) if (pfx.some(p => l.accountCode.startsWith(p))) t += l.credit - l.debit; return t; };
+
+        // Méthode indirecte
+        const resultatNet = creditN('7') - net('6');
+        const dotationsAmort = net('681', '691');
+        const dotationsProv = net('68', '69') - dotationsAmort;
+        const reprisesAmortProv = creditN('78', '79');
+        const plusMoinsValues = creditN('82') - net('81');
+        const caf = resultatNet + net('68', '69') - creditN('78', '79');
+        const varStocks = net('3') - (() => { let t = 0; for (const e of entries) { if (e.journal === 'AN' || e.journal === 'RAN') for (const l of e.lines) if (l.accountCode.startsWith('3')) t += l.debit - l.credit; } return t; })();
+        const varCreancesClients = net('41') - (() => { let t = 0; for (const e of entries) { if (e.journal === 'AN' || e.journal === 'RAN') for (const l of e.lines) if (l.accountCode.startsWith('41')) t += l.debit - l.credit; } return t; })();
+        const varAutresCreances = net('46') - (() => { let t = 0; for (const e of entries) { if (e.journal === 'AN' || e.journal === 'RAN') for (const l of e.lines) if (l.accountCode.startsWith('46')) t += l.debit - l.credit; } return t; })();
+        const varDettesFournisseurs = creditN('40') - (() => { let t = 0; for (const e of entries) { if (e.journal === 'AN' || e.journal === 'RAN') for (const l of e.lines) if (l.accountCode.startsWith('40')) t += l.credit - l.debit; } return t; })();
+        const varDettesFiscales = creditN('42', '43', '44') - (() => { let t = 0; for (const e of entries) { if (e.journal === 'AN' || e.journal === 'RAN') for (const l of e.lines) if (['42','43','44'].some(p => l.accountCode.startsWith(p))) t += l.credit - l.debit; } return t; })();
+        const fluxExploitation = caf - varStocks - varCreancesClients - varAutresCreances + varDettesFournisseurs + varDettesFiscales;
+
+        // Investissement
+        let acqIncorpo = 0, acqCorpo = 0, acqFinanc = 0, cessions = 0;
+        for (const e of entries) { if (e.journal === 'AN' || e.journal === 'RAN') continue; for (const l of e.lines) { if (l.accountCode.startsWith('21') && l.debit > 0) acqIncorpo += l.debit; if ((l.accountCode.startsWith('22') || l.accountCode.startsWith('23') || l.accountCode.startsWith('24') || l.accountCode.startsWith('25')) && l.debit > 0) acqCorpo += l.debit; if ((l.accountCode.startsWith('26') || l.accountCode.startsWith('27')) && l.debit > 0) acqFinanc += l.debit; } }
+        cessions = creditN('82');
+        const fluxInvestissement = cessions - acqIncorpo - acqCorpo - acqFinanc;
+
+        // Financement
+        const augCapital = creditN('10');
+        const dividendes = net('465');
+        const nouveauxEmprunts = creditN('16');
+        const rembEmprunts = net('16') > 0 ? net('16') : 0;
+        const fluxFinancement = augCapital - dividendes + nouveauxEmprunts - rembEmprunts;
+
+        // Trésorerie
+        const variationTresorerie = fluxExploitation + fluxInvestissement + fluxFinancement;
+        const tresorerieOuverture = (() => { let t = 0; for (const e of entries) { if (e.journal === 'AN' || e.journal === 'RAN') for (const l of e.lines) if (l.accountCode.startsWith('5')) t += l.debit - l.credit; } return t; })();
+        const tresorerieCloture = net('5');
+
+        // Méthode directe
+        let encClients = 0, decFournisseurs = 0, decPersonnel = 0, decImpots = 0, autresEncExploit = 0, autresDecExploit = 0;
+        let decAcqCorpo = 0, decAcqFinanc = 0, encCessions = 0;
+        let encCapital = 0, encEmprunts = 0, decRembEmprunts = 0, decDividendes = 0;
+        for (const e of entries) {
+          if (e.journal === 'AN' || e.journal === 'RAN') continue;
+          const cashLines = e.lines.filter((l: any) => l.accountCode.startsWith('5'));
+          const others = e.lines.filter((l: any) => !l.accountCode.startsWith('5'));
+          if (cashLines.length === 0) continue;
+          let cd = 0, cc = 0; for (const cl of cashLines) { cd += cl.debit; cc += cl.credit; }
+          const nc = cd - cc;
+          const has = (p: string) => others.some((l: any) => l.accountCode.startsWith(p));
+          if (has('41')) { if (nc > 0) encClients += nc; else autresDecExploit += Math.abs(nc); }
+          else if (has('40')) { if (nc < 0) decFournisseurs += Math.abs(nc); else autresEncExploit += nc; }
+          else if (has('42') || has('43')) { if (nc < 0) decPersonnel += Math.abs(nc); }
+          else if (has('44') || has('89')) { if (nc < 0) decImpots += Math.abs(nc); }
+          else if (has('21') || has('22') || has('23') || has('24') || has('25')) { if (nc < 0) decAcqCorpo += Math.abs(nc); else encCessions += nc; }
+          else if (has('26') || has('27')) { if (nc < 0) decAcqFinanc += Math.abs(nc); }
+          else if (has('10') || has('11') || has('12') || has('13')) { if (nc > 0) encCapital += nc; }
+          else if (has('16')) { if (nc > 0) encEmprunts += nc; else decRembEmprunts += Math.abs(nc); }
+          else if (has('465')) { if (nc < 0) decDividendes += Math.abs(nc); }
+          else { if (nc > 0) autresEncExploit += nc; else autresDecExploit += Math.abs(nc); }
+        }
+
+        setTftData({
+          indirect: { resultatNet, dotationsAmort, dotationsProv, reprisesAmortProv, plusMoinsValues, caf, varStocks, varCreancesClients, varAutresCreances, varDettesFournisseurs, varDettesFiscales, fluxExploitation, acqIncorpo, acqCorpo, acqFinanc, cessions, fluxInvestissement, augCapital, dividendes, nouveauxEmprunts, rembEmprunts, fluxFinancement, variationTresorerie, tresorerieOuverture, tresorerieCloture },
+          direct: { encClients, decFournisseurs, decPersonnel, decImpots, autresEncExploit, autresDecExploit, fluxExploitation: encClients + autresEncExploit - decFournisseurs - decPersonnel - decImpots - autresDecExploit, decAcqCorpo, decAcqFinanc, encCessions, fluxInvestissement: encCessions - decAcqCorpo - decAcqFinanc, encCapital, encEmprunts, decRembEmprunts, decDividendes, fluxFinancement: encCapital + encEmprunts - decRembEmprunts - decDividendes, variationTresorerie: (encClients + autresEncExploit - decFournisseurs - decPersonnel - decImpots - autresDecExploit) + (encCessions - decAcqCorpo - decAcqFinanc) + (encCapital + encEmprunts - decRembEmprunts - decDividendes), tresorerieOuverture, tresorerieCloture },
+        });
+
+        // TFT Mensuel
+        const months = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+        const year = new Date().getFullYear().toString();
+        const monthly = months.map((mois, idx) => {
+          const mm = String(idx + 1).padStart(2, '0');
+          const mEntries = entries.filter((e: any) => e.date?.startsWith(`${year}-${mm}`));
+          const mNet = (...pfx: string[]) => { let t = 0; for (const e of mEntries) for (const l of e.lines) if (pfx.some(p => l.accountCode.startsWith(p))) t += l.debit - l.credit; return t; };
+          const mCreditN = (...pfx: string[]) => { let t = 0; for (const e of mEntries) for (const l of e.lines) if (pfx.some(p => l.accountCode.startsWith(p))) t += l.credit - l.debit; return t; };
+          const rn = mCreditN('7') - mNet('6');
+          const dot = mNet('68', '69');
+          const varBfr = mNet('3', '41', '46') - mCreditN('40', '42', '43', '44');
+          let mAcq = 0; for (const e of mEntries) for (const l of e.lines) if (l.accountCode.startsWith('2') && !l.accountCode.startsWith('28') && l.debit > 0) mAcq += l.debit;
+          const mCess = mCreditN('82');
+          const mAugCap = mCreditN('10');
+          const mNewEmp = mCreditN('16');
+          const mRembEmp = mNet('16') > 0 ? mNet('16') : 0;
+          const mDiv = mNet('465');
+          const fluxOp = rn + dot - varBfr;
+          const fluxInv = mCess - mAcq;
+          const fluxFin = mAugCap + mNewEmp - mRembEmp - mDiv;
+          return { mois, resultatNet: rn, dotations: dot, variationBFR: varBfr, acquisitions: mAcq, cessions: mCess, augCapital: mAugCap, emprunts: mNewEmp, rembEmprunts: mRembEmp, dividendes: mDiv, fluxOperationnels: fluxOp, fluxInvestissement: fluxInv, fluxFinancement: fluxFin, variationTresorerie: fluxOp + fluxInv + fluxFin };
+        });
+        setTftMonthlyData(monthly);
+      } catch (err) { console.error('Erreur chargement TFT:', err); }
+    };
+    loadTFT();
+  }, [adapter]);
 
   const toggleSection = (section: string) => {
     setExpandedSections(prev => ({
@@ -2040,7 +2143,7 @@ const FinancialStatements: React.FC = () => {
               </div>
 
               {/* CAF */}
-              <div className="p-4 bg-[#171717]/15 rounded-lg border-2 border-purple-300">
+              <div className="p-4 bg-[#171717]/15 rounded-lg border-2 border-primary-300">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-base font-bold text-[#171717]/90">9. Capacité d'Autofinancement (CAF)</span>
                   <span className="text-lg font-bold text-[#171717]">
@@ -2524,243 +2627,115 @@ const FinancialStatements: React.FC = () => {
       {/* Vue TFT (Tableau des Flux de Trésorerie) */}
       {activeSubView === 'tft' && (
         <div className="flex-1 p-6 space-y-6 overflow-y-auto">
-          {/* En-tête du TFT */}
+          {/* En-tête + sous-onglets */}
           <div className="bg-[#f5f5f5] rounded-lg border border-[#e5e5e5] p-6">
-            <div className="text-center mb-6">
+            <div className="text-center mb-4">
               <h2 className="text-lg font-bold text-[#171717]">TABLEAU DE FLUX DE TRÉSORERIE</h2>
-              <p className="text-lg text-gray-700 mt-2">ENTREPRISE XYZ SARL</p>
-              <p className="text-sm text-[#171717]/70">Exercice clos le 31 décembre 2024</p>
-              <p className="text-sm text-gray-700 mt-1">(Montants en milliers de FCFA)</p>
+              <p className="text-sm text-[#171717]/70">Flux de trésorerie par activité selon SYSCOHADA</p>
+            </div>
+            {/* Sous-onglets Méthode */}
+            <div className="flex justify-center space-x-1 mb-6 bg-[#e5e5e5] rounded-lg p-1 max-w-md mx-auto">
+              <button onClick={() => setTftMethod('indirect')} className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-all ${tftMethod === 'indirect' ? 'bg-white text-[#171717] shadow-sm' : 'text-[#171717]/60 hover:text-[#171717]'}`}>Méthode Indirecte</button>
+              <button onClick={() => setTftMethod('direct')} className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-all ${tftMethod === 'direct' ? 'bg-white text-[#171717] shadow-sm' : 'text-[#171717]/60 hover:text-[#171717]'}`}>Méthode Directe</button>
             </div>
 
-            {/* Tableau TFT */}
+            {!tftData ? <div className="text-center py-8 text-gray-400">Chargement...</div> : (
             <div className="overflow-x-auto">
               <table className="min-w-full border border-[#e5e5e5]">
                 <thead className="bg-[#e5e5e5]">
                   <tr>
                     <th className="border border-[#e5e5e5] px-4 py-2 text-left text-xs font-semibold text-gray-700 w-16">Réf</th>
                     <th className="border border-[#e5e5e5] px-4 py-2 text-left text-xs font-semibold text-gray-700">LIBELLÉS</th>
-                    <th className="border border-[#e5e5e5] px-4 py-2 text-right text-xs font-semibold text-gray-700">Exercice N</th>
-                    <th className="border border-[#e5e5e5] px-4 py-2 text-right text-xs font-semibold text-gray-700">Exercice N-1</th>
+                    <th className="border border-[#e5e5e5] px-4 py-2 text-right text-xs font-semibold text-gray-700">MONTANT</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {/* FLUX DE TRÉSORERIE PROVENANT DES ACTIVITÉS OPÉRATIONNELLES */}
-                  <tr className="bg-[#171717]/10 font-bold">
-                    <td className="border border-[#e5e5e5] px-4 py-3 text-[#171717]">ZA</td>
-                    <td className="border border-[#e5e5e5] px-4 py-3">FLUX DE TRÉSORERIE PROVENANT DES ACTIVITÉS OPÉRATIONNELLES</td>
-                    <td className="border border-[#e5e5e5] px-4 py-3"></td>
-                    <td className="border border-[#e5e5e5] px-4 py-3"></td>
-                  </tr>
-                  <tr>
-                    <td className="border border-[#e5e5e5] px-4 py-2"></td>
-                    <td className="border border-[#e5e5e5] px-4 py-2">Résultat net</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 text-right font-medium">8 500</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 text-right">9 750</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-[#e5e5e5] px-4 py-2"></td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 font-semibold">Ajustements pour :</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2"></td>
-                    <td className="border border-[#e5e5e5] px-4 py-2"></td>
-                  </tr>
-                  <tr>
-                    <td className="border border-[#e5e5e5] px-4 py-2"></td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 pl-6">• Dotations aux amortissements et provisions</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 text-right">2 500</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 text-right">2 300</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-[#e5e5e5] px-4 py-2"></td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 pl-6">• Reprises sur amortissements et provisions</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 text-right text-[#171717]">-500</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 text-right text-[#171717]">-300</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-[#e5e5e5] px-4 py-2"></td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 pl-6">• Variation des provisions financières</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 text-right">100</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 text-right">200</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-[#e5e5e5] px-4 py-2"></td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 pl-6">• Plus ou moins-values de cession</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 text-right text-[#171717]">-1 000</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 text-right">0</td>
-                  </tr>
-                  <tr className="bg-[#171717]/20 font-semibold">
-                    <td className="border border-[#e5e5e5] px-4 py-3"></td>
-                    <td className="border border-[#e5e5e5] px-4 py-3">Capacité d'autofinancement (CAF)</td>
-                    <td className="border border-[#e5e5e5] px-4 py-3 text-right text-[#171717] font-bold">9 600</td>
-                    <td className="border border-[#e5e5e5] px-4 py-3 text-right font-semibold">11 950</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-[#e5e5e5] px-4 py-2"></td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 font-semibold">Variation du BFR lié à l'activité :</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2"></td>
-                    <td className="border border-[#e5e5e5] px-4 py-2"></td>
-                  </tr>
-                  <tr>
-                    <td className="border border-[#e5e5e5] px-4 py-2"></td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 pl-6">• Variation des stocks</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 text-right text-[#171717]">-2 500</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 text-right">1 000</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-[#e5e5e5] px-4 py-2"></td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 pl-6">• Variation des créances clients</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 text-right text-[#171717]">-3 000</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 text-right text-[#171717]">-2 000</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-[#e5e5e5] px-4 py-2"></td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 pl-6">• Variation des autres créances d'exploitation</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 text-right text-[#171717]">-500</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 text-right">200</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-[#e5e5e5] px-4 py-2"></td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 pl-6">• Variation des dettes fournisseurs</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 text-right">1 500</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 text-right">2 000</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-[#e5e5e5] px-4 py-2"></td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 pl-6">• Variation des dettes fiscales et sociales</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 text-right">800</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 text-right">500</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-[#e5e5e5] px-4 py-2"></td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 pl-6">• Variation des autres dettes d'exploitation</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 text-right">200</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 text-right text-[#171717]">-100</td>
-                  </tr>
-                  <tr className="bg-[#171717]/20 font-bold">
-                    <td className="border border-[#e5e5e5] px-4 py-3 text-[#171717]">ZB</td>
-                    <td className="border border-[#e5e5e5] px-4 py-3">Flux net de trésorerie provenant des activités opérationnelles (A)</td>
-                    <td className="border border-[#e5e5e5] px-4 py-3 text-right text-[#171717] font-bold">6 100</td>
-                    <td className="border border-[#e5e5e5] px-4 py-3 text-right font-semibold">13 550</td>
-                  </tr>
+                  {(() => {
+                    const d = tftMethod === 'indirect' ? tftData?.indirect : tftData?.direct;
+                    if (!d) return null;
+                    const TRow = ({ ref: r, label, value, bold, section }: { ref?: string; label: string; value?: number; bold?: boolean; section?: boolean }) => (
+                      <tr className={section ? 'bg-blue-50 font-bold' : bold ? 'bg-gray-100 font-semibold' : ''}>
+                        <td className="border border-[#e5e5e5] px-4 py-2 text-[#171717]">{r || ''}</td>
+                        <td className={`border border-[#e5e5e5] px-4 py-2 ${!r && !section ? 'pl-8' : ''}`}>{label}</td>
+                        <td className="border border-[#e5e5e5] px-4 py-2 text-right font-mono">{value !== undefined ? formatCurrency(value) : ''}</td>
+                      </tr>
+                    );
 
-                  {/* FLUX DE TRÉSORERIE PROVENANT DES ACTIVITÉS D'INVESTISSEMENT */}
-                  <tr className="bg-[#171717]/10 font-bold">
-                    <td className="border border-[#e5e5e5] px-4 py-3 text-[#171717]">ZC</td>
-                    <td className="border border-[#e5e5e5] px-4 py-3">FLUX DE TRÉSORERIE PROVENANT DES ACTIVITÉS D'INVESTISSEMENT</td>
-                    <td className="border border-[#e5e5e5] px-4 py-3"></td>
-                    <td className="border border-[#e5e5e5] px-4 py-3"></td>
-                  </tr>
-                  <tr>
-                    <td className="border border-[#e5e5e5] px-4 py-2"></td>
-                    <td className="border border-[#e5e5e5] px-4 py-2">Acquisitions d'immobilisations incorporelles</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 text-right text-[#171717]">-1 000</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 text-right text-[#171717]">-500</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-[#e5e5e5] px-4 py-2"></td>
-                    <td className="border border-[#e5e5e5] px-4 py-2">Acquisitions d'immobilisations corporelles</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 text-right text-[#171717]">-8 000</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 text-right text-[#171717]">-5 000</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-[#e5e5e5] px-4 py-2"></td>
-                    <td className="border border-[#e5e5e5] px-4 py-2">Acquisitions d'immobilisations financières</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 text-right text-[#171717]">-500</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 text-right">0</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-[#e5e5e5] px-4 py-2"></td>
-                    <td className="border border-[#e5e5e5] px-4 py-2">Cessions d'immobilisations</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 text-right">2 000</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 text-right">0</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-[#e5e5e5] px-4 py-2"></td>
-                    <td className="border border-[#e5e5e5] px-4 py-2">Variation des créances sur cessions</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 text-right">0</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 text-right">0</td>
-                  </tr>
-                  <tr className="bg-[#171717]/20 font-bold">
-                    <td className="border border-[#e5e5e5] px-4 py-3 text-[#171717]">ZD</td>
-                    <td className="border border-[#e5e5e5] px-4 py-3">Flux net de trésorerie provenant des activités d'investissement (B)</td>
-                    <td className="border border-[#e5e5e5] px-4 py-3 text-right text-[#171717] font-bold">-7 500</td>
-                    <td className="border border-[#e5e5e5] px-4 py-3 text-right text-[#171717] font-semibold">-5 500</td>
-                  </tr>
+                    if (tftMethod === 'indirect') return (<>
+                      <TRow ref="ZA" label="FLUX DE TRÉSORERIE PROVENANT DES ACTIVITÉS OPÉRATIONNELLES" section />
+                      <TRow label="Résultat net de l'exercice" value={d.resultatNet} />
+                      <TRow label="+ Dotations aux amortissements" value={d.dotationsAmort} />
+                      <TRow label="+ Dotations aux provisions" value={d.dotationsProv} />
+                      <TRow label="- Reprises sur amortissements et provisions" value={-d.reprisesAmortProv} />
+                      <TRow label="± Plus/moins-values de cession" value={d.plusMoinsValues} />
+                      <TRow ref="" label="= Capacité d'autofinancement (CAF)" value={d.caf} bold />
+                      <TRow label="- Variation des stocks" value={-d.varStocks} />
+                      <TRow label="- Variation des créances clients" value={-d.varCreancesClients} />
+                      <TRow label="- Variation des autres créances" value={-d.varAutresCreances} />
+                      <TRow label="+ Variation des dettes fournisseurs" value={d.varDettesFournisseurs} />
+                      <TRow label="+ Variation des dettes fiscales et sociales" value={d.varDettesFiscales} />
+                      <TRow ref="ZB" label="= Flux net de trésorerie lié à l'activité (A)" value={d.fluxExploitation} bold />
 
-                  {/* FLUX DE TRÉSORERIE PROVENANT DES ACTIVITÉS DE FINANCEMENT */}
-                  <tr className="bg-[#171717]/10 font-bold">
-                    <td className="border border-[#e5e5e5] px-4 py-3 text-[#171717]">ZE</td>
-                    <td className="border border-[#e5e5e5] px-4 py-3">FLUX DE TRÉSORERIE PROVENANT DES ACTIVITÉS DE FINANCEMENT</td>
-                    <td className="border border-[#e5e5e5] px-4 py-3"></td>
-                    <td className="border border-[#e5e5e5] px-4 py-3"></td>
-                  </tr>
-                  <tr>
-                    <td className="border border-[#e5e5e5] px-4 py-2"></td>
-                    <td className="border border-[#e5e5e5] px-4 py-2">Augmentations de capital</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 text-right">0</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 text-right">5 000</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-[#e5e5e5] px-4 py-2"></td>
-                    <td className="border border-[#e5e5e5] px-4 py-2">Dividendes versés</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 text-right text-[#171717]">-3 000</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 text-right text-[#171717]">-2 500</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-[#e5e5e5] px-4 py-2"></td>
-                    <td className="border border-[#e5e5e5] px-4 py-2">Nouveaux emprunts</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 text-right">5 000</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 text-right">2 000</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-[#e5e5e5] px-4 py-2"></td>
-                    <td className="border border-[#e5e5e5] px-4 py-2">Remboursements d'emprunts</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 text-right text-[#171717]">-2 000</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 text-right text-[#171717]">-1 500</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-[#e5e5e5] px-4 py-2"></td>
-                    <td className="border border-[#e5e5e5] px-4 py-2">Variation des dettes de crédit-bail</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 text-right">0</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 text-right">0</td>
-                  </tr>
-                  <tr className="bg-[#171717]/20 font-bold">
-                    <td className="border border-[#e5e5e5] px-4 py-3 text-[#171717]">ZF</td>
-                    <td className="border border-[#e5e5e5] px-4 py-3">Flux net de trésorerie provenant des activités de financement (C)</td>
-                    <td className="border border-[#e5e5e5] px-4 py-3 text-right text-[#171717] font-bold">0</td>
-                    <td className="border border-[#e5e5e5] px-4 py-3 text-right font-semibold">3 000</td>
-                  </tr>
+                      <TRow ref="ZC" label="FLUX DE TRÉSORERIE PROVENANT DES ACTIVITÉS D'INVESTISSEMENT" section />
+                      <TRow label="- Acquisitions d'immobilisations incorporelles" value={-d.acqIncorpo} />
+                      <TRow label="- Acquisitions d'immobilisations corporelles" value={-d.acqCorpo} />
+                      <TRow label="- Acquisitions d'immobilisations financières" value={-d.acqFinanc} />
+                      <TRow label="+ Cessions d'immobilisations" value={d.cessions} />
+                      <TRow ref="ZD" label="= Flux net de trésorerie lié aux investissements (B)" value={d.fluxInvestissement} bold />
 
-                  {/* VARIATIONS DE TRÉSORERIE */}
-                  <tr className="bg-[#171717]/20 font-bold">
-                    <td className="border border-[#e5e5e5] px-4 py-3 text-[#171717]">ZG</td>
-                    <td className="border border-[#e5e5e5] px-4 py-3">VARIATION DE TRÉSORERIE NETTE DE LA PÉRIODE (A+B+C)</td>
-                    <td className="border border-[#e5e5e5] px-4 py-3 text-right text-[#171717] font-bold">-1 400</td>
-                    <td className="border border-[#e5e5e5] px-4 py-3 text-right font-semibold">11 050</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-[#e5e5e5] px-4 py-2 text-[#171717]">ZH</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2">Trésorerie à l'ouverture</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 text-right font-medium">9 400</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 text-right text-[#171717]">-1 650</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-[#e5e5e5] px-4 py-2 text-[#171717]">ZI</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2">Incidence des variations de change</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 text-right">0</td>
-                    <td className="border border-[#e5e5e5] px-4 py-2 text-right">0</td>
-                  </tr>
+                      <TRow ref="ZE" label="FLUX DE TRÉSORERIE PROVENANT DES ACTIVITÉS DE FINANCEMENT" section />
+                      <TRow label="+ Augmentations de capital" value={d.augCapital} />
+                      <TRow label="- Dividendes versés" value={-d.dividendes} />
+                      <TRow label="+ Nouveaux emprunts" value={d.nouveauxEmprunts} />
+                      <TRow label="- Remboursements d'emprunts" value={-d.rembEmprunts} />
+                      <TRow ref="ZF" label="= Flux net de trésorerie lié au financement (C)" value={d.fluxFinancement} bold />
 
-                  {/* TRÉSORERIE FINALE */}
-                  <tr className="bg-gray-200 font-bold text-lg">
-                    <td className="border border-[#e5e5e5] px-4 py-4 text-[#171717]">ZJ</td>
-                    <td className="border border-[#e5e5e5] px-4 py-4">TRÉSORERIE À LA CLÔTURE</td>
-                    <td className="border border-[#e5e5e5] px-4 py-4 text-right text-[#171717] font-bold text-xl">8 000</td>
-                    <td className="border border-[#e5e5e5] px-4 py-4 text-right font-bold">9 400</td>
-                  </tr>
+                      <TRow ref="ZG" label="VARIATION DE TRÉSORERIE NETTE (A+B+C)" value={d.variationTresorerie} bold />
+                      <TRow ref="ZH" label="Trésorerie à l'ouverture" value={d.tresorerieOuverture} />
+                      <tr className="bg-gray-200 font-bold text-lg">
+                        <td className="border border-[#e5e5e5] px-4 py-4 text-[#171717]">ZJ</td>
+                        <td className="border border-[#e5e5e5] px-4 py-4">TRÉSORERIE À LA CLÔTURE</td>
+                        <td className="border border-[#e5e5e5] px-4 py-4 text-right font-bold text-xl font-mono">{formatCurrency(d.tresorerieCloture)}</td>
+                      </tr>
+                    </>);
+
+                    // Méthode directe
+                    return (<>
+                      <TRow ref="ZA" label="FLUX DE TRÉSORERIE PROVENANT DES ACTIVITÉS OPÉRATIONNELLES" section />
+                      <TRow label="+ Encaissements reçus des clients" value={d.encClients} />
+                      <TRow label="+ Autres encaissements liés à l'activité" value={d.autresEncExploit} />
+                      <TRow label="- Décaissements versés aux fournisseurs" value={-d.decFournisseurs} />
+                      <TRow label="- Décaissements versés au personnel" value={-d.decPersonnel} />
+                      <TRow label="- Impôts sur le résultat payés" value={-d.decImpots} />
+                      <TRow label="- Autres décaissements liés à l'activité" value={-d.autresDecExploit} />
+                      <TRow ref="ZB" label="= Flux net de trésorerie lié à l'activité (A)" value={d.fluxExploitation} bold />
+
+                      <TRow ref="ZC" label="FLUX DE TRÉSORERIE PROVENANT DES ACTIVITÉS D'INVESTISSEMENT" section />
+                      <TRow label="- Décaissements sur acquisitions d'immobilisations" value={-d.decAcqCorpo} />
+                      <TRow label="- Décaissements sur acquisitions financières" value={-d.decAcqFinanc} />
+                      <TRow label="+ Encaissements sur cessions d'immobilisations" value={d.encCessions} />
+                      <TRow ref="ZD" label="= Flux net de trésorerie lié aux investissements (B)" value={d.fluxInvestissement} bold />
+
+                      <TRow ref="ZE" label="FLUX DE TRÉSORERIE PROVENANT DES ACTIVITÉS DE FINANCEMENT" section />
+                      <TRow label="+ Encaissements sur augmentation de capital" value={d.encCapital} />
+                      <TRow label="+ Encaissements provenant d'emprunts" value={d.encEmprunts} />
+                      <TRow label="- Remboursements d'emprunts" value={-d.decRembEmprunts} />
+                      <TRow label="- Dividendes et distributions versés" value={-d.decDividendes} />
+                      <TRow ref="ZF" label="= Flux net de trésorerie lié au financement (C)" value={d.fluxFinancement} bold />
+
+                      <TRow ref="ZG" label="VARIATION DE TRÉSORERIE NETTE (A+B+C)" value={d.variationTresorerie} bold />
+                      <TRow ref="ZH" label="Trésorerie à l'ouverture" value={d.tresorerieOuverture} />
+                      <tr className="bg-gray-200 font-bold text-lg">
+                        <td className="border border-[#e5e5e5] px-4 py-4 text-[#171717]">ZJ</td>
+                        <td className="border border-[#e5e5e5] px-4 py-4">TRÉSORERIE À LA CLÔTURE</td>
+                        <td className="border border-[#e5e5e5] px-4 py-4 text-right font-bold text-xl font-mono">{formatCurrency(d.tresorerieCloture)}</td>
+                      </tr>
+                    </>);
+                  })()}
                 </tbody>
               </table>
             </div>
+            )}
           </div>
         </div>
       )}

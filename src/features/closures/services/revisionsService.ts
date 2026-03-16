@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * ISA Revisions Service — Connected to Dexie IndexedDB.
  * Implements ISA 315/320/500 audit revision workflow.

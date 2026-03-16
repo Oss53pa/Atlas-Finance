@@ -179,17 +179,17 @@ export const renderAmortissementsIA = () => (
       />
       <CardBody>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          <div className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg">
+          <div className="p-4 bg-gradient-to-r from-primary-50 to-blue-50 rounded-lg">
             <div className="flex items-center gap-3 mb-2">
-              <Brain className="w-8 h-8 text-purple-600" />
+              <Brain className="w-8 h-8 text-primary-600" />
               <div>
-                <p className="text-lg font-bold text-purple-900">94.2%</p>
-                <p className="text-sm text-purple-700">Précision IA</p>
+                <p className="text-lg font-bold text-primary-900">94.2%</p>
+                <p className="text-sm text-primary-700">Précision IA</p>
               </div>
             </div>
-            <p className="text-xs text-purple-600">Prédictions d'amortissement validées</p>
+            <p className="text-xs text-primary-600">Prédictions d'amortissement validées</p>
           </div>
-          <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg">
+          <div className="p-4 bg-gradient-to-r from-green-50 to-primary-50 rounded-lg">
             <div className="flex items-center gap-3 mb-2">
               <DollarSign className="w-8 h-8 text-green-600" />
               <div>
@@ -199,7 +199,7 @@ export const renderAmortissementsIA = () => (
             </div>
             <p className="text-xs text-green-600">Optimisation fiscale cette année</p>
           </div>
-          <div className="p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg">
+          <div className="p-4 bg-gradient-to-r from-blue-50 to-primary-50 rounded-lg">
             <div className="flex items-center gap-3 mb-2">
               <Activity className="w-8 h-8 text-blue-600" />
               <div>
@@ -212,25 +212,25 @@ export const renderAmortissementsIA = () => (
         </div>
 
         {/* Recommandations IA */}
-        <div className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg mb-6">
-          <h4 className="font-semibold text-purple-900 mb-3 flex items-center gap-2">
+        <div className="p-4 bg-gradient-to-r from-primary-50 to-primary-50 rounded-lg mb-6">
+          <h4 className="font-semibold text-primary-900 mb-3 flex items-center gap-2">
             <Brain className="w-5 h-5" />
             Recommandations IA pour l'optimisation fiscale
           </h4>
           <div className="space-y-3">
-            <div className="p-3 bg-white rounded-lg border border-purple-200">
+            <div className="p-3 bg-white rounded-lg border border-primary-200">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-purple-900">Machine CNC - Extension durée</span>
+                <span className="text-sm font-medium text-primary-900">Machine CNC - Extension durée</span>
                 <span className="text-xs text-green-600 font-medium">Économie: €15,000</span>
               </div>
-              <p className="text-xs text-purple-700">L'IA recommande d'étendre la durée d'amortissement de 8 à 10 ans basé sur l'analyse d'usure IoT</p>
+              <p className="text-xs text-primary-700">L'IA recommande d'étendre la durée d'amortissement de 8 à 10 ans basé sur l'analyse d'usure IoT</p>
             </div>
-            <div className="p-3 bg-white rounded-lg border border-purple-200">
+            <div className="p-3 bg-white rounded-lg border border-primary-200">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-purple-900">Véhicules - Amortissement dégressif</span>
+                <span className="text-sm font-medium text-primary-900">Véhicules - Amortissement dégressif</span>
                 <span className="text-xs text-green-600 font-medium">Économie: €8,500</span>
               </div>
-              <p className="text-xs text-purple-700">Passage en amortissement dégressif recommandé pour 3 véhicules selon leur utilisation</p>
+              <p className="text-xs text-primary-700">Passage en amortissement dégressif recommandé pour 3 véhicules selon leur utilisation</p>
             </div>
           </div>
         </div>
@@ -289,13 +289,13 @@ export const renderInventaireAuto = () => (
               <AlertTriangle className="w-8 h-8 text-red-600" />
             </div>
           </div>
-          <div className="p-4 bg-purple-50 rounded-lg">
+          <div className="p-4 bg-primary-50 rounded-lg">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-lg font-bold text-purple-900">87%</p>
-                <p className="text-sm text-purple-700">Progression</p>
+                <p className="text-lg font-bold text-primary-900">87%</p>
+                <p className="text-sm text-primary-700">Progression</p>
               </div>
-              <Activity className="w-8 h-8 text-purple-600" />
+              <Activity className="w-8 h-8 text-primary-600" />
             </div>
           </div>
         </div>
@@ -307,7 +307,7 @@ export const renderInventaireAuto = () => (
               <Smartphone className="w-5 h-5" />
               Interface mobile de scan
             </h4>
-            <div className="p-6 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-lg border-2 border-dashed border-blue-300">
+            <div className="p-6 bg-gradient-to-br from-blue-50 to-primary-50 rounded-lg border-2 border-dashed border-blue-300">
               <div className="text-center">
                 <QrCode className="w-16 h-16 text-blue-600 mx-auto mb-4" />
                 <p className="text-lg font-semibold text-blue-900 mb-2">Scanner QR Code</p>

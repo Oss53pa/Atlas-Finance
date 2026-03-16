@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { formatCurrency } from '../../utils/formatters';
+import { useData } from '../../contexts/DataContext';
 import {
   PlusIcon,
   EyeIcon,
@@ -29,40 +30,27 @@ interface Loan {
 }
 
 const SimpleLoansPage: React.FC = () => {
+  const { adapter } = useData();
   const [viewMode, setViewMode] = useState<'list' | 'schedule' | 'analytics'>('list');
   const [selectedLoan, setSelectedLoan] = useState<string>('');
+  const [loans, setLoans] = useState<Loan[]>([]);
 
-  // Mock data
-  const loans: Loan[] = [
-    {
-      id: '1',
-      reference: 'EMP-2024-001',
-      bank: 'SGBC',
-      amount: 50000000,
-      rate: 8.5,
-      duration: 60,
-      startDate: '2024-01-15',
-      endDate: '2029-01-15',
-      monthlyPayment: 1025000,
-      remainingBalance: 42500000,
-      status: 'ACTIVE',
-      type: 'INVESTMENT'
-    },
-    {
-      id: '2',
-      reference: 'EMP-2024-002',
-      bank: 'UBA',
-      amount: 25000000,
-      rate: 9.2,
-      duration: 36,
-      startDate: '2024-03-01',
-      endDate: '2027-03-01',
-      monthlyPayment: 790000,
-      remainingBalance: 18750000,
-      status: 'ACTIVE',
-      type: 'WORKING_CAPITAL'
-    }
-  ];
+  useEffect(() => {
+    const loadLoans = async () => {
+      try {
+        // Try loading from settings or a dedicated store
+        const settings = await adapter.getAll<any>('settings');
+        const loansSetting = settings.find((s: any) => s.key === 'loans');
+        if (loansSetting?.value) {
+          const parsed = JSON.parse(loansSetting.value);
+          if (Array.isArray(parsed)) setLoans(parsed);
+        }
+      } catch (err) {
+        console.error('Erreur chargement emprunts:', err);
+      }
+    };
+    loadLoans();
+  }, [adapter]);
 
 
   const getStatusColor = (status: string) => {
@@ -96,13 +84,13 @@ const SimpleLoansPage: React.FC = () => {
           <select
             value={viewMode}
             onChange={(e) => setViewMode(e.target.value as typeof viewMode)}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
           >
             <option value="list">Vue Liste</option>
             <option value="schedule">Échéancier</option>
             <option value="analytics">Analytics</option>
           </select>
-          <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+          <button className="bg-primary hover:bg-primary-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
             <PlusIcon className="h-5 w-5" />
             <span>Nouvel Emprunt</span>
           </button>
@@ -243,7 +231,7 @@ const SimpleLoansPage: React.FC = () => {
                       <div className="flex space-x-2 justify-center">
                         <button
                           onClick={() => setSelectedLoan(loan.id)}
-                          className="text-indigo-600 hover:text-indigo-900"
+                          className="text-primary-600 hover:text-primary-900"
                         >
                           <EyeIcon className="h-4 w-4" />
                         </button>

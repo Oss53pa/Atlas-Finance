@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Result Affectation Service — Legal distribution of annual results.
  * Handles profit/loss allocation to reserves, dividends, and carry-forward

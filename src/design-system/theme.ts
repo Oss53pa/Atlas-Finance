@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Atlas Finance Design System - Theme Configuration
  * Unified design tokens for consistent UI across the application

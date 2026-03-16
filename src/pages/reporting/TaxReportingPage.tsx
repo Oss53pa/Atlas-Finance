@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { toast } from 'react-hot-toast';
+import { useQuery } from '@tanstack/react-query';
+import { useData } from '../../contexts/DataContext';
 import {
   TrendingUp,
   TrendingDown,
@@ -71,6 +73,7 @@ interface TaxReport {
 }
 
 const TaxReportingPage: React.FC = () => {
+  const { adapter } = useData();
   const [selectedPeriod, setSelectedPeriod] = useState('current-month');
   const [selectedTaxType, setSelectedTaxType] = useState('all');
   const [activeTab, setActiveTab] = useState('overview');
@@ -155,70 +158,87 @@ const TaxReportingPage: React.FC = () => {
     setShowImportModal(false);
   };
 
-  // Données mockées pour les statistiques fiscales
-  const taxStats = {
-    tvaCollectee: 45250000,
-    tvaDeductible: 32150000,
-    tvaAPayer: 13100000,
-    irpp: 8750000,
-    is: 12500000,
-    totalTaxes: 34350000,
-    variation: {
-      tva: +12.5,
-      irpp: -3.2,
-      is: +8.7,
-      global: +9.3
-    }
-  };
+  // Données réelles depuis les écritures comptables
+  const { data: allEntries = [] } = useQuery({
+    queryKey: ['tax-reporting-entries'],
+    queryFn: () => adapter.getAll('journalEntries'),
+  });
 
-  // Données pour le tableau des déclarations
-  const declarations = [
-    {
-      id: '1',
-      type: 'TVA',
-      periode: 'Janvier 2024',
-      montant: 13100000,
-      statut: 'payee',
-      dateEcheance: '2024-02-15',
-      datePaiement: '2024-02-10'
-    },
-    {
-      id: '2',
-      type: 'IRPP',
-      periode: 'T4 2023',
-      montant: 8750000,
-      statut: 'en_cours',
-      dateEcheance: '2024-02-20',
-      datePaiement: null
-    },
-    {
-      id: '3',
-      type: 'IS',
-      periode: '2023',
-      montant: 12500000,
-      statut: 'planifiee',
-      dateEcheance: '2024-03-15',
-      datePaiement: null
-    },
-    {
-      id: '4',
-      type: 'TVA',
-      periode: 'Décembre 2023',
-      montant: 11850000,
-      statut: 'payee',
-      dateEcheance: '2024-01-15',
-      datePaiement: '2024-01-12'
-    },
-    {
-      id: '5',
-      type: 'Taxe professionnelle',
-      periode: '2024',
-      montant: 3500000,
-      statut: 'en_retard',
-      dateEcheance: '2024-01-31',
-      datePaiement: null
+  const taxStats = useMemo(() => {
+    let tvaCollectee = 0, tvaDeductible = 0, chargesPersonnel = 0, resultatNet = 0;
+    for (const e of allEntries) {
+      for (const l of (e as any).lines || []) {
+        if (l.accountCode.startsWith('4431') || l.accountCode.startsWith('4432') || l.accountCode.startsWith('4433') || l.accountCode.startsWith('4434') || l.accountCode.startsWith('4436')) {
+          tvaCollectee += l.credit - l.debit;
+        }
+        if (l.accountCode.startsWith('4451') || l.accountCode.startsWith('4452') || l.accountCode.startsWith('4453') || l.accountCode.startsWith('4454') || l.accountCode.startsWith('4455') || l.accountCode.startsWith('4456')) {
+          tvaDeductible += l.debit - l.credit;
+        }
+        if (l.accountCode.startsWith('66')) chargesPersonnel += l.debit - l.credit;
+        if (l.accountCode.startsWith('7')) resultatNet += l.credit - l.debit;
+        if (l.accountCode.startsWith('6')) resultatNet -= l.debit - l.credit;
+      }
     }
-  ];
+    const tvaAPayer = Math.max(0, tvaCollectee - tvaDeductible);
+    const irppEstime = Math.round(chargesPersonnel * 0.15);
+    const isEstime = Math.round(Math.max(0, resultatNet) * 0.25);
+    const totalTaxes = tvaAPayer + irppEstime + isEstime;
+    const creditTVA = Math.max(0, Math.round(tvaDeductible - tvaCollectee));
+    const economiesFiscales = Math.round(tvaDeductible);
+    return {
+      tvaCollectee: Math.round(tvaCollectee),
+      tvaDeductible: Math.round(tvaDeductible),
+      tvaAPayer: Math.round(tvaAPayer),
+      irpp: irppEstime,
+      is: isEstime,
+      totalTaxes,
+      creditTVA,
+      economiesFiscales,
+      resultatNet: Math.round(resultatNet),
+      variation: { tva: 0, irpp: 0, is: 0, global: 0 }
+    };
+  }, [allEntries]);
+
+  // Déclarations fiscales depuis les paramètres
+  const { data: declSetting } = useQuery({
+    queryKey: ['tax-reporting-declarations'],
+    queryFn: () => adapter.getById('settings', 'tax_declarations'),
+  });
+
+  const declarations: TaxDeclaration[] = useMemo(() => {
+    try {
+      if ((declSetting as any)?.value) {
+        const parsed = JSON.parse((declSetting as any).value);
+        if (Array.isArray(parsed)) return parsed.map((d: any) => ({
+          id: d.id, type: d.type?.toUpperCase() || 'TVA', periode: d.period || d.periode || '',
+          montant: d.amount || d.montant || 0, statut: d.status || d.statut || 'planifiee',
+          dateEcheance: d.dueDate || d.dateEcheance || '', datePaiement: d.paidDate || d.datePaiement || null
+        }));
+      }
+    } catch {}
+    // Générer les déclarations à partir des données réelles si aucune n'est sauvegardée
+    if (taxStats.tvaAPayer > 0 || taxStats.irpp > 0 || taxStats.is > 0) {
+      const now = new Date();
+      const result: TaxDeclaration[] = [];
+      if (taxStats.tvaAPayer > 0) result.push({
+        id: 'auto-tva', type: 'TVA', periode: now.toLocaleString('fr-FR', { month: 'long', year: 'numeric' }),
+        montant: taxStats.tvaAPayer, statut: 'planifiee',
+        dateEcheance: `${now.getFullYear()}-${String(now.getMonth() + 2).padStart(2, '0')}-15`, datePaiement: null
+      });
+      if (taxStats.irpp > 0) result.push({
+        id: 'auto-irpp', type: 'IRPP', periode: `T${Math.ceil((now.getMonth() + 1) / 3)} ${now.getFullYear()}`,
+        montant: taxStats.irpp, statut: 'planifiee',
+        dateEcheance: `${now.getFullYear()}-${String(now.getMonth() + 2).padStart(2, '0')}-20`, datePaiement: null
+      });
+      if (taxStats.is > 0) result.push({
+        id: 'auto-is', type: 'IS', periode: `${now.getFullYear()}`,
+        montant: taxStats.is, statut: 'planifiee',
+        dateEcheance: `${now.getFullYear()}-03-15`, datePaiement: null
+      });
+      return result;
+    }
+    return [];
+  }, [taxStats, declSetting]);
 
   // Données pour les rapports disponibles
   const availableReports = [
@@ -397,7 +417,7 @@ const TaxReportingPage: React.FC = () => {
                     )}
                     {Math.abs(taxStats.variation.irpp)}%
                   </div>
-                  <Users className="h-8 w-8 text-purple-600 mt-2" />
+                  <Users className="h-8 w-8 text-primary-600 mt-2" />
                 </div>
               </div>
             </CardContent>
@@ -582,24 +602,24 @@ const TaxReportingPage: React.FC = () => {
               <CardContent>
                 <div className="grid gap-4 md:grid-cols-4">
                   <div className="text-center">
-                    <div className="text-lg font-bold text-var(--color-blue-primary)">38%</div>
+                    <div className="text-lg font-bold text-var(--color-blue-primary)">{taxStats.totalTaxes > 0 ? Math.round(taxStats.tvaAPayer / taxStats.totalTaxes * 100) : 0}%</div>
                     <div className="text-sm text-var(--color-text-secondary)">TVA</div>
                     <div className="text-xs text-gray-700">{formatCurrency(taxStats.tvaAPayer)}</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-lg font-bold text-purple-600">25%</div>
+                    <div className="text-lg font-bold text-primary-600">{taxStats.totalTaxes > 0 ? Math.round(taxStats.irpp / taxStats.totalTaxes * 100) : 0}%</div>
                     <div className="text-sm text-var(--color-text-secondary)">IRPP</div>
                     <div className="text-xs text-gray-700">{formatCurrency(taxStats.irpp)}</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-lg font-bold text-var(--color-green-primary)">36%</div>
+                    <div className="text-lg font-bold text-var(--color-green-primary)">{taxStats.totalTaxes > 0 ? Math.round(taxStats.is / taxStats.totalTaxes * 100) : 0}%</div>
                     <div className="text-sm text-var(--color-text-secondary)">IS</div>
                     <div className="text-xs text-gray-700">{formatCurrency(taxStats.is)}</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-lg font-bold text-var(--color-orange-primary)">1%</div>
+                    <div className="text-lg font-bold text-var(--color-orange-primary)">0%</div>
                     <div className="text-sm text-var(--color-text-secondary)">Autres</div>
-                    <div className="text-xs text-gray-700">{formatCurrency(500000)}</div>
+                    <div className="text-xs text-gray-700">{formatCurrency(0)}</div>
                   </div>
                 </div>
               </CardContent>
@@ -744,19 +764,19 @@ const TaxReportingPage: React.FC = () => {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-var(--color-text-secondary)">Charge fiscale moyenne</span>
-                      <span className="font-semibold">28.5%</span>
+                      <span className="font-semibold">{taxStats.resultatNet > 0 ? (taxStats.totalTaxes / (taxStats.resultatNet + taxStats.totalTaxes) * 100).toFixed(1) : '0.0'}%</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-var(--color-text-secondary)">Taux effectif d'imposition</span>
-                      <span className="font-semibold">24.3%</span>
+                      <span className="font-semibold">{taxStats.resultatNet > 0 ? (taxStats.is / taxStats.resultatNet * 100).toFixed(1) : '0.0'}%</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-var(--color-text-secondary)">Crédit de TVA</span>
-                      <span className="font-semibold text-var(--color-green-primary)">{formatCurrency(3250000)}</span>
+                      <span className="font-semibold text-var(--color-green-primary)">{formatCurrency(taxStats.creditTVA)}</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-var(--color-text-secondary)">Économies fiscales</span>
-                      <span className="font-semibold text-var(--color-green-primary)">{formatCurrency(5750000)}</span>
+                      <span className="font-semibold text-var(--color-green-primary)">{formatCurrency(taxStats.economiesFiscales)}</span>
                     </div>
                   </div>
                 </CardContent>
@@ -1073,16 +1093,4 @@ const TaxReportingPage: React.FC = () => {
               <Button onClick={() => {
                 handleDownloadReport(selectedReport);
                 setShowReportPreviewModal(false);
-              }}>
-                <Download className="mr-2 h-4 w-4" />
-                Télécharger
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-export default TaxReportingPage;
+    

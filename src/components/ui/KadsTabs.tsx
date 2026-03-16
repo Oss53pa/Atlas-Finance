@@ -13,7 +13,7 @@ interface KadsTabsProps {
   tabs: Tab[];
   activeTab: string;
   onTabChange: (tabId: string) => void;
-  color?: 'blue' | 'green' | 'purple' | 'orange';
+  color?: 'blue' | 'green' | 'primary' | 'orange';
   className?: string;
 }
 
@@ -27,14 +27,14 @@ const KadsTabs: React.FC<KadsTabsProps> = ({
   const colorClasses = {
     blue: 'border-blue-500 text-blue-600',
     green: 'border-green-500 text-green-600',
-    purple: 'border-purple-500 text-purple-600',
+    primary: 'border-primary-500 text-primary-600',
     orange: 'border-orange-500 text-orange-600'
   };
 
   const badgeClasses = {
     blue: 'bg-blue-100 text-blue-600',
     green: 'bg-green-100 text-green-600',
-    purple: 'bg-purple-100 text-purple-600',
+    primary: 'bg-primary-100 text-primary-600',
     orange: 'bg-orange-100 text-orange-600'
   };
 

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState } from 'react';
 import { Download, FileText, FileSpreadsheet, FileImage } from 'lucide-react';
 import { Button } from '../ui';

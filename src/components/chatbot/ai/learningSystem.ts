@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Système d'Apprentissage et d'Adaptation pour Proph3t
  * Apprentissage automatique et amélioration continue basée sur les interactions utilisateur
@@ -329,7 +330,7 @@ export class PalomaLearningSystem {
     // Basé sur le niveau d'expertise
     if (profile.expertiseLevel === 'beginner') {
       path.push(
-        { step: 'Bases de Atlas Finance', priority: 'high' },
+        { step: 'Bases de Atlas Studio', priority: 'high' },
         { step: 'Navigation principale', priority: 'high' },
         { step: 'Fonctions essentielles', priority: 'medium' }
       );

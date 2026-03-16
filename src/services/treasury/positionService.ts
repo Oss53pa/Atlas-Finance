@@ -21,9 +21,9 @@ export async function getSoldesBancaires(adapter: DataAdapter): Promise<BankPosi
   const accountNames = new Map(accounts.map((a: any) => [a.code, a.name]));
   const soldes = new Map<string, number>();
 
-  for (const entry of entries) {
+  for (const entry of entries as any[]) {
     if (entry.status !== 'validated' && entry.status !== 'posted') continue;
-    for (const line of (entry as any).lines) {
+    for (const line of entry.lines) {
       // Comptes de trésorerie SYSCOHADA : 52x (banques), 53x (caisse), 54x (régies)
       if (!line.accountCode.startsWith('52') && !line.accountCode.startsWith('53') && !line.accountCode.startsWith('54')) continue;
       const current = soldes.get(line.accountCode) || 0;

@@ -82,7 +82,7 @@ export const FaLock: React.FC<IconProps> = ({
 export const FaLockOpen: React.FC<IconProps> = ({
   className = '',
   size = 16,
-  color = 'purple'
+  color = 'primary'
 }) => (
   <svg
     width={size}

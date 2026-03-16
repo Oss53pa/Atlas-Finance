@@ -3,7 +3,8 @@
  * Gestion des communications et du travail collaboratif
  */
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { useAuth } from '../../contexts/AuthContext';
 import {
   MessageSquare,
   Send,
@@ -98,12 +99,17 @@ interface User {
 }
 
 const CollaborationModule: React.FC = () => {
+  const { user: authUser } = useAuth();
   const [activeChannel, setActiveChannel] = useState<string>('general');
   const [message, setMessage] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [showUserList, setShowUserList] = useState(true);
   const [isTyping, setIsTyping] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const currentUserName = authUser?.name || 'Utilisateur';
+  const currentUserInitials = currentUserName.split(' ').map(n => n[0]).join('').toUpperCase();
 
   // Données simulées
   const [channels] = useState<Channel[]>([
@@ -139,7 +145,7 @@ const CollaborationModule: React.FC = () => {
     },
     {
       id: 'dm-marie',
-      name: '',
+      name: 'Marie Duval',
       type: 'direct',
       members: ['user1', 'user2'],
       lastMessage: 'Peux-tu vérifier les factures?',
@@ -149,11 +155,11 @@ const CollaborationModule: React.FC = () => {
     }
   ]);
 
-  const [messages] = useState<Message[]>([
+  const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
       text: 'Bonjour tout le monde! 👋',
-      sender: '',
+      sender: 'Marc Dupont',
       senderId: 'user1',
       timestamp: new Date(Date.now() - 7200000),
       reactions: [
@@ -165,7 +171,7 @@ const CollaborationModule: React.FC = () => {
     {
       id: '2',
       text: 'La réunion de ce matin était très productive. Voici le compte-rendu en pièce jointe.',
-      sender: '',
+      sender: 'Marie Duval',
       senderId: 'user2',
       timestamp: new Date(Date.now() - 3600000),
       attachments: [
@@ -182,7 +188,7 @@ const CollaborationModule: React.FC = () => {
     {
       id: '3',
       text: 'Excellent travail sur le rapport financier! Les graphiques sont très clairs.',
-      sender: '',
+      sender: 'Pierre Ngassa',
       senderId: 'user3',
       timestamp: new Date(Date.now() - 1800000),
       replyTo: '2',
@@ -191,7 +197,7 @@ const CollaborationModule: React.FC = () => {
     {
       id: '4',
       text: 'N\'oubliez pas la deadline pour la clôture mensuelle: vendredi 17h!',
-      sender: '',
+      sender: 'Sophie Kamga',
       senderId: 'user4',
       timestamp: new Date(Date.now() - 900000),
       isRead: false
@@ -201,35 +207,35 @@ const CollaborationModule: React.FC = () => {
   const [users] = useState<User[]>([
     {
       id: 'user1',
-      name: '',
+      name: 'Marc Dupont',
       status: 'online',
       role: 'Directeur Financier',
       department: 'Finance'
     },
     {
       id: 'user2',
-      name: '',
+      name: 'Marie Duval',
       status: 'online',
       role: 'Comptable Senior',
       department: 'Comptabilité'
     },
     {
       id: 'user3',
-      name: '',
+      name: 'Pierre Ngassa',
       status: 'busy',
       role: 'Contrôleur de Gestion',
       department: 'Finance'
     },
     {
       id: 'user4',
-      name: '',
+      name: 'Sophie Kamga',
       status: 'away',
       role: 'Assistante Comptable',
       department: 'Comptabilité'
     },
     {
       id: 'user5',
-      name: '',
+      name: 'Alain Fotso',
       status: 'offline',
       role: 'Développeur',
       department: 'IT'
@@ -269,9 +275,22 @@ const CollaborationModule: React.FC = () => {
   const sendMessage = () => {
     if (!message.trim()) return;
 
-    // Logique d'envoi du message
+    const newMsg: Message = {
+      id: String(Date.now()),
+      text: message.trim(),
+      sender: currentUserName,
+      senderId: authUser?.id || 'current-user',
+      timestamp: new Date(),
+      isRead: true,
+    };
+    setMessages(prev => [...prev, newMsg]);
     setMessage('');
   };
+
+  // Auto-scroll when new messages arrive
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -289,7 +308,7 @@ const CollaborationModule: React.FC = () => {
 
           {/* Recherche */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-700" />
+            <Search className="absolute left-3 top-1/2 transform -tranprimary-y-1/2 w-4 h-4 text-gray-700" />
             <input
               type="text"
               placeholder="Rechercher..."
@@ -384,12 +403,12 @@ const CollaborationModule: React.FC = () => {
           <div className="flex items-center space-x-2">
             <div className="relative">
               <div className="w-8 h-8 rounded-full bg-[#171717] flex items-center justify-center text-white text-xs font-medium">
-                MD
+                {currentUserInitials}
               </div>
               <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-gray-50" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-medium">—</p>
+              <p className="text-sm font-medium">{currentUserName}</p>
               <p className="text-xs text-gray-700">En ligne</p>
             </div>
             <button className="p-1 hover:bg-gray-200 rounded" aria-label="Paramètres">
@@ -454,8 +473,8 @@ const CollaborationModule: React.FC = () => {
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
               {messages.map((msg, index) => (
-                <div key={msg.id} className={`flex ${msg.senderId === 'user2' ? 'justify-end' : ''}`}>
-                  <div className={`flex space-x-3 max-w-2xl ${msg.senderId === 'user2' ? 'flex-row-reverse space-x-reverse' : ''}`}>
+                <div key={msg.id} className={`flex ${msg.senderId === (authUser?.id || 'current-user') ? 'justify-end' : ''}`}>
+                  <div className={`flex space-x-3 max-w-2xl ${msg.senderId === (authUser?.id || 'current-user') ? 'flex-row-reverse space-x-reverse' : ''}`}>
                     {/* Avatar */}
                     <div className="flex-shrink-0">
                       <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium">
@@ -465,7 +484,7 @@ const CollaborationModule: React.FC = () => {
 
                     {/* Message */}
                     <div className="flex-1">
-                      <div className={`flex items-baseline space-x-2 mb-1 ${msg.senderId === 'user2' ? 'justify-end' : ''}`}>
+                      <div className={`flex items-baseline space-x-2 mb-1 ${msg.senderId === (authUser?.id || 'current-user') ? 'justify-end' : ''}`}>
                         <span className="text-sm font-medium text-gray-900">{msg.sender}</span>
                         <span className="text-xs text-gray-700">{formatTime(msg.timestamp)}</span>
                         {msg.edited && <span className="text-xs text-gray-700">(modifié)</span>}
@@ -479,7 +498,7 @@ const CollaborationModule: React.FC = () => {
                       )}
 
                       <div className={`rounded-lg px-4 py-2 ${
-                        msg.senderId === 'user2'
+                        msg.senderId === (authUser?.id || 'current-user')
                           ? 'bg-[#171717] text-white'
                           : 'bg-gray-100 text-gray-900'
                       }`}>
@@ -535,6 +554,7 @@ const CollaborationModule: React.FC = () => {
                   <span>Quelqu'un est en train d'écrire...</span>
                 </div>
               )}
+              <div ref={messagesEndRef} />
             </div>
 
             {/* Zone de saisie */}
@@ -548,7 +568,7 @@ const CollaborationModule: React.FC = () => {
                   <textarea
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
-                    onKeyPress={handleKeyPress}
+                    onKeyDown={handleKeyPress}
                     placeholder="Tapez votre message..."
                     className="w-full px-4 py-2 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-[#171717]/50"
                     rows={1}

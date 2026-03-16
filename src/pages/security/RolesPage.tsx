@@ -117,7 +117,7 @@ const RolesPage: React.FC = () => {
   const getCategoryColor = (category: string) => {
     switch (category) {
       case 'admin': return 'bg-red-100 text-red-800';
-      case 'management': return 'bg-purple-100 text-purple-800';
+      case 'management': return 'bg-primary-100 text-primary-800';
       case 'operational': return 'bg-blue-100 text-blue-800';
       case 'readonly': return 'bg-gray-100 text-gray-800';
       default: return 'bg-gray-100 text-gray-800';
@@ -200,7 +200,7 @@ const RolesPage: React.FC = () => {
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+          className="bg-primary hover:bg-primary-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
         >
           <PlusIcon className="h-5 w-5" />
           <span>Nouveau Rôle</span>
@@ -249,10 +249,10 @@ const RolesPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Utilisateurs Assignés</p>
-              <p className="text-lg font-bold text-purple-600">{totalUsers}</p>
+              <p className="text-lg font-bold text-primary-600">{totalUsers}</p>
             </div>
-            <div className="h-12 w-12 bg-purple-100 rounded-lg flex items-center justify-center">
-              <UserGroupIcon className="h-6 w-6 text-purple-600" />
+            <div className="h-12 w-12 bg-primary-100 rounded-lg flex items-center justify-center">
+              <UserGroupIcon className="h-6 w-6 text-primary-600" />
             </div>
           </div>
         </div>
@@ -263,13 +263,13 @@ const RolesPage: React.FC = () => {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
           <div className="flex items-center space-x-4">
             <div className="relative">
-              <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-700" />
+              <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-1/2 transform -tranprimary-y-1/2 text-gray-700" />
               <input
                 type="text"
                 placeholder="Rechercher un rôle..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
             </div>
             <button
@@ -289,7 +289,7 @@ const RolesPage: React.FC = () => {
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
                 <option value="all">Toutes les catégories</option>
                 <option value="admin">Administration</option>
@@ -304,7 +304,7 @@ const RolesPage: React.FC = () => {
               <select
                 value={selectedModule}
                 onChange={(e) => setSelectedModule(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
                 <option value="all">Tous les modules</option>
                 <option value="Système">Système</option>
@@ -393,7 +393,7 @@ const RolesPage: React.FC = () => {
               {/* Statistiques */}
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div className="text-center">
-                  <div className="text-lg font-bold text-indigo-600">{role.permissions.length}</div>
+                  <div className="text-lg font-bold text-primary-600">{role.permissions.length}</div>
                   <div className="text-xs text-gray-700">Permissions</div>
                 </div>
                 <div className="text-center">
@@ -432,7 +432,7 @@ const RolesPage: React.FC = () => {
                     setSelectedRole(role);
                     setShowPermissionsModal(true);
                   }}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded text-sm transition-colors flex-1 mr-3"
+                  className="bg-primary hover:bg-primary-700 text-white px-3 py-2 rounded text-sm transition-colors flex-1 mr-3"
                 >
                   Voir Permissions
                 </button>
@@ -443,7 +443,7 @@ const RolesPage: React.FC = () => {
                       setSelectedRole(role);
                       setShowViewModal(true);
                     }}
-                    className="p-2 text-gray-700 hover:text-indigo-600 transition-colors"
+                    className="p-2 text-gray-700 hover:text-primary-600 transition-colors"
                     title="Voir les détails"
                   >
                     <EyeIcon className="h-4 w-4" />
@@ -454,7 +454,7 @@ const RolesPage: React.FC = () => {
                       setSelectedRole(role);
                       setShowEditModal(true);
                     }}
-                    className="p-2 text-gray-700 hover:text-indigo-600 transition-colors"
+                    className="p-2 text-gray-700 hover:text-primary-600 transition-colors"
                     title={t('common.edit')}
                     disabled={role.isSystemRole}
                   >
@@ -506,7 +506,7 @@ const RolesPage: React.FC = () => {
                   </label>
                   <input
                     type="text"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     placeholder="Directeur Financier"
                   />
                 </div>
@@ -517,7 +517,7 @@ const RolesPage: React.FC = () => {
                   </label>
                   <input
                     type="text"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     placeholder="DIR_FIN"
                   />
                 </div>
@@ -529,7 +529,7 @@ const RolesPage: React.FC = () => {
                 </label>
                 <textarea
                   rows={3}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   placeholder="Description détaillée du rôle et de ses responsabilités..."
                 />
               </div>
@@ -538,7 +538,7 @@ const RolesPage: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Catégorie <span className="text-red-500">*</span>
                 </label>
-                <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent">
                   <option value="operational">Opérationnel</option>
                   <option value="management">Management</option>
                   <option value="admin">Administration</option>
@@ -551,20 +551,20 @@ const RolesPage: React.FC = () => {
                 <div className="space-y-3 max-h-96 overflow-y-auto">
                   <div className="border border-gray-200 rounded-lg p-4">
                     <label className="flex items-start space-x-3">
-                      <input type="checkbox" className="mt-1 rounded text-indigo-600 focus:ring-indigo-500" />
+                      <input type="checkbox" className="mt-1 rounded text-primary-600 focus:ring-primary-500" />
                       <div className="flex-1">
                         <div className="font-medium text-gray-900">Système</div>
                         <div className="mt-2 ml-6 space-y-2">
                           <label className="flex items-center">
-                            <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500 mr-2" />
+                            <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-2" />
                             <span className="text-sm text-gray-700">Gestion Utilisateurs</span>
                           </label>
                           <label className="flex items-center">
-                            <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500 mr-2" />
+                            <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-2" />
                             <span className="text-sm text-gray-700">Configuration Système</span>
                           </label>
                           <label className="flex items-center">
-                            <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500 mr-2" />
+                            <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-2" />
                             <span className="text-sm text-gray-700">Accès Complet</span>
                           </label>
                         </div>
@@ -574,20 +574,20 @@ const RolesPage: React.FC = () => {
 
                   <div className="border border-gray-200 rounded-lg p-4">
                     <label className="flex items-start space-x-3">
-                      <input type="checkbox" className="mt-1 rounded text-indigo-600 focus:ring-indigo-500" />
+                      <input type="checkbox" className="mt-1 rounded text-primary-600 focus:ring-primary-500" />
                       <div className="flex-1">
                         <div className="font-medium text-gray-900">Finance</div>
                         <div className="mt-2 ml-6 space-y-2">
                           <label className="flex items-center">
-                            <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500 mr-2" />
+                            <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-2" />
                             <span className="text-sm text-gray-700">Lecture Finance</span>
                           </label>
                           <label className="flex items-center">
-                            <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500 mr-2" />
+                            <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-2" />
                             <span className="text-sm text-gray-700">Écriture Finance</span>
                           </label>
                           <label className="flex items-center">
-                            <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500 mr-2" />
+                            <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-2" />
                             <span className="text-sm text-gray-700">Gestion Trésorerie</span>
                           </label>
                         </div>
@@ -597,20 +597,20 @@ const RolesPage: React.FC = () => {
 
                   <div className="border border-gray-200 rounded-lg p-4">
                     <label className="flex items-start space-x-3">
-                      <input type="checkbox" className="mt-1 rounded text-indigo-600 focus:ring-indigo-500" />
+                      <input type="checkbox" className="mt-1 rounded text-primary-600 focus:ring-primary-500" />
                       <div className="flex-1">
                         <div className="font-medium text-gray-900">{t('accounting.title')}</div>
                         <div className="mt-2 ml-6 space-y-2">
                           <label className="flex items-center">
-                            <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500 mr-2" />
+                            <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-2" />
                             <span className="text-sm text-gray-700">Lecture Comptabilité</span>
                           </label>
                           <label className="flex items-center">
-                            <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500 mr-2" />
+                            <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-2" />
                             <span className="text-sm text-gray-700">Saisie Écritures</span>
                           </label>
                           <label className="flex items-center">
-                            <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500 mr-2" />
+                            <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-2" />
                             <span className="text-sm text-gray-700">Gestion Journaux</span>
                           </label>
                         </div>
@@ -620,20 +620,20 @@ const RolesPage: React.FC = () => {
 
                   <div className="border border-gray-200 rounded-lg p-4">
                     <label className="flex items-start space-x-3">
-                      <input type="checkbox" className="mt-1 rounded text-indigo-600 focus:ring-indigo-500" />
+                      <input type="checkbox" className="mt-1 rounded text-primary-600 focus:ring-primary-500" />
                       <div className="flex-1">
                         <div className="font-medium text-gray-900">Commercial</div>
                         <div className="mt-2 ml-6 space-y-2">
                           <label className="flex items-center">
-                            <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500 mr-2" />
+                            <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-2" />
                             <span className="text-sm text-gray-700">Lecture Commercial</span>
                           </label>
                           <label className="flex items-center">
-                            <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500 mr-2" />
+                            <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-2" />
                             <span className="text-sm text-gray-700">Écriture Commercial</span>
                           </label>
                           <label className="flex items-center">
-                            <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500 mr-2" />
+                            <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-2" />
                             <span className="text-sm text-gray-700">Gestion Clients</span>
                           </label>
                         </div>
@@ -657,7 +657,7 @@ const RolesPage: React.FC = () => {
               >
                 Annuler
               </button>
-              <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+              <button className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-700 transition-colors">
                 Créer le rôle
               </button>
             </div>
@@ -684,7 +684,7 @@ const RolesPage: React.FC = () => {
             <div className="p-6 space-y-6">
               <div className="flex items-start justify-between">
                 <div className="flex items-center space-x-3">
-                  <div className="h-16 w-16 bg-indigo-100 rounded-lg flex items-center justify-center">
+                  <div className="h-16 w-16 bg-primary-100 rounded-lg flex items-center justify-center">
                     {getCategoryIcon(selectedRole.category)}
                   </div>
                   <div>
@@ -712,16 +712,16 @@ const RolesPage: React.FC = () => {
               </div>
 
               <div className="grid grid-cols-3 gap-6">
-                <div className="text-center p-4 bg-indigo-50 rounded-lg">
-                  <div className="text-lg font-bold text-indigo-600">{selectedRole.permissions.length}</div>
+                <div className="text-center p-4 bg-primary-50 rounded-lg">
+                  <div className="text-lg font-bold text-primary-600">{selectedRole.permissions.length}</div>
                   <div className="text-sm text-gray-600 mt-1">Permissions</div>
                 </div>
                 <div className="text-center p-4 bg-green-50 rounded-lg">
                   <div className="text-lg font-bold text-green-600">{selectedRole.usersCount}</div>
                   <div className="text-sm text-gray-600 mt-1">Utilisateurs</div>
                 </div>
-                <div className="text-center p-4 bg-purple-50 rounded-lg">
-                  <div className="text-lg font-bold text-purple-600">
+                <div className="text-center p-4 bg-primary-50 rounded-lg">
+                  <div className="text-lg font-bold text-primary-600">
                     {Object.keys(getPermissionsByModule(selectedRole.permissions)).length}
                   </div>
                   <div className="text-sm text-gray-600 mt-1">Modules</div>
@@ -836,7 +836,7 @@ const RolesPage: React.FC = () => {
                   <input
                     type="text"
                     defaultValue={selectedRole.name}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     disabled={selectedRole.isSystemRole}
                   />
                 </div>
@@ -848,7 +848,7 @@ const RolesPage: React.FC = () => {
                   <input
                     type="text"
                     defaultValue={selectedRole.code}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     disabled={selectedRole.isSystemRole}
                   />
                 </div>
@@ -861,7 +861,7 @@ const RolesPage: React.FC = () => {
                 <textarea
                   rows={3}
                   defaultValue={selectedRole.description}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
               </div>
 
@@ -871,7 +871,7 @@ const RolesPage: React.FC = () => {
                 </label>
                 <select
                   defaultValue={selectedRole.category}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   disabled={selectedRole.isSystemRole}
                 >
                   <option value="operational">Opérationnel</option>
@@ -886,16 +886,16 @@ const RolesPage: React.FC = () => {
                 <div className="space-y-3 max-h-96 overflow-y-auto">
                   <div className="border border-gray-200 rounded-lg p-4">
                     <label className="flex items-start space-x-3">
-                      <input type="checkbox" defaultChecked className="mt-1 rounded text-indigo-600 focus:ring-indigo-500" />
+                      <input type="checkbox" defaultChecked className="mt-1 rounded text-primary-600 focus:ring-primary-500" />
                       <div className="flex-1">
                         <div className="font-medium text-gray-900">Système</div>
                         <div className="mt-2 ml-6 space-y-2">
                           <label className="flex items-center">
-                            <input type="checkbox" defaultChecked className="rounded text-indigo-600 focus:ring-indigo-500 mr-2" />
+                            <input type="checkbox" defaultChecked className="rounded text-primary-600 focus:ring-primary-500 mr-2" />
                             <span className="text-sm text-gray-700">Gestion Utilisateurs</span>
                           </label>
                           <label className="flex items-center">
-                            <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500 mr-2" />
+                            <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-2" />
                             <span className="text-sm text-gray-700">Configuration Système</span>
                           </label>
                         </div>
@@ -905,16 +905,16 @@ const RolesPage: React.FC = () => {
 
                   <div className="border border-gray-200 rounded-lg p-4">
                     <label className="flex items-start space-x-3">
-                      <input type="checkbox" defaultChecked className="mt-1 rounded text-indigo-600 focus:ring-indigo-500" />
+                      <input type="checkbox" defaultChecked className="mt-1 rounded text-primary-600 focus:ring-primary-500" />
                       <div className="flex-1">
                         <div className="font-medium text-gray-900">Finance</div>
                         <div className="mt-2 ml-6 space-y-2">
                           <label className="flex items-center">
-                            <input type="checkbox" defaultChecked className="rounded text-indigo-600 focus:ring-indigo-500 mr-2" />
+                            <input type="checkbox" defaultChecked className="rounded text-primary-600 focus:ring-primary-500 mr-2" />
                             <span className="text-sm text-gray-700">Lecture Finance</span>
                           </label>
                           <label className="flex items-center">
-                            <input type="checkbox" defaultChecked className="rounded text-indigo-600 focus:ring-indigo-500 mr-2" />
+                            <input type="checkbox" defaultChecked className="rounded text-primary-600 focus:ring-primary-500 mr-2" />
                             <span className="text-sm text-gray-700">Écriture Finance</span>
                           </label>
                         </div>
@@ -924,16 +924,16 @@ const RolesPage: React.FC = () => {
 
                   <div className="border border-gray-200 rounded-lg p-4">
                     <label className="flex items-start space-x-3">
-                      <input type="checkbox" className="mt-1 rounded text-indigo-600 focus:ring-indigo-500" />
+                      <input type="checkbox" className="mt-1 rounded text-primary-600 focus:ring-primary-500" />
                       <div className="flex-1">
                         <div className="font-medium text-gray-900">{t('accounting.title')}</div>
                         <div className="mt-2 ml-6 space-y-2">
                           <label className="flex items-center">
-                            <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500 mr-2" />
+                            <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-2" />
                             <span className="text-sm text-gray-700">Lecture Comptabilité</span>
                           </label>
                           <label className="flex items-center">
-                            <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500 mr-2" />
+                            <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-2" />
                             <span className="text-sm text-gray-700">Saisie Écritures</span>
                           </label>
                         </div>
@@ -962,7 +962,7 @@ const RolesPage: React.FC = () => {
               >
                 Annuler
               </button>
-              <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+              <button className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-700 transition-colors">
                 Enregistrer
               </button>
             </div>

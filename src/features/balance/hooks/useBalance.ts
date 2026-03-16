@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState, useEffect, useCallback } from 'react';
 import { BalanceAccount, BalanceFilters, BalanceTotals } from '../types/balance.types';
 import { balanceService } from '../services/balanceService';

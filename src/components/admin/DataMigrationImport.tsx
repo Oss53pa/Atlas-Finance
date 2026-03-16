@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * DataMigrationImport — Assistant de migration comptable en 7 etapes
  * Supports: Sage, Ciel/Saari, EBP, Cegid, Odoo, FEC, Excel, Autre

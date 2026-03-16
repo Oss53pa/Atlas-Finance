@@ -12,7 +12,7 @@ export const DataTable = <T extends Record<string, any>>({
   onRowClick,
   selectedRows,
   onSelectionChange,
-  getRowId = (row, index) => row.id || index.toString(),
+  getRowId = ((row: T) => (row as Record<string, any>).id?.toString() || '0') as (row: T) => string,
   pagination,
   sorting,
   selectable = false,
@@ -50,7 +50,7 @@ export const DataTable = <T extends Record<string, any>>({
     if (!onSelectionChange) return;
 
     if (checked) {
-      const allIds = new Set(data.map((row, index) => getRowId(row, index)));
+      const allIds = new Set(data.map((row) => getRowId(row)));
       onSelectionChange(allIds);
     } else {
       onSelectionChange(new Set());
@@ -160,7 +160,7 @@ export const DataTable = <T extends Record<string, any>>({
           </thead>
           <tbody className="bg-white divide-y divide-[#e5e5e5]">
             {displayData.map((row, index) => {
-              const rowId = getRowId(row, index);
+              const rowId = getRowId(row);
               const isSelected = selectedRows?.has(rowId);
 
               return (

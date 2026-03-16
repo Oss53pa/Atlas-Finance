@@ -47,21 +47,21 @@
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: tranprimaryY(12px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: tranprimaryY(0);
   }
 }
 
 .chat-widget-toggle:hover {
-  transform: translateY(-2px);
+  transform: tranprimaryY(-2px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
 .chat-widget-toggle:active {
-  transform: translateY(0);
+  transform: tranprimaryY(0);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
@@ -83,7 +83,7 @@
   position: absolute;
   right: calc(100% + 10px);
   top: 50%;
-  transform: translateY(-50%);
+  transform: tranprimaryY(-50%);
   background: #1A202C;
   color: white;
   font-size: 13px;
@@ -175,10 +175,10 @@
 
 @keyframes typing {
   0%, 60%, 100% {
-    transform: translateY(0);
+    transform: tranprimaryY(0);
   }
   30% {
-    transform: translateY(-10px);
+    transform: tranprimaryY(-10px);
   }
 }
 
@@ -203,11 +203,11 @@
 @keyframes chatWidgetSlideIn {
   from {
     opacity: 0;
-    transform: translateY(20px) scale(0.95);
+    transform: tranprimaryY(20px) scale(0.95);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: tranprimaryY(0) scale(1);
   }
 }
 
@@ -368,11 +368,11 @@
 @keyframes messageSlideIn {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: tranprimaryY(10px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: tranprimaryY(0);
   }
 }
 
@@ -968,16 +968,38 @@
     --chat-border: #4A5568;
     --chat-text: #F7FAFC;
     --chat-text-secondary: #A0AEC0;
+    --chat-primary: #4A6A62;
+  }
+
+  .chat-widget {
+    background: var(--chat-background);
+    border-color: var(--chat-border);
+  }
+
+  .chat-widget__header {
+    background: var(--chat-surface);
+    border-color: var(--chat-border);
   }
 
   .message-bubble__text {
     background: var(--chat-surface);
-    color: var(--chat-text);
+    color: #F7FAFC;
+    border-color: var(--chat-border);
   }
 
   .message-bubble--user .message-bubble__text {
     background: var(--chat-primary);
-    color: white;
+    color: #FFFFFF;
+  }
+
+  .message-bubble__text strong,
+  .message-bubble__text em,
+  .message-bubble__text code {
+    color: #F7FAFC;
+  }
+
+  .message-bubble__text code {
+    background: rgba(255, 255, 255, 0.15);
   }
 
   .typing-animation,
@@ -985,11 +1007,26 @@
   .quick-reply,
   .chat-widget__suggestions {
     background: var(--chat-surface);
-    color: var(--chat-text);
+    color: #F7FAFC;
+    border-color: var(--chat-border);
+  }
+
+  .action-button:hover {
+    background: #3D4F5F;
+    color: #FFFFFF;
+  }
+
+  .chat-widget__footer-info,
+  .chat-widget__powered-by {
+    color: #A0AEC0;
   }
 
   .chat-widget-toggle__status {
     border-color: #2D3748;
+  }
+
+  .message-list {
+    background: var(--chat-background);
   }
 }
 

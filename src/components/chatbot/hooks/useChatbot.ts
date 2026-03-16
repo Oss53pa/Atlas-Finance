@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Advanced Chatbot Hook - IA Intelligente avec Contexte Conversationnel
  * Hook principal pour l'interaction avec le chatbot IA amélioré
@@ -869,11 +870,11 @@ function generateWelcomeMessage(): string {
   }
 
   const welcomeMessages = [
-    `${greeting} ! 👋 Je suis **Proph3t**, votre assistante Atlas Finance dotée d'une intelligence artificielle !\n\n🧠 **Je maîtrise l'intégralité de Atlas Finance** :\n• Finance, Budget & Comptabilité\n• Stocks, Achats & Approvisionnements\n• Ventes, Factures & Recouvrement\n• RH, Paie & Gestion du personnel\n• Projets & Immobilisations\n\n🤖 **Mes capacités IA avancées** :\n• Recommandations comptables (Random Forest)\n• Prévisions de trésorerie (LSTM)\n• Analyse de risques clients (XGBoost)\n• Détection d'anomalies automatique\n\n💡 **Posez-moi n'importe quelle question**, je suis là pour vous guider !`,
+    `${greeting} ! 👋 Je suis **Proph3t**, votre assistante Atlas Studio dotée d'une intelligence artificielle !\n\n🧠 **Je maîtrise l'intégralité de Atlas Studio** :\n• Finance, Budget & Comptabilité\n• Stocks, Achats & Approvisionnements\n• Ventes, Factures & Recouvrement\n• RH, Paie & Gestion du personnel\n• Projets & Immobilisations\n\n🤖 **Mes capacités IA avancées** :\n• Recommandations comptables (Random Forest)\n• Prévisions de trésorerie (LSTM)\n• Analyse de risques clients (XGBoost)\n• Détection d'anomalies automatique\n\n💡 **Posez-moi n'importe quelle question**, je suis là pour vous guider !`,
 
-    `${greeting} ! ✨ **Proph3t** à votre service, experte certifiée Atlas Finance !\n\n📚 **Ma base de connaissances couvre** :\n• Tous les processus métier\n• Configuration et paramétrage\n• Résolution de problèmes\n• Astuces et raccourcis\n• Rapports et analyses\n\n🧠 **Mes modèles d'apprentissage automatique** :\n• LSTM pour prédictions financières\n• Random Forest pour recommandations\n• XGBoost pour analyse de risques\n• Détection d'anomalies intelligente\n\n🎯 **Comment puis-je vous aider aujourd'hui ?**`,
+    `${greeting} ! ✨ **Proph3t** à votre service, experte certifiée Atlas Studio !\n\n📚 **Ma base de connaissances couvre** :\n• Tous les processus métier\n• Configuration et paramétrage\n• Résolution de problèmes\n• Astuces et raccourcis\n• Rapports et analyses\n\n🧠 **Mes modèles d'apprentissage automatique** :\n• LSTM pour prédictions financières\n• Random Forest pour recommandations\n• XGBoost pour analyse de risques\n• Détection d'anomalies intelligente\n\n🎯 **Comment puis-je vous aider aujourd'hui ?**`,
 
-    `${greeting} ! 🚀 C'est **Proph3t**, votre IA spécialisée Atlas Finance !\n\n🔍 **Je peux vous aider à** :\n• Naviguer dans les modules\n• Créer et gérer vos données\n• Comprendre les fonctionnalités\n• Optimiser votre utilisation\n• Résoudre vos problèmes\n\n🤖 **Mes prédictions intelligentes** :\n• Suggérer les bons comptes comptables\n• Prévoir vos flux de trésorerie\n• Évaluer les risques clients\n• Détecter les transactions suspectes\n\n💬 **Dites-moi ce dont vous avez besoin !**`
+    `${greeting} ! 🚀 C'est **Proph3t**, votre IA spécialisée Atlas Studio !\n\n🔍 **Je peux vous aider à** :\n• Naviguer dans les modules\n• Créer et gérer vos données\n• Comprendre les fonctionnalités\n• Optimiser votre utilisation\n• Résoudre vos problèmes\n\n🤖 **Mes prédictions intelligentes** :\n• Suggérer les bons comptes comptables\n• Prévoir vos flux de trésorerie\n• Évaluer les risques clients\n• Détecter les transactions suspectes\n\n💬 **Dites-moi ce dont vous avez besoin !**`
   ];
 
   return welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)];

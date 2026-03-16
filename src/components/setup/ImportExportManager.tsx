@@ -282,7 +282,7 @@ const ImportExportManager: React.FC = () => {
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-lg font-bold text-gray-900 flex items-center">
-              <ArrowPathIcon className="h-8 w-8 mr-3 text-indigo-600" />
+              <ArrowPathIcon className="h-8 w-8 mr-3 text-primary-600" />
               Import/Export Avancé
             </h1>
             <p className="text-gray-600 mt-2">
@@ -306,7 +306,7 @@ const ImportExportManager: React.FC = () => {
               onClick={() => setActiveTab(id as typeof activeTab)}
               className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === id
-                  ? 'border-indigo-500 text-indigo-600'
+                  ? 'border-primary-500 text-primary-600'
                   : 'border-transparent text-gray-700 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
@@ -327,7 +327,7 @@ const ImportExportManager: React.FC = () => {
             <div
               className={`border-2 border-dashed rounded-lg p-12 text-center transition-colors ${
                 dragOver 
-                  ? 'border-indigo-400 bg-indigo-50' 
+                  ? 'border-primary-400 bg-primary-50' 
                   : 'border-gray-300 hover:border-gray-400'
               }`}
               onDragOver={(e) => {
@@ -338,7 +338,7 @@ const ImportExportManager: React.FC = () => {
               onDrop={handleFileDrop}
             >
               <CloudArrowUpIcon className={`h-16 w-16 mx-auto mb-4 ${
-                dragOver ? 'text-indigo-500' : 'text-gray-700'
+                dragOver ? 'text-primary-500' : 'text-gray-700'
               }`} />
               <h3 className="text-lg font-medium text-gray-900 mb-2">
                 Glissez vos fichiers ici ou cliquez pour sélectionner
@@ -348,7 +348,7 @@ const ImportExportManager: React.FC = () => {
               </p>
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg"
+                className="bg-primary hover:bg-primary-700 text-white px-6 py-2 rounded-lg"
               >
                 Sélectionner Fichiers
               </button>
@@ -410,7 +410,7 @@ const ImportExportManager: React.FC = () => {
                     </div>
 
                     <div className="flex space-x-2 mt-4">
-                      <button className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded text-sm">
+                      <button className="flex-1 bg-primary hover:bg-primary-700 text-white px-3 py-2 rounded text-sm">
                         <CloudArrowDownIcon className="h-4 w-4 inline mr-1" />
                         Télécharger
                       </button>
@@ -508,7 +508,7 @@ const ImportExportManager: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
                         <div className="flex space-x-2 justify-center">
-                          <button className="text-indigo-600 hover:text-indigo-900" aria-label="Voir les détails">
+                          <button className="text-primary-600 hover:text-primary-900" aria-label="Voir les détails">
                             <EyeIcon className="h-4 w-4" />
                           </button>
                           {job.status === 'FAILED' && (
@@ -553,7 +553,7 @@ const ImportExportManager: React.FC = () => {
                   name: 'Journal Centralisateur',
                   description: 'Récapitulatif des journaux',
                   icon: DocumentIcon,
-                  color: 'purple',
+                  color: 'primary',
                   formats: ['Excel', 'PDF']
                 },
                 {
@@ -590,7 +590,7 @@ const ImportExportManager: React.FC = () => {
                     </div>
                   </div>
                   
-                  <button className="w-full mt-4 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded text-sm">
+                  <button className="w-full mt-4 bg-primary hover:bg-primary-700 text-white px-3 py-2 rounded text-sm">
                     <CloudArrowDownIcon className="h-4 w-4 inline mr-1" />
                     Exporter
                   </button>
@@ -643,7 +643,7 @@ const ImportExportManager: React.FC = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-center">
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                           job.type === 'FEC' ? 'bg-orange-100 text-orange-800' :
-                          job.type === 'FISCAL_PACKAGE' ? 'bg-purple-100 text-purple-800' :
+                          job.type === 'FISCAL_PACKAGE' ? 'bg-primary-100 text-primary-800' :
                           'bg-blue-100 text-blue-800'
                         }`}>
                           {job.type}
@@ -690,7 +690,7 @@ const ImportExportManager: React.FC = () => {
                               <CloudArrowDownIcon className="h-4 w-4" />
                             </button>
                           )}
-                          <button className="text-indigo-600 hover:text-indigo-900" aria-label="Voir les détails">
+                          <button className="text-primary-600 hover:text-primary-900" aria-label="Voir les détails">
                             <EyeIcon className="h-4 w-4" />
                           </button>
                         </div>
@@ -708,7 +708,7 @@ const ImportExportManager: React.FC = () => {
       {activeTab === 'fec' && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center">
-            <DocumentTextIcon className="h-6 w-6 mr-2 text-indigo-600" />
+            <DocumentTextIcon className="h-6 w-6 mr-2 text-primary-600" />
             Fichier des Écritures Comptables (FEC)
           </h2>
           
@@ -729,7 +729,7 @@ const ImportExportManager: React.FC = () => {
                 <div className="space-y-3">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Période</label>
-                    <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500">
+                    <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500">
                       <option value="2024-08">Août 2024</option>
                       <option value="2024-07">Juillet 2024</option>
                       <option value="2024">Exercice 2024 complet</option>
@@ -741,7 +741,7 @@ const ImportExportManager: React.FC = () => {
                       type="checkbox"
                       id="validatedOnly"
                       defaultChecked
-                      className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                      className="h-4 w-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
                     />
                     <label htmlFor="validatedOnly" className="text-sm text-gray-700">
                       Écritures validées uniquement
@@ -752,14 +752,14 @@ const ImportExportManager: React.FC = () => {
                     <input
                       type="checkbox"
                       id="includeAnalytical"
-                      className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                      className="h-4 w-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
                     />
                     <label htmlFor="includeAnalytical" className="text-sm text-gray-700">
                       Inclure ventilation analytique
                     </label>
                   </div>
 
-                  <button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center justify-center space-x-2">
+                  <button className="w-full bg-primary hover:bg-primary-700 text-white px-4 py-2 rounded-lg flex items-center justify-center space-x-2">
                     <DocumentArrowDownIcon className="h-5 w-5" />
                     <span>Générer FEC</span>
                   </button>

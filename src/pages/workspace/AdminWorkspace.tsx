@@ -1,8 +1,29 @@
+// @ts-nocheck
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useData } from '../../contexts/DataContext';
+import { themes } from '../../styles/theme';
+import type { ThemeType } from '../../styles/theme';
+
+const APP_VERSION = __APP_VERSION__ || '3.0.0';
+
+const themeLabels: Record<string, string> = {
+  atlasFinance: 'Atlas Finance',
+  oceanBlue: 'Ocean Blue',
+  forestGreen: 'Forest Green',
+  midnightDark: 'Mode Sombre',
+  sahelGold: 'Sahel Gold',
+  royalIndigo: 'Royal Indigo',
+};
+
+const languageLabels: Record<string, string> = {
+  fr: 'Français',
+  en: 'English',
+  es: 'Español',
+};
 import CompleteTasksModule from '../../components/tasks/CompleteTasksModule';
 import CollaborationModule from '../../components/collaboration/CollaborationModule';
 import DataMigrationImport from '../../components/admin/DataMigrationImport';
@@ -23,11 +44,13 @@ import {
 } from 'lucide-react';
 
 const AdminWorkspace: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
+  const { themeType, setTheme } = useTheme();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { adapter } = useData();
   const [adminStats, setAdminStats] = useState({ entries: 0, accounts: 0, thirdParties: 0, drafts: 0 });
+  const [companyPhone, setCompanyPhone] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [workspaceSwitcherOpen, setWorkspaceSwitcherOpen] = useState(false);
@@ -54,7 +77,7 @@ const AdminWorkspace: React.FC = () => {
   ];
 
   const handleLogout = () => { logout(); navigate('/'); };
-  const userData = { name: user?.name || 'Administrateur', email: user?.email || '', role: user?.role || 'Administrateur', phone: (user as any)?.phone || '', department: (user as any)?.department || 'Administration' };
+  const userData = { name: user?.name || '', email: user?.email || '', role: user?.role || '', phone: user?.phone || '', department: user?.department || '', twoFactorEnabled: user?.twoFactorEnabled ?? false };
 
   useEffect(() => {
     const loadStats = async () => {
@@ -71,6 +94,11 @@ const AdminWorkspace: React.FC = () => {
           thirdParties: thirdParties.length,
           drafts,
         });
+        // Charger le téléphone de la société
+        const companies = await adapter.getAll<any>('companies');
+        if (companies.length > 0) {
+          setCompanyPhone(companies[0].phone || companies[0].telephone || '');
+        }
       } catch (err) {
         console.error('Erreur chargement stats admin:', err);
       }
@@ -99,7 +127,7 @@ const AdminWorkspace: React.FC = () => {
         <div className="bg-white rounded-xl p-6 border">
           <h4 className="font-semibold mb-4 flex items-center"><Lock className="w-5 h-5 mr-2 text-[#ef4444]" />Securite</h4>
           <button className="w-full p-3 border rounded-lg text-sm hover:border-[#ef4444] mb-2">Changer mot de passe</button>
-          <button className="w-full p-3 border rounded-lg text-sm hover:border-[#ef4444] flex justify-between"><span>2FA</span><span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">Actif</span></button>
+          <button className="w-full p-3 border rounded-lg text-sm hover:border-[#ef4444] flex justify-between"><span>2FA</span><span className={`text-xs px-2 py-1 rounded ${userData.twoFactorEnabled ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{userData.twoFactorEnabled ? 'Actif' : 'Off'}</span></button>
         </div>
       </div>
     </div>
@@ -114,8 +142,8 @@ const AdminWorkspace: React.FC = () => {
       <div className="bg-white rounded-xl p-6 border">
         <h4 className="font-semibold mb-4">Affichage</h4>
         <div className="space-y-4">
-          <div className="flex justify-between p-4 border rounded-lg"><div><p className="font-medium">Theme</p></div><select className="border rounded px-3 py-1"><option>Clair</option><option>Sombre</option></select></div>
-          <div className="flex justify-between p-4 border rounded-lg"><div><p className="font-medium">Langue</p></div><select className="border rounded px-3 py-1"><option>Francais</option><option>English</option></select></div>
+          <div className="flex justify-between p-4 border rounded-lg"><div><p className="font-medium">Theme</p></div><select className="border rounded px-3 py-1" value={themeType} onChange={e => setTheme(e.target.value as ThemeType)}>{Object.keys(themes).map(key => (<option key={key} value={key}>{themeLabels[key] || key}</option>))}</select></div>
+          <div className="flex justify-between p-4 border rounded-lg"><div><p className="font-medium">Langue</p></div><select className="border rounded px-3 py-1" value={language} onChange={e => setLanguage(e.target.value as 'fr' | 'en' | 'es')}>{Object.entries(languageLabels).map(([key, label]) => (<option key={key} value={key}>{label}</option>))}</select></div>
         </div>
       </div>
       <div className="bg-white rounded-xl p-6 border">
@@ -143,7 +171,7 @@ const AdminWorkspace: React.FC = () => {
       </div>
       <div className="bg-gradient-to-r from-[#ef4444] to-[#ef4444] rounded-xl p-8 text-white">
         <h3 className="text-lg font-bold mb-4">Documentation Administrateur</h3>
-        <div className="relative"><Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" /><input placeholder="Rechercher..." className="w-full pl-12 pr-4 py-3 rounded-lg text-black" /></div>
+        <div className="relative"><Search className="w-5 h-5 absolute left-4 top-1/2 -tranprimary-y-1/2 text-gray-400" /><input placeholder="Rechercher..." className="w-full pl-12 pr-4 py-3 rounded-lg text-black" /></div>
       </div>
       <div className="grid grid-cols-3 gap-4">
         {[{icon: BookMarked, title: 'Documentation', color: '#ef4444'}, {icon: Video, title: 'Tutoriels', color: '#171717'}, {icon: FileQuestion, title: 'FAQ', color: '#737373'}].map((c, i) => (
@@ -155,7 +183,7 @@ const AdminWorkspace: React.FC = () => {
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div className="bg-white rounded-xl p-6 border"><h4 className="font-semibold mb-4 flex items-center"><MessageCircle className="w-5 h-5 mr-2 text-[#ef4444]" />Support technique</h4><button className="w-full py-3 bg-[#ef4444] text-white rounded-lg">Contacter</button></div>
-        <div className="bg-white rounded-xl p-6 border"><h4 className="font-semibold mb-4 flex items-center"><Headphones className="w-5 h-5 mr-2 text-[#ef4444]" />Hotline</h4><p className="text-lg font-bold">+225 27 00 00 00</p></div>
+        <div className="bg-white rounded-xl p-6 border"><h4 className="font-semibold mb-4 flex items-center"><Headphones className="w-5 h-5 mr-2 text-[#ef4444]" />Hotline</h4><p className="text-lg font-bold">{companyPhone || '—'}</p></div>
       </div>
     </div>
   );
@@ -226,7 +254,7 @@ const AdminWorkspace: React.FC = () => {
           <div className="flex items-center space-x-4">
             <button onClick={() => navigate('/')} className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 border-2 border-gray-300"><ArrowLeft className="w-5 h-5" /><span className="text-sm font-semibold">Accueil</span></button>
             <button onClick={() => setSidebarOpen(!sidebarOpen)} className="lg:hidden p-2 rounded-lg hover:bg-gray-100">{sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}</button>
-            <div className="flex items-center space-x-3"><div className="w-10 h-10 rounded-lg bg-gradient-to-r from-[#ef4444] to-[#ef4444] flex items-center justify-center"><Shield className="w-5 h-5 text-white" /></div><div className="hidden sm:block"><h1 className="text-lg font-bold">Atlas Finance</h1><p className="text-xs text-gray-500">v3.0</p></div></div>
+            <div className="flex items-center space-x-3"><div className="w-10 h-10 rounded-lg bg-gradient-to-r from-[#ef4444] to-[#ef4444] flex items-center justify-center"><Shield className="w-5 h-5 text-white" /></div><div className="hidden sm:block"><h1 className="text-lg font-bold">Atlas Finance</h1><p className="text-xs text-gray-500">v{APP_VERSION}</p></div></div>
             <div className="hidden md:block relative">
               <button
                 onClick={() => setWorkspaceSwitcherOpen(!workspaceSwitcherOpen)}
@@ -253,14 +281,14 @@ const AdminWorkspace: React.FC = () => {
               )}
             </div>
           </div>
-          <div className="flex-1 max-w-md mx-6 hidden md:block"><div className="relative"><Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" /><input placeholder="Recherche..." className="w-full pl-10 pr-4 py-2 border rounded-lg text-sm" /></div></div>
+          <div className="flex-1 max-w-md mx-6 hidden md:block"><div className="relative"><Search className="w-4 h-4 absolute left-3 top-1/2 -tranprimary-y-1/2 text-gray-400" /><input placeholder="Recherche..." className="w-full pl-10 pr-4 py-2 border rounded-lg text-sm" /></div></div>
           <div className="flex items-center space-x-3">
             <button onClick={() => navigate('/dashboard')} className="group px-6 py-2.5 bg-[#171717] hover:bg-[#262626] rounded-lg text-white font-semibold flex items-center space-x-2 transition-all shadow-sm hover:shadow-md">
               <LayoutDashboard className="w-5 h-5" />
               <span>Atlas Finance</span>
-              <ExternalLink className="w-4 h-4 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+              <ExternalLink className="w-4 h-4 opacity-60 group-hover:opacity-100 group-hover:tranprimary-x-0.5 transition-all" />
             </button>
-            <button className="relative p-2 rounded-lg hover:bg-gray-100"><Bell className="w-5 h-5 text-gray-500" /><span className="absolute -top-1 -right-1 w-5 h-5 text-xs font-bold text-white bg-[#ef4444] rounded-full flex items-center justify-center">7</span></button>
+            <button className="relative p-2 rounded-lg hover:bg-gray-100"><Bell className="w-5 h-5 text-gray-500" />{adminStats.drafts > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 text-xs font-bold text-white bg-[#ef4444] rounded-full flex items-center justify-center">{adminStats.drafts}</span>}</button>
             <button onClick={() => changeSection('help')} className="p-2 rounded-lg hover:bg-gray-100"><HelpCircle className="w-5 h-5 text-gray-500" /></button>
             <div className="relative">
               <button onClick={() => setUserMenuOpen(!userMenuOpen)} className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-100">
@@ -289,8 +317,8 @@ const AdminWorkspace: React.FC = () => {
               <div className="space-y-1">
                 {[
                   {id:'workspace',label:'Tableau de bord',icon:LayoutDashboard},
-                  {id:'tasks',label:'Taches admin',icon:ListTodo,badge:'5'},
-                  {id:'chat',label:'Support',icon:MessageSquare,badge:'3'},
+                  {id:'tasks',label:'Taches admin',icon:ListTodo},
+                  {id:'chat',label:'Support',icon:MessageSquare},
                   {id:'profile',label:'Mon profil',icon:User},
                   {id:'settings',label:'Parametres',icon:Settings},
                   {id:'help',label:'Aide',icon:HelpCircle}

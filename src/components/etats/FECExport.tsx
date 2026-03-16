@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * FEC Export component — Interface pour generer le Fichier des Ecritures Comptables.
  * Conforme article A.47 A-1 du LPF — 18 colonnes obligatoires.

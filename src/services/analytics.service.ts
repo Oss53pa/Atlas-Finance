@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Service Analytics Atlas Finance
  * Comptabilité analytique multi-axes

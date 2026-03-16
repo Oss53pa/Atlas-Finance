@@ -10,7 +10,7 @@ interface ReportCardProps {
 
 const typeColors: Record<string, string> = {
   financial: 'bg-blue-100 text-blue-700',
-  analytical: 'bg-purple-100 text-purple-700',
+  analytical: 'bg-primary-100 text-primary-700',
   management: 'bg-green-100 text-green-700',
   regulatory: 'bg-orange-100 text-orange-700',
 };

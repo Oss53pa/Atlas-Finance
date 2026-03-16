@@ -11,7 +11,7 @@ export const getStatutColor = (statut: string): string => {
     'actif': 'bg-blue-100 text-blue-800',
     'suspendu': 'bg-orange-100 text-orange-800',
     'cloture': 'bg-gray-100 text-gray-800',
-    'juridique': 'bg-purple-100 text-purple-800',
+    'juridique': 'bg-primary-100 text-primary-800',
   };
   return colors[statut] || 'bg-gray-100 text-gray-800';
 };

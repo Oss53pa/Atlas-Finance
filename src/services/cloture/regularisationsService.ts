@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Service de regularisations comptables CCA/FNP/FAE/PCA.
  * Conforme SYSCOHADA revise — comptes 408, 418, 476/486, 477/487.

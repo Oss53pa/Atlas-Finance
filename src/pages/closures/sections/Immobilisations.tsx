@@ -253,7 +253,7 @@ const Immobilisations: React.FC = () => {
     if (categorie === 'corporelle') {
       if (sousCategorie.includes('Constructions')) return <Building className="w-5 h-5 text-[var(--color-primary)]" />;
       if (sousCategorie.includes('transport')) return <Car className="w-5 h-5 text-[var(--color-success)]" />;
-      if (sousCategorie.includes('informatique')) return <Laptop className="w-5 h-5 text-purple-600" />;
+      if (sousCategorie.includes('informatique')) return <Laptop className="w-5 h-5 text-primary-600" />;
       return <Factory className="w-5 h-5 text-[var(--color-text-primary)]" />;
     } else if (categorie === 'incorporelle') {
       return <HardDrive className="w-5 h-5 text-[var(--color-warning)]" />;
@@ -268,7 +268,7 @@ const Immobilisations: React.FC = () => {
       'totalement_amorti': 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]',
       'cede': 'bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)]',
       'reforme': 'bg-[var(--color-error-lighter)] text-red-800',
-      'sinistre': 'bg-purple-100 text-purple-800'
+      'sinistre': 'bg-primary-100 text-primary-800'
     };
     return variants[statut] || 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]';
   };
@@ -289,7 +289,7 @@ const Immobilisations: React.FC = () => {
       case 'acquisition': return <ArrowUpRight className="w-4 h-4 text-[var(--color-success)]" />;
       case 'cession': return <ArrowDownRight className="w-4 h-4 text-[var(--color-error)]" />;
       case 'amortissement': return <TrendingDown className="w-4 h-4 text-[var(--color-primary)]" />;
-      case 'reevaluation': return <TrendingUp className="w-4 h-4 text-purple-600" />;
+      case 'reevaluation': return <TrendingUp className="w-4 h-4 text-primary-600" />;
       case 'transfert': return <RefreshCw className="w-4 h-4 text-[var(--color-warning)]" />;
       case 'reforme': return <Trash2 className="w-4 h-4 text-[var(--color-error)]" />;
       default: return <Activity className="w-4 h-4 text-[var(--color-text-primary)]" />;
@@ -390,7 +390,7 @@ const Immobilisations: React.FC = () => {
                 <p className="text-lg font-bold">{(kpis.dotationsAnnuelles / 1000000).toFixed(1)}M FCFA</p>
                 <p className="text-xs text-[var(--color-text-primary)] mt-1">Exercice 2024</p>
               </div>
-              <Calendar className="w-8 h-8 text-purple-500" />
+              <Calendar className="w-8 h-8 text-primary-500" />
             </div>
           </CardContent>
         </Card>
@@ -512,7 +512,7 @@ const Immobilisations: React.FC = () => {
             <CardContent>
               <div className="grid grid-cols-5 gap-4">
                 {[
-                  { duree: '3 ans', nb: 1, categorie: 'Logiciels', color: 'bg-purple-500' },
+                  { duree: '3 ans', nb: 1, categorie: 'Logiciels', color: 'bg-primary-500' },
                   { duree: '4 ans', nb: 1, categorie: 'Informatique', color: 'bg-[var(--color-primary)]' },
                   { duree: '5 ans', nb: 1, categorie: 'Véhicules', color: 'bg-[var(--color-success)]' },
                   { duree: '10 ans', nb: 0, categorie: 'Mobilier', color: 'bg-[var(--color-warning)]' },
@@ -848,9 +848,9 @@ const Immobilisations: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[var(--color-text-primary)]">Réévaluations</p>
-                    <p className="text-lg font-bold text-purple-600">0</p>
+                    <p className="text-lg font-bold text-primary-600">0</p>
                   </div>
-                  <TrendingUp className="w-6 h-6 text-purple-500" />
+                  <TrendingUp className="w-6 h-6 text-primary-500" />
                 </div>
               </CardContent>
             </Card>
@@ -1304,7 +1304,7 @@ const Immobilisations: React.FC = () => {
                     setShowDetailModal(false);
                     handleCalculateAmortissement(selectedImmobilisation);
                   }}
-                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2"
+                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2"
                 >
                   <Calculator className="w-4 h-4" />
                   Plan d'Amortissement
@@ -1366,8 +1366,8 @@ const Immobilisations: React.FC = () => {
             <div className="sticky top-0 bg-white border-b border-[var(--color-border)] px-6 py-4 rounded-t-lg">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <Calculator className="w-5 h-5 text-purple-600" />
+                  <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
+                    <Calculator className="w-5 h-5 text-primary-600" />
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Calcul d'amortissement</h3>
@@ -1387,12 +1387,12 @@ const Immobilisations: React.FC = () => {
 
             <div className="flex-1 overflow-y-auto px-6 py-4">
               <div className="space-y-6">
-                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
                   <div className="flex gap-3">
-                    <TrendingDown className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
+                    <TrendingDown className="w-5 h-5 text-primary-600 flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-sm font-medium text-purple-900">Amortissement comptable</p>
-                      <p className="text-sm text-purple-700 mt-1">
+                      <p className="text-sm font-medium text-primary-900">Amortissement comptable</p>
+                      <p className="text-sm text-primary-700 mt-1">
                         Enregistrez la dépréciation annuelle de vos immobilisations
                       </p>
                     </div>
@@ -1403,7 +1403,7 @@ const Immobilisations: React.FC = () => {
                   <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
                     Immobilisation <span className="text-[var(--color-error)]">*</span>
                   </label>
-                  <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                  <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent">
                     <option value="">Sélectionner une immobilisation</option>
                     <option value="1">Bâtiment Principal - IMM-001</option>
                     <option value="2">Véhicule Utilitaire - IMM-015</option>
@@ -1439,7 +1439,7 @@ const Immobilisations: React.FC = () => {
                     <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
                       Exercice comptable <span className="text-[var(--color-error)]">*</span>
                     </label>
-                    <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                    <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent">
                       <option value="2025">2025</option>
                       <option value="2024">2024</option>
                       <option value="2023">2023</option>
@@ -1452,13 +1452,13 @@ const Immobilisations: React.FC = () => {
                     </label>
                     <input
                       type="date"
-                      className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     />
                   </div>
                 </div>
 
-                <div className="border border-purple-200 rounded-lg p-4 bg-purple-50">
-                  <h4 className="font-semibold text-sm text-purple-900 mb-3">Calcul de l'amortissement</h4>
+                <div className="border border-primary-200 rounded-lg p-4 bg-primary-50">
+                  <h4 className="font-semibold text-sm text-primary-900 mb-3">Calcul de l'amortissement</h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-[var(--color-text-primary)]">Dotation annuelle:</span>
@@ -1468,13 +1468,13 @@ const Immobilisations: React.FC = () => {
                       <span className="text-[var(--color-text-primary)]">Dotation prorata (365 jours):</span>
                       <span className="font-semibold">5 000,00 €</span>
                     </div>
-                    <div className="flex justify-between pt-2 border-t border-purple-200">
-                      <span className="text-purple-900 font-medium">Amortissements cumulés:</span>
-                      <span className="font-bold text-purple-900">25 000,00 €</span>
+                    <div className="flex justify-between pt-2 border-t border-primary-200">
+                      <span className="text-primary-900 font-medium">Amortissements cumulés:</span>
+                      <span className="font-bold text-primary-900">25 000,00 €</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-purple-900 font-medium">Valeur nette comptable:</span>
-                      <span className="font-bold text-purple-900">25 000,00 €</span>
+                      <span className="text-primary-900 font-medium">Valeur nette comptable:</span>
+                      <span className="font-bold text-primary-900">25 000,00 €</span>
                     </div>
                   </div>
                 </div>
@@ -1484,14 +1484,14 @@ const Immobilisations: React.FC = () => {
                     Méthode d'amortissement
                   </label>
                   <div className="grid grid-cols-2 gap-3">
-                    <label className="flex items-center p-3 border border-[var(--color-border-dark)] rounded-lg cursor-pointer hover:border-purple-500 transition-colors">
+                    <label className="flex items-center p-3 border border-[var(--color-border-dark)] rounded-lg cursor-pointer hover:border-primary-500 transition-colors">
                       <input type="radio" name="methode-amort" value="lineaire" className="mr-3" defaultChecked />
                       <div>
                         <p className="font-medium text-sm">Linéaire</p>
                         <p className="text-xs text-[var(--color-text-secondary)]">Dotation constante</p>
                       </div>
                     </label>
-                    <label className="flex items-center p-3 border border-[var(--color-border-dark)] rounded-lg cursor-pointer hover:border-purple-500 transition-colors">
+                    <label className="flex items-center p-3 border border-[var(--color-border-dark)] rounded-lg cursor-pointer hover:border-primary-500 transition-colors">
                       <input type="radio" name="methode-amort" value="degressif" className="mr-3" />
                       <div>
                         <p className="font-medium text-sm">Dégressif</p>
@@ -1506,7 +1506,7 @@ const Immobilisations: React.FC = () => {
                     <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
                       Compte amortissement <span className="text-[var(--color-error)]">*</span>
                     </label>
-                    <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono text-sm">
+                    <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent font-mono text-sm">
                       <option value="">Sélectionner</option>
                       <option value="2813">2813 - Amortissement bâtiments</option>
                       <option value="2818">2818 - Amortissement matériel</option>
@@ -1518,7 +1518,7 @@ const Immobilisations: React.FC = () => {
                     <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
                       Compte dotation <span className="text-[var(--color-error)]">*</span>
                     </label>
-                    <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono text-sm">
+                    <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent font-mono text-sm">
                       <option value="">Sélectionner</option>
                       <option value="6811">6811 - Dotation amortissement</option>
                       <option value="6871">6871 - Dotation exceptionnelle</option>
@@ -1532,7 +1532,7 @@ const Immobilisations: React.FC = () => {
                   </label>
                   <textarea
                     rows={2}
-                    className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     placeholder="Notes sur cet amortissement..."
                   />
                 </div>
@@ -1546,7 +1546,7 @@ const Immobilisations: React.FC = () => {
               >
                 Annuler
               </button>
-              <button className="px-4 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors flex items-center gap-2">
+              <button className="px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors flex items-center gap-2">
                 <Calculator className="w-4 h-4" />
                 Enregistrer l'amortissement
               </button>

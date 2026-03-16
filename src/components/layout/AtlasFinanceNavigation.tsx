@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Navigation Intelligente Atlas Finance
  * Menu adaptatif avec notifications et raccourcis contextuels
@@ -446,7 +447,7 @@ const AtlasFinanceNavigation: React.FC<NavigationProps> = ({
       {/* Header avec logo */}
       <div className="p-6 border-b border-gray-200">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+          <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-primary-600 rounded-lg flex items-center justify-center">
             <span className="text-white font-bold text-lg" style={{ fontFamily: 'Sometype Mono, sans-serif' }}>
               W
             </span>

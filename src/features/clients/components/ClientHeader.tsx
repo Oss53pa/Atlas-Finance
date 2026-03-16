@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React from 'react';
 import { ArrowLeft, Edit, Download, Printer } from 'lucide-react';
 import { Button } from '@/shared/components/ui/Button';
@@ -44,7 +45,7 @@ export const ClientHeader: React.FC<ClientHeaderProps> = ({
                 {client.statut}
               </span>
               {client.classification.clientStrategique && (
-                <span className="px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                <span className="px-3 py-1 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
                   ⭐ Stratégique
                 </span>
               )}

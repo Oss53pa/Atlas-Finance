@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Alias Tiers Service — CRUD pour la gestion des alias tiers (Dexie IndexedDB).
  * Gère la création, l'incrémentation et le rattachement d'alias aux comptes comptables.

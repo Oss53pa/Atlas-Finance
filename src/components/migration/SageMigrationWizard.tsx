@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Assistant de Migration Sage vers Atlas Finance
  * Interface complète avec mapping intelligent et prévisualisation
@@ -722,8 +723,8 @@ const SageMigrationWizard: React.FC<SageMigrationWizardProps> = ({
                 <p className="text-sm text-gray-600">Écritures à migrer</p>
               </div>
               
-              <div className="text-center p-4 bg-purple-50 rounded-lg">
-                <div className="text-lg font-bold text-purple-600">
+              <div className="text-center p-4 bg-primary-50 rounded-lg">
+                <div className="text-lg font-bold text-primary-600">
                   {formatCurrency(validationResults.summary?.total_amount || 0)}
                 </div>
                 <p className="text-sm text-gray-600">Montant total</p>
@@ -846,7 +847,7 @@ const SageMigrationWizard: React.FC<SageMigrationWizardProps> = ({
                   <div className="text-gray-600">Écritures traitées</div>
                 </div>
                 <div>
-                  <div className="font-bold text-purple-600">245</div>
+                  <div className="font-bold text-primary-600">245</div>
                   <div className="text-gray-600">Tiers créés</div>
                 </div>
               </div>

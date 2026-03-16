@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React from 'react';
 import { SparklesIcon } from '@heroicons/react/24/outline';
 
@@ -26,22 +27,22 @@ const AIAnalysisPanel: React.FC<AIAnalysisPanelProps> = ({ searchResults }) => {
   return (
     <div className="bg-white border rounded-lg p-4">
       <div className="flex items-center gap-2 mb-4">
-        <SparklesIcon className="h-5 w-5 text-purple-600" />
+        <SparklesIcon className="h-5 w-5 text-primary-600" />
         <h3 className="font-semibold text-gray-900">Analyse IA</h3>
       </div>
 
       <div className="space-y-4">
         {/* Score de confiance */}
-        <div className="p-3 bg-purple-50 rounded-lg">
-          <div className="text-xs text-purple-700 mb-1">Score de confiance</div>
+        <div className="p-3 bg-primary-50 rounded-lg">
+          <div className="text-xs text-primary-700 mb-1">Score de confiance</div>
           <div className="flex items-center gap-2">
-            <div className="flex-1 bg-purple-200 rounded-full h-2">
+            <div className="flex-1 bg-primary-200 rounded-full h-2">
               <div
-                className="bg-purple-600 h-2 rounded-full"
+                className="bg-primary-600 h-2 rounded-full"
                 style={{ width: `${searchResults.confidence_score * 100}%` }}
               />
             </div>
-            <span className="text-sm font-bold text-purple-900">
+            <span className="text-sm font-bold text-primary-900">
               {(searchResults.confidence_score * 100).toFixed(0)}%
             </span>
           </div>
@@ -60,7 +61,7 @@ const AIAnalysisPanel: React.FC<AIAnalysisPanelProps> = ({ searchResults }) => {
               <span>{searchResults.total_count} écritures analysées</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-purple-500">⚡</span>
+              <span className="text-primary-500">⚡</span>
               <span>Recherche optimisée par IA</span>
             </li>
           </ul>

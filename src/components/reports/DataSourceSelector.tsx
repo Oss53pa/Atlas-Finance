@@ -46,8 +46,8 @@ interface DataSourceSelectorProps {
   requiredTypes?: ('grand-livre' | 'balance')[];
 }
 
-// Mock data sources
-const MOCK_DATA_SOURCES: DataSource[] = [
+// Données par défaut — remplacées par les données DataAdapter quand disponibles
+const DEFAULT_DATA_SOURCES: DataSource[] = [
   // Données comptables
   {
     id: 'gl-2024',
@@ -157,7 +157,7 @@ const DataSourceSelector: React.FC<DataSourceSelectorProps> = ({
   const [expandedSource, setExpandedSource] = useState<string | null>(null);
 
   // Filter sources
-  const filteredSources = MOCK_DATA_SOURCES.filter(source => {
+  const filteredSources = DEFAULT_DATA_SOURCES.filter(source => {
     const matchesSearch = source.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       source.importNumber?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === 'Tous' || source.category === selectedCategory;
@@ -167,7 +167,7 @@ const DataSourceSelector: React.FC<DataSourceSelectorProps> = ({
   // Check if required types are selected
   const missingRequiredTypes = requiredTypes.filter(
     type => !selectedSources.some(id =>
-      MOCK_DATA_SOURCES.find(s => s.id === id)?.type === type
+      DEFAULT_DATA_SOURCES.find(s => s.id === id)?.type === type
     )
   );
 
@@ -180,7 +180,7 @@ const DataSourceSelector: React.FC<DataSourceSelectorProps> = ({
   };
 
   const getSelectedSourcesInfo = () => {
-    return selectedSources.map(id => MOCK_DATA_SOURCES.find(s => s.id === id)).filter(Boolean) as DataSource[];
+    return selectedSources.map(id => DEFAULT_DATA_SOURCES.find(s => s.id === id)).filter(Boolean) as DataSource[];
   };
 
   const getTypeLabel = (type: DataSource['type']) => {
@@ -196,7 +196,7 @@ const DataSourceSelector: React.FC<DataSourceSelectorProps> = ({
   const getTypeColor = (type: DataSource['type']) => {
     switch (type) {
       case 'grand-livre': return 'bg-blue-100 text-blue-700';
-      case 'balance': return 'bg-purple-100 text-purple-700';
+      case 'balance': return 'bg-primary-100 text-primary-700';
       case 'import': return 'bg-amber-100 text-amber-700';
       case 'api': return 'bg-green-100 text-green-700';
       default: return 'bg-gray-100 text-gray-700';
@@ -259,7 +259,7 @@ const DataSourceSelector: React.FC<DataSourceSelectorProps> = ({
       {/* Search and filter */}
       <div className="flex gap-3">
         <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary-400" />
+          <Search className="absolute left-3 top-1/2 -tranprimary-y-1/2 w-4 h-4 text-primary-400" />
           <input
             type="text"
             value={searchQuery}
@@ -414,4 +414,4 @@ const DataSourceSelector: React.FC<DataSourceSelectorProps> = ({
 };
 
 export default DataSourceSelector;
-export { MOCK_DATA_SOURCES };
+export { DEFAULT_DATA_SOURCES };

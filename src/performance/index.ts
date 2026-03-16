@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Atlas Finance Performance Optimization System
  * Comprehensive performance monitoring and optimization

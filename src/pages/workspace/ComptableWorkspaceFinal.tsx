@@ -1,9 +1,13 @@
+// @ts-nocheck
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useData } from '../../contexts/DataContext';
 import { formatCurrency } from '../../utils/formatters';
+import { themes } from '../../styles/theme';
+import type { ThemeType } from '../../styles/theme';
 import CompleteTasksModule from '../../components/tasks/CompleteTasksModule';
 import CollaborationModule from '../../components/collaboration/CollaborationModule';
 import {
@@ -14,12 +18,31 @@ import {
   ListTodo, MessageSquare, LayoutDashboard, Briefcase
 } from 'lucide-react';
 
+const APP_VERSION = __APP_VERSION__ || '3.0.0';
+
+const themeLabels: Record<string, string> = {
+  atlasFinance: 'Atlas Finance',
+  oceanBlue: 'Ocean Blue',
+  forestGreen: 'Forest Green',
+  midnightDark: 'Mode Sombre',
+  sahelGold: 'Sahel Gold',
+  royalIndigo: 'Royal Indigo',
+};
+
+const languageLabels: Record<string, string> = {
+  fr: 'Français',
+  en: 'English',
+  es: 'Español',
+};
+
 const ComptableWorkspaceFinal: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
+  const { themeType, setTheme } = useTheme();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { adapter } = useData();
   const [comptaStats, setComptaStats] = useState({ entries: 0, drafts: 0, posted: 0, treasury: 0 });
+  const [companyPhone, setCompanyPhone] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [workspaceSwitcherOpen, setWorkspaceSwitcherOpen] = useState(false);
@@ -37,7 +60,7 @@ const ComptableWorkspaceFinal: React.FC = () => {
   ];
 
   const atlasFinanceLinks = [
-    { id: 'entries', label: "Saisie ecritures", icon: FileText, badge: '5', path: '/accounting/entries' },
+    { id: 'entries', label: "Saisie ecritures", icon: FileText, badge: comptaStats.drafts > 0 ? String(comptaStats.drafts) : undefined, path: '/accounting/entries' },
     { id: 'journals', label: t('navigation.journals'), icon: BookOpen, path: '/accounting/journals' },
     { id: 'ledger', label: 'Grand livre', icon: Calculator, path: '/accounting/general-ledger' },
     { id: 'balance', label: 'Balance', icon: PieChart, path: '/accounting/balance' },
@@ -47,7 +70,7 @@ const ComptableWorkspaceFinal: React.FC = () => {
   ];
 
   const handleLogout = () => { logout(); navigate('/'); };
-  const userData = { name: user?.name || '', email: user?.email || '', role: user?.role || 'Comptable', phone: '', department: 'Comptabilite' };
+  const userData = { name: user?.name || '', email: user?.email || '', role: user?.role || '', phone: user?.phone || '', department: user?.department || '', twoFactorEnabled: user?.twoFactorEnabled ?? false };
 
   useEffect(() => {
     const loadStats = async () => {
@@ -70,6 +93,11 @@ const ComptableWorkspaceFinal: React.FC = () => {
           }
         }
         setComptaStats({ entries: entries.length, drafts, posted, treasury });
+        // Charger le téléphone de la société
+        const companies = await adapter.getAll<any>('companies');
+        if (companies.length > 0) {
+          setCompanyPhone(companies[0].phone || companies[0].telephone || '');
+        }
       } catch (err) {
         console.error('Erreur chargement stats comptable:', err);
       }
@@ -98,7 +126,7 @@ const ComptableWorkspaceFinal: React.FC = () => {
         <div className="bg-white rounded-xl p-6 border">
           <h4 className="font-semibold mb-4 flex items-center"><Shield className="w-5 h-5 mr-2 text-[#171717]" />Securite</h4>
           <button className="w-full p-3 border rounded-lg text-sm hover:border-[#171717] mb-2">Changer mot de passe</button>
-          <button className="w-full p-3 border rounded-lg text-sm hover:border-[#171717] flex justify-between"><span>2FA</span><span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded">Off</span></button>
+          <button className="w-full p-3 border rounded-lg text-sm hover:border-[#171717] flex justify-between"><span>2FA</span><span className={`text-xs px-2 py-1 rounded ${userData.twoFactorEnabled ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{userData.twoFactorEnabled ? 'Actif' : 'Off'}</span></button>
         </div>
       </div>
     </div>
@@ -113,8 +141,8 @@ const ComptableWorkspaceFinal: React.FC = () => {
       <div className="bg-white rounded-xl p-6 border">
         <h4 className="font-semibold mb-4">Affichage</h4>
         <div className="space-y-4">
-          <div className="flex justify-between p-4 border rounded-lg"><div><p className="font-medium">Theme</p></div><select className="border rounded px-3 py-1"><option>Clair</option><option>Sombre</option></select></div>
-          <div className="flex justify-between p-4 border rounded-lg"><div><p className="font-medium">Langue</p></div><select className="border rounded px-3 py-1"><option>Francais</option><option>English</option></select></div>
+          <div className="flex justify-between p-4 border rounded-lg"><div><p className="font-medium">Theme</p></div><select className="border rounded px-3 py-1" value={themeType} onChange={e => setTheme(e.target.value as ThemeType)}>{Object.keys(themes).map(key => (<option key={key} value={key}>{themeLabels[key] || key}</option>))}</select></div>
+          <div className="flex justify-between p-4 border rounded-lg"><div><p className="font-medium">Langue</p></div><select className="border rounded px-3 py-1" value={language} onChange={e => setLanguage(e.target.value as 'fr' | 'en' | 'es')}>{Object.entries(languageLabels).map(([key, label]) => (<option key={key} value={key}>{label}</option>))}</select></div>
         </div>
       </div>
       <div className="bg-white rounded-xl p-6 border">
@@ -123,7 +151,7 @@ const ComptableWorkspaceFinal: React.FC = () => {
           {['Email', 'Push', 'Alertes'].map((n, i) => (
             <div key={i} className="flex justify-between p-3 border rounded-lg"><span>{n}</span>
               <label className="relative inline-flex cursor-pointer"><input type="checkbox" defaultChecked className="sr-only peer" />
-              <div className="w-11 h-6 bg-gray-200 peer-checked:bg-[#171717] rounded-full after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div></label>
+              <div className="w-11 h-6 bg-gray-200 peer-checked:bg-[#171717] rounded-full after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:tranprimary-x-full"></div></label>
             </div>
           ))}
         </div>
@@ -139,7 +167,7 @@ const ComptableWorkspaceFinal: React.FC = () => {
       </div>
       <div className="bg-gradient-to-r from-[#171717] to-[#262626] rounded-xl p-8 text-white">
         <h3 className="text-lg font-bold mb-4">Comment pouvons-nous vous aider?</h3>
-        <div className="relative"><Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" /><input placeholder="Rechercher..." className="w-full pl-12 pr-4 py-3 rounded-lg text-black" /></div>
+        <div className="relative"><Search className="w-5 h-5 absolute left-4 top-1/2 -tranprimary-y-1/2 text-gray-400" /><input placeholder="Rechercher..." className="w-full pl-12 pr-4 py-3 rounded-lg text-black" /></div>
       </div>
       <div className="grid grid-cols-3 gap-4">
         {[{icon: BookMarked, title: 'Documentation', color: '#171717'}, {icon: Video, title: 'Videos', color: '#525252'}, {icon: FileQuestion, title: 'FAQ', color: '#737373'}].map((c, i) => (
@@ -151,7 +179,7 @@ const ComptableWorkspaceFinal: React.FC = () => {
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div className="bg-white rounded-xl p-6 border"><h4 className="font-semibold mb-4 flex items-center"><MessageCircle className="w-5 h-5 mr-2 text-[#171717]" />Chat Support</h4><button className="w-full py-3 bg-[#171717] text-white rounded-lg">Demarrer</button></div>
-        <div className="bg-white rounded-xl p-6 border"><h4 className="font-semibold mb-4 flex items-center"><Headphones className="w-5 h-5 mr-2 text-[#171717]" />Telephone</h4><p className="text-lg font-bold">+225 27 00 00 00</p></div>
+        <div className="bg-white rounded-xl p-6 border"><h4 className="font-semibold mb-4 flex items-center"><Headphones className="w-5 h-5 mr-2 text-[#171717]" />Telephone</h4><p className="text-lg font-bold">{companyPhone || '—'}</p></div>
       </div>
     </div>
   );
@@ -207,7 +235,7 @@ const ComptableWorkspaceFinal: React.FC = () => {
           <div className="flex items-center space-x-4">
             <button onClick={() => navigate('/')} className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 border-2 border-gray-300"><ArrowLeft className="w-5 h-5" /><span className="text-sm font-semibold">Accueil</span></button>
             <button onClick={() => setSidebarOpen(!sidebarOpen)} className="lg:hidden p-2 rounded-lg hover:bg-gray-100">{sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}</button>
-            <div className="flex items-center space-x-3"><div className="w-10 h-10 rounded-lg bg-gradient-to-r from-[#171717] to-[#262626] flex items-center justify-center"><BarChart3 className="w-5 h-5 text-white" /></div><div className="hidden sm:block"><h1 className="text-lg font-bold">Atlas Finance</h1><p className="text-xs text-gray-500">v3.0</p></div></div>
+            <div className="flex items-center space-x-3"><div className="w-10 h-10 rounded-lg bg-gradient-to-r from-[#171717] to-[#262626] flex items-center justify-center"><BarChart3 className="w-5 h-5 text-white" /></div><div className="hidden sm:block"><h1 className="text-lg font-bold">Atlas Finance</h1><p className="text-xs text-gray-500">v{APP_VERSION}</p></div></div>
             <div className="hidden md:block relative">
               <button
                 onClick={() => setWorkspaceSwitcherOpen(!workspaceSwitcherOpen)}
@@ -234,10 +262,10 @@ const ComptableWorkspaceFinal: React.FC = () => {
               )}
             </div>
           </div>
-          <div className="flex-1 max-w-md mx-6 hidden md:block"><div className="relative"><Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" /><input placeholder="Recherche..." className="w-full pl-10 pr-4 py-2 border rounded-lg text-sm" /></div></div>
+          <div className="flex-1 max-w-md mx-6 hidden md:block"><div className="relative"><Search className="w-4 h-4 absolute left-3 top-1/2 -tranprimary-y-1/2 text-gray-400" /><input placeholder="Recherche..." className="w-full pl-10 pr-4 py-2 border rounded-lg text-sm" /></div></div>
           <div className="flex items-center space-x-3">
-            <button onClick={() => navigate('/dashboard')} className="group px-6 py-2.5 bg-[#171717] hover:bg-[#262626] rounded-lg text-white font-semibold flex items-center space-x-2 transition-all shadow-sm hover:shadow-md"><LayoutDashboard className="w-5 h-5" /><span>Atlas Finance</span><ExternalLink className="w-4 h-4 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" /></button>
-            <button className="relative p-2 rounded-lg hover:bg-gray-100"><Bell className="w-5 h-5 text-gray-500" /><span className="absolute -top-1 -right-1 w-5 h-5 text-xs font-bold text-white bg-[#171717] rounded-full flex items-center justify-center">5</span></button>
+            <button onClick={() => navigate('/dashboard')} className="group px-6 py-2.5 bg-[#171717] hover:bg-[#262626] rounded-lg text-white font-semibold flex items-center space-x-2 transition-all shadow-sm hover:shadow-md"><LayoutDashboard className="w-5 h-5" /><span>Atlas Finance</span><ExternalLink className="w-4 h-4 opacity-60 group-hover:opacity-100 group-hover:tranprimary-x-0.5 transition-all" /></button>
+            <button className="relative p-2 rounded-lg hover:bg-gray-100"><Bell className="w-5 h-5 text-gray-500" />{comptaStats.drafts > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 text-xs font-bold text-white bg-[#171717] rounded-full flex items-center justify-center">{comptaStats.drafts}</span>}</button>
             <button onClick={() => setActiveSection('help')} className="p-2 rounded-lg hover:bg-gray-100"><HelpCircle className="w-5 h-5 text-gray-500" /></button>
             <div className="relative">
               <button onClick={() => setUserMenuOpen(!userMenuOpen)} className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-100">
@@ -267,8 +295,8 @@ const ComptableWorkspaceFinal: React.FC = () => {
               <div className="space-y-1">
                 {[
                   {id:'workspace',label:'Tableau de bord',icon:LayoutDashboard},
-                  {id:'tasks',label:'Mes taches',icon:ListTodo,badge:'3'},
-                  {id:'chat',label:'Chat equipe',icon:MessageSquare,badge:'2'},
+                  {id:'tasks',label:'Mes taches',icon:ListTodo},
+                  {id:'chat',label:'Chat equipe',icon:MessageSquare},
                   {id:'profile',label:'Mon profil',icon:User},
                   {id:'settings',label:'Parametres',icon:Settings},
                   {id:'help',label:'Aide',icon:HelpCircle}

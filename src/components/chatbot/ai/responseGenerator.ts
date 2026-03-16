@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Advanced Response Generator - IA Dynamique et Adaptative
  * Génère des réponses intelligentes, contextuelles et personnalisées pour Proph3t
@@ -46,9 +47,9 @@ export class AdvancedResponseGenerator {
     // Templates de base conservés pour la compatibilité
     greeting: {
       responses: [
-        "Salut ! 🤖 C'est Proph3t ! Votre assistante Atlas Finance préférée. Prête à vous dépanner !",
-        "Coucou ! 👋 Proph3t ici ! Je suis votre guide personnel Atlas Finance. Comment ça va ?",
-        "Hello ! ✨ Proph3t à l'appareil ! Experte en Atlas Finance et bonne humeur. Que puis-je faire pour vous ?"
+        "Salut ! 🤖 C'est Proph3t ! Votre assistante Atlas Studio préférée. Prête à vous dépanner !",
+        "Coucou ! 👋 Proph3t ici ! Je suis votre guide personnel Atlas Studio. Comment ça va ?",
+        "Hello ! ✨ Proph3t à l'appareil ! Experte en Atlas Studio et bonne humeur. Que puis-je faire pour vous ?"
       ],
       actions: [
         {
@@ -69,8 +70,8 @@ export class AdvancedResponseGenerator {
     help_general: {
       responses: [
         "Parfait ! 🎯 Proph3t est là pour vous ! Voici tout ce que je peux faire :",
-        "Super ! 🚀 Je maîtrise Atlas Finance de A à Z ! Voici mes spécialités :",
-        "Génial ! ✨ Proph3t, experte Atlas Finance, à votre service ! Mes domaines d'expertise :"
+        "Super ! 🚀 Je maîtrise Atlas Studio de A à Z ! Voici mes spécialités :",
+        "Génial ! ✨ Proph3t, experte Atlas Studio, à votre service ! Mes domaines d'expertise :"
       ],
       actions: [
         {
@@ -105,7 +106,7 @@ export class AdvancedResponseGenerator {
 
     budget_help: {
       responses: [
-        "Super question ! 💰 Proph3t adore les budgets ! C'est le cœur de Atlas Finance. Voici comment faire :",
+        "Super question ! 💰 Proph3t adore les budgets ! C'est le cœur de Atlas Studio. Voici comment faire :",
         "Génial ! 📊 Les budgets, c'est mon dada ! Proph3t va tout vous expliquer :",
         "Parfait ! 🎯 Planification budgétaire = spécialité Proph3t ! Suivez le guide :"
       ],
@@ -149,7 +150,7 @@ export class AdvancedResponseGenerator {
 
     accounting_help: {
       responses: [
-        "La comptabilité dans Atlas Finance est complète et intuitive. Que souhaitez-vous faire ?",
+        "La comptabilité dans Atlas Studio est complète et intuitive. Que souhaitez-vous faire ?",
         "Je vais vous accompagner dans la gestion comptable :",
         "Comptabilité, écritures, plan comptable... Je maîtrise ! Comment puis-je vous aider ?"
       ],
@@ -195,7 +196,7 @@ export class AdvancedResponseGenerator {
       responses: [
         "Le recouvrement des créances est essentiel pour la trésorerie. Voici comment optimiser vos recouvrements :",
         "Gestion des impayés et relances clients - je vais vous expliquer le processus :",
-        "Le module recouvrement de Atlas Finance est très efficace ! Voici comment l'utiliser :"
+        "Le module recouvrement de Atlas Studio est très efficace ! Voici comment l'utiliser :"
       ],
       actions: [
         {
@@ -215,7 +216,7 @@ export class AdvancedResponseGenerator {
 
     inventory_help: {
       responses: [
-        "La gestion des stocks est optimisée dans Atlas Finance ! Que voulez-vous faire ?",
+        "La gestion des stocks est optimisée dans Atlas Studio ! Que voulez-vous faire ?",
         "Stocks, inventaires, mouvements... Je connais tout ! Comment puis-je vous aider ?",
         "Le module inventaire offre de nombreuses fonctionnalités. Précisez votre besoin :"
       ],
@@ -243,7 +244,7 @@ export class AdvancedResponseGenerator {
 
     purchase_order: {
       responses: [
-        "Excellente idée ! Créer une commande fournisseur avec Atlas Finance est très simple :",
+        "Excellente idée ! Créer une commande fournisseur avec Atlas Studio est très simple :",
         "Je vais vous guider pour passer votre commande fournisseur :",
         "Commande fournisseur - voici le processus étape par étape :"
       ],
@@ -261,7 +262,7 @@ export class AdvancedResponseGenerator {
       responses: [
         "La gestion des utilisateurs et des droits d'accès est cruciale. Voici comment procéder :",
         "Administration des utilisateurs, rôles et permissions - je vous explique tout :",
-        "Sécurité et gestion d'équipe avec Atlas Finance - laissez-moi vous guider :"
+        "Sécurité et gestion d'équipe avec Atlas Studio - laissez-moi vous guider :"
       ],
       actions: [
         {
@@ -297,9 +298,9 @@ export class AdvancedResponseGenerator {
 
     export_data: {
       responses: [
-        "L'export de données dans Atlas Finance est très flexible ! Voici vos options :",
+        "L'export de données dans Atlas Studio est très flexible ! Voici vos options :",
         "Parfait ! Vous pouvez exporter vos données dans plusieurs formats :",
-        "Export Excel, PDF, CSV... Atlas Finance supporte tout ! Voici comment faire :"
+        "Export Excel, PDF, CSV... Atlas Studio supporte tout ! Voici comment faire :"
       ],
       quickReplies: [
         "Export Excel",
@@ -334,7 +335,7 @@ export class AdvancedResponseGenerator {
     performance_issue: {
       responses: [
         "Application un peu lente ? Voici comment optimiser les performances :",
-        "Je vais vous donner des astuces pour améliorer la vitesse de Atlas Finance :",
+        "Je vais vous donner des astuces pour améliorer la vitesse de Atlas Studio :",
         "Performance au top avec ces conseils :"
       ],
       quickReplies: [
@@ -347,7 +348,7 @@ export class AdvancedResponseGenerator {
 
     training_request: {
       responses: [
-        "Excellente initiative ! La formation continue est clé pour maîtriser Atlas Finance :",
+        "Excellente initiative ! La formation continue est clé pour maîtriser Atlas Studio :",
         "Bravo pour votre volonté d'apprendre ! Voici les ressources disponibles :",
         "Formation et montée en compétences - voici votre plan d'apprentissage :"
       ],

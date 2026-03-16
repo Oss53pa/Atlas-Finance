@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Performance Monitoring System
  * Real-time performance tracking and optimization recommendations

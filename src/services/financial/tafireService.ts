@@ -271,6 +271,156 @@ export async function verifierBouclageTFT(
 }
 
 /**
+ * Calculate TAFIRE using DIRECT method (méthode directe SYSCOHADA)
+ * La méthode directe part des encaissements/décaissements réels sur les comptes de trésorerie (classe 5)
+ */
+export async function calculateTAFIREDirect(adapter: DataAdapter, fiscalYear?: string): Promise<TAFIREData> {
+  const startTime = performance.now();
+
+  let entries = await adapter.getAll<any>('journalEntries');
+  if (fiscalYear) {
+    entries = entries.filter((e: any) => e.date.startsWith(fiscalYear));
+  }
+
+  // Identifier les mouvements sur comptes de trésorerie (classe 5)
+  // et classifier par la contrepartie
+  let encaissementsExploitation = money(0);
+  let decaissementsExploitation = money(0);
+  let encaissementsInvestissement = money(0);
+  let decaissementsInvestissement = money(0);
+  let encaissementsFinancement = money(0);
+  let decaissementsFinancement = money(0);
+
+  for (const entry of entries) {
+    // Ignorer les écritures AN (à-nouveaux)
+    if (entry.journal === 'AN' || entry.journal === 'RAN') continue;
+
+    const cashLines = entry.lines.filter((l: any) => l.accountCode.startsWith('5'));
+    const nonCashLines = entry.lines.filter((l: any) => !l.accountCode.startsWith('5'));
+
+    if (cashLines.length === 0) continue;
+
+    // Montant net sur trésorerie pour cette écriture
+    let cashDebit = money(0);
+    let cashCredit = money(0);
+    for (const cl of cashLines) {
+      cashDebit = cashDebit.add(money(cl.debit));
+      cashCredit = cashCredit.add(money(cl.credit));
+    }
+
+    // Classifier selon les contreparties
+    const hasClass = (prefix: string) => nonCashLines.some((l: any) => l.accountCode.startsWith(prefix));
+
+    // Investissement: contrepartie classe 2 (immos) sauf 28 (amortissements)
+    const isInvestment = nonCashLines.some((l: any) =>
+      l.accountCode.startsWith('2') && !l.accountCode.startsWith('28')
+    );
+    // Financement: contrepartie classe 1 (capitaux), 16 (emprunts), 465 (dividendes)
+    const isFinancing = hasClass('10') || hasClass('11') || hasClass('12') ||
+      hasClass('13') || hasClass('14') || hasClass('15') || hasClass('16') || hasClass('17') ||
+      hasClass('465');
+
+    if (isInvestment) {
+      encaissementsInvestissement = encaissementsInvestissement.add(cashDebit);
+      decaissementsInvestissement = decaissementsInvestissement.add(cashCredit);
+    } else if (isFinancing) {
+      encaissementsFinancement = encaissementsFinancement.add(cashDebit);
+      decaissementsFinancement = decaissementsFinancement.add(cashCredit);
+    } else {
+      // Exploitation: tout le reste (classes 3,4,6,7)
+      encaissementsExploitation = encaissementsExploitation.add(cashDebit);
+      decaissementsExploitation = decaissementsExploitation.add(cashCredit);
+    }
+  }
+
+  const operatingCashSurplus = encaissementsExploitation.subtract(decaissementsExploitation);
+  const investmentCashFlow = encaissementsInvestissement.subtract(decaissementsInvestissement);
+  const financingCashFlow = encaissementsFinancement.subtract(decaissementsFinancement);
+
+  // Trésorerie
+  const net = (...prefixes: string[]): Money => {
+    let total = money(0);
+    for (const entry of entries) {
+      for (const line of entry.lines) {
+        if (prefixes.some(p => line.accountCode.startsWith(p))) {
+          total = total.add(money(line.debit).subtract(money(line.credit)));
+        }
+      }
+    }
+    return total;
+  };
+  const creditN = (...prefixes: string[]): Money => {
+    let total = money(0);
+    for (const entry of entries) {
+      for (const line of entry.lines) {
+        if (prefixes.some(p => line.accountCode.startsWith(p))) {
+          total = total.add(money(line.credit).subtract(money(line.debit)));
+        }
+      }
+    }
+    return total;
+  };
+
+  const closingCashBalance = net('5');
+  const cashVariation = operatingCashSurplus.add(investmentCashFlow).add(financingCashFlow);
+  const openingCashFromAN = (() => {
+    let total = money(0);
+    for (const entry of entries) {
+      if (entry.journal === 'AN' || entry.journal === 'RAN') {
+        for (const line of entry.lines) {
+          if (line.accountCode.startsWith('5')) {
+            total = total.add(money(line.debit).subtract(money(line.credit)));
+          }
+        }
+      }
+    }
+    return total;
+  })();
+  const openingCashBalance = openingCashFromAN.toNumber() !== 0
+    ? openingCashFromAN
+    : closingCashBalance.subtract(cashVariation);
+
+  // Résultat net (pour info)
+  const netIncome = creditN('7').subtract(net('6'))
+    .add(creditN('82', '84', '86', '88')).subtract(net('81', '83', '85', '87'))
+    .subtract(net('89'));
+  const depreciationProvisions = net('68', '69');
+  const provisionsReversal = creditN('78', '79');
+
+  const freeCashFlow = operatingCashSurplus.add(investmentCashFlow);
+
+  return {
+    id: '1',
+    fiscalYear: fiscalYear || new Date().getFullYear().toString(),
+    calculationMethod: 'DIRECT',
+    netIncome: netIncome.toNumber(),
+    depreciationProvisions: depreciationProvisions.toNumber(),
+    provisionsReversal: provisionsReversal.toNumber(),
+    exceptionalItems: 0,
+    selfFinancingCapacity: 0, // Non applicable en méthode directe
+    workingCapitalVariation: 0, // Non applicable en méthode directe
+    operatingCashSurplus: operatingCashSurplus.toNumber(),
+    fixedAssetsAcquisitions: decaissementsInvestissement.toNumber(),
+    fixedAssetsDisposals: encaissementsInvestissement.toNumber(),
+    financialInvestmentsVariation: 0,
+    investmentSubsidies: 0,
+    investmentCashFlow: investmentCashFlow.toNumber(),
+    capitalIncrease: 0,
+    newBorrowings: 0,
+    loanRepayments: 0,
+    dividendsPaid: 0,
+    financingCashFlow: financingCashFlow.toNumber(),
+    openingCashBalance: openingCashBalance.toNumber(),
+    closingCashBalance: closingCashBalance.toNumber(),
+    cashVariation: cashVariation.toNumber(),
+    freeCashFlow: freeCashFlow.toNumber(),
+    calculationDate: new Date().toISOString(),
+    calculationTimeMs: Math.round(performance.now() - startTime),
+    isValidated: false,
+  };
+}
+
+/**
  * Analyze TAFIRE data and generate insights
  * @param data - TAFIRE calculation data
  * @returns Analysis with strengths, weaknesses, recommendations

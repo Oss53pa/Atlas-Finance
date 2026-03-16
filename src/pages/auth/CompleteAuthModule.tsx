@@ -673,7 +673,7 @@ const CompleteAuthModule: React.FC = () => {
           <div className="flex flex-wrap gap-4">
             <div className="flex-1 min-w-[200px]">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--color-text-secondary)] w-4 h-4" />
+                <Search className="absolute left-3 top-1/2 transform -tranprimary-y-1/2 text-[var(--color-text-secondary)] w-4 h-4" />
                 <input
                   type="text"
                   placeholder="Rechercher un utilisateur..."
@@ -941,7 +941,7 @@ const CompleteAuthModule: React.FC = () => {
                       >
                         <span
                           className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                            policy.enabled ? 'translate-x-6' : 'translate-x-1'
+                            policy.enabled ? 'tranprimary-x-6' : 'tranprimary-x-1'
                           }`}
                         />
                       </button>
@@ -1124,7 +1124,7 @@ const CompleteAuthModule: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                      className="absolute right-3 top-1/2 transform -tranprimary-y-1/2"
                     >
                       {showPassword ? (
                         <EyeOff className="w-4 h-4 text-[var(--color-text-secondary)]" />
@@ -1372,7 +1372,7 @@ const CompleteAuthModule: React.FC = () => {
             <div className="space-y-6">
               <div className="flex items-center gap-4">
                 <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-secondary)]" />
+                  <Search className="absolute left-3 top-1/2 -tranprimary-y-1/2 w-4 h-4 text-[var(--color-text-secondary)]" />
                   <input
                     type="text"
                     placeholder="Rechercher une permission..."
@@ -1595,7 +1595,7 @@ const CompleteAuthModule: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                    className="absolute right-3 top-1/2 transform -tranprimary-y-1/2"
                   >
                     {showPassword ? (
                       <EyeOff className="w-4 h-4 text-[var(--color-text-secondary)]" />

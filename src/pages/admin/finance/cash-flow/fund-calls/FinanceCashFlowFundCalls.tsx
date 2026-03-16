@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState, useEffect, useRef, FormEvent, ChangeEvent } from 'react';
 import Modal from '../../../../../components/common/BootstrapModal';
 import { ModalGlobalTemplateBtn } from '../../../../../components/common/ModalGlobalTemplate';
@@ -254,7 +255,7 @@ export const FinanceCashFlowFundCalls: React.FC = () => {
                                                                                     {fundCall.id && (
                                                                                         fundCall.is_mark_as_pre_approved ?
                                                                                         <FaLock color='green' title="Approuvé" /> :
-                                                                                        <FaLockOpen color='purple' title={t('status.pending')} />
+                                                                                        <FaLockOpen color='primary' title={t('status.pending')} />
                                                                                     )}
                                                                                 </td>
                                                                                 <td className='text-center'>

@@ -187,7 +187,7 @@ const LoginPage: React.FC = () => {
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+                      className="absolute right-2 top-1/2 -tranprimary-y-1/2 h-8 w-8 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                       onClick={() => setShowPassword(!showPassword)}
                       aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
                     >

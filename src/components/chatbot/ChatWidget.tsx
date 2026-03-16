@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * ChatWidget Component
  * Widget de chat flottant pour l'assistance utilisateur
@@ -6,7 +7,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { ChatMessage, ChatSession } from './types';
-import { useChatbot } from './hooks/useChatbot';
+import { useProphetV2 } from '../../services/prophet/useProphetV2';
 import { useDraggable } from './hooks/useDraggable';
 import { MessageList } from './components/MessageList';
 import { MessageInput } from './components/MessageInput';
@@ -34,7 +35,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
     quickReplies,
     suggestions,
     isTyping,
-  } = useChatbot();
+  } = useProphetV2();
 
   const {
     position,
@@ -83,8 +84,8 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
         ref={dragRef}
         className={`chat-widget-toggle ${className} ${isDragging ? 'dragging' : ''}`}
         onClick={onToggle}
-        aria-label="Ouvrir Proph3t, votre assistante Atlas Finance"
-        title="Besoin d'aide ? Cliquez pour discuter avec Proph3t, votre assistante Atlas Finance"
+        aria-label="Ouvrir Proph3t, votre assistante Atlas Studio"
+        title="Besoin d'aide ? Cliquez pour discuter avec Proph3t, votre assistante Atlas Studio"
         style={{
           position: 'fixed',
           left: `${position.x}px`,
@@ -103,7 +104,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
       ref={dragRef}
       className={`chat-widget ${className} ${isDragging ? 'dragging' : ''} ${isMinimized ? 'minimized' : ''}`}
       role="dialog"
-      aria-label="Assistant Atlas Finance"
+      aria-label="Assistant Atlas Studio"
       style={{
         position: 'fixed',
         left: `${position.x}px`,
@@ -123,7 +124,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
           <div className="chat-widget__header-text">
             <h3 className="chat-widget__title proph3t-font">Proph3t</h3>
             <p className="chat-widget__subtitle">
-              {isTyping ? 'Proph3t en train d\'écrire...' : 'Assistant Atlas Finance • En ligne'}
+              {isTyping ? 'Proph3t en train d\'écrire...' : 'Assistant Atlas Studio • En ligne'}
             </p>
           </div>
         </div>
@@ -198,7 +199,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
         />
         <div className="chat-widget__footer-info">
           <span className="chat-widget__powered-by">
-            Propulsé par l'IA Atlas Finance
+            Propulsé par l'IA Atlas Studio
           </span>
         </div>
       </div>

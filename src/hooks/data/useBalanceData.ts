@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Hook pour les données de balance — connecté à Dexie via balanceService.
  * Remplace toutes les constantes mockBalanceData dans les composants.

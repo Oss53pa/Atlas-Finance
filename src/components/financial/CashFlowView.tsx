@@ -180,7 +180,7 @@ const CashFlowView: React.FC = () => {
       case 'realistic':
         return 'bg-blue-100 text-blue-800';
       case 'monte_carlo':
-        return 'bg-purple-100 text-purple-800';
+        return 'bg-primary-100 text-primary-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }

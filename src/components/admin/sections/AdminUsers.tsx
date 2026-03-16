@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Users, Plus, Edit2, UserX, Shield, Eye, Key, Clock,
   LogOut, Globe, Monitor, X, Search, ChevronDown, Filter
@@ -11,33 +11,11 @@ interface Props {
   setSubTab: (n: number) => void;
 }
 
-const mockUsers = [
-  { id: 1, prenom: 'Kouadio', nom: 'Amani', email: 'k.amani@atlasfinance.ci', telephone: '+225 07 08 12 34', departement: 'Direction', role: 'Administrateur', status: 'Actif', derniereConnexion: '2026-03-14 09:12' },
-  { id: 2, prenom: 'Aissatou', nom: 'Diallo', email: 'a.diallo@atlasfinance.ci', telephone: '+225 05 44 78 90', departement: 'Comptabilite', role: 'Comptable', status: 'Actif', derniereConnexion: '2026-03-14 08:45' },
-  { id: 3, prenom: 'Moussa', nom: 'Traore', email: 'm.traore@atlasfinance.ci', telephone: '+225 01 23 45 67', departement: 'Tresorerie', role: 'Manager', status: 'Actif', derniereConnexion: '2026-03-13 17:30' },
-  { id: 4, prenom: 'Fatou', nom: 'Kone', email: 'f.kone@atlasfinance.ci', telephone: '+225 07 65 43 21', departement: 'Commercial', role: 'Lecteur', status: 'Inactif', derniereConnexion: '2026-02-28 14:00' },
-  { id: 5, prenom: 'Seydou', nom: 'Ouattara', email: 's.ouattara@atlasfinance.ci', telephone: '+225 05 11 22 33', departement: 'IT', role: 'Manager', status: 'Actif', derniereConnexion: '2026-03-14 07:58' },
-];
-
-const mockSessions = [
-  { id: 1, utilisateur: 'Kouadio Amani', ip: '192.168.1.45', navigateur: 'Chrome 122 / Windows 11', debut: '2026-03-14 09:12', duree: '2h 15min', localisation: 'Abidjan, CI' },
-  { id: 2, utilisateur: 'Aissatou Diallo', ip: '10.0.0.88', navigateur: 'Firefox 124 / macOS 14', debut: '2026-03-14 08:45', duree: '2h 42min', localisation: 'Abidjan, CI' },
-  { id: 3, utilisateur: 'Seydou Ouattara', ip: '172.16.0.12', navigateur: 'Edge 122 / Windows 11', debut: '2026-03-14 07:58', duree: '3h 29min', localisation: 'Bouake, CI' },
-];
-
-const mockHistorique = [
-  { id: 1, date: '2026-03-14 09:12', utilisateur: 'Kouadio Amani', evenement: 'Connexion', ip: '192.168.1.45', navigateur: 'Chrome 122', localisation: 'Abidjan', details: 'Connexion reussie' },
-  { id: 2, date: '2026-03-14 08:45', utilisateur: 'Aissatou Diallo', evenement: 'Connexion', ip: '10.0.0.88', navigateur: 'Firefox 124', localisation: 'Abidjan', details: 'Connexion reussie' },
-  { id: 3, date: '2026-03-13 23:15', utilisateur: 'Fatou Kone', evenement: 'Echec', ip: '41.202.219.70', navigateur: 'Safari 17', localisation: 'Yamoussoukro', details: 'Mot de passe incorrect (3e tentative)' },
-  { id: 4, date: '2026-03-13 17:30', utilisateur: 'Moussa Traore', evenement: 'Deconnexion', ip: '10.0.0.22', navigateur: 'Chrome 122', localisation: 'Abidjan', details: 'Deconnexion manuelle' },
-  { id: 5, date: '2026-03-13 14:02', utilisateur: 'Seydou Ouattara', evenement: 'Connexion', ip: '172.16.0.12', navigateur: 'Edge 122', localisation: 'Bouake', details: 'Connexion reussie' },
-];
-
 const roles = [
-  { nom: 'Administrateur', description: 'Acces complet a toutes les fonctionnalites du systeme', utilisateurs: 1, permissions: ['Tout lire', 'Tout ecrire', 'Supprimer', 'Administrer', 'Gerer utilisateurs'] },
-  { nom: 'Manager', description: 'Supervision des operations et validation des ecritures', utilisateurs: 2, permissions: ['Tout lire', 'Ecrire ecritures', 'Valider', 'Rapports', 'Export'] },
-  { nom: 'Comptable', description: 'Saisie et consultation des ecritures comptables', utilisateurs: 1, permissions: ['Lire ecritures', 'Ecrire ecritures', 'Rapports', 'Journaux'] },
-  { nom: 'Lecteur', description: 'Consultation uniquement, aucune modification possible', utilisateurs: 1, permissions: ['Lire ecritures', 'Lire rapports', 'Lire tiers'] },
+  { nom: 'Administrateur', description: 'Acces complet a toutes les fonctionnalites du systeme', permissions: ['Tout lire', 'Tout ecrire', 'Supprimer', 'Administrer', 'Gerer utilisateurs'] },
+  { nom: 'Manager', description: 'Supervision des operations et validation des ecritures', permissions: ['Tout lire', 'Ecrire ecritures', 'Valider', 'Rapports', 'Export'] },
+  { nom: 'Comptable', description: 'Saisie et consultation des ecritures comptables', permissions: ['Lire ecritures', 'Ecrire ecritures', 'Rapports', 'Journaux'] },
+  { nom: 'Lecteur', description: 'Consultation uniquement, aucune modification possible', permissions: ['Lire ecritures', 'Lire rapports', 'Lire tiers'] },
 ];
 
 const modules = ['Ecritures', 'Journaux', 'Plan comptable', 'Tiers', 'Rapports', 'Tresorerie', 'Immobilisations', 'Administration'];
@@ -58,6 +36,9 @@ const roleBadgeColor: Record<string, string> = {
 
 const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
   const { adapter } = useData();
+  const [users, setUsers] = useState<any[]>([]);
+  const [historique, setHistorique] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
   const [editingUser, setEditingUser] = useState<any | null>(null);
@@ -69,6 +50,56 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
   const [permMatrix, setPermMatrix] = useState(defaultPermissions['Administrateur']);
 
   const tabs = ['Liste utilisateurs', 'Roles', 'Permissions', 'Sessions actives', 'Historique connexions'];
+
+  const saveSetting = async (key: string, value: any) => {
+    const data = { key, value: JSON.stringify(value), updatedAt: new Date().toISOString() };
+    try {
+      const existing = await adapter.getById('settings', key);
+      if (existing) {
+        await adapter.update('settings', key, data);
+      } else {
+        await adapter.create('settings', data);
+      }
+    } catch {
+      try { await adapter.create('settings', data); } catch {}
+    }
+  };
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const [allSettings, auditLogs] = await Promise.all([
+          adapter.getAll<any>('settings'),
+          adapter.getAll<any>('auditLogs'),
+        ]);
+
+        const usersSetting = allSettings.find((s: any) => s.key === 'admin_users');
+        if (usersSetting?.value) {
+          setUsers(JSON.parse(usersSetting.value));
+        }
+
+        const connectionLogs = auditLogs
+          .sort((a: any, b: any) => b.timestamp.localeCompare(a.timestamp))
+          .slice(0, 50)
+          .map((l: any) => ({
+            id: l.id,
+            date: new Date(l.timestamp).toLocaleString('fr-FR'),
+            utilisateur: l.userId || 'Systeme',
+            evenement: l.action || 'Action',
+            ip: '-',
+            navigateur: '-',
+            localisation: '-',
+            details: l.details || '',
+          }));
+        setHistorique(connectionLogs);
+      } catch (err) {
+        console.error('Error loading admin users data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [adapter]);
 
   const openCreateModal = () => {
     setForm({ prenom: '', nom: '', email: '', role: 'Comptable', password: '', confirmPassword: '', telephone: '', departement: 'Comptabilite', status: 'Actif' });
@@ -84,7 +115,7 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
     setShowModal(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.prenom || !form.nom || !form.email || !form.role) {
       toast.error('Veuillez remplir tous les champs obligatoires');
@@ -94,20 +125,55 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
       toast.error('Format d\'email invalide');
       return;
     }
-    if (modalMode === 'create') {
-      if (!form.password || form.password.length < 8) {
-        toast.error('Le mot de passe doit contenir au moins 8 caracteres');
-        return;
+    try {
+      let updatedUsers;
+      if (modalMode === 'create') {
+        if (!form.password || form.password.length < 8) {
+          toast.error('Le mot de passe doit contenir au moins 8 caracteres');
+          return;
+        }
+        if (form.password !== form.confirmPassword) {
+          toast.error('Les mots de passe ne correspondent pas');
+          return;
+        }
+        const newUser = {
+          id: Date.now(),
+          prenom: form.prenom, nom: form.nom, email: form.email, telephone: form.telephone,
+          departement: form.departement, role: form.role, status: form.status, derniereConnexion: '-',
+        };
+        updatedUsers = [...users, newUser];
+        toast.success(`Utilisateur ${form.prenom} ${form.nom} cree avec succes`);
+      } else {
+        updatedUsers = users.map((u: any) => u.id === editingUser?.id
+          ? { ...u, prenom: form.prenom, nom: form.nom, email: form.email, telephone: form.telephone, departement: form.departement, role: form.role, status: form.status }
+          : u
+        );
+        toast.success(`Utilisateur ${form.prenom} ${form.nom} mis a jour`);
       }
-      if (form.password !== form.confirmPassword) {
-        toast.error('Les mots de passe ne correspondent pas');
-        return;
-      }
-      toast.success(`Utilisateur ${form.prenom} ${form.nom} cree avec succes`);
-    } else {
-      toast.success(`Utilisateur ${form.prenom} ${form.nom} mis a jour`);
+      setUsers(updatedUsers);
+      await saveSetting('admin_users', updatedUsers);
+      setShowModal(false);
+    } catch (err) {
+      toast.error('Erreur lors de la sauvegarde');
     }
-    setShowModal(false);
+  };
+
+  const toggleUserStatus = async (u: any) => {
+    const updatedUsers = users.map((u2: any) => u2.id === u.id ? { ...u2, status: u.status === 'Actif' ? 'Inactif' : 'Actif' } : u2);
+    setUsers(updatedUsers);
+    await saveSetting('admin_users', updatedUsers);
+    toast.success(`Utilisateur ${u.prenom} ${u.nom} ${u.status === 'Actif' ? 'desactive' : 'reactive'}`);
+  };
+
+  const savePermissions = async () => {
+    try {
+      const allSettings = await adapter.getAll<any>('settings');
+      const permSetting = allSettings.find((s: any) => s.key === 'admin_permissions');
+      const existing = permSetting?.value ? JSON.parse(permSetting.value) : {};
+      existing[selectedRole] = permMatrix;
+      await saveSetting('admin_permissions', existing);
+      toast.success(`Permissions du role ${selectedRole} enregistrees`);
+    } catch { toast.error('Erreur'); }
   };
 
   const updateField = (field: string, value: string) => setForm(prev => ({ ...prev, [field]: value }));
@@ -131,7 +197,6 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
     setPermMatrix(prev => prev.map((r, ri) => ri === row ? r.map((c, ci) => ci === col ? !c : c) : r));
   };
 
-  // ─── MODAL ─────────────────────────────────────────────
   const renderModal = () => {
     if (!showModal) return null;
     return (
@@ -218,12 +283,13 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
     );
   };
 
+  const userCountByRole = (roleName: string) => users.filter((u: any) => u.role === roleName).length;
+
   return (
     <div className="p-6">
       <h2 className="text-lg font-bold mb-4">Utilisateurs & Droits</h2>
       <TabBar tabs={tabs} active={subTab} />
 
-      {/* ─── TAB 0: LISTE UTILISATEURS ──────────────────── */}
       {subTab === 0 && (
         <div className="space-y-4">
           <div className="flex justify-end">
@@ -232,6 +298,9 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
             </button>
           </div>
           <div className="bg-white rounded-xl border overflow-x-auto">
+            {users.length === 0 ? (
+              <div className="p-8 text-center text-gray-400">{loading ? 'Chargement...' : 'Aucun utilisateur. Ajoutez-en un pour commencer.'}</div>
+            ) : (
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b">
                 <tr>
@@ -246,39 +315,39 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {mockUsers.map(u => (
+                {users.map((u: any) => (
                   <tr key={u.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 font-medium">{u.prenom} {u.nom}</td>
                     <td className="px-4 py-3 text-gray-600">{u.email}</td>
                     <td className="px-4 py-3 text-gray-600">{u.telephone}</td>
                     <td className="px-4 py-3 text-gray-600">{u.departement}</td>
-                    <td className="px-4 py-3"><span className={`px-2 py-1 rounded-full text-xs font-medium ${roleBadgeColor[u.role]}`}>{u.role}</span></td>
+                    <td className="px-4 py-3"><span className={`px-2 py-1 rounded-full text-xs font-medium ${roleBadgeColor[u.role] || 'bg-gray-100 text-gray-700'}`}>{u.role}</span></td>
                     <td className="px-4 py-3">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${u.status === 'Actif' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>{u.status}</span>
                     </td>
-                    <td className="px-4 py-3 text-gray-500 text-xs">{u.derniereConnexion}</td>
+                    <td className="px-4 py-3 text-gray-500 text-xs">{u.derniereConnexion || '-'}</td>
                     <td className="px-4 py-3">
                       <div className="flex items-center space-x-2">
                         <button onClick={() => openEditModal(u)} className="p-1.5 hover:bg-blue-50 rounded-lg text-blue-600" title="Modifier"><Edit2 className="w-4 h-4" /></button>
-                        <button onClick={() => toast.success(`Utilisateur ${u.prenom} ${u.nom} desactive`)} className="p-1.5 hover:bg-red-50 rounded-lg text-red-500" title="Desactiver"><UserX className="w-4 h-4" /></button>
+                        <button onClick={() => toggleUserStatus(u)} className="p-1.5 hover:bg-red-50 rounded-lg text-red-500" title="Desactiver"><UserX className="w-4 h-4" /></button>
                       </div>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            )}
           </div>
         </div>
       )}
 
-      {/* ─── TAB 1: ROLES ───────────────────────────────── */}
       {subTab === 1 && (
         <div className="grid grid-cols-2 gap-4">
           {roles.map(role => (
             <div key={role.nom} className="bg-white rounded-xl border p-5 space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-base">{role.nom}</h3>
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${roleBadgeColor[role.nom]}`}>{role.utilisateurs} utilisateur{role.utilisateurs > 1 ? 's' : ''}</span>
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${roleBadgeColor[role.nom]}`}>{userCountByRole(role.nom)} utilisateur{userCountByRole(role.nom) > 1 ? 's' : ''}</span>
               </div>
               <p className="text-sm text-gray-500">{role.description}</p>
               <div className="flex flex-wrap gap-1.5">
@@ -294,7 +363,6 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
         </div>
       )}
 
-      {/* ─── TAB 2: PERMISSIONS ─────────────────────────── */}
       {subTab === 2 && (
         <div className="space-y-4">
           <div className="flex items-center space-x-4">
@@ -337,14 +405,13 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
             </table>
           </div>
           <div className="flex justify-end">
-            <button onClick={() => toast.success(`Permissions du role ${selectedRole} enregistrees`)} className="px-4 py-2 bg-[#ef4444] text-white rounded-lg text-sm hover:bg-[#dc2626]">
+            <button onClick={savePermissions} className="px-4 py-2 bg-[#ef4444] text-white rounded-lg text-sm hover:bg-[#dc2626]">
               Enregistrer les permissions
             </button>
           </div>
         </div>
       )}
 
-      {/* ─── TAB 3: SESSIONS ACTIVES ────────────────────── */}
       {subTab === 3 && (
         <div className="space-y-4">
           <div className="flex justify-end">
@@ -353,117 +420,43 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
             </button>
           </div>
           <div className="bg-white rounded-xl border overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b">
-                <tr>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Utilisateur</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Adresse IP</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Navigateur / OS</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Debut session</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Duree</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Localisation</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {mockSessions.map(s => (
-                  <tr key={s.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 font-medium">{s.utilisateur}</td>
-                    <td className="px-4 py-3 text-gray-600 font-mono text-xs">{s.ip}</td>
-                    <td className="px-4 py-3 text-gray-600 text-xs">{s.navigateur}</td>
-                    <td className="px-4 py-3 text-gray-500 text-xs">{s.debut}</td>
-                    <td className="px-4 py-3 text-gray-500 text-xs">{s.duree}</td>
-                    <td className="px-4 py-3 text-gray-500 text-xs flex items-center space-x-1"><Globe className="w-3 h-3" /><span>{s.localisation}</span></td>
-                    <td className="px-4 py-3">
-                      <button onClick={() => toast.success(`Session de ${s.utilisateur} deconnectee`)} className="px-3 py-1 text-xs border border-red-300 text-red-600 rounded-lg hover:bg-red-50">
-                        Deconnecter
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="p-8 text-center text-gray-400">Aucune session active</div>
           </div>
         </div>
       )}
 
-      {/* ─── TAB 4: HISTORIQUE CONNEXIONS ────────────────── */}
       {subTab === 4 && (
         <div className="space-y-4">
-          <div className="bg-white rounded-xl border p-4">
-            <div className="flex flex-wrap items-end gap-4">
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">Date debut</label>
-                <input type="date" defaultValue="2026-03-01" className="px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-[#ef4444] focus:border-transparent" />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">Date fin</label>
-                <input type="date" defaultValue="2026-03-14" className="px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-[#ef4444] focus:border-transparent" />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">Utilisateur</label>
-                <select className="px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-[#ef4444] focus:border-transparent">
-                  <option value="">Tous</option>
-                  {mockUsers.map(u => <option key={u.id} value={u.id}>{u.prenom} {u.nom}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">Evenement</label>
-                <select className="px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-[#ef4444] focus:border-transparent">
-                  <option value="">Tous</option>
-                  <option value="Connexion">Connexion</option>
-                  <option value="Deconnexion">Deconnexion</option>
-                  <option value="Echec">Echec</option>
-                </select>
-              </div>
-              <button className="px-4 py-2 bg-[#ef4444] text-white rounded-lg text-sm flex items-center space-x-2">
-                <Filter className="w-4 h-4" /><span>Filtrer</span>
-              </button>
-            </div>
-          </div>
           <div className="bg-white rounded-xl border overflow-x-auto">
+            {historique.length === 0 ? (
+              <div className="p-8 text-center text-gray-400">{loading ? 'Chargement...' : 'Aucune connexion enregistree'}</div>
+            ) : (
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b">
                 <tr>
                   <th className="text-left px-4 py-3 font-medium text-gray-600">Date / Heure</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-600">Utilisateur</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Evenement</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Adresse IP</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Navigateur</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Localisation</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-600">Action</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-600">Details</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {mockHistorique.map(h => (
+                {historique.map((h: any) => (
                   <tr key={h.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 text-gray-500 text-xs font-mono">{h.date}</td>
                     <td className="px-4 py-3 font-medium">{h.utilisateur}</td>
                     <td className="px-4 py-3">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        h.evenement === 'Connexion' ? 'bg-green-100 text-green-700' :
-                        h.evenement === 'Deconnexion' ? 'bg-blue-100 text-blue-700' :
-                        'bg-red-100 text-red-700'
-                      }`}>{h.evenement}</span>
+                      <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">{h.evenement}</span>
                     </td>
-                    <td className="px-4 py-3 text-gray-600 font-mono text-xs">{h.ip}</td>
-                    <td className="px-4 py-3 text-gray-600 text-xs">{h.navigateur}</td>
-                    <td className="px-4 py-3 text-gray-500 text-xs">{h.localisation}</td>
                     <td className="px-4 py-3 text-gray-500 text-xs">{h.details}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            )}
           </div>
           <div className="flex items-center justify-between text-sm text-gray-500">
-            <span>Affichage 1-5 sur 234</span>
-            <div className="flex space-x-2">
-              <button className="px-3 py-1 border rounded-lg hover:bg-gray-50 text-xs">Precedent</button>
-              <button className="px-3 py-1 bg-[#ef4444] text-white rounded-lg text-xs">1</button>
-              <button className="px-3 py-1 border rounded-lg hover:bg-gray-50 text-xs">2</button>
-              <button className="px-3 py-1 border rounded-lg hover:bg-gray-50 text-xs">3</button>
-              <button className="px-3 py-1 border rounded-lg hover:bg-gray-50 text-xs">Suivant</button>
-            </div>
+            <span>{historique.length} evenement(s)</span>
           </div>
         </div>
       )}

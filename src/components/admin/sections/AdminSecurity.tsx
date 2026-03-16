@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { Shield, Key, Globe, FileText, Plus, Trash2, AlertTriangle, Search } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Shield, Key, Globe, FileText, Plus, Trash2, AlertTriangle, Search, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useData } from '../../../contexts/DataContext';
 
 interface Props {
   subTab: number;
@@ -10,31 +11,12 @@ interface Props {
 const tabs = ['Politique mots de passe', 'Authentification 2FA', 'IP autorisees', 'Journal securite'];
 const tabIcons = [Key, Shield, Globe, FileText];
 
-const mockUsers = [
-  { id: 1, nom: 'Kouadio Ama', role: 'Administrateur', email: 'kouadio@atlas.ci', twoFa: true, methode: 'App', derniere: '2026-03-12 09:14' },
-  { id: 2, nom: 'Traore Ibrahim', role: 'Comptable senior', email: 'traore@atlas.ci', twoFa: true, methode: 'SMS', derniere: '2026-03-10 14:30' },
-  { id: 3, nom: 'Diallo Fatou', role: 'Auditeur', email: 'diallo@atlas.ci', twoFa: false, methode: 'Email', derniere: '-' },
-  { id: 4, nom: 'Bamba Sekou', role: 'Administrateur', email: 'bamba@atlas.ci', twoFa: true, methode: 'App', derniere: '2026-03-13 16:45' },
-];
-
-const mockIps = [
-  { ip: '192.168.1.0/24', description: 'Reseau bureau principal', date: '2026-01-15', par: 'Kouadio Ama' },
-  { ip: '10.0.0.0/8', description: 'VPN entreprise', date: '2026-02-20', par: 'Bamba Sekou' },
-  { ip: '41.202.207.14', description: 'Acces directeur', date: '2026-03-01', par: 'Kouadio Ama' },
-];
-
-const mockLogs = [
-  { date: '2026-03-14 08:12', user: 'Kouadio Ama', event: 'Connexion reussie', ip: '192.168.1.45', nav: 'Chrome 122', severity: 'info' as const, details: 'Connexion depuis le bureau' },
-  { date: '2026-03-14 07:58', user: 'Inconnu', event: 'Connexion echouee', ip: '85.214.32.11', nav: 'Firefox 124', severity: 'warning' as const, details: '3 tentatives echouees' },
-  { date: '2026-03-13 16:30', user: 'Bamba Sekou', event: 'Changement role', ip: '10.0.0.5', nav: 'Chrome 122', severity: 'info' as const, details: 'Role Traore: Comptable → Comptable senior' },
-  { date: '2026-03-13 14:10', user: 'Diallo Fatou', event: '2FA desactive', ip: '192.168.1.102', nav: 'Safari 17', severity: 'danger' as const, details: 'Desactivation manuelle 2FA' },
-  { date: '2026-03-12 11:00', user: 'Traore Ibrahim', event: 'Export donnees', ip: '192.168.1.87', nav: 'Chrome 122', severity: 'warning' as const, details: 'Export grand livre PDF' },
-  { date: '2026-03-12 09:15', user: 'Inconnu', event: 'Verrouillage compte', ip: '203.0.113.42', nav: 'Bot', severity: 'danger' as const, details: 'Compte kouadio@atlas.ci verrouille apres 5 tentatives' },
-];
-
 const eventTypes = ['Tous', 'Connexion reussie', 'Connexion echouee', 'Changement role', 'Changement MDP', '2FA desactive', 'Verrouillage compte', 'Export donnees'];
 
 const AdminSecurity: React.FC<Props> = ({ subTab, setSubTab }) => {
+  const { adapter } = useData();
+  const [loading, setLoading] = useState(true);
+
   // Password policy
   const [minLength, setMinLength] = useState(8);
   const [requireUpper, setRequireUpper] = useState(true);
@@ -47,41 +29,153 @@ const AdminSecurity: React.FC<Props> = ({ subTab, setSubTab }) => {
 
   // 2FA
   const [forceAdmin2FA, setForceAdmin2FA] = useState(false);
-  const [users, setUsers] = useState(mockUsers);
+  const [users, setUsers] = useState<any[]>([]);
 
   // IP
   const [ipRestriction, setIpRestriction] = useState(false);
-  const [ips, setIps] = useState(mockIps);
+  const [ips, setIps] = useState<any[]>([]);
   const [showAddIpModal, setShowAddIpModal] = useState(false);
   const [newIp, setNewIp] = useState('');
   const [newIpDesc, setNewIpDesc] = useState('');
 
   // Logs
+  const [logs, setLogs] = useState<any[]>([]);
   const [logDateFrom, setLogDateFrom] = useState('');
   const [logDateTo, setLogDateTo] = useState('');
   const [logUser, setLogUser] = useState('Tous');
   const [logEvent, setLogEvent] = useState('Tous');
   const [logPage, setLogPage] = useState(1);
 
-  const toggle2FA = (id: number) => {
-    setUsers(prev => prev.map(u => u.id === id ? { ...u, twoFa: !u.twoFa } : u));
+  const saveSetting = useCallback(async (key: string, value: any) => {
+    const data = { key, value: JSON.stringify(value), updatedAt: new Date().toISOString() };
+    try {
+      const existing = await adapter.getById('settings', key);
+      if (existing) {
+        await adapter.update('settings', key, data);
+      } else {
+        await adapter.create('settings', data);
+      }
+    } catch {
+      try { await adapter.create('settings', data); } catch {}
+    }
+  }, [adapter]);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const allSettings = await adapter.getAll<any>('settings');
+
+        // Password policy
+        const policySetting = allSettings.find((s: any) => s.key === 'admin_security_password_policy');
+        if (policySetting?.value) {
+          const p = JSON.parse(policySetting.value);
+          if (p.minLength !== undefined) setMinLength(p.minLength);
+          if (p.requireUpper !== undefined) setRequireUpper(p.requireUpper);
+          if (p.requireDigit !== undefined) setRequireDigit(p.requireDigit);
+          if (p.requireSpecial !== undefined) setRequireSpecial(p.requireSpecial);
+          if (p.expiration) setExpiration(p.expiration);
+          if (p.history !== undefined) setHistory(p.history);
+          if (p.lockAttempts !== undefined) setLockAttempts(p.lockAttempts);
+          if (p.lockDuration) setLockDuration(p.lockDuration);
+        }
+
+        // 2FA users
+        const tfaSetting = allSettings.find((s: any) => s.key === 'admin_security_2fa');
+        if (tfaSetting?.value) {
+          const tfa = JSON.parse(tfaSetting.value);
+          if (tfa.forceAdmin !== undefined) setForceAdmin2FA(tfa.forceAdmin);
+          if (tfa.users) setUsers(tfa.users);
+        }
+
+        // IPs
+        const ipSetting = allSettings.find((s: any) => s.key === 'admin_security_ips');
+        if (ipSetting?.value) {
+          const ipData = JSON.parse(ipSetting.value);
+          if (ipData.restriction !== undefined) setIpRestriction(ipData.restriction);
+          if (ipData.list) setIps(ipData.list);
+        }
+
+        // Audit logs for security journal
+        try {
+          const auditLogs = await adapter.getAuditTrail({
+            orderBy: { field: 'timestamp', direction: 'desc' as const },
+            limit: 100,
+          });
+          setLogs(auditLogs.map((log: any) => {
+            const details = typeof log.details === 'string' ? log.details : JSON.stringify(log.details || '');
+            const action = log.action || '';
+            let event = action;
+            let severity: 'info' | 'warning' | 'danger' = 'info';
+            if (action.includes('login') || action.includes('connexion')) {
+              event = 'Connexion reussie';
+            } else if (action.includes('login_failed') || action.includes('echec')) {
+              event = 'Connexion echouee';
+              severity = 'warning';
+            } else if (action.includes('role')) {
+              event = 'Changement role';
+            } else if (action.includes('2fa')) {
+              event = '2FA desactive';
+              severity = 'danger';
+            } else if (action.includes('lock')) {
+              event = 'Verrouillage compte';
+              severity = 'danger';
+            } else if (action.includes('export')) {
+              event = 'Export donnees';
+              severity = 'warning';
+            } else if (action.includes('password') || action.includes('mdp')) {
+              event = 'Changement MDP';
+            } else if (action.includes('delete') || action.includes('suppr')) {
+              severity = 'danger';
+            } else if (action.includes('update') || action.includes('modif')) {
+              severity = 'warning';
+            }
+            return {
+              date: log.timestamp ? new Date(log.timestamp).toLocaleString('fr-FR') : '',
+              user: log.userId || 'Systeme',
+              event,
+              ip: '',
+              nav: '',
+              severity,
+              details,
+            };
+          }));
+        } catch {
+          // auditTrail may not be available
+        }
+      } catch (err) {
+        console.error('Error loading security settings:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [adapter]);
+
+  const toggle2FA = async (id: number) => {
+    const updated = users.map(u => u.id === id ? { ...u, twoFa: !u.twoFa } : u);
+    setUsers(updated);
+    await saveSetting('admin_security_2fa', { forceAdmin: forceAdmin2FA, users: updated });
   };
 
-  const addIp = () => {
+  const addIp = async () => {
     if (!newIp.trim()) return;
-    setIps(prev => [...prev, { ip: newIp, description: newIpDesc || '-', date: '2026-03-14', par: 'Kouadio Ama' }]);
+    const newList = [...ips, { ip: newIp, description: newIpDesc || '-', date: new Date().toISOString().split('T')[0], par: 'Admin' }];
+    setIps(newList);
     setNewIp('');
     setNewIpDesc('');
     setShowAddIpModal(false);
+    await saveSetting('admin_security_ips', { restriction: ipRestriction, list: newList });
     toast.success('Adresse IP ajoutee');
   };
 
-  const removeIp = (ip: string) => {
-    setIps(prev => prev.filter(i => i.ip !== ip));
+  const removeIp = async (ip: string) => {
+    const newList = ips.filter(i => i.ip !== ip);
+    setIps(newList);
+    await saveSetting('admin_security_ips', { restriction: ipRestriction, list: newList });
     toast.success('Adresse IP supprimee');
   };
 
-  const filteredLogs = mockLogs.filter(l => {
+  const filteredLogs = logs.filter(l => {
     if (logUser !== 'Tous' && l.user !== logUser) return false;
     if (logEvent !== 'Tous' && l.event !== logEvent) return false;
     return true;
@@ -97,7 +191,7 @@ const AdminSecurity: React.FC<Props> = ({ subTab, setSubTab }) => {
       'Connexion reussie': 'bg-green-100 text-green-700',
       'Connexion echouee': 'bg-red-100 text-red-700',
       'Changement role': 'bg-blue-100 text-blue-700',
-      'Changement MDP': 'bg-purple-100 text-purple-700',
+      'Changement MDP': 'bg-primary-100 text-primary-700',
       '2FA desactive': 'bg-orange-100 text-orange-700',
       'Verrouillage compte': 'bg-red-100 text-red-800',
       'Export donnees': 'bg-yellow-100 text-yellow-700',
@@ -107,9 +201,13 @@ const AdminSecurity: React.FC<Props> = ({ subTab, setSubTab }) => {
 
   const Toggle = ({ checked, onChange }: { checked: boolean; onChange: () => void }) => (
     <button type="button" onClick={onChange} className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${checked ? 'bg-blue-600' : 'bg-gray-300'}`}>
-      <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${checked ? 'translate-x-6' : 'translate-x-1'}`} />
+      <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${checked ? 'tranprimary-x-6' : 'tranprimary-x-1'}`} />
     </button>
   );
+
+  if (loading) {
+    return <div className="flex items-center justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-gray-400" /><span className="ml-2 text-gray-500">Chargement...</span></div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -162,7 +260,10 @@ const AdminSecurity: React.FC<Props> = ({ subTab, setSubTab }) => {
               <option value="15min">15 minutes</option><option value="30min">30 minutes</option><option value="1h">1 heure</option><option value="permanent">Permanent</option>
             </select>
           </div>
-          <button onClick={() => toast.success('Politique de mots de passe enregistree')} className="bg-blue-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-blue-700">Enregistrer la politique</button>
+          <button onClick={async () => {
+            await saveSetting('admin_security_password_policy', { minLength, requireUpper, requireDigit, requireSpecial, expiration, history, lockAttempts, lockDuration });
+            toast.success('Politique de mots de passe enregistree');
+          }} className="bg-blue-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-blue-700">Enregistrer la politique</button>
         </div>
       )}
 
@@ -193,7 +294,9 @@ const AdminSecurity: React.FC<Props> = ({ subTab, setSubTab }) => {
                 </tr>
               </thead>
               <tbody>
-                {users.map(u => (
+                {users.length === 0 ? (
+                  <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-400">Aucun utilisateur configure</td></tr>
+                ) : users.map(u => (
                   <tr key={u.id} className="border-b last:border-0 hover:bg-gray-50">
                     <td className="px-4 py-3 font-medium">{u.nom}</td>
                     <td className="px-4 py-3">{u.role}</td>
@@ -206,7 +309,10 @@ const AdminSecurity: React.FC<Props> = ({ subTab, setSubTab }) => {
               </tbody>
             </table>
           </div>
-          <button onClick={() => toast.success('Configuration 2FA enregistree')} className="bg-blue-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-blue-700">Enregistrer</button>
+          <button onClick={async () => {
+            await saveSetting('admin_security_2fa', { forceAdmin: forceAdmin2FA, users });
+            toast.success('Configuration 2FA enregistree');
+          }} className="bg-blue-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-blue-700">Enregistrer</button>
         </div>
       )}
 
@@ -218,7 +324,11 @@ const AdminSecurity: React.FC<Props> = ({ subTab, setSubTab }) => {
               <p className="font-medium text-sm">Activer la restriction par IP</p>
               <p className="text-xs text-gray-500">Seules les adresses IP listees pourront acceder a l'application</p>
             </div>
-            <Toggle checked={ipRestriction} onChange={() => setIpRestriction(!ipRestriction)} />
+            <Toggle checked={ipRestriction} onChange={async () => {
+              const newVal = !ipRestriction;
+              setIpRestriction(newVal);
+              await saveSetting('admin_security_ips', { restriction: newVal, list: ips });
+            }} />
           </div>
           {ipRestriction && (
             <>
@@ -243,7 +353,9 @@ const AdminSecurity: React.FC<Props> = ({ subTab, setSubTab }) => {
                     </tr>
                   </thead>
                   <tbody>
-                    {ips.map(i => (
+                    {ips.length === 0 ? (
+                      <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-400">Aucune adresse IP configuree</td></tr>
+                    ) : ips.map(i => (
                       <tr key={i.ip} className="border-b last:border-0 hover:bg-gray-50">
                         <td className="px-4 py-3 font-mono text-sm">{i.ip}</td>
                         <td className="px-4 py-3">{i.description}</td>
@@ -297,7 +409,7 @@ const AdminSecurity: React.FC<Props> = ({ subTab, setSubTab }) => {
               <label className="block text-xs font-medium mb-1">Utilisateur</label>
               <select value={logUser} onChange={e => setLogUser(e.target.value)} className="border rounded px-2 py-1.5 text-sm">
                 <option>Tous</option>
-                {[...new Set(mockLogs.map(l => l.user))].map(u => <option key={u}>{u}</option>)}
+                {[...new Set(logs.map(l => l.user))].map(u => <option key={u}>{u}</option>)}
               </select>
             </div>
             <div>
@@ -322,13 +434,15 @@ const AdminSecurity: React.FC<Props> = ({ subTab, setSubTab }) => {
                 </tr>
               </thead>
               <tbody>
-                {filteredLogs.map((l, i) => (
+                {filteredLogs.length === 0 ? (
+                  <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400">Aucun evenement de securite enregistre</td></tr>
+                ) : filteredLogs.map((l, i) => (
                   <tr key={i} className="border-b last:border-0 hover:bg-gray-50">
                     <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{l.date}</td>
                     <td className="px-4 py-3 font-medium">{l.user}</td>
                     <td className="px-4 py-3">{eventBadge(l.event)}</td>
-                    <td className="px-4 py-3 font-mono text-xs">{l.ip}</td>
-                    <td className="px-4 py-3 text-gray-500">{l.nav}</td>
+                    <td className="px-4 py-3 font-mono text-xs">{l.ip || '—'}</td>
+                    <td className="px-4 py-3 text-gray-500">{l.nav || '—'}</td>
                     <td className="px-4 py-3">{severityBadge(l.severity)}</td>
                     <td className="px-4 py-3 text-gray-500 text-xs max-w-[200px] truncate">{l.details}</td>
                   </tr>

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState, useEffect, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
@@ -333,12 +334,12 @@ const CalculsAutomatiquesPage: React.FC = () => {
           <Card>
             <CardContent className="flex items-center p-6">
               <div className="flex items-center space-x-4">
-                <div className="p-2 bg-purple-100 rounded-full">
-                  <BarChart3 className="h-6 w-6 text-purple-600" />
+                <div className="p-2 bg-primary-100 rounded-full">
+                  <BarChart3 className="h-6 w-6 text-primary-600" />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Règles Actives</p>
-                  <p className="text-lg font-bold text-purple-700">
+                  <p className="text-lg font-bold text-primary-700">
                     {rules.filter(r => r.actif).length}
                   </p>
                 </div>

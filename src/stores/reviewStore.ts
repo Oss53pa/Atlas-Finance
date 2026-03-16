@@ -7,6 +7,7 @@ import { devtools } from 'zustand/middleware';
 import type {
   ReportReview,
   ReportReviewListItem,
+  ReviewChecklistItem,
   ReviewSettings,
   ReviewFilters,
   SubmitForReviewRequest,
@@ -18,77 +19,74 @@ import type {
 const mockPendingReviews: ReportReviewListItem[] = [
   {
     id: '1',
-    report_id: 'report-1',
+    report: 'report-1',
     report_title: 'Bilan Financier Q4 2024',
     status: 'pending',
+    status_display: 'En attente',
     priority: 'high',
-    requested_by: {
-      id: 'user-1',
-      name: 'Marie Dupont',
-      email: 'marie.dupont@exemple.com',
-    },
+    priority_display: 'Haute',
+    requested_by: 'user-1',
+    requested_by_name: 'Marie Dupont',
+    requested_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
     reviewer: null,
-    created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    deadline: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+    reviewer_name: null,
+    assigned_at: null,
+    due_date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+    completion_percentage: 0,
   },
   {
     id: '2',
-    report_id: 'report-2',
+    report: 'report-2',
     report_title: 'Analyse des Ventes Mensuelles',
     status: 'in_progress',
+    status_display: 'En cours',
     priority: 'normal',
-    requested_by: {
-      id: 'user-2',
-      name: 'Jean Martin',
-      email: 'jean.martin@exemple.com',
-    },
-    reviewer: {
-      id: 'user-3',
-      name: 'Sophie Bernard',
-      email: 'sophie.bernard@exemple.com',
-    },
-    created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-    deadline: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
+    priority_display: 'Normale',
+    requested_by: 'user-2',
+    requested_by_name: 'Jean Martin',
+    requested_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+    reviewer: 'user-3',
+    reviewer_name: 'Sophie Bernard',
+    assigned_at: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
+    due_date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
+    completion_percentage: 30,
   },
 ];
 
 const mockMyRequests: ReportReviewListItem[] = [
   {
     id: '3',
-    report_id: 'report-3',
+    report: 'report-3',
     report_title: 'Budget Prévisionnel 2025',
     status: 'approved',
+    status_display: 'Approuvé',
     priority: 'high',
-    requested_by: {
-      id: 'current-user',
-      name: 'Vous',
-      email: 'vous@exemple.com',
-    },
-    reviewer: {
-      id: 'user-4',
-      name: 'Pierre Durand',
-      email: 'pierre.durand@exemple.com',
-    },
-    created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    completed_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+    priority_display: 'Haute',
+    requested_by: 'current-user',
+    requested_by_name: 'Vous',
+    requested_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+    reviewer: 'user-4',
+    reviewer_name: 'Pierre Durand',
+    assigned_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    due_date: null,
+    completion_percentage: 100,
   },
   {
     id: '4',
-    report_id: 'report-4',
+    report: 'report-4',
     report_title: 'Rapport de Performance',
     status: 'changes_requested',
+    status_display: 'Modifications demandées',
     priority: 'normal',
-    requested_by: {
-      id: 'current-user',
-      name: 'Vous',
-      email: 'vous@exemple.com',
-    },
-    reviewer: {
-      id: 'user-5',
-      name: 'Claire Moreau',
-      email: 'claire.moreau@exemple.com',
-    },
-    created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+    priority_display: 'Normale',
+    requested_by: 'current-user',
+    requested_by_name: 'Vous',
+    requested_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+    reviewer: 'user-5',
+    reviewer_name: 'Claire Moreau',
+    assigned_at: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+    due_date: null,
+    completion_percentage: 50,
   },
 ];
 
@@ -102,80 +100,108 @@ const mockStats = {
 // Mock review service for development
 const mockReview: ReportReview = {
   id: '1',
-  report_id: 'report-1',
+  report: 'report-1',
   report_title: 'Bilan Financier Q4 2024',
+  report_workspace: 'workspace-1',
+  report_version: 1,
   status: 'pending',
+  status_display: 'En attente',
   priority: 'high',
-  requested_by: {
-    id: 'user-1',
-    name: 'Marie Dupont',
-    email: 'marie.dupont@exemple.com',
-  },
+  priority_display: 'Haute',
+  requested_by: 'user-1',
+  requested_by_name: 'Marie Dupont',
+  requested_at: new Date().toISOString(),
   reviewer: null,
-  created_at: new Date().toISOString(),
+  reviewer_name: null,
+  assigned_at: null,
+  assigned_by: null,
+  due_date: null,
+  completion_percentage: 0,
+  message: '',
+  started_at: null,
+  decision_at: null,
+  decision_comment: '',
   checklist_items: [],
-  comments: [],
-  history: [],
+  required_items_checked: false,
+  updated_at: new Date().toISOString(),
 };
 
 const mockSettings: ReviewSettings = {
   id: 'settings-1',
-  workspace_id: 'workspace-1',
-  require_approval: true,
-  auto_assign: false,
+  workspace: 'workspace-1',
+  review_required: true,
+  auto_assign_reviewer: false,
+  min_reviewers: 1,
+  require_all_checklist: false,
   default_checklist: [],
+  notify_on_submit: true,
+  notify_on_decision: true,
   reminder_days: 3,
-  escalation_days: 7,
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
+};
+
+const defaultChecklistItem: ReviewChecklistItem = {
+  id: '1',
+  label: 'Item',
+  description: '',
+  is_required: false,
+  is_checked: false,
+  checked_at: null,
+  checked_by: null,
+  checked_by_name: null,
+  note: '',
+  order: 0,
 };
 
 const reviewService = {
-  getReviews: async () => {
+  getReviews: async (_filters?: ReviewFilters) => {
     await new Promise(resolve => setTimeout(resolve, 200));
     return [...mockPendingReviews, ...mockMyRequests];
   },
-  getReview: async () => {
+  getReview: async (_reviewId: string) => {
     await new Promise(resolve => setTimeout(resolve, 200));
     return mockReview;
   },
-  getReviewSettings: async () => {
+  getReviewSettings: async (_workspaceId: string) => {
     await new Promise(resolve => setTimeout(resolve, 200));
     return mockSettings;
   },
-  submitForReview: async () => {
+  submitForReview: async (_reportId: string, _data: SubmitForReviewRequest) => {
     await new Promise(resolve => setTimeout(resolve, 200));
     return mockReview;
   },
-  assignReviewer: async () => {
+  assignReviewer: async (_reviewId: string, _data: AssignReviewerRequest) => {
     await new Promise(resolve => setTimeout(resolve, 200));
     return mockReview;
   },
-  startReview: async () => {
+  startReview: async (_reviewId: string) => {
     await new Promise(resolve => setTimeout(resolve, 200));
     return { ...mockReview, status: 'in_progress' as const };
   },
-  approveReview: async () => {
+  approveReview: async (_reviewId: string, _data?: ReviewDecisionRequest) => {
     await new Promise(resolve => setTimeout(resolve, 200));
     return { ...mockReview, status: 'approved' as const };
   },
-  rejectReview: async () => {
+  rejectReview: async (_reviewId: string, _data?: ReviewDecisionRequest) => {
     await new Promise(resolve => setTimeout(resolve, 200));
     return { ...mockReview, status: 'rejected' as const };
   },
-  requestChanges: async () => {
+  requestChanges: async (_reviewId: string, _data?: ReviewDecisionRequest) => {
     await new Promise(resolve => setTimeout(resolve, 200));
     return { ...mockReview, status: 'changes_requested' as const };
   },
-  cancelReview: async () => {
+  cancelReview: async (_reviewId: string) => {
     await new Promise(resolve => setTimeout(resolve, 200));
     return { ...mockReview, status: 'cancelled' as const };
   },
-  toggleChecklistItem: async () => {
+  toggleChecklistItem: async (_reviewId: string, _itemId: string, isChecked: boolean): Promise<ReviewChecklistItem> => {
     await new Promise(resolve => setTimeout(resolve, 100));
-    return { id: '1', label: 'Item', is_checked: true };
+    return { ...defaultChecklistItem, is_checked: isChecked };
   },
-  addChecklistNote: async () => {
+  addChecklistNote: async (_reviewId: string, _itemId: string, note: string): Promise<ReviewChecklistItem> => {
     await new Promise(resolve => setTimeout(resolve, 100));
-    return { id: '1', label: 'Item', is_checked: false, note: 'Note added' };
+    return { ...defaultChecklistItem, note };
   },
   updateReviewSettings: async (_id: string, data: Partial<ReviewSettings>) => {
     await new Promise(resolve => setTimeout(resolve, 200));

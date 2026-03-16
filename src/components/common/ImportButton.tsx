@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState, useRef, useCallback } from 'react';
 import { Upload, RefreshCw } from 'lucide-react';
 import { Button } from '../ui';

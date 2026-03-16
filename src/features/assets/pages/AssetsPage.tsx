@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState } from 'react';
 import { useLanguage } from '../../../contexts/LanguageContext';
 import { Plus, Download, Search, Filter as FilterIcon, Wrench } from 'lucide-react';

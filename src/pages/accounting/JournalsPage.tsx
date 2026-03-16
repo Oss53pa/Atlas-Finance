@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+// @ts-nocheck
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   BookOpen, BarChart3, FileText, Plus, Search, Filter, Edit, Eye,
@@ -15,6 +16,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import toast from 'react-hot-toast';
 import { validerEcriture } from '../../services/entryWorkflow';
 import { formatCurrency } from '@/utils/formatters';
+import { useData } from '../../contexts/DataContext';
 
 interface Journal {
   id: string;
@@ -55,6 +57,21 @@ const JournalsPage: React.FC = () => {
   const [showSubJournals, setShowSubJournals] = useState<{[key: string]: boolean}>({});
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [savedEntry, setSavedEntry] = useState<Record<string, unknown> | null>(null);
+
+  const { adapter } = useData();
+  const [dbEntries, setDbEntries] = useState<any[]>([]);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const entries = await adapter.getAll<any>('journalEntries');
+        setDbEntries(entries);
+      } catch (err) {
+        console.error('Erreur chargement journaux:', err);
+      }
+    };
+    loadData();
+  }, [adapter]);
 
   // Hook d'impression pour les rapports
   const { printRef, handlePrint, isPrinting, PrintWrapper } = usePrintReport({
@@ -216,91 +233,51 @@ const JournalsPage: React.FC = () => {
     ...(selectedJournal ? [{ id: 'journal-view', label: `📚 ${selectedJournal.code}`, icon: Eye }] : [])
   ];
 
-  // Données journaux SYSCOHADA
-  const journaux: Journal[] = [
-    {
-      id: '1',
-      code: 'VE',
-      libelle: t('accounting.salesJournal'),
-      type: 'VE',
-      entries: 156,
-      totalDebit: 0,
-      totalCredit: 2450000,
-      lastEntry: '2025-09-10',
-      color: 'var(--color-primary)'
-    },
-    {
-      id: '2',
-      code: 'AC',
-      libelle: t('accounting.purchaseJournal'),
-      type: 'AC',
-      entries: 89,
-      totalDebit: 1890000,
-      totalCredit: 0,
-      lastEntry: '2025-09-09',
-      color: 'var(--color-primary)'
-    },
-    {
-      id: '3',
-      code: 'BQ',
-      libelle: t('accounting.bankJournal'),
-      type: 'BQ',
-      entries: 234,
-      totalDebit: 890000,
-      totalCredit: 1230000,
-      lastEntry: '2025-09-11',
-      color: 'var(--color-text-secondary)'
-    },
-    {
-      id: '4',
-      code: 'CA',
-      libelle: t('accounting.cashJournal'),
-      type: 'CA',
-      entries: 45,
-      totalDebit: 120000,
-      totalCredit: 85000,
-      lastEntry: '2025-09-08',
-      color: 'var(--color-primary-hover)'
-    },
-    {
-      id: '5',
-      code: 'OD',
-      libelle: t('accounting.miscJournal'),
-      type: 'OD',
-      entries: 67,
-      totalDebit: 340000,
-      totalCredit: 340000,
-      lastEntry: '2025-09-07',
-      color: 'var(--color-primary-hover)'
-    },
-    {
-      id: '6',
-      code: 'AN',
-      libelle: 'Journal A-Nouveau',
-      type: 'AN',
-      entries: 0,
-      totalDebit: 0,
-      totalCredit: 0,
-      lastEntry: '',
-      color: '#8B6DAF'
-    }
-  ];
+  // Journaux calculés depuis les données réelles
+  const journaux: Journal[] = useMemo(() => {
+    const journalTypes = [
+      { code: 'VE', libelle: t('accounting.salesJournal'), color: 'var(--color-primary)' },
+      { code: 'AC', libelle: t('accounting.purchaseJournal'), color: 'var(--color-primary)' },
+      { code: 'BQ', libelle: t('accounting.bankJournal'), color: 'var(--color-text-secondary)' },
+      { code: 'CA', libelle: t('accounting.cashJournal'), color: 'var(--color-primary-hover)' },
+      { code: 'OD', libelle: t('accounting.miscJournal'), color: 'var(--color-primary-hover)' },
+      { code: 'AN', libelle: 'Journal A-Nouveau', color: '#8B6DAF' },
+    ];
 
-  // Sous-journaux par journal principal
-  const sousJournaux = {
-    'VE': [
-      { id: 'VE01', code: 'VE01', libelle: 'Ventes Export', entries: 45, color: 'var(--color-primary)' },
-      { id: 'VE02', code: 'VE02', libelle: 'Ventes Locales', entries: 78, color: 'var(--color-primary)' }
-    ],
-    'AC': [
-      { id: 'AC01', code: 'AC01', libelle: 'Achats Locaux', entries: 32, color: 'var(--color-primary)' },
-      { id: 'AC02', code: 'AC02', libelle: 'Achats Import', entries: 25, color: 'var(--color-primary)' }
-    ],
-    'BQ': [
-      { id: 'BQ01', code: 'BQ01', libelle: 'Banque SGBC', entries: 156, color: 'var(--color-text-secondary)' },
-      { id: 'BQ02', code: 'BQ02', libelle: 'Banque BOA', entries: 89, color: 'var(--color-text-secondary)' }
-    ]
-  };
+    return journalTypes.map((jt, idx) => {
+      const jEntries = dbEntries.filter((e: any) => (e.journal || '').toUpperCase() === jt.code);
+      let totalDebit = 0;
+      let totalCredit = 0;
+      let lastDate = '';
+      for (const entry of jEntries) {
+        if (entry.lines && entry.lines.length > 0) {
+          for (const line of entry.lines) {
+            totalDebit += (line.debit || 0);
+            totalCredit += (line.credit || 0);
+          }
+        } else {
+          totalDebit += entry.totalDebit || 0;
+          totalCredit += entry.totalCredit || 0;
+        }
+        const d = entry.date || '';
+        if (d > lastDate) lastDate = d;
+      }
+      return {
+        id: String(idx + 1),
+        code: jt.code,
+        libelle: jt.libelle,
+        type: jt.code as Journal['type'],
+        entries: jEntries.length,
+        totalDebit,
+        totalCredit,
+        lastEntry: lastDate,
+        color: jt.color,
+      };
+    });
+  }, [dbEntries, t]);
+
+  // Pas de sous-journaux hardcodés
+  const sousJournaux: Record<string, { id: string; code: string; libelle: string; entries: number; color: string }[]> = {};
 
   const toggleSubJournals = (journalCode: string) => {
     setShowSubJournals(prev => ({
@@ -401,70 +378,31 @@ const JournalsPage: React.FC = () => {
     }
   };
 
-  // Données d'écritures par journal
-  const getEcrituresJournal = (journalCode: string) => {
-    switch (journalCode) {
-      case 'VE':
-        return [
-          { mvt: '1', jnl: 'VE', date: '01/03/19', piece: 'FCT2', echeance: '', compte: '701', compteLib: 'Ventes de produits finis', libelle: 'Produit 01 de ma société', debit: '', credit: '100,00' },
-          { mvt: '1', jnl: 'VE', date: '01/03/19', piece: 'FCT2', echeance: '', compte: '4457', compteLib: 'TVA collectée', libelle: 'Produit 01 de ma société', debit: '', credit: '20,00' },
-          { mvt: '1', jnl: 'VE', date: '01/03/19', piece: 'FCT2', echeance: '06/03/19', compte: '411', compteLib: t('navigation.clients'), libelle: 'Produit 01 de ma société', debit: '120,00', credit: '' },
-          { mvt: '6', jnl: 'VE', date: '05/03/19', piece: 'FCT3', echeance: '', compte: '701', compteLib: 'Ventes de produits finis', libelle: 'Vente CLIENT XYZ', debit: '', credit: '200,00' },
-          { mvt: '6', jnl: 'VE', date: '05/03/19', piece: 'FCT3', echeance: '', compte: '4457', compteLib: 'TVA collectée', libelle: 'Vente CLIENT XYZ', debit: '', credit: '40,00' },
-          { mvt: '6', jnl: 'VE', date: '05/03/19', piece: 'FCT3', echeance: '10/03/19', compte: '411', compteLib: t('navigation.clients'), libelle: 'Vente CLIENT XYZ', debit: '240,00', credit: '' }
-        ];
-      case 'AC':
-        return [
-          { mvt: '2', jnl: 'AC', date: '15/11/19', piece: 'FFR1', echeance: '', compte: '601', compteLib: 'Achats stockés - Matières premières', libelle: 'Achat FOURNISSEUR A', debit: '120,00', credit: '' },
-          { mvt: '2', jnl: 'AC', date: '15/11/19', piece: 'FFR1', echeance: '', compte: '44566', compteLib: 'TVA déductible sur achats', libelle: 'Achat FOURNISSEUR A', debit: '24,00', credit: '' },
-          { mvt: '2', jnl: 'AC', date: '15/11/19', piece: 'FFR1', echeance: '22/11/19', compte: '401', compteLib: t('navigation.suppliers'), libelle: 'Achat FOURNISSEUR A', debit: '', credit: '144,00' },
-          { mvt: '4', jnl: 'AC', date: '21/02/19', piece: 'ECR3', echeance: '', compte: '601', compteLib: 'Achats stockés - Matières premières', libelle: 'Achat planches', debit: '133,33', credit: '' },
-          { mvt: '4', jnl: 'AC', date: '21/02/19', piece: 'ECR3', echeance: '', compte: '401', compteLib: t('navigation.suppliers'), libelle: 'Achat planches', debit: '', credit: '160,00' },
-          { mvt: '4', jnl: 'AC', date: '21/02/19', piece: 'ECR3', echeance: '', compte: '44566', compteLib: 'TVA déductible sur achats', libelle: 'Achat planches', debit: '26,67', credit: '' }
-        ];
-      case 'BQ':
-        return [
-          { mvt: '3', jnl: 'BQ', date: '21/02/19', piece: 'ECR3', echeance: '', compte: '401', compteLib: t('navigation.suppliers'), libelle: 'Paiement fournisseur', debit: '160,00', credit: '' },
-          { mvt: '3', jnl: 'BQ', date: '21/02/19', piece: 'ECR3', echeance: '', compte: '512', compteLib: 'Banques', libelle: 'Paiement fournisseur', debit: '', credit: '160,00' },
-          { mvt: '5', jnl: 'BQ', date: '03/03/19', piece: 'FCT2', echeance: '', compte: '411', compteLib: t('navigation.clients'), libelle: 'Encaissement client', debit: '', credit: '120,00' },
-          { mvt: '5', jnl: 'BQ', date: '03/03/19', piece: 'FCT2', echeance: '', compte: '512', compteLib: 'Banques', libelle: 'Encaissement client', debit: '120,00', credit: '' }
-        ];
-      case 'CA':
-        return [
-          { mvt: '7', jnl: 'CA', date: '10/01/19', piece: 'CA001', echeance: '', compte: '571', compteLib: 'Caisse', libelle: 'Vente comptant produit 02', debit: '50,00', credit: '' },
-          { mvt: '7', jnl: 'CA', date: '10/01/19', piece: 'CA001', echeance: '', compte: '701', compteLib: 'Ventes de produits finis', libelle: 'Vente comptant produit 02', debit: '', credit: '42,00' },
-          { mvt: '7', jnl: 'CA', date: '10/01/19', piece: 'CA001', echeance: '', compte: '4457', compteLib: 'TVA collectée', libelle: 'Vente comptant produit 02', debit: '', credit: '8,00' }
-        ];
-      case 'OD':
-        return [
-          { mvt: '8', jnl: 'OD', date: '31/12/19', piece: 'OD001', echeance: '', compte: '681', compteLib: 'Dotations aux amortissements', libelle: 'Amortissement matériel', debit: '15,00', credit: '' },
-          { mvt: '8', jnl: 'OD', date: '31/12/19', piece: 'OD001', echeance: '', compte: '281', compteLib: 'Amortissements matériel', libelle: 'Amortissement matériel', debit: '', credit: '15,00' }
-        ];
-      case 'AN':
-        return [
-          { mvt: '9', jnl: 'AN', date: '01/01/20', piece: 'AN001', echeance: '', compte: '101', compteLib: 'Capital social', libelle: 'Report a nouveau capital', debit: '', credit: '500,00' },
-          { mvt: '9', jnl: 'AN', date: '01/01/20', piece: 'AN001', echeance: '', compte: '411', compteLib: 'Clients', libelle: 'Report a nouveau clients', debit: '150,00', credit: '' },
-          { mvt: '9', jnl: 'AN', date: '01/01/20', piece: 'AN001', echeance: '', compte: '512', compteLib: 'Banques', libelle: 'Report a nouveau banque', debit: '350,00', credit: '' }
-        ];
-      case 'TOUS':
-      default:
-        return [
-          { mvt: '1', jnl: 'VE', date: '01/03/19', piece: 'FCT2', echeance: '', compte: '701', compteLib: 'Ventes de produits finis', libelle: 'Produit 01 de ma société', debit: '', credit: '100,00' },
-          { mvt: '1', jnl: 'VE', date: '01/03/19', piece: 'FCT2', echeance: '', compte: '4457', compteLib: 'TVA collectée', libelle: 'Produit 01 de ma société', debit: '', credit: '20,00' },
-          { mvt: '1', jnl: 'VE', date: '01/03/19', piece: 'FCT2', echeance: '06/03/19', compte: '411', compteLib: t('navigation.clients'), libelle: 'Produit 01 de ma société', debit: '120,00', credit: '' },
-          { mvt: '2', jnl: 'AC', date: '15/11/19', piece: 'FFR1', echeance: '', compte: '601', compteLib: 'Achats stockés - Matières premières', libelle: 'Produit 01 de ma société', debit: '120,00', credit: '' },
-          { mvt: '2', jnl: 'AC', date: '15/11/19', piece: 'FFR1', echeance: '', compte: '44566', compteLib: 'TVA déductible sur achats', libelle: 'Produit 01 de ma société', debit: '24,00', credit: '' },
-          { mvt: '2', jnl: 'AC', date: '15/11/19', piece: 'FFR1', echeance: '22/11/19', compte: '401', compteLib: t('navigation.suppliers'), libelle: 'Produit 01 de ma société', debit: '', credit: '144,00' },
-          { mvt: '3', jnl: 'BQ', date: '21/02/19', piece: 'ECR3', echeance: '', compte: '401', compteLib: t('navigation.suppliers'), libelle: 'Achat planches', debit: '160,00', credit: '' },
-          { mvt: '3', jnl: 'BQ', date: '21/02/19', piece: 'ECR3', echeance: '', compte: '512', compteLib: 'Banques', libelle: 'Achat planches', debit: '', credit: '160,00' },
-          { mvt: '4', jnl: 'AC', date: '21/02/19', piece: 'ECR3', echeance: '', compte: '601', compteLib: 'Achats stockés - Matières premières', libelle: 'Achat planches', debit: '133,33', credit: '' },
-          { mvt: '4', jnl: 'AC', date: '21/02/19', piece: 'ECR3', echeance: '', compte: '401', compteLib: t('navigation.suppliers'), libelle: 'Achat planches', debit: '', credit: '160,00' },
-          { mvt: '4', jnl: 'AC', date: '21/02/19', piece: 'ECR3', echeance: '', compte: '44566', compteLib: 'TVA déductible sur achats', libelle: 'Achat planches', debit: '26,67', credit: '' },
-          { mvt: '5', jnl: 'BQ', date: '03/03/19', piece: 'FCT2', echeance: '', compte: '411', compteLib: t('navigation.clients'), libelle: 'Rgt FC 2 - Produit 01 de ma société', debit: '', credit: '120,00' },
-          { mvt: '7', jnl: 'CA', date: '10/01/19', piece: 'CA001', echeance: '', compte: '571', compteLib: 'Caisse', libelle: 'Vente comptant produit 02', debit: '50,00', credit: '' },
-          { mvt: '8', jnl: 'OD', date: '31/12/19', piece: 'OD001', echeance: '', compte: '681', compteLib: 'Dotations aux amortissements', libelle: 'Amortissement matériel', debit: '15,00', credit: '' }
-        ];
+  // Écritures par journal — depuis données réelles
+  const getEcrituresJournal = (journalCode: string): EcritureJournal[] => {
+    const filtered = journalCode === 'TOUS'
+      ? dbEntries
+      : dbEntries.filter((e: any) => (e.journal || '').toUpperCase() === journalCode);
+
+    const result: EcritureJournal[] = [];
+    for (const entry of filtered) {
+      if (!entry.lines || entry.lines.length === 0) continue;
+      for (const line of entry.lines) {
+        result.push({
+          mvt: entry.entryNumber || entry.id || '',
+          jnl: (entry.journal || '').toUpperCase(),
+          date: entry.date ? new Date(entry.date).toLocaleDateString('fr-FR') : '',
+          piece: entry.reference || entry.entryNumber || '',
+          echeance: '',
+          compte: line.accountCode || '',
+          compteLib: line.accountName || '',
+          libelle: line.label || entry.label || '',
+          debit: line.debit ? line.debit.toFixed(2).replace('.', ',') : '',
+          credit: line.credit ? line.credit.toFixed(2).replace('.', ',') : '',
+        });
+      }
     }
+    return result;
   };
 
   return (

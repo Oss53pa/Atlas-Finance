@@ -42,7 +42,7 @@ class TreasuryMLService {
   async predictCashFlow(params: CashFlowPredictionParams): Promise<CashFlowPrediction> {
     try {
       const response = await apiService.post(`${this.BASE_PATH}/predict-cash-flow/`, params);
-      return response.data;
+      return response.data as CashFlowPrediction;
     } catch (error) {
       // Return mock data if API fails
       const predictions = [];
@@ -75,7 +75,7 @@ class TreasuryMLService {
       const response = await apiService.get(`${this.BASE_PATH}/recommendations/`, {
         params: { company_id: companyId }
       });
-      return response.data;
+      return response.data as { recommendations: AIRecommendation[] };
     } catch (error) {
       return {
         recommendations: []

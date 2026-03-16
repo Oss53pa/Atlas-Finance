@@ -54,8 +54,27 @@ function AffectationTab({ exerciceId, openingExerciceId }: AffectationTabProps) 
     dividendes: 0,
     reportANouveau: 0,
   });
-  const [capitalSocial, setCapitalSocial] = useState(10000000);
+  const [capitalSocial, setCapitalSocial] = useState(0);
   const [reserveLegaleActuelle, setReserveLegaleActuelle] = useState(0);
+
+  // Load capital social & réserve légale from accounting data (class 1 accounts)
+  useEffect(() => {
+    if (!adapter) return;
+    adapter.getAll('journalEntries').then((entries: any[]) => {
+      let capital = 0;
+      let reserve = 0;
+      for (const e of entries) {
+        for (const l of (e.lines || [])) {
+          // Compte 101x = Capital social
+          if (l.accountCode?.startsWith('101')) capital += (l.credit || 0) - (l.debit || 0);
+          // Compte 111x = Réserve légale
+          if (l.accountCode?.startsWith('111')) reserve += (l.credit || 0) - (l.debit || 0);
+        }
+      }
+      if (capital > 0) setCapitalSocial(capital);
+      setReserveLegaleActuelle(reserve);
+    }).catch(() => {});
+  }, [adapter]);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [executing, setExecuting] = useState(false);
   const [affectationDone, setAffectationDone] = useState(false);

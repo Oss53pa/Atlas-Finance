@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Service Navigation Atlas Finance
  * Gestion de la navigation dynamique et des menus

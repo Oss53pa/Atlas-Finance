@@ -74,14 +74,14 @@ const CATEGORIES = [
   { value: 'autre', label: 'Autre' },
 ];
 
-const MOCK_FOLDERS: DataFolder[] = [
+const DEFAULT_FOLDERS: DataFolder[] = [
   { id: 'f1', name: 'Données Financières 2025', importCount: 12 },
   { id: 'f2', name: 'RH - Paie', importCount: 24 },
   { id: 'f3', name: 'Ventes Trimestrielles', importCount: 8 },
   { id: 'f4', name: 'Marketing Digital', importCount: 15 },
 ];
 
-const MOCK_EXISTING_IMPORTS: ExistingImport[] = [
+const DEFAULT_IMPORTS: ExistingImport[] = [
   { id: 'imp1', importNumber: 'IMP-2025-00138', name: 'Budget Q1 2025', version: 'v2.1', period: 'Jan - Mar 2025', importedAt: '2025-01-15' },
   { id: 'imp2', importNumber: 'IMP-2025-00125', name: 'Ventes Décembre', version: 'v1.0', period: 'Déc 2024', importedAt: '2025-01-02' },
   { id: 'imp3', importNumber: 'IMP-2024-00089', name: 'Comptabilité Générale', version: 'v3.2', period: 'Année 2024', importedAt: '2024-12-20' },
@@ -123,11 +123,11 @@ const DataImportModal: React.FC<DataImportModalProps> = ({
   const [showExistingImports, setShowExistingImports] = useState(false);
   const [showFolderDropdown, setShowFolderDropdown] = useState(false);
 
-  const totalImportCount = useMemo(() => MOCK_FOLDERS.reduce((acc, folder) => acc + folder.importCount, 0), []);
+  const totalImportCount = useMemo(() => DEFAULT_FOLDERS.reduce((acc, folder) => acc + folder.importCount, 0), []);
 
   const importNumber = useMemo(() => {
     if (isNewVersion && selectedExistingImport) {
-      const existing = MOCK_EXISTING_IMPORTS.find(i => i.id === selectedExistingImport);
+      const existing = DEFAULT_IMPORTS.find(i => i.id === selectedExistingImport);
       return existing?.importNumber || generateImportNumber();
     }
     return generateImportNumber();
@@ -135,7 +135,7 @@ const DataImportModal: React.FC<DataImportModalProps> = ({
 
   const version = useMemo(() => {
     if (isNewVersion && selectedExistingImport) {
-      const existing = MOCK_EXISTING_IMPORTS.find(i => i.id === selectedExistingImport);
+      const existing = DEFAULT_IMPORTS.find(i => i.id === selectedExistingImport);
       return existing ? incrementVersion(existing.version) : 'v1.0';
     }
     return 'v1.0';
@@ -221,15 +221,15 @@ const DataImportModal: React.FC<DataImportModalProps> = ({
                 className="w-full flex items-center justify-between px-4 py-3 border border-gray-200 rounded-xl bg-white hover:border-gray-300 transition-colors">
                 {selectedExistingImport ? (
                   <div className="text-left">
-                    <p className="font-medium text-gray-900">{MOCK_EXISTING_IMPORTS.find(i => i.id === selectedExistingImport)?.name}</p>
-                    <p className="text-xs text-gray-500">{MOCK_EXISTING_IMPORTS.find(i => i.id === selectedExistingImport)?.importNumber}</p>
+                    <p className="font-medium text-gray-900">{DEFAULT_IMPORTS.find(i => i.id === selectedExistingImport)?.name}</p>
+                    <p className="text-xs text-gray-500">{DEFAULT_IMPORTS.find(i => i.id === selectedExistingImport)?.importNumber}</p>
                   </div>
                 ) : (<span className="text-gray-400">Sélectionner un import existant...</span>)}
                 <ChevronDown className={cn('w-4 h-4 text-gray-400 transition-transform', showExistingImports && 'rotate-180')} />
               </button>
               {showExistingImports && (
                 <div className="absolute z-10 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
-                  {MOCK_EXISTING_IMPORTS.map((imp) => (
+                  {DEFAULT_IMPORTS.map((imp) => (
                     <button key={imp.id} type="button" onClick={() => { setSelectedExistingImport(imp.id); setShowExistingImports(false); setName(imp.name); }}
                       className={cn('w-full flex items-center justify-between p-3 text-left hover:bg-gray-50', selectedExistingImport === imp.id && 'bg-gray-50')}>
                       <div><p className="font-medium text-gray-900">{imp.name}</p><p className="text-xs text-gray-500">{imp.importNumber} • {imp.version}</p></div>
@@ -262,7 +262,7 @@ const DataImportModal: React.FC<DataImportModalProps> = ({
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Date d'import</label>
             <div className="relative">
-              <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Calendar className="absolute left-4 top-1/2 -tranprimary-y-1/2 w-4 h-4 text-gray-400" />
               <input type="date" value={importDate} onChange={(e) => setImportDate(e.target.value)}
                 className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
@@ -291,7 +291,7 @@ const DataImportModal: React.FC<DataImportModalProps> = ({
                     {!folderId || folderId === 'all' ? (
                       <><Database className="w-5 h-5 text-gray-600" /><div className="text-left"><p className="font-medium text-gray-900">All Data</p><p className="text-xs text-gray-500">{totalImportCount} imports</p></div></>
                     ) : (
-                      <><Folder className="w-5 h-5 text-amber-500" /><div className="text-left"><p className="font-medium text-gray-900">{MOCK_FOLDERS.find(f => f.id === folderId)?.name}</p></div></>
+                      <><Folder className="w-5 h-5 text-amber-500" /><div className="text-left"><p className="font-medium text-gray-900">{DEFAULT_FOLDERS.find(f => f.id === folderId)?.name}</p></div></>
                     )}
                   </div>
                   <ChevronDown className={cn('w-4 h-4 text-gray-400 transition-transform', showFolderDropdown && 'rotate-180')} />
@@ -304,7 +304,7 @@ const DataImportModal: React.FC<DataImportModalProps> = ({
                       <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">{totalImportCount}</span>
                     </button>
                     <div className="border-t border-gray-100" />
-                    {MOCK_FOLDERS.map((folder) => (
+                    {DEFAULT_FOLDERS.map((folder) => (
                       <button key={folder.id} type="button" onClick={() => { setFolderId(folder.id); setShowFolderDropdown(false); }}
                         className={cn('w-full flex items-center gap-3 p-3 text-left hover:bg-gray-50', folderId === folder.id && 'bg-gray-50')}>
                         <Folder className="w-5 h-5 text-amber-500" /><p className="font-medium text-gray-900 flex-1">{folder.name}</p>
@@ -322,7 +322,7 @@ const DataImportModal: React.FC<DataImportModalProps> = ({
             ) : (
               <div className="flex gap-2">
                 <div className="flex-1 relative">
-                  <FolderPlus className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <FolderPlus className="absolute left-4 top-1/2 -tranprimary-y-1/2 w-4 h-4 text-gray-400" />
                   <input type="text" value={newFolderName} onChange={(e) => setNewFolderName(e.target.value)} placeholder="Nom du nouveau dossier..."
                     className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" autoFocus />
                 </div>

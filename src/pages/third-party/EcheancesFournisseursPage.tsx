@@ -98,14 +98,14 @@ const EcheancesFournisseursPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="min-h-screen bg-primary-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-primary-50">
       <div className="container mx-auto px-4 py-6">
         {/* En-tête */}
         <div className="mb-8">
@@ -189,7 +189,7 @@ const EcheancesFournisseursPage: React.FC = () => {
         </div>
 
         {/* Opportunités d'escompte */}
-        <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-6 mb-8">
+        <div className="bg-gradient-to-r from-green-50 to-primary-50 border border-green-200 rounded-xl p-6 mb-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="p-3 bg-green-500 rounded-lg">

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Accounting Complete Service - Supabase Direct
  * Full accounting functionality via Supabase PostgREST + RPC

@@ -299,7 +299,7 @@ const SecurityProfilesManager: React.FC = () => {
       case 'MANAGER': return 'blue';
       case 'USER': return 'green';
       case 'VIEWER': return 'gray';
-      case 'AUDITOR': return 'purple';
+      case 'AUDITOR': return 'primary';
       default: return 'gray';
     }
   };
@@ -331,8 +331,8 @@ const SecurityProfilesManager: React.FC = () => {
       'read': 'text-blue-600',
       'update': 'text-yellow-600',
       'delete': 'text-red-600',
-      'validate': 'text-purple-600',
-      'close': 'text-indigo-600'
+      'validate': 'text-primary-600',
+      'close': 'text-primary-600'
     };
     
     const labels = {
@@ -358,7 +358,7 @@ const SecurityProfilesManager: React.FC = () => {
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-lg font-bold text-gray-900 flex items-center">
-              <ShieldCheckIcon className="h-8 w-8 mr-3 text-indigo-600" />
+              <ShieldCheckIcon className="h-8 w-8 mr-3 text-primary-600" />
               Profils de Sécurité Avancés
             </h1>
             <p className="text-gray-600 mt-2">
@@ -369,7 +369,7 @@ const SecurityProfilesManager: React.FC = () => {
             <select
               value={viewMode}
               onChange={(e) => setViewMode(e.target.value as typeof viewMode)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
             >
               <option value="profiles">Profils</option>
               <option value="matrix">Matrice CRUD</option>
@@ -378,7 +378,7 @@ const SecurityProfilesManager: React.FC = () => {
             </select>
             <button
               onClick={() => setShowCreateModal(true)}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
+              className="bg-primary hover:bg-primary-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
             >
               <PlusIcon className="h-5 w-5" />
               <span>Nouveau Profil</span>
@@ -580,11 +580,11 @@ const SecurityProfilesManager: React.FC = () => {
                 <span className="text-gray-700">Delete (Supprimer)</span>
               </div>
               <div className="flex items-center space-x-2">
-                <span className="text-purple-600 font-bold">V</span>
+                <span className="text-primary-600 font-bold">V</span>
                 <span className="text-gray-700">Validate (Valider)</span>
               </div>
               <div className="flex items-center space-x-2">
-                <span className="text-indigo-600 font-bold">L</span>
+                <span className="text-primary-600 font-bold">L</span>
                 <span className="text-gray-700">Close (Clôturer)</span>
               </div>
             </div>
@@ -632,7 +632,7 @@ const SecurityProfilesManager: React.FC = () => {
                 <h4 className="font-medium text-gray-900 mb-3">Restrictions Temporelles</h4>
                 <div className="space-y-3">
                   {profile.restrictions.timeRestrictions.sessionTimeout && (
-                    <div className="flex justify-between p-3 bg-purple-50 rounded-lg">
+                    <div className="flex justify-between p-3 bg-primary-50 rounded-lg">
                       <span className="text-gray-700">Timeout session:</span>
                       <span className="font-medium">{profile.restrictions.timeRestrictions.sessionTimeout / 60}h</span>
                     </div>

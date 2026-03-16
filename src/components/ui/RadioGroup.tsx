@@ -19,6 +19,6 @@ export const RadioGroupItem: React.FC<{
     type="radio"
     value={value}
     id={id}
-    className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
+    className="h-4 w-4 text-primary-600 border-gray-300 focus:ring-primary-500"
   />
 );

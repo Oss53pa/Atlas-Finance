@@ -35,7 +35,7 @@ const SimpleParametersManager: React.FC = () => {
       title: 'Utilisateurs et Sécurité',
       description: 'Profils et droits d\'accès',
       icon: UserGroupIcon,
-      color: 'purple',
+      color: 'primary',
       status: 'in_progress'
     },
     {
@@ -74,7 +74,7 @@ const SimpleParametersManager: React.FC = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-lg font-bold text-gray-900 flex items-center">
-              <CogIcon className="h-8 w-8 mr-3 text-indigo-600" />
+              <CogIcon className="h-8 w-8 mr-3 text-primary-600" />
               Centre de Configuration Atlas Finance
             </h1>
             <p className="text-gray-600 mt-2">
@@ -180,10 +180,10 @@ const SimpleParametersManager: React.FC = () => {
           {[
             { label: 'Assistant Démarrage', path: '/setup-wizard', color: 'blue' },
             { label: 'Multi-Sociétés', path: '/multi-company-advanced', color: 'green' },
-            { label: 'Plan SYSCOHADA', path: '/config/accounts', color: 'purple' },
+            { label: 'Plan SYSCOHADA', path: '/config/accounts', color: 'primary' },
             { label: 'TVA et Taxes', path: '/config/vat-taxes', color: 'orange' },
-            { label: 'Codes Tiers', path: '/config/third-party-codes', color: 'pink' },
-            { label: 'Axes Analytiques', path: '/config/analytical-axes', color: 'indigo' },
+            { label: 'Codes Tiers', path: '/config/third-party-codes', color: 'primary' },
+            { label: 'Axes Analytiques', path: '/config/analytical-axes', color: 'primary' },
             { label: 'Import/Export', path: '/config/import-export', color: 'red' },
             { label: 'Sécurité', path: '/config/security-profiles', color: 'yellow' }
           ].map((link, index) => (
@@ -212,10 +212,10 @@ const SimpleParametersManager: React.FC = () => {
             <button
               key={index}
               onClick={() => window.location.href = statement.path}
-              className="p-4 text-left rounded-lg border-2 border-indigo-200 hover:border-indigo-300 hover:bg-indigo-50 transition-all"
+              className="p-4 text-left rounded-lg border-2 border-primary-200 hover:border-primary-300 hover:bg-primary-50 transition-all"
             >
-              <div className="font-medium text-indigo-900">{statement.label}</div>
-              <div className="text-sm text-indigo-700 mt-1">{statement.description}</div>
+              <div className="font-medium text-primary-900">{statement.label}</div>
+              <div className="text-sm text-primary-700 mt-1">{statement.description}</div>
             </button>
           ))}
         </div>

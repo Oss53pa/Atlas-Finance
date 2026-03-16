@@ -112,18 +112,17 @@ const PisteAuditModule = React.lazy(() => import('./pages/closures/PisteAuditMod
 // Reporting
 const ReportingDashboard = React.lazy(() => import('./pages/reporting/ReportingDashboard'));
 const TaxReportingPage = React.lazy(() => import('./pages/reporting/TaxReportingPage'));
-const CustomReportsPage = React.lazy(() => import('./pages/reporting/CustomReportsPage'));
 const DashboardsPage = React.lazy(() => import('./pages/reporting/DashboardsPage'));
 const ReportingSyscohada = React.lazy(() => import('./pages/reporting/ReportingSyscohada'));
 const ReportingIFRS = React.lazy(() => import('./pages/reporting/ReportingIFRS'));
-const ReportBuilderPage = React.lazy(() => import('./pages/reporting/ReportBuilderPage'));
-const ReportStudioPage = React.lazy(() => import('./pages/reporting/ReportStudioPage'));
+const ReportBuilderApp = React.lazy(() => import('./features/report-builder/components/ReportBuilderApp'));
 
 // Financial statements
 const FinancialStatementsIndexPage = React.lazy(() => import('./pages/financial/FinancialStatementsIndexPage'));
 const BilanSYSCOHADAPage = React.lazy(() => import('./pages/financial/BilanSYSCOHADAPage'));
 const CompteResultatPage = React.lazy(() => import('./pages/financial/CompteResultatPage'));
 const FinancialAnalysisPage = React.lazy(() => import('./pages/financial/FinancialAnalysisPage'));
+const CashFlowStatementPage = React.lazy(() => import('./components/financial/CashFlowStatementSYSCOHADA'));
 
 // Fiscalite
 const TaxationDashboard = React.lazy(() => import('./pages/taxation/TaxationDashboard'));
@@ -306,6 +305,7 @@ function App() {
                           <Route path="/financial-statements" element={<FinancialStatementsIndexPage />} />
                           <Route path="/financial-statements/balance" element={<BilanSYSCOHADAPage />} />
                           <Route path="/financial-statements/income" element={<CompteResultatPage />} />
+                          <Route path="/financial-statements/cash-flow" element={<CashFlowStatementPage />} />
                           <Route path="/financial-statements/analysis" element={<FinancialAnalysisPage />} />
                         </Route>
 
@@ -314,11 +314,9 @@ function App() {
                           <Route path="/reporting" element={<ReportingDashboard />} />
                           <Route path="/reporting/dashboards" element={<DashboardsPage />} />
                           <Route path="/reporting/tax" element={<TaxReportingPage />} />
-                          <Route path="/reporting/custom" element={<CustomReportsPage />} />
                           <Route path="/reporting/syscohada" element={<ReportingSyscohada />} />
                           <Route path="/reporting/ifrs" element={<ReportingIFRS />} />
-                          <Route path="/reporting/builder" element={<ReportBuilderPage />} />
-                          <Route path="/reporting/studio" element={<ReportStudioPage />} />
+                          <Route path="/reporting/builder" element={<ReportBuilderApp />} />
                           <Route path="/reports" element={<ReportingDashboard />} />
                         </Route>
 

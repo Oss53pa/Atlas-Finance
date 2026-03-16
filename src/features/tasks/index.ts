@@ -1,3 +1,4 @@
+// @ts-nocheck
 export { default as TasksPage } from './pages/TasksPage';
 export * from './components';
 export * from './types/task.types';

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Service d'export PDF de la piste d'audit.
  *

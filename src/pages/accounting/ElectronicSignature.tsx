@@ -97,7 +97,7 @@ const ElectronicSignature: React.FC = () => {
   const getDocumentTypeIcon = (type: string) => {
     switch (type) {
       case 'invoice': return <FileText className="w-5 h-5 text-blue-600" />;
-      case 'contract': return <FileCheck className="w-5 h-5 text-purple-600" />;
+      case 'contract': return <FileCheck className="w-5 h-5 text-primary-600" />;
       case 'purchase_order': return <CreditCard className="w-5 h-5 text-green-600" />;
       case 'quote': return <Hash className="w-5 h-5 text-orange-600" />;
       default: return <FileText className="w-5 h-5 text-gray-600" />;
@@ -267,7 +267,7 @@ const ElectronicSignature: React.FC = () => {
       </div>
 
       {/* Security Info */}
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4">
+      <div className="bg-gradient-to-r from-blue-50 to-primary-50 rounded-lg p-4">
         <div className="flex items-center gap-4">
           <Shield className="w-8 h-8 text-blue-600" />
           <div className="flex-1">
@@ -280,7 +280,7 @@ const ElectronicSignature: React.FC = () => {
               <span className="text-sm text-gray-700">Chiffrement AES-256</span>
             </div>
             <div className="flex items-center gap-2">
-              <Award className="w-5 h-5 text-purple-600" />
+              <Award className="w-5 h-5 text-primary-600" />
               <span className="text-sm text-gray-700">Certifie eIDAS</span>
             </div>
             <div className="flex items-center gap-2">
@@ -295,7 +295,7 @@ const ElectronicSignature: React.FC = () => {
       <div className="bg-white rounded-lg shadow p-4">
         <div className="flex flex-col lg:flex-row gap-4">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-700" />
+            <Search className="absolute left-3 top-1/2 -tranprimary-y-1/2 w-5 h-5 text-gray-700" />
             <input
               type="text"
               placeholder="Rechercher un document..."

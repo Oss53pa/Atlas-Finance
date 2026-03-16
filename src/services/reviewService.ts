@@ -39,7 +39,7 @@ export async function getReviews(
   const response = await api.get<ReportReviewListItem[]>(
     `${REVIEWS_URL}/?${params.toString()}`
   );
-  return response.data;
+  return response.data as ReportReviewListItem[];
 }
 
 /**
@@ -47,7 +47,7 @@ export async function getReviews(
  */
 export async function getReview(reviewId: string): Promise<ReportReview> {
   const response = await api.get<ReportReview>(`${REVIEWS_URL}/${reviewId}/`);
-  return response.data;
+  return response.data as ReportReview;
 }
 
 /**
@@ -57,7 +57,7 @@ export async function getPendingReviews(): Promise<ReportReviewListItem[]> {
   const response = await api.get<ReportReviewListItem[]>(
     `${REVIEWS_URL}/pending/`
   );
-  return response.data;
+  return response.data as ReportReviewListItem[];
 }
 
 /**
@@ -67,7 +67,7 @@ export async function getMyReviewRequests(): Promise<ReportReviewListItem[]> {
   const response = await api.get<ReportReviewListItem[]>(
     `${REVIEWS_URL}/my_requests/`
   );
-  return response.data;
+  return response.data as ReportReviewListItem[];
 }
 
 // ============================================================================
@@ -85,7 +85,7 @@ export async function submitForReview(
     `/reports/reports/${reportId}/submit_for_review/`,
     data
   );
-  return response.data;
+  return response.data as ReportReview;
 }
 
 /**
@@ -97,7 +97,7 @@ export async function getReportReviews(
   const response = await api.get<ReportReviewListItem[]>(
     `/reports/reports/${reportId}/reviews/`
   );
-  return response.data;
+  return response.data as ReportReviewListItem[];
 }
 
 // ============================================================================
@@ -115,7 +115,7 @@ export async function assignReviewer(
     `${REVIEWS_URL}/${reviewId}/assign/`,
     data
   );
-  return response.data;
+  return response.data as ReportReview;
 }
 
 /**
@@ -125,7 +125,7 @@ export async function startReview(reviewId: string): Promise<ReportReview> {
   const response = await api.post<ReportReview>(
     `${REVIEWS_URL}/${reviewId}/start/`
   );
-  return response.data;
+  return response.data as ReportReview;
 }
 
 /**
@@ -139,7 +139,7 @@ export async function approveReview(
     `${REVIEWS_URL}/${reviewId}/approve/`,
     data || {}
   );
-  return response.data;
+  return response.data as ReportReview;
 }
 
 /**
@@ -153,7 +153,7 @@ export async function rejectReview(
     `${REVIEWS_URL}/${reviewId}/reject/`,
     data || {}
   );
-  return response.data;
+  return response.data as ReportReview;
 }
 
 /**
@@ -167,7 +167,7 @@ export async function requestChanges(
     `${REVIEWS_URL}/${reviewId}/request_changes/`,
     data || {}
   );
-  return response.data;
+  return response.data as ReportReview;
 }
 
 /**
@@ -177,7 +177,7 @@ export async function cancelReview(reviewId: string): Promise<ReportReview> {
   const response = await api.post<ReportReview>(
     `${REVIEWS_URL}/${reviewId}/cancel/`
   );
-  return response.data;
+  return response.data as ReportReview;
 }
 
 // ============================================================================
@@ -196,7 +196,7 @@ export async function updateChecklistItem(
     `${REVIEWS_URL}/${reviewId}/checklist/${itemId}/`,
     data
   );
-  return response.data;
+  return response.data as ReviewChecklistItem;
 }
 
 /**
@@ -234,7 +234,7 @@ export async function getReviewSettings(
   const response = await api.get<ReviewSettings>(
     `${REVIEW_SETTINGS_URL}/workspace/${workspaceId}/`
   );
-  return response.data;
+  return response.data as ReviewSettings;
 }
 
 /**
@@ -248,7 +248,7 @@ export async function updateReviewSettings(
     `${REVIEW_SETTINGS_URL}/${settingsId}/`,
     data
   );
-  return response.data;
+  return response.data as ReviewSettings;
 }
 
 // ============================================================================

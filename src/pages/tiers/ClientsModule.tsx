@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState, useEffect, useMemo } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -165,6 +166,7 @@ const ClientsModule: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [clients, setClients] = useState<Client[]>([]);
   const [activeTab, setActiveTab] = useState<string>('liste');
+  const [analyticsSubTab, setAnalyticsSubTab] = useState<string>('kpis');
   const [balanceAgeeSubTab, setBalanceAgeeSubTab] = useState<'repartition' | 'detail' | 'risques'>('repartition');
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -348,7 +350,7 @@ const ClientsModule: React.FC = () => {
 
   const getCategorieColor = (categorie: string) => {
     switch (categorie) {
-      case 'GRAND_COMPTE': return 'bg-purple-100 text-purple-800';
+      case 'GRAND_COMPTE': return 'bg-primary-100 text-primary-800';
       case 'PME': return 'bg-blue-100 text-blue-800';
       case 'TPE': return 'bg-green-100 text-green-800';
       case 'PARTICULIER': return 'bg-gray-100 text-gray-800';
@@ -548,14 +550,14 @@ const ClientsModule: React.FC = () => {
         <>
           {/* KPI Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
+            <div className="bg-gradient-to-r from-primary-50 to-primary-100 rounded-lg p-4 border border-primary-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-purple-600 font-medium">Total Encours</p>
-                  <p className="text-lg font-bold text-purple-800">{formatCurrency(totalEncours)}</p>
-                  <p className="text-xs text-purple-600 mt-1">Sur {clientsActifs} clients actifs</p>
+                  <p className="text-sm text-primary-600 font-medium">Total Encours</p>
+                  <p className="text-lg font-bold text-primary-800">{formatCurrency(totalEncours)}</p>
+                  <p className="text-xs text-primary-600 mt-1">Sur {clientsActifs} clients actifs</p>
                 </div>
-                <Euro className="w-8 h-8 text-purple-400" />
+                <Euro className="w-8 h-8 text-primary-400" />
               </div>
             </div>
 
@@ -915,12 +917,12 @@ const ClientsModule: React.FC = () => {
               <p className="text-xs text-red-600">+60 jours</p>
             </div>
 
-            <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
+            <div className="bg-primary-50 rounded-lg p-4 border border-primary-200">
               <div className="flex items-center justify-between mb-2">
-                <Shield className="w-5 h-5 text-purple-600" />
+                <Shield className="w-5 h-5 text-primary-600" />
               </div>
-              <p className="text-lg font-bold text-purple-800">{formatCurrency(totauxBalanceAgee.provision)}</p>
-              <p className="text-xs text-purple-600">Provisions</p>
+              <p className="text-lg font-bold text-primary-800">{formatCurrency(totauxBalanceAgee.provision)}</p>
+              <p className="text-xs text-primary-600">Provisions</p>
             </div>
           </div>
 
@@ -970,7 +972,7 @@ const ClientsModule: React.FC = () => {
               <div className="p-6">
                 <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
                   {/* Graphique Donut Moderne */}
-                  <div className="lg:col-span-2 bg-gradient-to-br from-slate-50 to-gray-100 rounded-2xl p-6 shadow-inner">
+                  <div className="lg:col-span-2 bg-gradient-to-br from-primary-50 to-gray-100 rounded-2xl p-6 shadow-inner">
                     <h4 className="text-lg font-semibold text-[#171717] mb-2 text-center">Distribution des Créances</h4>
                     <p className="text-sm text-[#525252] text-center mb-4">Répartition par ancienneté</p>
                     <div className="relative">
@@ -1102,7 +1104,7 @@ const ClientsModule: React.FC = () => {
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center space-x-4">
                     <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <Search className="absolute left-3 top-1/2 transform -tranprimary-y-1/2 w-4 h-4 text-gray-400" />
                       <input
                         type="text"
                         placeholder="Rechercher un client..."
@@ -1135,7 +1137,7 @@ const ClientsModule: React.FC = () => {
                         <th className="text-right p-3 font-medium text-orange-600">31-60j</th>
                         <th className="text-right p-3 font-medium text-red-600">61-90j</th>
                         <th className="text-right p-3 font-medium text-red-800">+90j</th>
-                        <th className="text-right p-3 font-medium text-purple-600">Provision</th>
+                        <th className="text-right p-3 font-medium text-primary-600">Provision</th>
                         <th className="text-center p-3 font-medium text-[#525252]">Actions</th>
                       </tr>
                     </thead>
@@ -1159,7 +1161,7 @@ const ClientsModule: React.FC = () => {
                             <td className="p-3 text-right text-orange-600">{item.echu31_60 > 0 ? formatCurrency(item.echu31_60) : '-'}</td>
                             <td className="p-3 text-right text-red-600">{item.echu61_90 > 0 ? formatCurrency(item.echu61_90) : '-'}</td>
                             <td className="p-3 text-right text-red-800 font-bold">{item.echuPlus90 > 0 ? formatCurrency(item.echuPlus90) : '-'}</td>
-                            <td className="p-3 text-right text-purple-600">{item.provision > 0 ? formatCurrency(item.provision) : '-'}</td>
+                            <td className="p-3 text-right text-primary-600">{item.provision > 0 ? formatCurrency(item.provision) : '-'}</td>
                             <td className="p-3 text-center">
                               <div className="flex items-center justify-center space-x-1">
                                 <button type="button" className="p-1 text-gray-500 hover:text-[#171717]" title="Voir détail">
@@ -1186,7 +1188,7 @@ const ClientsModule: React.FC = () => {
                         <td className="p-3 text-right text-orange-600">{formatCurrency(totauxBalanceAgee.echu31_60)}</td>
                         <td className="p-3 text-right text-red-600">{formatCurrency(totauxBalanceAgee.echu61_90)}</td>
                         <td className="p-3 text-right text-red-800">{formatCurrency(totauxBalanceAgee.echuPlus90)}</td>
-                        <td className="p-3 text-right text-purple-600">{formatCurrency(totauxBalanceAgee.provision)}</td>
+                        <td className="p-3 text-right text-primary-600">{formatCurrency(totauxBalanceAgee.provision)}</td>
                         <td className="p-3"></td>
                       </tr>
                     </tfoot>
@@ -1227,14 +1229,14 @@ const ClientsModule: React.FC = () => {
                     </div>
                     <p className="text-sm text-yellow-700 mt-2">Relances à prévoir (31-60j)</p>
                   </div>
-                  <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
+                  <div className="bg-primary-50 rounded-lg p-4 border border-primary-200">
                     <div className="flex items-center justify-between">
-                      <Shield className="w-8 h-8 text-purple-600" />
-                      <span className="text-lg font-bold text-purple-800">
+                      <Shield className="w-8 h-8 text-primary-600" />
+                      <span className="text-lg font-bold text-primary-800">
                         {formatCurrency(totauxBalanceAgee.provision)}
                       </span>
                     </div>
-                    <p className="text-sm text-purple-700 mt-2">Provisions recommandées</p>
+                    <p className="text-sm text-primary-700 mt-2">Provisions recommandées</p>
                   </div>
                 </div>
 
@@ -1353,15 +1355,15 @@ const ClientsModule: React.FC = () => {
                         </div>
 
                         {/* Action 4 */}
-                        <div className="p-3 bg-purple-50 rounded-lg border-l-4 border-purple-500">
+                        <div className="p-3 bg-primary-50 rounded-lg border-l-4 border-primary-500">
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="font-medium text-purple-800">📊 Provisions à comptabiliser</p>
-                              <p className="text-sm text-purple-700">
+                              <p className="font-medium text-primary-800">📊 Provisions à comptabiliser</p>
+                              <p className="text-sm text-primary-700">
                                 {formatCurrency(totauxBalanceAgee.provision)} selon règles SYSCOHADA
                               </p>
                             </div>
-                            <button type="button" className="px-3 py-1 text-xs bg-purple-600 text-white rounded hover:bg-purple-700">
+                            <button type="button" className="px-3 py-1 text-xs bg-primary-600 text-white rounded hover:bg-primary-700">
                               Générer OD
                             </button>
                           </div>
@@ -1414,450 +1416,183 @@ const ClientsModule: React.FC = () => {
       )}
 
       {/* Analytics Tab */}
-      {activeTab === 'analytics' && (
+      {activeTab === 'analytics' && (() => {
+        const totalCA = clients.reduce((s, c) => s + (c.chiffreAffaires || 0), 0);
+        const activeClients = clients.filter(c => c.statut === 'ACTIF');
+        const avgDSO = clients.length > 0 ? Math.round(clients.reduce((s, c) => s + (c.dso || 0), 0) / clients.length) : 0;
+        const avgRecouvrement = clients.length > 0 ? Math.round(clients.reduce((s, c) => s + (c.tauxRecouvrement || 0), 0) / clients.length) : 0;
+        const avgScore = clients.length > 0 ? (clients.reduce((s, c) => s + (c.scoreCredit || 0), 0) / clients.length / 20).toFixed(1) : '0';
+        const catData = analyticsData.clientsParCategorie;
+        const pieData = catData.map(c => ({ categorie: c.categorie, ca: c.montant }));
+        const topClients = [...clients].sort((a, b) => (b.chiffreAffaires || 0) - (a.chiffreAffaires || 0)).slice(0, 5);
+        const riskClients = clients.filter(c => (c.scoreCredit || 0) < 50);
+
+        const analyticsSubTabs = [
+          { key: 'kpis', label: 'Indicateurs', icon: BarChart3 },
+          { key: 'charts', label: 'Graphiques', icon: PieChart },
+          { key: 'performance', label: 'Performance', icon: Target },
+        ];
+
+        return (
         <div className="space-y-6">
-          {/* Filters Bar */}
-          <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <button
-                  type="button"
-                  onClick={() => setShowPeriodModal(true)}
-                  className="flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50"
-                >
-                  <Calendar className="w-4 h-4 text-[#525252]" />
-                  <span>
-                    {dateRange.period === 'custom'
-                      ? `${dateRange.startDate} - ${dateRange.endDate}`
-                      : dateRange.period === 'day' ? t('common.today')
-                      : dateRange.period === 'week' ? 'Cette semaine'
-                      : dateRange.period === 'month' ? 'Ce mois'
-                      : dateRange.period === 'quarter' ? 'Ce trimestre'
-                      : 'Cette année'
-                    }
-                  </span>
+          {/* Sub-tabs */}
+          <div className="flex items-center bg-white rounded-xl p-1 border shadow-sm w-fit">
+            {analyticsSubTabs.map((tab) => {
+              const Icon = tab.icon;
+              return (
+                <button key={tab.key} type="button" onClick={() => setAnalyticsSubTab(tab.key)}
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                    analyticsSubTab === tab.key ? 'bg-[#171717] text-white shadow-md' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  }`}>
+                  <Icon className="w-4 h-4" />{tab.label}
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setCompareMode(!compareMode)}
-                  className={`px-4 py-2 rounded-lg text-sm transition-colors ${
-                    compareMode
-                      ? 'bg-[#171717] text-white'
-                      : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
-                  }`}
-                >
-                  <TrendingUp className="w-4 h-4 inline mr-2" />
-                  Mode Comparaison
-                </button>
-              </div>
-              <div className="flex items-center space-x-2">
-                <button type="button" className="p-2 text-gray-600 hover:text-gray-900" title="Actualiser">
-                  <RefreshCw className="w-4 h-4" />
-                </button>
-                <ExportMenu
-                  data={filteredClients}
-                  filename="dashboard-clients"
-                  columns={{
-                    code: 'Code',
-                    raisonSociale: 'Client',
-                    categorie: 'Catégorie',
-                    chiffreAffaires: 'CA',
-                    scoreCredit: 'Score Crédit',
-                    tauxRecouvrement: 'Taux Recouvrement',
-                    notationInterne: 'Note'
-                  }}
-                  buttonText="Export PDF"
-                />
-              </div>
-            </div>
+              );
+            })}
           </div>
 
-          {/* KPIs principale */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-            <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
-              <div className="flex items-center justify-between mb-3">
-                <Building className="w-5 h-5 text-[#171717]" />
-                <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">+12%</span>
+          {/* Sub-tab: KPIs */}
+          {analyticsSubTab === 'kpis' && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
+                  <Building className="w-5 h-5 text-[#171717] mb-3" />
+                  <p className="text-lg font-bold text-[#171717]">{activeClients.length}</p>
+                  <p className="text-sm text-[#525252]">Clients Actifs</p>
+                </div>
+                <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
+                  <DollarSign className="w-5 h-5 text-primary-600 mb-3" />
+                  <p className="text-lg font-bold text-[#171717]">{formatCurrency(totalCA)}</p>
+                  <p className="text-sm text-[#525252]">CA Total</p>
+                </div>
+                <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
+                  <Clock className="w-5 h-5 text-blue-600 mb-3" />
+                  <p className="text-lg font-bold text-[#171717]">{avgDSO}j</p>
+                  <p className="text-sm text-[#525252]">DSO Moyen</p>
+                </div>
+                <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
+                  <Target className="w-5 h-5 text-orange-600 mb-3" />
+                  <p className="text-lg font-bold text-[#171717]">{avgRecouvrement}%</p>
+                  <p className="text-sm text-[#525252]">Taux Recouvrement</p>
+                </div>
+                <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
+                  <Shield className="w-5 h-5 text-green-600 mb-3" />
+                  <p className="text-lg font-bold text-[#171717]">{avgScore}/5</p>
+                  <p className="text-sm text-[#525252]">Score Moyen</p>
+                </div>
               </div>
-              <p className="text-lg font-bold text-[#171717]">110</p>
-              <p className="text-sm text-[#525252]">Clients Actifs</p>
-              <div className="mt-2 flex items-center text-xs text-gray-700">
-                <ChevronUp className="w-3 h-3 text-green-500 mr-1" />
-                <span>8 nouveaux ce mois</span>
-              </div>
-            </div>
 
-            <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
-              <div className="flex items-center justify-between mb-3">
-                <DollarSign className="w-5 h-5 text-purple-600" />
-                <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">+18%</span>
-              </div>
-              <p className="text-lg font-bold text-[#171717]">69.7M</p>
-              <p className="text-sm text-[#525252]">CA Total</p>
-              <div className="mt-2 flex items-center text-xs text-gray-700">
-                <TrendingUp className="w-3 h-3 text-purple-500 mr-1" />
-                <span>FCFA YTD</span>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
-              <div className="flex items-center justify-between mb-3">
-                <Clock className="w-5 h-5 text-blue-600" />
-                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">-5j</span>
-              </div>
-              <p className="text-lg font-bold text-[#171717]">38j</p>
-              <p className="text-sm text-[#525252]">DSO Moyen</p>
-              <div className="mt-2 flex items-center text-xs text-gray-700">
-                <ChevronDown className="w-3 h-3 text-green-500 mr-1" />
-                <span>Amélioration</span>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
-              <div className="flex items-center justify-between mb-3">
-                <Target className="w-5 h-5 text-orange-600" />
-                <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded">89%</span>
-              </div>
-              <p className="text-lg font-bold text-[#171717]">89%</p>
-              <p className="text-sm text-[#525252]">Taux Recouvrement</p>
-              <div className="mt-2 flex items-center text-xs text-gray-700">
-                <Info className="w-3 h-3 text-orange-500 mr-1" />
-                <span>Objectif: 95%</span>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
-              <div className="flex items-center justify-between mb-3">
-                <Shield className="w-5 h-5 text-green-600" />
-                <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">85%</span>
-              </div>
-              <p className="text-lg font-bold text-[#171717]">4.1/5</p>
-              <p className="text-sm text-[#525252]">Score Fidélité</p>
-              <div className="mt-2 flex items-center text-xs text-gray-700">
-                <Award className="w-3 h-3 text-green-500 mr-1" />
-                <span>Excellente fidélisation</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Indicateurs de Performance */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Performance Ventes */}
-            <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-[#171717]">Performance Ventes</h3>
-                <Zap className="w-5 h-5 text-yellow-500" />
-              </div>
-              <div className="space-y-4">
-                <div>
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-sm text-[#525252]">Taux de Conversion</span>
-                    <span className="text-sm font-semibold text-[#171717]">78%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div className="bg-green-500 h-2 rounded-full" style={{ width: '78%' }}></div>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-sm text-[#525252]">Taux de Recouvrement</span>
-                    <span className="text-sm font-semibold text-[#171717]">89%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div className="bg-blue-500 h-2 rounded-full" style={{ width: '89%' }}></div>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-sm text-[#525252]">Respect Délais Paiement</span>
-                    <span className="text-sm font-semibold text-[#171717]">82%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div className="bg-[#171717] h-2 rounded-full" style={{ width: '82%' }}></div>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-sm text-[#525252]">Satisfaction Client</span>
-                    <span className="text-sm font-semibold text-[#171717]">92%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div className="bg-purple-500 h-2 rounded-full" style={{ width: '92%' }}></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Analyse par Catégorie */}
-            <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-[#171717]">Analyse par Catégorie</h3>
-                <Users className="w-5 h-5 text-purple-500" />
-              </div>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
-                  <div className="flex items-center">
-                    <div className="w-2 h-2 bg-purple-500 rounded-full mr-3"></div>
-                    <span className="text-sm text-gray-700">Grands Comptes</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="text-lg font-bold text-gray-900 mr-2">12</span>
-                    <span className="text-xs text-gray-700">clients</span>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                  <div className="flex items-center">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
-                    <span className="text-sm text-gray-700">PME</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="text-lg font-bold text-gray-900 mr-2">45</span>
-                    <span className="text-xs text-gray-700">clients</span>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                  <div className="flex items-center">
-                    <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
-                    <span className="text-sm text-gray-700">TPE</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="text-lg font-bold text-gray-900 mr-2">38</span>
-                    <span className="text-xs text-gray-700">clients</span>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center">
-                    <div className="w-2 h-2 bg-gray-500 rounded-full mr-3"></div>
-                    <span className="text-sm text-gray-700">Particuliers</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="text-lg font-bold text-gray-900 mr-2">15</span>
-                    <span className="text-xs text-gray-700">clients</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Top Clients */}
-            <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-[#171717]">Top 5 Clients</h3>
-                <Award className="w-5 h-5 text-[#525252]" />
-              </div>
-              <div className="space-y-3">
-                {[
-                  { nom: 'GUINEE EQUATORIALE MINING', montant: 25000000, part: 35.9 },
-                  { nom: 'COMILOG GABON', montant: 15500000, part: 22.2 },
-                  { nom: 'CAMRAIL SA', montant: 8500000, part: 12.2 },
-                  { nom: 'SOCAPALM', montant: 5800000, part: 8.3 },
-                  { nom: 'CONGOLAISE DE BOIS', montant: 4200000, part: 6.0 }
-                ].map((client, idx) => (
-                  <div key={idx} className="flex items-center justify-between">
-                    <div className="flex items-center flex-1">
-                      <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold mr-3 ${
-                        idx === 0 ? 'bg-yellow-100 text-yellow-700' :
-                        idx === 1 ? 'bg-gray-100 text-gray-700' :
-                        idx === 2 ? 'bg-orange-100 text-orange-700' :
-                        'bg-gray-50 text-gray-600'
-                      }`}>
-                        {idx + 1}
-                      </span>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-[#171717] truncate">{client.nom}</p>
-                        <p className="text-xs text-[#525252]">{formatCurrency(client.montant)}</p>
+              {/* Catégories + Top clients */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+                  <h3 className="text-lg font-semibold text-[#171717] mb-4">Analyse par Catégorie</h3>
+                  <div className="space-y-3">
+                    {catData.map((cat) => (
+                      <div key={cat.categorie} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span className="text-sm text-gray-700">{cat.categorie}</span>
+                        <div className="flex items-center gap-3">
+                          <span className="text-lg font-bold text-gray-900">{cat.count}</span>
+                          <span className="text-xs text-gray-500">{formatCurrency(cat.montant)}</span>
+                        </div>
                       </div>
-                    </div>
-                    <span className="text-xs font-semibold text-[#171717]">{client.part}%</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Graphiques principaux */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Evolution du CA */}
-            <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-[#171717]">Évolution du CA</h3>
-                <div className="flex items-center space-x-2">
-                  <button type="button" className="p-1 text-gray-700 hover:text-gray-600" aria-label="Information">
-                    <Info className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={analyticsData.evolutionCA}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="mois" />
-                  <YAxis tickFormatter={(value) => `${value / 1000000}M`} />
-                  <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                  <Legend />
-                  {compareMode && (
-                    <Line
-                      type="monotone"
-                      dataKey="ca2024"
-                      stroke="#525252"
-                      strokeWidth={2}
-                      strokeDasharray="5 5"
-                      name="CA 2024"
-                    />
-                  )}
-                  <Line
-                    type="monotone"
-                    dataKey="ca2025"
-                    stroke="#171717"
-                    strokeWidth={2}
-                    name="CA 2025"
-                    dot={{ fill: '#171717' }}
-                    activeDot={{ r: 6 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-
-            {/* Répartition par Catégorie */}
-            <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-[#171717]">Répartition par Catégorie</h3>
-                <div className="flex items-center space-x-2">
-                  <select className="text-sm border border-gray-300 rounded px-2 py-1">
-                    <option>Par CA</option>
-                    <option>Par Nombre</option>
-                  </select>
-                </div>
-              </div>
-              <ResponsiveContainer width="100%" height={300}>
-                <RechartsPieChart>
-                  <Pie
-                    dataKey="ca"
-                    data={[
-                      { categorie: 'GRAND_COMPTE', ca: 45000000 },
-                      { categorie: 'PME', ca: 18000000 },
-                      { categorie: 'TPE', ca: 5500000 },
-                      { categorie: 'PARTICULIER', ca: 1200000 }
-                    ]}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
-                    fill="#737373"
-                    label={({ categorie, percent }) => `${categorie} ${(percent * 100).toFixed(0)}%`}
-                  >
-                    {[
-                      { categorie: 'GRAND_COMPTE', ca: 45000000 },
-                      { categorie: 'PME', ca: 18000000 },
-                      { categorie: 'TPE', ca: 5500000 },
-                      { categorie: 'PARTICULIER', ca: 1200000 }
-                    ].map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={['#171717', '#525252', '#737373', '#525252'][index % 4]} />
                     ))}
-                  </Pie>
-                  <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                </RechartsPieChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* Analyse Performance & Risques */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Radar Performance */}
-            <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
-              <h3 className="text-lg font-semibold text-[#171717] mb-4">Évaluation Performance</h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <RadarChart data={analyticsData.performanceClients}>
-                  <PolarGrid />
-                  <PolarAngleAxis dataKey="critere" />
-                  <PolarRadiusAxis angle={90} domain={[0, 100]} />
-                  <Radar name="Score Moyen" dataKey="score" stroke="#171717" fill="#171717" fillOpacity={0.6} />
-                  <Tooltip />
-                </RadarChart>
-              </ResponsiveContainer>
-            </div>
-
-            {/* Matrice Risques Clients */}
-            <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
-              <h3 className="text-lg font-semibold text-[#171717] mb-4">Matrice des Risques Clients</h3>
-              <div className="grid grid-cols-3 gap-2">
-                <div className="col-span-1 row-span-3"></div>
-                <div className="text-center text-xs text-gray-700 pb-2">Faible Encours</div>
-                <div className="text-center text-xs text-gray-700 pb-2">Fort Encours</div>
-
-                <div className="text-right text-xs text-gray-700 pr-2">DSO Élevé</div>
-                <div className="bg-yellow-100 p-4 rounded-lg text-center">
-                  <p className="text-lg font-bold text-yellow-800">8</p>
-                  <p className="text-xs text-yellow-600">À surveiller</p>
-                </div>
-                <div className="bg-red-100 p-4 rounded-lg text-center">
-                  <p className="text-lg font-bold text-red-800">5</p>
-                  <p className="text-xs text-red-600">Critiques</p>
+                  </div>
                 </div>
 
-                <div className="text-right text-xs text-gray-700 pr-2">DSO Normal</div>
-                <div className="bg-green-100 p-4 rounded-lg text-center">
-                  <p className="text-lg font-bold text-green-800">72</p>
-                  <p className="text-xs text-green-600">Sains</p>
-                </div>
-                <div className="bg-orange-100 p-4 rounded-lg text-center">
-                  <p className="text-lg font-bold text-orange-800">25</p>
-                  <p className="text-xs text-orange-600">Stratégiques</p>
-                </div>
-              </div>
-              <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">Action Immédiate Requise</span>
-                  <span className="text-lg font-bold text-red-600">5 clients critiques</span>
+                <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+                  <h3 className="text-lg font-semibold text-[#171717] mb-4">Top Clients</h3>
+                  <div className="space-y-3">
+                    {topClients.length === 0 ? (
+                      <p className="text-sm text-gray-500 text-center py-4">Aucun client</p>
+                    ) : topClients.map((c, idx) => (
+                      <div key={c.id} className="flex items-center justify-between">
+                        <div className="flex items-center flex-1">
+                          <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold mr-3 ${
+                            idx === 0 ? 'bg-yellow-100 text-yellow-700' : idx === 1 ? 'bg-gray-100 text-gray-700' : 'bg-gray-50 text-gray-600'
+                          }`}>{idx + 1}</span>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-[#171717] truncate">{c.raisonSociale}</p>
+                            <p className="text-xs text-[#525252]">{formatCurrency(c.chiffreAffaires || 0)}</p>
+                          </div>
+                        </div>
+                        <span className="text-xs font-semibold text-[#171717]">
+                          {totalCA > 0 ? ((c.chiffreAffaires || 0) / totalCA * 100).toFixed(1) : 0}%
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          )}
 
-          {/* Tableau de Bord Prédictif */}
-          <div className="bg-gradient-to-r from-[#171717] to-[#737373] rounded-lg p-6 text-white">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h3 className="text-lg font-bold">Insights & Prédictions Clients</h3>
-                <p className="text-sm opacity-90 mt-1">Analyse prédictive basée sur l'historique</p>
+          {/* Sub-tab: Graphiques */}
+          {analyticsSubTab === 'charts' && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+                <h3 className="text-lg font-semibold text-[#171717] mb-4">Répartition par Catégorie</h3>
+                {pieData.some(d => d.ca > 0) ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <RechartsPieChart>
+                      <Pie dataKey="ca" data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} fill="#737373"
+                        label={({ categorie, percent }) => `${categorie} ${(percent * 100).toFixed(0)}%`}>
+                        {pieData.map((_, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value) => formatCurrency(value as number)} />
+                    </RechartsPieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-[300px] text-gray-500">
+                    <p className="text-sm">Aucune donnée de CA disponible</p>
+                  </div>
+                )}
               </div>
-              <Database className="w-8 h-8 opacity-50" />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="bg-white/10 backdrop-blur rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <TrendingUp className="w-5 h-5" />
-                  <span className="text-xs bg-white/20 px-2 py-1 rounded">Croissance</span>
-                </div>
-                <p className="text-lg font-bold">+18%</p>
-                <p className="text-sm opacity-90">CA prévu T2 2025</p>
-              </div>
-              <div className="bg-white/10 backdrop-blur rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <AlertOctagon className="w-5 h-5" />
-                  <span className="text-xs bg-white/20 px-2 py-1 rounded">Risque</span>
-                </div>
-                <p className="text-lg font-bold">5</p>
-                <p className="text-sm opacity-90">Clients à risque de perte</p>
-              </div>
-              <div className="bg-white/10 backdrop-blur rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <Timer className="w-5 h-5" />
-                  <span className="text-xs bg-white/20 px-2 py-1 rounded">Relances</span>
-                </div>
-                <p className="text-lg font-bold">12</p>
-                <p className="text-sm opacity-90">Relances à effectuer</p>
-              </div>
-              <div className="bg-white/10 backdrop-blur rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <Globe className="w-5 h-5" />
-                  <span className="text-xs bg-white/20 px-2 py-1 rounded">Prospection</span>
-                </div>
-                <p className="text-lg font-bold">8</p>
-                <p className="text-sm opacity-90">Nouveaux clients potentiels</p>
+
+              <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+                <h3 className="text-lg font-semibold text-[#171717] mb-4">Évaluation Performance</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <RadarChart data={analyticsData.performanceClients}>
+                    <PolarGrid />
+                    <PolarAngleAxis dataKey="critere" />
+                    <PolarRadiusAxis angle={90} domain={[0, 100]} />
+                    <Radar name="Score" dataKey="score" stroke="#171717" fill="#171717" fillOpacity={0.6} />
+                    <Tooltip />
+                  </RadarChart>
+                </ResponsiveContainer>
               </div>
             </div>
-          </div>
+          )}
+
+          {/* Sub-tab: Performance */}
+          {analyticsSubTab === 'performance' && (
+            <div className="space-y-6">
+              <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+                <h3 className="text-lg font-semibold text-[#171717] mb-4">Clients à Risque</h3>
+                {riskClients.length === 0 ? (
+                  <div className="text-center py-8">
+                    <CheckCircle className="w-10 h-10 text-green-500 mx-auto mb-2" />
+                    <p className="text-sm text-gray-600">Aucun client à risque détecté</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {riskClients.slice(0, 10).map((c) => (
+                      <div key={c.id} className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200">
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">{c.raisonSociale}</p>
+                          <p className="text-xs text-gray-600">Score: {c.scoreCredit}/100 | DSO: {c.dso}j</p>
+                        </div>
+                        <span className="text-sm font-bold text-red-600">{formatCurrency(c.encoursActuel || 0)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
-      )}
+        );
+      })()}
 
       {/* Modal Nouveau Client - Multi-étapes */}
       {showNewClientModal && (

@@ -130,7 +130,7 @@ const EcheancesFiscalesPage: React.FC = () => {
     const colors: Record<string, string> = {
       'TVA': 'bg-blue-100 text-blue-800',
       'IS': 'bg-green-100 text-green-800',
-      'IRPP': 'bg-purple-100 text-purple-800',
+      'IRPP': 'bg-primary-100 text-primary-800',
       'TCA': 'bg-orange-100 text-orange-800',
       'TFP': 'bg-red-100 text-red-800',
       'AUTRES': 'bg-gray-100 text-gray-800'

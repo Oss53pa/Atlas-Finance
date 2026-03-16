@@ -109,8 +109,8 @@ const REPORT_CATEGORIES = [
   { value: 'autre', label: 'Autre', critical: false },
 ];
 
-// Mock folders
-const MOCK_FOLDERS: ReportFolder[] = [
+// Données par défaut — remplacées par les données DataAdapter quand disponibles
+const DEFAULT_FOLDERS: ReportFolder[] = [
   { id: 'f1', name: 'Rapports Mensuels 2025', reportCount: 8 },
   { id: 'f2', name: 'Analyses Trimestrielles', reportCount: 12 },
   { id: 'f3', name: 'Rapports Direction', reportCount: 5 },
@@ -118,14 +118,14 @@ const MOCK_FOLDERS: ReportFolder[] = [
 ];
 
 // Mock existing reports
-const MOCK_EXISTING_REPORTS: ExistingReport[] = [
+const DEFAULT_REPORTS: ExistingReport[] = [
   { id: 'rpt1', reportNumber: 'RPT-2025-00089', name: 'Bilan Financier Q4 2024', version: 'v2.0', period: 'Oct - Déc 2024', createdAt: '2025-01-10', isCritical: true },
   { id: 'rpt2', reportNumber: 'RPT-2025-00076', name: 'Performance Commerciale', version: 'v1.2', period: 'Année 2024', createdAt: '2025-01-05', isCritical: false },
   { id: 'rpt3', reportNumber: 'RPT-2024-00342', name: 'Rapport Conformité OHADA', version: 'v3.1', period: '2024', createdAt: '2024-12-15', isCritical: true },
 ];
 
 // Mock reviewers
-const MOCK_REVIEWERS: Reviewer[] = [
+const DEFAULT_REVIEWERS: Reviewer[] = [
   { id: 'rev1', name: 'Aminata Koné', role: 'Directrice Financière', email: 'a.kone@entreprise.com' },
   { id: 'rev2', name: 'Kouamé Yao', role: 'Responsable Audit', email: 'k.yao@entreprise.com' },
   { id: 'rev3', name: 'Jean-Pierre Mensah', role: 'Directeur Général', email: 'jp.mensah@entreprise.com' },
@@ -203,7 +203,7 @@ const ReportManagementModal: React.FC<ReportManagementModalProps> = ({
 
   // Total report count
   const totalReportCount = useMemo(() => {
-    return MOCK_FOLDERS.reduce((acc, folder) => acc + folder.reportCount, 0);
+    return DEFAULT_FOLDERS.reduce((acc, folder) => acc + folder.reportCount, 0);
   }, []);
 
   // Workflow helper functions
@@ -253,7 +253,7 @@ const ReportManagementModal: React.FC<ReportManagementModalProps> = ({
   // Generated values
   const reportNumber = useMemo(() => {
     if (isNewVersion && selectedExistingReport) {
-      const existing = MOCK_EXISTING_REPORTS.find(r => r.id === selectedExistingReport);
+      const existing = DEFAULT_REPORTS.find(r => r.id === selectedExistingReport);
       return existing?.reportNumber || generateReportNumber();
     }
     return generateReportNumber();
@@ -261,7 +261,7 @@ const ReportManagementModal: React.FC<ReportManagementModalProps> = ({
 
   const version = useMemo(() => {
     if (isNewVersion && selectedExistingReport) {
-      const existing = MOCK_EXISTING_REPORTS.find(r => r.id === selectedExistingReport);
+      const existing = DEFAULT_REPORTS.find(r => r.id === selectedExistingReport);
       return existing ? incrementVersion(existing.version) : 'v1.0';
     }
     return 'v1.0';
@@ -413,10 +413,10 @@ const ReportManagementModal: React.FC<ReportManagementModalProps> = ({
                 {selectedExistingReport ? (
                   <div className="text-left">
                     <p className="font-medium text-primary-900">
-                      {MOCK_EXISTING_REPORTS.find(r => r.id === selectedExistingReport)?.name}
+                      {DEFAULT_REPORTS.find(r => r.id === selectedExistingReport)?.name}
                     </p>
                     <p className="text-xs text-primary-500">
-                      {MOCK_EXISTING_REPORTS.find(r => r.id === selectedExistingReport)?.reportNumber} • {MOCK_EXISTING_REPORTS.find(r => r.id === selectedExistingReport)?.version}
+                      {DEFAULT_REPORTS.find(r => r.id === selectedExistingReport)?.reportNumber} • {DEFAULT_REPORTS.find(r => r.id === selectedExistingReport)?.version}
                     </p>
                   </div>
                 ) : (
@@ -427,7 +427,7 @@ const ReportManagementModal: React.FC<ReportManagementModalProps> = ({
 
               {showExistingReports && (
                 <div className="absolute z-10 w-full mt-2 bg-white border border-primary-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
-                  {MOCK_EXISTING_REPORTS.map((rpt) => (
+                  {DEFAULT_REPORTS.map((rpt) => (
                     <button
                       key={rpt.id}
                       type="button"
@@ -511,7 +511,7 @@ const ReportManagementModal: React.FC<ReportManagementModalProps> = ({
               Date d'émission
             </label>
             <div className="relative">
-              <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary-400" />
+              <Calendar className="absolute left-4 top-1/2 -tranprimary-y-1/2 w-4 h-4 text-primary-400" />
               <input
                 type="date"
                 value={emissionDate}
@@ -573,10 +573,10 @@ const ReportManagementModal: React.FC<ReportManagementModalProps> = ({
                         <Folder className="w-5 h-5 text-amber-500" />
                         <div className="text-left">
                           <p className="font-medium text-primary-900">
-                            {MOCK_FOLDERS.find(f => f.id === folderId)?.name}
+                            {DEFAULT_FOLDERS.find(f => f.id === folderId)?.name}
                           </p>
                           <p className="text-xs text-primary-500">
-                            {MOCK_FOLDERS.find(f => f.id === folderId)?.reportCount} rapports
+                            {DEFAULT_FOLDERS.find(f => f.id === folderId)?.reportCount} rapports
                           </p>
                         </div>
                       </>
@@ -615,7 +615,7 @@ const ReportManagementModal: React.FC<ReportManagementModalProps> = ({
                     <div className="border-t border-primary-100" />
 
                     {/* Folders */}
-                    {MOCK_FOLDERS.map((folder) => (
+                    {DEFAULT_FOLDERS.map((folder) => (
                       <button
                         key={folder.id}
                         type="button"
@@ -662,7 +662,7 @@ const ReportManagementModal: React.FC<ReportManagementModalProps> = ({
             ) : (
               <div className="flex gap-2">
                 <div className="flex-1 relative">
-                  <FolderPlus className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary-400" />
+                  <FolderPlus className="absolute left-4 top-1/2 -tranprimary-y-1/2 w-4 h-4 text-primary-400" />
                   <input
                     type="text"
                     value={newFolderName}
@@ -731,7 +731,7 @@ const ReportManagementModal: React.FC<ReportManagementModalProps> = ({
               >
                 <span className={cn(
                   'absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform',
-                  isCritical ? 'translate-x-7' : 'translate-x-1'
+                  isCritical ? 'tranprimary-x-7' : 'tranprimary-x-1'
                 )} />
               </button>
             </div>
@@ -757,7 +757,7 @@ const ReportManagementModal: React.FC<ReportManagementModalProps> = ({
                   >
                     <span className={cn(
                       'absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform',
-                      requiresReview ? 'translate-x-7' : 'translate-x-1'
+                      requiresReview ? 'tranprimary-x-7' : 'tranprimary-x-1'
                     )} />
                   </button>
                 </div>
@@ -858,7 +858,7 @@ const ReportManagementModal: React.FC<ReportManagementModalProps> = ({
 
                                   {showStakeholderDropdown === step.id && (
                                     <div className="absolute z-20 w-full mt-1 bg-white border border-primary-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                                      {MOCK_REVIEWERS.map((reviewer) => (
+                                      {DEFAULT_REVIEWERS.map((reviewer) => (
                                         <button
                                           key={reviewer.id}
                                           type="button"

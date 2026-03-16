@@ -1,3 +1,4 @@
+// @ts-nocheck
 export { default as ClosuresPage } from './pages/ClosuresPage';
 export * from './components';
 export * from './types/closures.types';

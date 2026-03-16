@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { motion } from 'framer-motion';
@@ -38,6 +38,7 @@ import {
 import { formatCurrency } from '../../lib/utils';
 import { NouveauCompteWizard } from '../../components/plan-comptable/NouveauCompteWizard';
 import { ImportPlanComptable } from '../../components/plan-comptable/ImportPlanComptable';
+import { useData } from '../../contexts/DataContext';
 
 // Types SYSCOHADA pour le plan comptable
 interface SyscohadaAccount {
@@ -74,59 +75,82 @@ const ChartOfAccountsPage: React.FC = () => {
   const [showAdvancedFiltersModal, setShowAdvancedFiltersModal] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState<SyscohadaAccount | null>(null);
 
-  // Fetch chart of accounts avec le nouveau hook
-  // API désactivé - utilisation des données SYSCOHADA locales
-  const isLoading = false;
+  const { adapter } = useData();
+  const [dbAccounts, setDbAccounts] = useState<any[]>([]);
+  const [dbEntries, setDbEntries] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const isError = false;
-  // const accounts = []; // Données API non utilisées
 
-  // Plan comptable SYSCOHADA standard avec structure hiérarchique
-  const syscohadaPlan: SyscohadaAccount[] = [
-    // CLASSE 1 - RESSOURCES DURABLES
-    { code: '100000000', libelle: 'CAPITAL SOCIAL', classe: 1, nature: 'PASSIF', sens_normal: 'CREDITEUR', niveau: 1, is_collectif: false, is_active: true, solde_debit: 0, solde_credit: 25000000, nb_mouvements: 12, date_creation: '2024-01-01' },
-    { code: '101000000', libelle: 'CAPITAL SOUSCRIT NON APPELE', classe: 1, nature: 'PASSIF', sens_normal: 'DEBITEUR', niveau: 1, is_collectif: false, is_active: true, solde_debit: 5000000, solde_credit: 0, nb_mouvements: 2, date_creation: '2024-01-01' },
-    { code: '110000000', libelle: 'RESERVES', classe: 1, nature: 'PASSIF', sens_normal: 'CREDITEUR', niveau: 1, is_collectif: true, is_active: true, solde_debit: 0, solde_credit: 8500000, nb_mouvements: 45, date_creation: '2024-01-01' },
-    { code: '111000000', libelle: 'RESERVE LEGALE', classe: 1, nature: 'PASSIF', sens_normal: 'CREDITEUR', niveau: 2, compte_parent: '110000000', is_collectif: false, is_active: true, solde_debit: 0, solde_credit: 2500000, nb_mouvements: 5, date_creation: '2024-01-01' },
-    { code: '112000000', libelle: 'RESERVES STATUTAIRES', classe: 1, nature: 'PASSIF', sens_normal: 'CREDITEUR', niveau: 2, compte_parent: '110000000', is_collectif: false, is_active: true, solde_debit: 0, solde_credit: 6000000, nb_mouvements: 8, date_creation: '2024-01-01' },
-    { code: '120000000', libelle: 'REPORT A NOUVEAU', classe: 1, nature: 'PASSIF', sens_normal: 'CREDITEUR', niveau: 1, is_collectif: false, is_active: true, solde_debit: 0, solde_credit: 3250000, nb_mouvements: 156, date_creation: '2024-01-01' },
-    
-    // CLASSE 2 - ACTIF IMMOBILISE  
-    { code: '210000000', libelle: 'IMMOBILISATIONS INCORPORELLES', classe: 2, nature: 'ACTIF', sens_normal: 'DEBITEUR', niveau: 1, is_collectif: true, is_active: true, solde_debit: 2800000, solde_credit: 0, nb_mouvements: 23, date_creation: '2024-01-01' },
-    { code: '211000000', libelle: 'FRAIS DE RECHERCHE ET DEVELOPPEMENT', classe: 2, nature: 'ACTIF', sens_normal: 'DEBITEUR', niveau: 2, compte_parent: '210000000', is_collectif: false, is_active: true, solde_debit: 1500000, solde_credit: 0, nb_mouvements: 12, date_creation: '2024-01-01' },
-    { code: '212000000', libelle: 'BREVETS, LICENCES, LOGICIELS', classe: 2, nature: 'ACTIF', sens_normal: 'DEBITEUR', niveau: 2, compte_parent: '210000000', is_collectif: false, is_active: true, solde_debit: 1300000, solde_credit: 0, nb_mouvements: 11, date_creation: '2024-01-01' },
-    { code: '220000000', libelle: 'TERRAINS', classe: 2, nature: 'ACTIF', sens_normal: 'DEBITEUR', niveau: 1, is_collectif: false, is_active: true, solde_debit: 8500000, solde_credit: 0, nb_mouvements: 3, date_creation: '2024-01-01' },
-    { code: '221000000', libelle: 'BATIMENTS', classe: 2, nature: 'ACTIF', sens_normal: 'DEBITEUR', niveau: 1, is_collectif: false, is_active: true, solde_debit: 12500000, solde_credit: 0, nb_mouvements: 8, date_creation: '2024-01-01' },
-    { code: '240000000', libelle: 'MATERIEL ET MOBILIER', classe: 2, nature: 'ACTIF', sens_normal: 'DEBITEUR', niveau: 1, is_collectif: true, is_active: true, solde_debit: 4200000, solde_credit: 0, nb_mouvements: 67, date_creation: '2024-01-01' },
-    
-    // CLASSE 3 - STOCKS
-    { code: '310000000', libelle: 'MARCHANDISES', classe: 3, nature: 'ACTIF', sens_normal: 'DEBITEUR', niveau: 1, is_collectif: true, is_active: true, solde_debit: 8950000, solde_credit: 0, nb_mouvements: 234, date_creation: '2024-01-01' },
-    { code: '311000000', libelle: 'MARCHANDISES A', classe: 3, nature: 'ACTIF', sens_normal: 'DEBITEUR', niveau: 2, compte_parent: '310000000', is_collectif: false, is_active: true, solde_debit: 5200000, solde_credit: 0, nb_mouvements: 156, date_creation: '2024-01-01' },
-    { code: '312000000', libelle: 'MARCHANDISES B', classe: 3, nature: 'ACTIF', sens_normal: 'DEBITEUR', niveau: 2, compte_parent: '310000000', is_collectif: false, is_active: true, solde_debit: 3750000, solde_credit: 0, nb_mouvements: 78, date_creation: '2024-01-01' },
-    { code: '320000000', libelle: 'MATIERES PREMIERES', classe: 3, nature: 'ACTIF', sens_normal: 'DEBITEUR', niveau: 1, is_collectif: false, is_active: true, solde_debit: 2100000, solde_credit: 0, nb_mouvements: 89, date_creation: '2024-01-01' },
-    { code: '330000000', libelle: 'PRODUITS EN-COURS', classe: 3, nature: 'ACTIF', sens_normal: 'DEBITEUR', niveau: 1, is_collectif: false, is_active: true, solde_debit: 1400000, solde_credit: 0, nb_mouvements: 45, date_creation: '2024-01-01' },
-    
-    // CLASSE 4 - TIERS
-    { code: '401000000', libelle: 'FOURNISSEURS', classe: 4, nature: 'PASSIF', sens_normal: 'CREDITEUR', niveau: 1, is_collectif: true, is_active: true, solde_debit: 2500000, solde_credit: 8750000, nb_mouvements: 456, date_creation: '2024-01-01' },
-    { code: '411000000', libelle: 'CLIENTS', classe: 4, nature: 'ACTIF', sens_normal: 'DEBITEUR', niveau: 1, is_collectif: true, is_active: true, solde_debit: 15750000, solde_credit: 3200000, nb_mouvements: 678, date_creation: '2024-01-01' },
-    { code: '421000000', libelle: 'PERSONNEL - AVANCES', classe: 4, nature: 'ACTIF', sens_normal: 'DEBITEUR', niveau: 1, is_collectif: false, is_active: true, solde_debit: 450000, solde_credit: 0, nb_mouvements: 23, date_creation: '2024-01-01' },
-    { code: '430000000', libelle: 'SECURITE SOCIALE', classe: 4, nature: 'PASSIF', sens_normal: 'CREDITEUR', niveau: 1, is_collectif: false, is_active: true, solde_debit: 0, solde_credit: 1250000, nb_mouvements: 67, date_creation: '2024-01-01' },
-    { code: '445000000', libelle: 'ETAT - TVA', classe: 4, nature: 'MIXTE', sens_normal: 'CREDITEUR', niveau: 1, is_collectif: true, is_active: true, solde_debit: 850000, solde_credit: 2100000, nb_mouvements: 234, date_creation: '2024-01-01' },
-    
-    // CLASSE 5 - TRESORERIE
-    { code: '512000000', libelle: 'BANQUES', classe: 5, nature: 'ACTIF', sens_normal: 'DEBITEUR', niveau: 1, is_collectif: true, is_active: true, solde_debit: 8950000, solde_credit: 1200000, nb_mouvements: 567, date_creation: '2024-01-01' },
-    { code: '531000000', libelle: 'CAISSES', classe: 5, nature: 'ACTIF', sens_normal: 'DEBITEUR', niveau: 1, is_collectif: false, is_active: true, solde_debit: 250000, solde_credit: 0, nb_mouvements: 89, date_creation: '2024-01-01' },
-    
-    // CLASSE 6 - CHARGES
-    { code: '601000000', libelle: 'ACHATS DE MARCHANDISES', classe: 6, nature: 'CHARGE', sens_normal: 'DEBITEUR', niveau: 1, is_collectif: false, is_active: true, solde_debit: 12450000, solde_credit: 850000, nb_mouvements: 234, date_creation: '2024-01-01' },
-    { code: '611000000', libelle: 'TRANSPORTS', classe: 6, nature: 'CHARGE', sens_normal: 'DEBITEUR', niveau: 1, is_collectif: false, is_active: true, solde_debit: 1800000, solde_credit: 0, nb_mouvements: 67, date_creation: '2024-01-01' },
-    { code: '621000000', libelle: 'PERSONNEL - SALAIRES', classe: 6, nature: 'CHARGE', sens_normal: 'DEBITEUR', niveau: 1, is_collectif: false, is_active: true, solde_debit: 8500000, solde_credit: 0, nb_mouvements: 156, date_creation: '2024-01-01' },
-    { code: '631000000', libelle: 'IMPOTS ET TAXES', classe: 6, nature: 'CHARGE', sens_normal: 'DEBITEUR', niveau: 1, is_collectif: false, is_active: true, solde_debit: 2100000, solde_credit: 0, nb_mouvements: 45, date_creation: '2024-01-01' },
-    
-    // CLASSE 7 - PRODUITS
-    { code: '701000000', libelle: 'VENTES DE MARCHANDISES', classe: 7, nature: 'PRODUIT', sens_normal: 'CREDITEUR', niveau: 1, is_collectif: false, is_active: true, solde_debit: 0, solde_credit: 28750000, nb_mouvements: 345, date_creation: '2024-01-01' },
-    { code: '706000000', libelle: 'PRESTATIONS DE SERVICES', classe: 7, nature: 'PRODUIT', sens_normal: 'CREDITEUR', niveau: 1, is_collectif: false, is_active: true, solde_debit: 0, solde_credit: 4850000, nb_mouvements: 89, date_creation: '2024-01-01' },
-    { code: '771000000', libelle: 'PRODUITS EXCEPTIONNELS', classe: 7, nature: 'PRODUIT', sens_normal: 'CREDITEUR', niveau: 1, is_collectif: false, is_active: true, solde_debit: 0, solde_credit: 750000, nb_mouvements: 12, date_creation: '2024-01-01' }
-  ];
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setIsLoading(true);
+        const [accounts, entries] = await Promise.all([
+          adapter.getAll<any>('accounts'),
+          adapter.getAll<any>('journalEntries'),
+        ]);
+        setDbAccounts(accounts);
+        setDbEntries(entries);
+      } catch (err) {
+        console.error('Erreur chargement plan comptable:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadData();
+  }, [adapter]);
+
+  const syscohadaPlan: SyscohadaAccount[] = useMemo(() => {
+    if (dbAccounts.length === 0) return [];
+
+    // Build stats from journal lines
+    const accountStats: Record<string, { debit: number; credit: number; moves: number }> = {};
+    for (const entry of dbEntries) {
+      if (!entry.lines) continue;
+      for (const line of entry.lines) {
+        const code = String(line.accountCode || '');
+        if (!code) continue;
+        if (!accountStats[code]) accountStats[code] = { debit: 0, credit: 0, moves: 0 };
+        accountStats[code].debit += (line.debit || 0);
+        accountStats[code].credit += (line.credit || 0);
+        accountStats[code].moves += 1;
+      }
+    }
+
+    return dbAccounts.map((acc: any) => {
+      const code = String(acc.code || acc.number || '');
+      const padded = code.padEnd(9, '0');
+      const cls = parseInt(code.charAt(0)) || 1;
+      const s = accountStats[code] || { debit: 0, credit: 0, moves: 0 };
+
+      const nature: SyscohadaAccount['nature'] =
+        cls === 1 ? 'PASSIF' :
+        cls === 4 ? 'MIXTE' :
+        [2, 3, 5].includes(cls) ? 'ACTIF' :
+        cls === 6 ? 'CHARGE' :
+        cls === 7 ? 'PRODUIT' : 'SPECIAL';
+
+      const sensNormal: SyscohadaAccount['sens_normal'] =
+        [2, 3, 5, 6].includes(cls) ? 'DEBITEUR' : 'CREDITEUR';
+
+      return {
+        code: padded,
+        libelle: (acc.name || acc.libelle || code).toUpperCase(),
+        classe: Math.min(Math.max(cls, 1), 9) as SyscohadaAccount['classe'],
+        nature,
+        sens_normal: sensNormal,
+        niveau: (acc.level || 1) as 1 | 2 | 3 | 4,
+        compte_parent: acc.parentCode ? String(acc.parentCode).padEnd(9, '0') : undefined,
+        is_collectif: acc.isCollective || false,
+        is_active: acc.isActive !== false,
+        solde_debit: s.debit,
+        solde_credit: s.credit,
+        nb_mouvements: s.moves,
+        date_creation: acc.createdAt || new Date().toISOString().split('T')[0],
+        description: acc.description,
+      };
+    }).sort((a, b) => a.code.localeCompare(b.code));
+  }, [dbAccounts, dbEntries]);
 
   // Statistiques du plan comptable
   const planStats = {
@@ -140,13 +164,13 @@ const ChartOfAccountsPage: React.FC = () => {
     const colors = [
       'bg-blue-50 border-blue-300 text-blue-800',      // Classe 1
       'bg-green-50 border-green-300 text-green-800',   // Classe 2  
-      'bg-purple-50 border-purple-300 text-purple-800', // Classe 3
+      'bg-primary-50 border-primary-300 text-primary-800', // Classe 3
       'bg-amber-50 border-amber-300 text-amber-800',   // Classe 4
-      'bg-cyan-50 border-cyan-300 text-cyan-800',      // Classe 5
+      'bg-primary-50 border-primary-300 text-primary-800',      // Classe 5
       'bg-red-50 border-red-300 text-red-800',         // Classe 6
-      'bg-emerald-50 border-emerald-300 text-emerald-800', // Classe 7
-      'bg-indigo-50 border-indigo-300 text-indigo-800', // Classe 8
-      'bg-pink-50 border-pink-300 text-pink-800'       // Classe 9
+      'bg-primary-50 border-primary-300 text-primary-800', // Classe 7
+      'bg-primary-50 border-primary-300 text-primary-800', // Classe 8
+      'bg-primary-50 border-primary-300 text-primary-800'       // Classe 9
     ];
     return colors[classe - 1] || 'bg-gray-50 border-gray-300 text-gray-800';
   };
@@ -263,7 +287,7 @@ const ChartOfAccountsPage: React.FC = () => {
           <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
             <div className="flex gap-4 flex-1">
               <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-neutral-400" />
+                <Search className="absolute left-3 top-1/2 transform -tranprimary-y-1/2 h-5 w-5 text-neutral-400" />
                 <input
                   type="text"
                   placeholder="Rechercher un compte (code ou libellé)..."
@@ -503,11 +527,11 @@ const ChartOfAccountsPage: React.FC = () => {
               data={[
                 { label: 'Cl.1', value: syscohadaPlan.filter(c => c.classe === 1 && c.is_active).length, color: 'bg-blue-400' },
                 { label: 'Cl.2', value: syscohadaPlan.filter(c => c.classe === 2 && c.is_active).length, color: 'bg-green-400' },
-                { label: 'Cl.3', value: syscohadaPlan.filter(c => c.classe === 3 && c.is_active).length, color: 'bg-purple-400' },
+                { label: 'Cl.3', value: syscohadaPlan.filter(c => c.classe === 3 && c.is_active).length, color: 'bg-primary-400' },
                 { label: 'Cl.4', value: syscohadaPlan.filter(c => c.classe === 4 && c.is_active).length, color: 'bg-amber-400' },
-                { label: 'Cl.5', value: syscohadaPlan.filter(c => c.classe === 5 && c.is_active).length, color: 'bg-cyan-400' },
+                { label: 'Cl.5', value: syscohadaPlan.filter(c => c.classe === 5 && c.is_active).length, color: 'bg-primary-400' },
                 { label: 'Cl.6', value: syscohadaPlan.filter(c => c.classe === 6 && c.is_active).length, color: 'bg-red-400' },
-                { label: 'Cl.7', value: syscohadaPlan.filter(c => c.classe === 7 && c.is_active).length, color: 'bg-emerald-400' }
+                { label: 'Cl.7', value: syscohadaPlan.filter(c => c.classe === 7 && c.is_active).length, color: 'bg-primary-400' }
               ]}
               height={180}
             />
@@ -559,7 +583,7 @@ const ChartOfAccountsPage: React.FC = () => {
                       <span>Classes 1-2: Bilan (Passif-Actif immobilisé)</span>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <div className="w-4 h-4 bg-purple-400 rounded"></div>
+                      <div className="w-4 h-4 bg-primary-400 rounded"></div>
                       <span>Classes 3-5: Bilan (Actif circulant)</span>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -567,7 +591,7 @@ const ChartOfAccountsPage: React.FC = () => {
                       <span>Classe 6: Charges (Gestion)</span>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <div className="w-4 h-4 bg-emerald-400 rounded"></div>
+                      <div className="w-4 h-4 bg-primary-400 rounded"></div>
                       <span>Classe 7: Produits (Gestion)</span>
                     </div>
                     <div className="flex items-center space-x-2">

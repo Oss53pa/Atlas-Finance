@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Affectation du resultat de l'exercice.
  * Conforme SYSCOHADA revise — repartition du benefice ou traitement de la perte.

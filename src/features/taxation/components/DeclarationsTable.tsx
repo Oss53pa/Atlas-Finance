@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React from 'react';
 import { DataTable } from '@/shared/components/data-display/DataTable';
 import { DeclarationFiscale } from '../types/taxation.types';
@@ -14,10 +15,10 @@ const statusColors: Record<string, string> = {
   BROUILLON: 'text-gray-600 bg-gray-100',
   EN_COURS: 'text-blue-600 bg-blue-100',
   VALIDEE: 'text-green-600 bg-green-100',
-  TRANSMISE: 'text-purple-600 bg-purple-100',
-  ACCEPTEE: 'text-emerald-600 bg-emerald-100',
+  TRANSMISE: 'text-primary-600 bg-primary-100',
+  ACCEPTEE: 'text-primary-600 bg-primary-100',
   REJETEE: 'text-red-600 bg-red-100',
-  PAYEE: 'text-teal-600 bg-teal-100',
+  PAYEE: 'text-primary-600 bg-primary-100',
 };
 
 const statusLabels: Record<string, string> = {

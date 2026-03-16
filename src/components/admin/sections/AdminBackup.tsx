@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import {
   Download, Upload, Clock, Calendar, RotateCcw, FileDown,
   HardDrive, Shield, AlertTriangle, CheckCircle, XCircle, Settings
 } from 'lucide-react';
+import { useData } from '../../../contexts/DataContext';
 
 interface Props {
   subTab: number;
@@ -12,15 +13,11 @@ interface Props {
 
 const tabs = ['Sauvegarde manuelle', 'Automatique', 'Historique', 'Restauration', 'Export'];
 
-const mockHistory = [
-  { date: '2026-03-14 02:00', type: 'Auto', size: '42.3 Mo', status: 'Succes' },
-  { date: '2026-03-13 18:35', type: 'Manuel', size: '42.1 Mo', status: 'Succes' },
-  { date: '2026-03-13 02:00', type: 'Auto', size: '41.9 Mo', status: 'Succes' },
-  { date: '2026-03-12 02:00', type: 'Auto', size: '41.7 Mo', status: 'Echec' },
-  { date: '2026-03-11 14:22', type: 'Manuel', size: '41.5 Mo', status: 'Succes' },
-];
-
 const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
+  const { adapter } = useData();
+  const [backupHistory, setBackupHistory] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [lastBackup, setLastBackup] = useState<any>(null);
   const [backupProgress, setBackupProgress] = useState<number | null>(null);
   const [autoEnabled, setAutoEnabled] = useState(true);
   const [autoFrequency, setAutoFrequency] = useState('daily');
@@ -34,12 +31,76 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
   const [exportStart, setExportStart] = useState('2026-01-01');
   const [exportEnd, setExportEnd] = useState('2026-12-31');
 
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const allSettings = await adapter.getAll<any>('settings');
+        const historySetting = allSettings.find((s: any) => s.key === 'admin_backup_history');
+        if (historySetting?.value) {
+          const history = JSON.parse(historySetting.value);
+          setBackupHistory(history);
+          if (history.length > 0) setLastBackup(history[0]);
+        }
+        const autoSetting = allSettings.find((s: any) => s.key === 'admin_backup_auto');
+        if (autoSetting?.value) {
+          const auto = JSON.parse(autoSetting.value);
+          if (auto.enabled !== undefined) setAutoEnabled(auto.enabled);
+          if (auto.frequency) setAutoFrequency(auto.frequency);
+          if (auto.time) setAutoTime(auto.time);
+          if (auto.retention) setRetention(auto.retention);
+        }
+      } catch (err) {
+        console.error('Error loading backup data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [adapter]);
+
+  const saveSetting = async (key: string, value: any) => {
+    const data = { key, value: JSON.stringify(value), updatedAt: new Date().toISOString() };
+    try {
+      const existing = await adapter.getById('settings', key);
+      if (existing) {
+        await adapter.update('settings', key, data);
+      } else {
+        await adapter.create('settings', data);
+      }
+    } catch {
+      try {
+        await adapter.create('settings', data);
+      } catch (error) {
+        console.error(`[AdminBackup] saveSetting "${key}" failed:`, error);
+        toast.error(`Erreur sauvegarde paramètre "${key}"`);
+      }
+    }
+  };
+
+  const saveBackupHistory = async (history: any[]) => {
+    try {
+      await saveSetting('admin_backup_history', history);
+    } catch (err) {
+      console.error('Error saving backup history:', err);
+    }
+  };
+
   const handleManualBackup = () => {
     setBackupProgress(0);
     const interval = setInterval(() => {
       setBackupProgress(prev => {
         if (prev !== null && prev >= 100) {
           clearInterval(interval);
+          const newEntry = {
+            date: new Date().toLocaleString('fr-FR', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }),
+            type: 'Manuel',
+            size: '-',
+            status: 'Succes',
+          };
+          const updated = [newEntry, ...backupHistory];
+          setBackupHistory(updated);
+          setLastBackup(newEntry);
+          saveBackupHistory(updated);
           toast.success('Sauvegarde terminee avec succes');
           setTimeout(() => setBackupProgress(null), 1500);
           return 100;
@@ -93,11 +154,15 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
           </div>
           <div className="p-4 bg-gray-50 rounded-lg border">
             <h4 className="font-medium text-gray-700 mb-2">Derniere sauvegarde</h4>
-            <div className="grid grid-cols-3 gap-4 text-sm">
-              <div><span className="text-gray-500">Date :</span> 14/03/2026 02:00</div>
-              <div><span className="text-gray-500">Taille :</span> 42.3 Mo</div>
-              <div><span className="text-gray-500">Statut :</span> <span className="text-green-600 font-medium">Succes</span></div>
-            </div>
+            {lastBackup ? (
+              <div className="grid grid-cols-3 gap-4 text-sm">
+                <div><span className="text-gray-500">Date :</span> {lastBackup.date}</div>
+                <div><span className="text-gray-500">Taille :</span> {lastBackup.size}</div>
+                <div><span className="text-gray-500">Statut :</span> <span className={`font-medium ${lastBackup.status === 'Succes' ? 'text-green-600' : 'text-red-600'}`}>{lastBackup.status}</span></div>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-400">Aucune sauvegarde effectuee</p>
+            )}
           </div>
         </div>
       )}
@@ -111,7 +176,7 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
             </div>
             <button onClick={() => { setAutoEnabled(!autoEnabled); toast.success(autoEnabled ? 'Sauvegarde auto desactivee' : 'Sauvegarde auto activee'); }}
               className={`relative w-14 h-7 rounded-full transition-colors ${autoEnabled ? 'bg-blue-600' : 'bg-gray-300'}`}>
-              <span className={`absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full transition-transform ${autoEnabled ? 'translate-x-7' : ''}`} />
+              <span className={`absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full transition-transform ${autoEnabled ? 'tranprimary-x-7' : ''}`} />
             </button>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -132,7 +197,15 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
               <input type="number" value={retention} onChange={e => setRetention(Number(e.target.value))} min={1} className="w-full border rounded-lg px-3 py-2" />
             </div>
           </div>
-          <button onClick={() => toast.success('Parametres de sauvegarde auto enregistres')} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
+          <button onClick={async () => {
+            try {
+              await saveSetting('admin_backup_auto', { enabled: autoEnabled, frequency: autoFrequency, time: autoTime, retention });
+              toast.success('Parametres de sauvegarde auto enregistres');
+            } catch (error) {
+              console.error('[AdminBackup] auto backup save failed:', error);
+              toast.error('Erreur lors de la sauvegarde');
+            }
+          }} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
             <Settings className="w-4 h-4" /> Enregistrer
           </button>
         </div>
@@ -140,6 +213,9 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
 
       {subTab === 2 && (
         <div className="bg-white rounded-lg border overflow-hidden">
+          {backupHistory.length === 0 ? (
+            <div className="p-8 text-center text-gray-400">Aucune sauvegarde dans l'historique</div>
+          ) : (
           <table className="w-full text-sm">
             <thead className="bg-gray-50">
               <tr>
@@ -149,11 +225,11 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
               </tr>
             </thead>
             <tbody className="divide-y">
-              {mockHistory.map((row, i) => (
+              {backupHistory.map((row, i) => (
                 <tr key={i} className="hover:bg-gray-50">
                   <td className="px-4 py-3">{row.date}</td>
                   <td className="px-4 py-3">
-                    <span className={`px-2 py-1 rounded text-xs font-medium ${row.type === 'Auto' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>{row.type}</span>
+                    <span className={`px-2 py-1 rounded text-xs font-medium ${row.type === 'Auto' ? 'bg-blue-100 text-blue-700' : 'bg-primary-100 text-primary-700'}`}>{row.type}</span>
                   </td>
                   <td className="px-4 py-3">{row.size}</td>
                   <td className="px-4 py-3">
@@ -171,6 +247,8 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
               ))}
             </tbody>
           </table>
+          )
+          }
         </div>
       )}
 
@@ -188,7 +266,7 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
               <label className="block text-sm font-medium text-gray-700 mb-1">Sauvegarde a restaurer</label>
               <select value={selectedBackup} onChange={e => setSelectedBackup(e.target.value)} className="w-full border rounded-lg px-3 py-2">
                 <option value="">-- Selectionnez une sauvegarde --</option>
-                {mockHistory.filter(h => h.status === 'Succes').map((h, i) => (
+                {backupHistory.filter(h => h.status === 'Succes').map((h, i) => (
                   <option key={i} value={h.date}>{h.date} ({h.type} - {h.size})</option>
                 ))}
               </select>

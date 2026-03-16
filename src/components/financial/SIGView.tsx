@@ -254,8 +254,8 @@ const SIGView: React.FC = () => {
                   <span className="font-bold text-green-900">{formatAmount(currentSIG.grossOperatingSurplus)}</span>
                 </div>
                 <div className="flex justify-between items-center py-2">
-                  <span className="text-sm font-medium text-purple-900">5. Résultat d'Exploitation</span>
-                  <span className="font-bold text-purple-900">{formatAmount(currentSIG.operatingResult)}</span>
+                  <span className="text-sm font-medium text-primary-900">5. Résultat d'Exploitation</span>
+                  <span className="font-bold text-primary-900">{formatAmount(currentSIG.operatingResult)}</span>
                 </div>
               </div>
             </div>
@@ -274,7 +274,7 @@ const SIGView: React.FC = () => {
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Taux de marge nette</span>
-                  <span className="font-medium text-purple-600">{currentSIG.netMarginRate.toFixed(1)}%</span>
+                  <span className="font-medium text-primary-600">{currentSIG.netMarginRate.toFixed(1)}%</span>
                 </div>
               </div>
             </div>
@@ -301,9 +301,9 @@ const SIGView: React.FC = () => {
                     {formatAmount(currentSIG.exceptionalResult)}
                   </span>
                 </div>
-                <div className="flex justify-between items-center py-2 border-b border-gray-200 bg-indigo-50 px-2 rounded">
-                  <span className="text-sm font-medium text-indigo-900">9. Résultat Net Final</span>
-                  <span className="font-bold text-indigo-900 text-lg">{formatAmount(currentSIG.finalNetResult)}</span>
+                <div className="flex justify-between items-center py-2 border-b border-gray-200 bg-primary-50 px-2 rounded">
+                  <span className="text-sm font-medium text-primary-900">9. Résultat Net Final</span>
+                  <span className="font-bold text-primary-900 text-lg">{formatAmount(currentSIG.finalNetResult)}</span>
                 </div>
               </div>
             </div>

@@ -85,7 +85,7 @@ const ManagerDashboard: React.FC = () => {
       value: formatCurrency(liveKpiData.treasury),
       change: '',
       trend: 'up' as const,
-      color: 'purple',
+      color: 'primary',
       icon: BarChart3,
       description: 'Comptes classe 5',
       target: '-'
@@ -215,7 +215,7 @@ const ManagerDashboard: React.FC = () => {
             </div>
             
             {/* Graphique placeholder - à remplacer par Chart.js/Recharts */}
-            <div className="h-80 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-lg flex items-center justify-center">
+            <div className="h-80 bg-gradient-to-br from-blue-50 to-primary-100 rounded-lg flex items-center justify-center">
               <div className="text-center">
                 <BarChart3 className="w-16 h-16 text-[var(--color-primary)] mx-auto mb-4" />
                 <p className="text-[var(--color-text-primary)]">Graphique CA - À intégrer avec Chart.js</p>
@@ -304,9 +304,9 @@ const ManagerDashboard: React.FC = () => {
               <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">CA par Secteur</h2>
             </div>
             <div className="p-6">
-              <div className="h-40 bg-gradient-to-br from-purple-50 to-pink-100 rounded-lg flex items-center justify-center mb-4">
+              <div className="h-40 bg-gradient-to-br from-primary-50 to-primary-100 rounded-lg flex items-center justify-center mb-4">
                 <div className="text-center">
-                  <PieChart className="w-12 h-12 text-purple-500 mx-auto mb-2" />
+                  <PieChart className="w-12 h-12 text-primary-500 mx-auto mb-2" />
                   <p className="text-[var(--color-text-primary)] text-sm">Graphique secteurs</p>
                 </div>
               </div>

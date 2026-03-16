@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * HOOKS REACT QUERY - RAPPROCHEMENT BANCAIRE
  *

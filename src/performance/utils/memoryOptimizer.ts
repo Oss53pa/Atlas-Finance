@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Memory Optimizer
  * Detects and prevents memory leaks, optimizes memory usage

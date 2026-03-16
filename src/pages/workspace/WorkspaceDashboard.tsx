@@ -344,7 +344,7 @@ const WorkspaceDashboard: React.FC = () => {
                         </div>
                       )}
                     </div>
-                    <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" style={{ color: '#737373' }} />
+                    <ArrowRight size={20} className="group-hover:tranprimary-x-1 transition-transform" style={{ color: '#737373' }} />
                   </div>
                 </button>
               ))}

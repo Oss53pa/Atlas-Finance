@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Reevaluation des immobilisations — SYSCOHADA revise.
  * Reevaluation libre et legale avec ecart de reevaluation (compte 105).

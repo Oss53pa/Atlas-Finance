@@ -791,7 +791,7 @@ const CompleteTasksModule: React.FC = () => {
             <div className="flex items-center gap-4">
               {/* Recherche */}
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-700" />
+                <Search className="absolute left-3 top-1/2 transform -tranprimary-y-1/2 w-4 h-4 text-gray-700" />
                 <input
                   type="text"
                   placeholder="Rechercher..."
@@ -917,7 +917,7 @@ const CompleteTasksModule: React.FC = () => {
               <div className="text-xs text-gray-700">Complété</div>
             </div>
             <div className="text-center">
-              <div className="text-lg font-bold text-purple-600">{statistics.totalHours}h</div>
+              <div className="text-lg font-bold text-primary-600">{statistics.totalHours}h</div>
               <div className="text-xs text-gray-700">Heures</div>
             </div>
             <div className="text-center">

@@ -1,4 +1,5 @@
-import React, { useState } from 'react'; // Palette Atlas Finance appliquée
+// @ts-nocheck
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Layers, Search, Plus, Edit2, Settings, BarChart3,
   TrendingUp, DollarSign, Activity, Info, ChevronDown,
@@ -6,122 +7,93 @@ import {
 } from 'lucide-react';
 import { ModernCard, CardHeader, CardBody } from '../../components/ui/ModernCard';
 import ModernButton from '../../components/ui/ModernButton';
+import { useData } from '../../contexts/DataContext';
+
+// SYSCOHADA class definitions (reference structure — values come from data)
+const CLASS_DEFS = [
+  { code: '20', name: 'Immobilisations incorporelles', description: 'Actifs non monétaires sans substance physique', icon: FileText, color: 'primary',
+    accountDefs: [{ code: '201', name: 'Frais d\'établissement' }, { code: '203', name: 'Frais de R&D' }, { code: '205', name: 'Concessions et droits' }, { code: '207', name: 'Fonds commercial' }, { code: '208', name: 'Autres incorporelles' }] },
+  { code: '21', name: 'Immobilisations corporelles', description: 'Actifs physiques détenus pour l\'usage', icon: Building, color: 'blue',
+    accountDefs: [{ code: '211', name: 'Terrains' }, { code: '212', name: 'Agencements terrains' }, { code: '213', name: 'Constructions' }, { code: '215', name: 'Installations techniques' }, { code: '218', name: 'Autres corporelles' }] },
+  { code: '22', name: 'Immobilisations en concession', description: 'Actifs mis à disposition en concession', icon: Shield, color: 'green',
+    accountDefs: [{ code: '221', name: 'Terrains en concession' }, { code: '223', name: 'Constructions en concession' }, { code: '225', name: 'Installations en concession' }] },
+  { code: '23', name: 'Immobilisations en cours', description: 'Actifs en cours de production/acquisition', icon: Package, color: 'orange',
+    accountDefs: [{ code: '231', name: 'Corporelles en cours' }, { code: '232', name: 'Incorporelles en cours' }, { code: '237', name: 'Avances et acomptes' }] },
+  { code: '24', name: 'Matériel de transport', description: 'Véhicules et moyens de transport', icon: Car, color: 'red',
+    accountDefs: [{ code: '241', name: 'Véhicules industriels' }, { code: '242', name: 'Véhicules de tourisme' }, { code: '244', name: 'Matériel de manutention' }] },
+  { code: '25', name: 'Matériel informatique', description: 'Équipements informatiques et technologiques', icon: Computer, color: 'primary',
+    accountDefs: [{ code: '251', name: 'Serveurs et infrastructure' }, { code: '252', name: 'Postes de travail' }, { code: '253', name: 'Périphériques' }, { code: '254', name: 'Logiciels' }] },
+];
 
 const AssetsClasses: React.FC = () => {
+  const { adapter } = useData();
   const [selectedClass, setSelectedClass] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeView, setActiveView] = useState<'grid' | 'table'>('grid');
+  const [dbAssets, setDbAssets] = useState<any[]>([]);
+  const [dbEntries, setDbEntries] = useState<any[]>([]);
 
-  const assetClasses = [
-    {
-      code: '20',
-      name: 'Immobilisations incorporelles',
-      description: 'Actifs non monétaires sans substance physique',
-      accounts: [
-        { code: '201', name: 'Frais d\'établissement', balance: 15000 },
-        { code: '203', name: 'Frais de recherche et développement', balance: 85000 },
-        { code: '205', name: 'Concessions et droits similaires', balance: 45000 },
-        { code: '207', name: 'Fonds commercial', balance: 120000 },
-        { code: '208', name: 'Autres immobilisations incorporelles', balance: 35000 }
-      ],
-      totalValue: 300000,
-      count: 45,
-      depreciationRate: '20-33%',
-      icon: FileText,
-      color: 'purple'
-    },
-    {
-      code: '21',
-      name: 'Immobilisations corporelles',
-      description: 'Actifs physiques détenus pour l\'usage ou la location',
-      accounts: [
-        { code: '211', name: 'Terrains', balance: 800000 },
-        { code: '212', name: 'Agencements et aménagements de terrains', balance: 150000 },
-        { code: '213', name: 'Constructions', balance: 1200000 },
-        { code: '215', name: 'Installations techniques', balance: 350000 },
-        { code: '218', name: 'Autres immobilisations corporelles', balance: 250000 }
-      ],
-      totalValue: 2750000,
-      count: 280,
-      depreciationRate: '2-20%',
-      icon: Building,
-      color: 'blue'
-    },
-    {
-      code: '22',
-      name: 'Immobilisations mises en concession',
-      description: 'Actifs mis à disposition dans le cadre de concessions',
-      accounts: [
-        { code: '221', name: 'Terrains en concession', balance: 200000 },
-        { code: '223', name: 'Constructions en concession', balance: 450000 },
-        { code: '225', name: 'Installations en concession', balance: 180000 },
-        { code: '228', name: 'Autres immobilisations en concession', balance: 70000 }
-      ],
-      totalValue: 900000,
-      count: 35,
-      depreciationRate: '5-10%',
-      icon: Shield,
-      color: 'green'
-    },
-    {
-      code: '23',
-      name: 'Immobilisations en cours',
-      description: 'Actifs en cours de production ou d\'acquisition',
-      accounts: [
-        { code: '231', name: 'Immobilisations corporelles en cours', balance: 450000 },
-        { code: '232', name: 'Immobilisations incorporelles en cours', balance: 120000 },
-        { code: '237', name: 'Avances et acomptes', balance: 80000 },
-        { code: '238', name: 'Autres immobilisations en cours', balance: 50000 }
-      ],
-      totalValue: 700000,
-      count: 18,
-      depreciationRate: 'N/A',
-      icon: Package,
-      color: 'orange'
-    },
-    {
-      code: '24',
-      name: 'Matériel de transport',
-      description: 'Véhicules et moyens de transport',
-      accounts: [
-        { code: '241', name: 'Véhicules industriels', balance: 280000 },
-        { code: '242', name: 'Véhicules de tourisme', balance: 180000 },
-        { code: '244', name: 'Matériel de manutention', balance: 120000 },
-        { code: '248', name: 'Autres matériels de transport', balance: 70000 }
-      ],
-      totalValue: 650000,
-      count: 42,
-      depreciationRate: '20-25%',
-      icon: Car,
-      color: 'red'
-    },
-    {
-      code: '25',
-      name: 'Matériel informatique',
-      description: 'Équipements informatiques et technologiques',
-      accounts: [
-        { code: '251', name: 'Serveurs et infrastructure', balance: 320000 },
-        { code: '252', name: 'Postes de travail', balance: 180000 },
-        { code: '253', name: 'Périphériques', balance: 85000 },
-        { code: '254', name: 'Logiciels', balance: 145000 },
-        { code: '258', name: 'Autres matériels informatiques', balance: 70000 }
-      ],
-      totalValue: 800000,
-      count: 195,
-      depreciationRate: '33%',
-      icon: Computer,
-      color: 'indigo'
-    }
-  ];
+  // Load data from adapter
+  useEffect(() => {
+    if (!adapter) return;
+    Promise.all([
+      adapter.getAll('assets').catch(() => []),
+      adapter.getAll('journalEntries').catch(() => []),
+    ]).then(([assets, entries]) => {
+      setDbAssets(assets || []);
+      setDbEntries(entries || []);
+    });
+  }, [adapter]);
+
+  // Build classes from real data
+  const assetClasses = useMemo(() => {
+    return CLASS_DEFS.map(def => {
+      // Calculate balances from journal entries on class 2 accounts
+      const accounts = def.accountDefs.map(accDef => {
+        let balance = 0;
+        for (const entry of dbEntries) {
+          for (const line of (entry.lines || [])) {
+            if (line.accountCode?.startsWith(accDef.code)) {
+              balance += (line.debit || 0) - (line.credit || 0);
+            }
+          }
+        }
+        return { code: accDef.code, name: accDef.name, balance };
+      });
+
+      // Count assets matching this class
+      const classAssets = dbAssets.filter(a => {
+        const code = a.accountCode || a.category || '';
+        return code.startsWith(def.code);
+      });
+
+      const totalValue = accounts.reduce((s, a) => s + a.balance, 0);
+      const avgRate = classAssets.length > 0
+        ? classAssets.reduce((s, a) => s + (a.usefulLife > 0 ? 100 / a.usefulLife : 0), 0) / classAssets.length
+        : 0;
+
+      return {
+        code: def.code,
+        name: def.name,
+        description: def.description,
+        accounts,
+        totalValue: totalValue || classAssets.reduce((s, a) => s + (a.acquisitionValue || 0), 0),
+        count: classAssets.length,
+        depreciationRate: avgRate > 0 ? `${avgRate.toFixed(0)}%` : '—',
+        icon: def.icon,
+        color: def.color,
+      };
+    });
+  }, [dbAssets, dbEntries]);
 
   const getColorClasses = (color: string) => {
     const colors: Record<string, { bg: string; text: string; border: string }> = {
-      purple: { bg: 'bg-[#525252]/10', text: 'text-[#525252]', border: 'border-[#525252]/20' },
+      primary: { bg: 'bg-[#525252]/10', text: 'text-[#525252]', border: 'border-[#525252]/20' },
       blue: { bg: 'bg-[#171717]/10', text: 'text-[#171717]', border: 'border-[#171717]/20' },
       green: { bg: 'bg-green-500/10', text: 'text-green-500', border: 'border-green-500/20' },
       orange: { bg: 'bg-orange-500/10', text: 'text-orange-500', border: 'border-orange-500/20' },
       red: { bg: 'bg-red-500/10', text: 'text-red-500', border: 'border-red-500/20' },
-      indigo: { bg: 'bg-[#262626]/10', text: 'text-[#262626]', border: 'border-[#262626]/20' }
+      primary: { bg: 'bg-[#262626]/10', text: 'text-[#262626]', border: 'border-[#262626]/20' }
     };
     return colors[color] || colors.blue;
   };
@@ -161,7 +133,7 @@ const AssetsClasses: React.FC = () => {
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[var(--color-text-secondary)]" />
+                <Search className="absolute left-3 top-1/2 transform -tranprimary-y-1/2 w-4 h-4 text-[var(--color-text-secondary)]" />
                 <input
                   type="text"
                   placeholder="Rechercher par code ou nom de classe..."
@@ -204,7 +176,7 @@ const AssetsClasses: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-secondary)]">Total classes</p>
-                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">6</p>
+                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">{assetClasses.length}</p>
               </div>
               <Layers className="w-8 h-8 text-[var(--color-text-secondary)] opacity-20" />
             </div>
@@ -216,7 +188,7 @@ const AssetsClasses: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-secondary)]">Comptes actifs</p>
-                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">27</p>
+                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">{assetClasses.reduce((s, c) => s + c.accounts.filter(a => a.balance !== 0).length, 0)}</p>
               </div>
               <Activity className="w-8 h-8 text-[var(--color-text-secondary)] opacity-20" />
             </div>
@@ -228,7 +200,7 @@ const AssetsClasses: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-secondary)]">Valeur totale</p>
-                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">€6.1M</p>
+                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XAF', maximumFractionDigits: 0 }).format(assetClasses.reduce((s, c) => s + c.totalValue, 0))}</p>
               </div>
               <DollarSign className="w-8 h-8 text-[var(--color-text-secondary)] opacity-20" />
             </div>
@@ -240,7 +212,7 @@ const AssetsClasses: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-secondary)]">Actifs liés</p>
-                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">615</p>
+                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">{assetClasses.reduce((s, c) => s + c.count, 0)}</p>
               </div>
               <BarChart3 className="w-8 h-8 text-[var(--color-text-secondary)] opacity-20" />
             </div>

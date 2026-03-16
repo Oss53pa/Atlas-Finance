@@ -74,7 +74,7 @@ const AnalyticsDashboard: React.FC = () => {
     const taux_marge = chiffre_affaires > 0 ? (marge_brute / chiffre_affaires) * 100 : 0;
     const rentabilite_globale = taux_marge;
 
-    const costCenterColors = ['bg-emerald-400', 'bg-blue-400', 'bg-purple-400', 'bg-orange-400', 'bg-yellow-400', 'bg-red-400', 'bg-pink-400'];
+    const costCenterColors = ['bg-green-400', 'bg-[#525252]', 'bg-gray-400', 'bg-orange-400', 'bg-yellow-400', 'bg-red-400', 'bg-primary-400'];
     const accountLabels: Record<string, string> = {
       '60': 'Achats', '61': 'Services ext.', '62': 'Autres services', '63': 'Impots',
       '64': 'Personnel', '65': 'Autres charges', '66': 'Charges fin.', '67': 'Charges except.',
@@ -117,7 +117,7 @@ const AnalyticsDashboard: React.FC = () => {
             animate={{ opacity: 1, scale: 1 }}
             className="flex flex-col items-center space-y-6 bg-white/90 backdrop-blur-sm p-12 rounded-xl shadow-md"
           >
-            <div className="w-20 h-20 border-4 border-[var(--color-primary-light)] border-t-blue-600 rounded-full animate-spin"></div>
+            <div className="w-20 h-20 border-4 border-[var(--color-primary-light)] border-t-[#171717] rounded-full animate-spin"></div>
             <p className="text-lg font-semibold text-neutral-700">Chargement du tableau de bord analytique...</p>
           </motion.div>
         </div>
@@ -229,8 +229,8 @@ const AnalyticsDashboard: React.FC = () => {
                     {dashboardData.nombre_centres}
                   </p>
                 </div>
-                <div className="p-3 bg-emerald-100 rounded-2xl">
-                  <Users className="h-8 w-8 text-emerald-600" />
+                <div className="p-3 bg-green-100 rounded-2xl">
+                  <Users className="h-8 w-8 text-green-600" />
                 </div>
               </div>
             </UnifiedCard>
@@ -280,7 +280,7 @@ const AnalyticsDashboard: React.FC = () => {
           <UnifiedCard variant="elevated" size="lg">
             <div className="flex items-center space-x-3 mb-8">
               <div className="p-3 bg-white/90 rounded-2xl">
-                <TrendingUp className="h-6 w-6 text-emerald-600" />
+                <TrendingUp className="h-6 w-6 text-green-600" />
               </div>
               <div>
                 <h2 className="text-lg font-bold text-neutral-900">Top Centres de Couts</h2>
@@ -294,10 +294,10 @@ const AnalyticsDashboard: React.FC = () => {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className="flex items-center justify-between p-6 border border-neutral-200 rounded-2xl hover:border-emerald-300 hover:shadow-lg transition-all duration-300"
+                  className="flex items-center justify-between p-6 border border-neutral-200 rounded-2xl hover:border-green-300 hover:shadow-lg transition-all duration-300"
                 >
                   <div className="flex items-center space-x-4">
-                    <div className="flex items-center justify-center w-12 h-12 bg-emerald-100 rounded-2xl text-emerald-600 font-bold text-sm">
+                    <div className="flex items-center justify-center w-12 h-12 bg-green-100 rounded-2xl text-green-600 font-bold text-sm">
                       {index + 1}
                     </div>
                     <div>
@@ -306,11 +306,11 @@ const AnalyticsDashboard: React.FC = () => {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-emerald-700 text-lg">
+                    <p className="font-bold text-green-700 text-lg">
                       {formatCurrency(centre.marge)}
                     </p>
                     <div className="flex items-center space-x-1">
-                      {centre.variation > 0 ? <TrendingUp className="h-4 w-4 text-emerald-600" /> : <TrendingDown className="h-4 w-4 text-[var(--color-error)]" />}
+                      {centre.variation > 0 ? <TrendingUp className="h-4 w-4 text-green-600" /> : <TrendingDown className="h-4 w-4 text-[var(--color-error)]" />}
                       <span className="text-sm text-neutral-600">
                         {formatPercentage(centre.taux_marge)}
                       </span>
@@ -427,7 +427,7 @@ const AnalyticsDashboard: React.FC = () => {
                     </td>
                     <td className="py-4 px-2 text-right">
                       <span className={`font-semibold ${
-                        ventilation.montant >= 0 ? 'text-emerald-700' : 'text-[var(--color-error-dark)]'
+                        ventilation.montant >= 0 ? 'text-green-700' : 'text-[var(--color-error-dark)]'
                       }`}>
                         {formatCurrency(ventilation.montant)}
                       </span>
@@ -435,7 +435,7 @@ const AnalyticsDashboard: React.FC = () => {
                     <td className="py-4 px-2">
                       <div className="flex items-center space-x-2">
                         <div className={`w-2 h-2 rounded-full ${
-                          ventilation.performance >= 90 ? 'bg-emerald-500' :
+                          ventilation.performance >= 90 ? 'bg-green-500' :
                           ventilation.performance >= 70 ? 'bg-[var(--color-warning)]' : 'bg-[var(--color-error)]'
                         }`}></div>
                         <span className="text-sm font-medium text-neutral-900">
@@ -485,10 +485,10 @@ const AnalyticsDashboard: React.FC = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-                className="group p-6 border border-neutral-200 rounded-2xl hover:border-emerald-300 hover:shadow-lg transition-all duration-300 cursor-pointer"
+                className="group p-6 border border-neutral-200 rounded-2xl hover:border-green-300 hover:shadow-lg transition-all duration-300 cursor-pointer"
               >
-                <div className="flex items-center justify-center w-12 h-12 bg-emerald-100 rounded-2xl mb-4 group-hover:scale-110 transition-transform">
-                  <Users className="h-6 w-6 text-emerald-600" />
+                <div className="flex items-center justify-center w-12 h-12 bg-green-100 rounded-2xl mb-4 group-hover:scale-110 transition-transform">
+                  <Users className="h-6 w-6 text-green-600" />
                 </div>
                 <h3 className="font-bold text-neutral-900 mb-1">Centres de Couts</h3>
                 <p className="text-sm text-neutral-600">Creer et organiser</p>
@@ -501,7 +501,7 @@ const AnalyticsDashboard: React.FC = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="group p-6 border border-neutral-200 rounded-2xl hover:border-purple-300 hover:shadow-lg transition-all duration-300 cursor-pointer"
+                className="group p-6 border border-neutral-200 rounded-2xl hover:border-gray-300 hover:shadow-lg transition-all duration-300 cursor-pointer"
               >
                 <div className="flex items-center justify-center w-12 h-12 bg-[var(--color-info-lighter)] rounded-2xl mb-4 group-hover:scale-110 transition-transform">
                   <BarChart3 className="h-6 w-6 text-[var(--color-info)]" />
@@ -550,16 +550,16 @@ const AnalyticsDashboard: React.FC = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="p-6 rounded-2xl border bg-emerald-50/80 border-emerald-200/60"
+              className="p-6 rounded-2xl border bg-green-50/80 border-green-200/60"
             >
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-semibold text-emerald-900">Rentabilite Globale</span>
-                <TrendingUp className="h-4 w-4 text-emerald-600" />
+                <span className="text-sm font-semibold text-green-900">Rentabilite Globale</span>
+                <TrendingUp className="h-4 w-4 text-green-600" />
               </div>
-              <p className="text-lg font-bold text-emerald-700">
+              <p className="text-lg font-bold text-green-700">
                 {formatPercentage(dashboardData.rentabilite_globale)}
               </p>
-              <p className="text-sm text-emerald-600 mt-1">
+              <p className="text-sm text-green-600 mt-1">
                 +{formatPercentage(dashboardData.evolution_rentabilite)} vs periode precedente
               </p>
             </motion.div>
@@ -586,10 +586,10 @@ const AnalyticsDashboard: React.FC = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="p-6 rounded-2xl border bg-[var(--color-info-lightest)]/80 border-purple-200/60"
+              className="p-6 rounded-2xl border bg-[var(--color-info-lightest)]/80 border-gray-200/60"
             >
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-semibold text-purple-900">Efficacite</span>
+                <span className="text-sm font-semibold text-gray-900">Efficacite</span>
                 <Target className="h-4 w-4 text-[var(--color-info)]" />
               </div>
               <p className="text-lg font-bold text-[var(--color-info-dark)]">
