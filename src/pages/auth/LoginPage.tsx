@@ -16,8 +16,15 @@ function getRoleRedirectPath(role: string): string {
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, user: authUser } = useAuth();
+  const { login, user: authUser, isAuthenticated } = useAuth();
   const { selectedRole, targetPath } = (location.state as { selectedRole?: string; targetPath?: string } | null) || { targetPath: '/dashboard' };
+
+  // Si déjà connecté → rediriger vers le workspace
+  React.useEffect(() => {
+    if (isAuthenticated && authUser) {
+      navigate(getRoleRedirectPath(authUser.role), { replace: true });
+    }
+  }, [isAuthenticated, authUser, navigate]);
 
   const [formData, setFormData] = useState({
     email: '',
@@ -58,14 +65,13 @@ const LoginPage: React.FC = () => {
 
       await login(formData.email, formData.password);
 
-
-      // Read role from localStorage (synced by AuthContext after loadUserProfile)
-      const storedUser = localStorage.getItem('user');
-      const userData = storedUser ? JSON.parse(storedUser) : null;
-      const userRole = userData?.role || 'user';
-
-      const redirectPath = getRoleRedirectPath(userRole);
-      navigate(redirectPath, { replace: true });
+      // Le useEffect ci-dessus gère la redirection une fois authUser mis à jour.
+      // Fallback immédiat si le user est déjà dispo dans le context
+      setTimeout(() => {
+        // Si le useEffect n'a pas encore redirigé, forcer la navigation
+        const role = authUser?.role || selectedRole || 'user';
+        navigate(getRoleRedirectPath(role), { replace: true });
+      }, 500);
     } catch (error: unknown) {
       console.error('[LoginPage] Erreur de connexion:', error);
       setErrors({
@@ -106,12 +112,10 @@ const LoginPage: React.FC = () => {
     try {
       await login(creds.email, creds.password);
 
-
-      const storedUser = localStorage.getItem('user');
-      const userData = storedUser ? JSON.parse(storedUser) : null;
-      const userRole = userData?.role || 'user';
-
-      navigate(getRoleRedirectPath(userRole), { replace: true });
+      // Le useEffect gère la redirection. Fallback :
+      setTimeout(() => {
+        navigate(getRoleRedirectPath(role), { replace: true });
+      }, 500);
     } catch (error: unknown) {
       console.error('[LoginPage] Erreur de connexion:', error);
       setErrors({
