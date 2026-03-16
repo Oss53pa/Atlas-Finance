@@ -289,6 +289,68 @@ export async function fetchKPIValue(
         return passifCirculant === 0 ? 0 : actifCirculant / passifCirculant;
       }
 
+      case 'kpi.caf': {
+        // CAF = Résultat net + Dotations amort/prov - Reprises prov
+        const produits = sumByClass(entries, '7', p, 'net');
+        const charges = sumByClass(entries, '6', p, 'debit') - sumByClass(entries, '6', p, 'credit');
+        const resultat = produits - charges;
+        const dotations = sumByClass(entries, '68', p, 'debit') - sumByClass(entries, '68', p, 'credit')
+          + sumByClass(entries, '69', p, 'debit') - sumByClass(entries, '69', p, 'credit');
+        const reprises = sumByClass(entries, '78', p, 'net') + sumByClass(entries, '79', p, 'net');
+        return resultat + dotations - reprises;
+      }
+
+      case 'kpi.flux_exploitation': {
+        // Flux exploitation = CAF - Variation BFR
+        const produits = sumByClass(entries, '7', p, 'net');
+        const charges = sumByClass(entries, '6', p, 'debit') - sumByClass(entries, '6', p, 'credit');
+        const resultat = produits - charges;
+        const dotations = sumByClass(entries, '68', p, 'debit') - sumByClass(entries, '68', p, 'credit')
+          + sumByClass(entries, '69', p, 'debit') - sumByClass(entries, '69', p, 'credit');
+        const reprises = sumByClass(entries, '78', p, 'net') + sumByClass(entries, '79', p, 'net');
+        const caf = resultat + dotations - reprises;
+        // Variation BFR simplifiée
+        let bfrVar = 0;
+        for (const e of entries) {
+          if (!inPeriod(e.date, p)) continue;
+          for (const l of (e.lines || [])) {
+            const code = l.accountCode || '';
+            if (code.startsWith('3') || code.startsWith('41') || code.startsWith('46')) {
+              bfrVar += (l.debit || 0) - (l.credit || 0);
+            }
+            if (code.startsWith('40') || code.startsWith('42') || code.startsWith('43') || code.startsWith('44')) {
+              bfrVar -= (l.credit || 0) - (l.debit || 0);
+            }
+          }
+        }
+        return caf - bfrVar;
+      }
+
+      case 'kpi.free_cashflow': {
+        // FCF = Flux exploitation + Flux investissement
+        const produits = sumByClass(entries, '7', p, 'net');
+        const charges = sumByClass(entries, '6', p, 'debit') - sumByClass(entries, '6', p, 'credit');
+        const resultat = produits - charges;
+        const dotations = sumByClass(entries, '68', p, 'debit') - sumByClass(entries, '68', p, 'credit');
+        const reprises = sumByClass(entries, '78', p, 'net');
+        const caf = resultat + dotations - reprises;
+        const acquisitions = sumByClass(entries, '2', p, 'debit') - sumByClass(entries, '2', p, 'credit');
+        return caf - Math.max(0, acquisitions);
+      }
+
+      case 'kpi.variation_tresorerie': {
+        // Variation = Somme des flux nets sur comptes de trésorerie (classe 5)
+        let total = 0;
+        for (const e of entries) {
+          if (!inPeriod(e.date, p)) continue;
+          if (e.journal === 'AN' || e.journal === 'RAN') continue;
+          for (const l of (e.lines || [])) {
+            if (l.accountCode?.startsWith('5')) total += (l.debit || 0) - (l.credit || 0);
+          }
+        }
+        return total;
+      }
+
       default:
         return null;
     }
@@ -569,6 +631,57 @@ export async function fetchChartData(
           { key: 'budget', label: 'Budget', color: '#a3a3a3' },
           { key: 'reel', label: 'Réel', color: '#171717' },
         ],
+      };
+    }
+
+    case 'chart.tft_waterfall': {
+      // Waterfall: CAF → Variation BFR → Flux Exploitation → Flux Investissement → Flux Financement → Variation nette
+      const produits = sumByClass(entries, '7', period, 'net');
+      const charges = sumByClass(entries, '6', period, 'debit') - sumByClass(entries, '6', period, 'credit');
+      const resultat = produits - charges;
+      const dotations = sumByClass(entries, '68', period, 'debit') - sumByClass(entries, '68', period, 'credit');
+      const reprises = sumByClass(entries, '78', period, 'net');
+      const caf = resultat + dotations - reprises;
+      const acquisitions = sumByClass(entries, '2', period, 'debit') - sumByClass(entries, '2', period, 'credit');
+      const investFlow = -Math.max(0, acquisitions);
+      const capitalIncrease = sumByClass(entries, '10', period, 'net');
+      const newBorrowings = sumByClass(entries, '16', period, 'net');
+      const financFlow = capitalIncrease + newBorrowings;
+
+      return {
+        data: [
+          { label: 'CAF', value: Math.round(caf) },
+          { label: 'Exploitation', value: Math.round(caf) },
+          { label: 'Investissement', value: Math.round(investFlow) },
+          { label: 'Financement', value: Math.round(financFlow) },
+          { label: 'Variation nette', value: Math.round(caf + investFlow + financFlow) },
+        ],
+        xAxisKey: 'label',
+        series: [{ key: 'value', label: 'Montant' }],
+      };
+    }
+
+    case 'chart.tft_3flux': {
+      const produits = sumByClass(entries, '7', period, 'net');
+      const charges = sumByClass(entries, '6', period, 'debit') - sumByClass(entries, '6', period, 'credit');
+      const resultat = produits - charges;
+      const dotations = sumByClass(entries, '68', period, 'debit') - sumByClass(entries, '68', period, 'credit');
+      const reprises = sumByClass(entries, '78', period, 'net');
+      const caf = resultat + dotations - reprises;
+      const acquisitions = sumByClass(entries, '2', period, 'debit') - sumByClass(entries, '2', period, 'credit');
+      const investFlow = -Math.max(0, acquisitions);
+      const capitalIncrease = sumByClass(entries, '10', period, 'net');
+      const newBorrowings = sumByClass(entries, '16', period, 'net');
+      const financFlow = capitalIncrease + newBorrowings;
+
+      return {
+        data: [
+          { flux: 'Exploitation', montant: Math.round(caf) },
+          { flux: 'Investissement', montant: Math.round(investFlow) },
+          { flux: 'Financement', montant: Math.round(financFlow) },
+        ],
+        xAxisKey: 'flux',
+        series: [{ key: 'montant', label: 'Montant', color: '#171717' }],
       };
     }
 

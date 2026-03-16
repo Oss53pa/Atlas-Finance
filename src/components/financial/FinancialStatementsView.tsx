@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useData } from '../../contexts/DataContext';
 import {
   DocumentChartBarIcon,
   CalculatorIcon,
@@ -27,46 +28,34 @@ interface FinancialStatement {
 
 const FinancialStatementsView: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   const [statements, setStatements] = useState<FinancialStatement[]>([]);
   const [selectedStatement, setSelectedStatement] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'list' | 'create' | 'analysis'>('list');
 
-  // Données d'exemple - à remplacer par des appels API
+  // Données réelles depuis les écritures comptables
   useEffect(() => {
-    setStatements([
-      {
-        id: '1',
-        type: 'balance',
-        title: 'Bilan SYSCOHADA',
-        statementDate: '2024-12-31',
-        fiscalYear: '2024',
-        status: 'validated',
-        isBalanced: true,
-        totalAssets: 2500000,
-        totalLiabilities: 2500000,
-        lastModified: '2024-01-15'
-      },
-      {
-        id: '2',
-        type: 'income',
-        title: 'Compte de Résultat',
-        statementDate: '2024-12-31',
-        fiscalYear: '2024',
-        status: 'draft',
-        netResult: 150000,
-        lastModified: '2024-01-10'
-      },
-      {
-        id: '3',
-        type: 'cashflow',
-        title: 'TAFIRE (Flux de Trésorerie)',
-        statementDate: '2024-12-31',
-        fiscalYear: '2024',
-        status: 'draft',
-        lastModified: '2024-01-08'
-      }
-    ]);
-  }, []);
+    const load = async () => {
+      try {
+        const entries = await adapter.getAll<any>('journalEntries');
+        let totalActif = 0, totalPassif = 0, resultatNet = 0;
+        for (const e of entries) for (const l of e.lines || []) {
+          if (['2','3','4','5'].some(p => l.accountCode.startsWith(p)) && (l.debit - l.credit) > 0) totalActif += l.debit - l.credit;
+          if (['1','4'].some(p => l.accountCode.startsWith(p)) && (l.credit - l.debit) > 0) totalPassif += l.credit - l.debit;
+          if (l.accountCode.startsWith('7')) resultatNet += l.credit - l.debit;
+          if (l.accountCode.startsWith('6')) resultatNet -= l.debit - l.credit;
+        }
+        const year = new Date().getFullYear().toString();
+        const today = new Date().toISOString().split('T')[0];
+        setStatements([
+          { id: '1', type: 'balance', title: 'Bilan SYSCOHADA', statementDate: `${year}-12-31`, fiscalYear: year, status: entries.length > 0 ? 'validated' : 'draft', isBalanced: Math.abs(totalActif - totalPassif) < 1, totalAssets: Math.round(totalActif), totalLiabilities: Math.round(totalPassif), lastModified: today },
+          { id: '2', type: 'income', title: 'Compte de Résultat', statementDate: `${year}-12-31`, fiscalYear: year, status: 'draft', netResult: Math.round(resultatNet), lastModified: today },
+          { id: '3', type: 'cashflow', title: 'TAFIRE (Flux de Trésorerie)', statementDate: `${year}-12-31`, fiscalYear: year, status: 'draft', lastModified: today }
+        ]);
+      } catch { /* fallback vide */ }
+    };
+    load();
+  }, [adapter]);
 
   const getStatusBadge = (status: string) => {
     switch (status) {

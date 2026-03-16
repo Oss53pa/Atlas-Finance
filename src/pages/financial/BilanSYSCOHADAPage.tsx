@@ -21,6 +21,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
   const { adapter } = useData();
   const [activeTab, setActiveTab] = useState('bilan');
   const [tftMethod, setTftMethod] = useState<'indirect' | 'direct'>('indirect');
+  const [tftExpandedRows, setTftExpandedRows] = useState<Set<string>>(new Set());
   const [periode, setPeriode] = useState('current');
 
   // États pour la modal de détails
@@ -1111,30 +1112,37 @@ const BilanSYSCOHADAPage: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {fluxTresorerieData.activitesOperationnelles.map((item, index) => (
-                          <tr key={index} className="border-b border-[#e5e5e5] hover:bg-gray-50">
+                        {fluxTresorerieData.activitesOperationnelles.map((item, index) => {
+                          const rowKey = `op-${item.code}`;
+                          const isExpanded = tftExpandedRows.has(rowKey);
+                          const prefixMap: Record<string, string[]> = { FO1: ['6','7'], FO2: ['681'], FO3: ['69'], FO4: ['81','82'], FO5: ['41'], FO6: ['3'], FO7: ['40'], FO8: ['46'] };
+                          const pfx = prefixMap[item.code] || [];
+                          const details = isExpanded ? rawEntries.filter(e => e.lines?.some((l: any) => pfx.some(p => l.accountCode.startsWith(p)))).slice(0, 20).map(e => ({ ref: e.entryNumber || e.id?.substring(0, 8), date: e.date, label: e.label, journal: e.journal, amount: e.lines.filter((l: any) => pfx.some(p => l.accountCode.startsWith(p))).reduce((s: number, l: any) => s + l.debit - l.credit, 0) })) : [];
+                          return (
+                          <React.Fragment key={index}>
+                          <tr className="border-b border-[#e5e5e5] hover:bg-gray-50 cursor-pointer" onClick={() => setTftExpandedRows(prev => { const s = new Set(prev); s.has(rowKey) ? s.delete(rowKey) : s.add(rowKey); return s; })}>
                             <td className="p-3 text-[#404040]">
                               <div className="flex items-center space-x-2">
                                 <span>{item.code}</span>
-                                <button
-                                  onClick={() => openDetailModal(item.code, `Sous-comptes de ${item.libelle}`, 'sous-comptes', Math.abs(item.montant))}
-                                  className="p-1 hover:bg-[#525252] hover:text-white rounded transition-colors"
-                                  title={`Voir les sous-comptes de ${item.code}`}
-                                >
-                                  <ChevronRight className="w-3 h-3" />
-                                </button>
+                                {isExpanded ? <ChevronDown className="w-3 h-3 text-blue-500" /> : <ChevronRight className="w-3 h-3 text-gray-400" />}
                               </div>
                             </td>
                             <td className="p-3 text-[#404040]">{item.libelle}</td>
-                            <td
-                              className={`p-3 text-right font-mono hover:bg-blue-50 cursor-pointer ${item.montant >= 0 ? 'text-[#171717]' : 'text-red-600'}`}
-                              onClick={() => openDetailModal(item.code, item.libelle, 'exerciceN', Math.abs(item.montant))}
-                              title="Cliquer pour voir les transactions"
-                            >
+                            <td className={`p-3 text-right font-mono ${item.montant >= 0 ? 'text-[#171717]' : 'text-red-600'}`}>
                               {item.montant >= 0 ? '' : '('}{formatCurrency(Math.abs(item.montant))}{item.montant >= 0 ? '' : ')'}
                             </td>
                           </tr>
-                        ))}
+                          {isExpanded && details.map((d, di) => (
+                            <tr key={`${rowKey}-${di}`} className="bg-blue-50/50 border-b border-blue-100">
+                              <td className="p-1"></td>
+                              <td className="p-2 pl-8 text-xs text-gray-600"><span className="font-mono text-gray-400 mr-2">{d.date}</span><span className="text-gray-500 mr-1">[{d.journal}]</span> {d.ref} — {d.label}</td>
+                              <td className={`p-2 text-right font-mono text-xs ${d.amount < 0 ? 'text-red-500' : 'text-gray-700'}`}>{formatCurrency(d.amount)}</td>
+                            </tr>
+                          ))}
+                          {isExpanded && details.length === 0 && <tr className="bg-gray-50"><td></td><td colSpan={2} className="p-2 pl-8 text-xs text-gray-400 italic">Aucune écriture</td></tr>}
+                          </React.Fragment>
+                          );
+                        })}
                         <tr className="border-t-2 border-[#e5e5e5] bg-gray-50">
                           <td className="p-3"></td>
                           <td className="p-3 font-bold text-[#171717]">FLUX NET DE TRÉSORERIE DES ACTIVITÉS OPÉRATIONNELLES</td>
@@ -1158,30 +1166,37 @@ const BilanSYSCOHADAPage: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {fluxTresorerieData.activitesInvestissement.map((item, index) => (
-                          <tr key={index} className="border-b border-[#e5e5e5] hover:bg-gray-50">
+                        {fluxTresorerieData.activitesInvestissement.map((item, index) => {
+                          const rowKey = `inv-${item.code}`;
+                          const isExpanded = tftExpandedRows.has(rowKey);
+                          const prefixMap: Record<string, string[]> = { FI1: ['24','245','246','247'], FI2: ['21'], FI3: ['82'], FI4: ['26'] };
+                          const pfx = prefixMap[item.code] || [];
+                          const details = isExpanded ? rawEntries.filter(e => e.lines?.some((l: any) => pfx.some(p => l.accountCode.startsWith(p)))).slice(0, 20).map(e => ({ ref: e.entryNumber || e.id?.substring(0, 8), date: e.date, label: e.label, journal: e.journal, amount: e.lines.filter((l: any) => pfx.some(p => l.accountCode.startsWith(p))).reduce((s: number, l: any) => s + l.debit - l.credit, 0) })) : [];
+                          return (
+                          <React.Fragment key={index}>
+                          <tr className="border-b border-[#e5e5e5] hover:bg-gray-50 cursor-pointer" onClick={() => setTftExpandedRows(prev => { const s = new Set(prev); s.has(rowKey) ? s.delete(rowKey) : s.add(rowKey); return s; })}>
                             <td className="p-3 text-[#404040]">
                               <div className="flex items-center space-x-2">
                                 <span>{item.code}</span>
-                                <button
-                                  onClick={() => openDetailModal(item.code, `Sous-comptes de ${item.libelle}`, 'sous-comptes', Math.abs(item.montant))}
-                                  className="p-1 hover:bg-[#525252] hover:text-white rounded transition-colors"
-                                  title={`Voir les sous-comptes de ${item.code}`}
-                                >
-                                  <ChevronRight className="w-3 h-3" />
-                                </button>
+                                {isExpanded ? <ChevronDown className="w-3 h-3 text-blue-500" /> : <ChevronRight className="w-3 h-3 text-gray-400" />}
                               </div>
                             </td>
                             <td className="p-3 text-[#404040]">{item.libelle}</td>
-                            <td
-                              className={`p-3 text-right font-mono hover:bg-blue-50 cursor-pointer ${item.montant >= 0 ? 'text-[#171717]' : 'text-red-600'}`}
-                              onClick={() => openDetailModal(item.code, item.libelle, 'exerciceN', Math.abs(item.montant))}
-                              title="Cliquer pour voir les transactions"
-                            >
+                            <td className={`p-3 text-right font-mono ${item.montant >= 0 ? 'text-[#171717]' : 'text-red-600'}`}>
                               {item.montant >= 0 ? '' : '('}{formatCurrency(Math.abs(item.montant))}{item.montant >= 0 ? '' : ')'}
                             </td>
                           </tr>
-                        ))}
+                          {isExpanded && details.map((d, di) => (
+                            <tr key={`${rowKey}-${di}`} className="bg-orange-50/50 border-b border-orange-100">
+                              <td className="p-1"></td>
+                              <td className="p-2 pl-8 text-xs text-gray-600"><span className="font-mono text-gray-400 mr-2">{d.date}</span><span className="text-gray-500 mr-1">[{d.journal}]</span> {d.ref} — {d.label}</td>
+                              <td className={`p-2 text-right font-mono text-xs ${d.amount < 0 ? 'text-red-500' : 'text-gray-700'}`}>{formatCurrency(d.amount)}</td>
+                            </tr>
+                          ))}
+                          {isExpanded && details.length === 0 && <tr className="bg-gray-50"><td></td><td colSpan={2} className="p-2 pl-8 text-xs text-gray-400 italic">Aucune écriture</td></tr>}
+                          </React.Fragment>
+                          );
+                        })}
                         <tr className="border-t-2 border-[#e5e5e5] bg-gray-50">
                           <td className="p-3"></td>
                           <td className="p-3 font-bold text-[#171717]">FLUX NET DE TRÉSORERIE DES ACTIVITÉS D'INVESTISSEMENT</td>
@@ -1204,14 +1219,35 @@ const BilanSYSCOHADAPage: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {fluxTresorerieData.activitesFinancement.map((item, index) => (
-                          <tr key={index} className="border-b border-[#e5e5e5]">
-                            <td className="p-3 text-[#404040]">{item.libelle}</td>
+                        {fluxTresorerieData.activitesFinancement.map((item, index) => {
+                          const rowKey = `fin-${item.code}`;
+                          const isExpanded = tftExpandedRows.has(rowKey);
+                          const prefixMap: Record<string, string[]> = { FF1: ['10'], FF2: ['16'], FF3: ['16'], FF4: ['465'], FF5: ['67'] };
+                          const pfx = prefixMap[item.code] || [];
+                          const details = isExpanded ? rawEntries.filter(e => e.lines?.some((l: any) => pfx.some(p => l.accountCode.startsWith(p)))).slice(0, 20).map(e => ({ ref: e.entryNumber || e.id?.substring(0, 8), date: e.date, label: e.label, journal: e.journal, amount: e.lines.filter((l: any) => pfx.some(p => l.accountCode.startsWith(p))).reduce((s: number, l: any) => s + l.debit - l.credit, 0) })) : [];
+                          return (
+                          <React.Fragment key={index}>
+                          <tr className="border-b border-[#e5e5e5] hover:bg-gray-50 cursor-pointer" onClick={() => setTftExpandedRows(prev => { const s = new Set(prev); s.has(rowKey) ? s.delete(rowKey) : s.add(rowKey); return s; })}>
+                            <td className="p-3 text-[#404040]">
+                              <div className="flex items-center space-x-2">
+                                {isExpanded ? <ChevronDown className="w-3 h-3 text-blue-500" /> : <ChevronRight className="w-3 h-3 text-gray-400" />}
+                                <span>{item.libelle}</span>
+                              </div>
+                            </td>
                             <td className={`p-3 text-right font-mono ${item.montant >= 0 ? 'text-[#171717]' : 'text-red-600'}`}>
                               {item.montant >= 0 ? '' : '('}{formatCurrency(Math.abs(item.montant))}{item.montant >= 0 ? '' : ')'}
                             </td>
                           </tr>
-                        ))}
+                          {isExpanded && details.map((d, di) => (
+                            <tr key={`${rowKey}-${di}`} className="bg-purple-50/50 border-b border-purple-100">
+                              <td className="p-2 pl-10 text-xs text-gray-600"><span className="font-mono text-gray-400 mr-2">{d.date}</span><span className="text-gray-500 mr-1">[{d.journal}]</span> {d.ref} — {d.label}</td>
+                              <td className={`p-2 text-right font-mono text-xs ${d.amount < 0 ? 'text-red-500' : 'text-gray-700'}`}>{formatCurrency(d.amount)}</td>
+                            </tr>
+                          ))}
+                          {isExpanded && details.length === 0 && <tr className="bg-gray-50"><td colSpan={2} className="p-2 pl-10 text-xs text-gray-400 italic">Aucune écriture</td></tr>}
+                          </React.Fragment>
+                          );
+                        })}
                         <tr className="border-t-2 border-[#e5e5e5] bg-gray-50">
                           <td className="p-3 font-bold text-[#171717]">FLUX NET DE TRÉSORERIE DES ACTIVITÉS DE FINANCEMENT</td>
                           {(() => { const total = fluxTresorerieData.activitesFinancement.reduce((s, i) => s + i.montant, 0); return <td className={`p-3 text-right text-lg font-bold ${total >= 0 ? 'text-[#171717]' : 'text-red-600'}`}>{total >= 0 ? '' : '('}{formatCurrency(Math.abs(total))}{total >= 0 ? '' : ')'}</td>; })()}
@@ -1250,6 +1286,117 @@ const BilanSYSCOHADAPage: React.FC = () => {
                   })()}
                 </div>
               </div>
+              )}
+
+              {/* MÉTHODE DIRECTE */}
+              {tftMethod === 'direct' && (() => {
+                let encClients = 0, decFournisseurs = 0, decPersonnel = 0, decImpots = 0, autresEnc = 0, autresDec = 0;
+                let decAcqImmos = 0, encCessions = 0, decAcqFinanc = 0;
+                let encCapital = 0, encEmprunts = 0, decRembEmprunts = 0, decDividendes = 0;
+                for (const e of rawEntries) {
+                  if (e.journal === 'AN' || e.journal === 'RAN') continue;
+                  const cashL = e.lines?.filter((l: any) => l.accountCode.startsWith('5')) || [];
+                  const otherL = e.lines?.filter((l: any) => !l.accountCode.startsWith('5')) || [];
+                  if (cashL.length === 0) continue;
+                  let cd = 0, cc = 0; for (const c of cashL) { cd += c.debit; cc += c.credit; }
+                  const nc = cd - cc;
+                  const has = (p: string) => otherL.some((l: any) => l.accountCode.startsWith(p));
+                  if (has('41')) { if (nc > 0) encClients += nc; else autresDec += Math.abs(nc); }
+                  else if (has('40')) { if (nc < 0) decFournisseurs += Math.abs(nc); else autresEnc += nc; }
+                  else if (has('42') || has('43')) { if (nc < 0) decPersonnel += Math.abs(nc); }
+                  else if (has('44') || has('89')) { if (nc < 0) decImpots += Math.abs(nc); }
+                  else if (has('21') || has('22') || has('23') || has('24') || has('25')) { if (nc < 0) decAcqImmos += Math.abs(nc); else encCessions += nc; }
+                  else if (has('26') || has('27')) { if (nc < 0) decAcqFinanc += Math.abs(nc); }
+                  else if (has('10') || has('11') || has('12')) { if (nc > 0) encCapital += nc; }
+                  else if (has('16')) { if (nc > 0) encEmprunts += nc; else decRembEmprunts += Math.abs(nc); }
+                  else if (has('465')) { if (nc < 0) decDividendes += Math.abs(nc); }
+                  else { if (nc > 0) autresEnc += nc; else autresDec += Math.abs(nc); }
+                }
+                const dFluxExploit = encClients + autresEnc - decFournisseurs - decPersonnel - decImpots - autresDec;
+                const dFluxInvest = encCessions - decAcqImmos - decAcqFinanc;
+                const dFluxFinanc = encCapital + encEmprunts - decRembEmprunts - decDividendes;
+                const dVariation = dFluxExploit + dFluxInvest + dFluxFinanc;
+                const tresoFin = net(['52', '57']) - net(['564']);
+                const tresoDebut = tresoFin - dVariation;
+
+                const directPrefixMap: Record<string, string[]> = {
+                  'enc-clients': ['41'], 'autres-enc': [], 'dec-fournisseurs': ['40'], 'dec-personnel': ['42','43'], 'dec-impots': ['44','89'], 'autres-dec': [],
+                  'dec-acq-immos': ['21','22','23','24','25'], 'dec-acq-financ': ['26','27'], 'enc-cessions': ['82'],
+                  'enc-capital': ['10'], 'enc-emprunts': ['16'], 'remb-emprunts': ['16'], 'div-verses': ['465'],
+                };
+                const DirectSection = ({ title, rows, total, totalLabel }: { title: string; rows: { key: string; label: string; value: number }[]; total: number; totalLabel: string }) => (
+                  <div className="bg-white rounded-lg p-6 border border-[#e5e5e5]">
+                    <h3 className="text-lg font-bold text-[#171717] mb-4">{title}</h3>
+                    <table className="w-full text-sm">
+                      <thead><tr className="border-b border-[#e5e5e5]"><th className="text-left p-3 font-semibold text-[#171717]">{t('accounting.label')}</th><th className="text-right p-3 font-semibold text-[#171717]">Montant</th></tr></thead>
+                      <tbody>
+                        {rows.map((r) => {
+                          const rowKey = `d-${r.key}`;
+                          const isExp = tftExpandedRows.has(rowKey);
+                          const pfx = directPrefixMap[r.key] || [];
+                          const dets = isExp && pfx.length > 0 ? rawEntries.filter(e => { if (e.journal === 'AN' || e.journal === 'RAN') return false; const hasCash = e.lines?.some((l: any) => l.accountCode.startsWith('5')); const hasP = e.lines?.some((l: any) => pfx.some(p => l.accountCode.startsWith(p))); return hasCash && hasP; }).slice(0, 20).map(e => { let cd = 0, cc = 0; for (const l of e.lines) if (l.accountCode.startsWith('5')) { cd += l.debit; cc += l.credit; } return { ref: e.entryNumber || e.id?.substring(0, 8), date: e.date, label: e.label, journal: e.journal, amount: cd - cc }; }) : [];
+                          return (
+                          <React.Fragment key={r.key}>
+                          <tr className="border-b border-[#e5e5e5] hover:bg-gray-50 cursor-pointer" onClick={() => pfx.length > 0 && setTftExpandedRows(prev => { const s = new Set(prev); s.has(rowKey) ? s.delete(rowKey) : s.add(rowKey); return s; })}>
+                            <td className="p-3 text-[#404040]">
+                              <div className="flex items-center space-x-2">
+                                {pfx.length > 0 && (isExp ? <ChevronDown className="w-3 h-3 text-blue-500" /> : <ChevronRight className="w-3 h-3 text-gray-400" />)}
+                                <span>{r.label}</span>
+                              </div>
+                            </td>
+                            <td className={`p-3 text-right font-mono ${r.value < 0 ? 'text-red-600' : 'text-[#171717]'}`}>{r.value < 0 ? '(' : ''}{formatCurrency(Math.abs(r.value))}{r.value < 0 ? ')' : ''}</td>
+                          </tr>
+                          {isExp && dets.map((d, di) => (
+                            <tr key={`${rowKey}-${di}`} className="bg-blue-50/40 border-b border-blue-100">
+                              <td className="p-2 pl-10 text-xs text-gray-600"><span className="font-mono text-gray-400 mr-2">{d.date}</span><span className="text-gray-500 mr-1">[{d.journal}]</span> {d.ref} — {d.label}</td>
+                              <td className={`p-2 text-right font-mono text-xs ${d.amount < 0 ? 'text-red-500' : 'text-gray-700'}`}>{formatCurrency(d.amount)}</td>
+                            </tr>
+                          ))}
+                          {isExp && dets.length === 0 && <tr className="bg-gray-50"><td colSpan={2} className="p-2 pl-10 text-xs text-gray-400 italic">Aucune écriture</td></tr>}
+                          </React.Fragment>
+                          );
+                        })}
+                        <tr className="border-t-2 border-[#e5e5e5] bg-gray-50">
+                          <td className="p-3 font-bold text-[#171717]">{totalLabel}</td>
+                          <td className={`p-3 text-right text-lg font-bold ${total < 0 ? 'text-red-600' : 'text-[#171717]'}`}>{total < 0 ? '(' : ''}{formatCurrency(Math.abs(total))}{total < 0 ? ')' : ''}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                );
+
+                return (
+                  <div className="space-y-6">
+                    <DirectSection title="ENCAISSEMENTS ET DÉCAISSEMENTS LIÉS À L'ACTIVITÉ" totalLabel="FLUX NET LIÉ À L'ACTIVITÉ" total={dFluxExploit} rows={[
+                      { key: 'enc-clients', label: '+ Encaissements reçus des clients', value: encClients },
+                      { key: 'autres-enc', label: '+ Autres encaissements d\'exploitation', value: autresEnc },
+                      { key: 'dec-fournisseurs', label: '- Décaissements versés aux fournisseurs', value: -decFournisseurs },
+                      { key: 'dec-personnel', label: '- Décaissements versés au personnel', value: -decPersonnel },
+                      { key: 'dec-impots', label: '- Impôts sur le résultat payés', value: -decImpots },
+                      { key: 'autres-dec', label: '- Autres décaissements d\'exploitation', value: -autresDec },
+                    ]} />
+                    <DirectSection title="ENCAISSEMENTS ET DÉCAISSEMENTS LIÉS AUX INVESTISSEMENTS" totalLabel="FLUX NET LIÉ AUX INVESTISSEMENTS" total={dFluxInvest} rows={[
+                      { key: 'dec-acq-immos', label: '- Décaissements sur acquisitions d\'immobilisations', value: -decAcqImmos },
+                      { key: 'dec-acq-financ', label: '- Décaissements sur acquisitions financières', value: -decAcqFinanc },
+                      { key: 'enc-cessions', label: '+ Encaissements sur cessions d\'immobilisations', value: encCessions },
+                    ]} />
+                    <DirectSection title="ENCAISSEMENTS ET DÉCAISSEMENTS LIÉS AU FINANCEMENT" totalLabel="FLUX NET LIÉ AU FINANCEMENT" total={dFluxFinanc} rows={[
+                      { key: 'enc-capital', label: '+ Encaissements augmentation de capital', value: encCapital },
+                      { key: 'enc-emprunts', label: '+ Encaissements provenant d\'emprunts', value: encEmprunts },
+                      { key: 'remb-emprunts', label: '- Remboursements d\'emprunts', value: -decRembEmprunts },
+                      { key: 'div-verses', label: '- Dividendes et distributions versés', value: -decDividendes },
+                    ]} />
+                    <div className="bg-white rounded-lg p-6 border-2 border-[#e5e5e5]">
+                      <h3 className="text-lg font-bold text-[#171717] mb-4 text-center">VARIATION NETTE DE LA TRÉSORERIE</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                        <div className="p-4 border border-[#e5e5e5] rounded"><p className="text-[#737373] font-medium mb-2">Trésorerie début</p><p className="text-lg font-bold text-[#171717]">{formatCurrency(tresoDebut)}</p></div>
+                        <div className="p-4 border border-[#e5e5e5] rounded"><p className="text-[#737373] font-medium mb-2">Variation nette</p><p className={`text-lg font-bold ${dVariation >= 0 ? 'text-green-600' : 'text-red-600'}`}>{dVariation >= 0 ? '+' : ''}{formatCurrency(dVariation)}</p></div>
+                        <div className="p-4 border border-[#e5e5e5] rounded"><p className="text-[#737373] font-medium mb-2">Trésorerie fin</p><p className="text-lg font-bold text-[#171717]">{formatCurrency(tresoFin)}</p></div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           )}
 

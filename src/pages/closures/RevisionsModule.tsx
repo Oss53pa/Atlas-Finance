@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useData } from '../../contexts/DataContext';
 import { toast } from 'react-hot-toast';
 import {
   FileSearch, CheckCircle, AlertTriangle, Clock, Filter,
@@ -168,6 +169,7 @@ interface RisqueControle {
 
 const RevisionsModule: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   const [activeMainTab, setActiveMainTab] = useState<'revisions' | 'lead_schedule' | 'risques' | 'ajustements' | 'analytique'>('revisions');
   const [activeTab, setActiveTab] = useState('tous');
   const [filterType, setFilterType] = useState('tous');
@@ -427,97 +429,35 @@ const RevisionsModule: React.FC = () => {
     }
   ]);
 
-  // Lead Schedules par cycle
-  const [leadSchedules] = useState<LeadSchedule[]>([
-    {
-      id: 'LS-001',
-      cycle: 'Trésorerie',
-      comptes: ['521100', '521200', '531000', '571000'],
-      soldePrecedent: 125000000,
-      soldeActuel: 142500000,
-      variation: 17500000,
-      variationPourcent: 14,
-      seuilSignificativite: 5000000,
-      risqueInherent: 'modere',
-      risqueControle: 'faible',
-      risqueDetection: 'modere',
-      assertions: [
-        { code: 'existence', libelle: 'Existence', description: 'Les soldes bancaires existent', risque: 'faible', testEffectue: true, conclusion: 'Confirmations bancaires obtenues' },
-        { code: 'exhaustivite', libelle: 'Exhaustivité', description: 'Tous les comptes sont enregistrés', risque: 'faible', testEffectue: true, conclusion: 'Rapprochement bancaire effectué' },
-        { code: 'valorisation', libelle: 'Valorisation', description: 'Conversion devises correcte', risque: 'modere', testEffectue: true, conclusion: 'Cours de clôture vérifié' }
-      ],
-      statutRevue: 'termine',
-      preparePar: '',
-      revisePar: 'Diallo Amadou',
-      datePreparation: '2025-01-15',
-      dateRevision: '2025-01-18',
-      conclusion: 'Cycle trésorerie correctement présenté. Ajustements mineurs effectués.',
-      recommandations: ['Améliorer la fréquence des rapprochements bancaires', 'Mettre en place un contrôle des virements > 10M FCFA']
-    },
-    {
-      id: 'LS-002',
-      cycle: 'Clients et Comptes rattachés',
-      comptes: ['411100', '411200', '416000', '491000'],
-      soldePrecedent: 350000000,
-      soldeActuel: 425000000,
-      variation: 75000000,
-      variationPourcent: 21.4,
-      seuilSignificativite: 10000000,
-      risqueInherent: 'eleve',
-      risqueControle: 'modere',
-      risqueDetection: 'eleve',
-      assertions: [
-        { code: 'existence', libelle: 'Existence', description: 'Les créances existent', risque: 'modere', testEffectue: true, conclusion: 'Circularisation en cours - 65% de réponses' },
-        { code: 'valorisation', libelle: 'Valorisation', description: 'Provisions adéquates', risque: 'eleve', testEffectue: true, conclusion: 'Provision à ajuster de 6.78M FCFA' },
-        { code: 'cut_off', libelle: 'Cut-off', description: 'Bonnes périodes', risque: 'tres_eleve', testEffectue: false }
-      ],
-      statutRevue: 'en_cours',
-      preparePar: 'Touré Pierre',
-      datePreparation: '2025-01-16',
-      recommandations: ['Finaliser circularisation clients', 'Réviser politique de provisionnement']
-    },
-    {
-      id: 'LS-003',
-      cycle: 'Stocks',
-      comptes: ['311000', '321000', '331000', '391000'],
-      soldePrecedent: 180000000,
-      soldeActuel: 167500000,
-      variation: -12500000,
-      variationPourcent: -6.9,
-      seuilSignificativite: 8000000,
-      risqueInherent: 'tres_eleve',
-      risqueControle: 'eleve',
-      risqueDetection: 'eleve',
-      assertions: [
-        { code: 'existence', libelle: 'Existence', description: 'Les stocks existent physiquement', risque: 'eleve', testEffectue: true, conclusion: 'Inventaire physique assisté - écart 2.5%' },
-        { code: 'valorisation', libelle: 'Valorisation', description: 'Méthode CUMP correcte', risque: 'modere', testEffectue: true, conclusion: 'CUMP vérifié sur échantillon' },
-        { code: 'exhaustivite', libelle: 'Exhaustivité', description: 'Tous les mouvements enregistrés', risque: 'eleve', testEffectue: false }
-      ],
-      statutRevue: 'en_cours',
-      preparePar: 'Bamba Sophie',
-      datePreparation: '2025-01-18'
-    },
-    {
-      id: 'LS-004',
-      cycle: 'Fournisseurs',
-      comptes: ['401100', '401200', '408000', '409000'],
-      soldePrecedent: 85000000,
-      soldeActuel: 112000000,
-      variation: 27000000,
-      variationPourcent: 31.8,
-      seuilSignificativite: 5000000,
-      risqueInherent: 'modere',
-      risqueControle: 'faible',
-      risqueDetection: 'modere',
-      assertions: [
-        { code: 'exhaustivite', libelle: 'Exhaustivité', description: 'Toutes les dettes enregistrées', risque: 'eleve', testEffectue: true, conclusion: 'Facture SODECI 4.5M non comptabilisée' },
-        { code: 'valorisation', libelle: 'Valorisation', description: 'Montants corrects', risque: 'faible', testEffectue: true, conclusion: 'RAS' }
-      ],
-      statutRevue: 'en_cours',
-      preparePar: '',
-      datePreparation: '2025-01-15'
-    }
-  ]);
+  // Lead Schedules par cycle — calculés depuis les écritures réelles
+  const [leadSchedules, setLeadSchedules] = useState<LeadSchedule[]>([]);
+
+  useEffect(() => {
+    const loadLeadSchedules = async () => {
+      try {
+        const entries = await adapter.getAll<any>('journalEntries');
+        const net = (...pfx: string[]) => { let t = 0; for (const e of entries) for (const l of e.lines || []) if (pfx.some(p => l.accountCode.startsWith(p))) t += l.debit - l.credit; return t; };
+        const creditN = (...pfx: string[]) => -net(...pfx);
+        const today = new Date().toISOString().split('T')[0];
+
+        const mkLS = (id: string, cycle: string, comptes: string[], solde: number, risqueI: string, risqueC: string): LeadSchedule => ({
+          id, cycle, comptes, soldePrecedent: 0, soldeActuel: Math.round(Math.abs(solde)),
+          variation: Math.round(Math.abs(solde)), variationPourcent: 0,
+          seuilSignificativite: Math.round(Math.abs(solde) * 0.05),
+          risqueInherent: risqueI as any, risqueControle: risqueC as any, risqueDetection: 'modere' as any,
+          assertions: [], statutRevue: 'en_cours' as any, preparePar: '', datePreparation: today
+        });
+
+        setLeadSchedules([
+          mkLS('LS-001', 'Trésorerie', ['521', '531', '571'], net('52', '53', '57'), 'modere', 'faible'),
+          mkLS('LS-002', 'Clients et Comptes rattachés', ['411', '416', '491'], net('41'), 'eleve', 'modere'),
+          mkLS('LS-003', 'Stocks', ['311', '321', '331', '391'], net('31', '32', '33'), 'eleve', 'eleve'),
+          mkLS('LS-004', 'Fournisseurs', ['401', '408', '409'], creditN('40'), 'modere', 'faible'),
+        ]);
+      } catch { /* empty */ }
+    };
+    loadLeadSchedules();
+  }, [adapter]);
 
   // Matrice des risques
   const [risquesControles] = useState<RisqueControle[]>([

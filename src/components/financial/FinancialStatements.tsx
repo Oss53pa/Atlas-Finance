@@ -109,6 +109,7 @@ const FinancialStatements: React.FC = () => {
   const [tftMethod, setTftMethod] = useState<'indirect' | 'direct'>('indirect');
   const [tftData, setTftData] = useState<any>(null);
   const [tftMonthlyData, setTftMonthlyData] = useState<any[]>([]);
+  const [allEntries, setAllEntries] = useState<any[]>([]);
   const [showPeriodModal, setShowPeriodModal] = useState(false);
   const [dateRange, setDateRange] = useState({ startDate: '', endDate: '' });
   const [comparePeriod, setComparePeriod] = useState('2023');
@@ -144,6 +145,7 @@ const FinancialStatements: React.FC = () => {
     const loadTFT = async () => {
       try {
         const entries = await adapter.getAll<any>('journalEntries');
+        setAllEntries(entries);
         const net = (...pfx: string[]) => { let t = 0; for (const e of entries) for (const l of e.lines) if (pfx.some(p => l.accountCode.startsWith(p))) t += l.debit - l.credit; return t; };
         const creditN = (...pfx: string[]) => { let t = 0; for (const e of entries) for (const l of e.lines) if (pfx.some(p => l.accountCode.startsWith(p))) t += l.credit - l.debit; return t; };
 
@@ -243,57 +245,63 @@ const FinancialStatements: React.FC = () => {
     }));
   };
 
-  // Données simulées du bilan
-  const bilanActif: BilanActif = {
-    immobilisationsIncorporelles: 500000,
-    immobilisationsCorporelles: 15000000,
-    immobilisationsFinancieres: 2000000,
-    totalActifImmobilise: 17500000,
-    stocks: 8000000,
-    creancesClients: 12000000,
-    autresCreances: 3000000,
-    tresorerieActif: 5000000,
-    totalActifCirculant: 28000000,
-    totalActif: 45500000
-  };
+  // Helpers pour calcul depuis les écritures réelles
+  const entryNet = (...pfx: string[]) => { let t = 0; for (const e of allEntries) for (const l of (e as any).lines || []) if (pfx.some(p => l.accountCode.startsWith(p))) t += l.debit - l.credit; return t; };
+  const entryCreditNet = (...pfx: string[]) => { let t = 0; for (const e of allEntries) for (const l of (e as any).lines || []) if (pfx.some(p => l.accountCode.startsWith(p))) t += l.credit - l.debit; return t; };
 
-  const bilanPassif: BilanPassif = {
-    capitalSocial: 10000000,
-    reserves: 8000000,
-    resultatExercice: 3500000,
-    capitauxPropres: 21500000,
-    emprunts: 10000000,
-    dettesFinancieres: 5000000,
-    dettesFournisseurs: 7000000,
-    autresDettes: 2000000,
-    totalPassif: 45500000
-  };
+  // Bilan calculé depuis les écritures réelles
+  const bilanActif: BilanActif = useMemo(() => {
+    const immoIncorpo = Math.max(0, entryNet('21'));
+    const immoCorpo = Math.max(0, entryNet('22', '23', '24', '25'));
+    const immoFinanc = Math.max(0, entryNet('26', '27'));
+    const totalActifImmobilise = immoIncorpo + immoCorpo + immoFinanc;
+    const stocks = Math.max(0, entryNet('3'));
+    const creancesClients = Math.max(0, entryNet('41'));
+    const autresCreances = Math.max(0, entryNet('46'));
+    const tresorerieActif = Math.max(0, entryNet('5'));
+    const totalActifCirculant = stocks + creancesClients + autresCreances + tresorerieActif;
+    return { immobilisationsIncorporelles: immoIncorpo, immobilisationsCorporelles: immoCorpo, immobilisationsFinancieres: immoFinanc, totalActifImmobilise, stocks, creancesClients, autresCreances, tresorerieActif, totalActifCirculant, totalActif: totalActifImmobilise + totalActifCirculant };
+  }, [allEntries]);
 
-  const compteResultat: CompteResultat = {
-    chiffreAffaires: 85000000,
-    productionVendue: 85000000,
-    productionStockee: 2000000,
-    productionImmobilisee: 0,
-    subventionsExploitation: 500000,
-    autresProduitsExploitation: 1500000,
-    totalProduitsExploitation: 89000000,
-    achatsConsommes: 45000000,
-    servicesExterieurs: 12000000,
-    chargesPersonnel: 18000000,
-    dotationsAmortissements: 3000000,
-    autresChargesExploitation: 2000000,
-    totalChargesExploitation: 80000000,
-    resultatExploitation: 9000000,
-    produitsFinanciers: 500000,
-    chargesFinancieres: 1500000,
-    resultatFinancier: -1000000,
-    resultatCourant: 8000000,
-    produitsExceptionnels: 200000,
-    chargesExceptionnelles: 700000,
-    resultatExceptionnel: -500000,
-    impotsSocietes: 4000000,
-    resultatNet: 3500000
-  };
+  const bilanPassif: BilanPassif = useMemo(() => {
+    const capitalSocial = entryCreditNet('10');
+    const reserves = entryCreditNet('11', '12');
+    const resultatExercice = entryCreditNet('7') - entryNet('6');
+    const capitauxPropres = capitalSocial + reserves + resultatExercice;
+    const emprunts = entryCreditNet('16');
+    const dettesFinancieres = entryCreditNet('17');
+    const dettesFournisseurs = entryCreditNet('40');
+    const autresDettes = entryCreditNet('42', '43', '44', '47');
+    const totalPassif = capitauxPropres + emprunts + dettesFinancieres + dettesFournisseurs + autresDettes;
+    return { capitalSocial, reserves, resultatExercice, capitauxPropres, emprunts, dettesFinancieres, dettesFournisseurs, autresDettes, totalPassif };
+  }, [allEntries]);
+
+  const compteResultat: CompteResultat = useMemo(() => {
+    const productionVendue = entryCreditNet('70', '71', '72');
+    const productionStockee = entryCreditNet('73');
+    const productionImmobilisee = entryCreditNet('72');
+    const chiffreAffaires = productionVendue;
+    const subventionsExploitation = entryCreditNet('74');
+    const autresProduitsExploitation = entryCreditNet('75');
+    const totalProduitsExploitation = chiffreAffaires + productionStockee + subventionsExploitation + autresProduitsExploitation;
+    const achatsConsommes = entryNet('60');
+    const servicesExterieurs = entryNet('61', '62', '63');
+    const chargesPersonnel = entryNet('66');
+    const dotationsAmortissements = entryNet('68');
+    const autresChargesExploitation = entryNet('64', '65');
+    const totalChargesExploitation = achatsConsommes + servicesExterieurs + chargesPersonnel + dotationsAmortissements + autresChargesExploitation;
+    const resultatExploitation = totalProduitsExploitation - totalChargesExploitation;
+    const produitsFinanciers = entryCreditNet('77');
+    const chargesFinancieres = entryNet('67');
+    const resultatFinancier = produitsFinanciers - chargesFinancieres;
+    const resultatCourant = resultatExploitation + resultatFinancier;
+    const produitsExceptionnels = entryCreditNet('84', '85', '86', '87', '88');
+    const chargesExceptionnelles = entryNet('81', '82', '83');
+    const resultatExceptionnel = produitsExceptionnels - chargesExceptionnelles;
+    const impotsSocietes = entryNet('89');
+    const resultatNet = resultatCourant + resultatExceptionnel - impotsSocietes;
+    return { chiffreAffaires, productionVendue, productionStockee, productionImmobilisee, subventionsExploitation, autresProduitsExploitation, totalProduitsExploitation, achatsConsommes, servicesExterieurs, chargesPersonnel, dotationsAmortissements, autresChargesExploitation, totalChargesExploitation, resultatExploitation, produitsFinanciers, chargesFinancieres, resultatFinancier, resultatCourant, produitsExceptionnels, chargesExceptionnelles, resultatExceptionnel, impotsSocietes, resultatNet };
+  }, [allEntries]);
 
   // Calcul des SIG
   const sig = useMemo<SIG>(() => ({

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useData } from '../../contexts/DataContext';
 import {
   BanknotesIcon,
   ArrowTrendingUpIcon,
@@ -70,97 +71,59 @@ interface CashFlowScenario {
 }
 
 const CashFlowView: React.FC = () => {
+  const { adapter } = useData();
   const [cashFlowData, setCashFlowData] = useState<CashFlowData[]>([]);
   const [scenarios, setScenarios] = useState<CashFlowScenario[]>([]);
   const [activeTab, setActiveTab] = useState<'statements' | 'scenarios' | 'forecast' | 'analysis'>('statements');
   const [selectedPeriod, setSelectedPeriod] = useState<string>('current');
 
-  // Données d'exemple - à remplacer par des appels API
+  // Données réelles depuis les écritures comptables
   useEffect(() => {
-    setCashFlowData([
-      {
-        id: '1',
-        period: 'Exercice 2024',
-        statementDate: '2024-12-31',
-        netResult: 198000,
-        depreciation: 85000,
-        provisionsReversals: -15000,
-        selfFinancingCapacity: 268000,
-        workingCapitalVariation: 45000,
-        operatingCashFlow: 223000,
-        fixedAssetsAcquisitions: 150000,
-        fixedAssetsDisposals: 25000,
-        investmentCashFlow: -125000,
-        capitalIncrease: 0,
-        newBorrowings: 80000,
-        loanRepayments: 65000,
-        dividendsPaid: 40000,
-        financingCashFlow: -25000,
-        cashFlowVariation: 73000,
-        openingCashBalance: 125000,
-        closingCashBalance: 198000,
-        status: 'validated',
-        calculationMethod: 'indirect'
-      }
-    ]);
+    const load = async () => {
+      try {
+        const entries = await adapter.getAll<any>('journalEntries');
+        const net = (...pfx: string[]) => { let t = 0; for (const e of entries) for (const l of e.lines || []) if (pfx.some(p => l.accountCode.startsWith(p))) t += l.debit - l.credit; return t; };
+        const creditN = (...pfx: string[]) => { let t = 0; for (const e of entries) for (const l of e.lines || []) if (pfx.some(p => l.accountCode.startsWith(p))) t += l.credit - l.debit; return t; };
 
-    setScenarios([
-      {
-        id: '1',
-        name: 'Croissance Optimiste 2025',
-        type: 'optimistic',
-        description: 'Scénario de forte croissance avec amélioration des délais de paiement',
-        startDate: '2025-01-01',
-        endDate: '2025-12-31',
-        revenueGrowthRate: 15,
-        costInflationRate: 3,
-        collectionPeriodDays: 35,
-        paymentPeriodDays: 65,
-        averageMonthlyCashFlow: 25000,
-        minimumCashPosition: 150000,
-        burnRateMonthly: 0,
-        cashRunwayMonths: 12,
-        status: 'active',
-        confidenceLevel: 75
-      },
-      {
-        id: '2',
-        name: 'Base Case 2025',
-        type: 'realistic',
-        description: 'Scénario réaliste basé sur les tendances actuelles',
-        startDate: '2025-01-01',
-        endDate: '2025-12-31',
-        revenueGrowthRate: 8,
-        costInflationRate: 4,
-        collectionPeriodDays: 45,
-        paymentPeriodDays: 60,
-        averageMonthlyCashFlow: 18000,
-        minimumCashPosition: 125000,
-        burnRateMonthly: 0,
-        cashRunwayMonths: 11,
-        status: 'active',
-        confidenceLevel: 85
-      },
-      {
-        id: '3',
-        name: 'Stress Test 2025',
-        type: 'pessimistic',
-        description: 'Scénario de crise avec dégradation des conditions',
-        startDate: '2025-01-01',
-        endDate: '2025-12-31',
-        revenueGrowthRate: -5,
-        costInflationRate: 8,
-        collectionPeriodDays: 60,
-        paymentPeriodDays: 45,
-        averageMonthlyCashFlow: 5000,
-        minimumCashPosition: 85000,
-        burnRateMonthly: 12000,
-        cashRunwayMonths: 7,
-        status: 'active',
-        confidenceLevel: 60
-      }
-    ]);
-  }, []);
+        const rn = creditN('7') - net('6');
+        const dot = net('68');
+        const prov = net('69') - creditN('79');
+        const caf = rn + dot + prov;
+        const varBFR = net('3') + net('41') + net('46') - creditN('40') - creditN('42', '43', '44');
+        const fluxOp = caf - varBFR;
+        let acqImmo = 0; for (const e of entries) for (const l of e.lines || []) if (l.accountCode.startsWith('2') && !l.accountCode.startsWith('28') && l.debit > 0) acqImmo += l.debit;
+        const cessImmo = creditN('82');
+        const fluxInv = cessImmo - acqImmo;
+        const augCap = creditN('10');
+        const emprunts = creditN('16');
+        const rembEmp = net('16') > 0 ? net('16') : 0;
+        const dividendes = net('465');
+        const fluxFin = augCap + emprunts - rembEmp - dividendes;
+        const variation = fluxOp + fluxInv + fluxFin;
+        const tresoFin = net('52', '57');
+        const tresoDebut = tresoFin - variation;
+        const year = new Date().getFullYear().toString();
+
+        setCashFlowData([{
+          id: '1', period: `Exercice ${year}`, statementDate: `${year}-12-31`,
+          netResult: Math.round(rn), depreciation: Math.round(dot), provisionsReversals: Math.round(prov),
+          selfFinancingCapacity: Math.round(caf), workingCapitalVariation: Math.round(varBFR),
+          operatingCashFlow: Math.round(fluxOp),
+          fixedAssetsAcquisitions: Math.round(acqImmo), fixedAssetsDisposals: Math.round(cessImmo),
+          investmentCashFlow: Math.round(fluxInv),
+          capitalIncrease: Math.round(augCap), newBorrowings: Math.round(emprunts),
+          loanRepayments: Math.round(rembEmp), dividendsPaid: Math.round(dividendes),
+          financingCashFlow: Math.round(fluxFin),
+          cashFlowVariation: Math.round(variation),
+          openingCashBalance: Math.round(tresoDebut), closingCashBalance: Math.round(tresoFin),
+          status: entries.length > 0 ? 'validated' : 'draft', calculationMethod: 'indirect'
+        }]);
+        // Scénarios vides par défaut (l'utilisateur les créera)
+        setScenarios([]);
+      } catch { /* empty */ }
+    };
+    load();
+  }, [adapter]);
 
   const formatAmount = (amount: number) => {
     return new Intl.NumberFormat('fr-FR', {
