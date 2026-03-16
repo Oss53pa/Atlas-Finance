@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useData } from '../../contexts/DataContext';
 import {
   CalculatorIcon,
   ChartBarIcon,
@@ -49,58 +50,50 @@ interface SIGEvolution {
 
 const SIGView: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   const [sigData, setSigData] = useState<SIGData[]>([]);
   const [selectedSIG, setSelectedSIG] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'current' | 'evolution' | 'calculate'>('current');
   const [compareMode, setCompareMode] = useState(false);
 
-  // Données d'exemple - à remplacer par des appels API
+  // Données réelles depuis les écritures comptables
   useEffect(() => {
-    setSigData([
-      {
-        id: '1',
-        calculationDate: '2024-12-31',
-        fiscalYear: '2024',
-        period: 'Exercice 2024',
-        commercialMargin: 280000,
-        periodProduction: 1850000,
-        addedValue: 1120000,
-        grossOperatingSurplus: 420000,
-        operatingResult: 310000,
-        financialResult: -25000,
-        currentResultBeforeTax: 285000,
-        exceptionalResult: 8000,
-        finalNetResult: 198000,
-        addedValueRate: 52.5,
-        operatingMarginRate: 14.5,
-        netMarginRate: 9.2,
-        revenueBase: 2130000,
-        status: 'validated',
-        lastCalculation: '2024-01-15T10:30:00'
-      },
-      {
-        id: '2',
-        calculationDate: '2023-12-31',
-        fiscalYear: '2023',
-        period: 'Exercice 2023',
-        commercialMargin: 265000,
-        periodProduction: 1720000,
-        addedValue: 1025000,
-        grossOperatingSurplus: 385000,
-        operatingResult: 275000,
-        financialResult: -30000,
-        currentResultBeforeTax: 245000,
-        exceptionalResult: -5000,
-        finalNetResult: 168000,
-        addedValueRate: 51.8,
-        operatingMarginRate: 13.9,
-        netMarginRate: 8.4,
-        revenueBase: 1985000,
-        status: 'validated',
-        lastCalculation: '2023-12-20T14:15:00'
-      }
-    ]);
-  }, []);
+    const load = async () => {
+      try {
+        const entries = await adapter.getAll<any>('journalEntries');
+        const net = (...pfx: string[]) => { let t = 0; for (const e of entries) for (const l of e.lines || []) if (pfx.some(p => l.accountCode.startsWith(p))) t += l.debit - l.credit; return t; };
+        const creditN = (...pfx: string[]) => { let t = 0; for (const e of entries) for (const l of e.lines || []) if (pfx.some(p => l.accountCode.startsWith(p))) t += l.credit - l.debit; return t; };
+
+        const ventesMarc = creditN('701');
+        const achatsMarc = net('601');
+        const mc = ventesMarc - achatsMarc;
+        const prodExercice = creditN('70', '71', '72', '73');
+        const ca = creditN('70', '71', '72');
+        const va = mc + prodExercice - net('60', '61', '62', '63');
+        const ebe = va + creditN('74') - net('66') - net('64');
+        const re = ebe - net('68') + creditN('75', '78') - net('65');
+        const rf = creditN('77') - net('67');
+        const rc = re + rf;
+        const rex = creditN('84', '85', '86', '87', '88') - net('81', '82', '83');
+        const rn = rc + rex - net('89');
+        const safe = (n: number, d: number) => d !== 0 ? Math.round(n / d * 1000) / 10 : 0;
+        const year = new Date().getFullYear().toString();
+        const today = new Date().toISOString();
+
+        setSigData([{
+          id: '1', calculationDate: `${year}-12-31`, fiscalYear: year, period: `Exercice ${year}`,
+          commercialMargin: Math.round(mc), periodProduction: Math.round(prodExercice),
+          addedValue: Math.round(va), grossOperatingSurplus: Math.round(ebe),
+          operatingResult: Math.round(re), financialResult: Math.round(rf),
+          currentResultBeforeTax: Math.round(rc), exceptionalResult: Math.round(rex),
+          finalNetResult: Math.round(rn),
+          addedValueRate: safe(va, ca), operatingMarginRate: safe(re, ca), netMarginRate: safe(rn, ca),
+          revenueBase: Math.round(ca), status: entries.length > 0 ? 'validated' : 'draft', lastCalculation: today
+        }]);
+      } catch { /* empty */ }
+    };
+    load();
+  }, [adapter]);
 
   const formatAmount = (amount: number) => {
     return new Intl.NumberFormat('fr-FR', {

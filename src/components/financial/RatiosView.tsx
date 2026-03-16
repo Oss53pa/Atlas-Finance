@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { formatCurrency } from '@/utils/formatters';
+import { useData } from '../../contexts/DataContext';
 import {
   PresentationChartLineIcon,
   ChartBarIcon,
@@ -50,6 +51,7 @@ interface RatioCategory {
 }
 
 const RatiosView: React.FC = () => {
+  const { adapter } = useData();
   const [ratios, setRatios] = useState<FinancialRatio[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [activeTab, setActiveTab] = useState<'current' | 'evolution' | 'benchmark' | 'calculate'>('current');
@@ -93,121 +95,42 @@ const RatiosView: React.FC = () => {
     }
   ];
 
-  // Données d'exemple - à remplacer par des appels API
+  // Données réelles depuis les écritures comptables
   useEffect(() => {
-    setRatios([
-      {
-        id: '1',
-        category: 'structure',
-        typeRatio: 'AUTONOMIE_FINANCIERE',
-        libelle: 'Autonomie financière',
-        valeur: 42.5,
-        unite: 'pourcentage',
-        numerateur: 1062500,
-        denominateur: 2500000,
-        formule: 'Capitaux propres / Total actif',
-        valeurReference: 40,
-        ecartReference: 2.5,
-        valeurN1: 38.2,
-        variationAbsolue: 4.3,
-        variationRelative: 11.3,
-        benchmarkSectorValue: 35.8,
-        sectorPercentile: 78,
-        interpretation: 'Bonne autonomie financière, supérieure à la moyenne sectorielle',
-        alerte: false,
-        niveauAlerte: '',
-        calculationDate: '2024-01-15'
-      },
-      {
-        id: '2',
-        category: 'liquidite',
-        typeRatio: 'LIQUIDITE_GENERALE',
-        libelle: 'Liquidité générale',
-        valeur: 1.85,
-        unite: 'ratio',
-        numerateur: 925000,
-        denominateur: 500000,
-        formule: 'Actif circulant / Passif circulant',
-        valeurReference: 1.5,
-        ecartReference: 0.35,
-        valeurN1: 1.72,
-        variationAbsolue: 0.13,
-        variationRelative: 7.6,
-        benchmarkSectorValue: 1.65,
-        sectorPercentile: 68,
-        interpretation: 'Liquidité satisfaisante, capacité à honorer les échéances court terme',
-        alerte: false,
-        niveauAlerte: '',
-        calculationDate: '2024-01-15'
-      },
-      {
-        id: '3',
-        category: 'rentabilite',
-        typeRatio: 'RENTABILITE_ECONOMIQUE',
-        libelle: 'Rentabilité économique (ROA)',
-        valeur: 12.4,
-        unite: 'pourcentage',
-        numerateur: 310000,
-        denominateur: 2500000,
-        formule: 'Résultat d\'exploitation / Total actif',
-        valeurReference: 10,
-        ecartReference: 2.4,
-        valeurN1: 11.1,
-        variationAbsolue: 1.3,
-        variationRelative: 11.7,
-        benchmarkSectorValue: 9.8,
-        sectorPercentile: 85,
-        interpretation: 'Excellente rentabilité économique, performance supérieure au secteur',
-        alerte: false,
-        niveauAlerte: '',
-        calculationDate: '2024-01-15'
-      },
-      {
-        id: '4',
-        category: 'activite',
-        typeRatio: 'ROTATION_STOCKS',
-        libelle: 'Rotation des stocks',
-        valeur: 125,
-        unite: 'jours',
-        numerateur: 180000,
-        denominateur: 1750000,
-        formule: 'Stock moyen × 365 / CA',
-        valeurReference: 90,
-        ecartReference: 35,
-        valeurN1: 118,
-        variationAbsolue: 7,
-        variationRelative: 5.9,
-        benchmarkSectorValue: 95,
-        sectorPercentile: 25,
-        interpretation: 'Rotation des stocks trop lente, risque de sur-stockage',
-        alerte: true,
-        niveauAlerte: 'attention',
-        calculationDate: '2024-01-15'
-      },
-      {
-        id: '5',
-        category: 'solvabilite',
-        typeRatio: 'COUVERTURE_CHARGES_FINANCIERES',
-        libelle: 'Couverture des charges financières',
-        valeur: 2.1,
-        unite: 'fois',
-        numerateur: 52500,
-        denominateur: 25000,
-        formule: 'EBE / Charges financières',
-        valeurReference: 3,
-        ecartReference: -0.9,
-        valeurN1: 1.8,
-        variationAbsolue: 0.3,
-        variationRelative: 16.7,
-        benchmarkSectorValue: 2.8,
-        sectorPercentile: 40,
-        interpretation: 'Couverture des charges financières faible, attention à l\'endettement',
-        alerte: true,
-        niveauAlerte: 'attention',
-        calculationDate: '2024-01-15'
-      }
-    ]);
-  }, []);
+    const load = async () => {
+      try {
+        const entries = await adapter.getAll<any>('journalEntries');
+        const net = (...pfx: string[]) => { let t = 0; for (const e of entries) for (const l of e.lines || []) if (pfx.some(p => l.accountCode.startsWith(p))) t += l.debit - l.credit; return t; };
+        const creditN = (...pfx: string[]) => { let t = 0; for (const e of entries) for (const l of e.lines || []) if (pfx.some(p => l.accountCode.startsWith(p))) t += l.credit - l.debit; return t; };
+        const safe = (n: number, d: number) => d !== 0 ? n / d : 0;
+
+        const capitauxPropres = creditN('10', '11', '12', '13');
+        const totalActif = Math.max(1, Math.abs(net('2', '3', '4', '5')));
+        const actifCirculant = Math.max(0, net('3', '41', '46', '5'));
+        const passifCirculant = Math.max(1, creditN('40', '42', '43', '44'));
+        const ca = creditN('70', '71', '72');
+        const stocks = Math.max(0, net('3'));
+        const re = creditN('7') - net('6') - (creditN('77') - net('67'));
+        const va = creditN('70', '71', '72', '73') - net('60', '61', '62', '63');
+        const ebe = va + creditN('74') - net('66') - net('64');
+        const chargesFin = net('67');
+        const today = new Date().toISOString().split('T')[0];
+
+        const mk = (id: string, cat: FinancialRatio['category'], typeR: string, lib: string, val: number, unit: FinancialRatio['unite'], num: number, den: number, form: string, ref: number, interp: string, alerte: boolean, niv: string): FinancialRatio => ({
+          id, category: cat, typeRatio: typeR, libelle: lib, valeur: Math.round(val * 10) / 10, unite: unit, numerateur: Math.round(num), denominateur: Math.round(den), formule: form, valeurReference: ref, ecartReference: Math.round((val - ref) * 10) / 10, interpretation: interp, alerte, niveauAlerte: niv, calculationDate: today
+        });
+
+        setRatios([
+          mk('1', 'structure', 'AUTONOMIE_FINANCIERE', 'Autonomie financière', safe(capitauxPropres, totalActif) * 100, 'pourcentage', capitauxPropres, totalActif, 'Capitaux propres / Total actif', 40, capitauxPropres > 0 ? 'Bonne autonomie financière' : 'Capitaux propres insuffisants', safe(capitauxPropres, totalActif) * 100 < 30, safe(capitauxPropres, totalActif) * 100 < 30 ? 'attention' : ''),
+          mk('2', 'liquidite', 'LIQUIDITE_GENERALE', 'Liquidité générale', safe(actifCirculant, passifCirculant), 'ratio', actifCirculant, passifCirculant, 'Actif circulant / Passif circulant', 1.5, safe(actifCirculant, passifCirculant) >= 1.5 ? 'Liquidité satisfaisante' : 'Liquidité insuffisante', safe(actifCirculant, passifCirculant) < 1, safe(actifCirculant, passifCirculant) < 1 ? 'danger' : ''),
+          mk('3', 'rentabilite', 'RENTABILITE_ECONOMIQUE', 'Rentabilité économique (ROA)', safe(re, totalActif) * 100, 'pourcentage', re, totalActif, 'Résultat d\'exploitation / Total actif', 10, re > 0 ? 'Rentabilité positive' : 'Rentabilité négative', re < 0, re < 0 ? 'danger' : ''),
+          mk('4', 'activite', 'ROTATION_STOCKS', 'Rotation des stocks', ca > 0 ? safe(stocks, ca) * 365 : 0, 'jours', stocks, ca, 'Stock moyen × 365 / CA', 90, ca > 0 && safe(stocks, ca) * 365 > 90 ? 'Rotation lente, risque de sur-stockage' : 'Rotation correcte', ca > 0 && safe(stocks, ca) * 365 > 120, ca > 0 && safe(stocks, ca) * 365 > 120 ? 'attention' : ''),
+          mk('5', 'solvabilite', 'COUVERTURE_CHARGES_FINANCIERES', 'Couverture des charges financières', chargesFin > 0 ? safe(ebe, chargesFin) : 0, 'fois', ebe, chargesFin, 'EBE / Charges financières', 3, chargesFin > 0 && safe(ebe, chargesFin) < 3 ? 'Couverture faible, attention à l\'endettement' : 'Couverture suffisante', chargesFin > 0 && safe(ebe, chargesFin) < 2, chargesFin > 0 && safe(ebe, chargesFin) < 2 ? 'attention' : ''),
+        ]);
+      } catch { /* empty */ }
+    };
+    load();
+  }, [adapter]);
 
   const getAlertIcon = (niveau: string) => {
     switch (niveau) {

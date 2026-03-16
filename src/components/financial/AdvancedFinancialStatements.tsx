@@ -631,14 +631,23 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
               </div>
             </div>
             <ResponsiveContainer width="100%" height={400}>
-              <LineChart data={[
-                { mois: 'Jan', ca: 85000000, rn: 8000000, marge: 9.4 },
-                { mois: 'Fév', ca: 78000000, rn: 7200000, marge: 9.2 },
-                { mois: 'Mar', ca: 92000000, rn: 9800000, marge: 10.7 },
-                { mois: 'Avr', ca: 88000000, rn: 8900000, marge: 10.1 },
-                { mois: 'Mai', ca: 95000000, rn: 10200000, marge: 10.7 },
-                { mois: 'Jun', ca: 103000000, rn: 11500000, marge: 11.2 }
-              ]}>
+              <LineChart data={(() => {
+                const MONTHS = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+                return MONTHS.map((mois, idx) => {
+                  const m = idx + 1;
+                  let ca = 0, charges = 0;
+                  for (const e of entries) {
+                    const parts = (e as any).date?.split('-');
+                    if (!parts || parseInt(parts[1]) !== m) continue;
+                    for (const l of (e as any).lines || []) {
+                      if (l.accountCode.startsWith('7')) ca += l.credit - l.debit;
+                      if (l.accountCode.startsWith('6')) charges += l.debit - l.credit;
+                    }
+                  }
+                  const rn = ca - charges;
+                  return { mois, ca, rn, marge: ca > 0 ? Math.round(rn / ca * 1000) / 10 : 0 };
+                }).filter(m => m.ca > 0 || m.rn !== 0);
+              })()}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis dataKey="mois" />
                 <YAxis yAxisId="left" tickFormatter={(value) => `${(value / 1000000).toFixed(0)}M`} />
