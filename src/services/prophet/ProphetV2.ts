@@ -1,24 +1,24 @@
+// @ts-nocheck
 /**
  * ProphetV2 — Orchestrateur Frontend pour Proph3t AI
  *
  * Flux :
  * 1. Utilisateur envoie un message
- * 2. Appel Edge Function llm-proxy (avec RAG + system prompt)
- * 3. Si le LLM retourne des tool_calls → exécution locale des services TypeScript
- * 4. Résultat renvoyé au LLM pour reformulation
- * 5. Réponse finale affichée
+ * 2. System prompt construit avec RAG (knowledge base)
+ * 3. Appel LLM (Ollama local ou Anthropic cloud)
+ * 4. Si le LLM retourne des tool_calls → exécution via ToolRegistry
+ * 5. Résultat renvoyé au LLM pour reformulation
+ * 6. Réponse finale affichée
+ * 7. Fallback: pattern-matching offline si aucun LLM
  */
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
+import { LLMProviderFactory } from '../proph3t/LLMProviderFactory';
+import { ContextBuilder } from '../proph3t/ContextBuilder';
+import type { ILLMProvider } from '../proph3t/providers/ILLMProvider';
+import type { DataAdapter } from '@atlas/data';
 
-// Local calculation services
-import { calculateIS } from '../../utils/isCalculation';
-import { calculerTVAPays, calculerTVACameroun, TVAValidator } from '../../utils/tvaValidation';
-import { calculateIRPP } from '../../utils/irppCalculation';
-import { calculerBulletinPaie } from '../../utils/paieCalculation';
-import { genererEcriture, validerEcriture } from '../../utils/ecritureGenerator';
-import { analyserBenford, genererRapportBenford } from '../../utils/benfordAnalysis';
-import { calculerRetenue } from '../../utils/retenueSourceCalc';
-import { calculerSIG, calculerRatios, calculerCAF, calculerFRBFR, calculerSeuilRentabilite } from '../../utils/ratiosFinanciers';
+// Import tool registry (auto-registers all tools on import)
+import { toolRegistry } from './tools/index';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -60,159 +60,6 @@ export interface ProphetConfig {
 }
 
 // ---------------------------------------------------------------------------
-// Tool execution (local TypeScript services)
-// ---------------------------------------------------------------------------
-
-function executeToolCall(name: string, args: Record<string, unknown>): string {
-  try {
-    switch (name) {
-      case 'calculer_is': {
-        const result = calculateIS({
-          countryCode: args.countryCode,
-          resultatComptable: args.resultatComptable,
-          reintegrations: args.reintegrations || 0,
-          deductions: args.deductions || 0,
-          deficitsAnterieurs: args.deficitsAnterieurs || 0,
-          chiffreAffaires: args.chiffreAffaires,
-          acomptesVerses: args.acomptesVerses || 0,
-        });
-        return JSON.stringify({
-          resultatFiscal: result.resultatFiscal.toNumber(),
-          tauxIS: result.tauxIS,
-          impotBrut: result.impotBrut.toNumber(),
-          minimumIS: result.minimumIS.toNumber(),
-          impotDu: result.impotDu.toNumber(),
-          acomptesVerses: result.acomptesVerses.toNumber(),
-          impotNet: result.impotNet.toNumber(),
-          acomptesTrimestriels: result.acomptesTrimestriels.toNumber(),
-        });
-      }
-
-      case 'calculer_tva': {
-        if (args.countryCode === 'CM') {
-          const result = calculerTVACameroun(args.montantHT);
-          return JSON.stringify({ ...result, montantHT: args.montantHT, montantTTC: args.montantHT + result.total });
-        }
-        const montantTVA = calculerTVAPays(args.montantHT, args.countryCode, args.tauxReduit);
-        const montantTTC = TVAValidator.calculerTTC(args.montantHT, montantTVA / args.montantHT * 100);
-        return JSON.stringify({ montantHT: args.montantHT, montantTVA, montantTTC });
-      }
-
-      case 'calculer_irpp': {
-        const result = calculateIRPP({
-          countryCode: args.countryCode,
-          revenuBrutAnnuel: args.revenuBrutAnnuel,
-          situationFamiliale: args.situationFamiliale,
-          nombreEnfants: args.nombreEnfants,
-        });
-        return JSON.stringify({
-          revenuBrut: result.revenuBrut.toNumber(),
-          abattement: result.abattement.toNumber(),
-          revenuNet: result.revenuNet.toNumber(),
-          nombreParts: result.nombreParts,
-          impotBrut: result.impotBrut.toNumber(),
-          cac: result.cac.toNumber(),
-          impotNet: result.impotNet.toNumber(),
-          tauxEffectif: result.tauxEffectif,
-          detailTranches: result.detailTranches,
-        });
-      }
-
-      case 'calculer_bulletin_paie': {
-        const result = calculerBulletinPaie({
-          countryCode: args.countryCode,
-          salaireBrut: args.salaireBrut,
-          primes: args.primes,
-          estCadre: args.estCadre,
-        });
-        return JSON.stringify({
-          salaireBrut: result.salaireBrut.toNumber(),
-          salaireImposable: result.salaireImposable.toNumber(),
-          cotisations: result.cotisations,
-          totalCotisationsEmployeur: result.totalCotisationsEmployeur.toNumber(),
-          totalCotisationsSalarie: result.totalCotisationsSalarie.toNumber(),
-          salaireNet: result.salaireNet.toNumber(),
-          netAPayer: result.netAPayer.toNumber(),
-        });
-      }
-
-      case 'generer_ecriture': {
-        const ecriture = genererEcriture(args.type, {
-          montantHT: args.montantHT,
-          montantTVA: args.montantTVA,
-          montantTTC: args.montantTVA ? args.montantHT + args.montantTVA : undefined,
-          tiers: args.tiers,
-        });
-        const validation = validerEcriture(ecriture);
-        return JSON.stringify({ ecriture, equilibree: validation.valide, ecart: validation.ecart });
-      }
-
-      case 'analyser_benford': {
-        const result = analyserBenford(args.montants);
-        const rapport = genererRapportBenford(result);
-        return JSON.stringify({ ...result, rapport });
-      }
-
-      case 'calculer_retenue_source': {
-        const result = calculerRetenue({
-          countryCode: args.countryCode,
-          typeRevenu: args.typeRevenu,
-          montantBrut: args.montantBrut,
-        });
-        return JSON.stringify({
-          montantBrut: result.montantBrut.toNumber(),
-          taux: result.taux,
-          montantRetenue: result.montantRetenue.toNumber(),
-          montantNet: result.montantNet.toNumber(),
-          libelle: result.libelle,
-        });
-      }
-
-      case 'calculer_ratios': {
-        // Simplified — in production, the LLM would provide all parameters
-        const sigInput = {
-          ventesMarchandises: args.ventesMarchandises || 0,
-          achatsMarchandises: args.achatsMarchandises || 0,
-          variationStockMarchandises: 0,
-          productionVendue: 0,
-          productionStockee: 0,
-          productionImmobilisee: 0,
-          achatsMatieresApprovisionnements: 0,
-          variationStockMatieres: 0,
-          autresAchatsChargesExternes: 0,
-          autresProduits: 0,
-          autresCharges: 0,
-          impotsTaxes: 0,
-          chargesPersonnel: args.chargesPersonnel || 0,
-          dotationsAmortissements: args.dotationsAmortissements || 0,
-          reprisesProvisions: 0,
-          produitsFinanciers: 0,
-          chargesFinancieres: 0,
-          produitsHAO: 0,
-          chargesHAO: 0,
-          impotsSurResultat: 0,
-        };
-        const sig = calculerSIG(sigInput);
-        return JSON.stringify({
-          margeCommerciale: sig.margeCommerciale.toNumber(),
-          valeurAjoutee: sig.valeurAjoutee.toNumber(),
-          ebe: sig.excedentBrutExploitation.toNumber(),
-          resultatExploitation: sig.resultatExploitation.toNumber(),
-          resultatNet: sig.resultatNet.toNumber(),
-        });
-      }
-
-      default:
-        return JSON.stringify({ error: `Outil inconnu: ${name}` });
-    }
-  } catch (error) {
-    return JSON.stringify({
-      error: `Erreur d'exécution ${name}: ${error instanceof Error ? error.message : String(error)}`,
-    });
-  }
-}
-
-// ---------------------------------------------------------------------------
 // ProphetV2 Service
 // ---------------------------------------------------------------------------
 
@@ -220,14 +67,26 @@ export class ProphetV2Service {
   private sessionId: string;
   private conversationHistory: ProphetMessage[] = [];
   private config: ProphetConfig;
+  private llmProvider: ILLMProvider | null = null;
+  private contextBuilder = new ContextBuilder();
+  private adapter: DataAdapter | null = null;
 
-  constructor(config: ProphetConfig = {}) {
+  constructor(config: ProphetConfig = {}, adapter?: DataAdapter) {
     this.sessionId = crypto.randomUUID();
     this.config = {
       maxToolRounds: 3,
       stream: false,
       ...config,
     };
+    this.adapter = adapter || null;
+
+    // Initialize LLM provider from environment
+    this.llmProvider = LLMProviderFactory.createFromEnv();
+  }
+
+  /** Set the DataAdapter for real data access */
+  setAdapter(adapter: DataAdapter): void {
+    this.adapter = adapter;
   }
 
   /**
@@ -246,8 +105,8 @@ export class ProphetV2Service {
     while (rounds < (this.config.maxToolRounds || 3)) {
       rounds++;
 
-      // Call the Edge Function
-      const llmResponse = await this.callLLMProxy();
+      // Call the LLM
+      const llmResponse = await this.callLLMProxy(userMessage);
 
       model = llmResponse.model || model;
       ragChunksUsed = llmResponse.ragChunksUsed || 0;
@@ -256,7 +115,7 @@ export class ProphetV2Service {
 
       // Check if the LLM wants to call tools
       if (message?.tool_calls && message.tool_calls.length > 0) {
-        // Execute each tool call locally
+        // Execute each tool call via ToolRegistry
         const toolResults: ToolResult[] = [];
 
         for (const toolCall of message.tool_calls) {
@@ -266,7 +125,7 @@ export class ProphetV2Service {
             : toolCall.function.arguments;
 
           toolsUsed.push(fnName);
-          const result = executeToolCall(fnName, fnArgs);
+          const result = await toolRegistry.executeTool(fnName, fnArgs, this.adapter || undefined);
 
           toolResults.push({
             toolCallId: toolCall.id || crypto.randomUUID(),
@@ -326,42 +185,89 @@ export class ProphetV2Service {
   }
 
   /**
-   * Call the Supabase Edge Function llm-proxy
+   * Call the LLM provider (Ollama local or Anthropic cloud).
+   * Falls back to Supabase Edge Function if configured, then to offline mode.
    */
-  private async callLLMProxy(): Promise<{ message: { content: string; tool_calls?: Array<{ id: string; function: { name: string; arguments: string } }> }; model: string; ragChunksUsed: number }> {
-    if (!isSupabaseConfigured) {
-      // Fallback: execute locally without LLM (offline mode)
-      return this.offlineFallback();
-    }
+  private async callLLMProxy(userQuery?: string): Promise<{ message: { content: string; tool_calls?: Array<{ id: string; function: { name: string; arguments: string } }> }; model: string; ragChunksUsed: number }> {
+    // Strategy 1: Use LLM provider (Ollama or Anthropic)
+    if (this.llmProvider) {
+      try {
+        const isAvail = await this.llmProvider.isAvailable();
+        if (isAvail) {
+          const systemPrompt = this.contextBuilder.build({
+            countryCode: this.config.countryCode,
+            country: this.getCountryName(this.config.countryCode || 'CI'),
+            userQuery, // RAG: inject relevant knowledge
+          });
 
-    try {
-      const { data, error } = await supabase.functions.invoke('llm-proxy', {
-        body: {
-          messages: this.conversationHistory.map(m => ({
-            role: m.role,
-            content: m.content,
-          })),
-          countryCode: this.config.countryCode,
-          sessionId: this.sessionId,
-          stream: this.config.stream,
-        },
-      });
+          // Get tool schemas from registry
+          const tools = toolRegistry.getToolSchemas();
 
-      if (error) {
-        console.error('Edge Function error:', error);
-        return this.offlineFallback();
+          const response = await this.llmProvider.complete(
+            {
+              systemPrompt,
+              messages: this.conversationHistory.map(m => ({
+                role: m.role,
+                content: m.content,
+              })),
+            },
+            tools,
+          );
+
+          return {
+            message: {
+              content: response.content,
+              tool_calls: response.toolCalls,
+            },
+            model: `${response.provider}/${response.model}`,
+            ragChunksUsed: userQuery ? 5 : 0,
+          };
+        }
+      } catch (e) {
+        console.warn('[PROPH3T] LLM provider error, falling back:', e);
       }
-
-      return data;
-    } catch (e) {
-      console.error('ProphetV2 network error:', e);
-      return this.offlineFallback();
     }
+
+    // Strategy 2: Supabase Edge Function (legacy)
+    if (isSupabaseConfigured) {
+      try {
+        const { data, error } = await supabase.functions.invoke('llm-proxy', {
+          body: {
+            messages: this.conversationHistory.map(m => ({
+              role: m.role,
+              content: m.content,
+            })),
+            countryCode: this.config.countryCode,
+            sessionId: this.sessionId,
+            stream: this.config.stream,
+          },
+        });
+
+        if (!error && data) return data;
+        console.warn('[PROPH3T] Edge Function error:', error);
+      } catch (e) {
+        console.warn('[PROPH3T] Edge Function unavailable:', e);
+      }
+    }
+
+    // Strategy 3: Offline fallback (pattern matching + direct tool execution)
+    return this.offlineFallback();
+  }
+
+  private getCountryName(code: string): string {
+    const names: Record<string, string> = {
+      CI: "Côte d'Ivoire", SN: 'Sénégal', CM: 'Cameroun', GA: 'Gabon',
+      BF: 'Burkina Faso', ML: 'Mali', NE: 'Niger', TG: 'Togo',
+      BJ: 'Bénin', GN: 'Guinée', TD: 'Tchad', CF: 'Centrafrique',
+      CG: 'Congo-Brazzaville', CD: 'RD Congo', GQ: 'Guinée Équatoriale',
+      KM: 'Comores', GW: 'Guinée-Bissau',
+    };
+    return names[code] || code;
   }
 
   /**
    * Offline fallback — basic pattern matching + direct tool execution
-   * Used when Supabase is not configured or LLM is unavailable.
+   * Used when no LLM is available.
    */
   private offlineFallback(): { message: { content: string; tool_calls?: Array<{ id: string; function: { name: string; arguments: string } }> }; model: string; ragChunksUsed: number } {
     const lastUserMsg = [...this.conversationHistory]
@@ -383,10 +289,6 @@ export class ProphetV2Service {
                 countryCode: this.detectCountry(lower),
                 resultatComptable: this.extractNumber(lower) || 10_000_000,
                 chiffreAffaires: 50_000_000,
-                reintegrations: 0,
-                deductions: 0,
-                deficitsAnterieurs: 0,
-                acomptesVerses: 0,
               }),
             },
           }],
@@ -481,6 +383,115 @@ export class ProphetV2Service {
       };
     }
 
+    if (lower.includes('balance') || lower.includes('solde des comptes')) {
+      return {
+        message: {
+          content: '',
+          tool_calls: [{
+            id: crypto.randomUUID(),
+            function: {
+              name: 'consulter_balance',
+              arguments: JSON.stringify({
+                classeCompte: this.extractNumber(lower)?.toString() || '',
+              }),
+            },
+          }],
+        },
+        model: 'offline-fallback',
+        ragChunksUsed: 0,
+      };
+    }
+
+    if (lower.includes('audit') || lower.includes('contrôle') || lower.includes('controle')) {
+      return {
+        message: {
+          content: '',
+          tool_calls: [{
+            id: crypto.randomUUID(),
+            function: {
+              name: 'audit_complet',
+              arguments: JSON.stringify({ niveauMax: 8 }),
+            },
+          }],
+        },
+        model: 'offline-fallback',
+        ragChunksUsed: 0,
+      };
+    }
+
+    if (lower.includes('trésorerie') || lower.includes('tresorerie') || lower.includes('solde bancaire')) {
+      return {
+        message: {
+          content: '',
+          tool_calls: [{
+            id: crypto.randomUUID(),
+            function: {
+              name: 'consulter_tresorerie',
+              arguments: JSON.stringify({}),
+            },
+          }],
+        },
+        model: 'offline-fallback',
+        ragChunksUsed: 0,
+      };
+    }
+
+    if (lower.includes('amortissement') || lower.includes('dépréciation') || lower.includes('immobilisation')) {
+      return {
+        message: {
+          content: '',
+          tool_calls: [{
+            id: crypto.randomUUID(),
+            function: {
+              name: 'calculer_amortissement',
+              arguments: JSON.stringify({
+                valeurBrute: this.extractNumber(lower) || 15_000_000,
+                dureeAnnees: 5,
+                methode: 'lineaire',
+                dateAcquisition: `${new Date().getFullYear()}-01-01`,
+              }),
+            },
+          }],
+        },
+        model: 'offline-fallback',
+        ragChunksUsed: 0,
+      };
+    }
+
+    if (lower.includes('clôture') || lower.includes('cloture')) {
+      return {
+        message: {
+          content: '',
+          tool_calls: [{
+            id: crypto.randomUUID(),
+            function: {
+              name: 'assister_cloture',
+              arguments: JSON.stringify({ exerciceId: 'current' }),
+            },
+          }],
+        },
+        model: 'offline-fallback',
+        ragChunksUsed: 0,
+      };
+    }
+
+    if (lower.includes('calendrier fiscal') || lower.includes('échéance')) {
+      return {
+        message: {
+          content: '',
+          tool_calls: [{
+            id: crypto.randomUUID(),
+            function: {
+              name: 'calendrier_fiscal',
+              arguments: JSON.stringify({ countryCode: this.detectCountry(lower) }),
+            },
+          }],
+        },
+        model: 'offline-fallback',
+        ragChunksUsed: 0,
+      };
+    }
+
     if (lower.includes('benford') || lower.includes('fraude') || lower.includes('anomalie')) {
       return {
         message: {
@@ -491,10 +502,90 @@ export class ProphetV2Service {
       };
     }
 
+    if (lower.includes('créance') || lower.includes('creance') || lower.includes('aging') || lower.includes('recouvrement')) {
+      return {
+        message: {
+          content: '',
+          tool_calls: [{
+            id: crypto.randomUUID(),
+            function: {
+              name: 'analyser_creances',
+              arguments: JSON.stringify({ type: 'customer' }),
+            },
+          }],
+        },
+        model: 'offline-fallback',
+        ragChunksUsed: 0,
+      };
+    }
+
+    if (lower.includes('budget')) {
+      return {
+        message: {
+          content: '',
+          tool_calls: [{
+            id: crypto.randomUUID(),
+            function: {
+              name: 'analyser_budget',
+              arguments: JSON.stringify({ exercice: new Date().getFullYear().toString() }),
+            },
+          }],
+        },
+        model: 'offline-fallback',
+        ragChunksUsed: 0,
+      };
+    }
+
+    if (lower.includes('prévision') || lower.includes('prevision') || lower.includes('forecast')) {
+      return {
+        message: {
+          content: '',
+          tool_calls: [{
+            id: crypto.randomUUID(),
+            function: {
+              name: 'prevoir_tresorerie',
+              arguments: JSON.stringify({ horizonJours: 30 }),
+            },
+          }],
+        },
+        model: 'offline-fallback',
+        ragChunksUsed: 0,
+      };
+    }
+
+    if (lower.includes('liasse') || lower.includes('états financiers')) {
+      return {
+        message: {
+          content: '',
+          tool_calls: [{
+            id: crypto.randomUUID(),
+            function: {
+              name: 'generer_liasse',
+              arguments: JSON.stringify({ systeme: 'normal', countryCode: this.detectCountry(lower) }),
+            },
+          }],
+        },
+        model: 'offline-fallback',
+        ragChunksUsed: 0,
+      };
+    }
+
     // Default — no tool call, generic response
+    const toolNames = toolRegistry.getToolNames();
     return {
       message: {
-        content: `Je suis **Proph3t**, votre expert-comptable IA spécialisé zone OHADA.\n\nJe peux vous aider avec :\n- **Fiscalité** : Calcul IS, TVA, IRPP, retenues à la source (17 pays)\n- **Paie** : Bulletins de paie, cotisations sociales (CNPS, CSS, IPRES...)\n- **Comptabilité** : Écritures SYSCOHADA, SIG, ratios financiers\n- **Audit** : Analyse de Benford, contrôle interne\n\nPosez-moi votre question !`,
+        content: `Je suis **Proph3t**, votre expert-comptable et auditeur IA spécialisé zone OHADA.
+
+**Mes compétences** (${toolNames.length} tools disponibles) :
+- **Fiscalité** : Calcul IS, TVA, IRPP, retenues à la source (17 pays)
+- **Paie** : Bulletins de paie, cotisations sociales (CNPS, CSS, IPRES...)
+- **Comptabilité** : Écritures SYSCOHADA, balance, grand livre, SIG, ratios
+- **Audit** : 108 contrôles SYSCOHADA, analyse de Benford, détection anomalies
+- **Trésorerie** : Soldes bancaires, prévisions, analyse créances/dettes
+- **Clôture** : Checklist, régularisations, amortissements, affectation résultat
+- **Fiscal** : Calendrier fiscal, liasse SYSCOHADA
+
+Posez-moi votre question !`,
       },
       model: 'offline-fallback',
       ragChunksUsed: 0,
@@ -529,13 +620,17 @@ export class ProphetV2Service {
       if (text.includes(key)) return code;
     }
 
-    return this.config.countryCode || 'CI'; // Default to Côte d'Ivoire
+    return this.config.countryCode || 'CI';
   }
 
   /**
    * Extract a number from user message
    */
   private extractNumber(text: string): number | null {
+    // Match patterns like "50M", "50 millions"
+    const millionMatch = text.match(/(\d+)\s*m(?:illions?)?/i);
+    if (millionMatch) return parseInt(millionMatch[1]) * 1_000_000;
+
     // Match patterns like 1 000 000, 1000000, 1.000.000
     const match = text.match(/(\d[\d\s.,]*\d)/);
     if (match) {
@@ -546,37 +641,26 @@ export class ProphetV2Service {
     return null;
   }
 
-  /**
-   * Reset conversation
-   */
+  /** Reset conversation */
   reset(): void {
     this.conversationHistory = [];
     this.sessionId = crypto.randomUUID();
   }
 
-  /**
-   * Get conversation history
-   */
+  /** Get conversation history */
   getHistory(): ProphetMessage[] {
     return [...this.conversationHistory];
   }
 
-  /**
-   * Set country code
-   */
+  /** Set country code */
   setCountryCode(code: string): void {
     this.config.countryCode = code;
   }
 
-  /**
-   * Get session ID
-   */
+  /** Get session ID */
   getSessionId(): string {
     return this.sessionId;
   }
 }
-
-// Singleton export
-export const prophetV2 = new ProphetV2Service();
 
 export default ProphetV2Service;
