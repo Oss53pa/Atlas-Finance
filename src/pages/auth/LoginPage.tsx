@@ -264,9 +264,12 @@ const LoginPage: React.FC = () => {
                   <span className="bg-white px-2 text-[var(--color-text-secondary)]">Première fois ?</span>
                 </div>
               </div>
-              <div className="mt-4">
+              <div className="mt-4 space-y-3">
+                <Link to="/register" className="block w-full py-2.5 border-2 border-[var(--color-border)] rounded-lg text-center text-sm font-semibold text-[var(--color-text-primary)] hover:border-[var(--color-primary)] transition-colors">
+                  Créer un compte gratuitement
+                </Link>
                 <p className="text-sm text-[var(--color-text-secondary)]">
-                  Contactez votre administrateur pour obtenir vos identifiants d'accès à Atlas Studio.
+                  Ou contactez votre administrateur pour obtenir vos identifiants.
                 </p>
               </div>
             </div>

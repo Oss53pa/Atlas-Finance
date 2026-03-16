@@ -36,6 +36,13 @@ const LandingPage = lazyRetry(() => import('./pages/LandingPage'));
 const LoginPage = lazyRetry(() => import('./pages/auth/LoginPage'));
 const AtlasStudioHub = lazyRetry(() => import('./pages/auth/AtlasStudioHub'));
 
+// Onboarding
+const RegisterPage = lazyRetry(() => import('./pages/onboarding/RegisterPage'));
+const VerifyEmailPage = lazyRetry(() => import('./pages/onboarding/VerifyEmailPage'));
+const SolutionCatalogPage = lazyRetry(() => import('./pages/onboarding/SolutionCatalogPage'));
+const TeamSettingsPage = lazyRetry(() => import('./pages/onboarding/TeamSettingsPage'));
+const AcceptInvitePage = lazyRetry(() => import('./pages/onboarding/AcceptInvitePage'));
+
 // Workspaces
 const ComptableWorkspace = lazyRetry(() => import('./pages/workspace/ComptableWorkspaceFinal'));
 const ManagerWorkspace = lazyRetry(() => import('./pages/workspace/ManagerWorkspace'));
@@ -211,10 +218,15 @@ function App() {
                       {/* Pages publiques — pas d'auth */}
                       <Route path="/" element={<LandingPage />} />
                       <Route path="/login" element={<LoginPage />} />
+                      <Route path="/register" element={<RegisterPage />} />
+                      <Route path="/verify-email" element={<VerifyEmailPage />} />
+                      <Route path="/accept-invite/:token" element={<AcceptInvitePage />} />
 
-                      {/* Hub — après login, choisir l'application */}
+                      {/* Hub + Onboarding — après auth */}
                       <Route element={<RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant', 'user', 'viewer', 'super_admin']}><Outlet /></RBACGuard>}>
                         <Route path="/hub" element={<AtlasStudioHub />} />
+                        <Route path="/solutions" element={<SolutionCatalogPage />} />
+                        <Route path="/settings/team" element={<TeamSettingsPage />} />
                       </Route>
 
                       {/* Workspaces — protégés par authentification Supabase */}
