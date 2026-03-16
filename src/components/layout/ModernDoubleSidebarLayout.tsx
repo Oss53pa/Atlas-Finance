@@ -238,7 +238,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
     reporting: [
       { id: 'bilan', label: 'États Financiers', path: '/financial-statements/balance', icon: <BarChart3 className="w-4 h-4" /> },
       { id: 'compte-resultat', label: 'États Financiers Mensuel', path: '/financial-statements/income', icon: <TrendingUp className="w-4 h-4" /> },
-      { id: 'tax-declarations', label: 'Déclarations Fiscales', path: '/reporting/tax', icon: <Shield className="w-4 h-4" /> },
+      { id: 'tax-declarations', label: 'Déclarations Fiscales', path: '/taxation/declarations', icon: <Shield className="w-4 h-4" /> },
       { id: 'report-builder', label: 'Report Builder', path: '/reporting/builder', icon: <Palette className="w-4 h-4" /> }
     ],
   }), [t, user?.role]);
