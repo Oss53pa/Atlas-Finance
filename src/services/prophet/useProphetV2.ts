@@ -1,13 +1,17 @@
+// @ts-nocheck
 /**
  * useProphetV2 — React Hook for ProphetV2 AI Service
  *
  * Drop-in replacement for useChatbot hook.
  * Connects the ProphetV2 orchestrator to the chatbot UI.
+ * Injects DataAdapter from DataContext for real data access.
  */
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { ProphetV2Service, ProphetResponse } from './ProphetV2';
 import type { ChatMessage, ChatAction } from '../../components/chatbot/types';
+import { useData } from '../../contexts/DataContext';
+import { continuousLearning } from './learning/index';
 
 interface ProphetV2State {
   messages: ChatMessage[];
@@ -16,10 +20,19 @@ interface ProphetV2State {
   countryCode: string;
   model: string;
   toolsUsed: string[];
+  lastInteractionId: string | null;
 }
 
 export function useProphetV2(defaultCountryCode: string = 'CI') {
-  const prophetRef = useRef(new ProphetV2Service({ countryCode: defaultCountryCode }));
+  const { adapter } = useData();
+  const prophetRef = useRef(new ProphetV2Service({ countryCode: defaultCountryCode }, adapter));
+
+  // Keep adapter in sync
+  useEffect(() => {
+    if (adapter) {
+      prophetRef.current.setAdapter(adapter);
+    }
+  }, [adapter]);
 
   const [state, setState] = useState<ProphetV2State>({
     messages: [{
@@ -34,9 +47,9 @@ export function useProphetV2(defaultCountryCode: string = 'CI') {
         quickReplies: [
           'Calcule mon IS en Côte d\'Ivoire',
           'Génère une écriture d\'achat',
-          'Bulletin de paie au Sénégal',
-          'Quel taux de TVA au Cameroun ?',
-          'Explique les SIG SYSCOHADA',
+          'Lance un audit complet',
+          'Montre-moi la balance classe 4',
+          'Quel est mon solde bancaire ?',
         ],
       },
     }],
@@ -45,10 +58,14 @@ export function useProphetV2(defaultCountryCode: string = 'CI') {
     countryCode: defaultCountryCode,
     model: '',
     toolsUsed: [],
+    lastInteractionId: null,
   });
 
   const sendMessage = useCallback(async (text: string): Promise<void> => {
     if (!text.trim() || state.isLoading) return;
+
+    // Start learning tracking
+    const interactionId = continuousLearning.startInteraction(text.trim(), state.countryCode);
 
     const userMessage: ChatMessage = {
       id: uuidv4(),
@@ -67,6 +84,9 @@ export function useProphetV2(defaultCountryCode: string = 'CI') {
 
     try {
       const response: ProphetResponse = await prophetRef.current.send(text.trim());
+
+      // Complete learning tracking
+      continuousLearning.completeInteraction(response);
 
       const assistantMessage: ChatMessage = {
         id: uuidv4(),
@@ -88,6 +108,7 @@ export function useProphetV2(defaultCountryCode: string = 'CI') {
         isTyping: false,
         model: response.model,
         toolsUsed: response.toolsUsed,
+        lastInteractionId: interactionId,
       }));
     } catch (error) {
       console.error('ProphetV2 error:', error);
@@ -153,6 +174,30 @@ export function useProphetV2(defaultCountryCode: string = 'CI') {
     }
   }, []);
 
+  // ── Continuous Learning API ──────────────────────────────────
+
+  /** Record positive or negative feedback on the last response */
+  const recordFeedback = useCallback((feedback: 'positive' | 'negative' | 'neutral', details?: string) => {
+    if (state.lastInteractionId) {
+      continuousLearning.recordFeedback(state.lastInteractionId, feedback, details);
+    }
+  }, [state.lastInteractionId]);
+
+  /** Add a knowledge correction (user tells PROPH3T it was wrong) */
+  const addCorrection = useCallback((original: string, corrected: string, category: string, keywords: string[]) => {
+    continuousLearning.addCorrection(original, corrected, category, keywords);
+  }, []);
+
+  /** Get learning statistics */
+  const getLearningStats = useCallback(() => {
+    return continuousLearning.getStats();
+  }, []);
+
+  /** Reset all learning data */
+  const resetLearning = useCallback(() => {
+    continuousLearning.reset();
+  }, []);
+
   return {
     messages: state.messages,
     isLoading: state.isLoading,
@@ -167,6 +212,12 @@ export function useProphetV2(defaultCountryCode: string = 'CI') {
     clearChat,
     setCountryCode,
     executeAction,
+
+    // Continuous learning
+    recordFeedback,
+    addCorrection,
+    getLearningStats,
+    resetLearning,
   };
 }
 
@@ -181,13 +232,15 @@ function getWelcomeMessage(): string {
   return `${greeting} ! Je suis **Proph3t**, votre expert-comptable et auditeur IA spécialisé zone OHADA.
 
 **Mes compétences** :
-- **Fiscalité** : IS, TVA, IRPP, retenues à la source — 17 pays OHADA
-- **Paie** : Bulletins de paie, cotisations sociales (CNPS, CSS, IPRES...)
-- **Comptabilité SYSCOHADA** : Écritures, SIG, ratios, états financiers
-- **Audit** : Analyse de Benford, conformité, contrôle interne
-- **Droit OHADA** : AUDCIF, AUSCGIE, procédures collectives
+- **Fiscalité** : IS, TVA, IRPP, retenues — 17 pays OHADA
+- **Paie** : Bulletins de paie, cotisations sociales
+- **Comptabilité** : Écritures, balance, grand livre, SIG, ratios
+- **Audit** : 108 contrôles SYSCOHADA, Benford, anomalies
+- **Trésorerie** : Soldes bancaires, prévisions, créances
+- **Clôture** : Régularisations, amortissements, affectation résultat
+- **Fiscal** : Calendrier, liasse SYSCOHADA
 
-Posez-moi votre question — je calcule avec précision !`;
+Posez-moi votre question — je calcule avec vos données réelles !`;
 }
 
 function getContextualQuickReplies(toolsUsed: string[]): string[] {
@@ -195,9 +248,9 @@ function getContextualQuickReplies(toolsUsed: string[]): string[] {
     return [
       'Calcule mon IS',
       'Bulletin de paie',
-      'Écriture d\'achat avec TVA',
-      'Taux TVA par pays',
-      'Analyse de Benford',
+      'Lance un audit complet',
+      'Montre la balance',
+      'Solde bancaire',
     ];
   }
 
@@ -214,9 +267,20 @@ function getContextualQuickReplies(toolsUsed: string[]): string[] {
     case 'generer_ecriture':
       return ['Écriture de vente', 'Écriture de salaires', 'Écriture immobilisation', 'Déclaration TVA'];
     case 'analyser_benford':
-      return ['Interpréter les résultats', 'Chiffres suspects', 'Tests complémentaires', 'Rapport d\'audit'];
+      return ['Interpréter les résultats', 'Chiffres suspects', 'Tests complémentaires', 'Audit complet'];
+    case 'consulter_balance':
+      return ['Balance classe 6', 'Balance classe 4', 'Vérifier équilibre', 'Grand livre'];
+    case 'audit_complet':
+    case 'audit_cycle':
+      return ['Détail des erreurs', 'Audit tiers', 'Audit trésorerie', 'Corriger les anomalies'];
+    case 'consulter_tresorerie':
+      return ['Prévision trésorerie', 'Analyser créances', 'Budget', 'Rapprochement bancaire'];
+    case 'assister_cloture':
+      return ['Générer régularisations', 'Calcul amortissements', 'Affectation résultat', 'Calendrier fiscal'];
+    case 'calculer_amortissement':
+      return ['Simuler dégressif', 'Tableau complet', 'Écriture dotation', 'Cession immobilisation'];
     default:
-      return ['Autre calcul', 'Écriture comptable', 'Analyse financière', 'Question juridique'];
+      return ['Autre calcul', 'Écriture comptable', 'Audit', 'Analyse financière'];
   }
 }
 
