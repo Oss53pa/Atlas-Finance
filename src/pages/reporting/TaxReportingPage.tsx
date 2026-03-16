@@ -75,8 +75,12 @@ interface FiscalCalendarProps {
 }
 
 const FiscalCalendar: React.FC<FiscalCalendarProps> = ({ triggeredTaxes, dbDeclarations, hasRegistry }) => {
+  const { adapter } = useData();
+  const queryClient = useQueryClient();
   const [calMonth, setCalMonth] = useState(new Date().getMonth());
   const [calYear, setCalYear] = useState(new Date().getFullYear());
+  const [showProgrammer, setShowProgrammer] = useState(false);
+  const [form, setForm] = useState({ taxCode: '', taxName: '', deadline: '', periodicite: 'MONTHLY', montant: '', category: 'INDIRECT' });
 
   const today = new Date();
   const todayStr = today.toISOString().split('T')[0];
@@ -151,6 +155,9 @@ const FiscalCalendar: React.FC<FiscalCalendarProps> = ({ triggeredTaxes, dbDecla
             Calendrier Fiscal
           </CardTitle>
           <div className="flex items-center space-x-2">
+            <Button size="sm" onClick={() => setShowProgrammer(true)} className="bg-blue-600 hover:bg-blue-700 text-white">
+              <Plus className="mr-1 h-4 w-4" /> Programmer
+            </Button>
             <Button variant="ghost" size="sm" onClick={prevMonth}>&lsaquo;</Button>
             <span className="text-sm font-semibold min-w-[140px] text-center">
               {MONTH_NAMES[calMonth]} {calYear}
