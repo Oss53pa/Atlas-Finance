@@ -4,13 +4,9 @@ import { Calculator, Eye, EyeOff, Shield } from 'lucide-react';
 import { Button, Input, Card, CardHeader, CardTitle, CardContent } from '../../components/ui';
 import { useAuth } from '../../contexts/AuthContext';
 
-function getRoleRedirectPath(role: string): string {
-  switch (role) {
-    case 'admin': return '/workspace/admin';
-    case 'manager': return '/workspace/manager';
-    case 'comptable': return '/workspace/comptable';
-    default: return '/workspace';
-  }
+function getRoleRedirectPath(_role: string): string {
+  // Après login → Hub Atlas Studio (choix de l'application)
+  return '/';
 }
 
 const LoginPage: React.FC = () => {

@@ -34,6 +34,7 @@ function lazyRetry(importFn: () => Promise<any>) {
 // Pages publiques
 const LandingPage = lazyRetry(() => import('./pages/LandingPage'));
 const LoginPage = lazyRetry(() => import('./pages/auth/LoginPage'));
+const AtlasStudioHub = lazyRetry(() => import('./pages/auth/AtlasStudioHub'));
 
 // Workspaces
 const ComptableWorkspace = lazyRetry(() => import('./pages/workspace/ComptableWorkspaceFinal'));
@@ -210,9 +211,10 @@ function App() {
                       {/* Login — seule page publique */}
                       <Route path="/login" element={<LoginPage />} />
 
-                      {/* Landing — protégée, redirige vers /login si non authentifié */}
-                      <Route element={<RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant', 'user', 'viewer']}><Outlet /></RBACGuard>}>
-                        <Route path="/" element={<LandingPage />} />
+                      {/* Hub Atlas Studio — après login, choisir l'application */}
+                      <Route element={<RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant', 'user', 'viewer', 'super_admin']}><Outlet /></RBACGuard>}>
+                        <Route path="/" element={<AtlasStudioHub />} />
+                        <Route path="/hub" element={<AtlasStudioHub />} />
                       </Route>
 
                       {/* Workspaces — protégés par authentification Supabase */}
