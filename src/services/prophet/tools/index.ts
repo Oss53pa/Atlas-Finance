@@ -11,6 +11,7 @@ import { closureTools } from './closureTools';
 import { depreciationTools } from './depreciationTools';
 import { fiscalTools } from './fiscalTools';
 import { predictionTools } from './predictionTools';
+import { fiscalDeclarationTools } from './fiscalDeclarationTools';
 
 export function registerAllTools(): void {
   toolRegistry.registerAll(calculationTools);
@@ -21,6 +22,7 @@ export function registerAllTools(): void {
   toolRegistry.registerAll(depreciationTools);
   toolRegistry.registerAll(fiscalTools);
   toolRegistry.registerAll(predictionTools);
+  toolRegistry.registerAll(fiscalDeclarationTools);
 }
 
 // Auto-register on import
