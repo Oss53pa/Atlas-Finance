@@ -10,6 +10,7 @@ import { themes } from '../../styles/theme';
 import type { ThemeType } from '../../styles/theme';
 import CompleteTasksModule from '../../components/tasks/CompleteTasksModule';
 import CollaborationModule from '../../components/collaboration/CollaborationModule';
+import { useFiscalUrgentAlerts } from '../../hooks/useFiscalAlerts';
 import {
   Briefcase, FileText, BarChart3, Users, PieChart, TrendingUp,
   Clock, CheckCircle, DollarSign, Zap, ArrowUpRight, ArrowDownRight, ExternalLink,
@@ -212,6 +213,8 @@ const ManagerWorkspace: React.FC = () => {
           <div className="text-center py-4 text-gray-400 text-sm">Aucune tache en cours</div>
         </div>
       </div>
+      {/* Alertes Fiscales */}
+      <ManagerFiscalWidget navigate={navigate} />
       {/* Apercu Chat */}
       <div className="bg-white rounded-lg p-6 border">
         <div className="flex justify-between items-center mb-4">
@@ -328,6 +331,43 @@ const ManagerWorkspace: React.FC = () => {
         </main>
       </div>
       {userMenuOpen && <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />}
+    </div>
+  );
+};
+
+// Fiscal Alerts Widget for Manager Workspace
+const ManagerFiscalWidget: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) => {
+  const urgentAlerts = useFiscalUrgentAlerts();
+  if (urgentAlerts.length === 0) return null;
+  const overdueCount = urgentAlerts.filter(a => a.isOverdue).length;
+
+  return (
+    <div className={`rounded-lg p-6 border ${overdueCount > 0 ? 'bg-red-50 border-red-200' : 'bg-orange-50 border-orange-200'}`}>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg font-semibold flex items-center">
+          <Bell className="w-5 h-5 mr-2 text-red-600" />
+          Echéances Fiscales
+          <span className={`ml-2 px-2 py-0.5 text-xs font-bold rounded-full ${overdueCount > 0 ? 'bg-red-600 text-white' : 'bg-orange-500 text-white'}`}>
+            {urgentAlerts.length}
+          </span>
+        </h2>
+        <button onClick={() => navigate('/taxation/echeances')} className="text-sm text-[#525252] hover:underline flex items-center gap-1">
+          Calendrier <ExternalLink className="w-3 h-3" />
+        </button>
+      </div>
+      <div className="space-y-2">
+        {urgentAlerts.slice(0, 4).map(alert => (
+          <div key={alert.id} className={`flex items-center justify-between p-3 rounded-lg ${alert.isOverdue ? 'bg-red-100' : 'bg-orange-100'}`}>
+            <div>
+              <span className="font-medium text-sm">{alert.taxName}</span>
+              <span className="text-xs text-gray-600 ml-2">{alert.periodLabel}</span>
+            </div>
+            <div className={`text-xs font-semibold ${alert.isOverdue ? 'text-red-700' : 'text-orange-700'}`}>
+              {alert.isOverdue ? `${Math.abs(alert.daysUntil)}j retard` : `${alert.daysUntil}j`}
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

@@ -1101,39 +1101,13 @@ const TaxReportingPage: React.FC = () => {
                           );
                         })
                     ) : (
-                      // Fallback: hardcoded items
-                      <>
-                        <div className="flex items-center justify-between p-2 bg-red-50 rounded-lg">
-                          <div className="flex items-center">
-                            <AlertCircle className="h-4 w-4 text-var(--color-red-primary) mr-2" />
-                            <div>
-                              <p className="text-sm font-medium">TVA Janvier</p>
-                              <p className="text-xs text-var(--color-text-secondary)">15 Février 2024</p>
-                            </div>
-                          </div>
-                          <Badge variant="destructive">5 jours</Badge>
+                      <div className="flex items-center justify-center p-6 text-gray-400">
+                        <div className="text-center">
+                          <Calendar className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                          <p className="text-sm">Aucune échéance fiscale</p>
+                          <p className="text-xs mt-1">Initialisez le registre fiscal pour activer la détection automatique</p>
                         </div>
-                        <div className="flex items-center justify-between p-2 bg-orange-50 rounded-lg">
-                          <div className="flex items-center">
-                            <AlertCircle className="h-4 w-4 text-var(--color-orange-primary) mr-2" />
-                            <div>
-                              <p className="text-sm font-medium">IRPP T4</p>
-                              <p className="text-xs text-var(--color-text-secondary)">20 Février 2024</p>
-                            </div>
-                          </div>
-                          <Badge className="bg-var(--color-orange-light) text-orange-800">10 jours</Badge>
-                        </div>
-                        <div className="flex items-center justify-between p-2 bg-var(--color-blue-light) rounded-lg">
-                          <div className="flex items-center">
-                            <Calendar className="h-4 w-4 text-var(--color-blue-primary) mr-2" />
-                            <div>
-                              <p className="text-sm font-medium">IS Annuel</p>
-                              <p className="text-xs text-var(--color-text-secondary)">15 Mars 2024</p>
-                            </div>
-                          </div>
-                          <Badge className="bg-var(--color-blue-light) text-var(--color-blue-dark)">33 jours</Badge>
-                        </div>
-                      </>
+                      </div>
                     )}
                   </div>
                 </CardContent>

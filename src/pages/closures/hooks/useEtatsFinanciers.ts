@@ -61,18 +61,13 @@ export function useEtatsFinanciers(): EtatsFinanciersData {
       // Get active fiscal year
       const fys = await adapter.getAll<any>('fiscalYears');
       const activeFY = fys.find((fy: any) => fy.isActive) || fys[0];
-      if (!activeFY) {
-        setError('Aucun exercice fiscal trouvé');
-        setLoading(false);
-        return;
-      }
-      setFiscalYear(activeFY);
+      setFiscalYear(activeFY || null);
 
-      // Load entries for FY period
+      // Load entries — filter by FY period if available, otherwise use all
       const allEntries = await adapter.getAll<any>('journalEntries');
-      const entries = allEntries.filter((e: any) =>
-        e.date >= activeFY.startDate && e.date <= activeFY.endDate
-      );
+      const entries = activeFY?.startDate && activeFY?.endDate
+        ? allEntries.filter((e: any) => e.date >= activeFY.startDate && e.date <= activeFY.endDate)
+        : allEntries;
 
       setTotalEntries(entries.length);
 
@@ -100,7 +95,7 @@ export function useEtatsFinanciers(): EtatsFinanciersData {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [adapter]);
 
   useEffect(() => {
     loadData();
