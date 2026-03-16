@@ -81,6 +81,7 @@ const FiscalCalendar: React.FC<FiscalCalendarProps> = ({ triggeredTaxes, dbDecla
   const [calYear, setCalYear] = useState(new Date().getFullYear());
   const [showProgrammer, setShowProgrammer] = useState(false);
   const [form, setForm] = useState({ taxCode: '', taxName: '', deadline: '', periodicite: 'MONTHLY', montant: '', category: 'INDIRECT' });
+  const [selectedDay, setSelectedDay] = useState<number | null>(null);
 
   const today = new Date();
   const todayStr = today.toISOString().split('T')[0];
@@ -198,7 +199,10 @@ const FiscalCalendar: React.FC<FiscalCalendarProps> = ({ triggeredTaxes, dbDecla
             return (
               <div
                 key={idx}
-                className={`${bgClass} rounded-lg p-1 min-h-[80px] border border-gray-100 transition-colors`}
+                onClick={() => setSelectedDay(selectedDay === cell.day ? null : cell.day)}
+                className={`${bgClass} rounded-lg p-1 min-h-[80px] border transition-colors cursor-pointer ${
+                  selectedDay === cell.day ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-100'
+                }`}
               >
                 <div className={`text-xs font-medium mb-1 ${isToday ? 'text-blue-700 font-bold' : 'text-gray-600'}`}>
                   {cell.day}
@@ -224,6 +228,62 @@ const FiscalCalendar: React.FC<FiscalCalendarProps> = ({ triggeredTaxes, dbDecla
             );
           })}
         </div>
+
+        {/* Detail panel when a day is selected */}
+        {selectedDay !== null && (deadlineMap[selectedDay] || []).length > 0 && (
+          <div className="mt-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="font-semibold text-sm text-gray-900">
+                {selectedDay} {MONTH_NAMES[calMonth]} {calYear} — {(deadlineMap[selectedDay] || []).length} échéance(s)
+              </h4>
+              <button onClick={() => setSelectedDay(null)} className="text-gray-400 hover:text-gray-600">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="space-y-2">
+              {(deadlineMap[selectedDay] || []).map((dl, i) => {
+                let statusLabel = 'À déclarer';
+                let statusColor = 'bg-orange-100 text-orange-700';
+                if (dl.isOverdue) { statusLabel = 'En retard'; statusColor = 'bg-red-100 text-red-700'; }
+                else if (dl.status === 'paid') { statusLabel = 'Payée'; statusColor = 'bg-green-100 text-green-700'; }
+                else if (dl.status === 'declared' || dl.status === 'validated') { statusLabel = 'Déclarée'; statusColor = 'bg-blue-100 text-blue-700'; }
+                else if (dl.status === 'calculated') { statusLabel = 'Calculée'; statusColor = 'bg-yellow-100 text-yellow-700'; }
+
+                return (
+                  <div key={i} className="flex items-center justify-between bg-white rounded-lg p-3 border">
+                    <div className="flex items-center gap-3">
+                      <div>
+                        <div className="font-medium text-sm text-gray-900">{dl.name}</div>
+                        <div className="text-xs text-gray-500">
+                          Échéance : {selectedDay} {MONTH_NAMES[calMonth]} {calYear}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      {dl.amount != null && dl.amount > 0 && (
+                        <span className="text-sm font-semibold text-gray-900">{formatCurrency(dl.amount)}</span>
+                      )}
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColor}`}>
+                        {statusLabel}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {selectedDay !== null && (deadlineMap[selectedDay] || []).length === 0 && (
+          <div className="mt-3 p-4 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-between">
+            <span className="text-sm text-gray-500">
+              Aucune échéance le {selectedDay} {MONTH_NAMES[calMonth]} {calYear}
+            </span>
+            <button onClick={() => setSelectedDay(null)} className="text-gray-400 hover:text-gray-600">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        )}
 
         {/* Legend */}
         <div className="flex flex-wrap items-center gap-4 mt-3 pt-3 border-t border-gray-100">
