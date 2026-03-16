@@ -95,14 +95,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Initialize auth state
   useEffect(() => {
     if (!isSupabaseConfigured || isDev) {
-      console.warn('[AuthContext] Dev mode — auto-login as admin (auth bypassed)');
-      setUser({
-        id: 'dev-user',
-        name: 'Dev Admin',
-        email: 'dev@atlas.local',
-        role: 'admin',
-        permissions: ['read:all', 'write:all', 'delete:all', 'admin:all'],
-      });
+      // Dev mode : pas d'auto-login, on attend que l'utilisateur se connecte
+      // via la page /login (boutons démo)
+      const savedDevUser = sessionStorage.getItem('atlas-dev-user');
+      if (savedDevUser) {
+        setUser(JSON.parse(savedDevUser));
+      }
       setLoading(false);
       return;
     }
@@ -135,7 +133,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = useCallback(async (email: string, password: string) => {
     if (!isSupabaseConfigured || isDev) {
-      // Dev mode: auto-login without Supabase
+      // Dev mode : simuler le login avec le bon rôle selon l'email
+      const devAccounts: Record<string, { name: string; role: User['role']; permissions: string[] }> = {
+        'admin@atlasfinance.cm':       { name: 'Admin Atlas',      role: 'admin',     permissions: ['read:all', 'write:all', 'delete:all', 'admin:all'] },
+        'manager@atlasfinance.com':    { name: 'Manager Atlas',    role: 'manager',   permissions: ['read:all', 'write:all'] },
+        'comptable@atlasfinance.com':  { name: 'Comptable Atlas',  role: 'comptable', permissions: ['read:all', 'write:all'] },
+      };
+      const account = devAccounts[email.toLowerCase()];
+      if (!account) {
+        throw new Error('Compte de démonstration non reconnu. Utilisez un des comptes listés.');
+      }
+      const devUser: User = {
+        id: `dev-${account.role}`,
+        name: account.name,
+        email: email.toLowerCase(),
+        role: account.role,
+        permissions: account.permissions,
+        company: 'Atlas Finance',
+      };
+      setUser(devUser);
+      sessionStorage.setItem('atlas-dev-user', JSON.stringify(devUser));
       return;
     }
 
@@ -181,6 +198,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (isSupabaseConfigured && !isDev) {
       await supabase.auth.signOut();
     }
+    sessionStorage.removeItem('atlas-dev-user');
     setUser(null);
     setSession(null);
   }, []);
