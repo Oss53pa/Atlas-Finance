@@ -564,7 +564,60 @@ function classifyStatus(dl: { status: string; isOverdue: boolean }): string {
 }
 
 const FiscalCalendarWithViews: React.FC<FiscalCalendarProps> = (props) => {
+  const { adapter } = useData();
+  const queryClient = useQueryClient();
   const [calView, setCalView] = useState<'calendar' | 'kanban' | 'grid'>('calendar');
+  const [editItem, setEditItem] = useState<{ name: string; status: string; amount: number | null; deadline: string; isOverdue: boolean } | null>(null);
+  const [editForm, setEditForm] = useState({ status: '', deadline: '', montant: '', notes: '' });
+
+  const openEditModal = (item: { name: string; status: string; amount: number | null; deadline: string; isOverdue: boolean }) => {
+    setEditItem(item);
+    setEditForm({
+      status: item.isOverdue ? 'overdue' : item.status === 'pending' ? 'draft' : item.status,
+      deadline: item.deadline,
+      montant: item.amount != null ? String(item.amount) : '',
+      notes: '',
+    });
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editItem) return;
+    try {
+      const allDecl = await adapter.getAll('taxDeclarations');
+      const match = (allDecl as any[]).find(d => d.taxCode === editItem.name && d.declarationDeadline === editItem.deadline);
+
+      const payload = {
+        status: editForm.status,
+        declarationDeadline: editForm.deadline,
+        netTax: editForm.montant ? Number(editForm.montant) : 0,
+        balanceDue: editForm.montant ? Number(editForm.montant) : 0,
+        ...(editForm.status === 'declared' ? { declaredAt: new Date().toISOString() } : {}),
+        ...(editForm.status === 'paid' ? { paidAt: new Date().toISOString() } : {}),
+        ...(editForm.notes ? { paymentReference: editForm.notes } : {}),
+        updatedAt: new Date().toISOString(),
+      };
+
+      if (match) {
+        await adapter.update('taxDeclarations', match.id, payload);
+      } else {
+        await adapter.create('taxDeclarations', {
+          taxCode: editItem.name,
+          periodLabel: editItem.name,
+          periodStart: editForm.deadline,
+          periodEnd: editForm.deadline,
+          ...payload,
+          base: 0, grossTax: 0, deductible: 0, credit: 0,
+          createdAt: new Date().toISOString(),
+        });
+      }
+      toast.success(`${editItem.name} mis à jour`);
+      setEditItem(null);
+      queryClient.invalidateQueries({ queryKey: ['tax-reporting'] });
+    } catch (err) {
+      console.error('[FiscalCalendar] update failed:', err);
+      toast.error('Erreur lors de la mise à jour');
+    }
+  };
 
   // Build flat list of all deadlines for kanban/grid
   const allDeadlines = useMemo(() => {
@@ -643,7 +696,12 @@ const FiscalCalendarWithViews: React.FC<FiscalCalendarProps> = (props) => {
                 <div className="p-2 space-y-2">
                   {colItems.map((item, i) => (
                     <div key={i} className="bg-white rounded-lg p-3 border shadow-sm hover:shadow-md transition-shadow">
-                      <div className="font-medium text-sm text-gray-900">{item.name}</div>
+                      <div className="flex items-center justify-between">
+                        <div className="font-medium text-sm text-gray-900">{item.name}</div>
+                        <button onClick={() => openEditModal(item)} className="p-1 hover:bg-gray-100 rounded text-gray-400 hover:text-gray-700" title="Modifier">
+                          <Edit className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                       <div className="text-xs text-gray-500 mt-1">{item.deadline}</div>
                       {item.amount != null && item.amount > 0 && (
                         <div className="text-sm font-semibold text-gray-900 mt-2">{formatCurrency(item.amount)}</div>
@@ -670,14 +728,14 @@ const FiscalCalendarWithViews: React.FC<FiscalCalendarProps> = (props) => {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b">
                 <tr>
-                  {['Taxe', 'Catégorie', 'Échéance', 'Montant', 'Statut'].map(h => (
+                  {['Taxe', 'Catégorie', 'Échéance', 'Montant', 'Statut', 'Actions'].map(h => (
                     <th key={h} className="px-4 py-3 text-left font-medium text-gray-600">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y">
                 {allDeadlines.length === 0 ? (
-                  <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-400">Aucune échéance</td></tr>
+                  <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-400">Aucune échéance</td></tr>
                 ) : allDeadlines.map((dl, i) => {
                   const col = STATUS_COLUMNS.find(c => c.key === classifyStatus(dl))!;
                   return (
@@ -696,6 +754,11 @@ const FiscalCalendarWithViews: React.FC<FiscalCalendarProps> = (props) => {
                           {col.label}
                         </span>
                       </td>
+                      <td className="px-4 py-3">
+                        <button onClick={() => openEditModal(dl)} className="p-1.5 hover:bg-gray-100 rounded text-gray-500 hover:text-gray-700" title="Modifier">
+                          <Edit className="h-4 w-4" />
+                        </button>
+                      </td>
                     </tr>
                   );
                 })}
@@ -703,6 +766,56 @@ const FiscalCalendarWithViews: React.FC<FiscalCalendarProps> = (props) => {
             </table>
           </CardContent>
         </Card>
+      )}
+
+      {/* Modal Modifier — partagé entre les 3 vues */}
+      {editItem && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-bold flex items-center gap-2">
+                <Edit className="h-5 w-5 text-blue-600" />
+                Modifier — {editItem.name}
+              </h3>
+              <button onClick={() => setEditItem(null)} className="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+                <select value={editForm.status} onChange={e => setEditForm(f => ({ ...f, status: e.target.value }))}
+                  className="w-full border rounded-lg px-3 py-2 text-sm">
+                  <option value="draft">Brouillon (À déclarer)</option>
+                  <option value="calculated">Calculée</option>
+                  <option value="validated">Validée</option>
+                  <option value="declared">Déclarée</option>
+                  <option value="paid">Payée</option>
+                  <option value="overdue">En retard</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Date limite</label>
+                <input type="date" value={editForm.deadline} onChange={e => setEditForm(f => ({ ...f, deadline: e.target.value }))}
+                  className="w-full border rounded-lg px-3 py-2 text-sm" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Montant</label>
+                <input type="number" value={editForm.montant} onChange={e => setEditForm(f => ({ ...f, montant: e.target.value }))}
+                  placeholder="0" className="w-full border rounded-lg px-3 py-2 text-sm" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Notes / Référence paiement</label>
+                <textarea value={editForm.notes} onChange={e => setEditForm(f => ({ ...f, notes: e.target.value }))}
+                  placeholder="Remarques, n° de quittance..." rows={2} className="w-full border rounded-lg px-3 py-2 text-sm resize-none" />
+              </div>
+            </div>
+            <div className="flex gap-3 justify-end pt-2">
+              <Button variant="outline" onClick={() => setEditItem(null)}>Annuler</Button>
+              <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={handleSaveEdit}>
+                <CheckCircle className="mr-1 h-4 w-4" /> Enregistrer
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
