@@ -61,6 +61,188 @@ import {
 } from '../../components/ui';
 import { motion } from 'framer-motion';
 
+// ═══════════════════════════════════════════════════════════════════════════
+// CALENDRIER FISCAL VISUEL — grille mensuelle avec échéances code couleur
+// ═══════════════════════════════════════════════════════════════════════════
+
+const DAYS_OF_WEEK = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+const MONTH_NAMES = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+
+interface FiscalCalendarProps {
+  triggeredTaxes: TaxDetectionResult[];
+  dbDeclarations: DBTaxDeclaration[];
+  hasRegistry: boolean;
+}
+
+const FiscalCalendar: React.FC<FiscalCalendarProps> = ({ triggeredTaxes, dbDeclarations, hasRegistry }) => {
+  const [calMonth, setCalMonth] = useState(new Date().getMonth());
+  const [calYear, setCalYear] = useState(new Date().getFullYear());
+
+  const today = new Date();
+  const todayStr = today.toISOString().split('T')[0];
+
+  // Build calendar grid
+  const firstDay = new Date(calYear, calMonth, 1);
+  const lastDay = new Date(calYear, calMonth + 1, 0);
+  const daysInMonth = lastDay.getDate();
+  // Monday = 0, Sunday = 6
+  let startDow = firstDay.getDay() - 1;
+  if (startDow < 0) startDow = 6;
+
+  // Build deadline map: day → array of {taxName, status, amount}
+  const deadlineMap = useMemo(() => {
+    const map: Record<number, Array<{ name: string; status: string; amount: number | null; isOverdue: boolean }>> = {};
+
+    // From detection results
+    for (const r of triggeredTaxes) {
+      if (!r.declarationDeadline) continue;
+      const d = new Date(r.declarationDeadline);
+      if (d.getMonth() !== calMonth || d.getFullYear() !== calYear) continue;
+      const day = d.getDate();
+      if (!map[day]) map[day] = [];
+      map[day].push({
+        name: r.tax.taxShortName || r.tax.taxCode,
+        status: r.existingDeclaration?.status || 'pending',
+        amount: r.amounts?.net ?? null,
+        isOverdue: r.isOverdue,
+      });
+    }
+
+    // From DB declarations (for declared/paid ones that may not be in detection)
+    for (const decl of dbDeclarations) {
+      if (!decl.declarationDeadline) continue;
+      const d = new Date(decl.declarationDeadline);
+      if (d.getMonth() !== calMonth || d.getFullYear() !== calYear) continue;
+      const day = d.getDate();
+      // Avoid duplicates
+      if (map[day]?.some(e => e.name === decl.taxCode)) continue;
+      if (!map[day]) map[day] = [];
+      map[day].push({
+        name: decl.taxCode,
+        status: decl.status,
+        amount: decl.netTax,
+        isOverdue: decl.declarationDeadline < todayStr && decl.status !== 'paid' && decl.status !== 'declared',
+      });
+    }
+
+    return map;
+  }, [triggeredTaxes, dbDeclarations, calMonth, calYear, todayStr]);
+
+  const prevMonth = () => {
+    if (calMonth === 0) { setCalMonth(11); setCalYear(y => y - 1); }
+    else setCalMonth(m => m - 1);
+  };
+  const nextMonth = () => {
+    if (calMonth === 11) { setCalMonth(0); setCalYear(y => y + 1); }
+    else setCalMonth(m => m + 1);
+  };
+
+  const cells: Array<{ day: number | null }> = [];
+  for (let i = 0; i < startDow; i++) cells.push({ day: null });
+  for (let d = 1; d <= daysInMonth; d++) cells.push({ day: d });
+  while (cells.length % 7 !== 0) cells.push({ day: null });
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center">
+            <Calendar className="mr-2 h-5 w-5" />
+            Calendrier Fiscal
+          </CardTitle>
+          <div className="flex items-center space-x-2">
+            <Button variant="ghost" size="sm" onClick={prevMonth}>&lsaquo;</Button>
+            <span className="text-sm font-semibold min-w-[140px] text-center">
+              {MONTH_NAMES[calMonth]} {calYear}
+            </span>
+            <Button variant="ghost" size="sm" onClick={nextMonth}>&rsaquo;</Button>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {/* Day headers */}
+        <div className="grid grid-cols-7 gap-1 mb-1">
+          {DAYS_OF_WEEK.map(d => (
+            <div key={d} className="text-center text-xs font-medium text-gray-500 py-1">{d}</div>
+          ))}
+        </div>
+
+        {/* Calendar grid */}
+        <div className="grid grid-cols-7 gap-1">
+          {cells.map((cell, idx) => {
+            if (cell.day === null) return <div key={idx} className="h-20" />;
+
+            const deadlines = deadlineMap[cell.day] || [];
+            const hasDeadline = deadlines.length > 0;
+            const hasOverdue = deadlines.some(d => d.isOverdue);
+            const hasPaid = deadlines.some(d => d.status === 'paid');
+            const hasDeclared = deadlines.some(d => d.status === 'declared' || d.status === 'validated');
+            const dateStr = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(cell.day).padStart(2, '0')}`;
+            const isToday = dateStr === todayStr;
+            const isWeekend = (startDow + cell.day - 1) % 7 >= 5;
+
+            let bgClass = 'bg-white hover:bg-gray-50';
+            if (isToday) bgClass = 'bg-blue-50 ring-2 ring-blue-400';
+            else if (hasOverdue) bgClass = 'bg-red-50';
+            else if (hasDeadline && !hasPaid) bgClass = 'bg-orange-50';
+            else if (hasPaid) bgClass = 'bg-green-50';
+            else if (isWeekend) bgClass = 'bg-gray-50';
+
+            return (
+              <div
+                key={idx}
+                className={`${bgClass} rounded-lg p-1 min-h-[80px] border border-gray-100 transition-colors`}
+              >
+                <div className={`text-xs font-medium mb-1 ${isToday ? 'text-blue-700 font-bold' : 'text-gray-600'}`}>
+                  {cell.day}
+                </div>
+                {deadlines.slice(0, 3).map((dl, i) => {
+                  let dotColor = 'bg-orange-400';
+                  if (dl.isOverdue) dotColor = 'bg-red-500';
+                  else if (dl.status === 'paid') dotColor = 'bg-green-500';
+                  else if (dl.status === 'declared' || dl.status === 'validated') dotColor = 'bg-blue-500';
+                  else if (dl.status === 'calculated') dotColor = 'bg-yellow-500';
+
+                  return (
+                    <div key={i} className="flex items-center gap-1 mb-0.5" title={`${dl.name} — ${dl.amount != null ? formatCurrency(dl.amount) : 'Manuel'} — ${dl.status}`}>
+                      <span className={`w-2 h-2 rounded-full ${dotColor} flex-shrink-0`} />
+                      <span className="text-[10px] text-gray-700 truncate">{dl.name}</span>
+                    </div>
+                  );
+                })}
+                {deadlines.length > 3 && (
+                  <div className="text-[10px] text-gray-400">+{deadlines.length - 3} autres</div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Legend */}
+        <div className="flex flex-wrap items-center gap-4 mt-3 pt-3 border-t border-gray-100">
+          <div className="flex items-center gap-1.5 text-xs text-gray-600">
+            <span className="w-2.5 h-2.5 rounded-full bg-red-500" /> En retard
+          </div>
+          <div className="flex items-center gap-1.5 text-xs text-gray-600">
+            <span className="w-2.5 h-2.5 rounded-full bg-orange-400" /> À déclarer
+          </div>
+          <div className="flex items-center gap-1.5 text-xs text-gray-600">
+            <span className="w-2.5 h-2.5 rounded-full bg-yellow-500" /> Calculée
+          </div>
+          <div className="flex items-center gap-1.5 text-xs text-gray-600">
+            <span className="w-2.5 h-2.5 rounded-full bg-blue-500" /> Déclarée
+          </div>
+          <div className="flex items-center gap-1.5 text-xs text-gray-600">
+            <span className="w-2.5 h-2.5 rounded-full bg-green-500" /> Payée
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+
 interface TaxDeclaration {
   id: string;
   type: string;
@@ -825,6 +1007,7 @@ const TaxReportingPage: React.FC = () => {
             <TabsTrigger value="declarations">Déclarations</TabsTrigger>
             <TabsTrigger value="reports">Rapports</TabsTrigger>
             <TabsTrigger value="analytics">Analyses</TabsTrigger>
+            <TabsTrigger value="calendar">Calendrier</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-4">
@@ -979,6 +1162,7 @@ const TaxReportingPage: React.FC = () => {
                 </div>
               </CardContent>
             </Card>
+
           </TabsContent>
 
           <TabsContent value="declarations" className="space-y-4">
@@ -1290,6 +1474,14 @@ const TaxReportingPage: React.FC = () => {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          <TabsContent value="calendar" className="space-y-4">
+            <FiscalCalendar
+              triggeredTaxes={triggeredTaxes}
+              dbDeclarations={dbTaxDeclarations}
+              hasRegistry={hasRegistry}
+            />
           </TabsContent>
         </Tabs>
       </motion.div>

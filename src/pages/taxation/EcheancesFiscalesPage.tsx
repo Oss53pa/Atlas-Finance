@@ -1,547 +1,412 @@
-import React, { useState, useEffect } from 'react';
+// @ts-nocheck
+import React, { useState, useMemo } from 'react';
 import { useData } from '../../contexts/DataContext';
-import { motion } from 'framer-motion';
+import { useQuery } from '@tanstack/react-query';
 import {
-  Calendar,
-  Clock,
-  AlertTriangle,
-  CheckCircle,
-  Bell,
-  Filter,
-  Download,
-  Settings,
-  Plus,
-  Edit,
-  Trash2,
-  Eye,
-  DollarSign,
-  FileText,
-  Building,
-  User
+  Calendar, Clock, AlertTriangle, CheckCircle, Bell, Filter, Download,
+  Plus, Eye, Edit, DollarSign, FileText, ChevronLeft, ChevronRight,
+  Calculator, Send, CreditCard, AlertCircle
 } from 'lucide-react';
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-  Button,
-  Input,
-  Badge,
-  Table,
-  TableHeader,
-  TableRow,
-  TableHead,
-  TableBody,
-  TableCell,
-  LoadingSpinner,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger
-} from '../../components/ui';
-import { formatCurrency, formatDate } from '../../lib/utils';
+import { formatCurrency } from '../../lib/utils';
 import { toast } from 'react-hot-toast';
 
-interface TaxDeadline {
+// ============================================================================
+// Types
+// ============================================================================
+
+type DeadlineStatus = 'en_retard' | 'a_declarer' | 'calculee' | 'declaree' | 'payee';
+
+interface FiscalDeadline {
   id: string;
-  nom: string;
-  type: 'TVA' | 'IS' | 'IRPP' | 'TCA' | 'TFP' | 'AUTRES';
-  description: string;
-  date_echeance: string;
-  statut: 'à_venir' | 'urgent' | 'dépassé' | 'terminé';
-  montant_estimé?: number;
-  periodicite: 'mensuel' | 'trimestriel' | 'semestriel' | 'annuel';
-  rappel_actif: boolean;
-  rappel_jours: number;
+  taxCode: string;
+  taxName: string;
+  taxCategory: string;
+  periodLabel: string;
+  deadline: string; // ISO date
+  status: DeadlineStatus;
+  montant?: number;
+  periodicite: string;
   obligatoire: boolean;
-  derniere_declaration?: string;
-  prochaine_echeance?: string;
 }
 
-interface CalendarEvent {
-  date: string;
-  events: TaxDeadline[];
-}
+// ============================================================================
+// Status Config
+// ============================================================================
+
+const STATUS_CONFIG: Record<DeadlineStatus, { label: string; color: string; bg: string; dot: string; icon: React.ReactNode }> = {
+  en_retard:  { label: 'En retard',   color: 'text-red-700',    bg: 'bg-red-100',    dot: 'bg-red-500',    icon: <AlertCircle className="h-4 w-4" /> },
+  a_declarer: { label: 'À déclarer',  color: 'text-orange-700', bg: 'bg-orange-100', dot: 'bg-orange-500', icon: <Clock className="h-4 w-4" /> },
+  calculee:   { label: 'Calculée',    color: 'text-blue-700',   bg: 'bg-blue-100',   dot: 'bg-blue-500',   icon: <Calculator className="h-4 w-4" /> },
+  declaree:   { label: 'Déclarée',    color: 'text-indigo-700', bg: 'bg-indigo-100', dot: 'bg-indigo-500', icon: <Send className="h-4 w-4" /> },
+  payee:      { label: 'Payée',       color: 'text-green-700',  bg: 'bg-green-100',  dot: 'bg-green-500',  icon: <CheckCircle className="h-4 w-4" /> },
+};
+
+const DAY_NAMES = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+const MONTH_NAMES = [
+  'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+  'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre',
+];
+
+// ============================================================================
+// Component
+// ============================================================================
 
 const EcheancesFiscalesPage: React.FC = () => {
-  const [selectedMonth, setSelectedMonth] = useState<string>(
-    new Date().toISOString().slice(0, 7)
-  );
-  const [selectedType, setSelectedType] = useState<string>('tous');
-  const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
   const { adapter } = useData();
-  const [deadlinesSetting, setDeadlinesSetting] = useState<any>(undefined);
+  const today = new Date();
+  const [currentMonth, setCurrentMonth] = useState(today.getMonth());
+  const [currentYear, setCurrentYear] = useState(today.getFullYear());
+  const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
+  const [selectedType, setSelectedType] = useState<string>('tous');
 
-  useEffect(() => {
-    const load = async () => {
-      const s = await adapter.getById('settings', 'fiscal_deadlines');
-      setDeadlinesSetting(s);
-    };
-    load();
-  }, [adapter]);
+  // Load tax declarations + registry from DB
+  const { data: deadlines = [], isLoading } = useQuery({
+    queryKey: ['fiscal-deadlines', currentYear],
+    queryFn: async (): Promise<FiscalDeadline[]> => {
+      const [declarations, registries] = await Promise.all([
+        adapter.getAll('taxDeclarations'),
+        adapter.getAll('taxRegistry'),
+      ]);
 
-  const deadlines: TaxDeadline[] = (() => {
-    try {
-      if (deadlinesSetting?.value) {
-        const parsed = JSON.parse(deadlinesSetting.value);
-        if (Array.isArray(parsed)) return parsed;
+      const todayStr = new Date().toISOString().split('T')[0];
+      const result: FiscalDeadline[] = [];
+
+      // From existing tax declarations
+      for (const decl of (declarations as any[])) {
+        const reg = (registries as any[]).find(r => r.id === decl.taxRegistryId || r.taxCode === decl.taxCode);
+
+        let status: DeadlineStatus;
+        switch (decl.status) {
+          case 'paid': status = 'payee'; break;
+          case 'declared': case 'validated': status = 'declaree'; break;
+          case 'calculated': status = 'calculee'; break;
+          case 'overdue': status = 'en_retard'; break;
+          default: {
+            // draft or unknown — check if overdue
+            if (decl.declarationDeadline && decl.declarationDeadline < todayStr) {
+              status = 'en_retard';
+            } else {
+              status = 'a_declarer';
+            }
+          }
+        }
+
+        result.push({
+          id: decl.id,
+          taxCode: decl.taxCode || reg?.taxCode || '?',
+          taxName: reg?.taxName || decl.taxCode || 'Taxe',
+          taxCategory: reg?.taxCategory || 'AUTRE',
+          periodLabel: decl.periodLabel || '',
+          deadline: decl.declarationDeadline || decl.periodEnd || '',
+          status,
+          montant: decl.netTax ?? decl.balanceDue ?? 0,
+          periodicite: reg?.periodicity || 'MONTHLY',
+          obligatoire: reg?.isMandatory ?? true,
+        });
       }
-    } catch { /* ignore parse errors */ }
-    return [];
-  })();
-  const isLoading = deadlinesSetting === undefined;
 
-  const getStatusColor = (statut: string) => {
-    switch (statut) {
-      case 'à_venir':
-        return 'text-blue-600 bg-blue-100';
-      case 'urgent':
-        return 'text-orange-600 bg-orange-100';
-      case 'dépassé':
-        return 'text-red-600 bg-red-100';
-      case 'terminé':
-        return 'text-green-600 bg-green-100';
-      default:
-        return 'text-gray-600 bg-gray-100';
+      // If no declarations exist, generate from registry for current year
+      if (result.length === 0 && (registries as any[]).length > 0) {
+        for (const reg of (registries as any[])) {
+          if (!reg.isActive) continue;
+          const months = reg.periodicity === 'MONTHLY' ? 12
+            : reg.periodicity === 'QUARTERLY' ? 4
+            : reg.periodicity === 'ANNUAL' ? 1 : 0;
+
+          for (let i = 0; i < months; i++) {
+            const periodMonth = reg.periodicity === 'QUARTERLY' ? (i + 1) * 3 : i + 1;
+            const periodEnd = new Date(currentYear, periodMonth, 0);
+            const deadlineDate = new Date(periodEnd);
+            deadlineDate.setDate(deadlineDate.getDate() + (reg.declarationDeadlineDays || 15));
+            const deadlineStr = deadlineDate.toISOString().split('T')[0];
+
+            let status: DeadlineStatus;
+            if (deadlineStr < todayStr) {
+              status = 'en_retard';
+            } else {
+              status = 'a_declarer';
+            }
+
+            result.push({
+              id: `${reg.taxCode}-${currentYear}-${String(periodMonth).padStart(2, '0')}`,
+              taxCode: reg.taxCode,
+              taxName: reg.taxName || reg.taxShortName,
+              taxCategory: reg.taxCategory,
+              periodLabel: reg.periodicity === 'ANNUAL'
+                ? `${currentYear}`
+                : reg.periodicity === 'QUARTERLY'
+                  ? `T${i + 1} ${currentYear}`
+                  : `${MONTH_NAMES[i]} ${currentYear}`,
+              deadline: deadlineStr,
+              status,
+              periodicite: reg.periodicity,
+              obligatoire: reg.isMandatory ?? true,
+            });
+          }
+        }
+      }
+
+      return result.sort((a, b) => a.deadline.localeCompare(b.deadline));
+    },
+  });
+
+  // Calendar grid generation (Monday-first)
+  const calendarDays = useMemo(() => {
+    const firstOfMonth = new Date(currentYear, currentMonth, 1);
+    const lastOfMonth = new Date(currentYear, currentMonth + 1, 0);
+    const daysInMonth = lastOfMonth.getDate();
+
+    // Monday = 0, Sunday = 6
+    let startDow = firstOfMonth.getDay() - 1;
+    if (startDow < 0) startDow = 6;
+
+    const cells: { day: number | null; date: string; events: FiscalDeadline[] }[] = [];
+
+    // Empty cells before first day
+    for (let i = 0; i < startDow; i++) {
+      cells.push({ day: null, date: '', events: [] });
     }
-  };
 
-  const getStatusIcon = (statut: string) => {
-    switch (statut) {
-      case 'à_venir':
-        return <Clock className="h-4 w-4" />;
-      case 'urgent':
-        return <AlertTriangle className="h-4 w-4" />;
-      case 'dépassé':
-        return <AlertTriangle className="h-4 w-4" />;
-      case 'terminé':
-        return <CheckCircle className="h-4 w-4" />;
-      default:
-        return <Clock className="h-4 w-4" />;
+    // Days of month
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      const dayEvents = deadlines.filter(dl => dl.deadline === dateStr);
+      cells.push({ day: d, date: dateStr, events: dayEvents });
     }
-  };
 
-  const getTypeColor = (type: string) => {
-    const colors: Record<string, string> = {
-      'TVA': 'bg-blue-100 text-blue-800',
-      'IS': 'bg-green-100 text-green-800',
-      'IRPP': 'bg-primary-100 text-primary-800',
-      'TCA': 'bg-orange-100 text-orange-800',
-      'TFP': 'bg-red-100 text-red-800',
-      'AUTRES': 'bg-gray-100 text-gray-800'
-    };
-    return colors[type] || 'bg-gray-100 text-gray-800';
-  };
+    return cells;
+  }, [currentYear, currentMonth, deadlines]);
 
-  const getDaysUntilDeadline = (dateEcheance: string) => {
-    const today = new Date();
-    const deadline = new Date(dateEcheance);
-    const diffTime = deadline.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
-  };
-
-  const generateCalendarDays = (month: string) => {
-    const year = parseInt(month.split('-')[0]);
-    const monthNum = parseInt(month.split('-')[1]) - 1;
-    
-    const firstDay = new Date(year, monthNum, 1);
-    const lastDay = new Date(year, monthNum + 1, 0);
-    const daysInMonth = lastDay.getDate();
-    
-    const days = [];
-    for (let day = 1; day <= daysInMonth; day++) {
-      const currentDate = new Date(year, monthNum, day);
-      const dateString = currentDate.toISOString().split('T')[0];
-      const dayDeadlines = deadlines.filter(d => d.date_echeance === dateString);
-      
-      days.push({
-        date: dateString,
-        day: day,
-        events: dayDeadlines
-      });
+  // Filter
+  const filteredDeadlines = useMemo(() => {
+    let result = deadlines;
+    if (selectedType !== 'tous') {
+      result = result.filter(d => d.taxCategory === selectedType || d.taxCode === selectedType);
     }
-    
-    return days;
+    // Filter by selected month
+    const prefix = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
+    return result.filter(d => d.deadline.startsWith(prefix));
+  }, [deadlines, selectedType, currentYear, currentMonth]);
+
+  // Counts
+  const counts = useMemo(() => {
+    const c = { en_retard: 0, a_declarer: 0, calculee: 0, declaree: 0, payee: 0 };
+    for (const d of deadlines) c[d.status]++;
+    return c;
+  }, [deadlines]);
+
+  const prevMonth = () => {
+    if (currentMonth === 0) { setCurrentMonth(11); setCurrentYear(y => y - 1); }
+    else setCurrentMonth(m => m - 1);
+  };
+  const nextMonth = () => {
+    if (currentMonth === 11) { setCurrentMonth(0); setCurrentYear(y => y + 1); }
+    else setCurrentMonth(m => m + 1);
   };
 
-  const urgentCount = deadlines.filter(d => d.statut === 'urgent').length;
-  const overdueCount = deadlines.filter(d => d.statut === 'dépassé').length;
-  const upcomingCount = deadlines.filter(d => d.statut === 'à_venir').length;
-  const totalAmount = deadlines.reduce((sum, d) => sum + (d.montant_estimé || 0), 0);
-
-  const filteredDeadlines = selectedType === 'tous' 
-    ? deadlines 
-    : deadlines.filter(d => d.type === selectedType);
+  const todayStr = today.toISOString().split('T')[0];
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="border-b border-gray-200 pb-4"
-      >
+      <div className="border-b border-gray-200 pb-4">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-lg font-bold text-gray-900 flex items-center">
               <Calendar className="mr-3 h-7 w-7 text-blue-600" />
-              Échéances Fiscales
+              Calendrier Fiscal
             </h1>
-            <p className="mt-2 text-gray-600">
-              Calendrier et suivi des obligations fiscales selon la réglementation SYSCOHADA
+            <p className="mt-1 text-sm text-gray-600">
+              Suivi des obligations fiscales — SYSCOHADA / OHADA
             </p>
           </div>
-          <div className="flex space-x-3">
-            <Button variant="outline" onClick={() => setViewMode(viewMode === 'calendar' ? 'list' : 'calendar')}>
-              {viewMode === 'calendar' ? <FileText className="mr-2 h-4 w-4" /> : <Calendar className="mr-2 h-4 w-4" />}
-              {viewMode === 'calendar' ? 'Vue Liste' : 'Vue Calendrier'}
-            </Button>
-            <Button className="bg-blue-600 hover:bg-blue-700">
-              <Plus className="mr-2 h-4 w-4" />
-              Nouvelle Échéance
-            </Button>
-            <Button variant="outline">
-              <Download className="mr-2 h-4 w-4" />
-              Exporter
-            </Button>
+          <div className="flex space-x-2">
+            <button
+              onClick={() => setViewMode(viewMode === 'calendar' ? 'list' : 'calendar')}
+              className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm flex items-center gap-2"
+            >
+              {viewMode === 'calendar' ? <FileText className="h-4 w-4" /> : <Calendar className="h-4 w-4" />}
+              {viewMode === 'calendar' ? 'Liste' : 'Calendrier'}
+            </button>
+            <button className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm flex items-center gap-2">
+              <Download className="h-4 w-4" /> Export
+            </button>
           </div>
         </div>
-      </motion.div>
-
-      {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-        >
-          <Card>
-            <CardContent className="flex items-center p-6">
-              <div className="flex items-center space-x-4">
-                <div className="p-2 bg-orange-100 rounded-full">
-                  <AlertTriangle className="h-6 w-6 text-orange-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Urgent</p>
-                  <p className="text-lg font-bold text-orange-700">{urgentCount}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
-          <Card>
-            <CardContent className="flex items-center p-6">
-              <div className="flex items-center space-x-4">
-                <div className="p-2 bg-red-100 rounded-full">
-                  <AlertTriangle className="h-6 w-6 text-red-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-600">En Retard</p>
-                  <p className="text-lg font-bold text-red-700">{overdueCount}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-        >
-          <Card>
-            <CardContent className="flex items-center p-6">
-              <div className="flex items-center space-x-4">
-                <div className="p-2 bg-blue-100 rounded-full">
-                  <Clock className="h-6 w-6 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-600">À Venir</p>
-                  <p className="text-lg font-bold text-blue-700">{upcomingCount}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-        >
-          <Card>
-            <CardContent className="flex items-center p-6">
-              <div className="flex items-center space-x-4">
-                <div className="p-2 bg-green-100 rounded-full">
-                  <DollarSign className="h-6 w-6 text-green-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Total Estimé</p>
-                  <p className="text-lg font-bold text-green-700">
-                    {formatCurrency(totalAmount)}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
       </div>
 
-      {/* Filters */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.5 }}
-      >
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Filter className="mr-2 h-5 w-5" />
-              Filtres
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 md:grid-cols-3">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Mois
-                </label>
-                <Input
-                  type="month"
-                  value={selectedMonth}
-                  onChange={(e) => setSelectedMonth(e.target.value)}
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Type de Taxe
-                </label>
-                <Select value={selectedType} onValueChange={setSelectedType}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="tous">Tous les types</SelectItem>
-                    <SelectItem value="TVA">TVA</SelectItem>
-                    <SelectItem value="IS">Impôt sur Sociétés</SelectItem>
-                    <SelectItem value="IRPP">IRPP</SelectItem>
-                    <SelectItem value="TCA">Taxe sur CA</SelectItem>
-                    <SelectItem value="TFP">Taxe Foncière</SelectItem>
-                    <SelectItem value="AUTRES">Autres</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="flex items-end">
-                <Button variant="outline" className="w-full">
-                  <Settings className="mr-2 h-4 w-4" />
-                  Paramètres
-                </Button>
-              </div>
+      {/* KPI Cards — 5 statuts */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        {(Object.entries(STATUS_CONFIG) as [DeadlineStatus, typeof STATUS_CONFIG[DeadlineStatus]][]).map(([key, cfg]) => (
+          <div key={key} className={`${cfg.bg} rounded-lg p-4 border`}>
+            <div className="flex items-center gap-2 mb-1">
+              <span className={cfg.color}>{cfg.icon}</span>
+              <span className={`text-xs font-medium ${cfg.color}`}>{cfg.label}</span>
             </div>
-          </CardContent>
-        </Card>
-      </motion.div>
-
-      {/* Main Content */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.6 }}
-      >
-        {viewMode === 'calendar' ? (
-          <Card>
-            <CardHeader>
-              <CardTitle>Calendrier Fiscal</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-7 gap-2 mb-4">
-                {['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'].map(day => (
-                  <div key={day} className="p-2 text-center font-medium text-gray-600 bg-gray-50 rounded">
-                    {day}
-                  </div>
-                ))}
-              </div>
-              <div className="grid grid-cols-7 gap-2">
-                {generateCalendarDays(selectedMonth).map(({ date, day, events }) => (
-                  <div
-                    key={date}
-                    className={`min-h-[100px] p-2 border rounded hover:bg-gray-50 ${
-                      events.length > 0 ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-200'
-                    }`}
-                  >
-                    <div className="text-sm font-medium text-gray-700 mb-1">{day}</div>
-                    <div className="space-y-1">
-                      {events.map(event => (
-                        <div
-                          key={event.id}
-                          className={`text-xs p-1 rounded cursor-pointer ${getStatusColor(event.statut)}`}
-                          title={`${event.nom} - ${event.description}`}
-                        >
-                          <div className="font-medium truncate">{event.type}</div>
-                          {event.montant_estimé && (
-                            <div className="text-xs">{formatCurrency(event.montant_estimé)}</div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        ) : (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>Liste des Échéances</span>
-                <Badge variant="outline">
-                  {filteredDeadlines.length} échéance(s)
-                </Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <div className="flex justify-center py-8">
-                  <LoadingSpinner size="lg" text="Chargement des échéances..." />
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Échéance</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Date Limite</TableHead>
-                        <TableHead>Statut</TableHead>
-                        <TableHead>Périodicité</TableHead>
-                        <TableHead className="text-right">Montant</TableHead>
-                        <TableHead>Rappel</TableHead>
-                        <TableHead className="text-center">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredDeadlines.map((deadline) => {
-                        const daysUntil = getDaysUntilDeadline(deadline.date_echeance);
-                        return (
-                          <TableRow key={deadline.id} className="hover:bg-gray-50">
-                            <TableCell>
-                              <div className="flex items-center space-x-2">
-                                {deadline.obligatoire && (
-                                  <AlertTriangle className="h-4 w-4 text-red-500" />
-                                )}
-                                <div>
-                                  <p className="font-medium text-gray-900">{deadline.nom}</p>
-                                  <p className="text-sm text-gray-700">{deadline.description}</p>
-                                  {daysUntil >= 0 ? (
-                                    <p className="text-xs text-blue-600">Dans {daysUntil} jour(s)</p>
-                                  ) : (
-                                    <p className="text-xs text-red-600">Dépassé de {Math.abs(daysUntil)} jour(s)</p>
-                                  )}
-                                </div>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <Badge className={getTypeColor(deadline.type)}>
-                                {deadline.type}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              <span className="text-sm text-gray-900">
-                                {formatDate(deadline.date_echeance)}
-                              </span>
-                            </TableCell>
-                            <TableCell>
-                              <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(deadline.statut)}`}>
-                                {getStatusIcon(deadline.statut)}
-                                <span className="ml-1 capitalize">{deadline.statut.replace('_', ' ')}</span>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant="outline" className="capitalize">
-                                {deadline.periodicite}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {deadline.montant_estimé && (
-                                <span className="font-semibold text-green-700">
-                                  {formatCurrency(deadline.montant_estimé)}
-                                </span>
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center space-x-1">
-                                {deadline.rappel_actif ? (
-                                  <Bell className="h-4 w-4 text-blue-500" />
-                                ) : (
-                                  <Bell className="h-4 w-4 text-gray-300" />
-                                )}
-                                <span className="text-xs text-gray-600">
-                                  {deadline.rappel_jours}j avant
-                                </span>
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-center">
-                              <div className="flex justify-center space-x-1">
-                                <Button variant="ghost" size="sm">
-                                  <Eye className="h-4 w-4" />
-                                </Button>
-                                <Button variant="ghost" size="sm">
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                                <Button variant="ghost" size="sm">
-                                  <Bell className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
-      </motion.div>
-
-      {/* Upcoming Deadlines Notification */}
-      {urgentCount > 0 && (
-        <motion.div
-          initial={{ opacity: 0, x: 300 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="fixed bottom-4 right-4 bg-orange-50 border-l-4 border-orange-400 p-4 rounded-lg shadow-lg max-w-sm z-50"
-        >
-          <div className="flex items-start">
-            <AlertTriangle className="h-5 w-5 text-orange-400 mt-0.5" />
-            <div className="ml-3">
-              <p className="text-sm font-medium text-orange-800">
-                Échéances Urgentes!
-              </p>
-              <p className="text-sm text-orange-700 mt-1">
-                Vous avez {urgentCount} échéance(s) fiscale(s) urgente(s) à traiter.
-              </p>
-              <Button size="sm" className="mt-2 bg-orange-600 hover:bg-orange-700">
-                Voir Détails
-              </Button>
-            </div>
+            <p className={`text-2xl font-bold ${cfg.color}`}>{counts[key]}</p>
           </div>
-        </motion.div>
+        ))}
+      </div>
+
+      {/* Month navigation */}
+      <div className="flex items-center justify-between bg-white border rounded-lg px-4 py-3">
+        <button onClick={prevMonth} className="p-2 hover:bg-gray-100 rounded-lg">
+          <ChevronLeft className="h-5 w-5" />
+        </button>
+        <h2 className="text-lg font-bold text-gray-900">
+          {MONTH_NAMES[currentMonth]} {currentYear}
+        </h2>
+        <button onClick={nextMonth} className="p-2 hover:bg-gray-100 rounded-lg">
+          <ChevronRight className="h-5 w-5" />
+        </button>
+      </div>
+
+      {/* Calendar View */}
+      {viewMode === 'calendar' && (
+        <div className="bg-white border rounded-lg overflow-hidden">
+          {/* Day headers */}
+          <div className="grid grid-cols-7 bg-gray-50 border-b">
+            {DAY_NAMES.map(d => (
+              <div key={d} className="px-2 py-3 text-center text-xs font-semibold text-gray-600 uppercase">
+                {d}
+              </div>
+            ))}
+          </div>
+          {/* Day cells */}
+          <div className="grid grid-cols-7">
+            {calendarDays.map((cell, i) => {
+              const isToday = cell.date === todayStr;
+              return (
+                <div
+                  key={i}
+                  className={`min-h-[110px] border-b border-r p-1.5 ${
+                    cell.day === null ? 'bg-gray-50' : 'bg-white hover:bg-gray-50'
+                  } ${isToday ? 'ring-2 ring-inset ring-blue-500' : ''}`}
+                >
+                  {cell.day !== null && (
+                    <>
+                      <div className={`text-sm font-medium mb-1 ${isToday ? 'text-blue-600 font-bold' : 'text-gray-700'}`}>
+                        {cell.day}
+                      </div>
+                      <div className="space-y-1">
+                        {cell.events.map(ev => {
+                          const cfg = STATUS_CONFIG[ev.status];
+                          return (
+                            <div
+                              key={ev.id}
+                              className={`${cfg.bg} ${cfg.color} rounded px-1.5 py-0.5 text-[10px] font-medium cursor-pointer truncate`}
+                              title={`${ev.taxName} — ${ev.periodLabel} — ${cfg.label}${ev.montant ? ` — ${formatCurrency(ev.montant)}` : ''}`}
+                            >
+                              {ev.taxCode}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          {/* Legend */}
+          <div className="flex flex-wrap items-center gap-4 px-4 py-3 bg-gray-50 border-t">
+            {(Object.entries(STATUS_CONFIG) as [DeadlineStatus, typeof STATUS_CONFIG[DeadlineStatus]][]).map(([key, cfg]) => (
+              <div key={key} className="flex items-center gap-1.5 text-xs">
+                <span className={`inline-block w-3 h-3 rounded-full ${cfg.dot}`} />
+                <span className="text-gray-600">{cfg.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* List View */}
+      {viewMode === 'list' && (
+        <div className="bg-white border rounded-lg overflow-hidden">
+          <div className="px-4 py-3 border-b bg-gray-50 flex items-center justify-between">
+            <span className="text-sm font-semibold text-gray-700">
+              {filteredDeadlines.length} échéance(s) — {MONTH_NAMES[currentMonth]} {currentYear}
+            </span>
+            <select
+              value={selectedType}
+              onChange={e => setSelectedType(e.target.value)}
+              className="border rounded px-2 py-1 text-sm"
+            >
+              <option value="tous">Toutes les taxes</option>
+              <option value="INDIRECT">TVA / Indirect</option>
+              <option value="DIRECT">IS / Direct</option>
+              <option value="SOCIAL">Social (CNPS, CMU)</option>
+              <option value="RETENUE">Retenues à la source</option>
+              <option value="AUTRE">Autres</option>
+            </select>
+          </div>
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 border-b">
+              <tr>
+                {['Taxe', 'Période', 'Échéance', 'Statut', 'Montant', 'Actions'].map(h => (
+                  <th key={h} className="px-4 py-3 text-left font-medium text-gray-600">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y">
+              {filteredDeadlines.length === 0 ? (
+                <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-400">
+                  Aucune échéance pour cette période
+                </td></tr>
+              ) : filteredDeadlines.map(dl => {
+                const cfg = STATUS_CONFIG[dl.status];
+                const daysUntil = Math.ceil((new Date(dl.deadline).getTime() - today.getTime()) / 86400000);
+                return (
+                  <tr key={dl.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-3">
+                      <div className="font-medium text-gray-900">{dl.taxName}</div>
+                      <div className="text-xs text-gray-500">{dl.taxCode} — {dl.taxCategory}</div>
+                    </td>
+                    <td className="px-4 py-3 text-gray-700">{dl.periodLabel}</td>
+                    <td className="px-4 py-3">
+                      <div className="text-gray-900">{dl.deadline}</div>
+                      {dl.status !== 'payee' && dl.status !== 'declaree' && (
+                        <div className={`text-xs ${daysUntil < 0 ? 'text-red-600 font-medium' : daysUntil <= 5 ? 'text-orange-600' : 'text-gray-500'}`}>
+                          {daysUntil < 0 ? `${Math.abs(daysUntil)}j de retard` : daysUntil === 0 ? "Aujourd'hui" : `Dans ${daysUntil}j`}
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${cfg.bg} ${cfg.color}`}>
+                        {cfg.icon}
+                        {cfg.label}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 font-medium text-gray-900">
+                      {dl.montant ? formatCurrency(dl.montant) : '—'}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex gap-1">
+                        <button className="p-1.5 hover:bg-gray-100 rounded" title="Voir"><Eye className="h-4 w-4 text-gray-500" /></button>
+                        <button className="p-1.5 hover:bg-gray-100 rounded" title="Modifier"><Edit className="h-4 w-4 text-gray-500" /></button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Alert banner for overdue */}
+      {counts.en_retard > 0 && (
+        <div className="bg-red-50 border-l-4 border-red-500 rounded-r-lg p-4 flex items-start gap-3">
+          <AlertTriangle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="font-semibold text-red-800">
+              {counts.en_retard} échéance(s) en retard
+            </p>
+            <p className="text-sm text-red-700 mt-1">
+              Des déclarations fiscales ont dépassé leur date limite. Régularisez-les pour éviter les pénalités.
+            </p>
+          </div>
+        </div>
       )}
     </div>
   );
