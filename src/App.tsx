@@ -192,15 +192,17 @@ function App() {
                     <ErrorBoundary>
                     <Suspense fallback={<LoadingFallback />}>
                     <Routes>
-                      {/* Pages publiques */}
+                      {/* Pages publiques — accessibles sans authentification */}
                       <Route path="/" element={<LandingPage />} />
                       <Route path="/login" element={<LoginPage />} />
 
-                      {/* Workspaces — pages autonomes SANS sidebar ERP */}
-                      <Route path="/workspace" element={<WorkspaceDashboard />} />
-                      <Route path="/workspace/comptable" element={<ComptableWorkspace />} />
-                      <Route path="/workspace/manager" element={<ManagerWorkspace />} />
-                      <Route path="/workspace/admin" element={<AdminWorkspace />} />
+                      {/* Workspaces — protégés par authentification Supabase */}
+                      <Route element={<RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant', 'user', 'viewer']}><Outlet /></RBACGuard>}>
+                        <Route path="/workspace" element={<WorkspaceDashboard />} />
+                        <Route path="/workspace/comptable" element={<ComptableWorkspace />} />
+                        <Route path="/workspace/manager" element={<ManagerWorkspace />} />
+                        <Route path="/workspace/admin" element={<AdminWorkspace />} />
+                      </Route>
 
                       {/* Application principale avec layout */}
                       <Route element={<ModernDoubleSidebarLayout />}>
