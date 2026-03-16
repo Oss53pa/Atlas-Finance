@@ -58,6 +58,8 @@ const EcheancesFiscalesPage: React.FC = () => {
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
   const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
   const [selectedType, setSelectedType] = useState<string>('tous');
+  const [showConfig, setShowConfig] = useState(false);
+  const [configForm, setConfigForm] = useState({ taxCode: '', taxName: '', deadline: '', periodicite: 'MONTHLY', montant: '', category: 'INDIRECT' });
 
   // Load tax declarations + registry from DB
   const { data: deadlines = [], isLoading } = useQuery({
@@ -221,6 +223,12 @@ const EcheancesFiscalesPage: React.FC = () => {
             </p>
           </div>
           <div className="flex space-x-2">
+            <button
+              onClick={() => setShowConfig(true)}
+              className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm flex items-center gap-2"
+            >
+              <Plus className="h-4 w-4" /> Programmer
+            </button>
             <button
               onClick={() => setViewMode(viewMode === 'calendar' ? 'list' : 'calendar')}
               className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm flex items-center gap-2"
@@ -405,6 +413,137 @@ const EcheancesFiscalesPage: React.FC = () => {
             <p className="text-sm text-red-700 mt-1">
               Des déclarations fiscales ont dépassé leur date limite. Régularisez-les pour éviter les pénalités.
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* ══════════ MODAL PROGRAMMER UNE ÉCHÉANCE ══════════ */}
+      {showConfig && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 max-w-lg w-full mx-4 space-y-5 shadow-2xl">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                <Calendar className="h-5 w-5 text-blue-600" />
+                Programmer une échéance fiscale
+              </h3>
+              <button onClick={() => setShowConfig(false)} className="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Code taxe</label>
+                <input
+                  type="text"
+                  value={configForm.taxCode}
+                  onChange={e => setConfigForm(f => ({ ...f, taxCode: e.target.value }))}
+                  placeholder="TVA, IS, IRPP..."
+                  className="w-full border rounded-lg px-3 py-2 text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nom complet</label>
+                <input
+                  type="text"
+                  value={configForm.taxName}
+                  onChange={e => setConfigForm(f => ({ ...f, taxName: e.target.value }))}
+                  placeholder="Taxe sur la Valeur Ajoutée"
+                  className="w-full border rounded-lg px-3 py-2 text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Date limite</label>
+                <input
+                  type="date"
+                  value={configForm.deadline}
+                  onChange={e => setConfigForm(f => ({ ...f, deadline: e.target.value }))}
+                  className="w-full border rounded-lg px-3 py-2 text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Périodicité</label>
+                <select
+                  value={configForm.periodicite}
+                  onChange={e => setConfigForm(f => ({ ...f, periodicite: e.target.value }))}
+                  className="w-full border rounded-lg px-3 py-2 text-sm"
+                >
+                  <option value="MONTHLY">Mensuelle</option>
+                  <option value="QUARTERLY">Trimestrielle</option>
+                  <option value="ANNUAL">Annuelle</option>
+                  <option value="PUNCTUAL">Ponctuelle</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Catégorie</label>
+                <select
+                  value={configForm.category}
+                  onChange={e => setConfigForm(f => ({ ...f, category: e.target.value }))}
+                  className="w-full border rounded-lg px-3 py-2 text-sm"
+                >
+                  <option value="INDIRECT">TVA / Indirect</option>
+                  <option value="DIRECT">IS / Direct</option>
+                  <option value="SOCIAL">Social (CNPS, CMU)</option>
+                  <option value="RETENUE">Retenue à la source</option>
+                  <option value="AUTRE">Autre</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Montant estimé</label>
+                <input
+                  type="number"
+                  value={configForm.montant}
+                  onChange={e => setConfigForm(f => ({ ...f, montant: e.target.value }))}
+                  placeholder="0"
+                  className="w-full border rounded-lg px-3 py-2 text-sm"
+                />
+              </div>
+            </div>
+
+            <div className="bg-blue-50 rounded-lg p-3 text-xs text-blue-700">
+              <strong>Astuce :</strong> Les taxes du registre fiscal (Admin &gt; Registre Fiscal) génèrent automatiquement
+              les échéances pour chaque période. Utilisez ce formulaire uniquement pour les échéances exceptionnelles
+              ou les ajustements manuels.
+            </div>
+
+            <div className="flex gap-3 justify-end pt-2">
+              <button onClick={() => setShowConfig(false)} className="px-4 py-2 border rounded-lg hover:bg-gray-50 text-sm">
+                Annuler
+              </button>
+              <button
+                onClick={async () => {
+                  if (!configForm.taxCode || !configForm.deadline) {
+                    toast.error('Code taxe et date limite sont obligatoires');
+                    return;
+                  }
+                  try {
+                    await adapter.create('taxDeclarations', {
+                      taxCode: configForm.taxCode,
+                      periodLabel: configForm.taxName || configForm.taxCode,
+                      periodStart: configForm.deadline,
+                      periodEnd: configForm.deadline,
+                      declarationDeadline: configForm.deadline,
+                      status: 'draft',
+                      netTax: configForm.montant ? Number(configForm.montant) : 0,
+                      base: 0,
+                      grossTax: 0,
+                      deductible: 0,
+                      balanceDue: configForm.montant ? Number(configForm.montant) : 0,
+                      credit: 0,
+                      createdAt: new Date().toISOString(),
+                      updatedAt: new Date().toISOString(),
+                    });
+                    toast.success(`Échéance ${configForm.taxCode} programmée au ${configForm.deadline}`);
+                    setShowConfig(false);
+                    setConfigForm({ taxCode: '', taxName: '', deadline: '', periodicite: 'MONTHLY', montant: '', category: 'INDIRECT' });
+                  } catch (err) {
+                    console.error('[FiscalCalendar] save failed:', err);
+                    toast.error('Erreur lors de la programmation');
+                  }
+                }}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm flex items-center gap-2"
+              >
+                <Plus className="h-4 w-4" /> Programmer
+              </button>
+            </div>
           </div>
         </div>
       )}

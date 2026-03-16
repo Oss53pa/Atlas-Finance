@@ -609,46 +609,35 @@ const EtatsSYSCOHADA: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-4 gap-6">
-                <div className="text-center">
-                  <h4 className="font-medium mb-2">Actif Immobilisé</h4>
-                  <div className="relative w-24 h-24 mx-auto">
-                    <div className="w-24 h-24 rounded-full border-8 border-[var(--color-primary-light)] border-t-blue-600 border-r-blue-600"></div>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-sm font-bold">{totalGenActif > 0 ? new Money(totalImmo).divide(totalGenActif).multiply(100).round(0).toNumber() : 0}%</span>
+                {[
+                  { label: 'Actif Immobilisé', value: totalImmo, total: totalGenActif, color: '#2563eb' },
+                  { label: 'Actif Circulant', value: totalCirculant, total: totalGenActif, color: '#16a34a' },
+                  { label: 'Capitaux Propres', value: capitauxPropres, total: totalGenPassif, color: '#7c3aed' },
+                  { label: 'Total Dettes', value: totalDettes, total: totalGenPassif, color: '#dc2626' },
+                ].map((item, idx) => {
+                  const pct = item.total > 0 ? Math.round(item.value / item.total * 100) : 0;
+                  const circumference = 2 * Math.PI * 40;
+                  const dashLen = (pct / 100) * circumference;
+                  return (
+                    <div key={idx} className="text-center">
+                      <h4 className="font-medium mb-2">{item.label}</h4>
+                      <div className="relative w-24 h-24 mx-auto">
+                        <svg width="96" height="96" viewBox="0 0 96 96">
+                          <circle cx="48" cy="48" r="40" fill="none" stroke="#e5e7eb" strokeWidth="8" />
+                          <circle cx="48" cy="48" r="40" fill="none" stroke={item.color} strokeWidth="8"
+                            strokeDasharray={`${dashLen} ${circumference}`}
+                            strokeLinecap="round"
+                            transform="rotate(-90 48 48)"
+                          />
+                        </svg>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span className="text-sm font-bold">{pct}%</span>
+                        </div>
+                      </div>
+                      <p className="text-sm text-[var(--color-text-primary)] mt-2">{formatCurrency(item.value)}</p>
                     </div>
-                  </div>
-                  <p className="text-sm text-[var(--color-text-primary)] mt-2">{formatNumber(totalImmo)} FCFA</p>
-                </div>
-                <div className="text-center">
-                  <h4 className="font-medium mb-2">Actif Circulant</h4>
-                  <div className="relative w-24 h-24 mx-auto">
-                    <div className="w-24 h-24 rounded-full border-8 border-[var(--color-success-light)] border-t-green-600"></div>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-sm font-bold">{totalGenActif > 0 ? new Money(totalCirculant).divide(totalGenActif).multiply(100).round(0).toNumber() : 0}%</span>
-                    </div>
-                  </div>
-                  <p className="text-sm text-[var(--color-text-primary)] mt-2">{formatNumber(totalCirculant)} FCFA</p>
-                </div>
-                <div className="text-center">
-                  <h4 className="font-medium mb-2">Capitaux Propres</h4>
-                  <div className="relative w-24 h-24 mx-auto">
-                    <div className="w-24 h-24 rounded-full border-8 border-primary-200 border-t-primary-600 border-r-primary-600"></div>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-sm font-bold">{totalGenPassif > 0 ? new Money(capitauxPropres).divide(totalGenPassif).multiply(100).round(0).toNumber() : 0}%</span>
-                    </div>
-                  </div>
-                  <p className="text-sm text-[var(--color-text-primary)] mt-2">{formatNumber(capitauxPropres)} FCFA</p>
-                </div>
-                <div className="text-center">
-                  <h4 className="font-medium mb-2">Total Dettes</h4>
-                  <div className="relative w-24 h-24 mx-auto">
-                    <div className="w-24 h-24 rounded-full border-8 border-[var(--color-error-light)] border-t-red-600 border-r-red-600 border-b-red-600"></div>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-sm font-bold">{totalGenPassif > 0 ? new Money(totalDettes).divide(totalGenPassif).multiply(100).round(0).toNumber() : 0}%</span>
-                    </div>
-                  </div>
-                  <p className="text-sm text-[var(--color-text-primary)] mt-2">{formatNumber(totalDettes)} FCFA</p>
-                </div>
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
