@@ -14,7 +14,7 @@ const EmailTemplate: React.FC = () => {
               💰
             </div>
             <div>
-              <h1 className="text-lg font-bold">Atlas Finance</h1>
+              <h1 className="text-lg font-bold"><span className="atlas-brand">Atlas Finance</span></h1>
               <p className="text-[#525252]/80">Système de Gestion Intégrée</p>
             </div>
           </div>

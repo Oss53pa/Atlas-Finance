@@ -248,7 +248,7 @@ const TasksModuleWithSidebar: React.FC = () => {
               WB
             </div>
             <div>
-              <span className="font-bold text-lg text-gray-900">Atlas Finance</span>
+              <span className="font-bold text-lg text-gray-900"><span className="atlas-brand">Atlas Finance</span></span>
               <p className="text-xs text-gray-700">Gestion des tâches</p>
             </div>
           </div>

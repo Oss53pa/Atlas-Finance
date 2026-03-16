@@ -70,8 +70,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const profile = await getUserProfile();
       if (profile) {
         // Vérifier que le compte est actif
-        if (profile.is_active === false) {
-          console.warn('[AuthContext] Compte désactivé:', profile.email);
+        if ((profile as any).is_active === false) {
+          console.warn('[AuthContext] Compte désactivé:', (profile as any).email);
           await supabase.auth.signOut();
           setUser(null);
           setSession(null);

@@ -746,7 +746,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                   <thead>
                     <tr className="border-b">
                       <th className="text-left py-2">Métrique</th>
-                      <th className="text-center py-2">Atlas Finance</th>
+                      <th className="text-center py-2"><span className="atlas-brand">Atlas Finance</span></th>
                       <th className="text-center py-2">SAP</th>
                       <th className="text-center py-2">Oracle</th>
                       <th className="text-center py-2">Sage</th>
@@ -882,7 +882,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
         </div>
         
         <div className="text-right">
-          <p className="font-medium">Atlas Finance v3.0 - Production Ready</p>
+          <p className="font-medium"><span className="atlas-brand">Atlas Finance</span> v3.0 - Production Ready</p>
           <p className="text-xs">
             Dernière maj: {formatDate(new Date())} • 
             Praedium Tech © 2024

@@ -9757,7 +9757,7 @@ Service Contentieux
 
                               {/* Pied de page */}
                               <div style={{ backgroundColor: '#fafafa', padding: '20px', borderTop: '1px solid #e5e5e5', fontSize: '11px', color: '#666' }}>
-                                <p style={{ margin: '5px 0', fontWeight: 'bold' }}>Atlas Finance - Solutions de gestion d'entreprise</p>
+                                <p style={{ margin: '5px 0', fontWeight: 'bold' }}><span className="atlas-brand">Atlas Finance</span> - Solutions de gestion d'entreprise</p>
                                 <p style={{ margin: '5px 0' }}>📍 123 Avenue de la République, Brazzaville, Congo</p>
                                 <p style={{ margin: '5px 0' }}>☎️ +242 06 XXX XX XX | ✉️ contact@atlasfinance.com | 🌐 www.atlasfinance.com</p>
                                 <p style={{ margin: '10px 0 5px 0', fontSize: '10px', color: '#999' }}>
