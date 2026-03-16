@@ -129,6 +129,7 @@ const TaxationDashboard = React.lazy(() => import('./pages/taxation/TaxationDash
 const TaxDeclarationsPage = React.lazy(() => import('./pages/taxation/TaxDeclarationsPage'));
 const LiasseFiscalePage = React.lazy(() => import('./pages/taxation/LiasseFiscalePage'));
 const EcheancesFiscalesPage = React.lazy(() => import('./pages/taxation/EcheancesFiscalesPage'));
+const FiscalDashboard = React.lazy(() => import('./pages/fiscal/FiscalDashboard'));
 
 // Securite
 const SecurityDashboard = React.lazy(() => import('./pages/security/SecurityDashboard'));
@@ -343,6 +344,7 @@ function App() {
                           <Route path="/taxation/declarations" element={<TaxDeclarationsPage />} />
                           <Route path="/taxation/liasse" element={<LiasseFiscalePage />} />
                           <Route path="/taxation/echeances" element={<EcheancesFiscalesPage />} />
+                          <Route path="/taxation/fiscal-dashboard" element={<FiscalDashboard />} />
                         </Route>
 
                         {/* Securite — admin only */}

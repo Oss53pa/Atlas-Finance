@@ -34,6 +34,7 @@ import AdminBackup from '../../components/admin/sections/AdminBackup';
 import AdminImportExport from '../../components/admin/sections/AdminImportExport';
 import AdminAuditTrail from '../../components/admin/sections/AdminAuditTrail';
 import AdminAPI from '../../components/admin/sections/AdminAPI';
+import AdminTaxRegistry from '../admin/sections/AdminTaxRegistry';
 import {
   Shield, FileText, BarChart3, Users, Upload,
   CheckCircle, ExternalLink,
@@ -74,6 +75,7 @@ const AdminWorkspace: React.FC = () => {
     { id: 'migration', label: 'Migration donnees', icon: Upload },
     { id: 'audit-trail', label: 'Piste d\'Audit', icon: FileText },
     { id: 'api', label: 'API & Integrations', icon: Server },
+    { id: 'tax-registry', label: 'Registre Fiscal', icon: Cog },
   ];
 
   const handleLogout = () => { logout(); navigate('/'); };
@@ -357,6 +359,7 @@ const AdminWorkspace: React.FC = () => {
           {activeSection === 'import-export' && <AdminImportExport subTab={adminSubTab} setSubTab={setAdminSubTab} />}
           {activeSection === 'audit-trail' && <AdminAuditTrail subTab={adminSubTab} setSubTab={setAdminSubTab} />}
           {activeSection === 'api' && <AdminAPI subTab={adminSubTab} setSubTab={setAdminSubTab} />}
+          {activeSection === 'tax-registry' && <AdminTaxRegistry />}
           {activeSection === 'migration' && <DataMigrationImport onBack={() => changeSection('workspace')} />}
         </main>
       </div>
