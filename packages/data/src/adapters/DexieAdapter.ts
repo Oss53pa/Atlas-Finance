@@ -186,7 +186,11 @@ export class DexieAdapter implements DataAdapter {
   // ---- CRUD ----
 
   private getTable(name: TableName): Table<any, string> {
-    return (this.db as any)[name]
+    const table = (this.db as any)[name]
+    if (!table) {
+      throw new Error(`DexieAdapter: table "${name}" not found in Dexie schema`)
+    }
+    return table
   }
 
   async getById<T>(table: TableName, id: string): Promise<T | null> {
