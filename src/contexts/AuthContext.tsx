@@ -69,6 +69,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const profile = await getUserProfile();
       if (profile) {
+        // Vérifier que le compte est actif
+        if (profile.is_active === false) {
+          console.warn('[AuthContext] Compte désactivé:', profile.email);
+          await supabase.auth.signOut();
+          setUser(null);
+          setSession(null);
+          return;
+        }
         const permissions = await getUserPermissions();
         const userData = mapProfileToUser(profile);
         userData.permissions = permissions;
@@ -129,6 +137,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!isSupabaseConfigured || isDev) {
       // Dev mode: auto-login without Supabase
       return;
+    }
+
+    // Vérification liste blanche — bloquer les emails non autorisés
+    const allowedEmails = (import.meta.env.VITE_ALLOWED_EMAILS || '').split(',').map((e: string) => e.trim().toLowerCase()).filter(Boolean);
+    if (allowedEmails.length > 0 && !allowedEmails.includes(email.toLowerCase())) {
+      throw new Error('Accès refusé. Votre email n\'est pas autorisé à accéder à cette application. Contactez l\'administrateur.');
     }
 
     setLoading(true);
