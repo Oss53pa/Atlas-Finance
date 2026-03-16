@@ -106,7 +106,11 @@ const FinancialStatements: React.FC = () => {
   const [filterPeriod, setFilterPeriod] = useState('all');
   const [viewMode, setViewMode] = useState<'statements' | 'metrics' | 'templates'>('statements');
   const [statementModal, setStatementModal] = useState<StatementModal>({ isOpen: false, mode: 'view' });
-  const [selectedPeriod, setSelectedPeriod] = useState('2024-Q3');
+  const [selectedPeriod, setSelectedPeriod] = useState(() => {
+    const y = new Date().getFullYear();
+    const q = Math.ceil((new Date().getMonth() + 1) / 3);
+    return `${y}-Q${q}`;
+  });
 
   // Load fiscal years from Dexie to build statement list
   const { data: fiscalYears = [] } = useQuery({
@@ -198,12 +202,21 @@ const FinancialStatements: React.FC = () => {
     ];
   }, [allEntries]);
 
-  // Static SYSCOHADA statement templates
-  const templates: StatementTemplate[] = [
-    { id: 'tpl-bilan', name: 'Bilan SYSCOHADA', type: 'balance_sheet', format: 'syscohada', description: 'Bilan avec structure Actif Immobilisé / Circulant / Trésorerie', sections: ['Actif immobilisé', 'Actif circulant', 'Trésorerie-Actif', 'Capitaux propres', 'Dettes financières', 'Passif circulant'], lastUsed: new Date().toISOString().split('T')[0], frequency: 0 },
-    { id: 'tpl-resultat', name: 'Compte de Résultat par Nature', type: 'income_statement', format: 'syscohada', description: 'Classification des charges (classe 6) et produits (classe 7) par nature', sections: ['Produits d\'exploitation', 'Charges d\'exploitation', 'Résultat financier', 'Résultat HAO', 'Impôts'], lastUsed: new Date().toISOString().split('T')[0], frequency: 0 },
-    { id: 'tpl-flux', name: 'Tableau des Flux de Trésorerie', type: 'cash_flow', format: 'syscohada', description: 'TAFIRE — méthode indirecte SYSCOHADA', sections: ['Flux d\'exploitation', 'Flux d\'investissement', 'Flux de financement'], lastUsed: new Date().toISOString().split('T')[0], frequency: 0 },
-  ];
+  // SYSCOHADA statement templates — frequency computed from how many statements exist per type
+  const templates: StatementTemplate[] = useMemo(() => {
+    const countByType = (type: string) => statements.filter(s => s.statementType === type).length;
+    const lastUsedByType = (type: string) => {
+      const matching = statements.filter(s => s.statementType === type).sort((a, b) => b.lastModified.localeCompare(a.lastModified));
+      return matching[0]?.lastModified || new Date().toISOString().split('T')[0];
+    };
+    return [
+      { id: 'tpl-bilan', name: 'Bilan SYSCOHADA', type: 'balance_sheet', format: 'syscohada', description: 'Bilan avec structure Actif Immobilisé / Circulant / Trésorerie', sections: ['Actif immobilisé', 'Actif circulant', 'Trésorerie-Actif', 'Capitaux propres', 'Dettes financières', 'Passif circulant'], lastUsed: lastUsedByType('balance_sheet'), frequency: countByType('balance_sheet') },
+      { id: 'tpl-resultat', name: 'Compte de Résultat par Nature', type: 'income_statement', format: 'syscohada', description: 'Classification des charges (classe 6) et produits (classe 7) par nature', sections: ['Produits d\'exploitation', 'Charges d\'exploitation', 'Résultat financier', 'Résultat HAO', 'Impôts'], lastUsed: lastUsedByType('income_statement'), frequency: countByType('income_statement') },
+      { id: 'tpl-flux', name: 'Tableau des Flux de Trésorerie', type: 'cash_flow', format: 'syscohada', description: 'TAFIRE — méthode indirecte SYSCOHADA révisé 2017', sections: ['Flux d\'exploitation', 'Flux d\'investissement', 'Flux de financement'], lastUsed: lastUsedByType('cash_flow'), frequency: countByType('cash_flow') },
+      { id: 'tpl-capitaux', name: 'Variation des Capitaux Propres', type: 'equity_statement', format: 'syscohada', description: 'Tableau de variation des capitaux propres (nouveauté SYSCOHADA révisé)', sections: ['Capital social', 'Réserves', 'Report à nouveau', 'Résultat net', 'Écarts de réévaluation'], lastUsed: lastUsedByType('equity_statement'), frequency: countByType('equity_statement') },
+      { id: 'tpl-notes', name: 'Notes Annexes', type: 'comprehensive_income', format: 'syscohada', description: 'Notes et informations complémentaires aux états financiers', sections: ['Règles et méthodes', 'Immobilisations', 'Stocks', 'Créances et dettes', 'Trésorerie', 'Engagements hors bilan'], lastUsed: lastUsedByType('comprehensive_income'), frequency: countByType('comprehensive_income') },
+    ];
+  }, [statements]);
 
   // Filter statements based on search and filters
   const filteredStatements = useMemo(() => {
@@ -399,10 +412,19 @@ const FinancialStatements: React.FC = () => {
                 onChange={(e) => setSelectedPeriod(e.target.value)}
                 className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#171717]"
               >
-                <option value="2024-Q3">2024-Q3</option>
-                <option value="2024-Q2">2024-Q2</option>
-                <option value="2024-Q1">2024-Q1</option>
-                <option value="2023-Q4">2023-Q4</option>
+                {fiscalYears.length > 0 ? (
+                  fiscalYears.flatMap(fy => {
+                    const year = fy.startDate?.substring(0, 4) || new Date().getFullYear().toString();
+                    return [4, 3, 2, 1].map(q => (
+                      <option key={`${year}-Q${q}`} value={`${year}-Q${q}`}>{year}-Q{q}</option>
+                    ));
+                  })
+                ) : (
+                  [4, 3, 2, 1].map(q => {
+                    const y = new Date().getFullYear();
+                    return <option key={`${y}-Q${q}`} value={`${y}-Q${q}`}>{y}-Q{q}</option>;
+                  })
+                )}
               </select>
             </div>
           </div>
@@ -490,9 +512,10 @@ const FinancialStatements: React.FC = () => {
                     className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#171717]"
                   >
                     <option value="all">Toutes les périodes</option>
-                    <option value="2024-Q3">2024-Q3</option>
-                    <option value="2024-Q2">2024-Q2</option>
-                    <option value="2024-Q1">2024-Q1</option>
+                    {fiscalYears.map(fy => {
+                      const year = fy.startDate?.substring(0, 4) || '';
+                      return <option key={fy.id} value={year}>{year}</option>;
+                    })}
                   </select>
                 </div>
               </div>

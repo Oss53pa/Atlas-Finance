@@ -107,6 +107,27 @@ const ReportingSyscohada: React.FC = () => {
     queryFn: () => adapter.getAll('fiscalYears'),
   });
 
+  // Load journal entries to compute real revenue
+  const { data: allEntries = [] } = useQuery({
+    queryKey: ['syscohada-journal-entries'],
+    queryFn: async () => {
+      const all = await adapter.getAll<any>('journalEntries');
+      return all.filter(e => e.status === 'validated' || e.status === 'posted');
+    },
+  });
+
+  // Compute total CA from class 7 entries
+  const totalCA = useMemo(() => {
+    let ca = 0;
+    for (const e of allEntries) {
+      if (!e.lines) continue;
+      for (const l of e.lines) {
+        if (l.accountCode?.startsWith('7')) ca += (l.credit || 0) - (l.debit || 0);
+      }
+    }
+    return ca;
+  }, [allEntries]);
+
   const syscohadaReports: SyscohadaReport[] = useMemo(() => {
     const types: Array<{ type: SyscohadaReport['reportType']; label: string }> = [
       { type: 'bilan_syscohada', label: 'Bilan SYSCOHADA' },
@@ -148,26 +169,58 @@ const ReportingSyscohada: React.FC = () => {
     { code: 'SYSCOHADA-ART-75', title: 'États Annexes et Notes', category: 'disclosure', applicableCountries: ['CI','SN','ML','BF','NE','TG','BJ','GW','CM','GA','TD','CF','CG','GQ','KM','CD','GN'], compliance: 'compliant', lastReview: new Date().toISOString().split('T')[0], impact: 'high', notes: 'Informations complémentaires obligatoires' },
   ];
 
-  // Static OHADA zone countries
-  const MEMBER_COUNTRIES: OHADACountry[] = [
-    { code: 'CI', name: "Côte d'Ivoire", currency: 'XOF', filingDeadline: '30 avril', localRequirements: ['DGI', 'CNPS', 'Chambre de Commerce'], status: 'active', revenue: 0, entities: 1 },
-    { code: 'SN', name: 'Sénégal', currency: 'XOF', filingDeadline: '30 avril', localRequirements: ['DGI', 'IPRES', 'CSS'], status: 'active', revenue: 0, entities: 0 },
-    { code: 'CM', name: 'Cameroun', currency: 'XAF', filingDeadline: '15 mars', localRequirements: ['DGI', 'CNPS'], status: 'active', revenue: 0, entities: 0 },
-    { code: 'GA', name: 'Gabon', currency: 'XAF', filingDeadline: '31 mars', localRequirements: ['DGI', 'CNSS'], status: 'active', revenue: 0, entities: 0 },
-    { code: 'ML', name: 'Mali', currency: 'XOF', filingDeadline: '30 avril', localRequirements: ['DGI', 'INPS'], status: 'active', revenue: 0, entities: 0 },
-    { code: 'BF', name: 'Burkina Faso', currency: 'XOF', filingDeadline: '30 avril', localRequirements: ['DGI', 'CNSS'], status: 'active', revenue: 0, entities: 0 },
-    { code: 'BJ', name: 'Bénin', currency: 'XOF', filingDeadline: '30 avril', localRequirements: ['DGI', 'CNSS'], status: 'active', revenue: 0, entities: 0 },
-    { code: 'TG', name: 'Togo', currency: 'XOF', filingDeadline: '30 avril', localRequirements: ['DGI', 'CNSS'], status: 'active', revenue: 0, entities: 0 },
-    { code: 'NE', name: 'Niger', currency: 'XOF', filingDeadline: '30 avril', localRequirements: ['DGI', 'CNSS'], status: 'active', revenue: 0, entities: 0 },
-    { code: 'TD', name: 'Tchad', currency: 'XAF', filingDeadline: '31 mars', localRequirements: ['DGI', 'CNPS'], status: 'active', revenue: 0, entities: 0 },
-    { code: 'CF', name: 'Centrafrique', currency: 'XAF', filingDeadline: '31 mars', localRequirements: ['DGI'], status: 'active', revenue: 0, entities: 0 },
-    { code: 'CG', name: 'Congo', currency: 'XAF', filingDeadline: '31 mars', localRequirements: ['DGI', 'CNSS'], status: 'active', revenue: 0, entities: 0 },
-    { code: 'GQ', name: 'Guinée Équatoriale', currency: 'XAF', filingDeadline: '31 mars', localRequirements: ['DGI'], status: 'active', revenue: 0, entities: 0 },
-    { code: 'GW', name: 'Guinée-Bissau', currency: 'XOF', filingDeadline: '30 avril', localRequirements: ['DGI'], status: 'active', revenue: 0, entities: 0 },
-    { code: 'KM', name: 'Comores', currency: 'KMF', filingDeadline: '30 avril', localRequirements: ['DGI'], status: 'active', revenue: 0, entities: 0 },
-    { code: 'CD', name: 'RD Congo', currency: 'CDF', filingDeadline: '30 avril', localRequirements: ['DGI'], status: 'active', revenue: 0, entities: 0 },
-    { code: 'GN', name: 'Guinée', currency: 'GNF', filingDeadline: '30 avril', localRequirements: ['DGI'], status: 'active', revenue: 0, entities: 0 },
-  ];
+  // Load companies to determine entities per country
+  const { data: companies = [] } = useQuery({
+    queryKey: ['syscohada-companies'],
+    queryFn: () => adapter.getAll<any>('societes').catch(() => []),
+  });
+
+  // OHADA zone countries — revenue and entities computed from real data
+  const MEMBER_COUNTRIES: OHADACountry[] = useMemo(() => {
+    // Count entities per country from societes table
+    const entitiesByCountry: Record<string, number> = {};
+    for (const c of companies) {
+      const code = c.countryCode || c.pays || 'CI';
+      entitiesByCountry[code] = (entitiesByCountry[code] || 0) + 1;
+    }
+    // If no companies, assume 1 entity for the default country
+    const hasAnyCompany = Object.keys(entitiesByCountry).length > 0;
+    if (!hasAnyCompany) entitiesByCountry['CI'] = 1;
+
+    // The default country gets the real CA
+    const defaultCountry = Object.keys(entitiesByCountry)[0] || 'CI';
+
+    const countries: Array<{ code: string; name: string; currency: string; deadline: string; reqs: string[] }> = [
+      { code: 'CI', name: "Côte d'Ivoire", currency: 'XOF', deadline: '30 avril', reqs: ['DGI', 'CNPS', 'Chambre de Commerce'] },
+      { code: 'SN', name: 'Sénégal', currency: 'XOF', deadline: '30 avril', reqs: ['DGI', 'IPRES', 'CSS'] },
+      { code: 'CM', name: 'Cameroun', currency: 'XAF', deadline: '15 mars', reqs: ['DGI', 'CNPS'] },
+      { code: 'GA', name: 'Gabon', currency: 'XAF', deadline: '31 mars', reqs: ['DGI', 'CNSS'] },
+      { code: 'ML', name: 'Mali', currency: 'XOF', deadline: '30 avril', reqs: ['DGI', 'INPS'] },
+      { code: 'BF', name: 'Burkina Faso', currency: 'XOF', deadline: '30 avril', reqs: ['DGI', 'CNSS'] },
+      { code: 'BJ', name: 'Bénin', currency: 'XOF', deadline: '30 avril', reqs: ['DGI', 'CNSS'] },
+      { code: 'TG', name: 'Togo', currency: 'XOF', deadline: '30 avril', reqs: ['DGI', 'CNSS'] },
+      { code: 'NE', name: 'Niger', currency: 'XOF', deadline: '30 avril', reqs: ['DGI', 'CNSS'] },
+      { code: 'TD', name: 'Tchad', currency: 'XAF', deadline: '31 mars', reqs: ['DGI', 'CNPS'] },
+      { code: 'CF', name: 'Centrafrique', currency: 'XAF', deadline: '31 mars', reqs: ['DGI'] },
+      { code: 'CG', name: 'Congo', currency: 'XAF', deadline: '31 mars', reqs: ['DGI', 'CNSS'] },
+      { code: 'GQ', name: 'Guinée Équatoriale', currency: 'XAF', deadline: '31 mars', reqs: ['DGI'] },
+      { code: 'GW', name: 'Guinée-Bissau', currency: 'XOF', deadline: '30 avril', reqs: ['DGI'] },
+      { code: 'KM', name: 'Comores', currency: 'KMF', deadline: '30 avril', reqs: ['DGI'] },
+      { code: 'CD', name: 'RD Congo', currency: 'CDF', deadline: '30 avril', reqs: ['DGI'] },
+      { code: 'GN', name: 'Guinée', currency: 'GNF', deadline: '30 avril', reqs: ['DGI'] },
+    ];
+
+    return countries.map(c => ({
+      code: c.code,
+      name: c.name,
+      currency: c.currency,
+      filingDeadline: c.deadline,
+      localRequirements: c.reqs,
+      status: 'active' as const,
+      revenue: c.code === defaultCountry ? totalCA : 0,
+      entities: entitiesByCountry[c.code] || 0,
+    }));
+  }, [companies, totalCA]);
 
   // Filter reports based on search and filters
   const filteredReports = useMemo(() => {
@@ -364,9 +417,14 @@ const ReportingSyscohada: React.FC = () => {
                 onChange={(e) => setSelectedPeriod(e.target.value)}
                 className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-blue-500"
               >
-                <option value="2024">2024</option>
-                <option value="2023">2023</option>
-                <option value="2022">2022</option>
+                {fiscalYears.length > 0 ? (
+                  fiscalYears.map(fy => {
+                    const year = fy.startDate?.substring(0, 4) || '';
+                    return <option key={fy.id} value={year}>{year}</option>;
+                  })
+                ) : (
+                  <option value={new Date().getFullYear().toString()}>{new Date().getFullYear()}</option>
+                )}
               </select>
             </div>
           </div>

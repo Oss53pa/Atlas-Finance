@@ -158,112 +158,12 @@ const RapprochementBancaire: React.FC = () => {
     toast.error('Service d\'import bancaire non encore connecté');
   };
 
-  // Moyens de paiement électroniques
-  const moyensPaiement: MoyenPaiement[] = [
-    {
-      id: 'cb-001',
-      type: 'cb',
-      nom: 'Carte VISA Business',
-      reference: '****4567',
-      montantJour: 125000,
-      montantMois: 2850000,
-      nombreTransactions: 342,
-      tauxCommission: 1.5,
-      statut: 'actif'
-    },
-    {
-      id: 'cb-002',
-      type: 'cb',
-      nom: 'Carte MasterCard',
-      reference: '****8901',
-      montantJour: 95000,
-      montantMois: 1980000,
-      nombreTransactions: 267,
-      tauxCommission: 1.8,
-      statut: 'actif'
-    },
-    {
-      id: 'mobile-001',
-      type: 'mobile',
-      nom: 'Orange Money Pro',
-      reference: '+225 07 XX XX XX 89',
-      montantJour: 450000,
-      montantMois: 8950000,
-      nombreTransactions: 1205,
-      tauxCommission: 0.5,
-      statut: 'actif'
-    },
-    {
-      id: 'mobile-002',
-      type: 'mobile',
-      nom: 'MTN Mobile Money',
-      reference: '+225 05 XX XX XX 12',
-      montantJour: 320000,
-      montantMois: 6780000,
-      nombreTransactions: 987,
-      tauxCommission: 0.5,
-      statut: 'actif'
-    },
-    {
-      id: 'mobile-003',
-      type: 'mobile',
-      nom: 'Wave Money',
-      reference: '+225 01 XX XX XX 45',
-      montantJour: 280000,
-      montantMois: 5230000,
-      nombreTransactions: 756,
-      tauxCommission: 0,
-      statut: 'actif'
-    },
-    {
-      id: 'mobile-004',
-      type: 'mobile',
-      nom: 'Moov Money',
-      reference: '+225 04 XX XX XX 78',
-      montantJour: 180000,
-      montantMois: 3450000,
-      nombreTransactions: 543,
-      tauxCommission: 0.7,
-      statut: 'actif'
-    },
-    {
-      id: 'tpe-001',
-      type: 'tpe',
-      nom: 'TPE Magasin Principal',
-      reference: 'TPE-001-ABIDJAN',
-      montantJour: 890000,
-      montantMois: 18900000,
-      nombreTransactions: 456,
-      tauxCommission: 2.0,
-      statut: 'actif'
-    },
-    {
-      id: 'tpe-002',
-      type: 'tpe',
-      nom: 'TPE Succursale Plateau',
-      reference: 'TPE-002-PLATEAU',
-      montantJour: 560000,
-      montantMois: 11200000,
-      nombreTransactions: 289,
-      tauxCommission: 2.0,
-      statut: 'actif'
-    },
-    {
-      id: 'tpe-003',
-      type: 'tpe',
-      nom: 'TPE Point de Vente Cocody',
-      reference: 'TPE-003-COCODY',
-      montantJour: 340000,
-      montantMois: 6800000,
-      nombreTransactions: 198,
-      tauxCommission: 2.0,
-      statut: 'actif'
-    }
-  ];
+  // Moyens de paiement — initialisés vides (configurés par l'utilisateur)
+  const moyensPaiement: MoyenPaiement[] = [];
 
-  // Use real bank entries from Dexie; fall back to empty array
-  const operations: RapprochementItem[] = bankEntries.length > 0 ? bankEntries : [
-    // Opérations bancaires classiques
+  // Opérations bancaires depuis les écritures réelles
+  const operations: RapprochementItem[] = bankEntries.length > 0 ? bankEntries : [];
+  const _legacyOps = [
     {
       id: '1',
       date: '2025-01-15',
@@ -569,11 +469,19 @@ const RapprochementBancaire: React.FC = () => {
     currentPage * itemsPerPage
   );
 
-  const banques = [
-    { id: '001', nom: 'SGBCI - Compte Principal', solde: 12450000 },
-    { id: '002', nom: 'Ecobank - Compte Secondaire', solde: 5230000 },
-    { id: '003', nom: 'BNI - Compte USD', solde: 8900000 }
-  ];
+  // Soldes bancaires calculés depuis les écritures réelles
+  const banques = React.useMemo(() => {
+    const bankAccounts: Record<string, { nom: string; solde: number }> = {};
+    for (const op of operations) {
+      const key = op.reference?.substring(0, 3) || 'default';
+      if (!bankAccounts[key]) bankAccounts[key] = { nom: `Compte ${key}`, solde: 0 };
+      bankAccounts[key].solde += op.montantBanque || 0;
+    }
+    if (Object.keys(bankAccounts).length === 0) {
+      return [{ id: '001', nom: 'Aucun compte bancaire', solde: 0 }];
+    }
+    return Object.entries(bankAccounts).map(([id, v]) => ({ id, nom: v.nom, solde: v.solde }));
+  }, [operations]);
 
   // Comptes SYSCOHADA pour les moyens de paiement
   const comptesSYSCOHADA = {
