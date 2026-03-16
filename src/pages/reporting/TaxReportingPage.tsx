@@ -1093,4 +1093,16 @@ const TaxReportingPage: React.FC = () => {
               <Button onClick={() => {
                 handleDownloadReport(selectedReport);
                 setShowReportPreviewModal(false);
-    
+              }}>
+                <Download className="mr-2 h-4 w-4" />
+                Télécharger
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default TaxReportingPage;

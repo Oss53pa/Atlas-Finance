@@ -1082,11 +1082,21 @@ const BilanSYSCOHADAPage: React.FC = () => {
           {/* TABLEAU DE FLUX DE TRÉSORERIE */}
           {activeTab === 'flux-tresorerie' && (
             <div className="space-y-6">
-              <div className="text-center mb-6">
+              <div className="text-center mb-4">
                 <h2 className="text-lg font-bold text-[#171717] mb-2">TABLEAU DE FLUX DE TRÉSORERIE</h2>
                 <p className="text-[#737373]">Flux de trésorerie par activité selon SYSCOHADA</p>
               </div>
 
+              {/* Sous-onglets Méthode Indirecte / Directe */}
+              <div className="flex justify-center">
+                <div className="inline-flex bg-gray-100 rounded-lg p-1">
+                  <button onClick={() => setTftMethod('indirect')} className={`px-5 py-2.5 text-sm font-semibold rounded-md transition-all ${tftMethod === 'indirect' ? 'bg-white text-[#171717] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>Méthode Indirecte</button>
+                  <button onClick={() => setTftMethod('direct')} className={`px-5 py-2.5 text-sm font-semibold rounded-md transition-all ${tftMethod === 'direct' ? 'bg-white text-[#171717] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>Méthode Directe</button>
+                </div>
+              </div>
+
+              {/* MÉTHODE INDIRECTE */}
+              {tftMethod === 'indirect' && (
               <div className="space-y-6">
                 {/* ACTIVITÉS OPÉRATIONNELLES */}
                 <div className="bg-white rounded-lg p-6 border border-[#e5e5e5]">
