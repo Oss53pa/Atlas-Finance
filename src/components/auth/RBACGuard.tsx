@@ -15,7 +15,7 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
-type UserRole = 'admin' | 'manager' | 'comptable' | 'accountant' | 'user' | 'viewer';
+type UserRole = 'admin' | 'manager' | 'comptable' | 'accountant' | 'user' | 'viewer' | 'super_admin';
 
 interface RBACGuardProps {
   children: React.ReactNode;
@@ -33,10 +33,11 @@ interface RBACGuardProps {
  * Role hierarchy: admin > manager > comptable > user > viewer
  */
 const ROLE_HIERARCHY: Record<UserRole, number> = {
+  super_admin: 120,
   admin: 100,
   manager: 80,
   comptable: 60,
-  accountant: 60, // alias for comptable
+  accountant: 60,
   user: 40,
   viewer: 20,
 };
