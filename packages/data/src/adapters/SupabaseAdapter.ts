@@ -34,6 +34,9 @@ const TABLE_MAP: Record<TableName, string> = {
   aliasPrefixConfig: 'alias_prefix_config',
   fiscalPeriods: 'periodes_comptables',
   recoveryCases: 'recovery_cases',
+  taxRegistry: 'tax_registry',
+  taxDeclarations: 'tax_declarations',
+  taxBrackets: 'tax_brackets',
 }
 
 export class SupabaseAdapter implements DataAdapter {

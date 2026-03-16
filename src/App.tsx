@@ -16,164 +16,179 @@ import RBACGuard from './components/auth/RBACGuard';
 import { DataProvider } from './contexts/DataContext';
 import './styles/globals.css';
 
+// Retry wrapper for lazy imports — handles chunk loading errors after Vercel deploys
+function lazyRetry(importFn: () => Promise<any>) {
+  return React.lazy(() =>
+    importFn().catch(() => {
+      // Chunk not found (new deploy) — reload the page once
+      const reloaded = sessionStorage.getItem('chunk-reload');
+      if (!reloaded) {
+        sessionStorage.setItem('chunk-reload', '1');
+        window.location.reload();
+      }
+      return importFn();
+    })
+  );
+}
+
 // Pages publiques
-const LandingPage = React.lazy(() => import('./pages/LandingPage'));
-const LoginPage = React.lazy(() => import('./pages/auth/LoginPage'));
+const LandingPage = lazyRetry(() => import('./pages/LandingPage'));
+const LoginPage = lazyRetry(() => import('./pages/auth/LoginPage'));
 
 // Workspaces
-const ComptableWorkspace = React.lazy(() => import('./pages/workspace/ComptableWorkspaceFinal'));
-const ManagerWorkspace = React.lazy(() => import('./pages/workspace/ManagerWorkspace'));
-const AdminWorkspace = React.lazy(() => import('./pages/workspace/AdminWorkspace'));
-const WorkspaceDashboard = React.lazy(() => import('./pages/workspace/WorkspaceDashboard'));
+const ComptableWorkspace = lazyRetry(() => import('./pages/workspace/ComptableWorkspaceFinal'));
+const ManagerWorkspace = lazyRetry(() => import('./pages/workspace/ManagerWorkspace'));
+const AdminWorkspace = lazyRetry(() => import('./pages/workspace/AdminWorkspace'));
+const WorkspaceDashboard = lazyRetry(() => import('./pages/workspace/WorkspaceDashboard'));
 
 // Dashboards
-const ExecutiveDashboard = React.lazy(() => import('./pages/dashboard/ExecutiveDashboard'));
-const AdminDashboard = React.lazy(() => import('./pages/dashboard/AdminDashboard'));
-const ComptableDashboard = React.lazy(() => import('./pages/dashboard/ComptableDashboard'));
-const ManagerDashboard = React.lazy(() => import('./pages/dashboard/ManagerDashboard'));
-const KPIsRealTime = React.lazy(() => import('./pages/dashboard/KPIsRealTime'));
-const AlertsSystem = React.lazy(() => import('./pages/dashboard/AlertsSystem'));
-const AIInsights = React.lazy(() => import('./pages/dashboard/AIInsights'));
-const WorkflowsManager = React.lazy(() => import('./pages/dashboard/WorkflowsManager'));
-const FinancialAnalysisDashboard = React.lazy(() => import('./pages/dashboard/FinancialAnalysisDashboard'));
+const ExecutiveDashboard = lazyRetry(() => import('./pages/dashboard/ExecutiveDashboard'));
+const AdminDashboard = lazyRetry(() => import('./pages/dashboard/AdminDashboard'));
+const ComptableDashboard = lazyRetry(() => import('./pages/dashboard/ComptableDashboard'));
+const ManagerDashboard = lazyRetry(() => import('./pages/dashboard/ManagerDashboard'));
+const KPIsRealTime = lazyRetry(() => import('./pages/dashboard/KPIsRealTime'));
+const AlertsSystem = lazyRetry(() => import('./pages/dashboard/AlertsSystem'));
+const AIInsights = lazyRetry(() => import('./pages/dashboard/AIInsights'));
+const WorkflowsManager = lazyRetry(() => import('./pages/dashboard/WorkflowsManager'));
+const FinancialAnalysisDashboard = lazyRetry(() => import('./pages/dashboard/FinancialAnalysisDashboard'));
 
 // Comptabilite
-const AccountingDashboard = React.lazy(() => import('./pages/accounting/AccountingDashboard'));
-const JournalsPage = React.lazy(() => import('./pages/accounting/JournalsPage'));
-const EntriesPage = React.lazy(() => import('./pages/accounting/EntriesPage'));
-const BalancePage = React.lazy(() => import('./pages/accounting/BalancePage'));
-const ChartOfAccountsPage = React.lazy(() => import('./pages/accounting/ChartOfAccountsPage'));
-const GeneralLedgerPage = React.lazy(() => import('./pages/accounting/GeneralLedgerPage'));
-const LettragePage = React.lazy(() => import('./pages/accounting/LettragePage'));
-const LettrageAutomatiquePage = React.lazy(() => import('./pages/accounting/LettrageAutomatiquePage'));
-const OCRInvoices = React.lazy(() => import('./pages/accounting/OCRInvoices'));
-const ElectronicSignature = React.lazy(() => import('./pages/accounting/ElectronicSignature'));
-const FinancialStatementsPage = React.lazy(() => import('./pages/accounting/FinancialStatementsPage'));
-const IncomeStatementPage = React.lazy(() => import('./pages/accounting/IncomeStatementPage'));
-const BalanceSheetPage = React.lazy(() => import('./pages/accounting/BalanceSheetPage'));
-const CashFlowPageAccounting = React.lazy(() => import('./pages/accounting/CashFlowPage'));
-const FinancialRatiosPage = React.lazy(() => import('./pages/accounting/FinancialRatiosPage'));
-const ReportsPageAccounting = React.lazy(() => import('./pages/accounting/ReportsPage'));
+const AccountingDashboard = lazyRetry(() => import('./pages/accounting/AccountingDashboard'));
+const JournalsPage = lazyRetry(() => import('./pages/accounting/JournalsPage'));
+const EntriesPage = lazyRetry(() => import('./pages/accounting/EntriesPage'));
+const BalancePage = lazyRetry(() => import('./pages/accounting/BalancePage'));
+const ChartOfAccountsPage = lazyRetry(() => import('./pages/accounting/ChartOfAccountsPage'));
+const GeneralLedgerPage = lazyRetry(() => import('./pages/accounting/GeneralLedgerPage'));
+const LettragePage = lazyRetry(() => import('./pages/accounting/LettragePage'));
+const LettrageAutomatiquePage = lazyRetry(() => import('./pages/accounting/LettrageAutomatiquePage'));
+const OCRInvoices = lazyRetry(() => import('./pages/accounting/OCRInvoices'));
+const ElectronicSignature = lazyRetry(() => import('./pages/accounting/ElectronicSignature'));
+const FinancialStatementsPage = lazyRetry(() => import('./pages/accounting/FinancialStatementsPage'));
+const IncomeStatementPage = lazyRetry(() => import('./pages/accounting/IncomeStatementPage'));
+const BalanceSheetPage = lazyRetry(() => import('./pages/accounting/BalanceSheetPage'));
+const CashFlowPageAccounting = lazyRetry(() => import('./pages/accounting/CashFlowPage'));
+const FinancialRatiosPage = lazyRetry(() => import('./pages/accounting/FinancialRatiosPage'));
+const ReportsPageAccounting = lazyRetry(() => import('./pages/accounting/ReportsPage'));
 
 // Tiers
-const TiersDashboard = React.lazy(() => import('./pages/tiers/TiersDashboard'));
-const ClientsModule = React.lazy(() => import('./pages/tiers/ClientsModule'));
-const FournisseursModule = React.lazy(() => import('./pages/tiers/FournisseursModule'));
-const RecouvrementModule = React.lazy(() => import('./pages/tiers/RecouvrementModule'));
-const ContactsModule = React.lazy(() => import('./pages/tiers/ContactsModule'));
-const LettrageModule = React.lazy(() => import('./pages/tiers/LettrageModule'));
-const PartenairesModule = React.lazy(() => import('./pages/tiers/PartenairesModule'));
-const ProspectsModule = React.lazy(() => import('./pages/tiers/ProspectsModule'));
+const TiersDashboard = lazyRetry(() => import('./pages/tiers/TiersDashboard'));
+const ClientsModule = lazyRetry(() => import('./pages/tiers/ClientsModule'));
+const FournisseursModule = lazyRetry(() => import('./pages/tiers/FournisseursModule'));
+const RecouvrementModule = lazyRetry(() => import('./pages/tiers/RecouvrementModule'));
+const ContactsModule = lazyRetry(() => import('./pages/tiers/ContactsModule'));
+const LettrageModule = lazyRetry(() => import('./pages/tiers/LettrageModule'));
+const PartenairesModule = lazyRetry(() => import('./pages/tiers/PartenairesModule'));
+const ProspectsModule = lazyRetry(() => import('./pages/tiers/ProspectsModule'));
 
 // Third-party (alternative)
-const ThirdPartyDashboard = React.lazy(() => import('./pages/third-party/ThirdPartyDashboard'));
+const ThirdPartyDashboard = lazyRetry(() => import('./pages/third-party/ThirdPartyDashboard'));
 
 // Tresorerie
-const TreasuryDashboard = React.lazy(() => import('./pages/treasury/TreasuryDashboard'));
-const BankAccountsPage = React.lazy(() => import('./pages/treasury/BankAccountsPage'));
-const FundCallsPage = React.lazy(() => import('./pages/treasury/FundCallsPage'));
-const TreasuryPositions = React.lazy(() => import('./pages/treasury/TreasuryPositions'));
-const CashFlowPage = React.lazy(() => import('./pages/treasury/CashFlowPage'));
-const ReconciliationPage = React.lazy(() => import('./pages/treasury/ReconciliationPage'));
-const MultiCurrency = React.lazy(() => import('./pages/treasury/MultiCurrency'));
-const BankMovementsPage = React.lazy(() => import('./pages/treasury/BankMovementsPage'));
-const ConnexionsBancairesPage = React.lazy(() => import('./pages/treasury/ConnexionsBancairesPage'));
-const GestionPaiementsPage = React.lazy(() => import('./pages/treasury/GestionPaiementsPage'));
-const PrevisionsTresoreriePage = React.lazy(() => import('./pages/treasury/PrevisionsTresoreriePage'));
-const PositionTresoreriePage = React.lazy(() => import('./pages/treasury/PositionTresoreriePage'));
+const TreasuryDashboard = lazyRetry(() => import('./pages/treasury/TreasuryDashboard'));
+const BankAccountsPage = lazyRetry(() => import('./pages/treasury/BankAccountsPage'));
+const FundCallsPage = lazyRetry(() => import('./pages/treasury/FundCallsPage'));
+const TreasuryPositions = lazyRetry(() => import('./pages/treasury/TreasuryPositions'));
+const CashFlowPage = lazyRetry(() => import('./pages/treasury/CashFlowPage'));
+const ReconciliationPage = lazyRetry(() => import('./pages/treasury/ReconciliationPage'));
+const MultiCurrency = lazyRetry(() => import('./pages/treasury/MultiCurrency'));
+const BankMovementsPage = lazyRetry(() => import('./pages/treasury/BankMovementsPage'));
+const ConnexionsBancairesPage = lazyRetry(() => import('./pages/treasury/ConnexionsBancairesPage'));
+const GestionPaiementsPage = lazyRetry(() => import('./pages/treasury/GestionPaiementsPage'));
+const PrevisionsTresoreriePage = lazyRetry(() => import('./pages/treasury/PrevisionsTresoreriePage'));
+const PositionTresoreriePage = lazyRetry(() => import('./pages/treasury/PositionTresoreriePage'));
 
 // Immobilisations
-const AssetsDashboard = React.lazy(() => import('./pages/assets/AssetsDashboard'));
-const FixedAssetsPage = React.lazy(() => import('./pages/assets/FixedAssetsPage'));
-const DepreciationPage = React.lazy(() => import('./pages/assets/DepreciationPage'));
-const AssetsSummary = React.lazy(() => import('./pages/assets/AssetsSummary'));
-const AssetsRegistry = React.lazy(() => import('./pages/assets/AssetsRegistry'));
-const AssetsTransactions = React.lazy(() => import('./pages/assets/AssetsTransactions'));
-const AssetsCategories = React.lazy(() => import('./pages/assets/AssetsCategories'));
-const AssetsClasses = React.lazy(() => import('./pages/assets/AssetsClasses'));
-const AssetsJournal = React.lazy(() => import('./pages/assets/AssetsJournal'));
-const AssetsDisposals = React.lazy(() => import('./pages/assets/AssetsDisposals'));
-const AssetsMaintenance = React.lazy(() => import('./pages/assets/AssetsMaintenance'));
-const InventairePhysiquePage = React.lazy(() => import('./pages/assets/InventairePhysiquePage'));
+const AssetsDashboard = lazyRetry(() => import('./pages/assets/AssetsDashboard'));
+const FixedAssetsPage = lazyRetry(() => import('./pages/assets/FixedAssetsPage'));
+const DepreciationPage = lazyRetry(() => import('./pages/assets/DepreciationPage'));
+const AssetsSummary = lazyRetry(() => import('./pages/assets/AssetsSummary'));
+const AssetsRegistry = lazyRetry(() => import('./pages/assets/AssetsRegistry'));
+const AssetsTransactions = lazyRetry(() => import('./pages/assets/AssetsTransactions'));
+const AssetsCategories = lazyRetry(() => import('./pages/assets/AssetsCategories'));
+const AssetsClasses = lazyRetry(() => import('./pages/assets/AssetsClasses'));
+const AssetsJournal = lazyRetry(() => import('./pages/assets/AssetsJournal'));
+const AssetsDisposals = lazyRetry(() => import('./pages/assets/AssetsDisposals'));
+const AssetsMaintenance = lazyRetry(() => import('./pages/assets/AssetsMaintenance'));
+const InventairePhysiquePage = lazyRetry(() => import('./pages/assets/InventairePhysiquePage'));
 
 // Budget
-const BudgetingDashboard = React.lazy(() => import('./pages/budgeting/BudgetingDashboard'));
-const BudgetsPage = React.lazy(() => import('./pages/budgeting/BudgetsPage'));
-const BudgetControlPage = React.lazy(() => import('./pages/budgeting/BudgetControlPage'));
-const BudgetDetailPage = React.lazy(() => import('./pages/budgeting/BudgetDetailPage'));
+const BudgetingDashboard = lazyRetry(() => import('./pages/budgeting/BudgetingDashboard'));
+const BudgetsPage = lazyRetry(() => import('./pages/budgeting/BudgetsPage'));
+const BudgetControlPage = lazyRetry(() => import('./pages/budgeting/BudgetControlPage'));
+const BudgetDetailPage = lazyRetry(() => import('./pages/budgeting/BudgetDetailPage'));
 
 // Clotures
-const ClosureModulesIndex = React.lazy(() => import('./pages/closures/ClosureModulesIndex'));
-const PeriodicClosuresModule = React.lazy(() => import('./pages/closures/PeriodicClosuresModule'));
-const RevisionsModule = React.lazy(() => import('./pages/closures/RevisionsModule'));
-const ReportsANouveauModule = React.lazy(() => import('./pages/closures/ReportsANouveauModule'));
-const PisteAuditModule = React.lazy(() => import('./pages/closures/PisteAuditModule'));
+const ClosureModulesIndex = lazyRetry(() => import('./pages/closures/ClosureModulesIndex'));
+const PeriodicClosuresModule = lazyRetry(() => import('./pages/closures/PeriodicClosuresModule'));
+const RevisionsModule = lazyRetry(() => import('./pages/closures/RevisionsModule'));
+const ReportsANouveauModule = lazyRetry(() => import('./pages/closures/ReportsANouveauModule'));
+const PisteAuditModule = lazyRetry(() => import('./pages/closures/PisteAuditModule'));
 
 // Reporting
-const ReportingDashboard = React.lazy(() => import('./pages/reporting/ReportingDashboard'));
-const TaxReportingPage = React.lazy(() => import('./pages/reporting/TaxReportingPage'));
-const DashboardsPage = React.lazy(() => import('./pages/reporting/DashboardsPage'));
-const ReportingSyscohada = React.lazy(() => import('./pages/reporting/ReportingSyscohada'));
-const ReportingIFRS = React.lazy(() => import('./pages/reporting/ReportingIFRS'));
-const ReportBuilderApp = React.lazy(() => import('./features/report-builder/components/ReportBuilderApp'));
+const ReportingDashboard = lazyRetry(() => import('./pages/reporting/ReportingDashboard'));
+const TaxReportingPage = lazyRetry(() => import('./pages/reporting/TaxReportingPage'));
+const DashboardsPage = lazyRetry(() => import('./pages/reporting/DashboardsPage'));
+const ReportingSyscohada = lazyRetry(() => import('./pages/reporting/ReportingSyscohada'));
+const ReportingIFRS = lazyRetry(() => import('./pages/reporting/ReportingIFRS'));
+const ReportBuilderApp = lazyRetry(() => import('./features/report-builder/components/ReportBuilderApp'));
 
 // Financial statements
-const FinancialStatementsIndexPage = React.lazy(() => import('./pages/financial/FinancialStatementsIndexPage'));
-const BilanSYSCOHADAPage = React.lazy(() => import('./pages/financial/BilanSYSCOHADAPage'));
-const CompteResultatPage = React.lazy(() => import('./pages/financial/CompteResultatPage'));
-const FinancialAnalysisPage = React.lazy(() => import('./pages/financial/FinancialAnalysisPage'));
-const CashFlowStatementPage = React.lazy(() => import('./components/financial/CashFlowStatementSYSCOHADA'));
+const FinancialStatementsIndexPage = lazyRetry(() => import('./pages/financial/FinancialStatementsIndexPage'));
+const BilanSYSCOHADAPage = lazyRetry(() => import('./pages/financial/BilanSYSCOHADAPage'));
+const CompteResultatPage = lazyRetry(() => import('./pages/financial/CompteResultatPage'));
+const FinancialAnalysisPage = lazyRetry(() => import('./pages/financial/FinancialAnalysisPage'));
+const CashFlowStatementPage = lazyRetry(() => import('./components/financial/CashFlowStatementSYSCOHADA'));
 
 // Fiscalite
-const TaxationDashboard = React.lazy(() => import('./pages/taxation/TaxationDashboard'));
-const TaxDeclarationsPage = React.lazy(() => import('./pages/taxation/TaxDeclarationsPage'));
-const LiasseFiscalePage = React.lazy(() => import('./pages/taxation/LiasseFiscalePage'));
-const EcheancesFiscalesPage = React.lazy(() => import('./pages/taxation/EcheancesFiscalesPage'));
-const FiscalDashboard = React.lazy(() => import('./pages/fiscal/FiscalDashboard'));
+const TaxationDashboard = lazyRetry(() => import('./pages/taxation/TaxationDashboard'));
+const TaxDeclarationsPage = lazyRetry(() => import('./pages/taxation/TaxDeclarationsPage'));
+const LiasseFiscalePage = lazyRetry(() => import('./pages/taxation/LiasseFiscalePage'));
+const EcheancesFiscalesPage = lazyRetry(() => import('./pages/taxation/EcheancesFiscalesPage'));
+const FiscalDashboard = lazyRetry(() => import('./pages/fiscal/FiscalDashboard'));
 
 // Securite
-const SecurityDashboard = React.lazy(() => import('./pages/security/SecurityDashboard'));
-const UsersPage = React.lazy(() => import('./pages/security/UsersPage'));
-const RolesPage = React.lazy(() => import('./pages/security/RolesPage'));
-const PermissionsPage = React.lazy(() => import('./pages/security/PermissionsPage'));
+const SecurityDashboard = lazyRetry(() => import('./pages/security/SecurityDashboard'));
+const UsersPage = lazyRetry(() => import('./pages/security/UsersPage'));
+const RolesPage = lazyRetry(() => import('./pages/security/RolesPage'));
+const PermissionsPage = lazyRetry(() => import('./pages/security/PermissionsPage'));
 
 // Analytics
-const AnalyticsDashboard = React.lazy(() => import('./pages/analytics/AnalyticsDashboard'));
-const AnalyticalAxesPage = React.lazy(() => import('./pages/analytics/AnalyticalAxesPage'));
-const CostCentersPage = React.lazy(() => import('./pages/analytics/CostCentersPage'));
+const AnalyticsDashboard = lazyRetry(() => import('./pages/analytics/AnalyticsDashboard'));
+const AnalyticalAxesPage = lazyRetry(() => import('./pages/analytics/AnalyticalAxesPage'));
+const CostCentersPage = lazyRetry(() => import('./pages/analytics/CostCentersPage'));
 
 // Inventory
-const InventoryDashboard = React.lazy(() => import('./pages/inventory/InventoryDashboard'));
-const StockManagement = React.lazy(() => import('./pages/inventory/StockManagement'));
-const InventoryMovements = React.lazy(() => import('./pages/inventory/InventoryMovements'));
-const PhysicalInventory = React.lazy(() => import('./pages/inventory/PhysicalInventory'));
-const InventoryValuation = React.lazy(() => import('./pages/inventory/InventoryValuation'));
+const InventoryDashboard = lazyRetry(() => import('./pages/inventory/InventoryDashboard'));
+const StockManagement = lazyRetry(() => import('./pages/inventory/StockManagement'));
+const InventoryMovements = lazyRetry(() => import('./pages/inventory/InventoryMovements'));
+const PhysicalInventory = lazyRetry(() => import('./pages/inventory/PhysicalInventory'));
+const InventoryValuation = lazyRetry(() => import('./pages/inventory/InventoryValuation'));
 
 // Settings
-const AccountingSettingsPage = React.lazy(() => import('./pages/settings/AccountingSettingsPage'));
-const BackupPage = React.lazy(() => import('./pages/settings/BackupPage'));
-const ImportExportPage = React.lazy(() => import('./pages/settings/ImportExportPage'));
-const APIIntegrationsPage = React.lazy(() => import('./pages/settings/APIIntegrationsPage'));
-const MobileAppPage = React.lazy(() => import('./pages/settings/MobileAppPage'));
-const OfflineModePage = React.lazy(() => import('./pages/settings/OfflineModePage'));
-const IAConfigPage = React.lazy(() => import('./pages/settings/IAConfigPage'));
-const TrackChangePage = React.lazy(() => import('./pages/settings/TrackChangePage'));
-const TypographyGuide = React.lazy(() => import('./pages/settings/TypographyGuide'));
+const AccountingSettingsPage = lazyRetry(() => import('./pages/settings/AccountingSettingsPage'));
+const BackupPage = lazyRetry(() => import('./pages/settings/BackupPage'));
+const ImportExportPage = lazyRetry(() => import('./pages/settings/ImportExportPage'));
+const APIIntegrationsPage = lazyRetry(() => import('./pages/settings/APIIntegrationsPage'));
+const MobileAppPage = lazyRetry(() => import('./pages/settings/MobileAppPage'));
+const OfflineModePage = lazyRetry(() => import('./pages/settings/OfflineModePage'));
+const IAConfigPage = lazyRetry(() => import('./pages/settings/IAConfigPage'));
+const TrackChangePage = lazyRetry(() => import('./pages/settings/TrackChangePage'));
+const TypographyGuide = lazyRetry(() => import('./pages/settings/TypographyGuide'));
 
 // Config
-const PlanSYSCOHADAPage = React.lazy(() => import('./pages/config/PlanSYSCOHADAPage'));
-const TVATaxesPage = React.lazy(() => import('./pages/config/TVATaxesPage'));
-const MultiSocietesPage = React.lazy(() => import('./pages/config/MultiSocietesPage'));
-const AssistantDemarragePage = React.lazy(() => import('./pages/config/AssistantDemarragePage'));
+const PlanSYSCOHADAPage = lazyRetry(() => import('./pages/config/PlanSYSCOHADAPage'));
+const TVATaxesPage = lazyRetry(() => import('./pages/config/TVATaxesPage'));
+const MultiSocietesPage = lazyRetry(() => import('./pages/config/MultiSocietesPage'));
+const AssistantDemarragePage = lazyRetry(() => import('./pages/config/AssistantDemarragePage'));
 
 // Core
-const CompanyPage = React.lazy(() => import('./pages/core/CompanyPage'));
-const ExercicePage = React.lazy(() => import('./pages/core/ExercicePage'));
-const SetupWizardPage = React.lazy(() => import('./pages/core/SetupWizardPage'));
+const CompanyPage = lazyRetry(() => import('./pages/core/CompanyPage'));
+const ExercicePage = lazyRetry(() => import('./pages/core/ExercicePage'));
+const SetupWizardPage = lazyRetry(() => import('./pages/core/SetupWizardPage'));
 
 // Erreurs
-const NotFoundPage = React.lazy(() => import('./pages/errors/NotFoundPage'));
-const MaintenancePage = React.lazy(() => import('./pages/errors/MaintenancePage'));
+const NotFoundPage = lazyRetry(() => import('./pages/errors/NotFoundPage'));
+const MaintenancePage = lazyRetry(() => import('./pages/errors/MaintenancePage'));
 
 const queryClient = new QueryClient({ defaultOptions: { queries: { staleTime: 5 * 60 * 1000, retry: 1 } } });
 const LoadingFallback = () => <div className="flex items-center justify-center min-h-screen"><LoadingSpinner size="lg" /></div>;

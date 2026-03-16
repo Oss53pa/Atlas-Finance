@@ -42,6 +42,9 @@ export type TableName =
   | 'aliasPrefixConfig'
   | 'fiscalPeriods'
   | 'recoveryCases'
+  | 'taxRegistry'
+  | 'taxDeclarations'
+  | 'taxBrackets'
 
 export interface QueryFilters {
   where?: Record<string, any>
