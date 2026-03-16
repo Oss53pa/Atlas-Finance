@@ -547,8 +547,8 @@ const BilanSYSCOHADAPage: React.FC = () => {
                         <tr className="bg-gray-100 font-bold">
                           <td className="p-3">TA</td>
                           <td className="p-3">TOTAL ACTIF</td>
-                          <td className="p-3 text-right text-lg">13 075 000</td>
-                          <td className="p-3 text-right text-lg">12 465 000</td>
+                          <td className="p-3 text-right text-lg">{formatCurrency(bilanData.actif.reduce((s, i) => s + i.exerciceN, 0))}</td>
+                          <td className="p-3 text-right text-lg">{formatCurrency(bilanData.actif.reduce((s, i) => s + i.exerciceN1, 0))}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -572,8 +572,8 @@ const BilanSYSCOHADAPage: React.FC = () => {
                         <tr className="bg-gray-50">
                           <td className="p-2 font-bold">CP</td>
                           <td className="p-2 font-bold">CAPITAUX PROPRES</td>
-                          <td className="p-2 text-right font-bold">8 850 000</td>
-                          <td className="p-2 text-right font-bold">8 250 000</td>
+                          <td className="p-2 text-right font-bold">{formatCurrency(bilanData.passif.slice(0, 4).reduce((s, i) => s + i.exerciceN, 0))}</td>
+                          <td className="p-2 text-right font-bold">{formatCurrency(bilanData.passif.slice(0, 4).reduce((s, i) => s + i.exerciceN1, 0))}</td>
                         </tr>
                         {bilanData.passif.slice(0, 4).map((item, index) => (
                           <tr key={index} className="border-b border-[#e5e5e5] hover:bg-gray-50">
@@ -610,8 +610,8 @@ const BilanSYSCOHADAPage: React.FC = () => {
                         <tr className="bg-gray-50">
                           <td className="p-2 font-bold">DT</td>
                           <td className="p-2 font-bold">DETTES</td>
-                          <td className="p-2 text-right font-bold">4 225 000</td>
-                          <td className="p-2 text-right font-bold">4 215 000</td>
+                          <td className="p-2 text-right font-bold">{formatCurrency(bilanData.passif.slice(4).reduce((s, i) => s + i.exerciceN, 0))}</td>
+                          <td className="p-2 text-right font-bold">{formatCurrency(bilanData.passif.slice(4).reduce((s, i) => s + i.exerciceN1, 0))}</td>
                         </tr>
                         {bilanData.passif.slice(4).map((item, index) => (
                           <tr key={index} className="border-b border-[#e5e5e5] hover:bg-gray-50">
@@ -648,8 +648,8 @@ const BilanSYSCOHADAPage: React.FC = () => {
                         <tr className="bg-gray-100 font-bold">
                           <td className="p-3">TP</td>
                           <td className="p-3">TOTAL PASSIF</td>
-                          <td className="p-3 text-right text-lg">13 075 000</td>
-                          <td className="p-3 text-right text-lg">12 465 000</td>
+                          <td className="p-3 text-right text-lg">{formatCurrency(bilanData.passif.reduce((s, i) => s + i.exerciceN, 0))}</td>
+                          <td className="p-3 text-right text-lg">{formatCurrency(bilanData.passif.reduce((s, i) => s + i.exerciceN1, 0))}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -693,8 +693,8 @@ const BilanSYSCOHADAPage: React.FC = () => {
                         <tr className="border-t-2 border-[#e5e5e5] bg-gray-50">
                           <td className="p-3 font-bold text-[#171717]">TP</td>
                           <td className="p-3 font-bold text-[#171717]">TOTAL PRODUITS</td>
-                          <td className="p-3 text-right text-lg font-bold text-[#171717]">11 620 000</td>
-                          <td className="p-3 text-right text-lg font-bold text-[#171717]">10 685 000</td>
+                          <td className="p-3 text-right text-lg font-bold text-[#171717]">{formatCurrency(compteResultatData.produits.reduce((s, i) => s + i.exerciceN, 0))}</td>
+                          <td className="p-3 text-right text-lg font-bold text-[#171717]">{formatCurrency(compteResultatData.produits.reduce((s, i) => s + i.exerciceN1, 0))}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -726,8 +726,8 @@ const BilanSYSCOHADAPage: React.FC = () => {
                         <tr className="border-t-2 border-[#e5e5e5] bg-gray-50">
                           <td className="p-3 font-bold text-[#171717]">TC</td>
                           <td className="p-3 font-bold text-[#171717]">TOTAL CHARGES</td>
-                          <td className="p-3 text-right text-lg font-bold text-[#171717]">10 480 000</td>
-                          <td className="p-3 text-right text-lg font-bold text-[#171717]">9 750 000</td>
+                          <td className="p-3 text-right text-lg font-bold text-[#171717]">{formatCurrency(compteResultatData.charges.reduce((s, i) => s + i.exerciceN, 0))}</td>
+                          <td className="p-3 text-right text-lg font-bold text-[#171717]">{formatCurrency(compteResultatData.charges.reduce((s, i) => s + i.exerciceN1, 0))}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -738,16 +738,22 @@ const BilanSYSCOHADAPage: React.FC = () => {
                 <div className="bg-white rounded-lg p-6 border-2 border-[#e5e5e5] text-center">
                   <h3 className="text-lg font-bold text-[#171717] mb-4">RÉSULTAT NET DE L'EXERCICE</h3>
                   <div className="grid grid-cols-2 gap-6">
-                    <div className="p-4 border border-[#e5e5e5] rounded">
-                      <p className="text-[#737373] font-medium mb-2">Exercice N</p>
-                      <p className="text-lg font-bold text-[#171717]">1 140 000 €</p>
-                      <p className="text-sm text-[#737373] mt-1">(Bénéfice)</p>
-                    </div>
-                    <div className="p-4 border border-[#e5e5e5] rounded">
-                      <p className="text-[#737373] font-medium mb-2">Exercice N-1</p>
-                      <p className="text-lg font-bold text-[#171717]">935 000 €</p>
-                      <p className="text-sm text-[#737373] mt-1">(Bénéfice)</p>
-                    </div>
+                    {(() => {
+                      const rnN = compteResultatData.produits.reduce((s, i) => s + i.exerciceN, 0) - compteResultatData.charges.reduce((s, i) => s + i.exerciceN, 0);
+                      const rnN1 = compteResultatData.produits.reduce((s, i) => s + i.exerciceN1, 0) - compteResultatData.charges.reduce((s, i) => s + i.exerciceN1, 0);
+                      return (<>
+                        <div className="p-4 border border-[#e5e5e5] rounded">
+                          <p className="text-[#737373] font-medium mb-2">Exercice N</p>
+                          <p className={`text-lg font-bold ${rnN >= 0 ? 'text-green-600' : 'text-red-600'}`}>{formatCurrency(rnN)}</p>
+                          <p className="text-sm text-[#737373] mt-1">({rnN >= 0 ? 'Bénéfice' : 'Perte'})</p>
+                        </div>
+                        <div className="p-4 border border-[#e5e5e5] rounded">
+                          <p className="text-[#737373] font-medium mb-2">Exercice N-1</p>
+                          <p className={`text-lg font-bold ${rnN1 >= 0 ? 'text-green-600' : 'text-red-600'}`}>{formatCurrency(rnN1)}</p>
+                          <p className="text-sm text-[#737373] mt-1">({rnN1 >= 0 ? 'Bénéfice' : 'Perte'})</p>
+                        </div>
+                      </>);
+                    })()}
                   </div>
                 </div>
               </div>
@@ -836,21 +842,32 @@ const BilanSYSCOHADAPage: React.FC = () => {
               <div className="bg-white rounded-lg p-6 border border-[#e5e5e5]">
                 <h3 className="text-lg font-bold text-[#171717] mb-4">Indicateurs de l'Équilibre Financier</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="p-4 border border-[#e5e5e5] rounded text-center">
-                    <h4 className="font-semibold text-[#171717] mb-2">Fonds de Roulement Net Global</h4>
-                    <p className="text-lg font-bold text-[#171717]">770 000 €</p>
-                    <p className="text-sm text-[#737373]">Ressources stables - Emplois stables</p>
-                  </div>
-                  <div className="p-4 border border-[#e5e5e5] rounded text-center">
-                    <h4 className="font-semibold text-[#171717] mb-2">Besoin en Fonds de Roulement</h4>
-                    <p className="text-lg font-bold text-[#171717]">1 265 000 €</p>
-                    <p className="text-sm text-[#737373]">AC exploitation - PC exploitation</p>
-                  </div>
-                  <div className="p-4 border border-[#e5e5e5] rounded text-center">
-                    <h4 className="font-semibold text-[#171717] mb-2">Trésorerie Nette</h4>
-                    <p className="text-lg font-bold text-red-600">-495 000 €</p>
-                    <p className="text-sm text-[#737373]">FRNG - BFR</p>
-                  </div>
+                  {(() => {
+                    const rs = bilanFonctionnelData.ressources.find(r => r.code === 'RS')?.valeur || 0;
+                    const es = bilanFonctionnelData.emplois.find(r => r.code === 'ES')?.valeur || 0;
+                    const frng = rs - es;
+                    const ace = bilanFonctionnelData.emplois.find(r => r.code === 'ACE')?.valeur || 0;
+                    const pce = bilanFonctionnelData.ressources.find(r => r.code === 'PCE')?.valeur || 0;
+                    const bfr = ace - pce;
+                    const tn = frng - bfr;
+                    return (<>
+                      <div className="p-4 border border-[#e5e5e5] rounded text-center">
+                        <h4 className="font-semibold text-[#171717] mb-2">Fonds de Roulement Net Global</h4>
+                        <p className={`text-lg font-bold ${frng >= 0 ? 'text-[#171717]' : 'text-red-600'}`}>{formatCurrency(frng)}</p>
+                        <p className="text-sm text-[#737373]">Ressources stables - Emplois stables</p>
+                      </div>
+                      <div className="p-4 border border-[#e5e5e5] rounded text-center">
+                        <h4 className="font-semibold text-[#171717] mb-2">Besoin en Fonds de Roulement</h4>
+                        <p className={`text-lg font-bold ${bfr >= 0 ? 'text-[#171717]' : 'text-green-600'}`}>{formatCurrency(bfr)}</p>
+                        <p className="text-sm text-[#737373]">AC exploitation - PC exploitation</p>
+                      </div>
+                      <div className="p-4 border border-[#e5e5e5] rounded text-center">
+                        <h4 className="font-semibold text-[#171717] mb-2">Trésorerie Nette</h4>
+                        <p className={`text-lg font-bold ${tn >= 0 ? 'text-green-600' : 'text-red-600'}`}>{formatCurrency(tn)}</p>
+                        <p className="text-sm text-[#737373]">FRNG - BFR</p>
+                      </div>
+                    </>);
+                  })()}
                 </div>
               </div>
             </div>
@@ -890,21 +907,31 @@ const BilanSYSCOHADAPage: React.FC = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-                <div className="bg-white rounded-lg p-4 border border-[#e5e5e5]">
-                  <h4 className="font-bold text-[#171717] mb-2">Taux de marge commerciale</h4>
-                  <p className="text-lg font-bold text-[#171717]">38.8%</p>
-                  <p className="text-sm text-[#737373]">Marge / CA marchandises</p>
-                </div>
-                <div className="bg-white rounded-lg p-4 border border-[#e5e5e5]">
-                  <h4 className="font-bold text-[#171717] mb-2">Taux de valeur ajoutée</h4>
-                  <p className="text-lg font-bold text-[#171717]">38.6%</p>
-                  <p className="text-sm text-[#737373]">VA / Production</p>
-                </div>
-                <div className="bg-white rounded-lg p-4 border border-[#e5e5e5]">
-                  <h4 className="font-bold text-[#171717] mb-2">Taux de rentabilité</h4>
-                  <p className="text-lg font-bold text-[#171717]">4.1%</p>
-                  <p className="text-sm text-[#737373]">Résultat / CA total</p>
-                </div>
+                {(() => {
+                  const mc = sigData.find(s => s.libelle.includes('Marge commerciale'))?.exerciceN || 0;
+                  const va = sigData.find(s => s.libelle.includes('Valeur ajoutée'))?.exerciceN || 0;
+                  const rn = sigData.find(s => s.libelle.includes('Résultat net'))?.exerciceN || 0;
+                  const ca = creditNet(['70', '71', '72']);
+                  const prodEx = sigData.find(s => s.libelle.includes('Production'))?.exerciceN || 1;
+                  const ventesMarc = creditNet(['701']);
+                  return (<>
+                    <div className="bg-white rounded-lg p-4 border border-[#e5e5e5]">
+                      <h4 className="font-bold text-[#171717] mb-2">Taux de marge commerciale</h4>
+                      <p className="text-lg font-bold text-[#171717]">{ventesMarc > 0 ? (mc / ventesMarc * 100).toFixed(1) : '0.0'}%</p>
+                      <p className="text-sm text-[#737373]">Marge / CA marchandises</p>
+                    </div>
+                    <div className="bg-white rounded-lg p-4 border border-[#e5e5e5]">
+                      <h4 className="font-bold text-[#171717] mb-2">Taux de valeur ajoutée</h4>
+                      <p className="text-lg font-bold text-[#171717]">{prodEx > 0 ? (va / prodEx * 100).toFixed(1) : '0.0'}%</p>
+                      <p className="text-sm text-[#737373]">VA / Production</p>
+                    </div>
+                    <div className="bg-white rounded-lg p-4 border border-[#e5e5e5]">
+                      <h4 className="font-bold text-[#171717] mb-2">Taux de rentabilité</h4>
+                      <p className="text-lg font-bold text-[#171717]">{ca > 0 ? (rn / ca * 100).toFixed(1) : '0.0'}%</p>
+                      <p className="text-sm text-[#737373]">Résultat / CA total</p>
+                    </div>
+                  </>);
+                })()}
               </div>
             </div>
           )}
@@ -1071,9 +1098,16 @@ const BilanSYSCOHADAPage: React.FC = () => {
                 <h3 className="text-lg font-bold text-[#171717] mb-4">VARIATION DU FONDS DE ROULEMENT NET GLOBAL</h3>
                 <div className="flex justify-center">
                   <div className="p-6 border border-[#e5e5e5] rounded-lg">
-                    <p className="text-[#737373] font-medium mb-2">Ressources - Emplois</p>
-                    <p className="text-lg font-bold text-[#171717]">+125 000 €</p>
-                    <p className="text-sm text-[#737373] mt-2">Augmentation du fonds de roulement</p>
+                    {(() => {
+                      const totalRessources = tableauFinancementData.ressources.reduce((s, i) => s + i.montant, 0);
+                      const totalEmplois = tableauFinancementData.emplois.reduce((s, i) => s + i.montant, 0);
+                      const variation = totalRessources - totalEmplois;
+                      return (<>
+                        <p className="text-[#737373] font-medium mb-2">Ressources - Emplois</p>
+                        <p className={`text-lg font-bold ${variation >= 0 ? 'text-green-600' : 'text-red-600'}`}>{variation >= 0 ? '+' : ''}{formatCurrency(variation)}</p>
+                        <p className="text-sm text-[#737373] mt-2">{variation >= 0 ? 'Augmentation' : 'Diminution'} du fonds de roulement</p>
+                      </>);
+                    })()}
                   </div>
                 </div>
               </div>

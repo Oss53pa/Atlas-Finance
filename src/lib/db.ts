@@ -307,6 +307,78 @@ export interface DBFiscalPeriod {
   progression: number;
 }
 
+export interface DBTaxRegistry {
+  id: string;
+  countryCode: string;
+  taxCode: string;
+  taxName: string;
+  taxShortName: string;
+  taxCategory: 'INDIRECT' | 'DIRECT' | 'SOCIAL' | 'RETENUE' | 'AUTRE';
+  triggerAccounts: string[];
+  baseAccounts?: string[];
+  collectedAccounts?: string[];
+  payableAccounts?: string[];
+  deductibleAccounts?: string[];
+  ratePct?: number;
+  ratePctReduced?: number;
+  ratePctMinimum?: number;
+  minimumAmount?: number;
+  threshold?: number;
+  formula: string;
+  periodicity: 'MONTHLY' | 'QUARTERLY' | 'ANNUAL' | 'PUNCTUAL' | 'ON_EVENT';
+  declarationDeadlineDays: number;
+  paymentDeadlineDays?: number;
+  declarationForm?: string;
+  fiscalAuthority?: string;
+  isActive: boolean;
+  isMandatory: boolean;
+  requiresManualInput: boolean;
+  notes?: string;
+  legalReference?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DBTaxDeclaration {
+  id: string;
+  taxRegistryId: string;
+  taxCode: string;
+  periodStart: string;
+  periodEnd: string;
+  periodLabel: string;
+  fiscalYear: number;
+  base: number;
+  grossTax: number;
+  deductible: number;
+  netTax: number;
+  alreadyPaid: number;
+  balanceDue: number;
+  credit: number;
+  calculationDetail?: Record<string, unknown>;
+  status: 'draft' | 'calculated' | 'validated' | 'declared' | 'paid' | 'overdue' | 'rectified';
+  declarationDeadline?: string;
+  declaredAt?: string;
+  paidAt?: string;
+  referenceNumber?: string;
+  paymentReference?: string;
+  calculatedBy?: string;
+  validatedBy?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DBTaxBracket {
+  id: string;
+  taxRegistryId: string;
+  countryCode: string;
+  fiscalYear: number;
+  bracketOrder: number;
+  fromAmount: number;
+  toAmount?: number;
+  ratePct: number;
+  rebate?: number;
+}
+
 // ============================================================================
 // DATABASE
 // ============================================================================
@@ -331,6 +403,9 @@ class AtlasFinanceDB extends Dexie {
   fiscalPeriods!: Table<DBFiscalPeriod, string>;
   stockMovements!: Table<DBStockMovement, string>;
   recoveryCases!: Table<DBRecoveryCase, string>;
+  taxRegistry!: Table<DBTaxRegistry, string>;
+  taxDeclarations!: Table<DBTaxDeclaration, string>;
+  taxBrackets!: Table<DBTaxBracket, string>;
 
   constructor() {
     super('AtlasFinanceDB');
@@ -452,6 +527,30 @@ class AtlasFinanceDB extends Dexie {
       aliasPrefixConfig: 'id, sousCompteCode, prefix',
       fiscalPeriods: 'id, fiscalYearId, code, type, status, startDate',
       recoveryCases: 'id, numeroRef, clientId, statut, dateOuverture',
+    });
+    this.version(8).stores({
+      journalEntries: 'id, entryNumber, journal, date, status, [journal+date], reversalOf',
+      accounts: 'id, code, accountClass, parentCode',
+      thirdParties: 'id, code, type, name',
+      assets: 'id, code, category, status',
+      fiscalYears: 'id, startDate, endDate, isActive',
+      budgetLines: 'id, accountCode, fiscalYear, period',
+      auditLogs: 'id, timestamp, action, entityType, entityId',
+      settings: 'key',
+      closureSessions: 'id, type, exercice, statut, dateDebut, dateFin',
+      provisions: 'id, sessionId, compteClient, statut',
+      exchangeRates: 'id, fromCurrency, toCurrency, date, [fromCurrency+toCurrency+date]',
+      hedgingPositions: 'id, currency, type, status, maturityDate',
+      revisionItems: 'id, sessionId, accountCode, status, isaAssertion',
+      inventoryItems: 'id, code, name, category, location, status',
+      stockMovements: 'id, itemId, date, type, reference, [itemId+date]',
+      aliasTiers: 'id, alias, prefix',
+      aliasPrefixConfig: 'id, sousCompteCode, prefix',
+      fiscalPeriods: 'id, fiscalYearId, code, type, status, startDate',
+      recoveryCases: 'id, numeroRef, clientId, statut, dateOuverture',
+      taxRegistry: 'id, countryCode, taxCode, taxCategory, isActive, [countryCode+taxCode]',
+      taxDeclarations: 'id, taxRegistryId, taxCode, periodStart, status, fiscalYear, [taxCode+periodStart]',
+      taxBrackets: 'id, taxRegistryId, countryCode, fiscalYear',
     });
   }
 }
