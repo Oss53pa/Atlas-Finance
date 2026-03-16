@@ -243,6 +243,100 @@ const FiscalCalendar: React.FC<FiscalCalendarProps> = ({ triggeredTaxes, dbDecla
             <span className="w-2.5 h-2.5 rounded-full bg-green-500" /> Payée
           </div>
         </div>
+        {/* Modal Programmer */}
+        {showProgrammer && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl p-6 max-w-lg w-full mx-4 space-y-4 shadow-2xl">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-bold flex items-center gap-2">
+                  <Calendar className="h-5 w-5 text-blue-600" />
+                  Programmer une échéance
+                </h3>
+                <button onClick={() => setShowProgrammer(false)} className="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Code taxe *</label>
+                  <input type="text" value={form.taxCode} onChange={e => setForm(f => ({ ...f, taxCode: e.target.value }))}
+                    placeholder="TVA, IS, IRPP..." className="w-full border rounded-lg px-3 py-2 text-sm" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Nom</label>
+                  <input type="text" value={form.taxName} onChange={e => setForm(f => ({ ...f, taxName: e.target.value }))}
+                    placeholder="Taxe sur la Valeur Ajoutée" className="w-full border rounded-lg px-3 py-2 text-sm" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Date limite *</label>
+                  <input type="date" value={form.deadline} onChange={e => setForm(f => ({ ...f, deadline: e.target.value }))}
+                    className="w-full border rounded-lg px-3 py-2 text-sm" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Périodicité</label>
+                  <select value={form.periodicite} onChange={e => setForm(f => ({ ...f, periodicite: e.target.value }))}
+                    className="w-full border rounded-lg px-3 py-2 text-sm">
+                    <option value="MONTHLY">Mensuelle</option>
+                    <option value="QUARTERLY">Trimestrielle</option>
+                    <option value="ANNUAL">Annuelle</option>
+                    <option value="PUNCTUAL">Ponctuelle</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Catégorie</label>
+                  <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
+                    className="w-full border rounded-lg px-3 py-2 text-sm">
+                    <option value="INDIRECT">TVA / Indirect</option>
+                    <option value="DIRECT">IS / Direct</option>
+                    <option value="SOCIAL">Social</option>
+                    <option value="RETENUE">Retenue à la source</option>
+                    <option value="AUTRE">Autre</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Montant estimé</label>
+                  <input type="number" value={form.montant} onChange={e => setForm(f => ({ ...f, montant: e.target.value }))}
+                    placeholder="0" className="w-full border rounded-lg px-3 py-2 text-sm" />
+                </div>
+              </div>
+              <div className="bg-blue-50 rounded-lg p-3 text-xs text-blue-700">
+                <strong>Astuce :</strong> Les taxes du registre fiscal (Admin &gt; Registre Fiscal) génèrent automatiquement les échéances. Ce formulaire sert pour les échéances exceptionnelles.
+              </div>
+              <div className="flex gap-3 justify-end">
+                <Button variant="outline" onClick={() => setShowProgrammer(false)}>Annuler</Button>
+                <Button
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  onClick={async () => {
+                    if (!form.taxCode || !form.deadline) { toast.error('Code taxe et date limite obligatoires'); return; }
+                    try {
+                      await adapter.create('taxDeclarations', {
+                        taxCode: form.taxCode,
+                        periodLabel: form.taxName || form.taxCode,
+                        periodStart: form.deadline,
+                        periodEnd: form.deadline,
+                        declarationDeadline: form.deadline,
+                        status: 'draft',
+                        netTax: form.montant ? Number(form.montant) : 0,
+                        base: 0, grossTax: 0, deductible: 0,
+                        balanceDue: form.montant ? Number(form.montant) : 0,
+                        credit: 0,
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString(),
+                      });
+                      toast.success(`Échéance ${form.taxCode} programmée au ${form.deadline}`);
+                      setShowProgrammer(false);
+                      setForm({ taxCode: '', taxName: '', deadline: '', periodicite: 'MONTHLY', montant: '', category: 'INDIRECT' });
+                      queryClient.invalidateQueries({ queryKey: ['tax-reporting'] });
+                    } catch (err) {
+                      console.error('[FiscalCalendar] save failed:', err);
+                      toast.error('Erreur lors de la programmation');
+                    }
+                  }}
+                >
+                  <Plus className="mr-1 h-4 w-4" /> Programmer
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
