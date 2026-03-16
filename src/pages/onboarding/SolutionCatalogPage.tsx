@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  Calculator, Users, Handshake, Package, FolderKanban,
+  Calculator, Users, Handshake, Package, FolderKanban, FileText, FolderOpen,
   CheckCircle, ArrowRight, Sparkles, Zap
 } from 'lucide-react';
 import { getSolutions, getMySubscriptions, createSubscription } from '../../features/onboarding/services/onboardingService';
@@ -12,6 +12,7 @@ import { toast } from 'react-hot-toast';
 const ICONS: Record<string, React.FC<{ className?: string }>> = {
   calculator: Calculator, users: Users, handshake: Handshake,
   package: Package, 'folder-kanban': FolderKanban,
+  'file-text': FileText, 'folder-open': FolderOpen,
 };
 
 const SolutionCatalogPage: React.FC = () => {

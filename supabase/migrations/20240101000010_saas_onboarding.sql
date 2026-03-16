@@ -230,6 +230,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- 9. SEED SOLUTIONS
 -- ============================================================================
 INSERT INTO solutions (code, name, description, icon, color, price_monthly_xof, price_yearly_xof, price_monthly_eur, price_yearly_eur, features, is_active, display_order) VALUES
+  -- ═══ SOLUTIONS EN PRODUCTION ═══
   ('atlas-finance', 'Atlas Finance',
    'ERP Comptable & Financier conforme SYSCOHADA — Plan comptable, écritures, états financiers, trésorerie, fiscalité, audit IA.',
    'calculator', '#171717',
@@ -237,32 +238,33 @@ INSERT INTO solutions (code, name, description, icon, color, price_monthly_xof, 
    '["Comptabilité SYSCOHADA", "États financiers (Bilan, CR, TAFIRE, SIG)", "Trésorerie & rapprochement bancaire", "Fiscalité 17 pays OHADA", "Audit IA PROPH3T (108 contrôles)", "Multi-société & multi-exercice", "Export FEC & liasse fiscale"]'::jsonb,
    true, 1),
 
+  ('liass-pilot', 'Liass''Pilot',
+   'Génération automatique de la liasse fiscale SYSCOHADA — DSF, états annexes, télédéclaration conforme DGI.',
+   'file-text', '#0891b2',
+   15000, 150000, 25, 250,
+   '["Liasse fiscale SYSCOHADA automatique", "DSF conforme DGI", "États annexes (tableau 1-22)", "Télédéclaration", "Contrôle de cohérence", "Export PDF & XML", "Intégration Atlas Finance"]'::jsonb,
+   true, 2),
+
+  ('docjourney', 'DocJourney',
+   'Gestion documentaire intelligente — Numérisation, classement automatique, archivage légal et piste d''audit.',
+   'folder-open', '#7c3aed',
+   10000, 100000, 19, 190,
+   '["Numérisation OCR", "Classement automatique IA", "Archivage légal (10 ans)", "Piste d''audit SHA-256", "Recherche full-text", "Partage sécurisé", "Intégration Atlas Finance"]'::jsonb,
+   true, 3),
+
+  -- ═══ SOLUTIONS À VENIR ═══
   ('atlas-hr', 'Atlas HR',
    'Gestion des Ressources Humaines & Paie — Bulletins, congés, cotisations sociales CNPS/CSS/IPRES.',
    'users', '#2563eb',
    20000, 200000, 29, 290,
    '["Bulletins de paie multi-pays", "Congés & absences", "Cotisations sociales (CNPS, CSS, IPRES)", "Déclarations sociales", "Gestion des contrats"]'::jsonb,
-   false, 2),
+   false, 4),
 
   ('atlas-crm', 'Atlas CRM',
    'Relation Client & Commercial — Pipeline, devis, facturation, recouvrement.',
    'handshake', '#059669',
    15000, 150000, 25, 250,
    '["Pipeline commercial", "Devis & facturation", "Recouvrement automatisé", "Reporting client", "Intégration Atlas Finance"]'::jsonb,
-   false, 3),
-
-  ('atlas-stock', 'Atlas Stock',
-   'Gestion des Stocks & Inventaire — Mouvements, valorisation SYSCOHADA, inventaire physique.',
-   'package', '#d97706',
-   15000, 150000, 25, 250,
-   '["Mouvements de stock", "Valorisation CMUP/FIFO/LIFO", "Inventaire physique", "Alertes de seuil", "Intégration comptable"]'::jsonb,
-   false, 4),
-
-  ('atlas-project', 'Atlas Project',
-   'Gestion de Projets — Planification, suivi budgétaire, collaboration d''équipe.',
-   'folder-kanban', '#7c3aed',
-   10000, 100000, 19, 190,
-   '["Kanban & Gantt", "Suivi budgétaire par projet", "Collaboration d''équipe", "Rapports d''avancement"]'::jsonb,
    false, 5)
 ON CONFLICT (code) DO UPDATE SET
   name = EXCLUDED.name,

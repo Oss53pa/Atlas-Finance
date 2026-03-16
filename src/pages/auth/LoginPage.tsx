@@ -351,7 +351,7 @@ const LoginPage: React.FC = () => {
             {/* Footer Atlas Studio */}
             <div className="mt-6 text-center">
               <p className="text-xs text-[var(--color-text-secondary)]">
-                Atlas Studio &copy; {new Date().getFullYear()} — Atlas Finance, Atlas HR, Atlas CRM
+                Atlas Studio &copy; {new Date().getFullYear()} — Atlas Finance, Liass'Pilot, DocJourney
               </p>
             </div>
           </CardContent>

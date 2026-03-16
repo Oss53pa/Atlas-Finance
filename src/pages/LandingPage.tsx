@@ -147,9 +147,9 @@ const LandingPage: React.FC = () => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
-              { name: 'Atlas Finance', desc: 'ERP Comptable & Financier', color: '#171717', available: true, features: ['Comptabilité SYSCOHADA', 'États financiers', 'Trésorerie', 'Fiscalité', 'Audit IA'] },
-              { name: 'Atlas HR', desc: 'Ressources Humaines & Paie', color: '#2563eb', available: false, features: ['Bulletins de paie', 'Congés & absences', 'Cotisations CNPS/CSS', 'Déclarations sociales'] },
-              { name: 'Atlas CRM', desc: 'Relation Client', color: '#059669', available: false, features: ['Pipeline commercial', 'Devis & factures', 'Recouvrement', 'Reporting client'] },
+              { name: 'Atlas Finance', desc: 'ERP Comptable & Financier', color: '#171717', available: true, features: ['Comptabilité SYSCOHADA', 'États financiers', 'Trésorerie', 'Fiscalité 17 pays', 'Audit IA PROPH3T'] },
+              { name: "Liass'Pilot", desc: 'Liasse Fiscale Automatique', color: '#0891b2', available: true, features: ['DSF conforme DGI', 'États annexes 1-22', 'Télédéclaration', 'Contrôle de cohérence', 'Export PDF & XML'] },
+              { name: 'DocJourney', desc: 'Gestion Documentaire', color: '#7c3aed', available: true, features: ['Numérisation OCR', 'Classement IA', 'Archivage légal 10 ans', 'Piste d\'audit', 'Recherche full-text'] },
             ].map((p, i) => (
               <div key={i} className={`rounded-2xl overflow-hidden border ${p.available ? 'border-[#171717] shadow-lg' : 'border-gray-200'}`}>
                 <div className="p-6 text-white" style={{ backgroundColor: p.color }}>
@@ -211,7 +211,7 @@ const LandingPage: React.FC = () => {
             <div>
               <h4 className="font-semibold mb-3 text-sm">Produits</h4>
               <ul className="space-y-2 text-sm text-white/50">
-                <li>Atlas Finance</li><li>Atlas HR</li><li>Atlas CRM</li>
+                <li>Atlas Finance</li><li>Liass'Pilot</li><li>DocJourney</li>
               </ul>
             </div>
             <div>

@@ -3,16 +3,16 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import {
-  Calculator, Users, Handshake, Package, FolderKanban,
+  Calculator, Users, Handshake, FileText, FolderOpen,
   LogOut, ArrowRight, Lock
 } from 'lucide-react';
 
 const APPS = [
-  { code: 'atlas-finance', name: 'Atlas Finance', desc: 'Comptabilité & Finance', icon: Calculator, color: '#171717', active: true },
-  { code: 'atlas-hr',      name: 'Atlas HR',      desc: 'Ressources Humaines',    icon: Users,      color: '#2563eb', active: false },
-  { code: 'atlas-crm',     name: 'Atlas CRM',     desc: 'Relation Client',        icon: Handshake,  color: '#059669', active: false },
-  { code: 'atlas-stock',   name: 'Atlas Stock',    desc: 'Stocks & Inventaire',    icon: Package,    color: '#d97706', active: false },
-  { code: 'atlas-project', name: 'Atlas Project',  desc: 'Gestion de Projets',     icon: FolderKanban, color: '#7c3aed', active: false },
+  { code: 'atlas-finance', name: 'Atlas Finance',  desc: 'ERP Comptable & Financier SYSCOHADA', icon: Calculator, color: '#171717', active: true },
+  { code: 'liass-pilot',   name: "Liass'Pilot",    desc: 'Liasse fiscale automatique',          icon: FileText,   color: '#0891b2', active: true },
+  { code: 'docjourney',    name: 'DocJourney',     desc: 'Gestion documentaire intelligente',   icon: FolderOpen, color: '#7c3aed', active: true },
+  { code: 'atlas-hr',      name: 'Atlas HR',       desc: 'Ressources Humaines & Paie',          icon: Users,      color: '#2563eb', active: false },
+  { code: 'atlas-crm',     name: 'Atlas CRM',      desc: 'Relation Client & Commercial',        icon: Handshake,  color: '#059669', active: false },
 ];
 
 function getWorkspacePath(role: string): string {
