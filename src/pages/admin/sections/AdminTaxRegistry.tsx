@@ -34,6 +34,36 @@ const PERIODICITY_OPTIONS = [
   { value: 'PUNCTUAL', label: 'Ponctuelle' },
 ];
 
+const OHADA_COUNTRIES = [
+  { code: 'CI', name: "Côte d'Ivoire", zone: 'UEMOA' },
+  { code: 'SN', name: 'Sénégal', zone: 'UEMOA' },
+  { code: 'CM', name: 'Cameroun', zone: 'CEMAC' },
+  { code: 'GA', name: 'Gabon', zone: 'CEMAC' },
+  { code: 'ML', name: 'Mali', zone: 'UEMOA' },
+  { code: 'BF', name: 'Burkina Faso', zone: 'UEMOA' },
+  { code: 'BJ', name: 'Bénin', zone: 'UEMOA' },
+  { code: 'TG', name: 'Togo', zone: 'UEMOA' },
+  { code: 'NE', name: 'Niger', zone: 'UEMOA' },
+  { code: 'TD', name: 'Tchad', zone: 'CEMAC' },
+  { code: 'CF', name: 'Centrafrique', zone: 'CEMAC' },
+  { code: 'CG', name: 'Congo', zone: 'CEMAC' },
+  { code: 'GQ', name: 'Guinée Équatoriale', zone: 'CEMAC' },
+  { code: 'GW', name: 'Guinée-Bissau', zone: 'UEMOA' },
+  { code: 'KM', name: 'Comores', zone: 'Autre' },
+  { code: 'CD', name: 'RD Congo', zone: 'Autre' },
+  { code: 'GN', name: 'Guinée', zone: 'Autre' },
+];
+
+const FORMULA_OPTIONS = [
+  { value: 'COLLECTED_MINUS_DEDUCTIBLE', label: 'Collectée - Déductible (TVA)' },
+  { value: 'MAX_CALCULATED_MINIMUM', label: 'Max(Calculé, IMF) (IS)' },
+  { value: 'RATE_ON_BASE', label: 'Taux × Base' },
+  { value: 'FIXED_ON_PAYROLL', label: 'Taux × Masse salariale' },
+  { value: 'RETENUE_SOURCE', label: 'Retenue à la source' },
+  { value: 'PROGRESSIVE_BRACKET', label: 'Barème progressif (IRPP)' },
+  { value: 'MANUAL', label: 'Saisie manuelle' },
+];
+
 /**
  * Derive a UI category from the seed data fields.
  */
@@ -100,12 +130,21 @@ const AdminTaxRegistry: React.FC = () => {
   });
 
   // ---- State ----
+  const [selectedCountry, setSelectedCountry] = useState('CI');
   const [expandedCategories, setExpandedCategories] = useState<Set<TaxCategory>>(
     new Set(['INDIRECT', 'DIRECT', 'SOCIAL', 'RETENUE', 'AUTRE']),
   );
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Record<string, any>>({});
   const [seedLoading, setSeedLoading] = useState(false);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newTax, setNewTax] = useState({
+    taxCode: '', taxName: '', taxShortName: '', taxCategory: 'INDIRECT' as TaxCategory,
+    ratePct: '', formula: 'RATE_ON_BASE', periodicity: 'MONTHLY',
+    declarationDeadlineDays: '15', triggerAccounts: '', baseAccounts: '',
+    collectedAccounts: '', deductibleAccounts: '', payableAccounts: '',
+    fiscalAuthority: '', legalReference: '', notes: '',
+  });
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
     taxId: string;
@@ -113,17 +152,20 @@ const AdminTaxRegistry: React.FC = () => {
     value: any;
   }>({ open: false, taxId: '', field: '', value: null });
 
+  // ---- Filtering by country ----
+  const countryTaxes = useMemo(() => taxes.filter((t: any) => t.countryCode === selectedCountry), [taxes, selectedCountry]);
+
   // ---- Grouping ----
   const grouped = useMemo(() => {
     const map: Record<TaxCategory, any[]> = {
       INDIRECT: [], DIRECT: [], SOCIAL: [], RETENUE: [], AUTRE: [],
     };
-    for (const tax of taxes) {
+    for (const tax of countryTaxes) {
       const cat = deriveTaxCategory(tax);
       map[cat].push(tax);
     }
     return map;
-  }, [taxes]);
+  }, [countryTaxes]);
 
   // ---- Handlers ----
   const toggleCategory = (cat: TaxCategory) => {
@@ -270,12 +312,19 @@ const AdminTaxRegistry: React.FC = () => {
             Registre des taxes
           </h2>
           <p className="text-sm text-gray-500 mt-1">
-            {taxes.length} taxe{taxes.length !== 1 ? 's' : ''} configuree{taxes.length !== 1 ? 's' : ''}
-            {' '}&mdash; {taxes.filter((t: any) => t.isActive).length} active{taxes.filter((t: any) => t.isActive).length !== 1 ? 's' : ''}
+            {countryTaxes.length} taxe{countryTaxes.length !== 1 ? 's' : ''} pour {OHADA_COUNTRIES.find(c => c.code === selectedCountry)?.name || selectedCountry}
+            {' '}&mdash; {countryTaxes.filter((t: any) => t.isActive).length} active{countryTaxes.filter((t: any) => t.isActive).length !== 1 ? 's' : ''}
           </p>
         </div>
         <div className="flex items-center gap-3">
-          {taxes.length === 0 && (
+          <button
+            onClick={() => setShowAddForm(!showAddForm)}
+            className="flex items-center gap-2 px-4 py-2 text-sm text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+          >
+            <span className="text-lg leading-none">+</span>
+            Ajouter une taxe
+          </button>
+          {selectedCountry === 'CI' && countryTaxes.length === 0 && (
             <button
               onClick={handleSeedCI}
               disabled={seedLoading}
@@ -285,26 +334,161 @@ const AdminTaxRegistry: React.FC = () => {
               Initialiser taxes CI
             </button>
           )}
-          {taxes.length > 0 && (
+          {selectedCountry === 'CI' && countryTaxes.length > 0 && (
             <button
               onClick={handleResetCI}
               disabled={seedLoading}
               className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50"
             >
               {seedLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-              Reinitialiser aux valeurs CI
+              Reinitialiser CI
             </button>
           )}
         </div>
       </div>
 
+      {/* Country selector */}
+      <div className="bg-white border border-gray-200 rounded-lg p-4">
+        <label className="block text-sm font-medium text-gray-700 mb-2">Pays OHADA</label>
+        <div className="flex flex-wrap gap-2">
+          {OHADA_COUNTRIES.map(c => (
+            <button
+              key={c.code}
+              onClick={() => setSelectedCountry(c.code)}
+              className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${
+                selectedCountry === c.code
+                  ? 'bg-red-500 text-white border-red-500'
+                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              {c.code} — {c.name}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Add tax form */}
+      {showAddForm && (
+        <div className="bg-white border border-blue-200 rounded-lg p-5 space-y-4">
+          <h3 className="font-semibold text-gray-900">Nouvelle taxe — {OHADA_COUNTRIES.find(c => c.code === selectedCountry)?.name}</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Code taxe *</label>
+              <input type="text" value={newTax.taxCode} onChange={e => setNewTax(p => ({ ...p, taxCode: e.target.value.toUpperCase() }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="TVA, IS, CNPS..." />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Nom complet *</label>
+              <input type="text" value={newTax.taxName} onChange={e => setNewTax(p => ({ ...p, taxName: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="Taxe sur la Valeur Ajoutée" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Nom court *</label>
+              <input type="text" value={newTax.taxShortName} onChange={e => setNewTax(p => ({ ...p, taxShortName: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="TVA" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Catégorie *</label>
+              <select value={newTax.taxCategory} onChange={e => setNewTax(p => ({ ...p, taxCategory: e.target.value as TaxCategory }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white">
+                {(Object.keys(CATEGORY_META) as TaxCategory[]).map(c => <option key={c} value={c}>{CATEGORY_META[c].label}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Taux (%)</label>
+              <input type="number" step="0.01" value={newTax.ratePct} onChange={e => setNewTax(p => ({ ...p, ratePct: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="18" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Formule de calcul</label>
+              <select value={newTax.formula} onChange={e => setNewTax(p => ({ ...p, formula: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white">
+                {FORMULA_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Périodicité</label>
+              <select value={newTax.periodicity} onChange={e => setNewTax(p => ({ ...p, periodicity: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white">
+                {PERIODICITY_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Échéance (jours)</label>
+              <input type="number" value={newTax.declarationDeadlineDays} onChange={e => setNewTax(p => ({ ...p, declarationDeadlineDays: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="15" />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="block text-xs font-medium text-gray-500 mb-1">Comptes déclencheurs (séparés par virgules)</label>
+              <input type="text" value={newTax.triggerAccounts} onChange={e => setNewTax(p => ({ ...p, triggerAccounts: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="4431, 4432, 4433" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Autorité fiscale</label>
+              <input type="text" value={newTax.fiscalAuthority} onChange={e => setNewTax(p => ({ ...p, fiscalAuthority: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="DGI, CNPS..." />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Référence légale</label>
+              <input type="text" value={newTax.legalReference} onChange={e => setNewTax(p => ({ ...p, legalReference: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="CGI Art. XX" />
+            </div>
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <button onClick={() => setShowAddForm(false)} className="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">Annuler</button>
+            <button
+              onClick={async () => {
+                if (!newTax.taxCode || !newTax.taxName || !newTax.taxShortName) {
+                  toast.error('Code, nom complet et nom court sont obligatoires');
+                  return;
+                }
+                const now = new Date().toISOString();
+                await adapter.create('taxRegistry', {
+                  id: `${selectedCountry.toLowerCase()}-${newTax.taxCode.toLowerCase()}`,
+                  countryCode: selectedCountry,
+                  taxCode: newTax.taxCode,
+                  taxName: newTax.taxName,
+                  taxShortName: newTax.taxShortName,
+                  taxCategory: newTax.taxCategory,
+                  triggerAccounts: newTax.triggerAccounts.split(',').map(s => s.trim()).filter(Boolean),
+                  baseAccounts: newTax.baseAccounts ? newTax.baseAccounts.split(',').map(s => s.trim()).filter(Boolean) : [],
+                  collectedAccounts: newTax.collectedAccounts ? newTax.collectedAccounts.split(',').map(s => s.trim()).filter(Boolean) : [],
+                  deductibleAccounts: newTax.deductibleAccounts ? newTax.deductibleAccounts.split(',').map(s => s.trim()).filter(Boolean) : [],
+                  payableAccounts: newTax.payableAccounts ? newTax.payableAccounts.split(',').map(s => s.trim()).filter(Boolean) : [],
+                  ratePct: newTax.ratePct ? Number(newTax.ratePct) : undefined,
+                  formula: newTax.formula,
+                  periodicity: newTax.periodicity,
+                  declarationDeadlineDays: Number(newTax.declarationDeadlineDays) || 15,
+                  fiscalAuthority: newTax.fiscalAuthority || undefined,
+                  legalReference: newTax.legalReference || undefined,
+                  isActive: true,
+                  isMandatory: true,
+                  requiresManualInput: newTax.formula === 'MANUAL',
+                  createdAt: now,
+                  updatedAt: now,
+                });
+                toast.success(`Taxe ${newTax.taxCode} créée pour ${selectedCountry}`);
+                setShowAddForm(false);
+                setNewTax({ taxCode: '', taxName: '', taxShortName: '', taxCategory: 'INDIRECT', ratePct: '', formula: 'RATE_ON_BASE', periodicity: 'MONTHLY', declarationDeadlineDays: '15', triggerAccounts: '', baseAccounts: '', collectedAccounts: '', deductibleAccounts: '', payableAccounts: '', fiscalAuthority: '', legalReference: '', notes: '' });
+                queryClient.invalidateQueries({ queryKey: ['taxRegistry'] });
+              }}
+              className="px-4 py-2 text-sm text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+            >
+              Créer la taxe
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Empty state */}
-      {taxes.length === 0 && (
+      {countryTaxes.length === 0 && (
         <div className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center">
           <Calculator className="w-10 h-10 mx-auto text-gray-400 mb-3" />
-          <p className="text-sm text-gray-600 mb-1">Aucune taxe configuree</p>
+          <p className="text-sm text-gray-600 mb-1">Aucune taxe configurée pour {OHADA_COUNTRIES.find(c => c.code === selectedCountry)?.name}</p>
           <p className="text-xs text-gray-400">
-            Cliquez sur "Initialiser taxes CI" pour charger les taxes de reference de la Cote d'Ivoire.
+            {selectedCountry === 'CI'
+              ? 'Cliquez sur "Initialiser taxes CI" pour charger les 15 taxes de référence.'
+              : 'Cliquez sur "+ Ajouter une taxe" pour configurer les taxes de ce pays.'}
           </p>
         </div>
       )}
@@ -364,7 +548,7 @@ const AdminTaxRegistry: React.FC = () => {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             <span className="font-semibold text-gray-900 text-sm truncate">
-                              {tax.label}
+                              {tax.taxShortName || tax.taxName || tax.label}
                             </span>
                             <span className="text-xs text-gray-400 font-mono">{tax.taxCode}</span>
                           </div>
@@ -485,7 +669,7 @@ const AdminTaxRegistry: React.FC = () => {
       })}
 
       {/* Summary card */}
-      {taxes.length > 0 && (
+      {countryTaxes.length > 0 && (
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-5">
           <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
             <Settings className="w-4 h-4" />
