@@ -544,6 +544,171 @@ const FiscalCalendar: React.FC<FiscalCalendarProps> = ({ triggeredTaxes, dbDecla
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
+// WRAPPER — Calendrier + Kanban + Grille
+// ═══════════════════════════════════════════════════════════════════════════
+
+const STATUS_COLUMNS: Array<{ key: string; label: string; color: string; dot: string }> = [
+  { key: 'overdue',     label: 'En retard',  color: 'border-red-300 bg-red-50',      dot: 'bg-red-500' },
+  { key: 'pending',     label: 'À déclarer', color: 'border-orange-300 bg-orange-50', dot: 'bg-orange-400' },
+  { key: 'calculated',  label: 'Calculée',   color: 'border-yellow-300 bg-yellow-50', dot: 'bg-yellow-500' },
+  { key: 'declared',    label: 'Déclarée',   color: 'border-blue-300 bg-blue-50',     dot: 'bg-blue-500' },
+  { key: 'paid',        label: 'Payée',      color: 'border-green-300 bg-green-50',   dot: 'bg-green-500' },
+];
+
+function classifyStatus(dl: { status: string; isOverdue: boolean }): string {
+  if (dl.isOverdue) return 'overdue';
+  if (dl.status === 'paid') return 'paid';
+  if (dl.status === 'declared' || dl.status === 'validated') return 'declared';
+  if (dl.status === 'calculated') return 'calculated';
+  return 'pending';
+}
+
+const FiscalCalendarWithViews: React.FC<FiscalCalendarProps> = (props) => {
+  const [calView, setCalView] = useState<'calendar' | 'kanban' | 'grid'>('calendar');
+
+  // Build flat list of all deadlines for kanban/grid
+  const allDeadlines = useMemo(() => {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const items: Array<{ name: string; status: string; amount: number | null; isOverdue: boolean; deadline: string; category: string }> = [];
+
+    for (const r of props.triggeredTaxes) {
+      if (!r.declarationDeadline) continue;
+      items.push({
+        name: r.tax.taxShortName || r.tax.taxCode,
+        status: r.existingDeclaration?.status || 'pending',
+        amount: r.amounts?.net ?? null,
+        isOverdue: r.isOverdue,
+        deadline: r.declarationDeadline,
+        category: r.tax.taxCategory || 'AUTRE',
+      });
+    }
+
+    for (const decl of props.dbDeclarations) {
+      if (!decl.declarationDeadline) continue;
+      if (items.some(i => i.name === decl.taxCode && i.deadline === decl.declarationDeadline)) continue;
+      items.push({
+        name: decl.taxCode,
+        status: decl.status,
+        amount: decl.netTax,
+        isOverdue: decl.declarationDeadline < todayStr && decl.status !== 'paid' && decl.status !== 'declared',
+        deadline: decl.declarationDeadline,
+        category: 'AUTRE',
+      });
+    }
+
+    return items.sort((a, b) => a.deadline.localeCompare(b.deadline));
+  }, [props.triggeredTaxes, props.dbDeclarations]);
+
+  return (
+    <div className="space-y-4">
+      {/* View Switcher */}
+      <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1 w-fit">
+        {[
+          { key: 'calendar' as const, label: 'Calendrier', icon: Calendar },
+          { key: 'kanban' as const,   label: 'Kanban',     icon: Activity },
+          { key: 'grid' as const,     label: 'Grille',     icon: BarChart3 },
+        ].map(v => (
+          <button
+            key={v.key}
+            onClick={() => setCalView(v.key)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+              calView === v.key ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <v.icon className="h-4 w-4" />
+            {v.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Calendar View */}
+      {calView === 'calendar' && (
+        <FiscalCalendar {...props} />
+      )}
+
+      {/* Kanban View */}
+      {calView === 'kanban' && (
+        <div className="grid grid-cols-5 gap-3">
+          {STATUS_COLUMNS.map(col => {
+            const colItems = allDeadlines.filter(d => classifyStatus(d) === col.key);
+            return (
+              <div key={col.key} className={`rounded-lg border-2 ${col.color} min-h-[300px]`}>
+                <div className="px-3 py-2 border-b flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className={`w-2.5 h-2.5 rounded-full ${col.dot}`} />
+                    <span className="text-sm font-semibold">{col.label}</span>
+                  </div>
+                  <span className="text-xs font-bold bg-white rounded-full px-2 py-0.5">{colItems.length}</span>
+                </div>
+                <div className="p-2 space-y-2">
+                  {colItems.map((item, i) => (
+                    <div key={i} className="bg-white rounded-lg p-3 border shadow-sm hover:shadow-md transition-shadow">
+                      <div className="font-medium text-sm text-gray-900">{item.name}</div>
+                      <div className="text-xs text-gray-500 mt-1">{item.deadline}</div>
+                      {item.amount != null && item.amount > 0 && (
+                        <div className="text-sm font-semibold text-gray-900 mt-2">{formatCurrency(item.amount)}</div>
+                      )}
+                      <div className="flex items-center gap-1 mt-2">
+                        <span className="text-[10px] px-1.5 py-0.5 bg-gray-100 rounded text-gray-600">{item.category}</span>
+                      </div>
+                    </div>
+                  ))}
+                  {colItems.length === 0 && (
+                    <div className="text-center text-xs text-gray-400 py-6">Aucune</div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Grid View */}
+      {calView === 'grid' && (
+        <Card>
+          <CardContent className="p-0">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 border-b">
+                <tr>
+                  {['Taxe', 'Catégorie', 'Échéance', 'Montant', 'Statut'].map(h => (
+                    <th key={h} className="px-4 py-3 text-left font-medium text-gray-600">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {allDeadlines.length === 0 ? (
+                  <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-400">Aucune échéance</td></tr>
+                ) : allDeadlines.map((dl, i) => {
+                  const col = STATUS_COLUMNS.find(c => c.key === classifyStatus(dl))!;
+                  return (
+                    <tr key={i} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 font-medium text-gray-900">{dl.name}</td>
+                      <td className="px-4 py-3">
+                        <span className="text-xs px-2 py-0.5 bg-gray-100 rounded text-gray-600">{dl.category}</span>
+                      </td>
+                      <td className="px-4 py-3 text-gray-700">{dl.deadline}</td>
+                      <td className="px-4 py-3 font-medium text-gray-900">
+                        {dl.amount != null && dl.amount > 0 ? formatCurrency(dl.amount) : '—'}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${col.color.replace('border-', 'bg-').split(' ')[1]} ${col.dot.replace('bg-', 'text-')}`}>
+                          <span className={`w-2 h-2 rounded-full ${col.dot}`} />
+                          {col.label}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
 
 interface TaxDeclaration {
   id: string;
@@ -1753,7 +1918,7 @@ const TaxReportingPage: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="calendar" className="space-y-4">
-            <FiscalCalendar
+            <FiscalCalendarWithViews
               triggeredTaxes={triggeredTaxes}
               dbDeclarations={dbTaxDeclarations}
               hasRegistry={hasRegistry}
