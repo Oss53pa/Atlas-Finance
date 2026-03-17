@@ -64,7 +64,7 @@ const RegisterPage: React.FC = () => {
             </div>
             <h1 className="text-2xl font-bold text-[#171717]">Créer un compte</h1>
             <p className="text-sm text-gray-500 mt-1">
-              {inviteToken ? 'Rejoignez votre équipe sur Atlas Studio' : 'Démarrez avec Atlas Studio'}
+              {inviteToken ? <>Rejoignez votre équipe sur <span className="atlas-brand text-base">Atlas Studio</span></> : <>Démarrez avec <span className="atlas-brand text-base">Atlas Studio</span></>}
             </p>
           </div>
 
@@ -143,7 +143,7 @@ const RegisterPage: React.FC = () => {
         </div>
 
         <p className="text-center text-xs text-gray-400 mt-6">
-          Atlas Studio &copy; {new Date().getFullYear()}
+          <span className="atlas-brand text-sm">Atlas Studio</span> &copy; {new Date().getFullYear()}
         </p>
       </div>
     </div>
