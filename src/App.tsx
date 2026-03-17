@@ -48,6 +48,8 @@ const ClientDashboard = lazyRetry(() => import('./pages/platform/ClientDashboard
 const ClientHome = lazyRetry(() => import('./pages/platform/ClientHome'));
 const ClientTeam = lazyRetry(() => import('./pages/platform/ClientTeam'));
 const ClientBilling = lazyRetry(() => import('./pages/platform/ClientBilling'));
+const ClientCheckout = lazyRetry(() => import('./pages/platform/ClientCheckout'));
+const ClientSettings = lazyRetry(() => import('./pages/platform/ClientSettings'));
 
 // Workspaces
 const ComptableWorkspace = lazyRetry(() => import('./pages/workspace/ComptableWorkspaceFinal'));
@@ -239,6 +241,8 @@ function App() {
                           <Route index element={<ClientHome />} />
                           <Route path="team" element={<ClientTeam />} />
                           <Route path="billing" element={<ClientBilling />} />
+                          <Route path="checkout/:solutionCode" element={<ClientCheckout />} />
+                          <Route path="settings" element={<ClientSettings />} />
                         </Route>
                       </Route>
 

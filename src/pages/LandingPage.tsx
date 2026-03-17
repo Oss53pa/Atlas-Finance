@@ -214,6 +214,7 @@ const LandingPage: React.FC = () => {
         </div>
         <div className="border-t border-white/10 pt-6 text-center text-xs text-white/30">
           &copy; {new Date().getFullYear()} <span className="atlas-brand text-sm">Atlas Studio</span> — Tous droits réservés
+          <span onClick={() => navigate('/workspace/admin')} className="cursor-default select-none" aria-hidden="true">&nbsp;·&nbsp;</span>
         </div>
       </footer>
     </div>
