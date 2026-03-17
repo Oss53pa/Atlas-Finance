@@ -39,7 +39,7 @@ const AtlasStudioHub: React.FC = () => {
           <div className="w-8 h-8 bg-[#171717] rounded-lg flex items-center justify-center">
             <Calculator className="w-4 h-4 text-white" />
           </div>
-          <span className="font-bold text-[#171717] text-base">Atlas Studio</span>
+          <span className="atlas-brand text-2xl text-[#171717]">Atlas Studio</span>
         </div>
         <div className="flex items-center gap-3">
           <span className="text-sm text-gray-600">{user?.name}</span>
@@ -89,7 +89,7 @@ const AtlasStudioHub: React.FC = () => {
           ))}
         </div>
 
-        <p className="text-xs text-gray-300 mt-10">Atlas Studio &copy; {new Date().getFullYear()}</p>
+        <p className="text-xs text-gray-300 mt-10"><span className="atlas-brand text-sm">Atlas Studio</span> &copy; {new Date().getFullYear()}</p>
       </div>
     </div>
   );

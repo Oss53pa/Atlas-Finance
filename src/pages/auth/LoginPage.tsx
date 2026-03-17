@@ -132,7 +132,7 @@ const LoginPage: React.FC = () => {
                   <Calculator className="h-10 w-10" />
                 </div>
                 <div className="text-center">
-                  <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Atlas Studio</h1>
+                  <h1 className="atlas-brand text-3xl text-[var(--color-text-primary)]">Atlas Studio</h1>
                   <p className="text-sm text-[var(--color-text-secondary)] mt-1">Plateforme de gestion d'entreprise</p>
                 </div>
               </div>
@@ -351,7 +351,7 @@ const LoginPage: React.FC = () => {
             {/* Footer Atlas Studio */}
             <div className="mt-6 text-center">
               <p className="text-xs text-[var(--color-text-secondary)]">
-                Atlas Studio &copy; {new Date().getFullYear()} — Atlas Finance, Liass'Pilot, DocJourney
+                <span className="atlas-brand text-base">Atlas Studio</span> &copy; {new Date().getFullYear()} — Atlas Finance, Liass'Pilot, DocJourney
               </p>
             </div>
           </CardContent>
