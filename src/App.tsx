@@ -43,6 +43,12 @@ const SolutionCatalogPage = lazyRetry(() => import('./pages/onboarding/SolutionC
 const TeamSettingsPage = lazyRetry(() => import('./pages/onboarding/TeamSettingsPage'));
 const AcceptInvitePage = lazyRetry(() => import('./pages/onboarding/AcceptInvitePage'));
 
+// Admin Console
+const AdminConsoleLayout = lazyRetry(() => import('./pages/admin-console/AdminConsoleLayout'));
+const AdminDashboardPage = lazyRetry(() => import('./pages/admin-console/AdminDashboardPage'));
+const AdminTenantsPage = lazyRetry(() => import('./pages/admin-console/AdminTenantsPage'));
+const AdminTenantDetailPage = lazyRetry(() => import('./pages/admin-console/AdminTenantDetailPage'));
+
 // Platform — Dashboard client
 const ClientDashboard = lazyRetry(() => import('./pages/platform/ClientDashboard'));
 const ClientHome = lazyRetry(() => import('./pages/platform/ClientHome'));
@@ -235,6 +241,13 @@ function App() {
                         <Route path="/hub" element={<AtlasStudioHub />} />
                         <Route path="/solutions" element={<SolutionCatalogPage />} />
                         <Route path="/settings/team" element={<TeamSettingsPage />} />
+
+                        {/* Console Admin Atlas Studio */}
+                        <Route path="/admin-console" element={<AdminConsoleLayout />}>
+                          <Route index element={<AdminDashboardPage />} />
+                          <Route path="tenants" element={<AdminTenantsPage />} />
+                          <Route path="tenants/:tenantId" element={<AdminTenantDetailPage />} />
+                        </Route>
 
                         {/* Dashboard client Atlas Studio */}
                         <Route path="/client" element={<ClientDashboard />}>

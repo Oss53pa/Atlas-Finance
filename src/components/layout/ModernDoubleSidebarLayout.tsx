@@ -348,12 +348,12 @@ const ModernDoubleSidebarLayout: React.FC = () => {
             'flex items-center gap-3',
             primaryCollapsed && 'justify-center'
           )}>
-            <div className="w-10 h-10 bg-[var(--color-primary)] rounded-lg flex items-center justify-center">
+            <a href="/" className="w-10 h-10 bg-[var(--color-primary)] rounded-lg flex items-center justify-center" title="Retour à l'accueil">
               <span className="text-[var(--color-background)] font-bold text-xl">W</span>
-            </div>
+            </a>
             {!primaryCollapsed && (
               <div>
-                <h1 className="text-[var(--color-sidebar-text)] font-bold text-lg atlas-brand">Atlas Finance</h1>
+                <a href="/" className="text-[var(--color-sidebar-text)] font-bold text-lg atlas-brand hover:opacity-80 transition-opacity">Atlas Finance</a>
                 <p className="text-[var(--color-sidebar-text-secondary)] text-xs">ERP Next-Gen</p>
               </div>
             )}
@@ -542,11 +542,11 @@ const ModernDoubleSidebarLayout: React.FC = () => {
           >
             <div className="h-16 flex items-center justify-between px-4 border-b border-[var(--color-sidebar-border)]">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-[var(--color-primary)] rounded-lg flex items-center justify-center">
+                <a href="/" className="w-10 h-10 bg-[var(--color-primary)] rounded-lg flex items-center justify-center" title="Retour à l'accueil">
                   <span className="text-[var(--color-background)] font-bold text-xl">W</span>
-                </div>
+                </a>
                 <div>
-                  <h1 className="text-white font-bold text-lg atlas-brand">Atlas Finance</h1>
+                  <a href="/" className="text-white font-bold text-lg atlas-brand hover:opacity-80 transition-opacity">Atlas Finance</a>
                   <p className="text-[var(--color-sidebar-text-secondary)] text-xs">ERP Next-Gen</p>
                 </div>
               </div>
