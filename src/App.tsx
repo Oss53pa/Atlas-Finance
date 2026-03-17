@@ -43,6 +43,12 @@ const SolutionCatalogPage = lazyRetry(() => import('./pages/onboarding/SolutionC
 const TeamSettingsPage = lazyRetry(() => import('./pages/onboarding/TeamSettingsPage'));
 const AcceptInvitePage = lazyRetry(() => import('./pages/onboarding/AcceptInvitePage'));
 
+// Platform — Dashboard client
+const ClientDashboard = lazyRetry(() => import('./pages/platform/ClientDashboard'));
+const ClientHome = lazyRetry(() => import('./pages/platform/ClientHome'));
+const ClientTeam = lazyRetry(() => import('./pages/platform/ClientTeam'));
+const ClientBilling = lazyRetry(() => import('./pages/platform/ClientBilling'));
+
 // Workspaces
 const ComptableWorkspace = lazyRetry(() => import('./pages/workspace/ComptableWorkspaceFinal'));
 const ManagerWorkspace = lazyRetry(() => import('./pages/workspace/ManagerWorkspace'));
@@ -227,6 +233,13 @@ function App() {
                         <Route path="/hub" element={<AtlasStudioHub />} />
                         <Route path="/solutions" element={<SolutionCatalogPage />} />
                         <Route path="/settings/team" element={<TeamSettingsPage />} />
+
+                        {/* Dashboard client Atlas Studio */}
+                        <Route path="/client" element={<ClientDashboard />}>
+                          <Route index element={<ClientHome />} />
+                          <Route path="team" element={<ClientTeam />} />
+                          <Route path="billing" element={<ClientBilling />} />
+                        </Route>
                       </Route>
 
                       {/* Workspaces — protégés par authentification Supabase */}
