@@ -112,57 +112,105 @@ const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* ══════════ FEATURES ══════════ */}
+      {/* ══════════ SOLUTIONS ══════════ */}
       <section id="features" className="py-20 px-8 md:px-16 lg:px-24 bg-white">
         <div className="text-center mb-14">
-          <h2 className="text-3xl font-bold text-[#141414]">Tout ce dont vous avez besoin</h2>
-          <p className="text-gray-500 mt-3 text-lg">Une suite complète pour gérer votre entreprise</p>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {FEATURES.map((f, i) => (
-            <div key={i} className="p-8 rounded-2xl border border-gray-100 hover:border-gray-300 hover:shadow-lg transition-all group bg-white">
-              <div className="w-14 h-14 bg-gray-100 rounded-xl flex items-center justify-center mb-5 group-hover:bg-gray-200 transition-colors">
-                <f.icon className="w-7 h-7 text-[#141414]" />
-              </div>
-              <h3 className="text-lg font-bold text-[#141414] mb-2">{f.title}</h3>
-              <p className="text-sm text-gray-500 leading-relaxed">{f.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ══════════ PRODUCTS ══════════ */}
-      <section id="products" className="py-20 px-8 md:px-16 lg:px-24 bg-[#fafafa]">
-        <div className="text-center mb-14">
-          <h2 className="text-3xl font-bold text-[#141414]">Nos produits</h2>
-          <p className="text-gray-500 mt-3 text-lg">Une application pour chaque besoin</p>
+          <h2 className="text-3xl font-bold text-[#141414]">Nos solutions</h2>
+          <p className="text-gray-500 mt-3 text-lg">Une application pour chaque besoin, des fonctionnalités pour chaque métier</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {[
-            { name: 'Atlas Finance', desc: 'ERP Comptable & Financier', color: '#141414', features: ['Comptabilité SYSCOHADA', 'États financiers', 'Trésorerie', 'Fiscalité 17 pays', 'Audit IA PROPH3T'] },
-            { name: "Liass'Pilot", desc: 'Liasse Fiscale Automatique', color: '#1a3a4a', features: ['DSF conforme DGI', 'États annexes 1-22', 'Télédéclaration', 'Contrôle de cohérence', 'Export PDF & XML'] },
-            { name: 'DocJourney', desc: 'Gestion Documentaire', color: '#2d1b4e', features: ['Numérisation OCR', 'Classement IA', 'Archivage légal 10 ans', 'Piste d\'audit', 'Recherche full-text'] },
-          ].map((p, i) => (
-            <div key={i} className="rounded-2xl overflow-hidden border border-gray-200 shadow-lg hover:shadow-xl transition-shadow">
-              <div className="p-8" style={{ backgroundColor: p.color }}>
-                <h3 className="text-xl font-bold text-white">{p.name}</h3>
-                <p className="text-sm mt-1 text-gray-300">{p.desc}</p>
-                <span className="inline-block mt-3 text-xs px-3 py-1 rounded-full font-medium bg-white/25 text-white">Disponible</span>
-              </div>
-              <div className="p-8 bg-white">
-                <ul className="space-y-3">
-                  {p.features.map((f, j) => (
-                    <li key={j} className="flex items-center gap-2 text-sm text-gray-700">
-                      <CheckCircle className="w-4 h-4 text-green-500 shrink-0" /> {f}
-                    </li>
-                  ))}
-                </ul>
-                <button onClick={() => navigate('/register')} className="mt-8 w-full py-3 bg-[#141414] text-white rounded-lg text-sm font-semibold hover:bg-[#2a2a2a] transition-colors flex items-center justify-center gap-2">
-                  Essai gratuit <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
+
+          {/* Atlas Finance */}
+          <div className="rounded-2xl overflow-hidden border border-gray-200 shadow-lg hover:shadow-xl transition-shadow">
+            <div className="p-8 bg-[#141414]">
+              <h3 className="text-xl font-bold text-white">Atlas Finance</h3>
+              <p className="text-sm mt-1 text-gray-300">ERP Comptable & Financier</p>
+              <span className="inline-block mt-3 text-xs px-3 py-1 rounded-full font-medium bg-white bg-opacity-25 text-white">Disponible</span>
             </div>
-          ))}
+            <div className="p-8 bg-white">
+              <ul className="space-y-2.5">
+                {[
+                  'Comptabilité SYSCOHADA révisé 2017',
+                  'Grand livre, balance, journaux',
+                  'Bilan, compte de résultat, TAFIRE, SIG',
+                  'Trésorerie & rapprochement bancaire',
+                  'Fiscalité 17 pays OHADA (TVA, IS, IRPP)',
+                  'Immobilisations & amortissements',
+                  'Clôture mensuelle & annuelle',
+                  'Multi-société, multi-exercice, multi-devise',
+                  'Audit IA PROPH3T (108 contrôles)',
+                  'Piste d\'audit SHA-256',
+                ].map((f, j) => (
+                  <li key={j} className="flex items-center gap-2 text-sm text-gray-700">
+                    <CheckCircle className="w-4 h-4 text-green-500 shrink-0" /> {f}
+                  </li>
+                ))}
+              </ul>
+              <button onClick={() => navigate('/register')} className="mt-8 w-full py-3 bg-[#141414] text-white rounded-lg text-sm font-semibold hover:bg-[#2a2a2a] transition-colors flex items-center justify-center gap-2">
+                Essai gratuit <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Liass'Pilot */}
+          <div className="rounded-2xl overflow-hidden border border-gray-200 shadow-lg hover:shadow-xl transition-shadow">
+            <div className="p-8 bg-[#1a3a4a]">
+              <h3 className="text-xl font-bold text-white">Liass'Pilot</h3>
+              <p className="text-sm mt-1 text-gray-300">Liasse Fiscale Automatique</p>
+              <span className="inline-block mt-3 text-xs px-3 py-1 rounded-full font-medium bg-white bg-opacity-25 text-white">Disponible</span>
+            </div>
+            <div className="p-8 bg-white">
+              <ul className="space-y-2.5">
+                {[
+                  'DSF conforme DGI Cameroun',
+                  '22 états annexes pré-remplis',
+                  'Télédéclaration directe',
+                  'Contrôles de cohérence automatiques',
+                  'Export PDF, XML, EDI',
+                  'Historique des déclarations',
+                  'Alertes échéances fiscales',
+                  'Multi-exercice comparatif',
+                ].map((f, j) => (
+                  <li key={j} className="flex items-center gap-2 text-sm text-gray-700">
+                    <CheckCircle className="w-4 h-4 text-green-500 shrink-0" /> {f}
+                  </li>
+                ))}
+              </ul>
+              <button onClick={() => navigate('/register')} className="mt-8 w-full py-3 bg-[#141414] text-white rounded-lg text-sm font-semibold hover:bg-[#2a2a2a] transition-colors flex items-center justify-center gap-2">
+                Essai gratuit <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* DocJourney */}
+          <div className="rounded-2xl overflow-hidden border border-gray-200 shadow-lg hover:shadow-xl transition-shadow">
+            <div className="p-8 bg-[#2d1b4e]">
+              <h3 className="text-xl font-bold text-white">DocJourney</h3>
+              <p className="text-sm mt-1 text-gray-300">Gestion Documentaire</p>
+              <span className="inline-block mt-3 text-xs px-3 py-1 rounded-full font-medium bg-white bg-opacity-25 text-white">Bientôt</span>
+            </div>
+            <div className="p-8 bg-white">
+              <ul className="space-y-2.5">
+                {[
+                  'Numérisation OCR intelligente',
+                  'Classement automatique par IA',
+                  'Archivage légal 10 ans',
+                  'Piste d\'audit complète',
+                  'Recherche full-text instantanée',
+                  'Partage sécurisé de documents',
+                  'Workflows de validation',
+                  'Intégration Atlas Finance',
+                ].map((f, j) => (
+                  <li key={j} className="flex items-center gap-2 text-sm text-gray-700">
+                    <CheckCircle className="w-4 h-4 text-green-500 shrink-0" /> {f}
+                  </li>
+                ))}
+              </ul>
+              <button onClick={() => navigate('/register')} className="mt-8 w-full py-3 bg-[#141414] text-white rounded-lg text-sm font-semibold hover:bg-[#2a2a2a] transition-colors flex items-center justify-center gap-2">
+                Essai gratuit <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
         </div>
       </section>
 
