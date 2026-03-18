@@ -260,8 +260,7 @@ const LandingPage: React.FC = () => {
         </div>
         <div className="border-t border-white/8 pt-6 text-center text-xs text-white/25">
           &copy; {new Date().getFullYear()} <span className="atlas-brand text-sm">Atlas Studio</span> — Tous droits réservés
-          <span className="mx-1.5 text-white/10">·</span>
-          <button onClick={() => navigate('/admin-console')} className="text-white/15 hover:text-white/40 transition-colors text-[10px]">Console</button>
+          <button onClick={() => navigate('/admin-console')} className="text-white/20 hover:text-white/20 ml-1 cursor-default">·</button>
         </div>
       </footer>
     </div>
