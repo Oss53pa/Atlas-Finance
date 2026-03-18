@@ -1,7 +1,7 @@
 // @ts-nocheck
 import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Calculator, Eye, EyeOff, Building, User, Mail, Lock, Globe, ChevronRight, ChevronLeft, CheckCircle, Phone } from 'lucide-react';
+import { Calculator, Eye, EyeOff, Building, User, Mail, Lock, Globe, ChevronRight, ChevronLeft, CheckCircle, Phone, Shield, Zap } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 const COUNTRIES = [
@@ -128,17 +128,48 @@ const RegisterPage: React.FC = () => {
             </div>
             <span className="atlas-brand text-3xl">Atlas Studio</span>
           </div>
-          <h2 className="text-3xl font-bold leading-tight mb-4">
+          <h2 className="text-3xl font-bold leading-tight mb-4 text-white">
             Créez votre espace de gestion en 2 minutes
           </h2>
-          <p className="text-white/60 text-lg leading-relaxed">
+          <p className="text-gray-400 text-lg leading-relaxed mb-8">
             Comptabilité SYSCOHADA, liasse fiscale, gestion documentaire — tout ce dont votre entreprise a besoin, en un seul endroit.
           </p>
+
+          <div className="space-y-5 mb-10">
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
+                <Calculator className="w-4 h-4 text-white" />
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-white">Comptabilité SYSCOHADA</h4>
+                <p className="text-xs text-gray-400 mt-0.5">Écritures, grand livre, balance, bilan, compte de résultat — conforme au référentiel révisé 2017.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
+                <Shield className="w-4 h-4 text-white" />
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-white">Fiscalité 17 pays OHADA</h4>
+                <p className="text-xs text-gray-400 mt-0.5">TVA, IS, IRPP, retenues à la source. Calendrier fiscal automatique avec alertes.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
+                <Zap className="w-4 h-4 text-white" />
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-white">IA PROPH3T intégrée</h4>
+                <p className="text-xs text-gray-400 mt-0.5">Assistant comptable intelligent — calculs fiscaux, détection d'anomalies, 108 contrôles d'audit.</p>
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="space-y-4">
+        <div className="space-y-3">
           {['Essai gratuit 14 jours', 'Aucune carte bancaire requise', 'Support 7j/7'].map((t, i) => (
-            <div key={i} className="flex items-center gap-3 text-white/70 text-sm">
-              <CheckCircle className="w-5 h-5 text-green-400 shrink-0" /> {t}
+            <div key={i} className="flex items-center gap-3 text-sm">
+              <CheckCircle className="w-4 h-4 text-green-400 shrink-0" />
+              <span className="text-gray-300">{t}</span>
             </div>
           ))}
         </div>

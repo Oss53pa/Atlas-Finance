@@ -10,7 +10,7 @@ import { useTenant } from '../../features/platform/hooks/useTenant';
 import {
   Calculator, FileText, FolderOpen, Users, Settings, CreditCard,
   LogOut, ChevronDown, Bell, BarChart3, Shield, Truck, ShieldCheck,
-  Home, UserPlus, Menu, X, ChevronRight, Sparkles, AlertTriangle
+  Home, UserPlus, Menu, X, ChevronRight, Sparkles, AlertTriangle, Activity
 } from 'lucide-react';
 
 const MODULE_ICONS: Record<string, React.FC<{ className?: string }>> = {
@@ -50,6 +50,7 @@ const ClientDashboard: React.FC = () => {
     { label: 'Paramètres', icon: Settings, path: '/client/settings', show: isAdmin },
     { label: 'Équipe', icon: UserPlus, path: '/client/team', show: isAdmin },
     { label: 'Facturation', icon: CreditCard, path: '/client/billing', show: isSuperAdmin },
+    { label: 'Piste d\'audit', icon: Activity, path: '/client/audit', show: isAdmin },
   ].filter(i => i.show);
 
   if (isLoading) {
