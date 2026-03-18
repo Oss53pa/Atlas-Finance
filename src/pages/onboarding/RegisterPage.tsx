@@ -328,7 +328,7 @@ const RegisterPage: React.FC = () => {
       {/* ══════════ MODAL DEMO ══════════ */}
       {showDemoModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowDemoModal(false)}>
-          <div className="bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
+          <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b">
               <div>
@@ -351,7 +351,7 @@ const RegisterPage: React.FC = () => {
               ].map(s => (
                 <button
                   key={s.id}
-                  onClick={() => setDemoSolution(s.id)}
+                  onClick={() => { setDemoSolution(s.id); setDemoTab('interactive'); }}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     demoSolution === s.id ? 'bg-[#141414] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
@@ -361,13 +361,13 @@ const RegisterPage: React.FC = () => {
               ))}
             </div>
 
-            {/* Demo options */}
+            {/* Demo mode tabs */}
             <div className="p-6 grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
-                { id: 'interactive', icon: Monitor, title: 'Démos interactives', desc: 'Testez les fonctionnalités en conditions réelles', time: 'Illimité', badge: 'Populaire' },
-                { id: 'guided', icon: Play, title: 'Visite guidée', desc: `Découvrez ${demoSolution === 'atlas-finance' ? 'Atlas Finance' : demoSolution === 'liass-pilot' ? "Liass'Pilot" : 'DocJourney'} en 2 minutes`, time: '2 min', badge: null },
-                { id: 'tutorials', icon: Lightbulb, title: 'Tutoriels', desc: 'Apprenez pas à pas chaque fonctionnalité', time: '5-10 min', badge: null },
-                { id: 'live', icon: Users, title: 'Démo guidée live', desc: 'Un expert vous accompagne en direct', time: '30 min', badge: null },
+                { id: 'interactive', icon: Monitor, title: 'Démos interactives', desc: 'Testez en conditions réelles', time: 'Illimité', badge: 'Populaire' },
+                { id: 'guided', icon: Play, title: 'Visite guidée', desc: 'Tour rapide des modules', time: '2 min', badge: null },
+                { id: 'tutorials', icon: Lightbulb, title: 'Tutoriels', desc: 'Pas à pas par fonctionnalité', time: '5-10 min', badge: null },
+                { id: 'live', icon: Users, title: 'Démo guidée live', desc: 'Un expert en direct', time: '30 min', badge: null },
               ].map(opt => (
                 <button
                   key={opt.id}
@@ -383,7 +383,7 @@ const RegisterPage: React.FC = () => {
                     <opt.icon className="w-5 h-5 text-[#141414]" />
                   </div>
                   <h4 className="text-sm font-semibold text-[#141414]">{opt.title}</h4>
-                  <p className="text-xs text-gray-500 mt-1 leading-relaxed">{opt.desc}</p>
+                  <p className="text-xs text-gray-500 mt-1">{opt.desc}</p>
                   <div className="flex items-center gap-1 mt-2 text-xs text-gray-400">
                     <Clock className="w-3 h-3" /> {opt.time}
                   </div>
@@ -391,69 +391,195 @@ const RegisterPage: React.FC = () => {
               ))}
             </div>
 
-            {/* Content area */}
+            {/* Content */}
             <div className="px-6 pb-6">
               {demoTab === 'interactive' && (
-                <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
-                  <h4 className="font-semibold text-[#141414] mb-3">Démos interactives disponibles</h4>
-                  <div className="space-y-3">
-                    {(demoSolution === 'atlas-finance' ? [
-                      { title: 'Saisie d\'écriture comptable', desc: 'Créez une écriture avec contrôle D=C automatique' },
-                      { title: 'Génération du Bilan SYSCOHADA', desc: 'Visualisez le bilan actif/passif en temps réel' },
-                      { title: 'Déclaration TVA automatique', desc: 'Calcul et génération de la déclaration fiscale' },
-                      { title: 'Clôture de période', desc: 'Processus complet de clôture mensuelle' },
-                      { title: 'Audit IA PROPH3T', desc: 'Lancez un audit automatisé de vos écritures' },
-                    ] : demoSolution === 'liass-pilot' ? [
-                      { title: 'Pré-remplissage DSF', desc: 'Importez vos données et générez la liasse' },
-                      { title: 'Contrôles de cohérence', desc: 'Vérification automatique des états annexes' },
-                      { title: 'Télédéclaration DGI', desc: 'Envoi direct à l\'administration fiscale' },
-                    ] : [
-                      { title: 'Numérisation OCR', desc: 'Scannez un document et extrayez les données' },
-                      { title: 'Classement automatique', desc: 'L\'IA classe vos documents par catégorie' },
-                      { title: 'Recherche full-text', desc: 'Retrouvez n\'importe quel document en secondes' },
-                    ]).map((demo, i) => (
-                      <div key={i} className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100 hover:border-gray-300 transition-colors cursor-pointer group">
-                        <div>
-                          <p className="text-sm font-medium text-[#141414]">{demo.title}</p>
-                          <p className="text-xs text-gray-500">{demo.desc}</p>
-                        </div>
-                        <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-[#141414] transition-colors" />
+                <div className="space-y-4">
+                  {(demoSolution === 'atlas-finance' ? [
+                    { cat: 'Comptabilité', items: [
+                      { title: 'Saisie d\'écritures comptables', desc: 'Créez des écritures avec contrôle débit = crédit automatique, multi-lignes, rattachement tiers et analytique.', route: '/accounting/entries', tags: ['SYSCOHADA', 'Multi-journaux'] },
+                      { title: 'Grand Livre & Balance', desc: 'Consultez le grand livre par compte, par tiers, par période. Balance générale avec soldes d\'ouverture et de clôture.', route: '/accounting/general-ledger', tags: ['Filtres avancés', 'Export'] },
+                      { title: 'Plan comptable SYSCOHADA', desc: 'Arborescence complète classes 1 à 9, recherche par code ou libellé, ajout de sous-comptes personnalisés.', route: '/accounting/chart-of-accounts', tags: ['OHADA 2017', 'Personnalisable'] },
+                      { title: 'Lettrage automatique', desc: 'Rapprochement automatique des comptes clients 411 et fournisseurs 401 par montant, référence et somme.', route: '/accounting/lettrage-auto', tags: ['4 algorithmes', 'Comptes 40x/41x'] },
+                    ]},
+                    { cat: 'États Financiers', items: [
+                      { title: 'Bilan SYSCOHADA', desc: 'Bilan actif/passif avec totaux calculés en temps réel, comparaison N/N-1, drill-down par compte.', route: '/financial-statements/balance', tags: ['Temps réel', 'Drill-down'] },
+                      { title: 'Compte de Résultat', desc: 'Produits classes 7, charges classes 6, SIG cascade (marge commerciale → résultat net), évolution mensuelle.', route: '/financial-statements/income', tags: ['SIG', 'Mensuel'] },
+                      { title: 'TAFIRE & Flux de Trésorerie', desc: 'Tableau des flux méthode directe et indirecte, CAF, variation BFR, trésorerie début/fin d\'exercice.', route: '/financial-statements/cash-flow', tags: ['Méthode directe', 'Méthode indirecte'] },
+                      { title: 'Ratios financiers', desc: '20+ ratios : autonomie financière, liquidité, ROE, rotation stocks, couverture charges financières.', route: '/accounting/ratios', tags: ['20+ ratios', 'Benchmarks'] },
+                    ]},
+                    { cat: 'Trésorerie', items: [
+                      { title: 'Comptes bancaires & Soldes', desc: 'Vue consolidée de tous vos comptes bancaires, soldes en temps réel, alertes de seuil.', route: '/treasury/accounts', tags: ['Multi-banques', 'Alertes'] },
+                      { title: 'Rapprochement bancaire', desc: 'Rapprochement automatique relevé vs comptabilité, identification des écarts, pointage manuel.', route: '/treasury/reconciliation', tags: ['Automatique', 'Import relevé'] },
+                      { title: 'Prévision de trésorerie', desc: 'Projection à 1, 3 et 6 mois basée sur les encaissements/décaissements prévisionnels et l\'historique.', route: '/treasury/forecast', tags: ['M+1', 'M+3', 'M+6'] },
+                    ]},
+                    { cat: 'Fiscalité', items: [
+                      { title: 'Déclarations fiscales', desc: 'TVA, IS, IRPP calculés automatiquement depuis les écritures. Calendrier fiscal avec échéances par pays.', route: '/taxation/declarations', tags: ['17 pays', 'Auto-calcul'] },
+                      { title: 'Reporting fiscal', desc: 'Dashboard TVA collectée/déductible, taux effectif d\'imposition, alertes échéances, calendrier visuel.', route: '/reporting/tax', tags: ['Dashboard', 'Calendrier'] },
+                    ]},
+                    { cat: 'Immobilisations', items: [
+                      { title: 'Registre des immobilisations', desc: 'Fiche complète par actif : valeur d\'origine, taux, méthode amortissement, VNC, compte SYSCOHADA.', route: '/assets/registry', tags: ['Linéaire', 'Dégressif'] },
+                      { title: 'Tableau d\'amortissement', desc: 'Calcul automatique des dotations avec prorata temporis, génération des écritures de clôture.', route: '/assets/depreciation', tags: ['Prorata', 'Écritures auto'] },
+                    ]},
+                    { cat: 'Clôture & Audit', items: [
+                      { title: 'Clôture mensuelle & annuelle', desc: 'Processus guidé en 6 étapes : vérification → amortissements → verrouillage → résultat → reports → finalisation.', route: '/closures/periodic', tags: ['6 étapes', 'Verrouillage'] },
+                      { title: 'Révision des comptes', desc: 'Lead schedules par cycle, assertions d\'audit ISA, matrice des risques, ajustements proposés.', route: '/closures/revisions', tags: ['ISA', 'Lead schedules'] },
+                    ]},
+                  ] : demoSolution === 'liass-pilot' ? [
+                    { cat: 'Liasse Fiscale', items: [
+                      { title: 'Génération DSF automatique', desc: 'Pré-remplissage des 22 états annexes à partir des données comptables Atlas Finance. Conforme DGI.', route: '/taxation/liasse', tags: ['22 annexes', 'DGI'] },
+                      { title: 'Contrôles de cohérence', desc: 'Vérification automatique des totaux inter-états, équilibre actif/passif, concordance résultat.', route: '/taxation/liasse', tags: ['Auto-contrôle', 'Alertes'] },
+                      { title: 'Télédéclaration', desc: 'Export XML/EDI conforme au format de l\'administration fiscale, envoi direct ou téléchargement.', route: '/taxation/declarations', tags: ['XML', 'EDI'] },
+                    ]},
+                    { cat: 'Suivi fiscal', items: [
+                      { title: 'Calendrier des échéances', desc: 'Toutes les dates limites de déclaration et paiement, alertes J-7 et J-1, historique.', route: '/taxation/echeances', tags: ['Alertes', 'Multi-pays'] },
+                      { title: 'Historique des déclarations', desc: 'Archive de toutes les liasses générées, comparaison N/N-1, piste d\'audit complète.', route: '/taxation/declarations', tags: ['Archive', 'Comparatif'] },
+                    ]},
+                  ] : [
+                    { cat: 'Gestion documentaire', items: [
+                      { title: 'Numérisation OCR', desc: 'Scannez factures, reçus, contrats. L\'OCR extrait automatiquement montants, dates, fournisseurs.', route: '/accounting/ocr', tags: ['OCR IA', 'Multi-format'] },
+                      { title: 'Classement intelligent', desc: 'L\'IA analyse le contenu et classe automatiquement par type (facture, contrat, relevé) et par tiers.', route: '/accounting/ocr', tags: ['IA', 'Auto-classement'] },
+                    ]},
+                    { cat: 'Archivage & Recherche', items: [
+                      { title: 'Archivage légal 10 ans', desc: 'Stockage sécurisé conforme aux exigences légales OHADA, piste d\'audit SHA-256, non-répudiation.', route: '/settings/backup', tags: ['SHA-256', 'Légal'] },
+                      { title: 'Recherche full-text', desc: 'Retrouvez n\'importe quel document par mot-clé, montant, date, tiers. Résultats instantanés.', route: '/settings/import-export', tags: ['Instantané', 'Filtres'] },
+                    ]},
+                  ]).map((section, si) => (
+                    <div key={si}>
+                      <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">{section.cat}</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {section.items.map((demo, di) => (
+                          <button
+                            key={di}
+                            onClick={() => { setShowDemoModal(false); navigate(demo.route); }}
+                            className="text-left p-4 bg-white rounded-xl border border-gray-200 hover:border-[#141414] hover:shadow-md transition-all group"
+                          >
+                            <div className="flex items-start justify-between">
+                              <h5 className="text-sm font-semibold text-[#141414] group-hover:text-[#141414]">{demo.title}</h5>
+                              <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-[#141414] transition-colors shrink-0 mt-0.5" />
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1 leading-relaxed">{demo.desc}</p>
+                            <div className="flex gap-1.5 mt-2 flex-wrap">
+                              {demo.tags.map((tag, ti) => (
+                                <span key={ti} className="px-2 py-0.5 bg-gray-100 text-gray-500 text-[10px] font-medium rounded-full">{tag}</span>
+                              ))}
+                            </div>
+                          </button>
+                        ))}
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  ))}
                 </div>
               )}
 
               {demoTab === 'guided' && (
-                <div className="bg-gray-50 rounded-xl p-6 border border-gray-200 text-center">
-                  <Play className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                  <h4 className="font-semibold text-[#141414] mb-2">Visite guidée en 2 minutes</h4>
-                  <p className="text-sm text-gray-500 mb-4">Découvrez les fonctionnalités principales en un tour rapide.</p>
-                  <button className="px-6 py-2.5 bg-[#141414] text-white rounded-lg text-sm font-semibold hover:bg-[#2a2a2a] transition-colors">
-                    Lancer la visite
-                  </button>
+                <div className="space-y-4">
+                  <div className="bg-gray-50 rounded-xl p-5 border border-gray-200">
+                    <h4 className="font-semibold text-[#141414] mb-3">Visite express — les modules clés</h4>
+                    <p className="text-sm text-gray-500 mb-4">Parcourez les pages principales en un clic.</p>
+                    <div className="space-y-2">
+                      {(demoSolution === 'atlas-finance' ? [
+                        { label: 'Dashboard comptable', route: '/dashboard', desc: 'Vue d\'ensemble KPIs et raccourcis' },
+                        { label: 'Saisie d\'écritures', route: '/accounting/entries', desc: 'Le cœur de la comptabilité' },
+                        { label: 'Bilan SYSCOHADA', route: '/financial-statements/balance', desc: 'États financiers en temps réel' },
+                        { label: 'Trésorerie', route: '/treasury/accounts', desc: 'Soldes bancaires et prévisions' },
+                        { label: 'Clôture', route: '/closures/periodic', desc: 'Processus de clôture guidé' },
+                      ] : demoSolution === 'liass-pilot' ? [
+                        { label: 'Liasse fiscale', route: '/taxation/liasse', desc: 'Génération DSF' },
+                        { label: 'Déclarations', route: '/taxation/declarations', desc: 'Suivi des déclarations' },
+                        { label: 'Échéances', route: '/taxation/echeances', desc: 'Calendrier fiscal' },
+                      ] : [
+                        { label: 'OCR & Numérisation', route: '/accounting/ocr', desc: 'Import de documents' },
+                        { label: 'Sauvegarde', route: '/settings/backup', desc: 'Archivage sécurisé' },
+                      ]).map((item, i) => (
+                        <button
+                          key={i}
+                          onClick={() => { setShowDemoModal(false); navigate(item.route); }}
+                          className="w-full flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100 hover:border-[#141414] transition-colors text-left group"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-7 h-7 bg-[#141414] text-white rounded-lg flex items-center justify-center text-xs font-bold">{i + 1}</div>
+                            <div>
+                              <p className="text-sm font-medium text-[#141414]">{item.label}</p>
+                              <p className="text-xs text-gray-400">{item.desc}</p>
+                            </div>
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-[#141414]" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
 
               {demoTab === 'tutorials' && (
-                <div className="bg-gray-50 rounded-xl p-6 border border-gray-200 text-center">
-                  <Lightbulb className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                  <h4 className="font-semibold text-[#141414] mb-2">Tutoriels pas à pas</h4>
-                  <p className="text-sm text-gray-500 mb-4">Apprenez chaque fonctionnalité à votre rythme avec des guides interactifs.</p>
-                  <button className="px-6 py-2.5 bg-[#141414] text-white rounded-lg text-sm font-semibold hover:bg-[#2a2a2a] transition-colors">
-                    Accéder aux tutoriels
-                  </button>
+                <div className="space-y-3">
+                  {(demoSolution === 'atlas-finance' ? [
+                    { title: 'Créer votre première écriture', desc: 'De la saisie à la validation : journal, comptes, montants, pièce jointe.', duration: '3 min', route: '/accounting/entries' },
+                    { title: 'Importer un plan comptable', desc: 'Chargez le plan SYSCOHADA ou importez votre plan personnalisé.', duration: '2 min', route: '/config/plan-syscohada' },
+                    { title: 'Configurer la TVA', desc: 'Paramétrez les taux, comptes collecteurs/déductibles pour votre pays.', duration: '3 min', route: '/config/tva' },
+                    { title: 'Effectuer un lettrage', desc: 'Rapprochez les comptes clients et fournisseurs automatiquement.', duration: '4 min', route: '/accounting/lettrage-auto' },
+                    { title: 'Générer le bilan', desc: 'Visualisez le bilan SYSCOHADA et exportez-le en PDF.', duration: '2 min', route: '/financial-statements/balance' },
+                    { title: 'Clôturer un mois', desc: 'Suivez les 6 étapes de la clôture mensuelle.', duration: '5 min', route: '/closures/periodic' },
+                    { title: 'Paramétrer l\'exercice fiscal', desc: 'Définissez les dates, la devise, les journaux obligatoires.', duration: '2 min', route: '/core/exercice' },
+                    { title: 'Gérer les immobilisations', desc: 'Ajoutez un actif, paramétrez l\'amortissement, générez les dotations.', duration: '4 min', route: '/assets/registry' },
+                  ] : demoSolution === 'liass-pilot' ? [
+                    { title: 'Préparer la liasse fiscale', desc: 'Import des données, vérification, génération des annexes.', duration: '5 min', route: '/taxation/liasse' },
+                    { title: 'Vérifier la cohérence', desc: 'Contrôles automatiques et corrections.', duration: '3 min', route: '/taxation/liasse' },
+                    { title: 'Télédéclarer au DGI', desc: 'Export et envoi du fichier XML.', duration: '2 min', route: '/taxation/declarations' },
+                  ] : [
+                    { title: 'Scanner un document', desc: 'Utilisez l\'OCR pour extraire les données.', duration: '2 min', route: '/accounting/ocr' },
+                    { title: 'Organiser vos fichiers', desc: 'Classement automatique et recherche.', duration: '3 min', route: '/settings/import-export' },
+                  ]).map((tuto, i) => (
+                    <button
+                      key={i}
+                      onClick={() => { setShowDemoModal(false); navigate(tuto.route); }}
+                      className="w-full flex items-center justify-between p-4 bg-white rounded-xl border border-gray-200 hover:border-[#141414] hover:shadow-sm transition-all text-left group"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center group-hover:bg-[#141414] group-hover:text-white transition-colors">
+                          <Lightbulb className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-[#141414]">{tuto.title}</p>
+                          <p className="text-xs text-gray-500">{tuto.desc}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="text-xs text-gray-400 flex items-center gap-1"><Clock className="w-3 h-3" /> {tuto.duration}</span>
+                        <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-[#141414]" />
+                      </div>
+                    </button>
+                  ))}
                 </div>
               )}
 
               {demoTab === 'live' && (
-                <div className="bg-gray-50 rounded-xl p-6 border border-gray-200 text-center">
-                  <Users className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                  <h4 className="font-semibold text-[#141414] mb-2">Démo guidée avec un expert</h4>
-                  <p className="text-sm text-gray-500 mb-4">Planifiez une session de 30 minutes avec un spécialiste Atlas Studio.</p>
-                  <button className="px-6 py-2.5 bg-[#141414] text-white rounded-lg text-sm font-semibold hover:bg-[#2a2a2a] transition-colors">
-                    Planifier un rendez-vous
-                  </button>
+                <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+                  <div className="text-center mb-6">
+                    <Users className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                    <h4 className="font-semibold text-[#141414] mb-2">Réservez une démo personnalisée</h4>
+                    <p className="text-sm text-gray-500">Un expert Atlas Studio vous accompagne en direct pendant 30 minutes pour explorer les fonctionnalités adaptées à votre métier.</p>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+                    {[
+                      { label: 'Découverte', desc: 'Tour complet de la solution', icon: '🎯' },
+                      { label: 'Migration', desc: 'Comment migrer depuis votre logiciel actuel', icon: '🔄' },
+                      { label: 'Sur mesure', desc: 'Adaptation à vos besoins spécifiques', icon: '⚙️' },
+                    ].map((opt, i) => (
+                      <div key={i} className="p-3 bg-white rounded-lg border border-gray-200 text-center">
+                        <div className="text-2xl mb-2">{opt.icon}</div>
+                        <p className="text-sm font-medium text-[#141414]">{opt.label}</p>
+                        <p className="text-xs text-gray-500 mt-1">{opt.desc}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="text-center">
+                    <button className="px-8 py-3 bg-[#141414] text-white rounded-lg text-sm font-semibold hover:bg-[#2a2a2a] transition-colors inline-flex items-center gap-2">
+                      <Mail className="w-4 h-4" /> Planifier un rendez-vous
+                    </button>
+                    <p className="text-xs text-gray-400 mt-2">Réponse sous 24h — contact@atlasstudio.com</p>
+                  </div>
                 </div>
               )}
             </div>
