@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import {
   Calculator, BarChart3, Shield, Globe, Zap, Users,
-  ArrowRight, CheckCircle, Star, ChevronRight, Sparkles
+  ArrowRight, CheckCircle, Star, ChevronRight, Sparkles, Play
 } from 'lucide-react';
 
 const FEATURES = [
@@ -35,7 +35,7 @@ function getWorkspacePath(role: string): string {
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, login } = useAuth();
 
   return (
     <div className="min-h-screen bg-white">
@@ -89,9 +89,15 @@ const LandingPage: React.FC = () => {
             La plateforme de gestion d'entreprise conçue pour les 17 pays
             de l'espace OHADA. Comptabilité, fiscalité, documents, liasse — tout en un.
           </p>
-          <div className="flex items-center justify-center gap-4">
+          <div className="flex items-center justify-center gap-4 flex-wrap">
             <button onClick={() => navigate('/register')} className="px-8 py-4 bg-[#141414] text-white rounded-xl text-base font-semibold hover:bg-[#2a2a2a] transition-all hover:shadow-xl flex items-center gap-2">
               Démarrer gratuitement <ArrowRight className="w-5 h-5" />
+            </button>
+            <button onClick={async () => {
+              await login('admin@atlasfinance.cm', 'admin123');
+              navigate('/hub');
+            }} className="px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl text-base font-semibold hover:from-blue-700 hover:to-blue-800 transition-all hover:shadow-xl flex items-center gap-2">
+              <Play className="w-5 h-5" /> Voir la démo
             </button>
             <a href="#features" className="px-8 py-4 border-2 border-gray-200 rounded-xl text-base font-semibold text-gray-700 hover:border-gray-400 transition-all">
               Découvrir
