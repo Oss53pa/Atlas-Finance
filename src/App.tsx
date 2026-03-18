@@ -14,6 +14,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import FeatureErrorBoundary from './components/FeatureErrorBoundary';
 import RBACGuard from './components/auth/RBACGuard';
 import ImpersonationBanner from './components/auth/ImpersonationBanner';
+import GuidedTourOverlay from './components/demo/GuidedTourOverlay';
 import { DataProvider } from './contexts/DataContext';
 import './styles/globals.css';
 
@@ -238,6 +239,7 @@ function App() {
                     <ErrorBoundary>
                     <Suspense fallback={<LoadingFallback />}>
                     <ImpersonationBanner />
+                    <GuidedTourOverlay />
                     <Routes>
                       {/* Pages publiques — pas d'auth, pas de chatbot */}
                       <Route path="/" element={<LandingPage />} />
