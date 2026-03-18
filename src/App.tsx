@@ -48,6 +48,10 @@ const AdminConsoleLayout = lazyRetry(() => import('./pages/admin-console/AdminCo
 const AdminDashboardPage = lazyRetry(() => import('./pages/admin-console/AdminDashboardPage'));
 const AdminTenantsPage = lazyRetry(() => import('./pages/admin-console/AdminTenantsPage'));
 const AdminTenantDetailPage = lazyRetry(() => import('./pages/admin-console/AdminTenantDetailPage'));
+const AdminBillingPage = lazyRetry(() => import('./pages/admin-console/AdminBillingPage'));
+const AdminFeaturesPage = lazyRetry(() => import('./pages/admin-console/AdminFeaturesPage'));
+const AdminSupportPage = lazyRetry(() => import('./pages/admin-console/AdminSupportPage'));
+const AdminMonitoringPage = lazyRetry(() => import('./pages/admin-console/AdminMonitoringPage'));
 
 // Platform — Dashboard client
 const ClientDashboard = lazyRetry(() => import('./pages/platform/ClientDashboard'));
@@ -247,6 +251,10 @@ function App() {
                           <Route index element={<AdminDashboardPage />} />
                           <Route path="tenants" element={<AdminTenantsPage />} />
                           <Route path="tenants/:tenantId" element={<AdminTenantDetailPage />} />
+                          <Route path="billing" element={<AdminBillingPage />} />
+                          <Route path="features" element={<AdminFeaturesPage />} />
+                          <Route path="support" element={<AdminSupportPage />} />
+                          <Route path="monitoring" element={<AdminMonitoringPage />} />
                         </Route>
 
                         {/* Dashboard client Atlas Studio */}

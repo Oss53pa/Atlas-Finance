@@ -23,7 +23,8 @@ const STATS = [
   { value: '100%', label: 'SYSCOHADA' },
 ];
 
-const GOLD = '#B8960C';
+const GOLD = '#9E7C0C';
+const GOLD_ACCENT = '#C4A235';
 
 function getWorkspacePath(role: string): string {
   if (role === 'admin' || role === 'super_admin') return '/workspace/admin';
@@ -79,7 +80,7 @@ const LandingPage: React.FC = () => {
             <Star className="w-4 h-4 text-gray-500" /> Suite de gestion pour l'Afrique
           </div>
           <h1 className="text-5xl md:text-6xl leading-tight mb-4">
-            <span className="atlas-brand text-5xl md:text-7xl" style={{ color: GOLD }}>Atlas Studio</span>
+            <span className="atlas-brand text-5xl md:text-7xl" style={{ color: GOLD_ACCENT }}>Atlas Studio</span>
           </h1>
           <p className="text-2xl font-semibold text-[#141414] mb-6">
             Gérez simple. Grandissez vite.
@@ -143,10 +144,10 @@ const LandingPage: React.FC = () => {
             { name: 'DocJourney', desc: 'Gestion Documentaire', color: '#2d1b4e', features: ['Numérisation OCR', 'Classement IA', 'Archivage légal 10 ans', 'Piste d\'audit', 'Recherche full-text'] },
           ].map((p, i) => (
             <div key={i} className="rounded-2xl overflow-hidden border border-gray-200 shadow-lg hover:shadow-xl transition-shadow">
-              <div className="p-8 text-white" style={{ backgroundColor: p.color }}>
-                <h3 className="text-xl font-bold">{p.name}</h3>
-                <p className="text-white/70 text-sm mt-1">{p.desc}</p>
-                <span className="inline-block mt-3 text-xs bg-white/15 px-3 py-1 rounded-full font-medium text-white/80">Disponible</span>
+              <div className="p-8" style={{ backgroundColor: p.color }}>
+                <h3 className="text-xl font-bold text-white">{p.name}</h3>
+                <p className="text-sm mt-1 text-gray-300">{p.desc}</p>
+                <span className="inline-block mt-3 text-xs px-3 py-1 rounded-full font-medium bg-white/25 text-white">Disponible</span>
               </div>
               <div className="p-8 bg-white">
                 <ul className="space-y-3">
@@ -170,7 +171,7 @@ const LandingPage: React.FC = () => {
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl font-bold text-white mb-4">Prêt à commencer ?</h2>
           <p className="text-lg text-white/60 mb-8">
-            Rejoignez les entreprises africaines qui modernisent leur gestion avec <span className="atlas-brand text-xl" style={{ color: GOLD }}>Atlas Studio</span>.
+            Rejoignez les entreprises africaines qui modernisent leur gestion avec <span className="atlas-brand text-xl" style={{ color: GOLD_ACCENT }}>Atlas Studio</span>.
           </p>
           <button onClick={() => navigate('/register')} className="px-10 py-4 bg-white text-[#141414] rounded-xl text-base font-semibold hover:bg-gray-100 transition-all hover:shadow-xl inline-flex items-center gap-2">
             Créer mon compte <ArrowRight className="w-5 h-5" />
@@ -188,7 +189,7 @@ const LandingPage: React.FC = () => {
               </div>
               <span className="atlas-brand text-2xl text-white">Atlas Studio</span>
             </div>
-            <p className="text-sm italic" style={{ color: GOLD }}>Gérez simple. Grandissez vite.</p>
+            <p className="text-sm italic" style={{ color: GOLD_ACCENT }}>Gérez simple. Grandissez vite.</p>
           </div>
           <div>
             <h4 className="font-semibold mb-3 text-sm text-white">Produits</h4>
