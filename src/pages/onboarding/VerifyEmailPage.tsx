@@ -16,7 +16,7 @@ const VerifyEmailPage: React.FC = () => {
   // Si déjà vérifié → rediriger
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/hub', { replace: true });
+      navigate('/client', { replace: true });
     }
   }, [isAuthenticated, navigate]);
 
@@ -25,7 +25,7 @@ const VerifyEmailPage: React.FC = () => {
     const interval = setInterval(async () => {
       const { data } = await supabase.auth.getSession();
       if (data.session) {
-        navigate('/hub', { replace: true });
+        navigate('/client', { replace: true });
       }
     }, 3000);
     return () => clearInterval(interval);

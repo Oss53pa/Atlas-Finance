@@ -32,7 +32,7 @@ const AcceptInvitePage: React.FC = () => {
     try {
       await acceptInvitation(token);
       setStatus('accepted');
-      setTimeout(() => navigate('/hub', { replace: true }), 2000);
+      setTimeout(() => navigate('/client', { replace: true }), 2000);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur');
       setStatus('error');

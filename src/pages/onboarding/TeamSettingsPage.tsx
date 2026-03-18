@@ -39,7 +39,7 @@ const TeamSettingsPage: React.FC = () => {
       <header className="bg-white border-b">
         <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <button onClick={() => navigate('/hub')} className="p-2 hover:bg-gray-100 rounded-lg">
+            <button onClick={() => navigate('/client')} className="p-2 hover:bg-gray-100 rounded-lg">
               <ArrowLeft className="w-5 h-5" />
             </button>
             <div>

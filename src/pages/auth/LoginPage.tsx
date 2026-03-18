@@ -6,7 +6,7 @@ import { useAuth } from '../../contexts/AuthContext';
 
 function getRoleRedirectPath(_role: string): string {
   // Après login → Hub Atlas Studio (choix de l'application)
-  return '/hub';
+  return '/client';
 }
 
 const LoginPage: React.FC = () => {

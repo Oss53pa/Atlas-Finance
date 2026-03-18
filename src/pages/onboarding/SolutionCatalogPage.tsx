@@ -36,7 +36,7 @@ const SolutionCatalogPage: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['my-subscriptions'] });
       const sol = solutions.find(s => s.id === solutionId);
       toast.success(`${sol?.name || 'Solution'} activée — essai gratuit 14 jours`);
-      navigate('/hub');
+      navigate('/client');
     },
     onError: (err: Error) => toast.error(err.message),
   });
@@ -59,7 +59,7 @@ const SolutionCatalogPage: React.FC = () => {
             </div>
             <span className="font-bold text-[#171717]">Atlas Studio</span>
           </div>
-          <button onClick={() => navigate('/hub')} className="text-sm text-gray-500 hover:text-gray-700">
+          <button onClick={() => navigate('/client')} className="text-sm text-gray-500 hover:text-gray-700">
             Retour au hub
           </button>
         </div>
@@ -139,7 +139,7 @@ const SolutionCatalogPage: React.FC = () => {
                   {/* CTA */}
                   <div className="px-6 pb-6">
                     {subscribed ? (
-                      <button onClick={() => navigate('/hub')}
+                      <button onClick={() => navigate('/client')}
                         className="w-full py-3 bg-green-600 text-white rounded-lg text-sm font-semibold flex items-center justify-center gap-2">
                         Ouvrir <ArrowRight className="w-4 h-4" />
                       </button>
