@@ -66,6 +66,7 @@ const ClientBilling = lazyRetry(() => import('./pages/platform/ClientBilling'));
 const ClientCheckout = lazyRetry(() => import('./pages/platform/ClientCheckout'));
 const ClientSettings = lazyRetry(() => import('./pages/platform/ClientSettings'));
 const ClientAuditTrail = lazyRetry(() => import('./pages/platform/ClientAuditTrail'));
+const ClientLicenses = lazyRetry(() => import('./pages/platform/ClientLicenses'));
 const SolutionRouter = lazyRetry(() => import('./pages/platform/SolutionRouter'));
 
 // Workspaces
@@ -276,6 +277,7 @@ function App() {
                           <Route path="checkout/:solutionCode" element={<ClientCheckout />} />
                           <Route path="settings" element={<ClientSettings />} />
                           <Route path="audit" element={<ClientAuditTrail />} />
+                          <Route path="licenses" element={<ClientLicenses />} />
                           <Route path="app/:code" element={<SolutionRouter />} />
                         </Route>
                       </Route>

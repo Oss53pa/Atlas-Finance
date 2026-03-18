@@ -49,6 +49,7 @@ const ClientDashboard: React.FC = () => {
   const settingsItems = [
     { label: 'Paramètres', icon: Settings, path: '/client/settings', show: isAdmin },
     { label: 'Équipe', icon: UserPlus, path: '/client/team', show: isAdmin },
+    { label: 'Licences', icon: Shield, path: '/client/licenses', show: isAdmin },
     { label: 'Facturation', icon: CreditCard, path: '/client/billing', show: isSuperAdmin },
     { label: 'Piste d\'audit', icon: Activity, path: '/client/audit', show: isAdmin },
   ].filter(i => i.show);
