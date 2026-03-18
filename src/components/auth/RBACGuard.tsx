@@ -67,21 +67,24 @@ const RBACGuard: React.FC<RBACGuardProps> = ({
     return null; // or a spinner
   }
 
-  if (!isAuthenticated || !user) {
+  // Mode démo : laisser passer sans auth (sessionStorage flag)
+  const isDemoMode = typeof sessionStorage !== 'undefined' && sessionStorage.getItem('atlas-demo-mode') === '1';
+
+  if (!isAuthenticated && !user && !isDemoMode) {
     return <Navigate to="/login" replace />;
   }
 
-  // Check role
-  if (allowedRoles && allowedRoles.length > 0) {
-    if (!hasRole(user.role, allowedRoles)) {
+  // Check role (skip in demo mode)
+  if (!isDemoMode && allowedRoles && allowedRoles.length > 0) {
+    if (!user || !hasRole(user.role, allowedRoles)) {
       if (fallback) return <>{fallback}</>;
       return <Navigate to={redirectTo} replace />;
     }
   }
 
-  // Check permissions
-  if (requiredPermissions && requiredPermissions.length > 0) {
-    const userPerms = user.permissions ?? [];
+  // Check permissions (skip in demo mode)
+  if (!isDemoMode && requiredPermissions && requiredPermissions.length > 0) {
+    const userPerms = user?.permissions ?? [];
     if (!hasPermissions(userPerms, requiredPermissions)) {
       if (fallback) return <>{fallback}</>;
       return <Navigate to={redirectTo} replace />;

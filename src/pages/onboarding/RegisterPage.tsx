@@ -1,8 +1,9 @@
 // @ts-nocheck
 import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Calculator, Eye, EyeOff, Building, User, Mail, Lock, Globe, ChevronRight, ChevronLeft, CheckCircle, Phone, Shield, Zap, Monitor, Play, Lightbulb, Users, X, Clock } from 'lucide-react';
+import { Calculator, Eye, EyeOff, Building, User, Mail, Lock, Globe, ChevronRight, ChevronLeft, CheckCircle, Phone, Shield, Zap, Play } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import DemoModal from '../../components/demo/DemoModal';
 
 const COUNTRIES = [
   { code: 'CI', name: "Côte d'Ivoire", currency: 'XOF' },
@@ -41,8 +42,6 @@ const RegisterPage: React.FC = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showDemoModal, setShowDemoModal] = useState(false);
-  const [demoSolution, setDemoSolution] = useState('atlas-finance');
-  const [demoTab, setDemoTab] = useState('interactive');
 
   const [form, setForm] = useState({
     // Étape 1 — Entreprise
@@ -451,7 +450,7 @@ const RegisterPage: React.FC = () => {
                         {section.items.map((demo, di) => (
                           <button
                             key={di}
-                            onClick={() => { setShowDemoModal(false); navigate(demo.route); }}
+                            onClick={() => goDemo(demo.route)}
                             className="text-left p-4 bg-white rounded-xl border border-gray-200 hover:border-[#141414] hover:shadow-md transition-all group"
                           >
                             <div className="flex items-start justify-between">
@@ -494,7 +493,7 @@ const RegisterPage: React.FC = () => {
                       ]).map((item, i) => (
                         <button
                           key={i}
-                          onClick={() => { setShowDemoModal(false); navigate(item.route); }}
+                          onClick={() => goDemo(item.route)}
                           className="w-full flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100 hover:border-[#141414] transition-colors text-left group"
                         >
                           <div className="flex items-center gap-3">
@@ -533,7 +532,7 @@ const RegisterPage: React.FC = () => {
                   ]).map((tuto, i) => (
                     <button
                       key={i}
-                      onClick={() => { setShowDemoModal(false); navigate(tuto.route); }}
+                      onClick={() => goDemo(tuto.route)}
                       className="w-full flex items-center justify-between p-4 bg-white rounded-xl border border-gray-200 hover:border-[#141414] hover:shadow-sm transition-all text-left group"
                     >
                       <div className="flex items-center gap-3">

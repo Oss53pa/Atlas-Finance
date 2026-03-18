@@ -4,13 +4,15 @@ import { useNavigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import {
   LayoutDashboard, Users, CreditCard, ToggleLeft, Activity, Headphones,
-  LogOut, Settings, Search, Sparkles, ChevronRight
+  LogOut, Settings, Search, Sparkles, ChevronRight, DollarSign, FileText
 } from 'lucide-react';
 
 const NAV = [
   { label: 'Dashboard', icon: LayoutDashboard, path: '/admin-console' },
   { label: 'Tenants', icon: Users, path: '/admin-console/tenants' },
   { label: 'Billing', icon: CreditCard, path: '/admin-console/billing' },
+  { label: 'Tarifs', icon: DollarSign, path: '/admin-console/pricing' },
+  { label: 'Facture manuelle', icon: FileText, path: '/admin-console/invoices/new' },
   { label: 'Feature Flags', icon: ToggleLeft, path: '/admin-console/features' },
   { label: 'Monitoring', icon: Activity, path: '/admin-console/monitoring' },
   { label: 'Support', icon: Headphones, path: '/admin-console/support' },
