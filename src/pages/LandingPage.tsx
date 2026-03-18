@@ -24,7 +24,7 @@ const STATS = [
 ];
 
 const GOLD = '#9E7C0C';
-const GOLD_ACCENT = '#C4A235';
+
 
 function getWorkspacePath(role: string): string {
   if (role === 'admin' || role === 'super_admin') return '/workspace/admin';
@@ -76,11 +76,8 @@ const LandingPage: React.FC = () => {
       {/* ══════════ HERO ══════════ */}
       <section className="pt-32 pb-20 px-8 md:px-16 lg:px-24">
         <div className="max-w-5xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-gray-100 rounded-full text-sm text-gray-600 font-medium mb-6">
-            <Star className="w-4 h-4 text-gray-500" /> Suite de gestion pour l'Afrique
-          </div>
           <h1 className="text-5xl md:text-6xl leading-tight mb-4">
-            <span className="atlas-brand text-5xl md:text-7xl" style={{ color: GOLD_ACCENT }}>Atlas Studio</span>
+            <span className="atlas-brand text-5xl md:text-7xl text-[#171717]">Atlas Studio</span>
           </h1>
           <p className="text-2xl font-semibold text-[#141414] mb-6">
             Gérez simple. Grandissez vite.
@@ -96,7 +93,7 @@ const LandingPage: React.FC = () => {
             <button onClick={async () => {
               await login('admin@atlasfinance.cm', 'admin123');
               navigate('/client');
-            }} className="px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl text-base font-semibold hover:from-blue-700 hover:to-blue-800 transition-all hover:shadow-xl flex items-center gap-2">
+            }} className="px-8 py-4 bg-[#171717] text-white rounded-xl text-base font-semibold hover:bg-[#333] transition-all hover:shadow-xl flex items-center gap-2 border-2 border-[#171717]">
               <Play className="w-5 h-5" /> Voir la démo
             </button>
             <a href="#features" className="px-8 py-4 border-2 border-gray-200 rounded-xl text-base font-semibold text-gray-700 hover:border-gray-400 transition-all">
@@ -225,7 +222,7 @@ const LandingPage: React.FC = () => {
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl font-bold text-white mb-4">Prêt à commencer ?</h2>
           <p className="text-lg text-white/60 mb-8">
-            Rejoignez les entreprises africaines qui modernisent leur gestion avec <span className="atlas-brand text-xl" style={{ color: GOLD_ACCENT }}>Atlas Studio</span>.
+            Rejoignez les entreprises africaines qui modernisent leur gestion avec <span className="atlas-brand text-xl text-[#171717]">Atlas Studio</span>.
           </p>
           <button onClick={() => navigate('/register')} className="px-10 py-4 bg-white text-[#141414] rounded-xl text-base font-semibold hover:bg-gray-100 transition-all hover:shadow-xl inline-flex items-center gap-2">
             Créer mon compte <ArrowRight className="w-5 h-5" />
@@ -243,7 +240,7 @@ const LandingPage: React.FC = () => {
               </div>
               <span className="atlas-brand text-2xl text-white">Atlas Studio</span>
             </div>
-            <p className="text-sm italic" style={{ color: GOLD_ACCENT }}>Gérez simple. Grandissez vite.</p>
+            <p className="text-sm italic text-white/50">Gérez simple. Grandissez vite.</p>
           </div>
           <div>
             <h4 className="font-semibold mb-3 text-sm text-white">Produits</h4>
