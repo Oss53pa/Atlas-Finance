@@ -61,6 +61,9 @@ const AdminFeaturesPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Flags globaux par plan */}
+      <GlobalPlanFlags modules={MODULES} tenants={tenants} queryClient={queryClient} />
+
       <div className="relative max-w-sm">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
         <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher un tenant..."
@@ -119,6 +122,85 @@ const AdminFeaturesPage: React.FC = () => {
           </tbody>
         </table>
       </div>
+    </div>
+  );
+};
+
+// ════════════════════════════════════════════════════════
+// Flags globaux par plan (starter / pro / enterprise)
+// ════════════════════════════════════════════════════════
+const PLANS = ['starter', 'pro', 'enterprise'];
+
+const GlobalPlanFlags: React.FC<{ modules: typeof MODULES; tenants: any[]; queryClient: any }> = ({ modules, tenants, queryClient }) => {
+  const [loading, setLoading] = useState<string | null>(null);
+
+  const handleTogglePlan = async (plan: string, moduleCode: string, enable: boolean) => {
+    setLoading(`${plan}-${moduleCode}`);
+    try {
+      const planTenants = tenants.filter(t => t.status === plan || (plan === 'pro' && t.status === 'active'));
+      for (const t of planTenants) {
+        await toggleModule(t.id, moduleCode, enable);
+      }
+      queryClient.invalidateQueries({ queryKey: ['admin-features'] });
+      toast.success(`${moduleCode} ${enable ? 'activé' : 'désactivé'} pour ${planTenants.length} tenant(s) ${plan}`);
+    } catch (err) {
+      toast.error('Erreur lors de la mise à jour');
+    } finally { setLoading(null); }
+  };
+
+  // Compute: is a module enabled for majority of tenants in a plan?
+  const isPlanEnabled = (plan: string, moduleCode: string) => {
+    const planTenants = tenants.filter(t => t.status === plan || (plan === 'pro' && t.status === 'active'));
+    if (planTenants.length === 0) return false;
+    const enabledCount = planTenants.filter(t => t.flags?.some((f: any) => f.module === moduleCode && f.enabled)).length;
+    return enabledCount > planTenants.length / 2;
+  };
+
+  return (
+    <div className="bg-white rounded-xl border p-5">
+      <h3 className="font-semibold text-sm text-[#0f172a] mb-4">Flags globaux par plan</h3>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr>
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Plan</th>
+              {modules.map(m => (
+                <th key={m.code} className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase">
+                  <div className="flex flex-col items-center gap-0.5">
+                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: m.color }} />
+                    {m.label}
+                  </div>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y">
+            {PLANS.map(plan => (
+              <tr key={plan}>
+                <td className="px-4 py-3 font-medium text-[#0f172a] capitalize">{plan}</td>
+                {modules.map(m => {
+                  const enabled = isPlanEnabled(plan, m.code);
+                  const isLoading = loading === `${plan}-${m.code}`;
+                  return (
+                    <td key={m.code} className="px-3 py-3 text-center">
+                      <button
+                        disabled={isLoading}
+                        onClick={() => handleTogglePlan(plan, m.code, !enabled)}
+                        className={`inline-flex items-center justify-center w-10 h-6 rounded-full transition-colors ${
+                          enabled ? 'bg-blue-500' : 'bg-gray-200'
+                        } ${isLoading ? 'opacity-50' : ''}`}
+                      >
+                        <div className={`w-4 h-4 rounded-full bg-white shadow transition-transform ${enabled ? 'translate-x-2' : '-translate-x-2'}`} />
+                      </button>
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="text-[10px] text-gray-400 mt-2">Les toggles bleus sont globaux (tous les tenants du plan). Les toggles verts ci-dessous sont par tenant.</p>
     </div>
   );
 };
