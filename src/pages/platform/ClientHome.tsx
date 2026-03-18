@@ -101,8 +101,7 @@ const ClientHome: React.FC = () => {
               return (
                 <div key={sub.id} className="bg-white rounded-xl border p-5 hover:shadow-lg transition-shadow group cursor-pointer"
                   onClick={() => {
-                    if (sol.code === 'atlas-finance') navigate('/workspace/admin');
-                    else navigate(`/client/app/${sol.code}`);
+                    window.open(`/client/app/${sol.code}`, '_blank');
                   }}
                 >
                   <div className="flex items-center gap-3 mb-3">
