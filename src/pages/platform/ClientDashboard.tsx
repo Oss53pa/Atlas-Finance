@@ -30,7 +30,7 @@ const ClientDashboard: React.FC = () => {
   const { tenant, subscriptions, isLoading, userRole, userName, isAdmin, isSuperAdmin } = useTenant();
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  const handleLogout = async () => { await logout(); navigate('/login', { replace: true }); };
+  const handleLogout = async () => { await logout(); navigate('/', { replace: true }); };
 
   const activeModules = subscriptions
     .filter(s => s.status === 'active' || s.status === 'trialing')
