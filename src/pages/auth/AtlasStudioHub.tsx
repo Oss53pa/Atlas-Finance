@@ -61,7 +61,7 @@ const AtlasStudioHub: React.FC = () => {
           {APPS.map(app => (
             <button
               key={app.code}
-              onClick={() => app.active && navigate(getWorkspacePath(user?.role || 'user'))}
+              onClick={() => app.active && navigate(`/client/app/${app.code}`)}
               disabled={!app.active}
               className={`group relative w-44 h-44 rounded-2xl border-2 transition-all flex flex-col items-center justify-center gap-3 ${
                 app.active
