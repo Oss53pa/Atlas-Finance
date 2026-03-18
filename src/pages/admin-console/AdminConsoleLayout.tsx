@@ -61,7 +61,7 @@ const AdminConsoleLayout: React.FC = () => {
               <div className="w-7 h-7 rounded-full bg-red-600 flex items-center justify-center text-[10px] font-bold">{(user?.name || 'A')[0]}</div>
               <div className="text-xs text-white/60 truncate">{user?.email || user?.name}</div>
             </div>
-            <button onClick={() => { logout(); navigate('/login'); }} className="p-1 hover:bg-white/10 rounded text-white/40">
+            <button onClick={() => { logout(); navigate('/'); }} className="p-1 hover:bg-white/10 rounded text-white/40">
               <LogOut className="w-4 h-4" />
             </button>
           </div>

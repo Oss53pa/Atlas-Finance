@@ -269,85 +269,13 @@ const LoginPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Demo accounts — visible uniquement en développement */}
-            {import.meta.env.VITE_APP_ENV !== 'production' && (
-            <div className="mt-6 rounded-lg bg-[var(--color-background-secondary)] border border-[var(--color-border)] p-4">
-              <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3 flex items-center gap-2">
-                <Shield className="h-4 w-4" />
-                Comptes de démonstration
-              </h3>
-              <div className="text-xs space-y-3 text-[var(--color-text-primary)]">
-                {/* Admin Account */}
-                <div className="bg-white p-3 rounded border">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-semibold text-sm">👨‍💼 Administrateur</span>
-                    <span className="text-xs px-2 py-0.5 bg-red-100 text-red-700 rounded">ADMIN</span>
-                  </div>
-                  <p className="text-xs mb-1"><strong>Email:</strong> admin@atlasfinance.cm</p>
-                  <p className="text-xs mb-2"><strong>Mot de passe:</strong> admin123</p>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="w-full text-xs text-[var(--color-text-primary)] border-red-300 hover:bg-red-500 hover:text-white"
-                    onClick={() => handleAutoLogin('admin')}
-                  >
-                    Connexion Administrateur
-                  </Button>
-                  <p className="text-xs text-[var(--color-text-secondary)] mt-2">Accès complet au système</p>
-                </div>
-
-                {/* Manager Account */}
-                <div className="bg-white p-3 rounded border">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-semibold text-sm">👔 Manager</span>
-                    <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded">MANAGER</span>
-                  </div>
-                  <p className="text-xs mb-1"><strong>Email:</strong> manager@atlasfinance.com</p>
-                  <p className="text-xs mb-2"><strong>Mot de passe:</strong> manager123</p>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="w-full text-xs text-[var(--color-text-primary)] border-blue-300 hover:bg-blue-500 hover:text-white"
-                    onClick={() => handleAutoLogin('manager')}
-                  >
-                    Connexion Manager
-                  </Button>
-                  <p className="text-xs text-[var(--color-text-secondary)] mt-2">Gestion et supervision</p>
-                </div>
-
-                {/* Comptable Account */}
-                <div className="bg-white p-3 rounded border">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-semibold text-sm">📊 Comptable</span>
-                    <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded">COMPTABLE</span>
-                  </div>
-                  <p className="text-xs mb-1"><strong>Email:</strong> comptable@atlasfinance.com</p>
-                  <p className="text-xs mb-2"><strong>Mot de passe:</strong> comptable123</p>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="w-full text-xs text-[var(--color-text-primary)] border-green-300 hover:bg-green-500 hover:text-white"
-                    onClick={() => handleAutoLogin('comptable')}
-                  >
-                    Connexion Comptable
-                  </Button>
-                  <p className="text-xs text-[var(--color-text-secondary)] mt-2">Saisie et comptabilité</p>
-                </div>
-              </div>
-              <p className="text-xs text-[var(--color-text-secondary)] mt-3 italic text-center">
-                Environnement de démonstration
-              </p>
-            </div>
-            )}
+            {/* Les comptes de démonstration ont été supprimés — connexion via Supabase Auth uniquement */}
 
             {/* Footer Atlas Studio */}
             <div className="mt-6 text-center">
               <p className="text-xs text-[var(--color-text-secondary)]">
                 <span className="atlas-brand text-base">Atlas Studio</span> &copy; {new Date().getFullYear()} — Atlas Finance, Liass'Pilot, DocJourney
-                <Link to="/admin-console" className="text-[var(--color-text-secondary)]/20 hover:text-[var(--color-text-secondary)]/20 ml-1 cursor-default">·</Link>
+                <Link to="/admin-login" className="text-[var(--color-text-secondary)]/20 hover:text-[var(--color-text-secondary)]/20 ml-1 cursor-default">·</Link>
               </p>
             </div>
           </CardContent>

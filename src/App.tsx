@@ -47,6 +47,7 @@ const AcceptInvitePage = lazyRetry(() => import('./pages/onboarding/AcceptInvite
 
 // Admin Console
 const AdminConsoleLayout = lazyRetry(() => import('./pages/admin-console/AdminConsoleLayout'));
+const AdminLoginPage = lazyRetry(() => import('./pages/admin-console/AdminLoginPage'));
 const AdminDashboardPage = lazyRetry(() => import('./pages/admin-console/AdminDashboardPage'));
 const AdminTenantsPage = lazyRetry(() => import('./pages/admin-console/AdminTenantsPage'));
 const AdminTenantDetailPage = lazyRetry(() => import('./pages/admin-console/AdminTenantDetailPage'));
@@ -248,6 +249,7 @@ function App() {
                       <Route path="/register" element={<RegisterPage />} />
                       <Route path="/verify-email" element={<VerifyEmailPage />} />
                       <Route path="/accept-invite/:token" element={<AcceptInvitePage />} />
+                      <Route path="/admin-login" element={<AdminLoginPage />} />
 
                       {/* Hub + Onboarding — après auth */}
                       <Route element={<RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant', 'user', 'viewer', 'super_admin']}><Outlet /></RBACGuard>}>

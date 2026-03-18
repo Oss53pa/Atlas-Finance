@@ -26,7 +26,7 @@ const AtlasStudioHub: React.FC = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
 
-  const handleLogout = async () => { await logout(); navigate('/login', { replace: true }); };
+  const handleLogout = async () => { await logout(); navigate('/', { replace: true }); };
 
   const h = new Date().getHours();
   const greeting = h < 12 ? 'Bonjour' : h < 18 ? 'Bon après-midi' : 'Bonsoir';
@@ -88,7 +88,7 @@ const AtlasStudioHub: React.FC = () => {
 
         <p className="text-xs text-gray-300 mt-10">
           <span className="atlas-brand text-sm">Atlas Studio</span> &copy; {new Date().getFullYear()}
-          <button onClick={() => navigate('/admin-console')} className="text-gray-200 hover:text-gray-200 ml-1 cursor-default">·</button>
+          <button onClick={() => navigate('/admin-login')} className="text-gray-200 hover:text-gray-200 ml-1 cursor-default">·</button>
         </p>
       </div>
     </div>
