@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import {
   Calculator, BarChart3, Shield, Globe, Zap, Users,
-  ArrowRight, CheckCircle, Star, ChevronRight, Sparkles, Play
+  ArrowRight, CheckCircle, ChevronRight, Play
 } from 'lucide-react';
 
 const FEATURES = [
@@ -22,8 +22,6 @@ const STATS = [
   { value: '15+', label: 'Taxes configurées' },
   { value: '100%', label: 'SYSCOHADA' },
 ];
-
-const GOLD = '#9E7C0C';
 
 
 function getWorkspacePath(role: string): string {
@@ -44,10 +42,7 @@ const LandingPage: React.FC = () => {
       <nav className="fixed top-0 w-full bg-white/95 backdrop-blur-md border-b border-gray-200 z-50">
         <div className="w-full px-8 md:px-16 lg:px-24 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-[#141414] rounded-lg flex items-center justify-center">
-              <Sparkles className="w-5 h-5" style={{ color: GOLD }} />
-            </div>
-            <span className="atlas-brand text-2xl text-[#141414]">Atlas Studio</span>
+            <span className="atlas-brand text-2xl text-[#171717]">Atlas Studio</span>
           </div>
           <div className="hidden md:flex items-center gap-8 text-sm text-gray-600">
             <a href="#features" className="hover:text-[#141414] transition-colors">Fonctionnalités</a>
@@ -235,9 +230,6 @@ const LandingPage: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-10">
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <div className="w-8 h-8 bg-white/8 rounded-lg flex items-center justify-center">
-                <Sparkles className="w-4 h-4" style={{ color: GOLD }} />
-              </div>
               <span className="atlas-brand text-2xl text-white">Atlas Studio</span>
             </div>
             <p className="text-sm italic text-white/50">Gérez simple. Grandissez vite.</p>

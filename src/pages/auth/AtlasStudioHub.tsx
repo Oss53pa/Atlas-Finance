@@ -36,9 +36,6 @@ const AtlasStudioHub: React.FC = () => {
       {/* Header compact */}
       <header className="flex items-center justify-between px-8 py-3 bg-white border-b shrink-0">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 bg-[#171717] rounded-lg flex items-center justify-center">
-            <Calculator className="w-4 h-4 text-white" />
-          </div>
           <span className="atlas-brand text-2xl text-[#171717]">Atlas Studio</span>
         </div>
         <div className="flex items-center gap-3">
