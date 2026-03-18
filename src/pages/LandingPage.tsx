@@ -95,7 +95,7 @@ const LandingPage: React.FC = () => {
             </button>
             <button onClick={async () => {
               await login('admin@atlasfinance.cm', 'admin123');
-              navigate('/hub');
+              navigate('/client');
             }} className="px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl text-base font-semibold hover:from-blue-700 hover:to-blue-800 transition-all hover:shadow-xl flex items-center gap-2">
               <Play className="w-5 h-5" /> Voir la démo
             </button>
