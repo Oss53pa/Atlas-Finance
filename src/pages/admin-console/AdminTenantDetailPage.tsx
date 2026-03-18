@@ -8,6 +8,8 @@ import {
   Eye, UserCog
 } from 'lucide-react';
 import { getTenantDetail, suspendTenant, reactivateTenant, validatePayment } from '../../features/platform/services/adminService';
+import { startImpersonation } from '../../features/platform/services/impersonationService';
+import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-hot-toast';
 
 const TABS = [
@@ -16,6 +18,7 @@ const TABS = [
   { key: 'members', label: 'Utilisateurs', icon: Users },
   { key: 'invoices', label: 'Facturation', icon: FileText },
   { key: 'logs', label: 'Logs', icon: Activity },
+  { key: 'notes', label: 'Notes', icon: FileText },
 ];
 
 const AdminTenantDetailPage: React.FC = () => {
@@ -23,6 +26,8 @@ const AdminTenantDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [tab, setTab] = useState('general');
+
+  const { user } = useAuth();
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin-tenant', tenantId],
@@ -65,6 +70,12 @@ const AdminTenantDetailPage: React.FC = () => {
           }`}>{tenant.status}</span>
         </div>
         <div className="flex gap-2">
+          <button onClick={() => {
+            startImpersonation(tenantId!, tenant.name, user?.id || '', user?.email || user?.name || '');
+            navigate('/client');
+          }} className="px-3 py-2 bg-[#0f172a] text-white rounded-lg text-sm hover:bg-[#1e293b] flex items-center gap-1">
+            <UserCog className="w-4 h-4" /> Se connecter en tant que
+          </button>
           {tenant.status === 'active' || tenant.status === 'trial' ? (
             <button onClick={() => suspendMut.mutate()} className="px-3 py-2 border border-red-300 text-red-700 rounded-lg text-sm hover:bg-red-50 flex items-center gap-1">
               <Pause className="w-4 h-4" /> Suspendre
@@ -204,6 +215,74 @@ const AdminTenantDetailPage: React.FC = () => {
               </tbody>
             </table>
           </div>
+        </div>
+      )}
+
+      {tab === 'notes' && (
+        <NotesTab tenantId={tenantId!} />
+      )}
+    </div>
+  );
+};
+
+// Notes internes (non visibles par le client)
+const NotesTab: React.FC<{ tenantId: string }> = ({ tenantId }) => {
+  const [note, setNote] = React.useState('');
+  const queryClient = useQueryClient();
+
+  const { data: notes = [] } = useQuery({
+    queryKey: ['tenant-notes', tenantId],
+    queryFn: async () => {
+      const { data } = await import('../../lib/supabase').then(m => m.supabase)
+        .from('audit_logs')
+        .select('*')
+        .eq('tenant_id', tenantId)
+        .eq('action', 'INTERNAL_NOTE')
+        .order('created_at', { ascending: false });
+      return data || [];
+    },
+  });
+
+  const saveMut = useMutation({
+    mutationFn: async () => {
+      const { supabase } = await import('../../lib/supabase');
+      const { data: { user } } = await supabase.auth.getUser();
+      await supabase.from('audit_logs').insert({
+        tenant_id: tenantId,
+        user_id: user?.id,
+        action: 'INTERNAL_NOTE',
+        metadata: { note, author: user?.email },
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tenant-notes'] });
+      setNote('');
+      toast.success('Note enregistrée');
+    },
+  });
+
+  return (
+    <div className="space-y-4">
+      <div className="bg-white rounded-xl border p-5">
+        <h3 className="font-semibold text-sm text-[#0f172a] mb-3">Ajouter une note interne</h3>
+        <textarea value={note} onChange={e => setNote(e.target.value)}
+          placeholder="Notes internes sur ce tenant (non visibles par le client)..."
+          rows={3} className="w-full border rounded-xl px-4 py-3 text-sm resize-none mb-3" />
+        <button onClick={() => saveMut.mutate()} disabled={!note.trim() || saveMut.isPending}
+          className="px-4 py-2 bg-[#0f172a] text-white rounded-lg text-sm font-semibold disabled:opacity-50">
+          Enregistrer
+        </button>
+      </div>
+      {notes.length > 0 && (
+        <div className="bg-white rounded-xl border divide-y">
+          {notes.map((n: any) => (
+            <div key={n.id} className="p-4">
+              <div className="text-sm text-[#0f172a]">{(n.metadata as any)?.note}</div>
+              <div className="text-xs text-gray-400 mt-2">
+                {(n.metadata as any)?.author || 'Admin'} — {new Date(n.created_at).toLocaleString('fr-FR')}
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

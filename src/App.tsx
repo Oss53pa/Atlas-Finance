@@ -13,6 +13,7 @@ import { ChatbotProvider } from './components/layout/ChatbotProvider';
 import ErrorBoundary from './components/ErrorBoundary';
 import FeatureErrorBoundary from './components/FeatureErrorBoundary';
 import RBACGuard from './components/auth/RBACGuard';
+import ImpersonationBanner from './components/auth/ImpersonationBanner';
 import { DataProvider } from './contexts/DataContext';
 import './styles/globals.css';
 
@@ -52,6 +53,9 @@ const AdminBillingPage = lazyRetry(() => import('./pages/admin-console/AdminBill
 const AdminFeaturesPage = lazyRetry(() => import('./pages/admin-console/AdminFeaturesPage'));
 const AdminSupportPage = lazyRetry(() => import('./pages/admin-console/AdminSupportPage'));
 const AdminMonitoringPage = lazyRetry(() => import('./pages/admin-console/AdminMonitoringPage'));
+const AdminPricingPage = lazyRetry(() => import('./pages/admin-console/AdminPricingPage'));
+const AdminInvoiceGenerator = lazyRetry(() => import('./pages/admin-console/AdminInvoiceGenerator'));
+const AdminTicketDetailPage = lazyRetry(() => import('./pages/admin-console/AdminTicketDetailPage'));
 
 // Platform — Dashboard client
 const ClientDashboard = lazyRetry(() => import('./pages/platform/ClientDashboard'));
@@ -232,6 +236,7 @@ function App() {
                 <NavigationProvider>
                     <ErrorBoundary>
                     <Suspense fallback={<LoadingFallback />}>
+                    <ImpersonationBanner />
                     <Routes>
                       {/* Pages publiques — pas d'auth, pas de chatbot */}
                       <Route path="/" element={<LandingPage />} />
@@ -254,7 +259,10 @@ function App() {
                           <Route path="billing" element={<AdminBillingPage />} />
                           <Route path="features" element={<AdminFeaturesPage />} />
                           <Route path="support" element={<AdminSupportPage />} />
+                          <Route path="support/:ticketId" element={<AdminTicketDetailPage />} />
                           <Route path="monitoring" element={<AdminMonitoringPage />} />
+                          <Route path="pricing" element={<AdminPricingPage />} />
+                          <Route path="invoices/new" element={<AdminInvoiceGenerator />} />
                         </Route>
 
                         {/* Dashboard client Atlas Studio */}

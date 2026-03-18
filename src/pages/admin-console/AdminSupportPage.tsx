@@ -1,7 +1,8 @@
 // @ts-nocheck
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Headphones, AlertTriangle, Clock, CheckCircle, MessageCircle, Filter } from 'lucide-react';
+import { Headphones, AlertTriangle, Clock, CheckCircle, MessageCircle, Filter, Eye } from 'lucide-react';
 import { getTicketsAdmin, updateTicketStatus } from '../../features/platform/services/adminService';
 import { toast } from 'react-hot-toast';
 
@@ -16,6 +17,7 @@ const STATUS_BADGE: Record<string, string> = {
 };
 
 const AdminSupportPage: React.FC = () => {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [filter, setFilter] = useState('all');
 
@@ -55,7 +57,7 @@ const AdminSupportPage: React.FC = () => {
             ) : tickets.length === 0 ? (
               <tr><td colSpan={6} className="px-5 py-8 text-center text-gray-400">Aucun ticket</td></tr>
             ) : tickets.map((t: any) => (
-              <tr key={t.id} className="hover:bg-gray-50">
+              <tr key={t.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => navigate(`/admin-console/support/${t.id}`)}>
                 <td className="px-5 py-3">
                   <div className="font-medium text-[#0f172a]">{t.subject}</div>
                   {t.description && <div className="text-xs text-gray-400 truncate max-w-[250px]">{t.description}</div>}
