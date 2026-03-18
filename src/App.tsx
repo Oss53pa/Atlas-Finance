@@ -60,6 +60,7 @@ const ClientTeam = lazyRetry(() => import('./pages/platform/ClientTeam'));
 const ClientBilling = lazyRetry(() => import('./pages/platform/ClientBilling'));
 const ClientCheckout = lazyRetry(() => import('./pages/platform/ClientCheckout'));
 const ClientSettings = lazyRetry(() => import('./pages/platform/ClientSettings'));
+const ClientAuditTrail = lazyRetry(() => import('./pages/platform/ClientAuditTrail'));
 
 // Workspaces
 const ComptableWorkspace = lazyRetry(() => import('./pages/workspace/ComptableWorkspaceFinal'));
@@ -229,11 +230,10 @@ function App() {
             <WorkspaceProvider>
               <ToastProvider>
                 <NavigationProvider>
-                  <ChatbotProvider>
                     <ErrorBoundary>
                     <Suspense fallback={<LoadingFallback />}>
                     <Routes>
-                      {/* Pages publiques — pas d'auth */}
+                      {/* Pages publiques — pas d'auth, pas de chatbot */}
                       <Route path="/" element={<LandingPage />} />
                       <Route path="/login" element={<LoginPage />} />
                       <Route path="/register" element={<RegisterPage />} />
@@ -264,19 +264,20 @@ function App() {
                           <Route path="billing" element={<ClientBilling />} />
                           <Route path="checkout/:solutionCode" element={<ClientCheckout />} />
                           <Route path="settings" element={<ClientSettings />} />
+                          <Route path="audit" element={<ClientAuditTrail />} />
                         </Route>
                       </Route>
 
-                      {/* Workspaces — protégés par authentification Supabase */}
-                      <Route element={<RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant', 'user', 'viewer']}><Outlet /></RBACGuard>}>
+                      {/* Workspaces — protégés par authentification Supabase + chatbot IA */}
+                      <Route element={<ChatbotProvider><RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant', 'user', 'viewer']}><Outlet /></RBACGuard></ChatbotProvider>}>
                         <Route path="/workspace" element={<WorkspaceDashboard />} />
                         <Route path="/workspace/comptable" element={<ComptableWorkspace />} />
                         <Route path="/workspace/manager" element={<ManagerWorkspace />} />
                         <Route path="/workspace/admin" element={<AdminWorkspace />} />
                       </Route>
 
-                      {/* Application principale avec layout */}
-                      <Route element={<ModernDoubleSidebarLayout />}>
+                      {/* Application principale avec layout + chatbot IA */}
+                      <Route element={<ChatbotProvider><ModernDoubleSidebarLayout /></ChatbotProvider>}>
                         {/* Dashboards — all authenticated users */}
                         <Route element={<RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant', 'user', 'viewer']}><Outlet /></RBACGuard>}>
                           <Route path="/dashboard" element={<AccountingDashboard />} />
@@ -467,7 +468,6 @@ function App() {
                     </Routes>
                     </Suspense>
                   </ErrorBoundary>
-                  </ChatbotProvider>
                 </NavigationProvider>
               </ToastProvider>
             </WorkspaceProvider>
