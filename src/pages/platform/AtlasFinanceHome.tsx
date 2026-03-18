@@ -68,7 +68,7 @@ const AtlasFinanceHome: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="h-screen bg-white flex flex-col overflow-hidden">
       {/* Top bar */}
       <header className="flex items-center justify-between px-8 py-5">
         <button
