@@ -20,7 +20,7 @@ const DEMO_TENANT = {
   plan: 'pro',
   created_at: '2025-06-15T10:00:00Z',
   updated_at: '2026-03-01T08:00:00Z',
-  userRole: 'superadmin',
+  userRole: 'admin',
   userName: 'Amadou Sanga',
 };
 

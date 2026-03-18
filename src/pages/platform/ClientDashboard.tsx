@@ -88,9 +88,6 @@ const ClientDashboard: React.FC = () => {
         {/* Header */}
         <div className="px-5 py-4 border-b border-white/10">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center">
-              <Sparkles className="w-4 h-4" />
-            </div>
             <span className="atlas-brand text-xl">Atlas Studio</span>
           </div>
           <div className="mt-3 text-xs text-white/40 truncate">{tenant.name}</div>

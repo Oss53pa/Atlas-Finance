@@ -54,10 +54,7 @@ const SolutionCatalogPage: React.FC = () => {
       <header className="bg-white border-b">
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-[#171717] rounded-lg flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-white" />
-            </div>
-            <span className="font-bold text-[#171717]">Atlas Studio</span>
+            <span className="atlas-brand text-2xl text-[#171717]">Atlas Studio</span>
           </div>
           <button onClick={() => navigate('/client')} className="text-sm text-gray-500 hover:text-gray-700">
             Retour au hub

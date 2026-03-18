@@ -11,7 +11,7 @@ const isDev = typeof import.meta !== 'undefined' && (import.meta.env?.VITE_APP_E
 // DONNÉES FICTIVES DÉMO
 // ════════════════════════════════════════════════════════
 const DEMO_TEAM = [
-  { id: 'u1', first_name: 'Amadou', last_name: 'Sanga', full_name: 'Amadou Sanga', phone: '+225 07 08 09 10', role: 'superadmin', status: 'active', last_login_at: '2026-03-18T14:30:00Z', created_at: '2025-06-15' },
+  { id: 'u1', first_name: 'Amadou', last_name: 'Sanga', full_name: 'Amadou Sanga', phone: '+225 07 08 09 10', role: 'admin', status: 'active', last_login_at: '2026-03-18T14:30:00Z', created_at: '2025-06-15' },
   { id: 'u2', first_name: 'Fatou', last_name: 'Koné', full_name: 'Fatou Koné', phone: '+225 05 12 34 56', role: 'comptable', status: 'active', last_login_at: '2026-03-18T09:00:00Z', created_at: '2025-07-01' },
   { id: 'u3', first_name: 'Ibrahim', last_name: 'Touré', full_name: 'Ibrahim Touré', phone: '+225 01 22 33 44', role: 'controle_gestion', status: 'active', last_login_at: '2026-03-17T16:45:00Z', created_at: '2025-08-10' },
   { id: 'u4', first_name: 'Marie', last_name: 'Bamba', full_name: 'Marie Bamba', phone: '+225 07 55 66 77', role: 'readonly', status: 'invited', last_login_at: null, created_at: '2026-03-15' },

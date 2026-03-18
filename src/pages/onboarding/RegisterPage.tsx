@@ -125,15 +125,15 @@ const RegisterPage: React.FC = () => {
       <div className="hidden lg:flex lg:w-2/5 bg-[#171717] text-white flex-col justify-between p-12">
         <div>
           <div className="flex items-center gap-3 mb-16">
-            <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
-              <Calculator className="w-5 h-5" />
-            </div>
             <span className="atlas-brand text-3xl">Atlas Studio</span>
           </div>
-          <h2 className="text-3xl font-bold leading-tight mb-4 text-white">
-            Créez votre espace de gestion en 2 minutes
+          <h2 className="text-3xl font-bold leading-tight mb-2 text-white">
+            <span className="atlas-brand text-4xl" style={{ color: '#C4A235' }}>Atlas Finance</span>
           </h2>
-          <p className="text-gray-400 text-lg leading-relaxed mb-8">
+          <p className="text-lg text-white/80 font-medium mb-4">
+            Créez votre espace de gestion en 2 minutes
+          </p>
+          <p className="text-gray-400 text-base leading-relaxed mb-8">
             Comptabilité SYSCOHADA, liasse fiscale, gestion documentaire — tout ce dont votre entreprise a besoin, en un seul endroit.
           </p>
 
