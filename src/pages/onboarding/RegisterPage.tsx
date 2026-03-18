@@ -1,7 +1,7 @@
 // @ts-nocheck
 import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Calculator, Eye, EyeOff, Building, User, Mail, Lock, Globe, ChevronRight, ChevronLeft, CheckCircle, Phone, Shield, Zap } from 'lucide-react';
+import { Calculator, Eye, EyeOff, Building, User, Mail, Lock, Globe, ChevronRight, ChevronLeft, CheckCircle, Phone, Shield, Zap, Monitor, Play, Lightbulb, Users, X, Clock } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 const COUNTRIES = [
@@ -40,6 +40,9 @@ const RegisterPage: React.FC = () => {
   const [step, setStep] = useState(1);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showDemoModal, setShowDemoModal] = useState(false);
+  const [demoSolution, setDemoSolution] = useState('atlas-finance');
+  const [demoTab, setDemoTab] = useState('interactive');
 
   const [form, setForm] = useState({
     // Étape 1 — Entreprise
@@ -165,6 +168,13 @@ const RegisterPage: React.FC = () => {
             </div>
           </div>
         </div>
+        <button
+          onClick={() => setShowDemoModal(true)}
+          className="w-full py-3 border border-white/20 rounded-xl text-sm font-medium text-white hover:bg-white/10 transition-colors flex items-center justify-center gap-2 mb-8"
+        >
+          <Play className="w-4 h-4" /> Voir la démo
+        </button>
+
         <div className="space-y-3">
           {['Essai gratuit 14 jours', 'Aucune carte bancaire requise', 'Support 7j/7'].map((t, i) => (
             <div key={i} className="flex items-center gap-3 text-sm">
@@ -315,6 +325,141 @@ const RegisterPage: React.FC = () => {
           </p>
         </div>
       </div>
+      {/* ══════════ MODAL DEMO ══════════ */}
+      {showDemoModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowDemoModal(false)}>
+          <div className="bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b">
+              <div>
+                <h3 className="text-xl font-bold text-[#141414]">
+                  Découvrir {demoSolution === 'atlas-finance' ? 'Atlas Finance' : demoSolution === 'liass-pilot' ? "Liass'Pilot" : 'DocJourney'}
+                </h3>
+                <p className="text-sm text-gray-500 mt-1">Choisissez votre mode de découverte</p>
+              </div>
+              <button onClick={() => setShowDemoModal(false)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+
+            {/* Solution selector */}
+            <div className="px-6 pt-4 flex gap-2">
+              {[
+                { id: 'atlas-finance', label: 'Atlas Finance' },
+                { id: 'liass-pilot', label: "Liass'Pilot" },
+                { id: 'doc-journey', label: 'DocJourney' },
+              ].map(s => (
+                <button
+                  key={s.id}
+                  onClick={() => setDemoSolution(s.id)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    demoSolution === s.id ? 'bg-[#141414] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Demo options */}
+            <div className="p-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[
+                { id: 'interactive', icon: Monitor, title: 'Démos interactives', desc: 'Testez les fonctionnalités en conditions réelles', time: 'Illimité', badge: 'Populaire' },
+                { id: 'guided', icon: Play, title: 'Visite guidée', desc: `Découvrez ${demoSolution === 'atlas-finance' ? 'Atlas Finance' : demoSolution === 'liass-pilot' ? "Liass'Pilot" : 'DocJourney'} en 2 minutes`, time: '2 min', badge: null },
+                { id: 'tutorials', icon: Lightbulb, title: 'Tutoriels', desc: 'Apprenez pas à pas chaque fonctionnalité', time: '5-10 min', badge: null },
+                { id: 'live', icon: Users, title: 'Démo guidée live', desc: 'Un expert vous accompagne en direct', time: '30 min', badge: null },
+              ].map(opt => (
+                <button
+                  key={opt.id}
+                  onClick={() => setDemoTab(opt.id)}
+                  className={`relative p-4 rounded-xl border-2 text-left transition-all ${
+                    demoTab === opt.id ? 'border-[#141414] bg-gray-50' : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  {opt.badge && (
+                    <span className="absolute -top-2 right-2 px-2 py-0.5 bg-[#141414] text-white text-[10px] font-bold rounded-full">{opt.badge}</span>
+                  )}
+                  <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mb-3">
+                    <opt.icon className="w-5 h-5 text-[#141414]" />
+                  </div>
+                  <h4 className="text-sm font-semibold text-[#141414]">{opt.title}</h4>
+                  <p className="text-xs text-gray-500 mt-1 leading-relaxed">{opt.desc}</p>
+                  <div className="flex items-center gap-1 mt-2 text-xs text-gray-400">
+                    <Clock className="w-3 h-3" /> {opt.time}
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            {/* Content area */}
+            <div className="px-6 pb-6">
+              {demoTab === 'interactive' && (
+                <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+                  <h4 className="font-semibold text-[#141414] mb-3">Démos interactives disponibles</h4>
+                  <div className="space-y-3">
+                    {(demoSolution === 'atlas-finance' ? [
+                      { title: 'Saisie d\'écriture comptable', desc: 'Créez une écriture avec contrôle D=C automatique' },
+                      { title: 'Génération du Bilan SYSCOHADA', desc: 'Visualisez le bilan actif/passif en temps réel' },
+                      { title: 'Déclaration TVA automatique', desc: 'Calcul et génération de la déclaration fiscale' },
+                      { title: 'Clôture de période', desc: 'Processus complet de clôture mensuelle' },
+                      { title: 'Audit IA PROPH3T', desc: 'Lancez un audit automatisé de vos écritures' },
+                    ] : demoSolution === 'liass-pilot' ? [
+                      { title: 'Pré-remplissage DSF', desc: 'Importez vos données et générez la liasse' },
+                      { title: 'Contrôles de cohérence', desc: 'Vérification automatique des états annexes' },
+                      { title: 'Télédéclaration DGI', desc: 'Envoi direct à l\'administration fiscale' },
+                    ] : [
+                      { title: 'Numérisation OCR', desc: 'Scannez un document et extrayez les données' },
+                      { title: 'Classement automatique', desc: 'L\'IA classe vos documents par catégorie' },
+                      { title: 'Recherche full-text', desc: 'Retrouvez n\'importe quel document en secondes' },
+                    ]).map((demo, i) => (
+                      <div key={i} className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100 hover:border-gray-300 transition-colors cursor-pointer group">
+                        <div>
+                          <p className="text-sm font-medium text-[#141414]">{demo.title}</p>
+                          <p className="text-xs text-gray-500">{demo.desc}</p>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-[#141414] transition-colors" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {demoTab === 'guided' && (
+                <div className="bg-gray-50 rounded-xl p-6 border border-gray-200 text-center">
+                  <Play className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                  <h4 className="font-semibold text-[#141414] mb-2">Visite guidée en 2 minutes</h4>
+                  <p className="text-sm text-gray-500 mb-4">Découvrez les fonctionnalités principales en un tour rapide.</p>
+                  <button className="px-6 py-2.5 bg-[#141414] text-white rounded-lg text-sm font-semibold hover:bg-[#2a2a2a] transition-colors">
+                    Lancer la visite
+                  </button>
+                </div>
+              )}
+
+              {demoTab === 'tutorials' && (
+                <div className="bg-gray-50 rounded-xl p-6 border border-gray-200 text-center">
+                  <Lightbulb className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                  <h4 className="font-semibold text-[#141414] mb-2">Tutoriels pas à pas</h4>
+                  <p className="text-sm text-gray-500 mb-4">Apprenez chaque fonctionnalité à votre rythme avec des guides interactifs.</p>
+                  <button className="px-6 py-2.5 bg-[#141414] text-white rounded-lg text-sm font-semibold hover:bg-[#2a2a2a] transition-colors">
+                    Accéder aux tutoriels
+                  </button>
+                </div>
+              )}
+
+              {demoTab === 'live' && (
+                <div className="bg-gray-50 rounded-xl p-6 border border-gray-200 text-center">
+                  <Users className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                  <h4 className="font-semibold text-[#141414] mb-2">Démo guidée avec un expert</h4>
+                  <p className="text-sm text-gray-500 mb-4">Planifiez une session de 30 minutes avec un spécialiste Atlas Studio.</p>
+                  <button className="px-6 py-2.5 bg-[#141414] text-white rounded-lg text-sm font-semibold hover:bg-[#2a2a2a] transition-colors">
+                    Planifier un rendez-vous
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

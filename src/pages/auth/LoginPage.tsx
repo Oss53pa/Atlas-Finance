@@ -352,6 +352,8 @@ const LoginPage: React.FC = () => {
             <div className="mt-6 text-center">
               <p className="text-xs text-[var(--color-text-secondary)]">
                 <span className="atlas-brand text-base">Atlas Studio</span> &copy; {new Date().getFullYear()} — Atlas Finance, Liass'Pilot, DocJourney
+                <span className="mx-1 text-[var(--color-border)]">·</span>
+                <Link to="/admin-console" className="text-[var(--color-text-secondary)]/30 hover:text-[var(--color-text-secondary)] transition-colors text-[10px]">Console</Link>
               </p>
             </div>
           </CardContent>

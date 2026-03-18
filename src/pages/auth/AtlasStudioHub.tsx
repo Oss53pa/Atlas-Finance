@@ -89,7 +89,11 @@ const AtlasStudioHub: React.FC = () => {
           ))}
         </div>
 
-        <p className="text-xs text-gray-300 mt-10"><span className="atlas-brand text-sm">Atlas Studio</span> &copy; {new Date().getFullYear()}</p>
+        <p className="text-xs text-gray-300 mt-10">
+          <span className="atlas-brand text-sm">Atlas Studio</span> &copy; {new Date().getFullYear()}
+          <span className="mx-1.5 text-gray-200">·</span>
+          <button onClick={() => navigate('/admin-console')} className="text-gray-200 hover:text-gray-400 transition-colors text-[10px]">Console</button>
+        </p>
       </div>
     </div>
   );
