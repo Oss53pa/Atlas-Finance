@@ -213,8 +213,8 @@ const RegisterPage: React.FC = () => {
                 <h2 className="text-2xl font-bold text-[#171717] mb-1">Votre entreprise</h2>
                 <p className="text-gray-500 text-sm">Informations sur votre société</p>
               </div>
-              <FormInputlabel="Raison sociale" icon={Building} value={form.companyName} onChange={(e: any) => set('companyName', e.target.value)} placeholder="Ma Société SARL" />
-              <FormInputlabel="RCCM / Numéro fiscal" value={form.rccm} onChange={(e: any) => set('rccm', e.target.value)} placeholder="CI-ABJ-2024-B-12345" />
+              <FormInput label="Raison sociale" icon={Building} value={form.companyName} onChange={(e: any) => set('companyName', e.target.value)} placeholder="Ma Société SARL" />
+              <FormInput label="RCCM / Numéro fiscal" value={form.rccm} onChange={(e: any) => set('rccm', e.target.value)} placeholder="CI-ABJ-2024-B-12345" />
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">Pays</label>
@@ -257,15 +257,15 @@ const RegisterPage: React.FC = () => {
                 <p className="text-gray-500 text-sm">Vous serez l'administrateur principal</p>
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <FormInputlabel="Prénom" icon={User} value={form.firstName} onChange={(e: any) => set('firstName', e.target.value)} placeholder="Amadou" />
-                <FormInputlabel="Nom" value={form.lastName} onChange={(e: any) => set('lastName', e.target.value)} placeholder="Diallo" />
+                <FormInput label="Prénom" icon={User} value={form.firstName} onChange={(e: any) => set('firstName', e.target.value)} placeholder="Amadou" />
+                <FormInput label="Nom" value={form.lastName} onChange={(e: any) => set('lastName', e.target.value)} placeholder="Diallo" />
               </div>
-              <FormInputlabel="Email professionnel" icon={Mail} type="email" value={form.email} onChange={(e: any) => set('email', e.target.value)} placeholder="amadou@entreprise.com" />
-              <FormInputlabel="Téléphone" icon={Phone} type="tel" value={form.phone} onChange={(e: any) => set('phone', e.target.value)} placeholder="+225 07 00 00 00" />
+              <FormInput label="Email professionnel" icon={Mail} type="email" value={form.email} onChange={(e: any) => set('email', e.target.value)} placeholder="amadou@entreprise.com" />
+              <FormInput label="Téléphone" icon={Phone} type="tel" value={form.phone} onChange={(e: any) => set('phone', e.target.value)} placeholder="+225 07 00 00 00" />
               <div className="relative">
-                <FormInputlabel="Mot de passe" icon={Lock} type={form._showPw ? 'text' : 'password'} value={form.password} onChange={(e: any) => set('password', e.target.value)} placeholder="8 car. min, 1 maj., 1 chiffre" />
+                <FormInput label="Mot de passe" icon={Lock} type={form._showPw ? 'text' : 'password'} value={form.password} onChange={(e: any) => set('password', e.target.value)} placeholder="8 car. min, 1 maj., 1 chiffre" />
               </div>
-              <FormInputlabel="Confirmer le mot de passe" icon={Lock} type="password" value={form.confirmPassword} onChange={(e: any) => set('confirmPassword', e.target.value)} placeholder="Retapez le mot de passe" />
+              <FormInput label="Confirmer le mot de passe" icon={Lock} type="password" value={form.confirmPassword} onChange={(e: any) => set('confirmPassword', e.target.value)} placeholder="Retapez le mot de passe" />
             </div>
           )}
 
