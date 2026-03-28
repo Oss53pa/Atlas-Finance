@@ -166,8 +166,26 @@ class ExchangeRateService {
 
   /**
    * Bulk import exchange rates.
+   * Uses atomic RPC when running on Supabase, otherwise falls back to batch insert.
    */
   async importRates(rates: Omit<ExchangeRateEntry, 'id'>[]): Promise<number> {
+    if (rates.length === 0) return 0;
+
+    // Try atomic RPC (Supabase adapter)
+    if ('rpc' in this.adapter && typeof (this.adapter as any).rpc === 'function') {
+      const count = await (this.adapter as any).rpc('import_exchange_rates', {
+        p_rates: JSON.stringify(rates.map(r => ({
+          fromCurrency: r.fromCurrency,
+          toCurrency: r.toCurrency,
+          rate: r.rate,
+          date: r.date,
+          provider: r.provider || 'import',
+        }))),
+      });
+      return count ?? rates.length;
+    }
+
+    // Fallback: batch create for local adapters (Dexie)
     const records: DBExchangeRate[] = rates.map(r => ({
       id: crypto.randomUUID(),
       fromCurrency: r.fromCurrency,
@@ -178,7 +196,7 @@ class ExchangeRateService {
       createdAt: new Date().toISOString(),
     }));
 
-    for (const record of records) { await this.adapter.create('exchangeRates', record); }
+    await Promise.all(records.map(record => this.adapter.create('exchangeRates', record)));
     return records.length;
   }
 

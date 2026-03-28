@@ -59,12 +59,32 @@ export interface BudgetAlert {
 // CONFIGURATION
 // ============================================================================
 
-/** Alert thresholds */
-const SEUILS = {
+/** Default alert thresholds — overridden by tenant settings */
+const DEFAULT_SEUILS = {
   DEPASSEMENT_WARNING: 10,    // +10% over budget → warning
   DEPASSEMENT_CRITICAL: 25,   // +25% over budget → critical
   SOUS_CONSOMMATION: -50,     // -50% under budget → info
 };
+
+/**
+ * Load thresholds from tenant settings, falling back to defaults.
+ */
+async function loadSeuils(adapter: DataAdapter): Promise<typeof DEFAULT_SEUILS> {
+  try {
+    const settings = await adapter.getAll<any>('settings');
+    const seuilsSetting = settings.find((s: any) => s.key === 'budget_seuils');
+    if (seuilsSetting?.value) {
+      return {
+        DEPASSEMENT_WARNING: seuilsSetting.value.DEPASSEMENT_WARNING ?? DEFAULT_SEUILS.DEPASSEMENT_WARNING,
+        DEPASSEMENT_CRITICAL: seuilsSetting.value.DEPASSEMENT_CRITICAL ?? DEFAULT_SEUILS.DEPASSEMENT_CRITICAL,
+        SOUS_CONSOMMATION: seuilsSetting.value.SOUS_CONSOMMATION ?? DEFAULT_SEUILS.SOUS_CONSOMMATION,
+      };
+    }
+  } catch {
+    // Settings table may not exist yet — use defaults
+  }
+  return DEFAULT_SEUILS;
+}
 
 // ============================================================================
 // CORE FUNCTIONS
@@ -247,6 +267,7 @@ export async function getBudgetAnalysis(adapter: DataAdapter, fiscalYear: string
  */
 export async function getBudgetAlerts(adapter: DataAdapter, fiscalYear: string): Promise<BudgetAlert[]> {
   const analysis = await getBudgetAnalysis(adapter, fiscalYear);
+  const SEUILS = await loadSeuils(adapter);
   const alerts: BudgetAlert[] = [];
 
   for (const item of analysis.byAccount) {

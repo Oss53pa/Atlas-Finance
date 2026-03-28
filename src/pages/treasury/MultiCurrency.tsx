@@ -45,7 +45,7 @@ import { formatCurrency, formatDate, formatPercentage } from '../../lib/utils';
 interface CurrencyPosition {
   currency: string;
   balance: number;
-  equivalentEUR: number;
+  equivalentBase: number;
   accounts: number;
   averageRate: number;
   rateChange24h: number;
@@ -54,6 +54,9 @@ interface CurrencyPosition {
   hedged: boolean;
   hedgeRatio: number;
 }
+
+// SYSCOHADA base currency
+const BASE_CURRENCY = 'XAF';
 
 interface ExchangeRate {
   from: string;
@@ -91,7 +94,7 @@ const MultiCurrency: React.FC = () => {
   const [filterHedged, setFilterHedged] = useState('all');
   const [viewMode, setViewMode] = useState<'overview' | 'rates' | 'hedging'>('overview');
   const [currencyModal, setCurrencyModal] = useState<CurrencyModal>({ isOpen: false, mode: 'view' });
-  const [selectedBaseCurrency, setSelectedBaseCurrency] = useState('EUR');
+  const [selectedBaseCurrency, setSelectedBaseCurrency] = useState('XAF');
 
   const [dbExchangeRates, setDbExchangeRates] = useState<any[]>([]);
   const [dbHedgingPositions, setDbHedgingPositions] = useState<any[]>([]);
@@ -137,16 +140,19 @@ const MultiCurrency: React.FC = () => {
     }));
   }, [dbHedgingPositions]);
 
-  // Build exchange rate lookup (fromCurrency -> rate to EUR)
+  // Build exchange rate lookup (fromCurrency -> rate to base currency)
   const rateLookup = useMemo(() => {
     const lookup: Record<string, number> = {};
     for (const er of exchangeRates) {
-      if (er.to === 'EUR') {
+      if (er.to === selectedBaseCurrency) {
         lookup[er.from] = er.rate;
+      } else if (er.from === selectedBaseCurrency) {
+        // Reverse pair
+        lookup[er.to] = 1 / er.rate;
       }
     }
     return lookup;
-  }, [exchangeRates]);
+  }, [exchangeRates, selectedBaseCurrency]);
 
   // Build currency positions from hedging positions grouped by currency
   const currencyPositions: CurrencyPosition[] = useMemo(() => {
@@ -159,19 +165,19 @@ const MultiCurrency: React.FC = () => {
     return Object.entries(grouped).map(([currency, hps]) => {
       const totalBalance = hps.reduce((sum, hp) => sum + hp.amount, 0);
       const rate = rateLookup[currency] || 1;
-      const equivalentEUR = totalBalance * rate;
+      const equivalentBase = totalBalance * rate;
       const hedgedHps = hps.filter(hp => hp.status === 'active');
       const hedgeRatio = hedgedHps.length > 0 ? hedgedHps.reduce((sum, hp) => sum + hp.amount, 0) / totalBalance : 0;
 
       return {
         currency,
         balance: totalBalance,
-        equivalentEUR,
+        equivalentBase,
         accounts: hps.length,
         averageRate: rate,
         rateChange24h: 0,
         lastUpdate: hps[0]?.createdAt || '',
-        exposure: equivalentEUR > 2000000 ? 'high' as const : equivalentEUR > 500000 ? 'medium' as const : 'low' as const,
+        exposure: equivalentBase > 2000000 ? 'high' as const : equivalentBase > 500000 ? 'medium' as const : 'low' as const,
         hedged: hedgeRatio > 0,
         hedgeRatio
       };
@@ -193,14 +199,14 @@ const MultiCurrency: React.FC = () => {
 
   // Calculate aggregated metrics
   const aggregatedData = useMemo(() => {
-    const totalEquivalentEUR = filteredCurrencies.reduce((sum, curr) => sum + curr.equivalentEUR, 0);
+    const totalEquivalentBase = filteredCurrencies.reduce((sum, curr) => sum + curr.equivalentBase, 0);
     const totalAccounts = filteredCurrencies.reduce((sum, curr) => sum + curr.accounts, 0);
     const hedgedPositions = filteredCurrencies.filter(curr => curr.hedged).length;
     const highExposurePositions = filteredCurrencies.filter(curr => curr.exposure === 'high').length;
     const totalHedgingPnL = hedgingPositions.reduce((sum, pos) => sum + pos.unrealizedPnL, 0);
 
     return {
-      totalEquivalentEUR,
+      totalEquivalentBase,
       totalAccounts,
       hedgedPositions,
       highExposurePositions,
@@ -233,13 +239,11 @@ const MultiCurrency: React.FC = () => {
     return 'text-neutral-600';
   };
 
-  const chartData = filteredCurrencies.map(curr => ({
+  const chartColors = ['bg-[#171717]', 'bg-green-500', 'bg-[#525252]', 'bg-orange-500', 'bg-primary-500', 'bg-blue-500', 'bg-purple-500'];
+  const chartData = filteredCurrencies.map((curr, i) => ({
     label: curr.currency,
-    value: curr.equivalentEUR / 1000000,
-    color: curr.currency === 'EUR' ? 'bg-[#171717]' :
-           curr.currency === 'USD' ? 'bg-green-500' :
-           curr.currency === 'GBP' ? 'bg-[#525252]' :
-           curr.currency === 'CHF' ? 'bg-orange-500' : 'bg-primary-500'
+    value: curr.equivalentBase / 1000000,
+    color: curr.currency === selectedBaseCurrency ? 'bg-[#171717]' : chartColors[i % chartColors.length]
   }));
 
   // Trend computed from real exchange rates or empty
@@ -289,8 +293,8 @@ const MultiCurrency: React.FC = () => {
         {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <KPICard
-            title="Exposition Totale (EUR)"
-            value={formatCurrency(aggregatedData.totalEquivalentEUR)}
+            title={`Exposition Totale (${selectedBaseCurrency})`}
+            value={formatCurrency(aggregatedData.totalEquivalentBase)}
             subtitle={`${filteredCurrencies.length} devises actives`}
             icon={Globe}
             color="primary"
@@ -356,9 +360,12 @@ const MultiCurrency: React.FC = () => {
                 onChange={(e) => setSelectedBaseCurrency(e.target.value)}
                 className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#171717]"
               >
-                <option value="EUR">EUR</option>
-                <option value="USD">USD</option>
-                <option value="GBP">GBP</option>
+                <option value={BASE_CURRENCY}>{BASE_CURRENCY}</option>
+                {Array.from(new Set(exchangeRates.flatMap(r => [r.from, r.to])))
+                  .filter(c => c !== BASE_CURRENCY)
+                  .sort()
+                  .map(c => <option key={c} value={c}>{c}</option>)
+                }
               </select>
             </div>
           </div>
@@ -373,15 +380,15 @@ const MultiCurrency: React.FC = () => {
               transition={{ delay: 0.5 }}
             >
               <ModernChartCard
-                title="Répartition par Devise (EUR équivalent)"
-                subtitle="Exposition par devise en millions d'euros"
+                title={`Répartition par Devise (${selectedBaseCurrency} équivalent)`}
+                subtitle={`Exposition par devise en millions ${selectedBaseCurrency}`}
                 icon={PieChart}
               >
                 <ColorfulBarChart
                   data={chartData}
                   height={160}
                   showValues={true}
-                  valueFormatter={(value) => `${value.toFixed(1)}M €`}
+                  valueFormatter={(value) => `${value.toFixed(1)}M ${selectedBaseCurrency}`}
                 />
               </ModernChartCard>
             </motion.div>
@@ -440,7 +447,7 @@ const MultiCurrency: React.FC = () => {
                       <tr className="border-b border-neutral-200">
                         <th className="text-left py-3 px-4 font-medium text-neutral-600">Devise</th>
                         <th className="text-right py-3 px-4 font-medium text-neutral-600">Position</th>
-                        <th className="text-right py-3 px-4 font-medium text-neutral-600">Équivalent EUR</th>
+                        <th className="text-right py-3 px-4 font-medium text-neutral-600">Équivalent {selectedBaseCurrency}</th>
                         <th className="text-right py-3 px-4 font-medium text-neutral-600">Taux Moyen</th>
                         <th className="text-right py-3 px-4 font-medium text-neutral-600">Variation 24h</th>
                         <th className="text-center py-3 px-4 font-medium text-neutral-600">Exposition</th>
@@ -475,7 +482,7 @@ const MultiCurrency: React.FC = () => {
                           </td>
                           <td className="py-4 px-4 text-right">
                             <p className="font-semibold text-neutral-800">
-                              {formatCurrency(currency.equivalentEUR)}
+                              {formatCurrency(currency.equivalentBase)}
                             </p>
                           </td>
                           <td className="py-4 px-4 text-right">

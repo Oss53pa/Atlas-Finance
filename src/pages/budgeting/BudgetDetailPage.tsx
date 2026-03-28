@@ -107,19 +107,25 @@ const BudgetDetailPage: React.FC = () => {
     }
   };
 
-  // Liste des comptes pour la sélection
-  const availableAccounts = [
-    { code: '706100', name: "Chiffre d'affaires" },
-    { code: '707100', name: "Ventes de marchandises" },
-    { code: '708100', name: "Produits des activités annexes" },
-    { code: '601100', name: "Achats de marchandises" },
-    { code: '602100', name: "Achats de matières premières" },
-    { code: '661100', name: "Charges de personnel" },
-    { code: '612100', name: "Transport" },
-    { code: '613100', name: "Location" },
-    { code: '614100', name: "Maintenance" },
-    { code: '615100', name: "Assurance" },
-  ];
+  // Liste des comptes chargée dynamiquement depuis la base
+  const [availableAccounts, setAvailableAccounts] = useState<{ code: string; name: string }[]>([]);
+
+  useEffect(() => {
+    const loadAccounts = async () => {
+      try {
+        const accounts = await adapter.getAll<any>('accounts');
+        // Comptes de charges (6xx) et produits (7xx) utilisables pour le budget
+        const budgetAccounts = accounts
+          .filter((a: any) => a.code && (a.code.startsWith('6') || a.code.startsWith('7')))
+          .map((a: any) => ({ code: a.code, name: a.name || a.code }))
+          .sort((a: any, b: any) => a.code.localeCompare(b.code));
+        setAvailableAccounts(budgetAccounts);
+      } catch {
+        setAvailableAccounts([]);
+      }
+    };
+    loadAccounts();
+  }, [adapter]);
 
   return (
     <div className="p-6 bg-[#e5e5e5] min-h-screen">
