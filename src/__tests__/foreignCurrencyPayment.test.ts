@@ -40,9 +40,9 @@ describe('foreignCurrencyPaymentService', () => {
       const d401 = lines.find((l: any) => l.accountCode === '4011001');
       const d676 = lines.find((l: any) => l.accountCode === '676');
       const c521 = lines.find((l: any) => l.accountCode === '521');
-      expect(d401.debit).toBe(6500000);
-      expect(d676.debit).toBe(100000);
-      expect(c521.credit).toBe(6600000);
+      expect(d401!.debit).toBe(6500000);
+      expect(d676!.debit).toBe(100000);
+      expect(c521!.credit).toBe(6600000);
     });
 
     it('should record supplier payment with exchange gain (spot < historical)', async () => {
@@ -118,6 +118,7 @@ describe('foreignCurrencyPaymentService', () => {
         ],
         totalDebit: 500000,
         totalCredit: 500000,
+        updatedAt: new Date().toISOString(),
       });
 
       const reversalIds = await extourneEcartsConversion(adapter, 'comp1', '2025-01-01');
@@ -145,6 +146,7 @@ describe('foreignCurrencyPaymentService', () => {
         ],
         totalDebit: 300000,
         totalCredit: 300000,
+        updatedAt: new Date().toISOString(),
       });
 
       const reversalIds = await extourneEcartsConversion(adapter, 'comp1', '2025-01-01');

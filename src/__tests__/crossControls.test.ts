@@ -45,6 +45,7 @@ describe('crossControlsService', () => {
       ],
       totalDebit: 1180000,
       totalCredit: 1180000,
+      updatedAt: new Date().toISOString(),
     });
 
     const report = await runAllCrossControls(

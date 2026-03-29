@@ -39,9 +39,9 @@ describe('recouvrementExtendedService', () => {
       const d4431 = lines.find((l: any) => l.accountCode === '4431');
       const c416 = lines.find((l: any) => l.accountCode === '416');
 
-      expect(d651.debit).toBe(1000000);
-      expect(d4431.debit).toBe(180000);
-      expect(c416.credit).toBe(1180000);
+      expect(d651!.debit).toBe(1000000);
+      expect(d4431!.debit).toBe(180000);
+      expect(c416!.credit).toBe(1180000);
     });
 
     it('should include provision reversal when provision exists', async () => {
@@ -62,8 +62,8 @@ describe('recouvrementExtendedService', () => {
       // Should have provision reversal lines
       const d491 = lines.find((l: any) => l.accountCode === '491');
       const c7594 = lines.find((l: any) => l.accountCode === '7594');
-      expect(d491.debit).toBe(1000000);
-      expect(c7594.credit).toBe(1000000);
+      expect(d491!.debit).toBe(1000000);
+      expect(c7594!.credit).toBe(1000000);
     });
 
     it('should handle multiple invoices', async () => {
@@ -75,7 +75,7 @@ describe('recouvrementExtendedService', () => {
       await writeOffBadDebt(adapter, 'comp1', 'client-3', 'Multi', invoices);
       const entries = await db.journalEntries.toArray();
       const d651 = entries[0].lines.find((l: any) => l.accountCode === '651');
-      expect(d651.debit).toBe(800000); // 500K + 300K
+      expect(d651!.debit).toBe(800000); // 500K + 300K
     });
   });
 
@@ -101,6 +101,7 @@ describe('recouvrementExtendedService', () => {
         ],
         totalDebit: 15000000,
         totalCredit: 15000000,
+        updatedAt: new Date().toISOString(),
       });
 
       const score = await calculateClientRiskScore(adapter, 'comp1', 'risky-1');

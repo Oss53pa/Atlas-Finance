@@ -70,6 +70,7 @@ describe('financialStatementsExtendedService', () => {
         ],
         totalDebit: 2000000,
         totalCredit: 2000000,
+        updatedAt: new Date().toISOString(),
       });
 
       const notes = await getProvisionNote(
