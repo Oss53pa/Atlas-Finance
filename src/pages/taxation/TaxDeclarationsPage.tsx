@@ -22,6 +22,7 @@ import { toast } from 'react-hot-toast';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { TaxDetectionEngine } from '../../services/fiscal/TaxDetectionEngine';
 import { seedTaxRegistryCI, seedIRPPBracketsCI } from '../../services/fiscal/taxRegistrySeeds';
+import { calculerTVAMensuelle, calculerIS } from '../../services/fiscal/declarationFiscaleService';
 import type { DBTaxDeclaration, DBTaxRegistry } from '../../lib/db';
 import {
   PlusIcon,
@@ -92,6 +93,18 @@ const TaxDeclarationsPage: React.FC = () => {
       return engine.detectTaxesFromAccounts(periodStart, periodEnd);
     },
     enabled: taxRegistry.length > 0,
+  });
+
+  // Real TVA calculation from declarationFiscaleService
+  const { data: tvaCalc } = useQuery({
+    queryKey: ['tva-calc', selectedMonth, selectedYear],
+    queryFn: () => calculerTVAMensuelle(adapter, `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`),
+  });
+
+  // Real IS calculation from declarationFiscaleService
+  const { data: isCalc } = useQuery({
+    queryKey: ['is-calc', selectedYear],
+    queryFn: () => calculerIS(adapter, String(selectedYear)),
   });
 
   // Get unique tax codes from registry for filter
@@ -323,6 +336,41 @@ const TaxDeclarationsPage: React.FC = () => {
           <p className="text-xl font-bold text-red-600">{overdueCount}</p>
         </div>
       </div>
+
+      {/* Calcul TVA/IS réel depuis les écritures */}
+      {(tvaCalc || isCalc) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {tvaCalc && (
+            <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+              <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <CalculatorIcon className="h-4 w-4" /> TVA {MONTHS[selectedMonth - 1]} {selectedYear}
+              </h3>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between"><span className="text-gray-600">TVA collectée (443x)</span><span className="font-medium">{formatCurrency(tvaCalc.tvaCollectee)}</span></div>
+                <div className="flex justify-between"><span className="text-gray-600">TVA déductible (445x)</span><span className="font-medium">{formatCurrency(tvaCalc.tvaDeductible)}</span></div>
+                <hr />
+                <div className="flex justify-between font-bold"><span>Net à payer</span><span className={tvaCalc.montantNetAPayer > 0 ? 'text-red-600' : 'text-green-600'}>{formatCurrency(tvaCalc.montantNetAPayer)}</span></div>
+                {tvaCalc.creditAReporter > 0 && <div className="flex justify-between text-blue-600"><span>Crédit à reporter</span><span>{formatCurrency(tvaCalc.creditAReporter)}</span></div>}
+              </div>
+            </div>
+          )}
+          {isCalc && (
+            <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+              <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <CalculatorIcon className="h-4 w-4" /> IS / IMF {selectedYear}
+              </h3>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between"><span className="text-gray-600">Résultat comptable</span><span className="font-medium">{formatCurrency(isCalc.resultatComptable)}</span></div>
+                <div className="flex justify-between"><span className="text-gray-600">Résultat fiscal</span><span className="font-medium">{formatCurrency(isCalc.resultatFiscal)}</span></div>
+                <div className="flex justify-between"><span className="text-gray-600">IS ({isCalc.tauxIS}%)</span><span>{formatCurrency(isCalc.montantIS)}</span></div>
+                <div className="flex justify-between"><span className="text-gray-600">IMF (1% CA, min 3M)</span><span>{formatCurrency(isCalc.imf)}</span></div>
+                <hr />
+                <div className="flex justify-between font-bold"><span>Montant dû (max IS, IMF)</span><span className="text-red-600">{formatCurrency(isCalc.montantDu)}</span></div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Détection automatique — panneau dépliable */}
       {triggeredTaxes.length > 0 && (

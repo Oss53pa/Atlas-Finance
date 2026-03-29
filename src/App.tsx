@@ -217,6 +217,7 @@ const EffetsCommercePage = lazyRetry(() => import('./pages/treasury/EffetsCommer
 const ReevaluationPage = lazyRetry(() => import('./pages/assets/ReevaluationPage'));
 const ComposantsPage = lazyRetry(() => import('./pages/assets/ComposantsPage'));
 const EcartsConversionPage = lazyRetry(() => import('./pages/closures/EcartsConversionPage'));
+const MultiSitesPage = lazyRetry(() => import('./pages/config/MultiSitesPage'));
 
 // Settings
 const AccountingSettingsPage = lazyRetry(() => import('./pages/settings/AccountingSettingsPage'));
@@ -497,6 +498,7 @@ function App() {
                           <Route path="/config/plan-syscohada" element={<PlanSYSCOHADAPage />} />
                           <Route path="/config/tva" element={<TVATaxesPage />} />
                           <Route path="/config/multi-societes" element={<MultiSocietesPage />} />
+                          <Route path="/config/multi-sites" element={<MultiSitesPage />} />
                           <Route path="/config/wizard" element={<AssistantDemarragePage />} />
                         </Route>
 

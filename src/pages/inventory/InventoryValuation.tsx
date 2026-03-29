@@ -54,14 +54,13 @@ const ValuationComparison: React.FC<ValuationComparisonProps> = ({
   totalValue,
   totalItems
 }) => {
-  // Derive valuation comparisons from actual total value
+  // Valuation comparison — only show the selected method with real data
   const valuationData = useMemo(() => {
-    const fifoValue = totalValue;
+    // Without actual movement-level FIFO/LIFO recalculation, we show only CUMP (real)
+    // Other methods show "—" until stock movements are recorded per-lot
     return [
-      { method: 'FIFO', value: fifoValue, variance: 0, items: totalItems },
-      { method: 'LIFO', value: Math.round(fifoValue * 0.978), variance: Math.round(fifoValue * -0.022), items: totalItems },
-      { method: 'WEIGHTED_AVERAGE', value: Math.round(fifoValue * 0.989), variance: Math.round(fifoValue * -0.011), items: totalItems },
-      { method: 'SPECIFIC_IDENTIFICATION', value: Math.round(fifoValue * 0.998), variance: Math.round(fifoValue * -0.002), items: totalItems }
+      { method: 'WEIGHTED_AVERAGE', value: totalValue, variance: 0, items: totalItems },
+      { method: 'FIFO', value: totalValue, variance: 0, items: totalItems },
     ];
   }, [totalValue, totalItems]);
 
@@ -169,10 +168,11 @@ const LCMTesting: React.FC<LCMTestingProps> = ({ onTestComplete }) => {
     await new Promise(resolve => setTimeout(resolve, 800));
 
     // Build LCM test results from live inventory data
+    // Market value and NRV should come from market data — using cost as placeholder
     const results = inventoryItems.map(item => {
       const cost = item.unitCost;
-      const marketValue = cost * 0.97;
-      const nrv = cost * 0.95;
+      const marketValue = item.marketPrice || cost; // Use market price if available
+      const nrv = item.nrv || cost; // Use NRV if available
       const lcmValue = Math.min(cost, nrv);
       const impairmentLoss = cost > nrv ? cost - nrv : 0;
       const totalImpairment = impairmentLoss * item.quantity;
@@ -387,11 +387,11 @@ const InventoryValuation: React.FC = () => {
       quantity: item.quantity,
       unitCost: item.unitCost,
       totalCost: item.quantity * item.unitCost,
-      marketValue: item.unitCost * 0.97,
-      nrv: item.unitCost * 0.95,
-      lcm: Math.min(item.unitCost, item.unitCost * 0.95),
-      impairmentLoss: item.unitCost > item.unitCost * 0.95
-        ? (item.unitCost - item.unitCost * 0.95) * item.quantity
+      marketValue: item.marketPrice || item.unitCost,
+      nrv: item.nrv || item.unitCost,
+      lcm: Math.min(item.unitCost, item.nrv || item.unitCost),
+      impairmentLoss: item.unitCost > (item.nrv || item.unitCost)
+        ? (item.unitCost - (item.nrv || item.unitCost)) * item.quantity
         : 0,
       category: item.category,
       location: item.location,

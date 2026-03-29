@@ -101,33 +101,50 @@ const UsersPage: React.FC = () => {
   // Load roles from settings
   const roles: Role[] = rolesSetting ? JSON.parse(rolesSetting.value) : [];
 
+  // Helper to persist users list
+  const saveUsersList = async (updatedList: User[]) => {
+    const existing = await adapter.getById('settings', 'users_list');
+    if (existing) {
+      await adapter.update('settings', 'users_list', { value: JSON.stringify(updatedList) });
+    } else {
+      await adapter.create('settings', { id: 'users_list', value: JSON.stringify(updatedList) });
+    }
+  };
+
   const toggleUserStatusMutation = useMutation({
     mutationFn: async ({ userId, newStatus }: { userId: string; newStatus: string }) => {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const updated = allUsers.map(u => u.id === userId ? { ...u, status: newStatus as User['status'], lastModified: new Date().toISOString() } : u);
+      await saveUsersList(updated);
       return { userId, newStatus };
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
+      setUsersSetting(null); // Force reload
+      const reload = async () => { const us = await adapter.getById('settings', 'users_list'); setUsersSetting(us); };
+      reload();
     }
   });
 
   const resetPasswordMutation = useMutation({
     mutationFn: async (userId: string) => {
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const updated = allUsers.map(u => u.id === userId ? { ...u, passwordLastChanged: new Date().toISOString(), lastModified: new Date().toISOString() } : u);
+      await saveUsersList(updated);
       return userId;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
+      const reload = async () => { const us = await adapter.getById('settings', 'users_list'); setUsersSetting(us); };
+      reload();
     }
   });
 
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: string) => {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const updated = allUsers.filter(u => u.id !== userId);
+      await saveUsersList(updated);
       return userId;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
+      const reload = async () => { const us = await adapter.getById('settings', 'users_list'); setUsersSetting(us); };
+      reload();
     }
   });
 

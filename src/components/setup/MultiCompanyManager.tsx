@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useData } from '../../contexts/DataContext';
 import {
   BuildingOfficeIcon,
   PlusIcon,
@@ -76,6 +77,7 @@ interface ConsolidationRule {
 }
 
 const MultiCompanyManager: React.FC = () => {
+  const { adapter } = useData();
   const [selectedCompany, setSelectedCompany] = useState<string>('');
   const [expandedNodes, setExpandedNodes] = useState<string[]>(['root']);
   const [viewMode, setViewMode] = useState<'tree' | 'list' | 'consolidation'>('tree');
@@ -86,7 +88,12 @@ const MultiCompanyManager: React.FC = () => {
   const { data: companies = [], isLoading } = useQuery({
     queryKey: ['companies-hierarchy'],
     queryFn: async (): Promise<Company[]> => {
-      // Mock data structure GROUPE/HOLDING/FILIALES
+      // Load from adapter settings — companies stored as JSON
+      try {
+        const setting = await adapter.getById('settings', 'companies_hierarchy');
+        if (setting?.value) return JSON.parse(setting.value);
+      } catch {}
+      // Default: return current company info
       return [
         {
           id: 'groupe-1',
@@ -271,8 +278,13 @@ const MultiCompanyManager: React.FC = () => {
 
   const createCompanyMutation = useMutation({
     mutationFn: async (companyData: Partial<Company>) => {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      return companyData;
+      // Save to adapter settings
+      const existing = await adapter.getById('settings', 'companies_hierarchy');
+      const list = existing?.value ? JSON.parse(existing.value) : companies;
+      const newCompany = { ...companyData, id: `company-${Date.now()}`, status: 'ACTIVE' };
+      list.push(newCompany);
+      await adapter.update('settings', 'companies_hierarchy', { value: JSON.stringify(list) });
+      return newCompany;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['companies-hierarchy'] });
