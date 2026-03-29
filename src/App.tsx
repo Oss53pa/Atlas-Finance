@@ -1,6 +1,7 @@
-import React, { Suspense } from 'react';
-import { Routes, Route, Outlet } from 'react-router-dom';
+import React, { Suspense, useEffect } from 'react';
+import { Routes, Route, Outlet, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ATLAS_STUDIO } from './config/atlasStudio';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LoadingSpinner } from './components/ui/LoadingSpinner';
 import { LanguageProvider } from './contexts/LanguageContext';
@@ -36,6 +37,7 @@ function lazyRetry(importFn: () => Promise<any>) {
 // Pages publiques
 const LandingPage = lazyRetry(() => import('./pages/LandingPage'));
 const LoginPage = lazyRetry(() => import('./pages/auth/LoginPage'));
+const AtlasFnAHome = lazyRetry(() => import('./pages/platform/AtlasFnAHome'));
 const ExternalAuthPage = lazyRetry(() => import('./pages/auth/ExternalAuthPage'));
 const AtlasStudioHub = lazyRetry(() => import('./pages/auth/AtlasStudioHub'));
 
@@ -248,6 +250,12 @@ const MaintenancePage = lazyRetry(() => import('./pages/errors/MaintenancePage')
 const queryClient = new QueryClient({ defaultOptions: { queries: { staleTime: 5 * 60 * 1000, retry: 1 } } });
 const LoadingFallback = () => <div className="flex items-center justify-center min-h-screen"><LoadingSpinner size="lg" /></div>;
 
+// Redirect to Atlas Studio portal for routes that are now managed centrally
+function AtlasStudioRedirect() {
+  useEffect(() => { window.location.href = ATLAS_STUDIO.PORTAL; }, []);
+  return <LoadingFallback />;
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -272,38 +280,13 @@ function App() {
                       <Route path="/accept-invite/:token" element={<AcceptInvitePage />} />
                       <Route path="/admin-login" element={<AdminLoginPage />} />
 
-                      {/* Hub + Onboarding — après auth */}
-                      <Route element={<RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant', 'user', 'viewer', 'super_admin']}><Outlet /></RBACGuard>}>
-                        <Route path="/hub" element={<AtlasStudioHub />} />
-                        <Route path="/solutions" element={<SolutionCatalogPage />} />
-                        <Route path="/settings/team" element={<TeamSettingsPage />} />
-
-                        {/* Console Admin Atlas Studio */}
-                        <Route path="/admin-console" element={<AdminConsoleLayout />}>
-                          <Route index element={<AdminDashboardPage />} />
-                          <Route path="tenants" element={<AdminTenantsPage />} />
-                          <Route path="tenants/:tenantId" element={<AdminTenantDetailPage />} />
-                          <Route path="billing" element={<AdminBillingPage />} />
-                          <Route path="features" element={<AdminFeaturesPage />} />
-                          <Route path="support" element={<AdminSupportPage />} />
-                          <Route path="support/:ticketId" element={<AdminTicketDetailPage />} />
-                          <Route path="monitoring" element={<AdminMonitoringPage />} />
-                          <Route path="pricing" element={<AdminPricingPage />} />
-                          <Route path="invoices/new" element={<AdminInvoiceGenerator />} />
-                        </Route>
-
-                        {/* Dashboard client Atlas Studio */}
-                        <Route path="/client" element={<ClientDashboard />}>
-                          <Route index element={<ClientHome />} />
-                          <Route path="team" element={<ClientTeam />} />
-                          <Route path="billing" element={<ClientBilling />} />
-                          <Route path="checkout/:solutionCode" element={<ClientCheckout />} />
-                          <Route path="settings" element={<ClientSettings />} />
-                          <Route path="audit" element={<ClientAuditTrail />} />
-                          <Route path="licenses" element={<ClientLicenses />} />
-                          <Route path="app/:code" element={<SolutionRouter />} />
-                        </Route>
-                      </Route>
+                      {/* Hub, Client, Admin-Console → redirigent vers Atlas Studio (plateforme centrale) */}
+                      <Route path="/hub" element={<AtlasStudioRedirect />} />
+                      <Route path="/solutions" element={<AtlasStudioRedirect />} />
+                      <Route path="/settings/team" element={<AtlasStudioRedirect />} />
+                      <Route path="/admin-console/*" element={<AtlasStudioRedirect />} />
+                      <Route path="/client/*" element={<AtlasStudioRedirect />} />
+                      <Route path="/client" element={<AtlasStudioRedirect />} />
 
                       {/* Workspaces — protégés par authentification Supabase + chatbot IA */}
                       <Route element={<ChatbotProvider><RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant', 'user', 'viewer']}><Outlet /></RBACGuard></ChatbotProvider>}>
@@ -314,6 +297,9 @@ function App() {
                       </Route>
 
                       {/* Application principale avec layout + chatbot IA */}
+                      {/* Page d'accueil Atlas F&A — plein écran, sans sidebar (pattern DocJourney) */}
+                      <Route path="/home" element={<AtlasFnAHome />} />
+
                       <Route element={<ChatbotProvider><ModernDoubleSidebarLayout /></ChatbotProvider>}>
                         {/* Dashboards — all authenticated users */}
                         <Route element={<RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant', 'user', 'viewer']}><Outlet /></RBACGuard>}>

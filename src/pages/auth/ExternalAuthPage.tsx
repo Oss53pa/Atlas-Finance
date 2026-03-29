@@ -56,7 +56,7 @@ const ExternalAuthPage: React.FC = () => {
       }
 
       // Session is now established, AuthContext will pick it up
-      navigate('/dashboard', { replace: true });
+      navigate('/home', { replace: true });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erreur inconnue';
       console.error('External auth error:', message);

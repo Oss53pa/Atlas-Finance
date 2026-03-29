@@ -3,10 +3,11 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Calculator, Eye, EyeOff, Shield } from 'lucide-react';
 import { Button, Input, Card, CardHeader, CardTitle, CardContent } from '../../components/ui';
 import { useAuth } from '../../contexts/AuthContext';
+import { ATLAS_STUDIO } from '../../config/atlasStudio';
 
 function getRoleRedirectPath(_role: string): string {
-  // Après login → Hub Atlas Studio (choix de l'application)
-  return '/client';
+  // Après login → page d'accueil Atlas F&A (pattern DocJourney)
+  return '/home';
 }
 
 const LoginPage: React.FC = () => {
@@ -260,9 +261,9 @@ const LoginPage: React.FC = () => {
                 </div>
               </div>
               <div className="mt-4 space-y-3">
-                <Link to="/register" className="block w-full py-2.5 border-2 border-[var(--color-border)] rounded-lg text-center text-sm font-semibold text-[var(--color-text-primary)] hover:border-[var(--color-primary)] transition-colors">
-                  Créer un compte gratuitement
-                </Link>
+                <a href={ATLAS_STUDIO.LOGIN} className="block w-full py-2.5 border-2 border-[var(--color-border)] rounded-lg text-center text-sm font-semibold text-[var(--color-text-primary)] hover:border-[var(--color-primary)] transition-colors">
+                  Creer un compte sur Atlas Studio
+                </a>
                 <p className="text-sm text-[var(--color-text-secondary)]">
                   Ou contactez votre administrateur pour obtenir vos identifiants.
                 </p>
