@@ -36,6 +36,7 @@ function lazyRetry(importFn: () => Promise<any>) {
 // Pages publiques
 const LandingPage = lazyRetry(() => import('./pages/LandingPage'));
 const LoginPage = lazyRetry(() => import('./pages/auth/LoginPage'));
+const ExternalAuthPage = lazyRetry(() => import('./pages/auth/ExternalAuthPage'));
 const AtlasStudioHub = lazyRetry(() => import('./pages/auth/AtlasStudioHub'));
 
 // Onboarding
@@ -258,6 +259,7 @@ function App() {
                       {/* Pages publiques — pas d'auth, pas de chatbot */}
                       <Route path="/" element={<LandingPage />} />
                       <Route path="/login" element={<LoginPage />} />
+                      <Route path="/auth" element={<ExternalAuthPage />} />
                       <Route path="/register" element={<RegisterPage />} />
                       <Route path="/verify-email" element={<VerifyEmailPage />} />
                       <Route path="/accept-invite/:token" element={<AcceptInvitePage />} />
