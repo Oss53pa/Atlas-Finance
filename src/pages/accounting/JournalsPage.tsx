@@ -276,6 +276,33 @@ const JournalsPage: React.FC = () => {
     });
   }, [dbEntries, t]);
 
+  // Écritures par journal — depuis données réelles
+  const getEcrituresJournal = (journalCode: string): EcritureJournal[] => {
+    const filtered = journalCode === 'TOUS'
+      ? dbEntries
+      : dbEntries.filter((e: any) => (e.journal || '').toUpperCase() === journalCode);
+
+    const result: EcritureJournal[] = [];
+    for (const entry of filtered) {
+      if (!entry.lines || entry.lines.length === 0) continue;
+      for (const line of entry.lines) {
+        result.push({
+          mvt: entry.entryNumber || entry.id || '',
+          jnl: (entry.journal || '').toUpperCase(),
+          date: entry.date ? new Date(entry.date).toLocaleDateString('fr-FR') : '',
+          piece: entry.reference || entry.entryNumber || '',
+          echeance: '',
+          compte: line.accountCode || '',
+          compteLib: line.accountName || '',
+          libelle: line.label || entry.label || '',
+          debit: line.debit ? line.debit.toFixed(2).replace('.', ',') : '',
+          credit: line.credit ? line.credit.toFixed(2).replace('.', ',') : '',
+        });
+      }
+    }
+    return result;
+  };
+
   // Totaux dynamiques pour le journal sélectionné
   const selectedJournalTotals = useMemo(() => {
     const ecritures = getEcrituresJournal(selectedJournal?.code || 'TOUS');
@@ -415,33 +442,6 @@ const JournalsPage: React.FC = () => {
       console.error('Erreur lors du reversement:', error);
       toast.error((error instanceof Error ? error.message : undefined) || t('messages.saveError'));
     }
-  };
-
-  // Écritures par journal — depuis données réelles
-  const getEcrituresJournal = (journalCode: string): EcritureJournal[] => {
-    const filtered = journalCode === 'TOUS'
-      ? dbEntries
-      : dbEntries.filter((e: any) => (e.journal || '').toUpperCase() === journalCode);
-
-    const result: EcritureJournal[] = [];
-    for (const entry of filtered) {
-      if (!entry.lines || entry.lines.length === 0) continue;
-      for (const line of entry.lines) {
-        result.push({
-          mvt: entry.entryNumber || entry.id || '',
-          jnl: (entry.journal || '').toUpperCase(),
-          date: entry.date ? new Date(entry.date).toLocaleDateString('fr-FR') : '',
-          piece: entry.reference || entry.entryNumber || '',
-          echeance: '',
-          compte: line.accountCode || '',
-          compteLib: line.accountName || '',
-          libelle: line.label || entry.label || '',
-          debit: line.debit ? line.debit.toFixed(2).replace('.', ',') : '',
-          credit: line.credit ? line.credit.toFixed(2).replace('.', ',') : '',
-        });
-      }
-    }
-    return result;
   };
 
   return (
