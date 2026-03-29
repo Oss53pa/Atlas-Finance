@@ -80,7 +80,7 @@ describe('paymentOrderService', () => {
       beneficiaryType: 'supplier',
       beneficiaryName: 'Fournisseur Alpha',
       amount: 500000,
-      paymentMethod: 'transfer',
+      paymentMethod: 'bank_transfer',
       reference: 'FAC-2025-001',
       description: 'Achat fournitures bureau',
     });
@@ -100,7 +100,7 @@ describe('paymentOrderService', () => {
       beneficiaryType: 'supplier',
       beneficiaryName: 'Fournisseur Beta',
       amount: 300000,
-      paymentMethod: 'transfer',
+      paymentMethod: 'bank_transfer',
     });
 
     const submitted = await submitForApproval(adapter, order.id);
@@ -113,7 +113,7 @@ describe('paymentOrderService', () => {
       beneficiaryType: 'employee',
       beneficiaryName: 'Jean Dupont',
       amount: 150000,
-      paymentMethod: 'transfer',
+      paymentMethod: 'bank_transfer',
     });
 
     await submitForApproval(adapter, order.id);
@@ -130,7 +130,7 @@ describe('paymentOrderService', () => {
       beneficiaryType: 'supplier',
       beneficiaryName: 'Fournisseur Gamma',
       amount: 750000,
-      paymentMethod: 'transfer',
+      paymentMethod: 'bank_transfer',
       bankAccountId: '521000',
     });
 
@@ -176,7 +176,7 @@ describe('paymentOrderService', () => {
       beneficiaryType: 'supplier',
       beneficiaryName: 'Fournisseur Epsilon',
       amount: 100000,
-      paymentMethod: 'transfer',
+      paymentMethod: 'bank_transfer',
     });
 
     // Try to execute a draft order (not submitted, not approved)
@@ -193,14 +193,14 @@ describe('paymentOrderService', () => {
       beneficiaryType: 'supplier',
       beneficiaryName: 'A',
       amount: 100000,
-      paymentMethod: 'transfer',
+      paymentMethod: 'bank_transfer',
     });
     const order2 = await createPaymentOrder(adapter, {
       companyId: COMPANY_ID,
       beneficiaryType: 'employee',
       beneficiaryName: 'B',
       amount: 200000,
-      paymentMethod: 'transfer',
+      paymentMethod: 'bank_transfer',
     });
     await submitForApproval(adapter, order2.id);
 

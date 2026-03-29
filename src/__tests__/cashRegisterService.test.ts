@@ -14,7 +14,7 @@ describe('CashRegisterService', () => {
   });
 
   it('should open a cash register session with correct opening balance', async () => {
-    const session = await adapter.create('cashRegisterSessions', {
+    const session = await adapter.create<any>('cashRegisterSessions', {
       companyId: 'comp1',
       cashAccountId: '571',
       cashierId: 'user1',
@@ -30,7 +30,7 @@ describe('CashRegisterService', () => {
   });
 
   it('should record a receipt movement', async () => {
-    const session = await adapter.create('cashRegisterSessions', {
+    const session = await adapter.create<any>('cashRegisterSessions', {
       companyId: 'comp1',
       cashAccountId: '571',
       cashierId: 'user1',
@@ -40,7 +40,7 @@ describe('CashRegisterService', () => {
       createdAt: new Date().toISOString(),
     });
 
-    const movement = await adapter.create('cashMovements', {
+    const movement = await adapter.create<any>('cashMovements', {
       companyId: 'comp1',
       sessionId: session.id,
       type: 'receipt',
@@ -55,7 +55,7 @@ describe('CashRegisterService', () => {
   });
 
   it('should record a disbursement movement', async () => {
-    const session = await adapter.create('cashRegisterSessions', {
+    const session = await adapter.create<any>('cashRegisterSessions', {
       companyId: 'comp1',
       cashAccountId: '571',
       cashierId: 'user1',
@@ -65,7 +65,7 @@ describe('CashRegisterService', () => {
       createdAt: new Date().toISOString(),
     });
 
-    const movement = await adapter.create('cashMovements', {
+    const movement = await adapter.create<any>('cashMovements', {
       companyId: 'comp1',
       sessionId: session.id,
       type: 'disbursement',
@@ -117,7 +117,7 @@ describe('CashRegisterService', () => {
   });
 
   it('should list movements for a session', async () => {
-    const session = await adapter.create('cashRegisterSessions', {
+    const session = await adapter.create<any>('cashRegisterSessions', {
       companyId: 'comp1',
       cashAccountId: '571',
       cashierId: 'user1',
