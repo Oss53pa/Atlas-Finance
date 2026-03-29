@@ -110,7 +110,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
       id: 'home',
       label: 'Accueil',
       icon: <Home className="w-5 h-5" />,
-      path: '/',
+      path: '/home',
       ariaLabel: "Retour à la page d'accueil"
     },
     {
@@ -308,7 +308,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
   const getBreadcrumbs = () => {
     const paths = location.pathname.split('/').filter(Boolean);
     // Rediriger vers le workspace approprié (comptable par défaut)
-    const breadcrumbs = [{ label: 'Accueil', path: '/' }];
+    const breadcrumbs = [{ label: 'Accueil', path: '/home' }];
 
     paths.forEach((path, index) => {
       const fullPath = '/' + paths.slice(0, index + 1).join('/');
@@ -352,7 +352,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
             'flex items-center gap-3',
             primaryCollapsed && 'justify-center'
           )}>
-            <a href="/" className="hover:opacity-80 transition-opacity" title="Retour à l'accueil">
+            <a href="/home" className="hover:opacity-80 transition-opacity" title="Retour à l'accueil Atlas F&amp;A">
               <span className="text-[var(--color-sidebar-text)] font-bold text-xl atlas-brand whitespace-nowrap">Atlas F&A</span>
             </a>
           </div>
@@ -540,7 +540,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
           >
             <div className="h-16 flex items-center justify-between px-4 border-b border-[var(--color-sidebar-border)]">
               <div className="flex items-center gap-3">
-                <a href="/" className="hover:opacity-80 transition-opacity" title="Retour à l'accueil">
+                <a href="/home" className="hover:opacity-80 transition-opacity" title="Retour à l'accueil Atlas F&amp;A">
                   <span className="text-white font-bold text-xl atlas-brand">Atlas F&A</span>
                 </a>
               </div>
