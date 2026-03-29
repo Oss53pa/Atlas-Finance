@@ -170,23 +170,20 @@ export async function performFullConsolidation(
   }
 
   // 4. Eliminate intra-group operations
-  const eliminated = eliminerOperationsIntraGroupe(intraGroupOperations);
+  const eliminationResult = eliminerOperationsIntraGroupe(intraGroupOperations);
   let eliminationTotal = new Decimal(0);
 
-  for (const op of eliminated) {
+  for (const op of eliminationResult.eliminated) {
     if (op.eliminee) {
       eliminationTotal = eliminationTotal.plus(new Decimal(op.montant));
 
-      // Remove from consolidated: reduce both sides
-      const debitAccount = consolidated.get(op.compteDebit);
-      const creditAccount = consolidated.get(op.compteCredit);
+      // Remove from consolidated: reduce on the account used
+      const account = consolidated.get(op.compte);
       const amount = new Decimal(op.montant);
 
-      if (debitAccount) {
-        debitAccount.debit = debitAccount.debit.minus(amount);
-      }
-      if (creditAccount) {
-        creditAccount.credit = creditAccount.credit.minus(amount);
+      if (account) {
+        account.debit = account.debit.minus(amount);
+        account.credit = account.credit.minus(amount);
       }
     }
   }
@@ -202,9 +199,9 @@ export async function performFullConsolidation(
     const line: LigneConsolidee = {
       compte: code,
       libelle: code, // Would need account name lookup
-      montantMere: new Decimal(0).toNumber(),
-      montantFiliales: new Decimal(0).toNumber(),
-      eliminationIntraGroupe: 0,
+      montantMere: 0,
+      montantsFiliales: {},
+      eliminations: 0,
       montantConsolide: net.toDecimalPlaces(2, Decimal.ROUND_HALF_UP).toNumber(),
     };
 
@@ -227,7 +224,7 @@ export async function performFullConsolidation(
       resultatPart: totalMinoriteResultat.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
     },
     eliminationsIntraGroupe: {
-      count: eliminated.filter(o => o.eliminee).length,
+      count: eliminationResult.eliminated.filter((o: OperationIntraGroupe) => o.eliminee).length,
       totalAmount: eliminationTotal.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
     },
   };
@@ -264,8 +261,8 @@ export async function performProportionalConsolidation(
       compte: code,
       libelle: code,
       montantMere: parentNet.toDecimalPlaces(2, Decimal.ROUND_HALF_UP).toNumber(),
-      montantFiliales: subNet.toDecimalPlaces(2, Decimal.ROUND_HALF_UP).toNumber(),
-      eliminationIntraGroupe: 0,
+      montantsFiliales: { [subsidiary.companyId]: subNet.toDecimalPlaces(2, Decimal.ROUND_HALF_UP).toNumber() },
+      eliminations: 0,
       montantConsolide: parentNet.plus(subNet).toDecimalPlaces(2, Decimal.ROUND_HALF_UP).toNumber(),
     });
   }
