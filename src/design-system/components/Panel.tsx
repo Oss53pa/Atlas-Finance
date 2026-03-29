@@ -413,7 +413,8 @@ export interface PanelTitleProps
 
 export const PanelTitle = forwardRef<HTMLHeadingElement, PanelTitleProps>(
   ({ children, className, size, as: Component = 'h3', id, ...props }, ref) => {
-    const titleId = id || React.useId();
+    const generatedId = React.useId();
+    const titleId = id || generatedId;
 
     return (
       <Component

@@ -48,7 +48,7 @@
     "src/pages/accounting/EntriesPageClean.tsx",
     "src/pages/dashboard/KPIDashboard.tsx",
     "src/pages/taxation/CompleteTaxationModule.tsx",
-    "src/test/setup/test-setup.ts"
+    "src/test/setup/test-setup.tsx"
   ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

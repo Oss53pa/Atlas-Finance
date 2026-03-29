@@ -4,7 +4,7 @@ import { useState } from "react";
 const C = {
   bg: "#0B1120", card: "#111827", cardAlt: "#1a2332", border: "#1e293b",
   accent: "#3b82f6", gold: "#d4a843", green: "#22c55e", orange: "#f59e0b",
-  red: "#ef4444", primary: "#06b6d4", primary: "#a78bfa",
+  red: "#ef4444", primary: "#a78bfa",
   t1: "#f1f5f9", t2: "#94a3b8", t3: "#64748b",
 };
 

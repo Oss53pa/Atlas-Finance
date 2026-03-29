@@ -38,6 +38,8 @@ export const planComptableSYSCOHADA: CompteComptable[] = [
   { code: '2182', libelle: 'Matériel de transport', categorie: 'Immobilisations corporelles', nature: 'debit', actif: true, keywords: ['véhicule', 'voiture', 'camion', 'transport'] },
   { code: '2184', libelle: 'Matériel technique', categorie: 'Immobilisations corporelles', nature: 'debit', actif: true, keywords: ['machine', 'technique'] },
 
+  { code: '275000', libelle: 'Dépôts et cautionnements reçus', categorie: 'Passif non courant', sousCategorie: 'Dettes diverses', nature: 'credit', actif: true, keywords: ['dépôt', 'garantie', 'caution', 'cautionnement'] },
+
   // AMORTISSEMENTS
   { code: '281', libelle: 'Amortissements des immobilisations incorporelles', categorie: 'Amortissements', nature: 'credit', actif: true },
   { code: '2812', libelle: 'Amortissements brevets, licences, logiciels', categorie: 'Amortissements', nature: 'credit', actif: true },
@@ -101,6 +103,8 @@ export const planComptableSYSCOHADA: CompteComptable[] = [
   { code: '4456', libelle: 'TVA déductible sur immobilisations', categorie: 'Créances État', nature: 'debit', actif: true },
   { code: '44562', libelle: 'TVA déductible sur autres biens et services', categorie: 'Créances État', nature: 'debit', actif: true },
   { code: '447', libelle: 'État - Autres impôts, taxes et versements', categorie: 'Dettes État', nature: 'credit', actif: true },
+
+  { code: '477000', libelle: 'Produits constatés d\'avance', categorie: 'Passif courant', sousCategorie: 'Comptes de régularisation', nature: 'credit', actif: true, keywords: ['PCA', 'produits', 'avance', 'constatés', 'étalement'] },
 
   // CLASSE 5 - COMPTES DE TRESORERIE
   { code: '521', libelle: 'Banques locales', categorie: 'Disponibilités', nature: 'debit', actif: true, keywords: ['banque', 'compte', 'dépôt'] },
@@ -203,6 +207,13 @@ export const planComptableSYSCOHADA: CompteComptable[] = [
   { code: '704', libelle: 'Ventes de produits résiduels', categorie: 'Ventes', nature: 'credit', actif: true },
   { code: '705', libelle: 'Travaux et services vendus', categorie: 'Ventes', nature: 'credit', actif: true, keywords: ['service', 'prestation'] },
   { code: '706', libelle: 'Autres produits et services vendus', categorie: 'Ventes', nature: 'credit', actif: true },
+  { code: '706100', libelle: 'Loyers perçus', categorie: 'Produits', sousCategorie: 'Revenus locatifs', nature: 'credit', actif: true, keywords: ['loyer', 'bail', 'location', 'locataire'] },
+  { code: '706200', libelle: 'Charges locatives récupérées', categorie: 'Produits', sousCategorie: 'Revenus locatifs', nature: 'credit', actif: true, keywords: ['charges', 'récupérables', 'locatives', 'refacturées'] },
+  { code: '706300', libelle: 'Revenus parking', categorie: 'Produits', sousCategorie: 'Revenus locatifs', nature: 'credit', actif: true, keywords: ['parking', 'stationnement'] },
+  { code: '706400', libelle: 'Droit d\'entrée - Pas de porte', categorie: 'Produits', sousCategorie: 'Revenus locatifs', nature: 'credit', actif: true, keywords: ['droit', 'entrée', 'pas de porte'] },
+  { code: '706500', libelle: 'Revenus espaces publicitaires', categorie: 'Produits', sousCategorie: 'Revenus locatifs', nature: 'credit', actif: true, keywords: ['publicité', 'panneau', 'affichage', 'écran'] },
+  { code: '706600', libelle: 'Revenus espaces événementiels', categorie: 'Produits', sousCategorie: 'Revenus locatifs', nature: 'credit', actif: true, keywords: ['événement', 'salon', 'exposition'] },
+  { code: '706700', libelle: 'Contributions fonds marketing', categorie: 'Produits', sousCategorie: 'Revenus locatifs', nature: 'credit', actif: true, keywords: ['marketing', 'fonds', 'contribution'] },
   { code: '707', libelle: 'Produits accessoires', categorie: 'Ventes', nature: 'credit', actif: true },
 
   { code: '718', libelle: 'Autres produits d\'activités ordinaires', categorie: 'Autres produits', nature: 'credit', actif: true },

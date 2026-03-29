@@ -131,13 +131,10 @@ CREATE TABLE IF NOT EXISTS support_tickets (
 -- ============================================================================
 -- 8. INDEXES
 -- ============================================================================
-CREATE INDEX IF NOT EXISTS idx_user_profiles_tenant ON user_profiles(tenant_id);
-CREATE INDEX IF NOT EXISTS idx_entities_tenant ON entities(tenant_id);
-CREATE INDEX IF NOT EXISTS idx_feature_flags_tenant ON feature_flags(tenant_id);
-CREATE INDEX IF NOT EXISTS idx_invoices_tenant ON invoices(tenant_id);
-CREATE INDEX IF NOT EXISTS idx_audit_logs_tenant ON audit_logs(tenant_id);
-CREATE INDEX IF NOT EXISTS idx_audit_logs_created ON audit_logs(created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_support_tickets_tenant ON support_tickets(tenant_id);
+
+
+
+
 
 -- ============================================================================
 -- 9. HELPER FUNCTIONS

@@ -276,6 +276,45 @@ const JournalsPage: React.FC = () => {
     });
   }, [dbEntries, t]);
 
+  // Totaux dynamiques pour le journal sélectionné
+  const selectedJournalTotals = useMemo(() => {
+    const ecritures = getEcrituresJournal(selectedJournal?.code || 'TOUS');
+    let totalDebit = 0;
+    let totalCredit = 0;
+    for (const e of ecritures) {
+      totalDebit += parseFloat(e.debit?.replace(/\s/g, '').replace(',', '.') || '0');
+      totalCredit += parseFloat(e.credit?.replace(/\s/g, '').replace(',', '.') || '0');
+    }
+    return { totalDebit, totalCredit, balanced: Math.abs(totalDebit - totalCredit) < 0.01 };
+  }, [dbEntries, selectedJournal]);
+
+  // Récapitulatif par compte — calculé dynamiquement
+  const recapParCompte = useMemo(() => {
+    const ecritures = getEcrituresJournal(selectedJournal?.code || 'TOUS');
+    const compteMap: Record<string, { libelle: string; debit: number; credit: number }> = {};
+    for (const e of ecritures) {
+      if (!e.compte) continue;
+      if (!compteMap[e.compte]) {
+        compteMap[e.compte] = { libelle: e.compteLib || '', debit: 0, credit: 0 };
+      }
+      compteMap[e.compte].debit += parseFloat(e.debit?.replace(/\s/g, '').replace(',', '.') || '0');
+      compteMap[e.compte].credit += parseFloat(e.credit?.replace(/\s/g, '').replace(',', '.') || '0');
+    }
+    return Object.entries(compteMap)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([compte, data]) => {
+        const solde = data.debit - data.credit;
+        return {
+          compte,
+          libelle: data.libelle,
+          debit: data.debit ? data.debit.toFixed(2).replace('.', ',') : '',
+          credit: data.credit ? data.credit.toFixed(2).replace('.', ',') : '',
+          soldeDebit: solde > 0 ? solde.toFixed(2).replace('.', ',') : '',
+          soldeCredit: solde < 0 ? Math.abs(solde).toFixed(2).replace('.', ',') : '',
+        };
+      });
+  }, [dbEntries, selectedJournal]);
+
   // Pas de sous-journaux hardcodés
   const sousJournaux: Record<string, { id: string; code: string; libelle: string; entries: number; color: string }[]> = {};
 
@@ -534,8 +573,12 @@ const JournalsPage: React.FC = () => {
                           <p className="text-xs text-[var(--color-text-tertiary)]">Total écritures</p>
                         </div>
                         <div className="text-center p-2.5 rounded-lg bg-[var(--color-surface-hover)]">
-                          <p className="text-sm font-bold text-[var(--color-text-primary)]">944,00€</p>
-                          <p className="text-xs text-[var(--color-text-tertiary)]">Équilibré</p>
+                          <p className="text-sm font-bold text-[var(--color-text-primary)]">
+                            {formatCurrency(journaux.reduce((sum, j) => sum + j.totalDebit, 0))}
+                          </p>
+                          <p className="text-xs text-[var(--color-text-tertiary)]">
+                            {journaux.reduce((sum, j) => sum + j.totalDebit, 0) === journaux.reduce((sum, j) => sum + j.totalCredit, 0) ? 'Équilibré' : 'Déséquilibré'}
+                          </p>
                         </div>
                       </div>
 
@@ -544,15 +587,18 @@ const JournalsPage: React.FC = () => {
                         <div className="flex items-center space-x-2">
                           <button
                             onClick={() => {
+                              const totalDebit = journaux.reduce((sum, j) => sum + j.totalDebit, 0);
+                              const totalCredit = journaux.reduce((sum, j) => sum + j.totalCredit, 0);
+                              const lastEntry = journaux.reduce((latest, j) => j.lastEntry > latest ? j.lastEntry : latest, '');
                               const journalTousMovements = {
                                 id: 'tous',
                                 code: 'TOUS',
                                 libelle: 'Journal tous mouvements',
                                 type: 'OD' as const,
                                 entries: journaux.reduce((sum, j) => sum + j.entries, 0),
-                                totalDebit: 944,
-                                totalCredit: 944,
-                                lastEntry: '2025-09-11',
+                                totalDebit,
+                                totalCredit,
+                                lastEntry,
                                 color: '#737373'
                               };
                               setSelectedJournal(journalTousMovements);
@@ -565,15 +611,18 @@ const JournalsPage: React.FC = () => {
                           </button>
                           <button
                             onClick={() => {
+                              const totalDebit = journaux.reduce((sum, j) => sum + j.totalDebit, 0);
+                              const totalCredit = journaux.reduce((sum, j) => sum + j.totalCredit, 0);
+                              const lastEntry = journaux.reduce((latest, j) => j.lastEntry > latest ? j.lastEntry : latest, '');
                               const journalTousMovements = {
                                 id: 'tous',
                                 code: 'TOUS',
                                 libelle: 'Journal tous mouvements',
                                 type: 'OD' as const,
                                 entries: journaux.reduce((sum, j) => sum + j.entries, 0),
-                                totalDebit: 944,
-                                totalCredit: 944,
-                                lastEntry: '2025-09-11',
+                                totalDebit,
+                                totalCredit,
+                                lastEntry,
                                 color: '#737373'
                               };
                               setSelectedJournal(journalTousMovements);

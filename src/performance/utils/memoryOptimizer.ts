@@ -408,28 +408,26 @@ export function useMemoryOptimization(componentName: string) {
     };
   }, [componentName]);
 
-  // Memory-conscious event listener hook
-  const useOptimizedEventListener = React.useCallback((
+  // Memory-conscious event listener
+  const addOptimizedEventListener = React.useCallback((
     element: HTMLElement | null,
     event: string,
     handler: EventListener,
     options?: AddEventListenerOptions
   ) => {
-    React.useEffect(() => {
-      if (!element) return;
+    if (!element) return () => {};
 
-      element.addEventListener(event, handler, options);
-      memoryOptimizer.trackEventListener(element, event);
+    element.addEventListener(event, handler, options);
+    memoryOptimizer.trackEventListener(element, event);
 
-      return () => {
-        element.removeEventListener(event, handler, options);
-        memoryOptimizer.untrackEventListener(element, event);
-      };
-    }, [element, event, handler, options]);
+    return () => {
+      element.removeEventListener(event, handler, options);
+      memoryOptimizer.untrackEventListener(element, event);
+    };
   }, []);
 
   return {
-    useOptimizedEventListener,
+    addOptimizedEventListener,
     memoryMetrics: memoryOptimizer.getCurrentMemoryMetrics(),
     optimizeMemory: memoryOptimizer.optimizeMemoryUsage.bind(memoryOptimizer),
   };

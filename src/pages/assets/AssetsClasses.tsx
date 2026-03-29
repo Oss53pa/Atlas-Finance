@@ -92,8 +92,7 @@ const AssetsClasses: React.FC = () => {
       blue: { bg: 'bg-[#171717]/10', text: 'text-[#171717]', border: 'border-[#171717]/20' },
       green: { bg: 'bg-green-500/10', text: 'text-green-500', border: 'border-green-500/20' },
       orange: { bg: 'bg-orange-500/10', text: 'text-orange-500', border: 'border-orange-500/20' },
-      red: { bg: 'bg-red-500/10', text: 'text-red-500', border: 'border-red-500/20' },
-      primary: { bg: 'bg-[#262626]/10', text: 'text-[#262626]', border: 'border-[#262626]/20' }
+      red: { bg: 'bg-red-500/10', text: 'text-red-500', border: 'border-red-500/20' }
     };
     return colors[color] || colors.blue;
   };

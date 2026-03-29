@@ -608,8 +608,24 @@ COMMIT;
 -- =====================================================================
 -- VERIFICATION: run this after the script to confirm everything worked
 -- =====================================================================
--- SELECT
---   schemaname, tablename, policyname, cmd
--- FROM pg_policies
--- WHERE schemaname = 'public'
--- ORDER BY tablename, cmd;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

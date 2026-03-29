@@ -406,7 +406,6 @@ class AtlasFinanceDB extends Dexie {
   taxRegistry!: Table<DBTaxRegistry, string>;
   taxDeclarations!: Table<DBTaxDeclaration, string>;
   taxBrackets!: Table<DBTaxBracket, string>;
-
   constructor() {
     super('AtlasFinanceDB');
     this.version(1).stores({

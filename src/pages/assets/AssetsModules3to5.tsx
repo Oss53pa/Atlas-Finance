@@ -883,7 +883,7 @@ export const renderCycleVie = () => (
 );
 
 // MODULE 5: INVENTAIRE AUTOMATISÉ DÉTAILLÉ
-export const renderInventaireAuto = () => {
+export const RenderInventaireAuto = () => {
   const [inventoryMode, setInventoryMode] = useState('dashboard');
 
   return (
@@ -1557,7 +1557,7 @@ export const AssetsModules3to5: React.FC<AssetsModules3to5Props> = ({ activeModu
   } else if (activeModule === 4) {
     return renderCycleVie();
   } else if (activeModule === 5) {
-    return renderInventaireAuto();
+    return <RenderInventaireAuto />;
   }
   return <div>Module non disponible</div>;
 };

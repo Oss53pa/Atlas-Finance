@@ -269,7 +269,30 @@ const LoginPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Les comptes de démonstration ont été supprimés — connexion via Supabase Auth uniquement */}
+            {/* Comptes de démonstration (mode développement) */}
+            {import.meta.env.VITE_APP_ENV === 'development' && (
+              <div className="mt-6">
+                <div className="relative mb-4">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-[var(--color-border)]"></div>
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="bg-white px-2 text-[var(--color-text-secondary)]">Accès rapide (dev)</span>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <Button type="button" variant="outline" size="sm" onClick={() => handleAutoLogin('admin')} disabled={isLoggingIn}>
+                    Admin
+                  </Button>
+                  <Button type="button" variant="outline" size="sm" onClick={() => handleAutoLogin('manager')} disabled={isLoggingIn}>
+                    Manager
+                  </Button>
+                  <Button type="button" variant="outline" size="sm" onClick={() => handleAutoLogin('comptable')} disabled={isLoggingIn}>
+                    Comptable
+                  </Button>
+                </div>
+              </div>
+            )}
 
             {/* Footer Atlas Studio */}
             <div className="mt-6 text-center">

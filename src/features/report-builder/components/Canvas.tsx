@@ -89,11 +89,11 @@ const PageView: React.FC<{ pageIndex: number; totalPages: number }> = ({ pageInd
   const selectPage = useReportBuilderStore(s => s.selectPage);
   const addPage = useReportBuilderStore(s => s.addPage);
 
+  const { setNodeRef } = useDroppable({ id: `page-${pageIndex}`, data: { pageIndex } });
+
   if (!doc) return null;
   const page = doc.pages[pageIndex];
   if (!page) return null;
-
-  const { setNodeRef } = useDroppable({ id: `page-${pageIndex}`, data: { pageIndex } });
   const blockIds = page.blocks.map(b => b.id);
 
   return (

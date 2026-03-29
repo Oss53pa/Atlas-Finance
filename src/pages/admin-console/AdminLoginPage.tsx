@@ -2,12 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Shield, Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 
 const AdminLoginPage: React.FC = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -34,28 +33,15 @@ const AdminLoginPage: React.FC = () => {
 
     setLoading(true);
     try {
-      const { data, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (authError) {
-        if (authError.message.includes('Invalid login')) {
-          setError('Email ou mot de passe incorrect');
-        } else {
-          setError(authError.message);
-        }
-        return;
-      }
-
-      if (data.session) {
-        // Petit délai pour que le AuthContext se mette à jour
-        setTimeout(() => {
-          navigate('/admin-console', { replace: true });
-        }, 500);
-      }
+      await login(email, password);
+      // Le useEffect ci-dessus gère la redirection une fois le profil chargé
     } catch (err: any) {
-      setError(err.message || 'Erreur de connexion');
+      const msg = err.message || 'Erreur de connexion';
+      if (msg.includes('Invalid login') || msg.includes('Identifiants')) {
+        setError('Email ou mot de passe incorrect');
+      } else {
+        setError(msg);
+      }
     } finally {
       setLoading(false);
     }
