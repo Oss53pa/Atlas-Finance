@@ -45,6 +45,17 @@ export type TableName =
   | 'taxRegistry'
   | 'taxDeclarations'
   | 'taxBrackets'
+  // Correction #3 — Payment & Cash
+  | 'paymentOrders'
+  | 'cashRegisterSessions'
+  | 'cashMovements'
+  | 'loanSchedules'
+  | 'checks'
+  // Correction #8 — Purchase Orders
+  | 'purchaseOrders'
+  | 'goodsReceipts'
+  // Correction #11 — Off-Balance
+  | 'offBalanceCommitments'
 
 export interface QueryFilters {
   where?: Record<string, any>

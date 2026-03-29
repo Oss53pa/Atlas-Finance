@@ -105,6 +105,14 @@ export interface DBAsset {
   depreciationAccountCode: string;
   status: 'active' | 'disposed' | 'scrapped';
   cumulDepreciation?: number;
+  /** Correction #4: Component approach */
+  parentAssetId?: string;
+  isComponent?: boolean;
+  componentType?: 'structure' | 'roofing' | 'facade' | 'technical' | 'fittings';
+  /** Impairment tracking */
+  impairmentAmount?: number;
+  /** Location for inter-site transfers */
+  location?: string;
 }
 
 export interface DBFiscalYear {
@@ -380,6 +388,160 @@ export interface DBTaxBracket {
 }
 
 // ============================================================================
+// CORRECTION #3 — PAYMENT & CASH REGISTER INTERFACES
+// ============================================================================
+
+export interface DBPaymentOrder {
+  id: string;
+  companyId: string;
+  orderNumber: string;
+  type: 'single' | 'batch';
+  beneficiaryType: 'supplier' | 'employee' | 'tax_authority' | 'social_fund' | 'other';
+  beneficiaryId?: string;
+  beneficiaryName: string;
+  amount: number;
+  currency: string;
+  paymentMethod: 'bank_transfer' | 'check' | 'cash' | 'mobile_money' | 'card';
+  bankAccountId?: string;
+  reference?: string;
+  description?: string;
+  status: 'draft' | 'pending_approval' | 'approved' | 'executed' | 'rejected' | 'cancelled';
+  approvedBy?: string;
+  approvedAt?: string;
+  executedAt?: string;
+  journalEntryId?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DBCashRegisterSession {
+  id: string;
+  companyId: string;
+  cashAccountId: string;
+  cashierId: string;
+  openedAt: string;
+  closedAt?: string;
+  openingBalance: number;
+  closingBalanceComputed?: number;
+  closingBalanceCounted?: number;
+  discrepancy?: number;
+  discrepancyJournalEntryId?: string;
+  status: 'open' | 'closed' | 'reconciled';
+  notes?: string;
+  createdAt: string;
+}
+
+export interface DBCashMovement {
+  id: string;
+  companyId: string;
+  sessionId: string;
+  type: 'receipt' | 'disbursement' | 'supply_from_bank' | 'deposit_to_bank';
+  amount: number;
+  paymentMethod: 'cash' | 'mobile_money' | 'card';
+  reference?: string;
+  description?: string;
+  thirdPartyId?: string;
+  journalEntryId?: string;
+  createdAt: string;
+}
+
+export interface DBLoanSchedule {
+  id: string;
+  companyId: string;
+  loanId: string;
+  installmentNumber: number;
+  dueDate: string;
+  principalAmount: number;
+  interestAmount: number;
+  totalAmount: number;
+  remainingBalance: number;
+  status: 'pending' | 'paid' | 'overdue';
+  journalEntryId?: string;
+  paidAt?: string;
+  createdAt: string;
+}
+
+export interface DBCheck {
+  id: string;
+  companyId: string;
+  direction: 'incoming' | 'outgoing';
+  checkNumber: string;
+  bankName: string;
+  amount: number;
+  thirdPartyId?: string;
+  issueDate: string;
+  depositDate?: string;
+  clearanceDate?: string;
+  status: 'received' | 'deposited' | 'cleared' | 'bounced' | 'cancelled' | 'issued' | 'cashed';
+  bounceReason?: string;
+  journalEntryId?: string;
+  bounceJournalEntryId?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ============================================================================
+// CORRECTION #8 — PURCHASE ORDERS
+// ============================================================================
+
+export interface DBPurchaseOrder {
+  id: string;
+  companyId: string;
+  supplierId: string;
+  orderNumber: string;
+  orderDate: string;
+  status: 'draft' | 'approved' | 'partially_received' | 'received' | 'cancelled';
+  lines: Array<{
+    description: string;
+    quantity: number;
+    unitPrice: number;
+    account: string;
+    vatRate: number;
+  }>;
+  totalHt: number;
+  totalVat: number;
+  totalTtc: number;
+  approvedBy?: string;
+  approvedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DBGoodsReceipt {
+  id: string;
+  companyId: string;
+  purchaseOrderId: string;
+  receiptNumber: string;
+  receiptDate: string;
+  lines: Array<{
+    poLineIndex: number;
+    quantityReceived: number;
+  }>;
+  status: 'draft' | 'validated';
+  createdAt: string;
+}
+
+// ============================================================================
+// CORRECTION #11 — OFF-BALANCE COMMITMENTS
+// ============================================================================
+
+export interface DBOffBalanceCommitment {
+  id: string;
+  companyId: string;
+  type: 'guarantee_given' | 'guarantee_received' | 'mortgage' | 'pledge' | 'lease_commitment' | 'bank_guarantee' | 'letter_of_credit' | 'other';
+  counterparty: string;
+  description: string;
+  amount: number;
+  currency: string;
+  startDate: string;
+  endDate?: string;
+  status: 'active' | 'expired' | 'released';
+  referenceDocument?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ============================================================================
 // DATABASE
 // ============================================================================
 
@@ -406,6 +568,17 @@ class AtlasFinanceDB extends Dexie {
   taxRegistry!: Table<DBTaxRegistry, string>;
   taxDeclarations!: Table<DBTaxDeclaration, string>;
   taxBrackets!: Table<DBTaxBracket, string>;
+  // Correction #3 — Payment & Cash
+  paymentOrders!: Table<DBPaymentOrder, string>;
+  cashRegisterSessions!: Table<DBCashRegisterSession, string>;
+  cashMovements!: Table<DBCashMovement, string>;
+  loanSchedules!: Table<DBLoanSchedule, string>;
+  checks!: Table<DBCheck, string>;
+  // Correction #8 — Purchase Orders
+  purchaseOrders!: Table<DBPurchaseOrder, string>;
+  goodsReceipts!: Table<DBGoodsReceipt, string>;
+  // Correction #11 — Off-Balance Commitments
+  offBalanceCommitments!: Table<DBOffBalanceCommitment, string>;
   constructor() {
     super('AtlasFinanceDB');
     this.version(1).stores({
@@ -550,6 +723,41 @@ class AtlasFinanceDB extends Dexie {
       taxRegistry: 'id, countryCode, taxCode, taxCategory, isActive, [countryCode+taxCode]',
       taxDeclarations: 'id, taxRegistryId, taxCode, periodStart, status, fiscalYear, [taxCode+periodStart]',
       taxBrackets: 'id, taxRegistryId, countryCode, fiscalYear',
+    });
+    this.version(9).stores({
+      journalEntries: 'id, entryNumber, journal, date, status, [journal+date], reversalOf',
+      accounts: 'id, code, accountClass, parentCode',
+      thirdParties: 'id, code, type, name',
+      assets: 'id, code, category, status',
+      fiscalYears: 'id, startDate, endDate, isActive',
+      budgetLines: 'id, accountCode, fiscalYear, period',
+      auditLogs: 'id, timestamp, action, entityType, entityId',
+      settings: 'key',
+      closureSessions: 'id, type, exercice, statut, dateDebut, dateFin',
+      provisions: 'id, sessionId, compteClient, statut',
+      exchangeRates: 'id, fromCurrency, toCurrency, date, [fromCurrency+toCurrency+date]',
+      hedgingPositions: 'id, currency, type, status, maturityDate',
+      revisionItems: 'id, sessionId, accountCode, status, isaAssertion',
+      inventoryItems: 'id, code, name, category, location, status',
+      stockMovements: 'id, itemId, date, type, reference, [itemId+date]',
+      aliasTiers: 'id, alias, prefix',
+      aliasPrefixConfig: 'id, sousCompteCode, prefix',
+      fiscalPeriods: 'id, fiscalYearId, code, type, status, startDate',
+      recoveryCases: 'id, numeroRef, clientId, statut, dateOuverture',
+      taxRegistry: 'id, countryCode, taxCode, taxCategory, isActive, [countryCode+taxCode]',
+      taxDeclarations: 'id, taxRegistryId, taxCode, periodStart, status, fiscalYear, [taxCode+periodStart]',
+      taxBrackets: 'id, taxRegistryId, countryCode, fiscalYear',
+      // Correction #3 — Payment & Cash
+      paymentOrders: 'id, companyId, orderNumber, status, beneficiaryType, [companyId+status]',
+      cashRegisterSessions: 'id, companyId, cashAccountId, status, openedAt',
+      cashMovements: 'id, companyId, sessionId, type, createdAt',
+      loanSchedules: 'id, companyId, loanId, installmentNumber, status, dueDate',
+      checks: 'id, companyId, direction, status, checkNumber, [companyId+direction+status]',
+      // Correction #8 — Purchase Orders
+      purchaseOrders: 'id, companyId, supplierId, orderNumber, status, [companyId+status]',
+      goodsReceipts: 'id, companyId, purchaseOrderId, receiptNumber',
+      // Correction #11 — Off-Balance Commitments
+      offBalanceCommitments: 'id, companyId, type, status, [companyId+status]',
     });
   }
 }

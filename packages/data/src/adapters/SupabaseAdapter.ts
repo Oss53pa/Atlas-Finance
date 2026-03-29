@@ -37,6 +37,17 @@ const TABLE_MAP: Record<TableName, string> = {
   taxRegistry: 'tax_registry',
   taxDeclarations: 'tax_declarations',
   taxBrackets: 'tax_brackets',
+  // Correction #3 — Payment & Cash
+  paymentOrders: 'payment_orders',
+  cashRegisterSessions: 'cash_register_sessions',
+  cashMovements: 'cash_movements',
+  loanSchedules: 'loan_schedules',
+  checks: 'checks_register',
+  // Correction #8 — Purchase Orders
+  purchaseOrders: 'purchase_orders',
+  goodsReceipts: 'goods_receipts',
+  // Correction #11 — Off-Balance
+  offBalanceCommitments: 'off_balance_commitments',
 }
 
 export class SupabaseAdapter implements DataAdapter {

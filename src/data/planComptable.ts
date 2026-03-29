@@ -38,7 +38,13 @@ export const planComptableSYSCOHADA: CompteComptable[] = [
   { code: '2182', libelle: 'Matériel de transport', categorie: 'Immobilisations corporelles', nature: 'debit', actif: true, keywords: ['véhicule', 'voiture', 'camion', 'transport'] },
   { code: '2184', libelle: 'Matériel technique', categorie: 'Immobilisations corporelles', nature: 'debit', actif: true, keywords: ['machine', 'technique'] },
 
+  { code: '162', libelle: 'Emprunts et dettes auprès des établissements de crédit', categorie: 'Dettes financières', nature: 'credit', actif: true, keywords: ['emprunt', 'dette', 'banque', 'crédit'] },
+  { code: '232', libelle: 'Immobilisations corporelles en cours', categorie: 'Immobilisations en cours', nature: 'debit', actif: true, keywords: ['en-cours', 'construction', 'chantier'] },
+  { code: '237', libelle: 'Avances et acomptes versés sur immobilisations', categorie: 'Immobilisations en cours', nature: 'debit', actif: true },
+  { code: '272', libelle: 'Prêts au personnel', categorie: 'Immobilisations financières', nature: 'debit', actif: true, keywords: ['prêt', 'personnel', 'salarié'] },
   { code: '275000', libelle: 'Dépôts et cautionnements reçus', categorie: 'Passif non courant', sousCategorie: 'Dettes diverses', nature: 'credit', actif: true, keywords: ['dépôt', 'garantie', 'caution', 'cautionnement'] },
+  { code: '291', libelle: 'Dépréciation des immobilisations incorporelles', categorie: 'Dépréciations immobilisations', nature: 'credit', actif: true, keywords: ['dépréciation', 'immobilisation'] },
+  { code: '292', libelle: 'Dépréciation des immobilisations corporelles', categorie: 'Dépréciations immobilisations', nature: 'credit', actif: true, keywords: ['dépréciation', 'immobilisation'] },
 
   // AMORTISSEMENTS
   { code: '281', libelle: 'Amortissements des immobilisations incorporelles', categorie: 'Amortissements', nature: 'credit', actif: true },
@@ -84,34 +90,53 @@ export const planComptableSYSCOHADA: CompteComptable[] = [
   { code: '418', libelle: 'Clients - Produits non encore facturés', categorie: 'Créances clients', nature: 'debit', actif: true },
 
   { code: '421', libelle: 'Personnel - Rémunérations dues', categorie: 'Dettes sociales', nature: 'credit', actif: true, keywords: ['salaire', 'personnel', 'paie'] },
+  { code: '4211', libelle: 'Personnel - Rémunérations dues', categorie: 'Dettes sociales', nature: 'credit', actif: true, keywords: ['salaire', 'net', 'paie'] },
+  { code: '4212', libelle: 'Personnel - Avances et acomptes versés', categorie: 'Créances', nature: 'debit', actif: true, keywords: ['avance', 'acompte', 'personnel'] },
   { code: '422', libelle: 'Personnel - Œuvres sociales', categorie: 'Dettes sociales', nature: 'credit', actif: true },
   { code: '423', libelle: 'Personnel - Participation', categorie: 'Dettes sociales', nature: 'credit', actif: true },
   { code: '424', libelle: 'Personnel - Œuvres sociales du CE', categorie: 'Dettes sociales', nature: 'credit', actif: true },
   { code: '425', libelle: 'Personnel - Avances et acomptes', categorie: 'Créances', nature: 'debit', actif: true },
   { code: '426', libelle: 'Personnel - Dépôts', categorie: 'Dettes', nature: 'credit', actif: true },
   { code: '427', libelle: 'Personnel - Oppositions', categorie: 'Dettes sociales', nature: 'credit', actif: true },
+  { code: '4282', libelle: 'Dettes provisionnées pour congés payés', categorie: 'Dettes sociales', nature: 'credit', actif: true, keywords: ['congés', 'provision', 'payés'] },
+  { code: '4286', libelle: 'Dettes provisionnées pour 13ème mois', categorie: 'Dettes sociales', nature: 'credit', actif: true, keywords: ['13ème', 'gratification', 'provision'] },
 
   { code: '431', libelle: 'Sécurité Sociale', categorie: 'Dettes sociales', nature: 'credit', actif: true, keywords: ['cnps', 'sécurité', 'sociale'] },
+  { code: '4311', libelle: 'CNPS part salariale', categorie: 'Dettes sociales', nature: 'credit', actif: true, keywords: ['cnps', 'salariale'] },
+  { code: '4312', libelle: 'CNPS part patronale', categorie: 'Dettes sociales', nature: 'credit', actif: true, keywords: ['cnps', 'patronale'] },
   { code: '432', libelle: 'Caisse de retraite', categorie: 'Dettes sociales', nature: 'credit', actif: true },
   { code: '433', libelle: 'Autres organismes sociaux', categorie: 'Dettes sociales', nature: 'credit', actif: true },
 
   { code: '441', libelle: 'État - Subventions à recevoir', categorie: 'Créances État', nature: 'debit', actif: true },
   { code: '442', libelle: 'État - Impôts et taxes recouvrables', categorie: 'Créances État', nature: 'debit', actif: true },
   { code: '443', libelle: 'État - TVA facturée', categorie: 'Dettes État', nature: 'credit', actif: true, keywords: ['tva', 'taxe'] },
+  { code: '4431', libelle: 'TVA collectée 18%', categorie: 'Dettes État', nature: 'credit', actif: true, keywords: ['tva', 'collectée'] },
   { code: '444', libelle: 'État - TVA due', categorie: 'Dettes État', nature: 'credit', actif: true },
   { code: '445', libelle: 'État - TVA récupérable', categorie: 'Créances État', nature: 'debit', actif: true },
   { code: '4456', libelle: 'TVA déductible sur immobilisations', categorie: 'Créances État', nature: 'debit', actif: true },
   { code: '44562', libelle: 'TVA déductible sur autres biens et services', categorie: 'Créances État', nature: 'debit', actif: true },
   { code: '447', libelle: 'État - Autres impôts, taxes et versements', categorie: 'Dettes État', nature: 'credit', actif: true },
+  { code: '4471', libelle: 'État - ITS (Impôt sur Traitements et Salaires)', categorie: 'Dettes État', nature: 'credit', actif: true, keywords: ['its', 'impôt', 'salaire'] },
+  { code: '4472', libelle: 'État - CN (Contribution Nationale)', categorie: 'Dettes État', nature: 'credit', actif: true, keywords: ['cn', 'contribution', 'nationale'] },
+  { code: '4473', libelle: 'État - IGR (Impôt Général sur le Revenu)', categorie: 'Dettes État', nature: 'credit', actif: true, keywords: ['igr', 'impôt', 'revenu'] },
+  { code: '4474', libelle: 'État - FDFP', categorie: 'Dettes État', nature: 'credit', actif: true, keywords: ['fdfp', 'formation'] },
+  { code: '449', libelle: 'État - Créances fiscales', categorie: 'Créances État', nature: 'debit', actif: true },
+  { code: '4492', libelle: 'Acomptes IS versés', categorie: 'Créances État', nature: 'debit', actif: true, keywords: ['acompte', 'is', 'impôt', 'bénéfice'] },
+  { code: '476', libelle: 'Charges constatées d\'avance', categorie: 'Comptes de régularisation', nature: 'debit', actif: true, keywords: ['CCA', 'charge', 'avance'] },
+  { code: '4761', libelle: 'Écarts de conversion - Actif', categorie: 'Comptes de régularisation', nature: 'debit', actif: true, keywords: ['écart', 'conversion', 'devise'] },
+  { code: '4771', libelle: 'Écarts de conversion - Passif', categorie: 'Comptes de régularisation', nature: 'credit', actif: true, keywords: ['écart', 'conversion', 'devise'] },
+  { code: '491', libelle: 'Dépréciation des comptes de clients', categorie: 'Dépréciations créances', nature: 'credit', actif: true, keywords: ['dépréciation', 'créance', 'client', 'provision'] },
 
   { code: '477000', libelle: 'Produits constatés d\'avance', categorie: 'Passif courant', sousCategorie: 'Comptes de régularisation', nature: 'credit', actif: true, keywords: ['PCA', 'produits', 'avance', 'constatés', 'étalement'] },
 
   // CLASSE 5 - COMPTES DE TRESORERIE
+  { code: '5112', libelle: 'Chèques à encaisser', categorie: 'Valeurs à l\'encaissement', nature: 'debit', actif: true, keywords: ['chèque', 'encaisser', 'remise'] },
   { code: '521', libelle: 'Banques locales', categorie: 'Disponibilités', nature: 'debit', actif: true, keywords: ['banque', 'compte', 'dépôt'] },
   { code: '522', libelle: 'Banques étrangères', categorie: 'Disponibilités', nature: 'debit', actif: true },
   { code: '531', libelle: 'Chèques postaux', categorie: 'Disponibilités', nature: 'debit', actif: true },
   { code: '541', libelle: 'Trésorerie générale', categorie: 'Disponibilités', nature: 'debit', actif: true },
   { code: '571', libelle: 'Caisse', categorie: 'Disponibilités', nature: 'debit', actif: true, keywords: ['caisse', 'espèces', 'liquide'] },
+  { code: '585', libelle: 'Virements internes de trésorerie', categorie: 'Virements internes', nature: 'debit', actif: true, keywords: ['virement', 'interne', 'transfert'] },
 
   // CLASSE 6 - COMPTES DE CHARGES
   // 60 - ACHATS ET VARIATIONS DE STOCKS
@@ -178,27 +203,40 @@ export const planComptableSYSCOHADA: CompteComptable[] = [
   { code: '627', libelle: 'Services bancaires et assimilés', categorie: 'Autres services extérieurs', nature: 'debit', actif: true, keywords: ['banque', 'frais'] },
   { code: '628', libelle: 'Cotisations et divers', categorie: 'Autres services extérieurs', nature: 'debit', actif: true },
 
-  { code: '631', libelle: 'Impôts, taxes et versements assimilés sur rémunérations', categorie: 'Impôts et taxes', nature: 'debit', actif: true },
+  { code: '631', libelle: 'Frais bancaires', categorie: 'Charges financières', nature: 'debit', actif: true, keywords: ['frais', 'bancaires', 'agios'] },
+  { code: '6312', libelle: 'Frais sur effets impayés', categorie: 'Charges financières', nature: 'debit', actif: true, keywords: ['impayé', 'chèque', 'rejet'] },
   { code: '633', libelle: 'Impôts, taxes et versements assimilés sur rémunérations', categorie: 'Impôts et taxes', nature: 'debit', actif: true },
   { code: '635', libelle: 'Autres impôts, taxes et versements assimilés', categorie: 'Impôts et taxes', nature: 'debit', actif: true },
+  { code: '642', libelle: 'Contribution foncière des propriétés bâties', categorie: 'Impôts et taxes', nature: 'debit', actif: true, keywords: ['foncier', 'propriété', 'taxe'] },
 
+  { code: '6411', libelle: 'Appointements et salaires', categorie: 'Charges de personnel', nature: 'debit', actif: true, keywords: ['salaire', 'appointement', 'rémunération'] },
+  { code: '6412', libelle: 'Primes et indemnités', categorie: 'Charges de personnel', nature: 'debit', actif: true, keywords: ['prime', 'indemnité', 'bonus'] },
+  { code: '6414', libelle: 'Provision congés payés', categorie: 'Charges de personnel', nature: 'debit', actif: true, keywords: ['congés', 'provision'] },
+  { code: '6418', libelle: 'Provision 13ème mois', categorie: 'Charges de personnel', nature: 'debit', actif: true, keywords: ['13ème', 'mois', 'gratification'] },
   { code: '641', libelle: 'Rémunérations du personnel', categorie: 'Charges de personnel', nature: 'debit', actif: true, keywords: ['salaire', 'rémunération'] },
+  { code: '6421', libelle: 'Charges sociales CNPS patronales', categorie: 'Charges de personnel', nature: 'debit', actif: true, keywords: ['cnps', 'patronale', 'cotisation'] },
+  { code: '6422', libelle: 'Charges sociales FDFP', categorie: 'Charges de personnel', nature: 'debit', actif: true, keywords: ['fdfp', 'formation', 'apprentissage'] },
   { code: '645', libelle: 'Charges de sécurité sociale et de prévoyance', categorie: 'Charges de personnel', nature: 'debit', actif: true },
   { code: '646', libelle: 'Cotisations sociales', categorie: 'Charges de personnel', nature: 'debit', actif: true },
   { code: '647', libelle: 'Autres charges sociales', categorie: 'Charges de personnel', nature: 'debit', actif: true },
   { code: '648', libelle: 'Autres charges de personnel', categorie: 'Charges de personnel', nature: 'debit', actif: true },
+  { code: '6430', libelle: 'Indemnités et avantages divers', categorie: 'Charges de personnel', nature: 'debit', actif: true, keywords: ['indemnité', 'avantage'] },
 
-  { code: '651', libelle: 'Redevances pour concessions, brevets', categorie: 'Autres charges', nature: 'debit', actif: true },
+  { code: '651', libelle: 'Pertes sur créances irrécouvrables', categorie: 'Autres charges', nature: 'debit', actif: true, keywords: ['créance', 'irrécouvrable', 'perte'] },
+  { code: '6593', libelle: 'Dotation pour dépréciation des stocks', categorie: 'Dotations', nature: 'debit', actif: true, keywords: ['stock', 'dépréciation', 'provision'] },
   { code: '658', libelle: 'Charges diverses', categorie: 'Autres charges', nature: 'debit', actif: true },
 
   { code: '661', libelle: 'Charges d\'intérêts', categorie: 'Charges financières', nature: 'debit', actif: true },
+  { code: '6611', libelle: 'Intérêts des emprunts', categorie: 'Charges financières', nature: 'debit', actif: true, keywords: ['intérêt', 'emprunt'] },
   { code: '667', libelle: 'Escomptes accordés', categorie: 'Charges financières', nature: 'debit', actif: true },
   { code: '668', libelle: 'Autres charges financières', categorie: 'Charges financières', nature: 'debit', actif: true },
+  { code: '676', libelle: 'Pertes de change', categorie: 'Charges financières', nature: 'debit', actif: true, keywords: ['perte', 'change', 'devise'] },
 
   { code: '681', libelle: 'Dotations aux amortissements', categorie: 'Dotations', nature: 'debit', actif: true, keywords: ['amortissement', 'dotation'] },
   { code: '6811', libelle: 'Dotations amortissements immobilisations incorporelles', categorie: 'Dotations', nature: 'debit', actif: true },
   { code: '6812', libelle: 'Dotations amortissements immobilisations corporelles', categorie: 'Dotations', nature: 'debit', actif: true },
   { code: '686', libelle: 'Dotations aux provisions', categorie: 'Dotations', nature: 'debit', actif: true },
+  { code: '6914', libelle: 'Dotations aux dépréciations des immobilisations', categorie: 'Dotations', nature: 'debit', actif: true, keywords: ['dépréciation', 'immobilisation', 'test'] },
 
   // CLASSE 7 - COMPTES DE PRODUITS
   { code: '701', libelle: 'Ventes de marchandises', categorie: 'Ventes', nature: 'credit', actif: true, keywords: ['vente', 'chiffre', 'affaires'] },
@@ -227,10 +265,14 @@ export const planComptableSYSCOHADA: CompteComptable[] = [
 
   { code: '754', libelle: 'Produits exceptionnels sur opérations de gestion', categorie: 'Produits exceptionnels', nature: 'credit', actif: true },
   { code: '758', libelle: 'Produits exceptionnels divers', categorie: 'Produits exceptionnels', nature: 'credit', actif: true },
-  { code: '771', libelle: 'Produits exceptionnels sur opérations en capital', categorie: 'Produits exceptionnels', nature: 'credit', actif: true },
+  { code: '771', libelle: 'Intérêts de prêts et créances', categorie: 'Produits financiers', nature: 'credit', actif: true, keywords: ['intérêt', 'créditeur', 'banque'] },
   { code: '775', libelle: 'Produits des cessions d\'immobilisations', categorie: 'Produits exceptionnels', nature: 'credit', actif: true },
+  { code: '776', libelle: 'Gains de change', categorie: 'Produits financiers', nature: 'credit', actif: true, keywords: ['gain', 'change', 'devise'] },
   { code: '781', libelle: 'Reprises d\'amortissements', categorie: 'Reprises', nature: 'credit', actif: true },
   { code: '786', libelle: 'Reprises de provisions', categorie: 'Reprises', nature: 'credit', actif: true },
+  { code: '7594', libelle: 'Reprises de provisions pour dépréciation des créances', categorie: 'Reprises', nature: 'credit', actif: true, keywords: ['reprise', 'provision', 'créance'] },
+  { code: '7914', libelle: 'Reprises de dépréciations des immobilisations', categorie: 'Reprises', nature: 'credit', actif: true, keywords: ['reprise', 'dépréciation', 'immobilisation'] },
+  { code: '791', libelle: 'Transferts de charges d\'exploitation', categorie: 'Transferts', nature: 'credit', actif: true, keywords: ['transfert', 'charges'] },
 
   // CLASSE 8 - COMPTES DE CHARGES ET PRODUITS HAO
   { code: '811', libelle: 'Valeurs comptables cessions immo. incorporelles', categorie: 'Valeurs comptables cessions', nature: 'debit', actif: true, keywords: ['cession', 'VNC', 'immobilisation'] },

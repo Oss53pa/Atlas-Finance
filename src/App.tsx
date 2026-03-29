@@ -199,6 +199,18 @@ const InventoryMovements = lazyRetry(() => import('./pages/inventory/InventoryMo
 const PhysicalInventory = lazyRetry(() => import('./pages/inventory/PhysicalInventory'));
 const InventoryValuation = lazyRetry(() => import('./pages/inventory/InventoryValuation'));
 
+// Treasury extensions (Correction #3)
+const PaymentOrdersPage = lazyRetry(() => import('./pages/treasury/PaymentOrdersPage'));
+const CashRegisterPage = lazyRetry(() => import('./pages/treasury/CashRegisterPage'));
+const LoanSchedulePage = lazyRetry(() => import('./pages/treasury/LoanSchedulePage'));
+const ChecksRegisterPage = lazyRetry(() => import('./pages/treasury/ChecksRegisterPage'));
+
+// Cross Controls (Module P)
+const CrossControlsPage = lazyRetry(() => import('./pages/accounting/CrossControlsPage'));
+
+// Off-Balance Commitments (Correction #11)
+const OffBalanceCommitmentsPage = lazyRetry(() => import('./pages/closures/OffBalanceCommitmentsPage'));
+
 // Settings
 const AccountingSettingsPage = lazyRetry(() => import('./pages/settings/AccountingSettingsPage'));
 const BackupPage = lazyRetry(() => import('./pages/settings/BackupPage'));
@@ -325,6 +337,7 @@ function App() {
                           <Route path="/accounting/cash-flow" element={<CashFlowPageAccounting />} />
                           <Route path="/accounting/ratios" element={<FinancialRatiosPage />} />
                           <Route path="/accounting/reports" element={<ReportsPageAccounting />} />
+                          <Route path="/accounting/cross-controls" element={<CrossControlsPage />} />
                         </Route>
 
                         {/* Tiers */}
@@ -355,6 +368,10 @@ function App() {
                           <Route path="/treasury/payments" element={<GestionPaiementsPage />} />
                           <Route path="/treasury/forecast" element={<PrevisionsTresoreriePage />} />
                           <Route path="/treasury/position" element={<PositionTresoreriePage />} />
+                          <Route path="/treasury/payment-orders" element={<PaymentOrdersPage />} />
+                          <Route path="/treasury/cash-register" element={<CashRegisterPage />} />
+                          <Route path="/treasury/loan-schedule" element={<LoanSchedulePage />} />
+                          <Route path="/treasury/checks" element={<ChecksRegisterPage />} />
                         </Route>
 
                         {/* Immobilisations */}
@@ -389,6 +406,7 @@ function App() {
                           <Route path="/closures/revisions" element={<RevisionsModule />} />
                           <Route path="/closures/carry-forward" element={<ReportsANouveauModule />} />
                           <Route path="/closures/audit-trail" element={<PisteAuditModule />} />
+                          <Route path="/closures/off-balance" element={<OffBalanceCommitmentsPage />} />
                         </Route>
 
                         {/* Etats financiers */}
