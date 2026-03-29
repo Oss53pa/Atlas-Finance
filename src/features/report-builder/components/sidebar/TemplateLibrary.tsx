@@ -41,7 +41,7 @@ const templates: ReportTemplate[] = [
     pageCount: 22,
     sections: ['Couverture', 'KPIs Exécutifs', 'Compte de Résultat', 'Trésorerie', 'Points d\'Attention'],
     generateBlocks: () => [
-      { id: uid(), type: 'cover', locked: false, style: { marginBottom: 0 }, companyName: 'Atlas Finance', reportTitle: 'Rapport Mensuel de Direction', subtitle: '', backgroundStyle: 'corporate-classic', confidentiality: 'confidentiel' } as ReportBlock,
+      { id: uid(), type: 'cover', locked: false, style: { marginBottom: 0 }, companyName: 'Atlas F&A', reportTitle: 'Rapport Mensuel de Direction', subtitle: '', backgroundStyle: 'corporate-classic', confidentiality: 'confidentiel' } as ReportBlock,
       { id: uid(), type: 'text', locked: false, style: { marginBottom: 16 }, content: 'Vue Exécutive', variant: 'h1', alignment: 'left' } as TextBlock,
       { id: uid(), type: 'kpi-grid', locked: false, style: { marginBottom: 16 }, columns: 4, kpis: [
         { label: 'Chiffre d\'Affaires', value: null, format: 'currency', showTrend: true, showSparkline: false, size: 'medium', locked: false, style: {}, source: 'kpi.ca_total' },
@@ -69,7 +69,7 @@ const templates: ReportTemplate[] = [
     pageCount: 14,
     sections: ['KPIs Clés', 'Tendances', 'Actions Requises'],
     generateBlocks: () => [
-      { id: uid(), type: 'cover', locked: false, style: { marginBottom: 0 }, companyName: 'Atlas Finance', reportTitle: 'Rapport EXCO', subtitle: 'Comité de Direction', backgroundStyle: 'executive-dark', confidentiality: 'confidentiel' } as ReportBlock,
+      { id: uid(), type: 'cover', locked: false, style: { marginBottom: 0 }, companyName: 'Atlas F&A', reportTitle: 'Rapport EXCO', subtitle: 'Comité de Direction', backgroundStyle: 'executive-dark', confidentiality: 'confidentiel' } as ReportBlock,
       { id: uid(), type: 'text', locked: false, style: { marginBottom: 12 }, content: 'Indicateurs Clés', variant: 'h1', alignment: 'left' } as TextBlock,
       { id: uid(), type: 'kpi-grid', locked: false, style: { marginBottom: 16 }, columns: 3, kpis: [
         { label: 'CA', value: null, format: 'currency', showTrend: true, showSparkline: false, size: 'large', locked: false, style: {} },
@@ -87,7 +87,7 @@ const templates: ReportTemplate[] = [
     pageCount: 48,
     sections: ['Bilan', 'Compte de Résultat', 'TAFIRE', 'SIG', 'Ratios', 'Annexes'],
     generateBlocks: () => [
-      { id: uid(), type: 'cover', locked: false, style: { marginBottom: 0 }, companyName: 'Atlas Finance', reportTitle: 'Rapport Annuel', subtitle: 'Exercice 2025', backgroundStyle: 'finance-modern', confidentiality: 'confidentiel' } as ReportBlock,
+      { id: uid(), type: 'cover', locked: false, style: { marginBottom: 0 }, companyName: 'Atlas F&A', reportTitle: 'Rapport Annuel', subtitle: 'Exercice 2025', backgroundStyle: 'finance-modern', confidentiality: 'confidentiel' } as ReportBlock,
       { id: uid(), type: 'text', locked: false, style: { marginBottom: 12 }, content: 'Bilan SYSCOHADA', variant: 'h1', alignment: 'left' } as TextBlock,
       { id: uid(), type: 'table', locked: false, style: { marginBottom: 12 }, title: 'Bilan Actif', source: 'financial.bilan_actif', columns: [{ key: 'label', label: 'Poste', align: 'left', format: 'text', visible: true }, { key: 'brut', label: 'Brut', align: 'right', format: 'currency', visible: true }, { key: 'amort', label: 'Amort./Prov.', align: 'right', format: 'currency', visible: true }, { key: 'net', label: 'Net N', align: 'right', format: 'currency', visible: true }, { key: 'net_n1', label: 'Net N-1', align: 'right', format: 'currency', visible: true }], rows: [], showHeader: true, showTotal: true, striped: false, bordered: true, highlightNegative: false } as TableBlock,
     ],
@@ -143,7 +143,7 @@ const templates: ReportTemplate[] = [
     pageCount: 6,
     sections: ['Synthèse', 'Bilan', 'Cash-Flow', 'Ratios'],
     generateBlocks: () => [
-      { id: uid(), type: 'cover', locked: false, style: { marginBottom: 0 }, companyName: 'Atlas Finance', reportTitle: 'Rapport Financier', subtitle: 'À l\'attention de nos partenaires bancaires', backgroundStyle: 'formal', confidentiality: 'confidentiel' } as ReportBlock,
+      { id: uid(), type: 'cover', locked: false, style: { marginBottom: 0 }, companyName: 'Atlas F&A', reportTitle: 'Rapport Financier', subtitle: 'À l\'attention de nos partenaires bancaires', backgroundStyle: 'formal', confidentiality: 'confidentiel' } as ReportBlock,
       { id: uid(), type: 'text', locked: false, style: { marginBottom: 12 }, content: 'Synthèse Financière', variant: 'h1', alignment: 'left' } as TextBlock,
     ],
   },

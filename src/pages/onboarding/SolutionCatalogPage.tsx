@@ -1,60 +1,28 @@
 // @ts-nocheck
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  Calculator, Users, Handshake, Package, FolderKanban, FileText, FolderOpen,
-  CheckCircle, ArrowRight, Sparkles, Zap
-} from 'lucide-react';
-import { getSolutions, getMySubscriptions, createSubscription } from '../../features/onboarding/services/onboardingService';
-import { toast } from 'react-hot-toast';
-
-const ICONS: Record<string, React.FC<{ className?: string }>> = {
-  calculator: Calculator, users: Users, handshake: Handshake,
-  package: Package, 'folder-kanban': FolderKanban,
-  'file-text': FileText, 'folder-open': FolderOpen,
-};
+import { CheckCircle, X, ArrowRight, Zap, Crown } from 'lucide-react';
+import { PLANS, FEATURE_MATRIX, type PlanTier } from '../../config/plans';
 
 const SolutionCatalogPage: React.FC = () => {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly');
 
-  const { data: solutions = [], isLoading } = useQuery({
-    queryKey: ['solutions'],
-    queryFn: getSolutions,
-  });
-
-  const { data: subscriptions = [] } = useQuery({
-    queryKey: ['my-subscriptions'],
-    queryFn: getMySubscriptions,
-  });
-
-  const activateMutation = useMutation({
-    mutationFn: (solutionId: string) => createSubscription(solutionId, 'free'),
-    onSuccess: (_, solutionId) => {
-      queryClient.invalidateQueries({ queryKey: ['my-subscriptions'] });
-      const sol = solutions.find(s => s.id === solutionId);
-      toast.success(`${sol?.name || 'Solution'} activée — essai gratuit 14 jours`);
-      navigate('/client');
-    },
-    onError: (err: Error) => toast.error(err.message),
-  });
-
-  const isSubscribed = (solutionId: string) =>
-    subscriptions.some(s => s.solution_id === solutionId && (s.status === 'active' || s.status === 'trialing'));
-
-  const formatPrice = (xof: number, eur: number) => {
-    return `${xof.toLocaleString('fr-FR')} FCFA / ${eur}€`;
+  const handleSelectPlan = (tier: PlanTier) => {
+    navigate(`/client/checkout/atlas-fna?plan=${tier}`);
   };
+
+  const formatXOF = (n: number) =>
+    n.toLocaleString('fr-FR', { maximumFractionDigits: 0 });
 
   return (
     <div className="min-h-screen bg-[#fafafa]">
       {/* Header */}
       <header className="bg-white border-b">
-        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <span className="atlas-brand text-2xl text-[#171717]">Atlas Studio</span>
+            <span className="text-gray-300 mx-1">/</span>
+            <span className="text-sm font-semibold text-gray-600">Atlas F&A</span>
           </div>
           <button onClick={() => navigate('/client')} className="text-sm text-gray-500 hover:text-gray-700">
             Retour au hub
@@ -62,103 +30,126 @@ const SolutionCatalogPage: React.FC = () => {
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-6 py-12">
-        <div className="text-center mb-10">
-          <h1 className="text-3xl font-bold text-[#171717]">Choisissez vos solutions</h1>
-          <p className="text-gray-500 mt-2">Activez un essai gratuit de 14 jours — sans engagement</p>
+      <main className="max-w-6xl mx-auto px-6 py-12">
+        {/* Title */}
+        <div className="text-center mb-12">
+          <h1 className="text-3xl font-bold text-[#171717]">Choisissez votre plan Atlas F&A</h1>
+          <p className="text-gray-500 mt-2">Comptabilité SYSCOHADA complète pour les entreprises africaines</p>
+        </div>
 
-          {/* Billing toggle */}
-          <div className="inline-flex items-center gap-1 bg-gray-100 rounded-lg p-1 mt-6">
-            <button
-              onClick={() => setBilling('monthly')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${billing === 'monthly' ? 'bg-white shadow text-[#171717]' : 'text-gray-500'}`}
-            >
-              Mensuel
-            </button>
-            <button
-              onClick={() => setBilling('yearly')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${billing === 'yearly' ? 'bg-white shadow text-[#171717]' : 'text-gray-500'}`}
-            >
-              Annuel <span className="text-green-600 text-xs ml-1">-17%</span>
-            </button>
+        {/* Plan cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-16">
+          {/* PME/TPE */}
+          <div className="bg-white rounded-2xl border-2 border-gray-200 overflow-hidden hover:border-gray-400 transition-all">
+            <div className="p-8">
+              <h3 className="text-xl font-bold text-[#171717]">{PLANS.pme.name}</h3>
+              <p className="text-sm text-gray-500 mt-1">{PLANS.pme.tagline}</p>
+              <div className="mt-6">
+                <span className="text-4xl font-bold text-[#171717]">{formatXOF(PLANS.pme.pricing.monthly_xof)}</span>
+                <span className="text-gray-400 ml-1">FCFA/mois</span>
+              </div>
+              <p className="text-sm text-gray-400 mt-1">~{PLANS.pme.pricing.monthly_eur} EUR &middot; 1 à {PLANS.pme.seats.included} utilisateurs</p>
+              <p className="text-xs text-gray-400 mt-0.5">Utilisateur suppl. : {formatXOF(PLANS.pme.pricing.extra_user_xof!)} FCFA/mois</p>
+              <button
+                onClick={() => handleSelectPlan('pme')}
+                className="w-full mt-6 py-3 border-2 border-[#171717] text-[#171717] rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+              >
+                <Zap className="w-4 h-4" /> Essai gratuit 14 jours
+              </button>
+            </div>
+          </div>
+
+          {/* Premium */}
+          <div className="bg-white rounded-2xl border-2 border-[#171717] overflow-hidden shadow-xl relative">
+            <div className="absolute top-0 right-0 bg-[#171717] text-white text-xs font-semibold px-4 py-1.5 rounded-bl-lg">
+              Populaire
+            </div>
+            <div className="p-8">
+              <div className="flex items-center gap-2">
+                <Crown className="w-5 h-5 text-amber-500" />
+                <h3 className="text-xl font-bold text-[#171717]">{PLANS.premium.name}</h3>
+              </div>
+              <p className="text-sm text-gray-500 mt-1">{PLANS.premium.tagline}</p>
+              <div className="mt-6">
+                <span className="text-4xl font-bold text-[#171717]">{formatXOF(PLANS.premium.pricing.monthly_xof)}</span>
+                <span className="text-gray-400 ml-1">FCFA/mois</span>
+              </div>
+              <p className="text-sm text-gray-400 mt-1">~{PLANS.premium.pricing.monthly_eur} EUR &middot; utilisateurs illimités</p>
+              <p className="text-xs text-gray-400 mt-0.5">Au-delà de 5 sociétés : sur devis</p>
+              <button
+                onClick={() => handleSelectPlan('premium')}
+                className="w-full mt-6 py-3 bg-[#171717] text-white rounded-lg text-sm font-semibold hover:bg-[#2a2a2a] transition-colors flex items-center justify-center gap-2"
+              >
+                <Zap className="w-4 h-4" /> Essai gratuit 14 jours
+              </button>
+            </div>
           </div>
         </div>
 
-        {isLoading ? (
-          <div className="text-center py-20 text-gray-400">Chargement...</div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {solutions.map(sol => {
-              const Icon = ICONS[sol.icon] || Calculator;
-              const subscribed = isSubscribed(sol.id);
-              const price = billing === 'monthly'
-                ? formatPrice(sol.price_monthly_xof, sol.price_monthly_eur)
-                : formatPrice(sol.price_yearly_xof, sol.price_yearly_eur);
+        {/* Feature comparison table */}
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-xl font-bold text-[#171717] mb-6 text-center">Comparaison détaillée des plans</h2>
 
-              return (
-                <div key={sol.id} className={`bg-white rounded-2xl border-2 overflow-hidden transition-all ${
-                  subscribed ? 'border-green-400 shadow-lg' : sol.is_active ? 'border-gray-200 hover:border-gray-400 hover:shadow-lg' : 'border-gray-100 opacity-60'
-                }`}>
-                  {/* Card header */}
-                  <div className="p-6" style={{ borderBottom: `3px solid ${sol.color}` }}>
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ backgroundColor: sol.color + '12' }}>
-                        <Icon className="w-6 h-6" style={{ color: sol.color }} />
-                      </div>
-                      {subscribed && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">
-                          <CheckCircle className="w-3.5 h-3.5" /> Actif
-                        </span>
+          <div className="bg-white rounded-2xl border overflow-hidden">
+            {/* Table header */}
+            <div className="grid grid-cols-[1fr_120px_120px] bg-gray-50 border-b">
+              <div className="px-6 py-4 text-sm font-semibold text-gray-500">Fonctionnalité</div>
+              <div className="px-4 py-4 text-sm font-semibold text-gray-700 text-center">PME / TPE</div>
+              <div className="px-4 py-4 text-sm font-semibold text-gray-700 text-center">
+                Premium
+              </div>
+            </div>
+
+            {FEATURE_MATRIX.map((cat, ci) => (
+              <div key={ci}>
+                {/* Category header */}
+                <div className="px-6 py-3 bg-gray-50/50 border-b border-t">
+                  <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">{cat.category}</span>
+                </div>
+                {/* Items */}
+                {cat.items.map((item, ii) => (
+                  <div key={ii} className="grid grid-cols-[1fr_120px_120px] border-b last:border-b-0 hover:bg-gray-50/50">
+                    <div className="px-6 py-3 text-sm text-gray-700">{item.label}</div>
+                    <div className="px-4 py-3 flex items-center justify-center">
+                      {item.pme ? (
+                        <CheckCircle className="w-5 h-5 text-green-500" />
+                      ) : (
+                        <X className="w-4 h-4 text-gray-300" />
                       )}
                     </div>
-                    <h3 className="text-lg font-bold text-[#171717]">{sol.name}</h3>
-                    <p className="text-sm text-gray-500 mt-1 line-clamp-2">{sol.description}</p>
+                    <div className="px-4 py-3 flex items-center justify-center">
+                      {item.premium ? (
+                        <CheckCircle className="w-5 h-5 text-green-500" />
+                      ) : (
+                        <X className="w-4 h-4 text-gray-300" />
+                      )}
+                    </div>
                   </div>
+                ))}
+              </div>
+            ))}
 
-                  {/* Price */}
-                  <div className="px-6 py-4 bg-gray-50">
-                    <div className="text-sm text-gray-500">{billing === 'monthly' ? 'Par mois' : 'Par an'}</div>
-                    <div className="text-lg font-bold text-[#171717]">{price}</div>
-                  </div>
-
-                  {/* Features */}
-                  <div className="px-6 py-4">
-                    <ul className="space-y-2">
-                      {(sol.features || []).slice(0, 5).map((f, i) => (
-                        <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
-                          <CheckCircle className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
-                          {f}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  {/* CTA */}
-                  <div className="px-6 pb-6">
-                    {subscribed ? (
-                      <button onClick={() => navigate('/client')}
-                        className="w-full py-3 bg-green-600 text-white rounded-lg text-sm font-semibold flex items-center justify-center gap-2">
-                        Ouvrir <ArrowRight className="w-4 h-4" />
-                      </button>
-                    ) : sol.is_active ? (
-                      <button
-                        onClick={() => activateMutation.mutate(sol.id)}
-                        disabled={activateMutation.isPending}
-                        className="w-full py-3 bg-[#171717] text-white rounded-lg text-sm font-semibold hover:bg-[#333] transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-                      >
-                        <Zap className="w-4 h-4" /> Essai gratuit 14 jours
-                      </button>
-                    ) : (
-                      <div className="w-full py-3 bg-gray-100 text-gray-400 rounded-lg text-sm font-medium text-center">
-                        Bientôt disponible
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+            {/* Pricing row */}
+            <div className="grid grid-cols-[1fr_120px_120px] bg-[#171717]">
+              <div className="px-6 py-5 text-sm font-bold text-white">Prix</div>
+              <div className="px-4 py-5 text-center">
+                <div className="text-lg font-bold text-white">{formatXOF(49000)}</div>
+                <div className="text-xs text-gray-400">FCFA/mois</div>
+              </div>
+              <div className="px-4 py-5 text-center">
+                <div className="text-lg font-bold text-white">{formatXOF(250000)}</div>
+                <div className="text-xs text-gray-400">FCFA/mois</div>
+              </div>
+            </div>
           </div>
-        )}
+        </div>
+
+        {/* CTA */}
+        <div className="text-center mt-12">
+          <p className="text-sm text-gray-400">
+            Essai gratuit 14 jours, sans engagement &middot; Paiement par Mobile Money, virement ou carte
+          </p>
+        </div>
       </main>
     </div>
   );

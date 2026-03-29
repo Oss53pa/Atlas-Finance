@@ -135,9 +135,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!isSupabaseConfigured || isDev) {
       // Dev mode : simuler le login avec le bon rôle selon l'email
       const devAccounts: Record<string, { name: string; role: User['role']; permissions: string[] }> = {
-        'admin@atlasfinance.cm':       { name: 'Admin Atlas',      role: 'admin',     permissions: ['read:all', 'write:all', 'delete:all', 'admin:all'] },
-        'manager@atlasfinance.com':    { name: 'Manager Atlas',    role: 'manager',   permissions: ['read:all', 'write:all'] },
-        'comptable@atlasfinance.com':  { name: 'Comptable Atlas',  role: 'comptable', permissions: ['read:all', 'write:all'] },
+        'admin@atlasfna.cm':       { name: 'Admin Atlas',      role: 'admin',     permissions: ['read:all', 'write:all', 'delete:all', 'admin:all'] },
+        'manager@atlasfna.com':    { name: 'Manager Atlas',    role: 'manager',   permissions: ['read:all', 'write:all'] },
+        'comptable@atlasfna.com':  { name: 'Comptable Atlas',  role: 'comptable', permissions: ['read:all', 'write:all'] },
       };
       const account = devAccounts[email.toLowerCase()];
       if (!account) {
@@ -149,7 +149,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email: email.toLowerCase(),
         role: account.role,
         permissions: account.permissions,
-        company: 'Atlas Finance',
+        company: 'Atlas F&A',
       };
       setUser(devUser);
       sessionStorage.setItem('atlas-dev-user', JSON.stringify(devUser));

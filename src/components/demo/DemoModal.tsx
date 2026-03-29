@@ -19,7 +19,7 @@ interface DemoModalProps {
 type DemoView = 'menu' | 'interactive-entry' | 'interactive-bilan' | 'interactive-tax' | 'guided' | 'tutorials' | 'live';
 
 const INTERACTIVE_DEMOS = {
-  'atlas-finance': [
+  'atlas-fna': [
     { id: 'interactive-entry', icon: Calculator, title: 'Saisie d\'écriture comptable', desc: 'Créez une écriture multi-lignes avec contrôle D=C automatique, sélection de comptes SYSCOHADA, équilibrage intelligent.', tags: ['SYSCOHADA', 'Temps réel', 'Multi-journaux'] },
     { id: 'interactive-bilan', icon: BarChart3, title: 'Bilan SYSCOHADA interactif', desc: 'Explorez un bilan complet avec drill-down par poste. Actif immobilisé, circulant, trésorerie vs capitaux propres, dettes.', tags: ['Drill-down', 'Actif/Passif', 'Équilibre'] },
     { id: 'interactive-tax', icon: Shield, title: 'Calcul TVA automatique', desc: 'Regardez le moteur fiscal scanner vos écritures et calculer la TVA collectée, déductible et nette à payer en temps réel.', tags: ['18% UEMOA', 'Auto-calcul', '10 écritures'] },
@@ -34,7 +34,7 @@ const INTERACTIVE_DEMOS = {
 };
 
 const TUTORIALS = {
-  'atlas-finance': [
+  'atlas-fna': [
     { title: 'Créer votre première écriture', desc: 'De la saisie à la validation : journal, comptes, montants, pièce jointe.', duration: '3 min', difficulty: 'Facile', steps: ['Choisir le journal', 'Sélectionner les comptes', 'Saisir les montants', 'Vérifier l\'équilibre', 'Valider'] },
     { title: 'Configurer le plan comptable', desc: 'Chargez le plan SYSCOHADA ou personnalisez vos sous-comptes.', duration: '2 min', difficulty: 'Facile', steps: ['Accéder au plan comptable', 'Parcourir les classes 1-9', 'Ajouter un sous-compte', 'Rechercher un compte'] },
     { title: 'Paramétrer la TVA', desc: 'Configurez les taux, comptes collecteurs/déductibles pour votre pays.', duration: '3 min', difficulty: 'Moyen', steps: ['Sélectionner le pays', 'Définir le taux normal', 'Configurer les comptes 443/445', 'Activer le calcul automatique'] },
@@ -55,7 +55,7 @@ const TUTORIALS = {
   ],
 };
 
-const DemoModal: React.FC<DemoModalProps> = ({ isOpen, onClose, initialSolution = 'atlas-finance' }) => {
+const DemoModal: React.FC<DemoModalProps> = ({ isOpen, onClose, initialSolution = 'atlas-fna' }) => {
   const [solution, setSolution] = useState(initialSolution);
   const [tab, setTab] = useState('interactive');
   const [view, setView] = useState<DemoView>('menu');
@@ -64,9 +64,9 @@ const DemoModal: React.FC<DemoModalProps> = ({ isOpen, onClose, initialSolution 
 
   if (!isOpen) return null;
 
-  const demos = INTERACTIVE_DEMOS[solution] || INTERACTIVE_DEMOS['atlas-finance'];
-  const tutorials = TUTORIALS[solution] || TUTORIALS['atlas-finance'];
-  const solutionLabel = solution === 'atlas-finance' ? 'Atlas Finance' : solution === 'liass-pilot' ? "Liass'Pilot" : 'DocJourney';
+  const demos = INTERACTIVE_DEMOS[solution] || INTERACTIVE_DEMOS['atlas-fna'];
+  const tutorials = TUTORIALS[solution] || TUTORIALS['atlas-fna'];
+  const solutionLabel = solution === 'atlas-fna' ? 'Atlas F&A' : solution === 'liass-pilot' ? "Liass'Pilot" : 'DocJourney';
 
   const goBack = () => { setView('menu'); setTutoStep(0); };
 
@@ -97,7 +97,7 @@ const DemoModal: React.FC<DemoModalProps> = ({ isOpen, onClose, initialSolution 
             {/* Solution tabs */}
             <div className="px-5 pt-4 flex gap-2">
               {[
-                { id: 'atlas-finance', label: 'Atlas Finance' },
+                { id: 'atlas-fna', label: 'Atlas F&A' },
                 { id: 'liass-pilot', label: "Liass'Pilot" },
                 { id: 'doc-journey', label: 'DocJourney' },
               ].map(s => (

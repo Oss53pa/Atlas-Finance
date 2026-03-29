@@ -18,7 +18,7 @@ interface SEOHeadProps {
 }
 
 const SEOHead: React.FC<SEOHeadProps> = ({
-  title = 'Atlas Finance - Système de Gestion Comptable SYSCOHADA',
+  title = 'Atlas F&A - Système de Gestion Comptable SYSCOHADA',
   description = 'Solution ERP complète pour la gestion comptable et financière conforme aux normes SYSCOHADA. Multi-devises, multi-sociétés, avec tableau de bord intelligent.',
   keywords = [
     'ERP',
@@ -32,16 +32,16 @@ const SEOHead: React.FC<SEOHeadProps> = ({
     'multi-devises',
     'OHADA',
   ],
-  image = '/images/atlas-finance-og-image.png',
-  url = 'https://atlasfinance.com',
+  image = '/images/atlas-fna-og-image.png',
+  url = 'https://atlasfna.com',
   type = 'website',
-  author = 'Atlas Finance Team',
+  author = 'Atlas F&A Team',
   publishedTime,
   modifiedTime,
 }) => {
-  const fullTitle = title.includes('Atlas Finance') ? title : `${title} | Atlas Finance`;
-  const fullUrl = url.startsWith('http') ? url : `https://atlasfinance.com${url}`;
-  const fullImage = image.startsWith('http') ? image : `https://atlasfinance.com${image}`;
+  const fullTitle = title.includes('Atlas F&A') ? title : `${title} | Atlas F&A`;
+  const fullUrl = url.startsWith('http') ? url : `https://atlasfna.com${url}`;
+  const fullImage = image.startsWith('http') ? image : `https://atlasfna.com${image}`;
 
   return (
     <Helmet>
@@ -59,7 +59,7 @@ const SEOHead: React.FC<SEOHeadProps> = ({
       <meta property="og:title" content={fullTitle} />
       <meta property="og:description" content={description} />
       <meta property="og:image" content={fullImage} />
-      <meta property="og:site_name" content="Atlas Finance" />
+      <meta property="og:site_name" content="Atlas F&A" />
       <meta property="og:locale" content="fr_FR" />
 
       {publishedTime && (
@@ -105,7 +105,7 @@ const SEOHead: React.FC<SEOHeadProps> = ({
         {JSON.stringify({
           '@context': 'https://schema.org',
           '@type': 'SoftwareApplication',
-          name: 'Atlas Finance',
+          name: 'Atlas F&A',
           applicationCategory: 'BusinessApplication',
           operatingSystem: 'Web',
           description: description,
@@ -113,7 +113,7 @@ const SEOHead: React.FC<SEOHeadProps> = ({
           image: fullImage,
           author: {
             '@type': 'Organization',
-            name: 'Atlas Finance',
+            name: 'Atlas F&A',
           },
           offers: {
             '@type': 'Offer',
@@ -133,18 +133,18 @@ const SEOHead: React.FC<SEOHeadProps> = ({
         {JSON.stringify({
           '@context': 'https://schema.org',
           '@type': 'Organization',
-          name: 'Atlas Finance',
-          url: 'https://atlasfinance.com',
-          logo: `https://atlasfinance.com/logo.png`,
+          name: 'Atlas F&A',
+          url: 'https://atlasfna.com',
+          logo: `https://atlasfna.com/logo.png`,
           description: 'Solution ERP pour la gestion d\'entreprise en Afrique',
           address: {
             '@type': 'PostalAddress',
             addressCountry: 'CM',
           },
           sameAs: [
-            'https://facebook.com/atlasfinance',
-            'https://twitter.com/atlasfinance',
-            'https://linkedin.com/company/atlasfinance',
+            'https://facebook.com/atlasfna',
+            'https://twitter.com/atlasfna',
+            'https://linkedin.com/company/atlasfna',
           ],
         })}
       </script>

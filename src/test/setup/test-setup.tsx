@@ -1,5 +1,5 @@
 /**
- * Atlas Finance - Configuration Globale des Tests
+ * Atlas F&A - Configuration Globale des Tests
  *
  * Setup pour Jest + React Testing Library
  * Configure les matchers, mocks globaux, et helpers

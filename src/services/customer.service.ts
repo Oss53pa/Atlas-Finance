@@ -1,6 +1,6 @@
 /**
  * ============================================================================
- * SERVICE FRONTEND CRM CLIENTS - Atlas Finance v4.1.0
+ * SERVICE FRONTEND CRM CLIENTS - Atlas F&A v4.1.0
  * ============================================================================
  *
  * Service complet pour la gestion des clients et du recouvrement
@@ -9,7 +9,7 @@
  * BASE PATH: /api/v1/customers/
  *
  * @version 4.1.0
- * @author Atlas Finance Team
+ * @author Atlas F&A Team
  * @date 2025-10-19
  *
  * ARCHITECTURE:

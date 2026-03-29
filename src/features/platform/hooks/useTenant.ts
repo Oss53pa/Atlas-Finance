@@ -38,8 +38,8 @@ const DEMO_SUBSCRIPTIONS = [
     activated_at: '2025-06-15',
     solution: {
       id: 'sol-001',
-      code: 'atlas-finance',
-      name: 'Atlas Finance',
+      code: 'atlas-fna',
+      name: 'Atlas F&A',
       description: 'ERP Comptable & Financier SYSCOHADA',
       icon: 'calculator',
       color: '#171717',
@@ -79,7 +79,7 @@ const DEMO_SUBSCRIPTIONS = [
   },
 ];
 
-const DEMO_MODULES = ['atlas-finance', 'liass-pilot'];
+const DEMO_MODULES = ['atlas-fna', 'liass-pilot'];
 
 export function useTenant() {
   const { data: tenant, isLoading } = useQuery({

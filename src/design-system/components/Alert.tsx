@@ -1,5 +1,5 @@
 /**
- * Atlas Finance Design System - Alert Component
+ * Atlas F&A Design System - Alert Component
  * Accessible alert component for user feedback and status messages
  */
 

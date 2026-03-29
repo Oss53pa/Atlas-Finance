@@ -51,7 +51,7 @@ export const useAuthStore = create<AuthState>()(
           isAuthenticated: false,
           isLoading: false,
         });
-        localStorage.removeItem('atlas-finance-auth-storage');
+        localStorage.removeItem('atlas-fna-auth-storage');
       },
 
       setLoading: (loading: boolean) => {
@@ -59,7 +59,7 @@ export const useAuthStore = create<AuthState>()(
       },
     }),
     {
-      name: 'atlas-finance-auth-storage',
+      name: 'atlas-fna-auth-storage',
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         user: state.user,

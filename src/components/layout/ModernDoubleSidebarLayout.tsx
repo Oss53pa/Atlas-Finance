@@ -207,7 +207,8 @@ const ModernDoubleSidebarLayout: React.FC = () => {
       { id: 'reconciliation', label: 'Rapprochements', path: '/treasury/reconciliation', icon: <CheckCircle className="w-4 h-4" /> },
       { id: 'financing', label: 'Financements', path: '/treasury/financing', icon: <CreditCard className="w-4 h-4" /> },
       { id: 'fund-calls', label: 'Appels de Fonds', path: '/treasury/fund-calls', icon: <DollarSign className="w-4 h-4" /> },
-      { id: 'multi-currency', label: 'Multi-devises', path: '/treasury/multi-currency', icon: <Globe className="w-4 h-4" /> }
+      { id: 'multi-currency', label: 'Multi-devises', path: '/treasury/multi-currency', icon: <Globe className="w-4 h-4" /> },
+      { id: 'effets-commerce', label: 'Effets de Commerce', path: '/treasury/effets-commerce', icon: <FileText className="w-4 h-4" /> }
     ],
     control: [
       { id: 'budgets', label: 'Budgets & Prévisions', path: '/budgeting', icon: <Target className="w-4 h-4" /> },
@@ -227,13 +228,16 @@ const ModernDoubleSidebarLayout: React.FC = () => {
       { id: 'classes', label: 'Classes', path: '/assets/classes', icon: <Layers className="w-4 h-4" /> },
       { id: 'journal', label: t('accounting.journal'), path: '/assets/journal', icon: <Book className="w-4 h-4" /> },
       { id: 'disposals', label: 'Cessions', path: '/assets/disposals', icon: <FileCheck className="w-4 h-4" /> },
-      { id: 'inventory', label: 'Inventaire', path: '/assets/inventory', icon: <Archive className="w-4 h-4" /> }
+      { id: 'inventory', label: 'Inventaire', path: '/assets/inventory', icon: <Archive className="w-4 h-4" /> },
+      { id: 'reevaluation', label: 'Réévaluation', path: '/assets/reevaluation', icon: <TrendingUp className="w-4 h-4" /> },
+      { id: 'composants', label: 'Composants', path: '/assets/composants', icon: <Layers className="w-4 h-4" /> }
     ],
     closures: [
       { id: 'periodic', label: 'Clôture Périodique', path: '/closures/periodic', icon: <Calendar className="w-4 h-4" /> },
       { id: 'revisions', label: 'Révisions', path: '/closures/revisions', icon: <CheckCircle className="w-4 h-4" /> },
       { id: 'carry-forward', label: 'Reports à Nouveau', path: '/closures/carry-forward', icon: <RefreshCw className="w-4 h-4" /> },
-      { id: 'audit-trail', label: 'Piste d\'Audit', path: '/closures/audit-trail', icon: <Shield className="w-4 h-4" /> }
+      { id: 'audit-trail', label: 'Piste d\'Audit', path: '/closures/audit-trail', icon: <Shield className="w-4 h-4" /> },
+      { id: 'ecarts-conversion', label: 'Écarts de Conversion', path: '/closures/ecarts-conversion', icon: <ArrowLeftRight className="w-4 h-4" /> }
     ],
     reporting: [
       { id: 'bilan', label: 'États Financiers', path: '/financial-statements/balance', icon: <BarChart3 className="w-4 h-4" /> },
@@ -349,7 +353,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
             primaryCollapsed && 'justify-center'
           )}>
             <a href="/" className="hover:opacity-80 transition-opacity" title="Retour à l'accueil">
-              <span className="text-[var(--color-sidebar-text)] font-bold text-xl atlas-brand whitespace-nowrap">Atlas Finance</span>
+              <span className="text-[var(--color-sidebar-text)] font-bold text-xl atlas-brand whitespace-nowrap">Atlas F&A</span>
             </a>
           </div>
           <button
@@ -429,7 +433,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
             {!primaryCollapsed && (
               <div className="flex-1">
                 <p className="text-sm font-medium text-[var(--color-sidebar-text)]">Admin</p>
-                <p className="text-xs text-[var(--color-sidebar-text-secondary)]">admin@atlasfinance.com</p>
+                <p className="text-xs text-[var(--color-sidebar-text-secondary)]">admin@atlasfna.com</p>
               </div>
             )}
           </div>
@@ -537,7 +541,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
             <div className="h-16 flex items-center justify-between px-4 border-b border-[var(--color-sidebar-border)]">
               <div className="flex items-center gap-3">
                 <a href="/" className="hover:opacity-80 transition-opacity" title="Retour à l'accueil">
-                  <span className="text-white font-bold text-xl atlas-brand">Atlas Finance</span>
+                  <span className="text-white font-bold text-xl atlas-brand">Atlas F&A</span>
                 </a>
               </div>
               <button

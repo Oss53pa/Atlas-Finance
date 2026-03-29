@@ -31,7 +31,7 @@ interface WorkspaceContextType {
 
 const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefined);
 
-const WORKSPACE_STORAGE_KEY = 'atlas_finance_current_workspace';
+const WORKSPACE_STORAGE_KEY = 'atlas_fna_current_workspace';
 
 interface WorkspaceProviderProps {
   children: ReactNode;

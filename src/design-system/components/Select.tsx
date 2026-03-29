@@ -1,6 +1,6 @@
 // @ts-nocheck
 /**
- * Atlas Finance Design System - Select Component
+ * Atlas F&A Design System - Select Component
  * Fully accessible select with validation and custom styling
  */
 

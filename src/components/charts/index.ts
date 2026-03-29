@@ -1,4 +1,4 @@
-// Exports des composants graphiques Atlas Finance
+// Exports des composants graphiques Atlas F&A
 export { default as LineChart } from './LineChart';
 export { default as BarChart } from './BarChart';  
 export { default as PieChart } from './PieChart';

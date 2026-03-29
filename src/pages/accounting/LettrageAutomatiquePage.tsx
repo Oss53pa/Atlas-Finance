@@ -2,6 +2,8 @@ import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useData } from '../../contexts/DataContext';
+import { autoLettrage, applyLettrage } from '../../services/lettrageService';
+import { useToast } from '../../hooks/useToast';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import {
   Link,
@@ -178,10 +180,21 @@ const LettrageAutomatiquePage: React.FC = () => {
     return suggestions;
   }, [reconcilableLines]);
 
+  const { toast } = useToast();
+
   const runAutoLettrage = async () => {
     setIsRunning(true);
-    // Allow UI to update
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    try {
+      const result = await autoLettrage(adapter, { tolerance: 1 });
+      if (result.matches.length > 0) {
+        const applied = await applyLettrage(adapter, result.matches);
+        toast.success(`${applied} écriture(s) lettrée(s) automatiquement`);
+      } else {
+        toast.warning('Aucune correspondance trouvée');
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Erreur lors du lettrage automatique');
+    }
     setIsRunning(false);
   };
 
@@ -411,7 +424,9 @@ const LettrageAutomatiquePage: React.FC = () => {
                   </div>
 
                   <div className="flex items-center space-x-2">
-                    <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm">
+                    <button onClick={() => {
+                      runAutoLettrage();
+                    }} className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm">
                       Valider
                     </button>
                     <button className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-sm">

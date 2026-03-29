@@ -1,5 +1,5 @@
 -- =====================================================================
--- WiseBook / Atlas Finance — Combined Deploy Script
+-- WiseBook / Atlas F&A — Combined Deploy Script
 -- Run in Supabase SQL Editor (Dashboard > SQL Editor > New Query)
 --
 -- Idempotent: safe to re-run. Uses DROP IF EXISTS + IF NOT EXISTS.

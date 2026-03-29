@@ -7,7 +7,7 @@ import { toggleModule } from '../../features/platform/services/featureFlagServic
 import { toast } from 'react-hot-toast';
 
 const MODULES = [
-  { code: 'atlas-finance', label: 'Atlas Finance', color: '#171717' },
+  { code: 'atlas-fna', label: 'Atlas F&A', color: '#171717' },
   { code: 'liass-pilot', label: "Liass'Pilot", color: '#0891b2' },
   { code: 'docjourney', label: 'DocJourney', color: '#7c3aed' },
   { code: 'tms-pro', label: 'TMS Pro Africa', color: '#dc2626' },

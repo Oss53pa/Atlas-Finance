@@ -1,6 +1,6 @@
 // @ts-nocheck
 /**
- * Navigation Intelligente Atlas Finance
+ * Navigation Intelligente Atlas F&A
  * Menu adaptatif avec notifications et raccourcis contextuels
  */
 import React, { useState, useMemo } from 'react';
@@ -62,7 +62,7 @@ interface NavItem {
   description?: string;
 }
 
-const AtlasFinanceNavigation: React.FC<NavigationProps> = ({
+const AtlasFnANavigation: React.FC<NavigationProps> = ({
   companyId,
   currentUser,
   className = ''
@@ -88,7 +88,7 @@ const AtlasFinanceNavigation: React.FC<NavigationProps> = ({
     queryFn: () => dashboardService.getRecentActivities({ companyId, limit: 5 }),
   });
 
-  // Structure de navigation Atlas Finance
+  // Structure de navigation Atlas F&A
   const navigationStructure: NavItem[] = [
     {
       id: 'dashboard',
@@ -454,7 +454,7 @@ const AtlasFinanceNavigation: React.FC<NavigationProps> = ({
           </div>
           <div>
             <h2 className="text-lg font-bold text-gray-900" style={{ fontFamily: 'Sometype Mono, sans-serif' }}>
-              Atlas Finance
+              Atlas F&A
             </h2>
             <p className="text-xs text-gray-700">ERP Comptable SYSCOHADA</p>
           </div>
@@ -673,4 +673,4 @@ const AtlasFinanceNavigation: React.FC<NavigationProps> = ({
   );
 };
 
-export default AtlasFinanceNavigation;
+export default AtlasFnANavigation;

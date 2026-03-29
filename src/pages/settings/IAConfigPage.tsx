@@ -603,7 +603,7 @@ const IAConfigPage: React.FC = () => {
         </CardHeader>
         <CardBody>
           <p className="text-[var(--color-text-secondary)] mb-6">
-            Le système Atlas Finance combine intelligemment règles métier déterministes et intelligence artificielle probabiliste pour une détection optimale des anomalies et recommandations précises.
+            Le système Atlas F&A combine intelligemment règles métier déterministes et intelligence artificielle probabiliste pour une détection optimale des anomalies et recommandations précises.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1081,7 +1081,7 @@ const IAConfigPage: React.FC = () => {
         <CardBody>
           <div className="space-y-4">
             <p className="text-[var(--color-text-secondary)]">
-              Les modèles d'IA de Atlas Finance s'améliorent constamment grâce à l'apprentissage continu basé sur vos données et votre feedback.
+              Les modèles d'IA de Atlas F&A s'améliorent constamment grâce à l'apprentissage continu basé sur vos données et votre feedback.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">

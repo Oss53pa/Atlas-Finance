@@ -1,6 +1,6 @@
 // @ts-nocheck
 /**
- * Configurateur de Thèmes Clarity Atlas Finance
+ * Configurateur de Thèmes Clarity Atlas F&A
  * Interface de personnalisation des thèmes selon cahier des charges 6.1.2
  */
 import React, { useState, useEffect } from 'react';
@@ -174,8 +174,8 @@ const ThemeConfigurator: React.FC<ThemeConfiguratorProps> = ({
     });
     
     // Sauvegarde
-    localStorage.setItem('atlas-finance-theme', theme.id);
-    localStorage.setItem('atlas-finance-theme-config', JSON.stringify(theme.colors));
+    localStorage.setItem('atlas-fna-theme', theme.id);
+    localStorage.setItem('atlas-fna-theme-config', JSON.stringify(theme.colors));
     
     setSelectedTheme(theme.id);
     onThemeChange?.(theme.id);
@@ -217,7 +217,7 @@ const ThemeConfigurator: React.FC<ThemeConfiguratorProps> = ({
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `atlas-finance-theme-${selectedTheme}.json`;
+    link.download = `atlas-fna-theme-${selectedTheme}.json`;
     link.click();
   };
 
@@ -231,7 +231,7 @@ const ThemeConfigurator: React.FC<ThemeConfiguratorProps> = ({
             Configurateur de Thèmes Clarity
           </h2>
           <p className="text-gray-600 mt-1">
-            Personnalisation complète de l'interface Atlas Finance
+            Personnalisation complète de l'interface Atlas F&A
           </p>
         </div>
         
@@ -376,7 +376,7 @@ const ThemeConfigurator: React.FC<ThemeConfiguratorProps> = ({
                       className="px-3 py-1 rounded text-white text-sm text-center"
                       style={{ backgroundColor: customColors.secondary }}
                     >
-                      Exemple widget Atlas Finance
+                      Exemple widget Atlas F&A
                     </div>
                   </div>
 
@@ -440,7 +440,7 @@ const ThemeConfigurator: React.FC<ThemeConfiguratorProps> = ({
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Eye className="h-5 w-5 mr-2" />
-                Aperçu Interface Atlas Finance
+                Aperçu Interface Atlas F&A
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -486,7 +486,7 @@ const ThemeConfigurator: React.FC<ThemeConfiguratorProps> = ({
 
                 {/* Simulation navigation */}
                 <div className="clarity-card p-4">
-                  <h4 className="font-semibold mb-3">Navigation Atlas Finance</h4>
+                  <h4 className="font-semibold mb-3">Navigation Atlas F&A</h4>
                   <div className="space-y-2">
                     <div className="clarity-nav-item active p-2 rounded flex items-center space-x-3">
                       <Home className="h-4 w-4" />

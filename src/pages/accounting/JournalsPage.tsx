@@ -972,7 +972,7 @@ const JournalsPage: React.FC = () => {
                   }
                   footerContent={
                     <div className="text-center text-xs text-[var(--color-text-tertiary)]">
-                      Atlas Finance - Logiciel de Comptabilité
+                      Atlas F&A - Logiciel de Comptabilité
                     </div>
                   }
                 >

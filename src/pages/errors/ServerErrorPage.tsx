@@ -11,7 +11,7 @@ export default function ServerErrorPage() {
   return (
     <>
       <Helmet>
-        <title>500 - Erreur serveur | Atlas Finance</title>
+        <title>500 - Erreur serveur | Atlas F&A</title>
       </Helmet>
 
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-orange-50 dark:from-gray-900 dark:to-gray-800 px-4">

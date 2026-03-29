@@ -8,7 +8,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, X, MapPin } from 'lucide-react';
 
 const ALL_STEPS: Record<string, Array<{ route: string; title: string; highlight: string }>> = {
-  'atlas-finance': [
+  'atlas-fna': [
     { route: '/dashboard', title: 'Dashboard', highlight: 'Vue d\'ensemble KPIs et raccourcis' },
     { route: '/accounting/entries', title: 'Écritures', highlight: 'Saisie avec contrôle D=C automatique' },
     { route: '/accounting/general-ledger', title: 'Grand Livre', highlight: 'Détail par compte et période' },
@@ -46,7 +46,7 @@ const GuidedTourOverlay: React.FC = () => {
 
   if (!tourData) return null;
 
-  const steps = ALL_STEPS[tourData.solution] || ALL_STEPS['atlas-finance'];
+  const steps = ALL_STEPS[tourData.solution] || ALL_STEPS['atlas-fna'];
   const currentIdx = steps.findIndex(s => location.pathname.startsWith(s.route));
   const current = currentIdx >= 0 ? currentIdx : tourData.step;
   const step = steps[current];

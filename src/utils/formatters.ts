@@ -1,5 +1,5 @@
 /**
- * Centralized formatting utilities for Atlas Finance.
+ * Centralized formatting utilities for Atlas F&A.
  * Use these instead of inline formatting throughout the codebase.
  *
  * IMPORTANT: Ne pas dupliquer ces fonctions localement dans les composants.

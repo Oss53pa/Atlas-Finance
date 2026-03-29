@@ -914,7 +914,7 @@ const AccountingSettingsPage: React.FC = () => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `atlasfinance-settings-${new Date().toISOString().split('T')[0]}.json`;
+    link.download = `atlasfna-settings-${new Date().toISOString().split('T')[0]}.json`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -1492,7 +1492,7 @@ const AccountingSettingsPage: React.FC = () => {
                     </div>
                     <div className="mt-3 pt-3 border-t border-blue-200">
                       <button
-                        onClick={() => window.open('https://docs.atlasfinance.com/settings', '_blank')}
+                        onClick={() => window.open('https://docs.atlasfna.com/settings', '_blank')}
                         className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800"
                       >
                         <ExternalLink className="w-3 h-3" />
@@ -1809,7 +1809,7 @@ const AccountingSettingsPage: React.FC = () => {
                 </label>
                 <input
                   type="text"
-                  defaultValue={`atlasfinance_settings_${new Date().toISOString().split('T')[0]}`}
+                  defaultValue={`atlasfna_settings_${new Date().toISOString().split('T')[0]}`}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 />
               </div>

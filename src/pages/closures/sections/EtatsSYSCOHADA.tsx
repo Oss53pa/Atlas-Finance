@@ -1255,7 +1255,7 @@ const EtatsSYSCOHADA: React.FC = () => {
                 <div>
                   <h4 className="font-medium mb-3">Événements Significatifs</h4>
                   <div className="space-y-2 text-sm">
-                    <p><strong>Investissements:</strong> Acquisition ERP Atlas Finance (85M FCFA)</p>
+                    <p><strong>Investissements:</strong> Acquisition ERP Atlas F&A (85M FCFA)</p>
                     <p><strong>Financement:</strong> Emprunt bancaire SGBCI (60M FCFA)</p>
                     <p><strong>Provisionnement:</strong> Provision litige commercial (8M FCFA)</p>
                     <p><strong>HAO:</strong> Subvention FDFP comptabilisée (15M FCFA)</p>

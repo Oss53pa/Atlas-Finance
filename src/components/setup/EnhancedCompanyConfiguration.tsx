@@ -346,7 +346,7 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                       <input
                         {...field}
                         type="text"
-                        placeholder="Atlas Finance Pro"
+                        placeholder="Atlas F&A Pro"
                         className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                       />
                     )}
@@ -857,7 +857,7 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                       <input
                         {...field}
                         type="email"
-                        placeholder="contact@atlasfinance.com"
+                        placeholder="contact@atlasfna.com"
                         className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                       />
                     )}
@@ -878,7 +878,7 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                       <input
                         {...field}
                         type="email"
-                        placeholder="comptabilite@atlasfinance.com"
+                        placeholder="comptabilite@atlasfna.com"
                         className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                       />
                     )}
@@ -896,7 +896,7 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                       <input
                         {...field}
                         type="url"
-                        placeholder="https://www.atlasfinance.com"
+                        placeholder="https://www.atlasfna.com"
                         className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                       />
                     )}
@@ -919,7 +919,7 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                         <input
                           {...field}
                           type="text"
-                          placeholder="facebook.com/atlasfinance"
+                          placeholder="facebook.com/atlasfna"
                           className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-info)]"
                         />
                       )}
@@ -937,7 +937,7 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                         <input
                           {...field}
                           type="text"
-                          placeholder="linkedin.com/company/atlasfinance"
+                          placeholder="linkedin.com/company/atlasfna"
                           className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-info)]"
                         />
                       )}
@@ -955,7 +955,7 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                         <input
                           {...field}
                           type="text"
-                          placeholder="@atlasfinance"
+                          placeholder="@atlasfna"
                           className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-info)]"
                         />
                       )}

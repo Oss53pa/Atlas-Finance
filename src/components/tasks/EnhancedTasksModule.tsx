@@ -301,7 +301,7 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
           type: 'email',
           beforeDays: 2,
           beforeHours: 0,
-          recipients: ['marie.dupont@atlasfinance.com']
+          recipients: ['marie.dupont@atlasfna.com']
         }
       ]
     },

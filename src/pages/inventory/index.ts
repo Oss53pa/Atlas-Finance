@@ -43,6 +43,6 @@ export const InventoryModuleInfo = {
     'Automated reorder management'
   ],
   compliance: ['IFRS IAS 2', 'US GAAP ASC 330', 'SYSCOHADA', 'SOX'],
-  author: 'Atlas Finance Team',
+  author: 'Atlas F&A Team',
   lastUpdated: '2024-01-30'
 };

@@ -4,7 +4,7 @@ export interface Organization {
   slug: string;
   billing_email?: string;
   logo_url?: string;
-  plan: 'free' | 'starter' | 'pro' | 'enterprise';
+  plan: 'free' | 'pme' | 'premium' | 'starter' | 'pro' | 'enterprise';
   stripe_customer_id?: string;
   created_by?: string;
   created_at: string;
@@ -39,6 +39,7 @@ export interface Subscription {
   current_period_end?: string;
   stripe_subscription_id?: string;
   seats_limit: number;
+  plan_tier?: 'pme' | 'premium';
   seats_used: number;
   activated_at?: string;
   created_at: string;

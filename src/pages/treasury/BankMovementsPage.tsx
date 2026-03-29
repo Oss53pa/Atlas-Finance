@@ -63,12 +63,11 @@ const BankMovementsPage: React.FC = () => {
         balance: totalBalance,
         rib: '•••• •••• •••• 1290',
         accountNumber: 'CONSOLIDATED-VIEW',
-        cashIn: Math.abs(totalBalance) * 0.6,
-        cashOut: Math.abs(totalBalance) * 0.4,
-        // Prévisions basées sur le scénario sélectionné
-        forecastIncoming: getForecastData(50000000), // Prévision entrées
-        forecastOutcoming: getForecastData(45000000), // Prévision sorties
-        landingForecast: getForecastData(totalBalance + 50000000 - 45000000) // Balance prévisionnelle
+        cashIn: 0,
+        cashOut: 0,
+        forecastIncoming: 0,
+        forecastOutcoming: 0,
+        landingForecast: getForecastData(totalBalance)
       };
     }
 
@@ -82,12 +81,11 @@ const BankMovementsPage: React.FC = () => {
       balance: balance,
       rib: '•••• •••• •••• ' + selectedAccount.slice(-4),
       accountNumber: selectedAccount,
-      cashIn: Math.abs(balance) * 0.3,
-      cashOut: Math.abs(balance) * 0.7,
-      // Prévisions basées sur le scénario sélectionné
-      forecastIncoming: getForecastData(baseIncoming),
-      forecastOutcoming: getForecastData(baseOutcoming),
-      landingForecast: getForecastData(balance + baseIncoming - baseOutcoming)
+      cashIn: 0,
+      cashOut: 0,
+      forecastIncoming: 0,
+      forecastOutcoming: 0,
+      landingForecast: getForecastData(balance)
     };
   };
 

@@ -1,6 +1,6 @@
 // @ts-nocheck
 /**
- * Atlas Finance Design System - Panel Component
+ * Atlas F&A Design System - Panel Component
  * Flexible panel component for layout sections and content areas
  */
 

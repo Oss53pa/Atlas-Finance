@@ -313,7 +313,7 @@ CREATE TRIGGER on_auth_user_created_v2
 -- 12. SEED SOLUTIONS (mise à jour)
 -- ============================================================================
 INSERT INTO solutions (code, name, description, icon, color, price_monthly_xof, price_yearly_xof, price_monthly_eur, price_yearly_eur, features, is_active, display_order) VALUES
-  ('atlas-finance', 'Atlas Finance',
+  ('atlas-fna', 'Atlas F&A',
    'ERP Comptable & Financier conforme SYSCOHADA — Plan comptable, écritures, états financiers, trésorerie, fiscalité, audit IA.',
    'calculator', '#171717', 25000, 250000, 39, 390,
    '["Comptabilité SYSCOHADA", "États financiers", "Trésorerie", "Fiscalité 17 pays", "Audit IA PROPH3T", "Multi-société", "Export FEC"]'::jsonb, true, 1),

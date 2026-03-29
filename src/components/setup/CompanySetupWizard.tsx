@@ -255,7 +255,7 @@ const CompanySetupWizard: React.FC = () => {
             <div>
               <h1 className="text-lg font-bold text-white flex items-center">
                 <SparklesIcon className="h-8 w-8 mr-3 text-white" />
-                Assistant de Configuration Atlas Finance
+                Assistant de Configuration Atlas F&A
               </h1>
               <p className="text-[#f5f5f5] mt-2">Configuration complète en 4 étapes selon SYSCOHADA</p>
             </div>
@@ -621,7 +621,7 @@ const CompanySetupWizard: React.FC = () => {
                           <input
                             {...field}
                             type="email"
-                            placeholder="contact@atlasfinance.com"
+                            placeholder="contact@atlasfna.com"
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                           />
                         )}
@@ -640,7 +640,7 @@ const CompanySetupWizard: React.FC = () => {
                           <input
                             {...field}
                             type="url"
-                            placeholder="https://www.atlasfinance.com"
+                            placeholder="https://www.atlasfna.com"
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                           />
                         )}

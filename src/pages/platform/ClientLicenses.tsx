@@ -9,15 +9,15 @@ import {
 import { getTeamMembers } from '../../features/platform/services/tenantService';
 import { toast } from 'react-hot-toast';
 
-const SOL_ICONS: Record<string, any> = { 'atlas-finance': Calculator, 'liass-pilot': FileText, 'docjourney': FolderOpen };
+const SOL_ICONS: Record<string, any> = { 'atlas-fna': Calculator, 'liass-pilot': FileText, 'docjourney': FolderOpen };
 
 const isDev = import.meta.env.VITE_APP_ENV === 'development' || import.meta.env.VITE_DATA_MODE === 'local';
 
 // Démo : quel membre a accès à quelle solution
 const DEMO_ACCESS: Record<string, string[]> = {
-  'u1': ['atlas-finance', 'liass-pilot'],  // Amadou — tout
-  'u2': ['atlas-finance'],                  // Fatou — Atlas Finance
-  'u3': ['atlas-finance'],                  // Ibrahim — Atlas Finance
+  'u1': ['atlas-fna', 'liass-pilot'],  // Amadou — tout
+  'u2': ['atlas-fna'],                  // Fatou — Atlas F&A
+  'u3': ['atlas-fna'],                  // Ibrahim — Atlas F&A
   'u4': [],                                  // Marie — rien encore
 };
 

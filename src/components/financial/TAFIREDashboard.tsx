@@ -23,14 +23,16 @@ import {
 } from 'recharts';
 import { calculateTAFIRE, analyzeTAFIRE } from '../../services/financial/tafireService';
 import type { TAFIREData, TAFIREAnalysis } from '../../services/financial/tafireService';
+import { useData } from '../../contexts/DataContext';
 
 const TAFIREDashboard: React.FC = () => {
+  const { adapter } = useData();
   const [selectedPeriod, setSelectedPeriod] = useState('current');
   const [viewMode, setViewMode] = useState<'flows' | 'analysis' | 'comparison'>('flows');
 
   const { data: tafireData, isLoading } = useQuery({
     queryKey: ['tafire-data', selectedPeriod],
-    queryFn: () => calculateTAFIRE(selectedPeriod === 'current' ? new Date().getFullYear().toString() : undefined),
+    queryFn: () => calculateTAFIRE(adapter, selectedPeriod === 'current' ? new Date().getFullYear().toString() : undefined),
   });
 
   const analysisData = tafireData ? analyzeTAFIRE(tafireData) : undefined;

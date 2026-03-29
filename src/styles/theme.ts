@@ -1,4 +1,4 @@
-// Système de thème pour Atlas Finance
+// Système de thème pour Atlas F&A
 // Palette grayscale monochrome professionnelle + 5 thèmes additionnels
 
 export interface ThemeColors {
@@ -81,10 +81,10 @@ const sharedBorderRadius = {
 };
 
 // ============================================================================
-// 1. Atlas Finance — Grayscale Monochrome (default)
+// 1. Atlas F&A — Grayscale Monochrome (default)
 // ============================================================================
 const atlasFinanceTheme: Theme = {
-  name: 'Atlas Finance',
+  name: 'Atlas F&A',
   description: 'Palette grayscale monochrome professionnelle',
   colors: {
     primary: '#171717',

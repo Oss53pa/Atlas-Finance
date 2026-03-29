@@ -1,7 +1,7 @@
 /**
  * TYPES TYPESCRIPT - MODULE PARAMÈTRES
  *
- * Types pour la configuration système et les paramètres Atlas Finance
+ * Types pour la configuration système et les paramètres Atlas F&A
  */
 
 export type ParameterCategory =

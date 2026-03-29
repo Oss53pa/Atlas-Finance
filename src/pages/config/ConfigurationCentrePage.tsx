@@ -326,7 +326,7 @@ const ConfigurationCentrePage: React.FC = () => {
               Centre de Configuration
             </h1>
             <p className="mt-2 text-gray-600">
-              Gérez tous les paramètres et configurations de votre système Atlas Finance
+              Gérez tous les paramètres et configurations de votre système Atlas F&A
             </p>
           </div>
           <div className="flex space-x-3">

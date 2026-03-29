@@ -1,6 +1,6 @@
 /**
- * Block Data Service — Connects report blocks to Atlas Finance data
- * CDC §9 — Catalogue Intégré — Connexion Atlas Finance
+ * Block Data Service — Connects report blocks to Atlas F&A data
+ * CDC §9 — Catalogue Intégré — Connexion Atlas F&A
  *
  * Resolves block `source` fields to actual financial data via DataAdapter.
  */

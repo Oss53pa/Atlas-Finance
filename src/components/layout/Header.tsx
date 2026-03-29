@@ -132,7 +132,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
               <Search className="absolute left-3 top-1/2 h-4 w-4 -tranprimary-y-1/2 text-[#f5f5f5]/70" />
               <input
                 type="text"
-                placeholder="Rechercher dans Atlas Finance..."
+                placeholder="Rechercher dans Atlas F&A..."
                 className="w-full rounded-md border border-[#f5f5f5]/30 bg-[#171717]/50 pl-10 pr-4 py-2 text-sm text-[#f5f5f5] placeholder:text-[#f5f5f5]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#525252] focus-visible:border-[#525252]"
               />
             </div>

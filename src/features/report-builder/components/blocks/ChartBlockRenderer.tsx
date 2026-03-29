@@ -1,5 +1,5 @@
 /**
- * Chart Block Renderer — Connected to live Atlas Finance data via useChartData
+ * Chart Block Renderer — Connected to live Atlas F&A data via useChartData
  */
 import React from 'react';
 import {

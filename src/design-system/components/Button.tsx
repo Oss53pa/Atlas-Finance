@@ -1,6 +1,6 @@
 // @ts-nocheck
 /**
- * Atlas Finance Design System - Button Component
+ * Atlas F&A Design System - Button Component
  * Fully accessible button with all states and responsive design
  */
 

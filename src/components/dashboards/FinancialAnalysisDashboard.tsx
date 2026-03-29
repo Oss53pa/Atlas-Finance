@@ -1,6 +1,6 @@
 // @ts-nocheck
 /**
- * Dashboard Analyse Financière Avancée Atlas Finance
+ * Dashboard Analyse Financière Avancée Atlas F&A
  * TAFIRE, SIG et ratios SYSCOHADA selon EXF-AF-001 à EXF-AF-007
  */
 import React, { useState, useMemo } from 'react';

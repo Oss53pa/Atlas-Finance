@@ -1,5 +1,5 @@
 /**
- * KPI Block Renderer — Connected to live Atlas Finance data via useKPIData
+ * KPI Block Renderer — Connected to live Atlas F&A data via useKPIData
  */
 import React from 'react';
 import { TrendingUp, TrendingDown, Minus, Loader2 } from 'lucide-react';

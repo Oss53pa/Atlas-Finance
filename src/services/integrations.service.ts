@@ -1,6 +1,6 @@
 // @ts-nocheck
 /**
- * Service Integrations Atlas Finance
+ * Service Integrations Atlas F&A
  * Intégrations bancaires et fiscales
  *
  * Fonctionnalités:

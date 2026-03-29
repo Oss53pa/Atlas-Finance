@@ -1,6 +1,6 @@
 // @ts-nocheck
 /**
- * Widget Interactif Configurable Atlas Finance
+ * Widget Interactif Configurable Atlas F&A
  * Widgets drag & drop avec personnalisation selon cahier des charges
  */
 import React, { useState, useMemo } from 'react';
@@ -425,8 +425,8 @@ export const WidgetFactory = {
   })
 };
 
-// Widgets prédéfinis Atlas Finance
-export const AtlasFinanceWidgets = {
+// Widgets prédéfinis Atlas F&A
+export const AtlasFnAWidgets = {
   treasury: {
     position: WidgetFactory.createKPIWidget({
       id: 'treasury-position',

@@ -1,13 +1,15 @@
 // @ts-nocheck
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useData } from '../../contexts/DataContext';
 
 const TreasuryPlanDetails: React.FC = () => {
   const { t } = useLanguage();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { adapter } = useData();
   const [activeTab, setActiveTab] = useState('planification');
   const [selectedScenario, setSelectedScenario] = useState('realiste');
   const [showTransactionModal, setShowTransactionModal] = useState(false);
@@ -34,16 +36,84 @@ const TreasuryPlanDetails: React.FC = () => {
   const [dateFin, setDateFin] = useState('2025-12-31');
   const [selectedFilter, setSelectedFilter] = useState('all');
 
-  // Données du plan selon l'ID
-  const planData = {
+  // Données du plan — chargées dynamiquement
+  const [planData, setPlanData] = useState({
     id: id,
-    name: `Plan Trésorerie ${id === '1' ? 'Octobre' : id === '2' ? 'Novembre' : 'Décembre'} 2025`,
-    period: id === '1' ? 'Octobre 2025' : id === '2' ? 'Novembre 2025' : 'Décembre 2025',
-    author: 'Atokouna Pamela',
-    startDate: '01/10/2025',
-    endDate: '31/12/2025',
-    initialBalance: -95194202
-  };
+    name: `Plan Trésorerie #${id}`,
+    period: '',
+    author: '',
+    startDate: dateDebut,
+    endDate: dateFin,
+    initialBalance: 0,
+  });
+
+  const [invoiceData, setInvoiceData] = useState<Record<string, { title: string; type: 'client' | 'fournisseur'; invoices: any[] }>>({});
+
+  useEffect(() => {
+    const loadPlanData = async () => {
+      try {
+        // Charger la position de trésorerie initiale depuis les écritures
+        const entries = await adapter.getAll('journalEntries') as any[];
+        let treasuryBalance = 0;
+        for (const e of entries) {
+          if (new Date(e.date) <= new Date(dateDebut)) {
+            for (const l of (e.lines || [])) {
+              if ((l.accountCode || '').startsWith('5')) {
+                treasuryBalance += (l.debit || 0) - (l.credit || 0);
+              }
+            }
+          }
+        }
+
+        // Charger factures clients (comptes 411)
+        const clientInvoices: any[] = [];
+        const supplierInvoices: any[] = [];
+        for (const e of entries) {
+          if (new Date(e.date) >= new Date(dateDebut) && new Date(e.date) <= new Date(dateFin)) {
+            for (const l of (e.lines || [])) {
+              if ((l.accountCode || '').startsWith('411')) {
+                clientInvoices.push({
+                  numero: e.entryNumber || e.id,
+                  client: l.accountName || l.label || 'Client',
+                  date: e.date,
+                  echeance: e.date,
+                  montant: l.debit || 0,
+                  statut: e.status === 'validated' ? 'Validée' : 'En cours',
+                });
+              }
+              if ((l.accountCode || '').startsWith('401')) {
+                supplierInvoices.push({
+                  numero: e.entryNumber || e.id,
+                  fournisseur: l.accountName || l.label || 'Fournisseur',
+                  date: e.date,
+                  echeance: e.date,
+                  montant: l.credit || 0,
+                  statut: e.status === 'validated' ? 'Validée' : 'À payer',
+                });
+              }
+            }
+          }
+        }
+
+        setPlanData(prev => ({ ...prev, initialBalance: treasuryBalance }));
+        setInvoiceData({
+          encaissements_clients: {
+            title: 'Encaissements clients — Factures',
+            type: 'client',
+            invoices: clientInvoices,
+          },
+          decaissements_fournisseurs: {
+            title: 'Décaissements fournisseurs — Factures',
+            type: 'fournisseur',
+            invoices: supplierInvoices,
+          },
+        });
+      } catch (err) {
+        console.error('Erreur chargement plan trésorerie:', err);
+      }
+    };
+    loadPlanData();
+  }, [adapter, dateDebut, dateFin]);
 
   // Scénarios de prévision
   const forecastScenarios = [
@@ -62,46 +132,8 @@ const TreasuryPlanDetails: React.FC = () => {
     return Math.round(baseValue * scenarioData.multiplier);
   };
 
-  // Données détaillées des factures
-  const invoiceDetails = {
-    'produits_locaux': {
-      title: 'Produits locaux - Détail des factures clients',
-      type: 'client' as const,
-      invoices: [
-        { numero: 'FAC-2025-001', client: 'SUPERMARCHE CHAMPION', date: '15/01/2025', echeance: '15/02/2025', montant: 8500000, statut: 'En cours' },
-        { numero: 'FAC-2025-003', client: 'DISTRIBUTEUR COSMOS', date: '20/01/2025', echeance: '20/03/2025', montant: 6200000, statut: 'En attente' },
-        { numero: 'FAC-2025-007', client: 'MAGASIN PRIMA', date: '25/01/2025', echeance: '25/02/2025', montant: 4800000, statut: 'Validée' },
-        { numero: 'FAC-2025-012', client: 'CASH & CARRY', date: '30/01/2025', echeance: '30/03/2025', montant: 5000000, statut: 'En cours' }
-      ]
-    },
-    'produits_importes': {
-      title: 'Produits importés - Détail des factures clients',
-      type: 'client' as const,
-      invoices: [
-        { numero: 'FAC-2025-002', client: 'IMPORT AFRICA', date: '18/01/2025', echeance: '18/04/2025', montant: 4200000, statut: 'Validée' },
-        { numero: 'FAC-2025-005', client: 'TRADING COMPANY', date: '22/01/2025', echeance: '22/03/2025', montant: 3800000, statut: 'En cours' },
-        { numero: 'FAC-2025-009', client: 'GLOBAL PARTNERS', date: '28/01/2025', echeance: '28/04/2025', montant: 3900000, statut: 'En attente' }
-      ]
-    },
-    'matieres_premieres': {
-      title: 'Matières premières - Détail des factures fournisseurs',
-      type: 'fournisseur' as const,
-      invoices: [
-        { numero: 'FOUR-2025-001', fournisseur: 'PLANTATION AFRICA', date: '10/01/2025', echeance: '10/02/2025', montant: 12000000, statut: 'À payer' },
-        { numero: 'FOUR-2025-004', fournisseur: 'AGRO BUSINESS', date: '15/01/2025', echeance: '15/03/2025', montant: 3500000, statut: 'En cours' },
-        { numero: 'FOUR-2025-008', fournisseur: 'COMMODITIES LTD', date: '20/01/2025', echeance: '20/02/2025', montant: 2700000, statut: 'Validée' }
-      ]
-    },
-    'salaires': {
-      title: 'Salaires - Détail des échéanciers',
-      type: 'fournisseur' as const,
-      invoices: [
-        { numero: 'SAL-2025-01', fournisseur: 'PERSONNEL CADRES', date: '31/01/2025', echeance: '05/02/2025', montant: 4500000, statut: 'À payer' },
-        { numero: 'SAL-2025-02', fournisseur: 'PERSONNEL OUVRIERS', date: '31/01/2025', echeance: '05/02/2025', montant: 2800000, statut: 'À payer' },
-        { numero: 'SAL-2025-03', fournisseur: 'PERSONNEL TEMPORAIRE', date: '31/01/2025', echeance: '05/02/2025', montant: 200000, statut: 'À payer' }
-      ]
-    }
-  };
+  // invoiceData est chargé dynamiquement dans le useEffect ci-dessus
+  const invoiceDetails = invoiceData;
 
   const openDetailModal = (category: string) => {
     const data = invoiceDetails[category as keyof typeof invoiceDetails];

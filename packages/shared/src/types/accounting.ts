@@ -1,5 +1,5 @@
 /**
- * @atlas/shared — Types comptables unifies pour Atlas Finance
+ * @atlas/shared — Types comptables unifies pour Atlas F&A
  *
  * Types source-of-truth pour le DataAdapter.
  * Compatibles avec les DBxxxx interfaces existantes de Dexie

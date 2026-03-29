@@ -1,5 +1,5 @@
 /**
- * Atlas Finance Design System - Radio Component
+ * Atlas F&A Design System - Radio Component
  * Fully accessible radio button with validation and custom styling
  */
 

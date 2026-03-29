@@ -433,9 +433,9 @@ CREATE TABLE IF NOT EXISTS lignes_rapprochement (
 INSERT INTO societes (id, code, nom, description, email, telephone, address)
 VALUES (
   'a0000000-0000-0000-0000-000000000001',
-  'ATLAS', 'Atlas Finance',
+  'ATLAS', 'Atlas F&A',
   'Societe de demonstration - ERP Comptable SYSCOHADA',
-  'contact@atlasfinance.cm', '+237 690 000 000', 'Douala, Cameroun'
+  'contact@atlasfna.cm', '+237 690 000 000', 'Douala, Cameroun'
 ) ON CONFLICT (code) DO NOTHING;
 
 INSERT INTO devises (code, nom, symbole, taux_change, is_active) VALUES

@@ -1,6 +1,6 @@
 // @ts-nocheck
 /**
- * Service Assets Atlas Finance
+ * Service Assets Atlas F&A
  * Gestion des immobilisations et amortissements
  *
  * Fonctionnalités:

@@ -22,7 +22,7 @@ import {
 const APP_VERSION = __APP_VERSION__ || '3.0.0';
 
 const themeLabels: Record<string, string> = {
-  atlasFinance: 'Atlas Finance',
+  atlasFinance: 'Atlas F&A',
   oceanBlue: 'Ocean Blue',
   forestGreen: 'Forest Green',
   midnightDark: 'Mode Sombre',
@@ -193,7 +193,7 @@ const ManagerWorkspace: React.FC = () => {
         ))}
       </div>
       <div className="bg-white rounded-lg p-6 border">
-        <h2 className="text-lg font-semibold mb-4">Raccourcis Atlas Finance</h2>
+        <h2 className="text-lg font-semibold mb-4">Raccourcis Atlas F&A</h2>
         <div className="grid grid-cols-4 gap-3">
           {[{label:'Rapports',icon:FileText,path:'/reporting',color:'#525252'},{label:'Budgets',icon:Target,path:'/budgeting',color:'#171717'},{label:'Trésorerie',icon:DollarSign,path:'/treasury',color:'#737373'},{label:'Équipe',icon:Users,path:'/security/users',color:'#525252'}].map((a,i) => (
             <button key={i} onClick={() => navigate(a.path)} className="p-4 rounded-lg border hover:border-gray-400 hover:shadow-sm transition-all">
@@ -235,7 +235,7 @@ const ManagerWorkspace: React.FC = () => {
           <div className="flex items-center space-x-4">
             <button onClick={() => navigate('/')} className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 border-2 border-gray-300"><ArrowLeft className="w-5 h-5" /><span className="text-sm font-semibold">Accueil</span></button>
             <button onClick={() => setSidebarOpen(!sidebarOpen)} className="lg:hidden p-2 rounded-lg hover:bg-gray-100">{sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}</button>
-            <div className="flex items-center space-x-3"><div className="w-10 h-10 rounded-lg bg-gradient-to-r from-[#525252] to-[#404040] flex items-center justify-center"><Briefcase className="w-5 h-5 text-white" /></div><div className="hidden sm:block"><h1 className="text-lg font-bold"><span className="atlas-brand">Atlas Finance</span></h1><p className="text-xs text-gray-500">v{APP_VERSION}</p></div></div>
+            <div className="flex items-center space-x-3"><div className="w-10 h-10 rounded-lg bg-gradient-to-r from-[#525252] to-[#404040] flex items-center justify-center"><Briefcase className="w-5 h-5 text-white" /></div><div className="hidden sm:block"><h1 className="text-lg font-bold"><span className="atlas-brand">Atlas F&A</span></h1><p className="text-xs text-gray-500">v{APP_VERSION}</p></div></div>
             <div className="hidden md:block relative">
               <button
                 onClick={() => setWorkspaceSwitcherOpen(!workspaceSwitcherOpen)}
@@ -264,7 +264,7 @@ const ManagerWorkspace: React.FC = () => {
           </div>
           <div className="flex-1 max-w-md mx-6 hidden md:block"><div className="relative"><Search className="w-4 h-4 absolute left-3 top-1/2 -tranprimary-y-1/2 text-gray-400" /><input placeholder="Recherche..." className="w-full pl-10 pr-4 py-2 border rounded-lg text-sm" /></div></div>
           <div className="flex items-center space-x-3">
-            <button onClick={() => navigate('/dashboard')} className="group px-6 py-2.5 bg-[#171717] hover:bg-[#262626] rounded-lg text-white font-semibold flex items-center space-x-2 transition-all shadow-sm hover:shadow-md"><LayoutDashboard className="w-5 h-5" /><span><span className="atlas-brand">Atlas Finance</span></span><ExternalLink className="w-4 h-4 opacity-60 group-hover:opacity-100 group-hover:tranprimary-x-0.5 transition-all" /></button>
+            <button onClick={() => navigate('/dashboard')} className="group px-6 py-2.5 bg-[#171717] hover:bg-[#262626] rounded-lg text-white font-semibold flex items-center space-x-2 transition-all shadow-sm hover:shadow-md"><LayoutDashboard className="w-5 h-5" /><span><span className="atlas-brand">Atlas F&A</span></span><ExternalLink className="w-4 h-4 opacity-60 group-hover:opacity-100 group-hover:tranprimary-x-0.5 transition-all" /></button>
             <button className="relative p-2 rounded-lg hover:bg-gray-100"><Bell className="w-5 h-5 text-gray-500" /></button>
             <button onClick={() => setActiveSection('help')} className="p-2 rounded-lg hover:bg-gray-100"><HelpCircle className="w-5 h-5 text-gray-500" /></button>
             <div className="relative">

@@ -1,6 +1,6 @@
 // @ts-nocheck
 /**
- * Service Budget Atlas Finance
+ * Service Budget Atlas F&A
  * Gestion budgétaire intelligente avec IA, dashboards et alertes automatiques
  *
  * Fonctionnalités:

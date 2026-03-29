@@ -1,6 +1,6 @@
 // @ts-nocheck
 /**
- * Service Dashboard Atlas Finance
+ * Service Dashboard Atlas F&A
  * Tableau de bord exécutif et KPIs consolidés
  *
  * Fonctionnalités:
@@ -496,7 +496,7 @@ class DashboardService {
       Object.entries(theme).forEach(([key, value]) => {
         root.style.setProperty(`--${key}-color`, value);
       });
-      localStorage.setItem('atlas-finance-theme', themeId);
+      localStorage.setItem('atlas-fna-theme', themeId);
     }
 
     return { success: !!theme };
@@ -506,7 +506,7 @@ class DashboardService {
    * Récupère le thème actuel
    */
   getCurrentTheme(): string {
-    return localStorage.getItem('atlas-finance-theme') || 'corporate-blue';
+    return localStorage.getItem('atlas-fna-theme') || 'corporate-blue';
   }
 }
 

@@ -18,7 +18,7 @@ interface ThemeProviderProps {
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   // Récupérer le thème sauvegardé ou utiliser le thème par défaut
   const [themeType, setThemeType] = useState<ThemeType>(() => {
-    const saved = localStorage.getItem('atlas-finance-theme') as ThemeType;
+    const saved = localStorage.getItem('atlas-fna-theme') as ThemeType;
     return saved && saved in themes ? saved : 'atlasFinance';
   });
 
@@ -38,7 +38,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     root.style.color = theme.colors.text.primary;
 
     // Sauvegarder le choix
-    localStorage.setItem('atlas-finance-theme', themeType);
+    localStorage.setItem('atlas-fna-theme', themeType);
   }, [theme, themeType]);
 
   const setTheme = (type: ThemeType) => {

@@ -288,7 +288,7 @@ export const ViewReportModal: React.FC<ViewReportModalProps> = ({ isOpen, onClos
               </button>
               <button
                 onClick={() => {
-                  navigator.clipboard.writeText(`https://atlasfinance.app/rapports/${rapport.id}`);
+                  navigator.clipboard.writeText(`https://atlasfna.app/rapports/${rapport.id}`);
                   toast.success('Lien copié !');
                 }}
                 className="px-3 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center gap-2"
@@ -763,7 +763,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, item, t
   };
 
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(`https://atlasfinance.app/${type}s/${item.id}`);
+    navigator.clipboard.writeText(`https://atlasfna.app/${type}s/${item.id}`);
     toast.success('Lien copié dans le presse-papier');
   };
 
@@ -795,7 +795,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, item, t
             <label className="block text-sm font-bold text-[#171717] mb-2">Lien de partage</label>
             <div className="flex gap-2">
               <div className="flex-1 px-3 py-2 bg-gray-100 rounded-lg text-sm text-gray-600 truncate">
-                https://atlasfinance.app/{type}s/{item.id}
+                https://atlasfna.app/{type}s/{item.id}
               </div>
               <button
                 onClick={handleCopyLink}

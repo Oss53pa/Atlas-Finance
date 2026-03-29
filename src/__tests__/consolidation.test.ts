@@ -124,7 +124,7 @@ describe('Consolidation Multi-Societes — SYSCOHADA', () => {
   });
 
   describe('Perimetre construction', () => {
-    const mere: Societe = { id: 'M1', code: 'ATLAS', nom: 'Atlas Finance', devise: 'XAF', estMere: true };
+    const mere: Societe = { id: 'M1', code: 'ATLAS', nom: 'Atlas F&A', devise: 'XAF', estMere: true };
     const filiale1: Societe = { id: 'F1', code: 'FIL1', nom: 'Filiale Cameroun', devise: 'XAF', estMere: false };
     const filiale2: Societe = { id: 'F2', code: 'FIL2', nom: 'Filiale CI', devise: 'XOF', estMere: false };
 

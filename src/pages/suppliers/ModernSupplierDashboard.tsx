@@ -1,5 +1,5 @@
 /**
- * Module Fournisseur - Dashboard Principal Atlas Finance
+ * Module Fournisseur - Dashboard Principal Atlas F&A
  * Interface moderne conforme au cahier des charges sections 2.1-2.5
  * Gestion complète des fournisseurs avec échéances et lettrage
  */
@@ -774,7 +774,7 @@ const ModernSupplierDashboard: React.FC = () => {
             Module Fournisseur
           </h1>
           <p className="text-[var(--color-text-primary)] mt-2">
-            Gestion complète des fournisseurs - Atlas Finance
+            Gestion complète des fournisseurs - Atlas F&A
           </p>
         </div>
 

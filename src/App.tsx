@@ -212,6 +212,12 @@ const CrossControlsPage = lazyRetry(() => import('./pages/accounting/CrossContro
 // Off-Balance Commitments (Correction #11)
 const OffBalanceCommitmentsPage = lazyRetry(() => import('./pages/closures/OffBalanceCommitmentsPage'));
 
+// New pages — Correction Massive
+const EffetsCommercePage = lazyRetry(() => import('./pages/treasury/EffetsCommercePage'));
+const ReevaluationPage = lazyRetry(() => import('./pages/assets/ReevaluationPage'));
+const ComposantsPage = lazyRetry(() => import('./pages/assets/ComposantsPage'));
+const EcartsConversionPage = lazyRetry(() => import('./pages/closures/EcartsConversionPage'));
+
 // Settings
 const AccountingSettingsPage = lazyRetry(() => import('./pages/settings/AccountingSettingsPage'));
 const BackupPage = lazyRetry(() => import('./pages/settings/BackupPage'));
@@ -374,6 +380,7 @@ function App() {
                           <Route path="/treasury/cash-register" element={<CashRegisterPage />} />
                           <Route path="/treasury/loan-schedule" element={<LoanSchedulePage />} />
                           <Route path="/treasury/checks" element={<ChecksRegisterPage />} />
+                          <Route path="/treasury/effets-commerce" element={<EffetsCommercePage />} />
                         </Route>
 
                         {/* Immobilisations */}
@@ -391,6 +398,8 @@ function App() {
                           <Route path="/assets/inventory" element={<AssetsRegistry />} />
                           <Route path="/assets/maintenance" element={<AssetsMaintenance />} />
                           <Route path="/assets/physical-inventory" element={<InventairePhysiquePage />} />
+                          <Route path="/assets/reevaluation" element={<ReevaluationPage />} />
+                          <Route path="/assets/composants" element={<ComposantsPage />} />
                         </Route>
 
                         {/* Budget */}
@@ -409,6 +418,7 @@ function App() {
                           <Route path="/closures/carry-forward" element={<ReportsANouveauModule />} />
                           <Route path="/closures/audit-trail" element={<PisteAuditModule />} />
                           <Route path="/closures/off-balance" element={<OffBalanceCommitmentsPage />} />
+                          <Route path="/closures/ecarts-conversion" element={<EcartsConversionPage />} />
                         </Route>
 
                         {/* Etats financiers */}

@@ -1,6 +1,6 @@
 // @ts-nocheck
 /**
- * Auth Backend Service - Atlas Finance
+ * Auth Backend Service - Atlas F&A
  * Handles authentication with Django backend
  */
 import apiService from './api.service';

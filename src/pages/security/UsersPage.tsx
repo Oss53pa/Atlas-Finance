@@ -674,7 +674,7 @@ const UsersPage: React.FC = () => {
                   <input
                     type="email"
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    placeholder="marie.dubois@atlasfinance.com"
+                    placeholder="marie.dubois@atlasfna.com"
                   />
                 </div>
 

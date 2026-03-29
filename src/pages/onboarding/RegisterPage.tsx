@@ -128,7 +128,7 @@ const RegisterPage: React.FC = () => {
             <span className="atlas-brand text-3xl">Atlas Studio</span>
           </div>
           <h2 className="text-3xl font-bold leading-tight mb-2 text-white">
-            <span className="atlas-brand text-4xl" style={{ color: '#C4A235' }}>Atlas Finance</span>
+            <span className="atlas-brand text-4xl" style={{ color: '#C4A235' }}>Atlas F&A</span>
           </h2>
           <p className="text-lg text-white/80 font-medium mb-4">
             Créez votre espace de gestion en 2 minutes

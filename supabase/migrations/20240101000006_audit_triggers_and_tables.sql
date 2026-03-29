@@ -1,6 +1,6 @@
 -- ============================================================================
 -- Migration 6: Triggers d'intégrité métier + tables analytiques + rapprochement
--- Audit expert Atlas Finance — corrections P1
+-- Audit expert Atlas F&A — corrections P1
 -- ============================================================================
 
 -- ============================================================================

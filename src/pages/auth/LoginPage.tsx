@@ -88,9 +88,9 @@ const LoginPage: React.FC = () => {
 
   const handleAutoLogin = async (role: 'admin' | 'manager' | 'comptable') => {
     const credentials = {
-      admin: { email: 'admin@atlasfinance.cm', password: 'admin123' },
-      manager: { email: 'manager@atlasfinance.com', password: 'manager123' },
-      comptable: { email: 'comptable@atlasfinance.com', password: 'comptable123' }
+      admin: { email: 'admin@atlasfna.cm', password: 'admin123' },
+      manager: { email: 'manager@atlasfna.com', password: 'manager123' },
+      comptable: { email: 'comptable@atlasfna.com', password: 'comptable123' }
     };
 
     const creds = credentials[role];
@@ -297,7 +297,7 @@ const LoginPage: React.FC = () => {
             {/* Footer Atlas Studio */}
             <div className="mt-6 text-center">
               <p className="text-xs text-[var(--color-text-secondary)]">
-                <span className="atlas-brand text-base">Atlas Studio</span> &copy; {new Date().getFullYear()} — Atlas Finance, Liass'Pilot, DocJourney
+                <span className="atlas-brand text-base">Atlas Studio</span> &copy; {new Date().getFullYear()} — Atlas F&A, Liass'Pilot, DocJourney
                 <Link to="/admin-login" className="text-[var(--color-text-secondary)]/20 hover:text-[var(--color-text-secondary)]/20 ml-1 cursor-default">·</Link>
               </p>
             </div>

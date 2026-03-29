@@ -45,7 +45,7 @@ const MobileAppPage: React.FC = () => {
   const [showDisconnectConfirm, setShowDisconnectConfirm] = useState<{ id: number; name: string } | null>(null);
   const [settings, setSettings] = useState({
     minVersion: '2.0.0',
-    serverUrl: 'https://api.atlasfinance.com',
+    serverUrl: 'https://api.atlasfna.com',
     cacheLimit: 500,
     debugMode: false,
     analytics: true
@@ -151,7 +151,7 @@ const MobileAppPage: React.FC = () => {
   const handleResetSettings = () => {
     setSettings({
       minVersion: '2.0.0',
-      serverUrl: 'https://api.atlasfinance.com',
+      serverUrl: 'https://api.atlasfna.com',
       cacheLimit: 500,
       debugMode: false,
       analytics: true
@@ -785,7 +785,7 @@ const MobileAppPage: React.FC = () => {
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-lg font-bold text-[var(--color-text-primary)]">Application Mobile</h1>
-        <p className="text-[var(--color-text-secondary)] mt-1">Gérez l'application mobile Atlas Finance et les appareils connectés</p>
+        <p className="text-[var(--color-text-secondary)] mt-1">Gérez l'application mobile Atlas F&A et les appareils connectés</p>
       </div>
 
       {/* Tabs */}
@@ -840,7 +840,7 @@ const MobileAppPage: React.FC = () => {
             </div>
             <div className="text-center space-y-2">
               <p className="text-sm text-gray-600">
-                Scannez ce QR code avec l'application mobile Atlas Finance
+                Scannez ce QR code avec l'application mobile Atlas F&A
               </p>
               <p className="text-xs text-gray-700">
                 Code d'association : <span className="font-mono font-bold">WB-2024-XYZ-123</span>

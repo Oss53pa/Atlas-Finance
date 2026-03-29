@@ -365,16 +365,16 @@ const FinancialAnalysisDashboard: React.FC = () => {
                     {formatCurrency(financialMetrics.profit.net)}
                   </td>
                   <td className="py-3 px-4 text-right text-[var(--color-text-secondary)]">
-                    {formatCurrency(1500000)}
-                  </td>
-                  <td className="py-3 px-4 text-right text-[var(--color-success)]">
-                    {formatCurrency(75000)}
+                    —
                   </td>
                   <td className="py-3 px-4 text-right text-[var(--color-text-secondary)]">
-                    {formatCurrency(1350000)}
+                    —
                   </td>
-                  <td className="py-3 px-4 text-right text-[var(--color-success)]">
-                    +16.7%
+                  <td className="py-3 px-4 text-right text-[var(--color-text-secondary)]">
+                    —
+                  </td>
+                  <td className="py-3 px-4 text-right text-[var(--color-text-secondary)]">
+                    —
                   </td>
                 </tr>
               </tbody>
@@ -496,7 +496,7 @@ const FinancialAnalysisDashboard: React.FC = () => {
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-[var(--color-text-secondary)]">Cash Ratio</span>
                   <span className="font-medium text-[var(--color-text-primary)]">
-                    0.8
+                    {liveFinancials.revenue > 0 ? (liveFinancials.treasury / liveFinancials.expenses).toFixed(2) : '—'}
                   </span>
                 </div>
               </div>
@@ -515,13 +515,13 @@ const FinancialAnalysisDashboard: React.FC = () => {
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-[var(--color-text-secondary)]">Dette/EBITDA</span>
                   <span className="font-medium text-[var(--color-text-primary)]">
-                    1.2
+                    {financialMetrics.profit.ebitda > 0 ? '—' : '—'}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-[var(--color-text-secondary)]">Couverture Int.</span>
                   <span className="font-medium text-[var(--color-text-primary)]">
-                    8.5x
+                    —
                   </span>
                 </div>
               </div>
@@ -534,19 +534,19 @@ const FinancialAnalysisDashboard: React.FC = () => {
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-[var(--color-text-secondary)]">Rotation Stocks</span>
                   <span className="font-medium text-[var(--color-text-primary)]">
-                    6.2x
+                    —
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-[var(--color-text-secondary)]">DSO</span>
                   <span className="font-medium text-[var(--color-text-primary)]">
-                    45 jours
+                    —
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-[var(--color-text-secondary)]">DPO</span>
                   <span className="font-medium text-[var(--color-text-primary)]">
-                    38 jours
+                    —
                   </span>
                 </div>
               </div>
@@ -560,9 +560,10 @@ const FinancialAnalysisDashboard: React.FC = () => {
               <div>
                 <h4 className="font-medium text-orange-900 mb-1">Points d'Attention</h4>
                 <ul className="text-sm text-[var(--color-warning-darker)] space-y-1">
-                  <li>• Le DSO a augmenté de 5 jours ce mois-ci</li>
-                  <li>• Les charges externes dépassent le budget de 2.1%</li>
-                  <li>• Le ratio de liquidité rapide est en dessous de l'objectif de 2.0</li>
+                  {financialMetrics.profit.net < 0 && <li>• Le résultat net est négatif ({formatCurrency(financialMetrics.profit.net)})</li>}
+                  {financialMetrics.profit.netMargin < 5 && financialMetrics.profit.netMargin > 0 && <li>• La marge nette est faible ({financialMetrics.profit.netMargin.toFixed(1)}%)</li>}
+                  {liveFinancials.treasury < 0 && <li>• La trésorerie nette est négative ({formatCurrency(liveFinancials.treasury)})</li>}
+                  {liveFinancials.revenue === 0 && liveFinancials.expenses === 0 && <li>• Aucune écriture comptable enregistrée pour cette période</li>}
                 </ul>
               </div>
             </div>

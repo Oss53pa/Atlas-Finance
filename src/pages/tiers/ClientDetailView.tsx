@@ -1531,7 +1531,7 @@ const ClientDetailView: React.FC = () => {
                     </div>
                     <div className="flex items-center space-x-2">
                       <div className="flex-1 p-2 bg-gray-50 rounded text-xs text-[#525252] truncate">
-                        https://atlasfinance.com/share/contracts/cli001...
+                        https://atlasfna.com/share/contracts/cli001...
                       </div>
                       <button className="p-2 text-[#171717] hover:bg-[#171717]/10 rounded">
                         <Link className="w-4 h-4" />
@@ -1545,7 +1545,7 @@ const ClientDetailView: React.FC = () => {
                     </div>
                     <div className="flex items-center space-x-2">
                       <div className="flex-1 p-2 bg-gray-50 rounded text-xs text-[#525252] truncate">
-                        https://atlasfinance.com/share/invoices/cli001...
+                        https://atlasfna.com/share/invoices/cli001...
                       </div>
                       <button className="p-2 text-[#171717] hover:bg-[#171717]/10 rounded">
                         <Link className="w-4 h-4" />

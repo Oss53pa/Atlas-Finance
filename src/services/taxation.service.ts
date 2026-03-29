@@ -1,6 +1,6 @@
 // @ts-nocheck
 /**
- * SERVICE FRONTEND TAXATION - Atlas Finance
+ * SERVICE FRONTEND TAXATION - Atlas F&A
  *
  * Ré-export du service fiscal connecté aux données réelles via DataAdapter.
  * Le moteur de détection automatique des taxes est dans src/services/fiscal/.

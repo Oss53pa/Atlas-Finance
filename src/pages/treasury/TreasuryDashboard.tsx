@@ -94,8 +94,8 @@ const TreasuryDashboard: React.FC = () => {
     total_out: Math.abs(globalKPIs?.treasury?.cash_flow || 0),
     totalCashPosition: globalKPIs?.treasury?.cash_position || 0,
     activeBankConnections: accountsData?.filter((acc: any) => acc.actif).length || 0,
-    reconciliationRate: 0.978, // From reconciliation service
-    pendingReconciliation: 23,
+    reconciliationRate: 0,
+    pendingReconciliation: 0,
     cashForecast30d: cashFlowPrediction?.predictions?.[29]?.predicted_balance || 0
   };
 
@@ -162,8 +162,8 @@ const TreasuryDashboard: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <KPICard
             title="Position de Trésorerie"
-            value={formatCurrency(stats?.totalCashPosition || 48500000000)}
-            subtitle="+12.5% vs mois précédent"
+            value={formatCurrency(stats?.totalCashPosition || 0)}
+            subtitle={stats?.totalCashPosition ? `${stats.total_accounts} compte(s)` : 'Aucune donnée'}
             icon={Wallet}
             color="success"
             delay={0.1}
@@ -172,7 +172,7 @@ const TreasuryDashboard: React.FC = () => {
           
           <KPICard
             title="Connexions Bancaires"
-            value={(stats?.activeBankConnections || 12).toString()}
+            value={(stats?.activeBankConnections || 0).toString()}
             subtitle="EBICS • SWIFT • PSD2 • Temps réel"
             icon={Shield}
             color="neutral"
@@ -182,8 +182,8 @@ const TreasuryDashboard: React.FC = () => {
           
           <KPICard
             title="Rapprochement IA"
-            value={formatPercentage(stats?.reconciliationRate || 0.978)}
-            subtitle={`Taux de matching ML • ${stats?.pendingReconciliation || 23} en attente`}
+            value={formatPercentage(stats?.reconciliationRate || 0)}
+            subtitle={`Taux de matching • ${stats?.pendingReconciliation || 0} en attente`}
             icon={Brain}
             color="primary"
             delay={0.3}
@@ -192,7 +192,7 @@ const TreasuryDashboard: React.FC = () => {
           
           <KPICard
             title="Cash Forecast 30J"
-            value={formatCurrency(stats?.cashForecast30d || 52300000000)}
+            value={formatCurrency(stats?.cashForecast30d || 0)}
             subtitle="Monte Carlo • Confiance 95%"
             icon={Target}
             color="warning"

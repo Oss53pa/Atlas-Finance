@@ -904,7 +904,7 @@ const OfflineModePage: React.FC = () => {
 
                 <div>
                   <Label>Serveur de test</Label>
-                  <Input defaultValue="https://api.atlasfinance.com/ping" />
+                  <Input defaultValue="https://api.atlasfna.com/ping" />
                 </div>
 
                 <div className="flex items-center justify-between">

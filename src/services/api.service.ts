@@ -1,6 +1,6 @@
 // @ts-nocheck
 /**
- * API Service - Atlas Finance
+ * API Service - Atlas F&A
  * Unified service layer using Supabase client
  *
  * This replaces the previous Axios-based API service.

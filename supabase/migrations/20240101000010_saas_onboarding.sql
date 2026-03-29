@@ -231,7 +231,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- ============================================================================
 INSERT INTO solutions (code, name, description, icon, color, price_monthly_xof, price_yearly_xof, price_monthly_eur, price_yearly_eur, features, is_active, display_order) VALUES
   -- ═══ SOLUTIONS EN PRODUCTION ═══
-  ('atlas-finance', 'Atlas Finance',
+  ('atlas-fna', 'Atlas F&A',
    'ERP Comptable & Financier conforme SYSCOHADA — Plan comptable, écritures, états financiers, trésorerie, fiscalité, audit IA.',
    'calculator', '#171717',
    25000, 250000, 39, 390,
@@ -242,14 +242,14 @@ INSERT INTO solutions (code, name, description, icon, color, price_monthly_xof, 
    'Génération automatique de la liasse fiscale SYSCOHADA — DSF, états annexes, télédéclaration conforme DGI.',
    'file-text', '#0891b2',
    15000, 150000, 25, 250,
-   '["Liasse fiscale SYSCOHADA automatique", "DSF conforme DGI", "États annexes (tableau 1-22)", "Télédéclaration", "Contrôle de cohérence", "Export PDF & XML", "Intégration Atlas Finance"]'::jsonb,
+   '["Liasse fiscale SYSCOHADA automatique", "DSF conforme DGI", "États annexes (tableau 1-22)", "Télédéclaration", "Contrôle de cohérence", "Export PDF & XML", "Intégration Atlas F&A"]'::jsonb,
    true, 2),
 
   ('docjourney', 'DocJourney',
    'Gestion documentaire intelligente — Numérisation, classement automatique, archivage légal et piste d''audit.',
    'folder-open', '#7c3aed',
    10000, 100000, 19, 190,
-   '["Numérisation OCR", "Classement automatique IA", "Archivage légal (10 ans)", "Piste d''audit SHA-256", "Recherche full-text", "Partage sécurisé", "Intégration Atlas Finance"]'::jsonb,
+   '["Numérisation OCR", "Classement automatique IA", "Archivage légal (10 ans)", "Piste d''audit SHA-256", "Recherche full-text", "Partage sécurisé", "Intégration Atlas F&A"]'::jsonb,
    true, 3),
 
   -- ═══ SOLUTIONS À VENIR ═══
@@ -264,7 +264,7 @@ INSERT INTO solutions (code, name, description, icon, color, price_monthly_xof, 
    'Relation Client & Commercial — Pipeline, devis, facturation, recouvrement.',
    'handshake', '#059669',
    15000, 150000, 25, 250,
-   '["Pipeline commercial", "Devis & facturation", "Recouvrement automatisé", "Reporting client", "Intégration Atlas Finance"]'::jsonb,
+   '["Pipeline commercial", "Devis & facturation", "Recouvrement automatisé", "Reporting client", "Intégration Atlas F&A"]'::jsonb,
    false, 5)
 ON CONFLICT (code) DO UPDATE SET
   name = EXCLUDED.name,

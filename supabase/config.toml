@@ -17,8 +17,8 @@ api_url = "http://localhost"
 
 [auth]
 enabled = true
-site_url = "https://atlas-finance-two.vercel.app"
-additional_redirect_urls = ["https://atlas-finance-two.vercel.app", "http://localhost:5178"]
+site_url = "https://atlas-fna-two.vercel.app"
+additional_redirect_urls = ["https://atlas-fna-two.vercel.app", "http://localhost:5178"]
 jwt_expiry = 3600
 enable_signup = true
 enable_refresh_token_rotation = true

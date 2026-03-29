@@ -75,7 +75,7 @@ const SimpleParametersManager: React.FC = () => {
           <div>
             <h1 className="text-lg font-bold text-gray-900 flex items-center">
               <CogIcon className="h-8 w-8 mr-3 text-primary-600" />
-              Centre de Configuration Atlas Finance
+              Centre de Configuration Atlas F&A
             </h1>
             <p className="text-gray-600 mt-2">
               Configuration complète selon cahier des charges SYSCOHADA

@@ -1,5 +1,5 @@
 /**
- * Dashboard Principal Executive Atlas Finance
+ * Dashboard Principal Executive Atlas F&A
  * Vue d'ensemble consolidée tous modules selon cahier des charges
  */
 import React, { useState, useMemo } from 'react';
@@ -220,7 +220,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
             </div>
             <div>
               <h1 className="text-lg font-bold text-[#171717]" style={{ fontFamily: 'Sometype Mono, sans-serif' }}>
-                Atlas Finance Executive
+                Atlas F&A Executive
               </h1>
               <p className="text-[#171717]/70">
                 Vue d'ensemble consolidée • Temps réel
@@ -737,7 +737,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
             <CardHeader>
               <CardTitle className="flex items-center">
                 <TrendingUp className="h-5 w-5 mr-2" />
-                Atlas Finance vs Concurrence
+                Atlas F&A vs Concurrence
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -746,7 +746,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                   <thead>
                     <tr className="border-b">
                       <th className="text-left py-2">Métrique</th>
-                      <th className="text-center py-2"><span className="atlas-brand">Atlas Finance</span></th>
+                      <th className="text-center py-2"><span className="atlas-brand">Atlas F&A</span></th>
                       <th className="text-center py-2">SAP</th>
                       <th className="text-center py-2">Oracle</th>
                       <th className="text-center py-2">Sage</th>
@@ -882,7 +882,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
         </div>
         
         <div className="text-right">
-          <p className="font-medium"><span className="atlas-brand">Atlas Finance</span> v3.0 - Production Ready</p>
+          <p className="font-medium"><span className="atlas-brand">Atlas F&A</span> v3.0 - Production Ready</p>
           <p className="text-xs">
             Dernière maj: {formatDate(new Date())} • 
             Praedium Tech © 2024

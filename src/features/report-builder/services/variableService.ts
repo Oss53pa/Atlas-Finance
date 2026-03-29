@@ -8,7 +8,7 @@
  *   {{period.month}}       → "Décembre"
  *   {{report.name}}        → "Rapport Mensuel DG"
  *   {{report.version}}     → "3"
- *   {{company.name}}       → "Atlas Finance"
+ *   {{company.name}}       → "Atlas F&A"
  *   {{generated.date}}     → "15 mars 2026"
  *   {{user.fullname}}      → "Dev Admin"
  *   {{kpi.ca}}             → "2 847 000 000 FCFA"
@@ -139,7 +139,7 @@ export function getAvailableVariables(): { path: string; label: string; example:
     { path: 'period.month', label: 'Mois', example: 'Décembre' },
     { path: 'report.name', label: 'Nom du rapport', example: 'Rapport Mensuel DG' },
     { path: 'report.version', label: 'Version', example: '3' },
-    { path: 'company.name', label: 'Société', example: 'Atlas Finance' },
+    { path: 'company.name', label: 'Société', example: 'Atlas F&A' },
     { path: 'generated.date', label: 'Date de génération', example: '15 mars 2026' },
     { path: 'user.fullname', label: 'Utilisateur', example: 'Dev Admin' },
     { path: 'kpi.ca', label: 'Chiffre d\'Affaires', example: '2 847 000 000 FCFA' },

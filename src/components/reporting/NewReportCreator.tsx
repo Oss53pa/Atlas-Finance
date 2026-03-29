@@ -75,9 +75,9 @@ const NewReportCreator: React.FC<NewReportCreatorProps> = ({ isOpen, onClose }) 
   });
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
   const [backCoverSummary, setBackCoverSummary] = useState('Ce rapport présente une analyse complète de la période');
-  const [contactEmail, setContactEmail] = useState('contact@atlasfinance.com');
+  const [contactEmail, setContactEmail] = useState('contact@atlasfna.com');
   const [contactPhone, setContactPhone] = useState('+33 1 23 45 67 89');
-  const [contactWebsite, setContactWebsite] = useState('www.atlasfinance.com');
+  const [contactWebsite, setContactWebsite] = useState('www.atlasfna.com');
   const [backCoverStyle, setBackCoverStyle] = useState('professional');
   const [showStats, setShowStats] = useState(true);
   const [showContact, setShowContact] = useState(true);

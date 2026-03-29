@@ -1,14 +1,14 @@
 -- ============================================================================
--- WiseBook / Atlas Finance - Seed Data
+-- WiseBook / Atlas F&A - Seed Data
 -- ============================================================================
 -- Execute this in the Supabase SQL Editor AFTER running the 4 migrations.
 --
 -- IMPORTANT: The 3 demo users must be created via Supabase Dashboard
 -- (Authentication > Users > Add user) BEFORE running this script:
 --
---   1. admin@atlasfinance.cm     / admin123
---   2. manager@atlasfinance.com  / manager123
---   3. comptable@atlasfinance.com / comptable123
+--   1. admin@atlasfna.cm     / admin123
+--   2. manager@atlasfna.com  / manager123
+--   3. comptable@atlasfna.com / comptable123
 --
 -- After creating the users, copy their UUIDs into the variables below.
 -- ============================================================================
@@ -20,9 +20,9 @@ INSERT INTO societes (id, code, nom, description, email, telephone, address)
 VALUES (
   'a0000000-0000-0000-0000-000000000001',
   'ATLAS',
-  'Atlas Finance',
+  'Atlas F&A',
   'Societe de demonstration - ERP Comptable SYSCOHADA',
-  'contact@atlasfinance.cm',
+  'contact@atlasfna.cm',
   '+237 690 000 000',
   'Douala, Cameroun'
 )
@@ -131,17 +131,17 @@ ON CONFLICT (role_id, permission_id) DO NOTHING;
 --   Copy the UUID for each user
 --
 -- Example (replace these):
---   admin@atlasfinance.cm     -> REPLACE 'AUTH_USER_ADMIN_UUID'
---   manager@atlasfinance.com  -> REPLACE 'AUTH_USER_MANAGER_UUID'
---   comptable@atlasfinance.com -> REPLACE 'AUTH_USER_COMPTABLE_UUID'
+--   admin@atlasfna.cm     -> REPLACE 'AUTH_USER_ADMIN_UUID'
+--   manager@atlasfna.com  -> REPLACE 'AUTH_USER_MANAGER_UUID'
+--   comptable@atlasfna.com -> REPLACE 'AUTH_USER_COMPTABLE_UUID'
 
 -- Uncomment and fill in after creating users in Supabase Auth Dashboard:
 /*
 INSERT INTO profiles (id, email, username, first_name, last_name, role_id, company_id, is_active)
 VALUES
-  ('AUTH_USER_ADMIN_UUID',     'admin@atlasfinance.cm',      'admin',     'Admin',    'Atlas',    'r0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000001', true),
-  ('AUTH_USER_MANAGER_UUID',   'manager@atlasfinance.com',   'manager',   'Manager',  'Atlas',    'r0000000-0000-0000-0000-000000000002', 'a0000000-0000-0000-0000-000000000001', true),
-  ('AUTH_USER_COMPTABLE_UUID', 'comptable@atlasfinance.com', 'comptable', 'Comptable','Atlas',    'r0000000-0000-0000-0000-000000000003', 'a0000000-0000-0000-0000-000000000001', true)
+  ('AUTH_USER_ADMIN_UUID',     'admin@atlasfna.cm',      'admin',     'Admin',    'Atlas',    'r0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000001', true),
+  ('AUTH_USER_MANAGER_UUID',   'manager@atlasfna.com',   'manager',   'Manager',  'Atlas',    'r0000000-0000-0000-0000-000000000002', 'a0000000-0000-0000-0000-000000000001', true),
+  ('AUTH_USER_COMPTABLE_UUID', 'comptable@atlasfna.com', 'comptable', 'Comptable','Atlas',    'r0000000-0000-0000-0000-000000000003', 'a0000000-0000-0000-0000-000000000001', true)
 ON CONFLICT (id) DO UPDATE SET
   role_id = EXCLUDED.role_id,
   company_id = EXCLUDED.company_id;

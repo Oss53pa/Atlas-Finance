@@ -14,7 +14,7 @@ const EmailTemplate: React.FC = () => {
               💰
             </div>
             <div>
-              <h1 className="text-lg font-bold"><span className="atlas-brand">Atlas Finance</span></h1>
+              <h1 className="text-lg font-bold"><span className="atlas-brand">Atlas F&A</span></h1>
               <p className="text-[#525252]/80">Système de Gestion Intégrée</p>
             </div>
           </div>
@@ -79,7 +79,7 @@ const EmailTemplate: React.FC = () => {
 
             <div className="text-center">
               <a
-                href={`https://atlasfinance.praedium-tech.com/validation/token-secure-${id}`}
+                href={`https://atlasfna.praedium-tech.com/validation/token-secure-${id}`}
                 className="inline-flex items-center space-x-2 px-6 py-3 bg-[#525252] text-white rounded-lg hover:bg-[#404040] transition-colors font-medium"
               >
                 <span>✅</span>
@@ -106,7 +106,7 @@ const EmailTemplate: React.FC = () => {
         {/* Footer */}
         <div className="bg-[#171717] text-white p-4 text-center">
           <p className="text-sm">
-            © 2025 Atlas Finance - Praedium Tech
+            © 2025 Atlas F&A - Praedium Tech
           </p>
           <p className="text-xs text-gray-700">
             Système conforme SYSCOHADA | Sécurisé et auditable

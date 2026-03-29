@@ -8,8 +8,8 @@
 -- 1. Table des applications Atlas Studio
 CREATE TABLE IF NOT EXISTS applications (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  code TEXT UNIQUE NOT NULL,          -- 'atlas-finance', 'atlas-hr', 'atlas-crm'
-  name TEXT NOT NULL,                  -- 'Atlas Finance'
+  code TEXT UNIQUE NOT NULL,          -- 'atlas-fna', 'atlas-hr', 'atlas-crm'
+  name TEXT NOT NULL,                  -- 'Atlas F&A'
   description TEXT,
   icon TEXT,                           -- nom d'icône (lucide-react)
   color TEXT DEFAULT '#171717',        -- couleur du thème
@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS user_applications (
 
 -- 3. Seed les applications Atlas Studio
 INSERT INTO applications (code, name, description, icon, color, display_order, is_active) VALUES
-  ('atlas-finance', 'Atlas Finance',  'ERP Comptable & Financier — SYSCOHADA / OHADA',    'calculator',    '#171717', 1, true),
+  ('atlas-fna', 'Atlas F&A',  'ERP Comptable & Financier — SYSCOHADA / OHADA',    'calculator',    '#171717', 1, true),
   ('atlas-hr',      'Atlas HR',       'Gestion des Ressources Humaines & Paie',            'users',         '#2563eb', 2, false),
   ('atlas-crm',     'Atlas CRM',      'Gestion de la Relation Client',                     'handshake',     '#059669', 3, false),
   ('atlas-stock',   'Atlas Stock',    'Gestion des Stocks & Inventaire',                   'package',       '#d97706', 4, false),
@@ -44,12 +44,12 @@ ON CONFLICT (code) DO UPDATE SET
   description = EXCLUDED.description,
   icon = EXCLUDED.icon;
 
--- 4. Donner accès Atlas Finance à tous les utilisateurs existants
+-- 4. Donner accès Atlas F&A à tous les utilisateurs existants
 INSERT INTO user_applications (user_id, application_id)
 SELECT p.id, a.id
 FROM profiles p
 CROSS JOIN applications a
-WHERE a.code = 'atlas-finance'
+WHERE a.code = 'atlas-fna'
 ON CONFLICT (user_id, application_id) DO NOTHING;
 
 -- 5. RLS sur user_applications

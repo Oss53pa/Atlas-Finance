@@ -1,21 +1,21 @@
 // @ts-nocheck
 /**
  * SolutionRouter — dispatche vers la page d'accueil de chaque solution.
- * atlas-finance → AtlasFinanceHome (page d'accueil avec KPIs et raccourcis)
+ * atlas-fna → AtlasFnAHome (page d'accueil avec KPIs et raccourcis)
  * liass-pilot, docjourney → page placeholder (à implémenter)
  */
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FileText, FolderOpen, ArrowLeft, Construction } from 'lucide-react';
-import AtlasFinanceHome from './AtlasFinanceHome';
+import AtlasFnAHome from './AtlasFnAHome';
 
 const SolutionRouter: React.FC = () => {
   const { code } = useParams<{ code: string }>();
   const navigate = useNavigate();
 
-  // Atlas Finance → page d'accueil dédiée
-  if (code === 'atlas-finance') {
-    return <AtlasFinanceHome />;
+  // Atlas F&A → page d'accueil dédiée
+  if (code === 'atlas-fna') {
+    return <AtlasFnAHome />;
   }
 
   // Solutions connues mais pas encore développées

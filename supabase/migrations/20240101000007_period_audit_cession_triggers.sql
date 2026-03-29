@@ -1,6 +1,6 @@
 -- ============================================================================
 -- Migration 7: Triggers sécurité clôtures + piste d'audit + tables fiscales
--- Audit expert Atlas Finance — corrections P0 + P1 + P2
+-- Audit expert Atlas F&A — corrections P0 + P1 + P2
 -- ============================================================================
 
 -- ============================================================================

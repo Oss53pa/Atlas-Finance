@@ -1,6 +1,6 @@
 /**
  * ============================================================================
- * SERVICE FRONTEND FOURNISSEURS - Atlas Finance v4.1.0
+ * SERVICE FRONTEND FOURNISSEURS - Atlas F&A v4.1.0
  * ============================================================================
  *
  * Service complet pour la gestion des fournisseurs et achats
@@ -9,7 +9,7 @@
  * BASE PATH: /api/v1/suppliers/
  *
  * @version 4.1.0
- * @author Atlas Finance Team
+ * @author Atlas F&A Team
  * @date 2025-10-19
  *
  * ARCHITECTURE:
@@ -1671,7 +1671,7 @@ class SupplierService {
    * Traitement facture depuis Wise Procure
    *
    * @param data - Données de la facture Wise Procure
-   * @returns Facture créée dans Atlas Finance
+   * @returns Facture créée dans Atlas F&A
    *
    * @endpoint POST /api/v1/suppliers/wise-procure/process-invoice/
    */

@@ -6,7 +6,7 @@ import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight, MapPin, X, ExternalLink, Maximize2 } from 'lucide-react';
 
 const TOUR_STEPS = {
-  'atlas-finance': [
+  'atlas-fna': [
     { route: '/dashboard', title: 'Dashboard comptable', desc: 'Vue d\'ensemble de votre activité : KPIs temps réel, raccourcis, dernières écritures, alertes.', highlight: 'Le point d\'entrée de votre journée comptable.' },
     { route: '/accounting/entries', title: 'Saisie d\'écritures', desc: 'Créez vos écritures avec contrôle D=C automatique. Multi-lignes, multi-journaux.', highlight: 'Le cœur du système — chaque écriture alimente tout le reste.' },
     { route: '/accounting/general-ledger', title: 'Grand Livre', desc: 'Détail de chaque compte : mouvements, soldes, filtres par période, export.', highlight: 'Zoom sur n\'importe quel compte en un clic.' },
@@ -29,7 +29,7 @@ const TOUR_STEPS = {
 };
 
 const GuidedTour: React.FC<{ solution: string; onClose: () => void }> = ({ solution, onClose }) => {
-  const steps = TOUR_STEPS[solution] || TOUR_STEPS['atlas-finance'];
+  const steps = TOUR_STEPS[solution] || TOUR_STEPS['atlas-fna'];
   const [current, setCurrent] = useState(0);
   const [started, setStarted] = useState(false);
 

@@ -223,7 +223,7 @@ const ChatIcon: React.FC = () => (
 // Icône supprimée - utilisation de lucide-react à la place
 
 const WisebookLogo: React.FC = () => (
-  <div className="atlas-finance-logo">
+  <div className="atlas-fna-logo">
     <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
       <rect width="32" height="32" rx="8" fill="#171717"/>
       <path

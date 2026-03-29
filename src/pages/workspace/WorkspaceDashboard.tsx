@@ -260,7 +260,7 @@ const WorkspaceDashboard: React.FC = () => {
                 style={{ backgroundColor: '#171717', color: '#FFFFFF' }}
               >
                 <ArrowRight size={18} />
-                Accéder à Atlas Finance
+                Accéder à Atlas F&A
               </button>
             </div>
           </div>

@@ -1,6 +1,6 @@
 // @ts-nocheck
 /**
- * Gestion Multi-Sociétés Atlas Finance
+ * Gestion Multi-Sociétés Atlas F&A
  * Configuration selon EXP-PAR-002
  */
 import React, { useState } from 'react';

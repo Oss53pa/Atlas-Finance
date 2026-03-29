@@ -31,7 +31,7 @@ export default function MaintenancePage({
   return (
     <>
       <Helmet>
-        <title>Maintenance en cours | Atlas Finance</title>
+        <title>Maintenance en cours | Atlas F&A</title>
       </Helmet>
 
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-primary-50 to-primary-50 dark:from-gray-900 dark:via-blue-900 dark:to-primary-900 px-4">
@@ -65,7 +65,7 @@ export default function MaintenancePage({
           </h1>
 
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
-            {message || `Nous effectuons actuellement des améliorations sur Atlas Finance pour vous offrir une meilleure expérience.`}
+            {message || `Nous effectuons actuellement des améliorations sur Atlas F&A pour vous offrir une meilleure expérience.`}
           </p>
 
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-8 mb-8 border border-gray-200 dark:border-gray-700">
@@ -127,7 +127,7 @@ export default function MaintenancePage({
           <div className="text-sm text-gray-700 dark:text-gray-700">
             <p className="mb-2">Merci pour votre patience</p>
             <p>
-              Questions ? <a href="mailto:support@atlasfinance.com" className="text-blue-600 dark:text-blue-400 hover:underline">support@atlasfinance.com</a>
+              Questions ? <a href="mailto:support@atlasfna.com" className="text-blue-600 dark:text-blue-400 hover:underline">support@atlasfna.com</a>
             </p>
           </div>
         </div>

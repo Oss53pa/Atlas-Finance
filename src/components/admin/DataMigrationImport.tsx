@@ -707,7 +707,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
         <div className="space-y-6">
           {/* Question cle */}
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-5">
-            <h2 className="text-base font-semibold text-amber-900 mb-2">A quelle date effectuez-vous la bascule vers Atlas Finance ?</h2>
+            <h2 className="text-base font-semibold text-amber-900 mb-2">A quelle date effectuez-vous la bascule vers Atlas F&A ?</h2>
             <p className="text-sm text-amber-700">Selectionnez le mode qui correspond a votre situation. Le mode determine les fichiers a importer.</p>
           </div>
 
@@ -823,7 +823,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
 
             {migrationMode === 2 && (
               <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <p className="text-xs text-blue-800"><strong>Pourquoi la Balance et pas le Grand Livre ?</strong> La Balance condense tout en une seule ligne par compte (le solde final au 31/12/N-1). C'est exactement ce dont Atlas Finance a besoin pour ouvrir l'exercice N — ni plus, ni moins.</p>
+                <p className="text-xs text-blue-800"><strong>Pourquoi la Balance et pas le Grand Livre ?</strong> La Balance condense tout en une seule ligne par compte (le solde final au 31/12/N-1). C'est exactement ce dont Atlas F&A a besoin pour ouvrir l'exercice N — ni plus, ni moins.</p>
               </div>
             )}
             {migrationMode === 1 && (
@@ -833,7 +833,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
             )}
             {migrationMode === 3 && (
               <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-3">
-                <p className="text-xs text-red-800"><strong>Attention :</strong> Un fichier Grand Livre par exercice. Ne pas fusionner plusieurs exercices dans un seul fichier. Atlas Finance verifie la coherence inter-exercices : Bilan cloture N-3 = Bilan ouverture N-2, etc.</p>
+                <p className="text-xs text-red-800"><strong>Attention :</strong> Un fichier Grand Livre par exercice. Ne pas fusionner plusieurs exercices dans un seul fichier. Atlas F&A verifie la coherence inter-exercices : Bilan cloture N-3 = Bilan ouverture N-2, etc.</p>
               </div>
             )}
           </div>
@@ -1231,7 +1231,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
             <div className="text-center space-y-4">
               <Play className="w-12 h-12 text-red-500 mx-auto" />
               <h2 className="text-xl font-semibold text-gray-900">Pret a importer</h2>
-              <p className="text-gray-500">L'import va creer les enregistrements dans votre base Atlas Finance.</p>
+              <p className="text-gray-500">L'import va creer les enregistrements dans votre base Atlas F&A.</p>
               <button onClick={runImport}
                 className="px-6 py-3 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition-colors"
               >

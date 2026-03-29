@@ -1,7 +1,7 @@
 // @ts-nocheck
 /**
- * Atlas Finance Catalog — FULL independent section
- * Displays ALL tables, dashboards, charts, KPIs from Atlas Finance.
+ * Atlas F&A Catalog — FULL independent section
+ * Displays ALL tables, dashboards, charts, KPIs from Atlas F&A.
  * User can browse, search, preview, and add to report.
  * CDC Section 6.3 — CŒUR DU SYSTÈME
  */
@@ -222,7 +222,7 @@ const PreviewPanel: React.FC<{ item: AtlasCatalogItem; onClose: () => void; onAd
           {categoryIcons[item.category]}
         </div>
         <p className="text-xs text-neutral-500">Aperçu avec données réelles</p>
-        <p className="text-[10px] text-neutral-400 mt-1">Les données se chargeront automatiquement depuis Atlas Finance</p>
+        <p className="text-[10px] text-neutral-400 mt-1">Les données se chargeront automatiquement depuis Atlas F&A</p>
       </div>
     </div>
   </div>
@@ -306,7 +306,7 @@ const AtlasCatalogPanel: React.FC = () => {
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="px-3 pt-3 pb-2">
-        <div className="text-xs font-bold text-neutral-800 mb-2">Catalogue Atlas Finance</div>
+        <div className="text-xs font-bold text-neutral-800 mb-2">Catalogue Atlas F&A</div>
         <div className="relative mb-2">
           <Search className="absolute left-2.5 top-2 w-3.5 h-3.5 text-neutral-400" />
           <input

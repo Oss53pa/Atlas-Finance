@@ -1,5 +1,5 @@
 
-/* Atlas Finance - Design System */
+/* Atlas F&A - Design System */
 @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700;800&family=Grand+Hotel&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 @tailwind base;
@@ -8,7 +8,7 @@
 
 @layer base {
   :root {
-    /* Atlas Finance Design System - Grayscale Monochrome */
+    /* Atlas F&A Design System - Grayscale Monochrome */
     --background: 0 0% 98%;
     --foreground: 0 0% 9%;
     --card: 0 0% 100%;
@@ -117,7 +117,7 @@
 }
 
 @layer components {
-  /* Atlas Finance Design System Components */
+  /* Atlas F&A Design System Components */
 
   /* Enhanced KPI Card Styles */
   .kpi-card-enhanced {

@@ -63,7 +63,7 @@ const FONTS = [
   { name: "Garamond", type: "Serif", best: "Rapports formels", note: "Classique corporate — très lisible imprimé" },
   { name: "Merriweather", type: "Serif", best: "Documents longs", note: "Google Fonts — optimisé écran + print" },
   { name: "Fira Code", type: "Monospace", best: "Code", note: "Ligatures — pour blocs de code" },
-  { name: "JetBrains Mono", type: "Monospace", best: "Code", note: "Très lisible — Atlas Finance code blocs" },
+  { name: "JetBrains Mono", type: "Monospace", best: "Code", note: "Très lisible — Atlas F&A code blocs" },
   { name: "Sometype Mono", type: "Monospace", best: "UI tech", note: "Ta police Atlas FM — unique" },
 ];
 

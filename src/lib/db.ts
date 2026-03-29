@@ -545,7 +545,7 @@ export interface DBOffBalanceCommitment {
 // DATABASE
 // ============================================================================
 
-class AtlasFinanceDB extends Dexie {
+class AtlasFnADB extends Dexie {
   journalEntries!: Table<DBJournalEntry, string>;
   accounts!: Table<DBAccount, string>;
   thirdParties!: Table<DBThirdParty, string>;
@@ -580,7 +580,7 @@ class AtlasFinanceDB extends Dexie {
   // Correction #11 — Off-Balance Commitments
   offBalanceCommitments!: Table<DBOffBalanceCommitment, string>;
   constructor() {
-    super('AtlasFinanceDB');
+    super('AtlasFnADB');
     this.version(1).stores({
       journalEntries: 'id, entryNumber, journal, date, status, [journal+date], reversalOf',
       accounts: 'id, code, accountClass, parentCode',
@@ -762,7 +762,7 @@ class AtlasFinanceDB extends Dexie {
   }
 }
 
-export const db = new AtlasFinanceDB();
+export const db = new AtlasFnADB();
 
 // ============================================================================
 // MIGRATION: localStorage → IndexedDB
@@ -773,7 +773,7 @@ const MIGRATION_KEY = 'atlas_idb_migration_v1';
 export async function migrateFromLocalStorage(): Promise<void> {
   if (localStorage.getItem(MIGRATION_KEY)) return;
 
-  console.info('[AtlasFinance] Checking for localStorage data to migrate...');
+  console.info('[AtlasFnA] Checking for localStorage data to migrate...');
 
   const keysToCheck = Object.keys(localStorage).filter(k =>
     k.startsWith('wisebook_') || k.startsWith('wb_') || k.startsWith('atlas_')
@@ -809,7 +809,7 @@ export async function migrateFromLocalStorage(): Promise<void> {
 
   localStorage.setItem(MIGRATION_KEY, new Date().toISOString());
   if (migrated > 0) {
-    console.info(`[AtlasFinance] Migrated ${migrated} records to IndexedDB.`);
+    console.info(`[AtlasFnA] Migrated ${migrated} records to IndexedDB.`);
   }
 }
 

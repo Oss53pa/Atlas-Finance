@@ -22,7 +22,7 @@ export const supabase: SupabaseClient<Database> = createClient<Database>(
       persistSession: isSupabaseConfigured,
       detectSessionInUrl: isSupabaseConfigured,
       storage: typeof sessionStorage !== 'undefined' ? sessionStorage : undefined,
-      storageKey: 'atlas-finance-auth',
+      storageKey: 'atlas-fna-auth',
     },
     realtime: {
       params: {

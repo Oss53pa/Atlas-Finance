@@ -1,11 +1,11 @@
-/* Atlas Finance - Styles de base optimisés */
+/* Atlas F&A - Styles de base optimisés */
 @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700;800&family=Grand+Hotel&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Police Grand Hotel pour le branding Atlas Finance */
+/* Police Grand Hotel pour le branding Atlas F&A */
 .atlas-brand {
   font-family: 'Grand Hotel', cursive !important;
   letter-spacing: 0.5px;

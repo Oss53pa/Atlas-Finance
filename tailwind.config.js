@@ -23,7 +23,7 @@ export default {
     },
     extend: {
       colors: {
-        // Atlas Finance Design System - Grayscale Palette
+        // Atlas F&A Design System - Grayscale Palette
         primary: {
           DEFAULT: '#171717',
           50: '#fafafa',

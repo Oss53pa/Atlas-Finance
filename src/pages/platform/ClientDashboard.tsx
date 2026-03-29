@@ -14,12 +14,12 @@ import {
 } from 'lucide-react';
 
 const MODULE_ICONS: Record<string, React.FC<{ className?: string }>> = {
-  'atlas-finance': Calculator, 'liass-pilot': FileText, 'docjourney': FolderOpen,
+  'atlas-fna': Calculator, 'liass-pilot': FileText, 'docjourney': FolderOpen,
   'tms-pro': Truck, 'scrutix': ShieldCheck, 'atlas-hr': Users,
 };
 
 const MODULE_LABELS: Record<string, string> = {
-  'atlas-finance': 'Atlas Finance', 'liass-pilot': "Liass'Pilot", 'docjourney': 'DocJourney',
+  'atlas-fna': 'Atlas F&A', 'liass-pilot': "Liass'Pilot", 'docjourney': 'DocJourney',
   'tms-pro': 'TMS Pro Africa', 'scrutix': 'Scrutix', 'atlas-hr': 'Atlas HR',
 };
 

@@ -248,7 +248,7 @@ const CompleteTasksModule: React.FC = () => {
           type: 'email',
           beforeDays: 2,
           beforeHours: 0,
-          recipients: ['marie.martin@atlasfinance.com']
+          recipients: ['marie.martin@atlasfna.com']
         }
       ]
     },

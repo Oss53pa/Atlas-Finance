@@ -1,6 +1,6 @@
 /**
- * Module Mes Tâches avec Sidebar - Version Atlas Finance
- * Gestion des tâches avec navigation latérale et branding Atlas Finance
+ * Module Mes Tâches avec Sidebar - Version Atlas F&A
+ * Gestion des tâches avec navigation latérale et branding Atlas F&A
  */
 
 import React, { useState } from 'react';
@@ -248,7 +248,7 @@ const TasksModuleWithSidebar: React.FC = () => {
               WB
             </div>
             <div>
-              <span className="font-bold text-lg text-gray-900"><span className="atlas-brand">Atlas Finance</span></span>
+              <span className="font-bold text-lg text-gray-900"><span className="atlas-brand">Atlas F&A</span></span>
               <p className="text-xs text-gray-700">Gestion des tâches</p>
             </div>
           </div>
@@ -366,7 +366,7 @@ const TasksModuleWithSidebar: React.FC = () => {
               </div>
               <div className="flex-1">
                 <p className="text-sm font-medium text-gray-900">Utilisateur</p>
-                <p className="text-xs text-gray-700">user@atlasfinance.com</p>
+                <p className="text-xs text-gray-700">user@atlasfna.com</p>
               </div>
             </div>
           </div>

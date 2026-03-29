@@ -1,6 +1,6 @@
 // @ts-nocheck
 /**
- * Service Financial Statements Atlas Finance
+ * Service Financial Statements Atlas F&A
  * Génération automatique des états financiers SYSCOHADA
  *
  * Fonctionnalités:

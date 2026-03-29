@@ -1,6 +1,6 @@
 // @ts-nocheck
 /**
- * Page d'accueil Atlas Finance — affiche les KPIs et les raccourcis
+ * Page d'accueil Atlas F&A — affiche les KPIs et les raccourcis
  * C'est la première page que voit l'utilisateur avant d'entrer dans le workspace.
  */
 import React, { useEffect, useState } from 'react';
@@ -18,7 +18,7 @@ interface Stats {
   immobilisations: number;
 }
 
-const AtlasFinanceHome: React.FC = () => {
+const AtlasFnAHome: React.FC = () => {
   const navigate = useNavigate();
   const { adapter } = useData();
   const [stats, setStats] = useState<Stats>({ ecritures: 0, comptes: 0, tiers: 0, immobilisations: 0 });
@@ -89,7 +89,7 @@ const AtlasFinanceHome: React.FC = () => {
       <main className="flex-1 flex flex-col items-center justify-center px-6 -mt-16">
         {/* App name */}
         <h1 className="atlas-brand text-6xl md:text-7xl text-neutral-900 mb-3">
-          Atlas Finance
+          Atlas F&A
         </h1>
         <p className="text-neutral-400 text-base italic mb-14">
           Votre ERP comptable intelligent — Conforme SYSCOHADA
@@ -138,11 +138,11 @@ const AtlasFinanceHome: React.FC = () => {
           ))}
         </nav>
         <span className="text-xs text-neutral-300">
-          Powered by <span className="atlas-brand text-sm">Atlas Finance</span>
+          Powered by <span className="atlas-brand text-sm">Atlas F&A</span>
         </span>
       </footer>
     </div>
   );
 };
 
-export default AtlasFinanceHome;
+export default AtlasFnAHome;

@@ -7,6 +7,7 @@ import { useCenter } from '../../../../../components/common/Footer';
 import { DICTIONNARY, useLanguage } from '../../../../../globals/dictionnary';
 import { useFinanceContext } from '../../../../../contexts/FinanceContext';
 import { BsPlusSquareFill, TbSquareMinusFilled } from '../../../../../components/ui/Icons';
+import { useAuth } from '../../../../../contexts/AuthContext';
 
 interface RouteParams {
   id_fund_call: string;
@@ -36,10 +37,11 @@ interface ShowContentState {
   [key: string]: boolean;
 }
 
-// Mock session and loading hooks
-const useSession = () => ({
-  loggedUser: { id: 1, username: 'admin' }
-});
+// Session from real AuthContext
+const useSession = () => {
+  const { user } = useAuth();
+  return { loggedUser: user ? { id: user.id, username: user.name } : null };
+};
 
 const useLoading = () => ({
   setIsLoadingCancelable: (_loading: boolean) => {}

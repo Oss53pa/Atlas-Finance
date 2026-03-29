@@ -1119,7 +1119,7 @@ const AdvancedBalance: React.FC = () => {
               {/* Pied de page */}
               <div className="mt-8 pt-4 border-t border-[#e5e5e5] flex justify-between items-center text-xs text-[#171717]/50">
                 <div>
-                  <p><span className="atlas-brand">Atlas Finance</span> - Balance Générale</p>
+                  <p><span className="atlas-brand">Atlas F&A</span> - Balance Générale</p>
                   <p>Système conforme SYSCOHADA</p>
                 </div>
                 <div className="text-right">

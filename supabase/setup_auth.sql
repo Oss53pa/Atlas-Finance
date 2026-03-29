@@ -1,7 +1,7 @@
 -- ============================================================================
--- Atlas Finance — SETUP AUTHENTIFICATION SUPABASE
+-- Atlas F&A — SETUP AUTHENTIFICATION SUPABASE
 -- ============================================================================
--- Ce script configure l'authentification Supabase pour Atlas Finance.
+-- Ce script configure l'authentification Supabase pour Atlas F&A.
 --
 -- ÉTAPES :
 -- 1. Exécuter ce script dans Supabase SQL Editor
@@ -150,24 +150,24 @@ $$ LANGUAGE sql STABLE SECURITY DEFINER;
 -- Allez dans : https://supabase.com/dashboard > Authentication > Users > Add user
 --
 -- Créez ces 3 utilisateurs :
---   Email: admin@atlasfinance.cm       Mot de passe: Admin123!
---   Email: manager@atlasfinance.com    Mot de passe: Manager123!
---   Email: comptable@atlasfinance.com  Mot de passe: Comptable123!
+--   Email: admin@atlasfna.cm       Mot de passe: Admin123!
+--   Email: manager@atlasfna.com    Mot de passe: Manager123!
+--   Email: comptable@atlasfna.com  Mot de passe: Comptable123!
 --
 -- Le trigger handle_new_user() créera automatiquement les profils.
 -- Ensuite, exécutez le SQL ci-dessous pour promouvoir les rôles :
 
 -- Promouvoir admin
 UPDATE profiles SET role_id = (SELECT id FROM roles WHERE code = 'admin')
-WHERE email = 'admin@atlasfinance.cm';
+WHERE email = 'admin@atlasfna.cm';
 
 -- Promouvoir manager
 UPDATE profiles SET role_id = (SELECT id FROM roles WHERE code = 'manager')
-WHERE email = 'manager@atlasfinance.com';
+WHERE email = 'manager@atlasfna.com';
 
 -- Promouvoir comptable
 UPDATE profiles SET role_id = (SELECT id FROM roles WHERE code = 'accountant')
-WHERE email = 'comptable@atlasfinance.com';
+WHERE email = 'comptable@atlasfna.com';
 
 -- ============================================================================
 -- 5. VÉRIFICATION
@@ -186,6 +186,6 @@ WHERE email = 'comptable@atlasfinance.com';
 -- Résultat attendu :
 -- | email                        | role       | societe        | is_active |
 -- |------------------------------|------------|----------------|-----------|
--- | admin@atlasfinance.cm        | admin      | Atlas Finance  | true      |
--- | manager@atlasfinance.com     | manager    | Atlas Finance  | true      |
--- | comptable@atlasfinance.com   | accountant | Atlas Finance  | true      |
+-- | admin@atlasfna.cm        | admin      | Atlas F&A  | true      |
+-- | manager@atlasfna.com     | manager    | Atlas F&A  | true      |
+-- | comptable@atlasfna.com   | accountant | Atlas F&A  | true      |

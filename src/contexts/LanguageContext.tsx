@@ -32,7 +32,7 @@ interface LanguageProviderProps {
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
   const [language, setLanguageState] = useState<Language>(() => {
     // Récupérer la langue sauvegardée ou utiliser le français par défaut
-    const savedLanguage = localStorage.getItem('atlas-finance-language') as Language;
+    const savedLanguage = localStorage.getItem('atlas-fna-language') as Language;
     return savedLanguage || 'fr';
   });
 
@@ -59,7 +59,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
 
   const setLanguage = (newLanguage: Language) => {
     setLanguageState(newLanguage);
-    localStorage.setItem('atlas-finance-language', newLanguage);
+    localStorage.setItem('atlas-fna-language', newLanguage);
   };
 
   // Fonction de traduction

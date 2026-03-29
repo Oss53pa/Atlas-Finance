@@ -1,6 +1,6 @@
 // @ts-nocheck
 /**
- * Atlas Finance Design System - Table Component
+ * Atlas F&A Design System - Table Component
  * Comprehensive table component with sorting, filtering, and pagination
  */
 

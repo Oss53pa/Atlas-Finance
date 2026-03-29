@@ -11,7 +11,7 @@ export interface Immobilisation {
   valeurAcquisition: number;
   dureeAmortissement: number;
   tauxAmortissement: number;
-  modeAmortissement: 'lineaire' | 'degressif';
+  modeAmortissement: 'lineaire' | 'degressif' | 'soyd';
   valeurResiduelle?: number;
   amortissementsCumules: number;
   dernierAmortissement?: string;
@@ -53,23 +53,50 @@ export class DepreciationService {
     return valeurNetteComptable.multiply(tauxDegressif).divide(100).toNumber();
   }
 
+  /**
+   * SOYD — Sum of Years Digits (amortissement accéléré)
+   * Dotation annee N = (base × (dureeVie - annee + 1)) / sommeChiffres
+   */
+  static calculerAmortissementSOYD(
+    valeurAcquisition: number,
+    dureeVie: number,
+    annee: number,
+    valeurResiduelle: number = 0
+  ): number {
+    const base = valeurAcquisition - valeurResiduelle;
+    const sommeChiffres = (dureeVie * (dureeVie + 1)) / 2;
+    const numerateur = dureeVie - annee + 1;
+    return money(base).multiply(numerateur).divide(sommeChiffres).toNumber();
+  }
+
   static calculerAmortissementMensuel(
     immobilisation: Immobilisation,
     mois: string
   ): number {
-    const annuiteAnnuelle =
-      immobilisation.modeAmortissement === 'lineaire'
-        ? this.calculerAmortissementLineaire(
-            immobilisation.valeurAcquisition,
-            immobilisation.dureeAmortissement,
-            immobilisation.valeurResiduelle
-          )
-        : this.calculerAmortissementDegressif(
-            immobilisation.valeurAcquisition,
-            immobilisation.tauxAmortissement,
-            this.calculerAnneesEcoulees(immobilisation.dateAcquisition, mois),
-            immobilisation.amortissementsCumules
-          );
+    const anneesEcoulees = this.calculerAnneesEcoulees(immobilisation.dateAcquisition, mois);
+    let annuiteAnnuelle: number;
+    if (immobilisation.modeAmortissement === 'soyd') {
+      const annee = Math.max(1, Math.ceil(anneesEcoulees));
+      annuiteAnnuelle = this.calculerAmortissementSOYD(
+        immobilisation.valeurAcquisition,
+        immobilisation.dureeAmortissement,
+        annee,
+        immobilisation.valeurResiduelle
+      );
+    } else if (immobilisation.modeAmortissement === 'lineaire') {
+      annuiteAnnuelle = this.calculerAmortissementLineaire(
+        immobilisation.valeurAcquisition,
+        immobilisation.dureeAmortissement,
+        immobilisation.valeurResiduelle
+      );
+    } else {
+      annuiteAnnuelle = this.calculerAmortissementDegressif(
+        immobilisation.valeurAcquisition,
+        immobilisation.tauxAmortissement,
+        anneesEcoulees,
+        immobilisation.amortissementsCumules
+      );
+    }
     const annuiteMensuelle = money(annuiteAnnuelle).divide(12).toNumber();
 
     return money(annuiteMensuelle).round(0).toNumber();
@@ -219,19 +246,28 @@ export class DepreciationService {
     let amortissementCumule = 0;
 
     for (let annee = 1; annee <= immobilisation.dureeAmortissement; annee++) {
-      let dotation =
-        immobilisation.modeAmortissement === 'lineaire'
-          ? this.calculerAmortissementLineaire(
-              immobilisation.valeurAcquisition,
-              immobilisation.dureeAmortissement,
-              immobilisation.valeurResiduelle
-            )
-          : this.calculerAmortissementDegressif(
-              immobilisation.valeurAcquisition,
-              immobilisation.tauxAmortissement,
-              annee - 1,
-              amortissementCumule
-            );
+      let dotation: number;
+      if (immobilisation.modeAmortissement === 'soyd') {
+        dotation = this.calculerAmortissementSOYD(
+          immobilisation.valeurAcquisition,
+          immobilisation.dureeAmortissement,
+          annee,
+          immobilisation.valeurResiduelle
+        );
+      } else if (immobilisation.modeAmortissement === 'lineaire') {
+        dotation = this.calculerAmortissementLineaire(
+          immobilisation.valeurAcquisition,
+          immobilisation.dureeAmortissement,
+          immobilisation.valeurResiduelle
+        );
+      } else {
+        dotation = this.calculerAmortissementDegressif(
+          immobilisation.valeurAcquisition,
+          immobilisation.tauxAmortissement,
+          annee - 1,
+          amortissementCumule
+        );
+      }
 
       // AF-I04: Bascule dégressif → linéaire quand annuité linéaire > annuité dégressive
       if (immobilisation.modeAmortissement === 'degressif') {

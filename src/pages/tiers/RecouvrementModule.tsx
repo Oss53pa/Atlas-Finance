@@ -846,7 +846,7 @@ Service Contentieux
     };
   }, [mockCreances, allJournalEntries]);
 
-  // Données d'intégration Atlas Finance - Flux entrants (derived from Dexie)
+  // Données d'intégration Atlas F&A - Flux entrants (derived from Dexie)
   const integrationData = useMemo(() => {
     const today = new Date();
     // Build unpaid invoices from 411xxx debit lines
@@ -1027,7 +1027,7 @@ Service Contentieux
               {/* Panel des intégrations en temps réel */}
               <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-[#171717]">Flux de Données Atlas Finance</h3>
+                  <h3 className="text-lg font-semibold text-[#171717]">Flux de Données Atlas F&A</h3>
                   <div className="flex items-center space-x-2 text-sm text-green-600">
                     <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                     <span>Synchronisation active</span>
@@ -5227,7 +5227,7 @@ Service Contentieux
           dateCreation: '2023-11-15',
           statut: 'final',
           taille: '458 KB',
-          auteur: 'Atlas Finance Auto',
+          auteur: 'Atlas F&A Auto',
           description: 'Facture N°FAC-2023-1156'
         },
         {
@@ -9707,7 +9707,7 @@ Service Contentieux
                                       <p style={{ backgroundColor: '#fff3cd', padding: '10px', marginTop: '15px', borderRadius: '5px' }}>
                                         <strong>Pour éviter ces poursuites, contactez immédiatement notre service:</strong><br/>
                                         ☎️ Tél: +242 06 XXX XX XX<br/>
-                                        ✉️ Email: contentieux@atlasfinance.com
+                                        ✉️ Email: contentieux@atlasfna.com
                                       </p>
                                     </>
                                   )}
@@ -9750,16 +9750,16 @@ Service Contentieux
                                   <p style={{ fontSize: '14px', color: '#333' }}>
                                     Cordialement,<br/>
                                     <strong>{selectedTemplateType === 'mise_demeure' || selectedTemplateType === 'pre_contentieux' ? 'Service Juridique et Contentieux' : 'Service Comptabilité'}</strong><br/>
-                                    Atlas Finance
+                                    Atlas F&A
                                   </p>
                                 </div>
                               </div>
 
                               {/* Pied de page */}
                               <div style={{ backgroundColor: '#fafafa', padding: '20px', borderTop: '1px solid #e5e5e5', fontSize: '11px', color: '#666' }}>
-                                <p style={{ margin: '5px 0', fontWeight: 'bold' }}><span className="atlas-brand">Atlas Finance</span> - Solutions de gestion d'entreprise</p>
+                                <p style={{ margin: '5px 0', fontWeight: 'bold' }}><span className="atlas-brand">Atlas F&A</span> - Solutions de gestion d'entreprise</p>
                                 <p style={{ margin: '5px 0' }}>📍 123 Avenue de la République, Brazzaville, Congo</p>
-                                <p style={{ margin: '5px 0' }}>☎️ +242 06 XXX XX XX | ✉️ contact@atlasfinance.com | 🌐 www.atlasfinance.com</p>
+                                <p style={{ margin: '5px 0' }}>☎️ +242 06 XXX XX XX | ✉️ contact@atlasfna.com | 🌐 www.atlasfna.com</p>
                                 <p style={{ margin: '10px 0 5px 0', fontSize: '10px', color: '#999' }}>
                                   Ce message et toutes les pièces jointes sont confidentiels et établis à l'intention exclusive de ses destinataires.
                                 </p>

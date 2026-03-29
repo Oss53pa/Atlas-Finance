@@ -95,7 +95,7 @@ const ClientHome: React.FC = () => {
             {activeSubs.map((sub: any) => {
               const sol = sub.solution;
               if (!sol) return null;
-              const ICONS: Record<string, any> = { 'atlas-finance': Calculator, 'liass-pilot': FileText, 'docjourney': FolderOpen };
+              const ICONS: Record<string, any> = { 'atlas-fna': Calculator, 'liass-pilot': FileText, 'docjourney': FolderOpen };
               const Icon = ICONS[sol.code] || BarChart3;
 
               return (

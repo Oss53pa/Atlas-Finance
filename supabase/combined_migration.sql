@@ -1,5 +1,5 @@
 -- ============================================================================
--- WiseBook / Atlas Finance — COMBINED MIGRATION
+-- WiseBook / Atlas F&A — COMBINED MIGRATION
 -- Execute in Supabase SQL Editor (https://supabase.com/dashboard/project/vgtmljfayiysuvrcmunt/sql)
 -- ============================================================================
 
@@ -844,9 +844,9 @@ CREATE POLICY profiles_update ON profiles FOR UPDATE USING (id = auth.uid());
 INSERT INTO societes (id, code, nom, description, email, telephone, address)
 VALUES (
   'a0000000-0000-0000-0000-000000000001',
-  'ATLAS', 'Atlas Finance',
+  'ATLAS', 'Atlas F&A',
   'Societe de demonstration - ERP Comptable SYSCOHADA',
-  'contact@atlasfinance.cm', '+237 690 000 000', 'Douala, Cameroun'
+  'contact@atlasfna.cm', '+237 690 000 000', 'Douala, Cameroun'
 ) ON CONFLICT (code) DO NOTHING;
 
 -- Currencies
@@ -913,9 +913,9 @@ ON CONFLICT DO NOTHING;
 -- ============================================================================
 -- DONE! Next steps:
 -- 1. Go to Authentication > Users > Add user
---    Create: admin@atlasfinance.cm / Admin123!
+--    Create: admin@atlasfna.cm / Admin123!
 -- 2. Copy the user UUID and run:
 --    INSERT INTO profiles (id, email, username, first_name, last_name, role_id, company_id, is_active)
---    VALUES ('<USER_UUID>', 'admin@atlasfinance.cm', 'admin', 'Admin', 'Atlas',
+--    VALUES ('<USER_UUID>', 'admin@atlasfna.cm', 'admin', 'Admin', 'Atlas',
 --            'b0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000001', true);
 -- ============================================================================

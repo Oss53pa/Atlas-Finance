@@ -1,6 +1,6 @@
 // @ts-nocheck
 /**
- * Assistant de Migration Sage vers Atlas Finance
+ * Assistant de Migration Sage vers Atlas F&A
  * Interface complète avec mapping intelligent et prévisualisation
  */
 import React, { useState, useEffect } from 'react';
@@ -241,7 +241,7 @@ const SageMigrationWizard: React.FC<SageMigrationWizardProps> = ({
       {/* Header avec progression */}
       <div className="text-center">
         <h1 className="text-lg font-bold text-gray-900 mb-2">
-          Migration Sage vers Atlas Finance
+          Migration Sage vers Atlas F&A
         </h1>
         <p className="text-gray-600 mb-6">
           Assistant de migration intelligent avec mapping automatique SYSCOHADA
@@ -298,7 +298,7 @@ const SageMigrationWizard: React.FC<SageMigrationWizardProps> = ({
               <div>
                 <label className="block text-sm font-medium mb-2">Nom de la migration</label>
                 <Input
-                  placeholder="Migration Sage vers Atlas Finance"
+                  placeholder="Migration Sage vers Atlas F&A"
                   value={migrationConfig.migration_name}
                   onChange={(e) => setMigrationConfig({
                     ...migrationConfig,

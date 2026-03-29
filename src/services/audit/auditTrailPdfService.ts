@@ -117,7 +117,7 @@ export async function generateAuditTrailPdf(adapter: DataAdapter, options: Audit
 
   pdf.setFontSize(10);
   pdf.setFont('helvetica', 'normal');
-  pdf.text(options.companyName || 'Atlas Finance', pageWidth / 2, y, { align: 'center' });
+  pdf.text(options.companyName || 'Atlas F&A', pageWidth / 2, y, { align: 'center' });
   y += 5;
 
   const periodText = options.startDate && options.endDate
@@ -243,7 +243,7 @@ export async function generateAuditTrailPdf(adapter: DataAdapter, options: Audit
     pdf.setFontSize(7);
     pdf.setFont('helvetica', 'italic');
     pdf.text(
-      `Page ${i}/${pageCount} — Piste d'audit Atlas Finance — ${new Date().toISOString().split('T')[0]}`,
+      `Page ${i}/${pageCount} — Piste d'audit Atlas F&A — ${new Date().toISOString().split('T')[0]}`,
       pageWidth / 2,
       pdf.internal.pageSize.getHeight() - 8,
       { align: 'center' },

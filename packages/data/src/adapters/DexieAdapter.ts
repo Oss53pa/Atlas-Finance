@@ -19,7 +19,7 @@ import type { DataAdapter, DataMode, TableName, QueryFilters } from '../DataAdap
 // DATABASE SCHEMA (mirrors src/lib/db.ts version 5)
 // ============================================================================
 
-class AtlasFinanceDexie extends Dexie {
+class AtlasFnADexie extends Dexie {
   journalEntries!: Table<any, string>
   accounts!: Table<any, string>
   thirdParties!: Table<any, string>
@@ -40,7 +40,7 @@ class AtlasFinanceDexie extends Dexie {
   aliasPrefixConfig!: Table<any, string>
   fiscalPeriods!: Table<any, string>
 
-  constructor(dbName: string = 'AtlasFinanceDB') {
+  constructor(dbName: string = 'AtlasFnADB') {
     super(dbName)
 
     // Keep exact same versioning as src/lib/db.ts
@@ -171,10 +171,10 @@ class AtlasFinanceDexie extends Dexie {
 // ============================================================================
 
 export class DexieAdapter implements DataAdapter {
-  private db: AtlasFinanceDexie
+  private db: AtlasFnADexie
 
   constructor(dbName?: string) {
-    this.db = new AtlasFinanceDexie(dbName)
+    this.db = new AtlasFnADexie(dbName)
   }
 
   getMode(): DataMode { return 'local' }

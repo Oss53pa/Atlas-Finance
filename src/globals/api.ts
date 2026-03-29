@@ -1,6 +1,6 @@
-// API Configuration for Atlas Finance
+// API Configuration for Atlas F&A
 export const addressIpApi = process.env.NODE_ENV === 'production'
-  ? 'https://api.atlasfinance.tech'
+  ? 'https://api.atlasfna.tech'
   : 'http://127.0.0.1:8888';
 
 // Authenticated headers helper

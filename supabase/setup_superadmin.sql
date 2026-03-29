@@ -1,11 +1,11 @@
 -- ============================================================================
--- Atlas Finance — SUPER ADMIN + VERROUILLAGE APPLICATION
+-- Atlas F&A — SUPER ADMIN + VERROUILLAGE APPLICATION
 -- ============================================================================
 --
 -- ÉTAPE 1 : Créer le super admin dans Supabase Dashboard
 -- ─────────────────────────────────────────────────────────
 --   1. Aller dans https://supabase.com/dashboard
---   2. Sélectionner le projet Atlas Finance
+--   2. Sélectionner le projet Atlas F&A
 --   3. Authentication > Users > Add user
 --   4. Créer l'utilisateur :
 --        Email : VOTRE_EMAIL@domain.com

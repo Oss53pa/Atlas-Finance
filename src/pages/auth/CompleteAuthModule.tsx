@@ -134,7 +134,7 @@ const CompleteAuthModule: React.FC = () => {
     {
       id: 'USR001',
       username: 'admin',
-      email: 'admin@atlasfinance.com',
+      email: 'admin@atlasfna.com',
       fullName: 'Administrateur Système',
       role: 'Super Admin',
       department: 'IT',
@@ -163,7 +163,7 @@ const CompleteAuthModule: React.FC = () => {
     {
       id: 'USR002',
       username: 'comptable1',
-      email: 'comptable@atlasfinance.com',
+      email: 'comptable@atlasfna.com',
       fullName: 'Marie Kouassi',
       role: 'Comptable',
       department: 'Finance',
@@ -180,7 +180,7 @@ const CompleteAuthModule: React.FC = () => {
     {
       id: 'USR003',
       username: 'manager1',
-      email: 'manager@atlasfinance.com',
+      email: 'manager@atlasfna.com',
       fullName: 'Jean Konan',
       role: 'Manager',
       department: 'Commercial',
@@ -195,7 +195,7 @@ const CompleteAuthModule: React.FC = () => {
     {
       id: 'USR004',
       username: 'user_locked',
-      email: 'locked@atlasfinance.com',
+      email: 'locked@atlasfna.com',
       fullName: 'Paul Yao',
       role: 'Utilisateur',
       department: 'Operations',

@@ -58,7 +58,7 @@ export const catalogItems: CatalogItem[] = [
   {
     id: 'table-data',
     label: 'Tableau de Données',
-    description: 'Table connectée Atlas Finance',
+    description: 'Table connectée Atlas F&A',
     icon: 'table',
     category: 'data',
     blockType: 'table',
@@ -254,7 +254,7 @@ export const catalogItems: CatalogItem[] = [
   {
     id: 'formula',
     label: 'Formule Personnalisée',
-    description: 'Calcul libre avec références aux données Atlas Finance',
+    description: 'Calcul libre avec références aux données Atlas F&A',
     icon: 'hash',
     category: 'enrichment',
     blockType: 'formula',
@@ -271,7 +271,7 @@ export const catalogItems: CatalogItem[] = [
     blockType: 'cover',
     defaultBlock: {
       type: 'cover',
-      companyName: 'Atlas Finance',
+      companyName: 'Atlas F&A',
       reportTitle: 'Rapport Mensuel',
       subtitle: '',
       backgroundStyle: 'corporate-classic',
@@ -289,7 +289,7 @@ export const catalogItems: CatalogItem[] = [
     blockType: 'back-page',
     defaultBlock: {
       type: 'back-page',
-      companyName: 'Atlas Finance',
+      companyName: 'Atlas F&A',
       backgroundStyle: 'corporate-classic',
       locked: false,
       style: { marginBottom: 0 },

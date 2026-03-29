@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React, { useState, useMemo } from 'react'; // Palette Atlas Finance appliquée
+import React, { useState, useMemo } from 'react'; // Palette Atlas F&A appliquée
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
