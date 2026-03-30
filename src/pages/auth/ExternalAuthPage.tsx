@@ -55,6 +55,19 @@ const ExternalAuthPage: React.FC = () => {
         throw new Error(otpError.message);
       }
 
+      // Decode the Atlas Studio JWT to extract plan and configure feature tier
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const plan = (payload.plan || '').toLowerCase();
+        if (plan.includes('premium') || plan.includes('pro') || plan.includes('enterprise')) {
+          localStorage.setItem('atlas_fna_plan_tier', 'premium');
+        } else {
+          localStorage.setItem('atlas_fna_plan_tier', 'pme');
+        }
+      } catch {
+        localStorage.setItem('atlas_fna_plan_tier', 'pme');
+      }
+
       // Session is now established, AuthContext will pick it up
       navigate('/home', { replace: true });
     } catch (err) {
