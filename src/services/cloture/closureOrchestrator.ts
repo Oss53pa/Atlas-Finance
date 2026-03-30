@@ -301,6 +301,60 @@ export const closureOrchestrator = {
           timestamp: new Date().toISOString(),
           previousHash: '',
         });
+
+        // Export balance to Atlas Studio for Liass'Pilot integration
+        try {
+          const balanceData = validEntries.flatMap((entry: any) =>
+            (entry.lines || []).map((line: any) => ({
+              accountNumber: line.accountCode,
+              accountName: line.accountName || line.accountCode,
+              debitMovement: line.debit || 0,
+              creditMovement: line.credit || 0,
+              debitClosing: line.debit || 0,
+              creditClosing: line.credit || 0,
+              debitOpening: 0,
+              creditOpening: 0,
+            }))
+          );
+          // Aggregate by account
+          const byAccount: Record<string, any> = {};
+          for (const line of balanceData) {
+            if (!byAccount[line.accountNumber]) {
+              byAccount[line.accountNumber] = { ...line, debitMovement: 0, creditMovement: 0, debitClosing: 0, creditClosing: 0 };
+            }
+            byAccount[line.accountNumber].debitMovement += line.debitMovement;
+            byAccount[line.accountNumber].creditMovement += line.creditMovement;
+            byAccount[line.accountNumber].debitClosing += line.debitClosing;
+            byAccount[line.accountNumber].creditClosing += line.creditClosing;
+          }
+          const aggregatedBalance = Object.values(byAccount);
+
+          const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+          const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+          if (supabaseUrl && supabaseAnonKey) {
+            const { createClient } = await import('@supabase/supabase-js');
+            const sb = createClient(supabaseUrl, supabaseAnonKey);
+            const { data: { session } } = await sb.auth.getSession();
+            if (session?.access_token) {
+              await fetch(`${supabaseUrl}/functions/v1/export-balance`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${session.access_token}`,
+                  'apikey': supabaseAnonKey,
+                },
+                body: JSON.stringify({
+                  fiscalYear: fy.name,
+                  companyName: '',
+                  balanceData: aggregatedBalance,
+                }),
+              });
+            }
+          }
+        } catch (exportErr) {
+          console.warn('[Closure] Balance export to Atlas Studio failed (non-blocking):', exportErr);
+        }
+
         return `Exercice ${fy.name} clôturé`;
       }
 
