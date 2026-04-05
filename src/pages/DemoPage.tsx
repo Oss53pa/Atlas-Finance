@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * DemoPage — Page publique de démo interactive & visite guidée virtuelle
  * Thème dark cohérent avec la landing page Atlas Studio
@@ -180,10 +180,12 @@ const DemoPage: React.FC = () => {
             <span className="atlas-brand text-lg" style={{ color: G }}>Atlas Finance &amp; Accounting</span>
           </div>
           <div className="hidden md:flex items-center gap-8 text-sm" style={{ color: W30 }}>
-            <button onClick={() => navigate('/#modules')} className="hover:opacity-70 transition-colors">Modules</button>
+            <button onClick={() => navigate('/#modules')} className="hover:opacity-70 transition-colors">Applications</button>
             <button onClick={() => navigate('/#tarifs')} className="hover:opacity-70 transition-colors">Tarifs</button>
-            <span style={{ color: G }} className="font-semibold">Démo</span>
+            <button onClick={() => navigate('/#blog')} className="hover:opacity-70 transition-colors">Blog</button>
+            <button onClick={() => navigate('/#about')} className="hover:opacity-70 transition-colors">À propos</button>
             <button onClick={() => navigate('/#faq')} className="hover:opacity-70 transition-colors">FAQ</button>
+            <button onClick={() => navigate('/#contact')} className="hover:opacity-70 transition-colors">Contact</button>
           </div>
           <a href={ATLAS_STUDIO.LOGIN} className="px-5 py-2.5 bg-[#c9a96e] rounded-lg text-sm font-bold hover:bg-[#dbc396] transition-all flex items-center gap-2" style={{ color: BK }}>
             Essai gratuit <ArrowRight className="w-4 h-4" />

@@ -202,10 +202,12 @@ const LandingPage: React.FC = () => {
             <span className="atlas-brand text-lg" style={c.sGold}>Atlas Finance &amp; Accounting</span>
           </div>
           <div className="hidden md:flex items-center gap-8 text-sm" style={c.sTer}>
-            <a href="#modules" className="hover:opacity-80 transition-colors" style={c.sTer}>Modules</a>
+            <a href="#modules" className="hover:opacity-80 transition-colors" style={c.sTer}>Applications</a>
             <a href="#tarifs" className="hover:opacity-80 transition-colors" style={c.sTer}>Tarifs</a>
-            <button onClick={() => navigate('/demo')} className="hover:opacity-80 transition-colors" style={c.sTer}>Démo</button>
+            <a href="#blog" className="hover:opacity-80 transition-colors" style={c.sTer}>Blog</a>
+            <a href="#about" className="hover:opacity-80 transition-colors" style={c.sTer}>À propos</a>
             <a href="#faq" className="hover:opacity-80 transition-colors" style={c.sTer}>FAQ</a>
+            <a href="#contact" className="hover:opacity-80 transition-colors" style={c.sTer}>Contact</a>
           </div>
           <div className="flex items-center gap-3">
             <button onClick={toggleMode} className={`p-2 rounded-lg ${mode === 'dark' ? 'hover:bg-white/10' : 'hover:bg-gray-100'} transition-colors`} style={c.sTer} title={mode === 'dark' ? 'Mode jour' : 'Mode nuit'}>
@@ -608,12 +610,14 @@ const LandingPage: React.FC = () => {
               <p className="text-xs leading-relaxed mt-2" style={c.sTer}>ERP comptable et financier pour l'Afrique. Conforme SYSCOHADA, intelligent et sécurisé.</p>
             </div>
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider mb-4" style={c.sTer}>Produit</h4>
+              <h4 className="text-xs font-bold uppercase tracking-wider mb-4" style={c.sTer}>Navigation</h4>
               <ul className="space-y-2.5 text-xs" style={c.sMuted}>
-                <li><a href="#modules" style={c.sMuted}>Modules</a></li>
+                <li><a href="#modules" style={c.sMuted}>Applications</a></li>
                 <li><a href="#tarifs" style={c.sMuted}>Tarifs</a></li>
-                <li><button onClick={() => navigate('/demo')} style={c.sMuted}>Démo interactive</button></li>
+                <li><a href="#blog" style={c.sMuted}>Blog</a></li>
+                <li><a href="#about" style={c.sMuted}>À propos</a></li>
                 <li><a href="#faq" style={c.sMuted}>FAQ</a></li>
+                <li><a href="#contact" style={c.sMuted}>Contact</a></li>
               </ul>
             </div>
             <div>
