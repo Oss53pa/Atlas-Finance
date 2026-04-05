@@ -9,6 +9,7 @@ import { fiscaliteKnowledge } from './fiscalite';
 import { auditKnowledge } from './audit';
 import { clotureKnowledge } from './cloture';
 import { paieKnowledge } from './paie';
+import { consolidationKnowledge } from './consolidation';
 
 /** All knowledge chunks combined */
 export const allKnowledge: SyscohadaKnowledgeChunk[] = [
@@ -17,6 +18,7 @@ export const allKnowledge: SyscohadaKnowledgeChunk[] = [
   ...auditKnowledge,
   ...clotureKnowledge,
   ...paieKnowledge,
+  ...consolidationKnowledge,
 ];
 
 /**
