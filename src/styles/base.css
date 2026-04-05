@@ -11,6 +11,38 @@
   letter-spacing: 0.5px;
 }
 
+/* ══════════ Landing page / Marketing — palette Atlas Studio ══════════ */
+.landing-page {
+  /* Atlas Studio gold palette */
+  --atlas-gold: #c9a96e;
+  --atlas-gold-light: #dbc396;
+  --atlas-gold-dark: #a88b4a;
+  --atlas-gold-50: rgba(201, 169, 110, 0.06);
+  --atlas-gold-100: rgba(201, 169, 110, 0.12);
+  --atlas-gold-200: rgba(201, 169, 110, 0.20);
+  --atlas-gold-300: rgba(201, 169, 110, 0.35);
+  --atlas-bg: #0d0d0d;
+  --atlas-surface: rgba(255, 255, 255, 0.03);
+  --atlas-border: rgba(255, 255, 255, 0.06);
+}
+
+/* Override body bg when landing-page is present */
+.landing-page {
+  background-color: var(--atlas-bg) !important;
+  color: #ffffff !important;
+}
+
+/* Reset all global overrides inside marketing pages */
+.landing-page * {
+  border-color: var(--atlas-border);
+}
+.landing-page a {
+  color: inherit;
+}
+.landing-page a:hover {
+  color: inherit;
+}
+
 /* Empêcher le flash de contenu non stylisé (FOUC) */
 html {
   font-family: 'Exo 2', sans-serif;
