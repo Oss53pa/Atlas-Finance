@@ -82,6 +82,91 @@
   background-color: transparent !important;
 }
 
+/* ══════════ Landing page animations ══════════ */
+
+/* Fade-up on scroll */
+.landing-page .anim-fade-up {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.landing-page .anim-fade-up.in-view {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Staggered children */
+.landing-page .anim-stagger > * {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.landing-page .anim-stagger.in-view > *:nth-child(1) { transition-delay: 0ms; opacity: 1; transform: translateY(0); }
+.landing-page .anim-stagger.in-view > *:nth-child(2) { transition-delay: 80ms; opacity: 1; transform: translateY(0); }
+.landing-page .anim-stagger.in-view > *:nth-child(3) { transition-delay: 160ms; opacity: 1; transform: translateY(0); }
+.landing-page .anim-stagger.in-view > *:nth-child(4) { transition-delay: 240ms; opacity: 1; transform: translateY(0); }
+.landing-page .anim-stagger.in-view > *:nth-child(5) { transition-delay: 320ms; opacity: 1; transform: translateY(0); }
+.landing-page .anim-stagger.in-view > *:nth-child(6) { transition-delay: 400ms; opacity: 1; transform: translateY(0); }
+.landing-page .anim-stagger.in-view > *:nth-child(7) { transition-delay: 480ms; opacity: 1; transform: translateY(0); }
+.landing-page .anim-stagger.in-view > *:nth-child(8) { transition-delay: 560ms; opacity: 1; transform: translateY(0); }
+
+/* Scale-in */
+.landing-page .anim-scale {
+  opacity: 0;
+  transform: scale(0.92);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.landing-page .anim-scale.in-view {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Hero entrance — plays once on load */
+@keyframes lp-hero-in {
+  0% { opacity: 0; transform: translateY(40px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.landing-page .anim-hero {
+  animation: lp-hero-in 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.landing-page .anim-hero-delay-1 {
+  animation: lp-hero-in 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+}
+.landing-page .anim-hero-delay-2 {
+  animation: lp-hero-in 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
+}
+.landing-page .anim-hero-delay-3 {
+  animation: lp-hero-in 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.45s both;
+}
+
+/* Floating glow pulse */
+@keyframes lp-glow-pulse {
+  0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 0.8; transform: translate(-50%, -50%) scale(1.08); }
+}
+.landing-page .anim-glow {
+  animation: lp-glow-pulse 6s ease-in-out infinite;
+}
+
+/* Respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .landing-page .anim-fade-up,
+  .landing-page .anim-stagger > *,
+  .landing-page .anim-scale,
+  .landing-page .anim-hero,
+  .landing-page .anim-hero-delay-1,
+  .landing-page .anim-hero-delay-2,
+  .landing-page .anim-hero-delay-3 {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
 /* Empêcher le flash de contenu non stylisé (FOUC) */
 html {
   font-family: 'Exo 2', sans-serif;

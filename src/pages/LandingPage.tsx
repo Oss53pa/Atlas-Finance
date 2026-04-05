@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { ATLAS_STUDIO } from '../config/atlasStudio';
@@ -15,6 +15,20 @@ import { FEATURE_MATRIX } from '../config/plans';
 
 function getWorkspacePath(_role: string): string {
   return '/home';
+}
+
+/* ═══ IntersectionObserver hook for scroll animations ═══ */
+function useInView(threshold = 0.15) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [inView, setInView] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setInView(true); obs.disconnect(); } }, { threshold });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [threshold]);
+  return { ref, className: inView ? 'in-view' : '' };
 }
 
 const formatXOF = (n: number) => n.toLocaleString('fr-FR', { maximumFractionDigits: 0 });
@@ -163,6 +177,16 @@ const LandingPage: React.FC = () => {
 
   const c = t(mode);
 
+  // Scroll-triggered animations
+  const stats = useInView();
+  const modules = useInView();
+  const steps = useInView();
+  const demoCta = useInView();
+  const testimonials = useInView();
+  const plans = useInView();
+  const comparison = useInView(0.05);
+  const faq = useInView();
+
   return (
     <div
       className={`landing-page min-h-screen ${c.bg} transition-colors duration-300`}
@@ -205,22 +229,22 @@ const LandingPage: React.FC = () => {
       <section className="relative pt-24 pb-20 px-6 overflow-hidden">
         {mode === 'dark' && (
           <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[600px] bg-[#c9a96e]/[0.05] rounded-full blur-[120px]" />
+            <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[600px] bg-[#c9a96e]/[0.05] rounded-full blur-[120px] anim-glow" />
             <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: 'linear-gradient(white 1px, transparent 1px), linear-gradient(90deg, white 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
           </div>
         )}
         {mode === 'light' && (
           <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[600px] bg-[#9a7d3e]/[0.04] rounded-full blur-[120px]" />
+            <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[600px] bg-[#9a7d3e]/[0.04] rounded-full blur-[120px] anim-glow" />
           </div>
         )}
 
         <div className="max-w-5xl mx-auto text-center relative">
-          <div className={`inline-flex items-center gap-2 px-4 py-2 ${c.goldBgLight} border ${c.goldBorder} rounded-full text-xs font-semibold mb-8`} style={c.sGold}>
+          <div className={`anim-hero inline-flex items-center gap-2 px-4 py-2 ${c.goldBgLight} border ${c.goldBorder} rounded-full text-xs font-semibold mb-8`} style={c.sGold}>
             <Sparkles className="w-3.5 h-3.5" /> 100 % conforme SYSCOHADA révisé 2017
           </div>
 
-          <h1 className="text-5xl md:text-7xl font-extrabold leading-[1.1] mb-6 tracking-tight" style={c.s}>
+          <h1 className="anim-hero-delay-1 text-5xl md:text-7xl font-extrabold leading-[1.1] mb-6 tracking-tight" style={c.s}>
             La comptabilité africaine,
             <br />
             <span className={`bg-gradient-to-r ${c.gradFrom} ${c.gradVia} ${c.gradTo} bg-clip-text text-transparent`} style={{ color: 'transparent' }}>
@@ -228,13 +252,13 @@ const LandingPage: React.FC = () => {
             </span>
           </h1>
 
-          <p className="text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed" style={c.sSec}>
+          <p className="anim-hero-delay-2 text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed" style={c.sSec}>
             Atlas F&A est l'ERP comptable et financier conçu pour les{' '}
             <strong style={c.s}>17 pays de l'espace OHADA</strong>.
             Écritures, états financiers, fiscalité, trésorerie — tout est automatisé.
           </p>
 
-          <div className="flex items-center justify-center gap-4 flex-wrap mb-14">
+          <div className="anim-hero-delay-3 flex items-center justify-center gap-4 flex-wrap mb-14">
             <button onClick={handleGetStarted} className={`group px-8 py-4 ${c.btnPrimary} rounded-xl text-sm font-bold transition-all shadow-lg hover:-translate-y-0.5 flex items-center gap-2`} style={c.sBtnP}>
               <Zap className="w-4 h-4" /> Commencer gratuitement
               <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
@@ -244,7 +268,7 @@ const LandingPage: React.FC = () => {
             </button>
           </div>
 
-          <div className="flex items-center justify-center gap-3 text-sm" style={c.sTer}>
+          <div className="anim-hero-delay-3 flex items-center justify-center gap-3 text-sm" style={c.sTer}>
             <div className="flex -space-x-2">
               {['AD', 'MC', 'IK', 'FN'].map((init, i) => (
                 <div key={i} className={`w-9 h-9 rounded-full ${c.goldBg} border-2 ${mode === 'dark' ? 'border-[#0d0d0d]' : 'border-white'} flex items-center justify-center text-xs font-bold`} style={c.sInv}>
@@ -259,7 +283,7 @@ const LandingPage: React.FC = () => {
 
       {/* ══════════ STATS ══════════ */}
       <section className={`py-12 px-6 border-y ${c.border} ${c.bgAlt} transition-colors duration-300`}>
-        <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
+        <div ref={stats.ref} className={`max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 anim-stagger ${stats.className}`}>
           {STATS.map((stat, i) => (
             <div key={i} className="text-center">
               <div className="text-4xl md:text-5xl" style={c.s}>
@@ -282,7 +306,7 @@ const LandingPage: React.FC = () => {
             <p className="max-w-xl mx-auto text-lg" style={c.sSec}>Une suite complète pour couvrir l'ensemble de vos besoins comptables et financiers.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div ref={modules.ref} className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 anim-stagger ${modules.className}`}>
             {MODULES.map((m, i) => (
               <div key={i} className={`group ${c.card} border rounded-2xl p-6 ${c.cardHover} transition-all duration-300 hover:-translate-y-1`}>
                 <div className={`w-12 h-12 ${c.goldBgLight} rounded-xl flex items-center justify-center mb-4`}>
@@ -307,7 +331,7 @@ const LandingPage: React.FC = () => {
             <p className="text-lg" style={c.sSec}>De l'inscription à votre premier bilan.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div ref={steps.ref} className={`grid grid-cols-1 md:grid-cols-4 gap-6 anim-stagger ${steps.className}`}>
             {STEPS.map((step, i) => (
               <div key={i} className="text-center">
                 <div className={`w-16 h-16 ${c.goldBgLight} border ${c.goldBorder} rounded-2xl flex items-center justify-center mx-auto mb-5`}>
@@ -324,7 +348,7 @@ const LandingPage: React.FC = () => {
       {/* ══════════ DEMO CTA ══════════ */}
       <section className="py-16 px-6">
         <div className="max-w-5xl mx-auto">
-          <div className={`relative ${mode === 'dark' ? 'bg-gradient-to-br from-white/[0.04] to-white/[0.02] border-white/[0.08]' : 'bg-gradient-to-br from-[#f8f7f4] to-[#f0ede6] border-[#e8e5de]'} border rounded-3xl p-10 md:p-14 overflow-hidden`}>
+          <div ref={demoCta.ref} className={`anim-scale ${demoCta.className} relative ${mode === 'dark' ? 'bg-gradient-to-br from-white/[0.04] to-white/[0.02] border-white/[0.08]' : 'bg-gradient-to-br from-[#f8f7f4] to-[#f0ede6] border-[#e8e5de]'} border rounded-3xl p-10 md:p-14 overflow-hidden`}>
             <div className="relative flex flex-col md:flex-row items-center gap-10">
               <div className="flex-1">
                 <div className={`inline-flex items-center gap-2 px-3 py-1 ${c.goldBgLight} border ${c.goldBorder} rounded-full text-xs font-semibold mb-4`} style={c.sGold}>
@@ -371,7 +395,7 @@ const LandingPage: React.FC = () => {
             </div>
             <h2 className="text-3xl md:text-5xl font-bold mb-4" style={c.s}>Ce que disent nos clients</h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div ref={testimonials.ref} className={`grid grid-cols-1 md:grid-cols-3 gap-6 anim-stagger ${testimonials.className}`}>
             {TESTIMONIALS.map((tt, i) => (
               <div key={i} className={`${c.card} border rounded-2xl p-7 ${c.cardHover} transition-all`}>
                 <div className="flex gap-0.5 mb-5">
@@ -403,7 +427,7 @@ const LandingPage: React.FC = () => {
           </div>
 
           {/* Plan cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto mb-16">
+          <div ref={plans.ref} className={`grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto mb-16 anim-stagger ${plans.className}`}>
             {/* PME/TPE */}
             <div className={`${c.card} border-2 rounded-2xl p-8 ${c.cardHover} transition-all`}>
               <h3 className="text-xl font-bold" style={c.s}>PME / TPE</h3>
@@ -470,7 +494,7 @@ const LandingPage: React.FC = () => {
           </div>
 
           {/* ══════ Feature comparison — HIGH CONTRAST ══════ */}
-          <div className={`${c.card} border rounded-2xl overflow-hidden`}>
+          <div ref={comparison.ref} className={`anim-fade-up ${comparison.className} ${c.card} border rounded-2xl overflow-hidden`}>
             <div className={`px-6 py-4 border-b ${c.border} flex items-center justify-between ${c.bgAlt}`}>
               <h3 className="text-sm font-bold" style={c.s}>Comparatif complet des fonctionnalités</h3>
               <span className="text-[10px] uppercase tracking-wider" style={c.sMuted}>{FEATURE_MATRIX.reduce((a, cc) => a + cc.items.length, 0)} fonctionnalités</span>
@@ -528,7 +552,7 @@ const LandingPage: React.FC = () => {
             <h2 className="text-3xl md:text-5xl font-bold mb-4" style={c.s}>Questions fréquentes</h2>
             <p className="text-lg" style={c.sSec}>Tout ce que vous devez savoir.</p>
           </div>
-          <div className="space-y-3">
+          <div ref={faq.ref} className={`space-y-3 anim-stagger ${faq.className}`}>
             {FAQ.map((item, i) => (
               <div key={i} className={`${c.card} border rounded-xl overflow-hidden ${c.cardHover} transition-colors`}>
                 <button onClick={() => setOpenFaq(openFaq === i ? null : i)} className="w-full flex items-center justify-between p-5 text-left">
