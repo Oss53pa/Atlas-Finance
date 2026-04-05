@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useLanguage } from '../../../contexts/LanguageContext';
 import { formatCurrency } from '@/utils/formatters';
 import { Download, Printer, Search, Eye, Filter as FilterIcon } from 'lucide-react';
+import { PrintButton } from '@/shared/print-engine';
 import { Button } from '@/shared/components/ui/Button';
 import { Input, Select } from '@/shared/components/ui/Form';
 import { Modal, ModalBody, ModalFooter } from '@/shared/components/ui/Modal';
@@ -72,9 +73,25 @@ const GeneralLedgerPage: React.FC = () => {
           </p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" icon={Printer}>
-            Imprimer
-          </Button>
+          <PrintButton
+            config={{
+              title: 'Grand Livre',
+              subtitle: `Du ${filters.dateDebut} au ${filters.dateFin}`,
+              appName: 'Atlas F&A',
+              orientation: 'landscape',
+            }}
+            label="Imprimer"
+            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+          >
+            <LedgerAccountsTable
+              accounts={accounts}
+              loading={false}
+              onViewAccount={() => {}}
+              expandable={false}
+              expandedAccounts={accounts.map(a => a.compte)}
+              onToggleExpand={() => {}}
+            />
+          </PrintButton>
           <Button variant="outline" icon={Download} onClick={exportModal.open}>
             Exporter
           </Button>

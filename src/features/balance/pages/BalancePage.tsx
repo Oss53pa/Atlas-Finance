@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useLanguage } from '../../../contexts/LanguageContext';
 import { Scale, Printer, Download, Columns, TreePine, List } from 'lucide-react';
 import { Button } from '@/shared/components/ui/Button';
+import { PrintButton } from '@/shared/print-engine';
 import { useBalance } from '../hooks/useBalance';
 import { BalanceTable } from '../components/BalanceTable';
 import { BalanceFilters } from '../components/BalanceFilters';
@@ -37,8 +38,11 @@ const BalancePage: React.FC = () => {
     setFilters({ ...filters, ...newFilters });
   };
 
-  const handlePrint = () => {
-    window.print();
+  const printConfig = {
+    title: 'Balance Comptable',
+    subtitle: `Période du ${filters.period.from} au ${filters.period.to}`,
+    appName: 'Atlas F&A',
+    orientation: 'landscape' as const,
   };
 
   const handleExport = () => {
@@ -84,9 +88,28 @@ const BalancePage: React.FC = () => {
           <Button variant="outline" icon={Columns} onClick={() => {}}>
             Colonnes
           </Button>
-          <Button variant="outline" icon={Printer} onClick={handlePrint}>
-            Imprimer
-          </Button>
+          <PrintButton
+            config={printConfig}
+            label="Imprimer"
+            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+          >
+            <table className="min-w-full">
+              <thead className="bg-[#171717] text-white">
+                <tr>
+                  <th className="px-4 py-3 text-left font-semibold">Compte</th>
+                  <th className="px-4 py-3 text-left font-semibold">Libellé</th>
+                  <th className="px-4 py-3 text-right font-semibold">Débit AN</th>
+                  <th className="px-4 py-3 text-right font-semibold">Crédit AN</th>
+                  <th className="px-4 py-3 text-right font-semibold">Mvt Débit</th>
+                  <th className="px-4 py-3 text-right font-semibold">Mvt Crédit</th>
+                  <th className="px-4 py-3 text-right font-semibold">Solde Débiteur</th>
+                  <th className="px-4 py-3 text-right font-semibold">Solde Créditeur</th>
+                </tr>
+              </thead>
+              <BalanceTable accounts={accounts} visibleColumns={visibleColumns} onToggleAccount={() => {}} />
+              {totals && <BalanceTotalsRow totals={totals} visibleColumns={visibleColumns} />}
+            </table>
+          </PrintButton>
           <Button icon={Download} onClick={handleExport}>
             Exporter
           </Button>

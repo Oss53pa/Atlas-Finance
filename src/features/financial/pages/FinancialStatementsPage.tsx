@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../../../contexts/LanguageContext';
 import { Download, Printer, FileText, BarChart3, Calculator } from 'lucide-react';
+import { PrintButton } from '@/shared/print-engine';
 import { Button } from '@/shared/components/ui/Button';
 import { Select, Checkbox } from '@/shared/components/ui/Form';
 import { Modal, ModalBody, ModalFooter } from '@/shared/components/ui/Modal';
@@ -42,9 +43,25 @@ const FinancialStatementsPage: React.FC = () => {
           </p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" icon={Printer}>
-            Imprimer
-          </Button>
+          <PrintButton
+            config={{
+              title: activeTab === 'bilan' ? 'Bilan SYSCOHADA' : activeTab === 'compte-resultat' ? 'Compte de Résultat' : 'Ratios Financiers',
+              subtitle: `Exercice ${selectedExercice}${showComparison ? ` vs ${compareExercice}` : ''}`,
+              appName: 'Atlas F&A',
+            }}
+            label="Imprimer"
+            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+          >
+            {activeTab === 'bilan' && currentData && (
+              <BilanTable bilan={currentData.bilan} loading={false} previousBilan={showComparison ? previousData?.bilan : undefined} showComparison={showComparison} />
+            )}
+            {activeTab === 'compte-resultat' && currentData && (
+              <CompteResultatTable compteResultat={currentData.compteResultat} loading={false} previousCR={showComparison ? previousData?.compteResultat : undefined} showComparison={showComparison} />
+            )}
+            {activeTab === 'ratios' && currentData && (
+              <RatiosCard ratios={currentData.ratios} loading={false} />
+            )}
+          </PrintButton>
           <Button variant="outline" icon={Download} onClick={exportModal.open}>
             Exporter
           </Button>
