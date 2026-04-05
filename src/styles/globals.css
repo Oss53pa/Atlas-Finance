@@ -122,51 +122,36 @@ h1, h2, h3, h4, h5, h6 {
    Pour modifier les tailles, changez ici uniquement.
    ============================================ */
 
-/* Titres de page (h1) — exclus des pages marketing (.landing-page) */
-:not(.landing-page) > h1, :not(.landing-page) > h2, :not(.landing-page) > h3,
-:not(.landing-page) > h4, :not(.landing-page) > h5, :not(.landing-page) > h6,
-:not(.landing-page) h1, :not(.landing-page) h2, :not(.landing-page) h3,
-:not(.landing-page) h4, :not(.landing-page) h5, :not(.landing-page) h6 {
+/* Titres de page (h1) */
+h1, h2, h3, h4, h5, h6 {
   color: var(--color-text-primary);
   font-weight: 600;
   line-height: 1.3;
 }
-.landing-page h1, .landing-page h2, .landing-page h3,
-.landing-page h4, .landing-page h5, .landing-page h6 {
-  color: inherit;
-  font-weight: inherit;
-  font-size: inherit;
-  line-height: inherit;
-}
 
-:not(.landing-page) h1 { font-size: 1.25rem !important; }   /* 20px - Titre de page */
+h1 { font-size: 1.25rem !important; }   /* 20px - Titre de page */
 h1.landing-title { font-size: clamp(3rem, 8vw, 5rem) !important; font-weight: 400 !important; } /* Titre landing page */
-:not(.landing-page) h2 { font-size: 1.125rem !important; }  /* 18px - Titre de section */
-:not(.landing-page) h3 { font-size: 1rem !important; }      /* 16px - Sous-titre */
-:not(.landing-page) h4 { font-size: 0.9375rem !important; } /* 15px - Label important */
-:not(.landing-page) h5 { font-size: 0.875rem !important; }  /* 14px - Label */
-:not(.landing-page) h6 { font-size: 0.8125rem !important; } /* 13px - Petit label */
+h2 { font-size: 1.125rem !important; }  /* 18px - Titre de section */
+h3 { font-size: 1rem !important; }      /* 16px - Sous-titre */
+h4 { font-size: 0.9375rem !important; } /* 15px - Label important */
+h5 { font-size: 0.875rem !important; }  /* 14px - Label */
+h6 { font-size: 0.8125rem !important; } /* 13px - Petit label */
 
-/* Texte normal — exclus des pages marketing */
-:not(.landing-page) p {
+/* Texte normal */
+p {
   color: var(--color-text-secondary);
   margin-bottom: 0.75rem;
   font-size: 0.875rem; /* 14px */
 }
-.landing-page p {
-  color: inherit;
-  margin-bottom: 0;
-  font-size: inherit;
-}
 
-/* Force les tailles pour TOUTES les classes Tailwind — exclus des pages marketing */
-:not(.landing-page) [class*="text-4xl"], :not(.landing-page) [class*="text-3xl"] { font-size: 1.25rem !important; }
-:not(.landing-page) [class*="text-2xl"] { font-size: 1.125rem !important; }
-:not(.landing-page) [class*="text-xl"]  { font-size: 1rem !important; }
-:not(.landing-page) [class*="text-lg"]  { font-size: 0.9375rem !important; }
-:not(.landing-page) .text-base { font-size: 0.875rem !important; }
-:not(.landing-page) .text-sm  { font-size: 0.8125rem !important; }
-:not(.landing-page) .text-xs  { font-size: 0.75rem !important; }
+/* Force les tailles pour TOUTES les classes Tailwind (y compris sm:, md:, lg:) */
+[class*="text-4xl"], [class*="text-3xl"] { font-size: 1.25rem !important; }
+[class*="text-2xl"] { font-size: 1.125rem !important; }
+[class*="text-xl"]  { font-size: 1rem !important; }
+[class*="text-lg"]  { font-size: 0.9375rem !important; }
+.text-base { font-size: 0.875rem !important; }
+.text-sm  { font-size: 0.8125rem !important; }
+.text-xs  { font-size: 0.75rem !important; }
 
 /* Tables — police compacte et lisible */
 table, .table, .af-table {
@@ -188,20 +173,19 @@ table td, .table td, .af-table-cell {
    ============================================ */
 
 /* Supprime les gradients décoratifs sur les cartes/conteneurs,
-   SAUF ceux qui portent text-white (headers, boutons, banners intentionnels)
-   SAUF les pages marketing (.landing-page) */
-:not(.landing-page) [class*="bg-gradient"]:not([class*="text-white"]) {
+   SAUF ceux qui portent text-white (headers, boutons, banners intentionnels) */
+[class*="bg-gradient"]:not([class*="text-white"]) {
   background-image: none !important;
   background-color: var(--color-surface) !important;
 }
 
 /* Neutralise les bordures colorées inline (borderLeftColor etc.) */
-:not(.landing-page) [style*="border-left-color"], :not(.landing-page) [style*="borderLeftColor"] {
+[style*="border-left-color"], [style*="borderLeftColor"] {
   border-left-color: var(--color-border) !important;
 }
 
 /* Neutralise les fonds colorés inline */
-:not(.landing-page) [style*="background-color"]:not([class*="sidebar"]):not(button) {
+[style*="background-color"]:not([class*="sidebar"]):not(button) {
   background-color: var(--color-surface-hover) !important;
   color: var(--color-text-primary) !important;
 }

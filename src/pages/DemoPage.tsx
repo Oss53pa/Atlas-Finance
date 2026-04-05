@@ -165,7 +165,9 @@ const DemoPage: React.FC = () => {
             </button>
             <span className="atlas-brand text-2xl text-white">Atlas Studio</span>
             <span className="text-white/20">/</span>
-            <span className="text-sm font-bold text-[#c9a96e] tracking-tight">Démo</span>
+            <span className="atlas-brand text-lg text-[#c9a96e]">Atlas Finance &amp; Accounting</span>
+            <span className="text-white/20 mx-1">·</span>
+            <span className="text-xs font-semibold text-white/40">Démo</span>
           </div>
           <a href={ATLAS_STUDIO.LOGIN} className="px-5 py-2.5 bg-gradient-to-r from-[#c9a96e] to-[#dbc396] text-[#0d0d0d] rounded-lg text-sm font-bold hover:from-[#dbc396] hover:to-[#dbc396] transition-all flex items-center gap-2">
             Essai gratuit <ArrowRight className="w-4 h-4" />
@@ -603,7 +605,7 @@ const DemoPage: React.FC = () => {
           <div className="flex items-center gap-2">
             <span className="atlas-brand text-xl text-white/60">Atlas Studio</span>
             <span className="text-white/10 mx-1">/</span>
-            <span className="text-xs font-semibold text-white/30">Atlas F&A</span>
+            <span className="atlas-brand text-sm text-[#c9a96e]/60">Atlas Finance &amp; Accounting</span>
           </div>
           <div className="flex items-center gap-6 text-xs text-white/15">
             <span>contact@atlasstudio.com</span>

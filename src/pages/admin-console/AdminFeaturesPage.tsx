@@ -1,10 +1,11 @@
 // @ts-nocheck
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ToggleLeft, Search, CheckCircle, XCircle, Building, Zap } from 'lucide-react';
+import { ToggleLeft, Search, CheckCircle, XCircle, Building, Zap, Sun, Moon, Monitor } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { toggleModule } from '../../features/platform/services/featureFlagService';
 import { toast } from 'react-hot-toast';
+import { getLandingTheme, setLandingTheme, type LandingThemeMode } from '../../config/landingTheme';
 
 const MODULES = [
   { code: 'atlas-fna', label: 'Atlas F&A', color: '#171717' },
@@ -60,6 +61,9 @@ const AdminFeaturesPage: React.FC = () => {
           <p className="text-sm text-gray-500">Activer/désactiver des modules par tenant</p>
         </div>
       </div>
+
+      {/* Landing page theme config */}
+      <LandingThemeConfig />
 
       {/* Flags globaux par plan */}
       <GlobalPlanFlags modules={MODULES} tenants={tenants} queryClient={queryClient} />
@@ -201,6 +205,71 @@ const GlobalPlanFlags: React.FC<{ modules: typeof MODULES; tenants: any[]; query
         </table>
       </div>
       <p className="text-[10px] text-gray-400 mt-2">Les toggles bleus sont globaux (tous les tenants du plan). Les toggles verts ci-dessous sont par tenant.</p>
+    </div>
+  );
+};
+
+// ════════════════════════════════════════════════════════
+// Landing Page Theme — Mode jour / nuit
+// ════════════════════════════════════════════════════════
+const LandingThemeConfig: React.FC = () => {
+  const [currentMode, setCurrentMode] = useState<LandingThemeMode>(getLandingTheme());
+
+  const apply = (mode: LandingThemeMode) => {
+    setLandingTheme(mode);
+    setCurrentMode(mode);
+    toast.success(`Landing page : mode ${mode === 'dark' ? 'nuit' : 'jour'} activé`);
+  };
+
+  return (
+    <div className="bg-white rounded-xl border p-5">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h3 className="font-semibold text-sm text-[#0f172a]">Landing Page — Thème</h3>
+          <p className="text-xs text-gray-500 mt-0.5">Mode d'affichage de la page d'accueil Atlas F&A</p>
+        </div>
+        <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+          <button
+            onClick={() => apply('dark')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+              currentMode === 'dark'
+                ? 'bg-[#0f172a] text-white shadow-sm'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <Moon className="w-3.5 h-3.5" /> Nuit
+          </button>
+          <button
+            onClick={() => apply('light')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+              currentMode === 'light'
+                ? 'bg-white text-[#0f172a] shadow-sm border'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <Sun className="w-3.5 h-3.5" /> Jour
+          </button>
+        </div>
+      </div>
+
+      {/* Preview */}
+      <div className={`rounded-lg overflow-hidden border ${currentMode === 'dark' ? 'bg-[#0d0d0d]' : 'bg-white'} p-4`}>
+        <div className="flex items-center gap-2 mb-3">
+          <div className={`w-6 h-6 rounded ${currentMode === 'dark' ? 'bg-white/10' : 'bg-gray-100'}`} />
+          <div className={`h-2 w-20 rounded ${currentMode === 'dark' ? 'bg-white/20' : 'bg-gray-200'}`} />
+          <div className="flex-1" />
+          <div className={`h-2 w-12 rounded ${currentMode === 'dark' ? 'bg-[#c9a96e]/40' : 'bg-[#9a7d3e]/30'}`} />
+        </div>
+        <div className="text-center py-3">
+          <div className={`h-3 w-48 rounded mx-auto mb-2 ${currentMode === 'dark' ? 'bg-white/30' : 'bg-gray-300'}`} />
+          <div className={`h-2 w-32 rounded mx-auto ${currentMode === 'dark' ? 'bg-[#c9a96e]/30' : 'bg-[#9a7d3e]/20'}`} />
+        </div>
+        <div className="flex justify-center gap-2 mt-2">
+          <div className={`h-6 w-20 rounded ${currentMode === 'dark' ? 'bg-[#c9a96e]' : 'bg-[#9a7d3e]'}`} />
+          <div className={`h-6 w-16 rounded border ${currentMode === 'dark' ? 'border-white/10' : 'border-gray-200'}`} />
+        </div>
+      </div>
+      <p className="text-[10px] text-gray-400 mt-2">Les visiteurs peuvent aussi basculer via l'icône dans la navbar. Ce réglage définit le mode par défaut.</p>
     </div>
   );
 };

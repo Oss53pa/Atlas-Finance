@@ -11,36 +11,75 @@
   letter-spacing: 0.5px;
 }
 
-/* ══════════ Landing page / Marketing — palette Atlas Studio ══════════ */
-.landing-page {
-  /* Atlas Studio gold palette */
-  --atlas-gold: #c9a96e;
-  --atlas-gold-light: #dbc396;
-  --atlas-gold-dark: #a88b4a;
-  --atlas-gold-50: rgba(201, 169, 110, 0.06);
-  --atlas-gold-100: rgba(201, 169, 110, 0.12);
-  --atlas-gold-200: rgba(201, 169, 110, 0.20);
-  --atlas-gold-300: rgba(201, 169, 110, 0.35);
-  --atlas-bg: #0d0d0d;
-  --atlas-surface: rgba(255, 255, 255, 0.03);
-  --atlas-border: rgba(255, 255, 255, 0.06);
+/* ══════════════════════════════════════════════════════════════════════
+   Landing page / Marketing pages
+
+   Stratégie : TOUTES les couleurs sont gérées par inline style={{ color }}
+   dans le composant React. Ici on neutralise uniquement les overrides
+   de globals.css sur font-size, font-weight, line-height, margin, gradients.
+   AUCUN color/background-color ici — le React contrôle tout.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* Neutraliser les font-size !important de globals.css */
+.landing-page.landing-page h1,
+.landing-page.landing-page h2,
+.landing-page.landing-page h3,
+.landing-page.landing-page h4,
+.landing-page.landing-page h5,
+.landing-page.landing-page h6 {
+  font-weight: inherit !important;
+  font-size: inherit !important;
+  line-height: inherit !important;
 }
 
-/* Override body bg when landing-page is present */
-.landing-page {
-  background-color: var(--atlas-bg) !important;
-  color: #ffffff !important;
+.landing-page.landing-page p {
+  font-size: inherit !important;
+  margin-bottom: 0 !important;
 }
 
-/* Reset all global overrides inside marketing pages */
-.landing-page * {
-  border-color: var(--atlas-border);
+/* Restaurer les tailles Tailwind */
+.landing-page.landing-page [class*="text-7xl"] { font-size: 4.5rem !important; }
+.landing-page.landing-page [class*="text-6xl"] { font-size: 3.75rem !important; }
+.landing-page.landing-page [class*="text-5xl"] { font-size: 3rem !important; }
+.landing-page.landing-page [class*="text-4xl"] { font-size: 2.25rem !important; }
+.landing-page.landing-page [class*="text-3xl"] { font-size: 1.875rem !important; }
+.landing-page.landing-page [class*="text-2xl"] { font-size: 1.5rem !important; }
+.landing-page.landing-page [class*="text-xl"]  { font-size: 1.25rem !important; }
+.landing-page.landing-page [class*="text-lg"]  { font-size: 1.125rem !important; }
+.landing-page.landing-page .text-base { font-size: 1rem !important; }
+.landing-page.landing-page .text-sm   { font-size: 0.875rem !important; }
+.landing-page.landing-page .text-xs   { font-size: 0.75rem !important; }
+.landing-page.landing-page [class*="text-[10px]"] { font-size: 10px !important; }
+
+@media (min-width: 768px) {
+  .landing-page.landing-page .md\:text-7xl { font-size: 4.5rem !important; }
+  .landing-page.landing-page .md\:text-6xl { font-size: 3.75rem !important; }
+  .landing-page.landing-page .md\:text-5xl { font-size: 3rem !important; }
+  .landing-page.landing-page .md\:text-4xl { font-size: 2.25rem !important; }
+  .landing-page.landing-page .md\:text-3xl { font-size: 1.875rem !important; }
+  .landing-page.landing-page .md\:text-2xl { font-size: 1.5rem !important; }
+  .landing-page.landing-page .md\:text-xl  { font-size: 1.25rem !important; }
+  .landing-page.landing-page .md\:text-lg  { font-size: 1.125rem !important; }
 }
-.landing-page a {
-  color: inherit;
+
+/* Restaurer les gradients (globals.css les tue) */
+.landing-page.landing-page [class*="bg-gradient"] {
+  background-color: transparent !important;
 }
-.landing-page a:hover {
-  color: inherit;
+.landing-page.landing-page [class*="bg-gradient-to-r"]  { background-image: linear-gradient(to right, var(--tw-gradient-stops)) !important; }
+.landing-page.landing-page [class*="bg-gradient-to-l"]  { background-image: linear-gradient(to left, var(--tw-gradient-stops)) !important; }
+.landing-page.landing-page [class*="bg-gradient-to-t"]  { background-image: linear-gradient(to top, var(--tw-gradient-stops)) !important; }
+.landing-page.landing-page [class*="bg-gradient-to-b"]  { background-image: linear-gradient(to bottom, var(--tw-gradient-stops)) !important; }
+.landing-page.landing-page [class*="bg-gradient-to-br"] { background-image: linear-gradient(to bottom right, var(--tw-gradient-stops)) !important; }
+.landing-page.landing-page [class*="bg-gradient-to-bl"] { background-image: linear-gradient(to bottom left, var(--tw-gradient-stops)) !important; }
+.landing-page.landing-page [class*="bg-gradient-to-tr"] { background-image: linear-gradient(to top right, var(--tw-gradient-stops)) !important; }
+.landing-page.landing-page [class*="bg-gradient-to-tl"] { background-image: linear-gradient(to top left, var(--tw-gradient-stops)) !important; }
+
+/* bg-clip-text pour les titres en dégradé */
+.landing-page.landing-page [class*="bg-clip-text"] {
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  background-color: transparent !important;
 }
 
 /* Empêcher le flash de contenu non stylisé (FOUC) */
