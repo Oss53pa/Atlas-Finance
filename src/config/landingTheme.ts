@@ -54,14 +54,14 @@ export function getLandingTheme(): LandingThemeMode {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved === 'light' || saved === 'dark') return saved;
-  } catch {}
+  } catch (err) { /* silent */}
   return 'dark'; // default
 }
 
 export function setLandingTheme(mode: LandingThemeMode): void {
   try {
     localStorage.setItem(STORAGE_KEY, mode);
-  } catch {}
+  } catch (err) { /* silent */}
 }
 
 export function getThemePalette(mode: LandingThemeMode) {

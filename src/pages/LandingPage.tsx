@@ -53,7 +53,7 @@ const MODULES = [
   { icon: BarChart3, label: 'États financiers', desc: 'Bilan, résultat, TAFIRE, SIG & ratios — générés automatiquement en un clic.' },
   { icon: Shield, label: 'Fiscalité automatique', desc: 'TVA, IS, IMF, patente. Calendrier fiscal, alertes. Liasse DSF 22 annexes.' },
   { icon: Wallet, label: 'Trésorerie & banque', desc: 'Rapprochement bancaire intelligent, caisse, effets de commerce, prévisions.' },
-  { icon: Brain, label: 'IA PROPH3T', desc: 'Anomalies, suggestions, audit Benford, analyse prédictive LLM intégrée.' },
+  { icon: Brain, label: <>IA <span className="atlas-brand">Proph3t</span></>, desc: 'Anomalies, suggestions, audit Benford, analyse prédictive LLM intégrée.' },
   { icon: Globe, label: 'Multi-devises', desc: 'XAF, XOF, EUR, USD. Écarts de conversion automatiques (476/477).' },
   { icon: Building2, label: 'Multi-sociétés', desc: 'Consolidation inter-company, multi-sites, multi-pays OHADA.' },
   { icon: Lock, label: 'Audit trail SHA-256', desc: 'Piste d\'audit inaltérable, chaîne de hachage, conformité totale.' },
@@ -417,7 +417,14 @@ const LandingPage: React.FC = () => {
                 <Zap className="w-4 h-4" /> Essai gratuit 14 jours
               </button>
               <ul className="mt-7 space-y-3">
-                {['Comptabilité SYSCOHADA complète', 'États financiers & TAFIRE', 'Fiscalité (TVA, IS, IMF)', 'Trésorerie & rapprochement', 'IA PROPH3T (contrôles)', 'Support email'].map((f, i) => (
+                {[
+                  'Comptabilité SYSCOHADA complète',
+                  'États financiers & TAFIRE',
+                  'Fiscalité (TVA, IS, IMF)',
+                  'Trésorerie & rapprochement',
+                  <>IA <span className="atlas-brand">Proph3t</span> (contrôles)</>,
+                  'Support email',
+                ].map((f, i) => (
                   <li key={i} className="flex items-center gap-2.5 text-xs" style={c.sSec}>
                     <CheckCircle className="w-4 h-4 shrink-0" style={c.sChk} /> {f}
                   </li>
@@ -444,7 +451,16 @@ const LandingPage: React.FC = () => {
                 <Zap className="w-4 h-4" /> Essai gratuit 14 jours
               </button>
               <ul className="mt-7 space-y-3">
-                {['Tout le plan PME/TPE, plus :', 'Multi-sociétés illimité', 'Multi-devises & multi-pays', 'IA PROPH3T avancé (LLM)', 'Workflow RBAC & audit trail', 'API REST & intégrations', 'Support prioritaire & formation', 'SLA 99.5 %'].map((f, i) => (
+                {[
+                  'Tout le plan PME/TPE, plus :',
+                  'Multi-sociétés illimité',
+                  'Multi-devises & multi-pays',
+                  <>IA <span className="atlas-brand">Proph3t</span> avancé (LLM)</>,
+                  'Workflow RBAC & audit trail',
+                  'API REST & intégrations',
+                  'Support prioritaire & formation',
+                  'SLA 99.5 %',
+                ].map((f, i) => (
                   <li key={i} className="flex items-center gap-2.5 text-xs" style={c.sSec}>
                     <CheckCircle className="w-4 h-4 shrink-0" style={c.sChk} /> {f}
                   </li>
