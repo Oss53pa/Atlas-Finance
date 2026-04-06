@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useData } from '../contexts/DataContext';
+import { money } from '../utils/money';
 
 export interface BalanceData {
   compte: string;
@@ -95,8 +96,8 @@ export const useBalanceData = (filters: BalanceFilters) => {
               analyticalCode: line.analyticalCode,
               tiers: line.thirdPartyName,
             };
-            existing.debit += line.debit;
-            existing.credit += line.credit;
+            existing.debit = money(existing.debit).add(money(line.debit)).toNumber();
+            existing.credit = money(existing.credit).add(money(line.credit)).toNumber();
             if (line.thirdPartyName) existing.tiers = line.thirdPartyName;
             if (line.analyticalCode) existing.analyticalCode = line.analyticalCode;
             movements.set(line.accountCode, existing);
@@ -107,7 +108,7 @@ export const useBalanceData = (filters: BalanceFilters) => {
         const result: BalanceData[] = [];
         for (const [code, mov] of movements) {
           const type = getAccountType(code);
-          const soldeNet = mov.debit - mov.credit;
+          const soldeNet = money(mov.debit).subtract(money(mov.credit)).toNumber();
           result.push({
             compte: code,
             libelle: mov.name,
@@ -166,15 +167,15 @@ export const useBalanceData = (filters: BalanceFilters) => {
 
   // Indicateurs
   const indicators: BalanceIndicators = useMemo(() => {
-    const totalDebit = filteredData.reduce((sum, item) => sum + item.debitSolde, 0);
-    const totalCredit = filteredData.reduce((sum, item) => sum + item.creditSolde, 0);
-    const equilibre = Math.abs(totalDebit - totalCredit);
-    const tauxEquilibre = totalCredit > 0 ? ((totalCredit - equilibre) / totalCredit) * 100 : 0;
+    const totalDebit = filteredData.reduce((sum, item) => money(sum).add(money(item.debitSolde)).toNumber(), 0);
+    const totalCredit = filteredData.reduce((sum, item) => money(sum).add(money(item.creditSolde)).toNumber(), 0);
+    const equilibre = money(totalDebit).subtract(money(totalCredit)).abs().toNumber();
+    const tauxEquilibre = totalCredit > 0 ? money(totalCredit).subtract(money(equilibre)).divide(totalCredit).multiply(100).toNumber() : 0;
 
-    const actif = filteredData.filter(item => item.type === 'actif').reduce((sum, item) => sum + item.debitSolde - item.creditSolde, 0);
-    const passif = filteredData.filter(item => item.type === 'passif').reduce((sum, item) => sum + item.creditSolde - item.debitSolde, 0);
-    const charges = filteredData.filter(item => item.type === 'charges').reduce((sum, item) => sum + item.debitSolde, 0);
-    const produits = filteredData.filter(item => item.type === 'produits').reduce((sum, item) => sum + item.creditSolde, 0);
+    const actif = filteredData.filter(item => item.type === 'actif').reduce((sum, item) => money(sum).add(money(item.debitSolde)).subtract(money(item.creditSolde)).toNumber(), 0);
+    const passif = filteredData.filter(item => item.type === 'passif').reduce((sum, item) => money(sum).add(money(item.creditSolde)).subtract(money(item.debitSolde)).toNumber(), 0);
+    const charges = filteredData.filter(item => item.type === 'charges').reduce((sum, item) => money(sum).add(money(item.debitSolde)).toNumber(), 0);
+    const produits = filteredData.filter(item => item.type === 'produits').reduce((sum, item) => money(sum).add(money(item.creditSolde)).toNumber(), 0);
 
     const comptesActifs = filteredData.filter(item => item.debitSolde > 0 || item.creditSolde > 0).length;
     const comptesNonLettres = filteredData.filter(item => item.tiers && Math.abs(item.debitSolde - item.creditSolde) > 0).length;
@@ -192,9 +193,9 @@ export const useBalanceData = (filters: BalanceFilters) => {
       if (!acc[item.type]) {
         acc[item.type] = { totalDebit: 0, totalCredit: 0, soldeNet: 0 };
       }
-      acc[item.type].totalDebit += item.debitSolde;
-      acc[item.type].totalCredit += item.creditSolde;
-      acc[item.type].soldeNet += (item.debitSolde - item.creditSolde);
+      acc[item.type].totalDebit = money(acc[item.type].totalDebit).add(money(item.debitSolde)).toNumber();
+      acc[item.type].totalCredit = money(acc[item.type].totalCredit).add(money(item.creditSolde)).toNumber();
+      acc[item.type].soldeNet = money(acc[item.type].soldeNet).add(money(item.debitSolde).subtract(money(item.creditSolde))).toNumber();
       return acc;
     }, {} as Record<string, { totalDebit: number; totalCredit: number; soldeNet: number }>);
 

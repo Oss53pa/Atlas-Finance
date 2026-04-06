@@ -1,70 +1,76 @@
 /**
  * AnthropicProvider — Provider LLM cloud optionnel pour PROPH3T.
  *
- * Utilisé uniquement si Ollama est indisponible ET qu'une clé Anthropic
- * est configurée dans les variables d'environnement.
+ * Utilisé uniquement si Ollama est indisponible ET que le provider
+ * Anthropic est activé dans la configuration.
  *
- * Appel via l'API REST directe (pas de SDK nécessaire côté frontend).
+ * Appel via le Supabase Edge Function ai-proxy (la clé API reste côté serveur).
  */
 
 import type { ILLMProvider, LLMRequest, LLMResponse, LLMTool, LLMToolCall } from './ILLMProvider';
+import { supabase } from '../../../lib/supabase';
 
 export interface AnthropicConfig {
-  apiKey: string;
   model?: string;
   maxTokens?: number;
   temperature?: number;
 }
 
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+
 export class AnthropicProvider implements ILLMProvider {
   readonly name = 'anthropic' as const;
   readonly model: string;
-  private readonly apiKey: string;
   private readonly maxTokens: number;
   private readonly temperature: number;
 
   constructor(config: AnthropicConfig) {
-    this.apiKey = config.apiKey;
     this.model = config.model ?? 'claude-sonnet-4-20250514';
     this.maxTokens = config.maxTokens ?? 1024;
     this.temperature = config.temperature ?? 0.1;
   }
 
   async isAvailable(): Promise<boolean> {
-    return !!this.apiKey;
+    return !!supabaseUrl;
   }
 
   async complete(request: LLMRequest, tools?: LLMTool[]): Promise<LLMResponse> {
     const start = Date.now();
 
-    const body: Record<string, unknown> = {
+    // Get current Supabase auth session
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token) {
+      throw new Error('[Anthropic] No active Supabase session — user must be logged in.');
+    }
+
+    const messages = request.messages.map(m => ({
+      role: m.role === 'tool' ? 'user' : m.role,
+      content: m.content,
+    }));
+
+    const proxyBody: Record<string, unknown> = {
       model: this.model,
       max_tokens: request.maxTokens ?? this.maxTokens,
       temperature: request.temperature ?? this.temperature,
       system: request.systemPrompt,
-      messages: request.messages.map(m => ({
-        role: m.role === 'tool' ? 'user' : m.role,
-        content: m.content,
-      })),
+      messages,
     };
 
     if (tools && tools.length > 0) {
-      body.tools = tools.map(t => ({
+      proxyBody.tools = tools.map(t => ({
         name: t.function.name,
         description: t.function.description,
         input_schema: t.function.parameters,
       }));
     }
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetch(`${supabaseUrl}/functions/v1/ai-proxy`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': this.apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true',
+        'Authorization': `Bearer ${session.access_token}`,
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify(proxyBody),
     });
 
     if (!response.ok) {

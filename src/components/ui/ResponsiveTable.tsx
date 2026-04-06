@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState, useRef, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { motion } from 'framer-motion';

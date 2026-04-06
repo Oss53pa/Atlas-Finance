@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * Service Tenant — gestion des tenants, profils, feature flags.
  * Utilisé par le dashboard client et la console admin.
@@ -155,7 +156,7 @@ export async function sendInvitation(tenantId: string, email: string, role: stri
     await supabase.functions.invoke('send-invitation-email', {
       body: { email, token: data.token, role },
     });
-  } catch { /* non-blocking */ }
+  } catch (err) { /* silent */ /* non-blocking */ }
 
   return data;
 }

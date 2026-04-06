@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useEffect, useState } from 'react';
 import { useLocation, Link, Outlet, useParams } from 'react-router-dom';
 
@@ -66,7 +67,6 @@ export const LayoutDetailsFundCall: React.FC = () => {
       handleChangeFundCall(mockFundCall);
       setIsLoadingCancelable(false);
     } catch (error) {
-      console.error("Error fetching data:", (error as Error).message);
     }
   };
 
@@ -76,7 +76,6 @@ export const LayoutDetailsFundCall: React.FC = () => {
       const mockEnabledUsers = [1, 2, 3]; // IDs des utilisateurs autorisés
       handleChangeFundCallEnabledUser(mockEnabledUsers);
     } catch (error) {
-      console.error("Error fetching data:", (error as Error).message);
     }
   };
 
@@ -167,7 +166,7 @@ export const LayoutDetailsFundCall: React.FC = () => {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .nav-tabs .nav-link.active {
           background-color: white;
           border-color: #e5e5e5 #e5e5e5 white;

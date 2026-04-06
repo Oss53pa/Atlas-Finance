@@ -77,10 +77,9 @@ const BudgetingDashboard: React.FC = () => {
           adapter.getAll('budgetLines'),
           adapter.getAll('journalEntries'),
         ]);
-        setBudgetLines(bl as any[]);
-        setJournalEntries(je as any[]);
+        setBudgetLines(bl as Record<string, unknown>[]);
+        setJournalEntries(je as Record<string, unknown>[]);
       } catch (e) {
-        console.error('BudgetingDashboard load error:', e);
       } finally {
         setIsLoading(false);
       }

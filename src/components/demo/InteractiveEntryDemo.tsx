@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * Démo interactive : Saisie d'écriture comptable SYSCOHADA
  * Simule la création d'une écriture multi-lignes avec contrôle D=C

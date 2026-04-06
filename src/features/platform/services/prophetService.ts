@@ -1,10 +1,15 @@
-// @ts-nocheck
 /**
  * Proph3t AI Service — Appel API Anthropic Claude avec contexte tenant.
  * Multi-tenant : chaque requête injecte le contexte du tenant actif.
+ *
+ * Anthropic calls are proxied through the Supabase Edge Function ai-proxy
+ * so the API key stays server-side.
  */
 
-const ANTHROPIC_API_KEY = import.meta.env.VITE_ANTHROPIC_API_KEY || '';
+import { supabase } from '../../../lib/supabase';
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || '';
+const ANTHROPIC_ENABLED = import.meta.env.VITE_ANTHROPIC_ENABLED === 'true';
 const OLLAMA_BASE_URL = import.meta.env.VITE_OLLAMA_BASE_URL || '';
 const OLLAMA_MODEL = import.meta.env.VITE_OLLAMA_MODEL || 'mistral';
 
@@ -55,8 +60,8 @@ ${q.context ? `\nDONNÉES CONTEXTUELLES\n${JSON.stringify(q.context, null, 2)}` 
 export async function queryProphet(query: ProphetQuery): Promise<ProphetResponse> {
   const start = Date.now();
 
-  // Strategy 1: Anthropic Claude
-  if (ANTHROPIC_API_KEY) {
+  // Strategy 1: Anthropic Claude (via Supabase ai-proxy)
+  if (ANTHROPIC_ENABLED && SUPABASE_URL) {
     return callAnthropic(query, start);
   }
 
@@ -67,7 +72,7 @@ export async function queryProphet(query: ProphetQuery): Promise<ProphetResponse
 
   // No provider
   return {
-    content: "PROPH3T n'est pas configuré. Ajoutez VITE_ANTHROPIC_API_KEY ou VITE_OLLAMA_BASE_URL dans votre .env.",
+    content: "PROPH3T n'est pas configuré. Ajoutez VITE_ANTHROPIC_ENABLED=true ou VITE_OLLAMA_BASE_URL dans votre .env.",
     provider: 'none',
     model: 'none',
     tokensUsed: 0,
@@ -76,15 +81,18 @@ export async function queryProphet(query: ProphetQuery): Promise<ProphetResponse
 }
 
 async function callAnthropic(query: ProphetQuery, start: number, retries = 3): Promise<ProphetResponse> {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.access_token) {
+    throw new Error('[Proph3t] No active Supabase session — user must be logged in.');
+  }
+
   for (let i = 0; i < retries; i++) {
     try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/ai-proxy`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': ANTHROPIC_API_KEY,
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-direct-browser-access': 'true',
+          'Authorization': `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
           model: 'claude-sonnet-4-20250514',
@@ -95,12 +103,16 @@ async function callAnthropic(query: ProphetQuery, start: number, retries = 3): P
         }),
       });
 
-      const data = await res.json();
+      const data = await res.json() as {
+        error?: { type?: string; message?: string };
+        content?: Array<{ text: string }>;
+        model?: string;
+        usage?: { input_tokens?: number; output_tokens?: number };
+      };
 
       // Retry on overload
       if (data?.error?.type === 'overloaded_error') {
         const wait = 1000 * Math.pow(2, i);
-        console.warn(`[Proph3t] Anthropic overloaded, retry in ${wait}ms...`);
         await new Promise(r => setTimeout(r, wait));
         continue;
       }
@@ -109,7 +121,7 @@ async function callAnthropic(query: ProphetQuery, start: number, retries = 3): P
         throw new Error(data.error.message || 'Anthropic API error');
       }
 
-      const content = data.content?.map((b: any) => b.text).join('') || '';
+      const content = data.content?.map((b: { text: string }) => b.text).join('') || '';
       return {
         content,
         provider: 'anthropic',
@@ -142,7 +154,10 @@ async function callOllama(query: ProphetQuery, start: number): Promise<ProphetRe
     signal: AbortSignal.timeout(60_000),
   });
 
-  const data = await res.json();
+  const data = await res.json() as {
+    message?: { content?: string };
+    eval_count?: number;
+  };
   return {
     content: data.message?.content || '',
     provider: 'ollama',

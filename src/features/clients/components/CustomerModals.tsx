@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState, useEffect } from 'react';
 import {
   X,
@@ -170,7 +171,6 @@ export const CreateCustomerModal: React.FC<CreateCustomerModalProps> = ({
       onSuccess?.();
       onClose();
     } catch (error: unknown) {
-      console.error('Erreur création client:', error);
       toast.error(error instanceof Error ? error.message : 'Erreur lors de la création du client');
     }
   };
@@ -748,7 +748,6 @@ export const EditCustomerModal: React.FC<EditCustomerModalProps> = ({
       onSuccess?.();
       onClose();
     } catch (error: unknown) {
-      console.error('Erreur modification client:', error);
       toast.error(error instanceof Error ? error.message : 'Erreur lors de la modification du client');
     }
   };

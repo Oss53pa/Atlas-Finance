@@ -1,8 +1,10 @@
 // @ts-nocheck
+
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useData } from '../../contexts/DataContext';
 import { formatCurrency } from '../../utils/formatters';
+import { money } from '../../utils/money';
 import { useLanguage } from '../../contexts/LanguageContext';
 import PeriodSelectorModal from '../shared/PeriodSelectorModal';
 import {
@@ -36,12 +38,12 @@ const JournalDashboard: React.FC = () => {
       const today = new Date().toISOString().split('T')[0];
       const entries = await adapter.getAll('journalEntries');
       const todayEntries = entries.filter(e => e.date === today);
-      const totalDebit = todayEntries.reduce((s, e) => s + e.totalDebit, 0);
-      const totalCredit = todayEntries.reduce((s, e) => s + e.totalCredit, 0);
+      const totalDebit = todayEntries.reduce((s, e) => money(s).add(money(e.totalDebit)).toNumber(), 0);
+      const totalCredit = todayEntries.reduce((s, e) => money(s).add(money(e.totalCredit)).toNumber(), 0);
       return {
         totalEntries: todayEntries.length,
         totalDebit, totalCredit,
-        isBalanced: Math.abs(totalDebit - totalCredit) < 1,
+        isBalanced: money(totalDebit).subtract(money(totalCredit)).abs().toNumber() < 1,
         pendingValidation: todayEntries.filter(e => e.status === 'draft').length,
         validated: todayEntries.filter(e => e.status === 'validated' || e.status === 'posted').length,
       };
@@ -92,7 +94,7 @@ const JournalDashboard: React.FC = () => {
     queryFn: async () => {
       const entries = await adapter.getAll('journalEntries');
       const drafts = entries.filter(e => e.status === 'draft').length;
-      const unbalanced = entries.filter(e => Math.abs(e.totalDebit - e.totalCredit) > 1).length;
+      const unbalanced = entries.filter(e => money(e.totalDebit).subtract(money(e.totalCredit)).abs().toNumber() > 1).length;
       const result: { type: string; message: string; icon: typeof AlertTriangle }[] = [];
       if (unbalanced > 0) result.push({ type: 'error', message: `${unbalanced} écriture(s) non équilibrée(s)`, icon: AlertTriangle });
       if (drafts > 0) result.push({ type: 'warning', message: `${drafts} écriture(s) en attente de validation`, icon: Clock });
@@ -109,11 +111,11 @@ const JournalDashboard: React.FC = () => {
       let bankBalance = 0, cashBalance = 0;
       for (const e of entries) {
         for (const l of e.lines) {
-          if (l.accountCode.startsWith('52')) bankBalance += l.debit - l.credit;
-          if (l.accountCode.startsWith('57')) cashBalance += l.debit - l.credit;
+          if (l.accountCode.startsWith('52')) bankBalance = money(bankBalance).add(money(l.debit).subtract(money(l.credit))).toNumber();
+          if (l.accountCode.startsWith('57')) cashBalance = money(cashBalance).add(money(l.debit).subtract(money(l.credit))).toNumber();
         }
       }
-      return { cashBalance, bankBalance, totalBalance: bankBalance + cashBalance, dailyIn: 0, dailyOut: 0, netFlow: 0 };
+      return { cashBalance, bankBalance, totalBalance: money(bankBalance).add(money(cashBalance)).toNumber(), dailyIn: 0, dailyOut: 0, netFlow: 0 };
     },
   });
 
@@ -132,12 +134,12 @@ const JournalDashboard: React.FC = () => {
         for (const e of entries.filter(e => e.date === dateStr)) {
           for (const l of e.lines) {
             if (l.accountCode.startsWith('5')) {
-              enc += l.debit;
-              dec += l.credit;
+              enc = money(enc).add(money(l.debit)).toNumber();
+              dec = money(dec).add(money(l.credit)).toNumber();
             }
           }
         }
-        runningBalance += enc - dec;
+        runningBalance = money(runningBalance).add(money(enc).subtract(money(dec))).toNumber();
         result.push({ day: days[d.getDay()], encaissements: enc, decaissements: dec, solde: runningBalance });
       }
       return result;
@@ -151,7 +153,7 @@ const JournalDashboard: React.FC = () => {
       const entries = await adapter.getAll('journalEntries');
       const total = entries.length || 1;
       const validated = entries.filter(e => e.status !== 'draft').length;
-      const errors = entries.filter(e => Math.abs(e.totalDebit - e.totalCredit) > 1).length;
+      const errors = entries.filter(e => money(e.totalDebit).subtract(money(e.totalCredit)).abs().toNumber() > 1).length;
       return {
         avgValidationTime: '—',
         complianceRate: Math.round((validated / total) * 100),

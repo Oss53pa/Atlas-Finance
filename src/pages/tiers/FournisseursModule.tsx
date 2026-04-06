@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -165,7 +166,7 @@ const FournisseursModule: React.FC = () => {
             limiteCredit: 0,
             delaiPaiement: tp.conditionsPaiement?.delaiJours || 30,
             escompte: tp.conditionsPaiement?.escompte || 0,
-            modeReglement: (tp.conditionsPaiement?.modePaiement === 'virement' ? 'VIREMENT' : tp.conditionsPaiement?.modePaiement === 'cheque' ? 'CHEQUE' : 'VIREMENT') as any,
+            modeReglement: (tp.conditionsPaiement?.modePaiement === 'virement' ? 'VIREMENT' : tp.conditionsPaiement?.modePaiement === 'cheque' ? 'CHEQUE' : 'VIREMENT') as 'VIREMENT' | 'CHEQUE',
             devise: 'XAF',
             scoreQualite: tp.isActive ? 80 : 40,
             respectDelais: 0,
@@ -188,7 +189,6 @@ const FournisseursModule: React.FC = () => {
           setFournisseurs(fournisseursData);
         }
       } catch (err) {
-        console.error('Error loading fournisseurs:', err);
       } finally {
         if (mounted) setIsLoading(false);
       }
@@ -1764,7 +1764,7 @@ const FournisseursModule: React.FC = () => {
                           devise: 'XAF', scoreQualite: 0, respectDelais: 0,
                           notationInterne: 'B', conformite: true, statut: 'ACTIF',
                         } as Fournisseur)));
-                      } catch (err) { console.error('Erreur création fournisseur:', err); }
+ } catch (err) { }
                     }}
                     className="px-6 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/90 font-semibold">
                     Créer le fournisseur

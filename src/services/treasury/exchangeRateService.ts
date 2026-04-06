@@ -172,8 +172,8 @@ class ExchangeRateService {
     if (rates.length === 0) return 0;
 
     // Try atomic RPC (Supabase adapter)
-    if ('rpc' in this.adapter && typeof (this.adapter as any).rpc === 'function') {
-      const count = await (this.adapter as any).rpc('import_exchange_rates', {
+    if ('rpc' in this.adapter && typeof this.adapter.rpc === 'function') {
+      const count = await this.adapter.rpc!('import_exchange_rates', {
         p_rates: JSON.stringify(rates.map(r => ({
           fromCurrency: r.fromCurrency,
           toCurrency: r.toCurrency,

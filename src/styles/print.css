@@ -461,3 +461,157 @@
     .avoid-break { break-inside: avoid; }
   }
 }
+
+/* ====================================
+   Atlas Finance — Report-specific print styles
+   Balance, Grand Livre, Bilan, Compte de Resultat
+   ==================================== */
+
+@media print {
+  /* Hide app chrome: navigation, sidebar, chat, mobile banner */
+  .af-sidebar,
+  .af-header,
+  .mobile-consultation-banner,
+  .paloma-chat,
+  .chat-widget-container,
+  [data-chat-widget],
+  [data-mobile-banner],
+  .mobile-nav,
+  .sidebar-left,
+  .sidebar-right,
+  .double-sidebar-left,
+  .double-sidebar-right {
+    display: none !important;
+  }
+
+  /* Full-width main content when sidebars are hidden */
+  .af-main,
+  .main-content,
+  [data-main-content] {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Company header repeated on each printed page */
+  .print-company-header {
+    display: block !important;
+    text-align: center;
+    padding: 6pt 0;
+    border-bottom: 2pt solid #000;
+    margin-bottom: 8pt;
+  }
+
+  .print-company-header .company-name {
+    font-size: 16pt;
+    font-weight: bold;
+  }
+
+  .print-company-header .company-nif {
+    font-size: 10pt;
+    color: #333;
+  }
+
+  .print-company-header .report-title {
+    font-size: 14pt;
+    font-weight: bold;
+    margin-top: 4pt;
+  }
+
+  .print-company-header .exercice-dates {
+    font-size: 10pt;
+    color: #555;
+  }
+
+  /* ── Balance (Trial Balance) ── */
+  .print-balance table {
+    font-size: 8pt !important;
+  }
+
+  .print-balance th {
+    background-color: #e8e8e8 !important;
+    font-size: 8pt !important;
+  }
+
+  .print-balance .account-class-header {
+    background-color: #f0f0f0 !important;
+    font-weight: bold !important;
+    page-break-after: avoid;
+  }
+
+  .print-balance .total-row {
+    font-weight: bold !important;
+    border-top: 2pt solid #000 !important;
+  }
+
+  /* ── Grand Livre (General Ledger) ── */
+  .print-grand-livre .account-section {
+    page-break-inside: avoid;
+    margin-bottom: 12pt;
+  }
+
+  .print-grand-livre .account-header {
+    background-color: #e0e0e0 !important;
+    font-weight: bold !important;
+    padding: 4pt 6pt !important;
+    page-break-after: avoid;
+  }
+
+  .print-grand-livre .account-total {
+    font-weight: bold !important;
+    border-top: 1pt solid #999 !important;
+  }
+
+  /* ── Bilan (Balance Sheet) ── */
+  .print-bilan {
+    page-break-before: always;
+  }
+
+  .print-bilan .bilan-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10pt !important;
+  }
+
+  .print-bilan .actif-section,
+  .print-bilan .passif-section {
+    page-break-inside: avoid;
+  }
+
+  .print-bilan .bilan-total {
+    font-weight: bold !important;
+    font-size: 11pt !important;
+    border-top: 3pt double #000 !important;
+    padding: 6pt !important;
+  }
+
+  /* ── Compte de Resultat (Income Statement) ── */
+  .print-resultat {
+    page-break-before: always;
+  }
+
+  .print-resultat .section-header {
+    background-color: #f0f0f0 !important;
+    font-weight: bold !important;
+    font-size: 10pt !important;
+    padding: 4pt 6pt !important;
+    page-break-after: avoid;
+  }
+
+  .print-resultat .subtotal-row {
+    font-weight: bold !important;
+    border-top: 1pt solid #999 !important;
+  }
+
+  .print-resultat .grand-total {
+    font-weight: bold !important;
+    font-size: 11pt !important;
+    border-top: 3pt double #000 !important;
+  }
+
+  /* Page breaks between major report sections */
+  .print-section-break {
+    page-break-before: always;
+  }
+}

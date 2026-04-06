@@ -1,3 +1,8 @@
+// SECURITY: Tokens are now stored in-memory (via auth-backend.service.ts)
+// instead of localStorage to mitigate XSS token-theft. User data is kept in
+// React state only. Trade-off: sessions do not survive page refresh -- the
+// user must re-authenticate. When the Django backend supports httpOnly
+// cookie-based auth, migrate to that for persistence without XSS risk.
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { authBackendService } from '@/services/auth-backend.service';
 
@@ -24,22 +29,8 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// ✅ Charger l'utilisateur AVANT même que le composant existe
-const getUserFromStorage = (): User | null => {
-  try {
-    const storedUser = localStorage.getItem('atlas_fna_user');
-    return storedUser ? JSON.parse(storedUser) : null;
-  } catch {
-    return null;
-  }
-};
-
-// ✅ VALEUR INITIALE pré-calculée
-const INITIAL_USER = getUserFromStorage();
-
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // ✅ Utiliser directement la valeur pré-calculée
-  const [user, setUser] = useState<User | null>(INITIAL_USER);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
   const loadUserProfile = useCallback(async () => {
@@ -58,12 +49,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         permissions: profile.permissions
       };
       setUser(userData);
-      localStorage.setItem('atlas_fna_user', JSON.stringify(userData));
-    } catch (error) {
-      console.error('Erreur lors du chargement du profil:', error);
-      localStorage.removeItem('atlas_fna_access_token');
-      localStorage.removeItem('atlas_fna_refresh_token');
-      localStorage.removeItem('atlas_fna_user');
+    } catch (_err) {
+      // Profile load failed -- clear auth state
+      await authBackendService.logout();
       setUser(null);
     } finally {
       setLoading(false);
@@ -73,16 +61,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = useCallback(async (email: string, password: string) => {
     try {
       setLoading(true);
-      const response = await authBackendService.login({ email, password });
-      if (response.access) {
-        localStorage.setItem('atlas_fna_access_token', response.access);
-      }
-      if (response.refresh) {
-        localStorage.setItem('atlas_fna_refresh_token', response.refresh);
-      }
+      await authBackendService.login({ email, password });
       await loadUserProfile();
-    } catch (error) {
-      console.error('Erreur lors de la connexion:', error);
+    } catch (_err) {
       setLoading(false);
       throw new Error('Identifiants incorrects. Veuillez réessayer.');
     }
@@ -92,12 +73,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       await authBackendService.logout();
-    } catch (error) {
-      console.error('Erreur lors de la déconnexion:', error);
+    } catch (_err) {
+      // Logout API call failed -- clear state regardless
     } finally {
-      localStorage.removeItem('atlas_fna_access_token');
-      localStorage.removeItem('atlas_fna_refresh_token');
-      localStorage.removeItem('atlas_fna_user');
       setUser(null);
       setLoading(false);
     }
@@ -107,13 +85,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await loadUserProfile();
   }, [loadUserProfile]);
 
-  // ✅ Valeurs directes sans useMemo pour éviter tout overhead
   const value: AuthContextType = {
     user,
     isAdmin: user?.role === 'admin',
     login,
     logout,
-    isAuthenticated: !!user && !!localStorage.getItem('atlas_fna_access_token'),
+    isAuthenticated: !!user && authBackendService.isAuthenticated(),
     loading,
     refreshUserProfile
   };

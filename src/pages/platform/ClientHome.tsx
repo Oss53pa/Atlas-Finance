@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';

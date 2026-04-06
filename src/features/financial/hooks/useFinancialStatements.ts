@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import { useState, useEffect } from 'react';
 import { financialStatementsService } from '../services/financialStatementsService';
 import {

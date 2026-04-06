@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * Extourne automatique — contrepassation des regularisations
  * au premier jour du nouvel exercice.

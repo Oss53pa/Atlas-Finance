@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
@@ -36,7 +36,7 @@ const TrackChangePage: React.FC = () => {
   useEffect(() => {
     const load = async () => {
       try {
-        const logs = await adapter.getAll('auditLogs') as any[];
+        const logs = await adapter.getAll('auditLogs') as Record<string, unknown>[];
         const sorted = logs
           .sort((a: any, b: any) => (b.timestamp || '').localeCompare(a.timestamp || ''))
           .slice(0, 50);
@@ -55,7 +55,7 @@ const TrackChangePage: React.FC = () => {
           };
         });
         setChangeLogs(mapped);
-      } catch {
+      } catch (err) { /* silent */
         setChangeLogs([]);
       }
     };
@@ -256,7 +256,7 @@ const TrackChangePage: React.FC = () => {
             {/* Bouton Export */}
             <div className="flex justify-end pt-2">
               <ExportMenu
-                data={filteredLogs}
+                data={filteredLogs as unknown as Record<string, unknown>[]}
                 filename="suivi_modifications"
                 columns={{
                   date: 'Date',

@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * Gestionnaire de Réconciliation et Rapprochement
  * Fonctionnalités transverses Clients/Fournisseurs - Section 4.1

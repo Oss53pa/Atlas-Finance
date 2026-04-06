@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * fiscalTools — Calendrier fiscal et aide à la liasse fiscale.
  */

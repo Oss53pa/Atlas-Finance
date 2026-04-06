@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * Knowledge Base — Consolidation SYSCOHADA, Multi-devises, Analytique,
  * Provisions, Immobilisations avancées, Scoring, Règles métier

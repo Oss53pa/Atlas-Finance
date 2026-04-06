@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * Système d'Apprentissage et d'Adaptation pour Proph3t
  * Apprentissage automatique et amélioration continue basée sur les interactions utilisateur
@@ -598,7 +599,6 @@ export class PalomaLearningSystem {
         }
       }
     } catch (error) {
-      console.warn('Erreur lors du chargement des données d\'apprentissage:', error);
     }
   }
 
@@ -614,7 +614,6 @@ export class PalomaLearningSystem {
       };
       localStorage.setItem('paloma_learning_data', JSON.stringify(dataToSave));
     } catch (error) {
-      console.warn('Erreur lors de la sauvegarde des données d\'apprentissage:', error);
     }
   }
 

@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * SERVICE EXERCICE - Mode local (Dexie/IndexedDB)
  * Fournit les données d'exercices comptables localement
@@ -66,7 +67,7 @@ export const exerciceService = {
         devise: 'XAF',
         stats: { total_ecritures: 0, montant_total: 0, resultat_net: 0 },
       }));
-    } catch {
+    } catch (err) { /* silent */
       return [];
     }
   },
@@ -94,7 +95,7 @@ export const exerciceService = {
         devise: 'XAF',
         stats: { total_ecritures: 0, montant_total: 0, resultat_net: 0 },
       };
-    } catch {
+    } catch (err) { /* silent */
       return null;
     }
   },

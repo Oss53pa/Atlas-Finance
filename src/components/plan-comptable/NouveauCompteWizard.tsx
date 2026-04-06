@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * NouveauCompteWizard — Formulaire intelligent 4 etapes pour creer un compte SYSCOHADA
  * Classe -> Categorie -> Sous-compte -> Code suggere + Libelle -> Enregistrer

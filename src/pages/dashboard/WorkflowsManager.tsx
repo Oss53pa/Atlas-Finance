@@ -144,14 +144,13 @@ const WorkflowsManager: React.FC = () => {
           description: `Journal: ${entry.journal || '-'} | Réf: ${entry.reference || '-'}`,
           requester: entry.createdBy || 'Système',
           amount: entry.totalDebit || 0,
-          priority: (entry.totalDebit || 0) > 50000 ? 'high' : 'medium' as any,
+          priority: (entry.totalDebit || 0) > 50000 ? 'high' : 'medium' as const,
           status: 'pending',
           createdAt: new Date(entry.createdAt || Date.now()),
           dueDate: new Date(Date.now() + 86400000 * 7),
         }));
         setApprovals(builtApprovals);
       } catch (err) {
-        console.error('Erreur chargement workflows:', err);
         setWorkflows([]);
         setApprovals([]);
       }

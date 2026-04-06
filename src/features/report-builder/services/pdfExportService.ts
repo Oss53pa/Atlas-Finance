@@ -142,22 +142,30 @@ export async function exportToPDF(
   content.querySelectorAll('[data-no-print]').forEach(el => el.remove());
   content.querySelectorAll('.group-hover\\:opacity-100').forEach(el => el.remove());
 
-  // Write to print window
-  printWindow.document.write(`
-    <!DOCTYPE html>
-    <html lang="fr">
-    <head>
-      <meta charset="UTF-8">
-      <title>${document.title} — ${document.period.label}</title>
-      <style>${printCSS}</style>
-    </head>
-    <body>
-      ${content.innerHTML}
-    </body>
-    </html>
-  `);
+  // Write to print window using srcdoc-style DOM construction (avoids document.write XSS risk)
+  const printDoc = printWindow.document;
+  printDoc.open();
+  printDoc.close();
 
-  printWindow.document.close();
+  // Build the document safely via DOM APIs
+  printDoc.documentElement.setAttribute('lang', 'fr');
+
+  const head = printDoc.head;
+  const meta = printDoc.createElement('meta');
+  meta.setAttribute('charset', 'UTF-8');
+  head.appendChild(meta);
+
+  const titleEl = printDoc.createElement('title');
+  titleEl.textContent = `${document.title} — ${document.period.label}`;
+  head.appendChild(titleEl);
+
+  const styleEl = printDoc.createElement('style');
+  styleEl.textContent = printCSS;
+  head.appendChild(styleEl);
+
+  // Append cloned content into body
+  const importedContent = printDoc.importNode(content, true);
+  printDoc.body.appendChild(importedContent);
 
   // Wait for content to load, then print
   printWindow.onload = () => {

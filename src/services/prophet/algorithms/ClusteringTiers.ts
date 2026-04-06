@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * ClusteringTiers — K-means en TypeScript pur pour segmentation clients/fournisseurs
  */
@@ -148,12 +148,12 @@ export const clusteringTools: Record<string, ToolDefinition> = {
       },
     },
     execute: async (args, adapter) => {
-      let { clients } = args as any;
+      let { clients } = args as Record<string, any>;
 
       // Lire les tiers (clients) depuis la base si non fournis
       if ((!clients || clients.length === 0) && adapter) {
         try {
-          const tiers = await adapter.getAll('thirdParties', { where: { type: 'client' }, limit: 500 }) as any[];
+          const tiers = await adapter.getAll<Record<string, unknown>>('thirdParties', { where: { type: 'client' }, limit: 500 });
           const entries = await adapter.getJournalEntries({ limit: 10000 });
 
           clients = tiers.map((t: any) => {

@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import { useState, useEffect } from 'react';
 import { ClientDetail, Facture, Paiement } from '../types/client.types';
 import { clientService } from '../services/clientService';

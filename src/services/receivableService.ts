@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * Service de suivi des créances et dettes tiers.
  * Connecte les comptes 40x/41x aux écritures pour:
@@ -96,7 +97,7 @@ async function getProvisionComptes(adapter: DataAdapter): Promise<{
       REPRISE_PROVISION: getSetting('compte_reprise_provision', COMPTES_DEFAULTS.REPRISE_PROVISION),
       CREANCES_DOUTEUSES: getSetting('compte_creances_douteuses', COMPTES_DEFAULTS.CREANCES_DOUTEUSES),
     };
-  } catch {
+  } catch (err) { /* silent */
     return { ...COMPTES_DEFAULTS };
   }
 }
@@ -452,7 +453,7 @@ export async function posterRepriseProvision(
     ],
     totalDebit: montant,
     totalCredit: montant,
-  } as any, { skipSyncValidation: true });
+  } as unknown as Parameters<typeof safeAddEntry>[1], { skipSyncValidation: true });
 }
 
 /**

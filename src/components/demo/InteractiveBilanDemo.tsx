@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * Démo interactive : Bilan SYSCOHADA en temps réel
  * Simule un bilan avec drill-down par poste

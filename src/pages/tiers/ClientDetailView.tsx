@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState, useEffect } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -276,7 +277,7 @@ const ClientDetailView: React.FC = () => {
             regimeTVA: 'NORMAL',
             tauxTVADefaut: 19.25,
             exonerationTVA: false,
-            modeReglement: (tp.conditionsPaiement?.modePaiement === 'virement' ? 'VIREMENT' : 'CHEQUE') as any,
+            modeReglement: (tp.conditionsPaiement?.modePaiement === 'virement' ? 'VIREMENT' : 'CHEQUE') as 'VIREMENT' | 'CHEQUE',
             conditionsPaiement: tp.conditionsPaiement ? `${tp.conditionsPaiement.delaiJours} jours net` : '30 jours net',
             delaiPaiement: tp.conditionsPaiement?.delaiJours || 30,
             plafondEncours: 0,
@@ -343,7 +344,6 @@ const ClientDetailView: React.FC = () => {
           ]);
         }
       } catch (err) {
-        console.error('Error loading client detail:', err);
       } finally {
         if (mounted) setLoading(false);
       }

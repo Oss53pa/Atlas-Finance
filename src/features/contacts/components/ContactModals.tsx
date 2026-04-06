@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState, useEffect } from 'react';
 import {
   X,
@@ -116,7 +117,6 @@ export const CreateContactModal: React.FC<CreateContactModalProps> = ({
       onClose();
     },
     onError: (error: Error) => {
-      console.error('Erreur création contact:', error);
       toast.error(error?.message || 'Erreur lors de la création du contact');
     }
   });
@@ -607,7 +607,6 @@ export const EditContactModal: React.FC<EditContactModalProps> = ({
       onClose();
     },
     onError: (error: Error) => {
-      console.error('Erreur modification contact:', error);
       toast.error(error?.message || 'Erreur lors de la modification du contact');
     }
   });

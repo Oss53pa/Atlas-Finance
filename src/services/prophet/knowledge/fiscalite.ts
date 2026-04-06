@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * Knowledge Base — Fiscalité des 17 pays OHADA
  * IS, TVA, IRPP, retenues à la source, calendrier fiscal

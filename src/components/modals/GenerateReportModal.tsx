@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * GenerateReportModal - Modal for generating reports from data imports
  * Supports two entry points:
@@ -323,7 +324,6 @@ const GenerateReportModal: React.FC<GenerateReportModalProps> = ({
 
   const handleCreateFolder = () => {
     if (newFolderName.trim()) {
-      console.log('Creating folder:', newFolderName);
       setNewFolderName('');
       setShowNewFolderInput(false);
     }

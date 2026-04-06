@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React, { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
@@ -582,7 +582,7 @@ const ConfigurationCentrePage: React.FC = () => {
                               variant="ghost"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                toast.info(`Aperçu de ${module.name}`);
+                                toast(`Aperçu de ${module.name}`);
                               }}
                             >
                               <Eye className="mr-2 h-4 w-4" />

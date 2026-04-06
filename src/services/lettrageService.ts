@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * Service de lettrage automatique.
  *

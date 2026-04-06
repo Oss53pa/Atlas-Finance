@@ -52,7 +52,7 @@ const FinancialStatementsView: React.FC = () => {
           { id: '2', type: 'income', title: 'Compte de Résultat', statementDate: `${year}-12-31`, fiscalYear: year, status: 'draft', netResult: Math.round(resultatNet), lastModified: today },
           { id: '3', type: 'cashflow', title: 'TAFIRE (Flux de Trésorerie)', statementDate: `${year}-12-31`, fiscalYear: year, status: 'draft', lastModified: today }
         ]);
-      } catch { /* fallback vide */ }
+      } catch (err) { /* silent */ /* fallback vide */ }
     };
     load();
   }, [adapter]);

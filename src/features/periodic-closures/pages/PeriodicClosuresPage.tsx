@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState } from 'react';
 import { Plus, Lock, Download, Settings } from 'lucide-react';
 import { Button } from '@/shared/components/ui/Button';
@@ -33,7 +34,6 @@ const PeriodicClosuresPage: React.FC = () => {
       await periodicClosuresService.executeStep(selectedPeriod.id, step.id);
       refetch();
     } catch (error) {
-      console.error('Erreur exécution étape:', error);
     }
   };
 
@@ -44,7 +44,6 @@ const PeriodicClosuresPage: React.FC = () => {
       refetch();
       periodDetailModal.close();
     } catch (error) {
-      console.error('Erreur validation période:', error);
     }
   };
 

@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React, { useState } from 'react';
 import { useLanguage } from '../../../contexts/LanguageContext';
 import { Plus, Download, Search, Filter as FilterIcon, Wrench } from 'lucide-react';
@@ -161,7 +161,7 @@ const AssetsPage: React.FC = () => {
 
           <div className="bg-white rounded-lg border border-[#d4d4d4] p-6">
             <AssetsTable
-              assets={pagination.paginateData(filteredData)}
+              assets={pagination.paginateData(filteredData) as any}
               loading={loading}
               onView={handleViewAsset}
               onMaintenance={handleMaintenance}

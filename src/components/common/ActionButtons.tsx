@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React from 'react';
 import {
   Download,
@@ -92,7 +92,7 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
       action.onClick();
     } else {
       // Action par défaut
-      toast.info(`Action: ${action.label || action.type}`);
+      toast(`Action: ${action.label || action.type}`);
     }
   };
 

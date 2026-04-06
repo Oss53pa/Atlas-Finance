@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * TaxDeclarationsPage — Déclarations Fiscales
  *

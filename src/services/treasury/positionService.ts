@@ -21,7 +21,7 @@ export async function getSoldesBancaires(adapter: DataAdapter): Promise<BankPosi
   const accountNames = new Map(accounts.map((a: any) => [a.code, a.name]));
   const soldes = new Map<string, number>();
 
-  for (const entry of entries as any[]) {
+  for (const entry of entries as { status: string; lines: Array<{ accountCode: string; debit: number; credit: number }> }[]) {
     if (entry.status !== 'validated' && entry.status !== 'posted') continue;
     for (const line of entry.lines) {
       // Comptes de trésorerie SYSCOHADA : 52x (banques), 53x (caisse), 54x (régies)

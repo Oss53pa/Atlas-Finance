@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState, useEffect } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -104,7 +105,7 @@ const ProspectsModule: React.FC = () => {
   useEffect(() => {
     const load = async () => {
       const tps = await adapter.getAll('thirdParties');
-      setThirdParties(tps as any[]);
+      setThirdParties(tps as Record<string, unknown>[]);
     };
     load();
   }, [adapter]);

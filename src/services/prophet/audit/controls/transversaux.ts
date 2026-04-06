@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * Contrôles transversaux — C83 à C97
  * Benford, doublons, séquentialité, anti-fraude, intégrité

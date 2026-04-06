@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * Contrôles immobilisations — C28 à C42
  * Brut, amortissements, dépréciations, cessions, cohérence tableaux

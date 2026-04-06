@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useEffect, useMemo } from 'react';
 import {
@@ -148,12 +149,12 @@ interface LCMTestingProps {
 
 const LCMTesting: React.FC<LCMTestingProps> = ({ onTestComplete }) => {
   const { adapter } = useData();
-  const [inventoryItems, setInventoryItems] = useState<any[]>([]);
+  const [inventoryItems, setInventoryItems] = useState<Record<string, unknown>[]>([]);
 
   useEffect(() => {
     const load = async () => {
       const items = await adapter.getAll('inventoryItems');
-      setInventoryItems(items as any[]);
+      setInventoryItems(items as Record<string, unknown>[]);
     };
     load();
   }, [adapter]);
@@ -356,12 +357,12 @@ const LCMTesting: React.FC<LCMTestingProps> = ({ onTestComplete }) => {
 
 const InventoryValuation: React.FC = () => {
   const { adapter } = useData();
-  const [inventoryItems, setInventoryItems] = useState<any[]>([]);
+  const [inventoryItems, setInventoryItems] = useState<Record<string, unknown>[]>([]);
 
   useEffect(() => {
     const load = async () => {
       const items = await adapter.getAll('inventoryItems');
-      setInventoryItems(items as any[]);
+      setInventoryItems(items as Record<string, unknown>[]);
     };
     load();
   }, [adapter]);
@@ -418,7 +419,7 @@ const InventoryValuation: React.FC = () => {
     setIsLoading(true);
     // Re-read data via adapter
     const items = await adapter.getAll('inventoryItems');
-    setInventoryItems(items as any[]);
+    setInventoryItems(items as Record<string, unknown>[]);
     setIsLoading(false);
   };
 

@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * Reevaluation des immobilisations — SYSCOHADA revise.
  * Reevaluation libre et legale avec ecart de reevaluation (compte 105).
@@ -6,7 +7,7 @@
 import type { DataAdapter } from '@atlas/data';
 import { Money, money } from '../../utils/money';
 import { logAudit } from '../../lib/db';
-import type { DBJournalLine, DBAsset } from '../../lib/db';
+import type { DBJournalEntry, DBJournalLine, DBAsset } from '../../lib/db';
 import { safeAddEntry } from '../entryGuard';
 
 // ============================================================================

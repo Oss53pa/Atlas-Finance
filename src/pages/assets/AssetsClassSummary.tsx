@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React, { useState } from 'react';
 import {
   Layers, Building, Package, FileText, DollarSign, TrendingUp,

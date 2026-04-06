@@ -4,7 +4,8 @@
  */
 
 export { ChatWidget } from './ChatWidget';
-export { useChatbot } from './hooks/useChatbot';
+/** @deprecated useChatbot removed — use useProphetV2 instead */
+export { useProphetV2 as useChatbot } from '../../services/prophet/useProphetV2';
 
 // Composants
 export { MessageList } from './components/MessageList';

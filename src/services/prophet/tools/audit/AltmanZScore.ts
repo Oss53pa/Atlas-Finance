@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * AltmanZScore — Prédiction de défaillance (Z''-score marchés émergents)
  * Réf: Altman E.I. (1968, 2005), OHADA art. 547
@@ -118,7 +118,7 @@ export const altmanTools: Record<string, ToolDefinition> = {
       },
     },
     execute: async (args, adapter) => {
-      let data = args as any;
+      let data = args as Record<string, unknown>;
 
       // Si pas de données fournies, les calculer depuis la balance réelle
       if ((!data.total_actif || data.total_actif === 0) && adapter) {
@@ -144,7 +144,7 @@ export const altmanTools: Record<string, ToolDefinition> = {
         };
       }
 
-      return JSON.stringify(calculerZScore(data as DonneesFinancieres));
+      return JSON.stringify(calculerZScore(data as unknown as DonneesFinancieres));
     },
   },
 };

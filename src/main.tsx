@@ -3,6 +3,29 @@ import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { HelmetProvider } from 'react-helmet-async'
+import * as Sentry from '@sentry/react'
+
+// ── Sentry Error Monitoring ──────────────────────────────────
+const SENTRY_DSN = import.meta.env.VITE_SENTRY_DSN;
+if (SENTRY_DSN) {
+  Sentry.init({
+    dsn: SENTRY_DSN,
+    environment: import.meta.env.MODE,
+    tracesSampleRate: 0.1,
+    replaysSessionSampleRate: 0,
+    replaysOnErrorSampleRate: 1.0,
+    beforeSend(event) {
+      // Strip financial data from error reports
+      if (event.extra) {
+        delete event.extra.debit;
+        delete event.extra.credit;
+        delete event.extra.montant;
+        delete event.extra.solde;
+      }
+      return event;
+    },
+  });
+}
 // ✅ CHARGEMENT SYNCHRONE DES CSS - AVANT tout le reste
 import './styles/base.css'
 import './index.css'
@@ -38,3 +61,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 
 // ✅ Le loader sera caché depuis le composant App après le premier rendu complet
 // (Pas de hideLoader ici pour Test 8)
+
+// ── Service Worker Registration (production only) ────────────
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  navigator.serviceWorker.register('/service-worker.js').catch(() => {});
+}

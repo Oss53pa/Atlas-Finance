@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { useToast } from '../../hooks/useToast';
@@ -327,7 +327,7 @@ const PaymentOrdersPage: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Type de b\u00e9n\u00e9ficiaire</label>
                 <select
                   value={form.beneficiaryType}
-                  onChange={(e) => setForm({ ...form, beneficiaryType: e.target.value as any })}
+                  onChange={(e) => setForm({ ...form, beneficiaryType: e.target.value as DBPaymentOrder['beneficiaryType'] })}
                   className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   {Object.entries(BENEFICIARY_TYPE_LABELS).map(([k, v]) => (
@@ -363,7 +363,7 @@ const PaymentOrdersPage: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">M\u00e9thode de paiement</label>
                 <select
                   value={form.paymentMethod}
-                  onChange={(e) => setForm({ ...form, paymentMethod: e.target.value as any })}
+                  onChange={(e) => setForm({ ...form, paymentMethod: e.target.value as DBPaymentOrder['paymentMethod'] })}
                   className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   {Object.entries(METHOD_LABELS).map(([k, v]) => (

@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React, { useState, useMemo } from 'react';
 import {
   Settings, Shield, ToggleLeft, Calculator, Calendar, DollarSign,
@@ -221,7 +221,6 @@ const AdminTaxRegistry: React.FC = () => {
       setEditForm({});
       queryClient.invalidateQueries({ queryKey: ['taxRegistry'] });
     } catch (err) {
-      console.error('Error saving tax:', err);
       toast.error('Erreur lors de la mise a jour de la taxe');
     }
   };
@@ -235,7 +234,6 @@ const AdminTaxRegistry: React.FC = () => {
       toast.success(`${tax.taxCode} ${tax.isActive ? 'desactivee' : 'activee'}`);
       queryClient.invalidateQueries({ queryKey: ['taxRegistry'] });
     } catch (err) {
-      console.error('Error toggling tax:', err);
       toast.error('Erreur lors du changement de statut');
     }
   };
@@ -248,7 +246,6 @@ const AdminTaxRegistry: React.FC = () => {
       toast.success('Taxes CI initialisees avec succes');
       queryClient.invalidateQueries({ queryKey: ['taxRegistry'] });
     } catch (err) {
-      console.error('Seed error:', err);
       toast.error('Erreur lors de l\'initialisation des taxes');
     } finally {
       setSeedLoading(false);
@@ -259,20 +256,19 @@ const AdminTaxRegistry: React.FC = () => {
     setSeedLoading(true);
     try {
       // Delete existing entries then re-seed
-      const existing = await adapter.getAll('taxRegistry');
+      const existing = await adapter.getAll<{ id: string }>('taxRegistry');
       for (const t of existing) {
-        await adapter.delete('taxRegistry', (t as any).id);
+        await adapter.delete('taxRegistry', t.id);
       }
-      const existingBrackets = await adapter.getAll('taxBrackets');
+      const existingBrackets = await adapter.getAll<{ id: string }>('taxBrackets');
       for (const b of existingBrackets) {
-        await adapter.delete('taxBrackets', (b as any).id);
+        await adapter.delete('taxBrackets', b.id);
       }
       await seedTaxRegistryCI(adapter);
       await seedIRPPBracketsCI(adapter);
       toast.success('Taxes reinitialises aux valeurs CI par defaut');
       queryClient.invalidateQueries({ queryKey: ['taxRegistry'] });
     } catch (err) {
-      console.error('Reset error:', err);
       toast.error('Erreur lors de la reinitialisation');
     } finally {
       setSeedLoading(false);

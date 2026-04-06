@@ -75,7 +75,6 @@ export const useExports = (
       const data = await ExportService.getExports(filters);
       setExports(data);
     } catch (err) {
-      console.error('Erreur lors du chargement des exports:', err);
       setError(err instanceof Error ? err.message : 'Erreur inconnue');
     } finally {
       setLoading(false);
@@ -127,7 +126,6 @@ export const useExports = (
 
         return newExport;
       } catch (err) {
-        console.error('Erreur lors de la création de l\'export:', err);
         setError(err instanceof Error ? err.message : 'Erreur lors de la création');
         return null;
       } finally {
@@ -148,7 +146,6 @@ export const useExports = (
         // Rafraîchir après suppression
         await fetchExports();
       } catch (err) {
-        console.error('Erreur lors de la suppression de l\'export:', err);
         setError(err instanceof Error ? err.message : 'Erreur lors de la suppression');
         throw err;
       }
@@ -164,7 +161,6 @@ export const useExports = (
       setError(null);
       await ExportService.downloadFile(id);
     } catch (err) {
-      console.error('Erreur lors du téléchargement de l\'export:', err);
       setError(err instanceof Error ? err.message : 'Erreur lors du téléchargement');
       throw err;
     }

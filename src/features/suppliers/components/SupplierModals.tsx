@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState, useEffect } from 'react';
 import {
   X,
@@ -168,7 +169,6 @@ export const CreateSupplierModal: React.FC<CreateSupplierModalProps> = ({
       onSuccess?.();
       onClose();
     } catch (error: unknown) {
-      console.error('Erreur création fournisseur:', error);
       toast.error((error instanceof Error ? error.message : null) || 'Erreur lors de la création du fournisseur');
     }
   };
@@ -782,7 +782,6 @@ export const EditSupplierModal: React.FC<EditSupplierModalProps> = ({
       onSuccess?.();
       onClose();
     } catch (error: unknown) {
-      console.error('Erreur modification fournisseur:', error);
       toast.error((error instanceof Error ? error.message : null) || 'Erreur lors de la modification du fournisseur');
     }
   };

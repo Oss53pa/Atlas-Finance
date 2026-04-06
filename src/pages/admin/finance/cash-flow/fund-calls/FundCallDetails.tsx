@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState, useEffect } from 'react';
 import { formatDate } from '../../../../../utils/formatters';
 import { useParams, useNavigate, Link } from 'react-router-dom';
@@ -65,7 +66,6 @@ export const FundCallDetails: React.FC = () => {
         }
         setLoading(false);
       } catch (error) {
-        console.error("Error fetching fund call details:", error);
         setError("Erreur lors du chargement des détails");
         setLoading(false);
       }
@@ -372,7 +372,7 @@ export const FundCallDetails: React.FC = () => {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .timeline {
           position: relative;
           padding-left: 30px;

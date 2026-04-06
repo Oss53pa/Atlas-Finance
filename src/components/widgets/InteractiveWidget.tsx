@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * Widget Interactif Configurable Atlas F&A
  * Widgets drag & drop avec personnalisation selon cahier des charges

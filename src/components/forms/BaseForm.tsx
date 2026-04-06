@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState, useCallback } from 'react';
 import { Button, LoadingSpinner } from '@/components/ui';
 
@@ -131,7 +132,6 @@ const BaseForm: React.FC<FormProps> = ({
     try {
       await onSubmit(formData);
     } catch (error) {
-      console.error('Form submission error:', error);
     }
   };
 

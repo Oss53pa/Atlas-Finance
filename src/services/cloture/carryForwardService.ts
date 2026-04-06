@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * Carry-Forward (Report a Nouveau) Service.
  * Generates opening entries for a new fiscal year from closing balances.
@@ -87,8 +88,8 @@ export async function calculerSoldesCloture(
         debit: 0,
         credit: 0,
       };
-      existing.debit += line.debit;
-      existing.credit += line.credit;
+      existing.debit = money(existing.debit).add(money(line.debit)).toNumber();
+      existing.credit = money(existing.credit).add(money(line.credit)).toNumber();
       balances.set(line.accountCode, existing);
     }
   }
@@ -123,8 +124,8 @@ export async function previewCarryForward(adapter: DataAdapter, config: CarryFor
   let totalDebit = 0;
   let totalCredit = 0;
   for (const l of lignes) {
-    totalDebit += l.soldeDebiteur;
-    totalCredit += l.soldeCrediteur;
+    totalDebit = money(totalDebit).add(money(l.soldeDebiteur)).toNumber();
+    totalCredit = money(totalCredit).add(money(l.soldeCrediteur)).toNumber();
   }
 
   return {

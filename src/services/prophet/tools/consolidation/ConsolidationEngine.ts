@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * ConsolidationEngine — Consolidation SYSCOHADA complète
  * Réf. légales : OHADA AUDCIF art. 74–99

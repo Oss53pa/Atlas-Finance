@@ -89,7 +89,7 @@ export const findLinkByLabel = (label: string | RegExp) => {
 export const findClickableByLabel = (label: string | RegExp) => {
   try {
     return findButtonByLabel(label);
-  } catch {
+  } catch (err) { /* silent */
     return findLinkByLabel(label);
   }
 };

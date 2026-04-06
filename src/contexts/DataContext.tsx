@@ -52,16 +52,13 @@ export function DataProvider({ children, forceMode, forceAdapter }: DataProvider
         const url = import.meta.env.VITE_SUPABASE_URL
         const key = import.meta.env.VITE_SUPABASE_ANON_KEY
         if (!url || !key || url.includes('YOUR_PROJECT_ID')) {
-          console.warn('[DataProvider] SaaS mode but Supabase credentials missing. Falling back to local.')
           return new DexieAdapter()
         }
         // tenantId will be set after auth — use placeholder, RLS handles it server-side
         const tenantId = localStorage.getItem('atlas-tenant-id') || 'default'
-        console.info('[DataProvider] Using SupabaseAdapter (SaaS mode)')
         return new SupabaseAdapter(url, key, tenantId)
       }
       case 'hybrid': {
-        console.warn('[DataProvider] Hybrid mode requested but HybridAdapter not yet wired. Falling back to local.')
         return new DexieAdapter()
       }
       case 'local':

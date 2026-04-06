@@ -176,7 +176,6 @@ export function useAccessibility(): AccessibilityState & AccessibilityActions {
         setContrastPreferences(prev => ({ ...prev, ...parsed.contrastPreferences }));
       }
     } catch (error) {
-      console.warn('Failed to load accessibility preferences:', error);
     }
   }, []);
 
@@ -191,7 +190,6 @@ export function useAccessibility(): AccessibilityState & AccessibilityActions {
       };
       localStorage.setItem('accessibility-preferences', JSON.stringify(data));
     } catch (error) {
-      console.warn('Failed to save accessibility preferences:', error);
     }
   }, [preferences, motionPreferences, textPreferences, contrastPreferences]);
 
@@ -296,7 +294,6 @@ export function useAccessibility(): AccessibilityState & AccessibilityActions {
       if (parsed.textPreferences) setTextPreferences(prev => ({ ...prev, ...parsed.textPreferences }));
       if (parsed.contrastPreferences) setContrastPreferences(prev => ({ ...prev, ...parsed.contrastPreferences }));
     } catch (error) {
-      console.error('Failed to import accessibility preferences:', error);
     }
   }, []);
 

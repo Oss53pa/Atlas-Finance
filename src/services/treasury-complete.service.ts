@@ -74,7 +74,7 @@ class BankAccountsService {
 
       if (error) throw error;
       return (data || []) as BankAccount[];
-    } catch {
+    } catch (err) { /* silent */
       return [];
     }
   }
@@ -93,7 +93,7 @@ class BankAccountsService {
         sortOrder: 'asc',
       });
       return { results: result.data, count: result.total };
-    } catch {
+    } catch (err) { /* silent */
       return { results: [], count: 0 };
     }
   }
@@ -107,7 +107,7 @@ class BankAccountsService {
         .single();
       if (error) throw error;
       return data as BankAccount;
-    } catch {
+    } catch (err) { /* silent */
       return null;
     }
   }
@@ -140,7 +140,7 @@ class BankTransactionsService {
         sortOrder: 'desc',
       });
       return result.data;
-    } catch {
+    } catch (err) { /* silent */
       return [];
     }
   }
@@ -155,7 +155,7 @@ class BankTransactionsService {
 
       if (error) throw error;
       return (data || []) as CashMovement[];
-    } catch {
+    } catch (err) { /* silent */
       return [];
     }
   }
@@ -177,7 +177,7 @@ class PaymentsService {
         sortOrder: 'desc',
       });
       return { results: result.data, count: result.total };
-    } catch {
+    } catch (err) { /* silent */
       return { results: [], count: 0 };
     }
   }
@@ -199,7 +199,7 @@ class TreasuryReportsService {
         p_company_id: params?.company_id || (await supabase.rpc('get_user_company_id')).data,
       });
       return result || [];
-    } catch {
+    } catch (err) { /* silent */
       return [];
     }
   }
@@ -210,7 +210,7 @@ class TreasuryReportsService {
         p_company_id: (await supabase.rpc('get_user_company_id')).data,
       });
       return result || [];
-    } catch {
+    } catch (err) { /* silent */
       return [];
     }
   }

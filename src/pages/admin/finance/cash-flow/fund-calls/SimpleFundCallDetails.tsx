@@ -42,7 +42,6 @@ export const SimpleFundCallDetails: React.FC = () => {
           }
         }
       } catch (error) {
-        console.error("Error fetching fund call details:", error);
       }
       setLoading(false);
     };

@@ -4,7 +4,7 @@
  * Le prompt inclut les informations de la société, la devise, l'exercice,
  * les règles de réponse SYSCOHADA, et le contexte RAG de la knowledge base.
  */
-import { searchKnowledge } from '../prophet/knowledge/index';
+import { searchKnowledge, searchKnowledgeKeyword } from '../prophet/knowledge/index';
 import { continuousLearning } from '../prophet/learning/index';
 
 export interface ContextParams {
@@ -36,7 +36,7 @@ const DEFAULT_CONTEXT: ContextParams = {
 
 export class ContextBuilder {
 
-  build(params?: Partial<ContextParams>): string {
+  async build(params?: Partial<ContextParams>): Promise<string> {
     const ctx = { ...DEFAULT_CONTEXT, ...params };
 
     let prompt = `Tu es PROPH3T, expert-comptable et auditeur IA spécialisé SYSCOHADA révisé 2017.
@@ -79,7 +79,7 @@ Tu disposes de tools puissants — utilise-les systématiquement :
 
     // RAG: inject relevant knowledge chunks if user query is available
     if (ctx.userQuery) {
-      const chunks = searchKnowledge(ctx.userQuery, 5);
+      const chunks = await searchKnowledge(ctx.userQuery, 5);
       if (chunks.length > 0) {
         prompt += '\n\nCONTEXTE RÉGLEMENTAIRE (knowledge base)\n──────────────────────────────────────';
         for (const chunk of chunks) {

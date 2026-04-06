@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * GenerateurEtatsFinanciers — Bilan + CR + TAFIRE + Notes SYSCOHADA
  * Réf: SYSCOHADA art. 11, 28; AUDCIF art. 32-33
@@ -199,13 +200,13 @@ export const etatsFinanciersTools: Record<string, ToolDefinition> = {
       },
     },
     execute: async (args, adapter) => {
-      const { exercice, systeme, inclure } = args as any;
+      const { exercice, systeme, inclure } = args as Record<string, unknown>;
       const sys = systeme || 'normal';
       const inc = inclure || ['bilan', 'compte_resultat', 'tafire', 'notes'];
       const result: any = { exercice, systeme: sys };
 
       // Lire les données réelles via DataAdapter si disponible
-      let balance = args.balance as any[];
+      let balance = args.balance as Record<string, unknown>[];
       if ((!balance || balance.length === 0) && adapter) {
         const rows = await adapter.getTrialBalance({ start: `${exercice}-01-01`, end: `${exercice}-12-31` });
         balance = rows.map((r: any) => ({

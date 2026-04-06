@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * Service Dashboard Atlas F&A
  * Tableau de bord exécutif et KPIs consolidés

@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 import { useData } from '../../contexts/DataContext';
@@ -409,7 +410,6 @@ const AssetsMaintenance: React.FC = () => {
       setMaintenanceModal({ isOpen: false, mode: 'view' });
       resetForm();
     } catch (error) {
-      console.error('Error submitting maintenance:', error);
       toast.error('Erreur lors de l\'enregistrement');
     }
   };

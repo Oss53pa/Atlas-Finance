@@ -19,7 +19,19 @@ export default defineConfig({
       'frontend/**',
       '**/workspace/**',
       'src/components/layout/__tests__/**',
+      'e2e/**',
     ],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'lcov', 'html'],
+      include: ['src/**/*.ts', 'src/**/*.tsx', 'packages/**/*.ts'],
+      exclude: ['**/*.test.*', '**/__tests__/**', '**/test/**', 'src/data/**'],
+      thresholds: {
+        functions: 80,
+        branches: 75,
+        lines: 70,
+      },
+    },
   },
   root: process.cwd(),
   resolve: {

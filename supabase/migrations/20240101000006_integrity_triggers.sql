@@ -32,7 +32,7 @@ BEGIN
   FROM journal_lines
   WHERE entry_id = COALESCE(NEW.entry_id, OLD.entry_id);
 
-  IF v_diff > 0.01 THEN
+  IF v_diff > 0 THEN
     RAISE EXCEPTION 'Ecriture desequilibree (ecart: % FCFA). Total Debit doit = Total Credit.', v_diff;
   END IF;
   RETURN NULL;
@@ -260,7 +260,7 @@ BEGIN
   SELECT ABS(COALESCE(SUM(debit), 0) - COALESCE(SUM(credit), 0))
   INTO v_diff FROM journal_lines WHERE entry_id = p_entry_id;
 
-  IF v_diff > 0.01 THEN
+  IF v_diff > 0 THEN
     RAISE EXCEPTION 'Ecriture desequilibree (ecart: %)', v_diff;
   END IF;
 
@@ -316,7 +316,7 @@ BEGIN
   INTO v_total_debit, v_total_credit
   FROM journal_lines WHERE id = ANY(p_line_ids);
 
-  IF ABS(v_total_debit - v_total_credit) > 0.01 THEN
+  IF ABS(v_total_debit - v_total_credit) > 0 THEN
     RAISE EXCEPTION 'Lettrage desequilibre (Debit: % / Credit: %)', v_total_debit, v_total_credit;
   END IF;
 
@@ -347,3 +347,53 @@ CREATE INDEX IF NOT EXISTS idx_jl_account ON journal_lines(account_code);
 CREATE INDEX IF NOT EXISTS idx_je_status ON journal_entries(tenant_id, status);
 CREATE INDEX IF NOT EXISTS idx_je_date ON journal_entries(tenant_id, date);
 CREATE INDEX IF NOT EXISTS idx_je_journal ON journal_entries(tenant_id, journal);
+
+-- ============================================================
+-- 17. Trigger: SHA-256 hash chaining on audit_logs
+-- Ensures tamper-evident audit trail at the DB level.
+-- Requires pgcrypto extension for digest().
+-- ============================================================
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+CREATE OR REPLACE FUNCTION chain_audit_log()
+RETURNS TRIGGER AS $$
+DECLARE
+  v_previous_hash TEXT;
+  v_payload TEXT;
+BEGIN
+  -- Fetch the hash of the most recent audit entry for this tenant
+  SELECT hash INTO v_previous_hash
+  FROM audit_logs
+  WHERE tenant_id = NEW.tenant_id
+  ORDER BY timestamp DESC
+  LIMIT 1;
+
+  NEW.previous_hash := v_previous_hash;
+
+  -- Build the payload to hash: deterministic JSON of key fields
+  v_payload := json_build_object(
+    'id', NEW.id,
+    'tenant_id', NEW.tenant_id,
+    'action', NEW.action,
+    'entity_type', NEW.entity_type,
+    'entity_id', NEW.entity_id,
+    'user_id', NEW.user_id,
+    'timestamp', NEW.timestamp,
+    'details', COALESCE(NEW.details, '{}'),
+    'previous_hash', v_previous_hash
+  )::TEXT;
+
+  NEW.hash := encode(digest(v_payload, 'sha256'), 'hex');
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_chain_audit_log ON audit_logs;
+CREATE TRIGGER trg_chain_audit_log
+BEFORE INSERT ON audit_logs
+FOR EACH ROW EXECUTE FUNCTION chain_audit_log();
+
+-- Index for efficient last-hash lookups
+CREATE INDEX IF NOT EXISTS idx_audit_logs_tenant_timestamp
+  ON audit_logs(tenant_id, timestamp DESC);

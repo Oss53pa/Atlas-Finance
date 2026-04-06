@@ -14,6 +14,7 @@ import {
 import PrintableArea from '../ui/PrintableArea';
 import { usePrintReport } from '../../hooks/usePrint';
 import { formatCurrency } from '../../utils/formatters';
+import { money } from '../../utils/money';
 
 interface BalanceAccount {
   code: string;
@@ -93,8 +94,8 @@ const Balance: React.FC = () => {
             const code = String(line.accountCode || '');
             if (!code) continue;
             if (!stats[code]) stats[code] = { debit: 0, credit: 0 };
-            stats[code].debit += (line.debit || 0);
-            stats[code].credit += (line.credit || 0);
+            stats[code].debit = money(stats[code].debit).add(money(line.debit || 0)).toNumber();
+            stats[code].credit = money(stats[code].credit).add(money(line.credit || 0)).toNumber();
           }
         }
 
@@ -159,7 +160,7 @@ const Balance: React.FC = () => {
 
           // Add as level 3 if code >= 3 digits
           if (acc.code.length >= 3 && parent2) {
-            const soldeNet = acc.debit - acc.credit;
+            const soldeNet = money(acc.debit).subtract(money(acc.credit)).toNumber();
             const leaf: BalanceAccount = {
               code: acc.code,
               libelle: acc.name,
@@ -175,31 +176,31 @@ const Balance: React.FC = () => {
             parent2.children!.push(leaf);
 
             // Aggregate to parent
-            parent2.mouvementsDebit += acc.debit;
-            parent2.mouvementsCredit += acc.credit;
-            const p2Net = parent2.mouvementsDebit - parent2.mouvementsCredit;
+            parent2.mouvementsDebit = money(parent2.mouvementsDebit).add(money(acc.debit)).toNumber();
+            parent2.mouvementsCredit = money(parent2.mouvementsCredit).add(money(acc.credit)).toNumber();
+            const p2Net = money(parent2.mouvementsDebit).subtract(money(parent2.mouvementsCredit)).toNumber();
             parent2.soldeDebiteur = p2Net > 0 ? p2Net : 0;
             parent2.soldeCrediteur = p2Net < 0 ? Math.abs(p2Net) : 0;
           } else if (acc.code.length === 2 && parent2) {
             // 2-digit account: update its own name
             parent2.libelle = acc.name;
-            parent2.mouvementsDebit += acc.debit;
-            parent2.mouvementsCredit += acc.credit;
-            const p2Net = parent2.mouvementsDebit - parent2.mouvementsCredit;
+            parent2.mouvementsDebit = money(parent2.mouvementsDebit).add(money(acc.debit)).toNumber();
+            parent2.mouvementsCredit = money(parent2.mouvementsCredit).add(money(acc.credit)).toNumber();
+            const p2Net = money(parent2.mouvementsDebit).subtract(money(parent2.mouvementsCredit)).toNumber();
             parent2.soldeDebiteur = p2Net > 0 ? p2Net : 0;
             parent2.soldeCrediteur = p2Net < 0 ? Math.abs(p2Net) : 0;
           } else if (acc.code.length === 1) {
             // 1-digit only — aggregate directly
-            classeNode.mouvementsDebit += acc.debit;
-            classeNode.mouvementsCredit += acc.credit;
+            classeNode.mouvementsDebit = money(classeNode.mouvementsDebit).add(money(acc.debit)).toNumber();
+            classeNode.mouvementsCredit = money(classeNode.mouvementsCredit).add(money(acc.credit)).toNumber();
           }
         }
 
         // Aggregate class totals from children
         for (const cls of Object.values(classeMap)) {
-          cls.mouvementsDebit = (cls.children || []).reduce((s, c) => s + c.mouvementsDebit, 0);
-          cls.mouvementsCredit = (cls.children || []).reduce((s, c) => s + c.mouvementsCredit, 0);
-          const netCls = cls.mouvementsDebit - cls.mouvementsCredit;
+          cls.mouvementsDebit = (cls.children || []).reduce((s, c) => money(s).add(money(c.mouvementsDebit)).toNumber(), 0);
+          cls.mouvementsCredit = (cls.children || []).reduce((s, c) => money(s).add(money(c.mouvementsCredit)).toNumber(), 0);
+          const netCls = money(cls.mouvementsDebit).subtract(money(cls.mouvementsCredit)).toNumber();
           cls.soldeDebiteur = netCls > 0 ? netCls : 0;
           cls.soldeCrediteur = netCls < 0 ? Math.abs(netCls) : 0;
         }
@@ -210,7 +211,6 @@ const Balance: React.FC = () => {
         if (result.length > 0) result[0].isExpanded = true;
         setAccounts(result);
       } catch (err) {
-        console.error('Erreur chargement balance:', err);
       }
     };
     loadBalance();
@@ -436,12 +436,12 @@ const Balance: React.FC = () => {
 
     const addAccountTotals = (account: BalanceAccount) => {
       if (!account.children || account.children.length === 0) {
-        totals.soldeDebiteurAN += account.soldeDebiteurAN;
-        totals.soldeCrediteurAN += account.soldeCrediteurAN;
-        totals.mouvementsDebit += account.mouvementsDebit;
-        totals.mouvementsCredit += account.mouvementsCredit;
-        totals.soldeDebiteur += account.soldeDebiteur;
-        totals.soldeCrediteur += account.soldeCrediteur;
+        totals.soldeDebiteurAN = money(totals.soldeDebiteurAN).add(money(account.soldeDebiteurAN)).toNumber();
+        totals.soldeCrediteurAN = money(totals.soldeCrediteurAN).add(money(account.soldeCrediteurAN)).toNumber();
+        totals.mouvementsDebit = money(totals.mouvementsDebit).add(money(account.mouvementsDebit)).toNumber();
+        totals.mouvementsCredit = money(totals.mouvementsCredit).add(money(account.mouvementsCredit)).toNumber();
+        totals.soldeDebiteur = money(totals.soldeDebiteur).add(money(account.soldeDebiteur)).toNumber();
+        totals.soldeCrediteur = money(totals.soldeCrediteur).add(money(account.soldeCrediteur)).toNumber();
       } else {
         account.children.forEach(addAccountTotals);
       }

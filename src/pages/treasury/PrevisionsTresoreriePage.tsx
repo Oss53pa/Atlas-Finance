@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { toast } from 'sonner';
 import { useData } from '../../contexts/DataContext';
@@ -125,13 +125,12 @@ const PrevisionsTresoreriePage: React.FC = () => {
         adapter.getById('settings', 'treasury_forecasts'),
         adapter.getById('settings', 'treasury_plans'),
       ]);
-      setDbAccounts(accts as any[]);
-      setJournalEntries(entries as any[]);
+      setDbAccounts(accts as Record<string, unknown>[]);
+      setJournalEntries(entries as Record<string, unknown>[]);
       setTreasurySettingRaw(tSetting);
       setForecastSettingRaw(fSetting);
       setTreasuryPlansSetting(pSetting);
     } catch (err) {
-      console.error('[PrevisionsTresorerie] Erreur chargement données:', err);
     }
   }, [adapter]);
 
@@ -730,7 +729,7 @@ const PrevisionsTresoreriePage: React.FC = () => {
               <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Plans de Trésorerie</h3>
               <div className="flex items-center space-x-2">
                 <ExportMenu
-                  data={treasuryPlans as Record<string, unknown>[]}
+                  data={treasuryPlans as unknown as Record<string, unknown>[]}
                   filename="plans_tresorerie"
                   columns={exportColumns}
                 />

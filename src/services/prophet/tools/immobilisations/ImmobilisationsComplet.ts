@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * ImmobilisationsComplet — Composants, crédit-bail, subventions, cessions
  * Réf: SYSCOHADA art. 52, IFRS 16, OHADA
@@ -189,12 +190,12 @@ export const immobilisationsCompletTools: Record<string, ToolDefinition> = {
       },
     },
     execute: async (args, adapter) => {
-      const data = args as any;
+      const data = args as Record<string, any>;
 
       // Lire l'immobilisation réelle depuis la base si ID fourni
       if (adapter && data.immobilisation_id && (!data.valeur_brute || data.valeur_brute === 0)) {
         try {
-          const immo = await adapter.getById('assets', data.immobilisation_id) as any;
+          const immo = await adapter.getById<Record<string, unknown>>('assets', data.immobilisation_id as string);
           if (immo) {
             data.libelle = data.libelle || immo.name || immo.libelle;
             data.valeur_brute = data.valeur_brute || immo.acquisitionValue || immo.valeur_brute || 0;

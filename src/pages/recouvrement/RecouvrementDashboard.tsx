@@ -100,8 +100,8 @@ const RecouvrementDashboard: React.FC = () => {
       setLoading(true);
       try {
         const [thirdParties, entries] = await Promise.all([
-          adapter.getAll('thirdParties').catch(() => [] as any[]) as Promise<DBThirdParty[]>,
-          adapter.getAll('journalEntries').catch(() => [] as any[]) as Promise<DBJournalEntry[]>,
+          adapter.getAll<DBThirdParty>('thirdParties').catch(() => []),
+          adapter.getAll<DBJournalEntry>('journalEntries').catch(() => []),
         ]);
 
         const now = new Date();
@@ -218,7 +218,6 @@ const RecouvrementDashboard: React.FC = () => {
         // Radiations remain empty unless explicitly created by the user
         setRadiations([]);
       } catch (err) {
-        console.error('Erreur chargement recouvrement:', err);
       } finally {
         setLoading(false);
       }

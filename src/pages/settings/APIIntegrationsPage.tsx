@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -1311,7 +1312,6 @@ axios.get(\`\${apiUrl}/invoices\`, {
 .then(response => {
 })
 .catch(error => {
-  console.error('Error:', error);
 });` :
 showCodeExamples === 'Python' ? `import requests
 

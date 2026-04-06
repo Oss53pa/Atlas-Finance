@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * Atlas F&A Design System - Button Component
  * Fully accessible button with all states and responsive design

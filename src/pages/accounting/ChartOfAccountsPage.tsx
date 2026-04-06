@@ -92,7 +92,6 @@ const ChartOfAccountsPage: React.FC = () => {
         setDbAccounts(accounts);
         setDbEntries(entries);
       } catch (err) {
-        console.error('Erreur chargement plan comptable:', err);
       } finally {
         setIsLoading(false);
       }

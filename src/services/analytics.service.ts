@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * Service Analytics Atlas F&A
  * Comptabilité analytique multi-axes

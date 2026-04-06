@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * taxRegistrySeeds — Données de référence fiscales pour la Côte d'Ivoire (CI).
  * Contient les 15 taxes SYSCOHADA + barèmes IRPP progressifs.

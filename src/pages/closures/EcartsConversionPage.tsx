@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React, { useState, useEffect } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { useToast } from '../../hooks/useToast';
@@ -20,11 +20,11 @@ const EcartsConversionPage: React.FC = () => {
   const loadEcarts = async () => {
     setLoading(true);
     try {
-      const entries = await adapter.getAll('journalEntries') as any[];
+      const entries = await adapter.getAll('journalEntries') as Record<string, unknown>[];
       const ecartLines: any[] = [];
       for (const entry of entries) {
         if (entry.status !== 'validated' && entry.status !== 'posted') continue;
-        for (const line of (entry.lines || [])) {
+        for (const line of ((entry as any).lines || [])) {
           const code = line.accountCode || '';
           if (code.startsWith('476') || code.startsWith('477')) {
             ecartLines.push({
@@ -41,7 +41,7 @@ const EcartsConversionPage: React.FC = () => {
         }
       }
       setEcarts(ecartLines);
-    } catch { setEcarts([]); }
+    } catch (err) { /* silent */ setEcarts([]); }
     setLoading(false);
   };
 

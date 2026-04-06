@@ -25,7 +25,6 @@ const AssetsListPage: React.FC = () => {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch (error) {
-      console.error('Export error:', error);
     }
   };
 

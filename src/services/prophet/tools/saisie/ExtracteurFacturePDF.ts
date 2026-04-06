@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * ExtracteurFacturePDF — NLP extraction factures (texte brut → écriture SYSCOHADA)
  */
@@ -180,7 +180,7 @@ export const extracteurTools: Record<string, ToolDefinition> = {
       },
     },
     execute: async (args, _adapter) => {
-      const { texte, devise } = args as any;
+      const { texte, devise } = args as Record<string, any>;
       return JSON.stringify(extraireFacture(texte, devise));
     },
   },

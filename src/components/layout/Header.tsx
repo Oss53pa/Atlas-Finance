@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React, { useState } from 'react';
 import { Menu, Search, Bell, User, LogOut, AlertTriangle, Clock, AlertCircle, X, CheckCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
@@ -265,7 +265,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
           {/* User menu */}
           <div className="flex items-center space-x-2">
             <div className="hidden text-right sm:block">
-              <p className="text-sm font-medium text-[#f5f5f5]">{user?.firstName} {user?.lastName}</p>
+              <p className="text-sm font-medium text-[#f5f5f5]">{user?.first_name} {user?.last_name}</p>
               <p className="text-xs text-[#f5f5f5]/70">{user?.email}</p>
             </div>
 

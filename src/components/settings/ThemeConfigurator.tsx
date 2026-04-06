@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * Configurateur de Thèmes Clarity Atlas F&A
  * Interface de personnalisation des thèmes selon cahier des charges 6.1.2

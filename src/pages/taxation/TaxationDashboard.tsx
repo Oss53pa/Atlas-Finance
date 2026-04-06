@@ -34,9 +34,8 @@ const TaxationDashboard: React.FC = () => {
       setLoading(true);
       try {
         const je = await adapter.getAll('journalEntries');
-        setJournalEntries(je as any[]);
+        setJournalEntries(je as Record<string, unknown>[]);
       } catch (e) {
-        console.error('TaxationDashboard load error:', e);
       } finally {
         setLoading(false);
       }

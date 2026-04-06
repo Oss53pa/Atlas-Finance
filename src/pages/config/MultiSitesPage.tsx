@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React, { useState, useEffect } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { useToast } from '../../hooks/useToast';
@@ -30,11 +30,11 @@ const MultiSitesPage: React.FC = () => {
   const loadSites = async () => {
     setLoading(true);
     try {
-      const setting = await adapter.getById('settings', 'sites_list');
+      const setting = await adapter.getById('settings', 'sites_list') as any;
       if (setting?.value) {
         setSites(JSON.parse(setting.value).filter((s: Site) => s.actif !== false));
       }
-    } catch { setSites([]); }
+    } catch (err) { /* silent */ setSites([]); }
     setLoading(false);
   };
 

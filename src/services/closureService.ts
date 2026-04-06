@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * Service d'orchestration de clôture d'exercice.
  * Coordonne le flux complet: Verrouillage → Résultat → Affectation → Reports à Nouveau.
@@ -59,7 +60,21 @@ export type ClosureStep =
   | 'VERROUILLAGE'
   | 'CALCUL_RESULTAT'
   | 'REPORTS_A_NOUVEAU'
-  | 'FINALISATION';
+  | 'FINALISATION'
+  // SYSCOHADA 15-step keys (used by closureOrchestrator)
+  | 'CONTROLES_JOURNAUX'
+  | 'RAPPROCHEMENTS'
+  | 'LETTRAGE'
+  | 'INVENTAIRE_STOCKS'
+  | 'REGULARISATIONS'
+  | 'PROVISIONS_RISQUES'
+  | 'PROVISIONS_DEPRECIATION'
+  | 'IMPOT_SOCIETES'
+  | 'REGULARISATIONS_HAO'
+  | 'DETERMINATION_RESULTAT'
+  | 'ETATS_FINANCIERS'
+  | 'LIASSE_FISCALE'
+  | 'AFFECTATION_REPORT';
 
 export interface ClosureProgress {
   step: ClosureStep;
@@ -142,7 +157,7 @@ export async function previewClosure(adapter: DataAdapter, exerciceId: string): 
       openingExerciceId: exerciceId, // Just for preview, doesn't matter
       openingDate: '',
     });
-  } catch {
+  } catch (err) { /* silent */
     warnings.push('Impossible de pré-calculer les à-nouveaux');
   }
 
@@ -236,7 +251,7 @@ export async function executerCloture(
     try {
       // Charger les régularisations saisies pour cet exercice
       const allRegularisations = await adapter.getAll('regularisations');
-      const exerciceRegs = (allRegularisations as any[]).filter(
+      const exerciceRegs = (allRegularisations as Record<string, unknown>[]).filter(
         (r: any) => r.exerciceId === config.exerciceId && r.status !== 'comptabilisee'
       );
       if (exerciceRegs.length > 0) {
@@ -251,7 +266,6 @@ export async function executerCloture(
       }
     } catch (regError) {
       // Les régularisations sont optionnelles (dépendent des données saisies)
-      console.warn('[Clôture] Régularisations:', regError);
     }
 
     // 3. VERROUILLAGE — Lock all entries for the fiscal year

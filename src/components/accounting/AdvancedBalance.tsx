@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useData } from '../../contexts/DataContext';
@@ -17,6 +18,7 @@ import {
   ChevronDown, ChevronRight, Grid3X3, Columns, ZoomIn, Mail, FileSpreadsheet
 } from 'lucide-react';
 import { formatCurrency } from '@/utils/formatters';
+import { money } from '../../utils/money';
 import './AdvancedBalance.css';
 import Balance from './Balance';
 import PrintableArea from '../ui/PrintableArea';
@@ -111,8 +113,8 @@ const AdvancedBalance: React.FC = () => {
             name: line.accountName || accountNames.get(line.accountCode) || line.accountCode,
             centreCout: line.analyticalCode,
           };
-          existing.debit += line.debit;
-          existing.credit += line.credit;
+          existing.debit = money(existing.debit).add(money(line.debit)).toNumber();
+          existing.credit = money(existing.credit).add(money(line.credit)).toNumber();
           movements.set(line.accountCode, existing);
         }
       }
@@ -128,7 +130,7 @@ const AdvancedBalance: React.FC = () => {
       };
 
       return Array.from(movements.entries()).map(([code, mov]): BalanceData => {
-        const solde = mov.debit - mov.credit;
+        const solde = money(mov.debit).subtract(money(mov.credit)).toNumber();
         return {
           compte: code,
           libelle: mov.name,
@@ -159,15 +161,15 @@ const AdvancedBalance: React.FC = () => {
 
   // Calculs des indicateurs
   const indicators = useMemo(() => {
-    const totalDebit = balanceData.reduce((sum, item) => sum + item.debitSolde, 0);
-    const totalCredit = balanceData.reduce((sum, item) => sum + item.creditSolde, 0);
-    const equilibre = Math.abs(totalDebit - totalCredit);
-    const tauxEquilibre = totalCredit > 0 ? ((totalCredit - equilibre) / totalCredit) * 100 : 0;
-    
-    const actif = balanceData.filter(item => item.type === 'actif').reduce((sum, item) => sum + item.debitSolde - item.creditSolde, 0);
-    const passif = balanceData.filter(item => item.type === 'passif').reduce((sum, item) => sum + item.creditSolde - item.debitSolde, 0);
-    const charges = balanceData.filter(item => item.type === 'charges').reduce((sum, item) => sum + item.debitSolde, 0);
-    const produits = balanceData.filter(item => item.type === 'produits').reduce((sum, item) => sum + item.creditSolde, 0);
+    const totalDebit = balanceData.reduce((sum, item) => money(sum).add(money(item.debitSolde)).toNumber(), 0);
+    const totalCredit = balanceData.reduce((sum, item) => money(sum).add(money(item.creditSolde)).toNumber(), 0);
+    const equilibre = money(totalDebit).subtract(money(totalCredit)).abs().toNumber();
+    const tauxEquilibre = totalCredit > 0 ? money(totalCredit).subtract(money(equilibre)).divide(totalCredit).multiply(100).toNumber() : 0;
+
+    const actif = balanceData.filter(item => item.type === 'actif').reduce((sum, item) => money(sum).add(money(item.debitSolde)).subtract(money(item.creditSolde)).toNumber(), 0);
+    const passif = balanceData.filter(item => item.type === 'passif').reduce((sum, item) => money(sum).add(money(item.creditSolde)).subtract(money(item.debitSolde)).toNumber(), 0);
+    const charges = balanceData.filter(item => item.type === 'charges').reduce((sum, item) => money(sum).add(money(item.debitSolde)).toNumber(), 0);
+    const produits = balanceData.filter(item => item.type === 'produits').reduce((sum, item) => money(sum).add(money(item.creditSolde)).toNumber(), 0);
     
     return { totalDebit, totalCredit, equilibre, tauxEquilibre, actif, passif, charges, produits };
   }, [balanceData]);

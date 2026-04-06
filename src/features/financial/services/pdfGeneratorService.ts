@@ -188,7 +188,7 @@ function renderBilan(doc: jsPDF, data: any, startY: number): void {
   });
 
   // PASSIF table
-  const passifStartY = (doc as any).lastAutoTable.finalY + 10;
+  const passifStartY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10;
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(11);

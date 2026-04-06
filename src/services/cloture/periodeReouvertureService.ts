@@ -8,6 +8,20 @@
 import type { DataAdapter } from '@atlas/data';
 import { logAudit } from '../../lib/db';
 
+interface SettingRecord {
+  key: string;
+  value: string;
+  updatedAt?: string;
+}
+
+interface FiscalPeriodRecord {
+  id: string;
+  status: string;
+  startDate: string;
+  reopenedAt?: string;
+  reopenedBy?: string;
+}
+
 export interface DemandeReouverture {
   id: string;
   periodeId: string;
@@ -73,13 +87,13 @@ export async function validerReouverture(
   demandeKey: string,
   validateurId: string
 ): Promise<void> {
-  const setting = await adapter.getById('settings', demandeKey);
+  const setting = await adapter.getById<SettingRecord>('settings', demandeKey);
   if (!setting) {
     throw new Error('Demande de réouverture introuvable');
   }
 
   const demande: DemandeReouverture = JSON.parse(
-    (setting as any).value
+    setting.value
   );
 
   if (validateurId === demande.demandeurId) {
@@ -89,7 +103,7 @@ export async function validerReouverture(
   }
 
   // Retrieve the target period to get its startDate
-  const targetPeriod = await adapter.getById(
+  const targetPeriod = await adapter.getById<FiscalPeriodRecord>(
     'fiscalPeriods',
     demande.periodeId
   );
@@ -98,13 +112,13 @@ export async function validerReouverture(
   }
 
   // Find posterior closed periods and reopen them in cascade
-  const allPeriods = await adapter.getAll('fiscalPeriods');
-  const posteriorClosed = (allPeriods as any[])
+  const allPeriods = await adapter.getAll<FiscalPeriodRecord>('fiscalPeriods');
+  const posteriorClosed = allPeriods
     .filter(
       (p) =>
         p.status === 'closed' &&
         p.id !== demande.periodeId &&
-        p.startDate > (targetPeriod as any).startDate
+        p.startDate > targetPeriod.startDate
     )
     .sort((a, b) => b.startDate.localeCompare(a.startDate));
 
@@ -171,13 +185,13 @@ export async function rejeterReouverture(
   validateurId: string,
   motifRejet: string
 ): Promise<void> {
-  const setting = await adapter.getById('settings', demandeKey);
+  const setting = await adapter.getById<SettingRecord>('settings', demandeKey);
   if (!setting) {
     throw new Error('Demande de réouverture introuvable');
   }
 
   const demande: DemandeReouverture = JSON.parse(
-    (setting as any).value
+    setting.value
   );
 
   if (validateurId === demande.demandeurId) {
@@ -216,7 +230,7 @@ export async function getDemandesReouverture(
 ): Promise<DemandeReouverture[]> {
   const allSettings = await adapter.getAll('settings');
 
-  return (allSettings as any[])
+  return (allSettings as SettingRecord[])
     .filter((s) => s.key && s.key.startsWith('reouverture_'))
     .map((s) => JSON.parse(s.value) as DemandeReouverture);
 }

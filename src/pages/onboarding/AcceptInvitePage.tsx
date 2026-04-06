@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Calculator, CheckCircle, XCircle, Loader2 } from 'lucide-react';

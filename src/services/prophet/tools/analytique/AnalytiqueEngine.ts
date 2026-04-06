@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * AnalytiqueEngine — Comptabilité analytique SYSCOHADA (Classe 9)
  * 3 outils : creer_centre_cout, imputer_analytique, rapport_analytique
@@ -213,14 +214,14 @@ export const analytiqueTools: Record<string, ToolDefinition> = {
       },
     },
     execute: async (args, adapter) => {
-      let { montant, compte, libelle, sens, centres, donnees_prorata, piece } = args as any;
+      let { montant, compte, libelle, sens, centres, donnees_prorata, piece } = args as Record<string, unknown>;
 
       // Lire l'écriture depuis la base si pièce fournie
       if ((!montant || !compte) && adapter && piece) {
         try {
           const entries = await adapter.getJournalEntries({ where: { reference: piece }, limit: 1 });
           if (entries.length > 0) {
-            const entry = entries[0] as any;
+            const entry = entries[0];
             const firstLine = (entry.lines || [])[0];
             if (firstLine) {
               montant = montant || firstLine.debit || firstLine.credit || 0;
@@ -277,7 +278,7 @@ export const analytiqueTools: Record<string, ToolDefinition> = {
       },
     },
     execute: async (args, adapter) => {
-      let { periode, dimension, afficher, donnees, centres } = args as any;
+      let { periode, dimension, afficher, donnees, centres } = args as Record<string, unknown>;
 
       // Construire les données analytiques depuis la balance réelle si non fournies
       if ((!donnees || donnees.length === 0) && adapter && periode) {
@@ -299,7 +300,7 @@ export const analytiqueTools: Record<string, ToolDefinition> = {
 
       const alertes: string[] = [];
       for (const [centre, totaux] of Object.entries(rapport.totaux_par_centre)) {
-        const t = totaux as any;
+        const t = totaux as Record<string, number>;
         if (t.ecart > 0 && t.budget > 0) {
           const pct = (t.ecart / t.budget * 100).toFixed(1);
           if (Math.abs(t.ecart / t.budget) > 0.1) {

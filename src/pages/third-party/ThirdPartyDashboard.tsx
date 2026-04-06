@@ -43,10 +43,9 @@ const ThirdPartyDashboard: React.FC = () => {
           adapter.getAll('thirdParties'),
           adapter.getAll('journalEntries'),
         ]);
-        setThirdParties(tp as any[]);
-        setJournalEntries(je as any[]);
+        setThirdParties(tp as Record<string, unknown>[]);
+        setJournalEntries(je as Record<string, unknown>[]);
       } catch (e) {
-        console.error('ThirdPartyDashboard load error:', e);
       } finally {
         setLoading(false);
       }

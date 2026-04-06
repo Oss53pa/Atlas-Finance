@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useEffect, useRef } from 'react';
 import { formatDate } from '../../utils/formatters';
@@ -28,8 +29,8 @@ const CollaborationModule: React.FC = () => {
 
   // Data from DataContext
   const { adapter } = useData();
-  const [thirdParties, setThirdParties] = useState<any[]>([]);
-  const [settings, setSettings] = useState<any[]>([]);
+  const [thirdParties, setThirdParties] = useState<Record<string, unknown>[]>([]);
+  const [settings, setSettings] = useState<Record<string, unknown>[]>([]);
 
   useEffect(() => {
     const load = async () => {
@@ -37,8 +38,8 @@ const CollaborationModule: React.FC = () => {
         adapter.getAll('thirdParties'),
         adapter.getAll('settings'),
       ]);
-      setThirdParties(tps as any[]);
-      setSettings(stgs as any[]);
+      setThirdParties(tps as Record<string, unknown>[]);
+      setSettings(stgs as Record<string, unknown>[]);
     };
     load();
   }, [adapter]);
@@ -95,7 +96,7 @@ const CollaborationModule: React.FC = () => {
   // Analytics computed from real data
   const analyticsData = {
     statistiques: {
-      totalMessages: chats.reduce((s, c) => s + ((c as any).messages?.length || 0), 0),
+      totalMessages: chats.reduce((s, c) => s + ((c as unknown as { messages?: unknown[] }).messages?.length || 0), 0),
       messagesAujourdhui: 0,
       collaborationsActives: collaborations.filter((c: any) => c.status === 'active' || c.progress < 100).length,
       tauxReponse: 0

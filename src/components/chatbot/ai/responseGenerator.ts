@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * Advanced Response Generator - IA Dynamique et Adaptative
  * Génère des réponses intelligentes, contextuelles et personnalisées pour Proph3t

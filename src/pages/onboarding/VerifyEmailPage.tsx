@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Calculator, Mail, RefreshCw, CheckCircle } from 'lucide-react';
@@ -9,7 +9,7 @@ const VerifyEmailPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { isAuthenticated } = useAuth();
-  const email = (location.state as any)?.email || '';
+  const email = (location.state as { email?: string } | null)?.email || '';
   const [resending, setResending] = useState(false);
   const [resent, setResent] = useState(false);
 
@@ -39,7 +39,6 @@ const VerifyEmailPage: React.FC = () => {
       setResent(true);
       setTimeout(() => setResent(false), 5000);
     } catch (e) {
-      console.error('Resend failed:', e);
     } finally {
       setResending(false);
     }

@@ -126,7 +126,6 @@ const WorkspaceDashboard: React.FC = () => {
         pending_tasks: draftCount,
       });
     } catch (err: any) {
-      console.error('Erreur chargement workspace:', err);
       setError(err?.message || 'Erreur lors du chargement du workspace');
     } finally {
       setLoading(false);

@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from './database.types';
 
@@ -84,7 +84,7 @@ export async function getUserPermissions(): Promise<string[]> {
 
   if (error) return [];
 
-  const permissions = data?.role?.permissions?.map(
+  const permissions = (data as unknown as { role?: { permissions?: Array<Record<string, Record<string, string>>> } })?.role?.permissions?.map(
     (rp: Record<string, Record<string, string>>) => rp.permission?.code
   ).filter(Boolean) || [];
 

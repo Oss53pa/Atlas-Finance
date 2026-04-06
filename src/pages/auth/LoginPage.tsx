@@ -70,7 +70,6 @@ const LoginPage: React.FC = () => {
         navigate(getRoleRedirectPath(role), { replace: true });
       }, 500);
     } catch (error: unknown) {
-      console.error('[LoginPage] Erreur de connexion:', error);
       setErrors({
         password: error instanceof Error ? error.message : 'Email ou mot de passe incorrect. Veuillez réessayer.'
       });
@@ -114,7 +113,6 @@ const LoginPage: React.FC = () => {
         navigate(getRoleRedirectPath(role), { replace: true });
       }, 500);
     } catch (error: unknown) {
-      console.error('[LoginPage] Erreur de connexion:', error);
       setErrors({
         password: error instanceof Error ? error.message : 'Email ou mot de passe incorrect. Veuillez réessayer.'
       });

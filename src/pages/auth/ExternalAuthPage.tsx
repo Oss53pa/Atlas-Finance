@@ -64,7 +64,7 @@ const ExternalAuthPage: React.FC = () => {
         } else {
           localStorage.setItem('atlas_fna_plan_tier', 'pme');
         }
-      } catch {
+      } catch (err) { /* silent */
         localStorage.setItem('atlas_fna_plan_tier', 'pme');
       }
 
@@ -72,7 +72,6 @@ const ExternalAuthPage: React.FC = () => {
       navigate('/home', { replace: true });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erreur inconnue';
-      console.error('External auth error:', message);
       setStatus('error');
       setErrorMessage(message);
     }

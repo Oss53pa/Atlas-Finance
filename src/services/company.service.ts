@@ -32,7 +32,7 @@ export const companyService = {
   getCurrentCompany: async () => {
     const saved = localStorage.getItem('atlas_company_data');
     if (saved) {
-      try { return JSON.parse(saved); } catch { /* fallthrough */ }
+      try { return JSON.parse(saved); } catch (err) { /* silent */ /* fallthrough */ }
     }
     return { ...defaultCompany };
   },

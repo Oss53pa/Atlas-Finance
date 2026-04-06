@@ -31,10 +31,10 @@ const TiersDashboard: React.FC = () => {
 
   useEffect(() => {
     const load = async () => {
-      const tps = (await adapter.getAll('thirdParties')) as any[];
+      const tps = (await adapter.getAll('thirdParties')) as Record<string, unknown>[];
       const clients = tps.filter(tp => tp.type === 'client');
       const fournisseurs = tps.filter(tp => tp.type === 'supplier');
-      const entries = (await adapter.getAll('journalEntries')) as any[];
+      const entries = (await adapter.getAll('journalEntries')) as { lines: Array<{ accountCode: string; debit: number; credit: number; thirdPartyCode?: string }> }[];
       // Compute revenue from class 7
       let ca = 0, encours = 0;
       for (const e of entries) {

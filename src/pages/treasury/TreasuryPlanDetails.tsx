@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -53,7 +54,7 @@ const TreasuryPlanDetails: React.FC = () => {
     const loadPlanData = async () => {
       try {
         // Charger la position de trésorerie initiale depuis les écritures
-        const entries = await adapter.getAll('journalEntries') as any[];
+        const entries = await adapter.getAll('journalEntries') as Record<string, unknown>[];
         let treasuryBalance = 0;
         for (const e of entries) {
           if (new Date(e.date) <= new Date(dateDebut)) {
@@ -109,7 +110,6 @@ const TreasuryPlanDetails: React.FC = () => {
           },
         });
       } catch (err) {
-        console.error('Erreur chargement plan trésorerie:', err);
       }
     };
     loadPlanData();

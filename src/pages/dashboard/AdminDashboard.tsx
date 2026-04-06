@@ -59,7 +59,7 @@ const AdminDashboard: React.FC = () => {
         ip: 'local',
         type: l.action.includes('ERROR') ? 'warning' : 'success',
       })));
-    } catch {
+    } catch (err) { /* silent */
       // Fallback silently if DB not available
     }
   }, [adapter]);
@@ -101,7 +101,7 @@ const AdminDashboard: React.FC = () => {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-    } catch {
+    } catch (err) { /* silent */
       // Fallback
     }
     setIsBackingUp(false);

@@ -742,8 +742,8 @@ class SupplierService {
    */
   async downloadDocument(documentId: string): Promise<Blob> {
     const response = await apiService.get(`${BASE_PATH}/documents/${documentId}/download/`, {
-      responseType: 'blob'
-    } as any);
+      params: { responseType: 'blob' }
+    });
     return response.data as Blob;
   }
 
@@ -1229,7 +1229,7 @@ class SupplierService {
   }): Promise<void> {
     const response = await apiService.post(`${BASE_PATH}/suppliers/export/`, params, {
       responseType: 'blob'
-    } as any);
+    } as Record<string, unknown>);
 
     // Téléchargement automatique
     const url = window.URL.createObjectURL(new Blob([response.data as BlobPart]));
@@ -1837,7 +1837,7 @@ class SupplierService {
         metrics: params.metrics.join(',')
       },
       responseType: 'blob'
-    } as any);
+    } as Record<string, unknown>);
 
     // Téléchargement automatique
     const url = window.URL.createObjectURL(new Blob([response.data as BlobPart]));
@@ -1869,7 +1869,7 @@ class SupplierService {
         include_details: params.includeDetails
       },
       responseType: 'blob'
-    } as any);
+    } as Record<string, unknown>);
 
     // Téléchargement automatique
     const url = window.URL.createObjectURL(new Blob([response.data as BlobPart]));

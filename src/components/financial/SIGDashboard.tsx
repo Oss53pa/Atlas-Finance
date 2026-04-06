@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -222,7 +223,7 @@ const SIGDashboard: React.FC = () => {
         <div className="flex space-x-4">
           <select
             value={selectedView}
-            onChange={(e) => setSelectedView(e.target.value as any)}
+            onChange={(e) => setSelectedView(e.target.value as typeof selectedView)}
             className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500"
           >
             <option value="waterfall">Cascade SIG</option>

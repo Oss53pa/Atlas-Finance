@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * ContinuousLearningService — Apprentissage continu pour PROPH3T.
  *
@@ -522,7 +522,6 @@ ${corrections.map(c => `• [${c.category}] ${c.correctedContent.slice(0, 100)}`
         if (data.version === 1) return data;
       }
     } catch (e) {
-      console.warn('[PROPH3T Learning] Failed to load:', e);
     }
     return this.createEmptyStore();
   }
@@ -531,7 +530,6 @@ ${corrections.map(c => `• [${c.category}] ${c.correctedContent.slice(0, 100)}`
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(this.store));
     } catch (e) {
-      console.warn('[PROPH3T Learning] Failed to save:', e);
     }
   }
 

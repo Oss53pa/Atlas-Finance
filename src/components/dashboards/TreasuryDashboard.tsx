@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * Dashboard Trésorerie Temps Réel
  * Position multi-banques, appels de fonds et prévisions selon EXF-TR-003

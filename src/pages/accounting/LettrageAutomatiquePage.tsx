@@ -82,7 +82,7 @@ const LettrageAutomatiquePage: React.FC = () => {
   useEffect(() => {
     const load = async () => {
       const e = await adapter.getAll('journalEntries');
-      setAllEntries(e as any[]);
+      setAllEntries(e as Record<string, unknown>[]);
     };
     load();
   }, [adapter]);

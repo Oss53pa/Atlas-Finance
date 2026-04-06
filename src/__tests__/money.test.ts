@@ -148,3 +148,158 @@ describe('amountsEqual', () => {
     expect(amountsEqual(100, 100.02)).toBe(false);
   });
 });
+
+// ============================================================================
+// EDGE CASES — Overflow, Negative, Division by zero, Formatting, Chains
+// ============================================================================
+
+describe('Money edge cases — overflow', () => {
+  it('handles very large amounts (9_999_999_999_999)', () => {
+    const big = money(9_999_999_999_999);
+    expect(big.toNumber()).toBe(9_999_999_999_999);
+  });
+
+  it('adds two very large amounts without precision loss', () => {
+    const a = money(9_999_999_999_999);
+    const b = money(1);
+    expect(a.add(b).toNumber()).toBe(10_000_000_000_000);
+  });
+
+  it('subtracts very large amounts correctly', () => {
+    const a = money(9_999_999_999_999);
+    const b = money(9_999_999_999_998);
+    expect(a.subtract(b).toNumber()).toBe(1);
+  });
+
+  it('multiplies large amount by decimal', () => {
+    const big = money(9_999_999_999_999);
+    expect(big.multiply(0.01).round().toNumber()).toBe(99_999_999_999.99);
+  });
+
+  it('divides large amount', () => {
+    const big = money(9_999_999_999_999);
+    expect(big.divide(3).round().toNumber()).toBe(3_333_333_333_333);
+  });
+});
+
+describe('Money edge cases — negative amounts', () => {
+  it('creates a negative Money', () => {
+    const m = money(-100);
+    expect(m.toNumber()).toBe(-100);
+    expect(m.isNegative()).toBe(true);
+    expect(m.isPositive()).toBe(false);
+  });
+
+  it('adds negative + positive', () => {
+    expect(money(-50).add(30).toNumber()).toBe(-20);
+  });
+
+  it('adds negative + negative', () => {
+    expect(money(-50).add(-30).toNumber()).toBe(-80);
+  });
+
+  it('subtracts from negative', () => {
+    expect(money(-50).subtract(25).toNumber()).toBe(-75);
+  });
+
+  it('multiplies negative by positive', () => {
+    expect(money(-100).multiply(0.5).toNumber()).toBe(-50);
+  });
+
+  it('multiplies negative by negative', () => {
+    expect(money(-100).multiply(-1).toNumber()).toBe(100);
+  });
+
+  it('abs of negative', () => {
+    expect(money(-999.99).abs().toNumber()).toBe(999.99);
+  });
+
+  it('negative zero is still zero', () => {
+    expect(money(-0).isZero()).toBe(true);
+  });
+
+  it('negative cents conversion', () => {
+    expect(money(-12.34).toCents()).toBe(-1234);
+  });
+});
+
+describe('Money edge cases — division by zero', () => {
+  it('throws on division by zero (number)', () => {
+    expect(() => money(100).divide(0)).toThrow('Division par zéro');
+  });
+
+  it('throws on division by zero (string)', () => {
+    expect(() => money(100).divide('0')).toThrow('Division par zéro');
+  });
+
+  it('throws on division by zero (negative zero)', () => {
+    expect(() => money(100).divide(-0)).toThrow('Division par zéro');
+  });
+});
+
+describe('Money edge cases — currency formatting', () => {
+  it('toString formats with 2 decimal places', () => {
+    expect(money(1234567.1).toString()).toBe('1234567.10');
+  });
+
+  it('toString formats zero correctly', () => {
+    expect(money(0).toString()).toBe('0.00');
+  });
+
+  it('toString formats negative correctly', () => {
+    expect(money(-500.5).toString()).toBe('-500.50');
+  });
+
+  it('toString formats large amount', () => {
+    expect(money(1_000_000).toString()).toBe('1000000.00');
+  });
+});
+
+describe('Money edge cases — FCFA rounding (0 decimals)', () => {
+  it('rounds to 0 decimals for FCFA', () => {
+    expect(money(1234.56).round(0).toNumber()).toBe(1235);
+  });
+
+  it('rounds 0.5 up for FCFA (ROUND_HALF_UP)', () => {
+    expect(money(100.5).round(0).toNumber()).toBe(101);
+  });
+
+  it('rounds down correctly for FCFA', () => {
+    expect(money(100.4).round(0).toNumber()).toBe(100);
+  });
+
+  it('FCFA percentage calculation rounds to 0', () => {
+    // 18% TVA on 15_000 FCFA = 2700 (already whole)
+    expect(percentage(money(15_000), 18).round(0).toNumber()).toBe(2700);
+  });
+
+  it('FCFA percentage with rounding needed', () => {
+    // 18% of 1_111 = 199.98 -> round(0) = 200
+    expect(percentage(money(1_111), 18).round(0).toNumber()).toBe(200);
+  });
+});
+
+describe('Money edge cases — chain operations', () => {
+  it('chain: money(100).add(200).subtract(50).multiply(2) === 500', () => {
+    const result = money(100).add(200).subtract(50).multiply(2);
+    expect(result.toNumber()).toBe(500);
+  });
+
+  it('chain: complex operation with rounding', () => {
+    // (1000 + 500) * 0.18 / 3 = 1500 * 0.18 / 3 = 270 / 3 = 90
+    const result = money(1000).add(500).multiply(0.18).divide(3).round();
+    expect(result.toNumber()).toBe(90);
+  });
+
+  it('chain: subtract then check sign', () => {
+    const result = money(50).subtract(100);
+    expect(result.isNegative()).toBe(true);
+    expect(result.abs().toNumber()).toBe(50);
+  });
+
+  it('chain: sum then percentage', () => {
+    const total = Money.sum([money(100), money(200), money(300)]);
+    const tva = percentage(total, 19.25);
+    expect(tva.toNumber()).toBe(115.50);
+  });
+});

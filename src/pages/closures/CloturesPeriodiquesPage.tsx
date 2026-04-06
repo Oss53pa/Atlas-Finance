@@ -178,7 +178,7 @@ function CloturesPeriodiquesPage() {
           resultat: produits - charges,
         });
       }
-    } catch {
+    } catch (err) { /* silent */
       toast.error('Erreur chargement tableau de bord');
     } finally {
       setDashLoading(false);

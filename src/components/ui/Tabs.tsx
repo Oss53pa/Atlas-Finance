@@ -8,15 +8,19 @@ interface TabsContextType {
 const TabsContext = createContext<TabsContextType | undefined>(undefined);
 
 interface TabsProps {
-  value: string;
-  onValueChange: (value: string) => void;
+  value?: string;
+  defaultValue?: string;
+  onValueChange?: (value: string) => void;
   children: React.ReactNode;
   className?: string;
 }
 
-export const Tabs: React.FC<TabsProps> = ({ value, onValueChange, children, className = '' }) => {
+export const Tabs: React.FC<TabsProps> = ({ value, defaultValue, onValueChange, children, className = '' }) => {
+  const [internalValue, setInternalValue] = React.useState(defaultValue || value || '');
+  const activeValue = value || internalValue;
+  const handleChange = onValueChange || setInternalValue;
   return (
-    <TabsContext.Provider value={{ value, onValueChange }}>
+    <TabsContext.Provider value={{ value: activeValue, onValueChange: handleChange }}>
       <div className={className}>{children}</div>
     </TabsContext.Provider>
   );
@@ -33,7 +37,6 @@ export const TabsList: React.FC<{ children: React.ReactNode; className?: string 
 export const TabsTrigger: React.FC<{ value: string; children: React.ReactNode }> = ({ value, children }) => {
   const context = useContext(TabsContext);
   if (!context) {
-    console.warn('TabsTrigger must be used within Tabs');
     return <button className="px-4 py-2 text-sm font-medium">{children}</button>;
   }
   
@@ -56,7 +59,6 @@ export const TabsTrigger: React.FC<{ value: string; children: React.ReactNode }>
 export const TabsContent: React.FC<{ value: string; children: React.ReactNode; className?: string }> = ({ value, children, className = '' }) => {
   const context = useContext(TabsContext);
   if (!context) {
-    console.warn('TabsContent must be used within Tabs');
     return <div className={className}>{children}</div>;
   }
   

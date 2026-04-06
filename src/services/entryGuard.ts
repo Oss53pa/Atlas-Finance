@@ -66,7 +66,7 @@ export async function safeAddEntry(
     );
     if (duplicate) {
       throw new EntryGuardError([
-        `Doublon détecté : le numéro de pièce "${entry.entryNumber}" existe déjà (écriture ${(duplicate as any).id}).`,
+        `Doublon détecté : le numéro de pièce "${entry.entryNumber}" existe déjà (écriture ${(duplicate as unknown as { id: string }).id}).`,
       ]);
     }
   }

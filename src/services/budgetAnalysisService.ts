@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * Service d'analyse budgétaire — Budget vs Réalisé vs Écarts.
  * Connecte les budgetLines (Dexie) aux journalEntries pour calculer
@@ -80,7 +81,7 @@ async function loadSeuils(adapter: DataAdapter): Promise<typeof DEFAULT_SEUILS> 
         SOUS_CONSOMMATION: seuilsSetting.value.SOUS_CONSOMMATION ?? DEFAULT_SEUILS.SOUS_CONSOMMATION,
       };
     }
-  } catch {
+  } catch (err) { /* silent */
     // Settings table may not exist yet — use defaults
   }
   return DEFAULT_SEUILS;

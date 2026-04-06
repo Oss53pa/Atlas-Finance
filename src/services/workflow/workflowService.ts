@@ -352,7 +352,7 @@ export async function getWorkflowHistory(adapter: DataAdapter, entryId: string):
     try {
       const transition = JSON.parse(log.details) as WorkflowTransition;
       transitions.push(transition);
-    } catch {
+    } catch (err) { /* silent */
       // Ignorer les logs malformés
     }
   }

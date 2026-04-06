@@ -280,7 +280,7 @@ class GeneralLedgerService {
     if (!setting) return [];
     try {
       return JSON.parse(setting.value);
-    } catch {
+    } catch (err) { /* silent */
       return [];
     }
   }

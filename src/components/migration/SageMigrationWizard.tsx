@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * Assistant de Migration Sage vers Atlas F&A
  * Interface complète avec mapping intelligent et prévisualisation

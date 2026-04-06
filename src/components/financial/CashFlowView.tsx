@@ -120,7 +120,7 @@ const CashFlowView: React.FC = () => {
         }]);
         // Scénarios vides par défaut (l'utilisateur les créera)
         setScenarios([]);
-      } catch { /* empty */ }
+      } catch (err) { /* silent */ /* empty */ }
     };
     load();
   }, [adapter]);

@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * Audit index — Enregistre les 108 contrôles et expose runAudit / runAuditCycle.
  */

@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * Notes Annexes SYSCOHADA revise — 35 notes.
  * Aprimaryntation automatique depuis les donnees comptables.
@@ -90,7 +90,7 @@ const NOTES_DEFINITIONS: Array<{ numero: number; titre: string; auto: boolean }>
 // ============================================================================
 
 async function getEntriesForPeriod(adapter: DataAdapter, start: string, end: string): Promise<DBJournalEntry[]> {
-  const allEntries = await adapter.getAll('journalEntries');
+  const allEntries = await adapter.getAll('journalEntries') as unknown as DBJournalEntry[];
   return allEntries.filter(
     (e: any) => e.date >= start && e.date <= end &&
       (e.status === 'validated' || e.status === 'posted')
@@ -280,7 +280,7 @@ async function generateNote17(entries: DBJournalEntry[]): Promise<NoteAnnexe> {
  */
 export async function genererNotesAnnexes(adapter: DataAdapter, config: NotesAnnexesConfig): Promise<NotesAnnexesResult> {
   const entries = await getEntriesForPeriod(adapter, config.startDate, config.endDate);
-  const assets = await adapter.getAll('assets');
+  const assets = await adapter.getAll('assets') as unknown as DBAsset[];
 
   // P1-5: Charger les écritures N-1 pour comparaison
   let previousEntries: DBJournalEntry[] = [];
@@ -365,7 +365,7 @@ export async function genererNotesAnnexes(adapter: DataAdapter, config: NotesAnn
           note = { numero: def.numero, titre: def.titre, contenu: '', tableaux: [], calculsAuto: true, statut: 'vide' };
       }
       notes.push(note);
-    } catch {
+    } catch (err) { /* silent */
       notes.push({
         numero: def.numero,
         titre: def.titre,

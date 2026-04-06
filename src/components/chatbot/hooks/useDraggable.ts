@@ -35,9 +35,9 @@ export function useDraggable(options: UseDraggableOptions = {}) {
   const dragStartPos = useRef<Position>({ x: 0, y: 0 });
   const elementStartPos = useRef<Position>({ x: 0, y: 0 });
 
-  // Sauvegarder la position dans le localStorage
+  // Sauvegarder la position dans le sessionStorage
   useEffect(() => {
-    const savedPosition = localStorage.getItem('paloma-position');
+    const savedPosition = sessionStorage.getItem('paloma-position');
     if (savedPosition) {
       try {
         const parsed = JSON.parse(savedPosition);
@@ -49,7 +49,6 @@ export function useDraggable(options: UseDraggableOptions = {}) {
           setPosition({ x: 20, y: window.innerHeight - 120 });
         }
       } catch (e) {
-        console.error('Erreur lors de la lecture de la position sauvegardée:', e);
         // En cas d'erreur, utiliser la position par défaut (à gauche)
         setPosition({ x: 20, y: window.innerHeight - 120 });
       }
@@ -61,7 +60,7 @@ export function useDraggable(options: UseDraggableOptions = {}) {
 
   useEffect(() => {
     if (!isDragging) {
-      localStorage.setItem('paloma-position', JSON.stringify(position));
+      sessionStorage.setItem('paloma-position', JSON.stringify(position));
     }
   }, [position, isDragging]);
 
@@ -258,7 +257,7 @@ export function useDraggable(options: UseDraggableOptions = {}) {
     resetPosition: () => {
       const leftPosition = { x: 20, y: window.innerHeight - 120 };
       setPosition(leftPosition);
-      localStorage.setItem('paloma-position', JSON.stringify(leftPosition));
+      sessionStorage.setItem('paloma-position', JSON.stringify(leftPosition));
     },
   };
 }

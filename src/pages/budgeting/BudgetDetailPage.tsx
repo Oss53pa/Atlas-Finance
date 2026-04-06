@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
@@ -76,7 +76,6 @@ const BudgetDetailPage: React.FC = () => {
 
         setDetailData(result);
       } catch (err) {
-        console.error('Erreur chargement détail budget:', err);
       }
     };
     loadDetail();
@@ -120,7 +119,7 @@ const BudgetDetailPage: React.FC = () => {
           .map((a: any) => ({ code: a.code, name: a.name || a.code }))
           .sort((a: any, b: any) => a.code.localeCompare(b.code));
         setAvailableAccounts(budgetAccounts);
-      } catch {
+      } catch (err) { /* silent */
         setAvailableAccounts([]);
       }
     };
@@ -361,7 +360,7 @@ const BudgetDetailPage: React.FC = () => {
                   {expandedAccounts.includes(row.compte) && (
                     <>
                       {row.subItems.length > 0 ? (
-                        row.subItems.map((subItem, subIndex) => (
+                        row.subItems.map((subItem: any, subIndex: number) => (
                           <tr key={`${index}-${subIndex}`} className="bg-gray-50 hover:bg-gray-100">
                             <td className="p-3 sticky left-0 bg-gray-50">
                             </td>

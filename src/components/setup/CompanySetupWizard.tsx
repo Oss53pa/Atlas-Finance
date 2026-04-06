@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState, useRef } from 'react';
 import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -190,7 +191,7 @@ const CompanySetupWizard: React.FC = () => {
 
   const nextStep = async () => {
     const currentStepData = getCurrentStepData();
-    const isStepValid = await trigger(Object.keys(currentStepData) as any);
+    const isStepValid = await trigger(Object.keys(currentStepData) as (keyof typeof currentStepData)[]);
     
     if (isStepValid) {
       setCompletedSteps([...completedSteps, currentStep]);
@@ -1426,7 +1427,7 @@ const ImportDataStep: React.FC<{ control: any; errors: any; watchedValues: any }
                     </div>
                   </div>
 
-                  {(watchedValues as any)[importOption.key]?.importer && (
+                  {(watchedValues as Record<string, Record<string, unknown>>)[importOption.key]?.importer && (
                     <div className="space-y-3">
                       <div>
                         <label className="block text-xs font-medium text-gray-700 mb-1">

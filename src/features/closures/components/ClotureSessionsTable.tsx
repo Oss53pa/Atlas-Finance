@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React from 'react';
 import { useLanguage } from '../../../contexts/LanguageContext';
 import { DataTable, Column } from '@/shared/components/data-display/DataTable';
@@ -21,7 +21,7 @@ const getStatusBadge = (statut: string) => {
   > = {
     EN_COURS: {
       variant: 'warning',
-      label: t('status.inProgress'),
+      label: 'En cours',
       icon: <Clock className="w-3 h-3 mr-1" />,
     },
     VALIDEE: {

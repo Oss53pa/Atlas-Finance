@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React, { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
@@ -364,7 +364,7 @@ const CodificationTiersPage: React.FC = () => {
   };
 
   const handleEditRule = (ruleId: string) => {
-    toast.info(`Édition de la règle ${ruleId}`);
+    toast(`Édition de la règle ${ruleId}`);
   };
 
   const handleDeleteRule = (ruleId: string) => {

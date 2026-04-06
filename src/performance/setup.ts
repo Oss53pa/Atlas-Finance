@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * Performance Setup
  * Global performance optimization configuration
@@ -56,7 +57,6 @@ export function setupGlobalPerformance(config: Partial<PerformanceConfig> = {}) 
   // Initialize performance monitoring
   if (finalConfig.monitoring.enabled) {
     performanceMonitor.startMonitoring();
-    console.debug('Performance monitoring initialized');
   }
 
   // Initialize bundle analysis
@@ -64,13 +64,11 @@ export function setupGlobalPerformance(config: Partial<PerformanceConfig> = {}) 
     if (finalConfig.bundleAnalysis.trackChunkLoading) {
       bundleAnalyzer.trackChunkLoading();
     }
-    console.debug('Bundle analysis initialized');
   }
 
   // Initialize memory optimization
   if (finalConfig.memoryOptimization.enabled) {
     // Memory optimization is initialized automatically
-    console.debug('Memory optimization initialized');
   }
 
   // Setup Web Vitals reporting
@@ -121,7 +119,6 @@ function setupWebVitalsReporting(reportToAnalytics: boolean) {
   try {
     import('web-vitals').then(({ getCLS, getFID, getFCP, getLCP, getTTFB }) => {
       const reportMetric = (metric: WebVitalMetric) => {
-        console.debug('Web Vital:', metric);
 
         if (reportToAnalytics && window.gtag) {
           window.gtag('event', metric.name, {
@@ -140,7 +137,6 @@ function setupWebVitalsReporting(reportToAnalytics: boolean) {
       getTTFB(reportMetric);
     });
   } catch (error) {
-    console.warn('web-vitals library not available:', error);
   }
 }
 
@@ -175,7 +171,6 @@ function setupPerformanceBudget() {
     }
 
     if (violations.length > 0) {
-      console.warn('Performance budget violations:', violations);
     }
   }, 10000);
 }
@@ -186,7 +181,6 @@ function setupAutoCleanup(threshold: number) {
     const memoryMetrics = memoryOptimizer.getCurrentMemoryMetrics();
 
     if (memoryMetrics && memoryMetrics.usagePercentage > threshold) {
-      console.debug('Auto cleanup triggered:', memoryMetrics.usagePercentage);
       memoryOptimizer.optimizeMemoryUsage();
     }
   }, 30000); // Check every 30 seconds
@@ -211,11 +205,9 @@ function setupDevelopmentHelpers() {
       const end = performance.now();
       const renderTime = end - start;
       performanceMonitor.trackComponentRender(name, renderTime);
-      console.debug(`Component ${name} rendered in ${renderTime.toFixed(2)}ms`);
     },
   };
 
-  console.debug('Performance helpers available at window.__ATLAS FINANCE_PERFORMANCE__');
 
   // Setup React DevTools profiler integration
   if (window.__REACT_DEVTOOLS_GLOBAL_HOOK__) {
@@ -223,7 +215,6 @@ function setupDevelopmentHelpers() {
 
     devtools.onCommitFiberRoot = (id: number, root: unknown, priorityLevel: unknown) => {
       // Track React commits for performance analysis
-      console.debug('React commit:', { id, priorityLevel });
     };
   }
 
@@ -232,18 +223,12 @@ function setupDevelopmentHelpers() {
     const longTaskObserver = new PerformanceObserver((list) => {
       const entries = list.getEntries();
       entries.forEach((entry: PerformanceEntry) => {
-        console.warn('Long task detected:', {
-          duration: entry.duration,
-          startTime: entry.startTime,
-          name: entry.name,
-        });
       });
     });
 
     try {
       longTaskObserver.observe({ type: 'longtask', buffered: true });
     } catch (error) {
-      console.warn('Long task observer not supported:', error);
     }
   }
 }
@@ -311,7 +296,6 @@ export function usePerformanceTracking(componentName: string) {
   return {
     renderCount: renderCount.current,
     trackEvent: (eventName: string, duration: number) => {
-      console.debug(`${componentName} - ${eventName}: ${duration}ms`);
     },
   };
 }

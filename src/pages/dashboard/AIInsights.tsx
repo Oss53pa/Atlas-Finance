@@ -263,7 +263,6 @@ const AIInsights: React.FC = () => {
 
         setCorrelationData([]);
       } catch (err) {
-        console.error('Erreur analyse IA:', err);
       }
     };
     analyzeData();

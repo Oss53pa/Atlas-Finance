@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { formatCurrency } from '../../utils/formatters';
@@ -87,7 +88,7 @@ const BudgetsPage: React.FC = () => {
           })));
           return;
         }
-      } catch { /* API not available, try local */ }
+      } catch (err) { /* silent */ /* API not available, try local */ }
 
       try {
         // Fallback: load from Dexie settings
@@ -110,7 +111,7 @@ const BudgetsPage: React.FC = () => {
             return { id: code, libelle: acc?.name || code, code };
           }));
         }
-      } catch {
+      } catch (err) { /* silent */
         setCostCenters([]);
       }
     };
@@ -899,7 +900,6 @@ const BudgetsPage: React.FC = () => {
                         setCreateStep(1);
                         setNewBudget({ name: '', code: '', type: 'operational', status: 'draft', period: '', currency: 'XAF', description: '', responsible: '', costCenterAllocations: [] });
                       } catch (err) {
-                        console.error('Erreur création budget:', err);
                       }
                     }}
                     className="px-6 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/90 font-semibold">

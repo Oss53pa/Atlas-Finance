@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
@@ -67,7 +67,7 @@ const RatiosFinanciersPage: React.FC = () => {
   const loadRatios = async () => {
     try {
       const entries = await adapter.getAll('journalEntries');
-      const filtered = entries.filter(e => e.date >= dateRange.start && e.date <= dateRange.end);
+      const filtered = (entries as any[]).filter((e: any) => e.date >= dateRange.start && e.date <= dateRange.end);
 
       // Calculate account balances from entries
       const balances: Record<string, number> = {};
@@ -208,7 +208,6 @@ const RatiosFinanciersPage: React.FC = () => {
 
       setCategories(computedCategories);
     } catch (err) {
-      console.error('Erreur chargement ratios:', err);
     }
     setLoading(false);
   };

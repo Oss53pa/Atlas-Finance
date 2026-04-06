@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * Knowledge Base — SYSCOHADA révisé 2017
  * Plan comptable, principes, écritures types, états financiers

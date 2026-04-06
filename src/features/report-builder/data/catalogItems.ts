@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * Block Catalog — Available blocks for the Report Builder
  */
@@ -53,7 +53,7 @@ export const catalogItems: CatalogItem[] = [
       ],
       locked: false,
       style: { marginBottom: 12 },
-    } as Omit<KPIGridBlock, 'id'>,
+    } as unknown as Omit<KPIGridBlock, 'id'>,
   },
   {
     id: 'table-data',

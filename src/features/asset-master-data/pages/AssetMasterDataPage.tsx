@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { formatCurrency } from '@/utils/formatters';
 import React, { useState } from 'react';
 import { useLanguage } from '../../../contexts/LanguageContext';
@@ -48,7 +48,6 @@ const AssetMasterDataPage: React.FC = () => {
       const qrCode = await assetMasterService.generateQRCode(asset.asset_number);
       qrModal.open();
     } catch (error) {
-      console.error('Erreur génération QR:', error);
     }
   };
 
@@ -58,7 +57,6 @@ const AssetMasterDataPage: React.FC = () => {
       await assetMasterService.updateAsset(asset.id, editedAsset);
       setEditMode(false);
     } catch (error) {
-      console.error('Erreur sauvegarde:', error);
     }
   };
 

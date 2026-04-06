@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -6,6 +7,7 @@ import { useData } from '../../contexts/DataContext';
 import { autoLettrage, applyLettrage, applyManualLettrage, delettrage } from '../../services/lettrageService';
 import toast from 'react-hot-toast';
 import { formatCurrency } from '@/utils/formatters';
+import { money } from '../../utils/money';
 import PeriodSelectorModal from '../shared/PeriodSelectorModal';
 import {
   Search, Filter, Save, RefreshCw, CheckCircle, XCircle,
@@ -109,7 +111,7 @@ const Lettrage: React.FC = () => {
           if (!line.accountCode.startsWith('41') && !line.accountCode.startsWith('40')) continue;
 
           if (!soldesByCompte[line.accountCode]) soldesByCompte[line.accountCode] = 0;
-          soldesByCompte[line.accountCode] += line.debit - line.credit;
+          soldesByCompte[line.accountCode] = money(soldesByCompte[line.accountCode]).add(money(line.debit).subtract(money(line.credit))).toNumber();
 
           result.push({
             id: `${entry.id}-${line.id}`,
@@ -151,9 +153,9 @@ const Lettrage: React.FC = () => {
         };
       }
       acc[entry.compte].entries.push(entry);
-      acc[entry.compte].totalDebit += entry.debit;
-      acc[entry.compte].totalCredit += entry.credit;
-      acc[entry.compte].solde = acc[entry.compte].totalDebit - acc[entry.compte].totalCredit;
+      acc[entry.compte].totalDebit = money(acc[entry.compte].totalDebit).add(money(entry.debit)).toNumber();
+      acc[entry.compte].totalCredit = money(acc[entry.compte].totalCredit).add(money(entry.credit)).toNumber();
+      acc[entry.compte].solde = money(acc[entry.compte].totalDebit).subtract(money(acc[entry.compte].totalCredit)).toNumber();
       if (!entry.lettrage) acc[entry.compte].nonLettres++;
       return acc;
     }, {} as Record<string, any>);
@@ -273,9 +275,9 @@ const Lettrage: React.FC = () => {
   const canLettrage = useMemo(() => {
     if (selectedEntries.size < 2) return { valid: false, reason: 'Sélectionnez au moins 2 écritures' };
     const selectedEntriesData = lettrageEntries.filter(e => selectedEntries.has(e.id));
-    const totalDebit = selectedEntriesData.reduce((sum, e) => sum + e.debit, 0);
-    const totalCredit = selectedEntriesData.reduce((sum, e) => sum + e.credit, 0);
-    const difference = Math.abs(totalDebit - totalCredit);
+    const totalDebit = selectedEntriesData.reduce((sum, e) => money(sum).add(money(e.debit)).toNumber(), 0);
+    const totalCredit = selectedEntriesData.reduce((sum, e) => money(sum).add(money(e.credit)).toNumber(), 0);
+    const difference = money(totalDebit).subtract(money(totalCredit)).abs().toNumber();
 
     if (lettrageMode === 'complete') {
       if (difference > tolerance) {

@@ -174,7 +174,7 @@ export async function getCarryForwardDeficits(
       remainingAmount: new Decimal(d.remainingAmount),
       expiryYear: d.expiryYear,
     }));
-  } catch {
+  } catch (err) { /* silent */
     return [];
   }
 }

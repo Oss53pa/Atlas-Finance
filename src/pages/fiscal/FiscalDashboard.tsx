@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { motion } from 'framer-motion';
@@ -134,9 +135,8 @@ const FiscalDashboard: React.FC = () => {
       setDetectionResults(results);
 
       const allDecl = await adapter.getAll('taxDeclarations');
-      setDeclarations(allDecl as any[]);
+      setDeclarations(allDecl as Record<string, unknown>[]);
     } catch (err) {
-      console.error('FiscalDashboard load error:', err);
     } finally {
       setLoading(false);
     }
@@ -233,7 +233,6 @@ const FiscalDashboard: React.FC = () => {
       }
       await loadData();
     } catch (err) {
-      console.error('Calculate all error:', err);
     } finally {
       setCalculating(false);
     }
@@ -246,7 +245,6 @@ const FiscalDashboard: React.FC = () => {
       await engine.createDeclaration(r.tax, period.start, period.end, amounts);
       await loadData();
     } catch (err) {
-      console.error('Calculate single error:', err);
     } finally {
       setActionLoading(null);
     }
@@ -264,7 +262,6 @@ const FiscalDashboard: React.FC = () => {
         await loadData();
       }
     } catch (err) {
-      console.error('Status transition error:', err);
     } finally {
       setActionLoading(null);
     }

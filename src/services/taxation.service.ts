@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * SERVICE FRONTEND TAXATION - Atlas F&A
  *
@@ -10,7 +10,7 @@
  */
 
 // Re-export the real feature-level service (connected to DataAdapter)
-export { taxationService, TaxationService } from '../features/taxation/services/taxationService';
+export { taxationService } from '../features/taxation/services/taxationService';
 export type { TVADeclarationResult, ISDeclarationResult } from '../features/taxation/services/taxationService';
 
 // Re-export the fiscal engine

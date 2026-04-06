@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState, useEffect } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { useToast } from '../../hooks/useToast';
@@ -55,7 +56,7 @@ const EffetsCommercePage: React.FC = () => {
     try {
       const all = await adapter.getAll('effetsCommerce') as EffetCommerce[];
       setEffets(all.filter(e => e.type === activeTab));
-    } catch {
+    } catch (err) { /* silent */
       setEffets([]);
     }
     setLoading(false);

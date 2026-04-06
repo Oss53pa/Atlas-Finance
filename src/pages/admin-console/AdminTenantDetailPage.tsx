@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -277,9 +278,9 @@ const NotesTab: React.FC<{ tenantId: string }> = ({ tenantId }) => {
         <div className="bg-white rounded-xl border divide-y">
           {notes.map((n: any) => (
             <div key={n.id} className="p-4">
-              <div className="text-sm text-[#0f172a]">{(n.metadata as any)?.note}</div>
+              <div className="text-sm text-[#0f172a]">{(n.metadata as Record<string, unknown>)?.note as string}</div>
               <div className="text-xs text-gray-400 mt-2">
-                {(n.metadata as any)?.author || 'Admin'} — {new Date(n.created_at).toLocaleString('fr-FR')}
+                {(n.metadata as Record<string, unknown>)?.author as string || 'Admin'} — {new Date(n.created_at).toLocaleString('fr-FR')}
               </div>
             </div>
           ))}

@@ -1,4 +1,5 @@
-// @ts-nocheck
+import React from "react";
+
 /**
  * Bundle Analyzer
  * Analyzes and optimizes JavaScript bundle size and loading performance
@@ -83,7 +84,6 @@ export class BundleAnalyzer {
         buffered: true
       });
     } catch (error) {
-      console.warn('Resource timing observer not supported:', error);
     }
   }
 
@@ -293,7 +293,6 @@ export class BundleAnalyzer {
         if (result && typeof result.then === 'function') {
           result.then(() => {
             const loadTime = performance.now() - start;
-            console.debug(`Chunk loaded in ${loadTime.toFixed(2)}ms`);
           });
         }
 

@@ -33,16 +33,15 @@ const AnalyticsDashboard: React.FC = () => {
   const [period, setPeriod] = useState<'month' | 'quarter' | 'year'>('year');
   const [axeFilter, setAxeFilter] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
-  const [journalEntries, setJournalEntries] = useState<any[]>([]);
+  const [journalEntries, setJournalEntries] = useState<{ date: string; lines: Array<{ accountCode: string; debit: number; credit: number; thirdPartyCode?: string; thirdPartyId?: string }> }[]>([]);
 
   useEffect(() => {
     const load = async () => {
       setIsLoading(true);
       try {
         const je = await adapter.getAll('journalEntries');
-        setJournalEntries(je as any[]);
+        setJournalEntries(je as { date: string; lines: Array<{ accountCode: string; debit: number; credit: number; thirdPartyCode?: string; thirdPartyId?: string }> }[]);
       } catch (e) {
-        console.error('AnalyticsDashboard load error:', e);
       } finally {
         setIsLoading(false);
       }
@@ -101,9 +100,9 @@ const AnalyticsDashboard: React.FC = () => {
       evolution_rentabilite: 0,
       indice_productivite: chiffre_affaires > 0 && couts_directs > 0 ? +(chiffre_affaires / couts_directs).toFixed(2) : 0,
       taux_efficacite: 0,
-      top_centres: [] as any[],
-      repartition_couts: [] as any[],
-      dernieres_ventilations: [] as any[],
+      top_centres: [] as { label: string; value: number }[],
+      repartition_couts: [] as { label: string; value: number }[],
+      dernieres_ventilations: [] as { label: string; value: number }[],
       costCenterChart: costCenterChart.length > 0 ? costCenterChart : [{ label: '\u2014', value: 0, color: 'bg-neutral-300' }],
     };
   }, [journalEntries]);

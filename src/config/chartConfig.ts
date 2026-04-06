@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import { ChartOptions } from 'chart.js';
 
 // Configuration globale pour tous les graphiques

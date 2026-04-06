@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * auditTools — Tools d'audit et de lettrage connectés aux données réelles.
  * Inclut audit_complet et audit_cycle qui délèguent au module audit/.

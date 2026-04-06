@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * API Service - Atlas F&A
  * Unified service layer using Supabase client
@@ -277,27 +278,22 @@ export const apiService = {
 
   // Axios-style HTTP methods (compat shim for legacy services)
   async get<T = unknown>(url: string, config?: { params?: Record<string, unknown> }): Promise<{ data: T }> {
-    console.warn(`[apiService.get] Legacy call to ${url} — migrate to Supabase-native service`);
     return wrapResponse<T>({ results: [], count: 0 });
   },
 
   async post<T = unknown>(url: string, data?: unknown, config?: Record<string, unknown>): Promise<{ data: T }> {
-    console.warn(`[apiService.post] Legacy call to ${url} — migrate to Supabase-native service`);
     return wrapResponse<T>(data ?? {});
   },
 
   async put<T = unknown>(url: string, data?: unknown, config?: Record<string, unknown>): Promise<{ data: T }> {
-    console.warn(`[apiService.put] Legacy call to ${url} — migrate to Supabase-native service`);
     return wrapResponse<T>(data ?? {});
   },
 
   async patch<T = unknown>(url: string, data?: unknown, config?: Record<string, unknown>): Promise<{ data: T }> {
-    console.warn(`[apiService.patch] Legacy call to ${url} — migrate to Supabase-native service`);
     return wrapResponse<T>(data ?? {});
   },
 
   async delete<T = unknown>(url: string, config?: Record<string, unknown>): Promise<{ data: T }> {
-    console.warn(`[apiService.delete] Legacy call to ${url} — migrate to Supabase-native service`);
     return wrapResponse<T>(null);
   },
 };

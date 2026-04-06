@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * SERVICE API - DASHBOARD EXPORTS
  *
@@ -56,7 +57,6 @@ export const ExportService = {
       const response = await apiService.get<DashboardExport[]>('/api/dashboard/exports/', filters);
       return response || [];
     } catch (error) {
-      console.error('Erreur lors de la récupération des exports:', error);
       return [];
     }
   },
@@ -69,7 +69,6 @@ export const ExportService = {
       const response = await apiService.get<DashboardExport>(`/api/dashboard/exports/${id}/`);
       return response;
     } catch (error) {
-      console.error('Erreur lors de la récupération de l\'export:', error);
       return null;
     }
   },
@@ -109,7 +108,6 @@ export const ExportService = {
       link.click();
       document.body.removeChild(link);
     } catch (error) {
-      console.error('Erreur lors du téléchargement:', error);
       throw error;
     }
   },

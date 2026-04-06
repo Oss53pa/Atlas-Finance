@@ -131,8 +131,8 @@ const ModernSupplierDashboard: React.FC = () => {
       setError(null);
       try {
         const [thirdParties, entries] = await Promise.all([
-          adapter.getAll('thirdParties').catch(() => [] as any[]) as Promise<DBThirdParty[]>,
-          adapter.getAll('journalEntries').catch(() => [] as any[]) as Promise<DBJournalEntry[]>,
+          adapter.getAll<DBThirdParty>('thirdParties').catch(() => []),
+          adapter.getAll<DBJournalEntry>('journalEntries').catch(() => []),
         ]);
 
         // Filter suppliers (type = supplier or both)
@@ -278,7 +278,6 @@ const ModernSupplierDashboard: React.FC = () => {
           top_fournisseurs_encours: topEncours,
         });
       } catch (err) {
-        console.error('Erreur chargement fournisseurs:', err);
         setError('Erreur lors du chargement des données fournisseurs');
       } finally {
         setLoading(false);

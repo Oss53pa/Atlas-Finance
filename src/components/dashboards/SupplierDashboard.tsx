@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * Dashboard Comptabilité Fournisseur Avancé
  * Optimisation des paiements et gestion des dettes selon spécifications 3.0
@@ -116,13 +117,13 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
 
   const { data: paymentOptimization, isLoading: paymentLoading } = useQuery<any>({
     queryKey: ['payment-optimization', companyId, filters, dateRange],
-    queryFn: () => supplierService.getPaymentOptimization({ companyId, filters: filters as any }) as Promise<any>,
+    queryFn: () => supplierService.getPaymentOptimization({ companyId, filters: filters as Record<string, unknown> }) as Promise<unknown>,
     refetchInterval: autoRefresh ? 300000 : false,
   });
 
   const { data: supplierAnalytics, isLoading: analyticsLoading } = useQuery<any>({
     queryKey: ['supplier-analytics', companyId, filters, dateRange],
-    queryFn: () => supplierService.getAnalytics({ companyId, filters: filters as any }) as Promise<any>,
+    queryFn: () => supplierService.getAnalytics({ companyId, filters: filters as Record<string, unknown> }) as Promise<unknown>,
   });
 
   const { data: performanceData, isLoading: performanceLoading } = useQuery<any>({

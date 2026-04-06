@@ -773,7 +773,6 @@ const MIGRATION_KEY = 'atlas_idb_migration_v1';
 export async function migrateFromLocalStorage(): Promise<void> {
   if (localStorage.getItem(MIGRATION_KEY)) return;
 
-  console.info('[AtlasFnA] Checking for localStorage data to migrate...');
 
   const keysToCheck = Object.keys(localStorage).filter(k =>
     k.startsWith('wisebook_') || k.startsWith('wb_') || k.startsWith('atlas_')
@@ -802,14 +801,13 @@ export async function migrateFromLocalStorage(): Promise<void> {
           migrated += data.length;
         }
       }
-    } catch {
+    } catch (err) { /* silent */
       // Skip non-JSON or malformed keys
     }
   }
 
   localStorage.setItem(MIGRATION_KEY, new Date().toISOString());
   if (migrated > 0) {
-    console.info(`[AtlasFnA] Migrated ${migrated} records to IndexedDB.`);
   }
 }
 

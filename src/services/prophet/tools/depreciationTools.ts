@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * depreciationTools — Calcul et simulation d'amortissements SYSCOHADA.
  */

@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
@@ -195,7 +195,7 @@ const MultiSocietesPage: React.FC = () => {
   };
 
   const handleEditCompany = (companyId: string) => {
-    toast.info(`Édition de la société ${companyId}`);
+    toast(`Édition de la société ${companyId}`);
   };
 
   const handleDeleteCompany = (companyId: string) => {

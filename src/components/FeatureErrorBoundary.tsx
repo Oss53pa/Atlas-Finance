@@ -26,7 +26,6 @@ class FeatureErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error(`[${this.props.feature}] Error:`, error, errorInfo);
   }
 
   handleReset = () => {

@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * DataMigrationImport — Assistant de migration comptable en 7 etapes
  * Supports: Sage, Ciel/Saari, EBP, Cegid, Odoo, FEC, Excel, Autre
@@ -13,6 +14,7 @@ import * as XLSX from 'xlsx';
 import { useData } from '../../contexts/DataContext';
 import { toast } from 'sonner';
 import { logAudit } from '../../lib/db';
+import { money } from '../../utils/money';
 
 // ─── Types ───────────────────────────────────────────────
 
@@ -271,7 +273,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       const columns = data.length > 0 ? Object.keys(data[0] as object) : [];
       setUploadedFiles(prev => ({ ...prev, [key]: { file, data, columns } }));
       toast.success(`${file.name} charge — ${data.length} lignes detectees`);
-    } catch {
+    } catch (err) { /* silent */
       toast.error(`Erreur de lecture du fichier ${file.name}`);
     }
   }, []);
@@ -321,21 +323,21 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
     let totalD = 0, totalC = 0;
     ecrituresData.forEach((row: any) => {
       const vals = Object.values(row).map(v => parseNumber(v));
-      totalD += vals[vals.length - 2] || 0;
-      totalC += vals[vals.length - 1] || 0;
+      totalD = money(totalD).add(money(vals[vals.length - 2] || 0)).toNumber();
+      totalC = money(totalC).add(money(vals[vals.length - 1] || 0)).toNumber();
     });
-    if (ecrituresData.length > 0 && Math.abs(totalD - totalC) > 0.01) {
-      warnings.push({ code: 'UNBALANCED', message: `Ecritures desequilibrees: D=${totalD.toFixed(2)} C=${totalC.toFixed(2)}`, details: `Ecart: ${Math.abs(totalD - totalC).toFixed(2)}` });
+    if (ecrituresData.length > 0 && money(totalD).subtract(money(totalC)).abs().toNumber() > 0.01) {
+      warnings.push({ code: 'UNBALANCED', message: `Ecritures desequilibrees: D=${totalD.toFixed(2)} C=${totalC.toFixed(2)}`, details: `Ecart: ${money(totalD).subtract(money(totalC)).abs().toNumber().toFixed(2)}` });
     }
 
     // AN balance check
     let anD = 0, anC = 0;
     anData.forEach((row: any) => {
       const vals = Object.values(row).map(v => parseNumber(v));
-      anD += vals[vals.length - 2] || 0;
-      anC += vals[vals.length - 1] || 0;
+      anD = money(anD).add(money(vals[vals.length - 2] || 0)).toNumber();
+      anC = money(anC).add(money(vals[vals.length - 1] || 0)).toNumber();
     });
-    if (anData.length > 0 && Math.abs(anD - anC) > 0.01) {
+    if (anData.length > 0 && money(anD).subtract(money(anC)).abs().toNumber() > 0.01) {
       errors.push({ code: 'AN_UNBALANCED', message: `Reports AN desequilibres: D=${anD.toFixed(2)} C=${anC.toFixed(2)}` });
     }
 
@@ -393,8 +395,8 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
 
     [...ecr, ...an].forEach((row: any) => {
       const vals = Object.values(row).map(v => parseNumber(v));
-      totalDebit += vals[vals.length - 2] || 0;
-      totalCredit += vals[vals.length - 1] || 0;
+      totalDebit = money(totalDebit).add(money(vals[vals.length - 2] || 0)).toNumber();
+      totalCredit = money(totalCredit).add(money(vals[vals.length - 1] || 0)).toNumber();
     });
 
     // Approximate actif/passif from accounts
@@ -404,15 +406,15 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       const num = String(vals[0] || '');
       const d = parseNumber(vals[vals.length - 2]);
       const c = parseNumber(vals[vals.length - 1]);
-      const solde = d - c;
-      if (['2', '3', '4', '5'].includes(num[0]) && solde > 0) totalActif += solde;
-      else if (['1', '4', '5'].includes(num[0]) && solde < 0) totalPassif += Math.abs(solde);
+      const solde = money(d).subtract(money(c)).toNumber();
+      if (['2', '3', '4', '5'].includes(num[0]) && solde > 0) totalActif = money(totalActif).add(money(solde)).toNumber();
+      else if (['1', '4', '5'].includes(num[0]) && solde < 0) totalPassif = money(totalPassif).add(money(solde).abs()).toNumber();
     });
 
     let assetVNC = 0;
     assets.forEach((row: any) => {
       const vals = Object.values(row).map(v => parseNumber(v));
-      assetVNC += vals[vals.length - 1] || 0;
+      assetVNC = money(assetVNC).add(money(vals[vals.length - 1] || 0)).toNumber();
     });
 
     const totalRecords = (uploadedFiles.planComptable?.data.length || 0) +
@@ -420,7 +422,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
 
     setSimulation({
       totalDebit, totalCredit,
-      balanced: Math.abs(totalDebit - totalCredit) < 0.01,
+      balanced: money(totalDebit).subtract(money(totalCredit)).abs().toNumber() < 0.01,
       totalActif, totalPassif, assetVNC,
       estimatedTime: Math.max(5, Math.ceil(totalRecords / 200)),
       counts: {
@@ -462,7 +464,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
           type: 'general',
           importSessionId: sessionId,
           createdAt: new Date().toISOString(),
-        } as any);
+        } as Record<string, unknown>);
         report.accounts++;
         setImportProgress(Math.round((i / pcData.length) * 15));
       }
@@ -483,7 +485,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
           type: String(row[typeCol || ''] || 'client'),
           importSessionId: sessionId,
           createdAt: new Date().toISOString(),
-        } as any);
+        } as Record<string, unknown>);
         report.tiers++;
         setImportProgress(15 + Math.round((i / tiersData.length) * 15));
       }
@@ -509,7 +511,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
           duree: parseNumber(getVal('duree')),
           importSessionId: sessionId,
           createdAt: new Date().toISOString(),
-        } as any);
+        } as Record<string, unknown>);
         report.assets++;
         setImportProgress(30 + Math.round((i / assetData.length) * 15));
       }
@@ -551,10 +553,10 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
             status: params.entryStatus === 'validated' ? 'validated' : 'draft',
             lines: entryLines,
             importSessionId: sessionId,
-          } as any);
+          } as unknown as Omit<import('@atlas/shared').JournalEntry, 'id' | 'createdAt'>);
           report.entries++;
           report.lines += lines.length;
-        } catch {
+        } catch (err) { /* silent */
           report.warnings.push(`Ecriture ${piece} ignoree (desequilibree ou erreur)`);
         }
         ecrIdx++;
@@ -566,16 +568,16 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       if (anData.length > 0) {
         setImportLabel('Import des reports a nouveau...');
         const anMapping = mappings.reportAN || [];
-        const anLines = anData.map((row: any) => {
+        const anLines = anData.map((row: Record<string, unknown>) => {
           const numCol = anMapping.find(m => m.target === 'numeroCompte')?.source;
           const libCol = anMapping.find(m => m.target === 'libelle')?.source;
           const dCol = anMapping.find(m => m.target === 'debit')?.source;
           const cCol = anMapping.find(m => m.target === 'credit')?.source;
           return {
-            accountNumber: String(numCol ? (row as any)[numCol] : ''),
-            label: String(libCol ? (row as any)[libCol] : 'Report AN'),
-            debit: parseNumber(dCol ? (row as any)[dCol] : 0),
-            credit: parseNumber(cCol ? (row as any)[cCol] : 0),
+            accountNumber: String(numCol ? row[numCol] : ''),
+            label: String(libCol ? row[libCol] : 'Report AN'),
+            debit: parseNumber(dCol ? row[dCol] : 0),
+            credit: parseNumber(cCol ? row[cCol] : 0),
           };
         }).filter(l => l.debit > 0 || l.credit > 0);
 
@@ -588,11 +590,11 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
               status: 'validated',
               lines: anLines,
               importSessionId: sessionId,
-            } as any);
+            } as unknown as Omit<import('@atlas/shared').JournalEntry, 'id' | 'createdAt'>);
             report.entries++;
             report.lines += anLines.length;
             journals.add('AN');
-          } catch {
+          } catch (err) { /* silent */
             report.warnings.push('Report AN ignore (desequilibre)');
           }
         }
@@ -603,7 +605,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       setImportLabel('Controles post-import...');
       report.journals = journals.size;
       report.balanceOk = simulation?.balanced ?? true;
-      report.bilanOk = simulation ? Math.abs(simulation.totalActif - simulation.totalPassif) < 1 : true;
+      report.bilanOk = simulation ? money(simulation.totalActif).subtract(money(simulation.totalPassif)).abs().toNumber() < 1 : true;
       report.tiersOk = report.tiers > 0 || tiersData.length === 0;
       report.vncOk = true;
       setImportProgress(100);

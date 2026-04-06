@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
@@ -94,7 +94,7 @@ const CalculsAutomatiquesPage: React.FC = () => {
       ]);
       setTaxCalcsSetting(tc);
       setTaxRulesSetting(tr);
-      setDbJournalEntries(je as any[]);
+      setDbJournalEntries(je as Record<string, unknown>[]);
     };
     load();
   }, [adapter]);
@@ -107,7 +107,7 @@ const CalculsAutomatiquesPage: React.FC = () => {
         const parsed = JSON.parse(taxCalcsSetting.value);
         if (Array.isArray(parsed)) return parsed;
       }
-    } catch { /* ignore */ }
+    } catch (err) { /* silent */ /* ignore */ }
 
     // Derive basic tax calculations from journal entries for the selected period
     if (dbJournalEntries.length === 0) return [];
@@ -167,7 +167,7 @@ const CalculsAutomatiquesPage: React.FC = () => {
         const parsed = JSON.parse(taxRulesSetting.value);
         if (Array.isArray(parsed)) return parsed;
       }
-    } catch { /* ignore */ }
+    } catch (err) { /* silent */ /* ignore */ }
     return [];
   }, [taxRulesSetting]);
 

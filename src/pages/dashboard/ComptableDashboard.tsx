@@ -57,7 +57,7 @@ const ComptableDashboard: React.FC = () => {
   useEffect(() => {
     const load = async () => {
       const today = new Date().toISOString().split('T')[0];
-      const allEntries = await adapter.getAll('journalEntries') as any[];
+      const allEntries = await adapter.getAll('journalEntries') as { date: string; status: string; lines: Array<{ accountCode: string; debit: number; credit: number }> }[];
       const todayEntries = allEntries.filter((e: any) => e.date === today);
       const pendingEntries = allEntries.filter((e: any) => e.status === 'draft' || e.status === 'pending');
       const validatedEntries = allEntries.filter((e: any) => e.status === 'posted');

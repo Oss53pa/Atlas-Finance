@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * Service de regularisations comptables CCA/FNP/FAE/PCA.
  * Conforme SYSCOHADA revise — comptes 408, 418, 476/486, 477/487.
@@ -6,7 +7,7 @@
 import type { DataAdapter } from '@atlas/data';
 import { Money, money } from '../../utils/money';
 import { logAudit } from '../../lib/db';
-import type { DBJournalLine } from '../../lib/db';
+import type { DBJournalEntry, DBJournalLine } from '../../lib/db';
 import { safeBulkAddEntries } from '../entryGuard';
 
 // ============================================================================

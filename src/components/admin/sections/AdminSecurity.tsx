@@ -55,8 +55,8 @@ const AdminSecurity: React.FC<Props> = ({ subTab, setSubTab }) => {
       } else {
         await adapter.create('settings', data);
       }
-    } catch {
-      try { await adapter.create('settings', data); } catch {}
+    } catch (err) { /* silent */
+      try { await adapter.create('settings', data); } catch (err) { /* silent */}
     }
   }, [adapter]);
 
@@ -139,11 +139,10 @@ const AdminSecurity: React.FC<Props> = ({ subTab, setSubTab }) => {
               details,
             };
           }));
-        } catch {
+        } catch (err) { /* silent */
           // auditTrail may not be available
         }
       } catch (err) {
-        console.error('Error loading security settings:', err);
       } finally {
         setLoading(false);
       }

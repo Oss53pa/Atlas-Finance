@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
@@ -20,6 +21,9 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useBadgeCounts } from '../../hooks/useBadgeCounts';
 import { useInvalidateOnEntryChange } from '../../hooks/useInvalidateOnEntryChange';
+import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
+import { MobileConsultationBanner } from './MobileConsultationBanner';
+import KeyboardShortcutsHelp from './KeyboardShortcutsHelp';
 import ModernButton from '../ui/ModernButton';
 import LanguageSelector from '../ui/LanguageSelector';
 
@@ -50,6 +54,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
   const { user } = useAuth();
   const badgeCounts = useBadgeCounts();
   useInvalidateOnEntryChange();
+  useKeyboardShortcuts();
 
   const [primaryCollapsed, setPrimaryCollapsed] = useState(false);
   const [secondaryCollapsed, setSecondaryCollapsed] = useState(false);
@@ -336,6 +341,8 @@ const ModernDoubleSidebarLayout: React.FC = () => {
       >
         Aller au contenu principal
       </a>
+      <MobileConsultationBanner />
+      <KeyboardShortcutsHelp />
 
       {/* Primary Sidebar */}
       <aside
@@ -676,6 +683,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 bg-[var(--color-surface-hover)] border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary-light)]"
+                data-search-input
                 aria-label="Recherche globale"
               />
             </div>

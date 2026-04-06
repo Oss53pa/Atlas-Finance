@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * Template Library — Pre-built report templates
  * CDC Section 6.4 — Onglet Modèles
@@ -48,7 +48,7 @@ const templates: ReportTemplate[] = [
         { label: 'Résultat Net', value: null, format: 'currency', showTrend: true, showSparkline: false, size: 'medium', locked: false, style: {}, source: 'kpi.resultat_net' },
         { label: 'EBITDA', value: null, format: 'currency', showTrend: true, showSparkline: false, size: 'medium', locked: false, style: {}, source: 'kpi.ebitda' },
         { label: 'Trésorerie Nette', value: null, format: 'currency', showTrend: true, showSparkline: false, size: 'medium', locked: false, style: {}, source: 'kpi.tresorerie_nette' },
-      ] } as KPIGridBlock,
+      ] } as unknown as KPIGridBlock,
       { id: uid(), type: 'text', locked: false, style: { marginBottom: 8 }, content: '', variant: 'paragraph', alignment: 'left' } as TextBlock,
       { id: uid(), type: 'separator', locked: false, style: { marginBottom: 12 }, lineStyle: 'solid', thickness: 1 } as SeparatorBlock,
       { id: uid(), type: 'text', locked: false, style: { marginBottom: 12 }, content: 'Compte de Résultat', variant: 'h1', alignment: 'left' } as TextBlock,
@@ -75,7 +75,7 @@ const templates: ReportTemplate[] = [
         { label: 'CA', value: null, format: 'currency', showTrend: true, showSparkline: false, size: 'large', locked: false, style: {} },
         { label: 'Marge Nette', value: null, format: 'percent', showTrend: true, showSparkline: false, size: 'large', locked: false, style: {} },
         { label: 'Trésorerie', value: null, format: 'currency', showTrend: true, showSparkline: false, size: 'large', locked: false, style: {} },
-      ] } as KPIGridBlock,
+      ] } as unknown as KPIGridBlock,
     ],
   },
   {
@@ -106,7 +106,7 @@ const templates: ReportTemplate[] = [
         { label: 'Trésorerie Nette', value: null, format: 'currency', showTrend: true, showSparkline: false, size: 'large', locked: false, style: {}, source: 'kpi.tresorerie_nette' },
         { label: 'BFR', value: null, format: 'currency', showTrend: true, showSparkline: false, size: 'large', locked: false, style: {}, source: 'kpi.bfr' },
         { label: 'DSO', value: null, format: 'days', showTrend: true, showSparkline: false, size: 'large', locked: false, style: {}, source: 'kpi.dso' },
-      ] } as KPIGridBlock,
+      ] } as unknown as KPIGridBlock,
     ],
   },
   {

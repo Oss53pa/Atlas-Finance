@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState, useMemo, useCallback } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { toast } from 'react-hot-toast';
@@ -391,8 +392,8 @@ const FiscalCalendar: React.FC<FiscalCalendarProps> = ({ triggeredTaxes, dbDecla
                   onClick={async () => {
                     try {
                       // Find matching declaration to update
-                      const allDecl = await adapter.getAll('taxDeclarations');
-                      const match = (allDecl as any[]).find(d =>
+                      const allDecl = await adapter.getAll<DBTaxDeclaration>('taxDeclarations');
+                      const match = allDecl.find(d =>
                         d.taxCode === editDl.name &&
                         d.declarationDeadline?.includes(`${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(editDl.day).padStart(2, '0')}`)
                       );
@@ -432,7 +433,6 @@ const FiscalCalendar: React.FC<FiscalCalendarProps> = ({ triggeredTaxes, dbDecla
                       setEditDl(null);
                       queryClient.invalidateQueries({ queryKey: ['tax-reporting'] });
                     } catch (err) {
-                      console.error('[FiscalCalendar] update failed:', err);
                       toast.error('Erreur lors de la mise à jour');
                     }
                   }}
@@ -527,7 +527,6 @@ const FiscalCalendar: React.FC<FiscalCalendarProps> = ({ triggeredTaxes, dbDecla
                       setForm({ taxCode: '', taxName: '', deadline: '', periodicite: 'MONTHLY', montant: '', category: 'INDIRECT' });
                       queryClient.invalidateQueries({ queryKey: ['tax-reporting'] });
                     } catch (err) {
-                      console.error('[FiscalCalendar] save failed:', err);
                       toast.error('Erreur lors de la programmation');
                     }
                   }}
@@ -583,8 +582,8 @@ const FiscalCalendarWithViews: React.FC<FiscalCalendarProps> = (props) => {
   const handleSaveEdit = async () => {
     if (!editItem) return;
     try {
-      const allDecl = await adapter.getAll('taxDeclarations');
-      const match = (allDecl as any[]).find(d => d.taxCode === editItem.name && d.declarationDeadline === editItem.deadline);
+      const allDecl = await adapter.getAll<DBTaxDeclaration>('taxDeclarations');
+      const match = allDecl.find(d => d.taxCode === editItem.name && d.declarationDeadline === editItem.deadline);
 
       const payload = {
         status: editForm.status,
@@ -614,7 +613,6 @@ const FiscalCalendarWithViews: React.FC<FiscalCalendarProps> = (props) => {
       setEditItem(null);
       queryClient.invalidateQueries({ queryKey: ['tax-reporting'] });
     } catch (err) {
-      console.error('[FiscalCalendar] update failed:', err);
       toast.error('Erreur lors de la mise à jour');
     }
   };
@@ -924,7 +922,7 @@ const TaxReportingPage: React.FC = () => {
   // Journal entries (for manual fallback computation)
   const { data: allEntries = [] } = useQuery({
     queryKey: ['tax-reporting-entries'],
-    queryFn: () => adapter.getAll('journalEntries'),
+    queryFn: () => adapter.getAll<import('@atlas/shared').JournalEntry>('journalEntries'),
   });
 
   // Detection engine results — only run when taxRegistry has entries
@@ -946,7 +944,7 @@ const TaxReportingPage: React.FC = () => {
   const taxStats = useMemo(() => {
     let tvaCollectee = 0, tvaDeductible = 0, chargesPersonnel = 0, resultatNet = 0;
     for (const e of allEntries) {
-      for (const l of (e as any).lines || []) {
+      for (const l of e.lines || []) {
         if (l.accountCode.startsWith('4431') || l.accountCode.startsWith('4432') || l.accountCode.startsWith('4433') || l.accountCode.startsWith('4434') || l.accountCode.startsWith('4436')) {
           tvaCollectee += l.credit - l.debit;
         }
@@ -1021,7 +1019,7 @@ const TaxReportingPage: React.FC = () => {
 
   const { data: declSetting } = useQuery({
     queryKey: ['tax-reporting-declarations'],
-    queryFn: () => adapter.getById('settings', 'tax_declarations'),
+    queryFn: () => adapter.getById<{ key: string; value: string }>('settings', 'tax_declarations'),
   });
 
   const declarations: TaxDeclaration[] = useMemo(() => {
@@ -1047,8 +1045,8 @@ const TaxReportingPage: React.FC = () => {
 
     // 2. Settings-based declarations
     try {
-      if ((declSetting as any)?.value) {
-        const parsed = JSON.parse((declSetting as any).value);
+      if (declSetting?.value) {
+        const parsed = JSON.parse(declSetting.value);
         if (Array.isArray(parsed)) {
           for (const d of parsed) {
             const id = d.id;
@@ -1062,7 +1060,7 @@ const TaxReportingPage: React.FC = () => {
           }
         }
       }
-    } catch {}
+    } catch (err) { /* silent */}
 
     // 3. Auto-generated from taxStats if nothing found
     if (result.length === 0 && (taxStats.tvaAPayer > 0 || taxStats.irpp > 0 || taxStats.is > 0)) {
@@ -1281,7 +1279,7 @@ const TaxReportingPage: React.FC = () => {
       await adapter.update('taxDeclarations', declId, { status: 'validated', updatedAt: new Date().toISOString() });
       toast.success('Déclaration validée');
       queryClient.invalidateQueries({ queryKey: ['tax-declarations-db'] });
-    } catch { toast.error('Erreur de validation'); }
+    } catch (err) { /* silent */ toast.error('Erreur de validation'); }
   }, [adapter, queryClient]);
 
   const handleDeclareDecl = useCallback(async (declId: string) => {
@@ -1289,7 +1287,7 @@ const TaxReportingPage: React.FC = () => {
       await adapter.update('taxDeclarations', declId, { status: 'declared', declaredAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
       toast.success('Déclaration transmise');
       queryClient.invalidateQueries({ queryKey: ['tax-declarations-db'] });
-    } catch { toast.error('Erreur de transmission'); }
+    } catch (err) { /* silent */ toast.error('Erreur de transmission'); }
   }, [adapter, queryClient]);
 
   const handlePayDecl = useCallback(async (declId: string) => {
@@ -1297,7 +1295,7 @@ const TaxReportingPage: React.FC = () => {
       await adapter.update('taxDeclarations', declId, { status: 'paid', paidAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
       toast.success('Paiement enregistré');
       queryClient.invalidateQueries({ queryKey: ['tax-declarations-db'] });
-    } catch { toast.error('Erreur de paiement'); }
+    } catch (err) { /* silent */ toast.error('Erreur de paiement'); }
   }, [adapter, queryClient]);
 
   // ─── Helpers ───────────────────────────────────────────────────────────────

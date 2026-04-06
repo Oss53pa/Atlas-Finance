@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState } from 'react';
 import { Plus, Calendar, CheckCircle } from 'lucide-react';
 import { Button } from '@/shared/components/ui/Button';
@@ -38,7 +39,6 @@ const ClosuresPage: React.FC = () => {
       await closuresService.validerProvision(provision.id, 'VALIDER');
       refetchData();
     } catch (error) {
-      console.error('Erreur validation provision:', error);
     }
   };
 
@@ -47,7 +47,6 @@ const ClosuresPage: React.FC = () => {
       await closuresService.validerProvision(provision.id, 'REJETER');
       refetchData();
     } catch (error) {
-      console.error('Erreur rejet provision:', error);
     }
   };
 

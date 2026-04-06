@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React, { useState, useEffect } from 'react';
 import { useData } from '../../../../../contexts/DataContext';
 import { useLanguage } from '../../../../../contexts/LanguageContext';
@@ -34,7 +34,7 @@ export const FundCallPreApprouve: React.FC = () => {
   useEffect(() => {
     const load = async () => {
       if (!fundCallG.id) { setPreApprovedFromDb([]); return; }
-      const setting = await adapter.getById('settings', 'fund_calls') as any;
+      const setting = await adapter.getById<{ value: string }>('settings', 'fund_calls');
       if (!setting) { setPreApprovedFromDb([]); return; }
       try {
         const parsed = JSON.parse(setting.value);
@@ -49,7 +49,7 @@ export const FundCallPreApprouve: React.FC = () => {
         } else {
           setPreApprovedFromDb([]);
         }
-      } catch {
+      } catch (err) { /* silent */
         setPreApprovedFromDb([]);
       }
     };
@@ -317,7 +317,7 @@ export const FundCallPreApprouve: React.FC = () => {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .cursor-pointer {
           cursor: pointer;
         }

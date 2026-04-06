@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * ToolRegistry — Registry centralisé de tous les tools PROPH3T.
  *

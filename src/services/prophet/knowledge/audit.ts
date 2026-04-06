@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * Knowledge Base — Audit et contrôle interne
  * Normes ISA, assertions, matérialité, procédures

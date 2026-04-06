@@ -18,9 +18,9 @@ describe('LLMProviderFactory', () => {
     expect(provider.model).toBe('mistral');
   });
 
-  it('retourne AnthropicProvider si Ollama absent et clé Anthropic présente', () => {
+  it('retourne AnthropicProvider si Ollama absent et Anthropic activé', () => {
     const provider = LLMProviderFactory.create({
-      anthropic: { apiKey: 'sk-ant-test-key' },
+      anthropic: { enabled: true },
     });
     expect(provider).toBeInstanceOf(AnthropicProvider);
     expect(provider.name).toBe('anthropic');
@@ -29,7 +29,7 @@ describe('LLMProviderFactory', () => {
   it('préfère Ollama sur Anthropic quand les deux sont configurés', () => {
     const provider = LLMProviderFactory.create({
       ollama: { enabled: true, baseUrl: 'http://localhost:11434', model: 'mistral' },
-      anthropic: { apiKey: 'sk-ant-test-key' },
+      anthropic: { enabled: true },
     });
     expect(provider.name).toBe('ollama');
   });
@@ -37,7 +37,7 @@ describe('LLMProviderFactory', () => {
   it('ignore Ollama quand enabled=false', () => {
     const provider = LLMProviderFactory.create({
       ollama: { enabled: false, baseUrl: 'http://localhost:11434', model: 'mistral' },
-      anthropic: { apiKey: 'sk-ant-test-key' },
+      anthropic: { enabled: true },
     });
     expect(provider.name).toBe('anthropic');
   });
@@ -85,29 +85,17 @@ describe('OllamaProvider', () => {
 describe('AnthropicProvider', () => {
 
   it('configure le modèle par défaut', () => {
-    const provider = new AnthropicProvider({
-      apiKey: 'sk-ant-test',
-    });
+    const provider = new AnthropicProvider({});
     expect(provider.name).toBe('anthropic');
     expect(provider.model).toContain('claude');
-  });
-
-  it('isAvailable retourne true si clé API présente', async () => {
-    const provider = new AnthropicProvider({ apiKey: 'sk-ant-test' });
-    expect(await provider.isAvailable()).toBe(true);
-  });
-
-  it('isAvailable retourne false si clé API vide', async () => {
-    const provider = new AnthropicProvider({ apiKey: '' });
-    expect(await provider.isAvailable()).toBe(false);
   });
 });
 
 describe('ContextBuilder', () => {
   const builder = new ContextBuilder();
 
-  it('génère un system prompt avec le contexte utilisateur', () => {
-    const prompt = builder.build({
+  it('génère un system prompt avec le contexte utilisateur', async () => {
+    const prompt = await builder.build({
       companyName: 'Atlas SARL',
       country: "Côte d'Ivoire",
       currencyCode: 'XOF',
@@ -119,22 +107,22 @@ describe('ContextBuilder', () => {
     expect(prompt).toContain('SYSCOHADA');
   });
 
-  it('utilise les valeurs par défaut si aucun contexte fourni', () => {
-    const prompt = builder.build();
+  it('utilise les valeurs par défaut si aucun contexte fourni', async () => {
+    const prompt = await builder.build();
     expect(prompt).toContain('PROPH3T');
     expect(prompt).toContain('SYSCOHADA');
     expect(prompt).toContain('XOF');
   });
 
-  it('inclut les règles de réponse', () => {
-    const prompt = builder.build();
+  it('inclut les règles de réponse', async () => {
+    const prompt = await builder.build();
     expect(prompt).toContain('RÈGLES DE RÉPONSE');
     expect(prompt).toContain('articles SYSCOHADA');
     expect(prompt).toContain('Ne jamais inventer');
   });
 
-  it('adapte la devise au contexte', () => {
-    const prompt = builder.build({ currencyCode: 'XAF' });
+  it('adapte la devise au contexte', async () => {
+    const prompt = await builder.build({ currencyCode: 'XAF' });
     expect(prompt).toContain('XAF');
   });
 });

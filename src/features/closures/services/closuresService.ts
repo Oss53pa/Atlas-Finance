@@ -45,7 +45,8 @@ async function loadAgingRules(adapter: DataAdapter): Promise<typeof DEFAULT_AGIN
         return _cachedAgingRules!;
       }
     }
-  } catch { /* use defaults */ }
+  } catch (error) {
+  }
   return DEFAULT_AGING_RULES;
 }
 
@@ -124,8 +125,8 @@ class ClosuresService {
           debit: 0,
           credit: 0,
         };
-        existing.debit += line.debit;
-        existing.credit += line.credit;
+        existing.debit = money(existing.debit).add(money(line.debit)).toNumber();
+        existing.credit = money(existing.credit).add(money(line.credit)).toNumber();
         balances.set(line.accountCode, existing);
       }
     }
@@ -180,8 +181,8 @@ class ClosuresService {
           credit: 0,
           earliestDate: entry.date,
         };
-        existing.debit += line.debit;
-        existing.credit += line.credit;
+        existing.debit = money(existing.debit).add(money(line.debit)).toNumber();
+        existing.credit = money(existing.credit).add(money(line.credit)).toNumber();
         if (entry.date < existing.earliestDate) {
           existing.earliestDate = entry.date;
         }
@@ -565,7 +566,7 @@ class ClosuresService {
           message: 'Aucun rapprochement bancaire configuré',
         });
       }
-    } catch {
+    } catch (error) {
       checks.push({
         name: 'Rapprochements bancaires',
         passed: true,

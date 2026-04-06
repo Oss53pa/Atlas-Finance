@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * MessageBubble Component
  * Bulle de message individuelle avec actions et animations
@@ -62,7 +63,6 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           break;
       }
     } catch (error) {
-      console.error('Erreur lors de l\'exécution de l\'action:', error);
     } finally {
       setTimeout(() => setIsActionExecuting(null), 500);
     }

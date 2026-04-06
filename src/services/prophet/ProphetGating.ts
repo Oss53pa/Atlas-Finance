@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * ProphetGating — Contrôle d'accès aux outils PROPH3T par plan (PME/TPE vs Premium)
  *

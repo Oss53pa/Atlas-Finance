@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * Visite guidée — affiche les vraies pages dans un iframe intégré au modal
  */

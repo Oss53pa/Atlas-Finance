@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import frTranslations from '../locales/fr.json';
 
@@ -48,7 +48,6 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
       const module = await import(`../locales/${lang}.json`);
       setTranslations(module.default);
     } catch (error) {
-      console.error(`Failed to load translations for ${lang}:`, error);
       // Fallback to French if loading fails
       if (lang !== 'fr') {
         const module = await import('../locales/fr.json');
@@ -69,15 +68,13 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
 
     for (const k of keys) {
       if (value && typeof value === 'object' && k in value) {
-        value = value[k];
+        value = (value as Record<string, unknown>)[k];
       } else {
-        console.warn(`Translation key not found: ${key}`);
         return key;
       }
     }
 
     if (typeof value !== 'string') {
-      console.warn(`Translation value is not a string: ${key}`);
       return key;
     }
 

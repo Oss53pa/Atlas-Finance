@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
@@ -9,7 +10,10 @@ import { LoginRequest, RegisterRequest, ChangePasswordRequest, User } from '@/ty
 export const useAuth = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const { user, isAuthenticated, login, logout, updateUser, setLoading } = useAuthStore();
+  const store = useAuthStore();
+  const { user, isAuthenticated, logout, setLoading } = store;
+  const login = store.setUser;
+  const updateUser = store.setUser;
 
   // Login mutation
   const loginMutation = useMutation({

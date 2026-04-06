@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { systemService, SystemInfo, SystemStats, SystemModule, SearchResult } from '../services/system-complete.service';
 import { queryKeys } from '../lib/react-query';
@@ -6,7 +6,7 @@ import { queryKeys } from '../lib/react-query';
 export const useSystemInfo = () => {
   return useQuery({
     queryKey: queryKeys.system.info(),
-    queryFn: () => systemService.getInfo(),
+    queryFn: () => systemService.getSystemInfo(),
     staleTime: 10 * 60 * 1000,
   });
 };
@@ -14,7 +14,7 @@ export const useSystemInfo = () => {
 export const useSystemStats = () => {
   return useQuery({
     queryKey: queryKeys.system.stats(),
-    queryFn: () => systemService.getStats(),
+    queryFn: () => systemService.getSystemStats(),
     staleTime: 2 * 60 * 1000,
   });
 };

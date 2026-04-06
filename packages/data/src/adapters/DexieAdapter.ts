@@ -381,7 +381,7 @@ export class DexieAdapter implements DataAdapter {
   }
 
   async saveJournalEntry(entry: Omit<JournalEntry, 'id' | 'createdAt'>): Promise<JournalEntry> {
-    // Validate D = C
+    // ── Balance validation: sum debit MUST equal sum credit ──
     let totalDebit = 0
     let totalCredit = 0
     for (const line of entry.lines) {
@@ -391,6 +391,9 @@ export class DexieAdapter implements DataAdapter {
     if (!money(totalDebit).equals(money(totalCredit))) {
       throw new Error(`Desequilibre: Debit=${totalDebit} Credit=${totalCredit}`)
     }
+
+    // ── Period lock check: reject writes to closed fiscal periods ──
+    await this.assertPeriodOpen(entry.date)
 
     const id = crypto.randomUUID()
     const record: JournalEntry = {
@@ -404,6 +407,58 @@ export class DexieAdapter implements DataAdapter {
 
     await this.db.journalEntries.add(record)
     return record
+  }
+
+  // ── Offline validation helpers ──
+
+  /**
+   * Validate that a journal entry's lines are balanced (sum debit = sum credit).
+   * Can be called independently before saving.
+   */
+  validateJournalBalance(lines: Array<{ debit: number; credit: number }>): { valid: boolean; debit: number; credit: number; ecart: number } {
+    let totalDebit = 0
+    let totalCredit = 0
+    for (const line of lines) {
+      totalDebit = money(totalDebit).add(money(line.debit)).toNumber()
+      totalCredit = money(totalCredit).add(money(line.credit)).toNumber()
+    }
+    const ecart = money(totalDebit).subtract(money(totalCredit)).toNumber()
+    return {
+      valid: money(totalDebit).equals(money(totalCredit)),
+      debit: totalDebit,
+      credit: totalCredit,
+      ecart,
+    }
+  }
+
+  /**
+   * Check if the fiscal period covering the given date is open.
+   * Throws if the period is closed or locked.
+   */
+  private async assertPeriodOpen(date: string): Promise<void> {
+    const periods = await this.db.fiscalPeriods.toArray()
+    const matchingPeriod = periods.find(
+      (p: any) => p.startDate <= date && (p.endDate >= date || !p.endDate)
+    )
+
+    if (matchingPeriod && (matchingPeriod.status === 'closed' || matchingPeriod.status === 'locked' || matchingPeriod.status === 'cloturee')) {
+      throw new Error(
+        `Periode comptable verrouillee (${matchingPeriod.code}). ` +
+        `Impossible d'enregistrer une ecriture au ${date}.`
+      )
+    }
+
+    // Also check fiscal year closure
+    const fiscalYears = await this.db.fiscalYears.toArray()
+    const matchingFY = fiscalYears.find(
+      (fy: any) => fy.startDate <= date && fy.endDate >= date
+    )
+    if (matchingFY && matchingFY.isClosed) {
+      throw new Error(
+        `Exercice cloture (${matchingFY.code || matchingFY.name}). ` +
+        `Impossible d'enregistrer une ecriture au ${date}.`
+      )
+    }
   }
 
   async transaction<T>(tables: TableName[], fn: (adapter: DataAdapter) => Promise<T>): Promise<T> {

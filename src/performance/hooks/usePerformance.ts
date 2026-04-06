@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * Main Performance Hook
  * Provides comprehensive performance monitoring and optimization
@@ -92,7 +93,6 @@ export function usePerformance(): PerformanceState & PerformanceActions {
           performanceMonitor.stopMonitoring();
         };
       } catch (error) {
-        console.error('Failed to initialize performance monitoring:', error);
         setState(prev => ({ ...prev, loading: false }));
       }
     };
@@ -136,7 +136,6 @@ export function usePerformance(): PerformanceState & PerformanceActions {
       try {
         await navigator.serviceWorker.register('/sw.js');
       } catch (error) {
-        console.warn('Service worker registration failed:', error);
       }
     }
 
@@ -158,12 +157,6 @@ export function usePerformance(): PerformanceState & PerformanceActions {
       const memoryUsage = memory.usedJSHeapSize / memory.jsHeapSizeLimit;
 
       if (memoryUsage > 0.8) {
-        console.warn('High memory usage detected:', {
-          used: `${(memory.usedJSHeapSize / 1024 / 1024).toFixed(2)}MB`,
-          total: `${(memory.totalJSHeapSize / 1024 / 1024).toFixed(2)}MB`,
-          limit: `${(memory.jsHeapSizeLimit / 1024 / 1024).toFixed(2)}MB`,
-          percentage: `${(memoryUsage * 100).toFixed(1)}%`,
-        });
       }
     }
   }, []);

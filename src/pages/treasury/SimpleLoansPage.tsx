@@ -46,7 +46,6 @@ const SimpleLoansPage: React.FC = () => {
           if (Array.isArray(parsed)) setLoans(parsed);
         }
       } catch (err) {
-        console.error('Erreur chargement emprunts:', err);
       }
     };
     loadLoans();

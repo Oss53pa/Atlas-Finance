@@ -10,7 +10,7 @@ class TreasuryAdvancedService {
         params: { company_id: companyId }
       });
       return response.data;
-    } catch {
+    } catch (err) { /* silent */
       return { metrics: [], trends: [] };
     }
   }
@@ -21,7 +21,7 @@ class TreasuryAdvancedService {
         params: { company_id: companyId }
       });
       return response.data;
-    } catch {
+    } catch (err) { /* silent */
       return { suggestions: [] };
     }
   }

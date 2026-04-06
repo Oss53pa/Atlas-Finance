@@ -255,7 +255,6 @@ const EnhancedCompanyConfiguration: React.FC = () => {
   };
 
   const onError = (errors: Record<string, { message?: string }>) => {
-    console.error('Erreurs de validation:', errors);
     const firstError = Object.values(errors)[0];
     toast.error(firstError?.message || 'Veuillez corriger les erreurs du formulaire', {
       duration: 4000,

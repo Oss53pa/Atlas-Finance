@@ -191,7 +191,6 @@ const ReconciliationPage: React.FC = () => {
       toast.success(`Rapprochement terminé : ${result.matches.length} correspondances trouvées`);
     } catch (error) {
       toast.error('Erreur lors du rapprochement automatique');
-      console.error(error);
     } finally {
       setIsLoading(false);
     }
@@ -260,7 +259,6 @@ const ReconciliationPage: React.FC = () => {
       toast.success(`Rapprochement terminé : ${result.matches.length} correspondances`);
     } catch (error) {
       toast.error('Erreur lors du rapprochement automatique');
-      console.error(error);
     } finally {
       setIsLoading(false);
     }
@@ -301,7 +299,6 @@ const ReconciliationPage: React.FC = () => {
       }
     } catch (error) {
       toast.error('Erreur lors du rapprochement');
-      console.error(error);
     }
   };
 
@@ -365,7 +362,6 @@ const ReconciliationPage: React.FC = () => {
       }
     } catch (error) {
       toast.error('Erreur lors du rapprochement');
-      console.error(error);
     }
   };
 
@@ -558,7 +554,7 @@ const ReconciliationPage: React.FC = () => {
                 <SelectItem value="">Tous les comptes</SelectItem>
                 {bankAccounts?.results?.map((account) => (
                   <SelectItem key={account.id} value={account.id}>
-                    {(account as any).numero_compte || account.id} - {(account as any).libelle_compte || ''}
+                    {(account as unknown as { numero_compte?: string }).numero_compte || account.id} - {(account as unknown as { libelle_compte?: string }).libelle_compte || ''}
                   </SelectItem>
                 ))}
               </SelectContent>

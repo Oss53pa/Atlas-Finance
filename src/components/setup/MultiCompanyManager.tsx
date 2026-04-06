@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -92,7 +93,7 @@ const MultiCompanyManager: React.FC = () => {
       try {
         const setting = await adapter.getById('settings', 'companies_hierarchy');
         if (setting?.value) return JSON.parse(setting.value);
-      } catch {}
+      } catch (err) { /* silent */}
       // Default: return current company info
       return [
         {

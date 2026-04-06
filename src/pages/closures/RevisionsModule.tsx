@@ -445,8 +445,8 @@ const RevisionsModule: React.FC = () => {
           id, cycle, comptes, soldePrecedent: 0, soldeActuel: Math.round(Math.abs(solde)),
           variation: Math.round(Math.abs(solde)), variationPourcent: 0,
           seuilSignificativite: Math.round(Math.abs(solde) * 0.05),
-          risqueInherent: risqueI as any, risqueControle: risqueC as any, risqueDetection: 'modere' as any,
-          assertions: [], statutRevue: 'en_cours' as any, preparePar: '', datePreparation: today
+          risqueInherent: risqueI as NiveauRisque, risqueControle: risqueC as NiveauRisque, risqueDetection: 'modere' as NiveauRisque,
+          assertions: [], statutRevue: 'en_cours' as StatutRevue, preparePar: '', datePreparation: today
         });
 
         setLeadSchedules([
@@ -455,7 +455,7 @@ const RevisionsModule: React.FC = () => {
           mkLS('LS-003', 'Stocks', ['311', '321', '331', '391'], net('31', '32', '33'), 'eleve', 'eleve'),
           mkLS('LS-004', 'Fournisseurs', ['401', '408', '409'], creditN('40'), 'modere', 'faible'),
         ]);
-      } catch { /* empty */ }
+      } catch (err) { /* silent */ /* empty */ }
     };
     loadLeadSchedules();
   }, [adapter]);

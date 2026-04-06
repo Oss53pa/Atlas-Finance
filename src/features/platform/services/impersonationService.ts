@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * Impersonation Service — permet à un atlas_superadmin de se connecter
  * en tant que super admin d'un tenant (30 min max).
@@ -61,7 +62,7 @@ export function isImpersonating(): boolean {
       return false;
     }
     return true;
-  } catch { return false; }
+  } catch (err) { /* silent */ return false; }
 }
 
 export function getImpersonationInfo(): ImpersonationState | null {
@@ -74,5 +75,5 @@ export function getImpersonationInfo(): ImpersonationState | null {
       return null;
     }
     return state;
-  } catch { return null; }
+  } catch (err) { /* silent */ return null; }
 }

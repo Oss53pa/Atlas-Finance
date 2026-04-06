@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * ProphetForecasting — Prévision trésorerie Prophet-like (TypeScript pur)
  * Modèle : y(t) = trend(t) + seasonality(t) + holidays(t) + ε

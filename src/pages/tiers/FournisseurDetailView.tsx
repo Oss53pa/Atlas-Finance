@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState, useEffect } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -302,7 +303,7 @@ const FournisseurDetailView: React.FC = () => {
             tvaEncaissement: false,
             compteCharges: '606100',
             journalAchat: 'ACH',
-            modeReglement: (tp.conditionsPaiement?.modePaiement === 'virement' ? 'VIREMENT' : 'CHEQUE') as any,
+            modeReglement: (tp.conditionsPaiement?.modePaiement === 'virement' ? 'VIREMENT' : 'CHEQUE') as 'VIREMENT' | 'CHEQUE',
             conditionsPaiement: tp.conditionsPaiement ? `${tp.conditionsPaiement.delaiJours} jours net` : '30 jours net',
             delaiPaiement: tp.conditionsPaiement?.delaiJours || 30,
             deviseFacturation: 'XAF'
@@ -372,7 +373,6 @@ const FournisseurDetailView: React.FC = () => {
           setRepartitionDepenses([]);
         }
       } catch (err) {
-        console.error('Error loading fournisseur detail:', err);
       } finally {
         if (mounted) setLoading(false);
       }

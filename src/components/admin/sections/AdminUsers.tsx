@@ -60,8 +60,8 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
       } else {
         await adapter.create('settings', data);
       }
-    } catch {
-      try { await adapter.create('settings', data); } catch {}
+    } catch (err) { /* silent */
+      try { await adapter.create('settings', data); } catch (err) { /* silent */}
     }
   };
 
@@ -93,7 +93,6 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
           }));
         setHistorique(connectionLogs);
       } catch (err) {
-        console.error('Error loading admin users data:', err);
       } finally {
         setLoading(false);
       }
@@ -173,7 +172,7 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
       existing[selectedRole] = permMatrix;
       await saveSetting('admin_permissions', existing);
       toast.success(`Permissions du role ${selectedRole} enregistrees`);
-    } catch { toast.error('Erreur'); }
+    } catch (err) { /* silent */ toast.error('Erreur'); }
   };
 
   const updateField = (field: string, value: string) => setForm(prev => ({ ...prev, [field]: value }));

@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { formatCurrency } from '@/utils/formatters';
@@ -594,7 +595,6 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
       resetForm();
       onClose();
     } catch (error) {
-      console.error('Erreur lors de la sauvegarde :', error);
       setValidationErrors([`Erreur de sauvegarde : ${error instanceof Error ? error.message : String(error)}`]);
     } finally {
       setIsSaving(false);

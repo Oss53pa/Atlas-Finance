@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * Core Complete Service - Supabase Direct
  * Provides company, fiscal year, and currency management
@@ -78,7 +78,7 @@ class CompaniesService {
         sortOrder: 'asc',
       });
       return { results: result.data, count: result.total };
-    } catch {
+    } catch (err) { /* silent */
       return { results: [], count: 0 };
     }
   }
@@ -86,17 +86,17 @@ class CompaniesService {
   async getById(id: string): Promise<Company | null> {
     try {
       return await getById<Company>('societes', id);
-    } catch {
+    } catch (err) { /* silent */
       return null;
     }
   }
 
   async create(data: CreateCompanyDto): Promise<Company> {
-    return await insertRecord<Company>('societes', data);
+    return await insertRecord<Company>('societes', data as unknown as Record<string, unknown>);
   }
 
   async update(id: string, data: UpdateCompanyDto): Promise<Company> {
-    return await updateRecord<Company>('societes', id, data);
+    return await updateRecord<Company>('societes', id, data as unknown as Record<string, unknown>);
   }
 
   async delete(id: string): Promise<void> {
@@ -121,7 +121,7 @@ class FiscalYearsService {
         sortOrder: 'desc',
       });
       return { results: result.data, count: result.total };
-    } catch {
+    } catch (err) { /* silent */
       return { results: [], count: 0 };
     }
   }
@@ -129,7 +129,7 @@ class FiscalYearsService {
   async getById(id: string): Promise<FiscalYear | null> {
     try {
       return await getById<FiscalYear>('fiscal_years', id);
-    } catch {
+    } catch (err) { /* silent */
       return null;
     }
   }
@@ -160,7 +160,7 @@ class FiscalYearsService {
 
       if (error) return null;
       return data as FiscalYear;
-    } catch {
+    } catch (err) { /* silent */
       return null;
     }
   }
@@ -181,7 +181,7 @@ class CurrenciesService {
         sortOrder: 'asc',
       });
       return { results: result.data, count: result.total };
-    } catch {
+    } catch (err) { /* silent */
       return { results: [], count: 0 };
     }
   }
@@ -189,7 +189,7 @@ class CurrenciesService {
   async getById(id: string): Promise<Currency | null> {
     try {
       return await getById<Currency>('devises', id);
-    } catch {
+    } catch (err) { /* silent */
       return null;
     }
   }

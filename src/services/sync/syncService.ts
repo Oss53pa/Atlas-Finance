@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * Service de synchronisation bidirectionnelle Dexie (IndexedDB) ↔ Supabase.
  *
@@ -74,7 +75,7 @@ async function getQueue(adapter: DataAdapter): Promise<SyncQueueItem[]> {
   if (!setting?.value) return [];
   try {
     return JSON.parse(setting.value);
-  } catch {
+  } catch (err) { /* silent */
     return [];
   }
 }

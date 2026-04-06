@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * ReconciliationBancaireIA — Rapprochement bancaire automatique IA (3 passes)
  */
@@ -178,7 +178,7 @@ export const reconciliationTools: Record<string, ToolDefinition> = {
       },
     },
     execute: async (args, adapter) => {
-      let { lignes_banque, lignes_gl, tolerance_montant, fenetre_dates, seuil_confiance } = args as any;
+      let { lignes_banque, lignes_gl, tolerance_montant, fenetre_dates, seuil_confiance } = args as Record<string, any>;
 
       // Lire les écritures du grand livre (comptes 52X) si non fournies
       if ((!lignes_gl || lignes_gl.length === 0) && adapter) {

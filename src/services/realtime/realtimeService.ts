@@ -106,7 +106,7 @@ async function handleChange(
   for (const cb of listeners) {
     try {
       cb(event, table, record);
-    } catch {
+    } catch (err) { /* silent */
       // Ignore listener errors
     }
   }
@@ -143,7 +143,6 @@ async function handleChange(
       }
     }
   } catch (err) {
-    console.error(`[Realtime] Failed to sync ${table}:`, err);
   }
 }
 

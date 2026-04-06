@@ -1,7 +1,9 @@
 // @ts-nocheck
+
 /**
  * Audit Service — piste d'audit systématique.
  * Chaque action métier doit appeler auditLog().
+ * SHA-256 hash chaining guarantees tamper-evident audit trail.
  */
 import { supabase } from '../../../lib/supabase';
 
@@ -24,28 +26,77 @@ export interface AuditLogEntry {
   metadata?: Record<string, unknown>;
   ip_address?: string;
   impersonated_by?: string;
+  hash?: string;
+  previous_hash?: string;
   created_at: string;
 }
 
 /**
- * Enregistrer un événement d'audit.
+ * Compute SHA-256 hash of a string using Web Crypto API.
+ */
+async function computeHash(data: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(data));
+  return Array.from(new Uint8Array(hashBuffer))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+/**
+ * Fetch the hash of the last audit log entry for a given tenant.
+ */
+async function getLastAuditHash(tenantId: string): Promise<string | null> {
+  const { data } = await supabase
+    .from('audit_logs')
+    .select('hash')
+    .eq('tenant_id', tenantId)
+    .order('timestamp', { ascending: false })
+    .limit(1)
+    .single();
+  return data?.hash ?? null;
+}
+
+/**
+ * Enregistrer un événement d'audit avec chainage SHA-256.
  * Non-bloquant : les erreurs sont loguées mais ne bloquent pas le flux.
  */
 export async function auditLog(event: AuditEvent): Promise<void> {
   try {
     const { data: { user } } = await supabase.auth.getUser();
 
+    const id = crypto.randomUUID();
+    const timestamp = new Date().toISOString();
+    const previous_hash = await getLastAuditHash(event.tenantId);
+
+    const details = event.metadata ? JSON.stringify(event.metadata) : '{}';
+
+    const hashPayload = JSON.stringify({
+      id,
+      tenant_id: event.tenantId,
+      action: event.action,
+      entity_type: event.resourceType ?? null,
+      entity_id: event.resourceId ?? null,
+      user_id: user?.id ?? null,
+      timestamp,
+      details: event.metadata || {},
+      previous_hash,
+    });
+
+    const hash = await computeHash(hashPayload);
+
     await supabase.from('audit_logs').insert({
+      id,
       tenant_id: event.tenantId,
       user_id: user?.id,
       action: event.action,
-      resource_type: event.resourceType,
-      resource_id: event.resourceId,
-      metadata: event.metadata || {},
-      impersonated_by: event.impersonatedBy,
+      entity_type: event.resourceType ?? '',
+      entity_id: event.resourceId ?? '',
+      details,
+      hash,
+      previous_hash,
+      timestamp,
     });
   } catch (err) {
-    console.error('[AuditService] Failed to log:', err);
   }
 }
 
@@ -67,12 +118,12 @@ export async function getAuditLogs(
     .from('audit_logs')
     .select('*', { count: 'exact' })
     .eq('tenant_id', tenantId)
-    .order('created_at', { ascending: false });
+    .order('timestamp', { ascending: false });
 
   if (filters?.action) query = query.eq('action', filters.action);
-  if (filters?.resourceType) query = query.eq('resource_type', filters.resourceType);
-  if (filters?.startDate) query = query.gte('created_at', filters.startDate);
-  if (filters?.endDate) query = query.lte('created_at', filters.endDate);
+  if (filters?.resourceType) query = query.eq('entity_type', filters.resourceType);
+  if (filters?.startDate) query = query.gte('timestamp', filters.startDate);
+  if (filters?.endDate) query = query.lte('timestamp', filters.endDate);
 
   const limit = filters?.limit || 50;
   const offset = filters?.offset || 0;

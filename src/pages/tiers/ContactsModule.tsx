@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React, { useState, useEffect } from 'react';
 import { formatDate } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -43,7 +43,7 @@ const ContactsModule: React.FC = () => {
   useEffect(() => {
     const load = async () => {
       const tps = await adapter.getAll('thirdParties');
-      setThirdParties(tps as any[]);
+      setThirdParties(tps as Record<string, unknown>[]);
     };
     load();
   }, [adapter]);
@@ -647,7 +647,7 @@ const ContactsModule: React.FC = () => {
                     </div>
                     <div>
                       <label className="text-sm font-medium text-gray-700">Entreprise</label>
-                      <p className="text-[#171717]">{selectedContact.tiers}</p>
+                      <p className="text-[#171717]">{selectedContact.tiersId}</p>
                     </div>
                     <div>
                       <label className="text-sm font-medium text-gray-700">Langue préférée</label>

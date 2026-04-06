@@ -21,7 +21,7 @@ export interface LLMProviderConfig {
     timeout?: number;
   };
   anthropic?: {
-    apiKey?: string;
+    enabled?: boolean;
     model?: string;
   };
 }
@@ -40,10 +40,9 @@ export class LLMProviderFactory {
       });
     }
 
-    // Provider optionnel : Anthropic
-    if (config.anthropic?.apiKey) {
+    // Provider optionnel : Anthropic (via Supabase Edge Function proxy)
+    if (config.anthropic?.enabled) {
       return new AnthropicProvider({
-        apiKey: config.anthropic.apiKey,
         model: config.anthropic.model,
       });
     }
@@ -53,14 +52,15 @@ export class LLMProviderFactory {
       'Option 1 (recommandée) : Installer Ollama → https://ollama.ai\n' +
       '  puis : ollama pull mistral\n' +
       '  puis ajouter dans .env.local : VITE_OLLAMA_BASE_URL=http://localhost:11434\n' +
-      'Option 2 : Configurer VITE_ANTHROPIC_API_KEY dans .env.local'
+      'Option 2 : Activer Anthropic via VITE_ANTHROPIC_ENABLED=true dans .env.local\n' +
+      '  (la clé API doit être configurée côté serveur dans Supabase Secrets)'
     );
   }
 
   static createFromEnv(): ILLMProvider | null {
     const ollamaUrl = import.meta.env.VITE_OLLAMA_BASE_URL;
     const ollamaModel = import.meta.env.VITE_OLLAMA_MODEL;
-    const anthropicKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
+    const anthropicEnabled = import.meta.env.VITE_ANTHROPIC_ENABLED === 'true';
 
     try {
       return LLMProviderFactory.create({
@@ -69,11 +69,11 @@ export class LLMProviderFactory {
           baseUrl: ollamaUrl,
           model: ollamaModel || 'mistral',
         } : undefined,
-        anthropic: anthropicKey ? {
-          apiKey: anthropicKey,
+        anthropic: anthropicEnabled ? {
+          enabled: true,
         } : undefined,
       });
-    } catch {
+    } catch (err) { /* silent */
       return null;
     }
   }
@@ -81,7 +81,7 @@ export class LLMProviderFactory {
   static async healthCheck(provider: ILLMProvider): Promise<boolean> {
     try {
       return await provider.isAvailable();
-    } catch {
+    } catch (err) { /* silent */
       return false;
     }
   }

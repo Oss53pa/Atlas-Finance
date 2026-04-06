@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * FEC Export component — Interface pour generer le Fichier des Ecritures Comptables.
  * Conforme article A.47 A-1 du LPF — 18 colonnes obligatoires.
@@ -82,7 +83,7 @@ const FECExport: React.FC = () => {
         downloadFEC(result.data, result.filename, encoding);
         setExportResult({ filename: result.filename, lines: result.lineCount || 0 });
       }
-    } catch {
+    } catch (err) { /* silent */
       // Error handling
     }
     setIsExporting(false);

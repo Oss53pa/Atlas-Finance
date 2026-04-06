@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * Module Appels de Fonds Atlas F&A
  * Interface complète avec workflow de validation selon cahier des charges
@@ -131,7 +132,7 @@ const FundCallsPage: React.FC = () => {
         adapter.getById('settings', 'fund_calls'),
         adapter.getById('settings', 'fund_call_payables'),
       ]);
-      setJournalEntries(entries as any[]);
+      setJournalEntries(entries as Record<string, unknown>[]);
       setFundCallsSetting(fcSetting);
       setPayablesSetting(pSetting);
       setDataLoaded(true);

@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * ChatWidget Component
  * Widget de chat flottant pour l'assistance utilisateur

@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * ProphetV2 — Orchestrateur Frontend pour Proph3t AI
  *
@@ -194,7 +194,7 @@ export class ProphetV2Service {
       try {
         const isAvail = await this.llmProvider.isAvailable();
         if (isAvail) {
-          const systemPrompt = this.contextBuilder.build({
+          const systemPrompt = await this.contextBuilder.build({
             countryCode: this.config.countryCode,
             country: this.getCountryName(this.config.countryCode || 'CI'),
             userQuery, // RAG: inject relevant knowledge
@@ -224,7 +224,6 @@ export class ProphetV2Service {
           };
         }
       } catch (e) {
-        console.warn('[PROPH3T] LLM provider error, falling back:', e);
       }
     }
 
@@ -244,9 +243,7 @@ export class ProphetV2Service {
         });
 
         if (!error && data) return data;
-        console.warn('[PROPH3T] Edge Function error:', error);
       } catch (e) {
-        console.warn('[PROPH3T] Edge Function unavailable:', e);
       }
     }
 

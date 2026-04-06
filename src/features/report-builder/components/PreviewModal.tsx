@@ -32,7 +32,7 @@ const PreviewModal: React.FC<Props> = ({ isOpen, onClose }) => {
   };
 
   const handleExportPDF = () => {
-    exportToPDF(doc).catch(err => console.error('Export failed:', err));
+    exportToPDF(doc).catch(() => {});
   };
 
   return (
@@ -119,7 +119,7 @@ const PreviewModal: React.FC<Props> = ({ isOpen, onClose }) => {
                   <div>
                     {page.blocks.map(block => {
                       // Skip editorial comments in preview
-                      if (block.type === 'comment' && (block as any).hideOnPrint) return null;
+                      if (block.type === 'comment' && (block as unknown as { hideOnPrint?: boolean }).hideOnPrint) return null;
 
                       return (
                         <div key={block.id} style={{ marginBottom: block.style.marginBottom ?? 8 }}>

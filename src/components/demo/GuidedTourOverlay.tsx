@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * GuidedTourOverlay — Bandeau fixe en bas pendant la visite guidée
  * Lit sessionStorage('atlas-guided-tour') pour savoir l'étape courante
@@ -38,7 +38,7 @@ const GuidedTourOverlay: React.FC = () => {
   useEffect(() => {
     const raw = sessionStorage.getItem('atlas-guided-tour');
     if (raw) {
-      try { setTourData(JSON.parse(raw)); } catch { setTourData(null); }
+      try { setTourData(JSON.parse(raw)); } catch (err) { /* silent */ setTourData(null); }
     } else {
       setTourData(null);
     }

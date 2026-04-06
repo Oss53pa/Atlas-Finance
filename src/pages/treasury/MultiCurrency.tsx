@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { useData } from '../../contexts/DataContext';
 import type { DBExchangeRate, DBHedgingPosition } from '../../lib/db';
@@ -105,8 +106,8 @@ const MultiCurrency: React.FC = () => {
         adapter.getAll('exchangeRates'),
         adapter.getAll('hedgingPositions'),
       ]);
-      setDbExchangeRates(er as any[]);
-      setDbHedgingPositions(hp as any[]);
+      setDbExchangeRates(er as Record<string, unknown>[]);
+      setDbHedgingPositions(hp as Record<string, unknown>[]);
     };
     load();
   }, [adapter]);

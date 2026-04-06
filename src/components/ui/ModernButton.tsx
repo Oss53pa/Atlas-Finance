@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { cn } from '../../lib/utils';
@@ -100,7 +100,7 @@ const ModernButton = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {isLoading ? (
           <>
             <Loader2 className="animate-spin" size={size === 'xs' ? 14 : size === 'sm' ? 16 : 18} />
-            <span>{t('common.loading')}</span>
+            <span>Chargement...</span>
           </>
         ) : (
           <>

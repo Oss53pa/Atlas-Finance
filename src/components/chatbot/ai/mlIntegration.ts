@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * Intégration ML Backend pour Proph3t
  * Connecte Proph3t aux modèles d'apprentissage automatique

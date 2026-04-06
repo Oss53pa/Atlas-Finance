@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
@@ -17,7 +18,7 @@ import PrintableArea from '../ui/PrintableArea';
 import { usePrintReport } from '../../hooks/usePrint';
 import PeriodSelectorModal from '../shared/PeriodSelectorModal';
 import { formatCurrency } from '@/utils/formatters';
-import { formatCurrency } from '@/utils/formatters';
+import { money } from '../../utils/money';
 
 interface BilanData {
   actifImmobilise: {
@@ -153,56 +154,56 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
       for (const e of entries) {
         for (const l of e.lines) {
           if (prefixes.some(p => l.accountCode.startsWith(p))) {
-            debit += l.debit; credit += l.credit;
+            debit = money(debit).add(money(l.debit)).toNumber(); credit = money(credit).add(money(l.credit)).toNumber();
           }
         }
       }
-      return debit - credit;
+      return money(debit).subtract(money(credit)).toNumber();
     };
     const creditNet = (prefix: string | string[]) => -net(prefix);
 
     const bilan: BilanData = {
       actifImmobilise: {
         immobilisationsIncorporelles: net('21'),
-        immobilisationsCorporelles: net('22') + net('23') + net('24'),
-        immobilisationsFinancieres: net('25') + net('26') + net('27'),
-        amortissements: -(creditNet('28') + creditNet('29')),
+        immobilisationsCorporelles: money(net('22')).add(money(net('23'))).add(money(net('24'))).toNumber(),
+        immobilisationsFinancieres: money(net('25')).add(money(net('26'))).add(money(net('27'))).toNumber(),
+        amortissements: money(creditNet('28')).add(money(creditNet('29'))).toNumber() * -1,
       },
       actifCirculant: {
         stocks: net('3'),
         creancesClients: net('41'),
-        autresCreances: net('42') + net('43') + net('44') + net('45') + net('46') + net('47'),
+        autresCreances: money(net('42')).add(money(net('43'))).add(money(net('44'))).add(money(net('45'))).add(money(net('46'))).add(money(net('47'))).toNumber(),
         disponibilites: net('5'),
       },
       capitauxPropres: {
-        capitalSocial: creditNet('101') + creditNet('102') + creditNet('103') + creditNet('104'),
+        capitalSocial: money(creditNet('101')).add(money(creditNet('102'))).add(money(creditNet('103'))).add(money(creditNet('104'))).toNumber(),
         reserves: creditNet('11'),
         reportANouveau: creditNet('12'),
         resultatExercice: creditNet('13'),
       },
       dettes: {
-        dettesFinancieres: creditNet('16') + creditNet('17'),
+        dettesFinancieres: money(creditNet('16')).add(money(creditNet('17'))).toNumber(),
         dettesFournisseurs: creditNet('40'),
-        dettesExploitation: creditNet('42') + creditNet('43') + creditNet('44'),
-        autresDettes: creditNet('45') + creditNet('46') + creditNet('47') + creditNet('48'),
+        dettesExploitation: money(creditNet('42')).add(money(creditNet('43'))).add(money(creditNet('44'))).toNumber(),
+        autresDettes: money(creditNet('45')).add(money(creditNet('46'))).add(money(creditNet('47'))).add(money(creditNet('48'))).toNumber(),
       },
     };
 
     const cr: CompteResultatData = {
       produits: {
-        chiffreAffaires: creditNet('70') + creditNet('71') + creditNet('72'),
+        chiffreAffaires: money(creditNet('70')).add(money(creditNet('71'))).add(money(creditNet('72'))).toNumber(),
         productionStockee: creditNet('73'),
-        autresProduits: creditNet('74') + creditNet('75') + creditNet('78'),
-        produitsFinanciers: creditNet('76') + creditNet('77'),
-        produitsExceptionnels: creditNet('84') + creditNet('86') + creditNet('88'),
+        autresProduits: money(creditNet('74')).add(money(creditNet('75'))).add(money(creditNet('78'))).toNumber(),
+        produitsFinanciers: money(creditNet('76')).add(money(creditNet('77'))).toNumber(),
+        produitsExceptionnels: money(creditNet('84')).add(money(creditNet('86'))).add(money(creditNet('88'))).toNumber(),
       },
       charges: {
-        achatsConsommes: net('60') + net('61'),
-        servicesExterieurs: net('62') + net('63'),
-        personnel: net('64') + net('66'),
+        achatsConsommes: money(net('60')).add(money(net('61'))).toNumber(),
+        servicesExterieurs: money(net('62')).add(money(net('63'))).toNumber(),
+        personnel: money(net('64')).add(money(net('66'))).toNumber(),
         amortissements: net('68'),
         chargesFinancieres: net('67'),
-        chargesExceptionnelles: net('83') + net('85') + net('87'),
+        chargesExceptionnelles: money(net('83')).add(money(net('85'))).add(money(net('87'))).toNumber(),
         impotsSocietes: net('89'),
       },
     };
@@ -637,14 +638,14 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                   const m = idx + 1;
                   let ca = 0, charges = 0;
                   for (const e of entries) {
-                    const parts = (e as any).date?.split('-');
+                    const parts = (e as unknown as { date?: string }).date?.split('-');
                     if (!parts || parseInt(parts[1]) !== m) continue;
-                    for (const l of (e as any).lines || []) {
-                      if (l.accountCode.startsWith('7')) ca += l.credit - l.debit;
-                      if (l.accountCode.startsWith('6')) charges += l.debit - l.credit;
+                    for (const l of (e as unknown as { lines: Array<{ accountCode: string; debit: number; credit: number }> }).lines || []) {
+                      if (l.accountCode.startsWith('7')) ca = money(ca).add(money(l.credit).subtract(money(l.debit))).toNumber();
+                      if (l.accountCode.startsWith('6')) charges = money(charges).add(money(l.debit).subtract(money(l.credit))).toNumber();
                     }
                   }
-                  const rn = ca - charges;
+                  const rn = money(ca).subtract(money(charges)).toNumber();
                   return { mois, ca, rn, marge: ca > 0 ? Math.round(rn / ca * 1000) / 10 : 0 };
                 }).filter(m => m.ca > 0 || m.rn !== 0);
               })()}>
@@ -1020,26 +1021,26 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
       {/* Tableau de flux de trésorerie */}
       {activeView === 'flux' && (() => {
         const toggleTftRow = (key: string) => setTftExpandedRows(prev => { const s = new Set(prev); s.has(key) ? s.delete(key) : s.add(key); return s; });
-        const net = (...pfx: string[]) => { let t = 0; for (const e of entries) for (const l of e.lines) if (pfx.some(p => l.accountCode.startsWith(p))) t += l.debit - l.credit; return t; };
-        const creditN = (...pfx: string[]) => { let t = 0; for (const e of entries) for (const l of e.lines) if (pfx.some(p => l.accountCode.startsWith(p))) t += l.credit - l.debit; return t; };
-        const detailEntries = (...pfx: string[]) => entries.filter(e => e.lines?.some((l: any) => pfx.some(p => l.accountCode.startsWith(p)))).map(e => ({ ref: e.entryNumber || e.reference || e.id?.substring(0, 8), date: e.date, label: e.label, journal: e.journal, amount: e.lines.filter((l: any) => pfx.some(p => l.accountCode.startsWith(p))).reduce((s: number, l: any) => s + l.debit - l.credit, 0) }));
+        const net = (...pfx: string[]) => { let t = 0; for (const e of entries) for (const l of e.lines) if (pfx.some(p => l.accountCode.startsWith(p))) t = money(t).add(money(l.debit).subtract(money(l.credit))).toNumber(); return t; };
+        const creditN = (...pfx: string[]) => { let t = 0; for (const e of entries) for (const l of e.lines) if (pfx.some(p => l.accountCode.startsWith(p))) t = money(t).add(money(l.credit).subtract(money(l.debit))).toNumber(); return t; };
+        const detailEntries = (...pfx: string[]) => entries.filter(e => e.lines?.some((l: any) => pfx.some(p => l.accountCode.startsWith(p)))).map(e => ({ ref: e.entryNumber || e.reference || e.id?.substring(0, 8), date: e.date, label: e.label, journal: e.journal, amount: e.lines.filter((l: any) => pfx.some(p => l.accountCode.startsWith(p))).reduce((s: number, l: any) => money(s).add(money(l.debit).subtract(money(l.credit))).toNumber(), 0) }));
 
         // Méthode indirecte
-        const rn = creditN('7') - net('6');
+        const rn = money(creditN('7')).subtract(money(net('6'))).toNumber();
         const dot = net('68', '69');
         const rep = creditN('78', '79');
-        const pmv = creditN('82') - net('81');
-        const caf = rn + dot - rep;
+        const pmv = money(creditN('82')).subtract(money(net('81'))).toNumber();
+        const caf = money(rn).add(money(dot)).subtract(money(rep)).toNumber();
         const vStk = net('3'); const vCli = net('41'); const vAut = net('46');
         const vFrn = creditN('40'); const vFis = creditN('42', '43', '44');
-        const fExploit = caf - vStk - vCli - vAut + vFrn + vFis;
-        let acqI = 0; for (const e of entries) { if (e.journal === 'AN' || e.journal === 'RAN') continue; for (const l of e.lines) if (l.accountCode.startsWith('2') && !l.accountCode.startsWith('28') && l.debit > 0) acqI += l.debit; }
+        const fExploit = money(caf).subtract(money(vStk)).subtract(money(vCli)).subtract(money(vAut)).add(money(vFrn)).add(money(vFis)).toNumber();
+        let acqI = 0; for (const e of entries) { if (e.journal === 'AN' || e.journal === 'RAN') continue; for (const l of e.lines) if (l.accountCode.startsWith('2') && !l.accountCode.startsWith('28') && l.debit > 0) acqI = money(acqI).add(money(l.debit)).toNumber(); }
         const cesI = creditN('82'); const acqF = net('26', '27') > 0 ? net('26', '27') : 0;
-        const fInvest = cesI - acqI - acqF;
+        const fInvest = money(cesI).subtract(money(acqI)).subtract(money(acqF)).toNumber();
         const augCap = creditN('10'); const emp = creditN('16'); const rembE = net('16') > 0 ? net('16') : 0; const div = net('465');
-        const fFinanc = augCap + emp - rembE - div;
-        const varTreso = fExploit + fInvest + fFinanc;
-        const tresoOuv = (() => { let t = 0; for (const e of entries) { if (e.journal === 'AN' || e.journal === 'RAN') for (const l of e.lines) if (l.accountCode.startsWith('5')) t += l.debit - l.credit; } return t; })();
+        const fFinanc = money(augCap).add(money(emp)).subtract(money(rembE)).subtract(money(div)).toNumber();
+        const varTreso = money(fExploit).add(money(fInvest)).add(money(fFinanc)).toNumber();
+        const tresoOuv = (() => { let t = 0; for (const e of entries) { if (e.journal === 'AN' || e.journal === 'RAN') for (const l of e.lines) if (l.accountCode.startsWith('5')) t = money(t).add(money(l.debit).subtract(money(l.credit))).toNumber(); } return t; })();
         const tresoClo = net('5');
 
         // Méthode directe
@@ -1049,19 +1050,20 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
           const cl = e.lines?.filter((l: any) => l.accountCode.startsWith('5')) || [];
           const ot = e.lines?.filter((l: any) => !l.accountCode.startsWith('5')) || [];
           if (cl.length === 0) continue;
-          let cd = 0, cc = 0; for (const c of cl) { cd += c.debit; cc += c.credit; }
-          const nc = cd - cc;
+          let cd = 0, cc = 0; for (const c of cl) { cd = money(cd).add(money(c.debit)).toNumber(); cc = money(cc).add(money(c.credit)).toNumber(); }
+          const nc = money(cd).subtract(money(cc)).toNumber();
+          const absNc = money(nc).abs().toNumber();
           const h = (p: string) => ot.some((l: any) => l.accountCode.startsWith(p));
-          if (h('41')) { if (nc > 0) dEC += nc; else dAD += Math.abs(nc); }
-          else if (h('40')) { if (nc < 0) dDF += Math.abs(nc); else dAE += nc; }
-          else if (h('42') || h('43')) { if (nc < 0) dDP += Math.abs(nc); }
-          else if (h('44') || h('89')) { if (nc < 0) dDI += Math.abs(nc); }
-          else if (h('21') || h('22') || h('23') || h('24') || h('25')) { if (nc < 0) dDA += Math.abs(nc); else dECe += nc; }
-          else if (h('26') || h('27')) { if (nc < 0) dDAF += Math.abs(nc); }
-          else if (h('10') || h('11') || h('12')) { if (nc > 0) dECa += nc; }
-          else if (h('16')) { if (nc > 0) dEE += nc; else dDRE += Math.abs(nc); }
-          else if (h('465')) { if (nc < 0) dDD += Math.abs(nc); }
-          else { if (nc > 0) dAE += nc; else dAD += Math.abs(nc); }
+          if (h('41')) { if (nc > 0) dEC = money(dEC).add(money(nc)).toNumber(); else dAD = money(dAD).add(money(absNc)).toNumber(); }
+          else if (h('40')) { if (nc < 0) dDF = money(dDF).add(money(absNc)).toNumber(); else dAE = money(dAE).add(money(nc)).toNumber(); }
+          else if (h('42') || h('43')) { if (nc < 0) dDP = money(dDP).add(money(absNc)).toNumber(); }
+          else if (h('44') || h('89')) { if (nc < 0) dDI = money(dDI).add(money(absNc)).toNumber(); }
+          else if (h('21') || h('22') || h('23') || h('24') || h('25')) { if (nc < 0) dDA = money(dDA).add(money(absNc)).toNumber(); else dECe = money(dECe).add(money(nc)).toNumber(); }
+          else if (h('26') || h('27')) { if (nc < 0) dDAF = money(dDAF).add(money(absNc)).toNumber(); }
+          else if (h('10') || h('11') || h('12')) { if (nc > 0) dECa = money(dECa).add(money(nc)).toNumber(); }
+          else if (h('16')) { if (nc > 0) dEE = money(dEE).add(money(nc)).toNumber(); else dDRE = money(dDRE).add(money(absNc)).toNumber(); }
+          else if (h('465')) { if (nc < 0) dDD = money(dDD).add(money(absNc)).toNumber(); }
+          else { if (nc > 0) dAE = money(dAE).add(money(nc)).toNumber(); else dAD = money(dAD).add(money(absNc)).toNumber(); }
         }
         const dFE = dEC + dAE - dDF - dDP - dDI - dAD;
         const dFI = dECe - dDA - dDAF;

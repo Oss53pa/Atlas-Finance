@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React from 'react';
 import { useLanguage } from '../../../contexts/LanguageContext';
 import { DataTable, Column } from '@/shared/components/data-display/DataTable';
@@ -29,12 +29,12 @@ const getStatusBadge = (status: string) => {
     },
     draft: {
       variant: 'warning',
-      label: t('accounting.draft'),
+      label: 'Brouillon',
       icon: <Clock className="w-3 h-3 mr-1" />,
     },
     pending: {
       variant: 'warning',
-      label: t('status.pending'),
+      label: 'En attente',
       icon: <Clock className="w-3 h-3 mr-1" />,
     },
   };

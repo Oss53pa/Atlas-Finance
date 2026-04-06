@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React, { useState } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { useQuery } from '@tanstack/react-query';
@@ -96,7 +96,7 @@ const TAFIREDashboard: React.FC = () => {
         <div className="flex space-x-4">
           <select
             value={viewMode}
-            onChange={(e) => setViewMode(e.target.value as any)}
+            onChange={(e) => setViewMode(e.target.value as typeof viewMode)}
             className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500"
           >
             <option value="flows">Vue Flux</option>

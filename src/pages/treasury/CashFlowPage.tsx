@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
@@ -89,7 +90,6 @@ const CashFlowPage: React.FC = () => {
         const entries = await adapter.getAll<any>('journalEntries');
         setCfEntries(entries);
       } catch (err) {
-        console.error('Erreur chargement flux:', err);
       } finally {
         setIsLoading(false);
       }

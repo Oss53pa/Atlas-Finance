@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -97,7 +98,6 @@ const ManagerWorkspace: React.FC = () => {
           setCompanyPhone(companies[0].phone || companies[0].telephone || '');
         }
       } catch (err) {
-        console.error('Erreur chargement stats manager:', err);
       }
     };
     loadStats();

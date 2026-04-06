@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
@@ -21,6 +22,7 @@ import {
 import PrintableArea from '../ui/PrintableArea';
 import './AdvancedBalance.css';
 import { formatCurrency } from '@/utils/formatters';
+import { money } from '../../utils/money';
 
 interface LedgerEntry {
   id: string;
@@ -135,10 +137,10 @@ const AdvancedGeneralLedger: React.FC = () => {
             nombreEcritures: 0,
             entries: [],
           };
-          acc.totalDebit += line.debit;
-          acc.totalCredit += line.credit;
+          acc.totalDebit = money(acc.totalDebit).add(money(line.debit)).toNumber();
+          acc.totalCredit = money(acc.totalCredit).add(money(line.credit)).toNumber();
           acc.nombreEcritures++;
-          acc.soldeFermeture = acc.soldeOuverture + acc.totalDebit - acc.totalCredit;
+          acc.soldeFermeture = money(acc.soldeOuverture).add(money(acc.totalDebit)).subtract(money(acc.totalCredit)).toNumber();
           acc.entries.push({
             id: `${entry.id}-${line.id}`,
             date: entry.date,
@@ -702,7 +704,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                                 libelle: entry.description,
                                 debit: entry.debit,
                                 credit: entry.credit,
-                                solde: entry.debit - entry.credit
+                                solde: money(entry.debit).subtract(money(entry.credit)).toNumber()
                               });
                               setShowDetailModal(true);
                             }}
@@ -720,7 +722,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                                 libelle: entry.description,
                                 debit: entry.debit,
                                 credit: entry.credit,
-                                solde: entry.debit - entry.credit
+                                solde: money(entry.debit).subtract(money(entry.credit)).toNumber()
                               });
                               setShowAnnotationModal(true);
                             }}
@@ -1681,7 +1683,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                                     {formatCurrency(compte.solde.credit)}
                                   </td>
                                   <td className="px-4 py-3 text-right font-bold text-gray-900">
-                                    {formatCurrency(compte.solde.debit - compte.solde.credit)}
+                                    {formatCurrency(money(compte.solde.debit).subtract(money(compte.solde.credit)).toNumber())}
                                   </td>
                                 </tr>
                               ))}
@@ -1736,7 +1738,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                                   <div className="text-right">
                                     <div className="text-sm text-white/80">Solde actuel</div>
                                     <div className="text-lg font-bold">
-                                      {formatCurrency(compte.solde.debit - compte.solde.credit)}
+                                      {formatCurrency(money(compte.solde.debit).subtract(money(compte.solde.credit)).toNumber())}
                                     </div>
                                     <div className="text-sm text-white/80">
                                       {compte.solde.debit > compte.solde.credit ? 'Débiteur' : 'Créditeur'}
@@ -1808,7 +1810,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                                         {formatCurrency(compte.mouvements.reduce((sum, m) => sum + m.credit, 0))}
                                       </td>
                                       <td className="px-3 py-3 text-right font-bold text-gray-900 text-xs">
-                                        {formatCurrency(compte.solde.debit - compte.solde.credit)}
+                                        {formatCurrency(money(compte.solde.debit).subtract(money(compte.solde.credit)).toNumber())}
                                       </td>
                                     </tr>
                                   </tfoot>
@@ -1868,7 +1870,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                           <div className="text-right">
                             <div className="text-sm text-white/80">Solde actuel</div>
                             <div className="text-lg font-bold">
-                              {formatCurrency(compte.solde.debit - compte.solde.credit)}
+                              {formatCurrency(money(compte.solde.debit).subtract(money(compte.solde.credit)).toNumber())}
                             </div>
                             <div className="text-sm text-white/80">
                               {compte.solde.debit > compte.solde.credit ? 'Débiteur' : 'Créditeur'}
@@ -1938,7 +1940,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                                 {formatCurrency(compte.mouvements.reduce((sum, m) => sum + m.credit, 0))}
                               </td>
                               <td className="px-3 py-3 text-right font-bold text-gray-900 text-xs">
-                                {formatCurrency(compte.solde.debit - compte.solde.credit)}
+                                {formatCurrency(money(compte.solde.debit).subtract(money(compte.solde.credit)).toNumber())}
                               </td>
                             </tr>
                           </tfoot>

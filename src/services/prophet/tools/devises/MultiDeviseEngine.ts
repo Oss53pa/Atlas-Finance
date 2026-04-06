@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * MultiDeviseEngine — Multi-devises & taux de change SYSCOHADA
  * Réf. légales : SYSCOHADA art. 37, Accords monétaires UEMOA/CEMAC
@@ -230,7 +231,7 @@ export const devisesTools: Record<string, ToolDefinition> = {
       },
     },
     execute: async (args, _adapter) => {
-      const { montant, devise_source, devise_cible, type_taux, date } = args as any;
+      const { montant, devise_source, devise_cible, type_taux, date } = args as Record<string, unknown>;
       return JSON.stringify(convertirDevise(montant, devise_source, devise_cible, type_taux || 'moyen', date));
     },
   },
@@ -253,7 +254,7 @@ export const devisesTools: Record<string, ToolDefinition> = {
       },
     },
     execute: async (args, adapter) => {
-      let { exercice, postes, cours_cloture } = args as any;
+      let { exercice, postes, cours_cloture } = args as Record<string, unknown>;
 
       // Lire les postes en devises depuis la balance réelle (comptes 4784, 4786, créances/dettes en devises)
       if ((!postes || postes.length === 0) && adapter) {
@@ -301,7 +302,7 @@ export const devisesTools: Record<string, ToolDefinition> = {
       },
     },
     execute: async (args, _adapter) => {
-      const { entites, cours_cloture, cours_moyen, cours_historique_cp, devise_consolidation } = args as any;
+      const { entites, cours_cloture, cours_moyen, cours_historique_cp, devise_consolidation } = args as Record<string, unknown>;
       return JSON.stringify(ecartConversionConsolidation(entites, cours_cloture, cours_moyen || cours_cloture, cours_historique_cp || cours_cloture, devise_consolidation));
     },
   },

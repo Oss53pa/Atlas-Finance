@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * Feature Flag Service — contrôle l'accès aux modules par tenant.
  * Jamais hardcoder un module comme visible — toujours passer par ce service.

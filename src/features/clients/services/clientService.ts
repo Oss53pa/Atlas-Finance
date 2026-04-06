@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * Client Service — Connected to Dexie IndexedDB.
  * Queries real third-party and journal entry data for client management.

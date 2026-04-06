@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * Knowledge Base — Procédures de clôture comptable
  * Checklist, provisions, régularisations, report à nouveau

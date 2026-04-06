@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * TaxDetectionEngine — Moteur de détection fiscale automatique.
  * Identifie depuis les comptes SYSCOHADA actifs quelles taxes existent,

@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { formatCurrency, formatDate } from '../../utils/formatters';
@@ -417,9 +418,9 @@ Service Contentieux
         adapter.getAll('thirdParties'),
         adapter.getAll('journalEntries'),
       ]);
-      const allTps = tps as any[];
+      const allTps = tps as Record<string, unknown>[];
       setCustomerThirdParties(allTps.filter(tp => tp.type === 'customer' || tp.type === 'both'));
-      setAllJournalEntries(entries as any[]);
+      setAllJournalEntries(entries as Record<string, unknown>[]);
     };
     load();
   }, [adapter]);

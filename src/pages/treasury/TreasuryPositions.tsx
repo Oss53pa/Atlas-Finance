@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -85,8 +86,8 @@ const TreasuryPositions: React.FC = () => {
         adapter.getAll('exchangeRates'),
         adapter.getAll('hedgingPositions'),
       ]);
-      setExchangeRatesData(er as any[]);
-      setHedgingPositionsData(hp as any[]);
+      setExchangeRatesData(er as Record<string, unknown>[]);
+      setHedgingPositionsData(hp as Record<string, unknown>[]);
     };
     load();
   }, [adapter]);

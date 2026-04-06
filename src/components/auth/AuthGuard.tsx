@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * AuthGuard — vérifie simplement que l'utilisateur est authentifié.
  * Redirige vers /login sinon.

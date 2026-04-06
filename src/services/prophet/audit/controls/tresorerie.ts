@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * Contrôles trésorerie — C58 à C67
  * Banques, caisse, rapprochement, virements internes

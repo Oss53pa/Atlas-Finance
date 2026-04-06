@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import { useState, useEffect } from 'react';
 import { ClosurePeriod, ClosureStats, ClosureFilters, ClosureStep } from '../types/periodic-closures.types';
 import { periodicClosuresService } from '../services/periodicClosuresService';

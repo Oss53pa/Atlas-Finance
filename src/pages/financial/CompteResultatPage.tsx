@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -225,7 +226,7 @@ const CompteResultatPage: React.FC = () => {
             reference: e.pieceRef || e.id?.substring(0, 8) || '',
             libelle: l.label || e.label || '',
             montant: l.debit - l.credit,
-            tiers: (e as any).thirdPartyName || '',
+            tiers: (e as unknown as { thirdPartyName?: string }).thirdPartyName || '',
             piece: e.pieceRef || '',
           });
         }

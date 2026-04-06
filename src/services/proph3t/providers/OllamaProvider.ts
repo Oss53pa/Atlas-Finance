@@ -41,7 +41,7 @@ export class OllamaProvider implements ILLMProvider {
       return data.models?.some((m: { name: string }) =>
         m.name.startsWith(this.model.replace(':latest', ''))
       ) ?? false;
-    } catch {
+    } catch (err) { /* silent */
       return false;
     }
   }

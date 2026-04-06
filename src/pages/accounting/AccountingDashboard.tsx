@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
@@ -56,7 +57,6 @@ const AccountingDashboard: React.FC = () => {
         setEntries(e);
         setAccounts(a);
       } catch (err) {
-        console.error('Erreur chargement données comptables:', err);
       } finally {
         setLoading(false);
       }

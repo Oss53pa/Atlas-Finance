@@ -169,7 +169,7 @@ export async function calculerDeclarationIS(
       acomptesVerses: 0,
     };
     isResult = calculateIS(input);
-  } catch {
+  } catch (err) { /* silent */
     // If calculateIS is not available for this country, do a simple calculation
   }
 

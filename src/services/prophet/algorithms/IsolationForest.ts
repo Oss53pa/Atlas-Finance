@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * IsolationForest — Détection d'anomalies en TypeScript pur (offline, zéro dépendance ML)
  * Algorithme : Liu, Ting & Zhou (2008)
@@ -165,7 +166,7 @@ export const isolationForestTools: Record<string, ToolDefinition> = {
       },
     },
     execute: async (args, adapter) => {
-      let { ecritures, seuil } = args as any;
+      let { ecritures, seuil } = args as Record<string, unknown>;
 
       // Lire les écritures réelles si non fournies
       if ((!ecritures || ecritures.length === 0) && adapter) {

@@ -53,8 +53,8 @@ export function calculerSoldesCloture(
         debit: 0,
         credit: 0,
       }
-      existing.debit += line.debit
-      existing.credit += line.credit
+      existing.debit = money(existing.debit).add(money(line.debit)).toNumber()
+      existing.credit = money(existing.credit).add(money(line.credit)).toNumber()
       balances.set(line.accountCode, existing)
     }
   }
@@ -70,7 +70,7 @@ export function calculerSoldesCloture(
       accountCode: code,
       accountName: data.name,
       soldeDebiteur: netValue > 0 ? netValue : 0,
-      soldeCrediteur: netValue < 0 ? Math.abs(netValue) : 0,
+      soldeCrediteur: netValue < 0 ? money(netValue).abs().toNumber() : 0,
     })
   }
 
@@ -92,8 +92,8 @@ export function previewCarryForwardFromEntries(
   let totalDebit = 0
   let totalCredit = 0
   for (const l of lignes) {
-    totalDebit += l.soldeDebiteur
-    totalCredit += l.soldeCrediteur
+    totalDebit = money(totalDebit).add(money(l.soldeDebiteur)).toNumber()
+    totalCredit = money(totalCredit).add(money(l.soldeCrediteur)).toNumber()
   }
 
   return {

@@ -1,4 +1,5 @@
-// @ts-nocheck
+import React from "react";
+
 /**
  * Memory Optimizer
  * Detects and prevents memory leaks, optimizes memory usage
@@ -101,7 +102,6 @@ export class MemoryOptimizer {
     setInterval(() => {
       const current = this.getCurrentMemoryMetrics();
       if (current && current.usagePercentage > 80) {
-        console.warn('High memory usage detected:', current);
         this.handleMemoryPressure();
       }
     }, 10000);
@@ -176,7 +176,7 @@ export class MemoryOptimizer {
       try {
         const value = (window as unknown as Record<string, unknown>)[key];
         return value instanceof HTMLElement;
-      } catch {
+      } catch (err) { /* silent */
         return false;
       }
     });

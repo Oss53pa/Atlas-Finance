@@ -127,7 +127,7 @@ const RatiosView: React.FC = () => {
           mk('4', 'activite', 'ROTATION_STOCKS', 'Rotation des stocks', ca > 0 ? safe(stocks, ca) * 365 : 0, 'jours', stocks, ca, 'Stock moyen × 365 / CA', 90, ca > 0 && safe(stocks, ca) * 365 > 90 ? 'Rotation lente, risque de sur-stockage' : 'Rotation correcte', ca > 0 && safe(stocks, ca) * 365 > 120, ca > 0 && safe(stocks, ca) * 365 > 120 ? 'attention' : ''),
           mk('5', 'solvabilite', 'COUVERTURE_CHARGES_FINANCIERES', 'Couverture des charges financières', chargesFin > 0 ? safe(ebe, chargesFin) : 0, 'fois', ebe, chargesFin, 'EBE / Charges financières', 3, chargesFin > 0 && safe(ebe, chargesFin) < 3 ? 'Couverture faible, attention à l\'endettement' : 'Couverture suffisante', chargesFin > 0 && safe(ebe, chargesFin) < 2, chargesFin > 0 && safe(ebe, chargesFin) < 2 ? 'attention' : ''),
         ]);
-      } catch { /* empty */ }
+      } catch (err) { /* silent */ /* empty */ }
     };
     load();
   }, [adapter]);

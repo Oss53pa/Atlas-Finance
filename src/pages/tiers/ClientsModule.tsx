@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -261,7 +262,7 @@ const ClientsModule: React.FC = () => {
             journalVentes: 'VE',
             rccm: tp.rccm || '',
             niu: tp.taxId || '',
-            regimeTVA: (tp.regimeFiscal === 'RNI' ? 'REEL_NORMAL' : 'REEL_SIMPLIFIE') as any,
+            regimeTVA: tp.regimeFiscal === 'RNI' ? 'REEL_NORMAL' as const : 'REEL_SIMPLIFIE' as const,
             tauxTVA: 19.25,
             adresse: tp.address || '',
             codePostal: '',
@@ -274,7 +275,7 @@ const ClientsModule: React.FC = () => {
             delaiPaiement: tp.conditionsPaiement?.delaiJours || 30,
             remise: 0,
             escompte: tp.conditionsPaiement?.escompte || 0,
-            modeReglement: (tp.conditionsPaiement?.modePaiement === 'virement' ? 'VIREMENT' : tp.conditionsPaiement?.modePaiement === 'cheque' ? 'CHEQUE' : 'VIREMENT') as any,
+            modeReglement: (tp.conditionsPaiement?.modePaiement === 'virement' ? 'VIREMENT' : tp.conditionsPaiement?.modePaiement === 'cheque' ? 'CHEQUE' : 'VIREMENT') as 'VIREMENT' | 'CHEQUE',
             devise: 'XAF',
             banque: tp.banque?.nomBanque,
             iban: tp.banque?.iban,
@@ -300,7 +301,6 @@ const ClientsModule: React.FC = () => {
           setClients(clientsData);
         }
       } catch (err) {
-        console.error('Error loading clients:', err);
       } finally {
         if (mounted) setIsLoading(false);
       }

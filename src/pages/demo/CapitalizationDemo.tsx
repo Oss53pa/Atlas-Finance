@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { formatCurrency } from '@/utils/formatters';
@@ -60,7 +61,6 @@ const CapitalizationDemo: React.FC = () => {
           setSampleInvoices(invoices);
         }
       } catch (err) {
-        console.error('Erreur chargement donnees capitalisation:', err);
         if (mounted) setSampleInvoices([]);
       } finally {
         if (mounted) setLoading(false);

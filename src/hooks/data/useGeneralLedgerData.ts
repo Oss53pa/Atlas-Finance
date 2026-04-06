@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * Hook pour les données du Grand Livre — connecté à Dexie via generalLedgerService.
  * Remplace toutes les constantes mockAccountsData dans les composants.

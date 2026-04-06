@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * Affectation du resultat de l'exercice.
  * Conforme SYSCOHADA revise — repartition du benefice ou traitement de la perte.
@@ -6,7 +7,7 @@
 import type { DataAdapter } from '@atlas/data';
 import { Money, money, percentage } from '../../utils/money';
 import { logAudit } from '../../lib/db';
-import type { DBJournalLine } from '../../lib/db';
+import type { DBJournalEntry, DBJournalLine } from '../../lib/db';
 import { safeAddEntry } from '../entryGuard';
 
 // ============================================================================

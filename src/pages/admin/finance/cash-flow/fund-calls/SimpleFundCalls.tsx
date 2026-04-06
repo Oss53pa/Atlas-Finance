@@ -26,12 +26,12 @@ export const SimpleFundCalls: React.FC = () => {
 
   useEffect(() => {
     const load = async () => {
-      const setting = await adapter.getById('settings', 'fund_calls') as any;
+      const setting = await adapter.getById<{ value: string }>('settings', 'fund_calls');
       if (!setting) { setFundCallsData([]); return; }
       try {
         const parsed: FundCall[] = JSON.parse(setting.value);
         setFundCallsData(parsed);
-      } catch {
+      } catch (err) { /* silent */
         setFundCallsData([]);
       }
     };

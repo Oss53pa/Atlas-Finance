@@ -167,7 +167,7 @@ const Immobilisations: React.FC = () => {
     try {
       const assets = await adapter.getAll<DBAsset>('assets');
       setDbAssets(assets);
-    } catch {
+    } catch (err) { /* silent */
       // silently fail
     } finally {
       setAssetsLoading(false);

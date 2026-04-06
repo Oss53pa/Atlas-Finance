@@ -1,9 +1,13 @@
 // @ts-nocheck
+
 /**
  * Knowledge Base — Agrégateur et moteur de recherche
  * Expose searchKnowledge(query, topK) pour le RAG dans le system prompt.
+ *
+ * Strategy: pgvector semantic search first, keyword TF fallback.
  */
 import type { SyscohadaKnowledgeChunk } from '../../proph3t/types/knowledge';
+import { supabase, isSupabaseConfigured } from '../../../lib/supabase';
 import { syscohadaKnowledge } from './syscohada';
 import { fiscaliteKnowledge } from './fiscalite';
 import { auditKnowledge } from './audit';
@@ -21,11 +25,100 @@ export const allKnowledge: SyscohadaKnowledgeChunk[] = [
   ...consolidationKnowledge,
 ];
 
+// ── Embedding helpers ─────────────────────────────────────────
+
+const OLLAMA_URL = import.meta.env.VITE_OLLAMA_URL || 'http://localhost:11434';
+const EMBEDDING_MODEL = import.meta.env.VITE_EMBEDDING_MODEL || 'nomic-embed-text';
+
 /**
- * Simple TF-based keyword search.
- * Scores each chunk by how many query tokens appear in its keywords + title + content.
+ * Generate an embedding vector via Ollama /api/embeddings.
+ * Returns null if Ollama is unavailable.
  */
-export function searchKnowledge(query: string, topK: number = 5): SyscohadaKnowledgeChunk[] {
+async function getEmbedding(text: string): Promise<number[] | null> {
+  try {
+    const res = await fetch(`${OLLAMA_URL}/api/embeddings`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: EMBEDDING_MODEL, prompt: text }),
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.embedding ?? null;
+  } catch (err) { /* silent */
+    return null;
+  }
+}
+
+// ── Semantic search (pgvector) ────────────────────────────────
+
+/**
+ * Semantic search via Supabase RPC `search_knowledge`.
+ * Requires pgvector extension + knowledge_chunks table + Ollama embeddings.
+ * Returns [] if any part of the pipeline is unavailable.
+ */
+async function searchKnowledgeSemantic(
+  query: string,
+  topK: number,
+  category?: string,
+): Promise<SyscohadaKnowledgeChunk[]> {
+  if (!isSupabaseConfigured) return [];
+
+  const embedding = await getEmbedding(query);
+  if (!embedding) return [];
+
+  try {
+    const { data, error } = await supabase.rpc('search_knowledge' as any, {
+      query_embedding: embedding,
+      match_threshold: 0.7,
+      match_count: topK,
+      filter_category: category ?? null,
+    }) as any;
+
+    if (error || !data || data.length === 0) return [];
+
+    return data.map((row: any) => ({
+      id: row.id,
+      category: row.category,
+      title: row.title,
+      content: row.content,
+      legal_references: row.legal_references,
+      keywords: [], // pgvector chunks don't use keyword field
+    }));
+  } catch (err) { /* silent */
+    return [];
+  }
+}
+
+// ── Main search (semantic → keyword fallback) ─────────────────
+
+/**
+ * Search the knowledge base.
+ * 1. Try pgvector semantic search (Supabase + Ollama embeddings)
+ * 2. Fall back to keyword TF scoring on static chunks
+ */
+export async function searchKnowledge(
+  query: string,
+  topK: number = 5,
+): Promise<SyscohadaKnowledgeChunk[]> {
+  if (!query || query.trim().length < 2) return [];
+
+  // 1. Try semantic search
+  const semanticResults = await searchKnowledgeSemantic(query, topK);
+  if (semanticResults.length > 0) return semanticResults;
+
+  // 2. Fallback to keyword TF search
+  return searchKnowledgeKeyword(query, topK);
+}
+
+/**
+ * Synchronous keyword-only search (original implementation).
+ * Useful when caller cannot await or needs guaranteed-fast results.
+ */
+export function searchKnowledgeKeyword(
+  query: string,
+  topK: number = 5,
+): SyscohadaKnowledgeChunk[] {
   if (!query || query.trim().length < 2) return [];
 
   const queryTokens = tokenize(query);

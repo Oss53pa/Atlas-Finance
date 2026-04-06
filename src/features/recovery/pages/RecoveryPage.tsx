@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState } from 'react';
 import { useLanguage } from '../../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
@@ -81,7 +82,6 @@ const RecoveryPage: React.FC = () => {
       await refetch();
       editModal.close();
     } catch (error) {
-      console.error('Erreur lors de la mise à jour:', error);
     }
   };
 
@@ -104,7 +104,6 @@ const RecoveryPage: React.FC = () => {
       await refetch();
       reminderModal.close();
     } catch (error) {
-      console.error('Erreur lors de l\'envoi de la relance:', error);
     }
   };
 

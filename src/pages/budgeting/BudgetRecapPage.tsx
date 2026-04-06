@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
@@ -132,7 +133,6 @@ const BudgetRecapPage: React.FC = () => {
           setData(rows);
         }
       } catch (err) {
-        console.error('Erreur chargement donnees budgetaires:', err);
         if (mounted) setData([]);
       } finally {
         if (mounted) setLoading(false);

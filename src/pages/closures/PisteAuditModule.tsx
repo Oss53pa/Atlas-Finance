@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
@@ -94,7 +94,7 @@ const PisteAuditModule: React.FC = () => {
         };
       });
       setAuditEntries(mapped);
-    } catch { /* silent */ }
+    } catch (err) { /* silent */ /* silent */ }
   }, [adapter]);
 
   useEffect(() => { loadAuditLogs(); }, [loadAuditLogs]);
@@ -353,7 +353,7 @@ const PisteAuditModule: React.FC = () => {
                           </div>
                           <div className="flex items-center space-x-1">
                             <Clock className="w-3 h-3" />
-                            <span>{formatCurrency(new Date(entry.timestamp))}</span>
+                            <span>{new Date(entry.timestamp).toLocaleString()}</span>
                           </div>
                           <div className="flex items-center space-x-1">
                             <Database className="w-3 h-3" />
@@ -630,7 +630,7 @@ const PisteAuditModule: React.FC = () => {
                 <div>
                   <p className="text-sm text-[#737373] mb-1">Date et heure</p>
                   <p className="font-semibold">
-                    {formatCurrency(new Date(selectedEntry.timestamp))}
+                    {new Date(selectedEntry.timestamp).toLocaleString()}
                   </p>
                 </div>
               </div>

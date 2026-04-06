@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * FeatureGuard — vérifie qu'un module est activé pour le tenant.
  * Redirige vers /client si le module n'est pas activé.

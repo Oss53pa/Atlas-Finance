@@ -1,4 +1,5 @@
-// @ts-nocheck
+import React from "react";
+
 /**
  * Performance Monitoring System
  * Real-time performance tracking and optimization recommendations
@@ -92,7 +93,6 @@ export class PerformanceMonitor {
       lcpObserver.observe({ type: 'largest-contentful-paint', buffered: true });
       this.observers.set('lcp', lcpObserver);
     } catch (e) {
-      console.warn('LCP observer not supported');
     }
 
     // FID Observer
@@ -108,7 +108,6 @@ export class PerformanceMonitor {
       fidObserver.observe({ type: 'first-input', buffered: true });
       this.observers.set('fid', fidObserver);
     } catch (e) {
-      console.warn('FID observer not supported');
     }
 
     // CLS Observer
@@ -128,7 +127,6 @@ export class PerformanceMonitor {
       clsObserver.observe({ type: 'layout-shift', buffered: true });
       this.observers.set('cls', clsObserver);
     } catch (e) {
-      console.warn('CLS observer not supported');
     }
 
     // FCP Observer
@@ -145,7 +143,6 @@ export class PerformanceMonitor {
       fcpObserver.observe({ type: 'paint', buffered: true });
       this.observers.set('fcp', fcpObserver);
     } catch (e) {
-      console.warn('FCP observer not supported');
     }
   }
 
@@ -164,7 +161,6 @@ export class PerformanceMonitor {
       navigationObserver.observe({ type: 'navigation', buffered: true });
       this.observers.set('navigation', navigationObserver);
     } catch (e) {
-      console.warn('Navigation observer not supported');
     }
   }
 
@@ -187,7 +183,6 @@ export class PerformanceMonitor {
       resourceObserver.observe({ type: 'resource', buffered: true });
       this.observers.set('resource', resourceObserver);
     } catch (e) {
-      console.warn('Resource observer not supported');
     }
   }
 

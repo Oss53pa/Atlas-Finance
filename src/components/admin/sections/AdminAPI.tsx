@@ -58,7 +58,6 @@ const AdminAPI: React.FC<Props> = ({ subTab, setSubTab }) => {
           if (payroll.compte) setPayrollCompte(payroll.compte);
         }
       } catch (err) {
-        console.error('Error loading API data:', err);
       } finally {
         setLoading(false);
       }
@@ -111,11 +110,10 @@ const AdminAPI: React.FC<Props> = ({ subTab, setSubTab }) => {
       } else {
         await adapter.create('settings', data);
       }
-    } catch {
+    } catch (err) { /* silent */
       try {
         await adapter.create('settings', data);
       } catch (error) {
-        console.error(`[AdminAPI] saveSetting "${key}" failed:`, error);
         toast.error(`Erreur sauvegarde paramètre "${key}"`);
       }
     }
@@ -198,7 +196,7 @@ const AdminAPI: React.FC<Props> = ({ subTab, setSubTab }) => {
                       <button onClick={async () => {
                         const updated = apiKeys.filter((_, idx) => idx !== i);
                         setApiKeys(updated);
-                        try { await saveSetting('admin_api_keys', updated); } catch (error) { console.error('[AdminAPI] revoke key failed:', error); toast.error('Erreur lors de la révocation'); }
+ try { await saveSetting('admin_api_keys', updated); } catch (error) { toast.error('Erreur lors de la révocation'); }
                         toast.success('Cle API revoquee');
                       }} className="text-red-500 hover:text-red-700">
                         <Trash2 className="w-4 h-4" />
@@ -259,7 +257,6 @@ const AdminAPI: React.FC<Props> = ({ subTab, setSubTab }) => {
                     try {
                       await saveSetting('admin_api_keys', updated);
                     } catch (error) {
-                      console.error('[AdminAPI] save key failed:', error);
                       toast.error('Erreur lors de la sauvegarde de la clé');
                     }
                     setShowKeyModal(false);
@@ -317,7 +314,7 @@ const AdminAPI: React.FC<Props> = ({ subTab, setSubTab }) => {
                       <button onClick={async () => {
                         const updated = webhooks.filter((_, idx) => idx !== i);
                         setWebhooks(updated);
-                        try { await saveSetting('admin_webhooks', updated); } catch (error) { console.error('[AdminAPI] delete webhook failed:', error); toast.error('Erreur suppression webhook'); }
+ try { await saveSetting('admin_webhooks', updated); } catch (error) { toast.error('Erreur suppression webhook'); }
                         toast.success('Webhook supprime');
                       }} className="text-red-500 hover:text-red-700"><Trash2 className="w-4 h-4" /></button>
                     </td>
@@ -364,7 +361,7 @@ const AdminAPI: React.FC<Props> = ({ subTab, setSubTab }) => {
                     const newWh = { url: webhookUrl, events: webhookEvents_, statut: 'Actif', reponse: 0 };
                     const updated = [...webhooks, newWh];
                     setWebhooks(updated);
-                    try { await saveSetting('admin_webhooks', updated); } catch (error) { console.error('[AdminAPI] save webhook failed:', error); toast.error('Erreur sauvegarde webhook'); }
+ try { await saveSetting('admin_webhooks', updated); } catch (error) { toast.error('Erreur sauvegarde webhook'); }
                     setShowWebhookModal(false); setWebhookUrl(''); setWebhookEvents_([]);
                     toast.success('Webhook ajoute avec succes');
                   }} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
@@ -435,7 +432,6 @@ const AdminAPI: React.FC<Props> = ({ subTab, setSubTab }) => {
                   await saveSetting('admin_bank_integration', { connected: true, name: bankName, protocol: bankProtocol, frequency: bankFrequency });
                   toast.success('Integration bancaire enregistree');
                 } catch (error) {
-                  console.error('[AdminAPI] bank integration save failed:', error);
                   toast.error('Erreur lors de la sauvegarde');
                 }
               }} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
@@ -503,7 +499,6 @@ const AdminAPI: React.FC<Props> = ({ subTab, setSubTab }) => {
                   await saveSetting('admin_payroll_integration', { connected: true, software: payrollSoftware, journal: payrollJournal, compte: payrollCompte });
                   toast.success('Integration paie enregistree');
                 } catch (error) {
-                  console.error('[AdminAPI] payroll integration save failed:', error);
                   toast.error('Erreur lors de la sauvegarde');
                 }
               }} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">

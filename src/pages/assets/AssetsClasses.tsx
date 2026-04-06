@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   Layers, Search, Plus, Edit2, Settings, BarChart3,

@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 // Inventory Calculation Utilities
 // Compliant with IFRS IAS 2, US GAAP ASC 330, and SYSCOHADA
 

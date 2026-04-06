@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React, { useState } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -86,14 +86,14 @@ const IncomeStatementSYSCOHADA: React.FC = () => {
       const entries = await adapter.getAll('journalEntries');
       const net = (...pfx: string[]) => {
         let t = 0;
-        for (const e of entries) for (const l of e.lines)
-          if (pfx.some(p => l.accountCode.startsWith(p))) t += l.debit - l.credit;
+        for (const e of entries as any[]) for (const l of e.lines)
+          if (pfx.some((p: string) => l.accountCode.startsWith(p))) t += l.debit - l.credit;
         return t;
       };
       const creditN = (...pfx: string[]) => {
         let t = 0;
-        for (const e of entries) for (const l of e.lines)
-          if (pfx.some(p => l.accountCode.startsWith(p))) t += l.credit - l.debit;
+        for (const e of entries as any[]) for (const l of e.lines)
+          if (pfx.some((p: string) => l.accountCode.startsWith(p))) t += l.credit - l.debit;
         return t;
       };
 

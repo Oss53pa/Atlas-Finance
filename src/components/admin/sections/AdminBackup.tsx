@@ -50,7 +50,6 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
           if (auto.retention) setRetention(auto.retention);
         }
       } catch (err) {
-        console.error('Error loading backup data:', err);
       } finally {
         setLoading(false);
       }
@@ -67,11 +66,10 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
       } else {
         await adapter.create('settings', data);
       }
-    } catch {
+    } catch (err) { /* silent */
       try {
         await adapter.create('settings', data);
       } catch (error) {
-        console.error(`[AdminBackup] saveSetting "${key}" failed:`, error);
         toast.error(`Erreur sauvegarde paramètre "${key}"`);
       }
     }
@@ -81,7 +79,6 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
     try {
       await saveSetting('admin_backup_history', history);
     } catch (err) {
-      console.error('Error saving backup history:', err);
     }
   };
 
@@ -202,7 +199,6 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
               await saveSetting('admin_backup_auto', { enabled: autoEnabled, frequency: autoFrequency, time: autoTime, retention });
               toast.success('Parametres de sauvegarde auto enregistres');
             } catch (error) {
-              console.error('[AdminBackup] auto backup save failed:', error);
               toast.error('Erreur lors de la sauvegarde');
             }
           }} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">

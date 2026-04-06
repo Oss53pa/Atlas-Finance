@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React, { useState } from 'react';
 import { Download, FileText, FileSpreadsheet, FileImage } from 'lucide-react';
 import { Button } from '../ui';
@@ -65,7 +65,7 @@ const ExportMenu: React.FC<ExportMenuProps> = ({
       exportExcel(exportData, `${filename}_${dateStr}.xls`);
       toast.success('Export Excel réussi !');
     } else if (format === 'pdf') {
-      toast.info('Export PDF en cours de développement');
+      toast('Export PDF en cours de développement');
     }
 
     setShowMenu(false);

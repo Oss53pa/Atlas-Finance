@@ -55,7 +55,7 @@ function debitForPrefixes(balances: Map<string, AccountBalance>, prefixes: strin
  */
 export function liquiditeGenerale(balances: Map<string, AccountBalance>): number {
   const actifCirculant = soldeForPrefixes(balances, ['3', '4', '5'])
-  const passifCirculant = Math.abs(soldeForPrefixes(balances, ['40', '42', '43', '44', '45', '46', '47', '56']))
+  const passifCirculant = money(soldeForPrefixes(balances, ['40', '42', '43', '44', '45', '46', '47', '56'])).abs().toNumber()
   if (passifCirculant === 0) return 0
   return money(actifCirculant).divide(passifCirculant).round(2).toNumber()
 }
@@ -64,8 +64,8 @@ export function liquiditeGenerale(balances: Map<string, AccountBalance>): number
  * Ratio d'endettement = Dettes / Capitaux propres
  */
 export function ratioEndettement(balances: Map<string, AccountBalance>): number {
-  const dettes = Math.abs(soldeForPrefixes(balances, ['16', '17', '18', '19']))
-  const capitauxPropres = Math.abs(soldeForPrefixes(balances, ['10', '11', '12', '13', '14', '15']))
+  const dettes = money(soldeForPrefixes(balances, ['16', '17', '18', '19'])).abs().toNumber()
+  const capitauxPropres = money(soldeForPrefixes(balances, ['10', '11', '12', '13', '14', '15'])).abs().toNumber()
   if (capitauxPropres === 0) return 0
   return money(dettes).divide(capitauxPropres).round(2).toNumber()
 }
@@ -74,7 +74,7 @@ export function ratioEndettement(balances: Map<string, AccountBalance>): number 
  * Marge commerciale
  */
 export function margeCommerciale(balances: Map<string, AccountBalance>): number {
-  const ventes = Math.abs(soldeForPrefixes(balances, ['701']))
+  const ventes = money(soldeForPrefixes(balances, ['701'])).abs().toNumber()
   const achats = soldeForPrefixes(balances, ['601'])
   const varStock = soldeForPrefixes(balances, ['6031'])
   return money(ventes).subtract(money(achats)).subtract(money(varStock)).toNumber()

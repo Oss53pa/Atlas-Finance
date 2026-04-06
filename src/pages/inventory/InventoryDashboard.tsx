@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useEffect, useMemo } from 'react';
 import {
@@ -119,7 +120,7 @@ const InventoryDashboard: React.FC = () => {
   useEffect(() => {
     const load = async () => {
       const items = await adapter.getAll('inventoryItems');
-      setInventoryItems(items as any[]);
+      setInventoryItems(items as Record<string, unknown>[]);
     };
     load();
   }, [adapter]);
@@ -293,7 +294,7 @@ const InventoryDashboard: React.FC = () => {
     setIsLoading(true);
     // Re-read data via adapter
     const items = await adapter.getAll('inventoryItems');
-    setInventoryItems(items as any[]);
+    setInventoryItems(items as Record<string, unknown>[]);
     setIsLoading(false);
   };
 

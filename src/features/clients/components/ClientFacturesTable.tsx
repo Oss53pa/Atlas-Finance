@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React from 'react';
 import { useLanguage } from '../../../contexts/LanguageContext';
 import { DataTable } from '@/shared/components/data-display/DataTable';

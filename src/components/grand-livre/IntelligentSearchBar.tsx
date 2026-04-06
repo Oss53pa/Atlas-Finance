@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState, useRef, useEffect } from 'react';
 import { toast } from 'sonner';
 import {
@@ -138,7 +139,6 @@ const IntelligentSearchBar: React.FC<IntelligentSearchBarProps> = ({
       recognition.start();
 
     } catch (error) {
-      console.error('Erreur reconnaissance vocale:', error);
       setIsVoiceRecording(false);
     }
   };

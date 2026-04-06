@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React from 'react';
 import { DossierRecouvrement } from '../types/recovery.types';
 import { formatCurrency, formatDate } from '@/shared/utils/formatters';

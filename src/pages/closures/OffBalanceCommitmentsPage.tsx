@@ -35,7 +35,7 @@ export default function OffBalanceCommitmentsPage() {
     try {
       const data = await adapter.getAll<DBOffBalanceCommitment>('offBalanceCommitments');
       setCommitments(typeFilter === 'all' ? data : data.filter(c => c.type === typeFilter));
-    } catch {
+    } catch (err) { /* silent */
       toast.error('Erreur de chargement');
     } finally {
       setLoading(false);
@@ -182,7 +182,7 @@ export default function OffBalanceCommitmentsPage() {
                   toast.success('Engagement créé');
                   setShowForm(false);
                   load();
-                } catch {
+                } catch (err) { /* silent */
                   toast.error('Erreur lors de la création');
                 }
               }}

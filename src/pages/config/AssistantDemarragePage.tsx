@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React, { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -188,7 +188,7 @@ const AssistantDemarragePage: React.FC = () => {
       setupSteps[currentStep].status = 'skipped';
       handleNext();
       setIsProcessing(false);
-      toast.info('Étape ignorée');
+      toast('Étape ignorée');
     }
   };
 

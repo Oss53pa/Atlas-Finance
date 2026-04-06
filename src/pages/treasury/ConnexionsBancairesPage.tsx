@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -261,7 +262,6 @@ const ConnexionsBancairesPage: React.FC = () => {
         toast.success('Synchronisation terminée!');
       }
     } catch (error) {
-      console.error('Sync error:', error);
       toast.error('Erreur lors de la synchronisation');
     } finally {
       setSyncInProgress(prev => {
@@ -282,7 +282,6 @@ const ConnexionsBancairesPage: React.FC = () => {
       await queryClient.invalidateQueries({ queryKey: ['bank-accounts'] });
       toast.success('Rafraîchissement des comptes terminé!');
     } catch (error) {
-      console.error('Connection error:', error);
       toast.error('Erreur lors de la connexion');
     } finally {
       setIsConnecting(false);

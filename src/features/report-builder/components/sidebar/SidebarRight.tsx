@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * SidebarRight — 5 tabs: Propriétés, Style, Page, Typographie, Thème
  * CDC §7 — Project colors: neutral-*
@@ -287,7 +287,7 @@ const ThemePanel: React.FC = () => {
             <span className="text-xs text-neutral-600">{label}</span>
             <input
               type="color"
-              value={(doc.theme as Record<string, string>)[key]}
+              value={(doc.theme as unknown as Record<string, string>)[key]}
               onChange={e => setTheme({ [key]: e.target.value })}
               className="w-7 h-7 rounded cursor-pointer border border-neutral-200"
             />

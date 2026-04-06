@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { useData } from '../../../../../contexts/DataContext';
@@ -85,7 +86,6 @@ export const FundCallPlan: React.FC = () => {
       setIsLoadingCancelable(false);
     } catch (error) {
       sweetAlertRef.current?.afficherAlerte('error', DICTIONNARY.AnErrorOccurredDuringRegistration[language]);
-      console.error("Error fetching fund call data:", error);
     }
   };
 
@@ -158,7 +158,6 @@ export const FundCallPlan: React.FC = () => {
       }
       setIsLoadingCancelable(false);
     } catch (error) {
-      console.error("Error fetching entries data:", error);
       setIsLoadingCancelable(false);
     }
   };
@@ -212,7 +211,6 @@ export const FundCallPlan: React.FC = () => {
         sweetAlertRef.current?.afficherAlerte('success', DICTIONNARY.EnregistrementEffectueAvecSucces[language]);
       } catch (error) {
         sweetAlertRef.current?.afficherAlerte('error', DICTIONNARY.AnErrorOccurredDuringRegistration[language]);
-        console.error("Error saving fund call:", error);
       }
     }
   };

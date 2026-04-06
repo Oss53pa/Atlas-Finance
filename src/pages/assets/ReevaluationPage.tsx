@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState, useEffect } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { useToast } from '../../hooks/useToast';
@@ -23,9 +24,9 @@ const ReevaluationPage: React.FC = () => {
   useEffect(() => {
     const load = async () => {
       try {
-        const all = await adapter.getAll('assets') as any[];
+        const all = await adapter.getAll('assets') as Record<string, unknown>[];
         setAssets(all.filter(a => !a.isComponent && !a.dateSortie));
-      } catch { setAssets([]); }
+      } catch (err) { /* silent */ setAssets([]); }
     };
     load();
   }, [adapter]);

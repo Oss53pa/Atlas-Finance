@@ -90,7 +90,6 @@ export function useDataTable<T>(options: UseDataTableOptions<T>): UseDataTableRe
         onSuccess(response);
       }
     } catch (err: unknown) {
-      console.error('Error fetching data:', err);
       setError(err);
       setData([]);
 

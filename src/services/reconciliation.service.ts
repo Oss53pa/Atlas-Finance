@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * Service de réconciliation et rapprochement
  * Fonctionnalités transverses selon section 4.0

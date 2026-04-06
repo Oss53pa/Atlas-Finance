@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * Admin Service — Console interne Atlas Studio.
  * Toutes les requêtes nécessitent le claim JWT atlas_role = 'atlas_superadmin'.
@@ -35,7 +36,7 @@ export async function getAdminKPIs() {
   const newLastMonth = tenants.filter(t => t.created_at?.startsWith(lastMonth)).length;
 
   const activeSubs = subs.filter(s => s.status === 'active' || s.status === 'trialing');
-  const mrr = activeSubs.reduce((sum, s) => sum + ((s.solution as any)?.price_monthly_xof || 0), 0);
+  const mrr = activeSubs.reduce((sum, s) => sum + ((s.solution as unknown as { price_monthly_xof?: number })?.price_monthly_xof || 0), 0);
 
   const paidInvoices = invoices.filter(i => i.status === 'paid');
   const pendingInvoices = invoices.filter(i => i.status === 'pending');

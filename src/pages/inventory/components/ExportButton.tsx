@@ -137,10 +137,8 @@ const ExportButton: React.FC<ExportButtonProps> = ({
           break;
 
         default:
-          console.error('Unsupported export format:', format);
       }
     } catch (error) {
-      console.error('Export failed:', error);
       // In a real application, you would show a proper error notification
       toast.error('Export failed. Please try again.');
     } finally {

@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * ProvisionsEngine — Provisions & dépréciations automatiques SYSCOHADA art. 38-42
  */

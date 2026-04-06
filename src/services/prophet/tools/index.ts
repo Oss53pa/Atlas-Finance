@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * Tools index — Enregistre tous les tools dans le ToolRegistry global.
  * PROPH3T v3.0 — 50 outils (32 existants + 18 nouveaux)

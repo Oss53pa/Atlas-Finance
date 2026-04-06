@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -155,7 +156,7 @@ const AnalyticalAxesPage: React.FC = () => {
   // Create axe mutation - saves to settings
   const createMutation = useMutation({
     mutationFn: async (data: AxeData) => {
-      const current = await adapter.getById('settings', 'analytical_axes') as any;
+      const current = await adapter.getById<{ value: string }>('settings', 'analytical_axes');
       const axes = current ? JSON.parse(current.value) : [];
       const newAxe = { ...data, id: crypto.randomUUID(), statut: 'actif', niveau: 1, nb_centres: 0, nb_ventilations: 0, montant_total: 0 };
       axes.push(newAxe);
@@ -178,7 +179,7 @@ const AnalyticalAxesPage: React.FC = () => {
   // Delete axe mutation - removes from settings
   const deleteAxeMutation = useMutation({
     mutationFn: async (axeId: string) => {
-      const current = await adapter.getById('settings', 'analytical_axes') as any;
+      const current = await adapter.getById<{ value: string }>('settings', 'analytical_axes');
       const axes = current ? JSON.parse(current.value) : [];
       const updated = axes.filter((a: AxeData) => a.id !== axeId);
       await adapter.create('settings', { key: 'analytical_axes', value: JSON.stringify(updated), updatedAt: new Date().toISOString() });

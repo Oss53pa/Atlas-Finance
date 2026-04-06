@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * useFiscalAlerts — Hook partagé pour les alertes fiscales.
  *
@@ -39,8 +40,8 @@ export function useFiscalAlerts(year?: number) {
     queryKey: ['fiscal-alerts', currentYear],
     queryFn: async (): Promise<FiscalAlert[]> => {
       const [declarations, registries] = await Promise.all([
-        adapter.getAll('taxDeclarations'),
-        adapter.getAll('taxRegistry'),
+        adapter.getAll<Record<string, unknown>>('taxDeclarations'),
+        adapter.getAll<Record<string, unknown>>('taxRegistry'),
       ]);
 
       const todayStr = new Date().toISOString().split('T')[0];
@@ -48,8 +49,8 @@ export function useFiscalAlerts(year?: number) {
       const alerts: FiscalAlert[] = [];
 
       // From existing declarations
-      for (const decl of (declarations as any[])) {
-        const reg = (registries as any[]).find(r => r.id === decl.taxRegistryId || r.taxCode === decl.taxCode);
+      for (const decl of declarations) {
+        const reg = registries.find(r => r.id === decl.taxRegistryId || r.taxCode === decl.taxCode);
         const deadline = decl.declarationDeadline || decl.periodEnd || '';
         const daysUntil = Math.ceil((new Date(deadline).getTime() - todayMs) / 86400000);
 
@@ -81,7 +82,7 @@ export function useFiscalAlerts(year?: number) {
 
       // Generate from registry if no declarations
       if (alerts.length === 0) {
-        for (const reg of (registries as any[])) {
+        for (const reg of registries) {
           if (!reg.isActive) continue;
           const months = reg.periodicity === 'MONTHLY' ? 12
             : reg.periodicity === 'QUARTERLY' ? 4

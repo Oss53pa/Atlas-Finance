@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * Report Journal Page — Page indépendante listant tous les rapports
  * Avec filtres, statuts, actions, et bouton "Nouveau Rapport" vers le Builder
@@ -210,7 +211,7 @@ const ReportJournalPage: React.FC<JournalPageProps> = ({ onOpenBuilder, onGoToTe
             template: r.template_name,
           }));
           setReports(entries);
-        } catch {
+        } catch (err) { /* silent */
           setReports([]);
         }
       });

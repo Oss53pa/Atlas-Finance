@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * RoleGuard — vérifie le rôle utilisateur dans user_profiles.
  */

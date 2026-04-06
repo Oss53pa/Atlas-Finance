@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -112,10 +113,10 @@ const AdminTicketDetailPage: React.FC = () => {
           {exchanges.map((ex: any) => (
             <div key={ex.id} className="px-5 py-3">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-semibold text-[#0f172a]">{(ex.metadata as any)?.author || 'Système'}</span>
+                <span className="text-xs font-semibold text-[#0f172a]">{(ex.metadata as Record<string, unknown>)?.author as string || 'Système'}</span>
                 <span className="text-[10px] text-gray-400">{new Date(ex.created_at).toLocaleString('fr-FR')}</span>
               </div>
-              <p className="text-sm text-gray-700">{(ex.metadata as any)?.message || ex.action}</p>
+              <p className="text-sm text-gray-700">{(ex.metadata as Record<string, unknown>)?.message as string || ex.action}</p>
             </div>
           ))}
           {exchanges.length === 0 && <div className="px-5 py-6 text-center text-gray-400 text-sm">Aucun échange</div>}

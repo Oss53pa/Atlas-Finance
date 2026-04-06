@@ -1,4 +1,5 @@
 // @ts-nocheck
+
               {/* Header with Photo and Asset Info */}
               <div className="bg-gradient-to-r from-[#e5e5e5]/10 to-[#171717]/10 border-b border-[#e5e5e5] p-6">
                 <div className="flex items-start space-x-6">

@@ -46,7 +46,7 @@ const FinancialAnalysisDashboard: React.FC = () => {
 
   useEffect(() => {
     const load = async () => {
-      const entries = await adapter.getAll('journalEntries') as any[];
+      const entries = await adapter.getAll('journalEntries') as { date: string; lines: Array<{ accountCode: string; debit: number; credit: number }> }[];
       let revenue = 0, expenses = 0, treasury = 0;
       const monthlyRev = new Array(12).fill(0);
       const monthlyExp = new Array(12).fill(0);

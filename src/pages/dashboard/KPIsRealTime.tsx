@@ -326,7 +326,6 @@ const KPIsRealTime: React.FC = () => {
           { subject: 'Trésorerie', A: treasuryScore, fullMark: 100 }
         ]);
       } catch (err) {
-        console.error('Erreur calcul KPIs:', err);
         setKpis([]);
       }
     };

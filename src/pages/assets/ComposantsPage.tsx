@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React, { useState, useEffect } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { useToast } from '../../hooks/useToast';
@@ -21,10 +21,10 @@ const ComposantsPage: React.FC = () => {
   const load = async () => {
     setLoading(true);
     try {
-      const all = await adapter.getAll('assets') as any[];
+      const all = await adapter.getAll('assets') as Record<string, unknown>[];
       setComponents(all.filter(a => a.isComponent));
       setParentAssets(all.filter(a => !a.isComponent));
-    } catch { setComponents([]); setParentAssets([]); }
+    } catch (err) { /* silent */ setComponents([]); setParentAssets([]); }
     setLoading(false);
   };
 
@@ -46,7 +46,7 @@ const ComposantsPage: React.FC = () => {
         value: new Decimal(fd.get('value') as string),
         usefulLife: parseInt(fd.get('usefulLife') as string) || 10,
         acquisitionDate: fd.get('acquisitionDate') as string || new Date().toISOString().split('T')[0],
-        depreciationMethod: 'lineaire',
+        depreciationMethod: 'linear',
         accountCode: replaceModal.compteImmobilisation || '213',
         depreciationAccountCode: replaceModal.compteAmortissement || '2813',
         category: replaceModal.componentType || 'structure',

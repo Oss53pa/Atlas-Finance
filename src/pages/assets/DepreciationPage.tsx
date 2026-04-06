@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -303,7 +304,6 @@ const DepreciationPage: React.FC = () => {
   };
 
   const handleComptabiliser = (depreciation: DepreciationRecord) => {
-    console.log('[Comptabiliser] Opening modal for:', depreciation.nom_actif, depreciation);
     setSelectedDepreciation(depreciation);
     // Use setTimeout to ensure state is set before modal renders
     setTimeout(() => setShowComptabiliserModal(true), 0);

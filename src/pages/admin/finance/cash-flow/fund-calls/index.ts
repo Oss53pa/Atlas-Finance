@@ -1,6 +1,6 @@
 // @ts-nocheck
+
 export { default as FinanceCashFlowFundCalls } from './FinanceCashFlowFundCalls';
-export { FinanceCashFlowFundCalls } from './FinanceCashFlowFundCalls';
 
 export { default as FundCallDetails } from './FundCallDetails';
 export { default as LayoutDetailsFundCall } from './LayoutDetailsFundCall';

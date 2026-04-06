@@ -60,8 +60,8 @@ const PositionTresoreriePage: React.FC = () => {
         adapter.getAll('exchangeRates'),
         adapter.getAll('hedgingPositions'),
       ]);
-      setExchangeRatesData(er as any[]);
-      setHedgingPositionsData(hp as any[]);
+      setExchangeRatesData(er as Record<string, unknown>[]);
+      setHedgingPositionsData(hp as Record<string, unknown>[]);
     };
     load();
   }, [adapter]);

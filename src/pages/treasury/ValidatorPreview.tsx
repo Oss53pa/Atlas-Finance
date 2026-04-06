@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 
@@ -39,7 +40,6 @@ const ValidatorPreview: React.FC = () => {
         // Pour l'instant on marque l'absence de données
         setLoading(false);
       } catch (err) {
-        console.error('Erreur chargement appel de fonds:', err);
         setLoading(false);
       }
     };

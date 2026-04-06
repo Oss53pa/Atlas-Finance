@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React from 'react';
 import { ArrowLeft, Edit, Download, Printer } from 'lucide-react';
 import { Button } from '@/shared/components/ui/Button';

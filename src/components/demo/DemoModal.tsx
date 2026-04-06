@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * DemoModal — Modal principal de découverte des solutions Atlas Studio
  * Orchestre les 4 modes : Démos interactives, Visite guidée, Tutoriels, Démo live

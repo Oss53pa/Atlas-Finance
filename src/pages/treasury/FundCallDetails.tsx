@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -85,7 +86,7 @@ const FundCallDetails: React.FC = () => {
       ]);
       setFundCallsSetting(fc);
       setPayableSetting(pay);
-      setJournalEntries(entries as any[]);
+      setJournalEntries(entries as Record<string, unknown>[]);
       setWorkflowSetting(wf);
       setAggregateSetting(agg);
       setAttachmentsSetting(att);

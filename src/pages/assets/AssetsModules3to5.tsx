@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 // Modules 3-5: Amortissements IA, Cycle de Vie, Inventaire Auto
 import React, { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';

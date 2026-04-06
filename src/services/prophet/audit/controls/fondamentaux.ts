@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * Contrôles fondamentaux — C01 à C15
  * D=C, Actif=Passif, résultat cohérent, comptes vides, sens normal des soldes

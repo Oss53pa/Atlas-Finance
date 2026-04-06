@@ -37,13 +37,13 @@ const formatTs = (ts: string) => {
   if (!ts) return '';
   try {
     return new Date(ts).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-  } catch { return ts; }
+  } catch (err) { /* silent */ return ts; }
 };
 
 const parseDetails = (details: any): Record<string, string> => {
   if (!details) return {};
   if (typeof details === 'string') {
-    try { return JSON.parse(details); } catch { return { info: details }; }
+    try { return JSON.parse(details); } catch (err) { /* silent */ return { info: details }; }
   }
   return details;
 };
@@ -69,7 +69,6 @@ const AdminAuditTrail: React.FC<Props> = ({ subTab, setSubTab }) => {
         });
         setAllLogs(logs);
       } catch (err) {
-        console.error('Error loading audit trail:', err);
       } finally {
         setLoading(false);
       }

@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * Page d'accueil Atlas F&A — branded splash dashboard.
  * Pattern commun Atlas Studio (identique DocJourney, Liass'Pilot, etc.)
@@ -52,7 +52,7 @@ const AtlasFnAHome: React.FC = () => {
           : '—';
 
         setStats({ ecritures, comptes, tiers, immobilisations, exercice });
-      } catch {
+      } catch (err) { /* silent */
         // Adapter not ready
       }
     };

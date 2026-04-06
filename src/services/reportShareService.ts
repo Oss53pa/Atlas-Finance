@@ -29,7 +29,7 @@ export const reportShareService = {
     try {
       await navigator.clipboard.writeText(text);
       return true;
-    } catch {
+    } catch (err) { /* silent */
       return false;
     }
   },

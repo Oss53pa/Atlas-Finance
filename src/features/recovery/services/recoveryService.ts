@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * Service de recouvrement — connecté aux données réelles via DataAdapter.
  *
@@ -45,7 +46,7 @@ function caseToPublic(c: DBRecoveryCase): DossierRecouvrement {
     responsable: c.responsable,
     derniereAction: lastAction?.resultat || '',
     dateAction: lastAction?.date || c.dateOuverture,
-    typeAction: (lastAction?.type as any) || 'EMAIL',
+    typeAction: (lastAction?.type as Action['type']) || 'EMAIL',
     prochainEtape: '',
   };
 }
@@ -76,7 +77,7 @@ async function createDossier(
 
   const c = await adapter.create<DBRecoveryCase>('recoveryCases', {
     numeroRef: data.numeroRef || `REC-${Date.now()}`,
-    clientId: (data as any).clientId || data.id || '',
+    clientId: (data as unknown as { clientId?: string }).clientId || data.id || '',
     clientName: data.client || '',
     montantPrincipal: data.montantPrincipal || 0,
     interets: data.interets || 0,
@@ -90,7 +91,7 @@ async function createDossier(
     actions: [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-  } as any);
+  } as Omit<DBRecoveryCase, 'id'>);
 
   return caseToPublic(c);
 }
@@ -144,7 +145,7 @@ async function addAction(
 
   const newAction: Action = {
     id: crypto.randomUUID(),
-    type: (action.type as any) || 'EMAIL',
+    type: (action.type as Action['type']) || 'EMAIL',
     date: action.date || new Date().toISOString().split('T')[0],
     responsable: action.responsable || '',
     resultat: action.resultat || '',
@@ -182,8 +183,8 @@ async function getCreances(adapter: DataAdapter): Promise<Creance[]> {
       if (!line.accountCode.startsWith('411')) continue;
       const key = line.accountCode;
       const existing = clientBalances.get(key) || { debit: 0, credit: 0, name: line.accountName, lastDate: entry.date };
-      existing.debit += line.debit;
-      existing.credit += line.credit;
+      existing.debit = money(existing.debit).add(money(line.debit)).toNumber();
+      existing.credit = money(existing.credit).add(money(line.credit)).toNumber();
       if (entry.date > existing.lastDate) existing.lastDate = entry.date;
       // Track the latest due date from line-level dateEcheance
       if (line.dateEcheance && (!existing.dateEcheance || line.dateEcheance > existing.dateEcheance)) {

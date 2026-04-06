@@ -30,7 +30,7 @@ const ManagerDashboard: React.FC = () => {
 
   useEffect(() => {
     const load = async () => {
-      const entries = await adapter.getAll('journalEntries') as any[];
+      const entries = await adapter.getAll('journalEntries') as { date: string; status: string; lines: Array<{ accountCode: string; debit: number; credit: number }> }[];
       // Revenue: credit on class 7
       let revenue = 0;
       let expenses = 0;

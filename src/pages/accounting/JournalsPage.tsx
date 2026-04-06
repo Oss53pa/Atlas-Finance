@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -67,7 +68,6 @@ const JournalsPage: React.FC = () => {
         const entries = await adapter.getAll<any>('journalEntries');
         setDbEntries(entries);
       } catch (err) {
-        console.error('Erreur chargement journaux:', err);
       }
     };
     loadData();
@@ -439,7 +439,6 @@ const JournalsPage: React.FC = () => {
       toast.success(t('messages.saveSuccess'));
       setShowEditEntryModal(false);
     } catch (error: unknown) {
-      console.error('Erreur lors du reversement:', error);
       toast.error((error instanceof Error ? error.message : undefined) || t('messages.saveError'));
     }
   };

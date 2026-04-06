@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * PAGE EXEMPLE - GESTION DES COMPTES BANCAIRES
  *
@@ -122,7 +123,6 @@ const BankAccountsExamplePage: React.FC = () => {
       // ✅ Toast de succès automatique via le service !
     } catch (error) {
       // ✅ Toast d'erreur automatique via le service !
-      console.error('Erreur création:', error);
     }
   };
 
@@ -132,7 +132,6 @@ const BankAccountsExamplePage: React.FC = () => {
       setEditingAccount(null);
       // ✅ Cache invalidé automatiquement !
     } catch (error) {
-      console.error('Erreur mise à jour:', error);
     }
   };
 
@@ -143,7 +142,6 @@ const BankAccountsExamplePage: React.FC = () => {
       await deleteAccount.mutateAsync(id);
       // ✅ Cache invalidé automatiquement !
     } catch (error) {
-      console.error('Erreur suppression:', error);
     }
   };
 

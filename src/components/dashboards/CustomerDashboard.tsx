@@ -195,7 +195,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
     customerService.exportDashboard({
       companyId,
       fiscalYearId,
-      filters: filters as any,
+      filters: filters as unknown as Record<string, unknown>,
       format,
       view: selectedView
     });

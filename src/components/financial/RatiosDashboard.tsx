@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useData } from '../../contexts/DataContext';
@@ -264,7 +265,7 @@ const RatiosDashboard: React.FC = () => {
         <div className="flex space-x-4">
           <select
             value={selectedView}
-            onChange={(e) => setSelectedView(e.target.value as any)}
+            onChange={(e) => setSelectedView(e.target.value as typeof selectedView)}
             className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500"
           >
             <option value="grid">Grille</option>

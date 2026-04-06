@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * ScoreCreditClient — Scoring crédit client IA (modèle logistique offline)
  */
@@ -99,7 +99,7 @@ export const scoreCreditTools: Record<string, ToolDefinition> = {
       },
     },
     execute: async (args, adapter) => {
-      const data = args as any;
+      const data = args as Record<string, unknown>;
 
       // Enrichir depuis les données réelles si adapter disponible et client_id fourni
       if (adapter && data.client_id) {
@@ -121,7 +121,7 @@ export const scoreCreditTools: Record<string, ToolDefinition> = {
         } catch (_) { /* fallback to provided data */ }
       }
 
-      return JSON.stringify(scorerClient(data as DonneesClient));
+      return JSON.stringify(scorerClient(data as unknown as DonneesClient));
     },
   },
 };

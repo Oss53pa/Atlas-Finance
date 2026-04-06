@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * fiscalDeclarationTools — Tools PROPH3T pour le moteur fiscal.
  * Dashboard fiscal, calcul de taxes, alertes retard, historique.

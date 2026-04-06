@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * Dashboard Client Atlas Studio — layout principal après login.
  * Sidebar avec modules + contenu central.

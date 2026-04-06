@@ -1,6 +1,8 @@
 // @ts-nocheck
+
 import React, { useState, useMemo } from 'react'; // Palette Atlas F&A appliquée
 import { toast } from 'sonner';
+import { supabase } from '@/lib/supabase';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { useData } from '../../contexts/DataContext';
@@ -262,11 +264,13 @@ const AssetsRegistry: React.FC = () => {
     try {
       // Simulation d'appel API vers le système de capitation
       // En production, remplacer par un vrai appel API
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
       const response = await fetch(`/api/capitation/${capitationId || 'current'}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
         }
       });
 
@@ -287,7 +291,6 @@ const AssetsRegistry: React.FC = () => {
         }));
       }
     } catch (error) {
-      console.error('Erreur lors de la récupération des données de capitation:', error);
       // Données mock pour développement
       const mockCapitationData = {
         capital_appropriation_number: 'CAR-2024-AUTO-001',
@@ -305,11 +308,13 @@ const AssetsRegistry: React.FC = () => {
   const fetchWiseFMData = async (contractId?: string) => {
     try {
       // Simulation d'appel API vers WiseFM
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
       const response = await fetch(`/api/wisefm/contracts/${contractId || 'current'}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
         }
       });
 
@@ -329,7 +334,6 @@ const AssetsRegistry: React.FC = () => {
         }));
       }
     } catch (error) {
-      console.error('Erreur lors de la récupération des données WiseFM:', error);
       // Données mock pour développement
       const mockWiseFMData = {
         technician: 'Amadou Diallo',

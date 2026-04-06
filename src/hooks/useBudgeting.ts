@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * HOOKS REACT QUERY - BUDGET, ANALYTIQUE, FISCALITE
  *

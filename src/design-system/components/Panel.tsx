@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * Atlas F&A Design System - Panel Component
  * Flexible panel component for layout sections and content areas

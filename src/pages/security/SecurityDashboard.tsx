@@ -50,7 +50,7 @@ const SecurityDashboard: React.FC = () => {
           utilisateurs_mfa: 0,
           alertes_securite: alertEvents.length,
         };
-      } catch {
+      } catch (err) { /* silent */
         return {
           utilisateurs_actifs: 0,
           total_utilisateurs: 0,
@@ -78,7 +78,7 @@ const SecurityDashboard: React.FC = () => {
           niveau_gravite: (log.action || '').toLowerCase().includes('error') ? 'high' :
                          (log.action || '').toLowerCase().includes('delete') ? 'medium' : 'low',
         }));
-      } catch {
+      } catch (err) { /* silent */
         return [] as Array<{ id: string; type_evenement: string; description: string; utilisateur?: { nom: string; prenom: string }; adresse_ip: string; timestamp: string; niveau_gravite: string }>;
       }
     },
@@ -107,7 +107,7 @@ const SecurityDashboard: React.FC = () => {
           actions_24h: last24h.length,
           duree_moyenne_session: '-',
         };
-      } catch {
+      } catch (err) { /* silent */
         return {
           connexions_24h: 0,
           echecs_connexion_24h: 0,
@@ -136,7 +136,7 @@ const SecurityDashboard: React.FC = () => {
           date_creation: log.timestamp || log.createdAt || new Date().toISOString(),
           actions_recommandees: 'Vérifier les logs système',
         }));
-      } catch {
+      } catch (err) { /* silent */
         return [] as Array<{ id: string; titre: string; description: string; statut: string; date_creation: string; actions_recommandees?: string }>;
       }
     },

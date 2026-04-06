@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * Accounting Complete Service - Supabase Direct
  * Full accounting functionality via Supabase PostgREST + RPC
@@ -185,7 +186,7 @@ class ChartOfAccountsService {
         sortOrder: 'asc',
       });
       return { results: result.data, count: result.total };
-    } catch {
+    } catch (err) { /* silent */
       return { results: [], count: 0 };
     }
   }
@@ -193,7 +194,7 @@ class ChartOfAccountsService {
   async getById(id: string): Promise<ChartOfAccount | null> {
     try {
       return await getById<ChartOfAccount>('chart_of_accounts', id);
-    } catch {
+    } catch (err) { /* silent */
       return null;
     }
   }
@@ -220,7 +221,7 @@ class ChartOfAccountsService {
 
       if (error) throw error;
       return (data || []) as ChartOfAccount[];
-    } catch {
+    } catch (err) { /* silent */
       return [];
     }
   }
@@ -233,7 +234,7 @@ class ChartOfAccountsService {
         p_limit: limit,
       });
       return result || [];
-    } catch {
+    } catch (err) { /* silent */
       return [];
     }
   }
@@ -258,7 +259,7 @@ class JournalsService {
         sortOrder: 'asc',
       });
       return { results: result.data, count: result.total };
-    } catch {
+    } catch (err) { /* silent */
       return { results: [], count: 0 };
     }
   }
@@ -266,7 +267,7 @@ class JournalsService {
   async getById(id: string): Promise<Journal | null> {
     try {
       return await getById<Journal>('journals', id);
-    } catch {
+    } catch (err) { /* silent */
       return null;
     }
   }
@@ -306,7 +307,7 @@ class AccountingEntriesService {
         sortOrder: 'desc',
       });
       return { results: result.data, count: result.total };
-    } catch {
+    } catch (err) { /* silent */
       return { results: [], count: 0 };
     }
   }
@@ -338,7 +339,7 @@ class AccountingEntriesService {
       }
 
       return data as AccountingEntry;
-    } catch {
+    } catch (err) { /* silent */
       return null;
     }
   }
@@ -442,7 +443,7 @@ class EntryLinesService {
         account_code: line.account?.code,
         account_name: line.account?.name,
       }));
-    } catch {
+    } catch (err) { /* silent */
       return [];
     }
   }
@@ -476,7 +477,7 @@ class AccountingReportsService {
         p_end: params?.date_to || new Date().toISOString().split('T')[0],
       });
       return result || [];
-    } catch {
+    } catch (err) { /* silent */
       return [];
     }
   }
@@ -492,7 +493,7 @@ class AccountingReportsService {
         { debit: 0, credit: 0 }
       );
       return { accounts, totals };
-    } catch {
+    } catch (err) { /* silent */
       return { accounts: [], totals: { debit: 0, credit: 0 } };
     }
   }
@@ -511,7 +512,7 @@ class AccountingReportsService {
       ]);
 
       return { entries: ledger || [], account };
-    } catch {
+    } catch (err) { /* silent */
       return { entries: [], account: null };
     }
   }
@@ -523,7 +524,7 @@ class AccountingReportsService {
         p_fiscal_year_id: params?.fiscal_year_id,
       });
       return result || { income: [], expenses: [], net_income: 0 };
-    } catch {
+    } catch (err) { /* silent */
       return { income: [], expenses: [], net_income: 0 };
     }
   }
@@ -535,7 +536,7 @@ class AccountingReportsService {
         p_fiscal_year_id: params?.fiscal_year_id,
       });
       return result || { assets: [], liabilities: [], equity: [] };
-    } catch {
+    } catch (err) { /* silent */
       return { assets: [], liabilities: [], equity: [] };
     }
   }

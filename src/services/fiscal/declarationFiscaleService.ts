@@ -84,32 +84,32 @@ export async function calculerTVAMensuelle(
   const accountTotals = new Map<string, { debit: number; credit: number }>();
 
   for (const entry of entries) {
-    for (const line of (entry as any).lines || []) {
+    for (const line of (entry as unknown as { lines: Array<{ accountCode: string; debit: number; credit: number }> }).lines || []) {
       const code = line.accountCode || '';
 
       // TVA collectee (443x)
       if (code.startsWith('443')) {
-        tvaCollectee += line.credit - line.debit;
+        tvaCollectee = money(tvaCollectee).add(money(line.credit).subtract(money(line.debit))).toNumber();
         const existing = accountTotals.get(code) || { debit: 0, credit: 0 };
-        existing.credit += line.credit;
-        existing.debit += line.debit;
+        existing.credit = money(existing.credit).add(money(line.credit)).toNumber();
+        existing.debit = money(existing.debit).add(money(line.debit)).toNumber();
         accountTotals.set(code, existing);
       }
 
       // TVA deductible (445x)
       if (code.startsWith('445')) {
-        tvaDeductible += line.debit - line.credit;
+        tvaDeductible = money(tvaDeductible).add(money(line.debit).subtract(money(line.credit))).toNumber();
         const existing = accountTotals.get(code) || { debit: 0, credit: 0 };
-        existing.credit += line.credit;
-        existing.debit += line.debit;
+        existing.credit = money(existing.credit).add(money(line.credit)).toNumber();
+        existing.debit = money(existing.debit).add(money(line.debit)).toNumber();
         accountTotals.set(code, existing);
       }
 
       // Ventes pour base imposable (701-707)
       if (code.startsWith('70')) {
-        const montantHT = line.credit - line.debit;
+        const montantHT = money(line.credit).subtract(money(line.debit)).toNumber();
         // Heuristique : si un compte 4431 (TVA 18%) est dans la meme ecriture
-        baseImposable18 += montantHT; // Simplification — tout en 18% par defaut
+        baseImposable18 = money(baseImposable18).add(money(montantHT)).toNumber(); // Simplification — tout en 18% par defaut
       }
     }
   }
@@ -122,16 +122,16 @@ export async function calculerTVAMensuelle(
       accountName: isCollectee ? 'TVA collectee' : 'TVA deductible',
       baseHT: 0, // Would need to correlate with sales/purchase lines
       taux: code.includes('18') ? 18 : code.includes('9') ? 9 : 18,
-      montantTVA: isCollectee ? totals.credit - totals.debit : totals.debit - totals.credit,
+      montantTVA: isCollectee ? money(totals.credit).subtract(money(totals.debit)).toNumber() : money(totals.debit).subtract(money(totals.credit)).toNumber(),
       type: isCollectee ? 'collectee' : 'deductible',
     });
   }
 
-  const tvaAPayer = Math.max(0, tvaCollectee - tvaDeductible);
-  const creditTVA = Math.max(0, tvaDeductible - tvaCollectee);
-  const creditTotal = creditReporteMoisPrecedent + creditTVA;
-  const montantNetAPayer = Math.max(0, tvaAPayer - creditReporteMoisPrecedent);
-  const creditAReporter = creditTotal > tvaAPayer ? creditTotal - tvaAPayer : 0;
+  const tvaAPayer = Math.max(0, money(tvaCollectee).subtract(money(tvaDeductible)).toNumber());
+  const creditTVA = Math.max(0, money(tvaDeductible).subtract(money(tvaCollectee)).toNumber());
+  const creditTotal = money(creditReporteMoisPrecedent).add(money(creditTVA)).toNumber();
+  const montantNetAPayer = Math.max(0, money(tvaAPayer).subtract(money(creditReporteMoisPrecedent)).toNumber());
+  const creditAReporter = creditTotal > tvaAPayer ? money(creditTotal).subtract(money(tvaAPayer)).toNumber() : 0;
 
   return {
     periode,
@@ -169,10 +169,10 @@ export async function calculerIS(
   let charges = 0;
 
   for (const entry of entries) {
-    for (const line of (entry as any).lines || []) {
+    for (const line of (entry as unknown as { lines: Array<{ accountCode: string; debit: number; credit: number }> }).lines || []) {
       const code = line.accountCode || '';
-      if (code.startsWith('7')) produits += line.credit - line.debit;
-      if (code.startsWith('6')) charges += line.debit - line.credit;
+      if (code.startsWith('7')) produits = money(produits).add(money(line.credit).subtract(money(line.debit))).toNumber();
+      if (code.startsWith('6')) charges = money(charges).add(money(line.debit).subtract(money(line.credit))).toNumber();
     }
   }
 
@@ -227,10 +227,11 @@ export async function getCreditTVAPrecedent(
     const key = `declaration_tva_${prevPeriode}`;
     const existing = await adapter.getById('settings', key);
     if (existing) {
-      const decl = JSON.parse((existing as any).value);
+      const decl = JSON.parse((existing as unknown as { value: string }).value);
       return decl.creditAReporter || 0;
     }
-  } catch { /* no previous declaration */ }
+  } catch (error) {
+  }
 
   return 0;
 }

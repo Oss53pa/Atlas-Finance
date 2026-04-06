@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * Atlas F&A Catalog — FULL independent section
  * Displays ALL tables, dashboards, charts, KPIs from Atlas F&A.
@@ -128,7 +128,7 @@ function createBlockFromCatalog(item: AtlasCatalogItem): ReportBlock {
           { label: 'EBITDA', value: null, format: 'currency' as const, showTrend: true, showSparkline: false, size: 'medium' as const, locked: false, style: {} },
           { label: 'Trésorerie', value: null, format: 'currency' as const, showTrend: true, showSparkline: false, size: 'medium' as const, locked: false, style: {} },
         ],
-      } as ReportBlock;
+      } as unknown as ReportBlock;
   }
 }
 

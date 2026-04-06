@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useData } from '../../../../../contexts/DataContext';
@@ -84,7 +85,6 @@ export const FundCallExpense: React.FC = () => {
         void enabledUsers;
       }
     } catch (error) {
-      console.error("Error fetching approval info:", error);
     }
   };
 
@@ -152,7 +152,6 @@ export const FundCallExpense: React.FC = () => {
       }
       setIsLoadingCancelable(false);
     } catch (error) {
-      console.error("Error fetching fund call data:", error);
       setIsLoadingCancelable(false);
     }
   };
@@ -184,7 +183,6 @@ export const FundCallExpense: React.FC = () => {
             sweetAlertRef.current?.afficherAlerte('success', DICTIONNARY.EnregistrementEffectueAvecSucces[language]);
           } catch (error) {
             sweetAlertRef.current?.afficherAlerte('error', DICTIONNARY.AnErrorOccurredDuringRegistration[language]);
-            console.error("Error saving fund call:", error);
           }
         }
       }
@@ -208,7 +206,6 @@ export const FundCallExpense: React.FC = () => {
         sweetAlertRef.current?.afficherAlerte('success', DICTIONNARY.EnregistrementEffectueAvecSucces[language]);
       } catch (error) {
         sweetAlertRef.current?.afficherAlerte('error', DICTIONNARY.AnErrorOccurredDuringRegistration[language]);
-        console.error("Error saving fund call:", error);
       }
     }
   };

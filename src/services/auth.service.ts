@@ -21,7 +21,7 @@ export class AuthService {
     };
 
     const response = await authBackendService.login(backendRequest);
-    const user = response.user as any;
+    const user = response.user as Record<string, unknown>;
 
     // Transform backend response to frontend format
     return {
@@ -48,15 +48,15 @@ export class AuthService {
   }
 
   static async register(userData: RegisterRequest): Promise<AuthResponse> {
-    const response = await (authBackendService as any).register({
+    const response = await (authBackendService as unknown as { register(data: Record<string, string>): Promise<{ access: string; refresh: string; user: Record<string, unknown> }> }).register({
       email: userData.email,
       password: userData.password,
-      username: (userData as any).username || userData.email,
+      username: (userData as unknown as { username?: string }).username || userData.email,
       first_name: userData.firstName,
       last_name: userData.lastName,
     });
 
-    const user = response.user as any;
+    const user = response.user as Record<string, unknown>;
 
     // Transform backend response to frontend format
     return {
@@ -83,7 +83,7 @@ export class AuthService {
   }
 
   static async refreshToken(refreshToken: string): Promise<{ accessToken: string }> {
-    const response = await (authBackendService as any).refreshToken(refreshToken);
+    const response = await (authBackendService as unknown as { refreshToken(token: string): Promise<{ access: string }> }).refreshToken(refreshToken);
     return {
       accessToken: response.access,
     };
@@ -98,7 +98,7 @@ export class AuthService {
   }
 
   static async getProfile(): Promise<User> {
-    const response = await authBackendService.getProfile() as any;
+    const response = await authBackendService.getProfile() as unknown as Record<string, unknown>;
 
     // Transform backend response to frontend format
     return {
@@ -125,9 +125,9 @@ export class AuthService {
     if (userData.firstName) backendData.first_name = userData.firstName;
     if (userData.lastName) backendData.last_name = userData.lastName;
     if (userData.phone) backendData.phone = userData.phone;
-    if ((userData as any).avatar) backendData.avatar = (userData as any).avatar;
+    if ((userData as unknown as { avatar?: string }).avatar) backendData.avatar = (userData as unknown as { avatar?: string }).avatar!;
 
-    const response = await (authBackendService as any).updateProfile(backendData) as any;
+    const response = await (authBackendService as unknown as { updateProfile(data: Record<string, string>): Promise<Record<string, unknown>> }).updateProfile(backendData);
 
     // Transform backend response to frontend format
     return {
@@ -150,7 +150,7 @@ export class AuthService {
   }
 
   static async changePassword(passwordData: ChangePasswordRequest): Promise<ApiResponse> {
-    await (authBackendService as any).changePassword(passwordData.currentPassword, passwordData.newPassword);
+    await (authBackendService as unknown as { changePassword(current: string, next: string): Promise<void> }).changePassword(passwordData.currentPassword, passwordData.newPassword);
     return {
       success: true,
       message: 'Password changed successfully',
@@ -158,7 +158,7 @@ export class AuthService {
   }
 
   static async requestPasswordReset(email: string): Promise<ApiResponse> {
-    await (authBackendService as any).resetPassword(email);
+    await (authBackendService as unknown as { resetPassword(email: string): Promise<void> }).resetPassword(email);
     return {
       success: true,
       message: 'Password reset email sent',
@@ -175,7 +175,7 @@ export class AuthService {
   }
 
   static async verifyEmail(token: string): Promise<ApiResponse> {
-    await (authBackendService as any).verifyEmail(token);
+    await (authBackendService as unknown as { verifyEmail(token: string): Promise<void> }).verifyEmail(token);
     return {
       success: true,
       message: 'Email verified successfully',
@@ -183,7 +183,7 @@ export class AuthService {
   }
 
   static async resendVerificationEmail(): Promise<ApiResponse> {
-    await (authBackendService as any).resendVerification();
+    await (authBackendService as unknown as { resendVerification(): Promise<void> }).resendVerification();
     return {
       success: true,
       message: 'Verification email sent',

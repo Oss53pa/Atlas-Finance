@@ -77,7 +77,6 @@ const TopBar: React.FC = () => {
       if (idx >= 0) { saved[idx] = record; } else { saved.push(record); }
       localStorage.setItem('atlas_reports', JSON.stringify(saved));
     } catch (err) {
-      console.error('Save failed:', err);
     } finally {
       setSaving(false);
     }
@@ -85,7 +84,7 @@ const TopBar: React.FC = () => {
 
   const handleExport = useCallback(() => {
     if (!doc) return;
-    exportToPDF(doc).catch(err => console.error('Export PDF failed:', err));
+    exportToPDF(doc).catch(() => {});
   }, [doc]);
 
   if (!doc) return null;

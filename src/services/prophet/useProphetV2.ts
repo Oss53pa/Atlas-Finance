@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * useProphetV2 — React Hook for ProphetV2 AI Service
  *
@@ -111,7 +112,6 @@ export function useProphetV2(defaultCountryCode: string = 'CI') {
         lastInteractionId: interactionId,
       }));
     } catch (error) {
-      console.error('ProphetV2 error:', error);
 
       const errorMessage: ChatMessage = {
         id: uuidv4(),

@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React from 'react';
 import { Info } from 'lucide-react';
 import { AccountingSetting } from '../types/settings.types';

@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { useQuery } from '@tanstack/react-query';
 import { getMyTenant, getMySubscriptions, getEnabledModules } from '../services/tenantService';
 

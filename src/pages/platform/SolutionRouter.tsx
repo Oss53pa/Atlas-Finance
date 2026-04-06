@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * SolutionRouter — dispatche vers la page d'accueil de chaque solution.
  * atlas-fna → AtlasFnAHome (page d'accueil avec KPIs et raccourcis)

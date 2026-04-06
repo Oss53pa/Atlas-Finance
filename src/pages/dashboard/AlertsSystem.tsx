@@ -174,7 +174,6 @@ const AlertsSystem: React.FC = () => {
 
         setAlerts(generatedAlerts);
       } catch (err) {
-        console.error('Erreur chargement alertes:', err);
         setAlerts([]);
       }
     };

@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * Knowledge Base — Paie et cotisations sociales
  * Organismes par pays, taux, barèmes, écritures

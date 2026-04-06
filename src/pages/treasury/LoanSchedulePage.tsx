@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { useToast } from '../../hooks/useToast';
@@ -227,7 +227,7 @@ const LoanSchedulePage: React.FC = () => {
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">M\u00e9thode</label>
             <select
               value={form.method}
-              onChange={(e) => setForm({ ...form, method: e.target.value as any })}
+              onChange={(e) => setForm({ ...form, method: e.target.value as typeof form.method })}
               className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
             >
               <option value="constant_installment">Mensualit\u00e9 constante</option>

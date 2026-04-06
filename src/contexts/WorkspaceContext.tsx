@@ -63,7 +63,7 @@ export const WorkspaceProvider: React.FC<WorkspaceProviderProps> = ({ children }
   useEffect(() => {
     if (isAuthenticated && user?.role && !currentWorkspace) {
       const role = user.role as WorkspaceRole;
-      loadWorkspaceByRole(role).catch(console.error);
+      loadWorkspaceByRole(role).catch(() => {});
     }
   }, [isAuthenticated, user?.role]);
 

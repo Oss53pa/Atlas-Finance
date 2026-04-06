@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * SERVICE GÉNÉRATION DE PDF
  *
@@ -74,7 +75,7 @@ class PDFGeneratorService {
         email: email?.value || '',
         taxId: taxId?.value,
       };
-    } catch {
+    } catch (err) { /* silent */
       return this.defaultCompany;
     }
   }

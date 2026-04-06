@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useData } from '../../contexts/DataContext';
@@ -449,7 +449,7 @@ const AssetsJournal: React.FC = () => {
                           </tr>
                         </thead>
                         <tbody>
-                          {entry.entries.map((line, index) => (
+                          {entry.entries.map((line: any, index: number) => (
                             <tr key={index} className="border-t border-[var(--color-border)]">
                               <td className="py-2 text-sm font-mono">{line.account}</td>
                               <td className="py-2 text-sm">{line.label}</td>

@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import { useState, useEffect } from 'react';
 import { closuresService } from '../services/closuresService';
 import {

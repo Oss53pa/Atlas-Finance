@@ -8,25 +8,28 @@
  */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyAtlasJWT } from "../_shared/jwt.ts";
-import { corsHeaders, jsonResponse, errorResponse } from "../_shared/cors.ts";
+import { getCorsHeaders, jsonResponse, errorResponse } from "../_shared/cors.ts";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const jwtSecret = Deno.env.get("JWT_SECRET")!;
 
 Deno.serve(async (req) => {
+  const origin = req.headers.get('origin') || '';
+  const cors = getCorsHeaders(origin);
+
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response("ok", { headers: cors });
   }
 
   if (req.method !== "POST") {
-    return errorResponse("Method not allowed", 405);
+    return errorResponse("Method not allowed", 405, origin);
   }
 
   try {
     const { token } = await req.json();
     if (!token) {
-      return errorResponse("Token manquant", 400);
+      return errorResponse("Token manquant", 400, origin);
     }
 
     // 1. Validate the Atlas Studio JWT
@@ -69,7 +72,7 @@ Deno.serve(async (req) => {
 
       if (createError || !newUser.user) {
         console.error("Create user error:", createError);
-        return errorResponse("Impossible de créer l'utilisateur", 500);
+        return errorResponse("Impossible de créer l'utilisateur", 500, origin);
       }
       userId = newUser.user.id;
     }
@@ -82,7 +85,7 @@ Deno.serve(async (req) => {
       .single();
 
     if (!adminRole) {
-      return errorResponse("Rôle admin introuvable dans la base", 500);
+      return errorResponse("Rôle admin introuvable dans la base", 500, origin);
     }
 
     const { data: existingProfile } = await supabase
@@ -126,7 +129,7 @@ Deno.serve(async (req) => {
 
     if (linkError || !linkData) {
       console.error("Generate link error:", linkError);
-      return errorResponse("Impossible de générer le lien de connexion", 500);
+      return errorResponse("Impossible de générer le lien de connexion", 500, origin);
     }
 
     // Extract token_hash from the generated link
@@ -137,11 +140,11 @@ Deno.serve(async (req) => {
       token_hash: tokenHash,
       email: claims.email,
       type: "magiclink",
-    });
+    }, 200, origin);
   } catch (error: unknown) {
     const message =
       error instanceof Error ? error.message : "Erreur interne";
     console.error("atlas-sso error:", error);
-    return errorResponse(message, 401);
+    return errorResponse(message, 401, origin);
   }
 });

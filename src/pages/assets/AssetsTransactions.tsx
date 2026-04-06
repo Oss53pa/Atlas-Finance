@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import {
@@ -251,7 +252,7 @@ const AssetsTransactions: React.FC = () => {
             Colonnes
           </ModernButton>
           <ExportMenu
-            data={filteredTransactions}
+            data={filteredTransactions as unknown as Record<string, unknown>[]}
             filename="transactions_immobilisations"
             columns={{
               dateTransaction: 'Date',

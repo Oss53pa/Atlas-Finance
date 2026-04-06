@@ -40,11 +40,12 @@ export const ModernCard: React.FC<ModernCardProps> = ({
 };
 
 interface CardHeaderProps {
-  title: string;
+  title?: string;
   subtitle?: string;
   icon?: LucideIcon;
   action?: React.ReactNode;
   className?: string;
+  children?: React.ReactNode;
 }
 
 export const CardHeader: React.FC<CardHeaderProps> = ({

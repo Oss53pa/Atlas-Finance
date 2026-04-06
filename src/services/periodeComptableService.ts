@@ -36,10 +36,10 @@ export async function createPeriodes(
   adapter: DataAdapter,
   fiscalYearId: string,
 ): Promise<PeriodeComptable[]> {
-  const fy = await adapter.getById('fiscalYears', fiscalYearId);
+  const fy = await adapter.getById<{ startDate: string }>('fiscalYears', fiscalYearId);
   if (!fy) throw new Error('Exercice fiscal non trouvé');
 
-  const start = new Date((fy as any).startDate);
+  const start = new Date(fy.startDate);
   const periodes: PeriodeComptable[] = [];
 
   for (let i = 0; i < 12; i++) {
@@ -62,7 +62,7 @@ export async function createPeriodes(
   }
 
   for (const p of periodes) {
-    await adapter.create('fiscalPeriods', p as any);
+    await adapter.create<PeriodeComptable>('fiscalPeriods', p as Omit<PeriodeComptable, 'id'>);
   }
 
   return periodes;
@@ -76,17 +76,17 @@ export async function closePeriode(
   periodeId: string,
   userId?: string,
 ): Promise<void> {
-  const periode = await adapter.getById('fiscalPeriods', periodeId);
+  const periode = await adapter.getById<PeriodeComptable>('fiscalPeriods', periodeId);
   if (!periode) throw new Error('Période comptable non trouvée');
-  if ((periode as any).status === 'closed') {
+  if (periode.status === 'closed') {
     throw new Error('Cette période est déjà clôturée');
   }
 
-  await adapter.update('fiscalPeriods', periodeId, {
+  await adapter.update<PeriodeComptable>('fiscalPeriods', periodeId, {
     status: 'closed',
     closedAt: new Date().toISOString(),
     closedBy: userId,
-  } as any);
+  });
 }
 
 /**
@@ -97,17 +97,17 @@ export async function reopenPeriode(
   periodeId: string,
   userId?: string,
 ): Promise<void> {
-  const periode = await adapter.getById('fiscalPeriods', periodeId);
+  const periode = await adapter.getById<PeriodeComptable>('fiscalPeriods', periodeId);
   if (!periode) throw new Error('Période comptable non trouvée');
-  if ((periode as any).status !== 'closed') {
+  if (periode.status !== 'closed') {
     throw new Error('Seule une période clôturée peut être réouverte');
   }
 
-  await adapter.update('fiscalPeriods', periodeId, {
+  await adapter.update<PeriodeComptable>('fiscalPeriods', periodeId, {
     status: 'open',
     reopenedAt: new Date().toISOString(),
     reopenedBy: userId,
-  } as any);
+  });
 }
 
 /**
@@ -117,8 +117,8 @@ export async function getPeriodeStatus(
   adapter: DataAdapter,
   date: string,
 ): Promise<'open' | 'closed' | 'locked' | 'no_period'> {
-  const allPeriods = await adapter.getAll('fiscalPeriods');
-  const matching = (allPeriods as any[]).find(
+  const allPeriods = await adapter.getAll<PeriodeComptable>('fiscalPeriods');
+  const matching = allPeriods.find(
     p => date >= p.startDate && date <= p.endDate,
   );
 
@@ -133,8 +133,8 @@ export async function getPeriodesForFiscalYear(
   adapter: DataAdapter,
   fiscalYearId: string,
 ): Promise<PeriodeComptable[]> {
-  const allPeriods = await adapter.getAll('fiscalPeriods');
-  return (allPeriods as any[])
+  const allPeriods = await adapter.getAll<PeriodeComptable>('fiscalPeriods');
+  return allPeriods
     .filter(p => p.fiscalYearId === fiscalYearId)
     .sort((a, b) => a.startDate.localeCompare(b.startDate));
 }

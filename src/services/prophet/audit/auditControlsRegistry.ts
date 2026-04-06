@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * auditControlsRegistry — Registry typé des 108 contrôles audit SYSCOHADA.
  */

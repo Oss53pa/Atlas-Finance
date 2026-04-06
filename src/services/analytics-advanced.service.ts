@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * Analytics Advanced Service - Stub
  * Provides global KPI analytics across modules
@@ -30,8 +30,8 @@ class AnalyticsAdvancedService {
 
   async getGlobalKPIs(params: GlobalKPIParams): Promise<GlobalKPIs> {
     try {
-      const response = await apiService.get(`${this.BASE_PATH}/global-kpis/`, { params });
-      return response.data;
+      const response = await apiService.get(`${this.BASE_PATH}/global-kpis/`, { params: params as unknown as Record<string, unknown> });
+      return response.data as GlobalKPIs;
     } catch (error) {
       // Return default values if API fails
       return {

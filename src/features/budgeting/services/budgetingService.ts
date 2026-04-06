@@ -22,7 +22,7 @@ async function loadSessions(adapter: DataAdapter): Promise<BudgetSession[]> {
   if (!setting) return [];
   try {
     return JSON.parse(setting.value) as BudgetSession[];
-  } catch {
+  } catch (err) { /* silent */
     return [];
   }
 }

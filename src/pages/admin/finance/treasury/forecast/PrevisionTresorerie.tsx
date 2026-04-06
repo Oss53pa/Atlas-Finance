@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState, useEffect } from 'react';
 import { useData } from '../../../../../contexts/DataContext';
 import { formatDate } from '../../../../../utils/formatters';
@@ -52,12 +53,12 @@ export const PrevisionTresorerie: React.FC = () => {
 
     useEffect(() => {
         const load = async () => {
-            const setting = await adapter.getById('settings', 'treasury_plans') as any;
+            const setting = await adapter.getById<{ value: string }>('settings', 'treasury_plans');
             if (!setting) { setPlansFromDb([]); return; }
             try {
                 const parsed: TreasuryPlan[] = JSON.parse(setting.value);
                 setPlansFromDb(Array.isArray(parsed) ? parsed : []);
-            } catch {
+            } catch (err) { /* silent */
                 setPlansFromDb([]);
             }
         };

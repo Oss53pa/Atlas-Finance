@@ -90,7 +90,7 @@ const SIGView: React.FC = () => {
           addedValueRate: safe(va, ca), operatingMarginRate: safe(re, ca), netMarginRate: safe(rn, ca),
           revenueBase: Math.round(ca), status: entries.length > 0 ? 'validated' : 'draft', lastCalculation: today
         }]);
-      } catch { /* empty */ }
+      } catch (err) { /* silent */ /* empty */ }
     };
     load();
   }, [adapter]);

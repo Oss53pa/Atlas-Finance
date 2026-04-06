@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * calculationTools — Les 8 tools de calcul fiscal/comptable existants,
  * extraits du switch-case ProphetV2 dans le format ToolRegistry.

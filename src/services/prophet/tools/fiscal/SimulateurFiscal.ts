@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * SimulateurFiscal — Simulation what-if d'impact fiscal
  * Couvre les 17 pays OHADA
@@ -131,7 +131,7 @@ export const simulateurFiscalTools: Record<string, ToolDefinition> = {
       },
     },
     execute: async (args, adapter) => {
-      const { type, parametres, pays, exercice_cible } = args as any;
+      const { type, parametres, pays, exercice_cible } = args as Record<string, any>;
 
       // Enrichir les paramètres avec le résultat réel si disponible
       if (adapter && !parametres.resultat_avant_operation) {

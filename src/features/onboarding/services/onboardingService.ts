@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * Service d'onboarding Atlas Studio.
  * Gère : création org, solutions, subscriptions, invitations.
@@ -128,7 +129,6 @@ export async function sendInvitation(email: string, roleCode: string): Promise<I
       },
     });
   } catch (e) {
-    console.warn('[Onboarding] Email send failed (non-blocking):', e);
   }
 
   return data;
@@ -191,7 +191,7 @@ export async function getTeamMembers(): Promise<TeamMember[]> {
     id: p.id,
     email: p.email || '',
     full_name: p.full_name || p.email || '',
-    role_code: (p.role as any)?.code || 'user',
+    role_code: (p.role as unknown as { code?: string })?.code || 'user',
     is_active: p.is_active,
     created_at: p.created_at,
   }));

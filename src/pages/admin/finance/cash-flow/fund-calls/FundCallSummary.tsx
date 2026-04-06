@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState, useEffect } from 'react';
 import { useData } from '../../../../../contexts/DataContext';
 import { useFinanceContext } from '../../../../../contexts/FinanceContext';
@@ -68,7 +69,7 @@ export const FundCallSummary: React.FC = () => {
   useEffect(() => {
     const load = async () => {
       if (!fundCallG.id) { setSummaryFromDb(null); return; }
-      const setting = await adapter.getById('settings', 'fund_call_summaries') as any;
+      const setting = await adapter.getById<{ value: string }>('settings', 'fund_call_summaries');
       if (!setting) { setSummaryFromDb(null); return; }
       try {
         const parsed = JSON.parse(setting.value);
@@ -76,7 +77,7 @@ export const FundCallSummary: React.FC = () => {
         setSummaryFromDb(summaries.find(
           (s: Record<string, unknown>) => String(s.id) === String(fundCallG.id)
         ) ?? null);
-      } catch {
+      } catch (err) { /* silent */
         setSummaryFromDb(null);
       }
     };

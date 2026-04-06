@@ -234,7 +234,6 @@ export function usePrint(options: PrintOptions = {}): PrintReturn {
       }, 100);
 
     } catch (error) {
-      console.error('Erreur lors de l\'impression:', error);
       setIsPrinting(false);
 
       if (onError) {

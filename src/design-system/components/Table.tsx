@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * Atlas F&A Design System - Table Component
  * Comprehensive table component with sorting, filtering, and pagination

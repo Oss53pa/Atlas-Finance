@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * Result Affectation Service — Legal distribution of annual results.
  * Handles profit/loss allocation to reserves, dividends, and carry-forward
@@ -47,19 +47,19 @@ export interface AffectationSimulation extends AffectationResultat {
  * Compute net result for a fiscal year: sum of class 7 credits minus class 6 debits.
  */
 async function computeNetResult(adapter: DataAdapter, fiscalYearId: string): Promise<number> {
-  const fiscalYear = await adapter.getById('fiscalYears', fiscalYearId);
+  const fiscalYear = await adapter.getById('fiscalYears', fiscalYearId) as unknown as { startDate: string; endDate: string } | null;
   if (!fiscalYear) throw new Error(`Exercice ${fiscalYearId} introuvable`);
 
-  const allEntries = await adapter.getAll('journalEntries');
+  const allEntries = await adapter.getAll<{ date: string; lines: DBJournalLine[] }>('journalEntries');
   const entries = allEntries.filter(
-    (e: any) => e.date >= fiscalYear.startDate && e.date <= fiscalYear.endDate
+    (e) => e.date >= fiscalYear.startDate && e.date <= fiscalYear.endDate
   );
 
   let totalClass7Credit = money(0);
   let totalClass6Debit = money(0);
 
   for (const entry of entries) {
-    for (const line of (entry as any).lines as DBJournalLine[]) {
+    for (const line of entry.lines) {
       const classCode = line.accountCode.charAt(0);
       if (classCode === '7') {
         totalClass7Credit = totalClass7Credit.add(money(line.credit)).subtract(money(line.debit));
@@ -76,19 +76,19 @@ async function computeNetResult(adapter: DataAdapter, fiscalYearId: string): Pro
  * Get the total capital social (accounts starting with '101').
  */
 async function getCapitalSocial(adapter: DataAdapter): Promise<number> {
-  const accounts = await adapter.getAll('accounts');
-  const capitalAccounts = (accounts as any[]).filter(
+  const accounts = await adapter.getAll<{ code: string }>('accounts');
+  const capitalAccounts = accounts.filter(
     (a) => a.code.startsWith('101')
   );
 
   if (capitalAccounts.length === 0) return 0;
 
-  const allEntries = await adapter.getAll('journalEntries');
+  const allEntries = await adapter.getAll<{ lines: DBJournalLine[] }>('journalEntries');
   let total = money(0);
 
   for (const entry of allEntries) {
-    for (const line of (entry as any).lines as DBJournalLine[]) {
-      if (capitalAccounts.some((a: any) => a.code === line.accountCode)) {
+    for (const line of entry.lines) {
+      if (capitalAccounts.some((a) => a.code === line.accountCode)) {
         // Capital accounts are normally credit-balance
         total = total.add(money(line.credit)).subtract(money(line.debit));
       }
@@ -102,11 +102,11 @@ async function getCapitalSocial(adapter: DataAdapter): Promise<number> {
  * Get the current legal reserve balance (account '111').
  */
 async function getReserveLegaleActuelle(adapter: DataAdapter): Promise<number> {
-  const allEntries = await adapter.getAll('journalEntries');
+  const allEntries = await adapter.getAll<{ lines: DBJournalLine[] }>('journalEntries');
   let total = money(0);
 
   for (const entry of allEntries) {
-    for (const line of (entry as any).lines as DBJournalLine[]) {
+    for (const line of entry.lines) {
       if (line.accountCode === '111') {
         // Reserve is credit-balance
         total = total.add(money(line.credit)).subtract(money(line.debit));

@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState, useEffect, useRef, FormEvent, ChangeEvent } from 'react';
 import Modal from '../../../../../components/common/BootstrapModal';
 import { ModalGlobalTemplateBtn } from '../../../../../components/common/ModalGlobalTemplate';
@@ -143,7 +144,6 @@ export const FinanceCashFlowFundCalls: React.FC = () => {
             setFundsCall([]);
             setLoading(false);
         } catch (error) {
-            console.error("Error fetching data:", (error as Error).message);
         }
     };
 
@@ -167,7 +167,6 @@ export const FinanceCashFlowFundCalls: React.FC = () => {
                 sweetAlertRef.current.afficherAlerte('success', DICTIONNARY.SuppressionEffectueAvecSucces[language]);
             } catch (error) {
                 sweetAlertRef.current.afficherAlerte('error', DICTIONNARY.AnErrorOccurredDuringRegistration[language]);
-                console.error("Error:", (error as Error).message);
             }
         }
     };
@@ -369,7 +368,6 @@ const FundCallForm: React.FC<FundCallFormProps> = (props) => {
             setAccounts([]);
             setLoading(false);
         } catch (error) {
-            console.error("Error fetching data:", (error as Error).message);
         }
     };
 
@@ -414,7 +412,6 @@ const FundCallForm: React.FC<FundCallFormProps> = (props) => {
                 resetFormData();
             } catch (error) {
                 sweetAlertRef.current.afficherAlerte('error', DICTIONNARY.AnErrorOccurredDuringRegistration[language]);
-                console.error("Error saving fund call:", error);
             }
         }
     };

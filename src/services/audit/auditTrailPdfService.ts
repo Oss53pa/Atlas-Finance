@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * Service d'export PDF de la piste d'audit.
  *
@@ -275,7 +276,7 @@ export async function downloadAuditTrailPdf(adapter: DataAdapter, options: Audit
 function formatDate(iso: string): string {
   try {
     return new Date(iso).toLocaleDateString('fr-FR');
-  } catch {
+  } catch (err) { /* silent */
     return iso;
   }
 }
@@ -284,7 +285,7 @@ function formatDateTime(iso: string): string {
   try {
     const d = new Date(iso);
     return d.toLocaleDateString('fr-FR') + ' ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-  } catch {
+  } catch (err) { /* silent */
     return iso;
   }
 }
@@ -294,7 +295,7 @@ function truncate(str: string, max: number): string {
   try {
     const parsed = JSON.parse(str);
     str = typeof parsed === 'object' ? Object.keys(parsed).join(', ') : String(parsed);
-  } catch {
+  } catch (err) { /* silent */
     // not JSON, use as-is
   }
   return str.length > max ? str.substring(0, max - 3) + '...' : str;

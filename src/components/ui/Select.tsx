@@ -4,6 +4,7 @@ import { cn } from '../../utils/cn';
 
 interface SelectProps {
   value?: string;
+  defaultValue?: string;
   onValueChange?: (value: string) => void;
   children: React.ReactNode;
 }

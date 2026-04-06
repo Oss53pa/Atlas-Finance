@@ -36,7 +36,6 @@ async function tryRPC(adapter: DataAdapter, rpcName: string, params: Record<stri
     }
     return null;
   } catch (err) {
-    console.warn(`[FinancialStatements] RPC ${rpcName} failed, falling back to JS calculation:`, err);
     return null;
   }
 }
@@ -662,7 +661,7 @@ class FinancialStatementsService {
         const isProvisoire = !(await this.isEtatDefinitif(adapter, exercice));
         const societe = await this.getSocieteInfo(adapter);
         return generateEtatPDF('bilan', data, societe, isProvisoire);
-      } catch {
+      } catch (err) { /* silent */
         // Fallback to JSON if PDF generation fails
       }
     }
@@ -719,7 +718,7 @@ class FinancialStatementsService {
       hashHex = Array.from(new Uint8Array(hashBuffer))
         .map(b => b.toString(16).padStart(2, '0'))
         .join('');
-    } catch {
+    } catch (err) { /* silent */
       hashHex = `fallback-${Date.now()}`;
     }
 
@@ -784,7 +783,7 @@ class FinancialStatementsService {
           adresse: info.adresse || '',
         };
       }
-    } catch { /* use defaults */ }
+    } catch (err) { /* silent */ /* use defaults */ }
     return { name: 'Société', nif: '', rccm: '', exercice: new Date().getFullYear().toString(), adresse: '' };
   }
 }

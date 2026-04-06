@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useEffect } from 'react';
 import {
@@ -348,7 +348,7 @@ const StockManagement: React.FC = () => {
   useEffect(() => {
     const load = async () => {
       const items = await adapter.getAll('inventoryItems');
-      setInventoryItems(items as any[]);
+      setInventoryItems(items as Record<string, unknown>[]);
     };
     load();
   }, [adapter]);
@@ -464,7 +464,7 @@ const StockManagement: React.FC = () => {
 
   const handleStockAction = (stock: StockLevelWithItem, action: 'view' | 'adjust' | 'transfer') => {
     setSelectedStock(stock);
-    setModalType(action);
+    setModalType(action === 'adjust' ? 'adjustment' : action);
     setIsModalOpen(true);
   };
 
@@ -508,7 +508,7 @@ const StockManagement: React.FC = () => {
 
         <div className="flex gap-4 mt-4 lg:mt-0">
           <ExportButton
-            data={filteredAndSortedData}
+            data={filteredAndSortedData as unknown as Record<string, unknown>[]}
             filename="stock_levels"
             title="Stock Levels Report"
           />

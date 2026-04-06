@@ -65,10 +65,11 @@ export function calculerAmortissements(input: DepreciationInput): DepreciationRe
 
     // AF-I06: VNC ne peut jamais être négative
     const maxDotation = baseAmortissable.subtract(money(asset.cumulDepreciation || 0)).toNumber();
-    dotation = Math.min(dotation, Math.max(maxDotation, 0));
+    const clampedMax = maxDotation > 0 ? maxDotation : 0;
+    dotation = money(dotation).greaterThan(money(clampedMax)) ? clampedMax : dotation;
     if (dotation <= 0) continue;
 
-    const vnc = coutAcquisition.subtract(money((asset.cumulDepreciation || 0) + dotation)).toNumber()
+    const vnc = coutAcquisition.subtract(money(asset.cumulDepreciation || 0).add(money(dotation))).toNumber()
 
     details.push({
       assetId: asset.id,
@@ -96,7 +97,7 @@ export function calculerAmortissements(input: DepreciationInput): DepreciationRe
       credit: dotation,
     })
 
-    totalDotation += dotation
+    totalDotation = money(totalDotation).add(money(dotation)).toNumber()
   }
 
   return { lines, details, totalDotation }

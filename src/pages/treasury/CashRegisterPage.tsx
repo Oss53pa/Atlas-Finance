@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { useToast } from '../../hooks/useToast';
@@ -243,7 +243,7 @@ const CashRegisterPage: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
               <select
                 value={movementForm.type}
-                onChange={(e) => setMovementForm({ ...movementForm, type: e.target.value as any })}
+                onChange={(e) => setMovementForm({ ...movementForm, type: e.target.value as typeof movementForm.type })}
                 className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-white"
               >
                 {Object.entries(MOVEMENT_TYPE_LABELS).map(([k, v]) => (

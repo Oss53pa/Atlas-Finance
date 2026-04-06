@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Shield, Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react';
@@ -16,7 +16,7 @@ const AdminLoginPage: React.FC = () => {
   // Si déjà connecté en tant que superadmin → rediriger
   useEffect(() => {
     if (isAuthenticated && user) {
-      if (user.role === 'super_admin' || user.role === 'admin') {
+      if ((user.role as string) === 'super_admin' || user.role === 'admin') {
         navigate('/admin-console', { replace: true });
       }
     }

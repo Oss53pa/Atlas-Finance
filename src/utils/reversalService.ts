@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * Journal Entry Reversal (Contrepassation) Service
  * SYSCOHADA Article 19 — Validated entries cannot be modified or deleted.
@@ -103,7 +103,7 @@ export async function reverseEntry(adapter: DataAdapter, request: ReversalReques
     })
   );
 
-  const reversalEntry = await adapter.getById<DBJournalEntry>('journalEntries', reversalId);
+  const reversalEntry = await adapter.getById<DBJournalEntry>('journalEntries', reversalId) ?? undefined;
   return { success: true, reversalEntry };
 }
 

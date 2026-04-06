@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState, useMemo } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { useQuery } from '@tanstack/react-query';
@@ -66,16 +67,16 @@ const EcheancesFiscalesPage: React.FC = () => {
     queryKey: ['fiscal-deadlines', currentYear],
     queryFn: async (): Promise<FiscalDeadline[]> => {
       const [declarations, registries] = await Promise.all([
-        adapter.getAll('taxDeclarations'),
-        adapter.getAll('taxRegistry'),
+        adapter.getAll<Record<string, unknown>>('taxDeclarations'),
+        adapter.getAll<Record<string, unknown>>('taxRegistry'),
       ]);
 
       const todayStr = new Date().toISOString().split('T')[0];
       const result: FiscalDeadline[] = [];
 
       // From existing tax declarations
-      for (const decl of (declarations as any[])) {
-        const reg = (registries as any[]).find(r => r.id === decl.taxRegistryId || r.taxCode === decl.taxCode);
+      for (const decl of declarations) {
+        const reg = registries.find(r => r.id === decl.taxRegistryId || r.taxCode === decl.taxCode);
 
         let status: DeadlineStatus;
         switch (decl.status) {
@@ -108,8 +109,8 @@ const EcheancesFiscalesPage: React.FC = () => {
       }
 
       // If no declarations exist, generate from registry for current year
-      if (result.length === 0 && (registries as any[]).length > 0) {
-        for (const reg of (registries as any[])) {
+      if (result.length === 0 && registries.length > 0) {
+        for (const reg of registries) {
           if (!reg.isActive) continue;
           const months = reg.periodicity === 'MONTHLY' ? 12
             : reg.periodicity === 'QUARTERLY' ? 4
@@ -535,7 +536,6 @@ const EcheancesFiscalesPage: React.FC = () => {
                     setShowConfig(false);
                     setConfigForm({ taxCode: '', taxName: '', deadline: '', periodicite: 'MONTHLY', montant: '', category: 'INDIRECT' });
                   } catch (err) {
-                    console.error('[FiscalCalendar] save failed:', err);
                     toast.error('Erreur lors de la programmation');
                   }
                 }}

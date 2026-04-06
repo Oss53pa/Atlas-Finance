@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * Démo interactive : Déclaration TVA automatique
  * Simule le calcul automatique de la TVA depuis les écritures

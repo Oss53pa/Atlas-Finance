@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * Reporting Service — backed by Dexie IndexedDB.
  * Returns available report catalog and stats derived from real data.
@@ -831,7 +832,7 @@ class ReportingService {
         try {
           const { fecExportService } = await import('../../../services/export/fecExportService');
           return fecExportService.exportFEC(adapter, exercice);
-        } catch {
+        } catch (err) { /* silent */
           throw new Error('Service FEC non disponible');
         }
       }
@@ -852,7 +853,7 @@ class ReportingService {
       id: `custom-${Date.now()}`,
       name: data.name,
       description: data.description || '',
-      type: data.type as any,
+      type: data.type as string,
       category: data.category || 'Personnalisé',
       format: data.format || 'pdf',
       frequency: 'on_demand',
@@ -888,7 +889,7 @@ class ReportingService {
     const key = `report_${id}`;
     try {
       await adapter.delete('settings', key);
-    } catch { /* ignore if not found */ }
+    } catch (err) { /* silent */ /* ignore if not found */ }
   }
 }
 

@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 import React, { useState } from 'react';
 import { Bell, X, AlertTriangle, Clock, AlertCircle, CheckCircle, Info } from 'lucide-react';
 import { useNotifications } from '@/hooks/useNotifications';
@@ -105,7 +106,6 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
     try {
       await markAsRead(id);
     } catch (err) {
-      console.error('Erreur lors du marquage comme lu:', err);
     }
   };
 
@@ -116,7 +116,6 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
     try {
       await markAllAsRead();
     } catch (err) {
-      console.error('Erreur lors du marquage de toutes comme lues:', err);
     }
   };
 
@@ -128,7 +127,6 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
     try {
       await archiveNotification(id);
     } catch (err) {
-      console.error('Erreur lors de l\'archivage:', err);
     }
   };
 

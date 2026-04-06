@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * System Complete Service
  */
@@ -36,7 +37,7 @@ class SystemService {
     try {
       const response = await apiService.get('/api/v1/system/info/');
       return response.data;
-    } catch {
+    } catch (err) { /* silent */
       return { version: '4.1.0', environment: 'development', uptime: 0 };
     }
   }
@@ -45,7 +46,7 @@ class SystemService {
     try {
       const response = await apiService.get('/api/v1/system/stats/');
       return response.data;
-    } catch {
+    } catch (err) { /* silent */
       return { totalUsers: 0, activeUsers: 0, totalCompanies: 0, storageUsed: 0 };
     }
   }
@@ -54,7 +55,7 @@ class SystemService {
     try {
       const response = await apiService.get('/api/v1/system/modules/');
       return response.data;
-    } catch {
+    } catch (err) { /* silent */
       return [];
     }
   }
@@ -63,7 +64,7 @@ class SystemService {
     try {
       const response = await apiService.get('/api/v1/system/search/', { params: { q: query } });
       return response.data;
-    } catch {
+    } catch (err) { /* silent */
       return [];
     }
   }
