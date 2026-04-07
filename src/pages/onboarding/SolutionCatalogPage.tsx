@@ -247,7 +247,7 @@ const SolutionCatalogPage: React.FC = () => {
                         onClick={() => handleSubscribe(sol.code)}
                         className="flex-1 py-3 bg-[#171717] text-white rounded-xl text-sm font-semibold hover:bg-[#333] transition-colors flex items-center justify-center gap-2"
                       >
-                        <Zap className="w-4 h-4" /> Essai gratuit 14j
+                        <Zap className="w-4 h-4" /> Souscrire maintenant
                       </button>
                       <button
                         onClick={() => setSelectedSolution(isSelected ? null : sol.code)}
@@ -406,7 +406,7 @@ const SolutionCatalogPage: React.FC = () => {
         {/* CTA */}
         <div className="text-center mt-8">
           <p className="text-sm text-gray-400">
-            Essai gratuit 14 jours, sans engagement &middot; Paiement par Mobile Money, virement ou carte
+            Souscrivez maintenant, sans engagement &middot; Paiement par Mobile Money, virement ou carte
           </p>
         </div>
       </main>

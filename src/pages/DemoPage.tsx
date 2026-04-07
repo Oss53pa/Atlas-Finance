@@ -187,8 +187,8 @@ const DemoPage: React.FC = () => {
             <button onClick={() => navigate('/#faq')} className="hover:opacity-70 transition-colors">FAQ</button>
             <button onClick={() => navigate('/#contact')} className="hover:opacity-70 transition-colors">Contact</button>
           </div>
-          <a href={ATLAS_STUDIO.LOGIN} className="px-5 py-2.5 bg-[#c9a96e] rounded-lg text-sm font-bold hover:bg-[#dbc396] transition-all flex items-center gap-2" style={{ color: BK }}>
-            Essai gratuit <ArrowRight className="w-4 h-4" />
+          <a href="https://atlas-studio.org/portal?app=atlas-compta" className="px-5 py-2.5 bg-[#c9a96e] rounded-lg text-sm font-bold hover:bg-[#dbc396] transition-all flex items-center gap-2" style={{ color: BK }}>
+            Souscrire maintenant <ArrowRight className="w-4 h-4" />
           </a>
         </div>
       </nav>
@@ -324,7 +324,7 @@ const DemoPage: React.FC = () => {
             </div>
             <div className="max-w-3xl mx-auto text-center relative">
               <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{ color: W }}>Convaincu ?</h2>
-              <p className="mb-8" style={{ color: W40 }}>14 jours d'essai gratuit, sans engagement. Mobile Money, virement ou carte.</p>
+              <p className="mb-8" style={{ color: W40 }}>Souscrivez maintenant. Mobile Money, virement ou carte.</p>
               <div className="flex items-center justify-center gap-4 flex-wrap">
                 <a href={ATLAS_STUDIO.LOGIN} className="group px-8 py-4 bg-[#c9a96e] rounded-xl text-sm font-bold hover:bg-[#dbc396] transition-all shadow-lg shadow-[#c9a96e]/20 inline-flex items-center gap-2" style={{ color: BK }}>
                   <Zap className="w-4 h-4" /> Créer mon compte
@@ -441,7 +441,7 @@ const DemoPage: React.FC = () => {
                   </button>
                 ) : (
                   <a href={ATLAS_STUDIO.LOGIN} className="group flex items-center gap-2 px-5 py-2.5 bg-emerald-500 rounded-lg text-sm font-bold hover:bg-emerald-400 transition-all" style={{ color: W }}>
-                    <Zap className="w-4 h-4" /> Essai gratuit
+                    <Zap className="w-4 h-4" /> Souscrire
                   </a>
                 )}
               </div>
@@ -529,9 +529,9 @@ const DemoPage: React.FC = () => {
 
           <div className="mt-8 bg-white/[0.03] border border-white/[0.06] rounded-2xl p-8 text-center">
             <Sparkles className="w-8 h-8 mx-auto mb-3" style={{ color: 'rgba(201,169,110,0.5)' }} />
-            <p className="text-sm mb-4" style={{ color: W50 }}>La version complète offre bien plus. Essayez gratuitement.</p>
+            <p className="text-sm mb-4" style={{ color: W50 }}>La version complète offre bien plus. Souscrivez maintenant.</p>
             <a href={ATLAS_STUDIO.LOGIN} className="px-6 py-3 bg-[#c9a96e] rounded-lg text-sm font-bold hover:bg-[#dbc396] transition-all inline-flex items-center gap-2 shadow-lg shadow-[#c9a96e]/20" style={{ color: BK }}>
-              <Zap className="w-4 h-4" /> Essai gratuit 14 jours
+              <Zap className="w-4 h-4" /> Souscrire maintenant
             </a>
           </div>
         </div>

@@ -95,7 +95,7 @@ const TESTIMONIALS = [
 
 const FAQ = [
   { q: 'Atlas F&A est-il conforme au SYSCOHADA révisé 2017 ?', a: 'Oui, à 100%. Plan comptable OHADA intégré nativement, états financiers conformes aux modèles officiels, piste d\'audit conforme aux exigences OHADA.' },
-  { q: 'Puis-je essayer avant de payer ?', a: '14 jours d\'essai gratuit avec toutes les fonctionnalités. Aucune carte bancaire requise.' },
+  { q: 'Puis-je essayer avant de payer ?', a: 'Souscrivez maintenant avec toutes les fonctionnalités. Aucune carte bancaire requise.' },
   { q: 'Quels modes de paiement acceptez-vous ?', a: 'Mobile Money (Orange Money, MTN MoMo, Wave), virement bancaire, carte bancaire (Visa, Mastercard). Facturation en FCFA ou EUR.' },
   { q: 'Mes données sont-elles sécurisées ?', a: 'Chiffrement AES-256, backup quotidien, piste d\'audit SHA-256. Conformité RGPD et réglementation OHADA.' },
   { q: 'Puis-je migrer depuis un autre logiciel ?', a: 'Import CSV/Excel de vos écritures, plan comptable, tiers et immobilisations. Migration assistée disponible.' },
@@ -220,7 +220,7 @@ const LandingPage: React.FC = () => {
             ) : (
               <>
                 <a href={ATLAS_STUDIO.LOGIN} className="px-4 py-2 text-sm font-medium transition-colors" style={c.sSec}>Se connecter</a>
-                <a href={ATLAS_STUDIO.LOGIN} className={`px-5 py-2.5 ${c.btnPrimary} rounded-lg text-sm font-bold transition-all`} style={c.sBtnP}>Essai gratuit</a>
+                <a href={ATLAS_STUDIO.LOGIN} className={`px-5 py-2.5 ${c.btnPrimary} rounded-lg text-sm font-bold transition-all`} style={c.sBtnP}>Souscrire maintenant</a>
               </>
             )}
           </div>
@@ -425,7 +425,7 @@ const LandingPage: React.FC = () => {
               <Award className="w-3.5 h-3.5" /> Tarification transparente
             </div>
             <h2 className="text-3xl md:text-5xl font-bold mb-4" style={c.s}>Deux plans, zéro surprise</h2>
-            <p className="text-lg" style={c.sSec}>Essai gratuit 14 jours · Sans engagement</p>
+            <p className="text-lg" style={c.sSec}>Souscrivez maintenant · Sans engagement</p>
           </div>
 
           {/* Plan cards */}
@@ -440,7 +440,7 @@ const LandingPage: React.FC = () => {
               </div>
               <p className="text-xs mb-6" style={c.sMuted}>~75 EUR · 1 à 5 utilisateurs · +9 000 FCFA/user suppl.</p>
               <button onClick={handleGetStarted} className={`w-full py-3.5 border-2 ${c.goldBorderSolid} rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2`} style={c.sGold}>
-                <Zap className="w-4 h-4" /> Essai gratuit 14 jours
+                <Zap className="w-4 h-4" /> Souscrire maintenant
               </button>
               <ul className="mt-7 space-y-3">
                 {[
@@ -474,7 +474,7 @@ const LandingPage: React.FC = () => {
               </div>
               <p className="text-xs mb-6" style={c.sMuted}>~380 EUR · Utilisateurs illimités · 5+ sociétés : sur devis</p>
               <button onClick={handleGetStarted} className={`w-full py-3.5 ${c.btnPrimary} rounded-xl text-sm font-bold transition-all shadow-lg flex items-center justify-center gap-2`} style={c.sBtnP}>
-                <Zap className="w-4 h-4" /> Essai gratuit 14 jours
+                <Zap className="w-4 h-4" /> Souscrire maintenant
               </button>
               <ul className="mt-7 space-y-3">
                 {[
@@ -581,7 +581,7 @@ const LandingPage: React.FC = () => {
             <span className="bg-gradient-to-r from-[#dbc396] via-[#e0cc9e] to-[#dbc396] bg-clip-text text-transparent" style={{ color: 'transparent' }}>comptabilité ?</span>
           </h2>
           <p className="text-lg max-w-lg mx-auto mb-10" style={{ color: 'rgba(255,255,255,0.4)' }}>
-            Rejoignez 500+ entreprises qui font confiance à Atlas F&A. 14 jours d'essai gratuit.
+            Rejoignez 500+ entreprises qui font confiance à Atlas F&A. Souscrivez maintenant.
           </p>
           <div className="flex items-center justify-center gap-4 flex-wrap mb-8">
             <button onClick={handleGetStarted} className="group px-10 py-4 bg-[#c9a96e] rounded-xl text-sm font-bold hover:bg-[#dbc396] transition-all shadow-lg hover:-translate-y-0.5 flex items-center gap-2" style={{ color: '#0d0d0d' }}>
