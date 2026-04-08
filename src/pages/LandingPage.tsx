@@ -12,6 +12,7 @@ import {
   Sparkles, Sun, Moon,
 } from 'lucide-react';
 import { FEATURE_MATRIX } from '../config/plans';
+import { useLandingContent } from '../hooks/useLandingContent';
 
 function getWorkspacePath(_role: string): string {
   return '/home';
@@ -177,6 +178,18 @@ const LandingPage: React.FC = () => {
 
   const c = t(mode);
 
+  // Remote content from Atlas Studio (centralized landing)
+  const { content: remoteContent } = useLandingContent('atlas-compta');
+  const remotePricing = remoteContent?.pricing;
+  const pmePrice = remotePricing?.plans?.[0]?.price ?? 49000;
+  const premiumPrice = remotePricing?.plans?.[1]?.price ?? 250000;
+
+  const remoteStats = remoteContent?.stats;
+  const statsData = (remoteStats?.items as typeof STATS | undefined) ?? STATS;
+
+  const remoteFaq = remoteContent?.faq;
+  const faqData = (remoteFaq?.items as typeof FAQ | undefined) ?? FAQ;
+
   // Scroll-triggered animations
   const stats = useInView();
   const modules = useInView();
@@ -286,7 +299,7 @@ const LandingPage: React.FC = () => {
       {/* ══════════ STATS ══════════ */}
       <section className={`py-12 px-6 border-y ${c.border} ${c.bgAlt} transition-colors duration-300`}>
         <div ref={stats.ref} className={`max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 anim-stagger ${stats.className}`}>
-          {STATS.map((stat, i) => (
+          {statsData.map((stat, i) => (
             <div key={i} className="text-center">
               <div className="text-4xl md:text-5xl" style={c.s}>
                 <AnimatedNumber value={stat.value} suffix={stat.suffix} />
@@ -435,7 +448,7 @@ const LandingPage: React.FC = () => {
               <h3 className="text-xl font-bold" style={c.s}>PME / TPE</h3>
               <p className="text-sm mt-1" style={c.sSec}>Comptabilité complète pour une société</p>
               <div className="mt-6 mb-1">
-                <span className="text-5xl font-bold" style={c.s}>{formatXOF(49000)}</span>
+                <span className="text-5xl font-bold" style={c.s}>{formatXOF(pmePrice)}</span>
                 <span className="ml-2 text-sm" style={c.sTer}>FCFA / mois</span>
               </div>
               <p className="text-xs mb-6" style={c.sMuted}>~75 EUR · 1 à 5 utilisateurs · +9 000 FCFA/user suppl.</p>
@@ -469,7 +482,7 @@ const LandingPage: React.FC = () => {
               </div>
               <p className="text-sm mt-1" style={c.sSec}>Multi-sociétés, devises, IA avancée, RBAC, API</p>
               <div className="mt-6 mb-1">
-                <span className="text-5xl font-bold" style={c.s}>{formatXOF(250000)}</span>
+                <span className="text-5xl font-bold" style={c.s}>{formatXOF(premiumPrice)}</span>
                 <span className="ml-2 text-sm" style={c.sTer}>FCFA / mois</span>
               </div>
               <p className="text-xs mb-6" style={c.sMuted}>~380 EUR · Utilisateurs illimités · 5+ sociétés : sur devis</p>
@@ -535,11 +548,11 @@ const LandingPage: React.FC = () => {
             <div className={`grid grid-cols-[1fr_100px_100px] ${c.tableFootBg} border-t ${c.goldBorder}`}>
               <div className="px-6 py-4 text-sm font-bold" style={c.s}>Prix mensuel</div>
               <div className="flex flex-col items-center justify-center py-4">
-                <span className="text-sm font-bold" style={c.s}>{formatXOF(49000)}</span>
+                <span className="text-sm font-bold" style={c.s}>{formatXOF(pmePrice)}</span>
                 <span className="text-[10px]" style={c.sTer}>FCFA</span>
               </div>
               <div className="flex flex-col items-center justify-center py-4">
-                <span className="text-sm font-bold" style={c.sGold}>{formatXOF(250000)}</span>
+                <span className="text-sm font-bold" style={c.sGold}>{formatXOF(premiumPrice)}</span>
                 <span className="text-[10px]" style={{ color: c.gold, opacity: 0.6 }}>FCFA</span>
               </div>
             </div>
@@ -555,7 +568,7 @@ const LandingPage: React.FC = () => {
             <p className="text-lg" style={c.sSec}>Tout ce que vous devez savoir.</p>
           </div>
           <div ref={faq.ref} className={`space-y-3 anim-stagger ${faq.className}`}>
-            {FAQ.map((item, i) => (
+            {faqData.map((item, i) => (
               <div key={i} className={`${c.card} border rounded-xl overflow-hidden ${c.cardHover} transition-colors`}>
                 <button onClick={() => setOpenFaq(openFaq === i ? null : i)} className="w-full flex items-center justify-between p-5 text-left">
                   <span className="text-sm font-semibold pr-4" style={c.s}>{item.q}</span>
