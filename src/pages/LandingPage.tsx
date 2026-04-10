@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { ATLAS_STUDIO } from '../config/atlasStudio';
+import { AtlasStudioBrand } from '../components/common/AtlasStudioBrand';
 import { getLandingTheme, setLandingTheme, type LandingThemeMode } from '../config/landingTheme';
 import {
   CheckCircle, X, ArrowRight, Zap, Crown, Calculator,
@@ -210,7 +211,7 @@ const LandingPage: React.FC = () => {
       <nav className={`sticky top-0 ${c.navBg} backdrop-blur-xl border-b ${c.border} z-50 transition-colors duration-300`}>
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="atlas-brand text-2xl" style={c.s}>Atlas Studio</span>
+            <AtlasStudioBrand className="atlas-brand text-2xl" style={c.s} />
             <span style={c.sMuted}>/</span>
             <span className="atlas-brand text-lg" style={c.sGold}>Atlas Finance &amp; Accounting</span>
           </div>
@@ -275,7 +276,7 @@ const LandingPage: React.FC = () => {
 
           <div className="anim-hero-delay-3 flex items-center justify-center gap-4 flex-wrap mb-14">
             <button onClick={handleGetStarted} className={`group px-8 py-4 ${c.btnPrimary} rounded-xl text-sm font-bold transition-all shadow-lg hover:-translate-y-0.5 flex items-center gap-2`} style={c.sBtnP}>
-              <Zap className="w-4 h-4" /> Commencer gratuitement
+              <Zap className="w-4 h-4" /> Souscrire maintenant
               <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
             </button>
             <button onClick={() => navigate('/demo')} className={`px-8 py-4 ${c.btnSecondary} border rounded-xl text-sm font-semibold transition-all flex items-center gap-2`} style={c.sBtnS}>
@@ -618,7 +619,7 @@ const LandingPage: React.FC = () => {
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-10">
             <div>
-              <span className="atlas-brand text-2xl" style={c.s}>Atlas Studio</span>
+              <AtlasStudioBrand className="atlas-brand text-2xl" style={c.s} />
               <p className="atlas-brand text-sm mt-1" style={c.sGold}>Atlas Finance &amp; Accounting</p>
               <p className="text-xs leading-relaxed mt-2" style={c.sTer}>ERP comptable et financier pour l'Afrique. Conforme SYSCOHADA, intelligent et sécurisé.</p>
             </div>
@@ -651,7 +652,7 @@ const LandingPage: React.FC = () => {
             </div>
           </div>
           <div className={`border-t ${c.border} pt-6 flex flex-col md:flex-row items-center justify-between gap-4`}>
-            <span className="text-xs" style={c.sMuted}>&copy; {new Date().getFullYear()} Atlas Studio. Tous droits réservés.</span>
+            <span className="text-xs" style={c.sMuted}>&copy; {new Date().getFullYear()} <AtlasStudioBrand className="hover:opacity-80">Atlas Studio</AtlasStudioBrand>. Tous droits réservés.</span>
             <div className="flex items-center gap-6 text-xs" style={c.sMuted}>
               <span>Mentions légales</span>
               <span>Confidentialité</span>
