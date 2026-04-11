@@ -5,6 +5,7 @@
 
 import React, { useState, createContext, useContext } from 'react';
 import { ChatWidget } from '../chatbot';
+import { FeatureGate } from '../gating';
 
 interface ChatbotContextType {
   isOpen: boolean;
@@ -49,12 +50,14 @@ export const ChatbotProvider: React.FC<ChatbotProviderProps> = ({
     <ChatbotContext.Provider value={contextValue}>
       {children}
 
-      {/* Chatbot Widget */}
+      {/* Chatbot Widget — gated Premium (PROPH3T IA) */}
       {enabled && (
-        <ChatWidget
-          isOpen={isOpen}
-          onToggle={toggle}
-        />
+        <FeatureGate feature="proph3t_ia" fallback={null}>
+          <ChatWidget
+            isOpen={isOpen}
+            onToggle={toggle}
+          />
+        </FeatureGate>
       )}
     </ChatbotContext.Provider>
   );

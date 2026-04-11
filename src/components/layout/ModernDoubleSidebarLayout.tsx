@@ -19,6 +19,8 @@ import {
 } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTenantPlan, hasFeature } from '../../features/platform/hooks/useTenantPlan';
+import { useFeatureAccess } from '../../components/gating';
 import { useBadgeCounts } from '../../hooks/useBadgeCounts';
 import { useInvalidateOnEntryChange } from '../../hooks/useInvalidateOnEntryChange';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
@@ -54,6 +56,8 @@ const ModernDoubleSidebarLayout: React.FC = () => {
   const { theme, themeType, setTheme } = useTheme();
   const { user } = useAuth();
   const badgeCounts = useBadgeCounts();
+  const { plan: tenantPlan, isStarter } = useTenantPlan();
+  const { allowed: hasDedicatedSupport } = useFeatureAccess('support_dedie');
   useInvalidateOnEntryChange();
   useKeyboardShortcuts();
 
@@ -180,7 +184,14 @@ const ModernDoubleSidebarLayout: React.FC = () => {
       icon: <FileBarChart className="w-5 h-5" />,
       ariaLabel: 'Accéder aux états et rapports'
     }
-  ], [t, user?.role]);
+    // Plan gating: retire Contrôle de Gestion (Budget & Analytique) pour les plans Starter
+    // qui n'ont pas la feature budget_analytique.
+  ].filter(item => {
+    if (item.id === 'control' && isStarter && !hasFeature(tenantPlan, 'budget_analytique')) {
+      return false;
+    }
+    return true;
+  }), [t, user?.role, isStarter, tenantPlan]);
 
   // Sous-menus restructurés et enrichis
   const secondaryMenuItems: Record<string, MenuItem[]> = useMemo(() => ({
@@ -764,6 +775,32 @@ const ModernDoubleSidebarLayout: React.FC = () => {
                 </div>
               )}
             </div>
+
+            {/* Support button — Premium: chat dédié / Starter: support standard */}
+            <button
+              type="button"
+              onClick={() => {
+                if (hasDedicatedSupport) {
+                  // Plan Premium : ouvrir le chat dédié (HelpDrawer / PROPH3T)
+                  navigate('/help');
+                } else {
+                  // Plan Starter : rediriger vers le support standard (centre d'aide)
+                  navigate('/help');
+                }
+              }}
+              className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-[var(--color-surface)] rounded-lg border border-[var(--color-border)] hover:bg-[var(--color-surface-hover)] transition-colors"
+              title={hasDedicatedSupport ? 'Support dédié (chat prioritaire)' : 'Support standard (email / centre d\'aide)'}
+              aria-label={hasDedicatedSupport ? 'Support dédié' : 'Support standard'}
+            >
+              {hasDedicatedSupport ? (
+                <MessageSquare className="w-4 h-4 text-[var(--color-primary)]" />
+              ) : (
+                <HelpCircle className="w-4 h-4 text-[var(--color-text-secondary)]" />
+              )}
+              <span className="text-xs font-medium text-[var(--color-text-primary)]">
+                {hasDedicatedSupport ? 'Support dédié' : 'Support standard'}
+              </span>
+            </button>
 
             {/* Currency Display */}
             <div className="flex items-center px-3 py-1.5 bg-[var(--color-surface)] rounded-lg border border-[var(--color-border)]">

@@ -52,6 +52,15 @@ export const PREMIUM_FEATURES = [
   'support_prioritaire',
   'formation_incluse',
   'sla_995',
+  // Gating aliases / new premium features
+  'budget_analytique',
+  'recouvrement_balance_agee',
+  'proph3t_ia', // alias for proph3t_avance
+  'consolidation_groupe',
+  'audit_trail_ohada_certifie', // alias for audit_trail_complet
+  'tableaux_bord_groupe',
+  'api_integrations', // alias for api_rest
+  'support_dedie', // alias for support_prioritaire
 ] as const;
 
 export type PremiumFeatureKey = (typeof PREMIUM_FEATURES)[number];
@@ -83,9 +92,10 @@ export const FEATURE_MATRIX: PlanFeatureCategory[] = [
   {
     category: 'Budget, trésorerie & recouvrement',
     items: [
-      { label: 'Budget & comptabilité analytique', featureKey: 'budget_analytique', pme: true, premium: true },
+      { label: 'Budget & comptabilité analytique', featureKey: 'budget_analytique', pme: false, premium: true },
       { label: 'Position de trésorerie', featureKey: 'position_tresorerie', pme: true, premium: true },
       { label: 'Recouvrement & balance âgée', featureKey: 'recouvrement', pme: true, premium: true },
+      { label: 'Balance âgée avancée & relances auto', featureKey: 'recouvrement_balance_agee', pme: false, premium: true },
       { label: 'Effets de commerce (LC, BAO)', featureKey: 'effets_commerce', pme: false, premium: true },
     ],
   },
@@ -104,6 +114,7 @@ export const FEATURE_MATRIX: PlanFeatureCategory[] = [
       { label: 'Bilan, Compte de résultat, SIG', featureKey: 'etats_financiers', pme: true, premium: true },
       { label: 'TAFIRE & ratios financiers', featureKey: 'tafire_ratios', pme: true, premium: true },
       { label: 'Export Excel & PDF', featureKey: 'export_excel_pdf', pme: true, premium: true },
+      { label: 'Tableaux de bord Groupe (vue consolidée)', featureKey: 'tableaux_bord_groupe', pme: false, premium: true },
     ],
   },
   {
@@ -118,6 +129,7 @@ export const FEATURE_MATRIX: PlanFeatureCategory[] = [
     items: [
       { label: '1 société / 1 dossier', featureKey: 'mono_societe', pme: true, premium: true },
       { label: 'Multi-sociétés illimité', featureKey: 'multi_societes', pme: false, premium: true },
+      { label: 'Consolidation de groupe', featureKey: 'consolidation_groupe', pme: false, premium: true },
       { label: 'Multi-sites', featureKey: 'multi_sites', pme: false, premium: true },
       { label: 'Multi-pays OHADA (17 pays, taux fiscaux)', featureKey: 'multi_pays_ohada', pme: false, premium: true },
       { label: 'Opérations en devises (EUR/XOF)', featureKey: 'operations_devises', pme: false, premium: true },

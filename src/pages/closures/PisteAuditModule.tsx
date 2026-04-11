@@ -13,6 +13,7 @@ import {
   Settings, TrendingUp, BarChart, History, AlertTriangle,
   Save
 } from 'lucide-react';
+import { useFeatureAccess } from '../../components/gating';
 
 interface AuditEntry {
   id: string;
@@ -40,6 +41,7 @@ interface AuditStats {
 const PisteAuditModule: React.FC = () => {
   const { t } = useLanguage();
   const { adapter } = useData();
+  const { allowed: canExportCertified } = useFeatureAccess('audit_trail_ohada_certifie');
   const [selectedPeriode, setSelectedPeriode] = useState<'jour' | 'semaine' | 'mois' | 'annee'>('jour');
   const [filterAction, setFilterAction] = useState<'tous' | AuditEntry['action']>('tous');
   const [filterEntite, setFilterEntite] = useState<'tous' | AuditEntry['entite']>('tous');
@@ -204,6 +206,34 @@ const PisteAuditModule: React.FC = () => {
               className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center space-x-2" aria-label="Télécharger">
               <Download className="w-4 h-4" />
               <span>{t('common.export')}</span>
+            </button>
+            <button
+              onClick={() => {
+                if (!canExportCertified) {
+                  toast.info('Export certifié OHADA — réservé au plan Premium');
+                  return;
+                }
+                toast.success('Export certifié OHADA en cours (SHA-256)...');
+              }}
+              disabled={!canExportCertified}
+              title={canExportCertified ? 'Export certifié OHADA (SHA-256)' : 'Fonctionnalité Premium'}
+              className={`px-4 py-2 rounded-lg flex items-center space-x-2 ${
+                canExportCertified
+                  ? 'bg-[#171717] text-white hover:bg-[#262626]'
+                  : 'bg-neutral-100 text-neutral-400 cursor-not-allowed border border-neutral-200'
+              }`}
+              aria-label="Export certifié OHADA"
+            >
+              <Shield className="w-4 h-4" />
+              <span>Export certifié OHADA</span>
+              {!canExportCertified && (
+                <span
+                  className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ml-1"
+                  style={{ background: 'rgba(239,159,39,0.15)', color: '#EF9F27', border: '1px solid rgba(239,159,39,0.3)' }}
+                >
+                  Premium
+                </span>
+              )}
             </button>
           </div>
         </div>

@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import { FeatureGate, UpgradeBanner } from '../../components/gating';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/Dialog';
 import { toast } from 'react-hot-toast';
 import {
@@ -1006,6 +1007,14 @@ const APIIntegrationsPage: React.FC = () => {
   };
 
   return (
+    <FeatureGate
+      feature="api_integrations"
+      fallback={
+        <div className="p-6 max-w-7xl mx-auto">
+          <UpgradeBanner feature="api_integrations" />
+        </div>
+      }
+    >
     <div className="p-6 max-w-7xl mx-auto">
       {/* Header */}
       <div className="mb-6">
@@ -1404,6 +1413,7 @@ end`}</code>
         </DialogContent>
       </Dialog>
     </div>
+    </FeatureGate>
   );
 };
 

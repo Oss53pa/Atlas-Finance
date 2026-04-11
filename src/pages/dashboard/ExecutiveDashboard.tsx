@@ -9,8 +9,9 @@ import type { ActivityType } from '../../services/company.service';
 import {
   Factory, ShoppingCart, Briefcase,
   ArrowUpRight, ArrowDownRight, Download, RefreshCw, Settings,
-  LayoutGrid, TrendingUp, BarChart3
+  LayoutGrid, TrendingUp, BarChart3, Building2
 } from 'lucide-react';
+import { FeatureGate, UpgradeBanner, useFeatureAccess } from '../../components/gating';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -78,12 +79,14 @@ const ExecutiveDashboard: React.FC = () => {
   const { activityType, setActivityType, dashboardConfig, loading: activityLoading } = useActivityType();
   const { primaryKPIs, secondaryKPIs, monthlyTrend, loading: kpisLoading } = useActivityKPIs();
   const [showActivitySelector, setShowActivitySelector] = useState(false);
-  const [activeTab, setActiveTab] = useState<'overview' | 'trends' | 'details'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'trends' | 'details' | 'group'>('overview');
+  const { allowed: canGroupView } = useFeatureAccess('tableaux_bord_groupe');
 
   const tabsList = [
-    { key: 'overview' as const, label: "Vue d'ensemble", icon: LayoutGrid },
-    { key: 'trends' as const, label: 'Tendances', icon: TrendingUp },
-    { key: 'details' as const, label: 'Détails activité', icon: BarChart3 },
+    { key: 'overview' as const, label: "Vue d'ensemble", icon: LayoutGrid, locked: false },
+    { key: 'trends' as const, label: 'Tendances', icon: TrendingUp, locked: false },
+    { key: 'details' as const, label: 'Détails activité', icon: BarChart3, locked: false },
+    { key: 'group' as const, label: 'Vue Groupe', icon: Building2, locked: !canGroupView },
   ];
 
   const loading = activityLoading || kpisLoading;
@@ -238,18 +241,31 @@ const ExecutiveDashboard: React.FC = () => {
         <div className="flex items-center bg-[var(--color-card-bg)] rounded-xl p-1 border border-[var(--color-border)] w-fit mb-6">
           {tabsList.map((tab) => {
             const Icon = tab.icon;
+            const locked = (tab as any).locked;
             return (
               <button
                 key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
+                onClick={() => { if (!locked) setActiveTab(tab.key); }}
+                disabled={locked}
+                title={locked ? 'Vue Groupe — réservée au plan Premium' : undefined}
                 className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${
                   activeTab === tab.key
                     ? 'bg-[var(--color-primary)] text-white shadow-md'
-                    : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-background)]'
+                    : locked
+                      ? 'text-neutral-400 cursor-not-allowed'
+                      : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-background)]'
                 }`}
               >
                 <Icon className="w-4 h-4" />
                 {tab.label}
+                {locked && (
+                  <span
+                    className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ml-1"
+                    style={{ background: 'rgba(239,159,39,0.15)', color: '#EF9F27', border: '1px solid rgba(239,159,39,0.3)' }}
+                  >
+                    Premium
+                  </span>
+                )}
               </button>
             );
           })}
@@ -353,6 +369,24 @@ const ExecutiveDashboard: React.FC = () => {
           </div>
         );
       })}
+
+      {/* Tab: Vue Groupe — gated (tableaux_bord_groupe) */}
+      {activeTab === 'group' && (
+        <FeatureGate
+          feature="tableaux_bord_groupe"
+          fallback={<UpgradeBanner feature="tableaux_bord_groupe" />}
+        >
+          <div className="bg-[var(--color-card-bg)] rounded-lg p-6 border border-[var(--color-border)]">
+            <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4 flex items-center gap-2">
+              <Building2 className="w-5 h-5" />
+              Vue Groupe — KPIs consolidés
+            </h3>
+            <p className="text-sm text-[var(--color-text-secondary)]">
+              Tableau de bord consolidé toutes sociétés du groupe.
+            </p>
+          </div>
+        </FeatureGate>
+      )}
     </div>
   );
 };

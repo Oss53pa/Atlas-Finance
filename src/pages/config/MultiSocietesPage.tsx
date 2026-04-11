@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
 import { motion } from 'framer-motion';
+import { FeatureGate, UpgradeBanner } from '../../components/gating';
 import {
   Building2,
   Plus,
@@ -215,6 +216,14 @@ const MultiSocietesPage: React.FC = () => {
   const totalTransactions = companies.reduce((sum, company) => sum + company.transactions_count, 0);
 
   return (
+    <FeatureGate
+      feature="multi_societes"
+      fallback={
+        <div className="p-6">
+          <UpgradeBanner feature="multi_societes" />
+        </div>
+      }
+    >
     <div className="space-y-6">
       {/* Header */}
       <motion.div
@@ -721,6 +730,7 @@ const MultiSocietesPage: React.FC = () => {
         </Tabs>
       </motion.div>
     </div>
+    </FeatureGate>
   );
 };
 

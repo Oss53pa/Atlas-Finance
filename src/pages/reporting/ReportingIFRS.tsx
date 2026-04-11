@@ -5,6 +5,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
 import { useData } from '../../contexts/DataContext';
 import { motion } from 'framer-motion';
+import { FeatureGate, UpgradeBanner, useFeatureAccess } from '../../components/gating';
 import {
   FileText,
   TrendingUp,
@@ -98,6 +99,7 @@ const ReportingIFRS: React.FC = () => {
   const [filterType, setFilterType] = useState('all');
   const [filterPeriod, setFilterPeriod] = useState('all');
   const [viewMode, setViewMode] = useState<'reports' | 'standards' | 'consolidation'>('reports');
+  const { allowed: canConsolidate } = useFeatureAccess('consolidation_groupe');
   const [reportModal, setReportModal] = useState<ReportModal>({ isOpen: false, mode: 'view' });
   const [selectedPeriod, setSelectedPeriod] = useState(new Date().getFullYear().toString());
 
@@ -356,20 +358,35 @@ const ReportingIFRS: React.FC = () => {
         <UnifiedCard variant="elevated" size="md">
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
             <div className="flex bg-white rounded-2xl p-1 shadow-lg border border-neutral-200">
-              {(['reports', 'standards', 'consolidation'] as const).map((mode) => (
-                <button
-                  key={mode}
-                  onClick={() => setViewMode(mode)}
-                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
-                    viewMode === mode
-                      ? 'bg-[#171717] text-white shadow-md'
-                      : 'text-neutral-600 hover:text-[#171717]'
-                  }`}
-                >
-                  {mode === 'reports' ? 'Rapports' :
-                   mode === 'standards' ? 'Normes IFRS' : 'Consolidation'}
-                </button>
-              ))}
+              {(['reports', 'standards', 'consolidation'] as const).map((mode) => {
+                const isLocked = mode === 'consolidation' && !canConsolidate;
+                return (
+                  <button
+                    key={mode}
+                    onClick={() => { if (!isLocked) setViewMode(mode); }}
+                    disabled={isLocked}
+                    title={isLocked ? 'Consolidation de groupe — Premium' : undefined}
+                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 flex items-center gap-1.5 ${
+                      viewMode === mode
+                        ? 'bg-[#171717] text-white shadow-md'
+                        : isLocked
+                          ? 'text-neutral-400 cursor-not-allowed'
+                          : 'text-neutral-600 hover:text-[#171717]'
+                    }`}
+                  >
+                    {mode === 'reports' ? 'Rapports' :
+                     mode === 'standards' ? 'Normes IFRS' : 'Consolidation'}
+                    {isLocked && (
+                      <span
+                        className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
+                        style={{ background: 'rgba(239,159,39,0.15)', color: '#EF9F27', border: '1px solid rgba(239,159,39,0.3)' }}
+                      >
+                        Premium
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
 
             <div className="flex items-center gap-4">
@@ -644,6 +661,10 @@ const ReportingIFRS: React.FC = () => {
         )}
 
         {viewMode === 'consolidation' && (
+          <FeatureGate
+            feature="consolidation_groupe"
+            fallback={<UpgradeBanner feature="consolidation_groupe" />}
+          >
           <UnifiedCard variant="elevated" size="lg">
             <div className="space-y-6">
               <div className="flex justify-between items-center">
@@ -720,6 +741,7 @@ const ReportingIFRS: React.FC = () => {
               </div>
             </div>
           </UnifiedCard>
+          </FeatureGate>
         )}
 
         {/* Report Modal */}

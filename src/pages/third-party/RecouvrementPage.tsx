@@ -16,6 +16,7 @@ import {
   Target,
   BarChart3
 } from 'lucide-react';
+import { FeatureGate, UpgradeBanner } from '@/components/gating';
 
 interface Customer {
   id: string;
@@ -215,7 +216,15 @@ const RecouvrementPage: React.FC = () => {
           </motion.div>
         </div>
 
-        {/* Balance âgée */}
+        {/* Balance âgée — feature Premium */}
+        <FeatureGate
+          feature="recouvrement_balance_agee"
+          fallback={
+            <div className="mb-8">
+              <UpgradeBanner feature="recouvrement_balance_agee" compact />
+            </div>
+          }
+        >
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-8">
           <div className="p-6 border-b border-gray-200">
             <div className="flex items-center justify-between">
@@ -294,6 +303,7 @@ const RecouvrementPage: React.FC = () => {
             </div>
           </div>
         </div>
+        </FeatureGate>
 
         {/* Niveaux de relance */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200">
