@@ -178,7 +178,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                 />
 
                 {/* Dropdown */}
-                <div className="absolute right-0 mt-2 w-96 max-h-[500px] bg-[#f5f5f5] rounded-lg shadow-lg border border-[#e5e5e5] z-50 overflow-hidden">
+                <div className="absolute right-0 mt-2 w-[calc(100vw-1rem)] max-w-[24rem] sm:w-96 max-h-[500px] bg-[#f5f5f5] rounded-lg shadow-lg border border-[#e5e5e5] z-50 overflow-hidden">
                   {/* Header */}
                   <div className="px-4 py-3 border-b border-[#e5e5e5] bg-[#e5e5e5]">
                     <div className="flex items-center justify-between">
