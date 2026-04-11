@@ -22,7 +22,7 @@
  *  11.  DETERMINATION_RESULTAT   — Détermination du résultat net
  *  12.  VERROUILLAGE             — Validation et verrouillage des journaux
  *  13.  ETATS_FINANCIERS         — Génération des états financiers SYSCOHADA
- *  14.  LIASSE_FISCALE           — Export liasse fiscale DGI
+ *  14.  LIASSE_FISCALE           — Info : déléguée à Liass'Pilot (non bloquante)
  *  15.  AFFECTATION_REPORT       — Affectation du résultat et report à nouveau N+1
  */
 import type { DataAdapter } from '@atlas/data';
@@ -110,7 +110,7 @@ const STEPS_DEF: Omit<ClotureStep, 'status'>[] = [
   { id: 'DETERMINATION_RESULTAT',  label: 'Détermination du résultat net' },
   { id: 'VERROUILLAGE',            label: 'Validation et verrouillage des journaux' },
   { id: 'ETATS_FINANCIERS',        label: 'Génération des états financiers SYSCOHADA' },
-  { id: 'LIASSE_FISCALE',          label: 'Export liasse fiscale DGI' },
+  { id: 'LIASSE_FISCALE',          label: "Liasse fiscale — déléguée à Liass'Pilot" },
   { id: 'AFFECTATION_REPORT',      label: 'Affectation du résultat et report à nouveau N+1' },
 ];
 
@@ -120,6 +120,15 @@ const BLOCKING_STEPS = new Set<string>([
   'DETERMINATION_RESULTAT',
   'VERROUILLAGE',
   'AFFECTATION_REPORT',
+]);
+
+/**
+ * Steps that are explicitly NON-blocking and must never halt the closure
+ * workflow, even in manual mode. Used for info-only steps such as the
+ * liasse fiscale which is delegated to Liass'Pilot.
+ */
+const NON_BLOCKING_STEPS = new Set<string>([
+  'LIASSE_FISCALE',
 ]);
 
 // ============================================================================
@@ -177,6 +186,12 @@ export const closureOrchestrator = {
         step.message = err.message;
         ctx.onError?.(step, err);
 
+        // Info-only / non-blocking steps (e.g. LIASSE_FISCALE delegated to
+        // Liass'Pilot) never halt the workflow, regardless of mode.
+        if (NON_BLOCKING_STEPS.has(step.id)) {
+          ctx.onProgress?.(step);
+          continue;
+        }
         // In manual mode, always stop on error
         // In proph3t mode, stop only on blocking steps
         if (ctx.mode === 'manual' || BLOCKING_STEPS.has(step.id)) break;
@@ -676,82 +691,20 @@ export const closureOrchestrator = {
       }
 
       // -----------------------------------------------------------------------
-      // 14. LIASSE_FISCALE — Export liasse fiscale DGI
+      // 14. LIASSE_FISCALE — Génération déléguée à Liass'Pilot (info-only)
       // -----------------------------------------------------------------------
+      // La liasse fiscale est produite par Liass'Pilot, l'outil spécialisé
+      // d'Atlas Studio. Atlas Finance fournit les états financiers (étape 13)
+      // qui servent de base à Liass'Pilot. Cette étape est conservée dans la
+      // séquence des 15 étapes SYSCOHADA mais ne réalise qu'une trace d'audit
+      // informative — elle est non bloquante (cf. NON_BLOCKING_STEPS).
       case 'LIASSE_FISCALE': {
-        const allEntries = await ctx.adapter.getAll<{ status: string; lines: Array<{ accountCode: string; accountName?: string; debit: number; credit: number }> }>('journalEntries');
-        const validEntries = allEntries.filter((e) => e.status !== 'draft');
-
-        // Build aggregated balance for export
-        const byAccount: Record<string, { accountNumber: string; accountName: string; debitMovement: number; creditMovement: number; debitClosing: number; creditClosing: number }> = {};
-        const balanceData = validEntries.flatMap((entry) =>
-          (entry.lines || []).map((line) => ({
-            accountNumber: line.accountCode,
-            accountName: line.accountName || line.accountCode,
-            debitMovement: line.debit || 0,
-            creditMovement: line.credit || 0,
-            debitClosing: line.debit || 0,
-            creditClosing: line.credit || 0,
-            debitOpening: 0,
-            creditOpening: 0,
-          }))
-        );
-        for (const line of balanceData) {
-          if (!byAccount[line.accountNumber]) {
-            byAccount[line.accountNumber] = {
-              ...line,
-              debitMovement: 0, creditMovement: 0,
-              debitClosing: 0, creditClosing: 0,
-            };
-          }
-          byAccount[line.accountNumber].debitMovement += line.debitMovement;
-          byAccount[line.accountNumber].creditMovement += line.creditMovement;
-          byAccount[line.accountNumber].debitClosing += line.debitClosing;
-          byAccount[line.accountNumber].creditClosing += line.creditClosing;
-        }
-        const aggregatedBalance = Object.values(byAccount);
-
-        // Export to Atlas Studio for Liass'Pilot integration
-        let exportStatus = 'non exporté';
-        try {
-          const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-          const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-          if (supabaseUrl && supabaseAnonKey) {
-            const { createClient } = await import('@supabase/supabase-js');
-            const sb = createClient(supabaseUrl, supabaseAnonKey);
-            const { data: { session } } = await sb.auth.getSession();
-            if (session?.access_token) {
-              await fetch(`${supabaseUrl}/functions/v1/export-balance`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${session.access_token}`,
-                  'apikey': supabaseAnonKey,
-                },
-                body: JSON.stringify({
-                  fiscalYear: fy.name,
-                  companyName: '',
-                  balanceData: aggregatedBalance,
-                }),
-              });
-              exportStatus = 'exporté vers Atlas Studio';
-            } else {
-              exportStatus = 'session Atlas non disponible';
-            }
-          } else {
-            exportStatus = 'configuration Atlas manquante';
-          }
-        } catch (exportErr) {
-          exportStatus = 'erreur export (non bloquant)';
-        }
-
         await ctx.adapter.logAudit({
-          action: 'CLOSURE_STEP_LIASSE_FISCALE',
+          action: 'CLOTURE_LIASSE_INFO',
           entityType: 'fiscalYear',
           entityId: ctx.exerciceId,
           details: JSON.stringify({
-            accountCount: aggregatedBalance.length,
-            exportStatus,
+            message: "Liasse fiscale déléguée à Liass'Pilot — export disponible après génération des états financiers",
             exercice: fy.name,
             initiatedBy,
           }),
@@ -759,7 +712,7 @@ export const closureOrchestrator = {
           previousHash: '',
         });
 
-        return `Liasse fiscale : ${aggregatedBalance.length} comptes agrégés — ${exportStatus}`;
+        return "Info : la liasse fiscale est générée par Liass'Pilot (étape non bloquante)";
       }
 
       // -----------------------------------------------------------------------

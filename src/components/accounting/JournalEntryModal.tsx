@@ -39,6 +39,8 @@ import { validateJournalEntry, getNextPieceNumber } from '../../validators/journ
 
 import { useData } from '../../contexts/DataContext';
 import { safeAddEntry } from '../../services/entryGuard';
+import { analyzeEntryPostSave, type PostSaveAnalysisResult } from '../../services/prophet/postSaveAnalysis';
+import PostSaveAnalysisToast from './PostSaveAnalysisToast';
 import { validerEcriture, comptabiliserEcriture, retourBrouillon, allowedTransitions, transitionLabel } from '../../services/entryWorkflow';
 import type { EntryStatus } from '../../services/entryWorkflow';
 import TemplateSelector from '../comptabilite/TemplateSelector';
@@ -541,6 +543,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
 
   // --- Sauvegarder l'écriture en Dexie après validation complète ---
   const [isSaving, setIsSaving] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState<PostSaveAnalysisResult | null>(null);
 
   const handleSaveEntry = useCallback(async () => {
     if (isSaving || validationErrors.length > 0) return;
@@ -592,6 +595,11 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
         createdAt: new Date().toISOString(),
         createdBy: details.preparePar,
       });
+
+      // Background SYSCOHADA analysis (non-blocking, advisory only).
+      // The toast is rendered at the modal root and persists briefly even
+      // after the modal closes so the user can see the result.
+      analyzeEntryPostSave(adapter).then(setAnalysisResult).catch(() => {});
 
       resetForm();
       onClose();
@@ -759,9 +767,14 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
     }
   };
 
-  if (!isOpen) return null;
+  // When the modal is closed but a post-save analysis toast is still
+  // pending, keep rendering so the advisory SYSCOHADA feedback can be
+  // shown to the user even after the modal has dismissed.
+  if (!isOpen && !analysisResult) return null;
 
   return (
+    <>
+    {isOpen && (
     <>
     <AnimatePresence>
       <motion.div
@@ -2156,6 +2169,12 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
       isOpen={showTemplateSelector}
       onClose={() => setShowTemplateSelector(false)}
       onApply={handleApplyTemplate}
+    />
+    </>
+    )}
+    <PostSaveAnalysisToast
+      result={analysisResult}
+      onClose={() => setAnalysisResult(null)}
     />
     </>
   );
