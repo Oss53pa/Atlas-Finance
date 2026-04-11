@@ -2,6 +2,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { AtlasStudioBrand } from '../../components/common/AtlasStudioBrand';
 import {
   Calculator, Users, Handshake, FileText, FolderOpen,
   LogOut, ArrowRight, Lock
@@ -36,7 +37,7 @@ const AtlasStudioHub: React.FC = () => {
       {/* Header compact */}
       <header className="flex items-center justify-between px-8 py-3 bg-white border-b shrink-0">
         <div className="flex items-center gap-2.5">
-          <span className="atlas-brand text-2xl text-[#171717]">Atlas Studio</span>
+          <AtlasStudioBrand className="atlas-brand text-2xl text-[#171717]" />
         </div>
         <div className="flex items-center gap-3">
           <span className="text-sm text-gray-600">{user?.name}</span>
@@ -87,7 +88,7 @@ const AtlasStudioHub: React.FC = () => {
         </div>
 
         <p className="text-xs text-gray-300 mt-10">
-          <span className="atlas-brand text-sm">Atlas Studio</span> &copy; {new Date().getFullYear()}
+          <AtlasStudioBrand className="atlas-brand text-sm" /> &copy; {new Date().getFullYear()}
           <button onClick={() => navigate('/admin-login')} className="text-gray-200 hover:text-gray-200 ml-1 cursor-default">·</button>
         </p>
       </div>

@@ -1,6 +1,6 @@
 /**
  * Interface commune pour tous les providers LLM de PROPH3T.
- * Chaque provider (Ollama, Anthropic, OpenAI) implémente cette interface.
+ * Chaque provider (Ollama, Anthropic) implémente cette interface.
  */
 
 export interface LLMRequest {
@@ -42,7 +42,7 @@ export interface LLMResponse {
 }
 
 export interface ILLMProvider {
-  readonly name: 'ollama' | 'anthropic' | 'openai' | 'mistral';
+  readonly name: 'ollama' | 'anthropic' | 'mistral';
   readonly model: string;
 
   isAvailable(): Promise<boolean>;

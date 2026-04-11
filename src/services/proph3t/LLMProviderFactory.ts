@@ -4,7 +4,6 @@
  * Ordre de priorité :
  * 1. Ollama (local, gratuit, aucune clé requise) — PRINCIPAL
  * 2. Anthropic (cloud, clé API requise) — OPTIONNEL
- * 3. OpenAI (cloud, clé API requise) — OPTIONNEL
  *
  * Si aucun provider n'est configuré, lance une erreur explicative.
  */

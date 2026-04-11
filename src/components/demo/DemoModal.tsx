@@ -199,7 +199,7 @@ const DemoModal: React.FC<DemoModalProps> = ({ isOpen, onClose, initialSolution 
                     <button className="px-8 py-3 bg-[#141414] text-white rounded-lg text-sm font-semibold hover:bg-[#2a2a2a] inline-flex items-center gap-2">
                       <Mail className="w-4 h-4" /> Planifier un rendez-vous
                     </button>
-                    <p className="text-xs text-gray-400 mt-2">contact@atlasstudio.com</p>
+                    <p className="text-xs text-gray-400 mt-2">contact@atlasstudio.org</p>
                   </div>
                 </div>
               )}

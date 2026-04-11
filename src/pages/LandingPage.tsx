@@ -645,7 +645,7 @@ const LandingPage: React.FC = () => {
             <div>
               <h4 className="text-xs font-bold uppercase tracking-wider mb-4" style={c.sTer}>Contact</h4>
               <ul className="space-y-2.5 text-xs" style={c.sMuted}>
-                <li className="flex items-center gap-2"><Mail className="w-3.5 h-3.5" /> contact@atlasstudio.com</li>
+                <li className="flex items-center gap-2"><Mail className="w-3.5 h-3.5" /> contact@atlasstudio.org</li>
                 <li className="flex items-center gap-2"><Phone className="w-3.5 h-3.5" /> +237 6XX XXX XXX</li>
                 <li className="flex items-center gap-2"><Building2 className="w-3.5 h-3.5" /> Douala, Cameroun</li>
               </ul>

@@ -3,9 +3,10 @@
  * DemoPage — Page publique de démo interactive & visite guidée virtuelle
  * Thème dark cohérent avec la landing page Atlas Studio
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ATLAS_STUDIO } from '../config/atlasStudio';
+import { AtlasStudioBrand } from '../components/common/AtlasStudioBrand';
 import {
   ArrowLeft, ArrowRight, Play, Monitor, Users,
   Clock, Mail, ChevronRight, Calculator, Shield, BarChart3,
@@ -132,6 +133,31 @@ const DemoPage: React.FC = () => {
   const [tourAutoPlay, setTourAutoPlay] = useState(false);
   const [previewRoute, setPreviewRoute] = useState('/dashboard');
 
+  // Responsive iframe scaling: render dashboard at desktop width (1440px)
+  // and scale down to fit the container so layouts stay intact on small screens.
+  const IFRAME_DESIGN_WIDTH = 1440;
+  const previewContainerRef = useRef<HTMLDivElement>(null);
+  const [previewScale, setPreviewScale] = useState(1);
+
+  useEffect(() => {
+    if (activeView !== 'live-preview') return;
+    const el = previewContainerRef.current;
+    if (!el) return;
+    const updateScale = () => {
+      const containerWidth = el.clientWidth;
+      const scale = Math.min(1, containerWidth / IFRAME_DESIGN_WIDTH);
+      setPreviewScale(scale);
+    };
+    updateScale();
+    const ro = new ResizeObserver(updateScale);
+    ro.observe(el);
+    window.addEventListener('resize', updateScale);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', updateScale);
+    };
+  }, [activeView, previewRoute]);
+
   // Auto-play timer
   useEffect(() => {
     if (!tourAutoPlay || activeView !== 'tour') return;
@@ -175,7 +201,7 @@ const DemoPage: React.FC = () => {
             <button onClick={() => navigate('/')} style={{ color: W30 }} className="hover:opacity-80 transition-colors">
               <ArrowLeft className="w-4 h-4" />
             </button>
-            <span className="atlas-brand text-2xl" style={{ color: W }}>Atlas Studio</span>
+            <AtlasStudioBrand className="atlas-brand text-2xl" style={{ color: W }} />
             <span style={{ color: W20 }}>/</span>
             <span className="atlas-brand text-lg" style={{ color: G }}>Atlas Finance &amp; Accounting</span>
           </div>
@@ -236,13 +262,13 @@ const DemoPage: React.FC = () => {
                   <span className="text-[10px] flex items-center gap-1" style={{ color: W20 }}><Clock className="w-3 h-3" /> 2-3 min chacune</span>
                 </button>
 
-                <a href="mailto:contact@atlasstudio.com?subject=Demande de démo live Atlas F%26A" className="group p-7 bg-white/[0.03] border border-white/[0.06] rounded-2xl text-left hover:bg-white/[0.06] hover:border-white/[0.12] transition-all hover:-translate-y-1" style={{ color: W }}>
+                <a href="mailto:contact@atlasstudio.org?subject=Demande de démo live Atlas F%26A" className="group p-7 bg-white/[0.03] border border-white/[0.06] rounded-2xl text-left hover:bg-white/[0.06] hover:border-white/[0.12] transition-all hover:-translate-y-1" style={{ color: W }}>
                   <div className="w-14 h-14 bg-white/[0.06] rounded-xl flex items-center justify-center mb-5 group-hover:bg-white/10 transition-colors">
                     <Users className="w-7 h-7" style={{ color: G }} />
                   </div>
                   <h3 className="text-base font-bold mb-2" style={{ color: W }}>Démo live</h3>
                   <p className="text-xs leading-relaxed mb-3" style={{ color: W30 }}>Un expert vous accompagne en direct pendant 30 min. Sur rendez-vous.</p>
-                  <span className="text-[10px] flex items-center gap-1" style={{ color: W20 }}><Mail className="w-3 h-3" /> contact@atlasstudio.com</span>
+                  <span className="text-[10px] flex items-center gap-1" style={{ color: W20 }}><Mail className="w-3 h-3" /> contact@atlasstudio.org</span>
                 </a>
               </div>
             </div>
@@ -452,7 +478,7 @@ const DemoPage: React.FC = () => {
 
       {/* ═══ LIVE PREVIEW (iframe) ═══ */}
       {activeView === 'live-preview' && (
-        <div className="max-w-7xl mx-auto px-6 py-8">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-8">
           <div className="flex items-center justify-between mb-4">
             <button onClick={() => setActiveView('tour')} className="flex items-center gap-2 text-sm hover:opacity-70 transition-colors" style={{ color: W30 }}>
               <ArrowLeft className="w-4 h-4" /> Retour à la visite
@@ -473,8 +499,25 @@ const DemoPage: React.FC = () => {
                 atlas-fna.app{previewRoute}
               </div>
             </div>
-            <div className="relative bg-white" style={{ height: '70vh' }}>
-              <iframe key={previewRoute} src={`${window.location.origin}${previewRoute}`} className="w-full h-full border-0" title="Aperçu Atlas F&A" />
+            <div
+              ref={previewContainerRef}
+              className="relative bg-white overflow-hidden"
+              style={{ height: '70vh' }}
+            >
+              {/* Render iframe at desktop width (1440px) and scale down to fit the container.
+                  This keeps the dashboard layout intact and just zooms it to fit any screen size. */}
+              <iframe
+                key={previewRoute}
+                src={`${window.location.origin}${previewRoute}`}
+                title="Aperçu Atlas F&A"
+                style={{
+                  width: `${IFRAME_DESIGN_WIDTH}px`,
+                  height: `${100 / previewScale}%`,
+                  border: 0,
+                  transform: `scale(${previewScale})`,
+                  transformOrigin: 'top left',
+                }}
+              />
             </div>
           </div>
           <div className="flex items-center justify-center gap-3 mt-6">
@@ -541,13 +584,13 @@ const DemoPage: React.FC = () => {
       <footer className="border-t border-white/[0.06] py-8 px-6 mt-auto">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <span className="atlas-brand text-xl" style={{ color: 'rgba(255,255,255,0.6)' }}>Atlas Studio</span>
+            <AtlasStudioBrand className="atlas-brand text-xl" style={{ color: 'rgba(255,255,255,0.6)' }} />
             <span style={{ color: W10 }} className="mx-1">/</span>
             <span className="atlas-brand text-sm" style={{ color: 'rgba(201,169,110,0.6)' }}>Atlas Finance &amp; Accounting</span>
           </div>
           <div className="flex items-center gap-6 text-xs" style={{ color: W15 }}>
-            <span>contact@atlasstudio.com</span>
-            <span>&copy; {new Date().getFullYear()} Atlas Studio</span>
+            <span>contact@atlasstudio.org</span>
+            <span>&copy; {new Date().getFullYear()} <AtlasStudioBrand>Atlas Studio</AtlasStudioBrand></span>
           </div>
         </div>
       </footer>

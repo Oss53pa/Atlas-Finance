@@ -15,6 +15,18 @@ export function useKeyboardShortcuts() {
       const tag = (e.target as HTMLElement)?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
 
+      // F1 — open contextual help drawer (fallback navigation if drawer unavailable)
+      if (e.key === 'F1') {
+        e.preventDefault();
+        const opener = (window as any).openHelpDrawer;
+        if (typeof opener === 'function') {
+          opener();
+        } else {
+          navigate('/help');
+        }
+        return;
+      }
+
       if (e.altKey) {
         switch (e.key.toLowerCase()) {
           case 's': e.preventDefault(); document.querySelector<HTMLInputElement>('[data-search-input]')?.focus(); break;
@@ -24,6 +36,7 @@ export function useKeyboardShortcuts() {
           case 'g': e.preventDefault(); navigate('/accounting/general-ledger'); break;
           case 'j': e.preventDefault(); navigate('/accounting/journals'); break;
           case 'p': e.preventDefault(); navigate('/proph3t'); break;
+          case 'h': e.preventDefault(); navigate('/help'); break;
         }
       }
     };

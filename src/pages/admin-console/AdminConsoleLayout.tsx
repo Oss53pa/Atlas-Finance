@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { AtlasStudioBrand } from '../../components/common/AtlasStudioBrand';
 import {
   LayoutDashboard, Users, CreditCard, ToggleLeft, Activity, Headphones,
   LogOut, Settings, Search, Sparkles, ChevronRight, DollarSign, FileText
@@ -34,7 +35,7 @@ const AdminConsoleLayout: React.FC = () => {
               <Settings className="w-4 h-4" />
             </div>
             <div>
-              <span className="atlas-brand text-lg">Atlas Studio</span>
+              <AtlasStudioBrand className="atlas-brand text-lg" />
               <div className="text-[10px] text-red-400 font-semibold uppercase tracking-wider">Console Admin</div>
             </div>
           </div>

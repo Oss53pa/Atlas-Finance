@@ -2,7 +2,7 @@
  * OllamaProvider — Provider LLM principal pour PROPH3T.
  *
  * Ollama tourne en local (http://localhost:11434), gratuit, sans clé API.
- * Supporte le tool calling depuis v0.3+ (format OpenAI compatible).
+ * Supporte le tool calling depuis v0.3+ (format compatible).
  *
  * Installation : https://ollama.ai
  * Modèle recommandé : ollama pull mistral-large

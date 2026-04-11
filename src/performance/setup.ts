@@ -26,7 +26,6 @@ interface PerformanceConfig {
   };
   webVitals: {
     enabled: boolean;
-    reportToAnalytics: boolean;
   };
 }
 
@@ -47,7 +46,6 @@ const defaultConfig: PerformanceConfig = {
   },
   webVitals: {
     enabled: true,
-    reportToAnalytics: process.env.NODE_ENV === 'production',
   },
 };
 
@@ -73,7 +71,7 @@ export function setupGlobalPerformance(config: Partial<PerformanceConfig> = {}) 
 
   // Setup Web Vitals reporting
   if (finalConfig.webVitals.enabled) {
-    setupWebVitalsReporting(finalConfig.webVitals.reportToAnalytics);
+    setupWebVitalsReporting();
   }
 
   // Setup performance budget monitoring
@@ -103,8 +101,7 @@ interface WebVitalMetric {
   value: number;
 }
 
-interface WindowWithGtag extends Window {
-  gtag?: (command: string, eventName: string, params: Record<string, unknown>) => void;
+interface WindowWithPerformance extends Window {
   __ATLAS_FINANCE_PERFORMANCE__?: Record<string, unknown>;
   __REACT_DEVTOOLS_GLOBAL_HOOK__?: {
     onCommitFiberRoot?: (id: number, root: unknown, priorityLevel: unknown) => void;
@@ -112,22 +109,14 @@ interface WindowWithGtag extends Window {
   };
 }
 
-declare const window: WindowWithGtag;
+declare const window: WindowWithPerformance;
 
-function setupWebVitalsReporting(reportToAnalytics: boolean) {
+function setupWebVitalsReporting() {
   // Import and setup web-vitals library if available
   try {
     import('web-vitals').then(({ getCLS, getFID, getFCP, getLCP, getTTFB }) => {
-      const reportMetric = (metric: WebVitalMetric) => {
-
-        if (reportToAnalytics && window.gtag) {
-          window.gtag('event', metric.name, {
-            event_category: 'Web Vitals',
-            event_label: metric.id,
-            value: Math.round(metric.value),
-            non_interaction: true,
-          });
-        }
+      const reportMetric = (_metric: WebVitalMetric) => {
+        // Web vitals are collected; add a reporting backend here if needed.
       };
 
       getCLS(reportMetric);

@@ -24,6 +24,7 @@ import { useInvalidateOnEntryChange } from '../../hooks/useInvalidateOnEntryChan
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 import { MobileConsultationBanner } from './MobileConsultationBanner';
 import KeyboardShortcutsHelp from './KeyboardShortcutsHelp';
+import HelpDrawer from './HelpDrawer';
 import ModernButton from '../ui/ModernButton';
 import LanguageSelector from '../ui/LanguageSelector';
 
@@ -56,8 +57,10 @@ const ModernDoubleSidebarLayout: React.FC = () => {
   useInvalidateOnEntryChange();
   useKeyboardShortcuts();
 
-  const [primaryCollapsed, setPrimaryCollapsed] = useState(false);
-  const [secondaryCollapsed, setSecondaryCollapsed] = useState(false);
+  // Detect demo mode (iframe preview) to auto-collapse sidebars and save space
+  const isDemoMode = typeof sessionStorage !== 'undefined' && sessionStorage.getItem('atlas-demo-mode') === '1';
+  const [primaryCollapsed, setPrimaryCollapsed] = useState(isDemoMode);
+  const [secondaryCollapsed, setSecondaryCollapsed] = useState(isDemoMode);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedModule, setSelectedModule] = useState('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
@@ -901,6 +904,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
           </div>
         </main>
       </div>
+      <HelpDrawer />
     </div>
   );
 };

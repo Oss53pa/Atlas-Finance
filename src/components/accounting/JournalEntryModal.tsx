@@ -32,6 +32,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import SearchableDropdown from '../ui/SearchableDropdown';
+import Tooltip from '../ui/Tooltip';
 import { TVAValidator, LigneEcriture as TVALigneEcriture, TVAValidationResult } from '../../utils/tvaValidation';
 import { isEntryEditable, isEntryReversible } from '../../utils/reversalService';
 import { validateJournalEntry, getNextPieceNumber } from '../../validators/journalEntryValidator';
@@ -1011,7 +1012,12 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('accounting.journal')}</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        {t('accounting.journal')}
+                        <span className="ml-1 align-middle">
+                          <Tooltip asIcon content="Code journal SYSCOHADA (AC, VE, BQ, CA, OD, AN, CL). Détermine la nature de l'opération et son cadre comptable." />
+                        </span>
+                      </label>
                       <input
                         type="text"
                         value={details.journal}
@@ -1372,7 +1378,12 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                     </h4>
                     <div className="grid grid-cols-3 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Compte à débiter *</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Compte à débiter *
+                          <span className="ml-1 align-middle">
+                            <Tooltip asIcon content="Numéro de compte du plan comptable OHADA (ex. 411 pour Clients). Une ligne ne peut avoir que débit OU crédit, jamais les deux. La somme des débits doit égaler la somme des crédits." />
+                          </span>
+                        </label>
                         <SearchableDropdown
                           options={[
                             { value: '512000', label: '512000 - Banque principale' },
@@ -1386,7 +1397,12 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Compte à créditer *</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Compte à créditer *
+                          <span className="ml-1 align-middle">
+                            <Tooltip asIcon content="Numéro de compte du plan comptable OHADA (ex. 411 pour Clients). Une ligne ne peut avoir que débit OU crédit, jamais les deux. La somme des débits doit égaler la somme des crédits." />
+                          </span>
+                        </label>
                         <SearchableDropdown
                           options={[
                             { value: '512001', label: '512001 - Banque secondaire' },

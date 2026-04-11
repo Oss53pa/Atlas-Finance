@@ -94,7 +94,7 @@ Deno.serve(async (req) => {
       <div class="party-name">Atlas Studio SARL</div>
       <div class="party-detail">RCCM : CI-ABJ-2024-B-00001</div>
       <div class="party-detail">Douala, Cameroun</div>
-      <div class="party-detail">contact@atlasstudio.com</div>
+      <div class="party-detail">contact@atlasstudio.org</div>
     </div>
     <div class="party">
       <div class="party-label">Client</div>

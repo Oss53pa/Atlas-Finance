@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { AtlasStudioBrand } from '../../components/common/AtlasStudioBrand';
 
 interface Stats {
   ecritures: number;
@@ -131,7 +132,7 @@ const AtlasFnAHome: React.FC = () => {
           ))}
         </nav>
         <span className="text-xs text-neutral-300">
-          Developed by <span className="atlas-brand text-sm">Atlas Studio</span>
+          Developed by <AtlasStudioBrand className="atlas-brand text-sm" />
         </span>
       </footer>
     </div>

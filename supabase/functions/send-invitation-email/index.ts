@@ -8,7 +8,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const resendApiKey = Deno.env.get('RESEND_API_KEY') || '';
-const siteUrl = Deno.env.get('SITE_URL') || 'https://atlasstudio.com';
+const siteUrl = Deno.env.get('SITE_URL') || 'https://www.atlasstudio.org';
 
 Deno.serve(async (req) => {
   if (req.method !== 'POST') {
@@ -71,7 +71,7 @@ Deno.serve(async (req) => {
 
   <div style="text-align: center; margin-top: 32px; color: #a3a3a3; font-size: 11px;">
     Atlas Studio — Suite de gestion pour l'Afrique<br>
-    <a href="${siteUrl}" style="color: #737373;">atlasstudio.com</a>
+    <a href="${siteUrl}" style="color: #737373;">atlasstudio.org</a>
   </div>
 </body>
 </html>`;
@@ -85,7 +85,7 @@ Deno.serve(async (req) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          from: 'Atlas Studio <noreply@atlasstudio.com>',
+          from: 'Atlas Studio <noreply@atlasstudio.org>',
           to: [email],
           subject: `Invitation à rejoindre ${organization_name || 'Atlas Studio'}`,
           html,

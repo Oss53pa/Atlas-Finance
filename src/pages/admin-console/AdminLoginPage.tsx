@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Shield, Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { AtlasStudioBrand } from '../../components/common/AtlasStudioBrand';
 
 const AdminLoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -56,7 +57,7 @@ const AdminLoginPage: React.FC = () => {
             <div className="w-14 h-14 bg-red-600 rounded-xl flex items-center justify-center mx-auto mb-4">
               <Shield className="w-7 h-7 text-white" />
             </div>
-            <h1 className="atlas-brand text-2xl text-white">Atlas Studio</h1>
+            <AtlasStudioBrand className="atlas-brand text-2xl text-white block" />
             <p className="text-xs text-red-400 font-semibold uppercase tracking-widest mt-1">Console Administration</p>
           </div>
 
@@ -75,7 +76,7 @@ const AdminLoginPage: React.FC = () => {
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              placeholder="admin@atlasstudio.com"
+              placeholder="admin@atlasstudio.org"
               className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm placeholder-white/20 focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none transition-colors"
               autoComplete="email"
               autoFocus
@@ -121,7 +122,7 @@ const AdminLoginPage: React.FC = () => {
         </form>
 
         <p className="text-[10px] text-white/15 mt-8 text-center">
-          <span className="atlas-brand text-xs">Atlas Studio</span> &copy; {new Date().getFullYear()}
+          <AtlasStudioBrand className="atlas-brand text-xs" /> &copy; {new Date().getFullYear()}
         </p>
       </div>
     </div>

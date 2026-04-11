@@ -11,7 +11,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-const siteUrl = Deno.env.get('SITE_URL') || 'https://atlasstudio.com';
+const siteUrl = Deno.env.get('SITE_URL') || 'https://www.atlasstudio.org';
 
 Deno.serve(async (req) => {
   try {
@@ -79,7 +79,7 @@ Deno.serve(async (req) => {
                 'Content-Type': 'application/json',
               },
               body: JSON.stringify({
-                from: 'Atlas Studio <noreply@atlasstudio.com>',
+                from: 'Atlas Studio <noreply@atlasstudio.org>',
                 to: [tenant.billing_email],
                 subject: daysLeft <= 1
                   ? `⚠️ Votre licence ${(sub.solution as any)?.name} expire demain`

@@ -4,6 +4,7 @@ import { Calculator, Eye, EyeOff, Shield } from 'lucide-react';
 import { Button, Input, Card, CardHeader, CardTitle, CardContent } from '../../components/ui';
 import { useAuth } from '../../contexts/AuthContext';
 import { ATLAS_STUDIO } from '../../config/atlasStudio';
+import { AtlasStudioBrand } from '../../components/common/AtlasStudioBrand';
 
 function getRoleRedirectPath(_role: string): string {
   // Après login → page d'accueil Atlas F&A (pattern DocJourney)
@@ -127,7 +128,7 @@ const LoginPage: React.FC = () => {
           <CardHeader className="text-center pb-8">
             <div className="flex justify-center mb-6">
               <div className="text-center">
-                <h1 className="atlas-brand text-4xl text-[var(--color-text-primary)]">Atlas Studio</h1>
+                <AtlasStudioBrand className="atlas-brand text-4xl text-[var(--color-text-primary)] block" />
                 <p className="text-sm text-[var(--color-text-secondary)] mt-1">Plateforme de gestion d'entreprise</p>
               </div>
             </div>
@@ -296,7 +297,7 @@ const LoginPage: React.FC = () => {
             {/* Footer Atlas Studio */}
             <div className="mt-6 text-center">
               <p className="text-xs text-[var(--color-text-secondary)]">
-                <span className="atlas-brand text-base">Atlas Studio</span> &copy; {new Date().getFullYear()} — Atlas F&A, Liass'Pilot, DocJourney
+                <AtlasStudioBrand className="atlas-brand text-base" /> &copy; {new Date().getFullYear()} — Atlas F&A, Liass'Pilot, DocJourney
                 <Link to="/admin-login" className="text-[var(--color-text-secondary)]/20 hover:text-[var(--color-text-secondary)]/20 ml-1 cursor-default">·</Link>
               </p>
             </div>

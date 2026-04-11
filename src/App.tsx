@@ -248,6 +248,11 @@ const SetupWizardPage = lazyRetry(() => import('./pages/core/SetupWizardPage'));
 const NotFoundPage = lazyRetry(() => import('./pages/errors/NotFoundPage'));
 const MaintenancePage = lazyRetry(() => import('./pages/errors/MaintenancePage'));
 
+// Aide / Help center
+const HelpCenterPage = lazyRetry(() => import('./pages/help/HelpCenterPage'));
+const FAQPage = lazyRetry(() => import('./pages/help/FAQPage'));
+const HelpArticlePage = lazyRetry(() => import('./pages/help/HelpArticlePage'));
+
 const queryClient = new QueryClient({ defaultOptions: { queries: { staleTime: 5 * 60 * 1000, retry: 1 } } });
 const LoadingFallback = () => <div className="flex items-center justify-center min-h-screen"><LoadingSpinner size="lg" /></div>;
 
@@ -517,6 +522,13 @@ function App() {
                           <Route path="/core/company" element={<CompanyPage />} />
                           <Route path="/core/exercice" element={<ExercicePage />} />
                           <Route path="/setup" element={<SetupWizardPage />} />
+                        </Route>
+
+                        {/* Aide / Help — accessible à tous les utilisateurs authentifiés */}
+                        <Route element={<RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant', 'user', 'viewer']}><Outlet /></RBACGuard>}>
+                          <Route path="/help" element={<HelpCenterPage />} />
+                          <Route path="/help/faq" element={<FAQPage />} />
+                          <Route path="/help/article/:articleId" element={<HelpArticlePage />} />
                         </Route>
                       </Route>
 
