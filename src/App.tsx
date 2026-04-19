@@ -226,6 +226,7 @@ const MultiSitesPage = lazyRetry(() => import('./pages/config/MultiSitesPage'));
 const AccountingSettingsPage = lazyRetry(() => import('./pages/settings/AccountingSettingsPage'));
 const BackupPage = lazyRetry(() => import('./pages/settings/BackupPage'));
 const ImportExportPage = lazyRetry(() => import('./pages/settings/ImportExportPage'));
+const ImportTemplatesCatalogPage = lazyRetry(() => import('./pages/settings/ImportTemplatesCatalogPage'));
 const APIIntegrationsPage = lazyRetry(() => import('./pages/settings/APIIntegrationsPage'));
 const MobileAppPage = lazyRetry(() => import('./pages/settings/MobileAppPage'));
 const OfflineModePage = lazyRetry(() => import('./pages/settings/OfflineModePage'));
@@ -498,6 +499,7 @@ function App() {
                           <Route path="/settings/users" element={<UsersPage />} />
                           <Route path="/settings/company" element={<CompanyPage />} />
                           <Route path="/settings/import-export" element={<ImportExportPage />} />
+                          <Route path="/settings/import-templates" element={<ImportTemplatesCatalogPage />} />
                           <Route path="/settings/backup" element={<BackupPage />} />
                           <Route path="/settings/api" element={<APIIntegrationsPage />} />
                           <Route path="/settings/mobile" element={<MobileAppPage />} />
