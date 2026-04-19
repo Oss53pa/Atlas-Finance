@@ -18,6 +18,7 @@ import {
   ChevronDown, ChevronRight, Grid3X3, Columns, ZoomIn, Mail, FileSpreadsheet
 } from 'lucide-react';
 import { formatCurrency } from '@/utils/formatters';
+import { useMoneyFormat } from '@/hooks/useMoneyFormat';
 import { money } from '../../utils/money';
 import './AdvancedBalance.css';
 import Balance from './Balance';
@@ -48,6 +49,7 @@ interface ChartData {
 
 const AdvancedBalance: React.FC = () => {
   const { t } = useLanguage();
+  const fmt = useMoneyFormat();
   const { adapter } = useData();
   // États principaux
   const [activeView, setActiveView] = useState<'dashboard' | 'generale' | 'analytique'>('dashboard');
@@ -434,7 +436,7 @@ const AdvancedBalance: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-[#171717]/70">Total Débit</p>
-                  <p className="text-lg font-bold text-blue-600">{(indicators.totalDebit / 1000000).toFixed(1)}M</p>
+                  <p className="text-lg font-bold text-blue-600">{fmt(indicators.totalDebit)}</p>
                   <p className="text-xs text-[#171717]/50">XAF</p>
                 </div>
                 <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -447,7 +449,7 @@ const AdvancedBalance: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-[#171717]/70">Total Crédit</p>
-                  <p className="text-lg font-bold text-green-600">{(indicators.totalCredit / 1000000).toFixed(1)}M</p>
+                  <p className="text-lg font-bold text-green-600">{fmt(indicators.totalCredit)}</p>
                   <p className="text-xs text-[#171717]/50">XAF</p>
                 </div>
                 <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -552,8 +554,8 @@ const AdvancedBalance: React.FC = () => {
                 <ComposedChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                   <XAxis dataKey="periode" />
-                  <YAxis tickFormatter={(value) => `${(value / 1000000).toFixed(0)}M`} />
-                  <Tooltip formatter={(value) => [`${(value as number / 1000000).toFixed(1)}M XAF`, '']} />
+                  <YAxis tickFormatter={(value) => fmt(value)} />
+                  <Tooltip formatter={(value) => [fmt(value as number), '']} />
                   <Legend />
                   <Bar dataKey="actif" fill="#171717" name="Actif" />
                   <Bar dataKey="passif" fill="#525252" name="Passif" />
@@ -592,7 +594,7 @@ const AdvancedBalance: React.FC = () => {
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value) => [`${(value as number / 1000000).toFixed(1)}M XAF`, '']} />
+                  <Tooltip formatter={(value) => [fmt(value as number), '']} />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
@@ -649,13 +651,13 @@ const AdvancedBalance: React.FC = () => {
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-[#171717]">{item.compte}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-[#171717]">{item.libelle}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-right text-blue-600">
-                          {formatCurrency(item.debitMouvement)}
+                          {fmt(item.debitMouvement)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-right text-green-600">
-                          {formatCurrency(item.creditMouvement)}
+                          {fmt(item.creditMouvement)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-right font-medium text-gray-900">
-                          {formatCurrency(item.debitMouvement + item.creditMouvement)}
+                          {fmt(item.debitMouvement + item.creditMouvement)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center">
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -771,8 +773,8 @@ const AdvancedBalance: React.FC = () => {
                 ]}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="centre" />
-                  <YAxis tickFormatter={(value) => `${(value / 1000000).toFixed(0)}M`} />
-                  <Tooltip formatter={(value) => [`${(value as number / 1000000).toFixed(1)}M XAF`, '']} />
+                  <YAxis tickFormatter={(value) => fmt(value)} />
+                  <Tooltip formatter={(value) => [fmt(value as number), '']} />
                   <Legend />
                   <Bar dataKey="budget" fill="#525252" name={t('navigation.budget')} />
                   <Bar dataKey="reel" fill="#171717" name="Réel" />
@@ -793,8 +795,8 @@ const AdvancedBalance: React.FC = () => {
                 ]}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="mois" />
-                  <YAxis tickFormatter={(value) => `${(value / 1000).toFixed(0)}K`} />
-                  <Tooltip formatter={(value) => [`${(value as number / 1000).toFixed(0)}K XAF`, '']} />
+                  <YAxis tickFormatter={(value) => fmt(value)} />
+                  <Tooltip formatter={(value) => [fmt(value as number), '']} />
                   <Legend />
                   <Line type="monotone" dataKey="commercial" stroke="#171717" name="Commercial" />
                   <Line type="monotone" dataKey="production" stroke="#525252" name="Production" />
@@ -834,15 +836,15 @@ const AdvancedBalance: React.FC = () => {
                       <td className="px-6 py-4 text-sm font-mono font-medium text-gray-900">{item.centre}</td>
                       <td className="px-6 py-4 text-sm text-gray-900">{item.projet}</td>
                       <td className="px-6 py-4 text-sm font-mono text-right text-gray-600">
-                        {formatCurrency(item.budget)}
+                        {fmt(item.budget)}
                       </td>
                       <td className="px-6 py-4 text-sm font-mono text-right text-gray-900">
-                        {formatCurrency(item.realise)}
+                        {fmt(item.realise)}
                       </td>
                       <td className={`px-6 py-4 text-sm font-mono text-right font-medium ${
                         item.ecart >= 0 ? 'text-red-600' : 'text-green-600'
                       }`}>
-                        {item.ecart >= 0 ? '+' : ''}{formatCurrency(item.ecart)}
+                        {item.ecart >= 0 ? '+' : ''}{fmt(item.ecart)}
                       </td>
                       <td className={`px-6 py-4 text-sm font-mono text-right font-medium ${
                         item.ecart >= 0 ? 'text-red-600' : 'text-green-600'
@@ -1061,11 +1063,11 @@ const AdvancedBalance: React.FC = () => {
               <div className="grid grid-cols-4 gap-4 mb-6 p-4 bg-[#e5e5e5] rounded">
                 <div className="text-center">
                   <div className="text-xs text-[#171717]/70">Total Débit</div>
-                  <div className="font-bold text-blue-600">{(indicators.totalDebit / 1000000).toFixed(1)}M XAF</div>
+                  <div className="font-bold text-blue-600">{fmt(indicators.totalDebit)} XAF</div>
                 </div>
                 <div className="text-center">
                   <div className="text-xs text-[#171717]/70">Total Crédit</div>
-                  <div className="font-bold text-green-600">{(indicators.totalCredit / 1000000).toFixed(1)}M XAF</div>
+                  <div className="font-bold text-green-600">{fmt(indicators.totalCredit)} XAF</div>
                 </div>
                 <div className="text-center">
                   <div className="text-xs text-[#171717]/70">Équilibre</div>
@@ -1097,10 +1099,10 @@ const AdvancedBalance: React.FC = () => {
                       <td className="border-r border-[#e5e5e5] px-2 py-1 font-mono">{item.compte}</td>
                       <td className="border-r border-[#e5e5e5] px-2 py-1">{item.libelle}</td>
                       <td className="border-r border-[#e5e5e5] px-2 py-1 text-right font-mono">
-                        {item.debitSolde > 0 ? formatCurrency(item.debitSolde) : '-'}
+                        {item.debitSolde > 0 ? fmt(item.debitSolde) : '-'}
                       </td>
                       <td className="px-2 py-1 text-right font-mono">
-                        {item.creditSolde > 0 ? formatCurrency(item.creditSolde) : '-'}
+                        {item.creditSolde > 0 ? fmt(item.creditSolde) : '-'}
                       </td>
                     </tr>
                   ))}
@@ -1109,10 +1111,10 @@ const AdvancedBalance: React.FC = () => {
                   <tr>
                     <td colSpan={2} className="px-2 py-2 font-bold text-[#f5f5f5]">TOTAUX</td>
                     <td className="px-2 py-2 text-right font-mono font-bold border-r border-[#e5e5e5] text-[#f5f5f5]">
-                      {formatCurrency(indicators.totalDebit)}
+                      {fmt(indicators.totalDebit)}
                     </td>
                     <td className="px-2 py-2 text-right font-mono font-bold text-[#f5f5f5]">
-                      {formatCurrency(indicators.totalCredit)}
+                      {fmt(indicators.totalCredit)}
                     </td>
                   </tr>
                 </tfoot>

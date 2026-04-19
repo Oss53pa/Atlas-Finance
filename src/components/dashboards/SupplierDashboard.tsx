@@ -57,6 +57,7 @@ import {
 import { BarChart, LineChart, PieChart } from '../charts';
 import { supplierService } from '../../services/supplier.service';
 import { formatCurrency, formatDate, formatPercent } from '../../lib/utils';
+import { useMoneyFormat } from '../../hooks/useMoneyFormat';
 
 interface SupplierDashboardProps {
   className?: string;
@@ -92,6 +93,7 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
   fiscalYearId
 }) => {
   const { t } = useLanguage();
+  const fmt = useMoneyFormat();
   // États du dashboard
   const [filters, setFilters] = useState<DashboardFilters>({
     supplierType: 'all',
@@ -146,7 +148,7 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
     return [
       {
         title: 'Encours Fournisseurs Total',
-        value: formatCurrency(kpiData.totalOutstanding),
+        value: fmt(kpiData.totalOutstanding),
         change: kpiData.outstandingTrend,
         icon: Truck,
         color: 'primary',
@@ -162,7 +164,7 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
       },
       {
         title: 'Escomptes Capturés',
-        value: formatCurrency(kpiData.discountCaptured),
+        value: fmt(kpiData.discountCaptured),
         change: kpiData.discountTrend,
         icon: Zap,
         color: 'green',
@@ -170,7 +172,7 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
       },
       {
         title: 'Dettes Échues',
-        value: formatCurrency(kpiData.overdueAmount),
+        value: fmt(kpiData.overdueAmount),
         change: kpiData.overdueTrend,
         icon: AlertCircle,
         color: 'red',
@@ -193,7 +195,7 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
         trend: kpiData.performanceTrend > 0 ? 'up' : 'down'
       }
     ];
-  }, [kpiData]);
+  }, [kpiData, fmt]);
 
   const handleFilterChange = (key: keyof DashboardFilters, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }));
@@ -396,11 +398,11 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
                         </div>
                         <div className="text-right">
                           <p className="font-bold text-[var(--color-info)]">
-                            {formatCurrency(payment.amount)}
+                            {fmt(payment.amount)}
                           </p>
                           {payment.discountAmount > 0 && (
                             <p className="text-sm text-[var(--color-success)]">
-                              Escompte: -{formatCurrency(payment.discountAmount)}
+                              Escompte: -{fmt(payment.discountAmount)}
                             </p>
                           )}
                         </div>
@@ -471,13 +473,13 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
                     <div className="bg-[var(--color-success-lightest)] p-4 rounded-lg border border-[var(--color-success-light)]">
                       <p className="text-sm font-medium text-[var(--color-success-darker)]">Économies Potentielles</p>
                       <p className="text-lg font-bold text-green-900">
-                        {formatCurrency(paymentOptimization?.totalPotentialSavings || 0)}
+                        {fmt(paymentOptimization?.totalPotentialSavings || 0)}
                       </p>
                     </div>
                     <div className="bg-[var(--color-primary-lightest)] p-4 rounded-lg border border-[var(--color-primary-light)]">
                       <p className="text-sm font-medium text-[var(--color-primary-darker)]">Montant à Payer</p>
                       <p className="text-lg font-bold text-[var(--color-primary-darker)]">
-                        {formatCurrency(paymentOptimization?.totalPaymentAmount || 0)}
+                        {fmt(paymentOptimization?.totalPaymentAmount || 0)}
                       </p>
                     </div>
                     <div className="bg-[var(--color-info-lightest)] p-4 rounded-lg border border-primary-200">
@@ -514,11 +516,11 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
                           </div>
                           <div className="text-right">
                             <p className="font-bold text-[var(--color-info)]">
-                              {formatCurrency(proposal.totalAmount)}
+                              {fmt(proposal.totalAmount)}
                             </p>
                             {proposal.discountAmount && (
                               <p className="text-sm text-[var(--color-success)] font-medium">
-                                Économie: {formatCurrency(proposal.discountAmount)}
+                                Économie: {fmt(proposal.discountAmount)}
                               </p>
                             )}
                             <div className="flex space-x-2 mt-2">
@@ -742,7 +744,7 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
                           </p>
                         </TableCell>
                         <TableCell className="font-bold">
-                          {formatCurrency(opportunity.amount)}
+                          {fmt(opportunity.amount)}
                         </TableCell>
                         <TableCell>
                           <Badge className="bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)]">
@@ -750,7 +752,7 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
                           </Badge>
                         </TableCell>
                         <TableCell className="font-bold text-[var(--color-success)]">
-                          {formatCurrency(opportunity.potentialSavings)}
+                          {fmt(opportunity.potentialSavings)}
                         </TableCell>
                         <TableCell>
                           <Badge className={`

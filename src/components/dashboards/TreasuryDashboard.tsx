@@ -58,6 +58,7 @@ import {
 import { LineChart, BarChart, PieChart } from '../charts';
 import { treasuryService } from '../../services/treasury.service';
 import { formatCurrency, formatDate, formatPercent } from '../../lib/utils';
+import { useMoneyFormat } from '../../hooks/useMoneyFormat';
 import { toast } from 'react-hot-toast';
 
 interface TreasuryDashboardProps {
@@ -72,6 +73,7 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
   className = ''
 }) => {
   const { t } = useLanguage();
+  const fmt = useMoneyFormat();
   // États
   const [forecastPeriod, setForecastPeriod] = useState('30');
   const [autoRefresh, setAutoRefresh] = useState(true);
@@ -127,7 +129,7 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
     return [
       {
         title: 'Position Actuelle',
-        value: formatCurrency(summary.current_position),
+        value: fmt(summary.current_position),
         subValue: `${summary.accounts_count} compte(s)`,
         icon: Wallet,
         color: summary.current_position >= 0 ? 'green' : 'red',
@@ -136,7 +138,7 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
       },
       {
         title: 'Disponible Total',
-        value: formatCurrency(summary.total_available),
+        value: fmt(summary.total_available),
         subValue: 'Incluant découverts',
         icon: CreditCard,
         color: 'blue',
@@ -145,7 +147,7 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
       },
       {
         title: 'Flux du Jour',
-        value: formatCurrency(Math.abs(summary.net_change_today)),
+        value: fmt(Math.abs(summary.net_change_today)),
         subValue: summary.net_change_today >= 0 ? 'Entrée nette' : 'Sortie nette',
         icon: summary.net_change_today >= 0 ? ArrowUpCircle : ArrowDownCircle,
         color: summary.net_change_today >= 0 ? 'green' : 'red',
@@ -154,7 +156,7 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
       },
       {
         title: 'Position 7 Jours',
-        value: formatCurrency(summary.forecast_7d_position),
+        value: fmt(summary.forecast_7d_position),
         subValue: 'Prévision rolling',
         icon: Target,
         color: summary.forecast_7d_position >= 0 ? 'green' : 'red',
@@ -162,7 +164,7 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
         change: 0,
       }
     ];
-  }, [treasuryPosition]);
+  }, [treasuryPosition, fmt]);
 
   const getAlertSeverityColor = (severity: string) => {
     switch (severity) {
@@ -374,22 +376,22 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
                         <TableCell className={`text-right font-mono font-bold ${
                           account.current_balance >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'
                         }`}>
-                          {formatCurrency(account.current_balance)}
+                          {fmt(account.current_balance)}
                         </TableCell>
                         <TableCell className="text-right font-mono text-[#171717]">
-                          {formatCurrency(account.available_balance)}
+                          {fmt(account.available_balance)}
                         </TableCell>
                         <TableCell className="text-right font-mono text-[var(--color-success)]">
-                          +{formatCurrency(account.inflows_today)}
+                          +{fmt(account.inflows_today)}
                         </TableCell>
                         <TableCell className="text-right font-mono text-[var(--color-error)]">
-                          -{formatCurrency(account.outflows_today)}
+                          -{fmt(account.outflows_today)}
                         </TableCell>
                         <TableCell className={`text-right font-mono font-bold ${
                           account.forecast_7d_inflows - account.forecast_7d_outflows >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'
                         }`}>
                           {account.forecast_7d_inflows - account.forecast_7d_outflows >= 0 ? '+' : ''}
-                          {formatCurrency(account.forecast_7d_inflows - account.forecast_7d_outflows)}
+                          {fmt(account.forecast_7d_inflows - account.forecast_7d_outflows)}
                         </TableCell>
                         <TableCell>
                           <Badge className={`
@@ -459,19 +461,19 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
                   <div className="flex justify-between items-center p-3 bg-[var(--color-success-lightest)] rounded">
                     <span className="font-medium">Paiements clients</span>
                     <span className="font-bold text-[var(--color-success)]">
-                      {formatCurrency(cashFlowForecast?.expected_receivables || 0)}
+                      {fmt(cashFlowForecast?.expected_receivables || 0)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center p-3 bg-[var(--color-success-lightest)] rounded">
                     <span className="font-medium">Appels de fonds</span>
                     <span className="font-bold text-[var(--color-success)]">
-                      {formatCurrency(fundCallsDashboard?.summary?.total_amount_called - fundCallsDashboard?.summary?.total_amount_received || 0)}
+                      {fmt(fundCallsDashboard?.summary?.total_amount_called - fundCallsDashboard?.summary?.total_amount_received || 0)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center p-3 bg-[var(--color-success-lightest)] rounded">
                     <span className="font-medium">Autres entrées</span>
                     <span className="font-bold text-[var(--color-success)]">
-                      {formatCurrency(cashFlowForecast?.other_inflows || 0)}
+                      {fmt(cashFlowForecast?.other_inflows || 0)}
                     </span>
                   </div>
                 </div>
@@ -490,19 +492,19 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
                   <div className="flex justify-between items-center p-3 bg-[var(--color-error-lightest)] rounded">
                     <span className="font-medium">Paiements fournisseurs</span>
                     <span className="font-bold text-[var(--color-error)]">
-                      {formatCurrency(cashFlowForecast?.expected_payables || 0)}
+                      {fmt(cashFlowForecast?.expected_payables || 0)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center p-3 bg-[var(--color-error-lightest)] rounded">
                     <span className="font-medium">Salaires & charges</span>
                     <span className="font-bold text-[var(--color-error)]">
-                      {formatCurrency(cashFlowForecast?.other_outflows || 0)}
+                      {fmt(cashFlowForecast?.other_outflows || 0)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center p-3 bg-[var(--color-error-lightest)] rounded">
                     <span className="font-medium">Taxes & impôts</span>
                     <span className="font-bold text-[var(--color-error)]">
-                      {formatCurrency(0)}
+                      {fmt(0)}
                     </span>
                   </div>
                 </div>
@@ -527,7 +529,7 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
             <Card>
               <CardContent className="p-6 text-center">
                 <div className="text-lg font-bold text-[#171717]">
-                  {formatCurrency(fundCallsDashboard?.summary?.total_amount_called || 0)}
+                  {fmt(fundCallsDashboard?.summary?.total_amount_called || 0)}
                 </div>
                 <p className="text-sm text-[#171717]/70">Montant total appelé</p>
               </CardContent>
@@ -536,7 +538,7 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
             <Card>
               <CardContent className="p-6 text-center">
                 <div className="text-lg font-bold text-[var(--color-success)]">
-                  {formatCurrency(fundCallsDashboard?.summary?.total_amount_received || 0)}
+                  {fmt(fundCallsDashboard?.summary?.total_amount_received || 0)}
                 </div>
                 <p className="text-sm text-[#171717]/70">Montant reçu</p>
                 <Progress 
@@ -588,10 +590,10 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
                         </div>
                         <div className="text-right">
                           <p className="text-lg font-bold text-[#171717]">
-                            {formatCurrency(call.amount_needed)}
+                            {fmt(call.amount_needed)}
                           </p>
                           <p className="text-sm text-[var(--color-success)]">
-                            Reçu: {formatCurrency(call.amount_received)} ({call.funding_rate}%)
+                            Reçu: {fmt(call.amount_received)} ({call.funding_rate}%)
                           </p>
                         </div>
                       </div>
@@ -604,7 +606,7 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
                               <div>
                                 <p className="font-medium text-sm">{contributor.name}</p>
                                 <p className="text-xs text-[#171717]/50">
-                                  {contributor.percentage}% • {formatCurrency(contributor.allocated)}
+                                  {contributor.percentage}% • {fmt(contributor.allocated)}
                                 </p>
                               </div>
                               <div className="text-right">

@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useData } from '../../contexts/DataContext';
 import { formatCurrency } from '../../utils/formatters';
+import { useMoneyFormat } from '../../hooks/useMoneyFormat';
 import { money } from '../../utils/money';
 import { useLanguage } from '../../contexts/LanguageContext';
 import PeriodSelectorModal from '../shared/PeriodSelectorModal';
@@ -17,6 +18,7 @@ import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart as RePieChart
 
 const JournalDashboard: React.FC = () => {
   const { t } = useLanguage();
+  const fmt = useMoneyFormat();
   const { adapter } = useData();
   // États
   const [showPeriodModal, setShowPeriodModal] = useState(false);
@@ -163,7 +165,7 @@ const JournalDashboard: React.FC = () => {
     },
   });
 
-  const formatAmount = (amount: number) => formatCurrency(amount);
+  const formatAmount = (amount: number) => fmt(amount);
 
   return (
     <div className="space-y-6">
@@ -445,7 +447,7 @@ const JournalDashboard: React.FC = () => {
                   <AreaChart data={treasuryEvolution}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="day" />
-                    <YAxis tickFormatter={(value) => `${(value / 1000000).toFixed(1)}M`} />
+                    <YAxis tickFormatter={(value) => fmt(value)} />
                     <Tooltip formatter={(value: number) => formatAmount(value)} />
                     <Legend />
                     <Area type="monotone" dataKey="encaissements" stackId="1" stroke="#22c55e" fill="#22c55e" fillOpacity={0.6} name={t('treasury.receipts')} />

@@ -55,6 +55,7 @@ import {
 import { LineChart, BarChart, PieChart } from '../charts';
 import { dashboardService } from '../../services/dashboard.service';
 import { formatCurrency, formatDate, formatPercent } from '../../lib/utils';
+import { useMoneyFormat } from '../../hooks/useMoneyFormat';
 
 interface FinancialAnalysisDashboardProps {
   companyId: string;
@@ -68,6 +69,7 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
   className = ''
 }) => {
   const { t } = useLanguage();
+  const fmt = useMoneyFormat();
   // États
   const [selectedView, setSelectedView] = useState<'tafire' | 'sig' | 'ratios' | 'comparative'>('tafire');
   const [comparisonPeriod, setComparisonPeriod] = useState('previous_year');
@@ -179,7 +181,7 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
               <CardContent className="p-4 text-center">
                 <TrendingUp className="h-8 w-8 text-[#171717] mx-auto mb-2" />
                 <div className="text-lg font-bold text-[#171717]">
-                  {formatCurrency(tafireData?.self_financing_capacity || 0)}
+                  {fmt(tafireData?.self_financing_capacity || 0)}
                 </div>
                 <p className="text-sm text-[#171717]/70">Capacité d'Autofinancement</p>
               </CardContent>
@@ -189,7 +191,7 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
               <CardContent className="p-4 text-center">
                 <Activity className="h-8 w-8 text-[var(--color-success)] mx-auto mb-2" />
                 <div className="text-lg font-bold text-[var(--color-success)]">
-                  {formatCurrency(tafireData?.operating_cash_surplus || 0)}
+                  {fmt(tafireData?.operating_cash_surplus || 0)}
                 </div>
                 <p className="text-sm text-[#171717]/70">Flux d'Exploitation (ETE)</p>
               </CardContent>
@@ -199,7 +201,7 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
               <CardContent className="p-4 text-center">
                 <Target className="h-8 w-8 text-[#171717] mx-auto mb-2" />
                 <div className="text-lg font-bold text-[#171717]">
-                  {formatCurrency(tafireData?.free_cash_flow || 0)}
+                  {fmt(tafireData?.free_cash_flow || 0)}
                 </div>
                 <p className="text-sm text-[#171717]/70">Free Cash Flow</p>
               </CardContent>
@@ -209,7 +211,7 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
               <CardContent className="p-4 text-center">
                 <DollarSign className="h-8 w-8 text-[#171717] mx-auto mb-2" />
                 <div className="text-lg font-bold text-[#171717]">
-                  {formatCurrency(tafireData?.cash_variation || 0)}
+                  {fmt(tafireData?.cash_variation || 0)}
                 </div>
                 <p className="text-sm text-[#171717]/70">Variation Trésorerie</p>
               </CardContent>
@@ -256,13 +258,13 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
                   <div className="flex justify-between">
                     <span>Capacité d'Autofinancement</span>
                     <span className="font-bold text-[var(--color-success)]">
-                      {formatCurrency(tafireData?.self_financing_capacity || 0)}
+                      {fmt(tafireData?.self_financing_capacity || 0)}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span>- Variation BFR</span>
                     <span className="font-bold text-[var(--color-error)]">
-                      {formatCurrency(tafireData?.working_capital_variation || 0)}
+                      {fmt(tafireData?.working_capital_variation || 0)}
                     </span>
                   </div>
                   <hr />
@@ -271,7 +273,7 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
                     <span className={`${
                       (tafireData?.operating_cash_surplus || 0) >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'
                     }`}>
-                      {formatCurrency(tafireData?.operating_cash_surplus || 0)}
+                      {fmt(tafireData?.operating_cash_surplus || 0)}
                     </span>
                   </div>
                 </div>
@@ -290,19 +292,19 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
                   <div className="flex justify-between">
                     <span>- Acquisitions</span>
                     <span className="font-bold text-[var(--color-error)]">
-                      -{formatCurrency(tafireData?.fixed_assets_acquisitions || 0)}
+                      -{fmt(tafireData?.fixed_assets_acquisitions || 0)}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span>+ Cessions</span>
                     <span className="font-bold text-[var(--color-success)]">
-                      +{formatCurrency(tafireData?.fixed_assets_disposals || 0)}
+                      +{fmt(tafireData?.fixed_assets_disposals || 0)}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span>+ Subventions</span>
                     <span className="font-bold text-[var(--color-success)]">
-                      +{formatCurrency(tafireData?.investment_subsidies_received || 0)}
+                      +{fmt(tafireData?.investment_subsidies_received || 0)}
                     </span>
                   </div>
                   <hr />
@@ -311,7 +313,7 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
                     <span className={`${
                       (tafireData?.investment_cash_flow || 0) >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'
                     }`}>
-                      {formatCurrency(tafireData?.investment_cash_flow || 0)}
+                      {fmt(tafireData?.investment_cash_flow || 0)}
                     </span>
                   </div>
                 </div>
@@ -330,25 +332,25 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
                   <div className="flex justify-between">
                     <span>+ Augmentation capital</span>
                     <span className="font-bold text-[var(--color-success)]">
-                      +{formatCurrency(tafireData?.capital_increase || 0)}
+                      +{fmt(tafireData?.capital_increase || 0)}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span>+ Nouveaux emprunts</span>
                     <span className="font-bold text-[var(--color-success)]">
-                      +{formatCurrency(tafireData?.new_borrowings || 0)}
+                      +{fmt(tafireData?.new_borrowings || 0)}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span>- Remboursements</span>
                     <span className="font-bold text-[var(--color-error)]">
-                      -{formatCurrency(tafireData?.loan_repayments || 0)}
+                      -{fmt(tafireData?.loan_repayments || 0)}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span>- Dividendes</span>
                     <span className="font-bold text-[var(--color-error)]">
-                      -{formatCurrency(tafireData?.dividends_paid || 0)}
+                      -{fmt(tafireData?.dividends_paid || 0)}
                     </span>
                   </div>
                   <hr />
@@ -357,7 +359,7 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
                     <span className={`${
                       (tafireData?.financing_cash_flow || 0) >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'
                     }`}>
-                      {formatCurrency(tafireData?.financing_cash_flow || 0)}
+                      {fmt(tafireData?.financing_cash_flow || 0)}
                     </span>
                   </div>
                 </div>
@@ -449,7 +451,7 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
                       <TableRow key={index}>
                         <TableCell className="font-medium">{item.name}</TableCell>
                         <TableCell className="text-right font-bold">
-                          {formatCurrency(item.value)}
+                          {fmt(item.value)}
                         </TableCell>
                         <TableCell className="text-right">
                           {formatPercent(item.rate)}

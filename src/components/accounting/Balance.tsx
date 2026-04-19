@@ -14,6 +14,7 @@ import {
 import PrintableArea from '../ui/PrintableArea';
 import { usePrintReport } from '../../hooks/usePrint';
 import { formatCurrency } from '../../utils/formatters';
+import { useMoneyFormat } from '../../hooks/useMoneyFormat';
 import { money } from '../../utils/money';
 
 interface BalanceAccount {
@@ -45,6 +46,7 @@ const CLASSE_LABELS: Record<string, string> = {
 
 const Balance: React.FC = () => {
   const { t } = useLanguage();
+  const fmt = useMoneyFormat();
   const { adapter } = useData();
   const { printRef, handlePrint } = usePrintReport({
     title: 'Balance Comptable',
@@ -241,7 +243,7 @@ const Balance: React.FC = () => {
   };
 
   const formatAmount = (amount: number) => {
-    return formatCurrency(amount);
+    return fmt(amount);
   };
 
   // Fonctions pour les actions rapides

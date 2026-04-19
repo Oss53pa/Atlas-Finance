@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useData } from '../../contexts/DataContext';
+import { useMoneyFormat } from '../../hooks/useMoneyFormat';
 import {
   BanknotesIcon,
   ArrowTrendingUpIcon,
@@ -71,6 +72,7 @@ interface CashFlowScenario {
 }
 
 const CashFlowView: React.FC = () => {
+  const fmt = useMoneyFormat();
   const { adapter } = useData();
   const [cashFlowData, setCashFlowData] = useState<CashFlowData[]>([]);
   const [scenarios, setScenarios] = useState<CashFlowScenario[]>([]);
@@ -125,14 +127,7 @@ const CashFlowView: React.FC = () => {
     load();
   }, [adapter]);
 
-  const formatAmount = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'XAF',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount);
-  };
+  const formatAmount = (amount: number) => `${fmt(amount)} XAF`;
 
   const getScenarioTypeColor = (type: string) => {
     switch (type) {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { formatCurrency } from '@/utils/formatters';
+import { useMoneyFormat } from '../../hooks/useMoneyFormat';
 import { useData } from '../../contexts/DataContext';
 import {
   PresentationChartLineIcon,
@@ -51,6 +51,7 @@ interface RatioCategory {
 }
 
 const RatiosView: React.FC = () => {
+  const fmt = useMoneyFormat();
   const { adapter } = useData();
   const [ratios, setRatios] = useState<FinancialRatio[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -210,7 +211,7 @@ const RatiosView: React.FC = () => {
       {/* Détails du calcul */}
       <div className="bg-gray-50 p-3 rounded-lg mb-4">
         <div className="text-sm text-gray-600">
-          <span className="font-medium">Calcul:</span> {formatCurrency(ratio.numerateur)} ÷ {formatCurrency(ratio.denominateur)}
+          <span className="font-medium">Calcul:</span> {fmt(ratio.numerateur)} ÷ {fmt(ratio.denominateur)}
         </div>
       </div>
 

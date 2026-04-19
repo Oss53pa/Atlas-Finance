@@ -7,6 +7,7 @@ import { useData } from '../../contexts/DataContext';
 import { autoLettrage, applyLettrage, applyManualLettrage, delettrage } from '../../services/lettrageService';
 import toast from 'react-hot-toast';
 import { formatCurrency } from '@/utils/formatters';
+import { useMoneyFormat } from '@/hooks/useMoneyFormat';
 import { money } from '../../utils/money';
 import PeriodSelectorModal from '../shared/PeriodSelectorModal';
 import {
@@ -61,6 +62,7 @@ interface LettrageHistory {
 
 const Lettrage: React.FC = () => {
   const { t } = useLanguage();
+  const fmt = useMoneyFormat();
   const { adapter } = useData();
   const queryClient = useQueryClient();
   const [showPeriodModal, setShowPeriodModal] = useState(false);
@@ -281,7 +283,7 @@ const Lettrage: React.FC = () => {
 
     if (lettrageMode === 'complete') {
       if (difference > tolerance) {
-        return { valid: false, reason: `Écart de ${formatCurrency(difference)}` };
+        return { valid: false, reason: `Écart de ${fmt(difference)}` };
       }
       return { valid: true, reason: 'Équilibré' };
     } else {
@@ -507,7 +509,7 @@ const Lettrage: React.FC = () => {
                   <p className="text-sm text-gray-600">Non lettrées</p>
                   <p className="text-lg font-bold text-orange-600">{stats.ecrituresNonLettrees}</p>
                   <p className="text-xs text-orange-500 mt-1">
-                    {formatCurrency(stats.montantNonLettre)}
+                    {fmt(stats.montantNonLettre)}
                   </p>
                 </div>
                 <AlertCircle className="w-8 h-8 text-orange-400" />
@@ -585,7 +587,7 @@ const Lettrage: React.FC = () => {
                       <div className="text-sm">
                         <span className="text-gray-600">Solde:</span>
                         <span className={`ml-2 font-bold ${group.solde > 0 ? 'text-red-600' : group.solde < 0 ? 'text-green-600' : 'text-gray-900'}`}>
-                          {formatCurrency(Math.abs(group.solde))}
+                          {fmt(Math.abs(group.solde))}
                         </span>
                         <span className="ml-1 text-gray-700">
                           {group.solde > 0 ? '(Débiteur)' : group.solde < 0 ? '(Créditeur)' : '(Soldé)'}
@@ -663,10 +665,10 @@ const Lettrage: React.FC = () => {
                                 </span>
                               </td>
                               <td className="px-4 py-2 text-right text-sm text-red-600 font-medium">
-                                {entry.debit > 0 ? formatCurrency(entry.debit) : '-'}
+                                {entry.debit > 0 ? fmt(entry.debit) : '-'}
                               </td>
                               <td className="px-4 py-2 text-right text-sm text-green-600 font-medium">
-                                {entry.credit > 0 ? formatCurrency(entry.credit) : '-'}
+                                {entry.credit > 0 ? fmt(entry.credit) : '-'}
                               </td>
                               <td className="px-4 py-2 text-center">
                                 {entry.lettrage ? (
@@ -876,7 +878,7 @@ const Lettrage: React.FC = () => {
                       </div>
                       <div className="text-right">
                         <p className="text-sm font-bold text-orange-600">
-                          {formatCurrency(entry.debit || entry.credit)}
+                          {fmt(entry.debit || entry.credit)}
                         </p>
                         <p className="text-xs text-gray-700">
                           {Math.floor((Date.now() - new Date(entry.date).getTime()) / (1000 * 60 * 60 * 24))} jours
@@ -976,7 +978,7 @@ const Lettrage: React.FC = () => {
                       <td className="px-4 py-3 text-sm font-mono text-gray-700">{history.code}</td>
                       <td className="px-4 py-3 text-sm text-gray-600">{history.ecritures.length} écritures</td>
                       <td className="px-4 py-3 text-sm text-right font-medium">
-                        {formatCurrency(history.montant)}
+                        {fmt(history.montant)}
                       </td>
                       <td className="px-4 py-3 text-center">
                         <CheckCircle className="w-4 h-4 text-green-500 inline" />

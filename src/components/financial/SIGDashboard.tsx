@@ -1,7 +1,7 @@
 // @ts-nocheck
 
 import React, { useState } from 'react';
-import { formatCurrency } from '../../utils/formatters';
+import { useMoneyFormat } from '../../hooks/useMoneyFormat';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
 import { useData } from '../../contexts/DataContext';
@@ -48,36 +48,36 @@ interface SIGData {
   productionImmobilized: number;
   periodProduction: number;
   
-  // 3. VALEUR AJOUTÉE
+  // 3. VALEUR AJOUTÃ‰E
   intermediateConsumption: number;
   addedValue: number;
   
-  // 4. EXCÉDENT BRUT D'EXPLOITATION
+  // 4. EXCÃ‰DENT BRUT D'EXPLOITATION
   operatingSubsidies: number;
   staffCosts: number;
   taxesAndDuties: number;
   grossOperatingSurplus: number;
   
-  // 5. RÉSULTAT D'EXPLOITATION
+  // 5. RÃ‰SULTAT D'EXPLOITATION
   otherOperatingIncome: number;
   depreciationProvisionsDotations: number;
   otherOperatingExpenses: number;
   operatingResult: number;
   
-  // 6. RÉSULTAT FINANCIER
+  // 6. RÃ‰SULTAT FINANCIER
   financialIncome: number;
   financialExpenses: number;
   financialResult: number;
   
-  // 7. RÉSULTAT COURANT AVANT IMPÔTS
+  // 7. RÃ‰SULTAT COURANT AVANT IMPÃ”TS
   currentResultBeforeTax: number;
   
-  // 8. RÉSULTAT EXCEPTIONNEL
+  // 8. RÃ‰SULTAT EXCEPTIONNEL
   exceptionalIncome: number;
   exceptionalExpenses: number;
   exceptionalResult: number;
   
-  // 9. RÉSULTAT NET
+  // 9. RÃ‰SULTAT NET
   incomeTax: number;
   finalNetResult: number;
   
@@ -93,6 +93,7 @@ interface SIGData {
 const SIGDashboard: React.FC = () => {
   const { t } = useLanguage();
   const { adapter } = useData();
+  const fmt = useMoneyFormat();
   const [selectedView, setSelectedView] = useState<'waterfall' | 'breakdown' | 'evolution'>('waterfall');
   const [selectedPeriod, setSelectedPeriod] = useState('current');
 
@@ -179,33 +180,33 @@ const SIGDashboard: React.FC = () => {
   if (!sigData) {
     return (
       <div className="text-center p-8">
-        <p className="text-gray-700">Aucune donnée SIG disponible</p>
+        <p className="text-gray-700">Aucune donnÃ©e SIG disponible</p>
       </div>
     );
   }
 
-  // Données pour le graphique cascade (waterfall)
+  // DonnÃ©es pour le graphique cascade (waterfall)
   const waterfallData = [
     { name: 'Marge Comm.', value: sigData.commercialMargin, cumulative: sigData.commercialMargin },
     { name: 'Production', value: sigData.periodProduction, cumulative: sigData.commercialMargin + sigData.periodProduction },
     { name: 'Consom. Inter.', value: -sigData.intermediateConsumption, cumulative: sigData.addedValue },
     { name: 'Personnel', value: -sigData.staffCosts, cumulative: sigData.addedValue - sigData.staffCosts },
-    { name: 'Impôts/Taxes', value: -sigData.taxesAndDuties, cumulative: sigData.addedValue - sigData.staffCosts - sigData.taxesAndDuties },
+    { name: 'ImpÃ´ts/Taxes', value: -sigData.taxesAndDuties, cumulative: sigData.addedValue - sigData.staffCosts - sigData.taxesAndDuties },
     { name: 'Dotations', value: -sigData.depreciationProvisionsDotations, cumulative: sigData.operatingResult },
     { name: 'Financier', value: sigData.financialResult, cumulative: sigData.currentResultBeforeTax },
     { name: 'Exceptionnel', value: sigData.exceptionalResult, cumulative: sigData.currentResultBeforeTax + sigData.exceptionalResult },
-    { name: 'Impôt', value: -sigData.incomeTax, cumulative: sigData.finalNetResult }
+    { name: 'ImpÃ´t', value: -sigData.incomeTax, cumulative: sigData.finalNetResult }
   ];
 
-  // Données pour la répartition de la VA
+  // DonnÃ©es pour la rÃ©partition de la VA
   const valueAddedBreakdown = [
     { name: 'Personnel', value: sigData.staffCosts, color: '#ef4444' },
-    { name: 'Impôts/Taxes', value: sigData.taxesAndDuties, color: '#525252' },
+    { name: 'ImpÃ´ts/Taxes', value: sigData.taxesAndDuties, color: '#525252' },
     { name: 'Dotations', value: sigData.depreciationProvisionsDotations, color: '#737373' },
-    { name: 'Résultat', value: sigData.finalNetResult, color: '#171717' }
+    { name: 'RÃ©sultat', value: sigData.finalNetResult, color: '#171717' }
   ];
 
-  // Données pour l'évolution des marges
+  // DonnÃ©es pour l'Ã©volution des marges
   const marginData = [
     { name: 'Taux VA', value: sigData.addedValueRate, color: '#737373' },
     { name: 'Marge Exploit.', value: sigData.operatingMarginRate, color: '#171717' },
@@ -214,11 +215,11 @@ const SIGDashboard: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header avec contrôles */}
+      {/* Header avec contrÃ´les */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-lg font-bold text-gray-900">SIG - Soldes Intermédiaires de Gestion</h2>
-          <p className="text-gray-600">Exercice {sigData.fiscalYear} • Calculé le {new Date(sigData.calculationDate).toLocaleDateString('fr-FR')}</p>
+          <h2 className="text-lg font-bold text-gray-900">SIG - Soldes IntermÃ©diaires de Gestion</h2>
+          <p className="text-gray-600">Exercice {sigData.fiscalYear} â€¢ CalculÃ© le {new Date(sigData.calculationDate).toLocaleDateString('fr-FR')}</p>
         </div>
         <div className="flex space-x-4">
           <select
@@ -227,8 +228,8 @@ const SIGDashboard: React.FC = () => {
             className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500"
           >
             <option value="waterfall">Cascade SIG</option>
-            <option value="breakdown">Décomposition</option>
-            <option value="evolution">Évolution</option>
+            <option value="breakdown">DÃ©composition</option>
+            <option value="evolution">Ã‰volution</option>
           </select>
           <select
             value={selectedPeriod}
@@ -236,7 +237,7 @@ const SIGDashboard: React.FC = () => {
             className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500"
           >
             <option value="current">Exercice courant</option>
-            <option value="previous">Exercice précédent</option>
+            <option value="previous">Exercice prÃ©cÃ©dent</option>
             <option value="comparison">Comparaison N/N-1</option>
           </select>
         </div>
@@ -247,8 +248,8 @@ const SIGDashboard: React.FC = () => {
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Valeur Ajoutée</p>
-              <p className="text-lg font-bold text-gray-900">{formatCurrency(sigData.addedValue)}</p>
+              <p className="text-sm font-medium text-gray-600">Valeur AjoutÃ©e</p>
+              <p className="text-lg font-bold text-gray-900">{fmt(sigData.addedValue)}</p>
               <p className="text-sm text-blue-600">{formatPercentage(sigData.addedValueRate)} du CA</p>
             </div>
             <div className="h-10 w-10 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -261,8 +262,8 @@ const SIGDashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">EBE</p>
-              <p className="text-lg font-bold text-gray-900">{formatCurrency(sigData.grossOperatingSurplus)}</p>
-              <p className="text-sm text-green-600">Capacité d'autofinancement</p>
+              <p className="text-lg font-bold text-gray-900">{fmt(sigData.grossOperatingSurplus)}</p>
+              <p className="text-sm text-green-600">CapacitÃ© d'autofinancement</p>
             </div>
             <div className="h-10 w-10 bg-green-100 rounded-lg flex items-center justify-center">
               <ChartBarIcon className="h-6 w-6 text-green-600" />
@@ -273,8 +274,8 @@ const SIGDashboard: React.FC = () => {
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Résultat Net</p>
-              <p className="text-lg font-bold text-gray-900">{formatCurrency(sigData.finalNetResult)}</p>
+              <p className="text-sm font-medium text-gray-600">RÃ©sultat Net</p>
+              <p className="text-lg font-bold text-gray-900">{fmt(sigData.finalNetResult)}</p>
               <p className="text-sm text-primary-600">{formatPercentage(sigData.netMarginRate)} marge nette</p>
             </div>
             <div className="h-10 w-10 bg-primary-100 rounded-lg flex items-center justify-center">
@@ -284,52 +285,52 @@ const SIGDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Contenu selon la vue sélectionnée */}
+      {/* Contenu selon la vue sÃ©lectionnÃ©e */}
       {selectedView === 'waterfall' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Graphique cascade des SIG */}
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Cascade des Soldes Intermédiaires</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Cascade des Soldes IntermÃ©diaires</h3>
             <ResponsiveContainer width="100%" height={400}>
               <ComposedChart data={waterfallData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
                 <YAxis />
-                <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                <Tooltip formatter={(value: number) => fmt(value)} />
                 <Bar dataKey="value" fill={(entry, index) => entry > 0 ? '#171717' : '#ef4444'} />
                 <Line type="monotone" dataKey="cumulative" stroke="#737373" strokeWidth={3} name="Cumul" />
               </ComposedChart>
             </ResponsiveContainer>
           </div>
 
-          {/* Détail des 9 soldes */}
+          {/* DÃ©tail des 9 soldes */}
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Détail des 9 Soldes SYSCOHADA</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-4">DÃ©tail des 9 Soldes SYSCOHADA</h3>
             <div className="space-y-4">
               <div className="border-b border-gray-100 pb-3">
                 <div className="flex justify-between items-center">
                   <span className="font-medium text-gray-900">1. Marge Commerciale</span>
-                  <span className="font-bold">{formatCurrency(sigData.commercialMargin)}</span>
+                  <span className="font-bold">{fmt(sigData.commercialMargin)}</span>
                 </div>
                 <div className="text-xs text-gray-600 mt-1">
-                  Ventes: {formatCurrency(sigData.merchandiseSales)} - Coût: {formatCurrency(sigData.merchandiseCost)}
+                  Ventes: {fmt(sigData.merchandiseSales)} - CoÃ»t: {fmt(sigData.merchandiseCost)}
                 </div>
               </div>
 
               <div className="border-b border-gray-100 pb-3">
                 <div className="flex justify-between items-center">
                   <span className="font-medium text-gray-900">2. Production de l'exercice</span>
-                  <span className="font-bold">{formatCurrency(sigData.periodProduction)}</span>
+                  <span className="font-bold">{fmt(sigData.periodProduction)}</span>
                 </div>
                 <div className="text-xs text-gray-600 mt-1">
-                  Vendue: {formatCurrency(sigData.productionSold)} + Stockée: {formatCurrency(sigData.productionStored)}
+                  Vendue: {fmt(sigData.productionSold)} + StockÃ©e: {fmt(sigData.productionStored)}
                 </div>
               </div>
 
               <div className="border-b border-gray-100 pb-3">
                 <div className="flex justify-between items-center">
-                  <span className="font-medium text-gray-900">3. Valeur Ajoutée</span>
-                  <span className="font-bold text-blue-600">{formatCurrency(sigData.addedValue)}</span>
+                  <span className="font-medium text-gray-900">3. Valeur AjoutÃ©e</span>
+                  <span className="font-bold text-blue-600">{fmt(sigData.addedValue)}</span>
                 </div>
                 <div className="text-xs text-gray-600 mt-1">
                   {formatPercentage(sigData.addedValueRate)} du chiffre d'affaires
@@ -338,18 +339,18 @@ const SIGDashboard: React.FC = () => {
 
               <div className="border-b border-gray-100 pb-3">
                 <div className="flex justify-between items-center">
-                  <span className="font-medium text-gray-900">4. Excédent Brut d'Exploitation</span>
-                  <span className="font-bold text-green-600">{formatCurrency(sigData.grossOperatingSurplus)}</span>
+                  <span className="font-medium text-gray-900">4. ExcÃ©dent Brut d'Exploitation</span>
+                  <span className="font-bold text-green-600">{fmt(sigData.grossOperatingSurplus)}</span>
                 </div>
                 <div className="text-xs text-gray-600 mt-1">
-                  VA - Personnel ({formatCurrency(sigData.staffCosts)}) - Impôts ({formatCurrency(sigData.taxesAndDuties)})
+                  VA - Personnel ({fmt(sigData.staffCosts)}) - ImpÃ´ts ({fmt(sigData.taxesAndDuties)})
                 </div>
               </div>
 
               <div className="border-b border-gray-100 pb-3">
                 <div className="flex justify-between items-center">
-                  <span className="font-medium text-gray-900">5. Résultat d'Exploitation</span>
-                  <span className="font-bold">{formatCurrency(sigData.operatingResult)}</span>
+                  <span className="font-medium text-gray-900">5. RÃ©sultat d'Exploitation</span>
+                  <span className="font-bold">{fmt(sigData.operatingResult)}</span>
                 </div>
                 <div className="text-xs text-gray-600 mt-1">
                   {formatPercentage(sigData.operatingMarginRate)} marge d'exploitation
@@ -358,9 +359,9 @@ const SIGDashboard: React.FC = () => {
 
               <div className="border-b border-gray-100 pb-3">
                 <div className="flex justify-between items-center">
-                  <span className="font-medium text-gray-900">6. Résultat Financier</span>
+                  <span className="font-medium text-gray-900">6. RÃ©sultat Financier</span>
                   <span className={`font-bold ${sigData.financialResult >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {formatCurrency(sigData.financialResult)}
+                    {fmt(sigData.financialResult)}
                   </span>
                 </div>
               </div>
@@ -368,23 +369,23 @@ const SIGDashboard: React.FC = () => {
               <div className="border-b border-gray-100 pb-3">
                 <div className="flex justify-between items-center">
                   <span className="font-medium text-gray-900">7. RCAI</span>
-                  <span className="font-bold">{formatCurrency(sigData.currentResultBeforeTax)}</span>
+                  <span className="font-bold">{fmt(sigData.currentResultBeforeTax)}</span>
                 </div>
               </div>
 
               <div className="border-b border-gray-100 pb-3">
                 <div className="flex justify-between items-center">
-                  <span className="font-medium text-gray-900">8. Résultat Exceptionnel</span>
+                  <span className="font-medium text-gray-900">8. RÃ©sultat Exceptionnel</span>
                   <span className={`font-bold ${sigData.exceptionalResult >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {formatCurrency(sigData.exceptionalResult)}
+                    {fmt(sigData.exceptionalResult)}
                   </span>
                 </div>
               </div>
 
               <div className="bg-primary-50 rounded-lg p-3">
                 <div className="flex justify-between items-center">
-                  <span className="font-bold text-primary-900">9. Résultat Net Final</span>
-                  <span className="font-bold text-lg text-primary-700">{formatCurrency(sigData.finalNetResult)}</span>
+                  <span className="font-bold text-primary-900">9. RÃ©sultat Net Final</span>
+                  <span className="font-bold text-lg text-primary-700">{fmt(sigData.finalNetResult)}</span>
                 </div>
                 <div className="text-xs text-primary-600 mt-1">
                   Marge nette: {formatPercentage(sigData.netMarginRate)}
@@ -397,9 +398,9 @@ const SIGDashboard: React.FC = () => {
 
       {selectedView === 'breakdown' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Répartition de la Valeur Ajoutée */}
+          {/* RÃ©partition de la Valeur AjoutÃ©e */}
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Répartition de la Valeur Ajoutée</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-4">RÃ©partition de la Valeur AjoutÃ©e</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <ResponsiveContainer width="100%" height={250}>
                 <PieChart>
@@ -417,7 +418,7 @@ const SIGDashboard: React.FC = () => {
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                  <Tooltip formatter={(value: number) => fmt(value)} />
                 </PieChart>
               </ResponsiveContainer>
               
@@ -429,7 +430,7 @@ const SIGDashboard: React.FC = () => {
                       <span className="text-sm font-medium text-gray-900">{item.name}</span>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-bold text-gray-900">{formatCurrency(item.value)}</p>
+                      <p className="text-sm font-bold text-gray-900">{fmt(item.value)}</p>
                       <p className="text-xs text-gray-700">
                         {formatPercentage((item.value / sigData.addedValue) * 100)}
                       </p>
@@ -440,7 +441,7 @@ const SIGDashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* Évolution des marges */}
+          {/* Ã‰volution des marges */}
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Taux de Marge et Performance</h3>
             <div className="space-y-6">
@@ -491,9 +492,9 @@ const SIGDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* Tableau récapitulatif */}
+      {/* Tableau rÃ©capitulatif */}
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Tableau de Synthèse SIG</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Tableau de SynthÃ¨se SIG</h3>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -501,13 +502,13 @@ const SIGDashboard: React.FC = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">{t('accounting.balance')}</th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">Montant</th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">% CA</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">Évolution</th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">Ã‰volution</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               <tr>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Marge Commerciale</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">{formatCurrency(sigData.commercialMargin)}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">{fmt(sigData.commercialMargin)}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-700">{formatPercentage((sigData.commercialMargin / sigData.revenueBase) * 100)}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
@@ -516,8 +517,8 @@ const SIGDashboard: React.FC = () => {
                 </td>
               </tr>
               <tr>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Valeur Ajoutée</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">{formatCurrency(sigData.addedValue)}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Valeur AjoutÃ©e</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">{fmt(sigData.addedValue)}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-700">{formatPercentage(sigData.addedValueRate)}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
@@ -527,7 +528,7 @@ const SIGDashboard: React.FC = () => {
               </tr>
               <tr>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">EBE</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">{formatCurrency(sigData.grossOperatingSurplus)}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">{fmt(sigData.grossOperatingSurplus)}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-700">{formatPercentage((sigData.grossOperatingSurplus / sigData.revenueBase) * 100)}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
@@ -536,8 +537,8 @@ const SIGDashboard: React.FC = () => {
                 </td>
               </tr>
               <tr>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Résultat d'Exploitation</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">{formatCurrency(sigData.operatingResult)}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">RÃ©sultat d'Exploitation</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">{fmt(sigData.operatingResult)}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-700">{formatPercentage(sigData.operatingMarginRate)}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
@@ -546,8 +547,8 @@ const SIGDashboard: React.FC = () => {
                 </td>
               </tr>
               <tr className="bg-primary-50">
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-primary-900">Résultat Net</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold text-primary-900">{formatCurrency(sigData.finalNetResult)}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-primary-900">RÃ©sultat Net</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold text-primary-900">{fmt(sigData.finalNetResult)}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold text-primary-900">{formatPercentage(sigData.netMarginRate)}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">

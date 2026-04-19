@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { formatCurrency } from '@/utils/formatters';
+import { useFormattedCurrency } from '../../hooks/useMoneyFormat';
 
 interface WorkflowStep {
   id: string;
@@ -61,6 +62,7 @@ interface ApprovalRequest {
 const WorkflowsManager: React.FC = () => {
   const { t } = useLanguage();
   const { adapter } = useData();
+  const fmtCur = useFormattedCurrency();
   const [activeTab, setActiveTab] = useState<'workflows' | 'approvals' | 'templates'>('workflows');
   const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow | null>(null);
   const [selectedApproval, setSelectedApproval] = useState<ApprovalRequest | null>(null);
@@ -477,7 +479,7 @@ const WorkflowsManager: React.FC = () => {
                         <span className="text-gray-700">Demandeur: {approval.requester}</span>
                         {approval.amount && (
                           <span className="font-medium text-gray-900">
-                            Montant: {formatCurrency(approval.amount)}
+                            Montant: {fmtCur(approval.amount)}
                           </span>
                         )}
                       </div>

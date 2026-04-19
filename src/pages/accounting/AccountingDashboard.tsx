@@ -31,11 +31,13 @@ import {
 } from '../../components/ui/DesignSystem';
 import JournalEntryModal from '../../components/accounting/JournalEntryModal';
 import { formatCurrency, formatDate } from '../../lib/utils';
+import { useMoneyFormat } from '../../hooks/useMoneyFormat';
 
 type TabKey = 'overview' | 'entries' | 'balance' | 'actions';
 
 const AccountingDashboard: React.FC = () => {
   const { t } = useLanguage();
+  const fmt = useMoneyFormat();
   const { adapter } = useData();
   const [period, setPeriod] = useState<'month' | 'quarter' | 'year'>('year');
   const [activeTab, setActiveTab] = useState<TabKey>('overview');
@@ -197,7 +199,7 @@ const AccountingDashboard: React.FC = () => {
         />
         <KPICard
           title="Mouvements (FCFA)"
-          value={formatCurrency(stats.montant_total)}
+          value={fmt(stats.montant_total)}
           subtitle={`${period === 'month' ? 'Ce mois' : period === 'quarter' ? 'Ce trimestre' : 'Cette année'}`}
           icon={DollarSign}
           color="success"
@@ -295,7 +297,7 @@ const AccountingDashboard: React.FC = () => {
               </div>
               <div className="text-right">
                 <p className="font-bold text-neutral-900 text-lg">
-                  {formatCurrency(totalDebit)}
+                  {fmt(totalDebit)}
                 </p>
                 <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
                   entry.status === 'posted' ? 'bg-green-100 text-green-700'
@@ -342,7 +344,7 @@ const AccountingDashboard: React.FC = () => {
             <div className="flex justify-between items-center mb-2">
               <span className="font-semibold text-neutral-900">{item.label}</span>
               <span className="font-bold text-xl text-neutral-900">
-                {formatCurrency(item.value)}
+                {fmt(item.value)}
               </span>
             </div>
             <p className="text-sm text-neutral-600">{item.desc}</p>
@@ -365,7 +367,7 @@ const AccountingDashboard: React.FC = () => {
               <span className={`font-bold text-xl ${
                 stats.totalProduits >= stats.totalCharges ? 'text-green-700' : 'text-red-700'
               }`}>
-                {formatCurrency(stats.totalProduits - stats.totalCharges)}
+                {fmt(stats.totalProduits - stats.totalCharges)}
               </span>
             </div>
           </motion.div>

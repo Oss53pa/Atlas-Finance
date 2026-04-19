@@ -18,6 +18,7 @@ import PrintableArea from '../ui/PrintableArea';
 import { usePrintReport } from '../../hooks/usePrint';
 import PeriodSelectorModal from '../shared/PeriodSelectorModal';
 import { formatCurrency } from '@/utils/formatters';
+import { useMoneyFormat } from '@/hooks/useMoneyFormat';
 import { money } from '../../utils/money';
 
 interface BilanData {
@@ -109,6 +110,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
   defaultView = 'dashboard'
 }) => {
   const { t } = useLanguage();
+  const fmt = useMoneyFormat();
   const { adapter } = useData();
 
   // États principaux
@@ -388,7 +390,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                 <div>
                   <p className="text-sm font-medium text-gray-600">Chiffre d'Affaires</p>
                   <p className="text-lg font-bold text-[#171717]">
-                    {(compteResultatData.produits.chiffreAffaires / 1000000).toFixed(1)}M
+                    {fmt(compteResultatData.produits.chiffreAffaires)}
                   </p>
                   <p className="text-xs text-gray-700">XAF</p>
                 </div>
@@ -403,7 +405,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                 <div>
                   <p className="text-sm font-medium text-gray-600">Résultat Net</p>
                   <p className={`text-lg font-bold ${sigData.resultatNet >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {(sigData.resultatNet / 1000000).toFixed(1)}M
+                    {fmt(sigData.resultatNet)}
                   </p>
                   <p className="text-xs text-gray-700">
                     {sigData.resultatNet >= 0 ? 'Bénéfice' : 'Perte'}
@@ -497,7 +499,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value) => [`${(value as number / 1000000).toFixed(1)}M XAF`, '']} />
+                  <Tooltip formatter={(value) => [`${fmt(value as number)}`, '']} />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
@@ -521,8 +523,8 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                 ]}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                   <XAxis dataKey="periode" />
-                  <YAxis tickFormatter={(value) => `${(value / 1000000).toFixed(0)}M`} />
-                  <Tooltip formatter={(value) => [`${(value as number / 1000000).toFixed(1)}M XAF`, '']} />
+                  <YAxis tickFormatter={(value) => `${fmt(value)}`} />
+                  <Tooltip formatter={(value) => [`${fmt(value as number)}`, '']} />
                   <Legend />
                   <Area type="monotone" dataKey="va" stackId="1" stroke="#171717" fill="#171717" fillOpacity={0.6} name="Valeur Ajoutée" />
                   <Area type="monotone" dataKey="ebe" stackId="2" stroke="#525252" fill="#525252" fillOpacity={0.6} name="EBE" />
@@ -596,19 +598,19 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">CAF</span>
                   <span className="text-sm font-medium text-green-600">
-                    {(sigData.capaciteAutofinancement / 1000000).toFixed(1)}M
+                    {fmt(sigData.capaciteAutofinancement)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">EBE</span>
                   <span className="text-sm font-medium text-blue-600">
-                    {(sigData.excedentBrutExploitation / 1000000).toFixed(1)}M
+                    {fmt(sigData.excedentBrutExploitation)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">{t('navigation.treasury')}</span>
                   <span className="text-sm font-medium text-[#171717]">
-                    {(bilanData.actifCirculant.disponibilites / 1000000).toFixed(1)}M
+                    {fmt(bilanData.actifCirculant.disponibilites)}
                   </span>
                 </div>
               </div>
@@ -651,7 +653,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
               })()}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis dataKey="mois" />
-                <YAxis yAxisId="left" tickFormatter={(value) => `${(value / 1000000).toFixed(0)}M`} />
+                <YAxis yAxisId="left" tickFormatter={(value) => `${fmt(value)}`} />
                 <YAxis yAxisId="right" orientation="right" tickFormatter={(value) => `${value.toFixed(1)}%`} />
                 <Tooltip />
                 <Legend />
@@ -701,31 +703,31 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Immobilisations incorporelles</span>
                       <span className="text-sm font-mono font-medium">
-                        {formatCurrency(bilanData.actifImmobilise.immobilisationsIncorporelles)}
+                        {fmt(bilanData.actifImmobilise.immobilisationsIncorporelles)}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Immobilisations corporelles</span>
                       <span className="text-sm font-mono font-medium">
-                        {formatCurrency(bilanData.actifImmobilise.immobilisationsCorporelles)}
+                        {fmt(bilanData.actifImmobilise.immobilisationsCorporelles)}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Immobilisations financières</span>
                       <span className="text-sm font-mono font-medium">
-                        {formatCurrency(bilanData.actifImmobilise.immobilisationsFinancieres)}
+                        {fmt(bilanData.actifImmobilise.immobilisationsFinancieres)}
                       </span>
                     </div>
                     <div className="flex justify-between text-red-600">
                       <span className="text-sm">Amortissements</span>
                       <span className="text-sm font-mono font-medium">
-                        ({formatCurrency(Math.abs(bilanData.actifImmobilise.amortissements))})
+                        ({fmt(Math.abs(bilanData.actifImmobilise.amortissements))})
                       </span>
                     </div>
                     <div className="flex justify-between font-semibold border-t pt-2">
                       <span className="text-sm">Total Actif Immobilisé</span>
                       <span className="text-sm font-mono">
-                        {formatCurrency(Object.values(bilanData.actifImmobilise).reduce((sum, val) => sum + val, 0))}
+                        {fmt(Object.values(bilanData.actifImmobilise).reduce((sum, val) => sum + val, 0))}
                       </span>
                     </div>
                   </div>
@@ -738,31 +740,31 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Stocks et en-cours</span>
                       <span className="text-sm font-mono font-medium">
-                        {formatCurrency(bilanData.actifCirculant.stocks)}
+                        {fmt(bilanData.actifCirculant.stocks)}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Créances clients</span>
                       <span className="text-sm font-mono font-medium">
-                        {formatCurrency(bilanData.actifCirculant.creancesClients)}
+                        {fmt(bilanData.actifCirculant.creancesClients)}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Autres créances</span>
                       <span className="text-sm font-mono font-medium">
-                        {formatCurrency(bilanData.actifCirculant.autresCreances)}
+                        {fmt(bilanData.actifCirculant.autresCreances)}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Disponibilités</span>
                       <span className="text-sm font-mono font-medium">
-                        {formatCurrency(bilanData.actifCirculant.disponibilites)}
+                        {fmt(bilanData.actifCirculant.disponibilites)}
                       </span>
                     </div>
                     <div className="flex justify-between font-semibold border-t pt-2">
                       <span className="text-sm">Total Actif Circulant</span>
                       <span className="text-sm font-mono">
-                        {formatCurrency(Object.values(bilanData.actifCirculant).reduce((sum, val) => sum + val, 0))}
+                        {fmt(Object.values(bilanData.actifCirculant).reduce((sum, val) => sum + val, 0))}
                       </span>
                     </div>
                   </div>
@@ -773,7 +775,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                   <div className="flex justify-between font-bold text-lg">
                     <span>TOTAL ACTIF</span>
                     <span className="font-mono">
-                      {formatCurrency((Object.values(bilanData.actifImmobilise).reduce((sum, val) => sum + val, 0) + 
+                      {fmt((Object.values(bilanData.actifImmobilise).reduce((sum, val) => sum + val, 0) + 
                         Object.values(bilanData.actifCirculant).reduce((sum, val) => sum + val, 0)))}
                     </span>
                   </div>
@@ -796,31 +798,31 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Capital social</span>
                       <span className="text-sm font-mono font-medium">
-                        {formatCurrency(bilanData.capitauxPropres.capitalSocial)}
+                        {fmt(bilanData.capitauxPropres.capitalSocial)}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Réserves</span>
                       <span className="text-sm font-mono font-medium">
-                        {formatCurrency(bilanData.capitauxPropres.reserves)}
+                        {fmt(bilanData.capitauxPropres.reserves)}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Report à nouveau</span>
                       <span className="text-sm font-mono font-medium">
-                        {formatCurrency(bilanData.capitauxPropres.reportANouveau)}
+                        {fmt(bilanData.capitauxPropres.reportANouveau)}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Résultat de l'exercice</span>
                       <span className="text-sm font-mono font-medium">
-                        {formatCurrency(bilanData.capitauxPropres.resultatExercice)}
+                        {fmt(bilanData.capitauxPropres.resultatExercice)}
                       </span>
                     </div>
                     <div className="flex justify-between font-semibold border-t pt-2">
                       <span className="text-sm">Total Capitaux Propres</span>
                       <span className="text-sm font-mono">
-                        {formatCurrency(Object.values(bilanData.capitauxPropres).reduce((sum, val) => sum + val, 0))}
+                        {fmt(Object.values(bilanData.capitauxPropres).reduce((sum, val) => sum + val, 0))}
                       </span>
                     </div>
                   </div>
@@ -833,31 +835,31 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Dettes financières</span>
                       <span className="text-sm font-mono font-medium">
-                        {formatCurrency(bilanData.dettes.dettesFinancieres)}
+                        {fmt(bilanData.dettes.dettesFinancieres)}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Dettes fournisseurs</span>
                       <span className="text-sm font-mono font-medium">
-                        {formatCurrency(bilanData.dettes.dettesFournisseurs)}
+                        {fmt(bilanData.dettes.dettesFournisseurs)}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Dettes d'exploitation</span>
                       <span className="text-sm font-mono font-medium">
-                        {formatCurrency(bilanData.dettes.dettesExploitation)}
+                        {fmt(bilanData.dettes.dettesExploitation)}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Autres dettes</span>
                       <span className="text-sm font-mono font-medium">
-                        {formatCurrency(bilanData.dettes.autresDettes)}
+                        {fmt(bilanData.dettes.autresDettes)}
                       </span>
                     </div>
                     <div className="flex justify-between font-semibold border-t pt-2">
                       <span className="text-sm">Total Dettes</span>
                       <span className="text-sm font-mono">
-                        {formatCurrency(Object.values(bilanData.dettes).reduce((sum, val) => sum + val, 0))}
+                        {fmt(Object.values(bilanData.dettes).reduce((sum, val) => sum + val, 0))}
                       </span>
                     </div>
                   </div>
@@ -868,7 +870,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                   <div className="flex justify-between font-bold text-lg">
                     <span>TOTAL PASSIF</span>
                     <span className="font-mono">
-                      {formatCurrency((Object.values(bilanData.capitauxPropres).reduce((sum, val) => sum + val, 0) + 
+                      {fmt((Object.values(bilanData.capitauxPropres).reduce((sum, val) => sum + val, 0) + 
                         Object.values(bilanData.dettes).reduce((sum, val) => sum + val, 0)))}
                     </span>
                   </div>
@@ -896,31 +898,31 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Chiffre d'affaires</span>
                     <span className="text-sm font-mono font-medium">
-                      {formatCurrency(compteResultatData.produits.chiffreAffaires)}
+                      {fmt(compteResultatData.produits.chiffreAffaires)}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Production stockée</span>
                     <span className="text-sm font-mono font-medium">
-                      {formatCurrency(compteResultatData.produits.productionStockee)}
+                      {fmt(compteResultatData.produits.productionStockee)}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Autres produits</span>
                     <span className="text-sm font-mono font-medium">
-                      {formatCurrency(compteResultatData.produits.autresProduits)}
+                      {fmt(compteResultatData.produits.autresProduits)}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Produits financiers</span>
                     <span className="text-sm font-mono font-medium">
-                      {formatCurrency(compteResultatData.produits.produitsFinanciers)}
+                      {fmt(compteResultatData.produits.produitsFinanciers)}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Produits exceptionnels</span>
                     <span className="text-sm font-mono font-medium">
-                      {formatCurrency(compteResultatData.produits.produitsExceptionnels)}
+                      {fmt(compteResultatData.produits.produitsExceptionnels)}
                     </span>
                   </div>
                 </div>
@@ -929,7 +931,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                   <div className="flex justify-between font-bold text-lg">
                     <span>TOTAL PRODUITS</span>
                     <span className="font-mono text-green-600">
-                      {formatCurrency(Object.values(compteResultatData.produits).reduce((sum, val) => sum + val, 0))}
+                      {fmt(Object.values(compteResultatData.produits).reduce((sum, val) => sum + val, 0))}
                     </span>
                   </div>
                 </div>
@@ -947,43 +949,43 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Achats consommés</span>
                     <span className="text-sm font-mono font-medium">
-                      {formatCurrency(compteResultatData.charges.achatsConsommes)}
+                      {fmt(compteResultatData.charges.achatsConsommes)}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Services extérieurs</span>
                     <span className="text-sm font-mono font-medium">
-                      {formatCurrency(compteResultatData.charges.servicesExterieurs)}
+                      {fmt(compteResultatData.charges.servicesExterieurs)}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Charges de personnel</span>
                     <span className="text-sm font-mono font-medium">
-                      {formatCurrency(compteResultatData.charges.personnel)}
+                      {fmt(compteResultatData.charges.personnel)}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Dotations amortissements</span>
                     <span className="text-sm font-mono font-medium">
-                      {formatCurrency(compteResultatData.charges.amortissements)}
+                      {fmt(compteResultatData.charges.amortissements)}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Charges financières</span>
                     <span className="text-sm font-mono font-medium">
-                      {formatCurrency(compteResultatData.charges.chargesFinancieres)}
+                      {fmt(compteResultatData.charges.chargesFinancieres)}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Charges exceptionnelles</span>
                     <span className="text-sm font-mono font-medium">
-                      {formatCurrency(compteResultatData.charges.chargesExceptionnelles)}
+                      {fmt(compteResultatData.charges.chargesExceptionnelles)}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Impôts sur les sociétés</span>
                     <span className="text-sm font-mono font-medium">
-                      {formatCurrency(compteResultatData.charges.impotsSocietes)}
+                      {fmt(compteResultatData.charges.impotsSocietes)}
                     </span>
                   </div>
                 </div>
@@ -992,7 +994,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                   <div className="flex justify-between font-bold text-lg">
                     <span>TOTAL CHARGES</span>
                     <span className="font-mono text-red-600">
-                      {formatCurrency(Object.values(compteResultatData.charges).reduce((sum, val) => sum + val, 0))}
+                      {fmt(Object.values(compteResultatData.charges).reduce((sum, val) => sum + val, 0))}
                     </span>
                   </div>
                 </div>
@@ -1005,7 +1007,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
             <div className="text-center">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">RÉSULTAT NET DE L'EXERCICE</h3>
               <div className={`text-lg font-bold mb-2 ${sigData.resultatNet >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {formatCurrency(sigData.resultatNet)}
+                {fmt(sigData.resultatNet)}
               </div>
               <div className={`text-lg ${sigData.resultatNet >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                 {sigData.resultatNet >= 0 ? '📈 Bénéfice' : '📉 Perte'}
@@ -1152,8 +1154,8 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                       const colors: any = { blue: 'bg-blue-50 text-blue-800', orange: 'bg-orange-50 text-orange-800', purple: 'bg-purple-50 text-purple-800' };
                       return <tr key={`s${idx}`} className={colors[row.color]}><td className="p-2"></td><td colSpan={2} className="p-3 font-bold">{row.section}</td></tr>;
                     }
-                    if (row.sub) return <tr key={`sub${idx}`} className="bg-gray-100 font-semibold"><td className="p-2"></td><td className="p-3">{row.label}</td><td className={`p-3 text-right font-mono font-bold ${row.value < 0 ? 'text-red-600' : ''}`}>{formatCurrency(row.value)}</td></tr>;
-                    if (row.tot) return <tr key={`t${idx}`} className="bg-gray-200 font-bold border-t-2 border-gray-400"><td className="p-2"></td><td className="p-3">{row.label}</td><td className={`p-3 text-right font-mono text-base ${row.value < 0 ? 'text-red-600' : 'text-gray-900'}`}>{formatCurrency(row.value)}</td></tr>;
+                    if (row.sub) return <tr key={`sub${idx}`} className="bg-gray-100 font-semibold"><td className="p-2"></td><td className="p-3">{row.label}</td><td className={`p-3 text-right font-mono font-bold ${row.value < 0 ? 'text-red-600' : ''}`}>{fmt(row.value)}</td></tr>;
+                    if (row.tot) return <tr key={`t${idx}`} className="bg-gray-200 font-bold border-t-2 border-gray-400"><td className="p-2"></td><td className="p-3">{row.label}</td><td className={`p-3 text-right font-mono text-base ${row.value < 0 ? 'text-red-600' : 'text-gray-900'}`}>{fmt(row.value)}</td></tr>;
                     const expanded = tftExpandedRows.has(row.key);
                     const details = expanded && row.pfx?.length > 0 ? detailEntries(...row.pfx) : [];
                     return (
@@ -1161,13 +1163,13 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                         <tr className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer" onClick={() => row.pfx?.length > 0 && toggleTftRow(row.key)}>
                           <td className="p-2 text-center text-gray-400">{row.pfx?.length > 0 && (expanded ? <ChevronDown className="w-4 h-4 inline" /> : <ChevronRight className="w-4 h-4 inline" />)}</td>
                           <td className="p-3 text-gray-700">{row.label}</td>
-                          <td className={`p-3 text-right font-mono ${row.value < 0 ? 'text-red-600' : ''}`}>{formatCurrency(row.value)}</td>
+                          <td className={`p-3 text-right font-mono ${row.value < 0 ? 'text-red-600' : ''}`}>{fmt(row.value)}</td>
                         </tr>
                         {expanded && details.length > 0 && details.slice(0, 25).map((d: any, di: number) => (
                           <tr key={`${row.key}-${di}`} className="bg-blue-50/40 border-b border-blue-100">
                             <td className="p-1"></td>
                             <td className="p-2 pl-10 text-xs text-gray-600"><span className="font-mono text-gray-400 mr-2">{d.date}</span><span className="text-gray-500 mr-1">[{d.journal}]</span> <span className="font-mono mr-1">{d.ref}</span> {d.label}</td>
-                            <td className={`p-2 text-right font-mono text-xs ${d.amount < 0 ? 'text-red-500' : 'text-gray-700'}`}>{formatCurrency(d.amount)}</td>
+                            <td className={`p-2 text-right font-mono text-xs ${d.amount < 0 ? 'text-red-500' : 'text-gray-700'}`}>{fmt(d.amount)}</td>
                           </tr>
                         ))}
                         {expanded && details.length === 0 && <tr key={`${row.key}-e`} className="bg-gray-50"><td></td><td colSpan={2} className="p-2 pl-10 text-xs text-gray-400 italic">Aucune écriture</td></tr>}
@@ -1178,17 +1180,17 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                   <tr className="bg-gray-200 font-bold border-t-4 border-gray-500">
                     <td className="p-3"></td>
                     <td className="p-3 text-gray-900">VARIATION DE TRÉSORERIE (A+B+C)</td>
-                    <td className={`p-3 text-right font-mono text-lg ${totalVar < 0 ? 'text-red-600' : 'text-green-700'}`}>{totalVar >= 0 ? '+' : ''}{formatCurrency(totalVar)}</td>
+                    <td className={`p-3 text-right font-mono text-lg ${totalVar < 0 ? 'text-red-600' : 'text-green-700'}`}>{totalVar >= 0 ? '+' : ''}{fmt(totalVar)}</td>
                   </tr>
                   <tr className="border-b border-gray-200">
                     <td className="p-2"></td>
                     <td className="p-3 text-gray-600">Trésorerie d'ouverture</td>
-                    <td className="p-3 text-right font-mono">{formatCurrency(tresoOuv)}</td>
+                    <td className="p-3 text-right font-mono">{fmt(tresoOuv)}</td>
                   </tr>
                   <tr className="bg-gray-100 font-bold">
                     <td className="p-2"></td>
                     <td className="p-3">TRÉSORERIE À LA CLÔTURE</td>
-                    <td className="p-3 text-right font-mono text-lg text-gray-900">{formatCurrency(tresoClo)}</td>
+                    <td className="p-3 text-right font-mono text-lg text-gray-900">{fmt(tresoClo)}</td>
                   </tr>
                 </tbody>
               </table>
@@ -1220,7 +1222,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                       <div className="flex justify-between items-center">
                         <span className="font-medium text-gray-900">{sig.label}</span>
                         <span className={`text-lg font-bold text-${sig.color}-600 font-mono`}>
-                          {(sig.value / 1000000).toFixed(1)}M
+                          {fmt(sig.value)}
                         </span>
                       </div>
                       <div className="text-xs text-gray-600 mt-1">
@@ -1240,7 +1242,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                       <div className="flex justify-between items-center">
                         <span className="font-medium text-gray-900">{sig.label}</span>
                         <span className={`text-lg font-bold text-${sig.color}-600 font-mono`}>
-                          {(sig.value / 1000000).toFixed(1)}M
+                          {fmt(sig.value)}
                         </span>
                       </div>
                       <div className="text-xs text-gray-600 mt-1">
@@ -1494,12 +1496,12 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
               <div className="grid grid-cols-4 gap-4 mb-6 p-4 bg-gray-50 rounded">
                 <div className="text-center">
                   <div className="text-xs text-gray-600">Chiffre d'Affaires</div>
-                  <div className="font-bold text-[#171717]">{(compteResultatData.produits.chiffreAffaires / 1000000).toFixed(1)}M XAF</div>
+                  <div className="font-bold text-[#171717]">{fmt(compteResultatData.produits.chiffreAffaires)}</div>
                 </div>
                 <div className="text-center">
                   <div className="text-xs text-gray-600">Résultat Net</div>
                   <div className={`font-bold ${sigData.resultatNet >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {(sigData.resultatNet / 1000000).toFixed(1)}M XAF
+                    {fmt(sigData.resultatNet)}
                   </div>
                 </div>
                 <div className="text-center">

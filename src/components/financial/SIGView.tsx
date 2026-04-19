@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
+import { useMoneyFormat } from '../../hooks/useMoneyFormat';
 import {
   CalculatorIcon,
   ChartBarIcon,
@@ -49,6 +50,7 @@ interface SIGEvolution {
 }
 
 const SIGView: React.FC = () => {
+  const fmt = useMoneyFormat();
   const { t } = useLanguage();
   const { adapter } = useData();
   const [sigData, setSigData] = useState<SIGData[]>([]);
@@ -95,14 +97,7 @@ const SIGView: React.FC = () => {
     load();
   }, [adapter]);
 
-  const formatAmount = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'XAF',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount);
-  };
+  const formatAmount = (amount: number) => `${fmt(amount)} XAF`;
 
   const getTrendIcon = (trend: 'up' | 'down' | 'stable') => {
     switch (trend) {

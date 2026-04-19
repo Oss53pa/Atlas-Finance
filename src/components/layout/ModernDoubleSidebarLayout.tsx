@@ -29,6 +29,7 @@ import KeyboardShortcutsHelp from './KeyboardShortcutsHelp';
 import HelpDrawer from './HelpDrawer';
 import ModernButton from '../ui/ModernButton';
 import LanguageSelector from '../ui/LanguageSelector';
+import MoneyFormatToggle from './MoneyFormatToggle';
 
 interface MenuItem {
   id: string;
@@ -807,6 +808,9 @@ const ModernDoubleSidebarLayout: React.FC = () => {
               <DollarSign className="w-4 h-4 text-[var(--color-primary)] mr-2" />
               <span className="text-sm font-medium text-[var(--color-text-primary)]">FCFA</span>
             </div>
+
+            {/* Money Format Toggle — Entier / K-M */}
+            <MoneyFormatToggle />
 
             {/* Language Selector */}
             <LanguageSelector />

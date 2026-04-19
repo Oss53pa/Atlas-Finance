@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { formatCurrency } from '@/utils/formatters';
+import { useFormattedCurrency } from '../../hooks/useMoneyFormat';
 
 interface Alert {
   id: string;
@@ -47,6 +48,7 @@ interface AlertRule {
 const AlertsSystem: React.FC = () => {
   const { t } = useLanguage();
   const { adapter } = useData();
+  const fmtCur = useFormattedCurrency();
   const [alerts, setAlerts] = useState<Alert[]>([]);
 
   const [alertRules, setAlertRules] = useState<AlertRule[]>([]);
@@ -449,7 +451,7 @@ const AlertsSystem: React.FC = () => {
                   {alert.value !== undefined && (
                     <div className="flex items-center gap-4 text-sm">
                       <span className="font-medium">
-                        Valeur: {formatCurrency(alert.value)} {alert.threshold && `/ Seuil: ${formatCurrency(alert.threshold)}`}
+                        Valeur: {fmtCur(alert.value)} {alert.threshold && `/ Seuil: ${fmtCur(alert.threshold)}`}
                       </span>
                       {alert.trend && (
                         <span className="flex items-center gap-1">

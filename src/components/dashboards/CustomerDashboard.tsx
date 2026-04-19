@@ -48,6 +48,7 @@ import {
 import { BarChart, LineChart, PieChart } from '../charts';
 import { customerService } from '../../services/customer.service';
 import { formatCurrency, formatDate, formatPercent } from '../../lib/utils';
+import { useMoneyFormat } from '../../hooks/useMoneyFormat';
 
 interface CustomerDashboardProps {
   className?: string;
@@ -84,6 +85,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
   fiscalYearId
 }) => {
   const { t } = useLanguage();
+  const fmt = useMoneyFormat();
   // États du dashboard
   const [filters, setFilters] = useState<DashboardFilters>({
     zone: 'all',
@@ -138,7 +140,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
     return [
       {
         title: 'Encours Clients Total',
-        value: formatCurrency(kpiData.totalOutstanding),
+        value: fmt(kpiData.totalOutstanding),
         change: kpiData.outstandingTrend,
         icon: DollarSign,
         color: 'blue',
@@ -162,7 +164,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
       },
       {
         title: 'Créances Échues',
-        value: formatCurrency(kpiData.overdueAmount),
+        value: fmt(kpiData.overdueAmount),
         change: kpiData.overdueTrend,
         icon: AlertTriangle,
         color: 'red',
@@ -170,7 +172,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
       },
       {
         title: 'Chiffre d\'Affaires',
-        value: formatCurrency(kpiData.revenue),
+        value: fmt(kpiData.revenue),
         change: kpiData.growthRate,
         icon: TrendingUp,
         color: 'green',
@@ -185,7 +187,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
         trend: kpiData.riskTrend > 0 ? 'up' : 'down'
       }
     ];
-  }, [kpiData]);
+  }, [kpiData, fmt]);
 
   const handleFilterChange = (key: keyof DashboardFilters, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }));
@@ -467,7 +469,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                       </div>
                       <div className="flex items-center space-x-2">
                         <span className="font-bold text-[var(--color-error)]">
-                          {formatCurrency(action.amount)}
+                          {fmt(action.amount)}
                         </span>
                         <Button size="sm" variant="outline">
                           <Eye className="h-4 w-4" />
@@ -507,7 +509,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                     <div className="bg-[var(--color-success-lightest)] p-4 rounded-lg border border-[var(--color-success-light)]">
                       <p className="text-sm font-medium text-[var(--color-success-darker)]">Courant (0-30j)</p>
                       <p className="text-lg font-bold text-green-900">
-                        {formatCurrency(agingData?.agingBreakdown?.current || 0)}
+                        {fmt(agingData?.agingBreakdown?.current || 0)}
                       </p>
                       <p className="text-xs text-[var(--color-success)] mt-1">
                         {formatPercent(agingData?.agingPercentages?.current || 0)}
@@ -517,7 +519,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                     <div className="bg-[var(--color-warning-lightest)] p-4 rounded-lg border border-[var(--color-warning-light)]">
                       <p className="text-sm font-medium text-[var(--color-warning-dark)]">30-60 jours</p>
                       <p className="text-lg font-bold text-yellow-900">
-                        {formatCurrency(agingData?.agingBreakdown?.days_30_60 || 0)}
+                        {fmt(agingData?.agingBreakdown?.days_30_60 || 0)}
                       </p>
                       <p className="text-xs text-[var(--color-warning)] mt-1">
                         {formatPercent(agingData?.agingPercentages?.days_30_60 || 0)}
@@ -527,7 +529,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                     <div className="bg-[var(--color-warning-lightest)] p-4 rounded-lg border border-[var(--color-warning-light)]">
                       <p className="text-sm font-medium text-[var(--color-warning-darker)]">60-90 jours</p>
                       <p className="text-lg font-bold text-orange-900">
-                        {formatCurrency(agingData?.agingBreakdown?.days_60_90 || 0)}
+                        {fmt(agingData?.agingBreakdown?.days_60_90 || 0)}
                       </p>
                       <p className="text-xs text-[var(--color-warning)] mt-1">
                         {formatPercent(agingData?.agingPercentages?.days_60_90 || 0)}
@@ -537,7 +539,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                     <div className="bg-[var(--color-error-lightest)] p-4 rounded-lg border border-[var(--color-error-light)]">
                       <p className="text-sm font-medium text-[var(--color-error-darker)]">Plus de 90j</p>
                       <p className="text-lg font-bold text-red-900">
-                        {formatCurrency(agingData?.agingBreakdown?.over_90 || 0)}
+                        {fmt(agingData?.agingBreakdown?.over_90 || 0)}
                       </p>
                       <p className="text-xs text-[var(--color-error)] mt-1">
                         {formatPercent(agingData?.agingPercentages?.over_90 || 0)}
@@ -571,18 +573,18 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                             </TableCell>
                             <TableCell>
                               <span className="font-bold text-[var(--color-error)]">
-                                {formatCurrency(customer.total_outstanding)}
+                                {fmt(customer.total_outstanding)}
                               </span>
                             </TableCell>
-                            <TableCell>{formatCurrency(customer.current_amount)}</TableCell>
+                            <TableCell>{fmt(customer.current_amount)}</TableCell>
                             <TableCell className="text-[var(--color-warning)]">
-                              {formatCurrency(customer.days_30_60)}
+                              {fmt(customer.days_30_60)}
                             </TableCell>
                             <TableCell className="text-[var(--color-warning)]">
-                              {formatCurrency(customer.days_60_90)}
+                              {fmt(customer.days_60_90)}
                             </TableCell>
                             <TableCell className="text-[var(--color-error)] font-bold">
-                              {formatCurrency(customer.over_90_days)}
+                              {fmt(customer.over_90_days)}
                             </TableCell>
                             <TableCell>
                               <Badge className={getStatusColor(customer.risk_level)}>
@@ -635,7 +637,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                     <div className="bg-[var(--color-primary-lightest)] p-4 rounded-lg">
                       <p className="text-sm font-medium text-[var(--color-primary-darker)]">Encaissement Attendu</p>
                       <p className="text-lg font-bold text-[var(--color-primary-darker)]">
-                        {formatCurrency(trendsData?.forecast?.totalExpected || 0)}
+                        {fmt(trendsData?.forecast?.totalExpected || 0)}
                       </p>
                       <p className="text-xs text-[var(--color-primary)] mt-1">
                         Confiance: {trendsData?.forecast?.confidence || 0}%
@@ -652,7 +654,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                     <div className="bg-[var(--color-warning-lightest)] p-4 rounded-lg">
                       <p className="text-sm font-medium text-[var(--color-warning-darker)]">Risque d'Impayé</p>
                       <p className="text-lg font-bold text-orange-900">
-                        {formatCurrency(trendsData?.forecast?.riskAmount || 0)}
+                        {fmt(trendsData?.forecast?.riskAmount || 0)}
                       </p>
                     </div>
                   </div>
@@ -701,7 +703,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                   <div className="flex justify-between items-center p-3 bg-[var(--color-background-secondary)] rounded">
                     <span className="font-medium">Panier Moyen</span>
                     <span className="font-bold text-[var(--color-primary)]">
-                      {formatCurrency(kpiData?.averageBasket || 0)}
+                      {fmt(kpiData?.averageBasket || 0)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center p-3 bg-[var(--color-background-secondary)] rounded">
@@ -752,7 +754,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                   <div key={zone.region} className="p-4 border rounded-lg">
                     <h4 className="font-medium text-[var(--color-text-primary)]">{zone.region}</h4>
                     <p className="text-lg font-bold text-[var(--color-primary)] mt-2">
-                      {formatCurrency(zone.amount)}
+                      {fmt(zone.amount)}
                     </p>
                     <p className="text-sm text-[var(--color-text-secondary)]">
                       {zone.customerCount} clients • {formatPercent(zone.percentage)} du total
@@ -797,8 +799,8 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                       <TableRow key={segment.name}>
                         <TableCell className="font-medium">{segment.name}</TableCell>
                         <TableCell>{segment.customerCount}</TableCell>
-                        <TableCell>{formatCurrency(segment.revenue)}</TableCell>
-                        <TableCell>{formatCurrency(segment.outstanding)}</TableCell>
+                        <TableCell>{fmt(segment.revenue)}</TableCell>
+                        <TableCell>{fmt(segment.outstanding)}</TableCell>
                         <TableCell>
                           <span className={segment.dso > 45 ? 'text-[var(--color-error)]' : 'text-[var(--color-success)]'}>
                             {segment.dso} j

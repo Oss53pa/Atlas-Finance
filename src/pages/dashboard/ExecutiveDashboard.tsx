@@ -5,6 +5,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { formatCurrency } from '../../utils/formatters';
 import { useActivityType } from '../../hooks/useActivityType';
 import { useActivityKPIs } from '../../hooks/useActivityKPIs';
+import { useMoneyFormat } from '../../hooks/useMoneyFormat';
 import type { ActivityType } from '../../services/company.service';
 import {
   Factory, ShoppingCart, Briefcase,
@@ -52,10 +53,10 @@ const ACTIVITY_COLORS: Record<ActivityType, string> = {
   services: 'var(--color-primary)',
 };
 
-function formatKPIValue(value: number, format: string): string {
+function formatKPIValue(value: number, format: string, fmt: (n: number | null | undefined, d?: number) => string): string {
   switch (format) {
     case 'currency':
-      return formatCurrency(value);
+      return fmt(value);
     case 'percentage':
       return `${value.toFixed(1)}%`;
     case 'days':
@@ -76,6 +77,7 @@ function getValueColor(value: number, condition?: string): string {
 
 const ExecutiveDashboard: React.FC = () => {
   const { t } = useLanguage();
+  const fmt = useMoneyFormat();
   const { activityType, setActivityType, dashboardConfig, loading: activityLoading } = useActivityType();
   const { primaryKPIs, secondaryKPIs, monthlyTrend, loading: kpisLoading } = useActivityKPIs();
   const [showActivitySelector, setShowActivitySelector] = useState(false);
@@ -290,7 +292,7 @@ const ExecutiveDashboard: React.FC = () => {
                   )}
                 </div>
                 <div className={`text-xl font-bold ${getValueColor(kpi.value, kpi.colorCondition)}`}>
-                  {formatKPIValue(kpi.value, kpi.format)}
+                  {formatKPIValue(kpi.value, kpi.format, fmt)}
                 </div>
                 <div className="text-sm text-[var(--color-text-secondary)] mt-1 font-medium">
                   {kpi.label}
@@ -356,7 +358,7 @@ const ExecutiveDashboard: React.FC = () => {
                         <span className="text-sm text-[var(--color-text-secondary)] truncate">{kpi.label}</span>
                       </div>
                       <div className={`text-lg font-bold ${getValueColor(kpi.value, kpi.colorCondition)}`}>
-                        {formatKPIValue(kpi.value, kpi.format)}
+                        {formatKPIValue(kpi.value, kpi.format, fmt)}
                       </div>
                       <div className="text-xs text-[var(--color-text-secondary)] mt-1 opacity-70">
                         {kpi.description}

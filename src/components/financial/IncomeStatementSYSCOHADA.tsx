@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { formatCurrency } from '../../utils/formatters';
+import { useMoneyFormat } from '../../hooks/useMoneyFormat';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
 import { useData } from '../../contexts/DataContext';
@@ -25,7 +25,7 @@ interface IncomeStatementData {
   statementDate: string;
   
   // CHARGES
-  // Activité d'exploitation
+  // ActivitÃ© d'exploitation
   merchandisePurchases: number;
   merchandiseStockVariation: number;
   rawMaterialsPurchases: number;
@@ -36,10 +36,10 @@ interface IncomeStatementData {
   staffCosts: number;
   otherOperatingExpenses: number;
   
-  // Activité financière
+  // ActivitÃ© financiÃ¨re
   financialExpenses: number;
   
-  // Activité exceptionnelle
+  // ActivitÃ© exceptionnelle
   exceptionalExpenses: number;
   employeeParticipation: number;
   incomeTax: number;
@@ -47,7 +47,7 @@ interface IncomeStatementData {
   totalExpenses: number;
   
   // PRODUITS
-  // Activité d'exploitation
+  // ActivitÃ© d'exploitation
   merchandiseSales: number;
   productionSold: number;
   productionStored: number;
@@ -56,10 +56,10 @@ interface IncomeStatementData {
   otherOperatingIncome: number;
   provisionsReversals: number;
   
-  // Activité financière
+  // ActivitÃ© financiÃ¨re
   financialIncome: number;
   
-  // Activité exceptionnelle
+  // ActivitÃ© exceptionnelle
   exceptionalIncome: number;
   
   totalIncome: number;
@@ -74,6 +74,7 @@ interface IncomeStatementData {
 }
 
 const IncomeStatementSYSCOHADA: React.FC = () => {
+  const fmt = useMoneyFormat();
   const { t } = useLanguage();
   const { adapter } = useData();
   const [selectedPeriod, setSelectedPeriod] = useState('current');
@@ -163,12 +164,12 @@ const IncomeStatementSYSCOHADA: React.FC = () => {
   if (!incomeData) {
     return (
       <div className="text-center p-8">
-        <p className="text-[#171717]/50">Aucune donnée de compte de résultat disponible</p>
+        <p className="text-[#171717]/50">Aucune donnÃ©e de compte de rÃ©sultat disponible</p>
       </div>
     );
   }
 
-  // Calculs des soldes intermédiaires
+  // Calculs des soldes intermÃ©diaires
   const grossProfit = incomeData.merchandiseSales - incomeData.merchandisePurchases - incomeData.merchandiseStockVariation;
   const production = incomeData.productionSold + incomeData.productionStored + incomeData.productionImmobilized;
   const valueAdded = grossProfit + production - (incomeData.rawMaterialsPurchases + incomeData.rawMaterialsStockVariation + incomeData.otherPurchases + incomeData.externalServices);
@@ -180,13 +181,13 @@ const IncomeStatementSYSCOHADA: React.FC = () => {
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
-      {/* En-tête */}
+      {/* En-tÃªte */}
       <div className="bg-[#f5f5f5] rounded-lg shadow-sm border border-[#e5e5e5] p-6">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-lg font-bold text-[#171717] flex items-center">
               <ChartBarIcon className="h-6 w-6 mr-2 text-[#171717]" />
-              COMPTE DE RÉSULTAT SYSCOHADA
+              COMPTE DE RÃ‰SULTAT SYSCOHADA
             </h1>
             <div className="mt-2 space-y-1">
               <p className="text-lg font-semibold text-[#171717]/90">{incomeData.company.name}</p>
@@ -206,7 +207,7 @@ const IncomeStatementSYSCOHADA: React.FC = () => {
               <span className={`text-sm font-medium ${
                 incomeData.isValidated ? 'text-green-600' : 'text-yellow-600'
               }`}>
-                {incomeData.isValidated ? 'Validé' : 'En attente'}
+                {incomeData.isValidated ? 'ValidÃ©' : 'En attente'}
               </span>
             </div>
             <div className="flex space-x-2">
@@ -227,14 +228,14 @@ const IncomeStatementSYSCOHADA: React.FC = () => {
         </div>
       </div>
 
-      {/* Compte de Résultat */}
+      {/* Compte de RÃ©sultat */}
       <div className="bg-[#f5f5f5] rounded-lg shadow-sm border border-[#e5e5e5] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full">
             <thead className="bg-[#171717]">
               <tr>
                 <th colSpan={2} className="px-6 py-4 text-center text-lg font-bold text-[#f5f5f5] border-b-2 border-[#171717]">
-                  COMPTE DE RÉSULTAT AU {new Date(incomeData.statementDate).toLocaleDateString('fr-FR')}
+                  COMPTE DE RÃ‰SULTAT AU {new Date(incomeData.statementDate).toLocaleDateString('fr-FR')}
                 </th>
                 <th className="px-6 py-4 text-center text-lg font-bold text-[#f5f5f5] border-b-2 border-[#171717]">
                   Exercice {incomeData.fiscalYear} (XAF)
@@ -255,7 +256,7 @@ const IncomeStatementSYSCOHADA: React.FC = () => {
               </tr>
               
               <tr className="bg-[#525252]/5">
-                <td colSpan={2} className="px-6 py-2 font-semibold text-[#525252]/90">ACTIVITÉ D'EXPLOITATION</td>
+                <td colSpan={2} className="px-6 py-2 font-semibold text-[#525252]/90">ACTIVITÃ‰ D'EXPLOITATION</td>
                 <td className="px-6 py-2"></td>
                 {showComparison && <td className="px-6 py-2"></td>}
               </tr>
@@ -263,69 +264,69 @@ const IncomeStatementSYSCOHADA: React.FC = () => {
               <tr>
                 <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Achats de marchandises</td>
                 <td className="px-6 py-2 text-sm text-[#171717]/50">(601)</td>
-                <td className="px-6 py-2 text-right text-sm">{formatCurrency(incomeData.merchandisePurchases)}</td>
+                <td className="px-6 py-2 text-right text-sm">{fmt(incomeData.merchandisePurchases)}</td>
                 {showComparison && <td className="px-6 py-2 text-right text-sm">2,650,000</td>}
               </tr>
               
               <tr>
                 <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Variation stocks marchandises</td>
                 <td className="px-6 py-2 text-sm text-[#171717]/50">(6031)</td>
-                <td className="px-6 py-2 text-right text-sm">{formatCurrency(incomeData.merchandiseStockVariation)}</td>
+                <td className="px-6 py-2 text-right text-sm">{fmt(incomeData.merchandiseStockVariation)}</td>
                 {showComparison && <td className="px-6 py-2 text-right text-sm">120,000</td>}
               </tr>
               
               <tr>
-                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Achats de matières premières</td>
+                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Achats de matiÃ¨res premiÃ¨res</td>
                 <td className="px-6 py-2 text-sm text-[#171717]/50">(602)</td>
-                <td className="px-6 py-2 text-right text-sm">{formatCurrency(incomeData.rawMaterialsPurchases)}</td>
+                <td className="px-6 py-2 text-right text-sm">{fmt(incomeData.rawMaterialsPurchases)}</td>
                 {showComparison && <td className="px-6 py-2 text-right text-sm">1,100,000</td>}
               </tr>
               
               <tr>
-                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Services extérieurs</td>
+                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Services extÃ©rieurs</td>
                 <td className="px-6 py-2 text-sm text-[#171717]/50">(61-62)</td>
-                <td className="px-6 py-2 text-right text-sm">{formatCurrency(incomeData.externalServices)}</td>
+                <td className="px-6 py-2 text-right text-sm">{fmt(incomeData.externalServices)}</td>
                 {showComparison && <td className="px-6 py-2 text-right text-sm">1,650,000</td>}
               </tr>
               
               <tr>
-                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Impôts, taxes et versements assimilés</td>
+                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">ImpÃ´ts, taxes et versements assimilÃ©s</td>
                 <td className="px-6 py-2 text-sm text-[#171717]/50">(63)</td>
-                <td className="px-6 py-2 text-right text-sm">{formatCurrency(incomeData.taxesAndDuties)}</td>
+                <td className="px-6 py-2 text-right text-sm">{fmt(incomeData.taxesAndDuties)}</td>
                 {showComparison && <td className="px-6 py-2 text-right text-sm">295,000</td>}
               </tr>
               
               <tr>
                 <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Charges de personnel</td>
                 <td className="px-6 py-2 text-sm text-[#171717]/50">(64)</td>
-                <td className="px-6 py-2 text-right text-sm font-medium">{formatCurrency(incomeData.staffCosts)}</td>
+                <td className="px-6 py-2 text-right text-sm font-medium">{fmt(incomeData.staffCosts)}</td>
                 {showComparison && <td className="px-6 py-2 text-right text-sm">1,950,000</td>}
               </tr>
               
               <tr>
                 <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Autres charges</td>
                 <td className="px-6 py-2 text-sm text-[#171717]/50">(65)</td>
-                <td className="px-6 py-2 text-right text-sm">{formatCurrency(incomeData.otherOperatingExpenses)}</td>
+                <td className="px-6 py-2 text-right text-sm">{fmt(incomeData.otherOperatingExpenses)}</td>
                 {showComparison && <td className="px-6 py-2 text-right text-sm">250,000</td>}
               </tr>
               
-              {/* Activité financière */}
+              {/* ActivitÃ© financiÃ¨re */}
               <tr className="bg-[#525252]/5">
-                <td colSpan={2} className="px-6 py-2 font-semibold text-[#525252]/90">ACTIVITÉ FINANCIÈRE</td>
+                <td colSpan={2} className="px-6 py-2 font-semibold text-[#525252]/90">ACTIVITÃ‰ FINANCIÃˆRE</td>
                 <td className="px-6 py-2"></td>
                 {showComparison && <td className="px-6 py-2"></td>}
               </tr>
               
               <tr>
-                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Charges financières</td>
+                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Charges financiÃ¨res</td>
                 <td className="px-6 py-2 text-sm text-[#171717]/50">(67)</td>
-                <td className="px-6 py-2 text-right text-sm">{formatCurrency(incomeData.financialExpenses)}</td>
+                <td className="px-6 py-2 text-right text-sm">{fmt(incomeData.financialExpenses)}</td>
                 {showComparison && <td className="px-6 py-2 text-right text-sm">165,000</td>}
               </tr>
               
-              {/* Activité exceptionnelle */}
+              {/* ActivitÃ© exceptionnelle */}
               <tr className="bg-[#525252]/5">
-                <td colSpan={2} className="px-6 py-2 font-semibold text-[#525252]/90">ACTIVITÉ EXCEPTIONNELLE</td>
+                <td colSpan={2} className="px-6 py-2 font-semibold text-[#525252]/90">ACTIVITÃ‰ EXCEPTIONNELLE</td>
                 <td className="px-6 py-2"></td>
                 {showComparison && <td className="px-6 py-2"></td>}
               </tr>
@@ -333,21 +334,21 @@ const IncomeStatementSYSCOHADA: React.FC = () => {
               <tr>
                 <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Charges exceptionnelles (HAO)</td>
                 <td className="px-6 py-2 text-sm text-[#171717]/50">(81-85)</td>
-                <td className="px-6 py-2 text-right text-sm">{formatCurrency(incomeData.exceptionalExpenses)}</td>
+                <td className="px-6 py-2 text-right text-sm">{fmt(incomeData.exceptionalExpenses)}</td>
                 {showComparison && <td className="px-6 py-2 text-right text-sm">38,000</td>}
               </tr>
               
               <tr>
-                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Impôts sur le résultat</td>
+                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">ImpÃ´ts sur le rÃ©sultat</td>
                 <td className="px-6 py-2 text-sm text-[#171717]/50">(89)</td>
-                <td className="px-6 py-2 text-right text-sm">{formatCurrency(incomeData.incomeTax)}</td>
+                <td className="px-6 py-2 text-right text-sm">{fmt(incomeData.incomeTax)}</td>
                 {showComparison && <td className="px-6 py-2 text-right text-sm">480,000</td>}
               </tr>
               
               {/* Total charges */}
               <tr className="bg-[#525252]/20 font-bold">
                 <td colSpan={2} className="px-6 py-3 text-[#525252]">TOTAL CHARGES</td>
-                <td className="px-6 py-3 text-right text-[#525252]">{formatCurrency(incomeData.totalExpenses)}</td>
+                <td className="px-6 py-3 text-right text-[#525252]">{fmt(incomeData.totalExpenses)}</td>
                 {showComparison && <td className="px-6 py-3 text-right text-[#525252]">8,968,000</td>}
               </tr>
               
@@ -364,7 +365,7 @@ const IncomeStatementSYSCOHADA: React.FC = () => {
               </tr>
               
               <tr className="bg-[#171717]/5">
-                <td colSpan={2} className="px-6 py-2 font-semibold text-[#171717]/90">ACTIVITÉ D'EXPLOITATION</td>
+                <td colSpan={2} className="px-6 py-2 font-semibold text-[#171717]/90">ACTIVITÃ‰ D'EXPLOITATION</td>
                 <td className="px-6 py-2"></td>
                 {showComparison && <td className="px-6 py-2"></td>}
               </tr>
@@ -372,48 +373,48 @@ const IncomeStatementSYSCOHADA: React.FC = () => {
               <tr>
                 <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Ventes de marchandises</td>
                 <td className="px-6 py-2 text-sm text-[#171717]/50">(701)</td>
-                <td className="px-6 py-2 text-right text-sm font-medium">{formatCurrency(incomeData.merchandiseSales)}</td>
+                <td className="px-6 py-2 text-right text-sm font-medium">{fmt(incomeData.merchandiseSales)}</td>
                 {showComparison && <td className="px-6 py-2 text-right text-sm">3,980,000</td>}
               </tr>
               
               <tr>
                 <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Production vendue</td>
                 <td className="px-6 py-2 text-sm text-[#171717]/50">(702-708)</td>
-                <td className="px-6 py-2 text-right text-sm font-medium">{formatCurrency(incomeData.productionSold)}</td>
+                <td className="px-6 py-2 text-right text-sm font-medium">{fmt(incomeData.productionSold)}</td>
                 {showComparison && <td className="px-6 py-2 text-right text-sm">7,200,000</td>}
               </tr>
               
               <tr>
-                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Production stockée</td>
+                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Production stockÃ©e</td>
                 <td className="px-6 py-2 text-sm text-[#171717]/50">(713-714)</td>
-                <td className="px-6 py-2 text-right text-sm">{formatCurrency(incomeData.productionStored)}</td>
+                <td className="px-6 py-2 text-right text-sm">{fmt(incomeData.productionStored)}</td>
                 {showComparison && <td className="px-6 py-2 text-right text-sm">180,000</td>}
               </tr>
               
               <tr>
-                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Production immobilisée</td>
+                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Production immobilisÃ©e</td>
                 <td className="px-6 py-2 text-sm text-[#171717]/50">(72)</td>
-                <td className="px-6 py-2 text-right text-sm">{formatCurrency(incomeData.productionImmobilized)}</td>
+                <td className="px-6 py-2 text-right text-sm">{fmt(incomeData.productionImmobilized)}</td>
                 {showComparison && <td className="px-6 py-2 text-right text-sm">130,000</td>}
               </tr>
               
               <tr>
                 <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Subventions d'exploitation</td>
                 <td className="px-6 py-2 text-sm text-[#171717]/50">(74)</td>
-                <td className="px-6 py-2 text-right text-sm">{formatCurrency(incomeData.operatingSubsidies)}</td>
+                <td className="px-6 py-2 text-right text-sm">{fmt(incomeData.operatingSubsidies)}</td>
                 {showComparison && <td className="px-6 py-2 text-right text-sm">100,000</td>}
               </tr>
               
               <tr>
                 <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Autres produits</td>
                 <td className="px-6 py-2 text-sm text-[#171717]/50">(75)</td>
-                <td className="px-6 py-2 text-right text-sm">{formatCurrency(incomeData.otherOperatingIncome)}</td>
+                <td className="px-6 py-2 text-right text-sm">{fmt(incomeData.otherOperatingIncome)}</td>
                 {showComparison && <td className="px-6 py-2 text-right text-sm">165,000</td>}
               </tr>
               
-              {/* Activité financière */}
+              {/* ActivitÃ© financiÃ¨re */}
               <tr className="bg-[#171717]/5">
-                <td colSpan={2} className="px-6 py-2 font-semibold text-[#171717]/90">ACTIVITÉ FINANCIÈRE</td>
+                <td colSpan={2} className="px-6 py-2 font-semibold text-[#171717]/90">ACTIVITÃ‰ FINANCIÃˆRE</td>
                 <td className="px-6 py-2"></td>
                 {showComparison && <td className="px-6 py-2"></td>}
               </tr>
@@ -421,13 +422,13 @@ const IncomeStatementSYSCOHADA: React.FC = () => {
               <tr>
                 <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Produits financiers</td>
                 <td className="px-6 py-2 text-sm text-[#171717]/50">(77)</td>
-                <td className="px-6 py-2 text-right text-sm">{formatCurrency(incomeData.financialIncome)}</td>
+                <td className="px-6 py-2 text-right text-sm">{fmt(incomeData.financialIncome)}</td>
                 {showComparison && <td className="px-6 py-2 text-right text-sm">38,000</td>}
               </tr>
               
-              {/* Activité exceptionnelle */}
+              {/* ActivitÃ© exceptionnelle */}
               <tr className="bg-[#171717]/5">
-                <td colSpan={2} className="px-6 py-2 font-semibold text-[#171717]/90">ACTIVITÉ EXCEPTIONNELLE</td>
+                <td colSpan={2} className="px-6 py-2 font-semibold text-[#171717]/90">ACTIVITÃ‰ EXCEPTIONNELLE</td>
                 <td className="px-6 py-2"></td>
                 {showComparison && <td className="px-6 py-2"></td>}
               </tr>
@@ -435,22 +436,22 @@ const IncomeStatementSYSCOHADA: React.FC = () => {
               <tr>
                 <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Produits exceptionnels (HAO)</td>
                 <td className="px-6 py-2 text-sm text-[#171717]/50">(82-88)</td>
-                <td className="px-6 py-2 text-right text-sm">{formatCurrency(incomeData.exceptionalIncome)}</td>
+                <td className="px-6 py-2 text-right text-sm">{fmt(incomeData.exceptionalIncome)}</td>
                 {showComparison && <td className="px-6 py-2 text-right text-sm">65,000</td>}
               </tr>
               
               {/* Total produits */}
               <tr className="bg-[#171717]/20 font-bold">
                 <td colSpan={2} className="px-6 py-3 text-[#171717]">TOTAL PRODUITS</td>
-                <td className="px-6 py-3 text-right text-[#171717]">{formatCurrency(incomeData.totalIncome)}</td>
+                <td className="px-6 py-3 text-right text-[#171717]">{fmt(incomeData.totalIncome)}</td>
                 {showComparison && <td className="px-6 py-3 text-right text-[#171717]">11,858,000</td>}
               </tr>
               
-              {/* RÉSULTAT NET */}
+              {/* RÃ‰SULTAT NET */}
               <tr className="bg-[#171717]/20 font-bold text-lg">
-                <td colSpan={2} className="px-6 py-4 text-[#f5f5f5]">RÉSULTAT NET DE L'EXERCICE</td>
+                <td colSpan={2} className="px-6 py-4 text-[#f5f5f5]">RÃ‰SULTAT NET DE L'EXERCICE</td>
                 <td className="px-6 py-4 text-right text-[#f5f5f5]">
-                  {formatCurrency(incomeData.calculatedNetResult)}
+                  {fmt(incomeData.calculatedNetResult)}
                 </td>
                 {showComparison && <td className="px-6 py-4 text-right text-[#f5f5f5]">2,890,000</td>}
               </tr>
@@ -459,11 +460,11 @@ const IncomeStatementSYSCOHADA: React.FC = () => {
         </div>
       </div>
 
-      {/* Soldes Intermédiaires de Gestion */}
+      {/* Soldes IntermÃ©diaires de Gestion */}
       <div className="bg-[#f5f5f5] rounded-lg shadow-sm border border-[#e5e5e5] p-6">
         <h2 className="text-lg font-medium text-[#171717] mb-4 flex items-center">
           <CalculatorIcon className="h-5 w-5 mr-2 text-[#171717]" />
-          Soldes Intermédiaires de Gestion (SIG)
+          Soldes IntermÃ©diaires de Gestion (SIG)
         </h2>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-[#e5e5e5]">
@@ -472,13 +473,13 @@ const IncomeStatementSYSCOHADA: React.FC = () => {
                 <th className="px-6 py-3 text-left text-sm font-medium text-[#171717]/50">{t('accounting.balance')}</th>
                 <th className="px-6 py-3 text-right text-sm font-medium text-[#171717]/50">Montant (XAF)</th>
                 <th className="px-6 py-3 text-right text-sm font-medium text-[#171717]/50">% du CA</th>
-                <th className="px-6 py-3 text-right text-sm font-medium text-[#171717]/50">Évolution</th>
+                <th className="px-6 py-3 text-right text-sm font-medium text-[#171717]/50">Ã‰volution</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#e5e5e5]">
               <tr>
                 <td className="px-6 py-3 text-sm font-medium text-[#171717]">1. Marge commerciale</td>
-                <td className="px-6 py-3 text-right text-sm font-medium">{formatCurrency(grossProfit)}</td>
+                <td className="px-6 py-3 text-right text-sm font-medium">{fmt(grossProfit)}</td>
                 <td className="px-6 py-3 text-right text-sm">{calculateMargin(grossProfit, incomeData.merchandiseSales)}%</td>
                 <td className="px-6 py-3 text-right">
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#171717]/20 text-[#171717]/90">
@@ -489,7 +490,7 @@ const IncomeStatementSYSCOHADA: React.FC = () => {
               
               <tr>
                 <td className="px-6 py-3 text-sm font-medium text-[#171717]">2. Production de l'exercice</td>
-                <td className="px-6 py-3 text-right text-sm font-medium">{formatCurrency(production)}</td>
+                <td className="px-6 py-3 text-right text-sm font-medium">{fmt(production)}</td>
                 <td className="px-6 py-3 text-right text-sm">{calculateMargin(production, incomeData.totalIncome)}%</td>
                 <td className="px-6 py-3 text-right">
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#171717]/20 text-[#171717]/90">
@@ -499,8 +500,8 @@ const IncomeStatementSYSCOHADA: React.FC = () => {
               </tr>
               
               <tr className="bg-[#171717]/10">
-                <td className="px-6 py-3 text-sm font-semibold text-blue-900">3. Valeur ajoutée</td>
-                <td className="px-6 py-3 text-right text-sm font-semibold text-blue-900">{formatCurrency(valueAdded)}</td>
+                <td className="px-6 py-3 text-sm font-semibold text-blue-900">3. Valeur ajoutÃ©e</td>
+                <td className="px-6 py-3 text-right text-sm font-semibold text-blue-900">{fmt(valueAdded)}</td>
                 <td className="px-6 py-3 text-right text-sm font-semibold text-blue-900">{calculateMargin(valueAdded, incomeData.totalIncome)}%</td>
                 <td className="px-6 py-3 text-right">
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#171717]/20 text-[#171717]/90">
@@ -510,8 +511,8 @@ const IncomeStatementSYSCOHADA: React.FC = () => {
               </tr>
               
               <tr className="bg-[#171717]/10">
-                <td className="px-6 py-3 text-sm font-semibold text-[#171717]">4. Excédent brut d'exploitation (EBE)</td>
-                <td className="px-6 py-3 text-right text-sm font-semibold text-[#171717]">{formatCurrency(grossOperatingSurplus)}</td>
+                <td className="px-6 py-3 text-sm font-semibold text-[#171717]">4. ExcÃ©dent brut d'exploitation (EBE)</td>
+                <td className="px-6 py-3 text-right text-sm font-semibold text-[#171717]">{fmt(grossOperatingSurplus)}</td>
                 <td className="px-6 py-3 text-right text-sm font-semibold text-[#171717]">{calculateMargin(grossOperatingSurplus, incomeData.totalIncome)}%</td>
                 <td className="px-6 py-3 text-right">
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
@@ -521,8 +522,8 @@ const IncomeStatementSYSCOHADA: React.FC = () => {
               </tr>
               
               <tr>
-                <td className="px-6 py-3 text-sm font-medium text-[#171717]">5. Résultat d'exploitation</td>
-                <td className="px-6 py-3 text-right text-sm font-medium">{formatCurrency(operatingResult)}</td>
+                <td className="px-6 py-3 text-sm font-medium text-[#171717]">5. RÃ©sultat d'exploitation</td>
+                <td className="px-6 py-3 text-right text-sm font-medium">{fmt(operatingResult)}</td>
                 <td className="px-6 py-3 text-right text-sm">{calculateMargin(operatingResult, incomeData.totalIncome)}%</td>
                 <td className="px-6 py-3 text-right">
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#171717]/20 text-[#171717]/90">
@@ -532,10 +533,10 @@ const IncomeStatementSYSCOHADA: React.FC = () => {
               </tr>
               
               <tr>
-                <td className="px-6 py-3 text-sm font-medium text-[#171717]">6. Résultat financier</td>
+                <td className="px-6 py-3 text-sm font-medium text-[#171717]">6. RÃ©sultat financier</td>
                 <td className="px-6 py-3 text-right text-sm font-medium">
                   <span className={financialResult >= 0 ? 'text-green-600' : 'text-[#525252]'}>
-                    {formatCurrency(financialResult)}
+                    {fmt(financialResult)}
                   </span>
                 </td>
                 <td className="px-6 py-3 text-right text-sm">{calculateMargin(financialResult, incomeData.totalIncome)}%</td>
@@ -547,8 +548,8 @@ const IncomeStatementSYSCOHADA: React.FC = () => {
               </tr>
               
               <tr>
-                <td className="px-6 py-3 text-sm font-medium text-[#171717]">7. Résultat courant avant impôts</td>
-                <td className="px-6 py-3 text-right text-sm font-medium">{formatCurrency(currentResultBeforeTax)}</td>
+                <td className="px-6 py-3 text-sm font-medium text-[#171717]">7. RÃ©sultat courant avant impÃ´ts</td>
+                <td className="px-6 py-3 text-right text-sm font-medium">{fmt(currentResultBeforeTax)}</td>
                 <td className="px-6 py-3 text-right text-sm">{calculateMargin(currentResultBeforeTax, incomeData.totalIncome)}%</td>
                 <td className="px-6 py-3 text-right">
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#171717]/20 text-[#171717]/90">
@@ -558,10 +559,10 @@ const IncomeStatementSYSCOHADA: React.FC = () => {
               </tr>
               
               <tr>
-                <td className="px-6 py-3 text-sm font-medium text-[#171717]">8. Résultat exceptionnel</td>
+                <td className="px-6 py-3 text-sm font-medium text-[#171717]">8. RÃ©sultat exceptionnel</td>
                 <td className="px-6 py-3 text-right text-sm font-medium">
                   <span className={exceptionalResult >= 0 ? 'text-green-600' : 'text-[#525252]'}>
-                    {formatCurrency(exceptionalResult)}
+                    {fmt(exceptionalResult)}
                   </span>
                 </td>
                 <td className="px-6 py-3 text-right text-sm">{calculateMargin(exceptionalResult, incomeData.totalIncome)}%</td>
@@ -572,10 +573,10 @@ const IncomeStatementSYSCOHADA: React.FC = () => {
                 </td>
               </tr>
               
-              {/* RÉSULTAT NET FINAL */}
+              {/* RÃ‰SULTAT NET FINAL */}
               <tr className="bg-[#171717]/20 font-bold text-lg">
-                <td className="px-6 py-4 text-[#f5f5f5]">9. RÉSULTAT NET</td>
-                <td className="px-6 py-4 text-right text-[#f5f5f5]">{formatCurrency(incomeData.calculatedNetResult)}</td>
+                <td className="px-6 py-4 text-[#f5f5f5]">9. RÃ‰SULTAT NET</td>
+                <td className="px-6 py-4 text-right text-[#f5f5f5]">{fmt(incomeData.calculatedNetResult)}</td>
                 <td className="px-6 py-4 text-right text-[#f5f5f5]">{calculateMargin(incomeData.calculatedNetResult, incomeData.totalIncome)}%</td>
                 <td className="px-6 py-4 text-right">
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#171717]/20 text-[#171717]/90">
@@ -588,10 +589,10 @@ const IncomeStatementSYSCOHADA: React.FC = () => {
         </div>
       </div>
 
-      {/* Analyses complémentaires */}
+      {/* Analyses complÃ©mentaires */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-[#f5f5f5] rounded-lg shadow-sm border border-[#e5e5e5] p-6">
-          <h3 className="text-lg font-medium text-[#171717] mb-4">Analyse de Rentabilité</h3>
+          <h3 className="text-lg font-medium text-[#171717] mb-4">Analyse de RentabilitÃ©</h3>
           <div className="space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-sm text-[#171717]/70">Marge commerciale:</span>
@@ -633,7 +634,7 @@ const IncomeStatementSYSCOHADA: React.FC = () => {
         </div>
 
         <div className="bg-[#f5f5f5] rounded-lg shadow-sm border border-[#e5e5e5] p-6">
-          <h3 className="text-lg font-medium text-[#171717] mb-4">Structure des Coûts</h3>
+          <h3 className="text-lg font-medium text-[#171717] mb-4">Structure des CoÃ»ts</h3>
           <div className="space-y-3">
             <div className="flex justify-between">
               <span className="text-sm text-[#171717]/70">Achats et consommations:</span>
@@ -648,13 +649,13 @@ const IncomeStatementSYSCOHADA: React.FC = () => {
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-[#171717]/70">Services extérieurs:</span>
+              <span className="text-sm text-[#171717]/70">Services extÃ©rieurs:</span>
               <span className="text-sm font-medium">
                 {(incomeData.externalServices / incomeData.totalExpenses * 100).toFixed(1)}%
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-[#171717]/70">Charges financières:</span>
+              <span className="text-sm text-[#171717]/70">Charges financiÃ¨res:</span>
               <span className="text-sm font-medium">
                 {(incomeData.financialExpenses / incomeData.totalExpenses * 100).toFixed(1)}%
               </span>
@@ -663,12 +664,12 @@ const IncomeStatementSYSCOHADA: React.FC = () => {
         </div>
       </div>
 
-      {/* Note de conformité */}
+      {/* Note de conformitÃ© */}
       <div className="bg-[#e5e5e5] rounded-lg p-4 text-xs text-[#171717]/70">
         <p className="text-center">
-          Compte de résultat établi conformément aux dispositions du Système Comptable OHADA (SYSCOHADA) révisé en 2017.
+          Compte de rÃ©sultat Ã©tabli conformÃ©ment aux dispositions du SystÃ¨me Comptable OHADA (SYSCOHADA) rÃ©visÃ© en 2017.
           <br />
-          Présentation par nature des charges et produits. Les montants sont exprimés en Francs CFA (XAF).
+          PrÃ©sentation par nature des charges et produits. Les montants sont exprimÃ©s en Francs CFA (XAF).
         </p>
       </div>
     </div>

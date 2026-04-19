@@ -22,6 +22,7 @@ import {
 import PrintableArea from '../ui/PrintableArea';
 import './AdvancedBalance.css';
 import { formatCurrency } from '@/utils/formatters';
+import { useMoneyFormat } from '@/hooks/useMoneyFormat';
 import { money } from '../../utils/money';
 
 interface LedgerEntry {
@@ -50,6 +51,7 @@ interface AccountData {
 
 const AdvancedGeneralLedger: React.FC = () => {
   const { t } = useLanguage();
+  const fmt = useMoneyFormat();
   const { adapter } = useData();
   // États principaux
   const [activeView, setActiveView] = useState<'dashboard' | 'accounts' | 'analysis' | 'intelligent' | 'collaboration' | 'general-ledger' | 'movements'>('intelligent');
@@ -657,14 +659,14 @@ const AdvancedGeneralLedger: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
                         {entry.debit > 0 ? (
-                          <span className="text-green-600 font-mono font-medium">{formatCurrency(entry.debit)}</span>
+                          <span className="text-green-600 font-mono font-medium">{fmt(entry.debit)}</span>
                         ) : (
                           <span className="text-gray-700">-</span>
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
                         {entry.credit > 0 ? (
-                          <span className="text-red-600 font-mono font-medium">{formatCurrency(entry.credit)}</span>
+                          <span className="text-red-600 font-mono font-medium">{fmt(entry.credit)}</span>
                         ) : (
                           <span className="text-gray-700">-</span>
                         )}
@@ -829,7 +831,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                           <h4 className="font-semibold text-gray-900">{day.date}</h4>
                           <div className="flex items-center space-x-4 text-sm">
                             <span className="text-gray-600">{day.entries} écritures</span>
-                            <span className="font-medium text-gray-900">{formatCurrency(day.total)}</span>
+                            <span className="font-medium text-gray-900">{fmt(day.total)}</span>
                           </div>
                         </div>
 
@@ -845,7 +847,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                                 <span className="text-sm text-gray-600">{entry.libelle}</span>
                               </div>
                               <span className={`text-sm font-semibold ${entry.type === 'debit' ? 'text-green-600' : 'text-red-600'}`}>
-                                {formatCurrency(entry.montant)}
+                                {fmt(entry.montant)}
                               </span>
                             </div>
                           ))}
@@ -981,7 +983,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                                     <span className="text-sm text-gray-600">{compte.libelle}</span>
                                   </div>
                                   <span className={`text-sm font-semibold ${compte.solde > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                    {formatCurrency(compte.solde)}
+                                    {fmt(compte.solde)}
                                   </span>
                                 </div>
                               </div>
@@ -996,7 +998,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                                           <span className="text-xs text-gray-600">{sousCompte.libelle}</span>
                                         </div>
                                         <span className={`text-xs font-semibold ${sousCompte.solde > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                          {formatCurrency(sousCompte.solde)}
+                                          {fmt(sousCompte.solde)}
                                         </span>
                                       </div>
                                     </div>
@@ -1214,8 +1216,8 @@ const AdvancedGeneralLedger: React.FC = () => {
                 <AreaChart data={evolutionData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                   <XAxis dataKey="periode" />
-                  <YAxis tickFormatter={(value) => `${(value / 1000000).toFixed(0)}M`} />
-                  <Tooltip formatter={(value) => [`${(value as number / 1000000).toFixed(1)}M XAF`, '']} />
+                  <YAxis tickFormatter={(value) => fmt(value)} />
+                  <Tooltip formatter={(value) => [fmt(value as number), '']} />
                   <Legend />
                   <Area type="monotone" dataKey="actif" stackId="1" stroke="#171717" fill="#171717" fillOpacity={0.6} name="Actif" />
                   <Area type="monotone" dataKey="passif" stackId="2" stroke="#525252" fill="#525252" fillOpacity={0.6} name="Passif" />
@@ -1376,7 +1378,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                         </div>
                         <div className="text-right">
                           <div className="text-lg font-bold text-[#171717]">
-                            {(account.soldeFermeture / 1000000).toFixed(1)}M XAF
+                            {fmt(account.soldeFermeture)}
                           </div>
                           <div className="text-sm text-gray-700">Solde actuel</div>
                         </div>
@@ -1386,19 +1388,19 @@ const AdvancedGeneralLedger: React.FC = () => {
                       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
                         <div className="text-center p-3 bg-blue-50 rounded-lg">
                           <div className="text-lg font-bold text-blue-600">
-                            {(account.soldeOuverture / 1000000).toFixed(1)}M
+                            {fmt(account.soldeOuverture)}
                           </div>
                           <div className="text-xs text-gray-600">Solde ouverture</div>
                         </div>
                         <div className="text-center p-3 bg-green-50 rounded-lg">
                           <div className="text-lg font-bold text-green-600">
-                            {(account.totalDebit / 1000000).toFixed(1)}M
+                            {fmt(account.totalDebit)}
                           </div>
                           <div className="text-xs text-gray-600">Total débit</div>
                         </div>
                         <div className="text-center p-3 bg-orange-50 rounded-lg">
                           <div className="text-lg font-bold text-orange-600">
-                            {(account.totalCredit / 1000000).toFixed(1)}M
+                            {fmt(account.totalCredit)}
                           </div>
                           <div className="text-xs text-gray-600">Total crédit</div>
                         </div>
@@ -1435,13 +1437,13 @@ const AdvancedGeneralLedger: React.FC = () => {
                               </td>
                               <td className="px-6 py-4 text-sm text-gray-900">{entry.libelle}</td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-right text-blue-600">
-                                {entry.debit > 0 ? formatCurrency(entry.debit) : '-'}
+                                {entry.debit > 0 ? fmt(entry.debit) : '-'}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-right text-green-600">
-                                {entry.credit > 0 ? formatCurrency(entry.credit) : '-'}
+                                {entry.credit > 0 ? fmt(entry.credit) : '-'}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-right font-medium text-gray-900">
-                                {formatCurrency(entry.solde)}
+                                {fmt(entry.solde)}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-600">
                                 {entry.centreCout || '-'}
@@ -1677,13 +1679,13 @@ const AdvancedGeneralLedger: React.FC = () => {
                                   <td className="px-4 py-3 text-gray-900">{compte.libelle}</td>
                                   <td className="px-4 py-3 text-gray-600 text-sm">{compte.classe}</td>
                                   <td className="px-4 py-3 text-right text-red-600 font-medium">
-                                    {formatCurrency(compte.solde.debit)}
+                                    {fmt(compte.solde.debit)}
                                   </td>
                                   <td className="px-4 py-3 text-right text-green-600 font-medium">
-                                    {formatCurrency(compte.solde.credit)}
+                                    {fmt(compte.solde.credit)}
                                   </td>
                                   <td className="px-4 py-3 text-right font-bold text-gray-900">
-                                    {formatCurrency(money(compte.solde.debit).subtract(money(compte.solde.credit)).toNumber())}
+                                    {fmt(money(compte.solde.debit).subtract(money(compte.solde.credit)).toNumber())}
                                   </td>
                                 </tr>
                               ))}
@@ -1738,7 +1740,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                                   <div className="text-right">
                                     <div className="text-sm text-white/80">Solde actuel</div>
                                     <div className="text-lg font-bold">
-                                      {formatCurrency(money(compte.solde.debit).subtract(money(compte.solde.credit)).toNumber())}
+                                      {fmt(money(compte.solde.debit).subtract(money(compte.solde.credit)).toNumber())}
                                     </div>
                                     <div className="text-sm text-white/80">
                                       {compte.solde.debit > compte.solde.credit ? 'Débiteur' : 'Créditeur'}
@@ -1789,13 +1791,13 @@ const AdvancedGeneralLedger: React.FC = () => {
                                           )}
                                         </td>
                                         <td className="px-3 py-2 text-right text-red-600 font-medium text-xs">
-                                          {mouvement.debit > 0 ? formatCurrency(mouvement.debit) : '-'}
+                                          {mouvement.debit > 0 ? fmt(mouvement.debit) : '-'}
                                         </td>
                                         <td className="px-3 py-2 text-right text-green-600 font-medium text-xs">
-                                          {mouvement.credit > 0 ? formatCurrency(mouvement.credit) : '-'}
+                                          {mouvement.credit > 0 ? fmt(mouvement.credit) : '-'}
                                         </td>
                                         <td className="px-3 py-2 text-right font-semibold text-gray-900 text-xs">
-                                          {formatCurrency(mouvement.solde)}
+                                          {fmt(mouvement.solde)}
                                         </td>
                                       </tr>
                                     ))}
@@ -1804,13 +1806,13 @@ const AdvancedGeneralLedger: React.FC = () => {
                                     <tr>
                                       <td colSpan={6} className="px-3 py-3 font-semibold text-gray-700 text-xs">Totaux</td>
                                       <td className="px-3 py-3 text-right font-bold text-red-600 text-xs">
-                                        {formatCurrency(compte.mouvements.reduce((sum, m) => sum + m.debit, 0))}
+                                        {fmt(compte.mouvements.reduce((sum, m) => sum + m.debit, 0))}
                                       </td>
                                       <td className="px-3 py-3 text-right font-bold text-green-600 text-xs">
-                                        {formatCurrency(compte.mouvements.reduce((sum, m) => sum + m.credit, 0))}
+                                        {fmt(compte.mouvements.reduce((sum, m) => sum + m.credit, 0))}
                                       </td>
                                       <td className="px-3 py-3 text-right font-bold text-gray-900 text-xs">
-                                        {formatCurrency(money(compte.solde.debit).subtract(money(compte.solde.credit)).toNumber())}
+                                        {fmt(money(compte.solde.debit).subtract(money(compte.solde.credit)).toNumber())}
                                       </td>
                                     </tr>
                                   </tfoot>
@@ -1870,7 +1872,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                           <div className="text-right">
                             <div className="text-sm text-white/80">Solde actuel</div>
                             <div className="text-lg font-bold">
-                              {formatCurrency(money(compte.solde.debit).subtract(money(compte.solde.credit)).toNumber())}
+                              {fmt(money(compte.solde.debit).subtract(money(compte.solde.credit)).toNumber())}
                             </div>
                             <div className="text-sm text-white/80">
                               {compte.solde.debit > compte.solde.credit ? 'Débiteur' : 'Créditeur'}
@@ -1919,13 +1921,13 @@ const AdvancedGeneralLedger: React.FC = () => {
                                   )}
                                 </td>
                                 <td className="px-3 py-2 text-right text-red-600 font-medium text-xs">
-                                  {mouvement.debit > 0 ? formatCurrency(mouvement.debit) : '-'}
+                                  {mouvement.debit > 0 ? fmt(mouvement.debit) : '-'}
                                 </td>
                                 <td className="px-3 py-2 text-right text-green-600 font-medium text-xs">
-                                  {mouvement.credit > 0 ? formatCurrency(mouvement.credit) : '-'}
+                                  {mouvement.credit > 0 ? fmt(mouvement.credit) : '-'}
                                 </td>
                                 <td className="px-3 py-2 text-right font-semibold text-gray-900 text-xs">
-                                  {formatCurrency(mouvement.solde)}
+                                  {fmt(mouvement.solde)}
                                 </td>
                               </tr>
                             ))}
@@ -1934,13 +1936,13 @@ const AdvancedGeneralLedger: React.FC = () => {
                             <tr>
                               <td colSpan={6} className="px-3 py-3 font-semibold text-gray-700 text-xs">Totaux</td>
                               <td className="px-3 py-3 text-right font-bold text-red-600 text-xs">
-                                {formatCurrency(compte.mouvements.reduce((sum, m) => sum + m.debit, 0))}
+                                {fmt(compte.mouvements.reduce((sum, m) => sum + m.debit, 0))}
                               </td>
                               <td className="px-3 py-3 text-right font-bold text-green-600 text-xs">
-                                {formatCurrency(compte.mouvements.reduce((sum, m) => sum + m.credit, 0))}
+                                {fmt(compte.mouvements.reduce((sum, m) => sum + m.credit, 0))}
                               </td>
                               <td className="px-3 py-3 text-right font-bold text-gray-900 text-xs">
-                                {formatCurrency(money(compte.solde.debit).subtract(money(compte.solde.credit)).toNumber())}
+                                {fmt(money(compte.solde.debit).subtract(money(compte.solde.credit)).toNumber())}
                               </td>
                             </tr>
                           </tfoot>
@@ -2010,7 +2012,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                                   </div>
                                 </div>
                                 <div className="text-right">
-                                  <div className="text-lg font-bold text-gray-900">{formatCurrency(Math.abs(totalSolde))}</div>
+                                  <div className="text-lg font-bold text-gray-900">{fmt(Math.abs(totalSolde))}</div>
                                   <div className="text-sm text-gray-700">{totalSolde >= 0 ? 'Debiteur' : 'Crediteur'}</div>
                                 </div>
                               </div>
@@ -2025,7 +2027,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                                           <div className="text-sm text-gray-900">{acc.libelle}</div>
                                         </div>
                                         <div className="text-right">
-                                          <div className="text-sm font-medium">{formatCurrency(Math.abs(solde))}</div>
+                                          <div className="text-sm font-medium">{fmt(Math.abs(solde))}</div>
                                           <div className={`text-xs ${solde >= 0 ? 'text-red-600' : 'text-green-600'}`}>
                                             {solde >= 0 ? 'Debiteur' : 'Crediteur'}
                                           </div>
@@ -2074,9 +2076,9 @@ const AdvancedGeneralLedger: React.FC = () => {
                             <td className="px-3 py-2 font-mono text-[#171717] font-bold text-xs">{acc.compte}</td>
                             <td className="px-4 py-2 text-gray-900 text-xs">{acc.libelle}</td>
                             <td className="px-3 py-2 text-gray-600 text-xs">Classe {classeNum}</td>
-                            <td className="px-3 py-2 text-right text-red-600 font-medium text-xs">{formatCurrency(acc.totalDebit)}</td>
-                            <td className="px-3 py-2 text-right text-green-600 font-medium text-xs">{formatCurrency(acc.totalCredit)}</td>
-                            <td className="px-3 py-2 text-right font-bold text-gray-900 text-xs">{formatCurrency(solde)}</td>
+                            <td className="px-3 py-2 text-right text-red-600 font-medium text-xs">{fmt(acc.totalDebit)}</td>
+                            <td className="px-3 py-2 text-right text-green-600 font-medium text-xs">{fmt(acc.totalCredit)}</td>
+                            <td className="px-3 py-2 text-right font-bold text-gray-900 text-xs">{fmt(solde)}</td>
                             <td className="px-2 py-2 text-center">
                               <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">{acc.nombreEcritures}</span>
                             </td>
@@ -2095,13 +2097,13 @@ const AdvancedGeneralLedger: React.FC = () => {
                       <tr>
                         <td colSpan={3} className="px-3 py-3 font-bold text-gray-900 text-xs">TOTAUX GENERAUX</td>
                         <td className="px-3 py-3 text-right font-bold text-red-600 text-xs">
-                          {formatCurrency(accountsData.reduce((s, a) => s + a.totalDebit, 0))}
+                          {fmt(accountsData.reduce((s, a) => s + a.totalDebit, 0))}
                         </td>
                         <td className="px-3 py-3 text-right font-bold text-green-600 text-xs">
-                          {formatCurrency(accountsData.reduce((s, a) => s + a.totalCredit, 0))}
+                          {fmt(accountsData.reduce((s, a) => s + a.totalCredit, 0))}
                         </td>
                         <td className="px-3 py-3 text-right font-bold text-gray-900 text-xs">
-                          {formatCurrency(accountsData.reduce((s, a) => s + a.totalDebit - a.totalCredit, 0))}
+                          {fmt(accountsData.reduce((s, a) => s + a.totalDebit - a.totalCredit, 0))}
                         </td>
                         <td className="px-2 py-3 text-center font-bold text-xs">
                           {accountsData.reduce((s, a) => s + a.nombreEcritures, 0)}
@@ -2126,22 +2128,22 @@ const AdvancedGeneralLedger: React.FC = () => {
               <div className="text-center p-3 bg-blue-50 rounded-lg">
                 <p className="text-sm text-[#737373]">Balance A Nouveau</p>
                 <div className="mt-2">
-                  <p className="text-sm">Debit: <span className="font-bold">{formatCurrency(accountsData.reduce((s, a) => s + a.soldeOuverture, 0))}</span></p>
+                  <p className="text-sm">Debit: <span className="font-bold">{fmt(accountsData.reduce((s, a) => s + a.soldeOuverture, 0))}</span></p>
                   <p className="text-sm">Credit: <span className="font-bold">0</span></p>
                 </div>
               </div>
               <div className="text-center p-3 bg-orange-50 rounded-lg">
                 <p className="text-sm text-[#737373]">Mouvements Periode</p>
                 <div className="mt-2">
-                  <p className="text-sm">Debit: <span className="font-bold text-red-600">{formatCurrency(accountsData.reduce((s, a) => s + a.totalDebit, 0))}</span></p>
-                  <p className="text-sm">Credit: <span className="font-bold text-green-600">{formatCurrency(accountsData.reduce((s, a) => s + a.totalCredit, 0))}</span></p>
+                  <p className="text-sm">Debit: <span className="font-bold text-red-600">{fmt(accountsData.reduce((s, a) => s + a.totalDebit, 0))}</span></p>
+                  <p className="text-sm">Credit: <span className="font-bold text-green-600">{fmt(accountsData.reduce((s, a) => s + a.totalCredit, 0))}</span></p>
                 </div>
               </div>
               <div className="text-center p-3 bg-green-50 rounded-lg">
                 <p className="text-sm text-[#737373]">Soldes Fin Periode</p>
                 <div className="mt-2">
-                  <p className="text-sm">Debiteur: <span className="font-bold text-red-600">{formatCurrency(accountsData.filter(a => a.soldeFermeture > 0).reduce((s, a) => s + a.soldeFermeture, 0))}</span></p>
-                  <p className="text-sm">Crediteur: <span className="font-bold text-green-600">{formatCurrency(Math.abs(accountsData.filter(a => a.soldeFermeture < 0).reduce((s, a) => s + a.soldeFermeture, 0)))}</span></p>
+                  <p className="text-sm">Debiteur: <span className="font-bold text-red-600">{fmt(accountsData.filter(a => a.soldeFermeture > 0).reduce((s, a) => s + a.soldeFermeture, 0))}</span></p>
+                  <p className="text-sm">Crediteur: <span className="font-bold text-green-600">{fmt(Math.abs(accountsData.filter(a => a.soldeFermeture < 0).reduce((s, a) => s + a.soldeFermeture, 0)))}</span></p>
                 </div>
               </div>
             </div>
@@ -2358,8 +2360,8 @@ const AdvancedGeneralLedger: React.FC = () => {
                   <LineChart data={evolutionData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                     <XAxis dataKey="periode" />
-                    <YAxis tickFormatter={(value) => `${(value / 1000000).toFixed(0)}M`} />
-                    <Tooltip formatter={(value) => [`${(value as number / 1000000).toFixed(1)}M XAF`, '']} />
+                    <YAxis tickFormatter={(value) => fmt(value)} />
+                    <Tooltip formatter={(value) => [fmt(value as number), '']} />
                     <Legend />
                     <Line type="monotone" dataKey="actif" stroke="#171717" strokeWidth={3} name="Actif (Réel)" />
                     <Line type="monotone" dataKey="passif" stroke="#525252" strokeWidth={3} name="Passif (Réel)" />
@@ -2545,8 +2547,8 @@ const AdvancedGeneralLedger: React.FC = () => {
               <LineChart data={evolutionData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis dataKey="periode" />
-                <YAxis tickFormatter={(value) => `${(value / 1000000).toFixed(0)}M`} />
-                <Tooltip formatter={(value) => [`${(value as number / 1000000).toFixed(1)}M XAF`, '']} />
+                <YAxis tickFormatter={(value) => fmt(value)} />
+                <Tooltip formatter={(value) => [fmt(value as number), '']} />
                 <Legend />
                 <Line type="monotone" dataKey="produits" stroke="#22c55e" strokeWidth={3} name="Produits" />
                 <Line type="monotone" dataKey="charges" stroke="#ef4444" strokeWidth={3} name="Charges" />
@@ -2606,7 +2608,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                       </div>
                       <div className="text-right">
                         <div className={`font-bold ${account.soldeFermeture >= 0 ? 'text-blue-600' : 'text-green-600'}`}>
-                          {(Math.abs(account.soldeFermeture) / 1000000).toFixed(1)}M
+                          {fmt(Math.abs(account.soldeFermeture))}
                         </div>
                         <div className="text-xs text-gray-700">
                           {account.soldeFermeture >= 0 ? 'Débiteur' : 'Créditeur'}
@@ -2719,7 +2721,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                             Account {account.compte} - {account.libelle}
                           </h2>
                           <div className="text-sm text-gray-600 mt-1">
-                            Opening Balance: <span className="font-semibold">{formatCurrency(account.soldeOuverture)}</span>
+                            Opening Balance: <span className="font-semibold">{fmt(account.soldeOuverture)}</span>
                           </div>
                         </div>
 
@@ -2745,13 +2747,13 @@ const AdvancedGeneralLedger: React.FC = () => {
                                 </td>
                                 <td className="border border-gray-300 px-3 py-2">{entry.libelle}</td>
                                 <td className="border border-gray-300 px-3 py-2 text-right font-mono">
-                                  {entry.debit > 0 ? formatCurrency(entry.debit) : ''}
+                                  {entry.debit > 0 ? fmt(entry.debit) : ''}
                                 </td>
                                 <td className="border border-gray-300 px-3 py-2 text-right font-mono">
-                                  {entry.credit > 0 ? formatCurrency(entry.credit) : ''}
+                                  {entry.credit > 0 ? fmt(entry.credit) : ''}
                                 </td>
                                 <td className="border border-gray-300 px-3 py-2 text-right font-mono font-bold">
-                                  {formatCurrency(entry.solde)}
+                                  {fmt(entry.solde)}
                                 </td>
                               </tr>
                             ))}
@@ -2762,13 +2764,13 @@ const AdvancedGeneralLedger: React.FC = () => {
                                 TOTALS
                               </td>
                               <td className="border border-gray-600 px-3 py-2 text-right font-mono">
-                                {formatCurrency(account.totalDebit)}
+                                {fmt(account.totalDebit)}
                               </td>
                               <td className="border border-gray-600 px-3 py-2 text-right font-mono">
-                                {formatCurrency(account.totalCredit)}
+                                {fmt(account.totalCredit)}
                               </td>
                               <td className="border border-gray-600 px-3 py-2 text-right font-mono">
-                                {formatCurrency(account.soldeFermeture)}
+                                {fmt(account.soldeFermeture)}
                               </td>
                             </tr>
                           </tbody>
@@ -2785,13 +2787,13 @@ const AdvancedGeneralLedger: React.FC = () => {
                               <span className="text-gray-600">Net Movement:</span>
                               <span className={`ml-2 font-semibold ${(account.soldeFermeture - account.soldeOuverture) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                                 {(account.soldeFermeture - account.soldeOuverture) >= 0 ? '+' : ''}
-                                {formatCurrency(account.soldeFermeture - account.soldeOuverture)}
+                                {fmt(account.soldeFermeture - account.soldeOuverture)}
                               </span>
                             </div>
                             <div>
                               <span className="text-gray-600">Closing Balance:</span>
                               <span className="ml-2 font-bold text-lg">
-                                {formatCurrency(account.soldeFermeture)} USD
+                                {fmt(account.soldeFermeture)} USD
                               </span>
                             </div>
                           </div>
@@ -2823,13 +2825,13 @@ const AdvancedGeneralLedger: React.FC = () => {
                           <td className="border border-gray-300 px-3 py-2">{account.libelle}</td>
                           <td className="border border-gray-300 px-3 py-2 text-center">{account.nombreEcritures}</td>
                           <td className="border border-gray-300 px-3 py-2 text-right font-mono">
-                            {formatCurrency(account.totalDebit)}
+                            {fmt(account.totalDebit)}
                           </td>
                           <td className="border border-gray-300 px-3 py-2 text-right font-mono">
-                            {formatCurrency(account.totalCredit)}
+                            {fmt(account.totalCredit)}
                           </td>
                           <td className="border border-gray-300 px-3 py-2 text-right font-mono font-bold">
-                            {formatCurrency(account.soldeFermeture)}
+                            {fmt(account.soldeFermeture)}
                           </td>
                         </tr>
                       ))}
@@ -2843,13 +2845,13 @@ const AdvancedGeneralLedger: React.FC = () => {
                           {accountsData.reduce((sum, acc) => sum + acc.nombreEcritures, 0)}
                         </td>
                         <td className="border border-gray-600 px-3 py-3 text-right font-mono">
-                          {formatCurrency(accountsData.reduce((sum, acc) => sum + acc.totalDebit, 0))}
+                          {fmt(accountsData.reduce((sum, acc) => sum + acc.totalDebit, 0))}
                         </td>
                         <td className="border border-gray-600 px-3 py-3 text-right font-mono">
-                          {formatCurrency(accountsData.reduce((sum, acc) => sum + acc.totalCredit, 0))}
+                          {fmt(accountsData.reduce((sum, acc) => sum + acc.totalCredit, 0))}
                         </td>
                         <td className="border border-gray-600 px-3 py-3 text-right font-mono">
-                          {formatCurrency(accountsData.reduce((sum, acc) => sum + acc.soldeFermeture, 0))}
+                          {fmt(accountsData.reduce((sum, acc) => sum + acc.soldeFermeture, 0))}
                         </td>
                       </tr>
                     </tbody>
@@ -3162,13 +3164,13 @@ const AdvancedGeneralLedger: React.FC = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700">{t('accounting.debit')}</label>
                 <p className="text-green-600 font-semibold">
-                  {formatCurrency(selectedEntry.debit)}
+                  {fmt(selectedEntry.debit)}
                 </p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">{t('accounting.credit')}</label>
                 <p className="text-red-600 font-semibold">
-                  {formatCurrency(selectedEntry.credit)}
+                  {fmt(selectedEntry.credit)}
                 </p>
               </div>
               <div>
@@ -3184,7 +3186,7 @@ const AdvancedGeneralLedger: React.FC = () => {
             <div className="border-t pt-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">Solde après écriture</label>
               <p className="text-lg font-bold text-gray-900">
-                {formatCurrency(selectedEntry.solde)}
+                {fmt(selectedEntry.solde)}
               </p>
             </div>
 

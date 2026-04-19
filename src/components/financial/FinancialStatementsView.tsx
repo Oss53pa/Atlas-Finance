@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
+import { useMoneyFormat } from '../../hooks/useMoneyFormat';
 import {
   DocumentChartBarIcon,
   CalculatorIcon,
@@ -27,6 +28,7 @@ interface FinancialStatement {
 }
 
 const FinancialStatementsView: React.FC = () => {
+  const fmt = useMoneyFormat();
   const { t } = useLanguage();
   const { adapter } = useData();
   const [statements, setStatements] = useState<FinancialStatement[]>([]);
@@ -98,12 +100,7 @@ const FinancialStatementsView: React.FC = () => {
 
   const formatAmount = (amount: number | undefined) => {
     if (!amount) return 'N/A';
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'XAF',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount);
+    return `${fmt(amount)} XAF`;
   };
 
   const renderStatementsList = () => (
