@@ -286,20 +286,64 @@ function parseDate(val: any): string {
   return s;
 }
 
-function autoDetectColumns(sourceColumns: string[], targetFields: { field: string; label: string }[]): Record<string, string> {
+/**
+ * Auto-détection des colonnes source vers les champs cible.
+ * Insensible casse/accents/ponctuation. Si des aliases sont fournis par
+ * le template Atlas correspondant, ils priorisent le matching.
+ */
+function autoDetectColumns(
+  sourceColumns: string[],
+  targetFields: { field: string; label: string }[],
+  aliasesPerField?: Record<string, string[]>
+): Record<string, string> {
   const result: Record<string, string> = {};
-  const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const normalize = (s: string) =>
+    s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
+
   for (const tf of targetFields) {
-    const normTarget = normalize(tf.field);
-    const normLabel = normalize(tf.label);
-    const match = sourceColumns.find(sc => {
-      const normSrc = normalize(sc);
-      return normSrc === normTarget || normSrc.includes(normTarget) || normTarget.includes(normSrc)
-        || normSrc.includes(normLabel) || normLabel.includes(normSrc);
-    });
+    const candidates = new Set<string>();
+    candidates.add(normalize(tf.field));
+    candidates.add(normalize(tf.label));
+    if (aliasesPerField?.[tf.field]) {
+      for (const a of aliasesPerField[tf.field]) candidates.add(normalize(a));
+    }
+
+    // Recherche exacte d'abord (priorité)
+    let match = sourceColumns.find(sc => candidates.has(normalize(sc)));
+    // Sinon recherche par inclusion (fallback)
+    if (!match) {
+      match = sourceColumns.find(sc => {
+        const normSrc = normalize(sc);
+        return [...candidates].some(c => normSrc.includes(c) || c.includes(normSrc));
+      });
+    }
     if (match) result[tf.field] = match;
   }
   return result;
+}
+
+/**
+ * Extrait une map field → [aliases] à partir d'un template Atlas.
+ * Si le fileKey correspond à un template du catalogue, on récupère
+ * les aliases de chaque colonne pour enrichir l'auto-détection.
+ */
+function getAliasMap(fileKey: string): Record<string, string[]> {
+  const config = FILE_CONFIGS[fileKey];
+  const tpl = config?.templateKey ? getTemplate(config.templateKey as TemplateKey) : undefined;
+  if (!tpl || !tpl.sheets[0]) return {};
+  const map: Record<string, string[]> = {};
+  for (const col of tpl.sheets[0].columns) {
+    // Utilise la key du template comme field cible (correspondance approximative)
+    const aliases = [col.header, col.key, ...(col.aliases || [])];
+    // Map aussi sur quelques champs communs
+    map[col.key] = aliases;
+    // Mapping traditionnel (compatibilité ancienne structure)
+    if (col.key === 'date') map['dateEcriture'] = aliases;
+    if (col.key === 'compte') map['numeroCompte'] = aliases;
+    if (col.key === 'libelleEcriture') map['libelle'] = aliases;
+    if (col.key === 'piece') map['numeroPiece'] = aliases;
+  }
+  return map;
 }
 
 function formatSize(bytes: number): string {
@@ -524,23 +568,41 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       }
     });
 
-    // Check balance
+    // ───────────────────────────────────────────────────────────
+    // Check balance débit/crédit — recherche par NOM de colonne
+    // (insensible casse/accents/espaces), JAMAIS par indice positionnel.
+    // Les fichiers de migration ont souvent des colonnes supplémentaires
+    // (solde, solde progressif...) qui fausseraient un calcul positionnel.
+    // ───────────────────────────────────────────────────────────
+    const normalizeKey = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
+    const findCol = (row: any, candidates: string[]): number => {
+      if (!row) return 0;
+      const keys = Object.keys(row);
+      for (const cand of candidates) {
+        const target = normalizeKey(cand);
+        for (const k of keys) {
+          if (normalizeKey(k) === target) return parseNumber(row[k]);
+        }
+      }
+      return 0;
+    };
+    const debitAliases = ['debit', 'montantdebit', 'mtdebit'];
+    const creditAliases = ['credit', 'montantcredit', 'mtcredit'];
+
     let totalD = 0, totalC = 0;
     ecrituresData.forEach((row: any) => {
-      const vals = Object.values(row).map(v => parseNumber(v));
-      totalD = money(totalD).add(money(vals[vals.length - 2] || 0)).toNumber();
-      totalC = money(totalC).add(money(vals[vals.length - 1] || 0)).toNumber();
+      totalD = money(totalD).add(money(findCol(row, debitAliases))).toNumber();
+      totalC = money(totalC).add(money(findCol(row, creditAliases))).toNumber();
     });
     if (ecrituresData.length > 0 && money(totalD).subtract(money(totalC)).abs().toNumber() > 0.01) {
       warnings.push({ code: 'UNBALANCED', message: `Ecritures desequilibrees: D=${totalD.toFixed(2)} C=${totalC.toFixed(2)}`, details: `Ecart: ${money(totalD).subtract(money(totalC)).abs().toNumber().toFixed(2)}` });
     }
 
-    // AN balance check
+    // AN balance check — même logique par nom de colonne
     let anD = 0, anC = 0;
     anData.forEach((row: any) => {
-      const vals = Object.values(row).map(v => parseNumber(v));
-      anD = money(anD).add(money(vals[vals.length - 2] || 0)).toNumber();
-      anC = money(anC).add(money(vals[vals.length - 1] || 0)).toNumber();
+      anD = money(anD).add(money(findCol(row, [...debitAliases, 'soldedebiteur', 'soldedebit']))).toNumber();
+      anC = money(anC).add(money(findCol(row, [...creditAliases, 'soldecrediteur', 'soldecredit']))).toNumber();
     });
     if (anData.length > 0 && money(anD).subtract(money(anC)).abs().toNumber() > 0.01) {
       errors.push({ code: 'AN_UNBALANCED', message: `Reports AN desequilibres: D=${anD.toFixed(2)} C=${anC.toFixed(2)}` });
@@ -564,7 +626,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
     for (const [key, uf] of Object.entries(uploadedFiles)) {
       const targets = TARGET_FIELDS[key];
       if (!targets) continue;
-      const auto = autoDetectColumns(uf.columns, targets);
+      const auto = autoDetectColumns(uf.columns, targets, getAliasMap(key));
       result[key] = targets.map(t => ({
         target: t.field,
         targetLabel: t.label,
