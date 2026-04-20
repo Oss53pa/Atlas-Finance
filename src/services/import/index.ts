@@ -32,3 +32,13 @@ export {
   buildTemplateFilename,
 } from './templateGenerator';
 export type { TemplateFileNameParams } from './templateGenerator';
+
+export {
+  generatePlanComptableFromGL,
+  toXlsxRows,
+} from './planComptableFromGL';
+export type {
+  GeneratedAccount,
+  GenerationResult,
+  AccountSource,
+} from './planComptableFromGL';

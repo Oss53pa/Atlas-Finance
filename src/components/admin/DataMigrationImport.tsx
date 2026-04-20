@@ -15,7 +15,14 @@ import { useData } from '../../contexts/DataContext';
 import { toast } from 'sonner';
 import { logAudit } from '../../lib/db';
 import { money } from '../../utils/money';
-import { getTemplate, downloadTemplate, type TemplateKey } from '../../services/import';
+import {
+  getTemplate,
+  downloadTemplate,
+  type TemplateKey,
+  generatePlanComptableFromGL,
+  toXlsxRows,
+  type GenerationResult,
+} from '../../services/import';
 
 // ─── Types ───────────────────────────────────────────────
 
@@ -324,6 +331,8 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
 
   // Step 3 state
   const [analysisReport, setAnalysisReport] = useState<AnalysisReport | null>(null);
+  /** Plan Comptable généré automatiquement à partir du Grand Livre (cf. Cockpit F&A) */
+  const [generatedPC, setGeneratedPC] = useState<GenerationResult | null>(null);
 
   // Step 4 state
   const [mappings, setMappings] = useState<Record<string, MappedColumn[]>>({});
@@ -461,14 +470,40 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
   const runAnalysis = useCallback(() => {
     const warnings: AnalysisItem[] = [];
     const errors: AnalysisItem[] = [];
-    const pcData = uploadedFiles.planComptable?.data || [];
+    let pcData = uploadedFiles.planComptable?.data || [];
     const tiersData = uploadedFiles.tiers?.data || [];
-    const ecrituresData = uploadedFiles.ecritures?.data || uploadedFiles.fec?.data || [];
+    const glData = uploadedFiles.grandLivre?.data || uploadedFiles.ecritures?.data || uploadedFiles.fec?.data || [];
+    const ecrituresData = glData;
     const anData = uploadedFiles.reportAN?.data || [];
     const assetData = uploadedFiles.immobilisations?.data || [];
 
-    if (pcData.length === 0 && !uploadedFiles.fec) {
-      errors.push({ code: 'NO_PLAN', message: 'Aucun plan comptable fourni' });
+    // ══════════════════════════════════════════════════════════════
+    // AUTO-GÉNÉRATION DU PLAN COMPTABLE À PARTIR DU GRAND LIVRE
+    // (inspiration Cockpit F&A) — si aucun PC uploadé mais GL présent
+    // ══════════════════════════════════════════════════════════════
+    let genResult: GenerationResult | null = null;
+    if (pcData.length === 0 && glData.length > 0) {
+      genResult = generatePlanComptableFromGL(glData);
+      pcData = toXlsxRows(genResult);
+      setGeneratedPC(genResult);
+      // On injecte le PC généré dans uploadedFiles pour que les étapes suivantes l'utilisent
+      const pseudoFile = new File([], 'plan_comptable_auto_genere.xlsx');
+      const columns = pcData.length > 0 ? Object.keys(pcData[0] as object) : [];
+      setUploadedFiles(prev => ({
+        ...prev,
+        planComptable: { file: pseudoFile, data: pcData, columns },
+      }));
+      warnings.push({
+        code: 'PC_AUTO_GENERATED',
+        message: `Plan Comptable généré automatiquement à partir du Grand Livre : ${genResult.extracted} comptes`,
+        details: `${genResult.enrichedFromSyscohada} enrichis via SYSCOHADA, ${genResult.enrichedFromGL} via le GL, ${genResult.inferred} inférés`,
+      });
+    } else {
+      setGeneratedPC(null);
+    }
+
+    if (pcData.length === 0) {
+      errors.push({ code: 'NO_PLAN', message: 'Aucun plan comptable fourni et aucun Grand Livre pour l\'auto-générer' });
     }
 
     // Check SYSCOHADA compliance
@@ -1150,6 +1185,122 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       {/* ─── Step 3: Analysis ─── */}
       {currentStep === 'analysis' && analysisReport && (
         <div className="space-y-4">
+          {/* Panneau Plan Comptable auto-généré */}
+          {generatedPC && (
+            <div className="bg-green-50 border border-green-200 rounded-xl p-5">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center shrink-0">
+                  <CheckCircle className="w-5 h-5 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-base font-bold text-green-900 mb-1">
+                    Plan Comptable généré automatiquement depuis le Grand Livre
+                  </h3>
+                  <p className="text-xs text-green-800 mb-3">
+                    Atlas a extrait <strong>{generatedPC.extracted} comptes distincts</strong> du Grand Livre
+                    et les a enrichis avec le référentiel SYSCOHADA révisé 2017.
+                    Vous n'avez pas besoin d'importer un fichier Plan Comptable séparé.
+                  </p>
+                  <div className="grid grid-cols-3 gap-2 mb-3">
+                    <div className="bg-white rounded-lg p-2 border border-green-100 text-center">
+                      <p className="text-lg font-bold text-green-900">{generatedPC.enrichedFromSyscohada}</p>
+                      <p className="text-[10px] text-green-700">Enrichis via SYSCOHADA</p>
+                    </div>
+                    <div className="bg-white rounded-lg p-2 border border-green-100 text-center">
+                      <p className="text-lg font-bold text-green-900">{generatedPC.enrichedFromGL}</p>
+                      <p className="text-[10px] text-green-700">Enrichis via GL</p>
+                    </div>
+                    <div className="bg-white rounded-lg p-2 border border-green-100 text-center">
+                      <p className="text-lg font-bold text-green-900">{generatedPC.inferred}</p>
+                      <p className="text-[10px] text-green-700">Inférés (à vérifier)</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      try {
+                        const wb = XLSX.utils.book_new();
+                        const rows = toXlsxRows(generatedPC);
+                        const ws = XLSX.utils.json_to_sheet(rows);
+                        XLSX.utils.book_append_sheet(wb, ws, 'Plan Comptable');
+                        const out = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+                        const blob = new Blob([out instanceof ArrayBuffer ? out : new Uint8Array(out).buffer], {
+                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                        });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `plan_comptable_genere_${new Date().toISOString().slice(0, 10)}.xlsx`;
+                        a.click();
+                        setTimeout(() => URL.revokeObjectURL(url), 1000);
+                        toast.success('Plan Comptable téléchargé');
+                      } catch (e) { /* silent */
+                        toast.error('Erreur lors du téléchargement');
+                      }
+                    }}
+                    className="text-xs font-semibold px-3 py-1.5 bg-white border border-green-300 text-green-700 rounded-lg hover:bg-green-100 inline-flex items-center gap-1.5"
+                  >
+                    <Download className="w-3 h-3" /> Télécharger le Plan Comptable généré
+                  </button>
+                </div>
+              </div>
+
+              {/* Aperçu des premiers comptes */}
+              {generatedPC.accounts.length > 0 && (
+                <div className="mt-4 bg-white rounded-lg border border-green-100 overflow-hidden">
+                  <div className="px-3 py-2 bg-green-100/50 border-b border-green-100">
+                    <p className="text-[11px] font-semibold text-green-900">
+                      Aperçu — {Math.min(10, generatedPC.accounts.length)} premiers comptes
+                    </p>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs">
+                      <thead className="bg-green-50 text-green-900">
+                        <tr>
+                          <th className="text-left px-3 py-1.5 font-semibold">Numéro</th>
+                          <th className="text-left px-3 py-1.5 font-semibold">Libellé</th>
+                          <th className="text-center px-2 py-1.5 font-semibold">Classe</th>
+                          <th className="text-center px-2 py-1.5 font-semibold">Sens</th>
+                          <th className="text-center px-2 py-1.5 font-semibold">Source</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {generatedPC.accounts.slice(0, 10).map(acc => (
+                          <tr key={acc.numero} className="border-t border-green-50">
+                            <td className="px-3 py-1.5 font-mono text-gray-700">{acc.numero}</td>
+                            <td className="px-3 py-1.5 text-gray-700">{acc.libelle}</td>
+                            <td className="px-2 py-1.5 text-center text-gray-600">{acc.classe}</td>
+                            <td className="px-2 py-1.5 text-center">
+                              <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold ${
+                                acc.sens === 'D' ? 'bg-blue-100 text-blue-700' :
+                                acc.sens === 'C' ? 'bg-amber-100 text-amber-700' :
+                                'bg-gray-100 text-gray-600'
+                              }`}>{acc.sens}</span>
+                            </td>
+                            <td className="px-2 py-1.5 text-center">
+                              <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold ${
+                                acc.source === 'syscohada' ? 'bg-green-100 text-green-700' :
+                                acc.source === 'gl' ? 'bg-blue-100 text-blue-700' :
+                                'bg-orange-100 text-orange-700'
+                              }`}>
+                                {acc.source === 'syscohada' ? 'SYSCOHADA' : acc.source === 'gl' ? 'GL' : 'Inféré'}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  {generatedPC.accounts.length > 10 && (
+                    <div className="px-3 py-1.5 bg-green-50/50 border-t border-green-100 text-[10px] text-green-700 text-center">
+                      + {generatedPC.accounts.length - 10} autres comptes — téléchargez le fichier complet pour tout voir
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="bg-white border rounded-xl p-6">
             <h2 className="text-lg font-semibold mb-4">Rapport d'analyse pre-import</h2>
             <div className="grid grid-cols-5 gap-4 mb-6">
