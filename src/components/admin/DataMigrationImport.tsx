@@ -347,19 +347,106 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
 
   // ─── File parsing ──────────────────────────────────────
 
+  /**
+   * Sélectionne intelligemment la bonne feuille d'un classeur XLSX :
+   *   1) Si un template Atlas correspond à `fileKey`, on cherche d'abord la feuille
+   *      dont le nom match le sheetName officiel ou ses aliases (ex: "Grand Livre").
+   *   2) Sinon, on skippe les feuilles "Instructions" / "Aide" / "Readme"
+   *      et on prend la première feuille qui a au moins 2 colonnes de données.
+   *   3) En dernier recours, on prend la première feuille.
+   */
+  const pickBestSheet = useCallback((
+    wb: XLSX.WorkBook,
+    fileKey: string
+  ): { sheetName: string; sheet: XLSX.WorkSheet } => {
+    const config = FILE_CONFIGS[fileKey];
+    const templateKey = config?.templateKey as TemplateKey | undefined;
+    const template = templateKey ? getTemplate(templateKey) : undefined;
+
+    const normalize = (s: string) =>
+      s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
+
+    // 1) Match template sheet name + aliases
+    if (template) {
+      const expectedNames = new Set<string>();
+      for (const s of template.sheets) {
+        expectedNames.add(normalize(s.sheetName));
+        for (const a of s.sheetAliases || []) expectedNames.add(normalize(a));
+      }
+      for (const name of wb.SheetNames) {
+        if (expectedNames.has(normalize(name))) {
+          return { sheetName: name, sheet: wb.Sheets[name] };
+        }
+      }
+    }
+
+    // 2) Skip "Instructions" / "Aide" / "Readme" et prendre une feuille avec des données
+    const BLACKLIST = ['instructions', 'instruction', 'aide', 'readme', 'notice', 'explication', 'explications', 'help'];
+    for (const name of wb.SheetNames) {
+      if (BLACKLIST.includes(normalize(name))) continue;
+      const sh = wb.Sheets[name];
+      const preview = XLSX.utils.sheet_to_json(sh, { header: 1, defval: '' }) as unknown[][];
+      // Chercher une ligne d'en-tête avec au moins 2 colonnes
+      const hasHeader = preview.some(row => Array.isArray(row) && row.filter(v => v !== '' && v != null).length >= 2);
+      if (hasHeader) {
+        return { sheetName: name, sheet: sh };
+      }
+    }
+
+    // 3) Fallback : première feuille
+    const first = wb.SheetNames[0];
+    return { sheetName: first, sheet: wb.Sheets[first] };
+  }, []);
+
   const handleFileUpload = useCallback(async (key: string, file: File) => {
     try {
       const buffer = await file.arrayBuffer();
-      const wb = XLSX.read(new Uint8Array(buffer), { type: 'array' });
-      const sheet = wb.Sheets[wb.SheetNames[0]];
-      const data = XLSX.utils.sheet_to_json(sheet, { defval: '' });
-      const columns = data.length > 0 ? Object.keys(data[0] as object) : [];
+      const wb = XLSX.read(new Uint8Array(buffer), { type: 'array', cellDates: true });
+      const { sheetName, sheet } = pickBestSheet(wb, key);
+
+      // Lire d'abord en AOA pour détecter la ligne d'en-tête (elle n'est pas forcément la 1ère
+      // si le template Atlas a inséré un commentaire de titre + une ligne vide).
+      const aoa: unknown[][] = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' }) as unknown[][];
+      let headerRowIndex = -1;
+      for (let i = 0; i < Math.min(aoa.length, 10); i++) {
+        const row = aoa[i] || [];
+        const nonEmpty = row.filter(v => v !== '' && v != null).length;
+        if (nonEmpty >= 2) {
+          headerRowIndex = i;
+          break;
+        }
+      }
+      if (headerRowIndex < 0) {
+        toast.error(`Aucune ligne d'en-tête détectée dans la feuille "${sheetName}"`);
+        return;
+      }
+
+      const rawHeaders = (aoa[headerRowIndex] as unknown[]).map(v => String(v ?? '').trim());
+      // Nettoyer les en-têtes : supprimer " *" (marqueur colonne obligatoire des templates)
+      const headers = rawHeaders.map(h => h.replace(/\s*\*\s*$/, ''));
+
+      // Convertir les lignes suivantes en objets clé/valeur
+      const data: Record<string, unknown>[] = [];
+      for (let i = headerRowIndex + 1; i < aoa.length; i++) {
+        const row = aoa[i] || [];
+        // Sauter les lignes entièrement vides
+        if ((row as unknown[]).every(v => v === '' || v == null)) continue;
+        const obj: Record<string, unknown> = {};
+        headers.forEach((h, idx) => {
+          if (h) obj[h] = (row as unknown[])[idx] ?? '';
+        });
+        data.push(obj);
+      }
+
+      const columns = headers.filter(Boolean);
+
       setUploadedFiles(prev => ({ ...prev, [key]: { file, data, columns } }));
-      toast.success(`${file.name} charge — ${data.length} lignes detectees`);
+      const sheetInfo = wb.SheetNames.length > 1 ? ` (feuille "${sheetName}")` : '';
+      toast.success(`${file.name} chargé${sheetInfo} — ${data.length} lignes, ${columns.length} colonnes`);
     } catch (err) { /* silent */
       toast.error(`Erreur de lecture du fichier ${file.name}`);
     }
-  }, []);
+  }, [pickBestSheet]);
 
   const removeFile = useCallback((key: string) => {
     setUploadedFiles(prev => {
