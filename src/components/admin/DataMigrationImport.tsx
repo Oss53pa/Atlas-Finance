@@ -419,34 +419,77 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
     const normalize = (s: string) =>
       s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
 
-    // 1) Match template sheet name + aliases
-    if (template) {
-      const expectedNames = new Set<string>();
-      for (const s of template.sheets) {
-        expectedNames.add(normalize(s.sheetName));
-        for (const a of s.sheetAliases || []) expectedNames.add(normalize(a));
+    const BLACKLIST = new Set(['instructions', 'instruction', 'aide', 'readme', 'notice', 'explication', 'explications', 'help', 'lisezmoi', 'readmefirst']);
+
+    // Helper : extrait la 1ère ligne d'en-tête non vide (cherche sur 10 premières lignes)
+    const getHeaders = (sh: XLSX.WorkSheet): string[] => {
+      const aoa = XLSX.utils.sheet_to_json(sh, { header: 1, defval: '' }) as unknown[][];
+      for (let i = 0; i < Math.min(aoa.length, 10); i++) {
+        const row = aoa[i] || [];
+        const nonEmpty = row.filter(v => v !== '' && v != null);
+        if (nonEmpty.length >= 2) {
+          return (row as unknown[]).map(v => String(v ?? '').trim());
+        }
       }
-      for (const name of wb.SheetNames) {
-        if (expectedNames.has(normalize(name))) {
-          return { sheetName: name, sheet: wb.Sheets[name] };
+      return [];
+    };
+
+    // Helper : construit l'ensemble des variantes attendues pour les colonnes du template
+    const templateColumnVariants = new Set<string>();
+    if (template) {
+      for (const sheet of template.sheets) {
+        for (const col of sheet.columns) {
+          templateColumnVariants.add(normalize(col.header));
+          templateColumnVariants.add(normalize(col.key));
+          for (const a of col.aliases || []) templateColumnVariants.add(normalize(a));
         }
       }
     }
 
-    // 2) Skip "Instructions" / "Aide" / "Readme" et prendre une feuille avec des données
-    const BLACKLIST = ['instructions', 'instruction', 'aide', 'readme', 'notice', 'explication', 'explications', 'help'];
+    // Score d'une feuille = nombre de colonnes matching le template + bonus si nom match
+    const scoreSheet = (name: string, sh: XLSX.WorkSheet): { score: number; headers: string[] } => {
+      if (BLACKLIST.has(normalize(name))) return { score: -100, headers: [] };
+      const headers = getHeaders(sh);
+      if (headers.length < 2) return { score: -50, headers };
+
+      let colScore = 0;
+      if (templateColumnVariants.size > 0) {
+        for (const h of headers) {
+          if (templateColumnVariants.has(normalize(h))) colScore += 10;
+        }
+      } else {
+        // Pas de template → score basé sur la quantité de colonnes
+        colScore = Math.min(headers.length, 10);
+      }
+
+      // Bonus si le nom de feuille match le sheetName officiel ou un alias
+      let nameBonus = 0;
+      if (template) {
+        for (const s of template.sheets) {
+          if (normalize(name) === normalize(s.sheetName)) nameBonus += 50;
+          for (const a of s.sheetAliases || []) {
+            if (normalize(name) === normalize(a)) nameBonus += 30;
+          }
+        }
+      }
+
+      return { score: colScore + nameBonus, headers };
+    };
+
+    // Parcourir toutes les feuilles et choisir celle avec le meilleur score
+    let best: { name: string; score: number } = { name: '', score: -Infinity };
     for (const name of wb.SheetNames) {
-      if (BLACKLIST.includes(normalize(name))) continue;
-      const sh = wb.Sheets[name];
-      const preview = XLSX.utils.sheet_to_json(sh, { header: 1, defval: '' }) as unknown[][];
-      // Chercher une ligne d'en-tête avec au moins 2 colonnes
-      const hasHeader = preview.some(row => Array.isArray(row) && row.filter(v => v !== '' && v != null).length >= 2);
-      if (hasHeader) {
-        return { sheetName: name, sheet: sh };
+      const { score } = scoreSheet(name, wb.Sheets[name]);
+      if (score > best.score) {
+        best = { name, score };
       }
     }
 
-    // 3) Fallback : première feuille
+    if (best.name) {
+      return { sheetName: best.name, sheet: wb.Sheets[best.name] };
+    }
+
+    // Fallback ultime : première feuille
     const first = wb.SheetNames[0];
     return { sheetName: first, sheet: wb.Sheets[first] };
   }, []);
