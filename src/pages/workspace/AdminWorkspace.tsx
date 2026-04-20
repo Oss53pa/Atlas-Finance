@@ -63,8 +63,8 @@ const AdminWorkspace: React.FC = () => {
 
   const workspaceOptions = [
     { label: 'Espace Admin', path: '/workspace/admin', icon: Shield, color: '#ef4444', current: true },
-    { label: 'Espace Manager', path: '/workspace/manager', icon: Briefcase, color: '#171717', current: false },
-    { label: 'Espace Comptable', path: '/workspace/comptable', icon: BarChart3, color: '#525252', current: false },
+    { label: 'Espace Manager', path: '/workspace/manager', icon: Briefcase, color: 'var(--color-primary)', current: false },
+    { label: 'Espace Comptable', path: '/workspace/comptable', icon: BarChart3, color: 'var(--color-secondary)', current: false },
   ];
 
   const sidebarAdminLinks = [
@@ -176,9 +176,9 @@ const AdminWorkspace: React.FC = () => {
         <div className="relative"><Search className="w-5 h-5 absolute left-4 top-1/2 -tranprimary-y-1/2 text-gray-400" /><input placeholder="Rechercher..." className="w-full pl-12 pr-4 py-3 rounded-lg text-black" /></div>
       </div>
       <div className="grid grid-cols-3 gap-4">
-        {[{icon: BookMarked, title: 'Documentation', color: '#ef4444'}, {icon: Video, title: 'Tutoriels', color: '#171717'}, {icon: FileQuestion, title: 'FAQ', color: '#737373'}].map((c, i) => (
+        {[{icon: BookMarked, title: 'Documentation', color: '#ef4444'}, {icon: Video, title: 'Tutoriels', color: 'var(--color-primary)'}, {icon: FileQuestion, title: 'FAQ', color: 'var(--color-text-tertiary)'}].map((c, i) => (
           <button key={i} className="bg-white rounded-xl p-6 border hover:border-[#ef4444] text-left">
-            <div className="w-12 h-12 rounded-lg flex items-center justify-center mb-4" style={{backgroundColor: c.color+'20'}}><c.icon className="w-6 h-6" style={{color: c.color}} /></div>
+            <div className="w-12 h-12 rounded-lg flex items-center justify-center mb-4" style={{backgroundColor: `color-mix(in srgb, ${c.color} 12%, transparent)`}}><c.icon className="w-6 h-6" style={{color: c.color}} /></div>
             <h4 className="font-semibold">{c.title}</h4>
           </button>
         ))}
@@ -193,9 +193,9 @@ const AdminWorkspace: React.FC = () => {
   const renderWorkspace = () => (
     <div className="p-6 space-y-6">
       <div className="grid grid-cols-4 gap-4">
-        {[{title:'Ecritures',value:String(adminStats.entries),icon:FileText,color:'#ef4444',change:'',up:true},{title:'Plan comptable',value:String(adminStats.accounts),icon:BarChart3,color:'#171717',change:'',up:true},{title:'Tiers',value:String(adminStats.thirdParties),icon:Users,color:'#737373',change:'',up:true},{title:'Brouillons',value:String(adminStats.drafts),icon:AlertTriangle,color:'#F59E0B',change:adminStats.drafts > 0 ? `${adminStats.drafts} en attente` : '',up:adminStats.drafts === 0}].map((m,i) => (
+        {[{title:'Ecritures',value:String(adminStats.entries),icon:FileText,color:'#ef4444',change:'',up:true},{title:'Plan comptable',value:String(adminStats.accounts),icon:BarChart3,color:'var(--color-primary)',change:'',up:true},{title:'Tiers',value:String(adminStats.thirdParties),icon:Users,color:'var(--color-text-tertiary)',change:'',up:true},{title:'Brouillons',value:String(adminStats.drafts),icon:AlertTriangle,color:'#F59E0B',change:adminStats.drafts > 0 ? `${adminStats.drafts} en attente` : '',up:adminStats.drafts === 0}].map((m,i) => (
           <div key={i} className="bg-white rounded-lg p-4 border hover:shadow-md">
-            <div className="flex justify-between mb-3"><div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{backgroundColor:m.color+'20'}}><m.icon className="w-5 h-5" style={{color:m.color}} /></div><span className={m.up?'text-green-600 text-xs':'text-red-600 text-xs'}>{m.change}</span></div>
+            <div className="flex justify-between mb-3"><div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{backgroundColor:`color-mix(in srgb, ${m.color} 12%, transparent)`}}><m.icon className="w-5 h-5" style={{color:m.color}} /></div><span className={m.up?'text-green-600 text-xs':'text-red-600 text-xs'}>{m.change}</span></div>
             <h3 className="text-lg font-bold">{m.value}</h3><p className="text-sm text-gray-600">{m.title}</p>
           </div>
         ))}
@@ -203,9 +203,9 @@ const AdminWorkspace: React.FC = () => {
       <div className="bg-white rounded-lg p-6 border">
         <h2 className="text-lg font-semibold mb-4">Raccourcis Administration</h2>
         <div className="grid grid-cols-4 gap-3">
-          {[{label:'Utilisateurs',icon:Users,section:'users',color:'#ef4444'},{label:'Securite',icon:Lock,section:'security',color:'#171717'},{label:'Sauvegardes',icon:Database,section:'backup',color:'#737373'},{label:'Piste d\'Audit',icon:FileText,section:'audit-trail',color:'#ef4444'}].map((a,i) => (
+          {[{label:'Utilisateurs',icon:Users,section:'users',color:'#ef4444'},{label:'Securite',icon:Lock,section:'security',color:'var(--color-primary)'},{label:'Sauvegardes',icon:Database,section:'backup',color:'var(--color-text-tertiary)'},{label:'Piste d\'Audit',icon:FileText,section:'audit-trail',color:'#ef4444'}].map((a,i) => (
             <button key={i} onClick={() => changeSection(a.section)} className="p-4 rounded-lg border-2 border-dashed border-[#ef4444]/50 hover:border-[#ef4444]">
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-2" style={{backgroundColor:a.color+'20'}}><a.icon className="w-5 h-5" style={{color:a.color}} /></div>
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-2" style={{backgroundColor:`color-mix(in srgb, ${a.color} 12%, transparent)`}}><a.icon className="w-5 h-5" style={{color:a.color}} /></div>
               <span className="text-sm font-medium block text-center">{a.label}</span>
             </button>
           ))}
@@ -250,7 +250,7 @@ const AdminWorkspace: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-[#e5e5e5]">
+    <div className="min-h-screen bg-[var(--color-border)]">
       <header className="bg-white border-b sticky top-0 z-50">
         <div className="flex items-center justify-between px-6 py-3">
           <div className="flex items-center space-x-4">
@@ -285,7 +285,7 @@ const AdminWorkspace: React.FC = () => {
           </div>
           <div className="flex-1 max-w-md mx-6 hidden md:block"><div className="relative"><Search className="w-4 h-4 absolute left-3 top-1/2 -tranprimary-y-1/2 text-gray-400" /><input placeholder="Recherche..." className="w-full pl-10 pr-4 py-2 border rounded-lg text-sm" /></div></div>
           <div className="flex items-center space-x-3">
-            <button onClick={() => navigate('/dashboard')} className="group px-6 py-2.5 bg-[#171717] hover:bg-[#262626] rounded-lg text-white font-semibold flex items-center space-x-2 transition-all shadow-sm hover:shadow-md">
+            <button onClick={() => navigate('/dashboard')} className="group px-6 py-2.5 bg-[var(--color-primary)] hover:bg-[#262626] rounded-lg text-white font-semibold flex items-center space-x-2 transition-all shadow-sm hover:shadow-md">
               <LayoutDashboard className="w-5 h-5" />
               <span><span className="atlas-brand">Atlas F&A</span></span>
               <ExternalLink className="w-4 h-4 opacity-60 group-hover:opacity-100 group-hover:tranprimary-x-0.5 transition-all" />

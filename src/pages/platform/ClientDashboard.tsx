@@ -56,9 +56,9 @@ const ClientDashboard: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#fafafa]">
+      <div className="min-h-screen flex items-center justify-center bg-[var(--color-background)]">
         <div className="text-center">
-          <div className="w-10 h-10 border-2 border-[#171717] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <div className="w-10 h-10 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
           <p className="text-sm text-gray-500">Chargement...</p>
         </div>
       </div>
@@ -68,12 +68,12 @@ const ClientDashboard: React.FC = () => {
   // Pas de tenant → rediriger vers inscription
   if (!tenant) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#fafafa]">
+      <div className="min-h-screen flex items-center justify-center bg-[var(--color-background)]">
         <div className="text-center max-w-sm">
           <AlertTriangle className="w-12 h-12 text-orange-400 mx-auto mb-4" />
-          <h2 className="text-lg font-bold text-[#171717] mb-2">Aucune organisation</h2>
+          <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">Aucune organisation</h2>
           <p className="text-sm text-gray-500 mb-6">Votre compte n'est rattaché à aucune organisation.</p>
-          <button onClick={() => navigate('/register')} className="px-6 py-2.5 bg-[#171717] text-white rounded-lg text-sm font-semibold">
+          <button onClick={() => navigate('/register')} className="px-6 py-2.5 bg-[var(--color-primary)] text-white rounded-lg text-sm font-semibold">
             Créer une organisation
           </button>
         </div>
@@ -82,9 +82,9 @@ const ClientDashboard: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex bg-[#fafafa]">
+    <div className="min-h-screen flex bg-[var(--color-background)]">
       {/* ══════════ SIDEBAR ══════════ */}
-      <aside className={`${sidebarOpen ? 'w-64' : 'w-0 overflow-hidden'} bg-[#171717] text-white flex flex-col transition-all duration-200 shrink-0`}>
+      <aside className={`${sidebarOpen ? 'w-64' : 'w-0 overflow-hidden'} bg-[var(--color-primary)] text-white flex flex-col transition-all duration-200 shrink-0`}>
         {/* Header */}
         <div className="px-5 py-4 border-b border-white/10">
           <div className="flex items-center gap-2.5">
@@ -167,7 +167,7 @@ const ClientDashboard: React.FC = () => {
             <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 hover:bg-gray-100 rounded-lg lg:hidden">
               {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
-            <h2 className="text-base font-semibold text-[#171717]">{tenant.name}</h2>
+            <h2 className="text-base font-semibold text-[var(--color-primary)]">{tenant.name}</h2>
             {tenant.status === 'trial' && (
               <span className="px-2 py-0.5 bg-orange-100 text-orange-700 rounded text-xs font-medium">Essai gratuit</span>
             )}

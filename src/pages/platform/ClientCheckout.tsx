@@ -121,7 +121,7 @@ const ClientCheckout: React.FC = () => {
         <ArrowLeft className="w-4 h-4" /> Retour
       </button>
 
-      <h1 className="text-xl font-bold text-[#171717]">Souscrire à {solution.name}</h1>
+      <h1 className="text-xl font-bold text-[var(--color-primary)]">Souscrire à {solution.name}</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
         {/* Left — Options */}
@@ -129,19 +129,19 @@ const ClientCheckout: React.FC = () => {
 
           {/* Billing period */}
           <div className="bg-white rounded-xl border p-5">
-            <h3 className="font-semibold text-sm text-[#171717] mb-3">Période de facturation</h3>
+            <h3 className="font-semibold text-sm text-[var(--color-primary)] mb-3">Période de facturation</h3>
             <div className="grid grid-cols-2 gap-3">
               {[
                 { key: 'monthly' as const, label: 'Mensuel', price: solution.price_monthly_xof },
                 { key: 'yearly' as const, label: 'Annuel', price: solution.price_yearly_xof, badge: '-17%' },
               ].map(opt => (
                 <button key={opt.key} onClick={() => setBilling(opt.key)}
-                  className={`p-4 rounded-xl border-2 text-left transition-all ${billing === opt.key ? 'border-[#171717] bg-[#171717]/5' : 'border-gray-200 hover:border-gray-300'}`}>
+                  className={`p-4 rounded-xl border-2 text-left transition-all ${billing === opt.key ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5' : 'border-gray-200 hover:border-gray-300'}`}>
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-semibold">{opt.label}</span>
                     {opt.badge && <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">{opt.badge}</span>}
                   </div>
-                  <div className="text-lg font-bold text-[#171717] mt-1">{opt.price.toLocaleString('fr-FR')} FCFA</div>
+                  <div className="text-lg font-bold text-[var(--color-primary)] mt-1">{opt.price.toLocaleString('fr-FR')} FCFA</div>
                 </button>
               ))}
             </div>
@@ -149,7 +149,7 @@ const ClientCheckout: React.FC = () => {
 
           {/* Payment method */}
           <div className="bg-white rounded-xl border p-5">
-            <h3 className="font-semibold text-sm text-[#171717] mb-3">Mode de paiement</h3>
+            <h3 className="font-semibold text-sm text-[var(--color-primary)] mb-3">Mode de paiement</h3>
             <div className="space-y-3">
               {[
                 { key: 'mobile_money' as const, label: 'Mobile Money', desc: 'Orange, MTN, Wave, Moov', icon: Smartphone },
@@ -157,10 +157,10 @@ const ClientCheckout: React.FC = () => {
                 { key: 'bon_commande' as const, label: 'Bon de commande', desc: 'Upload du bon signé', icon: FileText },
               ].map(m => (
                 <button key={m.key} onClick={() => setPaymentMethod(m.key)}
-                  className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 text-left transition-all ${paymentMethod === m.key ? 'border-[#171717] bg-[#171717]/5' : 'border-gray-200 hover:border-gray-300'}`}>
+                  className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 text-left transition-all ${paymentMethod === m.key ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5' : 'border-gray-200 hover:border-gray-300'}`}>
                   <m.icon className="w-5 h-5 text-gray-500 shrink-0" />
                   <div>
-                    <div className="text-sm font-semibold text-[#171717]">{m.label}</div>
+                    <div className="text-sm font-semibold text-[var(--color-primary)]">{m.label}</div>
                     <div className="text-xs text-gray-500">{m.desc}</div>
                   </div>
                 </button>
@@ -171,13 +171,13 @@ const ClientCheckout: React.FC = () => {
           {/* Mobile Money details */}
           {paymentMethod === 'mobile_money' && (
             <div className="bg-white rounded-xl border p-5 space-y-4">
-              <h3 className="font-semibold text-sm text-[#171717]">Détails Mobile Money</h3>
+              <h3 className="font-semibold text-sm text-[var(--color-primary)]">Détails Mobile Money</h3>
               <div>
                 <label className="block text-sm text-gray-600 mb-2">Opérateur</label>
                 <div className="grid grid-cols-2 gap-2">
                   {OPERATORS.map(op => (
                     <button key={op.code} onClick={() => setOperator(op.code)}
-                      className={`p-3 rounded-xl border-2 text-sm font-medium text-center transition-all ${operator === op.code ? 'border-[#171717] bg-[#171717]/5' : 'border-gray-200 hover:border-gray-300'}`}>
+                      className={`p-3 rounded-xl border-2 text-sm font-medium text-center transition-all ${operator === op.code ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5' : 'border-gray-200 hover:border-gray-300'}`}>
                       {op.name}
                     </button>
                   ))}
@@ -197,7 +197,7 @@ const ClientCheckout: React.FC = () => {
           {/* Virement details */}
           {paymentMethod === 'virement' && (
             <div className="bg-white rounded-xl border p-5 space-y-3">
-              <h3 className="font-semibold text-sm text-[#171717]">Coordonnées bancaires Atlas Studio</h3>
+              <h3 className="font-semibold text-sm text-[var(--color-primary)]">Coordonnées bancaires Atlas Studio</h3>
               <div className="bg-gray-50 rounded-lg p-4 text-sm space-y-1.5">
                 <div><span className="text-gray-500">Banque :</span> <strong>SGBCI</strong></div>
                 <div><span className="text-gray-500">IBAN :</span> <strong>CI93 0000 0000 0000 0000 0000 000</strong></div>
@@ -212,7 +212,7 @@ const ClientCheckout: React.FC = () => {
         {/* Right — Récapitulatif */}
         <div className="md:col-span-2">
           <div className="bg-white rounded-xl border p-5 sticky top-6">
-            <h3 className="font-semibold text-sm text-[#171717] mb-4">Récapitulatif</h3>
+            <h3 className="font-semibold text-sm text-[var(--color-primary)] mb-4">Récapitulatif</h3>
             <div className="space-y-3 mb-5">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">{solution.name}</span>
@@ -223,16 +223,16 @@ const ClientCheckout: React.FC = () => {
                 <span className="font-medium">{billing === 'monthly' ? '1 mois' : '1 an'}</span>
               </div>
               <div className="border-t pt-3 flex justify-between">
-                <span className="font-bold text-[#171717]">Total</span>
+                <span className="font-bold text-[var(--color-primary)]">Total</span>
                 <div className="text-right">
-                  <div className="font-bold text-lg text-[#171717]">{price.toLocaleString('fr-FR')} FCFA</div>
+                  <div className="font-bold text-lg text-[var(--color-primary)]">{price.toLocaleString('fr-FR')} FCFA</div>
                   <div className="text-xs text-gray-400">{priceEur}€</div>
                 </div>
               </div>
             </div>
 
             <button onClick={handlePayment} disabled={processing || (paymentMethod === 'mobile_money' && !phoneNumber)}
-              className="w-full py-3.5 bg-[#171717] text-white rounded-xl text-sm font-semibold hover:bg-[#333] disabled:opacity-50 flex items-center justify-center gap-2 transition-colors">
+              className="w-full py-3.5 bg-[var(--color-primary)] text-white rounded-xl text-sm font-semibold hover:bg-[#333] disabled:opacity-50 flex items-center justify-center gap-2 transition-colors">
               {processing ? 'Traitement...' : (
                 <><Shield className="w-4 h-4" /> Payer {price.toLocaleString('fr-FR')} FCFA</>
               )}

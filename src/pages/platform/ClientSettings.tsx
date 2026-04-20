@@ -33,13 +33,13 @@ const ClientSettings: React.FC = () => {
   return (
     <div className="max-w-2xl space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-[#171717]">Paramètres</h1>
+        <h1 className="text-xl font-bold text-[var(--color-primary)]">Paramètres</h1>
         <p className="text-sm text-gray-500 mt-1">Configuration de votre organisation</p>
       </div>
 
       {/* Informations entreprise */}
       <div className="bg-white rounded-xl border p-6 space-y-4">
-        <h2 className="font-semibold text-[#171717] flex items-center gap-2">
+        <h2 className="font-semibold text-[var(--color-primary)] flex items-center gap-2">
           <Building className="w-5 h-5" /> Informations entreprise
         </h2>
         <div className="grid grid-cols-2 gap-4">
@@ -75,14 +75,14 @@ const ClientSettings: React.FC = () => {
           </div>
         </div>
         <button onClick={() => saveMut.mutate()} disabled={saveMut.isPending}
-          className="px-5 py-2.5 bg-[#171717] text-white rounded-xl text-sm font-semibold hover:bg-[#333] flex items-center gap-2 disabled:opacity-50">
+          className="px-5 py-2.5 bg-[var(--color-primary)] text-white rounded-xl text-sm font-semibold hover:bg-[#333] flex items-center gap-2 disabled:opacity-50">
           <Save className="w-4 h-4" /> Enregistrer
         </button>
       </div>
 
       {/* Sécurité */}
       <div className="bg-white rounded-xl border p-6 space-y-4">
-        <h2 className="font-semibold text-[#171717] flex items-center gap-2">
+        <h2 className="font-semibold text-[var(--color-primary)] flex items-center gap-2">
           <Shield className="w-5 h-5" /> Sécurité
         </h2>
         <div className="space-y-3">

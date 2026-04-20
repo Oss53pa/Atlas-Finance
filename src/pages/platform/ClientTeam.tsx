@@ -52,12 +52,12 @@ const ClientTeam: React.FC = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-[#171717]">Gestion de l'équipe</h1>
+          <h1 className="text-xl font-bold text-[var(--color-primary)]">Gestion de l'équipe</h1>
           <p className="text-sm text-gray-500 mt-1">{seatsUsed} membre(s) actif(s) · {invitations.length} invitation(s) en attente</p>
         </div>
         {isAdmin && (
           <button onClick={() => setShowInvite(true)}
-            className="px-4 py-2.5 bg-[#171717] text-white rounded-xl text-sm font-semibold hover:bg-[#333] flex items-center gap-2">
+            className="px-4 py-2.5 bg-[var(--color-primary)] text-white rounded-xl text-sm font-semibold hover:bg-[#333] flex items-center gap-2">
             <Plus className="w-4 h-4" /> Inviter
           </button>
         )}
@@ -66,7 +66,7 @@ const ClientTeam: React.FC = () => {
       {/* Invite form */}
       {showInvite && (
         <div className="bg-white rounded-xl border p-5">
-          <h3 className="font-semibold text-sm text-[#171717] mb-4 flex items-center gap-2">
+          <h3 className="font-semibold text-sm text-[var(--color-primary)] mb-4 flex items-center gap-2">
             <Send className="w-4 h-4" /> Inviter un collaborateur
           </h3>
           <div className="flex gap-3 flex-wrap">
@@ -77,7 +77,7 @@ const ClientTeam: React.FC = () => {
               {ROLES.filter(r => r.code !== 'superadmin').map(r => <option key={r.code} value={r.code}>{r.label}</option>)}
             </select>
             <button onClick={() => inviteMut.mutate()} disabled={!inviteEmail || inviteMut.isPending}
-              className="px-5 py-2.5 bg-[#171717] text-white rounded-xl text-sm font-semibold disabled:opacity-50">
+              className="px-5 py-2.5 bg-[var(--color-primary)] text-white rounded-xl text-sm font-semibold disabled:opacity-50">
               Envoyer
             </button>
             <button onClick={() => setShowInvite(false)} className="px-4 py-2.5 border rounded-xl text-sm hover:bg-gray-50">
@@ -104,11 +104,11 @@ const ClientTeam: React.FC = () => {
                 <tr key={m.id} className="hover:bg-gray-50">
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-[#171717] flex items-center justify-center text-white text-xs font-bold">
+                      <div className="w-9 h-9 rounded-full bg-[var(--color-primary)] flex items-center justify-center text-white text-xs font-bold">
                         {(m.full_name || m.first_name || 'U')[0].toUpperCase()}
                       </div>
                       <div>
-                        <div className="font-medium text-[#171717]">{m.full_name || `${m.first_name || ''} ${m.last_name || ''}`}</div>
+                        <div className="font-medium text-[var(--color-primary)]">{m.full_name || `${m.first_name || ''} ${m.last_name || ''}`}</div>
                         <div className="text-xs text-gray-400">{m.phone || ''}</div>
                       </div>
                     </div>
@@ -156,7 +156,7 @@ const ClientTeam: React.FC = () => {
                 <div className="flex items-center gap-3">
                   <Mail className="w-4 h-4 text-gray-400" />
                   <div>
-                    <div className="text-sm font-medium text-[#171717]">{inv.email}</div>
+                    <div className="text-sm font-medium text-[var(--color-primary)]">{inv.email}</div>
                     <div className="text-xs text-gray-400">Expire le {new Date(inv.expires_at).toLocaleDateString('fr-FR')}</div>
                   </div>
                 </div>

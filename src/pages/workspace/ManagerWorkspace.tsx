@@ -170,7 +170,7 @@ const ManagerWorkspace: React.FC = () => {
       <div className="grid grid-cols-3 gap-4">
         {[{icon: BookMarked, title: 'Documentation', color: 'var(--color-secondary)'}, {icon: Video, title: 'Videos', color: 'var(--color-primary)'}, {icon: FileQuestion, title: 'FAQ', color: 'var(--color-text-tertiary)'}].map((c, i) => (
           <button key={i} className="bg-white rounded-xl p-6 border hover:border-[var(--color-secondary)] text-left">
-            <div className="w-12 h-12 rounded-lg flex items-center justify-center mb-4" style={{backgroundColor: c.color+'20'}}><c.icon className="w-6 h-6" style={{color: c.color}} /></div>
+            <div className="w-12 h-12 rounded-lg flex items-center justify-center mb-4" style={{backgroundColor: `color-mix(in srgb, ${c.color} 12%, transparent)`}}><c.icon className="w-6 h-6" style={{color: c.color}} /></div>
             <h4 className="font-semibold">{c.title}</h4>
           </button>
         ))}
@@ -187,7 +187,7 @@ const ManagerWorkspace: React.FC = () => {
       <div className="grid grid-cols-4 gap-4">
         {[{title:'CA du mois',value:formatCurrency(mgrStats.ca),icon:DollarSign,color:'var(--color-secondary)',change:'',up:true},{title:'Marge',value:`${mgrStats.marge.toFixed(1)}%`,icon:Target,color:'var(--color-primary)',change:'',up:mgrStats.marge >= 0},{title:'Charges',value:formatCurrency(mgrStats.charges),icon:Layers,color:'var(--color-text-tertiary)',change:'',up:false},{title:'Tresorerie',value:formatCurrency(mgrStats.treasury),icon:DollarSign,color:'var(--color-secondary)',change:'',up:mgrStats.treasury >= 0}].map((m,i) => (
           <div key={i} className="bg-white rounded-lg p-4 border hover:shadow-md">
-            <div className="flex justify-between mb-3"><div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{backgroundColor:m.color+'20'}}><m.icon className="w-5 h-5" style={{color:m.color}} /></div><span className={m.up?'text-green-600 text-xs':'text-red-600 text-xs'}>{m.change}</span></div>
+            <div className="flex justify-between mb-3"><div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{backgroundColor:`color-mix(in srgb, ${m.color} 12%, transparent)`}}><m.icon className="w-5 h-5" style={{color:m.color}} /></div><span className={m.up?'text-green-600 text-xs':'text-red-600 text-xs'}>{m.change}</span></div>
             <h3 className="text-lg font-bold">{m.value}</h3><p className="text-sm text-gray-600">{m.title}</p>
           </div>
         ))}
@@ -197,7 +197,7 @@ const ManagerWorkspace: React.FC = () => {
         <div className="grid grid-cols-4 gap-3">
           {[{label:'Rapports',icon:FileText,path:'/reporting',color:'var(--color-secondary)'},{label:'Budgets',icon:Target,path:'/budgeting',color:'var(--color-primary)'},{label:'Trésorerie',icon:DollarSign,path:'/treasury',color:'var(--color-text-tertiary)'},{label:'Équipe',icon:Users,path:'/security/users',color:'var(--color-secondary)'}].map((a,i) => (
             <button key={i} onClick={() => navigate(a.path)} className="p-4 rounded-lg border hover:border-gray-400 hover:shadow-sm transition-all">
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-2" style={{backgroundColor:a.color+'15'}}><a.icon className="w-5 h-5" style={{color:a.color}} /></div>
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-2" style={{backgroundColor:`color-mix(in srgb, ${a.color} 8%, transparent)`}}><a.icon className="w-5 h-5" style={{color:a.color}} /></div>
               <span className="text-sm font-medium block text-center">{a.label}</span>
             </button>
           ))}

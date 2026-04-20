@@ -40,7 +40,7 @@ const ClientAuditTrail: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-[#171717]">Piste d'audit</h1>
+        <h1 className="text-xl font-bold text-[var(--color-primary)]">Piste d'audit</h1>
         <p className="text-sm text-gray-500 mt-1">Historique complet des actions — {total} événement(s)</p>
       </div>
 

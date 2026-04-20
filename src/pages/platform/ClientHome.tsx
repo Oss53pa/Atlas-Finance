@@ -35,7 +35,7 @@ const ClientHome: React.FC = () => {
     <div className="space-y-8">
       {/* Welcome */}
       <div>
-        <h1 className="text-2xl font-bold text-[#171717]">{greeting}, {tenant?.userName?.split(' ')[0] || 'bienvenue'} !</h1>
+        <h1 className="text-2xl font-bold text-[var(--color-primary)]">{greeting}, {tenant?.userName?.split(' ')[0] || 'bienvenue'} !</h1>
         <p className="text-gray-500 mt-1">Voici un aperçu de votre espace {tenant?.name}</p>
       </div>
 
@@ -58,7 +58,7 @@ const ClientHome: React.FC = () => {
       {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: 'Solutions actives', value: activeSubs.length, icon: Zap, color: '#171717' },
+          { label: 'Solutions actives', value: activeSubs.length, icon: Zap, color: 'var(--color-primary)' },
           { label: 'Membres', value: members.length, icon: Users, color: '#2563eb' },
           { label: 'Factures en attente', value: pendingInvoices.length, icon: CreditCard, color: pendingInvoices.length > 0 ? '#dc2626' : '#059669' },
           { label: 'Statut', value: tenant?.status === 'active' ? 'Actif' : tenant?.status === 'trial' ? 'Essai' : tenant?.status, icon: CheckCircle, color: '#059669' },
@@ -67,7 +67,7 @@ const ClientHome: React.FC = () => {
             <div className="flex items-center justify-between mb-3">
               <kpi.icon className="w-5 h-5" style={{ color: kpi.color }} />
             </div>
-            <div className="text-2xl font-bold text-[#171717]">{kpi.value}</div>
+            <div className="text-2xl font-bold text-[var(--color-primary)]">{kpi.value}</div>
             <div className="text-xs text-gray-500 mt-1">{kpi.label}</div>
           </div>
         ))}
@@ -76,8 +76,8 @@ const ClientHome: React.FC = () => {
       {/* Solutions actives */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-[#171717]">Vos solutions</h2>
-          <button onClick={() => navigate('/solutions')} className="text-sm text-gray-500 hover:text-[#171717] flex items-center gap-1">
+          <h2 className="text-lg font-bold text-[var(--color-primary)]">Vos solutions</h2>
+          <button onClick={() => navigate('/solutions')} className="text-sm text-gray-500 hover:text-[var(--color-primary)] flex items-center gap-1">
             Catalogue <ArrowRight className="w-4 h-4" />
           </button>
         </div>
@@ -86,7 +86,7 @@ const ClientHome: React.FC = () => {
           <div className="bg-white rounded-xl border p-8 text-center">
             <BarChart3 className="w-10 h-10 text-gray-300 mx-auto mb-3" />
             <p className="text-gray-500 text-sm mb-4">Aucune solution activée</p>
-            <button onClick={() => navigate('/solutions')} className="px-5 py-2.5 bg-[#171717] text-white rounded-lg text-sm font-semibold">
+            <button onClick={() => navigate('/solutions')} className="px-5 py-2.5 bg-[var(--color-primary)] text-white rounded-lg text-sm font-semibold">
               Découvrir le catalogue
             </button>
           </div>
@@ -109,13 +109,13 @@ const ClientHome: React.FC = () => {
                       <Icon className="w-5 h-5" style={{ color: sol.color }} />
                     </div>
                     <div>
-                      <div className="font-bold text-sm text-[#171717]">{sol.name}</div>
+                      <div className="font-bold text-sm text-[var(--color-primary)]">{sol.name}</div>
                       <div className="text-xs text-gray-500">
                         {sub.status === 'trialing' ? 'Essai gratuit' : 'Actif'}
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center text-xs font-medium text-gray-400 group-hover:text-[#171717] transition-colors">
+                  <div className="flex items-center text-xs font-medium text-gray-400 group-hover:text-[var(--color-primary)] transition-colors">
                     Ouvrir <ArrowRight className="w-3.5 h-3.5 ml-1 group-hover:translate-x-0.5 transition-transform" />
                   </div>
                 </div>
@@ -128,7 +128,7 @@ const ClientHome: React.FC = () => {
       {/* Raccourcis admin */}
       {isAdmin && (
         <div>
-          <h2 className="text-lg font-bold text-[#171717] mb-4">Administration</h2>
+          <h2 className="text-lg font-bold text-[var(--color-primary)] mb-4">Administration</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[
               { label: 'Gérer l\'équipe', desc: `${members.length} membres`, icon: UserPlus, path: '/client/team' },
@@ -138,7 +138,7 @@ const ClientHome: React.FC = () => {
               <button key={i} onClick={() => navigate(item.path)}
                 className="bg-white rounded-xl border p-5 text-left hover:shadow-md transition-shadow">
                 <item.icon className="w-5 h-5 text-gray-400 mb-3" />
-                <div className="font-semibold text-sm text-[#171717]">{item.label}</div>
+                <div className="font-semibold text-sm text-[var(--color-primary)]">{item.label}</div>
                 <div className="text-xs text-gray-500 mt-0.5">{item.desc}</div>
               </button>
             ))}

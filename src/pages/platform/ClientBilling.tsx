@@ -33,14 +33,14 @@ const ClientBilling: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-[#171717]">Facturation & Abonnement</h1>
+        <h1 className="text-xl font-bold text-[var(--color-primary)]">Facturation & Abonnement</h1>
         <p className="text-sm text-gray-500 mt-1">Gérez vos abonnements et consultez vos factures</p>
       </div>
 
       {/* Plan actuel */}
       <div className="bg-white rounded-xl border p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-bold text-[#171717] flex items-center gap-2">
+          <h2 className="font-bold text-[var(--color-primary)] flex items-center gap-2">
             <Zap className="w-5 h-5" /> Plan actuel
           </h2>
           <span className={`px-3 py-1 rounded-full text-xs font-semibold ${tenant?.status === 'trial' ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'}`}>
@@ -51,22 +51,22 @@ const ClientBilling: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-gray-50 rounded-xl p-4">
             <div className="text-xs text-gray-500 mb-1">Coût mensuel</div>
-            <div className="text-xl font-bold text-[#171717]">{formatXOF(totalMRR)}</div>
+            <div className="text-xl font-bold text-[var(--color-primary)]">{formatXOF(totalMRR)}</div>
           </div>
           <div className="bg-gray-50 rounded-xl p-4">
             <div className="text-xs text-gray-500 mb-1">Solutions actives</div>
-            <div className="text-xl font-bold text-[#171717]">{activeSubs.length}</div>
+            <div className="text-xl font-bold text-[var(--color-primary)]">{activeSubs.length}</div>
           </div>
           <div className="bg-gray-50 rounded-xl p-4">
             <div className="text-xs text-gray-500 mb-1">Prochain renouvellement</div>
-            <div className="text-xl font-bold text-[#171717]">
+            <div className="text-xl font-bold text-[var(--color-primary)]">
               {activeSubs[0]?.current_period_end ? new Date(activeSubs[0].current_period_end).toLocaleDateString('fr-FR') : '—'}
             </div>
           </div>
         </div>
 
         <div className="mt-4 flex gap-3">
-          <button onClick={() => navigate('/solutions')} className="px-4 py-2 bg-[#171717] text-white rounded-lg text-sm font-semibold hover:bg-[#333] flex items-center gap-1">
+          <button onClick={() => navigate('/solutions')} className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm font-semibold hover:bg-[#333] flex items-center gap-1">
             Changer de plan <ArrowRight className="w-4 h-4" />
           </button>
         </div>
@@ -81,7 +81,7 @@ const ClientBilling: React.FC = () => {
           {activeSubs.map((sub: any) => (
             <div key={sub.id} className="px-5 py-4 flex items-center justify-between">
               <div>
-                <div className="font-medium text-sm text-[#171717]">{sub.solution?.name || sub.solution_id}</div>
+                <div className="font-medium text-sm text-[var(--color-primary)]">{sub.solution?.name || sub.solution_id}</div>
                 <div className="text-xs text-gray-400 mt-0.5">
                   {sub.status === 'trialing' ? 'Essai gratuit' : 'Actif'} · {formatXOF(sub.solution?.price_monthly_xof || 0)}/mois
                 </div>
@@ -119,11 +119,11 @@ const ClientBilling: React.FC = () => {
               const st = STATUS_CONFIG[inv.status] || STATUS_CONFIG.pending;
               return (
                 <tr key={inv.id} className="hover:bg-gray-50">
-                  <td className="px-5 py-3 font-medium text-[#171717]">{inv.invoice_number || inv.id.slice(0, 8)}</td>
+                  <td className="px-5 py-3 font-medium text-[var(--color-primary)]">{inv.invoice_number || inv.id.slice(0, 8)}</td>
                   <td className="px-5 py-3 text-gray-500">
                     {inv.period_start ? `${new Date(inv.period_start).toLocaleDateString('fr-FR')} — ${new Date(inv.period_end).toLocaleDateString('fr-FR')}` : '—'}
                   </td>
-                  <td className="px-5 py-3 font-semibold text-[#171717]">{formatXOF(inv.amount)}</td>
+                  <td className="px-5 py-3 font-semibold text-[var(--color-primary)]">{formatXOF(inv.amount)}</td>
                   <td className="px-5 py-3">
                     <span className={`text-xs px-2 py-1 rounded-full font-medium ${st.color}`}>{st.label}</span>
                   </td>

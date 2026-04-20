@@ -107,12 +107,12 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
       case 'success':
         return 'bg-green-50 hover:bg-green-100';
       default:
-        return 'bg-[#f5f5f5] hover:bg-[#e5e5e5]';
+        return 'bg-[var(--color-border-light)] hover:bg-[var(--color-border)]';
     }
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[#171717] bg-[#171717] shadow-sm">
+    <header className="sticky top-0 z-40 border-b border-[var(--color-primary)] bg-[var(--color-primary)] shadow-sm">
       <div className="flex h-16 items-center justify-between px-6">
         {/* Left side */}
         <div className="flex items-center space-x-4">
@@ -129,11 +129,11 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
           {/* Search bar */}
           <div className="hidden w-96 md:block">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -tranprimary-y-1/2 text-[#f5f5f5]/70" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -tranprimary-y-1/2 text-[var(--color-border-light)]/70" />
               <input
                 type="text"
                 placeholder="Rechercher dans Atlas F&A..."
-                className="w-full rounded-md border border-[#f5f5f5]/30 bg-[#171717]/50 pl-10 pr-4 py-2 text-sm text-[#f5f5f5] placeholder:text-[#f5f5f5]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#525252] focus-visible:border-[#525252]"
+                className="w-full rounded-md border border-[var(--color-border-light)]/30 bg-[var(--color-primary)]/50 pl-10 pr-4 py-2 text-sm text-[var(--color-border-light)] placeholder:text-[var(--color-border-light)]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-secondary)] focus-visible:border-[var(--color-secondary)]"
               />
             </div>
           </div>
@@ -159,7 +159,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
               onClick={() => setShowNotifications(!showNotifications)}
               className="relative"
             >
-              <Bell className="h-5 w-5 text-[#f5f5f5]" />
+              <Bell className="h-5 w-5 text-[var(--color-border-light)]" />
               {unreadCount > 0 && (
                 <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-[10px] font-bold text-white flex items-center justify-center">
                   {unreadCount}
@@ -178,25 +178,25 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                 />
 
                 {/* Dropdown */}
-                <div className="absolute right-0 mt-2 w-[calc(100vw-1rem)] max-w-[24rem] sm:w-96 max-h-[500px] bg-[#f5f5f5] rounded-lg shadow-lg border border-[#e5e5e5] z-50 overflow-hidden">
+                <div className="absolute right-0 mt-2 w-[calc(100vw-1rem)] max-w-[24rem] sm:w-96 max-h-[500px] bg-[var(--color-border-light)] rounded-lg shadow-lg border border-[var(--color-border)] z-50 overflow-hidden">
                   {/* Header */}
-                  <div className="px-4 py-3 border-b border-[#e5e5e5] bg-[#e5e5e5]">
+                  <div className="px-4 py-3 border-b border-[var(--color-border)] bg-[var(--color-border)]">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-sm font-semibold text-[#171717]">
+                      <h3 className="text-sm font-semibold text-[var(--color-primary)]">
                         Notifications ({notifications.length})
                       </h3>
                       <div className="flex items-center space-x-2">
                         {unreadCount > 0 && (
                           <button
                             onClick={markAllAsRead}
-                            className="text-xs text-[#171717] hover:text-[#525252] font-medium"
+                            className="text-xs text-[var(--color-primary)] hover:text-[var(--color-secondary)] font-medium"
                           >
                             Tout marquer comme lu
                           </button>
                         )}
                         <button
                           onClick={() => setShowNotifications(false)}
-                          className="text-[#171717]/40 hover:text-[#171717]/60"
+                          className="text-[var(--color-primary)]/40 hover:text-[var(--color-primary)]/60"
                         >
                           <X className="w-4 h-4" />
                         </button>
@@ -210,8 +210,8 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                       notifications.map(notification => (
                         <div
                           key={notification.id}
-                          className={`px-4 py-3 border-b border-[#e5e5e5]/50 cursor-pointer transition-colors ${
-                            !notification.read ? 'bg-[#171717]/10' : ''
+                          className={`px-4 py-3 border-b border-[var(--color-border)]/50 cursor-pointer transition-colors ${
+                            !notification.read ? 'bg-[var(--color-primary)]/10' : ''
                           } ${getNotificationBgColor(notification.type)}`}
                           onClick={() => markAsRead(notification.id)}
                         >
@@ -220,13 +220,13 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                               {getNotificationIcon(notification.type)}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className={`text-sm font-medium text-[#171717] ${!notification.read ? 'font-semibold' : ''}`}>
+                              <p className={`text-sm font-medium text-[var(--color-primary)] ${!notification.read ? 'font-semibold' : ''}`}>
                                 {notification.title}
                               </p>
-                              <p className="text-sm text-[#171717]/70 mt-0.5">
+                              <p className="text-sm text-[var(--color-primary)]/70 mt-0.5">
                                 {notification.message}
                               </p>
-                              <p className="text-xs text-[#171717]/50 mt-1">
+                              <p className="text-xs text-[var(--color-primary)]/50 mt-1">
                                 {notification.time}
                               </p>
                             </div>
@@ -235,7 +235,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                                 e.stopPropagation();
                                 clearNotification(notification.id);
                               }}
-                              className="text-[#171717]/40 hover:text-[#171717]/60"
+                              className="text-[var(--color-primary)]/40 hover:text-[var(--color-primary)]/60"
                             >
                               <X className="w-3 h-3" />
                             </button>
@@ -243,7 +243,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                         </div>
                       ))
                     ) : (
-                      <div className="px-4 py-8 text-center text-sm text-[#171717]/60">
+                      <div className="px-4 py-8 text-center text-sm text-[var(--color-primary)]/60">
                         Aucune notification
                       </div>
                     )}
@@ -251,8 +251,8 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
 
                   {/* Footer */}
                   {notifications.length > 0 && (
-                    <div className="px-4 py-2 border-t border-[#e5e5e5] bg-[#e5e5e5]">
-                      <button className="text-xs text-[#171717] hover:text-[#525252] font-medium w-full text-center">
+                    <div className="px-4 py-2 border-t border-[var(--color-border)] bg-[var(--color-border)]">
+                      <button className="text-xs text-[var(--color-primary)] hover:text-[var(--color-secondary)] font-medium w-full text-center">
                         Voir toutes les notifications
                       </button>
                     </div>
@@ -265,14 +265,14 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
           {/* User menu */}
           <div className="flex items-center space-x-2">
             <div className="hidden text-right sm:block">
-              <p className="text-sm font-medium text-[#f5f5f5]">{user?.first_name} {user?.last_name}</p>
-              <p className="text-xs text-[#f5f5f5]/70">{user?.email}</p>
+              <p className="text-sm font-medium text-[var(--color-border-light)]">{user?.first_name} {user?.last_name}</p>
+              <p className="text-xs text-[var(--color-border-light)]/70">{user?.email}</p>
             </div>
 
             {/* User avatar */}
             <div className="relative">
               <Button variant="ghost" size="icon" className="rounded-full">
-                <User className="h-5 w-5 text-[#f5f5f5]" />
+                <User className="h-5 w-5 text-[var(--color-border-light)]" />
                 <span className="sr-only">User menu</span>
               </Button>
             </div>
@@ -282,7 +282,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
               variant="ghost"
               size="icon"
               onClick={logout}
-              className="text-[#f5f5f5]/70 hover:text-[#f5f5f5]"
+              className="text-[var(--color-border-light)]/70 hover:text-[var(--color-border-light)]"
             >
               <LogOut className="h-5 w-5" />
               <span className="sr-only">Logout</span>
@@ -294,11 +294,11 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
       {/* Mobile search */}
       <div className="border-t px-6 py-3 md:hidden">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -tranprimary-y-1/2 text-[#f5f5f5]/70" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -tranprimary-y-1/2 text-[var(--color-border-light)]/70" />
           <input
             type="text"
             placeholder="Rechercher..."
-            className="w-full rounded-md border border-[#f5f5f5]/30 bg-[#171717]/50 pl-10 pr-4 py-2 text-sm text-[#f5f5f5] placeholder:text-[#f5f5f5]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#525252] focus-visible:border-[#525252]"
+            className="w-full rounded-md border border-[var(--color-border-light)]/30 bg-[var(--color-primary)]/50 pl-10 pr-4 py-2 text-sm text-[var(--color-border-light)] placeholder:text-[var(--color-border-light)]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-secondary)] focus-visible:border-[var(--color-secondary)]"
           />
         </div>
       </div>

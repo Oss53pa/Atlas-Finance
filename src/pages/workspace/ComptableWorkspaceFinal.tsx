@@ -173,7 +173,7 @@ const ComptableWorkspaceFinal: React.FC = () => {
       <div className="grid grid-cols-3 gap-4">
         {[{icon: BookMarked, title: 'Documentation', color: 'var(--color-primary)'}, {icon: Video, title: 'Videos', color: 'var(--color-secondary)'}, {icon: FileQuestion, title: 'FAQ', color: 'var(--color-text-tertiary)'}].map((c, i) => (
           <button key={i} className="bg-white rounded-xl p-6 border hover:border-[var(--color-primary)] text-left">
-            <div className="w-12 h-12 rounded-lg flex items-center justify-center mb-4" style={{backgroundColor: c.color+'20'}}><c.icon className="w-6 h-6" style={{color: c.color}} /></div>
+            <div className="w-12 h-12 rounded-lg flex items-center justify-center mb-4 opacity-80" style={{backgroundColor: `color-mix(in srgb, ${c.color} 12%, transparent)`}}><c.icon className="w-6 h-6" style={{color: c.color}} /></div>
             <h4 className="font-semibold">{c.title}</h4>
           </button>
         ))}
@@ -190,7 +190,7 @@ const ComptableWorkspaceFinal: React.FC = () => {
       <div className="grid grid-cols-4 gap-4">
         {[{title:'Ecritures',value:String(comptaStats.entries),icon:FileText,color:'var(--color-primary)',change:'',up:true},{title:'En attente',value:String(comptaStats.drafts),icon:Clock,color:'var(--color-secondary)',change:comptaStats.drafts > 0 ? `${comptaStats.drafts} brouillons` : '',up:comptaStats.drafts === 0},{title:'Validees',value:String(comptaStats.posted),icon:CheckCircle,color:'var(--color-text-tertiary)',change:'',up:true},{title:'Tresorerie',value:formatCurrency(comptaStats.treasury),icon:DollarSign,color:'var(--color-primary)',change:'',up:comptaStats.treasury >= 0}].map((m,i) => (
           <div key={i} className="bg-white rounded-lg p-4 border hover:shadow-md">
-            <div className="flex justify-between mb-3"><div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{backgroundColor:m.color+'20'}}><m.icon className="w-5 h-5" style={{color:m.color}} /></div><span className={m.up?'text-green-600 text-xs':'text-red-600 text-xs'}>{m.change}</span></div>
+            <div className="flex justify-between mb-3"><div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{backgroundColor:`color-mix(in srgb, ${m.color} 12%, transparent)`}}><m.icon className="w-5 h-5" style={{color:m.color}} /></div><span className={m.up?'text-green-600 text-xs':'text-red-600 text-xs'}>{m.change}</span></div>
             <h3 className="text-lg font-bold">{m.value}</h3><p className="text-sm text-gray-600">{m.title}</p>
           </div>
         ))}
@@ -200,7 +200,7 @@ const ComptableWorkspaceFinal: React.FC = () => {
         <div className="grid grid-cols-4 gap-3">
           {[{label:'Nouvelle écriture',icon:Plus,path:'/accounting/entries',color:'var(--color-primary)'},{label:'Lettrage',icon:Zap,path:'/accounting/lettrage',color:'var(--color-secondary)'},{label:'Balance',icon:BarChart3,path:'/accounting/balance',color:'var(--color-text-tertiary)'},{label:'SYSCOHADA',icon:TrendingUp,path:'/financial-statements',color:'var(--color-primary)'}].map((a,i) => (
             <button key={i} onClick={() => navigate(a.path)} className="p-4 rounded-lg border hover:border-gray-400 hover:shadow-sm transition-all">
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-2" style={{backgroundColor:a.color+'15'}}><a.icon className="w-5 h-5" style={{color:a.color}} /></div>
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-2" style={{backgroundColor:`color-mix(in srgb, ${a.color} 8%, transparent)`}}><a.icon className="w-5 h-5" style={{color:a.color}} /></div>
               <span className="text-sm font-medium block text-center">{a.label}</span>
             </button>
           ))}

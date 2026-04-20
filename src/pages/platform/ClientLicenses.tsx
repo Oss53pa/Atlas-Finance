@@ -51,7 +51,7 @@ const ClientLicenses: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-[#171717]">Licences & Accès</h1>
+        <h1 className="text-xl font-bold text-[var(--color-primary)]">Licences & Accès</h1>
         <p className="text-sm text-gray-500 mt-1">Gérez les accès de votre équipe aux solutions souscrites</p>
       </div>
 
@@ -72,7 +72,7 @@ const ClientLicenses: React.FC = () => {
                   <Icon className="w-5 h-5" style={{ color: sol.color }} />
                 </div>
                 <div>
-                  <div className="font-bold text-sm text-[#171717]">{sol.name}</div>
+                  <div className="font-bold text-sm text-[var(--color-primary)]">{sol.name}</div>
                   <div className="text-xs text-gray-500">
                     {sub.status === 'trialing' ? 'Essai gratuit' : 'Actif'}
                   </div>
@@ -83,7 +83,7 @@ const ClientLicenses: React.FC = () => {
               <div className="mb-3">
                 <div className="flex justify-between text-xs mb-1">
                   <span className="text-gray-500">Sièges utilisés</span>
-                  <span className="font-semibold text-[#171717]">{used} / {total}</span>
+                  <span className="font-semibold text-[var(--color-primary)]">{used} / {total}</span>
                 </div>
                 <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                   <div
@@ -95,7 +95,7 @@ const ClientLicenses: React.FC = () => {
 
               <button
                 onClick={() => setExpandedSub(expandedSub === sub.id ? null : sub.id)}
-                className="w-full text-xs text-gray-500 hover:text-[#171717] flex items-center justify-center gap-1 pt-2 border-t"
+                className="w-full text-xs text-gray-500 hover:text-[var(--color-primary)] flex items-center justify-center gap-1 pt-2 border-t"
               >
                 Gérer les accès <ChevronDown className={`w-3.5 h-3.5 transition-transform ${expandedSub === sub.id ? 'rotate-180' : ''}`} />
               </button>
@@ -119,7 +119,7 @@ const ClientLicenses: React.FC = () => {
               <div className="flex items-center gap-3">
                 <Icon className="w-5 h-5" style={{ color: sol.color }} />
                 <div>
-                  <h3 className="font-bold text-sm text-[#171717]">Distribution — {sol.name}</h3>
+                  <h3 className="font-bold text-sm text-[var(--color-primary)]">Distribution — {sol.name}</h3>
                   <p className="text-xs text-gray-500">{used} / {total} sièges attribués</p>
                 </div>
               </div>
@@ -145,11 +145,11 @@ const ClientLicenses: React.FC = () => {
                     <tr key={m.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-[#171717] flex items-center justify-center text-white text-xs font-bold">
+                          <div className="w-8 h-8 rounded-full bg-[var(--color-primary)] flex items-center justify-center text-white text-xs font-bold">
                             {(m.full_name || m.first_name || 'U')[0]}
                           </div>
                           <div>
-                            <div className="font-medium text-[#171717]">{m.full_name || `${m.first_name} ${m.last_name}`}</div>
+                            <div className="font-medium text-[var(--color-primary)]">{m.full_name || `${m.first_name} ${m.last_name}`}</div>
                             <div className="text-xs text-gray-400">{m.phone}</div>
                           </div>
                         </div>
@@ -186,7 +186,7 @@ const ClientLicenses: React.FC = () => {
       {/* Récap par membre */}
       <div className="bg-white rounded-xl border overflow-hidden">
         <div className="px-6 py-4 border-b bg-gray-50">
-          <h3 className="font-bold text-sm text-[#171717]">Récapitulatif par membre</h3>
+          <h3 className="font-bold text-sm text-[var(--color-primary)]">Récapitulatif par membre</h3>
         </div>
         <table className="w-full text-sm">
           <thead className="border-b">
@@ -202,7 +202,7 @@ const ClientLicenses: React.FC = () => {
               return (
                 <tr key={m.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4">
-                    <div className="font-medium text-[#171717]">{m.full_name || m.first_name}</div>
+                    <div className="font-medium text-[var(--color-primary)]">{m.full_name || m.first_name}</div>
                     <div className="text-xs text-gray-400">{m.role}</div>
                   </td>
                   <td className="px-6 py-4">
@@ -224,7 +224,7 @@ const ClientLicenses: React.FC = () => {
                     )}
                   </td>
                   <td className="px-6 py-4 text-center">
-                    <span className="text-sm font-bold text-[#171717]">{access.length}</span>
+                    <span className="text-sm font-bold text-[var(--color-primary)]">{access.length}</span>
                   </td>
                 </tr>
               );
