@@ -133,7 +133,12 @@ export type BlockType =
   | 'callout'
   | 'manual-table'
   | 'formula'
-  | 'toc-block';
+  | 'toc-block'
+  // Smart / AI blocks (Task 3, 4, 6)
+  | 'sommaire'
+  | 'prophet_analysis'
+  | 'anomaly_detection'
+  | 'executive_summary';
 
 export interface BlockBase {
   id: string;
@@ -406,6 +411,67 @@ export interface TOCBlock extends BlockBase {
 }
 
 // ============================================================================
+// Smart / AI Blocks (Task 3, 4, 6)
+// ============================================================================
+
+/**
+ * Sommaire / Default Report Summary (Task 3).
+ * Renders 4 auto-fetched KPI cards + alerts zone + signature zone.
+ */
+export interface SommaireBlock extends BlockBase {
+  type: 'sommaire';
+  title?: string;
+  /** Which type of summary to fetch — drives the KPIs shown */
+  reportType?: 'bilan' | 'resultat' | 'tafire' | 'mensuel' | 'fiscal' | 'audit';
+  showAlerts?: boolean;
+  showSignatures?: boolean;
+  signatureLabels?: string[]; // e.g. ["Expert-Comptable", "Directeur Général"]
+}
+
+/**
+ * PROPH3T Analysis Block (Task 4).
+ * Calls the AI to analyze report data and returns commentaires, recommandations,
+ * prédictions, alertes, and a health score.
+ */
+export interface PROPHETAnalysisBlock extends BlockBase {
+  type: 'prophet_analysis';
+  title?: string;
+  /** Whether to auto-run analysis when rendered (vs. manual trigger) */
+  autoRun?: boolean;
+  /** Optional scope — if undefined, analyzes whole report */
+  scope?: 'bilan' | 'resultat' | 'tafire' | 'global';
+  /** Cached last result (optional) */
+  lastResult?: unknown;
+}
+
+/**
+ * Anomaly Detection Block (Task 6).
+ * Calls PROPH3T's isolation_forest tool on journal entries.
+ */
+export interface AnomalyDetectionBlock extends BlockBase {
+  type: 'anomaly_detection';
+  title?: string;
+  /** Sensitivity of detection (0..1, higher = more sensitive) */
+  sensitivity?: number;
+  /** Max anomalies to display */
+  maxResults?: number;
+}
+
+/**
+ * Executive Summary Block (Task 6).
+ * Auto-generates 3-5 bullet points of key findings using PROPH3T.
+ */
+export interface ExecutiveSummaryBlock extends BlockBase {
+  type: 'executive_summary';
+  title?: string;
+  /** Auto-generated summary bullets (editable override) */
+  bullets?: string[];
+  autoRun?: boolean;
+  /** Cached generated content */
+  generatedAt?: string;
+}
+
+// ============================================================================
 // Discriminated Union
 // ============================================================================
 
@@ -426,7 +492,11 @@ export type ReportBlock =
   | CalloutBlock
   | ManualTableBlock
   | FormulaBlock
-  | TOCBlock;
+  | TOCBlock
+  | SommaireBlock
+  | PROPHETAnalysisBlock
+  | AnomalyDetectionBlock
+  | ExecutiveSummaryBlock;
 
 // ============================================================================
 // Block Comments (CDC V2 §B.5)

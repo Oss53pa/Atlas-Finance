@@ -2,7 +2,7 @@
 /**
  * Block Catalog — Available blocks for the Report Builder
  */
-import type { CatalogItem, TextBlock, KPIBlock, KPIGridBlock, TableBlock, ChartBlock, SeparatorBlock, SpacerBlock, CoverBlock, BackPageBlock, ImageBlock, ColumnsBlock, CommentBlock, CalloutBlock, ManualTableBlock, FormulaBlock, TOCBlock } from '../types';
+import type { CatalogItem, TextBlock, KPIBlock, KPIGridBlock, TableBlock, ChartBlock, SeparatorBlock, SpacerBlock, CoverBlock, BackPageBlock, ImageBlock, ColumnsBlock, CommentBlock, CalloutBlock, ManualTableBlock, FormulaBlock, TOCBlock, SommaireBlock, PROPHETAnalysisBlock, AnomalyDetectionBlock, ExecutiveSummaryBlock } from '../types';
 
 export const catalogItems: CatalogItem[] = [
   // ── Texte (les titres H1/H2/H3 se gèrent depuis le Sommaire) ──
@@ -303,6 +303,73 @@ export const catalogItems: CatalogItem[] = [
     category: 'structure',
     blockType: 'toc-block',
     defaultBlock: { type: 'toc-block', title: 'Table des Matières', maxDepth: 3, locked: false, style: { marginBottom: 16 } } as Omit<TOCBlock, 'id'>,
+  },
+  // ── Smart / IA ──
+  {
+    id: 'sommaire',
+    label: 'Synthèse (Sommaire)',
+    description: '4 KPIs + alertes + signatures auto-générées',
+    icon: 'layout-dashboard',
+    category: 'structure',
+    blockType: 'sommaire',
+    defaultBlock: {
+      type: 'sommaire',
+      title: 'Synthèse',
+      reportType: 'mensuel',
+      showAlerts: true,
+      showSignatures: true,
+      signatureLabels: ['Expert-Comptable', 'Directeur Général'],
+      locked: false,
+      style: { marginBottom: 16 },
+    } as Omit<SommaireBlock, 'id'>,
+  },
+  {
+    id: 'prophet-analysis',
+    label: 'Analyse PROPH3T',
+    description: 'Commentaires, recommandations, prédictions, score IA',
+    icon: 'sparkles',
+    category: 'enrichment',
+    blockType: 'prophet_analysis',
+    defaultBlock: {
+      type: 'prophet_analysis',
+      title: 'Analyse PROPH3T',
+      autoRun: false,
+      scope: 'global',
+      locked: false,
+      style: { marginBottom: 16 },
+    } as Omit<PROPHETAnalysisBlock, 'id'>,
+  },
+  {
+    id: 'anomaly-detection',
+    label: 'Détection Anomalies',
+    description: 'Isolation Forest — écritures suspectes',
+    icon: 'shield',
+    category: 'enrichment',
+    blockType: 'anomaly_detection',
+    defaultBlock: {
+      type: 'anomaly_detection',
+      title: "Détection d'Anomalies",
+      sensitivity: 0.5,
+      maxResults: 20,
+      locked: false,
+      style: { marginBottom: 16 },
+    } as Omit<AnomalyDetectionBlock, 'id'>,
+  },
+  {
+    id: 'executive-summary',
+    label: 'Synthèse Exécutive',
+    description: '3-5 points clés générés par PROPH3T',
+    icon: 'file-text',
+    category: 'enrichment',
+    blockType: 'executive_summary',
+    defaultBlock: {
+      type: 'executive_summary',
+      title: 'Synthèse Exécutive',
+      autoRun: false,
+      bullets: [],
+      locked: false,
+      style: { marginBottom: 16 },
+    } as Omit<ExecutiveSummaryBlock, 'id'>,
   },
   {
     id: 'text-footnote',

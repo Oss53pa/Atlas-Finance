@@ -25,6 +25,10 @@ import {
   FormulaBlockRenderer,
   TOCBlockRenderer,
 } from './MissingBlockRenderers';
+import SommaireBlockRenderer from './SommaireBlock';
+import PROPHETAnalysisBlockRenderer from './PROPHETAnalysisBlock';
+import AnomalyDetectionBlockRenderer from './AnomalyDetectionBlock';
+import ExecutiveSummaryBlockRenderer from './ExecutiveSummaryBlock';
 
 export function renderBlock(block: ReportBlock): React.ReactNode {
   const inner = (() => {
@@ -61,6 +65,14 @@ export function renderBlock(block: ReportBlock): React.ReactNode {
         return <FormulaBlockRenderer block={block} />;
       case 'toc-block':
         return <TOCBlockRenderer block={block} />;
+      case 'sommaire':
+        return <SommaireBlockRenderer block={block} />;
+      case 'prophet_analysis':
+        return <PROPHETAnalysisBlockRenderer block={block} />;
+      case 'anomaly_detection':
+        return <AnomalyDetectionBlockRenderer block={block} />;
+      case 'executive_summary':
+        return <ExecutiveSummaryBlockRenderer block={block} />;
       case 'columns':
         // Columns render children side by side
         return (

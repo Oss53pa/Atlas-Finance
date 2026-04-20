@@ -351,6 +351,263 @@ export async function fetchKPIValue(
         return total;
       }
 
+      // -- New KPIs (Task 1 expansion) --
+      case 'kpi.gross_margin':
+      case 'kpi.marge_brute_pct': {
+        const ca = sumByClass(entries, '7', p, 'net');
+        if (ca === 0) return 0;
+        const achats = sumByClass(entries, '60', p, 'debit') - sumByClass(entries, '60', p, 'credit');
+        return ((ca - achats) / ca) * 100;
+      }
+
+      case 'kpi.net_margin': {
+        const ca = sumByClass(entries, '7', p, 'net');
+        if (ca === 0) return 0;
+        const charges = sumByClass(entries, '6', p, 'debit') - sumByClass(entries, '6', p, 'credit');
+        return ((ca - charges) / ca) * 100;
+      }
+
+      case 'kpi.ebitda_margin': {
+        const ca = sumByClass(entries, '7', p, 'net');
+        if (ca === 0) return 0;
+        const charges6 = sumByClass(entries, '6', p, 'debit') - sumByClass(entries, '6', p, 'credit');
+        const amort = sumByClass(entries, '68', p, 'debit') - sumByClass(entries, '68', p, 'credit');
+        const ebitda = ca - charges6 + amort;
+        return (ebitda / ca) * 100;
+      }
+
+      case 'kpi.roa': {
+        const produits = sumByClass(entries, '7', p, 'net');
+        const charges = sumByClass(entries, '6', p, 'debit') - sumByClass(entries, '6', p, 'credit');
+        const resultat = produits - charges;
+        let actif = 0;
+        for (const e of entries) {
+          if (!inPeriod(e.date, p)) continue;
+          for (const l of (e.lines || [])) {
+            const code = l.accountCode || '';
+            if (code.startsWith('2') || code.startsWith('3') || code.startsWith('4') || code.startsWith('5')) {
+              actif += (l.debit || 0) - (l.credit || 0);
+            }
+          }
+        }
+        return actif === 0 ? 0 : (resultat / actif) * 100;
+      }
+
+      case 'kpi.roic': {
+        // ROIC ≈ Résultat / (Capitaux + Dettes LT)
+        const produits = sumByClass(entries, '7', p, 'net');
+        const charges = sumByClass(entries, '6', p, 'debit') - sumByClass(entries, '6', p, 'credit');
+        const resultat = produits - charges;
+        let invested = 0;
+        for (const e of entries) {
+          if (!inPeriod(e.date, p)) continue;
+          for (const l of (e.lines || [])) {
+            const code = l.accountCode || '';
+            if (code.startsWith('1')) invested += (l.credit || 0) - (l.debit || 0);
+          }
+        }
+        return invested === 0 ? 0 : (resultat / invested) * 100;
+      }
+
+      case 'kpi.debt_to_equity': {
+        let dettes = 0;
+        let capitaux = 0;
+        for (const e of entries) {
+          if (!inPeriod(e.date, p)) continue;
+          for (const l of (e.lines || [])) {
+            const code = l.accountCode || '';
+            if (code.startsWith('16') || code.startsWith('17')) dettes += (l.credit || 0) - (l.debit || 0);
+            if (code.startsWith('10') || code.startsWith('11') || code.startsWith('12') || code.startsWith('13')) {
+              capitaux += (l.credit || 0) - (l.debit || 0);
+            }
+          }
+        }
+        return capitaux === 0 ? 0 : dettes / capitaux;
+      }
+
+      case 'kpi.interest_coverage': {
+        const produits = sumByClass(entries, '7', p, 'net');
+        const charges = sumByClass(entries, '6', p, 'debit') - sumByClass(entries, '6', p, 'credit');
+        const ebit = produits - charges + (sumByClass(entries, '66', p, 'debit') - sumByClass(entries, '66', p, 'credit'));
+        const interest = sumByClass(entries, '66', p, 'debit') - sumByClass(entries, '66', p, 'credit');
+        return interest === 0 ? 0 : ebit / interest;
+      }
+
+      case 'kpi.current_ratio': {
+        let actifCirculant = 0;
+        let passifCirculant = 0;
+        for (const e of entries) {
+          if (!inPeriod(e.date, p)) continue;
+          for (const l of (e.lines || [])) {
+            const code = l.accountCode || '';
+            if (code.startsWith('3') || code.startsWith('4') || code.startsWith('5')) {
+              const net = (l.debit || 0) - (l.credit || 0);
+              if (net > 0) actifCirculant += net;
+            }
+            if (code.startsWith('40') || code.startsWith('42') || code.startsWith('43') || code.startsWith('44')) {
+              const net = (l.credit || 0) - (l.debit || 0);
+              if (net > 0) passifCirculant += net;
+            }
+          }
+        }
+        return passifCirculant === 0 ? 0 : actifCirculant / passifCirculant;
+      }
+
+      case 'kpi.quick_ratio': {
+        let actifCirculant = 0;
+        let stocks = 0;
+        let passifCirculant = 0;
+        for (const e of entries) {
+          if (!inPeriod(e.date, p)) continue;
+          for (const l of (e.lines || [])) {
+            const code = l.accountCode || '';
+            if (code.startsWith('3') || code.startsWith('4') || code.startsWith('5')) {
+              const net = (l.debit || 0) - (l.credit || 0);
+              if (net > 0) actifCirculant += net;
+            }
+            if (code.startsWith('3')) {
+              stocks += (l.debit || 0) - (l.credit || 0);
+            }
+            if (code.startsWith('40') || code.startsWith('42') || code.startsWith('43') || code.startsWith('44')) {
+              const net = (l.credit || 0) - (l.debit || 0);
+              if (net > 0) passifCirculant += net;
+            }
+          }
+        }
+        return passifCirculant === 0 ? 0 : (actifCirculant - stocks) / passifCirculant;
+      }
+
+      case 'kpi.cash_conversion_cycle': {
+        // CCC = DSO + DIO - DPO (simplified)
+        const ca = sumByClass(entries, '7', p, 'net');
+        const achats = sumByClass(entries, '60', p, 'debit') - sumByClass(entries, '60', p, 'credit');
+        const days = (new Date(p.endDate).getTime() - new Date(p.startDate).getTime()) / (1000 * 60 * 60 * 24);
+        let creances = 0, dettes = 0, stocks = 0;
+        for (const e of entries) {
+          if (!inPeriod(e.date, p)) continue;
+          for (const l of (e.lines || [])) {
+            const code = l.accountCode || '';
+            if (code.startsWith('41')) creances += (l.debit || 0) - (l.credit || 0);
+            if (code.startsWith('40')) dettes += (l.credit || 0) - (l.debit || 0);
+            if (code.startsWith('3')) stocks += (l.debit || 0) - (l.credit || 0);
+          }
+        }
+        const dso = ca === 0 ? 0 : (creances / ca) * days;
+        const dpo = achats === 0 ? 0 : (dettes / achats) * days;
+        const dio = achats === 0 ? 0 : (stocks / achats) * days;
+        return dso + dio - dpo;
+      }
+
+      case 'kpi.working_capital_days': {
+        const ca = sumByClass(entries, '7', p, 'net');
+        if (ca === 0) return 0;
+        let bfr = 0;
+        for (const e of entries) {
+          if (!inPeriod(e.date, p)) continue;
+          for (const l of (e.lines || [])) {
+            const code = l.accountCode || '';
+            if (code.startsWith('3') || code.startsWith('41')) bfr += (l.debit || 0) - (l.credit || 0);
+            if (code.startsWith('40') || code.startsWith('42') || code.startsWith('43') || code.startsWith('44')) bfr -= (l.credit || 0) - (l.debit || 0);
+          }
+        }
+        return (bfr / ca) * 365;
+      }
+
+      case 'kpi.altman_zscore': {
+        // Altman Z simplified = 1.2*(WC/TA) + 1.4*(RE/TA) + 3.3*(EBIT/TA) + 0.6*(E/TL) + 1.0*(S/TA)
+        let totalActif = 0;
+        let capitaux = 0;
+        let dettes = 0;
+        for (const e of entries) {
+          if (!inPeriod(e.date, p)) continue;
+          for (const l of (e.lines || [])) {
+            const code = l.accountCode || '';
+            if (code.startsWith('2') || code.startsWith('3') || code.startsWith('4') || code.startsWith('5')) {
+              totalActif += (l.debit || 0) - (l.credit || 0);
+            }
+            if (code.startsWith('10') || code.startsWith('11') || code.startsWith('12') || code.startsWith('13')) {
+              capitaux += (l.credit || 0) - (l.debit || 0);
+            }
+            if (code.startsWith('16') || code.startsWith('17') || code.startsWith('40')) {
+              dettes += (l.credit || 0) - (l.debit || 0);
+            }
+          }
+        }
+        if (totalActif === 0) return 0;
+        const ca = sumByClass(entries, '7', p, 'net');
+        const charges = sumByClass(entries, '6', p, 'debit') - sumByClass(entries, '6', p, 'credit');
+        const ebit = ca - charges;
+        // WC ≈ actif circulant - passif circulant (approximation via BFR)
+        const wc = totalActif * 0.3; // rough heuristic
+        const z = 1.2 * (wc / totalActif) + 1.4 * (ebit / totalActif) + 3.3 * (ebit / totalActif)
+          + 0.6 * (capitaux / (dettes || 1)) + 1.0 * (ca / totalActif);
+        return z;
+      }
+
+      case 'kpi.tva_net_a_payer': {
+        // TVA collectée (4431 / 443) - TVA déductible (4452 / 445)
+        let tvaCollectee = 0;
+        let tvaDeductible = 0;
+        for (const e of entries) {
+          if (!inPeriod(e.date, p)) continue;
+          for (const l of (e.lines || [])) {
+            const code = l.accountCode || '';
+            if (code.startsWith('443')) tvaCollectee += (l.credit || 0) - (l.debit || 0);
+            if (code.startsWith('445')) tvaDeductible += (l.debit || 0) - (l.credit || 0);
+          }
+        }
+        return Math.max(0, tvaCollectee - tvaDeductible);
+      }
+
+      case 'kpi.is_previsionnel': {
+        const ca = sumByClass(entries, '7', p, 'net');
+        const charges = sumByClass(entries, '6', p, 'debit') - sumByClass(entries, '6', p, 'credit');
+        const resultat = ca - charges;
+        return Math.max(0, resultat * 0.25); // 25% default rate
+      }
+
+      case 'kpi.benford_index': {
+        // Simplified conformity score (0..100)
+        const values: number[] = [];
+        for (const e of entries) {
+          if (!inPeriod(e.date, p)) continue;
+          for (const l of (e.lines || [])) {
+            const v = Math.abs((l.debit || 0) + (l.credit || 0));
+            if (v > 0) values.push(v);
+          }
+        }
+        if (values.length < 30) return 50;
+        const counts = new Array(10).fill(0);
+        for (const v of values) {
+          const first = parseInt(String(v).replace(/^0+/, '').charAt(0), 10);
+          if (first >= 1 && first <= 9) counts[first]++;
+        }
+        const expected = [0, 0.301, 0.176, 0.125, 0.097, 0.079, 0.067, 0.058, 0.051, 0.046];
+        let chi = 0;
+        for (let d = 1; d <= 9; d++) {
+          const exp = expected[d] * values.length;
+          chi += Math.pow(counts[d] - exp, 2) / (exp || 1);
+        }
+        // Map χ² to a 0..100 score (heuristic)
+        return Math.max(0, Math.min(100, 100 - chi * 2));
+      }
+
+      case 'kpi.score_credit_moyen': {
+        // Placeholder: derive a stub score based on DSO
+        const ca = sumByClass(entries, '7', p, 'net');
+        if (ca === 0) return 0;
+        let creances = 0;
+        for (const e of entries) {
+          if (!inPeriod(e.date, p)) continue;
+          for (const l of (e.lines || [])) {
+            if (l.accountCode?.startsWith('41')) creances += (l.debit || 0) - (l.credit || 0);
+          }
+        }
+        const days = (new Date(p.endDate).getTime() - new Date(p.startDate).getTime()) / (1000 * 60 * 60 * 24);
+        const dso = (creances / ca) * days;
+        return Math.max(0, Math.min(100, 100 - dso));
+      }
+
       default:
         return null;
     }
@@ -519,8 +776,132 @@ export async function fetchTableData(
       };
     }
 
+    case 'accounting.grand_livre':
+    case 'accounting.grand_livre_auxiliaire': {
+      const rows: Record<string, string | number | null>[] = [];
+      for (const e of entries) {
+        if (!inPeriod(e.date, period)) continue;
+        for (const l of (e.lines || [])) {
+          rows.push({
+            date: e.date || '',
+            compte: l.accountCode || '',
+            libelle: l.accountName || l.label || e.label || '',
+            debit: l.debit || 0,
+            credit: l.credit || 0,
+            solde: (l.debit || 0) - (l.credit || 0),
+          });
+        }
+      }
+      return {
+        columns: [
+          { key: 'date', label: 'Date', align: 'left', format: 'date' },
+          { key: 'compte', label: 'Compte', align: 'left' },
+          { key: 'libelle', label: 'Libellé', align: 'left' },
+          { key: 'debit', label: 'Débit', align: 'right', format: 'currency' },
+          { key: 'credit', label: 'Crédit', align: 'right', format: 'currency' },
+          { key: 'solde', label: 'Solde', align: 'right', format: 'currency' },
+        ],
+        rows,
+      };
+    }
+
+    case 'accounting.balance_clients':
+    case 'accounting.balance_fournisseurs': {
+      const prefix = source === 'accounting.balance_clients' ? '41' : '40';
+      const balances = new Map<string, { label: string; debit: number; credit: number }>();
+      for (const e of entries) {
+        if (!inPeriod(e.date, period)) continue;
+        for (const l of (e.lines || [])) {
+          if (!l.accountCode?.startsWith(prefix)) continue;
+          const code = l.accountCode;
+          if (!balances.has(code)) balances.set(code, { label: l.accountName || code, debit: 0, credit: 0 });
+          const b = balances.get(code)!;
+          b.debit += l.debit || 0;
+          b.credit += l.credit || 0;
+        }
+      }
+      return {
+        columns: [
+          { key: 'compte', label: 'Compte', align: 'left' },
+          { key: 'label', label: 'Libellé', align: 'left' },
+          { key: 'debit', label: 'Débit', align: 'right', format: 'currency' },
+          { key: 'credit', label: 'Crédit', align: 'right', format: 'currency' },
+          { key: 'solde', label: 'Solde', align: 'right', format: 'currency' },
+        ],
+        rows: Array.from(balances.entries()).map(([code, b]) => ({
+          compte: code,
+          label: b.label,
+          debit: b.debit,
+          credit: b.credit,
+          solde: b.debit - b.credit,
+        })),
+      };
+    }
+
+    case 'tiers.top_clients_ca':
+    case 'tiers.top_fournisseurs': {
+      const isClients = source === 'tiers.top_clients_ca';
+      const prefix = isClients ? '41' : '40';
+      const tot = new Map<string, { label: string; montant: number }>();
+      for (const e of entries) {
+        if (!inPeriod(e.date, period)) continue;
+        for (const l of (e.lines || [])) {
+          if (!l.accountCode?.startsWith(prefix)) continue;
+          const code = l.accountCode;
+          if (!tot.has(code)) tot.set(code, { label: l.accountName || code, montant: 0 });
+          const t = tot.get(code)!;
+          t.montant += isClients ? (l.debit || 0) : (l.credit || 0);
+        }
+      }
+      const rows = Array.from(tot.entries())
+        .map(([code, t]) => ({ compte: code, label: t.label, montant: t.montant }))
+        .sort((a, b) => b.montant - a.montant)
+        .slice(0, 20);
+      return {
+        columns: [
+          { key: 'compte', label: 'Compte', align: 'left' },
+          { key: 'label', label: 'Libellé', align: 'left' },
+          { key: 'montant', label: 'Montant', align: 'right', format: 'currency' },
+        ],
+        rows,
+      };
+    }
+
+    case 'tiers.aging_clients':
+    case 'tiers.aging_fournisseurs':
+    case 'tiers.creances_echues': {
+      const isClients = source !== 'tiers.aging_fournisseurs';
+      const prefix = isClients ? '41' : '40';
+      const now = new Date(period.endDate).getTime();
+      const buckets = { '0-30': 0, '30-60': 0, '60-90': 0, '>90': 0 };
+      for (const e of entries) {
+        if (!inPeriod(e.date, period)) continue;
+        const age = (now - new Date(e.date || period.endDate).getTime()) / (1000 * 60 * 60 * 24);
+        for (const l of (e.lines || [])) {
+          if (!l.accountCode?.startsWith(prefix)) continue;
+          const montant = isClients ? (l.debit || 0) - (l.credit || 0) : (l.credit || 0) - (l.debit || 0);
+          if (montant <= 0) continue;
+          if (age <= 30) buckets['0-30'] += montant;
+          else if (age <= 60) buckets['30-60'] += montant;
+          else if (age <= 90) buckets['60-90'] += montant;
+          else buckets['>90'] += montant;
+        }
+      }
+      return {
+        columns: [
+          { key: 'tranche', label: 'Tranche', align: 'left' },
+          { key: 'montant', label: 'Montant', align: 'right', format: 'currency' },
+        ],
+        rows: Object.entries(buckets).map(([tranche, montant]) => ({ tranche, montant })),
+      };
+    }
+
     default:
-      return { columns: [], rows: [] };
+      // Generic fallback: empty table with a helpful note
+      return {
+        columns: [{ key: 'info', label: 'Information', align: 'left' }],
+        rows: [{ info: `Source « ${source} » — données non disponibles pour cette période.` }],
+      };
   }
 }
 
@@ -681,6 +1062,112 @@ export async function fetchChartData(
           { flux: 'Financement', montant: Math.round(financFlow) },
         ],
         xAxisKey: 'flux',
+        series: [{ key: 'montant', label: 'Montant', color: '#171717' }],
+      };
+    }
+
+    case 'chart.aging_clients':
+    case 'chart.aging_fournisseurs': {
+      const isClients = source === 'chart.aging_clients';
+      const prefix = isClients ? '41' : '40';
+      const now = new Date(period.endDate).getTime();
+      const buckets = { '0-30': 0, '30-60': 0, '60-90': 0, '>90': 0 };
+      for (const e of entries) {
+        if (!inPeriod(e.date, period)) continue;
+        const age = (now - new Date(e.date || period.endDate).getTime()) / (1000 * 60 * 60 * 24);
+        for (const l of (e.lines || [])) {
+          if (!l.accountCode?.startsWith(prefix)) continue;
+          const montant = isClients ? (l.debit || 0) - (l.credit || 0) : (l.credit || 0) - (l.debit || 0);
+          if (montant <= 0) continue;
+          if (age <= 30) buckets['0-30'] += montant;
+          else if (age <= 60) buckets['30-60'] += montant;
+          else if (age <= 90) buckets['60-90'] += montant;
+          else buckets['>90'] += montant;
+        }
+      }
+      return {
+        data: Object.entries(buckets).map(([tranche, montant]) => ({ tranche, montant })),
+        xAxisKey: 'tranche',
+        series: [{ key: 'montant', label: 'Montant', color: '#171717' }],
+      };
+    }
+
+    case 'chart.benford': {
+      // Distribution premier chiffre vs Benford expected
+      const counts = new Array(10).fill(0);
+      let total = 0;
+      for (const e of entries) {
+        if (!inPeriod(e.date, period)) continue;
+        for (const l of (e.lines || [])) {
+          const v = Math.abs((l.debit || 0) + (l.credit || 0));
+          if (v <= 0) continue;
+          const first = parseInt(String(v).replace(/^0+/, '').charAt(0), 10);
+          if (first >= 1 && first <= 9) {
+            counts[first]++;
+            total++;
+          }
+        }
+      }
+      const expected = [0, 30.1, 17.6, 12.5, 9.7, 7.9, 6.7, 5.8, 5.1, 4.6];
+      const data = [] as Record<string, string | number>[];
+      for (let d = 1; d <= 9; d++) {
+        data.push({
+          digit: String(d),
+          observe: total === 0 ? 0 : (counts[d] / total) * 100,
+          attendu: expected[d],
+        });
+      }
+      return {
+        data,
+        xAxisKey: 'digit',
+        series: [
+          { key: 'observe', label: 'Observé (%)', color: '#171717' },
+          { key: 'attendu', label: 'Benford (%)', color: '#a3a3a3' },
+        ],
+      };
+    }
+
+    case 'chart.marge_evolution':
+    case 'chart.ebitda_trimestriel':
+    case 'chart.ratios_trend':
+    case 'chart.comparatif_n_n1':
+    case 'chart.tva_evolution': {
+      const months = getMonthsInPeriod(period);
+      const data = months.map(m => {
+        let produits = 0, charges = 0;
+        for (const e of entries) {
+          if (!e.date || !e.date.startsWith(m.prefix)) continue;
+          for (const l of (e.lines || [])) {
+            if (l.accountCode?.startsWith('7')) produits += (l.credit || 0) - (l.debit || 0);
+            if (l.accountCode?.startsWith('6')) charges += (l.debit || 0) - (l.credit || 0);
+          }
+        }
+        return { month: m.label, valeur: produits - charges };
+      });
+      return {
+        data,
+        xAxisKey: 'month',
+        series: [{ key: 'valeur', label: 'Valeur', color: '#171717' }],
+      };
+    }
+
+    case 'chart.top_comptes': {
+      const totals = new Map<string, { label: string; montant: number }>();
+      for (const e of entries) {
+        if (!inPeriod(e.date, period)) continue;
+        for (const l of (e.lines || [])) {
+          const code = l.accountCode || '';
+          if (!totals.has(code)) totals.set(code, { label: l.accountName || code, montant: 0 });
+          const t = totals.get(code)!;
+          t.montant += (l.debit || 0) + (l.credit || 0);
+        }
+      }
+      return {
+        data: Array.from(totals.entries())
+          .map(([code, t]) => ({ compte: code, montant: t.montant }))
+          .sort((a, b) => b.montant - a.montant)
+          .slice(0, 10),
+        xAxisKey: 'compte',
         series: [{ key: 'montant', label: 'Montant', color: '#171717' }],
       };
     }
