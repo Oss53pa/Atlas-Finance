@@ -20,20 +20,20 @@ const JournalDashboard: React.FC = () => {
   const { t } = useLanguage();
   const fmt = useMoneyFormat();
   const { adapter } = useData();
-  // États
+  // Ã‰tats
   const [showPeriodModal, setShowPeriodModal] = useState(false);
   const [dateRange, setDateRange] = useState({ start: '2024-01-01', end: '2024-12-31' });
   const [activeSubTab, setActiveSubTab] = useState('operations');
 
   // Sous-onglets
   const subTabs = [
-    { id: 'operations', label: 'Opérations & Contrôles', icon: Layers },
-    { id: 'treasury', label: 'Trésorerie & Performance', icon: TrendIcon }
+    { id: 'operations', label: 'OpÃ©rations & ContrÃ´les', icon: Layers },
+    { id: 'treasury', label: 'TrÃ©sorerie & Performance', icon: TrendIcon }
   ];
 
   const [selectedPeriod, setSelectedPeriod] = useState('today');
 
-  // 1. Synthèse des écritures du jour — depuis Dexie
+  // 1. SynthÃ¨se des Ã©critures du jour â€” depuis Dexie
   const { data: todaySummary = { totalEntries: 0, totalDebit: 0, totalCredit: 0, isBalanced: true, pendingValidation: 0, validated: 0 } } = useQuery({
     queryKey: ['journal-today-summary'],
     queryFn: async () => {
@@ -52,7 +52,7 @@ const JournalDashboard: React.FC = () => {
     },
   });
 
-  // 2. Répartition par type d'opération — depuis Dexie
+  // 2. RÃ©partition par type d'opÃ©ration â€” depuis Dexie
   const { data: operationsByType = [] } = useQuery({
     queryKey: ['journal-operations-by-type', dateRange],
     queryFn: async () => {
@@ -61,14 +61,14 @@ const JournalDashboard: React.FC = () => {
       const byJournal: Record<string, number> = {};
       for (const e of filtered) byJournal[e.journal] = (byJournal[e.journal] || 0) + 1;
       const colors: Record<string, string> = { VE: '#22c55e', AC: '#EF4444', BQ: '#3B82F6', CA: '#F59E0B', OD: '#737373' };
-      const names: Record<string, string> = { VE: 'Ventes', AC: 'Achats', BQ: 'Banque', CA: 'Caisse', OD: 'Opérations Diverses' };
+      const names: Record<string, string> = { VE: 'Ventes', AC: 'Achats', BQ: 'Banque', CA: 'Caisse', OD: 'OpÃ©rations Diverses' };
       return Object.entries(byJournal).map(([key, value]) => ({
         name: names[key] || key, value, color: colors[key] || '#8B5CF6',
       }));
     },
   });
 
-  // Volume d'écritures par jour (7 derniers jours)
+  // Volume d'Ã©critures par jour (7 derniers jours)
   const { data: volumeByDay = [] } = useQuery({
     queryKey: ['journal-volume-by-day'],
     queryFn: async () => {
@@ -90,7 +90,7 @@ const JournalDashboard: React.FC = () => {
     },
   });
 
-  // 3. Alertes et contrôles — dynamiques
+  // 3. Alertes et contrÃ´les â€” dynamiques
   const { data: alerts = [] } = useQuery({
     queryKey: ['journal-alerts'],
     queryFn: async () => {
@@ -98,14 +98,14 @@ const JournalDashboard: React.FC = () => {
       const drafts = entries.filter(e => e.status === 'draft').length;
       const unbalanced = entries.filter(e => money(e.totalDebit).subtract(money(e.totalCredit)).abs().toNumber() > 1).length;
       const result: { type: string; message: string; icon: typeof AlertTriangle }[] = [];
-      if (unbalanced > 0) result.push({ type: 'error', message: `${unbalanced} écriture(s) non équilibrée(s)`, icon: AlertTriangle });
-      if (drafts > 0) result.push({ type: 'warning', message: `${drafts} écriture(s) en attente de validation`, icon: Clock });
+      if (unbalanced > 0) result.push({ type: 'error', message: `${unbalanced} Ã©criture(s) non Ã©quilibrÃ©e(s)`, icon: AlertTriangle });
+      if (drafts > 0) result.push({ type: 'warning', message: `${drafts} Ã©criture(s) en attente de validation`, icon: Clock });
       if (result.length === 0) result.push({ type: 'info', message: 'Aucune alerte en cours', icon: CheckCircle });
       return result;
     },
   });
 
-  // 4. Suivi de trésorerie — depuis comptes 5x
+  // 4. Suivi de trÃ©sorerie â€” depuis comptes 5x
   const { data: treasuryData = { cashBalance: 0, bankBalance: 0, totalBalance: 0, dailyIn: 0, dailyOut: 0, netFlow: 0 } } = useQuery({
     queryKey: ['journal-treasury'],
     queryFn: async () => {
@@ -121,7 +121,7 @@ const JournalDashboard: React.FC = () => {
     },
   });
 
-  // Évolution de la trésorerie (7 derniers jours)
+  // Ã‰volution de la trÃ©sorerie (7 derniers jours)
   const { data: treasuryEvolution = [] } = useQuery({
     queryKey: ['journal-treasury-evolution'],
     queryFn: async () => {
@@ -148,7 +148,7 @@ const JournalDashboard: React.FC = () => {
     },
   });
 
-  // 5. KPIs calculés
+  // 5. KPIs calculÃ©s
   const { data: kpis = { avgValidationTime: '0', complianceRate: 100, errorRate: 0, automationRate: 0 } } = useQuery({
     queryKey: ['journal-kpis'],
     queryFn: async () => {
@@ -157,7 +157,7 @@ const JournalDashboard: React.FC = () => {
       const validated = entries.filter(e => e.status !== 'draft').length;
       const errors = entries.filter(e => money(e.totalDebit).subtract(money(e.totalCredit)).abs().toNumber() > 1).length;
       return {
-        avgValidationTime: '—',
+        avgValidationTime: 'â€”',
         complianceRate: Math.round((validated / total) * 100),
         errorRate: Math.round((errors / total) * 100),
         automationRate: 0,
@@ -169,24 +169,24 @@ const JournalDashboard: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header avec sélecteur de période */}
+      {/* Header avec sÃ©lecteur de pÃ©riode */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-bold text-[#171717]">Dashboard Journaux Comptables</h1>
-          <p className="text-sm text-[#737373] mt-1">Vue d'ensemble de l'activité comptable</p>
+          <h1 className="text-lg font-bold text-[var(--color-text-primary)]">Dashboard Journaux Comptables</h1>
+          <p className="text-sm text-[var(--color-text-tertiary)] mt-1">Vue d'ensemble de l'activitÃ© comptable</p>
         </div>
         <div className="flex items-center space-x-3">
           <select
             value={selectedPeriod}
             onChange={(e) => setSelectedPeriod(e.target.value)}
-            className="px-4 py-2 border border-[#d4d4d4] rounded-lg focus:ring-2 focus:ring-[#171717]"
+            className="px-4 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
           >
             <option value="today">{t('common.today')}</option>
             <option value="week">Cette semaine</option>
             <option value="month">Ce mois</option>
-            <option value="year">Cette année</option>
+            <option value="year">Cette annÃ©e</option>
           </select>
-          <span className="text-sm text-[#737373] flex items-center">
+          <span className="text-sm text-[var(--color-text-tertiary)] flex items-center">
             <Calendar className="w-4 h-4 mr-1" />
             {new Date().toLocaleDateString('fr-FR')}
           </span>
@@ -194,8 +194,8 @@ const JournalDashboard: React.FC = () => {
       </div>
 
       {/* Sous-onglets */}
-      <div className="bg-white rounded-lg border border-[#e5e5e5]">
-        <div className="px-4 border-b border-[#e5e5e5]">
+      <div className="bg-white rounded-lg border border-[var(--color-border)]">
+        <div className="px-4 border-b border-[var(--color-border)]">
           <nav className="flex space-x-6">
             {subTabs.map((tab) => {
               const IconComponent = tab.icon;
@@ -205,8 +205,8 @@ const JournalDashboard: React.FC = () => {
                   onClick={() => setActiveSubTab(tab.id)}
                   className={`flex items-center space-x-2 py-3 border-b-2 font-medium text-sm transition-colors ${
                     activeSubTab === tab.id
-                      ? 'border-[#171717] text-[#171717]'
-                      : 'border-transparent text-[#737373] hover:text-[#404040]'
+                      ? 'border-[var(--color-primary)] text-[var(--color-text-primary)]'
+                      : 'border-transparent text-[var(--color-text-tertiary)] hover:text-[var(--color-text-secondary)]'
                   }`}
                 >
                   <IconComponent className="w-4 h-4" />
@@ -219,25 +219,25 @@ const JournalDashboard: React.FC = () => {
 
         {/* Contenu des sous-onglets */}
         <div className="p-6">
-          {/* ONGLET OPÉRATIONS & CONTRÔLES */}
+          {/* ONGLET OPÃ‰RATIONS & CONTRÃ”LES */}
           {activeSubTab === 'operations' && (
             <div className="space-y-6">
-              {/* Synthèse du jour */}
+              {/* SynthÃ¨se du jour */}
               <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                <div className="bg-gray-50 rounded-lg p-4 border border-[#e5e5e5]">
+                <div className="bg-gray-50 rounded-lg p-4 border border-[var(--color-border)]">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-[#737373]">Écritures du jour</p>
-                      <p className="text-lg font-bold text-[#171717] mt-1">{todaySummary.totalEntries}</p>
+                      <p className="text-sm text-[var(--color-text-tertiary)]">Ã‰critures du jour</p>
+                      <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">{todaySummary.totalEntries}</p>
                     </div>
-                    <FileText className="w-8 h-8 text-[#171717]" />
+                    <FileText className="w-8 h-8 text-[var(--color-text-primary)]" />
                   </div>
                 </div>
 
-                <div className="bg-gray-50 rounded-lg p-4 border border-[#e5e5e5]">
+                <div className="bg-gray-50 rounded-lg p-4 border border-[var(--color-border)]">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-[#737373]">Total Débits</p>
+                      <p className="text-sm text-[var(--color-text-tertiary)]">Total DÃ©bits</p>
                       <p className="text-lg font-bold text-red-600 mt-1">
                         {formatAmount(todaySummary.totalDebit)}
                       </p>
@@ -246,10 +246,10 @@ const JournalDashboard: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="bg-gray-50 rounded-lg p-4 border border-[#e5e5e5]">
+                <div className="bg-gray-50 rounded-lg p-4 border border-[var(--color-border)]">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-[#737373]">Total Crédits</p>
+                      <p className="text-sm text-[var(--color-text-tertiary)]">Total CrÃ©dits</p>
                       <p className="text-lg font-bold text-green-600 mt-1">
                         {formatAmount(todaySummary.totalCredit)}
                       </p>
@@ -258,12 +258,12 @@ const JournalDashboard: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="bg-gray-50 rounded-lg p-4 border border-[#e5e5e5]">
+                <div className="bg-gray-50 rounded-lg p-4 border border-[var(--color-border)]">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-[#737373]">{t('accounting.balance')}</p>
+                      <p className="text-sm text-[var(--color-text-tertiary)]">{t('accounting.balance')}</p>
                       <p className={`text-lg font-bold mt-1 ${todaySummary.isBalanced ? 'text-green-600' : 'text-red-600'}`}>
-                        {todaySummary.isBalanced ? 'Équilibrée' : 'Déséquilibrée'}
+                        {todaySummary.isBalanced ? 'Ã‰quilibrÃ©e' : 'DÃ©sÃ©quilibrÃ©e'}
                       </p>
                     </div>
                     {todaySummary.isBalanced ? (
@@ -274,10 +274,10 @@ const JournalDashboard: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="bg-gray-50 rounded-lg p-4 border border-[#e5e5e5]">
+                <div className="bg-gray-50 rounded-lg p-4 border border-[var(--color-border)]">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-[#737373]">{t('status.pending')}</p>
+                      <p className="text-sm text-[var(--color-text-tertiary)]">{t('status.pending')}</p>
                       <p className="text-lg font-bold text-orange-600 mt-1">{todaySummary.pendingValidation}</p>
                     </div>
                     <Clock className="w-8 h-8 text-orange-500" />
@@ -287,11 +287,11 @@ const JournalDashboard: React.FC = () => {
 
               {/* Visualisations */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Répartition par type */}
-                <div className="bg-gray-50 rounded-lg p-6 border border-[#e5e5e5]">
-                  <h3 className="text-lg font-semibold text-[#171717] mb-4 flex items-center">
-                    <PieChart className="w-5 h-5 mr-2 text-[#171717]" />
-                    Répartition par type d'opération
+                {/* RÃ©partition par type */}
+                <div className="bg-gray-50 rounded-lg p-6 border border-[var(--color-border)]">
+                  <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4 flex items-center">
+                    <PieChart className="w-5 h-5 mr-2 text-[var(--color-text-primary)]" />
+                    RÃ©partition par type d'opÃ©ration
                   </h3>
                   <ResponsiveContainer width="100%" height={300}>
                     <RePieChart>
@@ -316,17 +316,17 @@ const JournalDashboard: React.FC = () => {
                     {operationsByType.map((type, index) => (
                       <div key={index} className="flex items-center space-x-2">
                         <div className="w-3 h-3 rounded-full" style={{ backgroundColor: type.color }}></div>
-                        <span className="text-sm text-[#404040]">{type.name}: {type.value}%</span>
+                        <span className="text-sm text-[var(--color-text-secondary)]">{type.name}: {type.value}%</span>
                       </div>
                     ))}
                   </div>
                 </div>
 
                 {/* Volume par jour */}
-                <div className="bg-gray-50 rounded-lg p-6 border border-[#e5e5e5]">
-                  <h3 className="text-lg font-semibold text-[#171717] mb-4 flex items-center">
-                    <BarChart3 className="w-5 h-5 mr-2 text-[#171717]" />
-                    Volume d'écritures (7 derniers jours)
+                <div className="bg-gray-50 rounded-lg p-6 border border-[var(--color-border)]">
+                  <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4 flex items-center">
+                    <BarChart3 className="w-5 h-5 mr-2 text-[var(--color-text-primary)]" />
+                    Volume d'Ã©critures (7 derniers jours)
                   </h3>
                   <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={volumeByDay}>
@@ -335,23 +335,23 @@ const JournalDashboard: React.FC = () => {
                       <YAxis />
                       <Tooltip />
                       <Legend />
-                      <Bar dataKey="validated" stackId="a" fill="#22c55e" name="Validées" />
+                      <Bar dataKey="validated" stackId="a" fill="#22c55e" name="ValidÃ©es" />
                       <Bar dataKey="pending" stackId="a" fill="#F59E0B" name="En attente" />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
               </div>
 
-              {/* Statistiques de contrôle */}
-              <div className="bg-gray-50 rounded-lg p-6 border border-[#e5e5e5]">
-                <h3 className="text-lg font-semibold text-[#171717] mb-4 flex items-center">
-                  <CheckCircle className="w-5 h-5 mr-2 text-[#171717]" />
-                  État des Contrôles
+              {/* Statistiques de contrÃ´le */}
+              <div className="bg-gray-50 rounded-lg p-6 border border-[var(--color-border)]">
+                <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4 flex items-center">
+                  <CheckCircle className="w-5 h-5 mr-2 text-[var(--color-text-primary)]" />
+                  Ã‰tat des ContrÃ´les
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="bg-white rounded-lg p-4 border border-[#e5e5e5]">
+                  <div className="bg-white rounded-lg p-4 border border-[var(--color-border)]">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm text-[#737373]">Journaux équilibrés</span>
+                      <span className="text-sm text-[var(--color-text-tertiary)]">Journaux Ã©quilibrÃ©s</span>
                       <span className="text-lg font-bold text-green-600">3/5</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
@@ -359,9 +359,9 @@ const JournalDashboard: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="bg-white rounded-lg p-4 border border-[#e5e5e5]">
+                  <div className="bg-white rounded-lg p-4 border border-[var(--color-border)]">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm text-[#737373]">Écritures validées</span>
+                      <span className="text-sm text-[var(--color-text-tertiary)]">Ã‰critures validÃ©es</span>
                       <span className="text-lg font-bold text-blue-600">39/47</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
@@ -369,9 +369,9 @@ const JournalDashboard: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="bg-white rounded-lg p-4 border border-[#e5e5e5]">
+                  <div className="bg-white rounded-lg p-4 border border-[var(--color-border)]">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm text-[#737373]">Comptes complets</span>
+                      <span className="text-sm text-[var(--color-text-tertiary)]">Comptes complets</span>
                       <span className="text-lg font-bold text-primary-600">44/47</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
@@ -383,16 +383,16 @@ const JournalDashboard: React.FC = () => {
             </div>
           )}
 
-          {/* ONGLET TRÉSORERIE & PERFORMANCE */}
+          {/* ONGLET TRÃ‰SORERIE & PERFORMANCE */}
           {activeSubTab === 'treasury' && (
             <div className="space-y-6">
-              {/* Indicateurs de trésorerie */}
+              {/* Indicateurs de trÃ©sorerie */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="bg-gray-50 rounded-lg p-4 border border-[#e5e5e5]">
+                <div className="bg-gray-50 rounded-lg p-4 border border-[var(--color-border)]">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-[#737373]">Solde Caisse</p>
-                      <p className="text-lg font-bold text-[#171717] mt-1">
+                      <p className="text-sm text-[var(--color-text-tertiary)]">Solde Caisse</p>
+                      <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">
                         {formatAmount(treasuryData.cashBalance)}
                       </p>
                     </div>
@@ -400,11 +400,11 @@ const JournalDashboard: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="bg-gray-50 rounded-lg p-4 border border-[#e5e5e5]">
+                <div className="bg-gray-50 rounded-lg p-4 border border-[var(--color-border)]">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-[#737373]">Solde Banque</p>
-                      <p className="text-lg font-bold text-[#171717] mt-1">
+                      <p className="text-sm text-[var(--color-text-tertiary)]">Solde Banque</p>
+                      <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">
                         {formatAmount(treasuryData.bankBalance)}
                       </p>
                     </div>
@@ -412,10 +412,10 @@ const JournalDashboard: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="bg-gray-50 rounded-lg p-4 border border-[#e5e5e5]">
+                <div className="bg-gray-50 rounded-lg p-4 border border-[var(--color-border)]">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-[#737373]">Encaissements du jour</p>
+                      <p className="text-sm text-[var(--color-text-tertiary)]">Encaissements du jour</p>
                       <p className="text-lg font-bold text-green-600 mt-1">
                         {formatAmount(treasuryData.dailyIn)}
                       </p>
@@ -424,10 +424,10 @@ const JournalDashboard: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="bg-gray-50 rounded-lg p-4 border border-[#e5e5e5]">
+                <div className="bg-gray-50 rounded-lg p-4 border border-[var(--color-border)]">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-[#737373]">Décaissements du jour</p>
+                      <p className="text-sm text-[var(--color-text-tertiary)]">DÃ©caissements du jour</p>
                       <p className="text-lg font-bold text-red-600 mt-1">
                         {formatAmount(treasuryData.dailyOut)}
                       </p>
@@ -437,11 +437,11 @@ const JournalDashboard: React.FC = () => {
                 </div>
               </div>
 
-              {/* Évolution de la trésorerie */}
-              <div className="bg-gray-50 rounded-lg p-6 border border-[#e5e5e5]">
-                <h3 className="text-lg font-semibold text-[#171717] mb-4 flex items-center">
-                  <DollarSign className="w-5 h-5 mr-2 text-[#171717]" />
-                  Évolution de la trésorerie (7 derniers jours)
+              {/* Ã‰volution de la trÃ©sorerie */}
+              <div className="bg-gray-50 rounded-lg p-6 border border-[var(--color-border)]">
+                <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4 flex items-center">
+                  <DollarSign className="w-5 h-5 mr-2 text-[var(--color-text-primary)]" />
+                  Ã‰volution de la trÃ©sorerie (7 derniers jours)
                 </h3>
                 <ResponsiveContainer width="100%" height={350}>
                   <AreaChart data={treasuryEvolution}>
@@ -458,18 +458,18 @@ const JournalDashboard: React.FC = () => {
               </div>
 
               {/* Indicateurs de performance */}
-              <div className="bg-gray-50 rounded-lg p-6 border border-[#e5e5e5]">
-                <h3 className="text-lg font-semibold text-[#171717] mb-6 flex items-center">
-                  <Activity className="w-5 h-5 mr-2 text-[#525252]" />
+              <div className="bg-gray-50 rounded-lg p-6 border border-[var(--color-border)]">
+                <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-6 flex items-center">
+                  <Activity className="w-5 h-5 mr-2 text-[var(--color-text-secondary)]" />
                   Indicateurs de Performance
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                   <div className="text-center">
                     <div className="mb-2">
-                      <Clock className="w-10 h-10 text-[#171717] mx-auto" />
+                      <Clock className="w-10 h-10 text-[var(--color-text-primary)] mx-auto" />
                     </div>
-                    <p className="text-lg font-bold text-[#171717]">{kpis.avgValidationTime}h</p>
-                    <p className="text-sm text-[#737373] mt-1">Temps moyen de validation</p>
+                    <p className="text-lg font-bold text-[var(--color-text-primary)]">{kpis.avgValidationTime}h</p>
+                    <p className="text-sm text-[var(--color-text-tertiary)] mt-1">Temps moyen de validation</p>
                   </div>
 
                   <div className="text-center">
@@ -477,7 +477,7 @@ const JournalDashboard: React.FC = () => {
                       <CheckCircle className="w-10 h-10 text-green-500 mx-auto" />
                     </div>
                     <p className="text-lg font-bold text-green-600">{kpis.complianceRate}%</p>
-                    <p className="text-sm text-[#737373] mt-1">Taux de conformité</p>
+                    <p className="text-sm text-[var(--color-text-tertiary)] mt-1">Taux de conformitÃ©</p>
                     <div className="mt-2">
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div
@@ -493,7 +493,7 @@ const JournalDashboard: React.FC = () => {
                       <AlertTriangle className="w-10 h-10 text-red-500 mx-auto" />
                     </div>
                     <p className="text-lg font-bold text-red-600">{kpis.errorRate}%</p>
-                    <p className="text-sm text-[#737373] mt-1">Taux d'erreur</p>
+                    <p className="text-sm text-[var(--color-text-tertiary)] mt-1">Taux d'erreur</p>
                     <div className="mt-2">
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div
@@ -506,10 +506,10 @@ const JournalDashboard: React.FC = () => {
 
                   <div className="text-center">
                     <div className="mb-2">
-                      <Activity className="w-10 h-10 text-[#525252] mx-auto" />
+                      <Activity className="w-10 h-10 text-[var(--color-text-secondary)] mx-auto" />
                     </div>
-                    <p className="text-lg font-bold text-[#525252]">{kpis.automationRate}%</p>
-                    <p className="text-sm text-[#737373] mt-1">Taux d'automatisation</p>
+                    <p className="text-lg font-bold text-[var(--color-text-secondary)]">{kpis.automationRate}%</p>
+                    <p className="text-sm text-[var(--color-text-tertiary)] mt-1">Taux d'automatisation</p>
                     <div className="mt-2">
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div
@@ -525,9 +525,9 @@ const JournalDashboard: React.FC = () => {
               {/* Statistiques additionnelles */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-6 border border-blue-200">
-                  <h4 className="text-sm font-semibold text-blue-900 mb-3">Flux Net de Trésorerie</h4>
+                  <h4 className="text-sm font-semibold text-blue-900 mb-3">Flux Net de TrÃ©sorerie</h4>
                   <p className="text-lg font-bold text-blue-700">+{formatAmount(treasuryData.netFlow)}</p>
-                  <p className="text-xs text-blue-600 mt-2">↑ 12% vs semaine dernière</p>
+                  <p className="text-xs text-blue-600 mt-2">â†‘ 12% vs semaine derniÃ¨re</p>
                 </div>
 
                 <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-6 border border-green-200">
@@ -537,9 +537,9 @@ const JournalDashboard: React.FC = () => {
                 </div>
 
                 <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-lg p-6 border border-primary-200">
-                  <h4 className="text-sm font-semibold text-primary-900 mb-3">Prévisions à 30 jours</h4>
+                  <h4 className="text-sm font-semibold text-primary-900 mb-3">PrÃ©visions Ã  30 jours</h4>
                   <p className="text-lg font-bold text-primary-700">{formatAmount(8500000)}</p>
-                  <p className="text-xs text-primary-600 mt-2">Basé sur les tendances actuelles</p>
+                  <p className="text-xs text-primary-600 mt-2">BasÃ© sur les tendances actuelles</p>
                 </div>
               </div>
             </div>
@@ -547,7 +547,7 @@ const JournalDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Modal de sélection de période */}
+      {/* Modal de sÃ©lection de pÃ©riode */}
       <PeriodSelectorModal
         isOpen={showPeriodModal}
         onClose={() => setShowPeriodModal(false)}

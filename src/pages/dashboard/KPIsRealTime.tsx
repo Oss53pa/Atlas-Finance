@@ -385,7 +385,7 @@ const KPIsRealTime: React.FC = () => {
                 onChange={(e) => setAutoRefresh(e.target.checked)}
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#d4d4d4] rounded-full peer peer-checked:after:tranprimary-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#171717]"></div>
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[var(--color-border)] rounded-full peer peer-checked:after:tranprimary-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--color-primary)]"></div>
             </label>
             <span className="text-sm font-medium">Live</span>
           </div>
@@ -406,7 +406,7 @@ const KPIsRealTime: React.FC = () => {
           {/* Export Button */}
           <button
             onClick={exportData}
-            className="flex items-center gap-2 px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#525252]"
+            className="flex items-center gap-2 px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)]"
           >
             <Download className="w-4 h-4" />
             Exporter
@@ -425,7 +425,7 @@ const KPIsRealTime: React.FC = () => {
               className={cn(
                 "flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all",
                 activeTab === tab.key
-                  ? "bg-[#171717] text-white shadow-md"
+                  ? "bg-[var(--color-primary)] text-white shadow-md"
                   : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
               )}
             >
@@ -450,7 +450,7 @@ const KPIsRealTime: React.FC = () => {
                   className={cn(
                     "px-3 py-1 rounded-lg text-sm font-medium transition-all",
                     filterCategory === cat
-                      ? "bg-[#171717] text-white"
+                      ? "bg-[var(--color-primary)] text-white"
                       : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                   )}
                 >
@@ -467,7 +467,7 @@ const KPIsRealTime: React.FC = () => {
                 key={kpi.id}
                 className={cn(
                   "bg-white rounded-lg shadow p-4 cursor-pointer transition-all hover:shadow-lg",
-                  selectedKPI === kpi.id && "ring-2 ring-[#737373]",
+                  selectedKPI === kpi.id && "ring-2 ring-[var(--color-text-tertiary)]",
                   fullscreenKPI === kpi.id && "fixed inset-4 z-50"
                 )}
                 onClick={() => setSelectedKPI(kpi.id)}
@@ -621,7 +621,7 @@ const KPIsRealTime: React.FC = () => {
           {/* Alerts */}
           <div className="bg-gradient-to-r from-[#f5f5f5] to-primary-50 rounded-lg p-6">
             <div className="flex items-center gap-3 mb-4">
-              <Bell className="w-6 h-6 text-[#171717]" />
+              <Bell className="w-6 h-6 text-[var(--color-primary)]" />
               <h2 className="text-lg font-semibold text-gray-900">Alertes KPI</h2>
             </div>
             {(() => {

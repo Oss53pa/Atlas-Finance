@@ -18,6 +18,7 @@ import {
   Video, Calendar, Folder, ArrowLeftRight, Tag, Layers, Book, Brain, History
 } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
+import { themes } from '../../styles/theme';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTenantPlan, hasFeature } from '../../features/platform/hooks/useTenantPlan';
 import { useFeatureAccess } from '../../components/gating';
@@ -299,8 +300,8 @@ const ModernDoubleSidebarLayout: React.FC = () => {
     }
   }, [location.pathname]);
 
-  const handleThemeChange = useCallback((type: 'elegant' | 'fintech' | 'minimalist') => {
-    setTheme(type);
+  const handleThemeChange = useCallback((type: string) => {
+    setTheme(type as any);
     setShowThemeMenu(false);
   }, [setTheme]);
 
@@ -725,59 +726,50 @@ const ModernDoubleSidebarLayout: React.FC = () => {
               </button>
               {showThemeMenu && (
                 <div
-                  className="absolute right-0 mt-2 w-64 bg-[var(--color-background)] rounded-lg shadow-xl border border-[var(--color-border)] z-50"
+                  className="absolute right-0 mt-2 w-72 bg-[var(--color-background)] rounded-lg shadow-xl border border-[var(--color-border)] z-50 max-h-[70vh] overflow-y-auto"
                   role="menu"
                   aria-label="Sélection du thème"
                 >
                   <div className="p-2">
                     <p className="px-3 py-2 text-xs font-semibold text-[var(--color-text-tertiary)] uppercase">
-                      Thèmes disponibles
+                      Palettes disponibles
                     </p>
-                    <button
-                      type="button"
-                      onClick={() => handleThemeChange('elegant')}
-                      className={cn(
-                        'w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[var(--color-surface-hover)] transition-colors',
-                        themeType === 'elegant' && 'bg-[var(--color-primary-light)]'
-                      )}
-                      role="menuitem"
-                    >
-                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-accent)]" />
-                      <div className="text-left">
-                        <p className="text-sm font-medium">Élégance Sobre</p>
-                        <p className="text-xs text-[var(--color-text-tertiary)]">Finance traditionnelle</p>
-                      </div>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleThemeChange('fintech')}
-                      className={cn(
-                        'w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[var(--color-surface-hover)] transition-colors',
-                        themeType === 'fintech' && 'bg-[var(--color-primary-light)]'
-                      )}
-                      role="menuitem"
-                    >
-                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[var(--color-success)] to-[var(--color-text-primary)]" />
-                      <div className="text-left">
-                        <p className="text-sm font-medium">Modern Fintech</p>
-                        <p className="text-xs text-[var(--color-text-tertiary)]">Tableau de bord moderne</p>
-                      </div>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleThemeChange('minimalist')}
-                      className={cn(
-                        'w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[var(--color-surface-hover)] transition-colors',
-                        themeType === 'minimalist' && 'bg-[var(--color-primary-light)]'
-                      )}
-                      role="menuitem"
-                    >
-                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[var(--color-text-secondary)] to-[var(--color-accent)]" />
-                      <div className="text-left">
-                        <p className="text-sm font-medium">Minimaliste Premium</p>
-                        <p className="text-xs text-[var(--color-text-tertiary)]">Élégance minimaliste</p>
-                      </div>
-                    </button>
+                    {(Object.entries(themes) as Array<[string, typeof theme]>).map(([key, t]) => (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => handleThemeChange(key)}
+                        className={cn(
+                          'w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[var(--color-surface-hover)] transition-colors',
+                          themeType === key && 'bg-[var(--color-primary-light)]'
+                        )}
+                        role="menuitem"
+                      >
+                        <div
+                          className="w-10 h-10 rounded-lg flex-shrink-0"
+                          style={{
+                            background: `linear-gradient(135deg, ${t.colors.primary}, ${t.colors.accent}, ${t.colors.secondary})`,
+                          }}
+                        />
+                        <div className="text-left flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{t.name}</p>
+                          <p className="text-xs text-[var(--color-text-tertiary)] truncate">{t.description}</p>
+                        </div>
+                      </button>
+                    ))}
+                    <div className="border-t border-[var(--color-border)] mt-2 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowThemeMenu(false);
+                          navigate('/settings/themes');
+                        }}
+                        className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-[var(--color-surface-hover)] transition-colors text-sm font-medium text-[var(--color-accent)]"
+                      >
+                        <span>Voir toutes les palettes</span>
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}

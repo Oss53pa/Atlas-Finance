@@ -233,6 +233,7 @@ const OfflineModePage = lazyRetry(() => import('./pages/settings/OfflineModePage
 const IAConfigPage = lazyRetry(() => import('./pages/settings/IAConfigPage'));
 const TrackChangePage = lazyRetry(() => import('./pages/settings/TrackChangePage'));
 const TypographyGuide = lazyRetry(() => import('./pages/settings/TypographyGuide'));
+const ThemePalettesPage = lazyRetry(() => import('./pages/settings/ThemePalettesPage'));
 
 // Config
 const PlanSYSCOHADAPage = lazyRetry(() => import('./pages/config/PlanSYSCOHADAPage'));
@@ -524,6 +525,11 @@ function App() {
                           <Route path="/core/company" element={<CompanyPage />} />
                           <Route path="/core/exercice" element={<ExercicePage />} />
                           <Route path="/setup" element={<SetupWizardPage />} />
+                        </Route>
+
+                        {/* Thèmes — accessible à tous les utilisateurs authentifiés */}
+                        <Route element={<RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant', 'user', 'viewer']}><Outlet /></RBACGuard>}>
+                          <Route path="/settings/themes" element={<ThemePalettesPage />} />
                         </Route>
 
                         {/* Aide / Help — accessible à tous les utilisateurs authentifiés */}

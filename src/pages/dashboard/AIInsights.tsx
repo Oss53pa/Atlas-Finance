@@ -108,12 +108,12 @@ const AIInsights: React.FC = () => {
             id: '1',
             type: 'revenue',
             title: 'Chiffre d\'Affaires actuel',
-            description: `CA total comptabilisé: ${formatCurrency(totalCA)}`,
+            description: `CA total comptabilisÃ©: ${formatCurrency(totalCA)}`,
             value: Math.round(totalCA),
             confidence: 100,
             impact: 'high',
-            timeframe: 'Cumulé',
-            factors: ['Données comptables réelles'],
+            timeframe: 'CumulÃ©',
+            factors: ['DonnÃ©es comptables rÃ©elles'],
             recommendation: 'Analyse en cours...',
             probability: 1
           });
@@ -122,17 +122,17 @@ const AIInsights: React.FC = () => {
           builtPredictions.push({
             id: '2',
             type: 'cashflow',
-            title: 'Situation Trésorerie',
+            title: 'Situation TrÃ©sorerie',
             description: totalTresorerie < 0
-              ? `Trésorerie négative: ${formatCurrency(totalTresorerie)}`
-              : `Trésorerie positive: ${formatCurrency(totalTresorerie)}`,
+              ? `TrÃ©sorerie nÃ©gative: ${formatCurrency(totalTresorerie)}`
+              : `TrÃ©sorerie positive: ${formatCurrency(totalTresorerie)}`,
             value: Math.round(totalTresorerie),
             confidence: 100,
             impact: totalTresorerie < 0 ? 'high' : 'medium',
             timeframe: 'Actuel',
             factors: ['Soldes comptes classe 5'],
             recommendation: totalTresorerie < 0
-              ? 'Accélérer le recouvrement ou négocier un découvert'
+              ? 'AccÃ©lÃ©rer le recouvrement ou nÃ©gocier un dÃ©couvert'
               : 'Analyse en cours...',
             probability: 1
           });
@@ -142,13 +142,13 @@ const AIInsights: React.FC = () => {
             id: '0',
             type: 'revenue',
             title: 'Analyse en cours...',
-            description: 'Aucune écriture comptabilisée pour générer des prévisions',
+            description: 'Aucune Ã©criture comptabilisÃ©e pour gÃ©nÃ©rer des prÃ©visions',
             value: 0,
             confidence: 0,
             impact: 'low',
             timeframe: '-',
-            factors: ['Données insuffisantes'],
-            recommendation: 'Saisir et comptabiliser des écritures pour activer l\'analyse',
+            factors: ['DonnÃ©es insuffisantes'],
+            recommendation: 'Saisir et comptabiliser des Ã©critures pour activer l\'analyse',
             probability: 0
           });
         }
@@ -165,14 +165,14 @@ const AIInsights: React.FC = () => {
               anomalyId++;
               builtAnomalies.push({
                 id: String(anomalyId),
-                category: 'Comptabilité',
-                description: `Écriture ${entry.entryNumber || entry.id} déséquilibrée`,
+                category: 'ComptabilitÃ©',
+                description: `Ã‰criture ${entry.entryNumber || entry.id} dÃ©sÃ©quilibrÃ©e`,
                 severity: 'critical',
                 detectedAt: new Date(entry.createdAt || Date.now()),
-                pattern: `Écart D/C: ${formatCurrency(Math.abs(d - c))}`,
-                affectedMetric: 'Équilibre comptable',
+                pattern: `Ã‰cart D/C: ${formatCurrency(Math.abs(d - c))}`,
+                affectedMetric: 'Ã‰quilibre comptable',
                 deviation: Math.round(Math.abs(d - c)),
-                suggestion: 'Corriger l\'écriture pour rétablir l\'équilibre débit/crédit'
+                suggestion: 'Corriger l\'Ã©criture pour rÃ©tablir l\'Ã©quilibre dÃ©bit/crÃ©dit'
               });
             }
             // Detect unusually large amounts (> 10x average)
@@ -188,9 +188,9 @@ const AIInsights: React.FC = () => {
                 severity: 'warning',
                 detectedAt: new Date(entry.createdAt || Date.now()),
                 pattern: `Montant ${formatCurrency(entry.totalDebit || 0)} vs moyenne ${formatCurrency(avgAmount)}`,
-                affectedMetric: 'Montant écriture',
+                affectedMetric: 'Montant Ã©criture',
                 deviation: Math.round(((entry.totalDebit || 0) / avgAmount - 1) * 100),
-                suggestion: 'Vérifier que le montant est correct'
+                suggestion: 'VÃ©rifier que le montant est correct'
               });
             }
           }
@@ -205,10 +205,10 @@ const AIInsights: React.FC = () => {
             id: '1',
             category: 'risk',
             title: 'Marge brute faible',
-            description: `La marge brute est de ${marge.toFixed(1)}%, en dessous du seuil recommandé de 25%`,
+            description: `La marge brute est de ${marge.toFixed(1)}%, en dessous du seuil recommandÃ© de 25%`,
             actionableSteps: [
-              'Analyser les postes de charges les plus élevés',
-              'Identifier les opportunités de réduction de coûts',
+              'Analyser les postes de charges les plus Ã©levÃ©s',
+              'Identifier les opportunitÃ©s de rÃ©duction de coÃ»ts',
               'Revoir la politique tarifaire'
             ],
             potentialGain: Math.round(totalCA * 0.05),
@@ -221,12 +221,12 @@ const AIInsights: React.FC = () => {
           builtInsights.push({
             id: '2',
             category: 'optimization',
-            title: 'Écritures en attente de validation',
-            description: `${draftCount} écritures en brouillon ralentissent le processus comptable`,
+            title: 'Ã‰critures en attente de validation',
+            description: `${draftCount} Ã©critures en brouillon ralentissent le processus comptable`,
             actionableSteps: [
-              'Valider les écritures en attente',
-              'Mettre en place un processus de validation régulier',
-              'Automatiser la validation des écritures récurrentes'
+              'Valider les Ã©critures en attente',
+              'Mettre en place un processus de validation rÃ©gulier',
+              'Automatiser la validation des Ã©critures rÃ©currentes'
             ],
             potentialGain: 0,
             confidence: 95,
@@ -255,10 +255,10 @@ const AIInsights: React.FC = () => {
             }).length / posted.length) * 100)
           : 0;
         setScoringData([
-          { metric: 'Équilibre D/C', score: balancedPct, benchmark: 100 },
+          { metric: 'Ã‰quilibre D/C', score: balancedPct, benchmark: 100 },
           { metric: 'Couverture', score: entries.length > 0 ? Math.min(100, entries.length * 2) : 0, benchmark: 80 },
           { metric: 'Validation', score: posted.length > 0 ? Math.round((posted.length / entries.length) * 100) : 0, benchmark: 90 },
-          { metric: 'Exhaustivité', score: totalCA > 0 && totalCharges > 0 ? 80 : 20, benchmark: 85 },
+          { metric: 'ExhaustivitÃ©', score: totalCA > 0 && totalCharges > 0 ? 80 : 20, benchmark: 85 },
         ]);
 
         setCorrelationData([]);
@@ -286,14 +286,14 @@ const AIInsights: React.FC = () => {
     switch (severity) {
       case 'critical': return 'bg-red-50 border-red-200';
       case 'warning': return 'bg-amber-50 border-amber-200';
-      case 'info': return 'bg-[#f5f5f5] border-[#e5e5e5]';
+      case 'info': return 'bg-[var(--color-surface-hover)] border-[var(--color-border)]';
       default: return 'bg-gray-50 border-gray-200';
     }
   };
 
   const tabs = [
-    { id: 'predictions', label: 'Prédictions IA', icon: Brain },
-    { id: 'anomalies', label: 'Détection d\'Anomalies', icon: AlertTriangle },
+    { id: 'predictions', label: 'PrÃ©dictions IA', icon: Brain },
+    { id: 'anomalies', label: 'DÃ©tection d\'Anomalies', icon: AlertTriangle },
     { id: 'insights', label: 'Insights Actionnables', icon: Lightbulb },
     { id: 'performance', label: 'Performance & Analyses', icon: BarChart3 }
   ];
@@ -305,15 +305,15 @@ const AIInsights: React.FC = () => {
         <div className="flex items-center gap-3 mb-4">
           <Brain className="w-8 h-8 text-white" />
           <div>
-            <h2 className="text-lg font-semibold text-white">Performance des Modèles IA</h2>
-            <p className="text-white/80">Précision et fiabilité en temps réel</p>
+            <h2 className="text-lg font-semibold text-white">Performance des ModÃ¨les IA</h2>
+            <p className="text-white/80">PrÃ©cision et fiabilitÃ© en temps rÃ©el</p>
           </div>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           <div>
             <div className="flex items-center gap-2 mb-2">
               <Target className="w-5 h-5 text-white" />
-              <span className="text-sm text-white/90">Écritures analysées</span>
+              <span className="text-sm text-white/90">Ã‰critures analysÃ©es</span>
             </div>
             <p className="text-lg font-bold text-white">{totalEntries}</p>
             <p className="text-sm text-white/75 mt-1">Total</p>
@@ -321,10 +321,10 @@ const AIInsights: React.FC = () => {
           <div>
             <div className="flex items-center gap-2 mb-2">
               <Sparkles className="w-5 h-5 text-white" />
-              <span className="text-sm text-white/90">Anomalies détectées</span>
+              <span className="text-sm text-white/90">Anomalies dÃ©tectÃ©es</span>
             </div>
             <p className="text-lg font-bold text-white">{anomalies.length}</p>
-            <p className="text-sm text-white/75 mt-1">À traiter</p>
+            <p className="text-sm text-white/75 mt-1">Ã€ traiter</p>
           </div>
           <div>
             <div className="flex items-center gap-2 mb-2">
@@ -346,7 +346,7 @@ const AIInsights: React.FC = () => {
                 <h3 className="font-semibold text-gray-900">{prediction.title}</h3>
                 <p className="text-sm text-gray-900 mt-1">{prediction.description}</p>
               </div>
-              <Bot className="w-5 h-5 text-[#171717]" />
+              <Bot className="w-5 h-5 text-[var(--color-text-primary)]" />
             </div>
 
             <div className="mb-4">
@@ -354,7 +354,7 @@ const AIInsights: React.FC = () => {
                 <span className="text-lg font-bold text-gray-900">
                   {prediction.type === 'revenue' || prediction.type === 'cashflow'
                     ? `${formatCurrency(prediction.value)}`
-                    : `${prediction.value} unités`}
+                    : `${prediction.value} unitÃ©s`}
                 </span>
                 <span className="text-sm text-gray-600">{prediction.timeframe}</span>
               </div>
@@ -380,7 +380,7 @@ const AIInsights: React.FC = () => {
             </div>
 
             <div className="mb-4">
-              <p className="text-sm font-medium text-gray-900 mb-2">Facteurs clés:</p>
+              <p className="text-sm font-medium text-gray-900 mb-2">Facteurs clÃ©s:</p>
               <div className="flex flex-wrap gap-1">
                 {prediction.factors.map((factor, i) => (
                   <span key={i} className="px-2 py-1 bg-gray-100 text-xs rounded">
@@ -390,10 +390,10 @@ const AIInsights: React.FC = () => {
               </div>
             </div>
 
-            <div className="p-3 bg-[#171717]/10 rounded-lg">
+            <div className="p-3 bg-[var(--color-primary)]/10 rounded-lg">
               <div className="flex items-start gap-2">
-                <Lightbulb className="w-4 h-4 text-[#171717] mt-0.5" />
-                <p className="text-sm text-[#171717]">{prediction.recommendation}</p>
+                <Lightbulb className="w-4 h-4 text-[var(--color-text-primary)] mt-0.5" />
+                <p className="text-sm text-[var(--color-text-primary)]">{prediction.recommendation}</p>
               </div>
             </div>
           </div>
@@ -402,7 +402,7 @@ const AIInsights: React.FC = () => {
 
       {/* Forecast Chart */}
       <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Prévisions avec Intervalles de Confiance</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">PrÃ©visions avec Intervalles de Confiance</h2>
         <ResponsiveContainer width="100%" height={350}>
           <AreaChart data={forecastData}>
             <defs>
@@ -416,10 +416,10 @@ const AIInsights: React.FC = () => {
             <YAxis stroke="#737373" />
             <Tooltip />
             <Legend />
-            <Area type="monotone" dataKey="upper" stroke="transparent" fill="#E0E7FF" name="Limite supérieure" />
-            <Area type="monotone" dataKey="lower" stroke="transparent" fill="#FFFFFF" name="Limite inférieure" />
-            <Line type="monotone" dataKey="actual" stroke="#22c55e" strokeWidth={2} dot={false} name="Réel" />
-            <Line type="monotone" dataKey="predicted" stroke="#171717" strokeWidth={2} strokeDasharray="5 5" dot={false} name="Prédiction" />
+            <Area type="monotone" dataKey="upper" stroke="transparent" fill="#E0E7FF" name="Limite supÃ©rieure" />
+            <Area type="monotone" dataKey="lower" stroke="transparent" fill="#FFFFFF" name="Limite infÃ©rieure" />
+            <Line type="monotone" dataKey="actual" stroke="#22c55e" strokeWidth={2} dot={false} name="RÃ©el" />
+            <Line type="monotone" dataKey="predicted" stroke="#171717" strokeWidth={2} strokeDasharray="5 5" dot={false} name="PrÃ©diction" />
           </AreaChart>
         </ResponsiveContainer>
       </div>
@@ -430,7 +430,7 @@ const AIInsights: React.FC = () => {
     <div className="space-y-6">
       <div className="bg-white rounded-lg shadow p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">Détection d'Anomalies en Temps Réel</h2>
+          <h2 className="text-lg font-semibold text-gray-900">DÃ©tection d'Anomalies en Temps RÃ©el</h2>
           <AlertTriangle className="w-5 h-5 text-yellow-500" />
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -490,8 +490,8 @@ const AIInsights: React.FC = () => {
                   <div className="flex items-center gap-2">
                     {insight.category === 'opportunity' && <TrendingUp className="w-5 h-5 text-[#22c55e]" />}
                     {insight.category === 'risk' && <AlertTriangle className="w-5 h-5 text-[#EF4444]" />}
-                    {insight.category === 'optimization' && <Zap className="w-5 h-5 text-[#171717]" />}
-                    {insight.category === 'trend' && <Activity className="w-5 h-5 text-[#525252]" />}
+                    {insight.category === 'optimization' && <Zap className="w-5 h-5 text-[var(--color-text-primary)]" />}
+                    {insight.category === 'trend' && <Activity className="w-5 h-5 text-[var(--color-text-secondary)]" />}
                     <h4 className="font-medium text-gray-900">{insight.title}</h4>
                   </div>
                   <span className={cn(
@@ -522,10 +522,10 @@ const AIInsights: React.FC = () => {
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Recommandations Prioritaires</h2>
           <div className="space-y-4">
             {insights.filter(i => i.priority === 'urgent' || i.priority === 'high').map((insight) => (
-              <div key={`priority-${insight.id}`} className="p-4 bg-gradient-to-r from-[#171717]/10 to-[#525252]/10 rounded-lg border border-[#171717]/20">
+              <div key={`priority-${insight.id}`} className="p-4 bg-gradient-to-r from-[#171717]/10 to-[#525252]/10 rounded-lg border border-[var(--color-primary)]/20">
                 <div className="flex items-start gap-3">
-                  <div className="p-2 bg-[#171717]/20 rounded-lg">
-                    <Lightbulb className="w-5 h-5 text-[#171717]" />
+                  <div className="p-2 bg-[var(--color-primary)]/20 rounded-lg">
+                    <Lightbulb className="w-5 h-5 text-[var(--color-text-primary)]" />
                   </div>
                   <div className="flex-1">
                     <h4 className="font-medium text-gray-900 mb-1">{insight.title}</h4>
@@ -533,7 +533,7 @@ const AIInsights: React.FC = () => {
                     <div className="space-y-2">
                       {insight.actionableSteps.map((step, i) => (
                         <div key={i} className="flex items-start gap-2">
-                          <ChevronRight className="w-4 h-4 text-[#171717] mt-0.5" />
+                          <ChevronRight className="w-4 h-4 text-[var(--color-text-primary)] mt-0.5" />
                           <span className="text-sm text-gray-900">{step}</span>
                         </div>
                       ))}
@@ -567,11 +567,11 @@ const AIInsights: React.FC = () => {
         </div>
 
         <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Analyse de Corrélations</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Analyse de CorrÃ©lations</h2>
           <ResponsiveContainer width="100%" height={350}>
             <ScatterChart>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" />
-              <XAxis dataKey="x" name="Ventes" unit="k€" stroke="#737373" />
+              <XAxis dataKey="x" name="Ventes" unit="kâ‚¬" stroke="#737373" />
               <YAxis dataKey="y" name="Marge" unit="%" stroke="#737373" />
               <Tooltip cursor={{ strokeDasharray: '3 3' }} />
               <Legend />
@@ -584,14 +584,14 @@ const AIInsights: React.FC = () => {
       </div>
 
       <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Métriques de Performance Détaillées</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">MÃ©triques de Performance DÃ©taillÃ©es</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
           <div className="text-center p-4 bg-gradient-to-br from-[#171717]/10 to-[#171717]/5 rounded-lg">
-            <div className="w-12 h-12 mx-auto bg-[#171717]/20 rounded-lg flex items-center justify-center mb-2">
-              <Target className="w-6 h-6 text-[#171717]" />
+            <div className="w-12 h-12 mx-auto bg-[var(--color-primary)]/20 rounded-lg flex items-center justify-center mb-2">
+              <Target className="w-6 h-6 text-[var(--color-text-primary)]" />
             </div>
             <div className="text-lg font-bold text-gray-900">{totalEntries}</div>
-            <div className="text-sm text-gray-900">Écritures analysées</div>
+            <div className="text-sm text-gray-900">Ã‰critures analysÃ©es</div>
           </div>
           <div className="text-center p-4 bg-gradient-to-br from-green-100 to-green-50 rounded-lg">
             <div className="w-12 h-12 mx-auto bg-[#D1FAE5] rounded-lg flex items-center justify-center mb-2">
@@ -602,14 +602,14 @@ const AIInsights: React.FC = () => {
           </div>
           <div className="text-center p-4 bg-gradient-to-br from-[#525252]/10 to-[#525252]/5 rounded-lg">
             <div className="w-12 h-12 mx-auto bg-[#525252]/20 rounded-lg flex items-center justify-center mb-2">
-              <AlertTriangle className="w-6 h-6 text-[#525252]" />
+              <AlertTriangle className="w-6 h-6 text-[var(--color-text-secondary)]" />
             </div>
             <div className="text-lg font-bold text-gray-900">{anomalies.length}</div>
-            <div className="text-sm text-gray-900">Anomalies détectées</div>
+            <div className="text-sm text-gray-900">Anomalies dÃ©tectÃ©es</div>
           </div>
           <div className="text-center p-4 bg-gradient-to-br from-blue-100 to-blue-50 rounded-lg">
-            <div className="w-12 h-12 mx-auto bg-[#e5e5e5] rounded-lg flex items-center justify-center mb-2">
-              <Lightbulb className="w-6 h-6 text-[#737373]" />
+            <div className="w-12 h-12 mx-auto bg-[var(--color-border)] rounded-lg flex items-center justify-center mb-2">
+              <Lightbulb className="w-6 h-6 text-[var(--color-text-tertiary)]" />
             </div>
             <div className="text-lg font-bold text-gray-900">{insights.length}</div>
             <div className="text-sm text-gray-900">Recommandations</div>
@@ -626,7 +626,7 @@ const AIInsights: React.FC = () => {
         <div className="flex items-center gap-2">
           <AlertTriangle className="h-5 w-5 text-amber-600" />
           <p className="text-sm text-amber-800 font-medium">
-            Module IA en cours de développement — Les données affichées sont des exemples de démonstration.
+            Module IA en cours de dÃ©veloppement â€” Les donnÃ©es affichÃ©es sont des exemples de dÃ©monstration.
           </p>
         </div>
       </div>
@@ -644,17 +644,17 @@ const AIInsights: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-lg font-bold text-gray-900">IA Insights & Analyses Prédictives</h1>
-          <p className="text-gray-500 mt-2">Intelligence artificielle avancée pour la prise de décision stratégique</p>
+          <h1 className="text-lg font-bold text-gray-900">IA Insights & Analyses PrÃ©dictives</h1>
+          <p className="text-gray-500 mt-2">Intelligence artificielle avancÃ©e pour la prise de dÃ©cision stratÃ©gique</p>
         </div>
         <div className="flex items-center gap-3">
           <select
             value={selectedModel}
             onChange={(e) => setSelectedModel(e.target.value)}
-            className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#171717]"
+            className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
           >
-            <option value="revenue_forecast">Prévision CA</option>
-            <option value="demand_forecast">Prévision Demande</option>
+            <option value="revenue_forecast">PrÃ©vision CA</option>
+            <option value="demand_forecast">PrÃ©vision Demande</option>
             <option value="risk_analysis">Analyse Risques</option>
             <option value="optimization">Optimisation</option>
           </select>
@@ -662,7 +662,7 @@ const AIInsights: React.FC = () => {
           <select
             value={timeHorizon}
             onChange={(e) => setTimeHorizon(e.target.value)}
-            className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#171717]"
+            className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
           >
             <option value="1month">1 mois</option>
             <option value="3months">3 mois</option>
@@ -698,7 +698,7 @@ const AIInsights: React.FC = () => {
               link.click();
               URL.revokeObjectURL(url);
             }}
-            className="flex items-center gap-2 px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/90"
+            className="flex items-center gap-2 px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90"
           >
             <Download className="w-4 h-4" />
             Rapport IA
@@ -719,7 +719,7 @@ const AIInsights: React.FC = () => {
                   className={cn(
                     "flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors",
                     activeTab === tab.id
-                      ? "border-[#171717] text-[#171717]"
+                      ? "border-[var(--color-primary)] text-[var(--color-text-primary)]"
                       : "border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-400"
                   )}
                 >

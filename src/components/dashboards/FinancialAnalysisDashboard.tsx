@@ -1,8 +1,8 @@
 // @ts-nocheck
 
 /**
- * Dashboard Analyse Financière Avancée Atlas F&A
- * TAFIRE, SIG et ratios SYSCOHADA selon EXF-AF-001 à EXF-AF-007
+ * Dashboard Analyse FinanciÃ¨re AvancÃ©e Atlas F&A
+ * TAFIRE, SIG et ratios SYSCOHADA selon EXF-AF-001 Ã  EXF-AF-007
  */
 import React, { useState, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -70,7 +70,7 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
 }) => {
   const { t } = useLanguage();
   const fmt = useMoneyFormat();
-  // États
+  // Ã‰tats
   const [selectedView, setSelectedView] = useState<'tafire' | 'sig' | 'ratios' | 'comparative'>('tafire');
   const [comparisonPeriod, setComparisonPeriod] = useState('previous_year');
 
@@ -95,16 +95,16 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
     queryFn: () => financialAnalysisService.getSectorBenchmark({ companyId }),
   });
 
-  // Données dérivées pour graphiques
+  // DonnÃ©es dÃ©rivÃ©es pour graphiques
   const waterfallData = useMemo(() => {
     if (!tafireData) return [];
 
     return [
-      { name: 'Trésorerie Ouverture', value: tafireData.opening_cash_balance, type: 'start' },
+      { name: 'TrÃ©sorerie Ouverture', value: tafireData.opening_cash_balance, type: 'start' },
       { name: 'Flux Exploitation', value: tafireData.operating_cash_surplus, type: 'flow' },
       { name: 'Flux Investissement', value: tafireData.investment_cash_flow, type: 'flow' },
       { name: 'Flux Financement', value: tafireData.financing_cash_flow, type: 'flow' },
-      { name: 'Trésorerie Clôture', value: tafireData.closing_cash_balance, type: 'end' }
+      { name: 'TrÃ©sorerie ClÃ´ture', value: tafireData.closing_cash_balance, type: 'end' }
     ];
   }, [tafireData]);
 
@@ -115,10 +115,10 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
       { name: 'CA', value: sigData.revenue_base, color: "var(--color-primary)" },
       { name: 'Marge Commerciale', value: sigData.commercial_margin, color: "var(--color-success)" },
       { name: 'Production', value: sigData.period_production, color: "var(--color-info)" },
-      { name: 'Valeur Ajoutée', value: sigData.added_value, color: "var(--color-warning)" },
+      { name: 'Valeur AjoutÃ©e', value: sigData.added_value, color: "var(--color-warning)" },
       { name: 'EBE', value: sigData.gross_operating_surplus, color: "var(--color-error)" },
-      { name: 'Résultat Exploitation', value: sigData.operating_result, color: '#06B6D4' },
-      { name: 'Résultat Net', value: sigData.final_net_result, color: '#84CC16' }
+      { name: 'RÃ©sultat Exploitation', value: sigData.operating_result, color: '#06B6D4' },
+      { name: 'RÃ©sultat Net', value: sigData.final_net_result, color: '#84CC16' }
     ];
   }, [sigData]);
 
@@ -137,10 +137,10 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-bold text-[#171717]">
-            Analyse Financière Avancée
+          <h1 className="text-lg font-bold text-[var(--color-text-primary)]">
+            Analyse FinanciÃ¨re AvancÃ©e
           </h1>
-          <p className="text-[#171717]/70 mt-1">
+          <p className="text-[var(--color-text-primary)]/70 mt-1">
             TAFIRE SYSCOHADA, SIG et ratios financiers
           </p>
         </div>
@@ -151,7 +151,7 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="previous_year">vs Exercice précédent</SelectItem>
+              <SelectItem value="previous_year">vs Exercice prÃ©cÃ©dent</SelectItem>
               <SelectItem value="budget">vs Budget</SelectItem>
               <SelectItem value="sector">vs Secteur</SelectItem>
             </SelectContent>
@@ -168,7 +168,7 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
       <Tabs value={selectedView} onValueChange={(v: any) => setSelectedView(v)}>
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="tafire">TAFIRE</TabsTrigger>
-          <TabsTrigger value="sig">Soldes Intermédiaires</TabsTrigger>
+          <TabsTrigger value="sig">Soldes IntermÃ©diaires</TabsTrigger>
           <TabsTrigger value="ratios">Ratios Financiers</TabsTrigger>
           <TabsTrigger value="comparative">Analyse Comparative</TabsTrigger>
         </TabsList>
@@ -179,11 +179,11 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardContent className="p-4 text-center">
-                <TrendingUp className="h-8 w-8 text-[#171717] mx-auto mb-2" />
-                <div className="text-lg font-bold text-[#171717]">
+                <TrendingUp className="h-8 w-8 text-[var(--color-text-primary)] mx-auto mb-2" />
+                <div className="text-lg font-bold text-[var(--color-text-primary)]">
                   {fmt(tafireData?.self_financing_capacity || 0)}
                 </div>
-                <p className="text-sm text-[#171717]/70">Capacité d'Autofinancement</p>
+                <p className="text-sm text-[var(--color-text-primary)]/70">CapacitÃ© d'Autofinancement</p>
               </CardContent>
             </Card>
 
@@ -193,27 +193,27 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
                 <div className="text-lg font-bold text-[var(--color-success)]">
                   {fmt(tafireData?.operating_cash_surplus || 0)}
                 </div>
-                <p className="text-sm text-[#171717]/70">Flux d'Exploitation (ETE)</p>
+                <p className="text-sm text-[var(--color-text-primary)]/70">Flux d'Exploitation (ETE)</p>
               </CardContent>
             </Card>
 
             <Card>
               <CardContent className="p-4 text-center">
-                <Target className="h-8 w-8 text-[#171717] mx-auto mb-2" />
-                <div className="text-lg font-bold text-[#171717]">
+                <Target className="h-8 w-8 text-[var(--color-text-primary)] mx-auto mb-2" />
+                <div className="text-lg font-bold text-[var(--color-text-primary)]">
                   {fmt(tafireData?.free_cash_flow || 0)}
                 </div>
-                <p className="text-sm text-[#171717]/70">Free Cash Flow</p>
+                <p className="text-sm text-[var(--color-text-primary)]/70">Free Cash Flow</p>
               </CardContent>
             </Card>
 
             <Card>
               <CardContent className="p-4 text-center">
-                <DollarSign className="h-8 w-8 text-[#171717] mx-auto mb-2" />
-                <div className="text-lg font-bold text-[#171717]">
+                <DollarSign className="h-8 w-8 text-[var(--color-text-primary)] mx-auto mb-2" />
+                <div className="text-lg font-bold text-[var(--color-text-primary)]">
                   {fmt(tafireData?.cash_variation || 0)}
                 </div>
-                <p className="text-sm text-[#171717]/70">Variation Trésorerie</p>
+                <p className="text-sm text-[var(--color-text-primary)]/70">Variation TrÃ©sorerie</p>
               </CardContent>
             </Card>
           </div>
@@ -223,12 +223,12 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
             <CardHeader>
               <CardTitle className="flex items-center">
                 <BarChart3 className="h-5 w-5 mr-2" />
-                TAFIRE - Flux de Trésorerie (Waterfall Chart)
+                TAFIRE - Flux de TrÃ©sorerie (Waterfall Chart)
               </CardTitle>
             </CardHeader>
             <CardContent>
               {tafireLoading ? (
-                <LoadingSpinner text="Génération TAFIRE..." />
+                <LoadingSpinner text="GÃ©nÃ©ration TAFIRE..." />
               ) : (
                 <div className="h-80">
                   <BarChart
@@ -244,7 +244,7 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
             </CardContent>
           </Card>
 
-          {/* Détail des flux */}
+          {/* DÃ©tail des flux */}
           <div className="grid gap-6 lg:grid-cols-3">
             {/* Flux d'Exploitation */}
             <Card>
@@ -256,7 +256,7 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
               <CardContent>
                 <div className="space-y-3">
                   <div className="flex justify-between">
-                    <span>Capacité d'Autofinancement</span>
+                    <span>CapacitÃ© d'Autofinancement</span>
                     <span className="font-bold text-[var(--color-success)]">
                       {fmt(tafireData?.self_financing_capacity || 0)}
                     </span>
@@ -368,14 +368,14 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
           </div>
         </TabsContent>
 
-        {/* Vue Soldes Intermédiaires de Gestion */}
+        {/* Vue Soldes IntermÃ©diaires de Gestion */}
         <TabsContent value="sig" className="space-y-6">
           {/* Cascade des SIG */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Calculator className="h-5 w-5 mr-2" />
-                Cascade des Soldes Intermédiaires de Gestion
+                Cascade des Soldes IntermÃ©diaires de Gestion
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -392,10 +392,10 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
             </CardContent>
           </Card>
 
-          {/* Tableau détaillé des SIG */}
+          {/* Tableau dÃ©taillÃ© des SIG */}
           <Card>
             <CardHeader>
-              <CardTitle>Détail des Soldes Intermédiaires</CardTitle>
+              <CardTitle>DÃ©tail des Soldes IntermÃ©diaires</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
@@ -405,8 +405,8 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
                       <TableHead>{t('accounting.balance')}</TableHead>
                       <TableHead className="text-right">Montant</TableHead>
                       <TableHead className="text-right">Taux/CA</TableHead>
-                      <TableHead className="text-right">Évolution</TableHead>
-                      <TableHead>Appréciation</TableHead>
+                      <TableHead className="text-right">Ã‰volution</TableHead>
+                      <TableHead>ApprÃ©ciation</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -418,31 +418,31 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
                         trend: 2.5
                       },
                       {
-                        name: 'Valeur Ajoutée',
+                        name: 'Valeur AjoutÃ©e',
                         value: sigData?.added_value || 0,
                         rate: sigData?.added_value_rate || 0,
                         trend: 1.8
                       },
                       {
-                        name: 'Excédent Brut Exploitation',
+                        name: 'ExcÃ©dent Brut Exploitation',
                         value: sigData?.gross_operating_surplus || 0,
                         rate: (sigData?.gross_operating_surplus || 0) / (sigData?.revenue_base || 1) * 100,
                         trend: -0.5
                       },
                       {
-                        name: 'Résultat d\'Exploitation',
+                        name: 'RÃ©sultat d\'Exploitation',
                         value: sigData?.operating_result || 0,
                         rate: sigData?.operating_margin_rate || 0,
                         trend: 3.2
                       },
                       {
-                        name: 'Résultat Financier',
+                        name: 'RÃ©sultat Financier',
                         value: sigData?.financial_result || 0,
                         rate: (sigData?.financial_result || 0) / (sigData?.revenue_base || 1) * 100,
                         trend: -1.1
                       },
                       {
-                        name: 'Résultat Net',
+                        name: 'RÃ©sultat Net',
                         value: sigData?.final_net_result || 0,
                         rate: sigData?.net_margin_rate || 0,
                         trend: 4.7
@@ -468,7 +468,7 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
                           <Badge className={
                             item.value > 0 ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]' : 'bg-[var(--color-error-lighter)] text-[var(--color-error-darker)]'
                           }>
-                            {item.value > 0 ? 'Positif' : 'Négatif'}
+                            {item.value > 0 ? 'Positif' : 'NÃ©gatif'}
                           </Badge>
                         </TableCell>
                       </TableRow>
@@ -488,23 +488,23 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
               <Card key={index}>
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between mb-3">
-                    <h4 className="font-medium text-[#171717]">{ratio.name}</h4>
+                    <h4 className="font-medium text-[var(--color-text-primary)]">{ratio.name}</h4>
                     <Badge className={getRatioStatusColor(ratio)}>
                       {ratio.status}
                     </Badge>
                   </div>
                   
                   <div className="text-center mb-3">
-                    <div className="text-lg font-bold text-[#171717]">
+                    <div className="text-lg font-bold text-[var(--color-text-primary)]">
                       {ratio.value}{ratio.unit}
                     </div>
-                    <p className="text-sm text-[#171717]/50">
+                    <p className="text-sm text-[var(--color-text-primary)]/50">
                       Norme: {ratio.benchmark_value}{ratio.unit}
                     </p>
                   </div>
                   
                   {/* Gauge visuel */}
-                  <div className="relative h-4 bg-[#e5e5e5] rounded-full overflow-hidden">
+                  <div className="relative h-4 bg-[var(--color-border)] rounded-full overflow-hidden">
                     <div 
                       className={`h-full transition-all duration-500 ${
                         ratio.performance_vs_benchmark >= 0 ? 'bg-[var(--color-success)]' : 'bg-[var(--color-error)]'
@@ -515,7 +515,7 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
                     />
                   </div>
                   
-                  <div className="flex justify-between text-xs text-[#171717]/50 mt-1">
+                  <div className="flex justify-between text-xs text-[var(--color-text-primary)]/50 mt-1">
                     <span>0</span>
                     <span>{ratio.benchmark_value}</span>
                     <span>{(ratio.benchmark_value * 1.5).toFixed(1)}</span>
@@ -529,18 +529,18 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
           <div className="grid gap-6 lg:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle>Radar Performance Financière</CardTitle>
+                <CardTitle>Radar Performance FinanciÃ¨re</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-center">
-                  <div className="text-lg font-bold text-[#171717] mb-2">
+                  <div className="text-lg font-bold text-[var(--color-text-primary)] mb-2">
                     {ratiosData?.overall_score?.toFixed(0) || 0}%
                   </div>
-                  <p className="text-[#171717]/70 mb-4">Score Global</p>
+                  <p className="text-[var(--color-text-primary)]/70 mb-4">Score Global</p>
                   <Progress value={ratiosData?.overall_score || 0} className="mb-4" />
                   <Badge className={`
                     ${(ratiosData?.overall_score || 0) >= 85 ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]' :
-                      (ratiosData?.overall_score || 0) >= 70 ? 'bg-[#e5e5e5] text-[#171717]' :
+                      (ratiosData?.overall_score || 0) >= 70 ? 'bg-[var(--color-border)] text-[var(--color-text-primary)]' :
                       (ratiosData?.overall_score || 0) >= 50 ? 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]' :
                       'bg-[var(--color-error-lighter)] text-[var(--color-error-darker)]'}
                   `}>
@@ -554,7 +554,7 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
 
             <Card>
               <CardHeader>
-                <CardTitle>Alertes Financières</CardTitle>
+                <CardTitle>Alertes FinanciÃ¨res</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
@@ -562,16 +562,16 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
                     <div key={index} className={`p-3 rounded border ${
                       alert.severity === 'CRITICAL' ? 'bg-[var(--color-error-lightest)] border-[var(--color-error-light)]' :
                       alert.severity === 'WARNING' ? 'bg-[var(--color-warning-lightest)] border-[var(--color-warning-light)]' :
-                      'bg-[#e5e5e5] border-[#e5e5e5]'
+                      'bg-[var(--color-border)] border-[var(--color-border)]'
                     }`}>
                       <div className="flex items-center space-x-2 mb-1">
                         <AlertTriangle className={`h-4 w-4 ${
                           alert.severity === 'CRITICAL' ? 'text-[var(--color-error)]' :
-                          alert.severity === 'WARNING' ? 'text-[var(--color-warning)]' : 'text-[#171717]'
+                          alert.severity === 'WARNING' ? 'text-[var(--color-warning)]' : 'text-[var(--color-text-primary)]'
                         }`} />
                         <p className="font-medium">{alert.title}</p>
                       </div>
-                      <p className="text-sm text-[#171717]/70">{alert.description}</p>
+                      <p className="text-sm text-[var(--color-text-primary)]/70">{alert.description}</p>
                     </div>
                   ))}
                 </div>
@@ -598,7 +598,7 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
                       <TableHead>Indicateur</TableHead>
                       <TableHead className="text-right">Entreprise</TableHead>
                       <TableHead className="text-right">Secteur</TableHead>
-                      <TableHead className="text-right">Écart</TableHead>
+                      <TableHead className="text-right">Ã‰cart</TableHead>
                       <TableHead>Performance</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -620,11 +620,11 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
                         <TableCell>
                           <Badge className={`
                             ${benchmark.performance === 'ABOVE' ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]' :
-                              benchmark.performance === 'EQUAL' ? 'bg-[#e5e5e5] text-[#171717]' :
+                              benchmark.performance === 'EQUAL' ? 'bg-[var(--color-border)] text-[var(--color-text-primary)]' :
                               'bg-[var(--color-error-lighter)] text-[var(--color-error-darker)]'}
                           `}>
                             {benchmark.performance === 'ABOVE' ? 'Au-dessus' :
-                             benchmark.performance === 'EQUAL' ? 'Égal' : 'En-dessous'}
+                             benchmark.performance === 'EQUAL' ? 'Ã‰gal' : 'En-dessous'}
                           </Badge>
                         </TableCell>
                       </TableRow>
@@ -635,12 +635,12 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
             </CardContent>
           </Card>
 
-          {/* Évolution temporelle */}
+          {/* Ã‰volution temporelle */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
                 <LineChartIcon className="h-5 w-5 mr-2" />
-                Évolution des Ratios Clés
+                Ã‰volution des Ratios ClÃ©s
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -648,8 +648,8 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
                 data={ratiosData?.historical_trends || []}
                 xAxisKey="period"
                 lines={[
-                  { key: 'autonomy_ratio', name: 'Autonomie Financière (%)', color: "var(--color-primary)" },
-                  { key: 'liquidity_ratio', name: 'Liquidité Générale', color: "var(--color-success)" },
+                  { key: 'autonomy_ratio', name: 'Autonomie FinanciÃ¨re (%)', color: "var(--color-primary)" },
+                  { key: 'liquidity_ratio', name: 'LiquiditÃ© GÃ©nÃ©rale', color: "var(--color-success)" },
                   { key: 'profitability_ratio', name: 'Marge Nette (%)', color: "var(--color-warning)" },
                   { key: 'activity_ratio', name: 'ROA (%)', color: "var(--color-error)" }
                 ]}

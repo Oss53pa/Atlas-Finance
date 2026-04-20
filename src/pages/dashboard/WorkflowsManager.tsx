@@ -73,8 +73,8 @@ const WorkflowsManager: React.FC = () => {
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [approvals, setApprovals] = useState<ApprovalRequest[]>([]);
   const [templates] = useState([
-    { id: 't1', name: 'Validation écriture comptable', category: 'finance' as const, steps: 3, uses: 0 },
-    { id: 't2', name: 'Clôture mensuelle', category: 'finance' as const, steps: 5, uses: 0 },
+    { id: 't1', name: 'Validation Ã©criture comptable', category: 'finance' as const, steps: 3, uses: 0 },
+    { id: 't2', name: 'ClÃ´ture mensuelle', category: 'finance' as const, steps: 5, uses: 0 },
   ]);
 
   useEffect(() => {
@@ -92,20 +92,20 @@ const WorkflowsManager: React.FC = () => {
         if (draftEntries.length > 0) {
           builtWorkflows.push({
             id: 'wf-draft',
-            name: `Validation écritures brouillon (${draftEntries.length})`,
+            name: `Validation Ã©critures brouillon (${draftEntries.length})`,
             category: 'finance',
             status: 'active',
             priority: 'high',
             currentStep: 1,
             totalSteps: 3,
             progress: 33,
-            createdBy: 'Système',
+            createdBy: 'SystÃ¨me',
             createdAt: new Date(draftEntries[0]?.createdAt || Date.now()),
             lastModified: new Date(),
-            description: `${draftEntries.length} écriture(s) en brouillon nécessitent validation`,
-            triggers: ['Écriture créée'],
+            description: `${draftEntries.length} Ã©criture(s) en brouillon nÃ©cessitent validation`,
+            triggers: ['Ã‰criture crÃ©Ã©e'],
             steps: [
-              { id: 's1', name: 'Saisie écriture', type: 'action', status: 'completed' },
+              { id: 's1', name: 'Saisie Ã©criture', type: 'action', status: 'completed' },
               { id: 's2', name: 'Validation comptable', type: 'approval', status: 'in_progress', assignee: 'Comptable' },
               { id: 's3', name: 'Comptabilisation', type: 'action', status: 'pending' },
             ]
@@ -115,20 +115,20 @@ const WorkflowsManager: React.FC = () => {
         if (validatedEntries.length > 0) {
           builtWorkflows.push({
             id: 'wf-validated',
-            name: `Comptabilisation écritures (${validatedEntries.length})`,
+            name: `Comptabilisation Ã©critures (${validatedEntries.length})`,
             category: 'finance',
             status: 'active',
             priority: 'medium',
             currentStep: 2,
             totalSteps: 3,
             progress: 66,
-            createdBy: 'Système',
+            createdBy: 'SystÃ¨me',
             createdAt: new Date(validatedEntries[0]?.createdAt || Date.now()),
             lastModified: new Date(),
-            description: `${validatedEntries.length} écriture(s) validée(s) en attente de comptabilisation`,
-            triggers: ['Écriture validée'],
+            description: `${validatedEntries.length} Ã©criture(s) validÃ©e(s) en attente de comptabilisation`,
+            triggers: ['Ã‰criture validÃ©e'],
             steps: [
-              { id: 's1', name: 'Saisie écriture', type: 'action', status: 'completed' },
+              { id: 's1', name: 'Saisie Ã©criture', type: 'action', status: 'completed' },
               { id: 's2', name: 'Validation comptable', type: 'approval', status: 'completed' },
               { id: 's3', name: 'Comptabilisation', type: 'action', status: 'in_progress', assignee: 'Chef Comptable' },
             ]
@@ -141,10 +141,10 @@ const WorkflowsManager: React.FC = () => {
         const builtApprovals: ApprovalRequest[] = draftEntries.slice(0, 10).map((entry: any) => ({
           id: `apr-${entry.id}`,
           workflowId: 'wf-draft',
-          type: 'Écriture comptable',
-          title: entry.label || `Écriture ${entry.entryNumber || entry.id}`,
-          description: `Journal: ${entry.journal || '-'} | Réf: ${entry.reference || '-'}`,
-          requester: entry.createdBy || 'Système',
+          type: 'Ã‰criture comptable',
+          title: entry.label || `Ã‰criture ${entry.entryNumber || entry.id}`,
+          description: `Journal: ${entry.journal || '-'} | RÃ©f: ${entry.reference || '-'}`,
+          requester: entry.createdBy || 'SystÃ¨me',
           amount: entry.totalDebit || 0,
           priority: (entry.totalDebit || 0) > 50000 ? 'high' : 'medium' as const,
           status: 'pending',
@@ -176,7 +176,7 @@ const WorkflowsManager: React.FC = () => {
       case 'draft':
         return 'bg-gray-100 text-gray-700';
       default:
-        return 'bg-[#e5e5e5] text-[#525252]';
+        return 'bg-[var(--color-border)] text-[var(--color-text-secondary)]';
     }
   };
 
@@ -239,10 +239,10 @@ const WorkflowsManager: React.FC = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-            <GitBranch className="w-8 h-8 text-[#171717]" />
+            <GitBranch className="w-8 h-8 text-[var(--color-text-primary)]" />
             Workflows & Approbations
           </h1>
-          <p className="text-gray-600 mt-1">Automatisation et gestion des processus métier</p>
+          <p className="text-gray-600 mt-1">Automatisation et gestion des processus mÃ©tier</p>
         </div>
 
         <div className="flex items-center gap-3">
@@ -250,7 +250,7 @@ const WorkflowsManager: React.FC = () => {
             <Upload className="w-4 h-4" />
             Importer
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#525252]">
+          <button className="flex items-center gap-2 px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)]">
             <Plus className="w-4 h-4" />
             Nouveau Workflow
           </button>
@@ -262,10 +262,10 @@ const WorkflowsManager: React.FC = () => {
         <div className="bg-white rounded-lg shadow p-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-gray-600">Workflows Actifs</span>
-            <Activity className="w-5 h-5 text-[#737373]" />
+            <Activity className="w-5 h-5 text-[var(--color-text-tertiary)]" />
           </div>
           <p className="text-lg font-bold text-gray-900">{stats.activeWorkflows}</p>
-          <p className="text-xs text-gray-700 mt-1">En cours d'exécution</p>
+          <p className="text-xs text-gray-700 mt-1">En cours d'exÃ©cution</p>
         </div>
 
         <div className="bg-amber-50 rounded-lg shadow p-4 border border-amber-200">
@@ -279,7 +279,7 @@ const WorkflowsManager: React.FC = () => {
 
         <div className="bg-green-50 rounded-lg shadow p-4 border border-green-200">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-green-700">Complétés</span>
+            <span className="text-sm font-medium text-green-700">ComplÃ©tÃ©s</span>
             <CheckCircle className="w-5 h-5 text-green-500" />
           </div>
           <p className="text-lg font-bold text-green-700">{stats.completedToday}</p>
@@ -307,13 +307,13 @@ const WorkflowsManager: React.FC = () => {
                 className={cn(
                   "py-4 px-1 border-b-2 font-medium text-sm transition-colors",
                   activeTab === tab
-                    ? "border-[#737373] text-[#171717]"
+                    ? "border-[var(--color-text-tertiary)] text-[var(--color-text-primary)]"
                     : "border-transparent text-gray-700 hover:text-gray-700 hover:border-gray-300"
                 )}
               >
                 {tab === 'workflows' && 'Workflows Actifs'}
                 {tab === 'approvals' && `Approbations (${stats.pendingApprovals})`}
-                {tab === 'templates' && 'Modèles'}
+                {tab === 'templates' && 'ModÃ¨les'}
               </button>
             ))}
           </nav>
@@ -330,7 +330,7 @@ const WorkflowsManager: React.FC = () => {
                 placeholder="Rechercher..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#737373]"
+                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-text-tertiary)]"
               />
             </div>
             {activeTab === 'workflows' && (
@@ -338,19 +338,19 @@ const WorkflowsManager: React.FC = () => {
                 <select
                   value={filter.status}
                   onChange={(e) => setFilter({ ...filter, status: e.target.value })}
-                  className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#737373]"
+                  className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-text-tertiary)]"
                 >
                   <option value="all">Tous les statuts</option>
                   <option value="active">Actif</option>
                   <option value="paused">En pause</option>
-                  <option value="completed">Complété</option>
+                  <option value="completed">ComplÃ©tÃ©</option>
                 </select>
                 <select
                   value={filter.category}
                   onChange={(e) => setFilter({ ...filter, category: e.target.value })}
-                  className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#737373]"
+                  className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-text-tertiary)]"
                 >
-                  <option value="all">Toutes catégories</option>
+                  <option value="all">Toutes catÃ©gories</option>
                   <option value="finance">Finance</option>
                   <option value="purchase">Achats</option>
                   <option value="sales">Ventes</option>
@@ -367,7 +367,7 @@ const WorkflowsManager: React.FC = () => {
                 <div className="text-center py-12 text-gray-500">
                   <GitBranch className="w-12 h-12 mx-auto mb-3 opacity-30" />
                   <h3 className="text-lg font-semibold">Aucun workflow en cours</h3>
-                  <p className="text-sm mt-1">Toutes les écritures sont comptabilisées</p>
+                  <p className="text-sm mt-1">Toutes les Ã©critures sont comptabilisÃ©es</p>
                 </div>
               )}
               {filteredWorkflows.map((workflow) => (
@@ -410,12 +410,12 @@ const WorkflowsManager: React.FC = () => {
                   {/* Progress Bar */}
                   <div className="mb-3">
                     <div className="flex justify-between text-xs text-gray-700 mb-1">
-                      <span>Étape {workflow.currentStep} sur {workflow.totalSteps}</span>
+                      <span>Ã‰tape {workflow.currentStep} sur {workflow.totalSteps}</span>
                       <span>{workflow.progress}%</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div
-                        className="bg-[#171717] h-2 rounded-full transition-all"
+                        className="bg-[var(--color-primary)] h-2 rounded-full transition-all"
                         style={{ width: `${workflow.progress}%` }}
                       />
                     </div>
@@ -428,7 +428,7 @@ const WorkflowsManager: React.FC = () => {
                         <div className={cn(
                           "w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium",
                           step.status === 'completed' && "bg-green-100 text-green-700",
-                          step.status === 'in_progress' && "bg-[#e5e5e5] text-[#525252]",
+                          step.status === 'in_progress' && "bg-[var(--color-border)] text-[var(--color-text-secondary)]",
                           step.status === 'pending' && "bg-gray-100 text-gray-700",
                           step.status === 'failed' && "bg-red-100 text-red-700"
                         )}>
@@ -445,8 +445,8 @@ const WorkflowsManager: React.FC = () => {
                   </div>
 
                   <div className="flex items-center gap-4 mt-3 text-xs text-gray-700">
-                    <span>Créé par: {workflow.createdBy}</span>
-                    <span>Modifié: {new Date(workflow.lastModified).toLocaleString()}</span>
+                    <span>CrÃ©Ã© par: {workflow.createdBy}</span>
+                    <span>ModifiÃ©: {new Date(workflow.lastModified).toLocaleString()}</span>
                   </div>
                 </div>
               ))}
@@ -468,8 +468,8 @@ const WorkflowsManager: React.FC = () => {
                         {getPriorityIcon(approval.priority)}
                         <span className={cn("px-2 py-0.5 text-xs rounded-full font-medium", getStatusColor(approval.status))}>
                           {approval.status === 'pending' ? 'En attente' :
-                           approval.status === 'approved' ? 'Approuvé' :
-                           approval.status === 'rejected' ? 'Rejeté' : 'Escaladé'}
+                           approval.status === 'approved' ? 'ApprouvÃ©' :
+                           approval.status === 'rejected' ? 'RejetÃ©' : 'EscaladÃ©'}
                         </span>
                       </div>
                       <p className="text-sm text-gray-600 mb-2">{approval.description}</p>
@@ -488,14 +488,14 @@ const WorkflowsManager: React.FC = () => {
                         <div className="flex items-center gap-2 mt-2">
                           <FileText className="w-4 h-4 text-gray-700" />
                           <span className="text-sm text-gray-700">
-                            {approval.attachments.length} pièce(s) jointe(s)
+                            {approval.attachments.length} piÃ¨ce(s) jointe(s)
                           </span>
                         </div>
                       )}
 
                       <div className="flex items-center gap-4 mt-3 text-xs text-gray-700">
-                        <span>Créé: {new Date(approval.createdAt).toLocaleString()}</span>
-                        <span className="text-red-600">Échéance: {new Date(approval.dueDate).toLocaleDateString()}</span>
+                        <span>CrÃ©Ã©: {new Date(approval.createdAt).toLocaleString()}</span>
+                        <span className="text-red-600">Ã‰chÃ©ance: {new Date(approval.dueDate).toLocaleDateString()}</span>
                       </div>
                     </div>
 
@@ -540,9 +540,9 @@ const WorkflowsManager: React.FC = () => {
                     <span className="text-xs text-gray-700">{template.uses} utilisations</span>
                   </div>
                   <h3 className="font-semibold text-gray-900 mb-2">{template.name}</h3>
-                  <p className="text-sm text-gray-600 mb-3">{template.steps} étapes</p>
-                  <button className="w-full px-3 py-2 bg-[#f5f5f5] text-[#525252] rounded hover:bg-[#e5e5e5]">
-                    Utiliser ce modèle
+                  <p className="text-sm text-gray-600 mb-3">{template.steps} Ã©tapes</p>
+                  <button className="w-full px-3 py-2 bg-[var(--color-surface-hover)] text-[var(--color-text-secondary)] rounded hover:bg-[var(--color-border)]">
+                    Utiliser ce modÃ¨le
                   </button>
                 </div>
               ))}
