@@ -70,7 +70,10 @@ const RBACGuard: React.FC<RBACGuardProps> = ({
   // Mode démo : laisser passer sans auth (sessionStorage flag)
   const isDemoMode = typeof sessionStorage !== 'undefined' && sessionStorage.getItem('atlas-demo-mode') === '1';
 
-  if (!isAuthenticated && !user && !isDemoMode) {
+  // Dev local : laisser passer (pas de Supabase auth)
+  const isDevMode = import.meta.env.DEV;
+
+  if (!isAuthenticated && !user && !isDemoMode && !isDevMode) {
     return <Navigate to="/login" replace />;
   }
 

@@ -375,7 +375,10 @@ const ModernDoubleSidebarLayout: React.FC = () => {
             primaryCollapsed && 'justify-center'
           )}>
             <a href="/home" className="hover:opacity-80 transition-opacity" title="Retour à l'accueil Atlas F&amp;A">
-              <span className="text-[var(--color-sidebar-text)] font-bold text-xl atlas-brand whitespace-nowrap">Atlas F&A</span>
+              <span
+                className="text-[var(--color-sidebar-text)] font-bold atlas-brand whitespace-nowrap"
+                style={{ fontSize: 'calc(1.25rem + 0.5pt)' }}
+              >Atlas F&A</span>
             </a>
           </div>
           <button
@@ -563,7 +566,10 @@ const ModernDoubleSidebarLayout: React.FC = () => {
             <div className="h-16 flex items-center justify-between px-4 border-b border-[var(--color-sidebar-border)]">
               <div className="flex items-center gap-3">
                 <a href="/home" className="hover:opacity-80 transition-opacity" title="Retour à l'accueil Atlas F&amp;A">
-                  <span className="text-white font-bold text-xl atlas-brand">Atlas F&A</span>
+                  <span
+                    className="text-white font-bold atlas-brand"
+                    style={{ fontSize: 'calc(1.25rem + 0.5pt)' }}
+                  >Atlas F&A</span>
                 </a>
               </div>
               <button

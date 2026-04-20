@@ -720,11 +720,25 @@ export const ATLAS_IMPORT_TEMPLATES: AtlasImportTemplate[] = [
       },
     ],
     sampleRows: [
-      { Date: '2026-01-05', Journal: 'AN', 'N° écriture': 'AN-2026-0001', Compte: '411000', 'Libellé compte': 'Clients', Tiers: 'CLI001', 'Libellé écriture': 'À-nouveau', Pièce: 'AN-2026', Débit: 2500000, Crédit: 0, 'Solde progressif': 2500000, Lettrage: '', Échéance: '' },
+      // ─── À-nouveaux (journal AN) — essentiel en début d'exercice
+      { Date: '2026-01-01', Journal: 'AN', 'N° écriture': 'AN-2026-0001', Compte: '101000', 'Libellé compte': 'Capital social', Tiers: '', 'Libellé écriture': 'Report à nouveau — Capital', Pièce: 'AN-2026', Débit: 0, Crédit: 10000000, 'Solde progressif': -10000000, Lettrage: '', Échéance: '' },
+      { Date: '2026-01-01', Journal: 'AN', 'N° écriture': 'AN-2026-0002', Compte: '411000', 'Libellé compte': 'Clients', Tiers: 'CLI001', 'Libellé écriture': 'Report à nouveau — Créance SANGA', Pièce: 'AN-2026', Débit: 2500000, Crédit: 0, 'Solde progressif': 2500000, Lettrage: '', Échéance: '' },
+      { Date: '2026-01-01', Journal: 'AN', 'N° écriture': 'AN-2026-0003', Compte: '521000', 'Libellé compte': 'Banque SGBCI', Tiers: '', 'Libellé écriture': 'Report à nouveau — Solde banque', Pièce: 'AN-2026', Débit: 5000000, Crédit: 0, 'Solde progressif': 5000000, Lettrage: '', Échéance: '' },
+      { Date: '2026-01-01', Journal: 'AN', 'N° écriture': 'AN-2026-0004', Compte: '401000', 'Libellé compte': 'Fournisseurs', Tiers: 'FOU001', 'Libellé écriture': 'Report à nouveau — Dette CFAO', Pièce: 'AN-2026', Débit: 0, Crédit: 1500000, 'Solde progressif': -1500000, Lettrage: '', Échéance: '' },
+      // ─── Écritures courantes — facture client
       { Date: '2026-01-15', Journal: 'VE', 'N° écriture': 'VE-2026-0001', Compte: '411000', 'Libellé compte': 'Clients', Tiers: 'CLI001', 'Libellé écriture': 'Facture SANGA FAC-001', Pièce: 'FAC-2026-001', Débit: 1180000, Crédit: 0, 'Solde progressif': 3680000, Lettrage: '', Échéance: '2026-02-15' },
-      { Date: '2026-01-20', Journal: 'BQ', 'N° écriture': 'BQ-2026-0003', Compte: '411000', 'Libellé compte': 'Clients', Tiers: 'CLI001', 'Libellé écriture': 'Règlement FAC-001', Pièce: 'VIR-2026-003', Débit: 0, Crédit: 1180000, 'Solde progressif': 2500000, Lettrage: 'A', Échéance: '' },
-      { Date: '2026-01-25', Journal: 'VE', 'N° écriture': 'VE-2026-0005', Compte: '411000', 'Libellé compte': 'Clients', Tiers: 'CLI001', 'Libellé écriture': 'Facture SANGA FAC-005', Pièce: 'FAC-2026-005', Débit: 590000, Crédit: 0, 'Solde progressif': 3090000, Lettrage: '', Échéance: '2026-02-25' },
-      { Date: '2026-01-31', Journal: 'OD', 'N° écriture': 'OD-2026-0002', Compte: '411000', 'Libellé compte': 'Clients', Tiers: 'CLI001', 'Libellé écriture': 'Avoir partiel', Pièce: 'AVO-2026-001', Débit: 0, Crédit: 90000, 'Solde progressif': 3000000, Lettrage: '', Échéance: '' },
+      { Date: '2026-01-15', Journal: 'VE', 'N° écriture': 'VE-2026-0001', Compte: '701000', 'Libellé compte': 'Ventes marchandises', Tiers: '', 'Libellé écriture': 'Facture SANGA FAC-001', Pièce: 'FAC-2026-001', Débit: 0, Crédit: 1000000, 'Solde progressif': -1000000, Lettrage: '', Échéance: '' },
+      { Date: '2026-01-15', Journal: 'VE', 'N° écriture': 'VE-2026-0001', Compte: '443100', 'Libellé compte': 'TVA collectée 18%', Tiers: '', 'Libellé écriture': 'Facture SANGA FAC-001', Pièce: 'FAC-2026-001', Débit: 0, Crédit: 180000, 'Solde progressif': -180000, Lettrage: '', Échéance: '' },
+      // ─── Règlement bancaire
+      { Date: '2026-01-20', Journal: 'BQ', 'N° écriture': 'BQ-2026-0003', Compte: '411000', 'Libellé compte': 'Clients', Tiers: 'CLI001', 'Libellé écriture': 'Règlement FAC-001 par virement', Pièce: 'VIR-2026-003', Débit: 0, Crédit: 1180000, 'Solde progressif': 2500000, Lettrage: 'A', Échéance: '' },
+      { Date: '2026-01-20', Journal: 'BQ', 'N° écriture': 'BQ-2026-0003', Compte: '521000', 'Libellé compte': 'Banque SGBCI', Tiers: '', 'Libellé écriture': 'Règlement FAC-001 par virement', Pièce: 'VIR-2026-003', Débit: 1180000, Crédit: 0, 'Solde progressif': 6180000, Lettrage: '', Échéance: '' },
+      // ─── Facture fournisseur
+      { Date: '2026-01-25', Journal: 'AC', 'N° écriture': 'AC-2026-0007', Compte: '601000', 'Libellé compte': 'Achats marchandises', Tiers: '', 'Libellé écriture': 'Facture CFAO F-CFAO-2026-007', Pièce: 'F-CFAO-007', Débit: 850000, Crédit: 0, 'Solde progressif': 850000, Lettrage: '', Échéance: '' },
+      { Date: '2026-01-25', Journal: 'AC', 'N° écriture': 'AC-2026-0007', Compte: '445200', 'Libellé compte': 'TVA déductible 18%', Tiers: '', 'Libellé écriture': 'Facture CFAO F-CFAO-2026-007', Pièce: 'F-CFAO-007', Débit: 153000, Crédit: 0, 'Solde progressif': 153000, Lettrage: '', Échéance: '' },
+      { Date: '2026-01-25', Journal: 'AC', 'N° écriture': 'AC-2026-0007', Compte: '401000', 'Libellé compte': 'Fournisseurs', Tiers: 'FOU001', 'Libellé écriture': 'Facture CFAO F-CFAO-2026-007', Pièce: 'F-CFAO-007', Débit: 0, Crédit: 1003000, 'Solde progressif': -2503000, Lettrage: '', Échéance: '2026-02-25' },
+      // ─── OD de régularisation
+      { Date: '2026-01-31', Journal: 'OD', 'N° écriture': 'OD-2026-0002', Compte: '411000', 'Libellé compte': 'Clients', Tiers: 'CLI001', 'Libellé écriture': 'Avoir partiel FAC-005', Pièce: 'AVO-2026-001', Débit: 0, Crédit: 90000, 'Solde progressif': 2410000, Lettrage: '', Échéance: '' },
+      { Date: '2026-01-31', Journal: 'OD', 'N° écriture': 'OD-2026-0002', Compte: '709000', 'Libellé compte': 'RRR accordés', Tiers: '', 'Libellé écriture': 'Avoir partiel FAC-005', Pièce: 'AVO-2026-001', Débit: 90000, Crédit: 0, 'Solde progressif': 90000, Lettrage: '', Échéance: '' },
     ],
   },
 

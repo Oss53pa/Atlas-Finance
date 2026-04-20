@@ -1,5 +1,5 @@
 // Système de thème pour Atlas F&A
-// Palette grayscale monochrome professionnelle + 5 thèmes additionnels
+// Palette Atlas Studio (anthracite + or mat) par défaut + 6 thèmes additionnels
 
 export interface ThemeColors {
   primary: string;
@@ -81,7 +81,63 @@ const sharedBorderRadius = {
 };
 
 // ============================================================================
-// 1. Atlas F&A — Grayscale Monochrome (default)
+// 0. Atlas Studio — Anthracite + Or Mat (DEFAULT)
+// ============================================================================
+const atlasStudioTheme: Theme = {
+  name: 'Atlas Studio',
+  description: 'Anthracite profond + or mat — identité Atlas Studio',
+  colors: {
+    primary: '#1F1F23',
+    primaryHover: '#2A2A2F',
+    primaryLight: 'rgba(31, 31, 35, 0.1)',
+    secondary: '#8C7A5A',
+    accent: '#B8954A',
+    background: '#faf8f3',
+    surface: '#FFFFFF',
+    surfaceHover: '#f5f2eb',
+    text: {
+      primary: '#16161A',
+      secondary: '#3A3A3F',
+      tertiary: '#6B6B73',
+      inverse: '#faf8f3'
+    },
+    border: '#e5e0d5',
+    borderLight: '#f0ece4',
+    success: '#22c55e',
+    successLight: 'rgba(34, 197, 94, 0.1)',
+    error: '#ef4444',
+    errorLight: 'rgba(239, 68, 68, 0.1)',
+    warning: '#D4B870',
+    warningLight: 'rgba(212, 184, 112, 0.12)',
+    info: '#3b82f6',
+    infoLight: 'rgba(59, 130, 246, 0.1)',
+    sidebar: {
+      bg: '#16161A',
+      bgHover: '#1F1F23',
+      text: '#A09880',
+      textHover: '#D4B870',
+      border: 'rgba(184, 149, 74, 0.12)',
+      active: '#D4B870',
+      activeBg: 'rgba(184, 149, 74, 0.15)'
+    },
+    card: {
+      bg: '#FFFFFF',
+      border: '#e5e0d5',
+      shadow: 'rgba(22, 22, 26, 0.06)'
+    }
+  },
+  shadows: {
+    sm: '0 1px 2px rgba(22, 22, 26, 0.05)',
+    md: '0 4px 12px rgba(22, 22, 26, 0.08)',
+    lg: '0 10px 15px rgba(22, 22, 26, 0.1)',
+    xl: '0 20px 25px rgba(22, 22, 26, 0.12)'
+  },
+  transitions: sharedTransitions,
+  borderRadius: sharedBorderRadius,
+};
+
+// ============================================================================
+// 1. Atlas F&A — Grayscale Monochrome
 // ============================================================================
 const atlasFinanceTheme: Theme = {
   name: 'Atlas F&A',
@@ -421,6 +477,7 @@ const royalIndigoTheme: Theme = {
 // ============================================================================
 
 export const themes = {
+  atlasStudio: atlasStudioTheme,
   atlasFinance: atlasFinanceTheme,
   oceanBlue: oceanBlueTheme,
   forestGreen: forestGreenTheme,
@@ -429,7 +486,7 @@ export const themes = {
   royalIndigo: royalIndigoTheme,
 };
 
-export const defaultTheme = atlasFinanceTheme;
+export const defaultTheme = atlasStudioTheme;
 
 export const getThemeCSSVariables = (theme: Theme) => {
   return {

@@ -112,7 +112,7 @@ const WorkspaceDashboard: React.FC = () => {
           name: 'Espace Comptable',
           description: 'Tableau de bord comptable',
           icon: 'Calculator',
-          color: '#171717',
+          color: 'var(--color-primary)',
           is_active: true,
           order: 1,
           widget_count: 0,
@@ -184,10 +184,10 @@ const WorkspaceDashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen" style={{ backgroundColor: '#fafafa' }}>
+      <div className="flex items-center justify-center min-h-screen" style={{ backgroundColor: 'var(--color-background)' }}>
         <div className="text-center">
-          <Loader className="animate-spin mx-auto mb-4" size={48} style={{ color: '#737373' }} />
-          <p className="text-lg" style={{ color: '#404040' }}>Chargement de votre workspace...</p>
+          <Loader className="animate-spin mx-auto mb-4" size={48} style={{ color: 'var(--color-text-tertiary)' }} />
+          <p className="text-lg" style={{ color: 'var(--color-text-secondary)' }}>Chargement de votre workspace...</p>
         </div>
       </div>
     );
@@ -195,15 +195,15 @@ const WorkspaceDashboard: React.FC = () => {
 
   if (error || !dashboard) {
     return (
-      <div className="flex items-center justify-center min-h-screen" style={{ backgroundColor: '#fafafa' }}>
+      <div className="flex items-center justify-center min-h-screen" style={{ backgroundColor: 'var(--color-background)' }}>
         <div className="text-center p-8 bg-white rounded-lg shadow-lg max-w-md">
           <AlertCircle className="mx-auto mb-4 text-red-500" size={48} />
-          <h2 className="text-lg font-bold mb-2" style={{ color: '#404040' }}>Erreur</h2>
-          <p className="mb-4" style={{ color: '#737373' }}>{error || 'Impossible de charger le workspace'}</p>
+          <h2 className="text-lg font-bold mb-2" style={{ color: 'var(--color-text-secondary)' }}>Erreur</h2>
+          <p className="mb-4" style={{ color: 'var(--color-text-tertiary)' }}>{error || 'Impossible de charger le workspace'}</p>
           <button
             onClick={() => navigate('/dashboard')}
             className="px-6 py-2 rounded-lg font-semibold"
-            style={{ backgroundColor: '#404040', color: '#FFFFFF' }}
+            style={{ backgroundColor: 'var(--color-text-secondary)', color: '#FFFFFF' }}
           >
             Retour au tableau de bord
           </button>
@@ -215,9 +215,9 @@ const WorkspaceDashboard: React.FC = () => {
   const { workspace, statistics, widgets, quick_actions } = dashboard;
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#fafafa' }}>
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--color-background)' }}>
       {/* Header */}
-      <div className="bg-white border-b" style={{ borderColor: '#e5e5e5' }}>
+      <div className="bg-white border-b" style={{ borderColor: 'var(--color-border)' }}>
         <div className="container mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -228,10 +228,10 @@ const WorkspaceDashboard: React.FC = () => {
                 <Briefcase size={32} style={{ color: '#FFFFFF' }} />
               </div>
               <div>
-                <h1 className="text-lg font-bold" style={{ color: '#404040' }}>
+                <h1 className="text-lg font-bold" style={{ color: 'var(--color-text-secondary)' }}>
                   {workspace.name}
                 </h1>
-                <p style={{ color: '#737373' }}>{workspace.description}</p>
+                <p style={{ color: 'var(--color-text-tertiary)' }}>{workspace.description}</p>
               </div>
             </div>
 
@@ -240,7 +240,7 @@ const WorkspaceDashboard: React.FC = () => {
                 onClick={handleRefresh}
                 disabled={refreshing}
                 className="px-4 py-2 rounded-lg border flex items-center gap-2 hover:opacity-80 transition-opacity"
-                style={{ borderColor: '#e5e5e5', color: '#404040' }}
+                style={{ borderColor: 'var(--color-border)', color: 'var(--color-text-secondary)' }}
               >
                 <RefreshCw size={18} className={refreshing ? 'animate-spin' : ''} />
                 Actualiser
@@ -248,7 +248,7 @@ const WorkspaceDashboard: React.FC = () => {
               <button
                 onClick={() => navigate('/settings')}
                 className="px-4 py-2 rounded-lg border flex items-center gap-2 hover:opacity-80 transition-opacity"
-                style={{ borderColor: '#e5e5e5', color: '#404040' }}
+                style={{ borderColor: 'var(--color-border)', color: 'var(--color-text-secondary)' }}
               >
                 <Settings size={18} />
                 Personnaliser
@@ -256,7 +256,7 @@ const WorkspaceDashboard: React.FC = () => {
               <button
                 onClick={() => navigate('/dashboard')}
                 className="px-4 py-2 rounded-lg flex items-center gap-2 hover:opacity-90 transition-opacity"
-                style={{ backgroundColor: '#171717', color: '#FFFFFF' }}
+                style={{ backgroundColor: 'var(--color-primary)', color: '#FFFFFF' }}
               >
                 <ArrowRight size={18} />
                 Accéder à Atlas F&A
@@ -270,7 +270,7 @@ const WorkspaceDashboard: React.FC = () => {
         {/* Statistiques principales */}
         {statistics && statistics.length > 0 && (
           <div className="mb-8">
-            <h2 className="text-lg font-bold mb-4" style={{ color: '#404040' }}>
+            <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--color-text-secondary)' }}>
               Statistiques clés
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -278,15 +278,15 @@ const WorkspaceDashboard: React.FC = () => {
                 <div
                   key={stat.id}
                   className="bg-white p-6 rounded-xl shadow-sm border hover:shadow-md transition-shadow"
-                  style={{ borderColor: '#e5e5e5' }}
+                  style={{ borderColor: 'var(--color-border)' }}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium" style={{ color: '#737373' }}>
+                    <span className="text-sm font-medium" style={{ color: 'var(--color-text-tertiary)' }}>
                       {stat.stat_label}
                     </span>
                     {getTrendIcon(stat.trend_direction)}
                   </div>
-                  <div className="text-lg font-bold mb-1" style={{ color: '#404040' }}>
+                  <div className="text-lg font-bold mb-1" style={{ color: 'var(--color-text-secondary)' }}>
                     {formatValue(stat.stat_value, stat.stat_type)}
                   </div>
                   {stat.trend !== null && stat.trend !== undefined && (
@@ -303,7 +303,7 @@ const WorkspaceDashboard: React.FC = () => {
                         {stat.trend > 0 ? '+' : ''}
                         {stat.trend}%
                       </span>
-                      <span style={{ color: '#737373' }}> vs période précédente</span>
+                      <span style={{ color: 'var(--color-text-tertiary)' }}> vs période précédente</span>
                     </div>
                   )}
                 </div>
@@ -315,7 +315,7 @@ const WorkspaceDashboard: React.FC = () => {
         {/* Actions rapides */}
         {quick_actions && quick_actions.length > 0 && (
           <div className="mb-8">
-            <h2 className="text-lg font-bold mb-4" style={{ color: '#404040' }}>
+            <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--color-text-secondary)' }}>
               Actions rapides
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -324,7 +324,7 @@ const WorkspaceDashboard: React.FC = () => {
                   key={action.id}
                   onClick={() => handleQuickAction(action)}
                   className="bg-white p-5 rounded-xl border text-left hover:shadow-md transition-all group"
-                  style={{ borderColor: '#e5e5e5' }}
+                  style={{ borderColor: 'var(--color-border)' }}
                 >
                   <div className="flex items-center gap-4">
                     <div
@@ -334,16 +334,16 @@ const WorkspaceDashboard: React.FC = () => {
                       <Zap size={24} />
                     </div>
                     <div className="flex-1">
-                      <div className="font-semibold" style={{ color: '#404040' }}>
+                      <div className="font-semibold" style={{ color: 'var(--color-text-secondary)' }}>
                         {action.label}
                       </div>
                       {action.description && (
-                        <div className="text-sm" style={{ color: '#737373' }}>
+                        <div className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>
                           {action.description}
                         </div>
                       )}
                     </div>
-                    <ArrowRight size={20} className="group-hover:tranprimary-x-1 transition-transform" style={{ color: '#737373' }} />
+                    <ArrowRight size={20} className="group-hover:tranprimary-x-1 transition-transform" style={{ color: 'var(--color-text-tertiary)' }} />
                   </div>
                 </button>
               ))}
@@ -354,7 +354,7 @@ const WorkspaceDashboard: React.FC = () => {
         {/* Widgets */}
         {widgets && widgets.length > 0 && (
           <div>
-            <h2 className="text-lg font-bold mb-4" style={{ color: '#404040' }}>
+            <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--color-text-secondary)' }}>
               <Grid size={24} className="inline mr-2" />
               Widgets personnalisés
             </h2>
@@ -364,7 +364,7 @@ const WorkspaceDashboard: React.FC = () => {
                   key={widget.id}
                   className="bg-white p-6 rounded-xl shadow-sm border hover:shadow-md transition-shadow"
                   style={{
-                    borderColor: '#e5e5e5',
+                    borderColor: 'var(--color-border)',
                     gridColumn: `span ${widget.width}`,
                     gridRow: `span ${widget.height}`,
                   }}
@@ -377,18 +377,18 @@ const WorkspaceDashboard: React.FC = () => {
                       <Activity size={20} />
                     </div>
                     <div>
-                      <h3 className="font-bold" style={{ color: '#404040' }}>
+                      <h3 className="font-bold" style={{ color: 'var(--color-text-secondary)' }}>
                         {widget.title}
                       </h3>
                       {widget.description && (
-                        <p className="text-sm" style={{ color: '#737373' }}>
+                        <p className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>
                           {widget.description}
                         </p>
                       )}
                     </div>
                   </div>
 
-                  <div className="text-center py-8" style={{ color: '#737373' }}>
+                  <div className="text-center py-8" style={{ color: 'var(--color-text-tertiary)' }}>
                     <Activity size={32} className="mx-auto mb-2 opacity-30" />
                     <p className="text-sm">Widget {widget.widget_type}</p>
                     <p className="text-xs">Configuration à implémenter</p>
@@ -403,18 +403,18 @@ const WorkspaceDashboard: React.FC = () => {
         {(!statistics || statistics.length === 0) &&
           (!widgets || widgets.length === 0) &&
           (!quick_actions || quick_actions.length === 0) && (
-            <div className="text-center py-16 bg-white rounded-xl" style={{ borderColor: '#e5e5e5' }}>
-              <Bell size={48} className="mx-auto mb-4 opacity-30" style={{ color: '#737373' }} />
-              <h3 className="text-lg font-bold mb-2" style={{ color: '#404040' }}>
+            <div className="text-center py-16 bg-white rounded-xl" style={{ borderColor: 'var(--color-border)' }}>
+              <Bell size={48} className="mx-auto mb-4 opacity-30" style={{ color: 'var(--color-text-tertiary)' }} />
+              <h3 className="text-lg font-bold mb-2" style={{ color: 'var(--color-text-secondary)' }}>
                 Workspace vide
               </h3>
-              <p className="mb-6" style={{ color: '#737373' }}>
+              <p className="mb-6" style={{ color: 'var(--color-text-tertiary)' }}>
                 Aucun contenu disponible pour ce workspace
               </p>
               <button
                 onClick={() => navigate('/settings')}
                 className="px-6 py-3 rounded-lg font-semibold"
-                style={{ backgroundColor: '#404040', color: '#FFFFFF' }}
+                style={{ backgroundColor: 'var(--color-text-secondary)', color: '#FFFFFF' }}
               >
                 Configurer votre workspace
               </button>

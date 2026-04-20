@@ -52,13 +52,13 @@ const ComptableWorkspaceFinal: React.FC = () => {
 
   const workspaceOptions = user?.role === 'admin' ? [
     { label: 'Espace Admin', path: '/workspace/admin', icon: Shield, color: '#ef4444', current: false },
-    { label: 'Espace Manager', path: '/workspace/manager', icon: Briefcase, color: '#525252', current: false },
-    { label: 'Espace Comptable', path: '/workspace/comptable', icon: Calculator, color: '#171717', current: true },
+    { label: 'Espace Manager', path: '/workspace/manager', icon: Briefcase, color: 'var(--color-secondary)', current: false },
+    { label: 'Espace Comptable', path: '/workspace/comptable', icon: Calculator, color: 'var(--color-primary)', current: true },
   ] : user?.role === 'manager' ? [
-    { label: 'Espace Manager', path: '/workspace/manager', icon: Briefcase, color: '#525252', current: false },
-    { label: 'Espace Comptable', path: '/workspace/comptable', icon: Calculator, color: '#171717', current: true },
+    { label: 'Espace Manager', path: '/workspace/manager', icon: Briefcase, color: 'var(--color-secondary)', current: false },
+    { label: 'Espace Comptable', path: '/workspace/comptable', icon: Calculator, color: 'var(--color-primary)', current: true },
   ] : [
-    { label: 'Espace Comptable', path: '/workspace/comptable', icon: Calculator, color: '#171717', current: true },
+    { label: 'Espace Comptable', path: '/workspace/comptable', icon: Calculator, color: 'var(--color-primary)', current: true },
   ];
 
   const atlasFinanceLinks = [
@@ -110,24 +110,24 @@ const ComptableWorkspaceFinal: React.FC = () => {
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-bold">Mon Profil</h2>
-        <button onClick={() => setActiveSection('workspace')} className="px-4 py-2 text-sm text-[#171717] hover:bg-[#171717]/10 rounded-lg">Retour</button>
+        <button onClick={() => setActiveSection('workspace')} className="px-4 py-2 text-sm text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 rounded-lg">Retour</button>
       </div>
       <div className="bg-white rounded-xl p-6 border">
         <div className="flex items-start space-x-6">
-          <div className="w-24 h-24 rounded-full bg-gradient-to-r from-[#171717] to-[#262626] flex items-center justify-center"><User className="w-12 h-12 text-white" /></div>
-          <div><h3 className="text-lg font-bold">{userData.name}</h3><p className="text-[#171717]">{userData.role}</p><p className="text-sm text-gray-500">{userData.department}</p></div>
+          <div className="w-24 h-24 rounded-full bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-hover)] flex items-center justify-center"><User className="w-12 h-12 text-white" /></div>
+          <div><h3 className="text-lg font-bold">{userData.name}</h3><p className="text-[var(--color-primary)]">{userData.role}</p><p className="text-sm text-gray-500">{userData.department}</p></div>
         </div>
       </div>
       <div className="grid grid-cols-2 gap-6">
         <div className="bg-white rounded-xl p-6 border">
-          <h4 className="font-semibold mb-4 flex items-center"><Mail className="w-5 h-5 mr-2 text-[#171717]" />Contact</h4>
+          <h4 className="font-semibold mb-4 flex items-center"><Mail className="w-5 h-5 mr-2 text-[var(--color-primary)]" />Contact</h4>
           <p><span className="text-xs text-gray-500">Email:</span> {userData.email}</p>
           <p className="mt-2"><span className="text-xs text-gray-500">Tel:</span> {userData.phone}</p>
         </div>
         <div className="bg-white rounded-xl p-6 border">
-          <h4 className="font-semibold mb-4 flex items-center"><Shield className="w-5 h-5 mr-2 text-[#171717]" />Securite</h4>
-          <button className="w-full p-3 border rounded-lg text-sm hover:border-[#171717] mb-2">Changer mot de passe</button>
-          <button className="w-full p-3 border rounded-lg text-sm hover:border-[#171717] flex justify-between"><span>2FA</span><span className={`text-xs px-2 py-1 rounded ${userData.twoFactorEnabled ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{userData.twoFactorEnabled ? 'Actif' : 'Off'}</span></button>
+          <h4 className="font-semibold mb-4 flex items-center"><Shield className="w-5 h-5 mr-2 text-[var(--color-primary)]" />Securite</h4>
+          <button className="w-full p-3 border rounded-lg text-sm hover:border-[var(--color-primary)] mb-2">Changer mot de passe</button>
+          <button className="w-full p-3 border rounded-lg text-sm hover:border-[var(--color-primary)] flex justify-between"><span>2FA</span><span className={`text-xs px-2 py-1 rounded ${userData.twoFactorEnabled ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{userData.twoFactorEnabled ? 'Actif' : 'Off'}</span></button>
         </div>
       </div>
     </div>
@@ -137,7 +137,7 @@ const ComptableWorkspaceFinal: React.FC = () => {
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-bold">Parametres</h2>
-        <button onClick={() => setActiveSection('workspace')} className="px-4 py-2 text-sm text-[#171717] hover:bg-[#171717]/10 rounded-lg">Retour</button>
+        <button onClick={() => setActiveSection('workspace')} className="px-4 py-2 text-sm text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 rounded-lg">Retour</button>
       </div>
       <div className="bg-white rounded-xl p-6 border">
         <h4 className="font-semibold mb-4">Affichage</h4>
@@ -152,7 +152,7 @@ const ComptableWorkspaceFinal: React.FC = () => {
           {['Email', 'Push', 'Alertes'].map((n, i) => (
             <div key={i} className="flex justify-between p-3 border rounded-lg"><span>{n}</span>
               <label className="relative inline-flex cursor-pointer"><input type="checkbox" defaultChecked className="sr-only peer" />
-              <div className="w-11 h-6 bg-gray-200 peer-checked:bg-[#171717] rounded-full after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:tranprimary-x-full"></div></label>
+              <div className="w-11 h-6 bg-gray-200 peer-checked:bg-[var(--color-primary)] rounded-full after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:tranprimary-x-full"></div></label>
             </div>
           ))}
         </div>
@@ -164,23 +164,23 @@ const ComptableWorkspaceFinal: React.FC = () => {
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-bold">Aide</h2>
-        <button onClick={() => setActiveSection('workspace')} className="px-4 py-2 text-sm text-[#171717] hover:bg-[#171717]/10 rounded-lg">Retour</button>
+        <button onClick={() => setActiveSection('workspace')} className="px-4 py-2 text-sm text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 rounded-lg">Retour</button>
       </div>
-      <div className="bg-gradient-to-r from-[#171717] to-[#262626] rounded-xl p-8 text-white">
+      <div className="bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-hover)] rounded-xl p-8 text-white">
         <h3 className="text-lg font-bold mb-4">Comment pouvons-nous vous aider?</h3>
         <div className="relative"><Search className="w-5 h-5 absolute left-4 top-1/2 -tranprimary-y-1/2 text-gray-400" /><input placeholder="Rechercher..." className="w-full pl-12 pr-4 py-3 rounded-lg text-black" /></div>
       </div>
       <div className="grid grid-cols-3 gap-4">
-        {[{icon: BookMarked, title: 'Documentation', color: '#171717'}, {icon: Video, title: 'Videos', color: '#525252'}, {icon: FileQuestion, title: 'FAQ', color: '#737373'}].map((c, i) => (
-          <button key={i} className="bg-white rounded-xl p-6 border hover:border-[#171717] text-left">
+        {[{icon: BookMarked, title: 'Documentation', color: 'var(--color-primary)'}, {icon: Video, title: 'Videos', color: 'var(--color-secondary)'}, {icon: FileQuestion, title: 'FAQ', color: 'var(--color-text-tertiary)'}].map((c, i) => (
+          <button key={i} className="bg-white rounded-xl p-6 border hover:border-[var(--color-primary)] text-left">
             <div className="w-12 h-12 rounded-lg flex items-center justify-center mb-4" style={{backgroundColor: c.color+'20'}}><c.icon className="w-6 h-6" style={{color: c.color}} /></div>
             <h4 className="font-semibold">{c.title}</h4>
           </button>
         ))}
       </div>
       <div className="grid grid-cols-2 gap-4">
-        <div className="bg-white rounded-xl p-6 border"><h4 className="font-semibold mb-4 flex items-center"><MessageCircle className="w-5 h-5 mr-2 text-[#171717]" />Chat Support</h4><button className="w-full py-3 bg-[#171717] text-white rounded-lg">Demarrer</button></div>
-        <div className="bg-white rounded-xl p-6 border"><h4 className="font-semibold mb-4 flex items-center"><Headphones className="w-5 h-5 mr-2 text-[#171717]" />Telephone</h4><p className="text-lg font-bold">{companyPhone || '—'}</p></div>
+        <div className="bg-white rounded-xl p-6 border"><h4 className="font-semibold mb-4 flex items-center"><MessageCircle className="w-5 h-5 mr-2 text-[var(--color-primary)]" />Chat Support</h4><button className="w-full py-3 bg-[var(--color-primary)] text-white rounded-lg">Demarrer</button></div>
+        <div className="bg-white rounded-xl p-6 border"><h4 className="font-semibold mb-4 flex items-center"><Headphones className="w-5 h-5 mr-2 text-[var(--color-primary)]" />Telephone</h4><p className="text-lg font-bold">{companyPhone || '—'}</p></div>
       </div>
     </div>
   );
@@ -188,7 +188,7 @@ const ComptableWorkspaceFinal: React.FC = () => {
   const renderWorkspace = () => (
     <div className="p-6 space-y-6">
       <div className="grid grid-cols-4 gap-4">
-        {[{title:'Ecritures',value:String(comptaStats.entries),icon:FileText,color:'#171717',change:'',up:true},{title:'En attente',value:String(comptaStats.drafts),icon:Clock,color:'#525252',change:comptaStats.drafts > 0 ? `${comptaStats.drafts} brouillons` : '',up:comptaStats.drafts === 0},{title:'Validees',value:String(comptaStats.posted),icon:CheckCircle,color:'#737373',change:'',up:true},{title:'Tresorerie',value:formatCurrency(comptaStats.treasury),icon:DollarSign,color:'#171717',change:'',up:comptaStats.treasury >= 0}].map((m,i) => (
+        {[{title:'Ecritures',value:String(comptaStats.entries),icon:FileText,color:'var(--color-primary)',change:'',up:true},{title:'En attente',value:String(comptaStats.drafts),icon:Clock,color:'var(--color-secondary)',change:comptaStats.drafts > 0 ? `${comptaStats.drafts} brouillons` : '',up:comptaStats.drafts === 0},{title:'Validees',value:String(comptaStats.posted),icon:CheckCircle,color:'var(--color-text-tertiary)',change:'',up:true},{title:'Tresorerie',value:formatCurrency(comptaStats.treasury),icon:DollarSign,color:'var(--color-primary)',change:'',up:comptaStats.treasury >= 0}].map((m,i) => (
           <div key={i} className="bg-white rounded-lg p-4 border hover:shadow-md">
             <div className="flex justify-between mb-3"><div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{backgroundColor:m.color+'20'}}><m.icon className="w-5 h-5" style={{color:m.color}} /></div><span className={m.up?'text-green-600 text-xs':'text-red-600 text-xs'}>{m.change}</span></div>
             <h3 className="text-lg font-bold">{m.value}</h3><p className="text-sm text-gray-600">{m.title}</p>
@@ -198,7 +198,7 @@ const ComptableWorkspaceFinal: React.FC = () => {
       <div className="bg-white rounded-lg p-6 border">
         <h2 className="text-lg font-semibold mb-4">Raccourcis Atlas F&A</h2>
         <div className="grid grid-cols-4 gap-3">
-          {[{label:'Nouvelle écriture',icon:Plus,path:'/accounting/entries',color:'#171717'},{label:'Lettrage',icon:Zap,path:'/accounting/lettrage',color:'#525252'},{label:'Balance',icon:BarChart3,path:'/accounting/balance',color:'#737373'},{label:'SYSCOHADA',icon:TrendingUp,path:'/financial-statements',color:'#171717'}].map((a,i) => (
+          {[{label:'Nouvelle écriture',icon:Plus,path:'/accounting/entries',color:'var(--color-primary)'},{label:'Lettrage',icon:Zap,path:'/accounting/lettrage',color:'var(--color-secondary)'},{label:'Balance',icon:BarChart3,path:'/accounting/balance',color:'var(--color-text-tertiary)'},{label:'SYSCOHADA',icon:TrendingUp,path:'/financial-statements',color:'var(--color-primary)'}].map((a,i) => (
             <button key={i} onClick={() => navigate(a.path)} className="p-4 rounded-lg border hover:border-gray-400 hover:shadow-sm transition-all">
               <div className="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-2" style={{backgroundColor:a.color+'15'}}><a.icon className="w-5 h-5" style={{color:a.color}} /></div>
               <span className="text-sm font-medium block text-center">{a.label}</span>
@@ -209,8 +209,8 @@ const ComptableWorkspaceFinal: React.FC = () => {
       {/* Apercu Taches */}
       <div className="bg-white rounded-lg p-6 border">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold flex items-center"><ListTodo className="w-5 h-5 mr-2 text-[#171717]" />Mes Taches</h2>
-          <button onClick={() => setActiveSection('tasks')} className="text-sm text-[#171717] hover:underline">Voir tout</button>
+          <h2 className="text-lg font-semibold flex items-center"><ListTodo className="w-5 h-5 mr-2 text-[var(--color-primary)]" />Mes Taches</h2>
+          <button onClick={() => setActiveSection('tasks')} className="text-sm text-[var(--color-primary)] hover:underline">Voir tout</button>
         </div>
         <div className="space-y-2">
           <div className="text-center py-4 text-gray-400 text-sm">Aucune tache en cours</div>
@@ -221,8 +221,8 @@ const ComptableWorkspaceFinal: React.FC = () => {
       {/* Apercu Chat */}
       <div className="bg-white rounded-lg p-6 border">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold flex items-center"><MessageSquare className="w-5 h-5 mr-2 text-[#171717]" />Messages recents</h2>
-          <button onClick={() => setActiveSection('chat')} className="text-sm text-[#171717] hover:underline">Voir tout</button>
+          <h2 className="text-lg font-semibold flex items-center"><MessageSquare className="w-5 h-5 mr-2 text-[var(--color-primary)]" />Messages recents</h2>
+          <button onClick={() => setActiveSection('chat')} className="text-sm text-[var(--color-primary)] hover:underline">Voir tout</button>
         </div>
         <div className="space-y-2">
           <div className="text-center py-4 text-gray-400 text-sm">Aucun message récent</div>
@@ -232,21 +232,21 @@ const ComptableWorkspaceFinal: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-[#e5e5e5]">
+    <div className="min-h-screen bg-[var(--color-border)]">
       <header className="bg-white border-b sticky top-0 z-50">
         <div className="flex items-center justify-between px-6 py-3">
           <div className="flex items-center space-x-4">
             <button onClick={() => navigate('/')} className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 border-2 border-gray-300"><ArrowLeft className="w-5 h-5" /><span className="text-sm font-semibold">Accueil</span></button>
             <button onClick={() => setSidebarOpen(!sidebarOpen)} className="lg:hidden p-2 rounded-lg hover:bg-gray-100">{sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}</button>
-            <div className="flex items-center space-x-3"><div className="w-10 h-10 rounded-lg bg-gradient-to-r from-[#171717] to-[#262626] flex items-center justify-center"><BarChart3 className="w-5 h-5 text-white" /></div><div className="hidden sm:block"><h1 className="text-lg font-bold"><span className="atlas-brand">Atlas F&A</span></h1><p className="text-xs text-gray-500">v{APP_VERSION}</p></div></div>
+            <div className="flex items-center space-x-3"><div className="w-10 h-10 rounded-lg bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-hover)] flex items-center justify-center"><BarChart3 className="w-5 h-5 text-white" /></div><div className="hidden sm:block"><h1 className="text-lg font-bold"><span className="atlas-brand">Atlas F&A</span></h1><p className="text-xs text-gray-500">v{APP_VERSION}</p></div></div>
             <div className="hidden md:block relative">
               <button
                 onClick={() => setWorkspaceSwitcherOpen(!workspaceSwitcherOpen)}
                 className="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-green-50 hover:bg-green-100 transition-colors"
               >
-                <Calculator className="w-4 h-4 text-[#171717]" />
-                <span className="text-sm font-medium text-[#171717]">Espace Comptable</span>
-                {workspaceOptions.length > 1 && <ChevronDown className={`w-3 h-3 text-[#171717] transition-transform ${workspaceSwitcherOpen ? 'rotate-180' : ''}`} />}
+                <Calculator className="w-4 h-4 text-[var(--color-primary)]" />
+                <span className="text-sm font-medium text-[var(--color-primary)]">Espace Comptable</span>
+                {workspaceOptions.length > 1 && <ChevronDown className={`w-3 h-3 text-[var(--color-primary)] transition-transform ${workspaceSwitcherOpen ? 'rotate-180' : ''}`} />}
               </button>
               {workspaceSwitcherOpen && workspaceOptions.length > 1 && (
                 <div className="absolute top-full left-0 mt-1 w-56 bg-white rounded-lg shadow-lg border z-50">
@@ -267,20 +267,20 @@ const ComptableWorkspaceFinal: React.FC = () => {
           </div>
           <div className="flex-1 max-w-md mx-6 hidden md:block"><div className="relative"><Search className="w-4 h-4 absolute left-3 top-1/2 -tranprimary-y-1/2 text-gray-400" /><input placeholder="Recherche..." className="w-full pl-10 pr-4 py-2 border rounded-lg text-sm" /></div></div>
           <div className="flex items-center space-x-3">
-            <button onClick={() => navigate('/dashboard')} className="group px-6 py-2.5 bg-[#171717] hover:bg-[#262626] rounded-lg text-white font-semibold flex items-center space-x-2 transition-all shadow-sm hover:shadow-md"><LayoutDashboard className="w-5 h-5" /><span><span className="atlas-brand">Atlas F&A</span></span><ExternalLink className="w-4 h-4 opacity-60 group-hover:opacity-100 group-hover:tranprimary-x-0.5 transition-all" /></button>
-            <button className="relative p-2 rounded-lg hover:bg-gray-100"><Bell className="w-5 h-5 text-gray-500" />{comptaStats.drafts > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 text-xs font-bold text-white bg-[#171717] rounded-full flex items-center justify-center">{comptaStats.drafts}</span>}</button>
+            <button onClick={() => navigate('/dashboard')} className="group px-6 py-2.5 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] rounded-lg text-white font-semibold flex items-center space-x-2 transition-all shadow-sm hover:shadow-md"><LayoutDashboard className="w-5 h-5" /><span><span className="atlas-brand">Atlas F&A</span></span><ExternalLink className="w-4 h-4 opacity-60 group-hover:opacity-100 group-hover:tranprimary-x-0.5 transition-all" /></button>
+            <button className="relative p-2 rounded-lg hover:bg-gray-100"><Bell className="w-5 h-5 text-gray-500" />{comptaStats.drafts > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 text-xs font-bold text-white bg-[var(--color-primary)] rounded-full flex items-center justify-center">{comptaStats.drafts}</span>}</button>
             <button onClick={() => setActiveSection('help')} className="p-2 rounded-lg hover:bg-gray-100"><HelpCircle className="w-5 h-5 text-gray-500" /></button>
             <div className="relative">
               <button onClick={() => setUserMenuOpen(!userMenuOpen)} className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-100">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-r from-[#171717] to-[#262626] flex items-center justify-center"><User className="w-4 h-4 text-white" /></div>
+                <div className="w-8 h-8 rounded-full bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-hover)] flex items-center justify-center"><User className="w-4 h-4 text-white" /></div>
                 <div className="hidden md:block text-left"><p className="text-sm font-medium">{userData.name}</p><p className="text-xs text-gray-500">{userData.role}</p></div>
                 <ChevronDown className={`w-4 h-4 transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} />
               </button>
               {userMenuOpen && (
                 <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border py-2 z-50">
-                  <button onClick={() => { setActiveSection('profile'); setUserMenuOpen(false); }} className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50"><User className="w-5 h-5 text-[#171717]" /><span>Mon profil</span></button>
-                  <button onClick={() => { setActiveSection('settings'); setUserMenuOpen(false); }} className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50"><Settings className="w-5 h-5 text-[#171717]" /><span>Parametres</span></button>
-                  <button onClick={() => { setActiveSection('help'); setUserMenuOpen(false); }} className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50"><HelpCircle className="w-5 h-5 text-[#171717]" /><span>Aide</span></button>
+                  <button onClick={() => { setActiveSection('profile'); setUserMenuOpen(false); }} className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50"><User className="w-5 h-5 text-[var(--color-primary)]" /><span>Mon profil</span></button>
+                  <button onClick={() => { setActiveSection('settings'); setUserMenuOpen(false); }} className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50"><Settings className="w-5 h-5 text-[var(--color-primary)]" /><span>Parametres</span></button>
+                  <button onClick={() => { setActiveSection('help'); setUserMenuOpen(false); }} className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50"><HelpCircle className="w-5 h-5 text-[var(--color-primary)]" /><span>Aide</span></button>
                   <div className="border-t my-2"></div>
                   <button onClick={handleLogout} className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-red-50 text-red-600"><LogOut className="w-5 h-5" /><span>Deconnexion</span></button>
                 </div>
@@ -304,7 +304,7 @@ const ComptableWorkspaceFinal: React.FC = () => {
                   {id:'settings',label:'Parametres',icon:Settings},
                   {id:'help',label:'Aide',icon:HelpCircle}
                 ].map(item => (
-                  <button key={item.id} onClick={() => setActiveSection(item.id as typeof activeSection)} className={`${activeSection===item.id?'bg-[#171717]/10 text-[#171717]':'text-gray-600 hover:bg-gray-50'} w-full flex items-center justify-between px-3 py-2 rounded-lg`}>
+                  <button key={item.id} onClick={() => setActiveSection(item.id as typeof activeSection)} className={`${activeSection===item.id?'bg-[var(--color-primary)]/10 text-[var(--color-primary)]':'text-gray-600 hover:bg-gray-50'} w-full flex items-center justify-between px-3 py-2 rounded-lg`}>
                     <div className="flex items-center space-x-3"><item.icon className="w-4 h-4" /><span className="text-sm font-medium">{item.label}</span></div>
                     {item.badge && <span className="px-2 py-0.5 text-xs rounded-full bg-red-100 text-red-600">{item.badge}</span>}
                   </button>
@@ -316,7 +316,7 @@ const ComptableWorkspaceFinal: React.FC = () => {
             <div className="text-xs font-semibold text-gray-500 uppercase mb-3">Modules Comptables</div>
             <div className="space-y-1">
               {atlasFinanceLinks.map(item => (
-                <button key={item.id} onClick={() => navigate(item.path)} className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-gray-600 hover:text-[#171717] hover:bg-gray-50">
+                <button key={item.id} onClick={() => navigate(item.path)} className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-gray-600 hover:text-[var(--color-primary)] hover:bg-gray-50">
                   <div className="flex items-center space-x-3"><item.icon className="w-4 h-4" /><span className="text-sm">{item.label}</span></div>
                   {item.badge && <span className="px-2 py-0.5 text-xs rounded-full bg-red-100 text-red-600">{item.badge}</span>}
                 </button>
@@ -359,7 +359,7 @@ const FiscalAlertsWidget: React.FC<{ navigate: (path: string) => void }> = ({ na
             {urgentAlerts.length}
           </span>
         </h2>
-        <button onClick={() => navigate('/taxation/echeances')} className="text-sm text-[#171717] hover:underline flex items-center gap-1">
+        <button onClick={() => navigate('/taxation/echeances')} className="text-sm text-[var(--color-primary)] hover:underline flex items-center gap-1">
           Calendrier fiscal <ExternalLink className="w-3 h-3" />
         </button>
       </div>
@@ -387,7 +387,7 @@ const FiscalAlertsWidget: React.FC<{ navigate: (path: string) => void }> = ({ na
           </div>
         ))}
         {urgentAlerts.length > 5 && (
-          <button onClick={() => navigate('/taxation/echeances')} className="text-sm text-[#171717] font-medium hover:underline w-full text-center py-2">
+          <button onClick={() => navigate('/taxation/echeances')} className="text-sm text-[var(--color-primary)] font-medium hover:underline w-full text-center py-2">
             + {urgentAlerts.length - 5} autre(s) échéance(s)
           </button>
         )}

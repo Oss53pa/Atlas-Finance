@@ -13,6 +13,26 @@ const ExternalAuthPage: React.FC = () => {
 
   useEffect(() => {
     const token = searchParams.get('token');
+
+    // En dev local, bypasser le SSO (edge function non disponible)
+    // et rediriger vers la page de login classique
+    if (import.meta.env.DEV) {
+      // Extraire le plan du token si présent, sinon défaut PME
+      if (token) {
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          const plan = (payload.plan || '').toLowerCase();
+          if (plan.includes('premium') || plan.includes('pro') || plan.includes('enterprise')) {
+            localStorage.setItem('atlas_fna_plan_tier', 'premium');
+          } else {
+            localStorage.setItem('atlas_fna_plan_tier', 'pme');
+          }
+        } catch { /* silent */ }
+      }
+      navigate('/login', { replace: true });
+      return;
+    }
+
     if (!token) {
       setStatus('error');
       setErrorMessage('Aucun token fourni dans l\'URL.');

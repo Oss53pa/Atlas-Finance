@@ -81,6 +81,20 @@ const ThemeConfigurator: React.FC<ThemeConfiguratorProps> = ({
   // Thèmes prédéfinis selon cahier des charges (6.1.2)
   const predefinedThemes: Theme[] = [
     {
+      id: 'atlas-studio',
+      name: 'Atlas Studio',
+      description: 'Anthracite + or mat — identité Atlas',
+      colors: {
+        primary: '#1F1F23',
+        secondary: '#B8954A',
+        accent: '#D4B870',
+        background: '#faf8f3',
+        surface: '#FFFFFF',
+        text: '#16161A'
+      },
+      preview: 'linear-gradient(135deg, #1F1F23, #B8954A, #D4B870)'
+    },
+    {
       id: 'ocean-blue',
       name: 'Ocean Blue',
       description: 'Bleu océan professionnel',

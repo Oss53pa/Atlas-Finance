@@ -19,7 +19,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   // Récupérer le thème sauvegardé ou utiliser le thème par défaut
   const [themeType, setThemeType] = useState<ThemeType>(() => {
     const saved = localStorage.getItem('atlas-fna-theme') as ThemeType;
-    return saved && saved in themes ? saved : 'atlasFinance';
+    return saved && saved in themes ? saved : 'atlasStudio';
   });
 
   const [theme, setThemeState] = useState<Theme>(themes[themeType] || defaultTheme);

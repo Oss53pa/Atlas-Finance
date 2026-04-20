@@ -15,6 +15,7 @@ import { useData } from '../../contexts/DataContext';
 import { toast } from 'sonner';
 import { logAudit } from '../../lib/db';
 import { money } from '../../utils/money';
+import { getTemplate, downloadTemplate, type TemplateKey } from '../../services/import';
 
 // ─── Types ───────────────────────────────────────────────
 
@@ -110,13 +111,81 @@ const STEPS: { id: StepId; label: string }[] = [
 
 const SOURCE_SYSTEMS = ['Sage', 'Ciel/Saari', 'EBP', 'Cegid', 'Odoo', 'FEC', 'Excel', 'Autre'];
 
-const FILE_CONFIGS: Record<string, { label: string; icon: React.ReactNode; accept: string; modes: MigrationMode[] }> = {
-  planComptable: { label: 'Plan comptable', icon: <BookOpen className="w-5 h-5" />, accept: '.csv,.xlsx,.xls', modes: [1, 2, 3] },
-  tiers: { label: 'Tiers (clients/fournisseurs)', icon: <Users className="w-5 h-5" />, accept: '.csv,.xlsx,.xls', modes: [1, 2, 3] },
-  ecritures: { label: 'Ecritures comptables', icon: <FileText className="w-5 h-5" />, accept: '.csv,.xlsx,.xls,.txt', modes: [1, 3] },
-  reportAN: { label: 'Reports a nouveau (AN)', icon: <Calculator className="w-5 h-5" />, accept: '.csv,.xlsx,.xls', modes: [1, 2] },
-  immobilisations: { label: 'Immobilisations', icon: <Package className="w-5 h-5" />, accept: '.csv,.xlsx,.xls', modes: [1, 2, 3] },
-  fec: { label: 'Fichier FEC complet', icon: <FileSpreadsheet className="w-5 h-5" />, accept: '.csv,.xlsx,.xls,.txt', modes: [1, 2, 3] },
+/**
+ * Configuration des fichiers d'import par mode de migration.
+ *
+ * Structure : chaque fichier déclare :
+ *   - `requiredModes` : modes où il est OBLIGATOIRE
+ *   - `optionalModes` : modes où il est RECOMMANDÉ (enrichissement)
+ *   - `templateKey`   : clé du template Atlas correspondant (pour téléchargement)
+ *
+ * Principe (aligné sur la question "un GL seul suffit-il ?") :
+ *   • Mode 1 (en cours d'exercice)  : Grand Livre/FEC obligatoire → tout le reste optionnel
+ *   • Mode 2 (début d'exercice)     : Balance/AN obligatoire → tout le reste optionnel
+ *   • Mode 3 (historique complet)   : Grand Livre + Tiers + Immos obligatoires
+ *
+ * Le Plan Comptable n'est plus demandé : il est embarqué nativement dans
+ * Atlas F&A (src/data/syscohada-referentiel.ts — OHADA révisé 2017).
+ */
+type FileConfig = {
+  label: string;
+  description: string;
+  icon: React.ReactNode;
+  accept: string;
+  /** Modes où ce fichier est OBLIGATOIRE */
+  requiredModes: MigrationMode[];
+  /** Modes où ce fichier est RECOMMANDÉ (optionnel mais enrichit la migration) */
+  optionalModes: MigrationMode[];
+  /** Clé du template Atlas correspondant (pour téléchargement du modèle) */
+  templateKey?: string;
+};
+
+const FILE_CONFIGS: Record<string, FileConfig> = {
+  grandLivre: {
+    label: 'Grand Livre',
+    description: 'Contient toutes les écritures (AN + mouvements). Source principale.',
+    icon: <FileSpreadsheet className="w-5 h-5" />,
+    accept: '.csv,.xlsx,.xls,.txt',
+    requiredModes: [1, 3],
+    optionalModes: [],
+    templateKey: 'grand_livre',
+  },
+  reportAN: {
+    label: 'Balance / Reports à nouveau',
+    description: 'Soldes d\'ouverture de l\'exercice (classes 1 à 5).',
+    icon: <Calculator className="w-5 h-5" />,
+    accept: '.csv,.xlsx,.xls',
+    requiredModes: [2],
+    optionalModes: [1],
+    templateKey: 'reports_a_nouveau',
+  },
+  tiers: {
+    label: 'Tiers (clients / fournisseurs)',
+    description: 'Détails NIF, RCCM, adresses — enrichit les codes tiers du GL.',
+    icon: <Users className="w-5 h-5" />,
+    accept: '.csv,.xlsx,.xls',
+    requiredModes: [3],
+    optionalModes: [1, 2],
+    templateKey: 'tiers',
+  },
+  immobilisations: {
+    label: 'Immobilisations',
+    description: 'Registre complet : durée, méthode amortissement, VNC.',
+    icon: <Package className="w-5 h-5" />,
+    accept: '.csv,.xlsx,.xls',
+    requiredModes: [3],
+    optionalModes: [1, 2],
+    templateKey: 'immobilisations',
+  },
+  planComptable: {
+    label: 'Plan comptable personnalisé',
+    description: 'Optionnel — Atlas embarque déjà le plan SYSCOHADA révisé 2017. À utiliser uniquement pour des comptes auxiliaires personnalisés.',
+    icon: <BookOpen className="w-5 h-5" />,
+    accept: '.csv,.xlsx,.xls',
+    requiredModes: [],
+    optionalModes: [1, 2, 3],
+    templateKey: 'plan_comptable',
+  },
 };
 
 const TARGET_FIELDS: Record<string, { field: string; label: string; required: boolean }[]> = {
@@ -134,6 +203,20 @@ const TARGET_FIELDS: Record<string, { field: string; label: string; required: bo
     { field: 'adresse', label: 'Adresse', required: false },
     { field: 'telephone', label: 'Telephone', required: false },
   ],
+  // Grand Livre : source principale recommandée (écritures + AN incluses)
+  grandLivre: [
+    { field: 'date', label: 'Date', required: true },
+    { field: 'journal', label: 'Code journal', required: true },
+    { field: 'compte', label: 'Numéro de compte', required: true },
+    { field: 'libelle', label: 'Libellé écriture', required: true },
+    { field: 'debit', label: 'Débit', required: true },
+    { field: 'credit', label: 'Crédit', required: true },
+    { field: 'tiers', label: 'Code tiers', required: false },
+    { field: 'piece', label: 'Pièce', required: false },
+    { field: 'lettrage', label: 'Lettrage', required: false },
+    { field: 'echeance', label: 'Échéance', required: false },
+  ],
+  // Alias conservés pour compatibilité
   ecritures: [
     { field: 'dateEcriture', label: 'Date ecriture', required: true },
     { field: 'journal', label: 'Code journal', required: true },
@@ -636,7 +719,13 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
   const canNext = useMemo(() => {
     switch (currentStep) {
       case 'mode': return !!sourceSystem;
-      case 'upload': return Object.keys(uploadedFiles).length > 0;
+      case 'upload': {
+        // Tous les fichiers obligatoires du mode courant doivent être uploadés
+        const requiredKeys = Object.entries(FILE_CONFIGS)
+          .filter(([, v]) => v.requiredModes.includes(migrationMode))
+          .map(([k]) => k);
+        return requiredKeys.every(k => !!uploadedFiles[k]);
+      }
       case 'analysis': return analysisReport ? analysisReport.errors.length === 0 : false;
       case 'mapping': return Object.keys(mappings).length > 0;
       case 'parameters': return !!params.dateBascule && !!params.exerciceStart && !!params.exerciceEnd;
@@ -659,11 +748,21 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
   };
 
   const availableFileKeys = useMemo(() => {
-    if (sourceSystem === 'FEC') return ['fec'];
+    // Source FEC : seul le Grand Livre est nécessaire (le FEC est un format de GL réglementaire)
+    if (sourceSystem === 'FEC') return ['grandLivre'];
+    // Sinon, on affiche tous les fichiers (obligatoires + optionnels) applicables au mode choisi
     return Object.entries(FILE_CONFIGS)
-      .filter(([k, v]) => k !== 'fec' && v.modes.includes(migrationMode))
+      .filter(([, v]) =>
+        v.requiredModes.includes(migrationMode) ||
+        v.optionalModes.includes(migrationMode)
+      )
       .map(([k]) => k);
   }, [migrationMode, sourceSystem]);
+
+  /** Retourne true si le fichier est obligatoire pour le mode courant */
+  const isFileRequired = (fileKey: string): boolean => {
+    return FILE_CONFIGS[fileKey]?.requiredModes.includes(migrationMode) ?? false;
+  };
 
   // ─── Render ────────────────────────────────────────────
 
@@ -718,11 +817,11 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
             {([
               {
                 mode: 2 as MigrationMode,
-                title: 'Bascule debut d\'exercice',
-                badge: 'RECOMMANDE',
-                desc: 'Au 01/01/N — juste apres avoir cloture l\'exercice N-1. Import du referentiel + soldes d\'ouverture uniquement.',
-                detail: 'On importe la "photo" au 31/12/N-1 : plan comptable, tiers, balance (soldes) et immobilisations. Pas une seule ecriture detaillee. L\'historique reste dans l\'ancien logiciel.',
-                files: '4 fichiers',
+                title: 'Bascule début d\'exercice',
+                badge: 'RECOMMANDÉ',
+                desc: 'Au 01/01/N — juste après avoir clôturé l\'exercice N-1. Balance de clôture suffit.',
+                detail: 'Un seul fichier obligatoire : la Balance au 31/12/N-1 (= soldes d\'ouverture). Tiers et immobilisations sont optionnels pour enrichir le référentiel. Pas d\'écritures détaillées — l\'historique reste dans l\'ancien logiciel.',
+                files: '1 fichier obligatoire',
                 duration: '< 5 min',
                 risk: 'Faible',
                 riskColor: 'text-green-600',
@@ -731,22 +830,22 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
                 mode: 1 as MigrationMode,
                 title: 'Bascule en cours d\'exercice',
                 badge: '',
-                desc: 'En cours d\'annee — l\'exercice N est deja commence. Import des AN + ecritures du 01/01/N a la date de bascule.',
-                detail: 'En plus des soldes d\'ouverture, on importe le Grand Livre de l\'exercice en cours (janvier a la date de bascule) pour que la comptabilite soit continue.',
-                files: '5 fichiers',
-                duration: '5 a 30 min',
+                desc: 'En cours d\'année — l\'exercice N est déjà commencé. Grand Livre (AN inclus + mouvements du 01/01/N à la date de bascule).',
+                detail: 'Un seul fichier obligatoire : le Grand Livre de l\'exercice en cours. Tiers et immobilisations restent optionnels. Le plan comptable SYSCOHADA est déjà embarqué dans Atlas — nul besoin de l\'importer.',
+                files: '1 fichier obligatoire',
+                duration: '5 à 30 min',
                 risk: 'Moyen',
                 riskColor: 'text-amber-600',
               },
               {
                 mode: 3 as MigrationMode,
-                title: 'Migration historique complete',
+                title: 'Migration historique complète',
                 badge: '',
-                desc: 'Tout l\'historique des exercices passes dans Atlas. Deconseille sauf besoin imperatif (audit, fusion, obligation legale).',
-                detail: 'Import du referentiel + Grand Livre complet de chaque exercice a migrer. Un fichier par exercice. Peut representer 200 000 a 500 000 lignes.',
-                files: '8+ fichiers',
-                duration: '1 a 8 heures',
-                risk: 'Eleve',
+                desc: 'Tout l\'historique des exercices passés dans Atlas. Déconseillé sauf besoin impératif (audit, fusion, obligation légale).',
+                detail: 'Grand Livre + Tiers + Immobilisations obligatoires. Un fichier Grand Livre par exercice à migrer. Peut représenter 200 000 à 500 000 lignes.',
+                files: '3+ fichiers obligatoires',
+                duration: '1 à 8 heures',
+                risk: 'Élevé',
                 riskColor: 'text-red-600',
               },
             ]).map(({ mode, title, badge, desc, detail, files, duration, risk, riskColor }) => (
@@ -881,21 +980,49 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
               {availableFileKeys.map(key => {
                 const config = FILE_CONFIGS[key];
                 const uf = uploadedFiles[key];
+                const required = isFileRequired(key);
                 return (
                   <div key={key} className={`border-2 border-dashed rounded-lg p-4 transition-colors ${
-                    uf ? 'border-green-300 bg-green-50' : 'border-gray-300 hover:border-red-300'
+                    uf
+                      ? 'border-green-300 bg-green-50'
+                      : required
+                        ? 'border-red-300 bg-red-50/30 hover:border-red-400'
+                        : 'border-gray-300 bg-gray-50/30 hover:border-gray-400'
                   }`}>
-                    <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-2 text-gray-700">
                         {config.icon}
                         <span className="font-medium text-sm">{config.label}</span>
+                        {required ? (
+                          <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-red-100 text-red-700 border border-red-200">
+                            Obligatoire
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-neutral-100 text-neutral-600 border border-neutral-200">
+                            Recommandé
+                          </span>
+                        )}
                       </div>
-                      <a href="#" onClick={e => e.preventDefault()}
-                        className="text-xs text-red-600 hover:underline flex items-center gap-1"
-                      >
-                        <Download className="w-3 h-3" /> Template
-                      </a>
+                      {config.templateKey && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const tpl = getTemplate(config.templateKey as TemplateKey);
+                            if (tpl) {
+                              downloadTemplate(tpl, {
+                                societeName: 'Atlas',
+                                year: new Date().getFullYear(),
+                              });
+                            }
+                          }}
+                          className="text-xs text-red-600 hover:underline flex items-center gap-1 cursor-pointer"
+                          title="Télécharger le modèle Atlas F&A pré-rempli"
+                        >
+                          <Download className="w-3 h-3" /> Télécharger le modèle
+                        </button>
+                      )}
                     </div>
+                    <p className="text-xs text-gray-500 mb-3">{config.description}</p>
 
                     {uf ? (
                       <div className="flex items-center justify-between bg-white rounded p-2 border">

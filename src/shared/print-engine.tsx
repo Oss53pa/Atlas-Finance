@@ -177,7 +177,7 @@ function PrintHeader({ rc }: { rc: ResolvedConfig }) {
     }}>
       <div>
         {rc.showLogo && (
-          <div style={{ fontSize: 14, fontWeight: 800, color: '#EF9F27', letterSpacing: 1 }}>
+          <div style={{ fontSize: 14, fontWeight: 800, color: '#B8954A', letterSpacing: 1 }}>
             ATLAS<span style={{ fontWeight: 300, color: '#000' }}>S</span>
           </div>
         )}
@@ -191,7 +191,7 @@ function PrintHeader({ rc }: { rc: ResolvedConfig }) {
       </div>
       <div style={{ textAlign: 'right', minWidth: 80 }}>
         {rc.showDate && <div style={{ fontSize: 7, color: '#666' }}>{date}</div>}
-        <div style={{ fontSize: 7, color: '#EF9F27', fontWeight: 700, letterSpacing: 1, marginTop: 1 }}>CONFIDENTIEL</div>
+        <div style={{ fontSize: 7, color: '#B8954A', fontWeight: 700, letterSpacing: 1, marginTop: 1 }}>CONFIDENTIEL</div>
       </div>
     </div>
   )
@@ -234,21 +234,21 @@ export function PrintWrapper({ children, config }: { children: React.ReactNode; 
 const MODAL_CSS = `
 .apm-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:99999;display:flex;flex-direction:column;align-items:center}
 .apm-topbar{width:100%;height:54px;background:#111;border-bottom:1px solid #222;display:flex;align-items:center;padding:0 20px;gap:14px;flex-shrink:0}
-.apm-brand{font-size:10px;font-weight:700;color:#EF9F27;letter-spacing:2.5px;text-transform:uppercase;white-space:nowrap;flex-shrink:0}
+.apm-brand{font-size:10px;font-weight:700;color:#B8954A;letter-spacing:2.5px;text-transform:uppercase;white-space:nowrap;flex-shrink:0}
 .apm-controls{display:flex;align-items:center;gap:8px;flex:1;justify-content:center;flex-wrap:wrap}
 .apm-select{background:#1e1e1e;border:1px solid #333;color:#fff;font-size:11px;padding:5px 8px;border-radius:5px;cursor:pointer;outline:none}
-.apm-select:hover{border-color:#EF9F27}
+.apm-select:hover{border-color:#B8954A}
 .apm-tgrp{display:flex;background:#1e1e1e;border:1px solid #333;border-radius:5px;overflow:hidden}
 .apm-tbtn{background:transparent;border:none;color:#777;padding:5px 11px;cursor:pointer;font-size:10px;transition:all .15s;white-space:nowrap}
 .apm-tbtn:hover{background:#2a2a2a;color:#fff}
-.apm-tbtn.apm-on{background:#EF9F27;color:#000;font-weight:700}
+.apm-tbtn.apm-on{background:#B8954A;color:#000;font-weight:700}
 .apm-zgrp{display:flex;align-items:center;gap:4px}
 .apm-zbtn{background:#1e1e1e;border:1px solid #333;color:#ccc;width:24px;height:24px;border-radius:4px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;line-height:1;transition:all .15s}
-.apm-zbtn:hover{border-color:#EF9F27;color:#EF9F27}
+.apm-zbtn:hover{border-color:#B8954A;color:#B8954A}
 .apm-zlbl{font-size:10px;color:#888;min-width:32px;text-align:center}
 .apm-diminfo{font-size:9px;color:#555;white-space:nowrap}
 .apm-actions{display:flex;gap:6px;flex-shrink:0}
-.apm-btnprint{background:#EF9F27;border:none;color:#000;font-size:11px;font-weight:700;padding:7px 16px;border-radius:5px;cursor:pointer;display:flex;align-items:center;gap:5px;transition:background .15s}
+.apm-btnprint{background:#B8954A;border:none;color:#000;font-size:11px;font-weight:700;padding:7px 16px;border-radius:5px;cursor:pointer;display:flex;align-items:center;gap:5px;transition:background .15s}
 .apm-btnprint:hover{background:#f5b548}
 .apm-btnclose{background:transparent;border:1px solid #333;color:#888;width:30px;height:30px;border-radius:5px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .15s}
 .apm-btnclose:hover{border-color:#e04040;color:#e04040}

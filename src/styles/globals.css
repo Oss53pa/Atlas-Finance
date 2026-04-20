@@ -15,37 +15,37 @@
 }
 
 
-/* Variables CSS globales - Atlas F&A Grayscale Theme */
+/* Variables CSS globales - Atlas Studio (Anthracite + Or Mat) */
 :root {
   /* Couleurs principales */
-  --color-primary: #171717;
-  --color-primary-hover: #262626;
-  --color-primary-light: rgba(23, 23, 23, 0.1);
-  --color-primary-rgb: 23, 23, 23;
-  --color-secondary-rgb: 115, 115, 115;
-  --color-secondary: #737373;
-  --color-accent: #404040;
-  --color-background: #fafafa;
+  --color-primary: #1F1F23;
+  --color-primary-hover: #2A2A2F;
+  --color-primary-light: rgba(31, 31, 35, 0.1);
+  --color-primary-rgb: 31, 31, 35;
+  --color-secondary-rgb: 140, 122, 90;
+  --color-secondary: #8C7A5A;
+  --color-accent: #B8954A;
+  --color-background: #faf8f3;
   --color-surface: #FFFFFF;
-  --color-surface-hover: #f5f5f5;
+  --color-surface-hover: #f5f2eb;
 
   /* Texte */
-  --color-text-primary: #0a0a0a;
-  --color-text-secondary: #404040;
-  --color-text-tertiary: #737373;
-  --color-text-inverse: #FFFFFF;
+  --color-text-primary: #16161A;
+  --color-text-secondary: #3A3A3F;
+  --color-text-tertiary: #6B6B73;
+  --color-text-inverse: #faf8f3;
 
   /* Bordures */
-  --color-border: #e5e5e5;
-  --color-border-light: #f5f5f5;
+  --color-border: #e5e0d5;
+  --color-border-light: #f0ece4;
 
   /* États */
   --color-success: #22c55e;
   --color-success-light: rgba(34, 197, 94, 0.1);
   --color-error: #ef4444;
   --color-error-light: rgba(239, 68, 68, 0.1);
-  --color-warning: #f59e0b;
-  --color-warning-light: rgba(245, 158, 11, 0.1);
+  --color-warning: #D4B870;
+  --color-warning-light: rgba(212, 184, 112, 0.12);
   --color-info: #3b82f6;
   --color-info-light: rgba(59, 130, 246, 0.1);
 
