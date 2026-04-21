@@ -62,36 +62,36 @@ const TAFIREDashboard: React.FC = () => {
   if (!tafireData) {
     return (
       <div className="text-center p-8">
-        <p className="text-gray-700">Aucune donnÃ©e TAFIRE disponible</p>
+        <p className="text-gray-700">Aucune donnée TAFIRE disponible</p>
       </div>
     );
   }
 
   const waterfallData = [
-    { name: 'TrÃ©sorerie dÃ©but', value: tafireData.openingCashBalance, cumulative: tafireData.openingCashBalance },
+    { name: 'Trésorerie début', value: tafireData.openingCashBalance, cumulative: tafireData.openingCashBalance },
     { name: 'Flux exploitation', value: tafireData.operatingCashSurplus, cumulative: tafireData.openingCashBalance + tafireData.operatingCashSurplus },
     { name: 'Flux investissement', value: tafireData.investmentCashFlow, cumulative: tafireData.openingCashBalance + tafireData.operatingCashSurplus + tafireData.investmentCashFlow },
     { name: 'Flux financement', value: tafireData.financingCashFlow, cumulative: tafireData.closingCashBalance },
-    { name: 'TrÃ©sorerie fin', value: 0, cumulative: tafireData.closingCashBalance }
+    { name: 'Trésorerie fin', value: 0, cumulative: tafireData.closingCashBalance }
   ];
 
   const cafBreakdownData = [
-    { name: 'RÃ©sultat net', value: tafireData.netIncome },
+    { name: 'Résultat net', value: tafireData.netIncome },
     { name: 'Dotations', value: tafireData.depreciationProvisions },
     { name: 'Reprises', value: -tafireData.provisionsReversal },
-    { name: 'Ã‰lÃ©ments except.', value: tafireData.exceptionalItems }
+    { name: 'Éléments except.', value: tafireData.exceptionalItems }
   ];
 
   return (
     <div className="space-y-6">
-      {/* Header avec contrÃ´les */}
+      {/* Header avec contrôles */}
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-lg font-bold text-gray-900">TAFIRE - Analyse des Flux</h2>
           <p className="text-gray-600">
-            MÃ©thode {tafireData.calculationMethod === 'INDIRECT' ? 'Indirecte' : 'Directe'} â€¢ 
-            Exercice {tafireData.fiscalYear} â€¢ 
-            {tafireData.isValidated ? 'ValidÃ©' : 'Brouillon'}
+            Méthode {tafireData.calculationMethod === 'INDIRECT' ? 'Indirecte' : 'Directe'} • 
+            Exercice {tafireData.fiscalYear} • 
+            {tafireData.isValidated ? 'Validé' : 'Brouillon'}
           </p>
         </div>
         <div className="flex space-x-4">
@@ -110,7 +110,7 @@ const TAFIREDashboard: React.FC = () => {
             className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500"
           >
             <option value="current">Exercice courant</option>
-            <option value="previous">Exercice prÃ©cÃ©dent</option>
+            <option value="previous">Exercice précédent</option>
             <option value="comparison">Comparaison N/N-1</option>
           </select>
         </div>
@@ -131,7 +131,7 @@ const TAFIREDashboard: React.FC = () => {
           <div className="mt-2 flex items-center text-sm">
             {getFlowIcon(tafireData.selfFinancingCapacity)}
             <span className={`ml-1 ${tafireData.selfFinancingCapacity > 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {tafireData.selfFinancingCapacity > 0 ? 'Positif' : 'NÃ©gatif'}
+              {tafireData.selfFinancingCapacity > 0 ? 'Positif' : 'Négatif'}
             </span>
           </div>
         </div>
@@ -149,7 +149,7 @@ const TAFIREDashboard: React.FC = () => {
           <div className="mt-2 flex items-center text-sm">
             {getFlowIcon(tafireData.freeCashFlow)}
             <span className={`ml-1 ${tafireData.freeCashFlow > 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {tafireData.freeCashFlow > 0 ? 'GÃ©nÃ©ration' : 'Consommation'}
+              {tafireData.freeCashFlow > 0 ? 'Génération' : 'Consommation'}
             </span>
           </div>
         </div>
@@ -157,7 +157,7 @@ const TAFIREDashboard: React.FC = () => {
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Variation TrÃ©sorerie</p>
+              <p className="text-sm font-medium text-gray-600">Variation Trésorerie</p>
               <p className="text-lg font-bold text-gray-900">{fmt(tafireData.cashVariation)}</p>
             </div>
             <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${
@@ -170,14 +170,14 @@ const TAFIREDashboard: React.FC = () => {
             </div>
           </div>
           <div className="mt-2 text-sm text-gray-600">
-            De {fmt(tafireData.openingCashBalance)} Ã  {fmt(tafireData.closingCashBalance)}
+            De {fmt(tafireData.openingCashBalance)} à {fmt(tafireData.closingCashBalance)}
           </div>
         </div>
 
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Score QualitÃ©</p>
+              <p className="text-sm font-medium text-gray-600">Score Qualité</p>
               <p className="text-lg font-bold text-gray-900">{analysisData?.score || 0}/100</p>
             </div>
             <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${
@@ -201,7 +201,7 @@ const TAFIREDashboard: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Waterfall Chart */}
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Ã‰volution des Flux de TrÃ©sorerie</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Évolution des Flux de Trésorerie</h3>
             <ResponsiveContainer width="100%" height={350}>
               <ComposedChart data={waterfallData}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -209,7 +209,7 @@ const TAFIREDashboard: React.FC = () => {
                 <YAxis />
                 <Tooltip formatter={(value: number) => fmt(value)} />
                 <Bar dataKey="value" fill="#171717" />
-                <Line type="monotone" dataKey="cumulative" stroke="#737373" strokeWidth={3} name="TrÃ©sorerie cumulative" />
+                <Line type="monotone" dataKey="cumulative" stroke="#737373" strokeWidth={3} name="Trésorerie cumulative" />
               </ComposedChart>
             </ResponsiveContainer>
           </div>
@@ -228,12 +228,12 @@ const TAFIREDashboard: React.FC = () => {
             </ResponsiveContainer>
           </div>
 
-          {/* DÃ©tail des flux */}
+          {/* Détail des flux */}
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Flux d'Exploitation</h3>
             <div className="space-y-3">
               <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                <span className="text-sm text-gray-600">RÃ©sultat net</span>
+                <span className="text-sm text-gray-600">Résultat net</span>
                 <span className="font-medium">{fmt(tafireData.netIncome)}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-gray-100">
@@ -296,7 +296,7 @@ const TAFIREDashboard: React.FC = () => {
                     <span className="text-red-600">-{fmt(tafireData.loanRepayments)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Dividendes versÃ©s</span>
+                    <span className="text-gray-600">Dividendes versés</span>
                     <span className="text-red-600">-{fmt(tafireData.dividendsPaid)}</span>
                   </div>
                   <div className="flex justify-between font-medium border-t pt-2">

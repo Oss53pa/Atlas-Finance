@@ -111,136 +111,24 @@ const CollaborationModule: React.FC = () => {
   const currentUserName = authUser?.name || 'Utilisateur';
   const currentUserInitials = currentUserName.split(' ').map(n => n[0]).join('').toUpperCase();
 
-  // Données simulées
+  // Canal général par défaut pour permettre l'envoi de messages dès le premier usage.
+  // Les vrais canaux/messages/membres viendront d'un backend (Supabase) lorsque la
+  // collaboration temps réel sera activée. En attendant, on affiche un état vide propre.
   const [channels] = useState<Channel[]>([
     {
       id: 'general',
       name: 'Général',
       type: 'channel',
       description: 'Canal principal de communication',
-      members: ['user1', 'user2', 'user3'],
-      lastMessage: 'Bienvenue dans le canal général!',
-      lastActivity: new Date(),
+      members: [],
       unreadCount: 0,
-      isPinned: true
+      isPinned: true,
     },
-    {
-      id: 'comptabilite',
-      name: 'Comptabilité',
-      type: 'channel',
-      description: 'Discussions sur la comptabilité',
-      members: ['user1', 'user2'],
-      lastMessage: 'La clôture mensuelle est presque terminée',
-      lastActivity: new Date(Date.now() - 3600000),
-      unreadCount: 3
-    },
-    {
-      id: 'projets',
-      name: 'Projets',
-      type: 'channel',
-      members: ['user1', 'user2', 'user3', 'user4'],
-      lastMessage: 'Le nouveau module CRM est en cours',
-      lastActivity: new Date(Date.now() - 7200000),
-      unreadCount: 0
-    },
-    {
-      id: 'dm-marie',
-      name: 'Marie Duval',
-      type: 'direct',
-      members: ['user1', 'user2'],
-      lastMessage: 'Peux-tu vérifier les factures?',
-      lastActivity: new Date(Date.now() - 1800000),
-      unreadCount: 1,
-      avatar: 'MD'
-    }
   ]);
 
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      text: 'Bonjour tout le monde! 👋',
-      sender: 'Marc Dupont',
-      senderId: 'user1',
-      timestamp: new Date(Date.now() - 7200000),
-      reactions: [
-        { emoji: '👍', users: ['Marie', 'Pierre'] },
-        { emoji: '❤️', users: ['Sophie'] }
-      ],
-      isRead: true
-    },
-    {
-      id: '2',
-      text: 'La réunion de ce matin était très productive. Voici le compte-rendu en pièce jointe.',
-      sender: 'Marie Duval',
-      senderId: 'user2',
-      timestamp: new Date(Date.now() - 3600000),
-      attachments: [
-        {
-          id: 'a1',
-          name: 'CR_Reunion_2024-03-15.pdf',
-          size: 245678,
-          type: 'application/pdf',
-          url: '/files/cr.pdf'
-        }
-      ],
-      isRead: true
-    },
-    {
-      id: '3',
-      text: 'Excellent travail sur le rapport financier! Les graphiques sont très clairs.',
-      sender: 'Pierre Ngassa',
-      senderId: 'user3',
-      timestamp: new Date(Date.now() - 1800000),
-      replyTo: '2',
-      isRead: true
-    },
-    {
-      id: '4',
-      text: 'N\'oubliez pas la deadline pour la clôture mensuelle: vendredi 17h!',
-      sender: 'Sophie Kamga',
-      senderId: 'user4',
-      timestamp: new Date(Date.now() - 900000),
-      isRead: false
-    }
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
 
-  const [users] = useState<User[]>([
-    {
-      id: 'user1',
-      name: 'Marc Dupont',
-      status: 'online',
-      role: 'Directeur Financier',
-      department: 'Finance'
-    },
-    {
-      id: 'user2',
-      name: 'Marie Duval',
-      status: 'online',
-      role: 'Comptable Senior',
-      department: 'Comptabilité'
-    },
-    {
-      id: 'user3',
-      name: 'Pierre Ngassa',
-      status: 'busy',
-      role: 'Contrôleur de Gestion',
-      department: 'Finance'
-    },
-    {
-      id: 'user4',
-      name: 'Sophie Kamga',
-      status: 'away',
-      role: 'Assistante Comptable',
-      department: 'Comptabilité'
-    },
-    {
-      id: 'user5',
-      name: 'Alain Fotso',
-      status: 'offline',
-      role: 'Développeur',
-      department: 'IT'
-    }
-  ]);
+  const [users] = useState<User[]>([]);
 
   const currentChannel = channels.find(c => c.id === activeChannel);
 
@@ -472,6 +360,19 @@ const CollaborationModule: React.FC = () => {
           <div className="flex-1 flex flex-col">
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              {messages.length === 0 && (
+                <div className="h-full flex flex-col items-center justify-center text-center py-12">
+                  <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+                    <MessageSquare className="w-6 h-6 text-gray-500" />
+                  </div>
+                  <h4 className="text-base font-semibold text-gray-900 mb-1">
+                    Aucun message pour le moment
+                  </h4>
+                  <p className="text-sm text-gray-600 max-w-sm">
+                    Commencez la conversation en écrivant un message ci-dessous.
+                  </p>
+                </div>
+              )}
               {messages.map((msg, index) => (
                 <div key={msg.id} className={`flex ${msg.senderId === (authUser?.id || 'current-user') ? 'justify-end' : ''}`}>
                   <div className={`flex space-x-3 max-w-2xl ${msg.senderId === (authUser?.id || 'current-user') ? 'flex-row-reverse space-x-reverse' : ''}`}>
@@ -602,6 +503,11 @@ const CollaborationModule: React.FC = () => {
                 Membres ({users.length})
               </h4>
 
+              {users.length === 0 && (
+                <p className="text-sm text-gray-600">
+                  Aucun membre à afficher.
+                </p>
+              )}
               <div className="space-y-2">
                 {users.map(user => (
                   <div key={user.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer">

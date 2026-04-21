@@ -594,50 +594,50 @@ const BudgetingDashboard: React.FC = () => {
                 const invPct = dashboardData.totalBudgeted > 0 ? Math.round((dashboardData.investActual / (dashboardData.totalBudgeted * 0.1)) * 100) : 0;
                 return (
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-white/40">
+                <div className="bg-white rounded-2xl p-6 border border-[var(--color-border)] shadow-sm">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold text-neutral-800">Revenus</h3>
-                    <div className="p-2 bg-green-100 rounded-xl">
-                      <TrendingUp className="h-5 w-5 text-green-600" />
+                    <h3 className="font-semibold text-[var(--color-text-primary)]">Revenus</h3>
+                    <div className="p-2 bg-neutral-100 rounded-xl">
+                      <TrendingUp className="h-5 w-5 text-[var(--color-text-secondary)]" />
                     </div>
                   </div>
                   <div className="space-y-3">
-                    <p className="text-lg font-bold text-green-700">{dashboardData.totalBudgeted > 0 ? `${revPct}%` : 'N/A'}</p>
+                    <p className="text-lg font-bold text-[var(--color-text-primary)]">{dashboardData.totalBudgeted > 0 ? `${revPct}%` : 'N/A'}</p>
                     <p className="text-sm text-neutral-600">{revPct > 100 ? `Objectif depasse de ${revPct - 100}%` : revPct > 0 ? `${100 - revPct}% restant` : 'Aucune donnee'}</p>
-                    <div className="w-full bg-green-100 rounded-full h-2">
-                      <div className="bg-green-500 h-2 rounded-full" style={{ width: `${Math.min(revPct, 100)}%` }}></div>
+                    <div className="w-full bg-neutral-100 rounded-full h-2">
+                      <div className="bg-[var(--color-primary)] h-2 rounded-full" style={{ width: `${Math.min(revPct, 100)}%` }}></div>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-white/40">
+                <div className="bg-white rounded-2xl p-6 border border-[var(--color-border)] shadow-sm">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold text-neutral-800">Charges</h3>
-                    <div className="p-2 bg-[var(--color-primary-lighter)] rounded-xl">
-                      <BarChart3 className="h-5 w-5 text-[var(--color-primary)]" />
+                    <h3 className="font-semibold text-[var(--color-text-primary)]">Charges</h3>
+                    <div className="p-2 bg-neutral-100 rounded-xl">
+                      <BarChart3 className="h-5 w-5 text-[var(--color-text-secondary)]" />
                     </div>
                   </div>
                   <div className="space-y-3">
-                    <p className="text-lg font-bold text-[var(--color-primary-dark)]">{dashboardData.totalBudgeted > 0 ? `${chgPct}%` : 'N/A'}</p>
+                    <p className="text-lg font-bold text-[var(--color-text-primary)]">{dashboardData.totalBudgeted > 0 ? `${chgPct}%` : 'N/A'}</p>
                     <p className="text-sm text-neutral-600">{chgPct <= 100 ? 'Sous controle' : 'Depassement'}</p>
-                    <div className="w-full bg-[var(--color-primary-lighter)] rounded-full h-2">
+                    <div className="w-full bg-neutral-100 rounded-full h-2">
                       <div className="bg-[var(--color-primary)] h-2 rounded-full" style={{ width: `${Math.min(chgPct, 100)}%` }}></div>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-white/40">
+                <div className="bg-white rounded-2xl p-6 border border-[var(--color-border)] shadow-sm">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold text-neutral-800">Investissements</h3>
-                    <div className="p-2 bg-amber-100 rounded-xl">
-                      <Target className="h-5 w-5 text-amber-600" />
+                    <h3 className="font-semibold text-[var(--color-text-primary)]">Investissements</h3>
+                    <div className="p-2 bg-neutral-100 rounded-xl">
+                      <Target className="h-5 w-5 text-[var(--color-text-secondary)]" />
                     </div>
                   </div>
                   <div className="space-y-3">
-                    <p className="text-lg font-bold text-amber-700">{dashboardData.totalBudgeted > 0 ? `${invPct}%` : 'N/A'}</p>
+                    <p className="text-lg font-bold text-[var(--color-text-primary)]">{dashboardData.totalBudgeted > 0 ? `${invPct}%` : 'N/A'}</p>
                     <p className="text-sm text-neutral-600">{invPct < 80 ? 'En retard' : invPct <= 100 ? 'En bonne voie' : 'Depassement'}</p>
-                    <div className="w-full bg-amber-100 rounded-full h-2">
-                      <div className="bg-amber-500 h-2 rounded-full" style={{ width: `${Math.min(invPct, 100)}%` }}></div>
+                    <div className="w-full bg-neutral-100 rounded-full h-2">
+                      <div className="bg-[var(--color-primary)] h-2 rounded-full" style={{ width: `${Math.min(invPct, 100)}%` }}></div>
                     </div>
                   </div>
                 </div>
@@ -690,12 +690,12 @@ const BudgetingDashboard: React.FC = () => {
                     className="bg-white/90"
                   >
                     <div className="flex flex-col items-center text-center space-y-4">
-                      <div className="p-4 bg-[var(--color-success-lighter)] rounded-2xl group-hover:scale-110 transition-transform duration-300">
-                        <BarChart3 className="h-8 w-8 text-[var(--color-success)]" />
+                      <div className="p-4 bg-neutral-100 rounded-2xl group-hover:scale-110 transition-transform duration-300">
+                        <BarChart3 className="h-8 w-8 text-[var(--color-text-secondary)]" />
                       </div>
                       <div>
-                        <h3 className="font-bold text-[var(--color-success-darker)] text-lg">Controle</h3>
-                        <p className="text-sm text-[var(--color-success)] mt-1">Suivi et analyse</p>
+                        <h3 className="font-bold text-[#171717] text-lg">Controle</h3>
+                        <p className="text-sm text-[#525252] mt-1">Suivi et analyse</p>
                       </div>
                     </div>
                   </motion.div>
@@ -724,12 +724,12 @@ const BudgetingDashboard: React.FC = () => {
                     className="bg-white/90"
                   >
                     <div className="flex flex-col items-center text-center space-y-4">
-                      <div className="p-4 bg-amber-100 rounded-2xl group-hover:scale-110 transition-transform duration-300">
-                        <AlertCircle className="h-8 w-8 text-amber-600" />
+                      <div className="p-4 bg-neutral-100 rounded-2xl group-hover:scale-110 transition-transform duration-300">
+                        <AlertCircle className="h-8 w-8 text-[var(--color-text-secondary)]" />
                       </div>
                       <div>
-                        <h3 className="font-bold text-amber-800 text-lg">Alertes</h3>
-                        <p className="text-sm text-amber-600 mt-1">Notifications</p>
+                        <h3 className="font-bold text-[#171717] text-lg">Alertes</h3>
+                        <p className="text-sm text-[#525252] mt-1">Notifications</p>
                       </div>
                     </div>
                   </motion.div>

@@ -26,7 +26,7 @@ interface BalanceSheetData {
   statementDate: string;
   
   // ACTIF
-  // Actif immobilisÃƒÂ©
+  // Actif immobilisé
   intangibleAssetsGross: number;
   intangibleAssetsDepreciation: number;
   intangibleAssetsNet: number;
@@ -56,7 +56,7 @@ interface BalanceSheetData {
   
   totalCurrentAssets: number;
   
-  // TrÃƒÂ©sorerie-Actif
+  // Trésorerie-Actif
   marketableSecurities: number;
   valuesToCollect: number;
   cashAndBanks: number;
@@ -75,7 +75,7 @@ interface BalanceSheetData {
   otherEquity: number;
   totalEquity: number;
   
-  // Dettes financiÃƒÂ¨res
+  // Dettes financières
   investmentSubsidies: number;
   regulatedProvisions: number;
   financialDebts: number;
@@ -91,14 +91,14 @@ interface BalanceSheetData {
   shortTermProvisions: number;
   totalCurrentLiabilities: number;
   
-  // TrÃƒÂ©sorerie-Passif
+  // Trésorerie-Passif
   bankOverdrafts: number;
   totalTreasuryLiabilities: number;
   
   currencyTranslationDiffLiabilities: number;
   totalLiabilities: number;
   
-  // ContrÃƒÂ´les
+  // Contrôles
   isBalanced: boolean;
   balanceDifference: number;
   isValidated: boolean;
@@ -212,14 +212,14 @@ const BalanceSheetSYSCOHADA: React.FC = () => {
   if (!balanceData) {
     return (
       <div className="text-center p-8">
-        <p className="text-[#171717]/50">Aucune donnÃƒÂ©e de bilan disponible</p>
+        <p className="text-[#171717]/50">Aucune donnée de bilan disponible</p>
       </div>
     );
   }
 
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-6">
-      {/* En-tÃƒÂªte */}
+      {/* En-tête */}
       <div className="bg-[#f5f5f5] rounded-lg shadow-sm border border-[#e5e5e5] p-6">
         <div className="flex justify-between items-center">
           <div>
@@ -231,7 +231,7 @@ const BalanceSheetSYSCOHADA: React.FC = () => {
               <p className="text-lg font-semibold text-[#171717]/90">{balanceData.company.name}</p>
               <p className="text-sm text-[#171717]/70">{balanceData.company.address}</p>
               <p className="text-sm text-[#171717]/70">
-                Exercice {balanceData.fiscalYear} - ArrÃƒÂªtÃƒÂ© au {new Date(balanceData.statementDate).toLocaleDateString('fr-FR')}
+                Exercice {balanceData.fiscalYear} - Arrêté au {new Date(balanceData.statementDate).toLocaleDateString('fr-FR')}
               </p>
             </div>
           </div>
@@ -245,7 +245,7 @@ const BalanceSheetSYSCOHADA: React.FC = () => {
               <span className={`text-sm font-medium ${
                 balanceData.isBalanced ? 'text-[#171717]' : 'text-red-600'
               }`}>
-                {balanceData.isBalanced ? 'Ãƒâ€°quilibrÃƒÂ©' : `Ãƒâ€°cart: ${fmt(balanceData.balanceDifference)} XAF`}
+                {balanceData.isBalanced ? 'Équilibré' : `Écart: ${fmt(balanceData.balanceDifference)} XAF`}
               </span>
             </div>
             <div className="flex space-x-2">
@@ -317,7 +317,7 @@ const BalanceSheetSYSCOHADA: React.FC = () => {
                 <td className="px-6 py-2 text-right text-sm">{fmt(balanceData.tangibleAssetsGross)}</td>
                 <td className="px-6 py-2 text-right text-sm">{fmt(balanceData.tangibleAssetsDepreciation)}</td>
                 <td className="px-6 py-2 text-right text-sm font-medium">{fmt(balanceData.tangibleAssetsNet)}</td>
-                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Primes et rÃƒÂ©serves</td>
+                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Primes et réserves</td>
                 <td className="px-6 py-2 text-right text-sm">{fmt(balanceData.premiumsAndReserves)}</td>
               </tr>
               
@@ -326,16 +326,16 @@ const BalanceSheetSYSCOHADA: React.FC = () => {
                 <td className="px-6 py-2 text-right text-sm">{fmt(balanceData.advancesOnFixedAssets)}</td>
                 <td className="px-6 py-2 text-right text-sm">-</td>
                 <td className="px-6 py-2 text-right text-sm font-medium">{fmt(balanceData.advancesOnFixedAssets)}</td>
-                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Ãƒâ€°carts de rÃƒÂ©ÃƒÂ©valuation</td>
+                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Écarts de réévaluation</td>
                 <td className="px-6 py-2 text-right text-sm">{fmt(balanceData.revaluationDifferences)}</td>
               </tr>
               
               <tr>
-                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Immobilisations financiÃƒÂ¨res</td>
+                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Immobilisations financières</td>
                 <td className="px-6 py-2 text-right text-sm">{fmt(balanceData.financialAssetsGross)}</td>
                 <td className="px-6 py-2 text-right text-sm">{fmt(balanceData.financialAssetsProvisions)}</td>
                 <td className="px-6 py-2 text-right text-sm font-medium">{fmt(balanceData.financialAssetsNet)}</td>
-                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">RÃƒÂ©sultat net de l'exercice</td>
+                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Résultat net de l'exercice</td>
                 <td className="px-6 py-2 text-right text-sm font-semibold text-[#525252]">
                   {fmt(balanceData.netResult)}
                 </td>
@@ -369,16 +369,16 @@ const BalanceSheetSYSCOHADA: React.FC = () => {
                 <td className="px-6 py-2 text-right text-sm">{fmt(balanceData.stocksGross)}</td>
                 <td className="px-6 py-2 text-right text-sm">{fmt(balanceData.stocksProvisions)}</td>
                 <td className="px-6 py-2 text-right text-sm font-medium">{fmt(balanceData.stocksNet)}</td>
-                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Provisions rÃƒÂ©glementÃƒÂ©es</td>
+                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Provisions réglementées</td>
                 <td className="px-6 py-2 text-right text-sm">{fmt(balanceData.regulatedProvisions)}</td>
               </tr>
               
               <tr>
-                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">CrÃƒÂ©ances et emplois assimilÃƒÂ©s</td>
+                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Créances et emplois assimilés</td>
                 <td className="px-6 py-2 text-right text-sm">{fmt(balanceData.receivablesGross)}</td>
                 <td className="px-6 py-2 text-right text-sm">{fmt(balanceData.receivablesProvisions)}</td>
                 <td className="px-6 py-2 text-right text-sm font-medium">{fmt(balanceData.receivablesNet)}</td>
-                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Emprunts et dettes financiÃƒÂ¨res</td>
+                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Emprunts et dettes financières</td>
                 <td className="px-6 py-2 text-right text-sm">{fmt(balanceData.financialDebts)}</td>
               </tr>
               
@@ -401,21 +401,21 @@ const BalanceSheetSYSCOHADA: React.FC = () => {
                 <td className="px-6 py-2 text-right text-sm">{fmt(balanceData.marketableSecurities)}</td>
                 <td className="px-6 py-2 text-right text-sm">-</td>
                 <td className="px-6 py-2 text-right text-sm font-medium">{fmt(balanceData.marketableSecurities)}</td>
-                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Clients, avances reÃƒÂ§ues</td>
+                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Clients, avances reçues</td>
                 <td className="px-6 py-2 text-right text-sm">{fmt(balanceData.customerAdvances)}</td>
               </tr>
               
               <tr>
-                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Valeurs ÃƒÂ  encaisser</td>
+                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Valeurs Ãƒ  encaisser</td>
                 <td className="px-6 py-2 text-right text-sm">{fmt(balanceData.valuesToCollect)}</td>
                 <td className="px-6 py-2 text-right text-sm">-</td>
                 <td className="px-6 py-2 text-right text-sm font-medium">{fmt(balanceData.valuesToCollect)}</td>
-                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Fournisseurs et comptes rattachÃƒÂ©s</td>
+                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Fournisseurs et comptes rattachés</td>
                 <td className="px-6 py-2 text-right text-sm">{fmt(balanceData.suppliersAndRelated)}</td>
               </tr>
               
               <tr>
-                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Banques, chÃƒÂ¨ques postaux, caisse</td>
+                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Banques, chèques postaux, caisse</td>
                 <td className="px-6 py-2 text-right text-sm">{fmt(balanceData.cashAndBanks)}</td>
                 <td className="px-6 py-2 text-right text-sm">-</td>
                 <td className="px-6 py-2 text-right text-sm font-medium">{fmt(balanceData.cashAndBanks)}</td>
@@ -423,9 +423,9 @@ const BalanceSheetSYSCOHADA: React.FC = () => {
                 <td className="px-6 py-2 text-right text-sm">{fmt(balanceData.taxAndSocialDebts)}</td>
               </tr>
               
-              {/* Ãƒâ€°cart de conversion */}
+              {/* Écart de conversion */}
               <tr>
-                <td className="px-6 py-2 text-sm text-[#171717]/70">Ãƒâ€°cart de conversion-Actif</td>
+                <td className="px-6 py-2 text-sm text-[#171717]/70">Écart de conversion-Actif</td>
                 <td className="px-6 py-2 text-right text-sm">{fmt(balanceData.currencyTranslationDiffAssets)}</td>
                 <td className="px-6 py-2 text-right text-sm">-</td>
                 <td className="px-6 py-2 text-right text-sm font-medium">{fmt(balanceData.currencyTranslationDiffAssets)}</td>
@@ -447,13 +447,13 @@ const BalanceSheetSYSCOHADA: React.FC = () => {
         </div>
       </div>
 
-      {/* Informations complÃƒÂ©mentaires */}
+      {/* Informations complémentaires */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-[#f5f5f5] rounded-lg shadow-sm border border-[#e5e5e5] p-6">
-          <h3 className="text-lg font-medium text-[#171717] mb-4">Ratios ClÃƒÂ©s</h3>
+          <h3 className="text-lg font-medium text-[#171717] mb-4">Ratios Clés</h3>
           <div className="space-y-3">
             <div className="flex justify-between">
-              <span className="text-sm text-[#171717]/70">Autonomie financiÃƒÂ¨re:</span>
+              <span className="text-sm text-[#171717]/70">Autonomie financière:</span>
               <span className="text-sm font-medium">
                 {((balanceData.totalEquity / balanceData.totalAssets) * 100).toFixed(1)}%
               </span>
@@ -465,7 +465,7 @@ const BalanceSheetSYSCOHADA: React.FC = () => {
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-[#171717]/70">LiquiditÃƒÂ© gÃƒÂ©nÃƒÂ©rale:</span>
+              <span className="text-sm text-[#171717]/70">Liquidité générale:</span>
               <span className="text-sm font-medium">
                 {(balanceData.totalCurrentAssets / balanceData.totalCurrentLiabilities).toFixed(2)}
               </span>
@@ -474,7 +474,7 @@ const BalanceSheetSYSCOHADA: React.FC = () => {
         </div>
 
         <div className="bg-[#f5f5f5] rounded-lg shadow-sm border border-[#e5e5e5] p-6">
-          <h3 className="text-lg font-medium text-[#171717] mb-4">Ãƒâ€°quilibre Financier</h3>
+          <h3 className="text-lg font-medium text-[#171717] mb-4">Équilibre Financier</h3>
           <div className="space-y-3">
             <div className="flex justify-between">
               <span className="text-sm text-[#171717]/70">Fonds de roulement:</span>
@@ -489,7 +489,7 @@ const BalanceSheetSYSCOHADA: React.FC = () => {
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-[#171717]/70">TrÃƒÂ©sorerie nette:</span>
+              <span className="text-sm text-[#171717]/70">Trésorerie nette:</span>
               <span className="text-sm font-medium text-[#171717]">
                 {fmt(balanceData.totalTreasuryAssets - balanceData.totalTreasuryLiabilities)}
               </span>
@@ -509,11 +509,11 @@ const BalanceSheetSYSCOHADA: React.FC = () => {
               <span className={`text-sm font-medium ${
                 balanceData.isBalanced ? 'text-[#171717]' : 'text-red-600'
               }`}>
-                {balanceData.isBalanced ? 'Bilan ÃƒÂ©quilibrÃƒÂ©' : 'Bilan dÃƒÂ©sÃƒÂ©quilibrÃƒÂ©'}
+                {balanceData.isBalanced ? 'Bilan équilibré' : 'Bilan déséquilibré'}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-[#171717]/70">Ãƒâ€°cart:</span>
+              <span className="text-sm text-[#171717]/70">Écart:</span>
               <span className="text-sm font-medium">{fmt(balanceData.balanceDifference)}</span>
             </div>
             <div className="flex items-center space-x-2">
@@ -536,9 +536,9 @@ const BalanceSheetSYSCOHADA: React.FC = () => {
       {/* Note de bas de page */}
       <div className="bg-[#e5e5e5] rounded-lg p-4 text-xs text-[#171717]/70">
         <p className="text-center">
-          Bilan ÃƒÂ©tabli conformÃƒÂ©ment aux dispositions du SystÃƒÂ¨me Comptable OHADA (SYSCOHADA) rÃƒÂ©visÃƒÂ© en 2017.
+          Bilan établi conformément aux dispositions du Système Comptable OHADA (SYSCOHADA) révisé en 2017.
           <br />
-          Les montants sont exprimÃƒÂ©s en Francs CFA (XAF). ArrÃƒÂªtÃƒÂ© des comptes effectuÃƒÂ© le {new Date().toLocaleDateString('fr-FR')}.
+          Les montants sont exprimés en Francs CFA (XAF). Arrêté des comptes effectué le {new Date().toLocaleDateString('fr-FR')}.
         </p>
       </div>
     </div>

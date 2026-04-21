@@ -1,6 +1,6 @@
 /**
  * Dashboard Principal Executive Atlas F&A
- * Vue d'ensemble consolidÃƒÂ©e tous modules selon cahier des charges
+ * Vue d'ensemble consolidée tous modules selon cahier des charges
  */
 import React, { useState, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -57,14 +57,14 @@ interface ExecutiveDashboardProps {
 }
 
 interface ConsolidatedKPIs {
-  // ComptabilitÃƒÂ© gÃƒÂ©nÃƒÂ©rale
+  // Comptabilité générale
   totalAssets: number;
   totalLiabilities: number;
   equity: number;
   netIncome: number;
   netIncomeTrend: number;
 
-  // TrÃƒÂ©sorerie
+  // Trésorerie
   cashPosition: number;
   cashPositionTrend: number;
   cashFlowNet: number;
@@ -98,12 +98,12 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
 }) => {
   const { t } = useLanguage();
   const fmt = useMoneyFormat();
-  // Ãƒâ€°tats
+  // États
   const [selectedPeriod, setSelectedPeriod] = useState('current_month');
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [selectedView, setSelectedView] = useState<'overview' | 'financial' | 'operational' | 'performance'>('overview');
 
-  // Queries consolidÃƒÂ©es
+  // Queries consolidées
   const { data: consolidatedKPIs, isLoading: kpiLoading, refetch: refetchKPIs } = useQuery<ConsolidatedKPIs>({
     queryKey: ['executive-kpis', companyId, fiscalYearId, selectedPeriod],
     queryFn: () => dashboardService.getConsolidatedKPIs({
@@ -136,13 +136,13 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
     queryFn: () => dashboardService.getPerformanceBenchmark({ company_id: companyId }) as Promise<any>,
   });
 
-  // KPI Cards principales consolidÃƒÂ©es
+  // KPI Cards principales consolidées
   const executiveKPIs = useMemo(() => {
     if (!consolidatedKPIs) return [];
 
     return [
       {
-        title: 'Position de TrÃƒÂ©sorerie',
+        title: 'Position de Trésorerie',
         value: fmt(consolidatedKPIs.cashPosition),
         change: consolidatedKPIs.cashPositionTrend,
         icon: DollarSign,
@@ -151,7 +151,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
         module: 'treasury'
       },
       {
-        title: 'RÃƒÂ©sultat Net',
+        title: 'Résultat Net',
         value: fmt(consolidatedKPIs.netIncome),
         change: consolidatedKPIs.netIncomeTrend,
         icon: TrendingUp,
@@ -160,7 +160,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
         module: 'accounting'
       },
       {
-        title: 'CrÃƒÂ©ances Clients',
+        title: 'Créances Clients',
         value: fmt(consolidatedKPIs.totalReceivables),
         subValue: `DSO: ${consolidatedKPIs.dso}j`,
         change: consolidatedKPIs.receivablesTrend,
@@ -180,7 +180,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
         module: 'suppliers'
       },
       {
-        title: 'Marge OpÃƒÂ©rationnelle',
+        title: 'Marge Opérationnelle',
         value: formatPercent(consolidatedKPIs.operatingMargin),
         change: consolidatedKPIs.marginTrend,
         icon: Target,
@@ -225,7 +225,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                 Atlas F&A Executive
               </h1>
               <p className="text-[var(--color-text-primary)]/70">
-                Vue d'ensemble consolidÃƒÂ©e Ã¢â‚¬Â¢ Temps rÃƒÂ©el
+                Vue d'ensemble consolidée ââ‚¬Â¢ Temps réel
               </p>
             </div>
           </div>
@@ -262,7 +262,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
               <SelectItem value="current_week">Cette semaine</SelectItem>
               <SelectItem value="current_month">Ce mois</SelectItem>
               <SelectItem value="current_quarter">Ce trimestre</SelectItem>
-              <SelectItem value="current_year">Cette annÃƒÂ©e</SelectItem>
+              <SelectItem value="current_year">Cette année</SelectItem>
             </SelectContent>
           </Select>
           
@@ -310,7 +310,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
         </Card>
       )}
 
-      {/* KPIs Executive ConsolidÃƒÂ©s */}
+      {/* KPIs Executive Consolidés */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {kpiLoading ? (
           Array.from({ length: 6 }).map((_, i) => (
@@ -355,7 +355,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                           {Math.abs(kpi.change)}%
                         </span>
                       </div>
-                      <p className="text-xs text-[var(--color-text-primary)]/50 mt-1">vs pÃƒÂ©riode prÃƒÂ©c.</p>
+                      <p className="text-xs text-[var(--color-text-primary)]/50 mt-1">vs période préc.</p>
                     </div>
                   </div>
                 </CardContent>
@@ -369,39 +369,39 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
       <Tabs value={selectedView} onValueChange={(v: any) => setSelectedView(v)}>
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview">Vue d'Ensemble</TabsTrigger>
-          <TabsTrigger value="financial">Situation FinanciÃƒÂ¨re</TabsTrigger>
-          <TabsTrigger value="operational">Performance OpÃƒÂ©rationnelle</TabsTrigger>
-          <TabsTrigger value="performance">Analytics AvancÃƒÂ©es</TabsTrigger>
+          <TabsTrigger value="financial">Situation Financière</TabsTrigger>
+          <TabsTrigger value="operational">Performance Opérationnelle</TabsTrigger>
+          <TabsTrigger value="performance">Analytics Avancées</TabsTrigger>
         </TabsList>
 
         {/* Vue d'ensemble */}
         <TabsContent value="overview" className="space-y-6">
-          {/* Graphique principal - Ãƒâ€°volution position financiÃƒÂ¨re */}
+          {/* Graphique principal - Évolution position financière */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 <span className="flex items-center">
                   <LineChartIcon className="h-5 w-5 mr-2" />
-                  Ãƒâ€°volution Situation FinanciÃƒÂ¨re
+                  Évolution Situation Financière
                 </span>
                 <div className="flex items-center space-x-2">
-                  <Badge variant="outline">DonnÃƒÂ©es consolidÃƒÂ©es</Badge>
-                  <Badge className="bg-[var(--color-border)] text-[var(--color-text-primary)]">Temps rÃƒÂ©el</Badge>
+                  <Badge variant="outline">Données consolidées</Badge>
+                  <Badge className="bg-[var(--color-border)] text-[var(--color-text-primary)]">Temps réel</Badge>
                 </div>
               </CardTitle>
             </CardHeader>
             <CardContent>
               {trendsLoading ? (
-                <LoadingSpinner text="GÃƒÂ©nÃƒÂ©ration tendances..." />
+                <LoadingSpinner text="Génération tendances..." />
               ) : (
                 <LineChart
                   data={financialTrends?.consolidated_trends || []}
                   xAxisKey="date"
                   lines={[
-                    { key: 'cash_position', name: 'Position TrÃƒÂ©sorerie', color: "var(--color-primary)" },
-                    { key: 'receivables', name: 'CrÃƒÂ©ances Clients', color: "var(--color-success)" },
+                    { key: 'cash_position', name: 'Position Trésorerie', color: "var(--color-primary)" },
+                    { key: 'receivables', name: 'Créances Clients', color: "var(--color-success)" },
                     { key: 'payables', name: 'Dettes Fournisseurs', color: "var(--color-warning)" },
-                    { key: 'net_income', name: 'RÃƒÂ©sultat Net', color: "var(--color-info)" }
+                    { key: 'net_income', name: 'Résultat Net', color: "var(--color-info)" }
                   ]}
                   height={400}
                 />
@@ -445,7 +445,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
               </CardContent>
             </Card>
 
-            {/* Actions prioritaires consolidÃƒÂ©es */}
+            {/* Actions prioritaires consolidées */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
@@ -491,14 +491,14 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
             </Card>
           </div>
 
-          {/* Widgets temps rÃƒÂ©el modulaires */}
+          {/* Widgets temps réel modulaires */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {/* Widget TrÃƒÂ©sorerie */}
+            {/* Widget Trésorerie */}
             <Card className="border-l-4 border-l-[#171717]">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-[var(--color-text-primary)] flex items-center">
                   <DollarSign className="h-4 w-4 mr-2" />
-                  TrÃƒÂ©sorerie
+                  Trésorerie
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
@@ -611,9 +611,9 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
           </div>
         </TabsContent>
 
-        {/* Vue Situation FinanciÃƒÂ¨re */}
+        {/* Vue Situation Financière */}
         <TabsContent value="financial" className="space-y-6">
-          {/* Bilan synthÃƒÂ©tique */}
+          {/* Bilan synthétique */}
           <div className="grid gap-6 lg:grid-cols-2">
             <Card>
               <CardHeader>
@@ -635,7 +635,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
 
             <Card>
               <CardHeader>
-                <CardTitle>Ratios Financiers ClÃƒÂ©s</CardTitle>
+                <CardTitle>Ratios Financiers Clés</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -663,12 +663,12 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
             </Card>
           </div>
 
-          {/* Cash Flow dÃƒÂ©taillÃƒÂ© */}
+          {/* Cash Flow détaillé */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Activity className="h-5 w-5 mr-2" />
-                Flux de TrÃƒÂ©sorerie OpÃƒÂ©rationnels
+                Flux de Trésorerie Opérationnels
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -676,7 +676,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                 data={financialTrends?.cash_flow_breakdown || []}
                 xAxisKey="category"
                 bars={[
-                  { key: 'inflows', name: 'EntrÃƒÂ©es', color: "var(--color-success)" },
+                  { key: 'inflows', name: 'Entrées', color: "var(--color-success)" },
                   { key: 'outflows', name: 'Sorties', color: "var(--color-error)" }
                 ]}
                 height={300}
@@ -685,9 +685,9 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
           </Card>
         </TabsContent>
 
-        {/* Vue Performance OpÃƒÂ©rationnelle */}
+        {/* Vue Performance Opérationnelle */}
         <TabsContent value="operational" className="space-y-6">
-          {/* MÃƒÂ©triques opÃƒÂ©rationnelles */}
+          {/* Métriques opérationnelles */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardContent className="p-4 text-center">
@@ -695,7 +695,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                 <div className="text-lg font-bold text-[var(--color-text-primary)]">
                   {operationalMetrics?.processing_times?.average_entry_time || 0}s
                 </div>
-                <p className="text-sm text-[var(--color-text-primary)]/70">Temps Saisie Ãƒâ€°criture</p>
+                <p className="text-sm text-[var(--color-text-primary)]/70">Temps Saisie Écriture</p>
                 <p className="text-xs text-[var(--color-text-primary)]/50">Objectif: &lt; 0.5s</p>
               </CardContent>
             </Card>
@@ -717,7 +717,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                 <div className="text-lg font-bold text-[var(--color-text-primary)]">
                   {operationalMetrics?.performance_scores?.overall_system || 0}%
                 </div>
-                <p className="text-sm text-[var(--color-text-primary)]/70">Performance SystÃƒÂ¨me</p>
+                <p className="text-sm text-[var(--color-text-primary)]/70">Performance Système</p>
                 <p className="text-xs text-[var(--color-text-primary)]/50">Score global</p>
               </CardContent>
             </Card>
@@ -728,13 +728,13 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                 <div className="text-lg font-bold text-[var(--color-text-primary)]">
                   99.9%
                 </div>
-                <p className="text-sm text-[var(--color-text-primary)]/70">DisponibilitÃƒÂ©</p>
-                <p className="text-xs text-[var(--color-text-primary)]/50">SLA respectÃƒÂ©</p>
+                <p className="text-sm text-[var(--color-text-primary)]/70">Disponibilité</p>
+                <p className="text-xs text-[var(--color-text-primary)]/50">SLA respecté</p>
               </CardContent>
             </Card>
           </div>
 
-          {/* Comparatif performance vs marchÃƒÂ© */}
+          {/* Comparatif performance vs marché */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
@@ -747,7 +747,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b">
-                      <th className="text-left py-2">MÃƒÂ©trique</th>
+                      <th className="text-left py-2">Métrique</th>
                       <th className="text-center py-2"><span className="atlas-brand">Atlas F&A</span></th>
                       <th className="text-center py-2">SAP</th>
                       <th className="text-center py-2">Oracle</th>
@@ -757,7 +757,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                   </thead>
                   <tbody className="space-y-2">
                     <tr>
-                      <td className="py-2">Temps rÃƒÂ©ponse moyen</td>
+                      <td className="py-2">Temps réponse moyen</td>
                       <td className="text-center font-bold text-[var(--color-success)]">&lt; 100ms</td>
                       <td className="text-center text-[var(--color-text-primary)]/70">500-1000ms</td>
                       <td className="text-center text-[var(--color-text-primary)]/70">300-800ms</td>
@@ -765,7 +765,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                       <td className="text-center font-bold text-[var(--color-success)]">5-10x</td>
                     </tr>
                     <tr>
-                      <td className="py-2">ClÃƒÂ´ture mensuelle</td>
+                      <td className="py-2">Clôture mensuelle</td>
                       <td className="text-center font-bold text-[var(--color-success)]">&lt; 30min</td>
                       <td className="text-center text-[var(--color-text-primary)]/70">2-4h</td>
                       <td className="text-center text-[var(--color-text-primary)]/70">1-3h</td>
@@ -783,8 +783,8 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                     <tr>
                       <td className="py-2">SYSCOHADA natif</td>
                       <td className="text-center font-bold text-[var(--color-success)]">100%</td>
-                      <td className="text-center text-[var(--color-text-primary)]/70">AdaptÃƒÂ©</td>
-                      <td className="text-center text-[var(--color-text-primary)]/70">AdaptÃƒÂ©</td>
+                      <td className="text-center text-[var(--color-text-primary)]/70">Adapté</td>
+                      <td className="text-center text-[var(--color-text-primary)]/70">Adapté</td>
                       <td className="text-center text-[var(--color-text-primary)]/70">Partiel</td>
                       <td className="text-center font-bold text-[var(--color-success)]">Natif</td>
                     </tr>
@@ -795,7 +795,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
           </Card>
         </TabsContent>
 
-        {/* Vue Analytics AvancÃƒÂ©es */}
+        {/* Vue Analytics Avancées */}
         <TabsContent value="performance" className="space-y-6">
           {/* Performance globale vs cahier des charges */}
           <Card>
@@ -814,7 +814,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                       <div>
                         <p className="font-medium">{target.metric_name}</p>
                         <p className="text-sm text-[var(--color-text-primary)]/70">
-                          Actuel: {target.current_value} Ã¢â‚¬Â¢ Cible: {target.target_value}
+                          Actuel: {target.current_value} ââ‚¬Â¢ Cible: {target.target_value}
                         </p>
                       </div>
                       <div className="text-right">
@@ -836,7 +836,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                     <div className="text-lg font-bold text-[var(--color-text-primary)] mb-2">
                       {performanceBenchmark?.global_score?.toFixed(1) || 0}%
                     </div>
-                    <p className="text-[var(--color-text-primary)] font-medium">Excellence OpÃƒÂ©rationnelle</p>
+                    <p className="text-[var(--color-text-primary)] font-medium">Excellence Opérationnelle</p>
                     <Progress 
                       value={performanceBenchmark?.global_score || 0} 
                       className="mt-3 h-2"
@@ -848,7 +848,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                       <p className="font-bold text-[var(--color-success)]">
                         {performanceBenchmark?.targets_exceeded || 0}
                       </p>
-                      <p className="text-[var(--color-success-darker)] text-xs">Objectifs dÃƒÂ©passÃƒÂ©s</p>
+                      <p className="text-[var(--color-success-darker)] text-xs">Objectifs dépassés</p>
                     </div>
                     <div className="text-center p-2 bg-[var(--color-border)] rounded">
                       <p className="font-bold text-[var(--color-text-primary)]">
@@ -864,30 +864,30 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
         </TabsContent>
       </Tabs>
 
-      {/* Footer avec mÃƒÂ©triques systÃƒÂ¨me */}
+      {/* Footer avec métriques système */}
       <div className="flex items-center justify-between text-sm text-[var(--color-text-primary)]/50 pt-4 border-t">
         <div className="flex items-center space-x-6">
           <div className="flex items-center space-x-2">
             <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-            <span>SystÃƒÂ¨me opÃƒÂ©rationnel</span>
+            <span>Système opérationnel</span>
           </div>
           <span>
             Performance: {performanceBenchmark?.global_score?.toFixed(0) || 0}% 
             ({performanceBenchmark?.targets_met || 0}/{performanceBenchmark?.total_targets || 0} objectifs)
           </span>
           <span>
-            Utilisateurs connectÃƒÂ©s: {operationalMetrics?.active_users || 0}
+            Utilisateurs connectés: {operationalMetrics?.active_users || 0}
           </span>
           {autoRefresh && (
-            <span className="text-[var(--color-success)]">Live data Ã¢â‚¬Â¢ 5min refresh</span>
+            <span className="text-[var(--color-success)]">Live data ââ‚¬Â¢ 5min refresh</span>
           )}
         </div>
         
         <div className="text-right">
           <p className="font-medium"><span className="atlas-brand">Atlas F&A</span> v3.0 - Production Ready</p>
           <p className="text-xs">
-            DerniÃƒÂ¨re maj: {formatDate(new Date())} Ã¢â‚¬Â¢ 
-            Praedium Tech Ã‚Â© 2024
+            Dernière maj: {formatDate(new Date())} ââ‚¬Â¢ 
+            Praedium Tech ÂÂ© 2024
           </p>
         </div>
       </div>

@@ -98,11 +98,11 @@ canvas {
 @keyframes fadeInChart {
   from {
     opacity: 0;
-    transform: tranprimaryY(10px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
-    transform: tranprimaryY(0);
+    transform: translateY(0);
   }
 }
 

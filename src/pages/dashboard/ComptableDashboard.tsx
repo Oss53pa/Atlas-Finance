@@ -364,8 +364,8 @@ const ComptableDashboard: React.FC = () => {
             <div className="p-6 border-b border-[var(--color-border)]">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <Plus className="w-5 h-5 text-blue-600" />
+                  <div className="w-10 h-10 bg-neutral-100 rounded-lg flex items-center justify-center">
+                    <Plus className="w-5 h-5 text-[var(--color-text-secondary)]" />
                   </div>
                   <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Nouvelle Écriture Comptable</h2>
                 </div>

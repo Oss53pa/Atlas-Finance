@@ -516,9 +516,9 @@ export const PageContainer: React.FC<PageContainerProps> = ({
 
   const backgrounds = {
     default: 'bg-neutral-50',
-    gradient: 'bg-gradient-to-br from-neutral-50 via-blue-50/30 to-neutral-50',
-    pattern: 'bg-neutral-50 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-50/20 via-transparent to-transparent',
-    warm: 'bg-neutral-50/50'
+    gradient: 'bg-gradient-to-br from-neutral-50 via-neutral-50/80 to-white',
+    pattern: 'bg-neutral-50',
+    warm: 'bg-white'
   };
 
   return (

@@ -839,7 +839,7 @@ const FundCallsPage: React.FC = () => {
               <CreditCard className="h-10 w-10" />
               Appels de Fonds
             </h1>
-            <p className="text-primary-200 text-lg mt-2">
+            <p className="text-white/85 text-lg mt-2">
               Gestion des demandes de paiement avec workflow de validation
             </p>
           </div>

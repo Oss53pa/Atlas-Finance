@@ -6,12 +6,12 @@ type ButtonSize = 'default' | 'sm' | 'lg' | 'icon';
 
 const buttonVariants = {
   variant: {
-    default: "bg-[#171717] text-white hover:bg-[#262626] focus:ring-[#171717]",
+    default: "bg-[var(--color-primary)] text-[var(--color-text-inverse)] hover:bg-[var(--color-primary-hover)] focus:ring-[var(--color-accent)]",
     destructive: "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500",
-    outline: "border border-[#e5e5e5] bg-white text-[#404040] hover:bg-[#f5f5f5] focus:ring-[#171717]",
-    secondary: "bg-[#525252] text-white hover:bg-[#404040] focus:ring-[#525252]",
-    ghost: "text-[#404040] hover:bg-[#e5e5e5] hover:bg-opacity-30 focus:ring-[#171717]",
-    link: "text-[#171717] underline-offset-4 hover:underline focus:ring-[#171717]",
+    outline: "border border-[var(--color-border)] bg-white text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] focus:ring-[var(--color-accent)]",
+    secondary: "bg-[var(--color-secondary)] text-white hover:bg-[var(--color-text-secondary)] focus:ring-[var(--color-secondary)]",
+    ghost: "text-[var(--color-text-secondary)] hover:bg-[var(--color-border)] hover:bg-opacity-30 focus:ring-[var(--color-accent)]",
+    link: "text-[var(--color-primary)] underline-offset-4 hover:underline focus:ring-[var(--color-accent)]",
   },
   size: {
     default: "h-10 px-4 py-2",

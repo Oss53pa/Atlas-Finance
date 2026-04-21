@@ -140,7 +140,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
         className="relative"
         disabled={loading}
       >
-        <Bell className="h-5 w-5 text-[#f5f5f5]" />
+        <Bell className="h-5 w-5 text-[var(--color-border-light)]" />
 
         {/* Badge compteur */}
         {unreadCount > 0 && (
@@ -167,18 +167,18 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
           />
 
           {/* Panel */}
-          <div className="absolute right-0 mt-2 w-[calc(100vw-1rem)] max-w-[24rem] sm:w-96 max-h-[500px] bg-[#f5f5f5] rounded-lg shadow-lg border border-[#e5e5e5] z-50 overflow-hidden">
+          <div className="absolute right-0 mt-2 w-[calc(100vw-1rem)] max-w-[24rem] sm:w-96 max-h-[500px] bg-[var(--color-border-light)] rounded-lg shadow-lg border border-[var(--color-border)] z-50 overflow-hidden">
             {/* Header */}
-            <div className="px-4 py-3 border-b border-[#e5e5e5] bg-[#e5e5e5]">
+            <div className="px-4 py-3 border-b border-[var(--color-border)] bg-[var(--color-border)]">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-[#171717]">
+                <h3 className="text-sm font-semibold text-[var(--color-primary)]">
                   Notifications {unreadCount > 0 && `(${unreadCount} non lues)`}
                 </h3>
                 <div className="flex items-center space-x-2">
                   {unreadCount > 0 && (
                     <button
                       onClick={handleMarkAllAsRead}
-                      className="text-xs text-[#171717] hover:text-[#525252] font-medium"
+                      className="text-xs text-[var(--color-primary)] hover:text-[var(--color-secondary)] font-medium"
                       disabled={loading}
                     >
                       Tout marquer comme lu
@@ -186,7 +186,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
                   )}
                   <button
                     onClick={() => setShowDropdown(false)}
-                    className="text-[#171717]/40 hover:text-[#171717]/60"
+                    className="text-[var(--color-primary)]/40 hover:text-[var(--color-primary)]/60"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -197,8 +197,8 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
             {/* Loading state */}
             {loading && (
               <div className="px-4 py-8 text-center">
-                <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-solid border-[#171717] border-r-transparent"></div>
-                <p className="mt-2 text-sm text-[#171717]/60">Chargement...</p>
+                <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-solid border-[var(--color-primary)] border-r-transparent"></div>
+                <p className="mt-2 text-sm text-[var(--color-primary)]/60">Chargement...</p>
               </div>
             )}
 
@@ -216,7 +216,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
                   notifications.slice(0, 10).map((notification) => (
                     <div
                       key={notification.id}
-                      className={`px-4 py-3 border-b border-[#e5e5e5]/50 cursor-pointer transition-colors ${getSeverityBgColor(notification.severity)}`}
+                      className={`px-4 py-3 border-b border-[var(--color-border)]/50 cursor-pointer transition-colors ${getSeverityBgColor(notification.severity)}`}
                       onClick={() => handleNotificationClick(notification.id)}
                     >
                       <div className="flex items-start space-x-3">
@@ -228,7 +228,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
                         {/* Content */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between">
-                            <p className="text-sm font-semibold text-[#171717]">
+                            <p className="text-sm font-semibold text-[var(--color-primary)]">
                               {notification.title}
                             </p>
 
@@ -249,13 +249,13 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
                             >
                               {notification.severity_display}
                             </span>
-                            <span className="ml-2 text-xs text-[#171717]/60">
+                            <span className="ml-2 text-xs text-[var(--color-primary)]/60">
                               {notification.category_display}
                             </span>
                           </div>
 
                           {/* Time */}
-                          <p className="text-xs text-[#171717]/50 mt-1">
+                          <p className="text-xs text-[var(--color-primary)]/50 mt-1">
                             {NotificationUtils.formatRelativeTime(notification.created_at)}
                           </p>
                         </div>
@@ -263,7 +263,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
                         {/* Archive button */}
                         <button
                           onClick={(e) => handleArchive(e, notification.id)}
-                          className="text-[#171717]/40 hover:text-[#171717]/60 flex-shrink-0"
+                          className="text-[var(--color-primary)]/40 hover:text-[var(--color-primary)]/60 flex-shrink-0"
                           title="Archiver"
                         >
                           <X className="w-3 h-3" />
@@ -272,7 +272,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
                     </div>
                   ))
                 ) : (
-                  <div className="px-4 py-8 text-center text-sm text-[#171717]/60">
+                  <div className="px-4 py-8 text-center text-sm text-[var(--color-primary)]/60">
                     <CheckCircle className="w-12 h-12 mx-auto text-green-500 mb-3" />
                     <p className="font-medium">Aucune notification</p>
                     <p className="text-xs mt-1">Vous êtes à jour !</p>
@@ -283,14 +283,14 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
 
             {/* Footer */}
             {!loading && notifications.length > 0 && (
-              <div className="px-4 py-2 border-t border-[#e5e5e5] bg-[#e5e5e5]">
+              <div className="px-4 py-2 border-t border-[var(--color-border)] bg-[var(--color-border)]">
                 <button
                   onClick={() => {
                     setShowDropdown(false);
                     // TODO: Navigate to full notifications page
                     window.location.href = '/dashboard/notifications';
                   }}
-                  className="text-xs text-[#171717] hover:text-[#525252] font-medium w-full text-center py-1"
+                  className="text-xs text-[var(--color-primary)] hover:text-[var(--color-secondary)] font-medium w-full text-center py-1"
                 >
                   Voir toutes les notifications →
                 </button>
