@@ -303,7 +303,7 @@ const ExercicePage: React.FC = () => {
               <Button
                 variant="outline"
                 onClick={() => setShowExportMenu(!showExportMenu)}
-                className="border-[#171717] text-[#171717] hover:bg-[#171717]/10"
+                className="border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10"
               >
                 <Download className="mr-2 h-4 w-4" />
                 Exporter
@@ -314,14 +314,14 @@ const ExercicePage: React.FC = () => {
                     onClick={() => handleExportExercices('csv')}
                     className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center space-x-2"
                   >
-                    <FileText className="w-4 h-4 text-[#171717]" />
+                    <FileText className="w-4 h-4 text-[var(--color-primary)]" />
                     <span>Export CSV</span>
                   </button>
                   <button
                     onClick={() => handleExportExercices('excel')}
                     className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center space-x-2"
                   >
-                    <FileSpreadsheet className="w-4 h-4 text-[#737373]" />
+                    <FileSpreadsheet className="w-4 h-4 text-[var(--color-text-tertiary)]" />
                     <span>Export Excel</span>
                   </button>
                   <button
@@ -336,7 +336,7 @@ const ExercicePage: React.FC = () => {
               )}
             </div>
             <Button
-              className="bg-[#171717] hover:bg-[#737373] text-white"
+              className="bg-[var(--color-primary)] hover:bg-[var(--color-text-tertiary)] text-white"
               onClick={() => setShowCreateModal(true)}
             >
               <Plus className="mr-2 h-4 w-4" />
@@ -676,10 +676,10 @@ const ExercicePage: React.FC = () => {
                       type="button"
                       variant="outline"
                       onClick={() => setShowPeriodModal(true)}
-                      className="w-full justify-start text-left border-gray-300 hover:bg-[#171717]/5 hover:border-[#171717]"
+                      className="w-full justify-start text-left border-gray-300 hover:bg-[var(--color-primary)]/5 hover:border-[var(--color-primary)]"
                       disabled={isSubmitting}
                     >
-                      <Calendar className="w-4 h-4 mr-2 text-[#171717]" />
+                      <Calendar className="w-4 h-4 mr-2 text-[var(--color-primary)]" />
                       <span className="flex-1">
                         {formData.date_debut && formData.date_fin
                           ? `Du ${new Date(formData.date_debut).toLocaleDateString('fr-FR')} au ${new Date(formData.date_fin).toLocaleDateString('fr-FR')}`
@@ -693,9 +693,9 @@ const ExercicePage: React.FC = () => {
                       </p>
                     )}
                     {formData.date_debut && formData.date_fin && (
-                      <div className="bg-[#171717]/5 border border-[#171717]/20 rounded-lg p-3">
+                      <div className="bg-[var(--color-primary)]/5 border border-[var(--color-primary)]/20 rounded-lg p-3">
                         <p className="text-sm text-gray-600">Durée de l'exercice :</p>
-                        <p className="text-sm font-medium text-[#171717]">
+                        <p className="text-sm font-medium text-[var(--color-primary)]">
                           {Math.round((new Date(formData.date_fin).getTime() - new Date(formData.date_debut).getTime()) / (1000 * 60 * 60 * 24 * 30))} mois
                         </p>
                       </div>

@@ -19,7 +19,7 @@ export const CompteResultatTable: React.FC<CompteResultatTableProps> = ({
     return (
       <div className="animate-pulse space-y-4">
         {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="h-12 bg-[#F5F5F5] rounded" />
+          <div key={i} className="h-12 bg-[var(--color-surface-hover)] rounded" />
         ))}
       </div>
     );
@@ -46,37 +46,37 @@ export const CompteResultatTable: React.FC<CompteResultatTableProps> = ({
       <tr
         className={`${
           isSection
-            ? 'bg-[#737373] text-white font-semibold'
+            ? 'bg-[var(--color-text-tertiary)] text-white font-semibold'
             : isBold
-            ? 'font-semibold bg-[#F5F5F5]'
-            : 'hover:bg-[#FAFAFA]'
+            ? 'font-semibold bg-[var(--color-surface-hover)]'
+            : 'hover:bg-[var(--color-background)]'
         }`}
       >
         <td
-          className={`py-3 px-4 ${!isSection && 'border-b border-[#d4d4d4]'}`}
+          className={`py-3 px-4 ${!isSection && 'border-b border-[var(--color-border)]'}`}
           style={{ paddingLeft: `${16 + indent * 16}px` }}
         >
           {label}
         </td>
-        <td className={`py-3 px-4 text-right ${!isSection && 'border-b border-[#d4d4d4]'}`}>
+        <td className={`py-3 px-4 text-right ${!isSection && 'border-b border-[var(--color-border)]'}`}>
           {formatCurrency(current)}
         </td>
         {showComparison && previous !== undefined && (
           <>
-            <td className={`py-3 px-4 text-right ${!isSection && 'border-b border-[#d4d4d4]'}`}>
+            <td className={`py-3 px-4 text-right ${!isSection && 'border-b border-[var(--color-border)]'}`}>
               {formatCurrency(previous)}
             </td>
-            <td className={`py-3 px-4 text-right ${!isSection && 'border-b border-[#d4d4d4]'}`}>
+            <td className={`py-3 px-4 text-right ${!isSection && 'border-b border-[var(--color-border)]'}`}>
               {variation && (
-                <span className={variation.variation >= 0 ? 'text-[#171717]' : 'text-[#ef4444]'}>
+                <span className={variation.variation >= 0 ? 'text-[var(--color-primary)]' : 'text-[#ef4444]'}>
                   {variation.variation >= 0 ? '+' : ''}
                   {formatCurrency(variation.variation)}
                 </span>
               )}
             </td>
-            <td className={`py-3 px-4 text-right ${!isSection && 'border-b border-[#d4d4d4]'}`}>
+            <td className={`py-3 px-4 text-right ${!isSection && 'border-b border-[var(--color-border)]'}`}>
               {variation && (
-                <span className={variation.variationPercent >= 0 ? 'text-[#171717]' : 'text-[#ef4444]'}>
+                <span className={variation.variationPercent >= 0 ? 'text-[var(--color-primary)]' : 'text-[#ef4444]'}>
                   {variation.variationPercent >= 0 ? '+' : ''}
                   {variation.variationPercent.toFixed(1)}%
                 </span>
@@ -89,13 +89,13 @@ export const CompteResultatTable: React.FC<CompteResultatTableProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-lg border border-[#d4d4d4] overflow-hidden">
-      <div className="bg-[#171717] text-white py-3 px-4">
+    <div className="bg-white rounded-lg border border-[var(--color-border)] overflow-hidden">
+      <div className="bg-[var(--color-primary)] text-white py-3 px-4">
         <h3 className="text-lg font-semibold">COMPTE DE RÉSULTAT</h3>
       </div>
       <table className="w-full">
         <thead>
-          <tr className="bg-[#F5F5F5] text-sm">
+          <tr className="bg-[var(--color-surface-hover)] text-sm">
             <th className="py-2 px-4 text-left">Rubrique</th>
             <th className="py-2 px-4 text-right">{cr.exercice}</th>
             {showComparison && previousCR && (
@@ -149,7 +149,7 @@ export const CompteResultatTable: React.FC<CompteResultatTableProps> = ({
 
           {renderLine('Impôts sur les Sociétés', cr.impotsSocietes, previousCR?.impotsSocietes, false, false, 1)}
 
-          <tr className="bg-[#171717] text-white font-bold">
+          <tr className="bg-[var(--color-primary)] text-white font-bold">
             <td className="py-3 px-4">RÉSULTAT NET</td>
             <td className="py-3 px-4 text-right">{formatCurrency(cr.resultatNet)}</td>
             {showComparison && previousCR && (

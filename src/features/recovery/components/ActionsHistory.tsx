@@ -54,10 +54,10 @@ export const ActionsHistory: React.FC<ActionsHistoryProps> = ({ actions, loading
         {[1, 2, 3].map((i) => (
           <div key={i} className="animate-pulse">
             <div className="flex gap-4">
-              <div className="w-10 h-10 bg-[#F5F5F5] rounded-full" />
+              <div className="w-10 h-10 bg-[var(--color-surface-hover)] rounded-full" />
               <div className="flex-1 space-y-2">
-                <div className="h-4 bg-[#F5F5F5] rounded w-1/4" />
-                <div className="h-3 bg-[#F5F5F5] rounded w-3/4" />
+                <div className="h-4 bg-[var(--color-surface-hover)] rounded w-1/4" />
+                <div className="h-3 bg-[var(--color-surface-hover)] rounded w-3/4" />
               </div>
             </div>
           </div>
@@ -69,8 +69,8 @@ export const ActionsHistory: React.FC<ActionsHistoryProps> = ({ actions, loading
   if (!actions || actions.length === 0) {
     return (
       <div className="text-center py-8">
-        <Clock className="w-12 h-12 text-[#d4d4d4] mx-auto mb-3" />
-        <p className="text-[#737373]">Aucune action enregistrée</p>
+        <Clock className="w-12 h-12 text-[var(--color-border)] mx-auto mb-3" />
+        <p className="text-[var(--color-text-tertiary)]">Aucune action enregistrée</p>
       </div>
     );
   }
@@ -90,7 +90,7 @@ export const ActionsHistory: React.FC<ActionsHistoryProps> = ({ actions, loading
             {!isLast && (
               <div
                 className="absolute left-5 top-10 bottom-0 w-0.5"
-                style={{ backgroundColor: '#E5E5E5' }}
+                style={{ backgroundColor: 'var(--color-border)' }}
               />
             )}
 
@@ -106,19 +106,19 @@ export const ActionsHistory: React.FC<ActionsHistoryProps> = ({ actions, loading
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <Badge variant="neutral">{getActionLabel(action.type)}</Badge>
-                    <span className="text-sm font-medium text-[#171717]">
+                    <span className="text-sm font-medium text-[var(--color-primary)]">
                       {action.auteur}
                     </span>
                   </div>
-                  <p className="text-xs text-[#737373]">
+                  <p className="text-xs text-[var(--color-text-tertiary)]">
                     {formatDate(action.date, 'long')}
                   </p>
                 </div>
               </div>
 
               {action.description && (
-                <div className="bg-[#F5F5F5] border border-[#d4d4d4] rounded-lg p-3 mt-2">
-                  <p className="text-sm text-[#171717] whitespace-pre-wrap">
+                <div className="bg-[var(--color-surface-hover)] border border-[var(--color-border)] rounded-lg p-3 mt-2">
+                  <p className="text-sm text-[var(--color-primary)] whitespace-pre-wrap">
                     {action.description}
                   </p>
                 </div>
@@ -126,8 +126,8 @@ export const ActionsHistory: React.FC<ActionsHistoryProps> = ({ actions, loading
 
               {action.resultat && (
                 <div className="mt-2">
-                  <span className="text-xs font-medium text-[#737373]">Résultat: </span>
-                  <span className="text-xs text-[#171717]">{action.resultat}</span>
+                  <span className="text-xs font-medium text-[var(--color-text-tertiary)]">Résultat: </span>
+                  <span className="text-xs text-[var(--color-primary)]">{action.resultat}</span>
                 </div>
               )}
             </div>

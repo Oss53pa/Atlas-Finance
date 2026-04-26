@@ -1131,7 +1131,7 @@ const APIIntegrationsPage: React.FC = () => {
               </button>
               <button
                 onClick={handleCreateAPI}
-                className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#262626]"
+                className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)]"
               >
                 Créer la clé
               </button>
@@ -1197,7 +1197,7 @@ const APIIntegrationsPage: React.FC = () => {
               </button>
               <button
                 onClick={handleCreateWebhook}
-                className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#262626]"
+                className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)]"
               >
                 Créer le webhook
               </button>
@@ -1222,14 +1222,14 @@ const APIIntegrationsPage: React.FC = () => {
                   <span className="text-sm">Synchronisation automatique</span>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input type="checkbox" defaultChecked className="sr-only peer" />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:tranprimary-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#171717]"></div>
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:tranprimary-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--color-primary)]"></div>
                   </label>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm">Notifications en temps réel</span>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input type="checkbox" defaultChecked className="sr-only peer" />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:tranprimary-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#171717]"></div>
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:tranprimary-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--color-primary)]"></div>
                   </label>
                 </div>
                 <div>
@@ -1257,7 +1257,7 @@ const APIIntegrationsPage: React.FC = () => {
                   toast.success('Configuration sauvegardée !');
                   setShowConfigModal(null);
                 }}
-                className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#262626]"
+                className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)]"
               >
                 Enregistrer
               </button>
@@ -1404,7 +1404,7 @@ end`}</code>
               </button>
               <button
                 onClick={() => setShowCodeExamples(null)}
-                className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#262626]"
+                className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)]"
               >
                 Fermer
               </button>

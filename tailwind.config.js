@@ -23,51 +23,64 @@ export default {
     },
     extend: {
       colors: {
-        // Atlas F&A Design System - Grayscale Palette
+        // Atlas F&A Design System - Warm Gold Palette (synced with designTokens)
         primary: {
-          DEFAULT: '#171717',
-          50: '#fafafa',
-          100: '#f5f5f5',
-          200: '#e5e5e5',
-          300: '#d4d4d4',
-          400: '#a3a3a3',
-          500: '#737373',
-          600: '#525252',
-          700: '#404040',
-          800: '#262626',
-          900: '#171717',
-          950: '#0a0a0a',
-          foreground: '#fafafa',
+          DEFAULT: '#1F1F23',
+          50: '#faf8f3',
+          100: '#f0ece4',
+          200: '#e5e0d5',
+          300: '#D4B870',
+          400: '#C4A65C',
+          500: '#B8954A',
+          600: '#9A7D3E',
+          700: '#7A6332',
+          800: '#1F1F23',
+          900: '#16161A',
+          950: '#0A0A0C',
+          foreground: '#faf8f3',
         },
         secondary: {
-          DEFAULT: '#f5f5f5',
-          50: '#fafafa',
-          100: '#f5f5f5',
-          500: '#737373',
-          600: '#525252',
-          foreground: '#171717',
+          DEFAULT: '#f0ece4',
+          50: '#faf8f3',
+          100: '#f0ece4',
+          200: '#e5e0d5',
+          500: '#8C7A5A',
+          600: '#6B6B73',
+          foreground: '#1F1F23',
+        },
+        neutral: {
+          50: '#faf8f3',
+          100: '#f0ece4',
+          200: '#e5e0d5',
+          300: '#c8c0b0',
+          400: '#A09880',
+          500: '#8C7A5A',
+          600: '#6B6B73',
+          700: '#3A3A3F',
+          800: '#1F1F23',
+          900: '#16161A',
         },
         accent: {
-          DEFAULT: '#f5f5f5',
-          foreground: '#171717',
+          DEFAULT: '#f0ece4',
+          foreground: '#1F1F23',
         },
         muted: {
-          DEFAULT: '#f5f5f5',
-          foreground: '#737373',
+          DEFAULT: '#f0ece4',
+          foreground: '#6B6B73',
         },
         background: '#fafafa',
-        foreground: '#171717',
+        foreground: '#1F1F23',
         card: {
           DEFAULT: '#FFFFFF',
-          foreground: '#171717',
+          foreground: '#1F1F23',
         },
         popover: {
           DEFAULT: '#FFFFFF',
-          foreground: '#171717',
+          foreground: '#1F1F23',
         },
         border: '#e5e5e5',
         input: '#e5e5e5',
-        ring: '#171717',
+        ring: '#1F1F23',
 
         // Status colors
         success: {
@@ -79,6 +92,10 @@ export default {
           foreground: '#FFFFFF',
         },
         destructive: {
+          DEFAULT: '#ef4444',
+          foreground: '#FFFFFF',
+        },
+        error: {
           DEFAULT: '#ef4444',
           foreground: '#FFFFFF',
         },
@@ -116,7 +133,7 @@ export default {
       boxShadow: {
         card: '0 1px 2px rgba(0,0,0,0.04)',
         'card-hover': '0 4px 12px rgba(0,0,0,0.08)',
-        focus: '0 0 0 3px rgba(23,23,23,0.1)',
+        focus: '0 0 0 3px rgba(31,31,35,0.1)',
       },
       keyframes: {
         "accordion-down": {

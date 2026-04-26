@@ -25,7 +25,7 @@ const BankMovementsPage: React.FC = () => {
   // Scénarios de prévision
   const forecastScenarios = [
     { id: 'optimiste', name: '📈 Optimiste', multiplier: 1.3, color: 'text-green-600' },
-    { id: 'realiste', name: '📊 Réaliste', multiplier: 1.0, color: 'text-[#171717]' },
+    { id: 'realiste', name: '📊 Réaliste', multiplier: 1.0, color: 'text-[var(--color-primary)]' },
     { id: 'pessimiste', name: '📉 Pessimiste', multiplier: 0.7, color: 'text-red-600' }
   ];
 
@@ -179,7 +179,7 @@ const BankMovementsPage: React.FC = () => {
       {/* Dashboard CashFlow */}
       {activeTab === 'movements' && (
         <div className="space-y-4">
-          <div className="bg-gradient-to-r from-[#171717] to-[#737373] rounded-lg p-4 text-white shadow-lg">
+          <div className="bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-text-tertiary)] rounded-lg p-4 text-white shadow-lg">
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-lg font-bold mb-1">📈 Dashboard CashFlow</h2>
@@ -204,29 +204,29 @@ const BankMovementsPage: React.FC = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
-              <div className="bg-white rounded-lg border border-[#e5e5e5] shadow-sm">
-                <div className="border-b border-[#e5e5e5] p-4 bg-gradient-to-r from-[#525252]/10 to-[#171717]/10">
-                  <h3 className="text-lg font-semibold text-[#171717]">📊 Trend Analysis & Dernières Transactions</h3>
+              <div className="bg-white rounded-lg border border-[var(--color-border)] shadow-sm">
+                <div className="border-b border-[var(--color-border)] p-4 bg-gradient-to-r from-[var(--color-text-secondary)]/10 to-[var(--color-primary)]/10">
+                  <h3 className="text-lg font-semibold text-[var(--color-primary)]">📊 Trend Analysis & Dernières Transactions</h3>
                 </div>
-                <div className="overflow-hidden rounded-lg border border-[#e5e5e5]">
+                <div className="overflow-hidden rounded-lg border border-[var(--color-border)]">
                   <table className="w-full">
-                    <thead className="bg-[#171717]/10">
+                    <thead className="bg-[var(--color-primary)]/10">
                       <tr>
-                        <th className="px-3 py-3 text-left text-xs font-semibold text-[#171717] uppercase">Doc #</th>
-                        <th className="px-3 py-3 text-left text-xs font-semibold text-[#171717] uppercase">Coll. date</th>
-                        <th className="px-3 py-3 text-left text-xs font-semibold text-[#171717] uppercase">Pay. date</th>
-                        <th className="px-3 py-3 text-left text-xs font-semibold text-[#171717] uppercase">Ref.</th>
-                        <th className="px-3 py-3 text-left text-xs font-semibold text-[#171717] uppercase">Account</th>
-                        <th className="px-3 py-3 text-left text-xs font-semibold text-[#171717] uppercase">Description</th>
-                        <th className="px-3 py-3 text-right text-xs font-semibold text-[#171717] uppercase">Debit</th>
-                        <th className="px-3 py-3 text-right text-xs font-semibold text-[#171717] uppercase">Credit</th>
+                        <th className="px-3 py-3 text-left text-xs font-semibold text-[var(--color-primary)] uppercase">Doc #</th>
+                        <th className="px-3 py-3 text-left text-xs font-semibold text-[var(--color-primary)] uppercase">Coll. date</th>
+                        <th className="px-3 py-3 text-left text-xs font-semibold text-[var(--color-primary)] uppercase">Pay. date</th>
+                        <th className="px-3 py-3 text-left text-xs font-semibold text-[var(--color-primary)] uppercase">Ref.</th>
+                        <th className="px-3 py-3 text-left text-xs font-semibold text-[var(--color-primary)] uppercase">Account</th>
+                        <th className="px-3 py-3 text-left text-xs font-semibold text-[var(--color-primary)] uppercase">Description</th>
+                        <th className="px-3 py-3 text-right text-xs font-semibold text-[var(--color-primary)] uppercase">Debit</th>
+                        <th className="px-3 py-3 text-right text-xs font-semibold text-[var(--color-primary)] uppercase">Credit</th>
                       </tr>
                     </thead>
                   </table>
 
                   <div style={{maxHeight: '400px', overflowY: 'auto', overflowX: 'auto'}}>
                     <table className="w-full">
-                      <tbody className="divide-y divide-[#e5e5e5]">
+                      <tbody className="divide-y divide-[var(--color-border)]">
                           {/* TODO: Load from real journal entries via adapter */}
                           {([] as { doc: string; collDate: string; payDate: string; ref: string; account: string; description: string; debit: string; credit: string }[]).map((transaction, index) => (
                             <tr key={index} className="hover:bg-gray-50">
@@ -248,13 +248,13 @@ const BankMovementsPage: React.FC = () => {
               </div>
 
             <div>
-              <div className="bg-white rounded-lg border border-[#e5e5e5] shadow-sm">
-                <div className="border-b border-[#e5e5e5] p-4 bg-gradient-to-r from-[#737373]/10 to-[#525252]/10">
-                  <h3 className="text-lg font-semibold text-[#171717]">📊 Overview</h3>
+              <div className="bg-white rounded-lg border border-[var(--color-border)] shadow-sm">
+                <div className="border-b border-[var(--color-border)] p-4 bg-gradient-to-r from-[var(--color-text-tertiary)]/10 to-[var(--color-text-secondary)]/10">
+                  <h3 className="text-lg font-semibold text-[var(--color-primary)]">📊 Overview</h3>
                 </div>
                 <div className="p-6">
                   {/* Carte bancaire élégante */}
-                  <div className="relative mb-6 p-6 bg-gradient-to-br from-[#171717] via-[#404040] to-[#737373] rounded-xl shadow-2xl text-white overflow-hidden">
+                  <div className="relative mb-6 p-6 bg-gradient-to-br from-[var(--color-primary)] via-[#404040] to-[var(--color-text-tertiary)] rounded-xl shadow-2xl text-white overflow-hidden">
                     {/* Motif de fond */}
                     <div className="absolute inset-0 opacity-10">
                       <div className="absolute top-4 right-4 w-16 h-16 border-2 border-white rounded-full"></div>
@@ -297,12 +297,12 @@ const BankMovementsPage: React.FC = () => {
                   </div>
 
                   <div className="space-y-3">
-                    <div className="flex justify-between items-center p-3 bg-[#171717]/5 rounded-lg">
+                    <div className="flex justify-between items-center p-3 bg-[var(--color-primary)]/5 rounded-lg">
                       <div className="flex items-center space-x-2">
-                        <div className="w-3 h-3 bg-[#171717] rounded-full"></div>
+                        <div className="w-3 h-3 bg-[var(--color-primary)] rounded-full"></div>
                         <span className="text-sm text-[#404040]">Opening</span>
                       </div>
-                      <span className="font-semibold text-[#171717]">0</span>
+                      <span className="font-semibold text-[var(--color-primary)]">0</span>
                     </div>
 
                     {/* Cash In et Cash Out côte à côte */}
@@ -359,11 +359,11 @@ const BankMovementsPage: React.FC = () => {
                       </div>
                     </div>
 
-                    <div className="flex justify-between items-center p-3 bg-[#525252]/10 rounded-lg border-l-4 border-[#525252]">
+                    <div className="flex justify-between items-center p-3 bg-[var(--color-text-secondary)]/10 rounded-lg border-l-4 border-[var(--color-text-secondary)]">
                       <div className="flex items-center space-x-2">
-                        <div className="w-3 h-3 bg-[#525252] rounded-full"></div>
-                        <span className="text-sm font-bold text-[#171717]">Landing Forecast</span>
-                        <span className="text-xs px-2 py-1 rounded-full bg-white/80 text-[#525252] font-medium">
+                        <div className="w-3 h-3 bg-[var(--color-text-secondary)] rounded-full"></div>
+                        <span className="text-sm font-bold text-[var(--color-primary)]">Landing Forecast</span>
+                        <span className="text-xs px-2 py-1 rounded-full bg-white/80 text-[var(--color-text-secondary)] font-medium">
                           {getSelectedScenarioData().name.replace(/📈|📊|📉/, '').trim()}
                         </span>
                       </div>
@@ -378,16 +378,16 @@ const BankMovementsPage: React.FC = () => {
           </div>
 
           {/* Prévision de Trésorerie Globale */}
-          <div className="bg-white rounded-lg border border-[#e5e5e5] shadow-sm">
-            <div className="border-b border-[#e5e5e5] p-4 bg-gradient-to-r from-[#525252]/10 to-[#737373]/10">
+          <div className="bg-white rounded-lg border border-[var(--color-border)] shadow-sm">
+            <div className="border-b border-[var(--color-border)] p-4 bg-gradient-to-r from-[var(--color-text-secondary)]/10 to-[var(--color-text-tertiary)]/10">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-[#171717]">🔮 Prévision de Trésorerie Globale</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-primary)]">🔮 Prévision de Trésorerie Globale</h3>
                 <div>
                   <label className="block text-xs text-[#404040] mb-1">Scénario de prévision :</label>
                   <select
                     value={selectedScenario}
                     onChange={(e) => setSelectedScenario(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded text-sm bg-white text-gray-900 focus:ring-2 focus:ring-[#525252] focus:border-[#525252]"
+                    className="px-3 py-2 border border-gray-300 rounded text-sm bg-white text-gray-900 focus:ring-2 focus:ring-[var(--color-text-secondary)] focus:border-[var(--color-text-secondary)]"
                   >
                     {forecastScenarios.map(scenario => (
                       <option key={scenario.id} value={scenario.id}>
@@ -430,15 +430,15 @@ const BankMovementsPage: React.FC = () => {
                 </div>
 
                 {/* Balance Prévisionnelle */}
-                <div className="bg-[#525252]/10 border border-[#525252]/30 rounded-lg p-4">
+                <div className="bg-[var(--color-text-secondary)]/10 border border-[var(--color-text-secondary)]/30 rounded-lg p-4">
                   <div className="flex items-center space-x-3 mb-3">
-                    <div className="w-4 h-4 bg-[#525252] rounded-full"></div>
-                    <h4 className="font-medium text-[#525252]">Balance Prévisionnelle</h4>
+                    <div className="w-4 h-4 bg-[var(--color-text-secondary)] rounded-full"></div>
+                    <h4 className="font-medium text-[var(--color-text-secondary)]">Balance Prévisionnelle</h4>
                   </div>
                   <div className={`text-lg font-bold ${getSelectedScenarioData().color}`}>
                     {new Intl.NumberFormat('fr-FR').format(getSelectedAccountData().landingForecast)}
                   </div>
-                  <div className="text-sm text-[#525252] mt-1">
+                  <div className="text-sm text-[var(--color-text-secondary)] mt-1">
                     Projection {getSelectedScenarioData().name.replace(/📈|📊|📉/, '').trim()}
                   </div>
                 </div>
@@ -458,7 +458,7 @@ const BankMovementsPage: React.FC = () => {
                   return (
                     <div
                       key={scenario.id}
-                      className={`border rounded-lg p-3 ${selectedScenario === scenario.id ? 'border-[#525252] bg-[#525252]/5' : 'border-gray-200'}`}
+                      className={`border rounded-lg p-3 ${selectedScenario === scenario.id ? 'border-[var(--color-text-secondary)] bg-[var(--color-text-secondary)]/5' : 'border-gray-200'}`}
                     >
                       <h5 className={`font-medium mb-2 ${scenario.color}`}>{scenario.name}</h5>
                       <div className="space-y-2 text-sm">
@@ -646,7 +646,7 @@ const BankMovementsPage: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-              <div className="bg-[#171717]/5 border border-[#171717]/20 rounded-lg p-3 text-center">
+              <div className="bg-[var(--color-primary)]/5 border border-[var(--color-primary)]/20 rounded-lg p-3 text-center">
                 <div className="text-sm text-[var(--color-text-secondary)]">Opening</div>
                 <div className="font-bold text-[var(--color-text-primary)]">
                   {new Intl.NumberFormat('fr-FR').format(selectedOperations.data.opening)}

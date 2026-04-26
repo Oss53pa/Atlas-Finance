@@ -152,12 +152,12 @@ const SolutionCatalogPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#fafafa]">
+    <div className="min-h-screen bg-[var(--color-background)]">
       {/* Header */}
       <header className="bg-white border-b sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <span className="atlas-brand text-2xl text-[#171717]">Atlas Studio</span>
+            <span className="atlas-brand text-2xl text-[var(--color-primary)]">Atlas Studio</span>
             <span className="text-gray-300 mx-1">/</span>
             <span className="text-sm font-semibold text-gray-600">Catalogue</span>
           </div>
@@ -175,7 +175,7 @@ const SolutionCatalogPage: React.FC = () => {
       <main className="max-w-6xl mx-auto px-6 py-12">
         {/* Hero */}
         <div className="text-center mb-12">
-          <h1 className="text-3xl font-bold text-[#171717]">Catalogue des solutions</h1>
+          <h1 className="text-3xl font-bold text-[var(--color-primary)]">Catalogue des solutions</h1>
           <p className="text-gray-500 mt-2 max-w-xl mx-auto">
             La suite logicielle Atlas Studio pour les entreprises africaines.
             Chaque application fonctionne seule ou en synergie avec les autres.
@@ -186,7 +186,7 @@ const SolutionCatalogPage: React.FC = () => {
         <div className="mb-16">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-2 h-2 rounded-full bg-green-500" />
-            <h2 className="text-xl font-bold text-[#171717]">Disponibles maintenant</h2>
+            <h2 className="text-xl font-bold text-[var(--color-primary)]">Disponibles maintenant</h2>
             <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">
               {available.length} applications
             </span>
@@ -201,7 +201,7 @@ const SolutionCatalogPage: React.FC = () => {
                 <div
                   key={sol.code}
                   className={`bg-white rounded-2xl border-2 overflow-hidden transition-all hover:shadow-lg ${
-                    isSelected ? 'border-[#171717] shadow-xl' : 'border-gray-200 hover:border-gray-300'
+                    isSelected ? 'border-[var(--color-primary)] shadow-xl' : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
                   {/* Card header */}
@@ -214,7 +214,7 @@ const SolutionCatalogPage: React.FC = () => {
                         <Icon className="w-6 h-6" style={{ color: sol.color }} />
                       </div>
                       <div className="min-w-0">
-                        <h3 className="text-lg font-bold text-[#171717]">{sol.name}</h3>
+                        <h3 className="text-lg font-bold text-[var(--color-primary)]">{sol.name}</h3>
                         <p className="text-sm text-gray-500">{sol.desc}</p>
                       </div>
                     </div>
@@ -235,7 +235,7 @@ const SolutionCatalogPage: React.FC = () => {
                     {sol.pricing && (
                       <div className="flex items-baseline gap-1 mb-5 pb-5 border-b">
                         <span className="text-xs text-gray-400">A partir de</span>
-                        <span className="text-2xl font-bold text-[#171717]">{formatXOF(sol.pricing.from_xof)}</span>
+                        <span className="text-2xl font-bold text-[var(--color-primary)]">{formatXOF(sol.pricing.from_xof)}</span>
                         <span className="text-gray-400 text-sm">FCFA/mois</span>
                         <span className="text-xs text-gray-400 ml-1">(~{sol.pricing.from_eur} EUR)</span>
                       </div>
@@ -245,7 +245,7 @@ const SolutionCatalogPage: React.FC = () => {
                     <div className="flex gap-3">
                       <button
                         onClick={() => handleSubscribe(sol.code)}
-                        className="flex-1 py-3 bg-[#171717] text-white rounded-xl text-sm font-semibold hover:bg-[#333] transition-colors flex items-center justify-center gap-2"
+                        className="flex-1 py-3 bg-[var(--color-primary)] text-white rounded-xl text-sm font-semibold hover:bg-[#333] transition-colors flex items-center justify-center gap-2"
                       >
                         <Zap className="w-4 h-4" /> Souscrire maintenant
                       </button>
@@ -261,18 +261,18 @@ const SolutionCatalogPage: React.FC = () => {
                   {/* Expanded plan details */}
                   {isSelected && (
                     <div className="border-t bg-gray-50 p-6 space-y-4">
-                      <h4 className="text-sm font-bold text-[#171717]">Choisissez votre plan pour {sol.name}</h4>
+                      <h4 className="text-sm font-bold text-[var(--color-primary)]">Choisissez votre plan pour {sol.name}</h4>
                       <div className="grid grid-cols-2 gap-3">
                         {/* PME */}
                         <button
                           onClick={() => navigate(`/client/checkout/${sol.code}?plan=pme`)}
-                          className="p-4 bg-white rounded-xl border-2 border-gray-200 hover:border-[#171717] text-left transition-all group"
+                          className="p-4 bg-white rounded-xl border-2 border-gray-200 hover:border-[var(--color-primary)] text-left transition-all group"
                         >
-                          <div className="text-sm font-bold text-[#171717]">{PLANS.pme.name}</div>
+                          <div className="text-sm font-bold text-[var(--color-primary)]">{PLANS.pme.name}</div>
                           <div className="text-xs text-gray-500 mt-0.5">1 à 5 utilisateurs</div>
-                          <div className="text-lg font-bold text-[#171717] mt-2">{formatXOF(PLANS.pme.pricing.monthly_xof)}</div>
+                          <div className="text-lg font-bold text-[var(--color-primary)] mt-2">{formatXOF(PLANS.pme.pricing.monthly_xof)}</div>
                           <div className="text-xs text-gray-400">FCFA/mois</div>
-                          <div className="mt-3 text-xs font-semibold text-gray-400 group-hover:text-[#171717] flex items-center gap-1 transition-colors">
+                          <div className="mt-3 text-xs font-semibold text-gray-400 group-hover:text-[var(--color-primary)] flex items-center gap-1 transition-colors">
                             Souscrire <ArrowRight className="w-3 h-3" />
                           </div>
                         </button>
@@ -280,19 +280,19 @@ const SolutionCatalogPage: React.FC = () => {
                         {/* Premium */}
                         <button
                           onClick={() => navigate(`/client/checkout/${sol.code}?plan=premium`)}
-                          className="p-4 bg-white rounded-xl border-2 border-[#171717] text-left relative overflow-hidden group"
+                          className="p-4 bg-white rounded-xl border-2 border-[var(--color-primary)] text-left relative overflow-hidden group"
                         >
-                          <div className="absolute top-0 right-0 bg-[#171717] text-white text-[10px] font-semibold px-2 py-0.5 rounded-bl-lg">
+                          <div className="absolute top-0 right-0 bg-[var(--color-primary)] text-white text-[10px] font-semibold px-2 py-0.5 rounded-bl-lg">
                             Populaire
                           </div>
                           <div className="flex items-center gap-1">
                             <Crown className="w-3.5 h-3.5 text-amber-500" />
-                            <span className="text-sm font-bold text-[#171717]">{PLANS.premium.name}</span>
+                            <span className="text-sm font-bold text-[var(--color-primary)]">{PLANS.premium.name}</span>
                           </div>
                           <div className="text-xs text-gray-500 mt-0.5">Utilisateurs illimités</div>
-                          <div className="text-lg font-bold text-[#171717] mt-2">{formatXOF(PLANS.premium.pricing.monthly_xof)}</div>
+                          <div className="text-lg font-bold text-[var(--color-primary)] mt-2">{formatXOF(PLANS.premium.pricing.monthly_xof)}</div>
                           <div className="text-xs text-gray-400">FCFA/mois</div>
-                          <div className="mt-3 text-xs font-semibold text-[#171717] flex items-center gap-1">
+                          <div className="mt-3 text-xs font-semibold text-[var(--color-primary)] flex items-center gap-1">
                             Souscrire <ArrowRight className="w-3 h-3" />
                           </div>
                         </button>
@@ -309,7 +309,7 @@ const SolutionCatalogPage: React.FC = () => {
         <div className="mb-16">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-2 h-2 rounded-full bg-amber-400" />
-            <h2 className="text-xl font-bold text-[#171717]">Prochainement</h2>
+            <h2 className="text-xl font-bold text-[var(--color-primary)]">Prochainement</h2>
             <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">
               {comingSoon.length} applications
             </span>
@@ -328,7 +328,7 @@ const SolutionCatalogPage: React.FC = () => {
                       <Icon className="w-5 h-5" style={{ color: sol.color }} />
                     </div>
                     <div>
-                      <div className="font-bold text-sm text-[#171717]">{sol.name}</div>
+                      <div className="font-bold text-sm text-[var(--color-primary)]">{sol.name}</div>
                       <div className="text-xs text-gray-400">{sol.desc}</div>
                     </div>
                   </div>
@@ -353,9 +353,9 @@ const SolutionCatalogPage: React.FC = () => {
         <div className="max-w-4xl mx-auto">
           <button
             onClick={() => setShowFeatures(!showFeatures)}
-            className="w-full flex items-center justify-center gap-2 mb-6 text-gray-500 hover:text-[#171717] transition-colors"
+            className="w-full flex items-center justify-center gap-2 mb-6 text-gray-500 hover:text-[var(--color-primary)] transition-colors"
           >
-            <h2 className="text-xl font-bold text-[#171717]">Comparaison détaillée des plans</h2>
+            <h2 className="text-xl font-bold text-[var(--color-primary)]">Comparaison détaillée des plans</h2>
             {showFeatures ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
           </button>
 
@@ -388,7 +388,7 @@ const SolutionCatalogPage: React.FC = () => {
               ))}
 
               {/* Pricing row */}
-              <div className="grid grid-cols-[1fr_120px_120px] bg-[#171717]">
+              <div className="grid grid-cols-[1fr_120px_120px] bg-[var(--color-primary)]">
                 <div className="px-6 py-5 text-sm font-bold text-white">Prix</div>
                 <div className="px-4 py-5 text-center">
                   <div className="text-lg font-bold text-white">{formatXOF(49000)}</div>

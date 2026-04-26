@@ -73,7 +73,7 @@ const AnalyticsDashboard: React.FC = () => {
     const taux_marge = chiffre_affaires > 0 ? (marge_brute / chiffre_affaires) * 100 : 0;
     const rentabilite_globale = taux_marge;
 
-    const costCenterColors = ['bg-green-400', 'bg-[#525252]', 'bg-gray-400', 'bg-orange-400', 'bg-yellow-400', 'bg-red-400', 'bg-primary-400'];
+    const costCenterColors = ['bg-green-400', 'bg-[var(--color-text-secondary)]', 'bg-gray-400', 'bg-orange-400', 'bg-yellow-400', 'bg-red-400', 'bg-primary-400'];
     const accountLabels: Record<string, string> = {
       '60': 'Achats', '61': 'Services ext.', '62': 'Autres services', '63': 'Impots',
       '64': 'Personnel', '65': 'Autres charges', '66': 'Charges fin.', '67': 'Charges except.',
@@ -116,7 +116,7 @@ const AnalyticsDashboard: React.FC = () => {
             animate={{ opacity: 1, scale: 1 }}
             className="flex flex-col items-center space-y-6 bg-white/90 backdrop-blur-sm p-12 rounded-xl shadow-md"
           >
-            <div className="w-20 h-20 border-4 border-[var(--color-primary-light)] border-t-[#171717] rounded-full animate-spin"></div>
+            <div className="w-20 h-20 border-4 border-[var(--color-primary-light)] border-t-[var(--color-primary)] rounded-full animate-spin"></div>
             <p className="text-lg font-semibold text-neutral-700">Chargement du tableau de bord analytique...</p>
           </motion.div>
         </div>

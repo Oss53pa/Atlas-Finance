@@ -150,9 +150,9 @@ const BudgetRecapPage: React.FC = () => {
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
   return (
-    <div className="p-6 bg-[#e5e5e5] min-h-screen">
+    <div className="p-6 bg-[var(--color-border)] min-h-screen">
       {/* Header */}
-      <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm mb-6">
+      <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm mb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button
@@ -164,13 +164,13 @@ const BudgetRecapPage: React.FC = () => {
             </button>
 
             <div>
-              <h1 className="text-lg font-bold text-[#171717]">Budget Recap</h1>
+              <h1 className="text-lg font-bold text-[var(--color-primary)]">Budget Recap</h1>
               <div className="flex items-center space-x-3 mt-1">
-                <span className="text-sm text-[#737373]">
+                <span className="text-sm text-[var(--color-text-tertiary)]">
                   {department || 'Tous les departements'}
                 </span>
-                <span className="text-sm text-[#737373]">•</span>
-                <span className="text-sm font-medium text-[#525252]">
+                <span className="text-sm text-[var(--color-text-tertiary)]">•</span>
+                <span className="text-sm font-medium text-[var(--color-text-secondary)]">
                   {type === 'revenue' ? 'Revenus' : 'Depenses'}
                 </span>
               </div>
@@ -179,14 +179,14 @@ const BudgetRecapPage: React.FC = () => {
 
           <div className="flex items-center space-x-3">
             {/* Selecteur d'annee */}
-            <div className="flex items-center bg-white border border-[#e5e5e5] rounded-lg">
+            <div className="flex items-center bg-white border border-[var(--color-border)] rounded-lg">
               <button
                 onClick={() => setSelectedYear((prev) => (parseInt(prev) - 1).toString())}
                 className="p-2 hover:bg-gray-50"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
-              <span className="px-4 py-2 font-medium text-[#171717]">{selectedYear}</span>
+              <span className="px-4 py-2 font-medium text-[var(--color-primary)]">{selectedYear}</span>
               <button
                 onClick={() => setSelectedYear((prev) => (parseInt(prev) + 1).toString())}
                 className="p-2 hover:bg-gray-50"
@@ -195,12 +195,12 @@ const BudgetRecapPage: React.FC = () => {
               </button>
             </div>
 
-            <button className="flex items-center space-x-2 px-4 py-2 bg-white border border-[#e5e5e5] rounded-lg hover:bg-gray-50" aria-label="Filtrer">
+            <button className="flex items-center space-x-2 px-4 py-2 bg-white border border-[var(--color-border)] rounded-lg hover:bg-gray-50" aria-label="Filtrer">
               <Filter className="w-4 h-4" />
               <span className="text-sm">{t('common.filter')}</span>
             </button>
 
-            <button className="flex items-center space-x-2 px-4 py-2 bg-[#525252] text-white rounded-lg hover:bg-[#404040]" aria-label="Telecharger">
+            <button className="flex items-center space-x-2 px-4 py-2 bg-[var(--color-text-secondary)] text-white rounded-lg hover:bg-[#404040]" aria-label="Telecharger">
               <Download className="w-4 h-4" />
               <span className="text-sm">{t('common.export')}</span>
             </button>
@@ -217,17 +217,17 @@ const BudgetRecapPage: React.FC = () => {
       </div>
 
       {/* Titre de la section */}
-      <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] mb-4">
-        <h2 className="text-lg font-bold text-[#171717]">
+      <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] mb-4">
+        <h2 className="text-lg font-bold text-[var(--color-primary)]">
           {type === 'revenue' ? 'Revenus' : 'Depenses'}
         </h2>
       </div>
 
       {/* Tableau des donnees */}
-      <div className="bg-white rounded-lg border border-[#e5e5e5] overflow-hidden">
+      <div className="bg-white rounded-lg border border-[var(--color-border)] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-100 border-b border-[#e5e5e5]">
+            <thead className="bg-gray-100 border-b border-[var(--color-border)]">
               <tr>
                 <th className="text-left p-3 text-sm font-medium text-[#404040] sticky left-0 bg-gray-100 min-w-[100px]">
                   Compte
@@ -251,62 +251,62 @@ const BudgetRecapPage: React.FC = () => {
             <tbody className="divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td colSpan={16} className="p-8 text-center text-sm text-[#737373]">
+                  <td colSpan={16} className="p-8 text-center text-sm text-[var(--color-text-tertiary)]">
                     Chargement des donnees budgetaires...
                   </td>
                 </tr>
               ) : data.length === 0 ? (
                 <tr>
-                  <td colSpan={16} className="p-8 text-center text-sm text-[#737373]">
+                  <td colSpan={16} className="p-8 text-center text-sm text-[var(--color-text-tertiary)]">
                     Aucune donnee budgetaire
                   </td>
                 </tr>
               ) : null}
               {data.map((row) => (
                 <tr key={row.compte} className="hover:bg-gray-50">
-                  <td className="p-3 text-sm font-medium text-[#171717] sticky left-0 bg-white">
+                  <td className="p-3 text-sm font-medium text-[var(--color-primary)] sticky left-0 bg-white">
                     {row.compte}
                   </td>
                   <td className="p-3 text-sm text-[#404040]">
                     {row.description}
                   </td>
-                  <td className="p-3 text-sm text-right text-[#737373]">
+                  <td className="p-3 text-sm text-right text-[var(--color-text-tertiary)]">
                     {formatAmount(row.jan)}
                   </td>
-                  <td className="p-3 text-sm text-right text-[#737373]">
+                  <td className="p-3 text-sm text-right text-[var(--color-text-tertiary)]">
                     {formatAmount(row.feb)}
                   </td>
-                  <td className="p-3 text-sm text-right text-[#737373]">
+                  <td className="p-3 text-sm text-right text-[var(--color-text-tertiary)]">
                     {formatAmount(row.mar)}
                   </td>
-                  <td className="p-3 text-sm text-right text-[#737373]">
+                  <td className="p-3 text-sm text-right text-[var(--color-text-tertiary)]">
                     {formatAmount(row.apr)}
                   </td>
-                  <td className="p-3 text-sm text-right text-[#737373]">
+                  <td className="p-3 text-sm text-right text-[var(--color-text-tertiary)]">
                     {formatAmount(row.may)}
                   </td>
-                  <td className="p-3 text-sm text-right text-[#737373]">
+                  <td className="p-3 text-sm text-right text-[var(--color-text-tertiary)]">
                     {formatAmount(row.jun)}
                   </td>
-                  <td className="p-3 text-sm text-right text-[#737373]">
+                  <td className="p-3 text-sm text-right text-[var(--color-text-tertiary)]">
                     {formatAmount(row.jul)}
                   </td>
-                  <td className="p-3 text-sm text-right text-[#737373]">
+                  <td className="p-3 text-sm text-right text-[var(--color-text-tertiary)]">
                     {formatAmount(row.aug)}
                   </td>
-                  <td className="p-3 text-sm text-right text-[#737373]">
+                  <td className="p-3 text-sm text-right text-[var(--color-text-tertiary)]">
                     {formatAmount(row.sep)}
                   </td>
-                  <td className="p-3 text-sm text-right text-[#737373]">
+                  <td className="p-3 text-sm text-right text-[var(--color-text-tertiary)]">
                     {formatAmount(row.oct)}
                   </td>
-                  <td className="p-3 text-sm text-right text-[#737373]">
+                  <td className="p-3 text-sm text-right text-[var(--color-text-tertiary)]">
                     {formatAmount(row.nov)}
                   </td>
-                  <td className="p-3 text-sm text-right text-[#737373]">
+                  <td className="p-3 text-sm text-right text-[var(--color-text-tertiary)]">
                     {formatAmount(row.dec)}
                   </td>
-                  <td className="p-3 text-sm text-right font-bold text-[#171717] bg-gray-50">
+                  <td className="p-3 text-sm text-right font-bold text-[var(--color-primary)] bg-gray-50">
                     {formatAmount(row.total)}
                   </td>
                   <td className="p-3 text-center bg-gray-50">
@@ -315,7 +315,7 @@ const BudgetRecapPage: React.FC = () => {
                       className="p-1 hover:bg-gray-200 rounded"
                       title="Voir les details"
                     >
-                      <Eye className="w-4 h-4 text-[#525252]" />
+                      <Eye className="w-4 h-4 text-[var(--color-text-secondary)]" />
                     </button>
                   </td>
                 </tr>
@@ -324,11 +324,11 @@ const BudgetRecapPage: React.FC = () => {
               {/* Ligne de total */}
               {data.length > 0 && (
                 <tr className="bg-gray-100 font-bold">
-                  <td className="p-3 text-sm text-[#171717] sticky left-0 bg-gray-100" colSpan={2}>
+                  <td className="p-3 text-sm text-[var(--color-primary)] sticky left-0 bg-gray-100" colSpan={2}>
                     TOTAL
                   </td>
                   {months.map((month) => (
-                    <td key={month} className="p-3 text-sm text-right text-[#171717]">
+                    <td key={month} className="p-3 text-sm text-right text-[var(--color-primary)]">
                       {formatAmount(
                         data.reduce((sum, row) => {
                           const monthKey = month.toLowerCase() as keyof typeof row;
@@ -338,7 +338,7 @@ const BudgetRecapPage: React.FC = () => {
                       )}
                     </td>
                   ))}
-                  <td className="p-3 text-sm text-right text-[#171717] bg-gray-200">
+                  <td className="p-3 text-sm text-right text-[var(--color-primary)] bg-gray-200">
                     {formatAmount(data.reduce((sum, row) => sum + row.total, 0))}
                   </td>
                   <td className="p-3 text-center bg-gray-200">
@@ -347,7 +347,7 @@ const BudgetRecapPage: React.FC = () => {
                       className="p-1 hover:bg-gray-300 rounded"
                       title="Voir tous les details"
                     >
-                      <Eye className="w-4 h-4 text-[#171717]" />
+                      <Eye className="w-4 h-4 text-[var(--color-primary)]" />
                     </button>
                   </td>
                 </tr>
@@ -359,14 +359,14 @@ const BudgetRecapPage: React.FC = () => {
 
       {/* Statistiques en bas */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
-        <div className="bg-white rounded-lg p-4 border border-[#e5e5e5]">
-          <p className="text-xs text-[#737373] mb-2">Moyenne mensuelle</p>
-          <p className="text-lg font-bold text-[#525252]">
+        <div className="bg-white rounded-lg p-4 border border-[var(--color-border)]">
+          <p className="text-xs text-[var(--color-text-tertiary)] mb-2">Moyenne mensuelle</p>
+          <p className="text-lg font-bold text-[var(--color-text-secondary)]">
             {formatAmount(data.length > 0 ? Math.round(data.reduce((sum, row) => sum + row.total, 0) / 12) : 0)}
           </p>
         </div>
-        <div className="bg-white rounded-lg p-4 border border-[#e5e5e5]">
-          <p className="text-xs text-[#737373] mb-2">Mois le plus eleve</p>
+        <div className="bg-white rounded-lg p-4 border border-[var(--color-border)]">
+          <p className="text-xs text-[var(--color-text-tertiary)] mb-2">Mois le plus eleve</p>
           <p className="text-lg font-bold text-green-600">
             {(() => {
               if (data.length === 0) return '-';
@@ -387,8 +387,8 @@ const BudgetRecapPage: React.FC = () => {
             })()}
           </p>
         </div>
-        <div className="bg-white rounded-lg p-4 border border-[#e5e5e5]">
-          <p className="text-xs text-[#737373] mb-2">Mois le plus bas</p>
+        <div className="bg-white rounded-lg p-4 border border-[var(--color-border)]">
+          <p className="text-xs text-[var(--color-text-tertiary)] mb-2">Mois le plus bas</p>
           <p className="text-lg font-bold text-red-600">
             {(() => {
               if (data.length === 0) return '-';
@@ -409,9 +409,9 @@ const BudgetRecapPage: React.FC = () => {
             })()}
           </p>
         </div>
-        <div className="bg-white rounded-lg p-4 border border-[#e5e5e5]">
-          <p className="text-xs text-[#737373] mb-2">Nombre de comptes</p>
-          <p className="text-lg font-bold text-[#171717]">
+        <div className="bg-white rounded-lg p-4 border border-[var(--color-border)]">
+          <p className="text-xs text-[var(--color-text-tertiary)] mb-2">Nombre de comptes</p>
+          <p className="text-lg font-bold text-[var(--color-primary)]">
             {data.length}
           </p>
         </div>

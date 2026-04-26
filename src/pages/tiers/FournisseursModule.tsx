@@ -331,8 +331,8 @@ const FournisseursModule: React.FC = () => {
     return (
       <div className="p-6 flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <RefreshCw className="w-8 h-8 animate-spin text-[#525252] mx-auto mb-4" />
-          <p className="text-[#525252]">Chargement des fournisseurs...</p>
+          <RefreshCw className="w-8 h-8 animate-spin text-[var(--color-text-secondary)] mx-auto mb-4" />
+          <p className="text-[var(--color-text-secondary)]">Chargement des fournisseurs...</p>
         </div>
       </div>
     );
@@ -341,8 +341,8 @@ const FournisseursModule: React.FC = () => {
   return (
     <div className="p-6 space-y-6 ">
       {/* Header avec statistiques */}
-      <div className="bg-white rounded-lg p-6 shadow-sm border border-[#e5e5e5]">
-        <h2 className="text-lg font-bold text-[#171717] mb-6">Gestion des Fournisseurs</h2>
+      <div className="bg-white rounded-lg p-6 shadow-sm border border-[var(--color-border)]">
+        <h2 className="text-lg font-bold text-[var(--color-primary)] mb-6">Gestion des Fournisseurs</h2>
 
         {/* Navigation Tabs */}
         <div className="flex space-x-1 mt-6 bg-gray-100 rounded-lg p-1">
@@ -352,8 +352,8 @@ const FournisseursModule: React.FC = () => {
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-colors ${
                 activeTab === tab.id
-                  ? 'bg-white text-[#737373] shadow-sm'
-                  : 'text-[#525252] hover:text-[#404040]'
+                  ? 'bg-white text-[var(--color-text-tertiary)] shadow-sm'
+                  : 'text-[var(--color-text-secondary)] hover:text-[#404040]'
               }`}
             >
               <tab.icon className="w-4 h-4" />
@@ -416,20 +416,20 @@ const FournisseursModule: React.FC = () => {
         {/* Actions et Filtres */}
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-3 w-5 h-5 text-[#525252]" />
+            <Search className="absolute left-3 top-3 w-5 h-5 text-[var(--color-text-secondary)]" />
             <input
               type="text"
               placeholder="Rechercher un fournisseur (nom, code, secteur)..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-[#e5e5e5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#171717]"
+              className="w-full pl-10 pr-4 py-3 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
             />
           </div>
 
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="px-4 py-3 border border-[#e5e5e5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#171717]"
+            className="px-4 py-3 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
           >
             <option value="all">Toutes catégories</option>
             <option value="STRATEGIQUE">Stratégique</option>
@@ -441,7 +441,7 @@ const FournisseursModule: React.FC = () => {
           <select
             value={selectedStatut}
             onChange={(e) => setSelectedStatut(e.target.value)}
-            className="px-4 py-3 border border-[#e5e5e5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#171717]"
+            className="px-4 py-3 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
           >
             <option value="all">Tous statuts</option>
             <option value="ACTIF">Actif</option>
@@ -452,7 +452,7 @@ const FournisseursModule: React.FC = () => {
 
           <button
             onClick={() => setShowNewFournisseurModal(true)}
-            className="flex items-center space-x-2 px-4 py-3 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/90"
+            className="flex items-center space-x-2 px-4 py-3 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90"
           >
             <Plus className="w-5 h-5" />
             <span className="font-semibold">Nouveau Fournisseur</span>
@@ -460,15 +460,15 @@ const FournisseursModule: React.FC = () => {
         </div>
 
       {/* Table des fournisseurs */}
-      <div className="bg-white rounded-lg shadow-sm border border-[#e5e5e5]">
-        <div className="p-4 border-b border-[#e5e5e5]">
+      <div className="bg-white rounded-lg shadow-sm border border-[var(--color-border)]">
+        <div className="p-4 border-b border-[var(--color-border)]">
           <div className="flex items-center justify-between">
-            <p className="text-sm text-[#525252]">
+            <p className="text-sm text-[var(--color-text-secondary)]">
               {filteredFournisseurs.length} fournisseur(s) trouvé(s)
             </p>
             <div className="flex items-center space-x-2">
               {selectedFournisseurs.length > 0 && (
-                <span className="text-sm text-[#171717] font-medium">
+                <span className="text-sm text-[var(--color-primary)] font-medium">
                   {selectedFournisseurs.length} sélectionné(s)
                 </span>
               )}
@@ -490,7 +490,7 @@ const FournisseursModule: React.FC = () => {
                 buttonText={t('common.export')}
                 buttonVariant="outline"
               />
-              <button className="flex items-center space-x-2 px-3 py-2 text-sm border border-[#e5e5e5] rounded hover:bg-gray-50">
+              <button className="flex items-center space-x-2 px-3 py-2 text-sm border border-[var(--color-border)] rounded hover:bg-gray-50">
                 <Filter className="w-4 h-4" />
                 <span>Plus de filtres</span>
               </button>
@@ -510,21 +510,21 @@ const FournisseursModule: React.FC = () => {
                     className="rounded"
                   />
                 </th>
-                <th className="text-left p-3 text-sm font-medium text-[#525252]">Code</th>
-                <th className="text-left p-3 text-sm font-medium text-[#525252]">Fournisseur</th>
-                <th className="text-left p-3 text-sm font-medium text-[#525252]">Catégorie</th>
-                <th className="text-left p-3 text-sm font-medium text-[#525252]">Pays</th>
-                <th className="text-right p-3 text-sm font-medium text-[#525252]">Encours</th>
-                <th className="text-right p-3 text-sm font-medium text-[#525252]">Volume Achats</th>
-                <th className="text-center p-3 text-sm font-medium text-[#525252]">DPO</th>
-                <th className="text-center p-3 text-sm font-medium text-[#525252]">Note</th>
-                <th className="text-center p-3 text-sm font-medium text-[#525252]">Statut</th>
-                <th className="text-center p-3 text-sm font-medium text-[#525252]">Actions</th>
+                <th className="text-left p-3 text-sm font-medium text-[var(--color-text-secondary)]">Code</th>
+                <th className="text-left p-3 text-sm font-medium text-[var(--color-text-secondary)]">Fournisseur</th>
+                <th className="text-left p-3 text-sm font-medium text-[var(--color-text-secondary)]">Catégorie</th>
+                <th className="text-left p-3 text-sm font-medium text-[var(--color-text-secondary)]">Pays</th>
+                <th className="text-right p-3 text-sm font-medium text-[var(--color-text-secondary)]">Encours</th>
+                <th className="text-right p-3 text-sm font-medium text-[var(--color-text-secondary)]">Volume Achats</th>
+                <th className="text-center p-3 text-sm font-medium text-[var(--color-text-secondary)]">DPO</th>
+                <th className="text-center p-3 text-sm font-medium text-[var(--color-text-secondary)]">Note</th>
+                <th className="text-center p-3 text-sm font-medium text-[var(--color-text-secondary)]">Statut</th>
+                <th className="text-center p-3 text-sm font-medium text-[var(--color-text-secondary)]">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredFournisseurs.map((fournisseur) => (
-                <tr key={fournisseur.id} className="border-t border-[#e5e5e5] hover:bg-gray-50">
+                <tr key={fournisseur.id} className="border-t border-[var(--color-border)] hover:bg-gray-50">
                   <td className="p-3">
                     <input
                       type="checkbox"
@@ -534,12 +534,12 @@ const FournisseursModule: React.FC = () => {
                     />
                   </td>
                   <td className="p-3">
-                    <span className="text-sm font-medium text-[#171717]">{fournisseur.code}</span>
+                    <span className="text-sm font-medium text-[var(--color-primary)]">{fournisseur.code}</span>
                   </td>
                   <td className="p-3">
                     <div>
-                      <p className="text-sm font-medium text-[#171717]">{fournisseur.raisonSociale}</p>
-                      <p className="text-xs text-[#525252]">{fournisseur.secteurActivite}</p>
+                      <p className="text-sm font-medium text-[var(--color-primary)]">{fournisseur.raisonSociale}</p>
+                      <p className="text-xs text-[var(--color-text-secondary)]">{fournisseur.secteurActivite}</p>
                     </div>
                   </td>
                   <td className="p-3">
@@ -549,25 +549,25 @@ const FournisseursModule: React.FC = () => {
                   </td>
                   <td className="p-3">
                     <div className="flex items-center space-x-1">
-                      <MapPin className="w-3 h-3 text-[#525252]" />
-                      <span className="text-sm text-[#525252]">{fournisseur.pays}</span>
+                      <MapPin className="w-3 h-3 text-[var(--color-text-secondary)]" />
+                      <span className="text-sm text-[var(--color-text-secondary)]">{fournisseur.pays}</span>
                     </div>
                   </td>
                   <td className="p-3 text-right">
                     <div>
-                      <p className="text-sm font-medium text-[#171717]">{formatCurrency(fournisseur.encoursActuel)}</p>
+                      <p className="text-sm font-medium text-[var(--color-primary)]">{formatCurrency(fournisseur.encoursActuel)}</p>
                       {fournisseur.encoursActuel > fournisseur.limiteCredit * 0.8 && (
                         <p className="text-xs text-orange-600">Proche limite</p>
                       )}
                     </div>
                   </td>
                   <td className="p-3 text-right">
-                    <p className="text-sm font-medium text-[#171717]">{formatCurrency(fournisseur.volumeAchats)}</p>
+                    <p className="text-sm font-medium text-[var(--color-primary)]">{formatCurrency(fournisseur.volumeAchats)}</p>
                   </td>
                   <td className="p-3 text-center">
                     <div className="flex items-center justify-center space-x-1">
-                      <Clock className="w-3 h-3 text-[#525252]" />
-                      <span className="text-sm text-[#525252]">{fournisseur.dpo}j</span>
+                      <Clock className="w-3 h-3 text-[var(--color-text-secondary)]" />
+                      <span className="text-sm text-[var(--color-text-secondary)]">{fournisseur.dpo}j</span>
                     </div>
                   </td>
                   <td className="p-3 text-center">
@@ -592,7 +592,7 @@ const FournisseursModule: React.FC = () => {
                     <div className="flex items-center justify-center space-x-2">
                       <button
                         onClick={() => navigate(`/tiers/fournisseurs/${fournisseur.id}`)}
-                        className="p-1 text-[#171717] hover:bg-[#171717]/10 rounded"
+                        className="p-1 text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 rounded"
                       >
                         <Eye className="w-4 h-4" />
                       </button>
@@ -611,16 +611,16 @@ const FournisseursModule: React.FC = () => {
         </div>
 
         {/* Pagination */}
-        <div className="p-4 border-t border-[#e5e5e5] flex items-center justify-between">
-          <span className="text-sm text-[#525252]">
+        <div className="p-4 border-t border-[var(--color-border)] flex items-center justify-between">
+          <span className="text-sm text-[var(--color-text-secondary)]">
             Affichage de 1 à {filteredFournisseurs.length} sur {filteredFournisseurs.length} entrées
           </span>
           <div className="flex items-center space-x-2">
-            <button className="px-3 py-1 border border-[#e5e5e5] rounded text-sm disabled:opacity-50" disabled>
+            <button className="px-3 py-1 border border-[var(--color-border)] rounded text-sm disabled:opacity-50" disabled>
               Précédent
             </button>
-            <button className="px-3 py-1 bg-[#171717] text-white rounded text-sm">1</button>
-            <button className="px-3 py-1 border border-[#e5e5e5] rounded text-sm disabled:opacity-50" disabled>
+            <button className="px-3 py-1 bg-[var(--color-primary)] text-white rounded text-sm">1</button>
+            <button className="px-3 py-1 border border-[var(--color-border)] rounded text-sm disabled:opacity-50" disabled>
               Suivant
             </button>
           </div>
@@ -633,11 +633,11 @@ const FournisseursModule: React.FC = () => {
       {activeTab === 'balance-agee' && (
         <div className="space-y-6">
           {/* Header avec actions */}
-          <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
+          <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-semibold text-[#171717]">Balance Âgée des Dettes Fournisseurs</h3>
-                <p className="text-sm text-[#525252]">Analyse de l'ancienneté des dettes au {new Date().toLocaleDateString('fr-FR')}</p>
+                <h3 className="text-lg font-semibold text-[var(--color-primary)]">Balance Âgée des Dettes Fournisseurs</h3>
+                <p className="text-sm text-[var(--color-text-secondary)]">Analyse de l'ancienneté des dettes au {new Date().toLocaleDateString('fr-FR')}</p>
               </div>
               <div className="flex items-center space-x-2">
                 <button
@@ -673,12 +673,12 @@ const FournisseursModule: React.FC = () => {
 
           {/* KPIs Balance Âgée */}
           <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
-            <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
+            <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
               <div className="flex items-center justify-between mb-2">
                 <Wallet className="w-5 h-5 text-blue-600" />
               </div>
-              <p className="text-lg font-bold text-[#171717]">{formatCurrency(totauxBalanceAgee.totalDettes)}</p>
-              <p className="text-xs text-[#525252]">Total Dettes</p>
+              <p className="text-lg font-bold text-[var(--color-primary)]">{formatCurrency(totauxBalanceAgee.totalDettes)}</p>
+              <p className="text-xs text-[var(--color-text-secondary)]">Total Dettes</p>
             </div>
 
             <div className="bg-green-50 rounded-lg p-4 border border-green-200">
@@ -727,15 +727,15 @@ const FournisseursModule: React.FC = () => {
           </div>
 
           {/* Sous-onglets Balance Âgée */}
-          <div className="bg-white rounded-lg border border-[#e5e5e5] shadow-sm overflow-hidden">
-            <div className="flex border-b border-[#e5e5e5]">
+          <div className="bg-white rounded-lg border border-[var(--color-border)] shadow-sm overflow-hidden">
+            <div className="flex border-b border-[var(--color-border)]">
               <button
                 type="button"
                 onClick={() => setBalanceAgeeSubTab('repartition')}
                 className={`flex-1 px-4 py-3 text-sm font-medium transition-colors flex items-center justify-center space-x-2 ${
                   balanceAgeeSubTab === 'repartition'
-                    ? 'bg-[#737373]/10 text-[#737373] border-b-2 border-[#737373]'
-                    : 'text-[#525252] hover:bg-gray-50'
+                    ? 'bg-[var(--color-text-tertiary)]/10 text-[var(--color-text-tertiary)] border-b-2 border-[var(--color-text-tertiary)]'
+                    : 'text-[var(--color-text-secondary)] hover:bg-gray-50'
                 }`}
               >
                 <PieChart className="w-4 h-4" />
@@ -746,8 +746,8 @@ const FournisseursModule: React.FC = () => {
                 onClick={() => setBalanceAgeeSubTab('detail')}
                 className={`flex-1 px-4 py-3 text-sm font-medium transition-colors flex items-center justify-center space-x-2 ${
                   balanceAgeeSubTab === 'detail'
-                    ? 'bg-[#737373]/10 text-[#737373] border-b-2 border-[#737373]'
-                    : 'text-[#525252] hover:bg-gray-50'
+                    ? 'bg-[var(--color-text-tertiary)]/10 text-[var(--color-text-tertiary)] border-b-2 border-[var(--color-text-tertiary)]'
+                    : 'text-[var(--color-text-secondary)] hover:bg-gray-50'
                 }`}
               >
                 <FileText className="w-4 h-4" />
@@ -758,8 +758,8 @@ const FournisseursModule: React.FC = () => {
                 onClick={() => setBalanceAgeeSubTab('risques')}
                 className={`flex-1 px-4 py-3 text-sm font-medium transition-colors flex items-center justify-center space-x-2 ${
                   balanceAgeeSubTab === 'risques'
-                    ? 'bg-[#737373]/10 text-[#737373] border-b-2 border-[#737373]'
-                    : 'text-[#525252] hover:bg-gray-50'
+                    ? 'bg-[var(--color-text-tertiary)]/10 text-[var(--color-text-tertiary)] border-b-2 border-[var(--color-text-tertiary)]'
+                    : 'text-[var(--color-text-secondary)] hover:bg-gray-50'
                 }`}
               >
                 <AlertTriangle className="w-4 h-4" />
@@ -773,8 +773,8 @@ const FournisseursModule: React.FC = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
                   {/* Graphique Donut Moderne */}
                   <div className="lg:col-span-2 bg-gradient-to-br from-primary-50 to-gray-100 rounded-2xl p-6 shadow-inner">
-                    <h4 className="text-lg font-semibold text-[#171717] mb-2 text-center">Distribution des Dettes</h4>
-                    <p className="text-sm text-[#525252] text-center mb-4">Répartition par ancienneté</p>
+                    <h4 className="text-lg font-semibold text-[var(--color-primary)] mb-2 text-center">Distribution des Dettes</h4>
+                    <p className="text-sm text-[var(--color-text-secondary)] text-center mb-4">Répartition par ancienneté</p>
                     <div className="relative">
                       <ResponsiveContainer width="100%" height={320}>
                         <RechartsPieChart>
@@ -817,9 +817,9 @@ const FournisseursModule: React.FC = () => {
                       {/* Centre du Donut avec Total */}
                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                         <div className="text-center bg-white rounded-full w-32 h-32 flex flex-col items-center justify-center shadow-lg">
-                          <p className="text-xs text-[#525252] uppercase tracking-wide">Total</p>
-                          <p className="text-lg font-bold text-[#171717]">{formatCurrency(totauxBalanceAgee.totalDettes)}</p>
-                          <p className="text-xs text-[#525252]">{balanceAgeeData.length} fournisseurs</p>
+                          <p className="text-xs text-[var(--color-text-secondary)] uppercase tracking-wide">Total</p>
+                          <p className="text-lg font-bold text-[var(--color-primary)]">{formatCurrency(totauxBalanceAgee.totalDettes)}</p>
+                          <p className="text-xs text-[var(--color-text-secondary)]">{balanceAgeeData.length} fournisseurs</p>
                         </div>
                       </div>
                     </div>
@@ -827,7 +827,7 @@ const FournisseursModule: React.FC = () => {
 
                   {/* Légende détaillée et statistiques */}
                   <div className="lg:col-span-3 space-y-3">
-                    <h4 className="text-lg font-semibold text-[#171717] mb-4">Détail par Tranche d'Ancienneté</h4>
+                    <h4 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Détail par Tranche d'Ancienneté</h4>
                     {balanceAgeeChartData.map((item, idx) => {
                       const percent = totauxBalanceAgee.totalDettes > 0
                         ? ((item.value / totauxBalanceAgee.totalDettes) * 100).toFixed(1)
@@ -843,7 +843,7 @@ const FournisseursModule: React.FC = () => {
                       return (
                         <div
                           key={idx}
-                          className="flex items-center justify-between p-4 bg-white rounded-xl border border-[#e5e5e5] hover:shadow-md transition-all duration-200 cursor-pointer group"
+                          className="flex items-center justify-between p-4 bg-white rounded-xl border border-[var(--color-border)] hover:shadow-md transition-all duration-200 cursor-pointer group"
                           style={{ borderLeft: `4px solid ${item.color}` }}
                         >
                           <div className="flex items-center space-x-4">
@@ -854,12 +854,12 @@ const FournisseursModule: React.FC = () => {
                               <div className="w-5 h-5 rounded-full" style={{ backgroundColor: item.color }}></div>
                             </div>
                             <div>
-                              <p className="font-semibold text-[#171717] group-hover:text-[#737373] transition-colors">{item.name}</p>
-                              <p className="text-sm text-[#525252]">{fournisseurCount} fournisseur(s) concerné(s)</p>
+                              <p className="font-semibold text-[var(--color-primary)] group-hover:text-[var(--color-text-tertiary)] transition-colors">{item.name}</p>
+                              <p className="text-sm text-[var(--color-text-secondary)]">{fournisseurCount} fournisseur(s) concerné(s)</p>
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="text-lg font-bold text-[#171717]">{formatCurrency(item.value)}</p>
+                            <p className="text-lg font-bold text-[var(--color-primary)]">{formatCurrency(item.value)}</p>
                             <div className="flex items-center justify-end space-x-2">
                               <div className="w-20 h-2 bg-gray-200 rounded-full overflow-hidden">
                                 <div
@@ -867,7 +867,7 @@ const FournisseursModule: React.FC = () => {
                                   style={{ width: `${percent}%`, backgroundColor: item.color }}
                                 ></div>
                               </div>
-                              <span className="text-sm font-medium text-[#525252] min-w-[45px] text-right">{percent}%</span>
+                              <span className="text-sm font-medium text-[var(--color-text-secondary)] min-w-[45px] text-right">{percent}%</span>
                             </div>
                           </div>
                         </div>
@@ -878,7 +878,7 @@ const FournisseursModule: React.FC = () => {
 
                 {/* Graphique en barres empilées */}
                 <div className="mt-6 bg-gray-50 rounded-lg p-6">
-                  <h4 className="text-md font-semibold text-[#171717] mb-4">Évolution par Fournisseur</h4>
+                  <h4 className="text-md font-semibold text-[var(--color-primary)] mb-4">Évolution par Fournisseur</h4>
                   <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={balanceAgeeData.slice(0, 8)} layout="vertical">
                       <CartesianGrid strokeDasharray="3 3" />
@@ -908,7 +908,7 @@ const FournisseursModule: React.FC = () => {
                       <input
                         type="text"
                         placeholder="Rechercher un fournisseur..."
-                        className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#737373]"
+                        className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-text-tertiary)]"
                         onChange={(e) => setSearchTerm(e.target.value)}
                       />
                     </div>
@@ -921,37 +921,37 @@ const FournisseursModule: React.FC = () => {
                       <option value="+90">+90 jours</option>
                     </select>
                   </div>
-                  <p className="text-sm text-[#525252]">{balanceAgeeData.length} fournisseurs</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{balanceAgeeData.length} fournisseurs</p>
                 </div>
 
                 {/* Tableau détaillé */}
-                <div className="overflow-x-auto border border-[#e5e5e5] rounded-lg">
+                <div className="overflow-x-auto border border-[var(--color-border)] rounded-lg">
                   <table className="w-full text-sm">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="text-left p-3 font-medium text-[#525252]">Code</th>
-                        <th className="text-left p-3 font-medium text-[#525252]">Fournisseur</th>
-                        <th className="text-right p-3 font-medium text-[#525252]">Total Dettes</th>
+                        <th className="text-left p-3 font-medium text-[var(--color-text-secondary)]">Code</th>
+                        <th className="text-left p-3 font-medium text-[var(--color-text-secondary)]">Fournisseur</th>
+                        <th className="text-right p-3 font-medium text-[var(--color-text-secondary)]">Total Dettes</th>
                         <th className="text-right p-3 font-medium text-green-600">Non Échu</th>
                         <th className="text-right p-3 font-medium text-yellow-600">0-30j</th>
                         <th className="text-right p-3 font-medium text-orange-600">31-60j</th>
                         <th className="text-right p-3 font-medium text-red-600">61-90j</th>
                         <th className="text-right p-3 font-medium text-red-800">+90j</th>
                         <th className="text-right p-3 font-medium text-primary-600">Provision</th>
-                        <th className="text-center p-3 font-medium text-[#525252]">Actions</th>
+                        <th className="text-center p-3 font-medium text-[var(--color-text-secondary)]">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {balanceAgeeData.map((item) => {
                         const hasRisk = item.echuPlus90 > 0 || item.echu61_90 > 0;
                         return (
-                          <tr key={item.fournisseurId} className={`border-t border-[#e5e5e5] hover:bg-gray-50 ${hasRisk ? 'bg-red-50/30' : ''}`}>
+                          <tr key={item.fournisseurId} className={`border-t border-[var(--color-border)] hover:bg-gray-50 ${hasRisk ? 'bg-red-50/30' : ''}`}>
                             <td className="p-3">
                               <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">{item.fournisseurCode}</span>
                             </td>
                             <td className="p-3">
                               <div className="flex items-center space-x-2">
-                                <p className="font-medium text-[#171717]">{item.fournisseurNom}</p>
+                                <p className="font-medium text-[var(--color-primary)]">{item.fournisseurNom}</p>
                                 {hasRisk && <AlertTriangle className="w-4 h-4 text-red-500" />}
                               </div>
                             </td>
@@ -964,7 +964,7 @@ const FournisseursModule: React.FC = () => {
                             <td className="p-3 text-right text-primary-600">{item.provision > 0 ? formatCurrency(item.provision) : '-'}</td>
                             <td className="p-3 text-center">
                               <div className="flex items-center justify-center space-x-1">
-                                <button type="button" className="p-1 text-gray-500 hover:text-[#737373]" title="Voir détail">
+                                <button type="button" className="p-1 text-gray-500 hover:text-[var(--color-text-tertiary)]" title="Voir détail">
                                   <Eye className="w-4 h-4" />
                                 </button>
                                 <button type="button" className="p-1 text-gray-500 hover:text-blue-600" title="Planifier paiement">
@@ -1042,7 +1042,7 @@ const FournisseursModule: React.FC = () => {
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* Liste des fournisseurs prioritaires */}
-                  <div className="bg-white rounded-lg border border-[#e5e5e5] overflow-hidden">
+                  <div className="bg-white rounded-lg border border-[var(--color-border)] overflow-hidden">
                     <div className="p-4 bg-red-50 border-b border-red-200">
                       <div className="flex items-center justify-between">
                         <h4 className="text-md font-semibold text-red-800">Fournisseurs Prioritaires</h4>
@@ -1052,7 +1052,7 @@ const FournisseursModule: React.FC = () => {
                       </div>
                       <p className="text-xs text-red-600 mt-1">Dettes échues de plus de 90 jours - Risque de rupture</p>
                     </div>
-                    <div className="divide-y divide-[#e5e5e5] max-h-96 overflow-y-auto">
+                    <div className="divide-y divide-[var(--color-border)] max-h-96 overflow-y-auto">
                       {balanceAgeeData
                         .filter(item => item.echuPlus90 > 0)
                         .sort((a, b) => b.echuPlus90 - a.echuPlus90)
@@ -1060,12 +1060,12 @@ const FournisseursModule: React.FC = () => {
                           <div key={idx} className="p-4 hover:bg-gray-50">
                             <div className="flex items-center justify-between">
                               <div>
-                                <p className="font-medium text-[#171717]">{item.fournisseurNom}</p>
-                                <p className="text-xs text-[#525252]">{item.fournisseurCode}</p>
+                                <p className="font-medium text-[var(--color-primary)]">{item.fournisseurNom}</p>
+                                <p className="text-xs text-[var(--color-text-secondary)]">{item.fournisseurCode}</p>
                               </div>
                               <div className="text-right">
                                 <p className="font-bold text-red-800">{formatCurrency(item.echuPlus90)}</p>
-                                <p className="text-xs text-[#525252]">échu +90j</p>
+                                <p className="text-xs text-[var(--color-text-secondary)]">échu +90j</p>
                               </div>
                             </div>
                             <div className="mt-3 flex items-center space-x-2">
@@ -1093,7 +1093,7 @@ const FournisseursModule: React.FC = () => {
                           </div>
                         ))}
                       {balanceAgeeData.filter(item => item.echuPlus90 > 0).length === 0 && (
-                        <div className="p-8 text-center text-[#525252]">
+                        <div className="p-8 text-center text-[var(--color-text-secondary)]">
                           <CheckCircle className="w-12 h-12 mx-auto text-green-500 mb-2" />
                           <p>Aucun paiement en retard critique</p>
                         </div>
@@ -1103,10 +1103,10 @@ const FournisseursModule: React.FC = () => {
 
                   {/* Actions recommandées */}
                   <div className="space-y-4">
-                    <div className="bg-white rounded-lg border border-[#e5e5e5] overflow-hidden">
-                      <div className="p-4 bg-[#737373]/10 border-b border-[#e5e5e5]">
-                        <h4 className="text-md font-semibold text-[#171717]">Plan de Trésorerie Recommandé</h4>
-                        <p className="text-xs text-[#525252] mt-1">Actions prioritaires basées sur l'analyse des dettes</p>
+                    <div className="bg-white rounded-lg border border-[var(--color-border)] overflow-hidden">
+                      <div className="p-4 bg-[var(--color-text-tertiary)]/10 border-b border-[var(--color-border)]">
+                        <h4 className="text-md font-semibold text-[var(--color-primary)]">Plan de Trésorerie Recommandé</h4>
+                        <p className="text-xs text-[var(--color-text-secondary)] mt-1">Actions prioritaires basées sur l'analyse des dettes</p>
                       </div>
                       <div className="p-4 space-y-3">
                         {/* Action 1 */}
@@ -1240,7 +1240,7 @@ const FournisseursModule: React.FC = () => {
               return (
                 <button key={tab.key} onClick={() => setAnalyticsSubTab(tab.key)}
                   className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                    analyticsSubTab === tab.key ? 'bg-[#171717] text-white shadow-md' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    analyticsSubTab === tab.key ? 'bg-[var(--color-primary)] text-white shadow-md' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                   }`}>
                   <Icon className="w-4 h-4" />{tab.label}
                 </button>
@@ -1252,36 +1252,36 @@ const FournisseursModule: React.FC = () => {
           {analyticsSubTab === 'kpis' && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
-                  <Building className="w-5 h-5 text-[#171717] mb-3" />
-                  <p className="text-lg font-bold text-[#171717]">{fournisseurs.length}</p>
-                  <p className="text-sm text-[#525252]">Fournisseurs</p>
+                <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
+                  <Building className="w-5 h-5 text-[var(--color-primary)] mb-3" />
+                  <p className="text-lg font-bold text-[var(--color-primary)]">{fournisseurs.length}</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">Fournisseurs</p>
                 </div>
-                <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
+                <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
                   <ShoppingBag className="w-5 h-5 text-primary-600 mb-3" />
-                  <p className="text-lg font-bold text-[#171717]">{formatCurrency(totalAchats)}</p>
-                  <p className="text-sm text-[#525252]">Volume Achats</p>
+                  <p className="text-lg font-bold text-[var(--color-primary)]">{formatCurrency(totalAchats)}</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">Volume Achats</p>
                 </div>
-                <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
+                <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
                   <Timer className="w-5 h-5 text-blue-600 mb-3" />
-                  <p className="text-lg font-bold text-[#171717]">{avgDPO}j</p>
-                  <p className="text-sm text-[#525252]">DPO Moyen</p>
+                  <p className="text-lg font-bold text-[var(--color-primary)]">{avgDPO}j</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">DPO Moyen</p>
                 </div>
-                <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
+                <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
                   <Wallet className="w-5 h-5 text-orange-600 mb-3" />
-                  <p className="text-lg font-bold text-[#171717]">{formatCurrency(totalEncours)}</p>
-                  <p className="text-sm text-[#525252]">Encours Total</p>
+                  <p className="text-lg font-bold text-[var(--color-primary)]">{formatCurrency(totalEncours)}</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">Encours Total</p>
                 </div>
-                <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
+                <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
                   <Shield className="w-5 h-5 text-green-600 mb-3" />
-                  <p className="text-lg font-bold text-[#171717]">{avgQualite}/5</p>
-                  <p className="text-sm text-[#525252]">Score Qualité</p>
+                  <p className="text-lg font-bold text-[var(--color-primary)]">{avgQualite}/5</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">Score Qualité</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
-                  <h3 className="text-lg font-semibold text-[#171717] mb-4">Par Catégorie</h3>
+                <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+                  <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Par Catégorie</h3>
                   <div className="space-y-3">
                     {catData.map((cat) => (
                       <div key={cat.categorie} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -1295,8 +1295,8 @@ const FournisseursModule: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
-                  <h3 className="text-lg font-semibold text-[#171717] mb-4">Top Fournisseurs</h3>
+                <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+                  <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Top Fournisseurs</h3>
                   <div className="space-y-3">
                     {topFournisseurs.length === 0 ? (
                       <p className="text-sm text-gray-500 text-center py-4">Aucun fournisseur</p>
@@ -1307,11 +1307,11 @@ const FournisseursModule: React.FC = () => {
                             idx === 0 ? 'bg-yellow-100 text-yellow-700' : idx === 1 ? 'bg-gray-100 text-gray-700' : 'bg-gray-50 text-gray-600'
                           }`}>{idx + 1}</span>
                           <div className="flex-1">
-                            <p className="text-sm font-medium text-[#171717] truncate">{f.raisonSociale}</p>
-                            <p className="text-xs text-[#525252]">{formatCurrency(f.volumeAchats || 0)}</p>
+                            <p className="text-sm font-medium text-[var(--color-primary)] truncate">{f.raisonSociale}</p>
+                            <p className="text-xs text-[var(--color-text-secondary)]">{formatCurrency(f.volumeAchats || 0)}</p>
                           </div>
                         </div>
-                        <span className="text-xs font-semibold text-[#171717]">
+                        <span className="text-xs font-semibold text-[var(--color-primary)]">
                           {totalAchats > 0 ? ((f.volumeAchats || 0) / totalAchats * 100).toFixed(1) : 0}%
                         </span>
                       </div>
@@ -1325,8 +1325,8 @@ const FournisseursModule: React.FC = () => {
           {/* Sub-tab: Graphiques */}
           {analyticsSubTab === 'charts' && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
-                <h3 className="text-lg font-semibold text-[#171717] mb-4">Répartition par Catégorie</h3>
+              <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Répartition par Catégorie</h3>
                 {catData.some(d => d.montant > 0) ? (
                   <ResponsiveContainer width="100%" height={300}>
                     <RechartsPieChart>
@@ -1346,8 +1346,8 @@ const FournisseursModule: React.FC = () => {
                 )}
               </div>
 
-              <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
-                <h3 className="text-lg font-semibold text-[#171717] mb-4">Évaluation Performance</h3>
+              <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Évaluation Performance</h3>
                 <ResponsiveContainer width="100%" height={300}>
                   <RadarChart data={analyticsData.performanceFournisseurs}>
                     <PolarGrid />
@@ -1364,8 +1364,8 @@ const FournisseursModule: React.FC = () => {
           {/* Sub-tab: Performance */}
           {analyticsSubTab === 'performance' && (
             <div className="space-y-6">
-              <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
-                <h3 className="text-lg font-semibold text-[#171717] mb-4">Fournisseurs à surveiller</h3>
+              <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Fournisseurs à surveiller</h3>
                 {critiqueFournisseurs.length === 0 ? (
                   <div className="text-center py-8">
                     <CheckCircle className="w-10 h-10 text-green-500 mx-auto mb-2" />
@@ -1395,22 +1395,22 @@ const FournisseursModule: React.FC = () => {
       {showNewFournisseurModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-[#e5e5e5]">
+            <div className="p-6 border-b border-[var(--color-border)]">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-bold text-[#171717]">Nouveau Fournisseur</h3>
-                  <p className="text-sm text-[#525252]">Étape {formStep} sur 4</p>
+                  <h3 className="text-lg font-bold text-[var(--color-primary)]">Nouveau Fournisseur</h3>
+                  <p className="text-sm text-[var(--color-text-secondary)]">Étape {formStep} sur 4</p>
                 </div>
                 <button onClick={() => { setShowNewFournisseurModal(false); setFormStep(1); }} className="p-2 hover:bg-gray-100 rounded-full">
-                  <X className="w-5 h-5 text-[#525252]" />
+                  <X className="w-5 h-5 text-[var(--color-text-secondary)]" />
                 </button>
               </div>
               <div className="flex mt-4 space-x-2">
                 {[1, 2, 3, 4].map((step) => (
-                  <div key={step} className={`flex-1 h-2 rounded-full ${step <= formStep ? 'bg-[#171717]' : 'bg-gray-200'}`} />
+                  <div key={step} className={`flex-1 h-2 rounded-full ${step <= formStep ? 'bg-[var(--color-primary)]' : 'bg-gray-200'}`} />
                 ))}
               </div>
-              <div className="flex mt-2 text-xs text-[#525252]">
+              <div className="flex mt-2 text-xs text-[var(--color-text-secondary)]">
                 <span className="flex-1">Identification</span>
                 <span className="flex-1">Adresse & Contact</span>
                 <span className="flex-1">Comptabilité</span>
@@ -1422,27 +1422,27 @@ const FournisseursModule: React.FC = () => {
               {/* Étape 1: Identification */}
               {formStep === 1 && (
                 <div className="space-y-4">
-                  <h4 className="text-md font-semibold text-[#171717] flex items-center">
-                    <Building className="w-5 h-5 mr-2 text-[#171717]" />Identification de l'entreprise
+                  <h4 className="text-md font-semibold text-[var(--color-primary)] flex items-center">
+                    <Building className="w-5 h-5 mr-2 text-[var(--color-primary)]" />Identification de l'entreprise
                   </h4>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm text-[#525252] mb-1">Code fournisseur *</label>
+                      <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Code fournisseur *</label>
                       <div className="flex space-x-2">
                         <input type="text" value={newFournisseur.code}
                           onChange={(e) => setNewFournisseur({ ...newFournisseur, code: e.target.value })}
-                          className="flex-1 px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]"
+                          className="flex-1 px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
                           placeholder="FOU001" />
                         <button type="button"
                           onClick={() => setNewFournisseur({ ...newFournisseur, code: `FOU${String(fournisseurs.length + 1).padStart(3, '0')}` })}
-                          className="px-3 py-2 bg-gray-100 text-[#525252] rounded-lg hover:bg-gray-200">Auto</button>
+                          className="px-3 py-2 bg-gray-100 text-[var(--color-text-secondary)] rounded-lg hover:bg-gray-200">Auto</button>
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm text-[#525252] mb-1">Catégorie *</label>
+                      <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Catégorie *</label>
                       <select value={newFournisseur.categorie}
                         onChange={(e) => setNewFournisseur({ ...newFournisseur, categorie: e.target.value as Fournisseur['categorie'] })}
-                        className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]">
+                        className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]">
                         <option value="STRATEGIQUE">Stratégique</option>
                         <option value="RECURRENT">Récurrent</option>
                         <option value="PONCTUEL">Ponctuel</option>
@@ -1450,23 +1450,23 @@ const FournisseursModule: React.FC = () => {
                       </select>
                     </div>
                     <div className="col-span-2">
-                      <label className="block text-sm text-[#525252] mb-1">Raison sociale *</label>
+                      <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Raison sociale *</label>
                       <input type="text" value={newFournisseur.raisonSociale}
                         onChange={(e) => setNewFournisseur({ ...newFournisseur, raisonSociale: e.target.value })}
-                        className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]"
+                        className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
                         placeholder="Nom légal de l'entreprise" />
                     </div>
                     <div>
-                      <label className="block text-sm text-[#525252] mb-1">Nom commercial</label>
+                      <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Nom commercial</label>
                       <input type="text" value={newFournisseur.nomCommercial}
                         onChange={(e) => setNewFournisseur({ ...newFournisseur, nomCommercial: e.target.value })}
-                        className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]" />
+                        className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]" />
                     </div>
                     <div>
-                      <label className="block text-sm text-[#525252] mb-1">Type de dépense *</label>
+                      <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Type de dépense *</label>
                       <select value={newFournisseur.typeDépense}
                         onChange={(e) => setNewFournisseur({ ...newFournisseur, typeDépense: e.target.value as Fournisseur['typeDépense'] })}
-                        className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]">
+                        className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]">
                         <option value="PRODUCTION">Production</option>
                         <option value="SERVICES">Services</option>
                         <option value="INVESTISSEMENT">Investissement</option>
@@ -1474,24 +1474,24 @@ const FournisseursModule: React.FC = () => {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm text-[#525252] mb-1">Secteur d'activité</label>
+                      <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Secteur d'activité</label>
                       <input type="text" value={newFournisseur.secteurActivite}
                         onChange={(e) => setNewFournisseur({ ...newFournisseur, secteurActivite: e.target.value })}
-                        className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]"
+                        className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
                         placeholder="Ex: BTP, IT, Logistique..." />
                     </div>
                     <div>
-                      <label className="block text-sm text-[#525252] mb-1">RCCM</label>
+                      <label className="block text-sm text-[var(--color-text-secondary)] mb-1">RCCM</label>
                       <input type="text" value={newFournisseur.rccm}
                         onChange={(e) => setNewFournisseur({ ...newFournisseur, rccm: e.target.value })}
-                        className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]"
+                        className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
                         placeholder="RC/YDE/2024/X/XXXX" />
                     </div>
                     <div>
-                      <label className="block text-sm text-[#525252] mb-1">NIU</label>
+                      <label className="block text-sm text-[var(--color-text-secondary)] mb-1">NIU</label>
                       <input type="text" value={newFournisseur.niu}
                         onChange={(e) => setNewFournisseur({ ...newFournisseur, niu: e.target.value })}
-                        className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]"
+                        className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
                         placeholder="M0XXXXXXXXXX" />
                     </div>
                   </div>
@@ -1502,40 +1502,40 @@ const FournisseursModule: React.FC = () => {
               {formStep === 2 && (
                 <div className="space-y-6">
                   <div>
-                    <h4 className="text-md font-semibold text-[#171717] flex items-center mb-4">
-                      <MapPin className="w-5 h-5 mr-2 text-[#171717]" />Adresse
+                    <h4 className="text-md font-semibold text-[var(--color-primary)] flex items-center mb-4">
+                      <MapPin className="w-5 h-5 mr-2 text-[var(--color-primary)]" />Adresse
                     </h4>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="col-span-2">
-                        <label className="block text-sm text-[#525252] mb-1">Adresse *</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Adresse *</label>
                         <input type="text" value={newFournisseur.adresse}
                           onChange={(e) => setNewFournisseur({ ...newFournisseur, adresse: e.target.value })}
-                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]"
+                          className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
                           placeholder="Rue, numéro, quartier" />
                       </div>
                       <div>
-                        <label className="block text-sm text-[#525252] mb-1">Boîte Postale</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Boîte Postale</label>
                         <input type="text" value={newFournisseur.codePostal}
                           onChange={(e) => setNewFournisseur({ ...newFournisseur, codePostal: e.target.value })}
-                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]" placeholder="BP 1234" />
+                          className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]" placeholder="BP 1234" />
                       </div>
                       <div>
-                        <label className="block text-sm text-[#525252] mb-1">Ville *</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Ville *</label>
                         <input type="text" value={newFournisseur.ville}
                           onChange={(e) => setNewFournisseur({ ...newFournisseur, ville: e.target.value })}
-                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]" />
+                          className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]" />
                       </div>
                       <div>
-                        <label className="block text-sm text-[#525252] mb-1">Région</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Région</label>
                         <input type="text" value={newFournisseur.region}
                           onChange={(e) => setNewFournisseur({ ...newFournisseur, region: e.target.value })}
-                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]" />
+                          className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]" />
                       </div>
                       <div>
-                        <label className="block text-sm text-[#525252] mb-1">Pays *</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Pays *</label>
                         <select value={newFournisseur.pays}
                           onChange={(e) => setNewFournisseur({ ...newFournisseur, pays: e.target.value })}
-                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]">
+                          className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]">
                           <option value="Cameroun">Cameroun</option>
                           <option value="Gabon">Gabon</option>
                           <option value="Congo">Congo</option>
@@ -1547,41 +1547,41 @@ const FournisseursModule: React.FC = () => {
                     </div>
                   </div>
                   <div>
-                    <h4 className="text-md font-semibold text-[#171717] flex items-center mb-4">
-                      <Users className="w-5 h-5 mr-2 text-[#171717]" />Contact Principal
+                    <h4 className="text-md font-semibold text-[var(--color-primary)] flex items-center mb-4">
+                      <Users className="w-5 h-5 mr-2 text-[var(--color-primary)]" />Contact Principal
                     </h4>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm text-[#525252] mb-1">Nom du contact *</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Nom du contact *</label>
                         <input type="text" value={newFournisseur.contactPrincipal}
                           onChange={(e) => setNewFournisseur({ ...newFournisseur, contactPrincipal: e.target.value })}
-                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]" />
+                          className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]" />
                       </div>
                       <div>
-                        <label className="block text-sm text-[#525252] mb-1">Fonction</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Fonction</label>
                         <input type="text" value={newFournisseur.fonction}
                           onChange={(e) => setNewFournisseur({ ...newFournisseur, fonction: e.target.value })}
-                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]"
+                          className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
                           placeholder="Directeur Commercial..." />
                       </div>
                       <div>
-                        <label className="block text-sm text-[#525252] mb-1">Email *</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Email *</label>
                         <input type="email" value={newFournisseur.email}
                           onChange={(e) => setNewFournisseur({ ...newFournisseur, email: e.target.value })}
-                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]" />
+                          className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]" />
                       </div>
                       <div>
-                        <label className="block text-sm text-[#525252] mb-1">Téléphone *</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Téléphone *</label>
                         <input type="tel" value={newFournisseur.telephone}
                           onChange={(e) => setNewFournisseur({ ...newFournisseur, telephone: e.target.value })}
-                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]"
+                          className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
                           placeholder="+237 6XX XXX XXX" />
                       </div>
                       <div>
-                        <label className="block text-sm text-[#525252] mb-1">Téléphone secondaire</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Téléphone secondaire</label>
                         <input type="tel" value={newFournisseur.telephoneSecondaire}
                           onChange={(e) => setNewFournisseur({ ...newFournisseur, telephoneSecondaire: e.target.value })}
-                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]" />
+                          className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]" />
                       </div>
                     </div>
                   </div>
@@ -1592,47 +1592,47 @@ const FournisseursModule: React.FC = () => {
               {formStep === 3 && (
                 <div className="space-y-6">
                   <div>
-                    <h4 className="text-md font-semibold text-[#171717] flex items-center mb-4">
-                      <BookOpen className="w-5 h-5 mr-2 text-[#171717]" />Paramètres Comptables SYSCOHADA
+                    <h4 className="text-md font-semibold text-[var(--color-primary)] flex items-center mb-4">
+                      <BookOpen className="w-5 h-5 mr-2 text-[var(--color-primary)]" />Paramètres Comptables SYSCOHADA
                     </h4>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm text-[#525252] mb-1">Compte comptable fournisseur *</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Compte comptable fournisseur *</label>
                         <div className="flex space-x-2">
                           <input type="text" value={newFournisseur.compteComptable}
                             onChange={(e) => setNewFournisseur({ ...newFournisseur, compteComptable: e.target.value })}
-                            className="w-24 px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717] font-mono" placeholder="401" />
+                            className="w-24 px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] font-mono" placeholder="401" />
                           <input type="text" value={newFournisseur.compteAuxiliaire}
                             onChange={(e) => setNewFournisseur({ ...newFournisseur, compteAuxiliaire: e.target.value })}
-                            className="flex-1 px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717] font-mono" placeholder="Code auxiliaire" />
+                            className="flex-1 px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] font-mono" placeholder="Code auxiliaire" />
                         </div>
-                        <p className="text-xs text-[#a3a3a3] mt-1">Compte 401 - Fournisseurs (SYSCOHADA)</p>
+                        <p className="text-xs text-[var(--color-text-tertiary)] mt-1">Compte 401 - Fournisseurs (SYSCOHADA)</p>
                       </div>
                       <div>
-                        <label className="block text-sm text-[#525252] mb-1">Journal d'achats *</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Journal d'achats *</label>
                         <select value={newFournisseur.journalAchats}
                           onChange={(e) => setNewFournisseur({ ...newFournisseur, journalAchats: e.target.value })}
-                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]">
+                          className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]">
                           <option value="AC">AC - Achats</option>
                           <option value="AI">AI - Achats Import</option>
                           <option value="FG">FG - Frais Généraux</option>
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm text-[#525252] mb-1">Taux TVA applicable (%)</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Taux TVA applicable (%)</label>
                         <select value={newFournisseur.tauxTVA}
                           onChange={(e) => setNewFournisseur({ ...newFournisseur, tauxTVA: parseFloat(e.target.value) })}
-                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]">
+                          className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]">
                           <option value={19.25}>19,25% - Taux normal Cameroun</option>
                           <option value={18}>18% - Taux CEMAC standard</option>
                           <option value={0}>0% - Exonéré</option>
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm text-[#525252] mb-1">Devise *</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Devise *</label>
                         <select value={newFournisseur.devise}
                           onChange={(e) => setNewFournisseur({ ...newFournisseur, devise: e.target.value })}
-                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]">
+                          className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]">
                           <option value="XAF">XAF - Franc CFA CEMAC</option>
                           <option value="EUR">EUR - Euro</option>
                           <option value="USD">USD - Dollar US</option>
@@ -1641,27 +1641,27 @@ const FournisseursModule: React.FC = () => {
                     </div>
                   </div>
                   <div>
-                    <h4 className="text-md font-semibold text-[#171717] flex items-center mb-4">
-                      <CreditCard className="w-5 h-5 mr-2 text-[#171717]" />Coordonnées Bancaires (optionnel)
+                    <h4 className="text-md font-semibold text-[var(--color-primary)] flex items-center mb-4">
+                      <CreditCard className="w-5 h-5 mr-2 text-[var(--color-primary)]" />Coordonnées Bancaires (optionnel)
                     </h4>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm text-[#525252] mb-1">Banque</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Banque</label>
                         <input type="text" value={newFournisseur.banque}
                           onChange={(e) => setNewFournisseur({ ...newFournisseur, banque: e.target.value })}
-                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]" placeholder="Nom de la banque" />
+                          className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]" placeholder="Nom de la banque" />
                       </div>
                       <div>
-                        <label className="block text-sm text-[#525252] mb-1">Code SWIFT/BIC</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Code SWIFT/BIC</label>
                         <input type="text" value={newFournisseur.swift}
                           onChange={(e) => setNewFournisseur({ ...newFournisseur, swift: e.target.value })}
-                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717] font-mono" />
+                          className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] font-mono" />
                       </div>
                       <div className="col-span-2">
-                        <label className="block text-sm text-[#525252] mb-1">IBAN / RIB</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">IBAN / RIB</label>
                         <input type="text" value={newFournisseur.iban}
                           onChange={(e) => setNewFournisseur({ ...newFournisseur, iban: e.target.value })}
-                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717] font-mono"
+                          className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] font-mono"
                           placeholder="CM21 XXXX XXXX XXXX XXXX XXXX XXX" />
                       </div>
                     </div>
@@ -1673,15 +1673,15 @@ const FournisseursModule: React.FC = () => {
               {formStep === 4 && (
                 <div className="space-y-6">
                   <div>
-                    <h4 className="text-md font-semibold text-[#171717] flex items-center mb-4">
-                      <CreditCard className="w-5 h-5 mr-2 text-[#171717]" />Conditions de Paiement
+                    <h4 className="text-md font-semibold text-[var(--color-primary)] flex items-center mb-4">
+                      <CreditCard className="w-5 h-5 mr-2 text-[var(--color-primary)]" />Conditions de Paiement
                     </h4>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm text-[#525252] mb-1">Mode de règlement *</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Mode de règlement *</label>
                         <select value={newFournisseur.modeReglement}
                           onChange={(e) => setNewFournisseur({ ...newFournisseur, modeReglement: e.target.value as Fournisseur['modeReglement'] })}
-                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]">
+                          className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]">
                           <option value="VIREMENT">Virement bancaire</option>
                           <option value="CHEQUE">Chèque</option>
                           <option value="PRELEVEMENT">Prélèvement automatique</option>
@@ -1689,10 +1689,10 @@ const FournisseursModule: React.FC = () => {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm text-[#525252] mb-1">Délai de paiement (jours) *</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Délai de paiement (jours) *</label>
                         <select value={newFournisseur.delaiPaiement}
                           onChange={(e) => setNewFournisseur({ ...newFournisseur, delaiPaiement: parseInt(e.target.value) })}
-                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]">
+                          className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]">
                           <option value={0}>Comptant</option>
                           <option value={15}>15 jours</option>
                           <option value={30}>30 jours</option>
@@ -1702,46 +1702,46 @@ const FournisseursModule: React.FC = () => {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm text-[#525252] mb-1">Limite de crédit (XAF)</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Limite de crédit (XAF)</label>
                         <input type="number" value={newFournisseur.limiteCredit}
                           onChange={(e) => setNewFournisseur({ ...newFournisseur, limiteCredit: parseInt(e.target.value) || 0 })}
-                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]" />
+                          className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]" />
                       </div>
                       <div>
-                        <label className="block text-sm text-[#525252] mb-1">Escompte (%)</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Escompte (%)</label>
                         <input type="number" step="0.5" value={newFournisseur.escompte}
                           onChange={(e) => setNewFournisseur({ ...newFournisseur, escompte: parseFloat(e.target.value) || 0 })}
-                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]" placeholder="0" />
+                          className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]" placeholder="0" />
                       </div>
                     </div>
                   </div>
 
                   {/* Récapitulatif */}
                   <div className="bg-gray-50 rounded-lg p-4">
-                    <h4 className="text-md font-semibold text-[#171717] mb-3">Récapitulatif</h4>
+                    <h4 className="text-md font-semibold text-[var(--color-primary)] mb-3">Récapitulatif</h4>
                     <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div><span className="text-[#525252]">Code:</span> <span className="ml-2 font-medium">{newFournisseur.code || '-'}</span></div>
-                      <div><span className="text-[#525252]">Raison sociale:</span> <span className="ml-2 font-medium">{newFournisseur.raisonSociale || '-'}</span></div>
-                      <div><span className="text-[#525252]">Compte comptable:</span> <span className="ml-2 font-mono">{newFournisseur.compteComptable}{newFournisseur.compteAuxiliaire}</span></div>
-                      <div><span className="text-[#525252]">NIU:</span> <span className="ml-2 font-mono">{newFournisseur.niu || '-'}</span></div>
-                      <div><span className="text-[#525252]">Délai paiement:</span> <span className="ml-2 font-medium">{newFournisseur.delaiPaiement} jours</span></div>
-                      <div><span className="text-[#525252]">Limite crédit:</span> <span className="ml-2 font-medium">{formatCurrency(newFournisseur.limiteCredit)}</span></div>
+                      <div><span className="text-[var(--color-text-secondary)]">Code:</span> <span className="ml-2 font-medium">{newFournisseur.code || '-'}</span></div>
+                      <div><span className="text-[var(--color-text-secondary)]">Raison sociale:</span> <span className="ml-2 font-medium">{newFournisseur.raisonSociale || '-'}</span></div>
+                      <div><span className="text-[var(--color-text-secondary)]">Compte comptable:</span> <span className="ml-2 font-mono">{newFournisseur.compteComptable}{newFournisseur.compteAuxiliaire}</span></div>
+                      <div><span className="text-[var(--color-text-secondary)]">NIU:</span> <span className="ml-2 font-mono">{newFournisseur.niu || '-'}</span></div>
+                      <div><span className="text-[var(--color-text-secondary)]">Délai paiement:</span> <span className="ml-2 font-medium">{newFournisseur.delaiPaiement} jours</span></div>
+                      <div><span className="text-[var(--color-text-secondary)]">Limite crédit:</span> <span className="ml-2 font-medium">{formatCurrency(newFournisseur.limiteCredit)}</span></div>
                     </div>
                   </div>
                 </div>
               )}
             </div>
 
-            <div className="p-6 border-t border-[#e5e5e5] flex justify-between">
+            <div className="p-6 border-t border-[var(--color-border)] flex justify-between">
               <button type="button"
                 onClick={() => formStep > 1 ? setFormStep(formStep - 1) : (setShowNewFournisseurModal(false), setFormStep(1))}
-                className="px-4 py-2 border border-[#e5e5e5] rounded-lg text-[#525252] hover:bg-gray-50">
+                className="px-4 py-2 border border-[var(--color-border)] rounded-lg text-[var(--color-text-secondary)] hover:bg-gray-50">
                 {formStep > 1 ? 'Précédent' : 'Annuler'}
               </button>
               <div className="flex space-x-3">
                 {formStep < 4 ? (
                   <button type="button" onClick={() => setFormStep(formStep + 1)}
-                    className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/90">Suivant</button>
+                    className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90">Suivant</button>
                 ) : (
                   <button type="button"
                     onClick={async () => {
@@ -1766,7 +1766,7 @@ const FournisseursModule: React.FC = () => {
                         } as Fournisseur)));
  } catch (err) { }
                     }}
-                    className="px-6 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/90 font-semibold">
+                    className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 font-semibold">
                     Créer le fournisseur
                   </button>
                 )}

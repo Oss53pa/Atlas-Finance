@@ -209,7 +209,7 @@ const AlertsSystem: React.FC = () => {
     switch (type) {
       case 'critical': return 'bg-red-100 text-red-700 border-red-200';
       case 'warning': return 'bg-amber-100 text-amber-700 border-amber-200';
-      case 'info': return 'bg-[#e5e5e5] text-[#525252] border-[var(--color-border)]';
+      case 'info': return 'bg-[var(--color-border)] text-[var(--color-text-secondary)] border-[var(--color-border)]';
       case 'success': return 'bg-green-100 text-green-700 border-green-200';
       default: return 'bg-gray-100 text-gray-700 border-gray-200';
     }
@@ -324,10 +324,10 @@ const AlertsSystem: React.FC = () => {
 
         <div className="bg-[var(--color-surface-hover)] rounded-lg shadow p-4 border border-[var(--color-border)]">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-[#525252]">{t('status.inProgress')}</span>
-            <Clock className="w-5 h-5 text-[#737373]" />
+            <span className="text-sm font-medium text-[var(--color-text-secondary)]">{t('status.inProgress')}</span>
+            <Clock className="w-5 h-5 text-[var(--color-text-tertiary)]" />
           </div>
-          <p className="text-lg font-bold text-[#525252]">{stats.acknowledged}</p>
+          <p className="text-lg font-bold text-[var(--color-text-secondary)]">{stats.acknowledged}</p>
           <p className="text-xs text-[var(--color-primary)] mt-1">Traitement</p>
         </div>
 
@@ -489,7 +489,7 @@ const AlertsSystem: React.FC = () => {
               <div className="flex flex-col gap-2">
                 <span className={cn(
                   "px-3 py-1 text-xs rounded-full font-medium",
-                  alert.status === 'new' && "bg-[#d4d4d4] text-[#404040]",
+                  alert.status === 'new' && "bg-[var(--color-border)] text-[#404040]",
                   alert.status === 'acknowledged' && "bg-amber-200 text-amber-800",
                   alert.status === 'resolved' && "bg-green-200 text-green-800",
                   alert.status === 'ignored' && "bg-gray-200 text-gray-800"

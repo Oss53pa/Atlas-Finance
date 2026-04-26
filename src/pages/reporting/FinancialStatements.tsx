@@ -259,10 +259,10 @@ const FinancialStatements: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'published': return 'text-[#525252] bg-[#525252]/5';
+      case 'published': return 'text-[var(--color-text-secondary)] bg-[var(--color-text-secondary)]/5';
       case 'approved': return 'text-green-600 bg-green-50';
       case 'review': return 'text-yellow-600 bg-yellow-50';
-      case 'draft': return 'text-[#171717] bg-[#171717]/5';
+      case 'draft': return 'text-[var(--color-primary)] bg-[var(--color-primary)]/5';
       default: return 'text-gray-600 bg-gray-50';
     }
   };
@@ -289,8 +289,8 @@ const FinancialStatements: React.FC = () => {
   const getCategoryColor = (category: string) => {
     switch (category) {
       case 'profitability': return 'text-green-600 bg-green-50';
-      case 'liquidity': return 'text-[#171717] bg-[#171717]/5';
-      case 'efficiency': return 'text-[#525252] bg-[#525252]/5';
+      case 'liquidity': return 'text-[var(--color-primary)] bg-[var(--color-primary)]/5';
+      case 'efficiency': return 'text-[var(--color-text-secondary)] bg-[var(--color-text-secondary)]/5';
       case 'leverage': return 'text-orange-600 bg-orange-50';
       default: return 'text-gray-600 bg-gray-50';
     }
@@ -305,9 +305,9 @@ const FinancialStatements: React.FC = () => {
   };
 
   const chartData = [
-    { label: 'Publiés', value: aggregatedData.publishedStatements, color: 'bg-[#525252]' },
+    { label: 'Publiés', value: aggregatedData.publishedStatements, color: 'bg-[var(--color-text-secondary)]' },
     { label: 'Approuvés', value: aggregatedData.approvedStatements, color: 'bg-green-500' },
-    { label: 'Brouillons', value: aggregatedData.draftStatements, color: 'bg-[#171717]' }
+    { label: 'Brouillons', value: aggregatedData.draftStatements, color: 'bg-[var(--color-primary)]' }
   ];
 
   const metricsChartData = financialMetrics.slice(0, 4).map(metric => ({
@@ -396,8 +396,8 @@ const FinancialStatements: React.FC = () => {
                   onClick={() => setViewMode(mode)}
                   className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
                     viewMode === mode
-                      ? 'bg-[#171717] text-white shadow-md'
-                      : 'text-neutral-600 hover:text-[#171717]'
+                      ? 'bg-[var(--color-primary)] text-white shadow-md'
+                      : 'text-neutral-600 hover:text-[var(--color-primary)]'
                   }`}
                 >
                   {mode === 'statements' ? 'États Financiers' :
@@ -411,7 +411,7 @@ const FinancialStatements: React.FC = () => {
               <select
                 value={selectedPeriod}
                 onChange={(e) => setSelectedPeriod(e.target.value)}
-                className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#171717]"
+                className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
               >
                 {fiscalYears.length > 0 ? (
                   fiscalYears.flatMap(fy => {
@@ -466,14 +466,14 @@ const FinancialStatements: React.FC = () => {
                       placeholder="Rechercher..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#171717]"
+                      className="w-full pl-10 pr-4 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
                     />
                   </div>
 
                   <select
                     value={filterStatus}
                     onChange={(e) => setFilterStatus(e.target.value)}
-                    className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#171717]"
+                    className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
                   >
                     <option value="all">Tous les statuts</option>
                     <option value="draft">{t('accounting.draft')}</option>
@@ -485,7 +485,7 @@ const FinancialStatements: React.FC = () => {
                   <select
                     value={filterType}
                     onChange={(e) => setFilterType(e.target.value)}
-                    className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#171717]"
+                    className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
                   >
                     <option value="all">Tous les types</option>
                     <option value="balance_sheet">Bilan</option>
@@ -498,7 +498,7 @@ const FinancialStatements: React.FC = () => {
                   <select
                     value={filterFormat}
                     onChange={(e) => setFilterFormat(e.target.value)}
-                    className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#171717]"
+                    className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
                   >
                     <option value="all">Tous les formats</option>
                     <option value="ifrs">IFRS</option>
@@ -510,7 +510,7 @@ const FinancialStatements: React.FC = () => {
                   <select
                     value={filterPeriod}
                     onChange={(e) => setFilterPeriod(e.target.value)}
-                    className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#171717]"
+                    className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
                   >
                     <option value="all">Toutes les périodes</option>
                     {fiscalYears.map(fy => {
@@ -541,8 +541,8 @@ const FinancialStatements: React.FC = () => {
                       <div className="space-y-4">
                         <div className="flex justify-between items-start">
                           <div className="flex items-start space-x-4">
-                            <div className="p-3 bg-[#171717]/10 rounded-lg">
-                              <FileText className="h-6 w-6 text-[#171717]" />
+                            <div className="p-3 bg-[var(--color-primary)]/10 rounded-lg">
+                              <FileText className="h-6 w-6 text-[var(--color-primary)]" />
                             </div>
                             <div className="space-y-2">
                               <h4 className="font-semibold text-neutral-800 text-lg">{statement.title}</h4>
@@ -556,7 +556,7 @@ const FinancialStatements: React.FC = () => {
                                 <span>{statement.fileSize}</span>
                               </div>
                               <div className="flex items-center space-x-3">
-                                <span className="px-2 py-1 text-xs font-medium rounded-full bg-[#171717]/10 text-[#171717]">
+                                <span className="px-2 py-1 text-xs font-medium rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
                                   {statement.format.toUpperCase()}
                                 </span>
                                 {statement.consolidation && (
@@ -584,14 +584,14 @@ const FinancialStatements: React.FC = () => {
                             <div className="flex space-x-2">
                               <button
                                 onClick={() => setStatementModal({ isOpen: true, mode: 'view', statement })}
-                                className="p-2 text-neutral-400 hover:text-[#171717] transition-colors"
+                                className="p-2 text-neutral-400 hover:text-[var(--color-primary)] transition-colors"
                               >
                                 <Eye className="h-4 w-4" />
                               </button>
                               <button className="p-2 text-neutral-400 hover:text-green-600 transition-colors" aria-label="Télécharger">
                                 <Download className="h-4 w-4" />
                               </button>
-                              <button className="p-2 text-neutral-400 hover:text-[#525252] transition-colors" aria-label="Partager">
+                              <button className="p-2 text-neutral-400 hover:text-[var(--color-text-secondary)] transition-colors" aria-label="Partager">
                                 <Share2 className="h-4 w-4" />
                               </button>
                             </div>
@@ -765,15 +765,15 @@ const FinancialStatements: React.FC = () => {
                     <div className="space-y-4">
                       <div className="flex justify-between items-start">
                         <div className="flex items-center space-x-3">
-                          <div className="p-2 bg-[#171717]/10 rounded-lg">
-                            <BookOpen className="h-5 w-5 text-[#171717]" />
+                          <div className="p-2 bg-[var(--color-primary)]/10 rounded-lg">
+                            <BookOpen className="h-5 w-5 text-[var(--color-primary)]" />
                           </div>
                           <div>
                             <h4 className="font-semibold text-neutral-800">{template.name}</h4>
                             <p className="text-sm text-neutral-500">{template.type}</p>
                           </div>
                         </div>
-                        <span className="px-2 py-1 text-xs font-medium rounded-full bg-[#171717]/10 text-[#171717]">
+                        <span className="px-2 py-1 text-xs font-medium rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
                           {template.format.toUpperCase()}
                         </span>
                       </div>
@@ -800,7 +800,7 @@ const FinancialStatements: React.FC = () => {
                           <p>Dernier usage: {formatDate(template.lastUsed)}</p>
                         </div>
                         <div className="flex space-x-2">
-                          <button className="p-2 text-neutral-400 hover:text-[#171717] transition-colors" aria-label="Voir les détails">
+                          <button className="p-2 text-neutral-400 hover:text-[var(--color-primary)] transition-colors" aria-label="Voir les détails">
                             <Eye className="h-4 w-4" />
                           </button>
                           <button className="p-2 text-neutral-400 hover:text-green-600 transition-colors" aria-label="Ajouter">
@@ -861,7 +861,7 @@ const FinancialStatements: React.FC = () => {
                         <label className="block text-sm font-medium text-neutral-700 mb-1">
                           Format
                         </label>
-                        <span className="px-3 py-1 text-sm font-medium rounded-full bg-[#171717]/10 text-[#171717]">
+                        <span className="px-3 py-1 text-sm font-medium rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
                           {statementModal.statement.format.toUpperCase()}
                         </span>
                       </div>

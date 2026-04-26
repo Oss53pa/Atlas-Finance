@@ -141,22 +141,22 @@ export const DossierEditForm: React.FC<DossierEditFormProps> = ({
         fullWidth
       />
 
-      <div className="pt-4 border-t border-[#d4d4d4]">
+      <div className="pt-4 border-t border-[var(--color-border)]">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
           <div>
-            <span className="text-[#737373]">Référence: </span>
-            <span className="font-medium text-[#171717]">{dossier.numeroRef}</span>
+            <span className="text-[var(--color-text-tertiary)]">Référence: </span>
+            <span className="font-medium text-[var(--color-primary)]">{dossier.numeroRef}</span>
           </div>
           <div>
-            <span className="text-[#737373]">Client: </span>
-            <span className="font-medium text-[#171717]">{dossier.client}</span>
+            <span className="text-[var(--color-text-tertiary)]">Client: </span>
+            <span className="font-medium text-[var(--color-primary)]">{dossier.client}</span>
           </div>
           <div>
-            <span className="text-[#737373]">Montant Total: </span>
-            <span className="font-medium text-[#171717]">{dossier.montantTotal} FCFA</span>
+            <span className="text-[var(--color-text-tertiary)]">Montant Total: </span>
+            <span className="font-medium text-[var(--color-primary)]">{dossier.montantTotal} FCFA</span>
           </div>
           <div>
-            <span className="text-[#737373]">Montant Restant: </span>
+            <span className="text-[var(--color-text-tertiary)]">Montant Restant: </span>
             <span className="font-medium text-[#ef4444]">
               {dossier.montantTotal - formData.montantPaye} FCFA
             </span>

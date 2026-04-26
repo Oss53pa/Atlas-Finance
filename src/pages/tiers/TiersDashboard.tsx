@@ -113,7 +113,7 @@ const TiersDashboard: React.FC = () => {
   const getStatusBadge = (status: string) => {
     const statusConfig = {
       'EXCELLENT': 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]',
-      'BON': 'bg-[#171717]/10 text-[#171717]',
+      'BON': 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]',
       'MOYEN': 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]',
       'DIFFICILE': 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-darker)]',
       'CRITIQUE': 'bg-[var(--color-error-lighter)] text-[var(--color-error-darker)]'
@@ -124,9 +124,9 @@ const TiersDashboard: React.FC = () => {
   const COLORS = ['#171717', '#525252', '#a3a3a3', '#3b82f6', '#22c55e', '#f59e0b'];
 
   return (
-    <div className="p-6 bg-[#e5e5e5] min-h-screen">
+    <div className="p-6 bg-[var(--color-border)] min-h-screen">
       {/* Header */}
-      <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm mb-6">
+      <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm mb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button
@@ -138,12 +138,12 @@ const TiersDashboard: React.FC = () => {
             </button>
 
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-[#171717] to-[#525252] flex items-center justify-center">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-text-secondary)] flex items-center justify-center">
                 <Users className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-[#171717]">Gestion des Tiers</h1>
-                <p className="text-sm text-[#525252]">Management complet des relations commerciales</p>
+                <h1 className="text-lg font-bold text-[var(--color-primary)]">Gestion des Tiers</h1>
+                <p className="text-sm text-[var(--color-text-secondary)]">Management complet des relations commerciales</p>
               </div>
             </div>
           </div>
@@ -168,7 +168,7 @@ const TiersDashboard: React.FC = () => {
 
             <button
               onClick={handleExport}
-              className="flex items-center space-x-2 px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/90 transition-colors" aria-label="Télécharger">
+              className="flex items-center space-x-2 px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 transition-colors" aria-label="Télécharger">
               <Download className="w-4 h-4" />
               <span className="text-sm font-semibold">{t('common.export')}</span>
             </button>
@@ -191,14 +191,14 @@ const TiersDashboard: React.FC = () => {
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-colors relative ${
                 activeTab === tab.id
-                  ? 'bg-white text-[#171717] shadow-sm'
-                  : 'text-[#525252] hover:text-[#404040]'
+                  ? 'bg-white text-[var(--color-primary)] shadow-sm'
+                  : 'text-[var(--color-text-secondary)] hover:text-[#404040]'
               }`}
             >
               <tab.icon className="w-4 h-4" />
               <span className="text-sm font-medium">{tab.label}</span>
               {tab.badge && (
-                <span className="bg-[#171717] text-white text-xs px-2 py-0.5 rounded-full">
+                <span className="bg-[var(--color-primary)] text-white text-xs px-2 py-0.5 rounded-full">
                   {tab.badge}
                 </span>
               )}
@@ -212,37 +212,37 @@ const TiersDashboard: React.FC = () => {
         <div className="space-y-6">
           {/* KPIs Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-            <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
+            <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[#525252]">Total Clients</p>
-                  <p className="text-lg font-bold text-[#171717]">{kpis.totalClients}</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">Total Clients</p>
+                  <p className="text-lg font-bold text-[var(--color-primary)]">{kpis.totalClients}</p>
                   <p className="text-xs text-[var(--color-success)]">+{kpis.nouveauxClientsMois} ce mois</p>
                 </div>
-                <div className="w-10 h-10 bg-[#171717]/10 rounded-lg flex items-center justify-center">
-                  <Users className="w-5 h-5 text-[#171717]" />
+                <div className="w-10 h-10 bg-[var(--color-primary)]/10 rounded-lg flex items-center justify-center">
+                  <Users className="w-5 h-5 text-[var(--color-primary)]" />
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
+            <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[#525252]">{t('navigation.suppliers')}</p>
-                  <p className="text-lg font-bold text-[#171717]">{kpis.totalFournisseurs}</p>
-                  <p className="text-xs text-[#171717]">Actifs</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{t('navigation.suppliers')}</p>
+                  <p className="text-lg font-bold text-[var(--color-primary)]">{kpis.totalFournisseurs}</p>
+                  <p className="text-xs text-[var(--color-primary)]">Actifs</p>
                 </div>
-                <div className="w-10 h-10 bg-[#525252]/10 rounded-lg flex items-center justify-center">
-                  <Building2 className="w-5 h-5 text-[#525252]" />
+                <div className="w-10 h-10 bg-[var(--color-text-secondary)]/10 rounded-lg flex items-center justify-center">
+                  <Building2 className="w-5 h-5 text-[var(--color-text-secondary)]" />
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
+            <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[#525252]">CA Total</p>
-                  <p className="text-lg font-bold text-[#171717]">{formatCurrency(kpis.chiffreAffairesTotal)}</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">CA Total</p>
+                  <p className="text-lg font-bold text-[var(--color-primary)]">{formatCurrency(kpis.chiffreAffairesTotal)}</p>
                   <p className="text-xs text-[var(--color-success)]">+{kpis.croissanceCA}% vs mois dernier</p>
                 </div>
                 <div className="w-10 h-10 bg-[var(--color-success-lighter)] rounded-lg flex items-center justify-center">
@@ -251,11 +251,11 @@ const TiersDashboard: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
+            <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[#525252]">Encours Clients</p>
-                  <p className="text-lg font-bold text-[#171717]">{formatCurrency(kpis.encoursClients)}</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">Encours Clients</p>
+                  <p className="text-lg font-bold text-[var(--color-primary)]">{formatCurrency(kpis.encoursClients)}</p>
                   <p className="text-xs text-[var(--color-warning)]">DSO: {kpis.dsoMoyen} jours</p>
                 </div>
                 <div className="w-10 h-10 bg-[var(--color-warning-lighter)] rounded-lg flex items-center justify-center">
@@ -264,11 +264,11 @@ const TiersDashboard: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
+            <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[#525252]">Taux Recouvrement</p>
-                  <p className="text-lg font-bold text-[#171717]">{kpis.tauxRecouvrement}%</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">Taux Recouvrement</p>
+                  <p className="text-lg font-bold text-[var(--color-primary)]">{kpis.tauxRecouvrement}%</p>
                   <p className="text-xs text-[var(--color-error)]">{formatCurrency(kpis.impayesTotal)} d'impayés</p>
                 </div>
                 <div className="w-10 h-10 bg-[var(--color-error-lighter)] rounded-lg flex items-center justify-center">
@@ -281,8 +281,8 @@ const TiersDashboard: React.FC = () => {
           {/* Charts Row */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Client Segments */}
-            <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
-              <h3 className="text-lg font-semibold text-[#171717] mb-4">Répartition Clients par Segment</h3>
+            <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Répartition Clients par Segment</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <RechartsPieChart>
                   <Pie
@@ -304,8 +304,8 @@ const TiersDashboard: React.FC = () => {
             </div>
 
             {/* CA Evolution */}
-            <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
-              <h3 className="text-lg font-semibold text-[#171717] mb-4">Évolution du Chiffre d'Affaires</h3>
+            <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Évolution du Chiffre d'Affaires</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <AreaChart data={clientAnalytics.evolutionCA}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -321,12 +321,12 @@ const TiersDashboard: React.FC = () => {
           {/* Tables Row */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Top Clients */}
-            <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+            <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-[#171717]">Top Clients</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-primary)]">Top Clients</h3>
                 <button
                   onClick={() => setActiveTab('clients')}
-                  className="text-sm text-[#171717] hover:text-[#171717]/80 font-medium"
+                  className="text-sm text-[var(--color-primary)] hover:text-[var(--color-primary)]/80 font-medium"
                 >
                   Voir tous →
                 </button>
@@ -335,8 +335,8 @@ const TiersDashboard: React.FC = () => {
                 {clientAnalytics.topClients.map((client) => (
                   <div key={client.id} className="flex items-center justify-between p-3 bg-[var(--color-background-secondary)] rounded-lg">
                     <div className="flex-1">
-                      <p className="font-medium text-[#171717]">{client.nom}</p>
-                      <p className="text-sm text-[#525252]">CA: {formatCurrency(client.ca)} • DSO: {client.dso}j</p>
+                      <p className="font-medium text-[var(--color-primary)]">{client.nom}</p>
+                      <p className="text-sm text-[var(--color-text-secondary)]">CA: {formatCurrency(client.ca)} • DSO: {client.dso}j</p>
                     </div>
                     <div className="flex items-center space-x-2">
                       <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusBadge(client.statut)}`}>
@@ -349,8 +349,8 @@ const TiersDashboard: React.FC = () => {
             </div>
 
             {/* Recent Activities */}
-            <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
-              <h3 className="text-lg font-semibold text-[#171717] mb-4">Activités Récentes</h3>
+            <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Activités Récentes</h3>
               <div className="space-y-3">
                 {recentActivities.map((activity) => (
                   <div key={activity.id} className="flex items-start space-x-3">
@@ -358,8 +358,8 @@ const TiersDashboard: React.FC = () => {
                       <activity.icon className="w-4 h-4" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-[#171717]">{activity.description}</p>
-                      <p className="text-xs text-[#525252]">
+                      <p className="text-sm font-medium text-[var(--color-primary)]">{activity.description}</p>
+                      <p className="text-xs text-[var(--color-text-secondary)]">
                         par {activity.user} • {new Date(activity.timestamp).toLocaleDateString('fr-FR')}
                       </p>
                     </div>
@@ -373,14 +373,14 @@ const TiersDashboard: React.FC = () => {
 
       {/* Other tabs would show respective components */}
       {activeTab === 'clients' && (
-        <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+        <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
           <div className="text-center py-12">
             <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-[#171717] mb-2">Module Clients</h3>
-            <p className="text-[#525252] mb-4">Interface de gestion complète des clients avec CRM intégré</p>
+            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-2">Module Clients</h3>
+            <p className="text-[var(--color-text-secondary)] mb-4">Interface de gestion complète des clients avec CRM intégré</p>
             <button
               onClick={() => navigate('/tiers/clients')}
-              className="px-6 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/90 transition-colors"
+              className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 transition-colors"
             >
               Accéder au module Clients
             </button>
@@ -389,14 +389,14 @@ const TiersDashboard: React.FC = () => {
       )}
 
       {activeTab === 'fournisseurs' && (
-        <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+        <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
           <div className="text-center py-12">
             <Building2 className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-[#171717] mb-2">Module Fournisseurs</h3>
-            <p className="text-[#525252] mb-4">Gestion complète des fournisseurs et évaluations</p>
+            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-2">Module Fournisseurs</h3>
+            <p className="text-[var(--color-text-secondary)] mb-4">Gestion complète des fournisseurs et évaluations</p>
             <button
               onClick={() => navigate('/tiers/fournisseurs')}
-              className="px-6 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/90 transition-colors"
+              className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 transition-colors"
             >
               Accéder au module Fournisseurs
             </button>
@@ -405,14 +405,14 @@ const TiersDashboard: React.FC = () => {
       )}
 
       {activeTab === 'contacts' && (
-        <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+        <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
           <div className="text-center py-12">
             <UserCheck className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-[#171717] mb-2">Module Contacts</h3>
-            <p className="text-[#525252] mb-4">Centralisation de tous les contacts tiers</p>
+            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-2">Module Contacts</h3>
+            <p className="text-[var(--color-text-secondary)] mb-4">Centralisation de tous les contacts tiers</p>
             <button
               onClick={() => navigate('/tiers/contacts')}
-              className="px-6 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/90 transition-colors"
+              className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 transition-colors"
             >
               Accéder au module Contacts
             </button>
@@ -421,14 +421,14 @@ const TiersDashboard: React.FC = () => {
       )}
 
       {activeTab === 'recouvrement' && (
-        <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+        <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
           <div className="text-center py-12">
             <DollarSign className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-[#171717] mb-2">Module Recouvrement</h3>
-            <p className="text-[#525252] mb-4">Gestion des créances et processus de recouvrement</p>
+            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-2">Module Recouvrement</h3>
+            <p className="text-[var(--color-text-secondary)] mb-4">Gestion des créances et processus de recouvrement</p>
             <button
               onClick={() => navigate('/tiers/recouvrement')}
-              className="px-6 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/90 transition-colors"
+              className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 transition-colors"
             >
               Accéder au module Recouvrement
             </button>
@@ -437,14 +437,14 @@ const TiersDashboard: React.FC = () => {
       )}
 
       {activeTab === 'lettrage' && (
-        <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+        <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
           <div className="text-center py-12">
             <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-[#171717] mb-2">Module Lettrage Global</h3>
-            <p className="text-[#525252] mb-4">Rapprochement et lettrage des comptes tiers</p>
+            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-2">Module Lettrage Global</h3>
+            <p className="text-[var(--color-text-secondary)] mb-4">Rapprochement et lettrage des comptes tiers</p>
             <button
               onClick={() => navigate('/tiers/lettrage')}
-              className="px-6 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/90 transition-colors"
+              className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 transition-colors"
             >
               Accéder au module Lettrage
             </button>
@@ -453,14 +453,14 @@ const TiersDashboard: React.FC = () => {
       )}
 
       {activeTab === 'prospects' && (
-        <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+        <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
           <div className="text-center py-12">
             <Target className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-[#171717] mb-2">Module Prospects</h3>
-            <p className="text-[#525252] mb-4">Gestion du pipeline commercial et suivi des opportunités</p>
+            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-2">Module Prospects</h3>
+            <p className="text-[var(--color-text-secondary)] mb-4">Gestion du pipeline commercial et suivi des opportunités</p>
             <button
               onClick={() => navigate('/tiers/prospects')}
-              className="px-6 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/90 transition-colors"
+              className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 transition-colors"
             >
               Accéder au module Prospects
             </button>
@@ -469,14 +469,14 @@ const TiersDashboard: React.FC = () => {
       )}
 
       {activeTab === 'partenaires' && (
-        <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+        <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
           <div className="text-center py-12">
             <Handshake className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-[#171717] mb-2">Module Partenaires</h3>
-            <p className="text-[#525252] mb-4">Écosystème et réseau de partenaires stratégiques</p>
+            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-2">Module Partenaires</h3>
+            <p className="text-[var(--color-text-secondary)] mb-4">Écosystème et réseau de partenaires stratégiques</p>
             <button
               onClick={() => navigate('/tiers/partenaires')}
-              className="px-6 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/90 transition-colors"
+              className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 transition-colors"
             >
               Accéder au module Partenaires
             </button>
@@ -485,14 +485,14 @@ const TiersDashboard: React.FC = () => {
       )}
 
       {activeTab === 'collaboration' && (
-        <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+        <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
           <div className="text-center py-12">
             <MessageSquare className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-[#171717] mb-2">Module Chat & Collaboration</h3>
-            <p className="text-[#525252] mb-4">Communication en temps réel et collaboration équipe</p>
+            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-2">Module Chat & Collaboration</h3>
+            <p className="text-[var(--color-text-secondary)] mb-4">Communication en temps réel et collaboration équipe</p>
             <button
               onClick={() => navigate('/tiers/contacts')}
-              className="px-6 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/90 transition-colors"
+              className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 transition-colors"
             >
               Accéder au module Collaboration
             </button>

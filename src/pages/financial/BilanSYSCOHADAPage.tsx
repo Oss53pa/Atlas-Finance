@@ -374,7 +374,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#e5e5e5] ">
+    <div className="min-h-screen bg-[var(--color-border)] ">
       <PrintableArea
         ref={printRef}
         orientation="landscape"
@@ -388,27 +388,27 @@ const BilanSYSCOHADAPage: React.FC = () => {
         }
       >
       {/* En-tête */}
-      <div className="bg-white border-b border-[#e5e5e5] p-6">
+      <div className="bg-white border-b border-[var(--color-border)] p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button
               onClick={() => navigate('/financial-analysis-advanced')}
-              className="flex items-center space-x-2 px-4 py-2 text-[#737373] hover:text-[#525252] transition-colors"
+              className="flex items-center space-x-2 px-4 py-2 text-[var(--color-text-tertiary)] hover:text-[var(--color-text-secondary)] transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               <span className="text-sm">Retour à l'analyse financière</span>
             </button>
-            <div className="h-6 w-px bg-[#e5e5e5]" />
+            <div className="h-6 w-px bg-[var(--color-border)]" />
             <div>
-              <h1 className="text-lg font-bold text-[#171717]">États Financiers SYSCOHADA</h1>
-              <p className="text-sm text-[#737373]">Présentation normalisée selon le référentiel SYSCOHADA</p>
+              <h1 className="text-lg font-bold text-[var(--color-primary)]">États Financiers SYSCOHADA</h1>
+              <p className="text-sm text-[var(--color-text-tertiary)]">Présentation normalisée selon le référentiel SYSCOHADA</p>
             </div>
           </div>
           <div className="flex items-center space-x-3">
             <select
               value={periode}
               onChange={(e) => setPeriode(e.target.value)}
-              className="px-4 py-2 border border-[#d4d4d4] rounded-lg text-sm focus:ring-2 focus:ring-[#525252]/20"
+              className="px-4 py-2 border border-[var(--color-border)] rounded-lg text-sm focus:ring-2 focus:ring-[var(--color-text-secondary)]/20"
             >
               <option value="current">Exercice 2024</option>
               <option value="previous">Exercice 2023</option>
@@ -419,8 +419,8 @@ const BilanSYSCOHADAPage: React.FC = () => {
       </div>
 
       {/* Navigation par onglets */}
-      <div className="bg-white rounded-lg border border-[#e5e5e5] shadow-sm">
-        <div className="px-6 border-b border-[#e5e5e5]">
+      <div className="bg-white rounded-lg border border-[var(--color-border)] shadow-sm">
+        <div className="px-6 border-b border-[var(--color-border)]">
           <nav className="flex space-x-8">
             {tabs.map((tab) => {
               const IconComponent = tab.icon;
@@ -431,8 +431,8 @@ const BilanSYSCOHADAPage: React.FC = () => {
                   className={`
                     flex items-center space-x-2 py-4 border-b-2 font-medium text-sm transition-colors
                     ${activeTab === tab.id
-                      ? 'border-[#525252] text-[#525252]'
-                      : 'border-transparent text-[#737373] hover:text-[#404040]'
+                      ? 'border-[var(--color-text-secondary)] text-[var(--color-text-secondary)]'
+                      : 'border-transparent text-[var(--color-text-tertiary)] hover:text-[#404040]'
                     }
                   `}
                 >
@@ -450,22 +450,22 @@ const BilanSYSCOHADAPage: React.FC = () => {
           {activeTab === 'bilan' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-lg font-bold text-[#171717] mb-2">BILAN SYSCOHADA</h2>
-                <p className="text-[#737373]">Exercice du 01/01/2024 au 31/12/2024</p>
+                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">BILAN SYSCOHADA</h2>
+                <p className="text-[var(--color-text-tertiary)]">Exercice du 01/01/2024 au 31/12/2024</p>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* ACTIF */}
-                <div className="bg-white rounded-lg p-6 border border-[#e5e5e5]">
-                  <h3 className="text-lg font-bold text-[#171717] mb-4 text-center">ACTIF</h3>
+                <div className="bg-white rounded-lg p-6 border border-[var(--color-border)]">
+                  <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4 text-center">ACTIF</h3>
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
-                        <tr className="border-b border-[#e5e5e5]">
-                          <th className="text-left p-2 text-[#171717]">Réf</th>
-                          <th className="text-left p-2 text-[#171717]">{t('accounting.label')}</th>
-                          <th className="text-right p-2 text-[#171717]">N</th>
-                          <th className="text-right p-2 text-[#171717]">N-1</th>
+                        <tr className="border-b border-[var(--color-border)]">
+                          <th className="text-left p-2 text-[var(--color-primary)]">Réf</th>
+                          <th className="text-left p-2 text-[var(--color-primary)]">{t('accounting.label')}</th>
+                          <th className="text-right p-2 text-[var(--color-primary)]">N</th>
+                          <th className="text-right p-2 text-[var(--color-primary)]">N-1</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -476,13 +476,13 @@ const BilanSYSCOHADAPage: React.FC = () => {
                           <td className="p-2 text-right font-bold">{formatCurrency(bilanData.actif.slice(0, 7).reduce((s, i) => s + i.exerciceN1, 0))}</td>
                         </tr>
                         {bilanData.actif.slice(0, 7).map((item, index) => (
-                          <tr key={index} className="border-b border-[#e5e5e5] hover:bg-gray-50">
+                          <tr key={index} className="border-b border-[var(--color-border)] hover:bg-gray-50">
                             <td className="p-2 text-[#404040]">
                               <div className="flex items-center space-x-2">
                                 <span>{item.code}</span>
                                 <button
                                   onClick={() => openDetailModal(item.code, `Sous-comptes de ${item.libelle}`, 'sous-comptes', item.exerciceN)}
-                                  className="p-1 hover:bg-[#525252] hover:text-white rounded transition-colors"
+                                  className="p-1 hover:bg-[var(--color-text-secondary)] hover:text-white rounded transition-colors"
                                   title={`Voir les sous-comptes de ${item.code}`}
                                 >
                                   <ChevronRight className="w-3 h-3" />
@@ -514,13 +514,13 @@ const BilanSYSCOHADAPage: React.FC = () => {
                           <td className="p-2 text-right font-bold">{formatCurrency(bilanData.actif.slice(7).reduce((s, i) => s + i.exerciceN1, 0))}</td>
                         </tr>
                         {bilanData.actif.slice(7).map((item, index) => (
-                          <tr key={index} className="border-b border-[#e5e5e5] hover:bg-gray-50">
+                          <tr key={index} className="border-b border-[var(--color-border)] hover:bg-gray-50">
                             <td className="p-2 text-[#404040]">
                               <div className="flex items-center space-x-2">
                                 <span>{item.code}</span>
                                 <button
                                   onClick={() => openDetailModal(item.code, `Sous-comptes de ${item.libelle}`, 'sous-comptes', item.exerciceN)}
-                                  className="p-1 hover:bg-[#525252] hover:text-white rounded transition-colors"
+                                  className="p-1 hover:bg-[var(--color-text-secondary)] hover:text-white rounded transition-colors"
                                   title={`Voir les sous-comptes de ${item.code}`}
                                 >
                                   <ChevronRight className="w-3 h-3" />
@@ -557,16 +557,16 @@ const BilanSYSCOHADAPage: React.FC = () => {
                 </div>
 
                 {/* PASSIF */}
-                <div className="bg-white rounded-lg p-6 border border-[#e5e5e5]">
-                  <h3 className="text-lg font-bold text-[#171717] mb-4 text-center">PASSIF</h3>
+                <div className="bg-white rounded-lg p-6 border border-[var(--color-border)]">
+                  <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4 text-center">PASSIF</h3>
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
-                        <tr className="border-b border-[#e5e5e5]">
-                          <th className="text-left p-2 text-[#171717]">Réf</th>
-                          <th className="text-left p-2 text-[#171717]">{t('accounting.label')}</th>
-                          <th className="text-right p-2 text-[#171717]">N</th>
-                          <th className="text-right p-2 text-[#171717]">N-1</th>
+                        <tr className="border-b border-[var(--color-border)]">
+                          <th className="text-left p-2 text-[var(--color-primary)]">Réf</th>
+                          <th className="text-left p-2 text-[var(--color-primary)]">{t('accounting.label')}</th>
+                          <th className="text-right p-2 text-[var(--color-primary)]">N</th>
+                          <th className="text-right p-2 text-[var(--color-primary)]">N-1</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -577,13 +577,13 @@ const BilanSYSCOHADAPage: React.FC = () => {
                           <td className="p-2 text-right font-bold">{formatCurrency(bilanData.passif.slice(0, 4).reduce((s, i) => s + i.exerciceN1, 0))}</td>
                         </tr>
                         {bilanData.passif.slice(0, 4).map((item, index) => (
-                          <tr key={index} className="border-b border-[#e5e5e5] hover:bg-gray-50">
+                          <tr key={index} className="border-b border-[var(--color-border)] hover:bg-gray-50">
                             <td className="p-2 text-[#404040]">
                               <div className="flex items-center space-x-2">
                                 <span>{item.code}</span>
                                 <button
                                   onClick={() => openDetailModal(item.code, `Sous-comptes de ${item.libelle}`, 'sous-comptes', item.exerciceN)}
-                                  className="p-1 hover:bg-[#525252] hover:text-white rounded transition-colors"
+                                  className="p-1 hover:bg-[var(--color-text-secondary)] hover:text-white rounded transition-colors"
                                   title={`Voir les sous-comptes de ${item.code}`}
                                 >
                                   <ChevronRight className="w-3 h-3" />
@@ -615,13 +615,13 @@ const BilanSYSCOHADAPage: React.FC = () => {
                           <td className="p-2 text-right font-bold">{formatCurrency(bilanData.passif.slice(4).reduce((s, i) => s + i.exerciceN1, 0))}</td>
                         </tr>
                         {bilanData.passif.slice(4).map((item, index) => (
-                          <tr key={index} className="border-b border-[#e5e5e5] hover:bg-gray-50">
+                          <tr key={index} className="border-b border-[var(--color-border)] hover:bg-gray-50">
                             <td className="p-2 text-[#404040]">
                               <div className="flex items-center space-x-2">
                                 <span>{item.code}</span>
                                 <button
                                   onClick={() => openDetailModal(item.code, `Sous-comptes de ${item.libelle}`, 'sous-comptes', item.exerciceN)}
-                                  className="p-1 hover:bg-[#525252] hover:text-white rounded transition-colors"
+                                  className="p-1 hover:bg-[var(--color-text-secondary)] hover:text-white rounded transition-colors"
                                   title={`Voir les sous-comptes de ${item.code}`}
                                 >
                                   <ChevronRight className="w-3 h-3" />
@@ -664,38 +664,38 @@ const BilanSYSCOHADAPage: React.FC = () => {
           {activeTab === 'compte-resultat' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-lg font-bold text-[#171717] mb-2">COMPTE DE RÉSULTAT SYSCOHADA</h2>
-                <p className="text-[#737373]">Exercice du 01/01/2024 au 31/12/2024</p>
+                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">COMPTE DE RÉSULTAT SYSCOHADA</h2>
+                <p className="text-[var(--color-text-tertiary)]">Exercice du 01/01/2024 au 31/12/2024</p>
               </div>
 
               <div className="space-y-8">
                 {/* PRODUITS EN HAUT */}
-                <div className="bg-white rounded-lg p-6 border border-[#e5e5e5]">
-                  <h3 className="text-lg font-bold text-[#171717] mb-4 text-center">PRODUITS</h3>
+                <div className="bg-white rounded-lg p-6 border border-[var(--color-border)]">
+                  <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4 text-center">PRODUITS</h3>
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm border-collapse">
                       <thead>
-                        <tr className="border-b-2 border-[#e5e5e5]">
-                          <th className="text-left p-3 text-[#171717] font-semibold">Réf</th>
-                          <th className="text-left p-3 text-[#171717] font-semibold">{t('accounting.label')}</th>
-                          <th className="text-right p-3 text-[#171717] font-semibold">Exercice N</th>
-                          <th className="text-right p-3 text-[#171717] font-semibold">Exercice N-1</th>
+                        <tr className="border-b-2 border-[var(--color-border)]">
+                          <th className="text-left p-3 text-[var(--color-primary)] font-semibold">Réf</th>
+                          <th className="text-left p-3 text-[var(--color-primary)] font-semibold">{t('accounting.label')}</th>
+                          <th className="text-right p-3 text-[var(--color-primary)] font-semibold">Exercice N</th>
+                          <th className="text-right p-3 text-[var(--color-primary)] font-semibold">Exercice N-1</th>
                         </tr>
                       </thead>
                       <tbody>
                         {compteResultatData.produits.map((item, index) => (
-                          <tr key={index} className="border-b border-[#e5e5e5]">
+                          <tr key={index} className="border-b border-[var(--color-border)]">
                             <td className="p-3 text-[#404040]">{item.code}</td>
                             <td className="p-3 text-[#404040]">{item.libelle}</td>
-                            <td className="p-3 text-right font-mono text-[#171717]">{formatCurrency(item.exerciceN)}</td>
-                            <td className="p-3 text-right font-mono text-[#171717]">{formatCurrency(item.exerciceN1)}</td>
+                            <td className="p-3 text-right font-mono text-[var(--color-primary)]">{formatCurrency(item.exerciceN)}</td>
+                            <td className="p-3 text-right font-mono text-[var(--color-primary)]">{formatCurrency(item.exerciceN1)}</td>
                           </tr>
                         ))}
-                        <tr className="border-t-2 border-[#e5e5e5] bg-gray-50">
-                          <td className="p-3 font-bold text-[#171717]">TP</td>
-                          <td className="p-3 font-bold text-[#171717]">TOTAL PRODUITS</td>
-                          <td className="p-3 text-right text-lg font-bold text-[#171717]">{formatCurrency(compteResultatData.produits.reduce((s, i) => s + i.exerciceN, 0))}</td>
-                          <td className="p-3 text-right text-lg font-bold text-[#171717]">{formatCurrency(compteResultatData.produits.reduce((s, i) => s + i.exerciceN1, 0))}</td>
+                        <tr className="border-t-2 border-[var(--color-border)] bg-gray-50">
+                          <td className="p-3 font-bold text-[var(--color-primary)]">TP</td>
+                          <td className="p-3 font-bold text-[var(--color-primary)]">TOTAL PRODUITS</td>
+                          <td className="p-3 text-right text-lg font-bold text-[var(--color-primary)]">{formatCurrency(compteResultatData.produits.reduce((s, i) => s + i.exerciceN, 0))}</td>
+                          <td className="p-3 text-right text-lg font-bold text-[var(--color-primary)]">{formatCurrency(compteResultatData.produits.reduce((s, i) => s + i.exerciceN1, 0))}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -703,32 +703,32 @@ const BilanSYSCOHADAPage: React.FC = () => {
                 </div>
 
                 {/* CHARGES EN BAS */}
-                <div className="bg-white rounded-lg p-6 border border-[#e5e5e5]">
-                  <h3 className="text-lg font-bold text-[#171717] mb-4 text-center">CHARGES</h3>
+                <div className="bg-white rounded-lg p-6 border border-[var(--color-border)]">
+                  <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4 text-center">CHARGES</h3>
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm border-collapse">
                       <thead>
-                        <tr className="border-b-2 border-[#e5e5e5]">
-                          <th className="text-left p-3 text-[#171717] font-semibold">Réf</th>
-                          <th className="text-left p-3 text-[#171717] font-semibold">{t('accounting.label')}</th>
-                          <th className="text-right p-3 text-[#171717] font-semibold">Exercice N</th>
-                          <th className="text-right p-3 text-[#171717] font-semibold">Exercice N-1</th>
+                        <tr className="border-b-2 border-[var(--color-border)]">
+                          <th className="text-left p-3 text-[var(--color-primary)] font-semibold">Réf</th>
+                          <th className="text-left p-3 text-[var(--color-primary)] font-semibold">{t('accounting.label')}</th>
+                          <th className="text-right p-3 text-[var(--color-primary)] font-semibold">Exercice N</th>
+                          <th className="text-right p-3 text-[var(--color-primary)] font-semibold">Exercice N-1</th>
                         </tr>
                       </thead>
                       <tbody>
                         {compteResultatData.charges.map((item, index) => (
-                          <tr key={index} className="border-b border-[#e5e5e5]">
+                          <tr key={index} className="border-b border-[var(--color-border)]">
                             <td className="p-3 text-[#404040]">{item.code}</td>
                             <td className="p-3 text-[#404040]">{item.libelle}</td>
-                            <td className="p-3 text-right font-mono text-[#171717]">{formatCurrency(item.exerciceN)}</td>
-                            <td className="p-3 text-right font-mono text-[#171717]">{formatCurrency(item.exerciceN1)}</td>
+                            <td className="p-3 text-right font-mono text-[var(--color-primary)]">{formatCurrency(item.exerciceN)}</td>
+                            <td className="p-3 text-right font-mono text-[var(--color-primary)]">{formatCurrency(item.exerciceN1)}</td>
                           </tr>
                         ))}
-                        <tr className="border-t-2 border-[#e5e5e5] bg-gray-50">
-                          <td className="p-3 font-bold text-[#171717]">TC</td>
-                          <td className="p-3 font-bold text-[#171717]">TOTAL CHARGES</td>
-                          <td className="p-3 text-right text-lg font-bold text-[#171717]">{formatCurrency(compteResultatData.charges.reduce((s, i) => s + i.exerciceN, 0))}</td>
-                          <td className="p-3 text-right text-lg font-bold text-[#171717]">{formatCurrency(compteResultatData.charges.reduce((s, i) => s + i.exerciceN1, 0))}</td>
+                        <tr className="border-t-2 border-[var(--color-border)] bg-gray-50">
+                          <td className="p-3 font-bold text-[var(--color-primary)]">TC</td>
+                          <td className="p-3 font-bold text-[var(--color-primary)]">TOTAL CHARGES</td>
+                          <td className="p-3 text-right text-lg font-bold text-[var(--color-primary)]">{formatCurrency(compteResultatData.charges.reduce((s, i) => s + i.exerciceN, 0))}</td>
+                          <td className="p-3 text-right text-lg font-bold text-[var(--color-primary)]">{formatCurrency(compteResultatData.charges.reduce((s, i) => s + i.exerciceN1, 0))}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -736,22 +736,22 @@ const BilanSYSCOHADAPage: React.FC = () => {
                 </div>
 
                 {/* RÉSULTAT NET */}
-                <div className="bg-white rounded-lg p-6 border-2 border-[#e5e5e5] text-center">
-                  <h3 className="text-lg font-bold text-[#171717] mb-4">RÉSULTAT NET DE L'EXERCICE</h3>
+                <div className="bg-white rounded-lg p-6 border-2 border-[var(--color-border)] text-center">
+                  <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4">RÉSULTAT NET DE L'EXERCICE</h3>
                   <div className="grid grid-cols-2 gap-6">
                     {(() => {
                       const rnN = compteResultatData.produits.reduce((s, i) => s + i.exerciceN, 0) - compteResultatData.charges.reduce((s, i) => s + i.exerciceN, 0);
                       const rnN1 = compteResultatData.produits.reduce((s, i) => s + i.exerciceN1, 0) - compteResultatData.charges.reduce((s, i) => s + i.exerciceN1, 0);
                       return (<>
-                        <div className="p-4 border border-[#e5e5e5] rounded">
-                          <p className="text-[#737373] font-medium mb-2">Exercice N</p>
+                        <div className="p-4 border border-[var(--color-border)] rounded">
+                          <p className="text-[var(--color-text-tertiary)] font-medium mb-2">Exercice N</p>
                           <p className={`text-lg font-bold ${rnN >= 0 ? 'text-green-600' : 'text-red-600'}`}>{formatCurrency(rnN)}</p>
-                          <p className="text-sm text-[#737373] mt-1">({rnN >= 0 ? 'Bénéfice' : 'Perte'})</p>
+                          <p className="text-sm text-[var(--color-text-tertiary)] mt-1">({rnN >= 0 ? 'Bénéfice' : 'Perte'})</p>
                         </div>
-                        <div className="p-4 border border-[#e5e5e5] rounded">
-                          <p className="text-[#737373] font-medium mb-2">Exercice N-1</p>
+                        <div className="p-4 border border-[var(--color-border)] rounded">
+                          <p className="text-[var(--color-text-tertiary)] font-medium mb-2">Exercice N-1</p>
                           <p className={`text-lg font-bold ${rnN1 >= 0 ? 'text-green-600' : 'text-red-600'}`}>{formatCurrency(rnN1)}</p>
-                          <p className="text-sm text-[#737373] mt-1">({rnN1 >= 0 ? 'Bénéfice' : 'Perte'})</p>
+                          <p className="text-sm text-[var(--color-text-tertiary)] mt-1">({rnN1 >= 0 ? 'Bénéfice' : 'Perte'})</p>
                         </div>
                       </>);
                     })()}
@@ -765,23 +765,23 @@ const BilanSYSCOHADAPage: React.FC = () => {
           {activeTab === 'bilan-fonctionnel' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-lg font-bold text-[#171717] mb-2">BILAN FONCTIONNEL</h2>
-                <p className="text-[#737373]">Analyse par fonction économique</p>
+                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">BILAN FONCTIONNEL</h2>
+                <p className="text-[var(--color-text-tertiary)]">Analyse par fonction économique</p>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* EMPLOIS */}
-                <div className="bg-white rounded-lg p-6 border border-[#e5e5e5]">
-                  <h3 className="text-lg font-bold text-[#171717] mb-4 text-center">EMPLOIS</h3>
+                <div className="bg-white rounded-lg p-6 border border-[var(--color-border)]">
+                  <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4 text-center">EMPLOIS</h3>
                   <div className="space-y-3">
                     {bilanFonctionnelData.emplois.map((item, index) => (
-                      <div key={index} className="flex justify-between items-center p-3 border border-[#e5e5e5] rounded hover:bg-gray-50">
+                      <div key={index} className="flex justify-between items-center p-3 border border-[var(--color-border)] rounded hover:bg-gray-50">
                         <div className="flex items-center space-x-3">
                           <div className="flex items-center space-x-2">
-                            <span className="text-[#525252] font-medium text-sm">{item.code}</span>
+                            <span className="text-[var(--color-text-secondary)] font-medium text-sm">{item.code}</span>
                             <button
                               onClick={() => openDetailModal(item.code, `Sous-comptes de ${item.libelle}`, 'sous-comptes', item.valeur)}
-                              className="p-1 hover:bg-[#525252] hover:text-white rounded transition-colors"
+                              className="p-1 hover:bg-[var(--color-text-secondary)] hover:text-white rounded transition-colors"
                               title={`Voir les sous-comptes de ${item.code}`}
                             >
                               <ChevronRight className="w-3 h-3" />
@@ -797,7 +797,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                           >
                             {formatCurrency(item.valeur)}
                           </div>
-                          <div className="text-sm text-[#737373]">{item.pourcentage}%</div>
+                          <div className="text-sm text-[var(--color-text-tertiary)]">{item.pourcentage}%</div>
                         </div>
                       </div>
                     ))}
@@ -805,17 +805,17 @@ const BilanSYSCOHADAPage: React.FC = () => {
                 </div>
 
                 {/* RESSOURCES */}
-                <div className="bg-white rounded-lg p-6 border border-[#e5e5e5]">
-                  <h3 className="text-lg font-bold text-[#171717] mb-4 text-center">RESSOURCES</h3>
+                <div className="bg-white rounded-lg p-6 border border-[var(--color-border)]">
+                  <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4 text-center">RESSOURCES</h3>
                   <div className="space-y-3">
                     {bilanFonctionnelData.ressources.map((item, index) => (
-                      <div key={index} className="flex justify-between items-center p-3 border border-[#e5e5e5] rounded hover:bg-gray-50">
+                      <div key={index} className="flex justify-between items-center p-3 border border-[var(--color-border)] rounded hover:bg-gray-50">
                         <div className="flex items-center space-x-3">
                           <div className="flex items-center space-x-2">
-                            <span className="text-[#525252] font-medium text-sm">{item.code}</span>
+                            <span className="text-[var(--color-text-secondary)] font-medium text-sm">{item.code}</span>
                             <button
                               onClick={() => openDetailModal(item.code, `Sous-comptes de ${item.libelle}`, 'sous-comptes', item.valeur)}
-                              className="p-1 hover:bg-[#525252] hover:text-white rounded transition-colors"
+                              className="p-1 hover:bg-[var(--color-text-secondary)] hover:text-white rounded transition-colors"
                               title={`Voir les sous-comptes de ${item.code}`}
                             >
                               <ChevronRight className="w-3 h-3" />
@@ -831,7 +831,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                           >
                             {formatCurrency(item.valeur)}
                           </div>
-                          <div className="text-sm text-[#737373]">{item.pourcentage}%</div>
+                          <div className="text-sm text-[var(--color-text-tertiary)]">{item.pourcentage}%</div>
                         </div>
                       </div>
                     ))}
@@ -840,8 +840,8 @@ const BilanSYSCOHADAPage: React.FC = () => {
               </div>
 
               {/* Indicateurs de l'équilibre financier */}
-              <div className="bg-white rounded-lg p-6 border border-[#e5e5e5]">
-                <h3 className="text-lg font-bold text-[#171717] mb-4">Indicateurs de l'Équilibre Financier</h3>
+              <div className="bg-white rounded-lg p-6 border border-[var(--color-border)]">
+                <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4">Indicateurs de l'Équilibre Financier</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {(() => {
                     const rs = bilanFonctionnelData.ressources.find(r => r.code === 'RS')?.valeur || 0;
@@ -852,20 +852,20 @@ const BilanSYSCOHADAPage: React.FC = () => {
                     const bfr = ace - pce;
                     const tn = frng - bfr;
                     return (<>
-                      <div className="p-4 border border-[#e5e5e5] rounded text-center">
-                        <h4 className="font-semibold text-[#171717] mb-2">Fonds de Roulement Net Global</h4>
-                        <p className={`text-lg font-bold ${frng >= 0 ? 'text-[#171717]' : 'text-red-600'}`}>{formatCurrency(frng)}</p>
-                        <p className="text-sm text-[#737373]">Ressources stables - Emplois stables</p>
+                      <div className="p-4 border border-[var(--color-border)] rounded text-center">
+                        <h4 className="font-semibold text-[var(--color-primary)] mb-2">Fonds de Roulement Net Global</h4>
+                        <p className={`text-lg font-bold ${frng >= 0 ? 'text-[var(--color-primary)]' : 'text-red-600'}`}>{formatCurrency(frng)}</p>
+                        <p className="text-sm text-[var(--color-text-tertiary)]">Ressources stables - Emplois stables</p>
                       </div>
-                      <div className="p-4 border border-[#e5e5e5] rounded text-center">
-                        <h4 className="font-semibold text-[#171717] mb-2">Besoin en Fonds de Roulement</h4>
-                        <p className={`text-lg font-bold ${bfr >= 0 ? 'text-[#171717]' : 'text-green-600'}`}>{formatCurrency(bfr)}</p>
-                        <p className="text-sm text-[#737373]">AC exploitation - PC exploitation</p>
+                      <div className="p-4 border border-[var(--color-border)] rounded text-center">
+                        <h4 className="font-semibold text-[var(--color-primary)] mb-2">Besoin en Fonds de Roulement</h4>
+                        <p className={`text-lg font-bold ${bfr >= 0 ? 'text-[var(--color-primary)]' : 'text-green-600'}`}>{formatCurrency(bfr)}</p>
+                        <p className="text-sm text-[var(--color-text-tertiary)]">AC exploitation - PC exploitation</p>
                       </div>
-                      <div className="p-4 border border-[#e5e5e5] rounded text-center">
-                        <h4 className="font-semibold text-[#171717] mb-2">Trésorerie Nette</h4>
+                      <div className="p-4 border border-[var(--color-border)] rounded text-center">
+                        <h4 className="font-semibold text-[var(--color-primary)] mb-2">Trésorerie Nette</h4>
                         <p className={`text-lg font-bold ${tn >= 0 ? 'text-green-600' : 'text-red-600'}`}>{formatCurrency(tn)}</p>
-                        <p className="text-sm text-[#737373]">FRNG - BFR</p>
+                        <p className="text-sm text-[var(--color-text-tertiary)]">FRNG - BFR</p>
                       </div>
                     </>);
                   })()}
@@ -878,11 +878,11 @@ const BilanSYSCOHADAPage: React.FC = () => {
           {activeTab === 'sig' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-lg font-bold text-[#171717] mb-2">SOLDES INTERMÉDIAIRES DE GESTION</h2>
-                <p className="text-[#737373]">Analyse de la formation du résultat</p>
+                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">SOLDES INTERMÉDIAIRES DE GESTION</h2>
+                <p className="text-[var(--color-text-tertiary)]">Analyse de la formation du résultat</p>
               </div>
 
-              <div className="bg-white rounded-lg border border-[#e5e5e5] overflow-hidden">
+              <div className="bg-white rounded-lg border border-[var(--color-border)] overflow-hidden">
                 <table className="w-full">
                   <thead className="bg-gray-50">
                     <tr>
@@ -894,10 +894,10 @@ const BilanSYSCOHADAPage: React.FC = () => {
                   </thead>
                   <tbody>
                     {sigData.map((sig, index) => (
-                      <tr key={index} className={`border-b border-[#e5e5e5] ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}>
-                        <td className="p-4 font-medium text-[#171717]">{sig.libelle}</td>
-                        <td className="p-4 text-right font-mono text-[#171717]">{formatCurrency(sig.exerciceN)}</td>
-                        <td className="p-4 text-right font-mono text-[#737373]">{formatCurrency(sig.exerciceN1)}</td>
+                      <tr key={index} className={`border-b border-[var(--color-border)] ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}>
+                        <td className="p-4 font-medium text-[var(--color-primary)]">{sig.libelle}</td>
+                        <td className="p-4 text-right font-mono text-[var(--color-primary)]">{formatCurrency(sig.exerciceN)}</td>
+                        <td className="p-4 text-right font-mono text-[var(--color-text-tertiary)]">{formatCurrency(sig.exerciceN1)}</td>
                         <td className={`p-4 text-right font-medium ${sig.variation.startsWith('+') ? 'text-green-600' : 'text-red-600'}`}>
                           {sig.variation}
                         </td>
@@ -916,20 +916,20 @@ const BilanSYSCOHADAPage: React.FC = () => {
                   const prodEx = sigData.find(s => s.libelle.includes('Production'))?.exerciceN || 1;
                   const ventesMarc = creditNet(['701']);
                   return (<>
-                    <div className="bg-white rounded-lg p-4 border border-[#e5e5e5]">
-                      <h4 className="font-bold text-[#171717] mb-2">Taux de marge commerciale</h4>
-                      <p className="text-lg font-bold text-[#171717]">{ventesMarc > 0 ? (mc / ventesMarc * 100).toFixed(1) : '0.0'}%</p>
-                      <p className="text-sm text-[#737373]">Marge / CA marchandises</p>
+                    <div className="bg-white rounded-lg p-4 border border-[var(--color-border)]">
+                      <h4 className="font-bold text-[var(--color-primary)] mb-2">Taux de marge commerciale</h4>
+                      <p className="text-lg font-bold text-[var(--color-primary)]">{ventesMarc > 0 ? (mc / ventesMarc * 100).toFixed(1) : '0.0'}%</p>
+                      <p className="text-sm text-[var(--color-text-tertiary)]">Marge / CA marchandises</p>
                     </div>
-                    <div className="bg-white rounded-lg p-4 border border-[#e5e5e5]">
-                      <h4 className="font-bold text-[#171717] mb-2">Taux de valeur ajoutée</h4>
-                      <p className="text-lg font-bold text-[#171717]">{prodEx > 0 ? (va / prodEx * 100).toFixed(1) : '0.0'}%</p>
-                      <p className="text-sm text-[#737373]">VA / Production</p>
+                    <div className="bg-white rounded-lg p-4 border border-[var(--color-border)]">
+                      <h4 className="font-bold text-[var(--color-primary)] mb-2">Taux de valeur ajoutée</h4>
+                      <p className="text-lg font-bold text-[var(--color-primary)]">{prodEx > 0 ? (va / prodEx * 100).toFixed(1) : '0.0'}%</p>
+                      <p className="text-sm text-[var(--color-text-tertiary)]">VA / Production</p>
                     </div>
-                    <div className="bg-white rounded-lg p-4 border border-[#e5e5e5]">
-                      <h4 className="font-bold text-[#171717] mb-2">Taux de rentabilité</h4>
-                      <p className="text-lg font-bold text-[#171717]">{ca > 0 ? (rn / ca * 100).toFixed(1) : '0.0'}%</p>
-                      <p className="text-sm text-[#737373]">Résultat / CA total</p>
+                    <div className="bg-white rounded-lg p-4 border border-[var(--color-border)]">
+                      <h4 className="font-bold text-[var(--color-primary)] mb-2">Taux de rentabilité</h4>
+                      <p className="text-lg font-bold text-[var(--color-primary)]">{ca > 0 ? (rn / ca * 100).toFixed(1) : '0.0'}%</p>
+                      <p className="text-sm text-[var(--color-text-tertiary)]">Résultat / CA total</p>
                     </div>
                   </>);
                 })()}
@@ -941,14 +941,14 @@ const BilanSYSCOHADAPage: React.FC = () => {
           {activeTab === 'ratios' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-lg font-bold text-[#171717] mb-2">RATIOS FINANCIERS</h2>
-                <p className="text-[#737373]">Analyse de la situation financière</p>
+                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">RATIOS FINANCIERS</h2>
+                <p className="text-[var(--color-text-tertiary)]">Analyse de la situation financière</p>
               </div>
 
               {ratiosData.map((categorie, catIndex) => (
-                <div key={catIndex} className="bg-white rounded-lg border border-[#e5e5e5] overflow-hidden">
+                <div key={catIndex} className="bg-white rounded-lg border border-[var(--color-border)] overflow-hidden">
                   <div className="bg-gray-50 p-4">
-                    <h3 className="text-lg font-bold text-[#171717]">{categorie.categorie}</h3>
+                    <h3 className="text-lg font-bold text-[var(--color-primary)]">{categorie.categorie}</h3>
                   </div>
                   <div className="overflow-x-auto">
                     <table className="w-full">
@@ -963,13 +963,13 @@ const BilanSYSCOHADAPage: React.FC = () => {
                       </thead>
                       <tbody>
                         {categorie.ratios.map((ratio, ratioIndex) => (
-                          <tr key={ratioIndex} className="border-b border-[#e5e5e5]">
-                            <td className="p-4 font-medium text-[#171717]">{ratio.nom}</td>
-                            <td className="p-4 text-[#737373] text-sm">{ratio.calcul}</td>
-                            <td className="p-4 text-right font-mono text-[#171717]">
+                          <tr key={ratioIndex} className="border-b border-[var(--color-border)]">
+                            <td className="p-4 font-medium text-[var(--color-primary)]">{ratio.nom}</td>
+                            <td className="p-4 text-[var(--color-text-tertiary)] text-sm">{ratio.calcul}</td>
+                            <td className="p-4 text-right font-mono text-[var(--color-primary)]">
                               {ratio.valeur < 1 ? ratio.valeur.toFixed(3) : ratio.valeur.toFixed(2)}
                             </td>
-                            <td className="p-4 text-center text-[#737373]">{ratio.norme}</td>
+                            <td className="p-4 text-center text-[var(--color-text-tertiary)]">{ratio.norme}</td>
                             <td className="p-4 text-center">
                               <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                                 ratio.status === 'excellent' ? 'bg-green-100 text-green-800' :
@@ -994,32 +994,32 @@ const BilanSYSCOHADAPage: React.FC = () => {
           {activeTab === 'tableau-financement' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-lg font-bold text-[#171717] mb-2">TABLEAU DE FINANCEMENT SYSCOHADA</h2>
-                <p className="text-[#737373]">Analyse des ressources et emplois de fonds</p>
+                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">TABLEAU DE FINANCEMENT SYSCOHADA</h2>
+                <p className="text-[var(--color-text-tertiary)]">Analyse des ressources et emplois de fonds</p>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* EMPLOIS */}
-                <div className="bg-white rounded-lg p-6 border border-[#e5e5e5]">
-                  <h3 className="text-lg font-bold text-[#171717] mb-4 text-center">EMPLOIS</h3>
+                <div className="bg-white rounded-lg p-6 border border-[var(--color-border)]">
+                  <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4 text-center">EMPLOIS</h3>
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm border-collapse">
                       <thead>
-                        <tr className="border-b border-[#e5e5e5]">
-                          <th className="text-left p-3 text-[#171717] font-semibold">Réf</th>
-                          <th className="text-left p-3 text-[#171717] font-semibold">{t('accounting.label')}</th>
-                          <th className="text-right p-3 text-[#171717] font-semibold">Montant</th>
+                        <tr className="border-b border-[var(--color-border)]">
+                          <th className="text-left p-3 text-[var(--color-primary)] font-semibold">Réf</th>
+                          <th className="text-left p-3 text-[var(--color-primary)] font-semibold">{t('accounting.label')}</th>
+                          <th className="text-right p-3 text-[var(--color-primary)] font-semibold">Montant</th>
                         </tr>
                       </thead>
                       <tbody>
                         {tableauFinancementData.emplois.map((item, index) => (
-                          <tr key={index} className="border-b border-[#e5e5e5] hover:bg-gray-50">
+                          <tr key={index} className="border-b border-[var(--color-border)] hover:bg-gray-50">
                             <td className="p-3 text-[#404040]">
                               <div className="flex items-center space-x-2">
                                 <span>{item.code}</span>
                                 <button
                                   onClick={() => openDetailModal(item.code, `Sous-comptes de ${item.libelle}`, 'sous-comptes', item.montant)}
-                                  className="p-1 hover:bg-[#525252] hover:text-white rounded transition-colors"
+                                  className="p-1 hover:bg-[var(--color-text-secondary)] hover:text-white rounded transition-colors"
                                   title={`Voir les sous-comptes de ${item.code}`}
                                 >
                                   <ChevronRight className="w-3 h-3" />
@@ -1028,7 +1028,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                             </td>
                             <td className="p-3 text-[#404040]">{item.libelle}</td>
                             <td
-                              className="p-3 text-right font-mono text-[#171717] hover:bg-blue-50 cursor-pointer"
+                              className="p-3 text-right font-mono text-[var(--color-primary)] hover:bg-blue-50 cursor-pointer"
                               onClick={() => openDetailModal(item.code, item.libelle, 'exerciceN', item.montant)}
                               title="Cliquer pour voir les transactions"
                             >
@@ -1036,10 +1036,10 @@ const BilanSYSCOHADAPage: React.FC = () => {
                             </td>
                           </tr>
                         ))}
-                        <tr className="border-t-2 border-[#e5e5e5] bg-gray-50">
+                        <tr className="border-t-2 border-[var(--color-border)] bg-gray-50">
                           <td className="p-3"></td>
-                          <td className="p-3 font-bold text-[#171717]">TOTAL EMPLOIS</td>
-                          <td className="p-3 text-right text-lg font-bold text-[#171717]">{formatCurrency(tableauFinancementData.emplois.reduce((s, i) => s + i.montant, 0))}</td>
+                          <td className="p-3 font-bold text-[var(--color-primary)]">TOTAL EMPLOIS</td>
+                          <td className="p-3 text-right text-lg font-bold text-[var(--color-primary)]">{formatCurrency(tableauFinancementData.emplois.reduce((s, i) => s + i.montant, 0))}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -1047,26 +1047,26 @@ const BilanSYSCOHADAPage: React.FC = () => {
                 </div>
 
                 {/* RESSOURCES */}
-                <div className="bg-white rounded-lg p-6 border border-[#e5e5e5]">
-                  <h3 className="text-lg font-bold text-[#171717] mb-4 text-center">RESSOURCES</h3>
+                <div className="bg-white rounded-lg p-6 border border-[var(--color-border)]">
+                  <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4 text-center">RESSOURCES</h3>
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm border-collapse">
                       <thead>
-                        <tr className="border-b border-[#e5e5e5]">
-                          <th className="text-left p-3 text-[#171717] font-semibold">Réf</th>
-                          <th className="text-left p-3 text-[#171717] font-semibold">{t('accounting.label')}</th>
-                          <th className="text-right p-3 text-[#171717] font-semibold">Montant</th>
+                        <tr className="border-b border-[var(--color-border)]">
+                          <th className="text-left p-3 text-[var(--color-primary)] font-semibold">Réf</th>
+                          <th className="text-left p-3 text-[var(--color-primary)] font-semibold">{t('accounting.label')}</th>
+                          <th className="text-right p-3 text-[var(--color-primary)] font-semibold">Montant</th>
                         </tr>
                       </thead>
                       <tbody>
                         {tableauFinancementData.ressources.map((item, index) => (
-                          <tr key={index} className="border-b border-[#e5e5e5] hover:bg-gray-50">
+                          <tr key={index} className="border-b border-[var(--color-border)] hover:bg-gray-50">
                             <td className="p-3 text-[#404040]">
                               <div className="flex items-center space-x-2">
                                 <span>{item.code}</span>
                                 <button
                                   onClick={() => openDetailModal(item.code, `Sous-comptes de ${item.libelle}`, 'sous-comptes', item.montant)}
-                                  className="p-1 hover:bg-[#525252] hover:text-white rounded transition-colors"
+                                  className="p-1 hover:bg-[var(--color-text-secondary)] hover:text-white rounded transition-colors"
                                   title={`Voir les sous-comptes de ${item.code}`}
                                 >
                                   <ChevronRight className="w-3 h-3" />
@@ -1075,7 +1075,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                             </td>
                             <td className="p-3 text-[#404040]">{item.libelle}</td>
                             <td
-                              className="p-3 text-right font-mono text-[#171717] hover:bg-blue-50 cursor-pointer"
+                              className="p-3 text-right font-mono text-[var(--color-primary)] hover:bg-blue-50 cursor-pointer"
                               onClick={() => openDetailModal(item.code, item.libelle, 'exerciceN', item.montant)}
                               title="Cliquer pour voir les transactions"
                             >
@@ -1083,10 +1083,10 @@ const BilanSYSCOHADAPage: React.FC = () => {
                             </td>
                           </tr>
                         ))}
-                        <tr className="border-t-2 border-[#e5e5e5] bg-gray-50">
+                        <tr className="border-t-2 border-[var(--color-border)] bg-gray-50">
                           <td className="p-3"></td>
-                          <td className="p-3 font-bold text-[#171717]">TOTAL RESSOURCES</td>
-                          <td className="p-3 text-right text-lg font-bold text-[#171717]">{formatCurrency(tableauFinancementData.ressources.reduce((s, i) => s + i.montant, 0))}</td>
+                          <td className="p-3 font-bold text-[var(--color-primary)]">TOTAL RESSOURCES</td>
+                          <td className="p-3 text-right text-lg font-bold text-[var(--color-primary)]">{formatCurrency(tableauFinancementData.ressources.reduce((s, i) => s + i.montant, 0))}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -1095,18 +1095,18 @@ const BilanSYSCOHADAPage: React.FC = () => {
               </div>
 
               {/* Variation du Fonds de Roulement */}
-              <div className="bg-white rounded-lg p-6 border-2 border-[#e5e5e5] text-center">
-                <h3 className="text-lg font-bold text-[#171717] mb-4">VARIATION DU FONDS DE ROULEMENT NET GLOBAL</h3>
+              <div className="bg-white rounded-lg p-6 border-2 border-[var(--color-border)] text-center">
+                <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4">VARIATION DU FONDS DE ROULEMENT NET GLOBAL</h3>
                 <div className="flex justify-center">
-                  <div className="p-6 border border-[#e5e5e5] rounded-lg">
+                  <div className="p-6 border border-[var(--color-border)] rounded-lg">
                     {(() => {
                       const totalRessources = tableauFinancementData.ressources.reduce((s, i) => s + i.montant, 0);
                       const totalEmplois = tableauFinancementData.emplois.reduce((s, i) => s + i.montant, 0);
                       const variation = totalRessources - totalEmplois;
                       return (<>
-                        <p className="text-[#737373] font-medium mb-2">Ressources - Emplois</p>
+                        <p className="text-[var(--color-text-tertiary)] font-medium mb-2">Ressources - Emplois</p>
                         <p className={`text-lg font-bold ${variation >= 0 ? 'text-green-600' : 'text-red-600'}`}>{variation >= 0 ? '+' : ''}{formatCurrency(variation)}</p>
-                        <p className="text-sm text-[#737373] mt-2">{variation >= 0 ? 'Augmentation' : 'Diminution'} du fonds de roulement</p>
+                        <p className="text-sm text-[var(--color-text-tertiary)] mt-2">{variation >= 0 ? 'Augmentation' : 'Diminution'} du fonds de roulement</p>
                       </>);
                     })()}
                   </div>
@@ -1119,15 +1119,15 @@ const BilanSYSCOHADAPage: React.FC = () => {
           {activeTab === 'flux-tresorerie' && (
             <div className="space-y-6">
               <div className="text-center mb-4">
-                <h2 className="text-lg font-bold text-[#171717] mb-2">TABLEAU DE FLUX DE TRÉSORERIE</h2>
-                <p className="text-[#737373]">Flux de trésorerie par activité selon SYSCOHADA</p>
+                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">TABLEAU DE FLUX DE TRÉSORERIE</h2>
+                <p className="text-[var(--color-text-tertiary)]">Flux de trésorerie par activité selon SYSCOHADA</p>
               </div>
 
               {/* Sous-onglets Méthode Indirecte / Directe */}
               <div className="flex justify-center">
                 <div className="inline-flex bg-gray-100 rounded-lg p-1">
-                  <button onClick={() => setTftMethod('indirect')} className={`px-5 py-2.5 text-sm font-semibold rounded-md transition-all ${tftMethod === 'indirect' ? 'bg-white text-[#171717] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>Méthode Indirecte</button>
-                  <button onClick={() => setTftMethod('direct')} className={`px-5 py-2.5 text-sm font-semibold rounded-md transition-all ${tftMethod === 'direct' ? 'bg-white text-[#171717] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>Méthode Directe</button>
+                  <button onClick={() => setTftMethod('indirect')} className={`px-5 py-2.5 text-sm font-semibold rounded-md transition-all ${tftMethod === 'indirect' ? 'bg-white text-[var(--color-primary)] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>Méthode Indirecte</button>
+                  <button onClick={() => setTftMethod('direct')} className={`px-5 py-2.5 text-sm font-semibold rounded-md transition-all ${tftMethod === 'direct' ? 'bg-white text-[var(--color-primary)] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>Méthode Directe</button>
                 </div>
               </div>
 
@@ -1135,15 +1135,15 @@ const BilanSYSCOHADAPage: React.FC = () => {
               {tftMethod === 'indirect' && (
               <div className="space-y-6">
                 {/* ACTIVITÉS OPÉRATIONNELLES */}
-                <div className="bg-white rounded-lg p-6 border border-[#e5e5e5]">
-                  <h3 className="text-lg font-bold text-[#171717] mb-4">FLUX DE TRÉSORERIE DES ACTIVITÉS OPÉRATIONNELLES</h3>
+                <div className="bg-white rounded-lg p-6 border border-[var(--color-border)]">
+                  <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4">FLUX DE TRÉSORERIE DES ACTIVITÉS OPÉRATIONNELLES</h3>
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm border-collapse">
                       <thead>
-                        <tr className="border-b border-[#e5e5e5]">
-                          <th className="text-left p-3 text-[#171717] font-semibold">Réf</th>
-                          <th className="text-left p-3 text-[#171717] font-semibold">{t('accounting.label')}</th>
-                          <th className="text-right p-3 text-[#171717] font-semibold">Montant</th>
+                        <tr className="border-b border-[var(--color-border)]">
+                          <th className="text-left p-3 text-[var(--color-primary)] font-semibold">Réf</th>
+                          <th className="text-left p-3 text-[var(--color-primary)] font-semibold">{t('accounting.label')}</th>
+                          <th className="text-right p-3 text-[var(--color-primary)] font-semibold">Montant</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1155,7 +1155,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                           const details = isExpanded ? rawEntries.filter(e => e.lines?.some((l: any) => pfx.some(p => l.accountCode.startsWith(p)))).slice(0, 20).map(e => ({ ref: e.entryNumber || e.id?.substring(0, 8), date: e.date, label: e.label, journal: e.journal, amount: e.lines.filter((l: any) => pfx.some(p => l.accountCode.startsWith(p))).reduce((s: number, l: any) => s + l.debit - l.credit, 0) })) : [];
                           return (
                           <React.Fragment key={index}>
-                          <tr className="border-b border-[#e5e5e5] hover:bg-gray-50 cursor-pointer" onClick={() => setTftExpandedRows(prev => { const s = new Set(prev); s.has(rowKey) ? s.delete(rowKey) : s.add(rowKey); return s; })}>
+                          <tr className="border-b border-[var(--color-border)] hover:bg-gray-50 cursor-pointer" onClick={() => setTftExpandedRows(prev => { const s = new Set(prev); s.has(rowKey) ? s.delete(rowKey) : s.add(rowKey); return s; })}>
                             <td className="p-3 text-[#404040]">
                               <div className="flex items-center space-x-2">
                                 <span>{item.code}</span>
@@ -1163,7 +1163,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                               </div>
                             </td>
                             <td className="p-3 text-[#404040]">{item.libelle}</td>
-                            <td className={`p-3 text-right font-mono ${item.montant >= 0 ? 'text-[#171717]' : 'text-red-600'}`}>
+                            <td className={`p-3 text-right font-mono ${item.montant >= 0 ? 'text-[var(--color-primary)]' : 'text-red-600'}`}>
                               {item.montant >= 0 ? '' : '('}{formatCurrency(Math.abs(item.montant))}{item.montant >= 0 ? '' : ')'}
                             </td>
                           </tr>
@@ -1178,10 +1178,10 @@ const BilanSYSCOHADAPage: React.FC = () => {
                           </React.Fragment>
                           );
                         })}
-                        <tr className="border-t-2 border-[#e5e5e5] bg-gray-50">
+                        <tr className="border-t-2 border-[var(--color-border)] bg-gray-50">
                           <td className="p-3"></td>
-                          <td className="p-3 font-bold text-[#171717]">FLUX NET DE TRÉSORERIE DES ACTIVITÉS OPÉRATIONNELLES</td>
-                          {(() => { const total = fluxTresorerieData.activitesOperationnelles.reduce((s, i) => s + i.montant, 0); return <td className={`p-3 text-right text-lg font-bold ${total >= 0 ? 'text-[#171717]' : 'text-red-600'}`}>{total >= 0 ? '' : '('}{formatCurrency(Math.abs(total))}{total >= 0 ? '' : ')'}</td>; })()}
+                          <td className="p-3 font-bold text-[var(--color-primary)]">FLUX NET DE TRÉSORERIE DES ACTIVITÉS OPÉRATIONNELLES</td>
+                          {(() => { const total = fluxTresorerieData.activitesOperationnelles.reduce((s, i) => s + i.montant, 0); return <td className={`p-3 text-right text-lg font-bold ${total >= 0 ? 'text-[var(--color-primary)]' : 'text-red-600'}`}>{total >= 0 ? '' : '('}{formatCurrency(Math.abs(total))}{total >= 0 ? '' : ')'}</td>; })()}
                         </tr>
                       </tbody>
                     </table>
@@ -1189,15 +1189,15 @@ const BilanSYSCOHADAPage: React.FC = () => {
                 </div>
 
                 {/* ACTIVITÉS D'INVESTISSEMENT */}
-                <div className="bg-white rounded-lg p-6 border border-[#e5e5e5]">
-                  <h3 className="text-lg font-bold text-[#171717] mb-4">FLUX DE TRÉSORERIE DES ACTIVITÉS D'INVESTISSEMENT</h3>
+                <div className="bg-white rounded-lg p-6 border border-[var(--color-border)]">
+                  <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4">FLUX DE TRÉSORERIE DES ACTIVITÉS D'INVESTISSEMENT</h3>
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm border-collapse">
                       <thead>
-                        <tr className="border-b border-[#e5e5e5]">
-                          <th className="text-left p-3 text-[#171717] font-semibold">Réf</th>
-                          <th className="text-left p-3 text-[#171717] font-semibold">{t('accounting.label')}</th>
-                          <th className="text-right p-3 text-[#171717] font-semibold">Montant</th>
+                        <tr className="border-b border-[var(--color-border)]">
+                          <th className="text-left p-3 text-[var(--color-primary)] font-semibold">Réf</th>
+                          <th className="text-left p-3 text-[var(--color-primary)] font-semibold">{t('accounting.label')}</th>
+                          <th className="text-right p-3 text-[var(--color-primary)] font-semibold">Montant</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1209,7 +1209,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                           const details = isExpanded ? rawEntries.filter(e => e.lines?.some((l: any) => pfx.some(p => l.accountCode.startsWith(p)))).slice(0, 20).map(e => ({ ref: e.entryNumber || e.id?.substring(0, 8), date: e.date, label: e.label, journal: e.journal, amount: e.lines.filter((l: any) => pfx.some(p => l.accountCode.startsWith(p))).reduce((s: number, l: any) => s + l.debit - l.credit, 0) })) : [];
                           return (
                           <React.Fragment key={index}>
-                          <tr className="border-b border-[#e5e5e5] hover:bg-gray-50 cursor-pointer" onClick={() => setTftExpandedRows(prev => { const s = new Set(prev); s.has(rowKey) ? s.delete(rowKey) : s.add(rowKey); return s; })}>
+                          <tr className="border-b border-[var(--color-border)] hover:bg-gray-50 cursor-pointer" onClick={() => setTftExpandedRows(prev => { const s = new Set(prev); s.has(rowKey) ? s.delete(rowKey) : s.add(rowKey); return s; })}>
                             <td className="p-3 text-[#404040]">
                               <div className="flex items-center space-x-2">
                                 <span>{item.code}</span>
@@ -1217,7 +1217,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                               </div>
                             </td>
                             <td className="p-3 text-[#404040]">{item.libelle}</td>
-                            <td className={`p-3 text-right font-mono ${item.montant >= 0 ? 'text-[#171717]' : 'text-red-600'}`}>
+                            <td className={`p-3 text-right font-mono ${item.montant >= 0 ? 'text-[var(--color-primary)]' : 'text-red-600'}`}>
                               {item.montant >= 0 ? '' : '('}{formatCurrency(Math.abs(item.montant))}{item.montant >= 0 ? '' : ')'}
                             </td>
                           </tr>
@@ -1232,10 +1232,10 @@ const BilanSYSCOHADAPage: React.FC = () => {
                           </React.Fragment>
                           );
                         })}
-                        <tr className="border-t-2 border-[#e5e5e5] bg-gray-50">
+                        <tr className="border-t-2 border-[var(--color-border)] bg-gray-50">
                           <td className="p-3"></td>
-                          <td className="p-3 font-bold text-[#171717]">FLUX NET DE TRÉSORERIE DES ACTIVITÉS D'INVESTISSEMENT</td>
-                          {(() => { const total = fluxTresorerieData.activitesInvestissement.reduce((s, i) => s + i.montant, 0); return <td className={`p-3 text-right text-lg font-bold ${total >= 0 ? 'text-[#171717]' : 'text-red-600'}`}>{total >= 0 ? '' : '('}{formatCurrency(Math.abs(total))}{total >= 0 ? '' : ')'}</td>; })()}
+                          <td className="p-3 font-bold text-[var(--color-primary)]">FLUX NET DE TRÉSORERIE DES ACTIVITÉS D'INVESTISSEMENT</td>
+                          {(() => { const total = fluxTresorerieData.activitesInvestissement.reduce((s, i) => s + i.montant, 0); return <td className={`p-3 text-right text-lg font-bold ${total >= 0 ? 'text-[var(--color-primary)]' : 'text-red-600'}`}>{total >= 0 ? '' : '('}{formatCurrency(Math.abs(total))}{total >= 0 ? '' : ')'}</td>; })()}
                         </tr>
                       </tbody>
                     </table>
@@ -1243,14 +1243,14 @@ const BilanSYSCOHADAPage: React.FC = () => {
                 </div>
 
                 {/* ACTIVITÉS DE FINANCEMENT */}
-                <div className="bg-white rounded-lg p-6 border border-[#e5e5e5]">
-                  <h3 className="text-lg font-bold text-[#171717] mb-4">FLUX DE TRÉSORERIE DES ACTIVITÉS DE FINANCEMENT</h3>
+                <div className="bg-white rounded-lg p-6 border border-[var(--color-border)]">
+                  <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4">FLUX DE TRÉSORERIE DES ACTIVITÉS DE FINANCEMENT</h3>
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm border-collapse">
                       <thead>
-                        <tr className="border-b border-[#e5e5e5]">
-                          <th className="text-left p-3 text-[#171717] font-semibold">{t('accounting.label')}</th>
-                          <th className="text-right p-3 text-[#171717] font-semibold">Montant</th>
+                        <tr className="border-b border-[var(--color-border)]">
+                          <th className="text-left p-3 text-[var(--color-primary)] font-semibold">{t('accounting.label')}</th>
+                          <th className="text-right p-3 text-[var(--color-primary)] font-semibold">Montant</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1262,14 +1262,14 @@ const BilanSYSCOHADAPage: React.FC = () => {
                           const details = isExpanded ? rawEntries.filter(e => e.lines?.some((l: any) => pfx.some(p => l.accountCode.startsWith(p)))).slice(0, 20).map(e => ({ ref: e.entryNumber || e.id?.substring(0, 8), date: e.date, label: e.label, journal: e.journal, amount: e.lines.filter((l: any) => pfx.some(p => l.accountCode.startsWith(p))).reduce((s: number, l: any) => s + l.debit - l.credit, 0) })) : [];
                           return (
                           <React.Fragment key={index}>
-                          <tr className="border-b border-[#e5e5e5] hover:bg-gray-50 cursor-pointer" onClick={() => setTftExpandedRows(prev => { const s = new Set(prev); s.has(rowKey) ? s.delete(rowKey) : s.add(rowKey); return s; })}>
+                          <tr className="border-b border-[var(--color-border)] hover:bg-gray-50 cursor-pointer" onClick={() => setTftExpandedRows(prev => { const s = new Set(prev); s.has(rowKey) ? s.delete(rowKey) : s.add(rowKey); return s; })}>
                             <td className="p-3 text-[#404040]">
                               <div className="flex items-center space-x-2">
                                 {isExpanded ? <ChevronDown className="w-3 h-3 text-blue-500" /> : <ChevronRight className="w-3 h-3 text-gray-400" />}
                                 <span>{item.libelle}</span>
                               </div>
                             </td>
-                            <td className={`p-3 text-right font-mono ${item.montant >= 0 ? 'text-[#171717]' : 'text-red-600'}`}>
+                            <td className={`p-3 text-right font-mono ${item.montant >= 0 ? 'text-[var(--color-primary)]' : 'text-red-600'}`}>
                               {item.montant >= 0 ? '' : '('}{formatCurrency(Math.abs(item.montant))}{item.montant >= 0 ? '' : ')'}
                             </td>
                           </tr>
@@ -1283,9 +1283,9 @@ const BilanSYSCOHADAPage: React.FC = () => {
                           </React.Fragment>
                           );
                         })}
-                        <tr className="border-t-2 border-[#e5e5e5] bg-gray-50">
-                          <td className="p-3 font-bold text-[#171717]">FLUX NET DE TRÉSORERIE DES ACTIVITÉS DE FINANCEMENT</td>
-                          {(() => { const total = fluxTresorerieData.activitesFinancement.reduce((s, i) => s + i.montant, 0); return <td className={`p-3 text-right text-lg font-bold ${total >= 0 ? 'text-[#171717]' : 'text-red-600'}`}>{total >= 0 ? '' : '('}{formatCurrency(Math.abs(total))}{total >= 0 ? '' : ')'}</td>; })()}
+                        <tr className="border-t-2 border-[var(--color-border)] bg-gray-50">
+                          <td className="p-3 font-bold text-[var(--color-primary)]">FLUX NET DE TRÉSORERIE DES ACTIVITÉS DE FINANCEMENT</td>
+                          {(() => { const total = fluxTresorerieData.activitesFinancement.reduce((s, i) => s + i.montant, 0); return <td className={`p-3 text-right text-lg font-bold ${total >= 0 ? 'text-[var(--color-primary)]' : 'text-red-600'}`}>{total >= 0 ? '' : '('}{formatCurrency(Math.abs(total))}{total >= 0 ? '' : ')'}</td>; })()}
                         </tr>
                       </tbody>
                     </table>
@@ -1293,8 +1293,8 @@ const BilanSYSCOHADAPage: React.FC = () => {
                 </div>
 
                 {/* VARIATION NETTE DE TRÉSORERIE */}
-                <div className="bg-white rounded-lg p-6 border-2 border-[#e5e5e5]">
-                  <h3 className="text-lg font-bold text-[#171717] mb-4 text-center">VARIATION NETTE DE LA TRÉSORERIE</h3>
+                <div className="bg-white rounded-lg p-6 border-2 border-[var(--color-border)]">
+                  <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4 text-center">VARIATION NETTE DE LA TRÉSORERIE</h3>
                   {(() => {
                     const fluxOp = fluxTresorerieData.activitesOperationnelles.reduce((s, i) => s + i.montant, 0);
                     const fluxInv = fluxTresorerieData.activitesInvestissement.reduce((s, i) => s + i.montant, 0);
@@ -1304,17 +1304,17 @@ const BilanSYSCOHADAPage: React.FC = () => {
                     const tresoDebut = tresoFin - variation;
                     return (
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-                        <div className="p-4 border border-[#e5e5e5] rounded">
-                          <p className="text-[#737373] font-medium mb-2">Trésorerie début d'exercice</p>
-                          <p className="text-lg font-bold text-[#171717]">{formatCurrency(tresoDebut)}</p>
+                        <div className="p-4 border border-[var(--color-border)] rounded">
+                          <p className="text-[var(--color-text-tertiary)] font-medium mb-2">Trésorerie début d'exercice</p>
+                          <p className="text-lg font-bold text-[var(--color-primary)]">{formatCurrency(tresoDebut)}</p>
                         </div>
-                        <div className="p-4 border border-[#e5e5e5] rounded">
-                          <p className="text-[#737373] font-medium mb-2">Variation nette</p>
+                        <div className="p-4 border border-[var(--color-border)] rounded">
+                          <p className="text-[var(--color-text-tertiary)] font-medium mb-2">Variation nette</p>
                           <p className={`text-lg font-bold ${variation >= 0 ? 'text-green-600' : 'text-red-600'}`}>{variation >= 0 ? '+' : ''}{formatCurrency(variation)}</p>
                         </div>
-                        <div className="p-4 border border-[#e5e5e5] rounded">
-                          <p className="text-[#737373] font-medium mb-2">Trésorerie fin d'exercice</p>
-                          <p className="text-lg font-bold text-[#171717]">{formatCurrency(tresoFin)}</p>
+                        <div className="p-4 border border-[var(--color-border)] rounded">
+                          <p className="text-[var(--color-text-tertiary)] font-medium mb-2">Trésorerie fin d'exercice</p>
+                          <p className="text-lg font-bold text-[var(--color-primary)]">{formatCurrency(tresoFin)}</p>
                         </div>
                       </div>
                     );
@@ -1360,10 +1360,10 @@ const BilanSYSCOHADAPage: React.FC = () => {
                   'enc-capital': ['10'], 'enc-emprunts': ['16'], 'remb-emprunts': ['16'], 'div-verses': ['465'],
                 };
                 const DirectSection = ({ title, rows, total, totalLabel }: { title: string; rows: { key: string; label: string; value: number }[]; total: number; totalLabel: string }) => (
-                  <div className="bg-white rounded-lg p-6 border border-[#e5e5e5]">
-                    <h3 className="text-lg font-bold text-[#171717] mb-4">{title}</h3>
+                  <div className="bg-white rounded-lg p-6 border border-[var(--color-border)]">
+                    <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4">{title}</h3>
                     <table className="w-full text-sm">
-                      <thead><tr className="border-b border-[#e5e5e5]"><th className="text-left p-3 font-semibold text-[#171717]">{t('accounting.label')}</th><th className="text-right p-3 font-semibold text-[#171717]">Montant</th></tr></thead>
+                      <thead><tr className="border-b border-[var(--color-border)]"><th className="text-left p-3 font-semibold text-[var(--color-primary)]">{t('accounting.label')}</th><th className="text-right p-3 font-semibold text-[var(--color-primary)]">Montant</th></tr></thead>
                       <tbody>
                         {rows.map((r) => {
                           const rowKey = `d-${r.key}`;
@@ -1372,14 +1372,14 @@ const BilanSYSCOHADAPage: React.FC = () => {
                           const dets = isExp && pfx.length > 0 ? rawEntries.filter(e => { if (e.journal === 'AN' || e.journal === 'RAN') return false; const hasCash = e.lines?.some((l: any) => l.accountCode.startsWith('5')); const hasP = e.lines?.some((l: any) => pfx.some(p => l.accountCode.startsWith(p))); return hasCash && hasP; }).slice(0, 20).map(e => { let cd = 0, cc = 0; for (const l of e.lines) if (l.accountCode.startsWith('5')) { cd += l.debit; cc += l.credit; } return { ref: e.entryNumber || e.id?.substring(0, 8), date: e.date, label: e.label, journal: e.journal, amount: cd - cc }; }) : [];
                           return (
                           <React.Fragment key={r.key}>
-                          <tr className="border-b border-[#e5e5e5] hover:bg-gray-50 cursor-pointer" onClick={() => pfx.length > 0 && setTftExpandedRows(prev => { const s = new Set(prev); s.has(rowKey) ? s.delete(rowKey) : s.add(rowKey); return s; })}>
+                          <tr className="border-b border-[var(--color-border)] hover:bg-gray-50 cursor-pointer" onClick={() => pfx.length > 0 && setTftExpandedRows(prev => { const s = new Set(prev); s.has(rowKey) ? s.delete(rowKey) : s.add(rowKey); return s; })}>
                             <td className="p-3 text-[#404040]">
                               <div className="flex items-center space-x-2">
                                 {pfx.length > 0 && (isExp ? <ChevronDown className="w-3 h-3 text-blue-500" /> : <ChevronRight className="w-3 h-3 text-gray-400" />)}
                                 <span>{r.label}</span>
                               </div>
                             </td>
-                            <td className={`p-3 text-right font-mono ${r.value < 0 ? 'text-red-600' : 'text-[#171717]'}`}>{r.value < 0 ? '(' : ''}{formatCurrency(Math.abs(r.value))}{r.value < 0 ? ')' : ''}</td>
+                            <td className={`p-3 text-right font-mono ${r.value < 0 ? 'text-red-600' : 'text-[var(--color-primary)]'}`}>{r.value < 0 ? '(' : ''}{formatCurrency(Math.abs(r.value))}{r.value < 0 ? ')' : ''}</td>
                           </tr>
                           {isExp && dets.map((d, di) => (
                             <tr key={`${rowKey}-${di}`} className="bg-blue-50/40 border-b border-blue-100">
@@ -1391,9 +1391,9 @@ const BilanSYSCOHADAPage: React.FC = () => {
                           </React.Fragment>
                           );
                         })}
-                        <tr className="border-t-2 border-[#e5e5e5] bg-gray-50">
-                          <td className="p-3 font-bold text-[#171717]">{totalLabel}</td>
-                          <td className={`p-3 text-right text-lg font-bold ${total < 0 ? 'text-red-600' : 'text-[#171717]'}`}>{total < 0 ? '(' : ''}{formatCurrency(Math.abs(total))}{total < 0 ? ')' : ''}</td>
+                        <tr className="border-t-2 border-[var(--color-border)] bg-gray-50">
+                          <td className="p-3 font-bold text-[var(--color-primary)]">{totalLabel}</td>
+                          <td className={`p-3 text-right text-lg font-bold ${total < 0 ? 'text-red-600' : 'text-[var(--color-primary)]'}`}>{total < 0 ? '(' : ''}{formatCurrency(Math.abs(total))}{total < 0 ? ')' : ''}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -1421,12 +1421,12 @@ const BilanSYSCOHADAPage: React.FC = () => {
                       { key: 'remb-emprunts', label: '- Remboursements d\'emprunts', value: -decRembEmprunts },
                       { key: 'div-verses', label: '- Dividendes et distributions versés', value: -decDividendes },
                     ]} />
-                    <div className="bg-white rounded-lg p-6 border-2 border-[#e5e5e5]">
-                      <h3 className="text-lg font-bold text-[#171717] mb-4 text-center">VARIATION NETTE DE LA TRÉSORERIE</h3>
+                    <div className="bg-white rounded-lg p-6 border-2 border-[var(--color-border)]">
+                      <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4 text-center">VARIATION NETTE DE LA TRÉSORERIE</h3>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-                        <div className="p-4 border border-[#e5e5e5] rounded"><p className="text-[#737373] font-medium mb-2">Trésorerie début</p><p className="text-lg font-bold text-[#171717]">{formatCurrency(tresoDebut)}</p></div>
-                        <div className="p-4 border border-[#e5e5e5] rounded"><p className="text-[#737373] font-medium mb-2">Variation nette</p><p className={`text-lg font-bold ${dVariation >= 0 ? 'text-green-600' : 'text-red-600'}`}>{dVariation >= 0 ? '+' : ''}{formatCurrency(dVariation)}</p></div>
-                        <div className="p-4 border border-[#e5e5e5] rounded"><p className="text-[#737373] font-medium mb-2">Trésorerie fin</p><p className="text-lg font-bold text-[#171717]">{formatCurrency(tresoFin)}</p></div>
+                        <div className="p-4 border border-[var(--color-border)] rounded"><p className="text-[var(--color-text-tertiary)] font-medium mb-2">Trésorerie début</p><p className="text-lg font-bold text-[var(--color-primary)]">{formatCurrency(tresoDebut)}</p></div>
+                        <div className="p-4 border border-[var(--color-border)] rounded"><p className="text-[var(--color-text-tertiary)] font-medium mb-2">Variation nette</p><p className={`text-lg font-bold ${dVariation >= 0 ? 'text-green-600' : 'text-red-600'}`}>{dVariation >= 0 ? '+' : ''}{formatCurrency(dVariation)}</p></div>
+                        <div className="p-4 border border-[var(--color-border)] rounded"><p className="text-[var(--color-text-tertiary)] font-medium mb-2">Trésorerie fin</p><p className="text-lg font-bold text-[var(--color-primary)]">{formatCurrency(tresoFin)}</p></div>
                       </div>
                     </div>
                   </div>
@@ -1439,27 +1439,27 @@ const BilanSYSCOHADAPage: React.FC = () => {
           {activeTab === 'export' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-lg font-bold text-[#171717] mb-2">EXPORT DES ÉTATS FINANCIERS</h2>
-                <p className="text-[#737373]">Téléchargement et impression des documents</p>
+                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">EXPORT DES ÉTATS FINANCIERS</h2>
+                <p className="text-[var(--color-text-tertiary)]">Téléchargement et impression des documents</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {tabs.slice(0, -1).map((tab) => {
                   const IconComponent = tab.icon;
                   return (
-                    <div key={tab.id} className="bg-white rounded-lg p-6 border border-[#e5e5e5] hover:shadow-md transition-shadow">
+                    <div key={tab.id} className="bg-white rounded-lg p-6 border border-[var(--color-border)] hover:shadow-md transition-shadow">
                       <div className="flex items-center space-x-3 mb-4">
-                        <div className="w-10 h-10 rounded-lg bg-[#525252]/10 flex items-center justify-center">
-                          <IconComponent className="w-5 h-5 text-[#525252]" />
+                        <div className="w-10 h-10 rounded-lg bg-[var(--color-text-secondary)]/10 flex items-center justify-center">
+                          <IconComponent className="w-5 h-5 text-[var(--color-text-secondary)]" />
                         </div>
-                        <h3 className="font-semibold text-[#171717]">{tab.label}</h3>
+                        <h3 className="font-semibold text-[var(--color-primary)]">{tab.label}</h3>
                       </div>
                       <div className="space-y-3">
-                        <button className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-[#525252] text-white rounded-lg hover:bg-[#404040] transition-colors">
+                        <button className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-[var(--color-text-secondary)] text-white rounded-lg hover:bg-[#404040] transition-colors">
                           <Download className="w-4 h-4" />
                           <span>PDF</span>
                         </button>
-                        <button className="w-full flex items-center justify-center space-x-2 px-4 py-2 border border-[#e5e5e5] text-[#404040] rounded-lg hover:bg-gray-50 transition-colors">
+                        <button className="w-full flex items-center justify-center space-x-2 px-4 py-2 border border-[var(--color-border)] text-[#404040] rounded-lg hover:bg-gray-50 transition-colors">
                           <FileText className="w-4 h-4" />
                           <span>Excel</span>
                         </button>
@@ -1469,14 +1469,14 @@ const BilanSYSCOHADAPage: React.FC = () => {
                 })}
               </div>
 
-              <div className="bg-white rounded-lg p-6 border border-[#e5e5e5]">
-                <h3 className="text-lg font-bold text-[#171717] mb-4">Export Complet</h3>
+              <div className="bg-white rounded-lg p-6 border border-[var(--color-border)]">
+                <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4">Export Complet</h3>
                 <div className="flex flex-col sm:flex-row gap-4">
-                  <button className="flex-1 flex items-center justify-center space-x-2 px-6 py-3 bg-[#525252] text-white rounded-lg hover:bg-[#404040] transition-colors">
+                  <button className="flex-1 flex items-center justify-center space-x-2 px-6 py-3 bg-[var(--color-text-secondary)] text-white rounded-lg hover:bg-[#404040] transition-colors">
                     <Download className="w-5 h-5" />
                     <span>Télécharger tous les états (PDF)</span>
                   </button>
-                  <button className="flex-1 flex items-center justify-center space-x-2 px-6 py-3 border border-[#e5e5e5] text-[#404040] rounded-lg hover:bg-gray-50 transition-colors">
+                  <button className="flex-1 flex items-center justify-center space-x-2 px-6 py-3 border border-[var(--color-border)] text-[#404040] rounded-lg hover:bg-gray-50 transition-colors">
                     <FileText className="w-5 h-5" />
                     <span>Télécharger tous les états (Excel)</span>
                   </button>
@@ -1491,12 +1491,12 @@ const BilanSYSCOHADAPage: React.FC = () => {
       {isModalOpen && selectedDetail && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden">
-            <div className="flex items-center justify-between p-6 border-b border-[#e5e5e5]">
-              <h2 className="text-lg font-bold text-[#171717]">{selectedDetail.title}</h2>
+            <div className="flex items-center justify-between p-6 border-b border-[var(--color-border)]">
+              <h2 className="text-lg font-bold text-[var(--color-primary)]">{selectedDetail.title}</h2>
               <button
                 onClick={closeModal}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors" aria-label="Fermer">
-                <X className="w-5 h-5 text-[#737373]" />
+                <X className="w-5 h-5 text-[var(--color-text-tertiary)]" />
               </button>
             </div>
 
@@ -1504,30 +1504,30 @@ const BilanSYSCOHADAPage: React.FC = () => {
               {selectedDetail.type === 'sous-comptes' ? (
                 <div>
                   <div className="mb-4">
-                    <h3 className="text-lg font-semibold text-[#171717] mb-2">Détail des sous-comptes</h3>
-                    <p className="text-[#737373] text-sm">Répartition par sous-compte selon le plan SYSCOHADA</p>
+                    <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-2">Détail des sous-comptes</h3>
+                    <p className="text-[var(--color-text-tertiary)] text-sm">Répartition par sous-compte selon le plan SYSCOHADA</p>
                   </div>
 
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm border-collapse">
                       <thead className="bg-gray-50">
                         <tr>
-                          <th className="text-left p-3 border-b border-[#e5e5e5]">Code</th>
-                          <th className="text-left p-3 border-b border-[#e5e5e5]">{t('accounting.label')}</th>
-                          <th className="text-right p-3 border-b border-[#e5e5e5]">Montant</th>
-                          <th className="text-center p-3 border-b border-[#e5e5e5]">Actions</th>
+                          <th className="text-left p-3 border-b border-[var(--color-border)]">Code</th>
+                          <th className="text-left p-3 border-b border-[var(--color-border)]">{t('accounting.label')}</th>
+                          <th className="text-right p-3 border-b border-[var(--color-border)]">Montant</th>
+                          <th className="text-center p-3 border-b border-[var(--color-border)]">Actions</th>
                         </tr>
                       </thead>
                       <tbody>
                         {selectedDetail.data.map((subAccount: Record<string, unknown>, index: number) => (
-                          <tr key={index} className="border-b border-[#e5e5e5] hover:bg-gray-50">
-                            <td className="p-3 font-medium text-[#525252]">{subAccount.code}</td>
-                            <td className="p-3 text-[#171717]">{subAccount.libelle}</td>
+                          <tr key={index} className="border-b border-[var(--color-border)] hover:bg-gray-50">
+                            <td className="p-3 font-medium text-[var(--color-text-secondary)]">{subAccount.code}</td>
+                            <td className="p-3 text-[var(--color-primary)]">{subAccount.libelle}</td>
                             <td className="p-3 text-right font-mono">{formatCurrency(subAccount.montant)}</td>
                             <td className="p-3 text-center">
                               <button
                                 onClick={() => openDetailModal(subAccount.code, subAccount.libelle, selectedPeriod, subAccount.montant)}
-                                className="text-[#525252] hover:text-[#404040] p-1 rounded"
+                                className="text-[var(--color-text-secondary)] hover:text-[#404040] p-1 rounded"
                                 title="Voir les transactions"
                               >
                                 <Eye className="w-4 h-4" />
@@ -1542,10 +1542,10 @@ const BilanSYSCOHADAPage: React.FC = () => {
               ) : (
                 <div>
                   <div className="mb-4">
-                    <h3 className="text-lg font-semibold text-[#171717] mb-2">Détail des transactions</h3>
+                    <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-2">Détail des transactions</h3>
                     <div className="flex justify-between items-center">
-                      <p className="text-[#737373] text-sm">Liste des écritures comptables</p>
-                      <p className="text-sm font-semibold text-[#525252]">
+                      <p className="text-[var(--color-text-tertiary)] text-sm">Liste des écritures comptables</p>
+                      <p className="text-sm font-semibold text-[var(--color-text-secondary)]">
                         Total: {formatCurrency(selectedDetail.total)}
                       </p>
                     </div>
@@ -1555,23 +1555,23 @@ const BilanSYSCOHADAPage: React.FC = () => {
                     <table className="w-full text-sm border-collapse">
                       <thead className="bg-gray-50">
                         <tr>
-                          <th className="text-left p-3 border-b border-[#e5e5e5]">{t('common.date')}</th>
-                          <th className="text-left p-3 border-b border-[#e5e5e5]">Référence</th>
-                          <th className="text-left p-3 border-b border-[#e5e5e5]">{t('accounting.label')}</th>
-                          <th className="text-left p-3 border-b border-[#e5e5e5]">Tiers</th>
-                          <th className="text-right p-3 border-b border-[#e5e5e5]">Montant</th>
-                          <th className="text-left p-3 border-b border-[#e5e5e5]">{t('accounting.piece')}</th>
+                          <th className="text-left p-3 border-b border-[var(--color-border)]">{t('common.date')}</th>
+                          <th className="text-left p-3 border-b border-[var(--color-border)]">Référence</th>
+                          <th className="text-left p-3 border-b border-[var(--color-border)]">{t('accounting.label')}</th>
+                          <th className="text-left p-3 border-b border-[var(--color-border)]">Tiers</th>
+                          <th className="text-right p-3 border-b border-[var(--color-border)]">Montant</th>
+                          <th className="text-left p-3 border-b border-[var(--color-border)]">{t('accounting.piece')}</th>
                         </tr>
                       </thead>
                       <tbody>
                         {selectedDetail.data.map((transaction: Record<string, unknown>, index: number) => (
-                          <tr key={index} className="border-b border-[#e5e5e5] hover:bg-gray-50">
-                            <td className="p-3 text-[#737373]">{transaction.date}</td>
-                            <td className="p-3 font-medium text-[#525252]">{transaction.reference}</td>
-                            <td className="p-3 text-[#171717]">{transaction.libelle}</td>
-                            <td className="p-3 text-[#737373] text-xs">{transaction.tiers}</td>
-                            <td className="p-3 text-right font-mono text-[#171717]">{formatCurrency(transaction.montant)}</td>
-                            <td className="p-3 text-[#737373] text-xs">{transaction.piece}</td>
+                          <tr key={index} className="border-b border-[var(--color-border)] hover:bg-gray-50">
+                            <td className="p-3 text-[var(--color-text-tertiary)]">{transaction.date}</td>
+                            <td className="p-3 font-medium text-[var(--color-text-secondary)]">{transaction.reference}</td>
+                            <td className="p-3 text-[var(--color-primary)]">{transaction.libelle}</td>
+                            <td className="p-3 text-[var(--color-text-tertiary)] text-xs">{transaction.tiers}</td>
+                            <td className="p-3 text-right font-mono text-[var(--color-primary)]">{formatCurrency(transaction.montant)}</td>
+                            <td className="p-3 text-[var(--color-text-tertiary)] text-xs">{transaction.piece}</td>
                           </tr>
                         ))}
                       </tbody>

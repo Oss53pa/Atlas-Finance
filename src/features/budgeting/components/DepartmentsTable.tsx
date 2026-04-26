@@ -53,7 +53,7 @@ export const DepartmentsTable: React.FC<DepartmentsTableProps> = ({
                 e.stopPropagation();
                 onToggleExpand(row.name);
               }}
-              className="text-[#737373] hover:text-[#171717] transition-colors"
+              className="text-[var(--color-text-tertiary)] hover:text-[var(--color-primary)] transition-colors"
             >
               {expandedDepartments.includes(row.name) ? (
                 <ChevronDown className="w-4 h-4" />
@@ -87,7 +87,7 @@ export const DepartmentsTable: React.FC<DepartmentsTableProps> = ({
       render: (value, row) => {
         const isNegative = (value as number) < 0;
         return (
-          <span className={isNegative ? 'text-[#ef4444]' : 'text-[#171717]'}>
+          <span className={isNegative ? 'text-[#ef4444]' : 'text-[var(--color-primary)]'}>
             {formatCurrency(Math.abs(value as number))}
           </span>
         );

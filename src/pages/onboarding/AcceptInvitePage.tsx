@@ -40,10 +40,10 @@ const AcceptInvitePage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#fafafa] p-4">
+    <div className="min-h-screen flex items-center justify-center bg-[var(--color-background)] p-4">
       <div className="w-full max-w-md text-center">
         <div className="bg-white rounded-2xl shadow-xl border p-8">
-          <div className="w-12 h-12 bg-[#171717] rounded-xl flex items-center justify-center mx-auto mb-6">
+          <div className="w-12 h-12 bg-[var(--color-primary)] rounded-xl flex items-center justify-center mx-auto mb-6">
             <Calculator className="w-6 h-6 text-white" />
           </div>
 
@@ -56,7 +56,7 @@ const AcceptInvitePage: React.FC = () => {
 
           {status === 'valid' && !isAuthenticated && (
             <>
-              <h1 className="text-xl font-bold text-[#171717] mb-2">Vous êtes invité !</h1>
+              <h1 className="text-xl font-bold text-[var(--color-primary)] mb-2">Vous êtes invité !</h1>
               <p className="text-gray-500 text-sm mb-6">
                 Vous avez été invité à rejoindre une organisation sur Atlas Studio.
               </p>
@@ -65,24 +65,24 @@ const AcceptInvitePage: React.FC = () => {
                 <br />Rôle : <strong>{invitation?.role_code}</strong>
               </p>
               <button onClick={() => navigate(`/register?invite=${token}`)}
-                className="w-full py-3 bg-[#171717] text-white rounded-lg font-semibold text-sm hover:bg-[#333]">
+                className="w-full py-3 bg-[var(--color-primary)] text-white rounded-lg font-semibold text-sm hover:bg-[#333]">
                 Créer mon compte
               </button>
               <p className="text-sm text-gray-500 mt-4">
-                Déjà un compte ? <button onClick={() => navigate('/login')} className="text-[#171717] font-semibold hover:underline">Se connecter</button>
+                Déjà un compte ? <button onClick={() => navigate('/login')} className="text-[var(--color-primary)] font-semibold hover:underline">Se connecter</button>
               </p>
             </>
           )}
 
           {status === 'valid' && isAuthenticated && (
             <>
-              <h1 className="text-xl font-bold text-[#171717] mb-2">Rejoindre l'organisation</h1>
+              <h1 className="text-xl font-bold text-[var(--color-primary)] mb-2">Rejoindre l'organisation</h1>
               <p className="text-gray-500 text-sm mb-6">
                 Connecté en tant que <strong>{user?.email}</strong>.
                 Accepter l'invitation pour rejoindre l'équipe ?
               </p>
               <button onClick={handleAccept}
-                className="w-full py-3 bg-[#171717] text-white rounded-lg font-semibold text-sm hover:bg-[#333]">
+                className="w-full py-3 bg-[var(--color-primary)] text-white rounded-lg font-semibold text-sm hover:bg-[#333]">
                 Accepter l'invitation
               </button>
             </>
@@ -91,7 +91,7 @@ const AcceptInvitePage: React.FC = () => {
           {status === 'accepted' && (
             <>
               <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
-              <h1 className="text-xl font-bold text-[#171717] mb-2">Bienvenue !</h1>
+              <h1 className="text-xl font-bold text-[var(--color-primary)] mb-2">Bienvenue !</h1>
               <p className="text-gray-500 text-sm">Redirection vers Atlas Studio...</p>
             </>
           )}
@@ -99,7 +99,7 @@ const AcceptInvitePage: React.FC = () => {
           {status === 'invalid' && (
             <>
               <XCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-              <h1 className="text-xl font-bold text-[#171717] mb-2">Invitation invalide</h1>
+              <h1 className="text-xl font-bold text-[var(--color-primary)] mb-2">Invitation invalide</h1>
               <p className="text-gray-500 text-sm mb-6">
                 Cette invitation a expiré ou a déjà été utilisée.
               </p>
@@ -113,7 +113,7 @@ const AcceptInvitePage: React.FC = () => {
           {status === 'error' && (
             <>
               <XCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-              <h1 className="text-xl font-bold text-[#171717] mb-2">Erreur</h1>
+              <h1 className="text-xl font-bold text-[var(--color-primary)] mb-2">Erreur</h1>
               <p className="text-red-600 text-sm">{error}</p>
             </>
           )}

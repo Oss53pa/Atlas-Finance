@@ -270,7 +270,7 @@ const TrackChangePage: React.FC = () => {
                 }}
                 buttonText="Exporter"
                 buttonVariant="outline"
-                className="border-[#171717] text-[#171717] hover:bg-[#171717]/10"
+                className="border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10"
               />
             </div>
           </div>

@@ -118,7 +118,7 @@ const TreasuryPlanDetails: React.FC = () => {
   // Scénarios de prévision
   const forecastScenarios = [
     { id: 'optimiste', name: '📈 Optimiste', multiplier: 1.3, color: 'text-green-600' },
-    { id: 'realiste', name: '📊 Réaliste', multiplier: 1.0, color: 'text-[#171717]' },
+    { id: 'realiste', name: '📊 Réaliste', multiplier: 1.0, color: 'text-[var(--color-primary)]' },
     { id: 'pessimiste', name: '📉 Pessimiste', multiplier: 0.7, color: 'text-red-600' }
   ];
 
@@ -326,7 +326,7 @@ const TreasuryPlanDetails: React.FC = () => {
                             />
                           </td>
                           <td className="px-3 py-2 text-center">
-                            <select className="text-xs px-2 py-1 border border-gray-300 rounded bg-[#171717]/5">
+                            <select className="text-xs px-2 py-1 border border-gray-300 rounded bg-[var(--color-primary)]/5">
                               <option>Optimiste</option>
                               <option>Réaliste</option>
                               <option>Pessimiste</option>
@@ -426,7 +426,7 @@ const TreasuryPlanDetails: React.FC = () => {
       {activeTab === 'previsions' && (
         <div className="space-y-6">
           <div className="bg-white border border-gray-200 rounded-lg">
-            <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-[#525252]/10 to-[#737373]/10">
+            <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-[var(--color-text-secondary)]/10 to-[var(--color-text-tertiary)]/10">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">📊 Prévision de Trésorerie Globale</h3>
                 <div>
@@ -434,7 +434,7 @@ const TreasuryPlanDetails: React.FC = () => {
                   <select
                     value={selectedScenario}
                     onChange={(e) => setSelectedScenario(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded text-sm bg-white text-gray-900 focus:ring-2 focus:ring-[#525252] focus:border-[#525252]"
+                    className="px-3 py-2 border border-gray-300 rounded text-sm bg-white text-gray-900 focus:ring-2 focus:ring-[var(--color-text-secondary)] focus:border-[var(--color-text-secondary)]"
                   >
                     {forecastScenarios.map(scenario => (
                       <option key={scenario.id} value={scenario.id}>
@@ -460,8 +460,8 @@ const TreasuryPlanDetails: React.FC = () => {
                   <table className="w-full">
                     <tbody className="divide-y divide-gray-200">
                       {/* Trésorerie disponible */}
-                      <tr className="bg-[#171717]/5">
-                        <td className="px-4 py-3 font-semibold text-[#171717] border-r">Trésorerie disponible (début)</td>
+                      <tr className="bg-[var(--color-primary)]/5">
+                        <td className="px-4 py-3 font-semibold text-[var(--color-primary)] border-r">Trésorerie disponible (début)</td>
                         <td className="px-4 py-3 text-right text-sm font-semibold">-95,194,202</td>
                       </tr>
 
@@ -596,8 +596,8 @@ const TreasuryPlanDetails: React.FC = () => {
                           {new Intl.NumberFormat('fr-FR').format(getForecastValue(57450000))}
                         </td>
                       </tr>
-                      <tr className="bg-[#171717]/5">
-                        <td className="px-4 py-3 font-semibold text-[#171717] border-r">Total de trésorerie disponible (avant décaissement)</td>
+                      <tr className="bg-[var(--color-primary)]/5">
+                        <td className="px-4 py-3 font-semibold text-[var(--color-primary)] border-r">Total de trésorerie disponible (avant décaissement)</td>
                         <td className={`px-4 py-3 text-right text-sm font-semibold ${getSelectedScenarioData().color}`}>
                           {new Intl.NumberFormat('fr-FR').format(-95194202 + getForecastValue(57450000))}
                         </td>
@@ -761,7 +761,7 @@ const TreasuryPlanDetails: React.FC = () => {
                       <tr className="bg-[var(--color-primary)]/10 border-t-2 border-[var(--color-primary)]">
                         <td className="px-4 py-3 font-bold text-[var(--color-text-primary)] border-r">
                           Position de trésorerie (fin de période)
-                          <span className="text-xs px-2 py-1 rounded-full bg-[#525252]/20 text-[#525252] font-medium ml-2">
+                          <span className="text-xs px-2 py-1 rounded-full bg-[var(--color-text-secondary)]/20 text-[var(--color-text-secondary)] font-medium ml-2">
                             {getSelectedScenarioData().name.replace(/📈|📊|📉/, '').trim()}
                           </span>
                         </td>
@@ -783,7 +783,7 @@ const TreasuryPlanDetails: React.FC = () => {
         <div className="space-y-6">
           {/* Header avec filtres */}
           <div className="bg-white border border-gray-200 rounded-lg">
-            <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-[#525252]/10 to-[#737373]/10">
+            <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-[var(--color-text-secondary)]/10 to-[var(--color-text-tertiary)]/10">
               <div className="flex items-center justify-between flex-wrap gap-4">
                 <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">📊 Rapport Prévisions de Trésorerie - Tous Scénarios</h3>
                 <div className="flex items-center space-x-4 flex-wrap">
@@ -840,7 +840,7 @@ const TreasuryPlanDetails: React.FC = () => {
                       <tr>
                         <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Métrique</th>
                         <th className="px-4 py-3 text-center text-xs font-semibold text-green-700 uppercase">📈 Optimiste</th>
-                        <th className="px-4 py-3 text-center text-xs font-semibold text-[#171717] uppercase">📊 Réaliste</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-[var(--color-primary)] uppercase">📊 Réaliste</th>
                         <th className="px-4 py-3 text-center text-xs font-semibold text-red-700 uppercase">📉 Pessimiste</th>
                         <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase">Écart Max</th>
                       </tr>
@@ -851,7 +851,7 @@ const TreasuryPlanDetails: React.FC = () => {
                         <td className="px-4 py-3 text-center text-sm text-green-600 font-medium">
                           {new Intl.NumberFormat('fr-FR').format(Math.round(57450000 * 1.3))}
                         </td>
-                        <td className="px-4 py-3 text-center text-sm text-[#171717] font-medium">
+                        <td className="px-4 py-3 text-center text-sm text-[var(--color-primary)] font-medium">
                           {new Intl.NumberFormat('fr-FR').format(57450000)}
                         </td>
                         <td className="px-4 py-3 text-center text-sm text-red-600 font-medium">
@@ -866,7 +866,7 @@ const TreasuryPlanDetails: React.FC = () => {
                         <td className="px-4 py-3 text-center text-sm text-green-600 font-medium">
                           {new Intl.NumberFormat('fr-FR').format(Math.round(45590000 * 1.3))}
                         </td>
-                        <td className="px-4 py-3 text-center text-sm text-[#171717] font-medium">
+                        <td className="px-4 py-3 text-center text-sm text-[var(--color-primary)] font-medium">
                           {new Intl.NumberFormat('fr-FR').format(45590000)}
                         </td>
                         <td className="px-4 py-3 text-center text-sm text-red-600 font-medium">
@@ -881,7 +881,7 @@ const TreasuryPlanDetails: React.FC = () => {
                         <td className="px-4 py-3 text-center text-sm text-green-600 font-bold">
                           {new Intl.NumberFormat('fr-FR').format(-95194202 + Math.round(57450000 * 1.3) - Math.round(45590000 * 1.3))}
                         </td>
-                        <td className="px-4 py-3 text-center text-sm text-[#171717] font-bold">
+                        <td className="px-4 py-3 text-center text-sm text-[var(--color-primary)] font-bold">
                           {new Intl.NumberFormat('fr-FR').format(-95194202 + 57450000 - 45590000)}
                         </td>
                         <td className="px-4 py-3 text-center text-sm text-red-600 font-bold">
@@ -995,8 +995,8 @@ const TreasuryPlanDetails: React.FC = () => {
 
                 {/* Scénario Réaliste - Tableau détaillé */}
                 <div className="mb-8">
-                  <div className="bg-[#171717]/5 border-l-4 border-[#171717] p-4 mb-4">
-                    <h5 className="text-lg font-semibold text-[#171717] mb-2">📊 Scénario Réaliste (Base)</h5>
+                  <div className="bg-[var(--color-primary)]/5 border-l-4 border-[var(--color-primary)] p-4 mb-4">
+                    <h5 className="text-lg font-semibold text-[var(--color-primary)] mb-2">📊 Scénario Réaliste (Base)</h5>
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
                       <div><strong>Taux de réalisation:</strong> 100%</div>
                       <div><strong>Niveau de risque:</strong> Modéré</div>
@@ -1005,52 +1005,52 @@ const TreasuryPlanDetails: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="border border-[#171717]/20 rounded-lg overflow-hidden">
+                  <div className="border border-[var(--color-primary)]/20 rounded-lg overflow-hidden">
                     <table className="w-full">
-                      <thead className="bg-[#171717]/5">
+                      <thead className="bg-[var(--color-primary)]/5">
                         <tr>
-                          <th className="px-3 py-2 text-left text-xs font-semibold text-[#171717] uppercase">N° Facture</th>
-                          <th className="px-3 py-2 text-left text-xs font-semibold text-[#171717] uppercase">Type</th>
-                          <th className="px-3 py-2 text-left text-xs font-semibold text-[#171717] uppercase">Client/Fournisseur</th>
-                          <th className="px-3 py-2 text-left text-xs font-semibold text-[#171717] uppercase">Échéance</th>
-                          <th className="px-3 py-2 text-right text-xs font-semibold text-[#171717] uppercase">Montant Base</th>
-                          <th className="px-3 py-2 text-right text-xs font-semibold text-[#171717] uppercase">Montant Réaliste</th>
-                          <th className="px-3 py-2 text-right text-xs font-semibold text-[#171717] uppercase">Écart</th>
-                          <th className="px-3 py-2 text-center text-xs font-semibold text-[#171717] uppercase">Probabilité</th>
+                          <th className="px-3 py-2 text-left text-xs font-semibold text-[var(--color-primary)] uppercase">N° Facture</th>
+                          <th className="px-3 py-2 text-left text-xs font-semibold text-[var(--color-primary)] uppercase">Type</th>
+                          <th className="px-3 py-2 text-left text-xs font-semibold text-[var(--color-primary)] uppercase">Client/Fournisseur</th>
+                          <th className="px-3 py-2 text-left text-xs font-semibold text-[var(--color-primary)] uppercase">Échéance</th>
+                          <th className="px-3 py-2 text-right text-xs font-semibold text-[var(--color-primary)] uppercase">Montant Base</th>
+                          <th className="px-3 py-2 text-right text-xs font-semibold text-[var(--color-primary)] uppercase">Montant Réaliste</th>
+                          <th className="px-3 py-2 text-right text-xs font-semibold text-[var(--color-primary)] uppercase">Écart</th>
+                          <th className="px-3 py-2 text-center text-xs font-semibold text-[var(--color-primary)] uppercase">Probabilité</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-blue-200">
-                        <tr className="hover:bg-[#171717]/5">
+                        <tr className="hover:bg-[var(--color-primary)]/5">
                           <td className="px-3 py-2 text-sm font-mono">FAC-2025-001</td>
                           <td className="px-3 py-2 text-sm">📈 Encaissement</td>
                           <td className="px-3 py-2 text-sm">SUPERMARCHE CHAMPION</td>
                           <td className="px-3 py-2 text-sm">15/02/2025</td>
                           <td className="px-3 py-2 text-right text-sm">8,500,000</td>
-                          <td className="px-3 py-2 text-right text-sm font-bold text-[#171717]">8,500,000</td>
+                          <td className="px-3 py-2 text-right text-sm font-bold text-[var(--color-primary)]">8,500,000</td>
                           <td className="px-3 py-2 text-right text-sm">±0</td>
-                          <td className="px-3 py-2 text-center"><span className="px-2 py-1 bg-[#171717]/10 text-[#171717] text-xs rounded-full">85%</span></td>
+                          <td className="px-3 py-2 text-center"><span className="px-2 py-1 bg-[var(--color-primary)]/10 text-[var(--color-primary)] text-xs rounded-full">85%</span></td>
                         </tr>
-                        <tr className="hover:bg-[#171717]/5">
+                        <tr className="hover:bg-[var(--color-primary)]/5">
                           <td className="px-3 py-2 text-sm font-mono">FAC-2025-003</td>
                           <td className="px-3 py-2 text-sm">📈 Encaissement</td>
                           <td className="px-3 py-2 text-sm">DISTRIBUTEUR COSMOS</td>
                           <td className="px-3 py-2 text-sm">20/03/2025</td>
                           <td className="px-3 py-2 text-right text-sm">6,200,000</td>
-                          <td className="px-3 py-2 text-right text-sm font-bold text-[#171717]">6,200,000</td>
+                          <td className="px-3 py-2 text-right text-sm font-bold text-[var(--color-primary)]">6,200,000</td>
                           <td className="px-3 py-2 text-right text-sm">±0</td>
-                          <td className="px-3 py-2 text-center"><span className="px-2 py-1 bg-[#171717]/10 text-[#171717] text-xs rounded-full">80%</span></td>
+                          <td className="px-3 py-2 text-center"><span className="px-2 py-1 bg-[var(--color-primary)]/10 text-[var(--color-primary)] text-xs rounded-full">80%</span></td>
                         </tr>
-                        <tr className="hover:bg-[#171717]/5">
+                        <tr className="hover:bg-[var(--color-primary)]/5">
                           <td className="px-3 py-2 text-sm font-mono">FAC-2025-002</td>
                           <td className="px-3 py-2 text-sm">📈 Encaissement</td>
                           <td className="px-3 py-2 text-sm">IMPORT AFRICA</td>
                           <td className="px-3 py-2 text-sm">18/04/2025</td>
                           <td className="px-3 py-2 text-right text-sm">4,200,000</td>
-                          <td className="px-3 py-2 text-right text-sm font-bold text-[#171717]">4,200,000</td>
+                          <td className="px-3 py-2 text-right text-sm font-bold text-[var(--color-primary)]">4,200,000</td>
                           <td className="px-3 py-2 text-right text-sm">±0</td>
-                          <td className="px-3 py-2 text-center"><span className="px-2 py-1 bg-[#171717]/10 text-[#171717] text-xs rounded-full">75%</span></td>
+                          <td className="px-3 py-2 text-center"><span className="px-2 py-1 bg-[var(--color-primary)]/10 text-[var(--color-primary)] text-xs rounded-full">75%</span></td>
                         </tr>
-                        <tr className="hover:bg-[#171717]/5">
+                        <tr className="hover:bg-[var(--color-primary)]/5">
                           <td className="px-3 py-2 text-sm font-mono">FOUR-2025-001</td>
                           <td className="px-3 py-2 text-sm">📉 Décaissement</td>
                           <td className="px-3 py-2 text-sm">PLANTATION AFRICA</td>
@@ -1058,9 +1058,9 @@ const TreasuryPlanDetails: React.FC = () => {
                           <td className="px-3 py-2 text-right text-sm">12,000,000</td>
                           <td className="px-3 py-2 text-right text-sm font-bold text-red-600">12,000,000</td>
                           <td className="px-3 py-2 text-right text-sm">±0</td>
-                          <td className="px-3 py-2 text-center"><span className="px-2 py-1 bg-[#171717]/10 text-[#171717] text-xs rounded-full">90%</span></td>
+                          <td className="px-3 py-2 text-center"><span className="px-2 py-1 bg-[var(--color-primary)]/10 text-[var(--color-primary)] text-xs rounded-full">90%</span></td>
                         </tr>
-                        <tr className="hover:bg-[#171717]/5">
+                        <tr className="hover:bg-[var(--color-primary)]/5">
                           <td className="px-3 py-2 text-sm font-mono">SAL-2025-01</td>
                           <td className="px-3 py-2 text-sm">📉 Décaissement</td>
                           <td className="px-3 py-2 text-sm">PERSONNEL CADRES</td>
@@ -1068,14 +1068,14 @@ const TreasuryPlanDetails: React.FC = () => {
                           <td className="px-3 py-2 text-right text-sm">4,500,000</td>
                           <td className="px-3 py-2 text-right text-sm font-bold text-red-600">4,500,000</td>
                           <td className="px-3 py-2 text-right text-sm">±0</td>
-                          <td className="px-3 py-2 text-center"><span className="px-2 py-1 bg-[#171717]/10 text-[#171717] text-xs rounded-full">95%</span></td>
+                          <td className="px-3 py-2 text-center"><span className="px-2 py-1 bg-[var(--color-primary)]/10 text-[var(--color-primary)] text-xs rounded-full">95%</span></td>
                         </tr>
-                        <tr className="bg-[#171717]/10 font-bold">
-                          <td colSpan="4" className="px-3 py-2 text-sm font-bold text-[#171717]">TOTAL SCÉNARIO RÉALISTE</td>
+                        <tr className="bg-[var(--color-primary)]/10 font-bold">
+                          <td colSpan="4" className="px-3 py-2 text-sm font-bold text-[var(--color-primary)]">TOTAL SCÉNARIO RÉALISTE</td>
                           <td className="px-3 py-2 text-right text-sm font-bold">35,400,000</td>
-                          <td className="px-3 py-2 text-right text-sm font-bold text-[#171717]">35,400,000</td>
+                          <td className="px-3 py-2 text-right text-sm font-bold text-[var(--color-primary)]">35,400,000</td>
                           <td className="px-3 py-2 text-right text-sm font-bold">±0</td>
-                          <td className="px-3 py-2 text-center font-bold text-[#171717]">ÉQUILIBRÉ</td>
+                          <td className="px-3 py-2 text-center font-bold text-[var(--color-primary)]">ÉQUILIBRÉ</td>
                         </tr>
                       </tbody>
                     </table>
@@ -1194,20 +1194,20 @@ const TreasuryPlanDetails: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="bg-[#171717]/5 border border-[#171717]/20 rounded-lg p-4">
-                  <h5 className="font-semibold text-[#171717] mb-3">📊 Scénario Réaliste</h5>
+                <div className="bg-[var(--color-primary)]/5 border border-[var(--color-primary)]/20 rounded-lg p-4">
+                  <h5 className="font-semibold text-[var(--color-primary)] mb-3">📊 Scénario Réaliste</h5>
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Taux de réalisation :</span>
-                      <span className="font-medium text-[#171717]">100%</span>
+                      <span className="font-medium text-[var(--color-primary)]">100%</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Risque :</span>
-                      <span className="font-medium text-[#171717]">Modéré</span>
+                      <span className="font-medium text-[var(--color-primary)]">Modéré</span>
                     </div>
                     <div className="flex justify-between border-t pt-2">
-                      <span className="font-bold text-[#171717]">Position finale :</span>
-                      <span className="font-bold text-[#171717]">
+                      <span className="font-bold text-[var(--color-primary)]">Position finale :</span>
+                      <span className="font-bold text-[var(--color-primary)]">
                         {new Intl.NumberFormat('fr-FR').format(-95194202 + 57450000 - 45590000)}
                       </span>
                     </div>
@@ -1242,7 +1242,7 @@ const TreasuryPlanDetails: React.FC = () => {
                   Période : {new Date(dateDebut).toLocaleDateString('fr-FR')} - {new Date(dateFin).toLocaleDateString('fr-FR')}
                 </div>
                 <div className="flex space-x-3">
-                  <button className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/80 transition-colors">
+                  <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/80 transition-colors">
                     📊 Export Excel
                   </button>
                   <button className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
@@ -1262,7 +1262,7 @@ const TreasuryPlanDetails: React.FC = () => {
       {activeTab === 'analyse' && (
         <div className="space-y-6">
           <div className="bg-white border border-gray-200 rounded-lg">
-            <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-[#525252]/10 to-[#737373]/10">
+            <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-[var(--color-text-secondary)]/10 to-[var(--color-text-tertiary)]/10">
               <div className="flex items-center justify-between flex-wrap gap-4">
                 <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">📊 Analyse des Écarts</h3>
                 <div className="flex items-center space-x-4 flex-wrap">
@@ -1315,7 +1315,7 @@ const TreasuryPlanDetails: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div className="text-sm text-gray-600">
                     <strong>Filtres actifs :</strong>
-                    <span className="ml-2 px-2 py-1 bg-[#171717]/10 text-[#171717] text-xs rounded-full">
+                    <span className="ml-2 px-2 py-1 bg-[var(--color-primary)]/10 text-[var(--color-primary)] text-xs rounded-full">
                       Type: {selectedFilter === 'all' ? 'Tous' : selectedFilter === 'encaissements' ? 'Encaissements' : 'Décaissements'}
                     </span>
                     <span className="ml-2 px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
@@ -1349,7 +1349,7 @@ const TreasuryPlanDetails: React.FC = () => {
                         <td className="px-4 py-3 text-right text-sm text-green-600">
                           {new Intl.NumberFormat('fr-FR').format(getForecastValue(57450000))}
                         </td>
-                        <td className="px-4 py-3 text-right text-sm text-[#171717]">45,230,000</td>
+                        <td className="px-4 py-3 text-right text-sm text-[var(--color-primary)]">45,230,000</td>
                         <td className="px-4 py-3 text-right text-sm text-red-600 font-medium">
                           {new Intl.NumberFormat('fr-FR', {
                             signDisplay: 'always'
@@ -1394,7 +1394,7 @@ const TreasuryPlanDetails: React.FC = () => {
                             <td className="px-3 py-2 text-sm text-gray-700">{transaction.tiers}</td>
                             <td className="px-3 py-2 text-sm font-mono">{transaction.ref}</td>
                             <td className="px-3 py-2 text-sm">{transaction.libelle}</td>
-                            <td className="px-3 py-2 text-right text-sm text-[#171717] font-medium">
+                            <td className="px-3 py-2 text-right text-sm text-[var(--color-primary)] font-medium">
                               {new Intl.NumberFormat('fr-FR').format(transaction.previsionnel)}
                             </td>
                             <td className="px-3 py-2 text-right text-sm text-green-600 font-medium">
@@ -1406,7 +1406,7 @@ const TreasuryPlanDetails: React.FC = () => {
                             <td className="px-3 py-2 text-center">
                               <span className={`px-2 py-1 text-xs rounded-full font-medium ${
                                 Math.abs(ecart) < 500000 ? 'bg-green-100 text-green-800' :
-                                ecartPositif ? 'bg-[#171717]/10 text-[#171717]' : 'bg-red-100 text-red-800'
+                                ecartPositif ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]' : 'bg-red-100 text-red-800'
                               }`}>
                                 {Math.abs(ecart) < 500000 ? 'Conforme' : ecartPositif ? 'Surplus' : 'Déficit'}
                               </span>
@@ -1440,7 +1440,7 @@ const TreasuryPlanDetails: React.FC = () => {
                         <td className="px-4 py-3 text-right text-sm text-red-600">
                           {new Intl.NumberFormat('fr-FR').format(getForecastValue(45590000))}
                         </td>
-                        <td className="px-4 py-3 text-right text-sm text-[#171717]">52,180,000</td>
+                        <td className="px-4 py-3 text-right text-sm text-[var(--color-primary)]">52,180,000</td>
                         <td className="px-4 py-3 text-right text-sm text-red-600 font-medium">
                           {new Intl.NumberFormat('fr-FR', {
                             signDisplay: 'always'
@@ -1487,7 +1487,7 @@ const TreasuryPlanDetails: React.FC = () => {
                             <td className="px-3 py-2 text-sm text-gray-700">{transaction.tiers}</td>
                             <td className="px-3 py-2 text-sm font-mono">{transaction.ref}</td>
                             <td className="px-3 py-2 text-sm">{transaction.libelle}</td>
-                            <td className="px-3 py-2 text-right text-sm text-[#171717] font-medium">
+                            <td className="px-3 py-2 text-right text-sm text-[var(--color-primary)] font-medium">
                               {new Intl.NumberFormat('fr-FR').format(transaction.previsionnel)}
                             </td>
                             <td className="px-3 py-2 text-right text-sm text-red-600 font-medium">
@@ -1502,7 +1502,7 @@ const TreasuryPlanDetails: React.FC = () => {
                             <td className="px-3 py-2 text-center">
                               <span className={`px-2 py-1 text-xs rounded-full font-medium ${
                                 Math.abs(ecart) < 100000 ? 'bg-green-100 text-green-800' :
-                                ecartPositif ? 'bg-red-100 text-red-800' : 'bg-[#171717]/10 text-[#171717]'
+                                ecartPositif ? 'bg-red-100 text-red-800' : 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]'
                               }`}>
                                 {Math.abs(ecart) < 100000 ? 'Conforme' : ecartPositif ? 'Dépassement' : 'Économie'}
                               </span>
@@ -1535,8 +1535,8 @@ const TreasuryPlanDetails: React.FC = () => {
                     </div>
                     <div className="text-xs text-gray-600">Écart Décaissements</div>
                   </div>
-                  <div className="text-center p-3 bg-[#171717]/5 rounded border">
-                    <div className="text-lg font-bold text-[#171717]">
+                  <div className="text-center p-3 bg-[var(--color-primary)]/5 rounded border">
+                    <div className="text-lg font-bold text-[var(--color-primary)]">
                       {new Intl.NumberFormat('fr-FR', {
                         signDisplay: 'always'
                       }).format((45230000 - getForecastValue(57450000)) - (52180000 - getForecastValue(45590000)))}
@@ -1734,7 +1734,7 @@ const TreasuryPlanDetails: React.FC = () => {
                   <div className="text-sm text-gray-600">Total CFA</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-lg font-bold text-[#171717]">
+                  <div className="text-lg font-bold text-[var(--color-primary)]">
                     {detailModalData.invoices.filter(inv => inv.statut === 'Validée' || inv.statut === 'En cours').length}
                   </div>
                   <div className="text-sm text-gray-600">En cours/Validées</div>
@@ -1783,7 +1783,7 @@ const TreasuryPlanDetails: React.FC = () => {
                       <td className="px-4 py-3 text-center">
                         <span className={`px-2 py-1 text-xs rounded-full font-medium ${
                           invoice.statut === 'Validée' ? 'bg-green-100 text-green-800' :
-                          invoice.statut === 'En cours' ? 'bg-[#171717]/10 text-[#171717]' :
+                          invoice.statut === 'En cours' ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]' :
                           invoice.statut === 'À payer' ? 'bg-orange-100 text-orange-800' :
                           'bg-yellow-100 text-yellow-800'
                         }`}>

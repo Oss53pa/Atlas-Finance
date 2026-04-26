@@ -263,24 +263,24 @@ const DocumentsArchives: React.FC = () => {
   return (
     <div className="p-6 space-y-6">
       {/* Header avec statistiques */}
-      <div className="bg-white rounded-lg p-6 border border-[#e5e5e5]">
+      <div className="bg-white rounded-lg p-6 border border-[var(--color-border)]">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-lg font-bold text-[#171717] flex items-center space-x-2">
-              <FolderArchive className="w-6 h-6 text-[#171717]" />
+            <h2 className="text-lg font-bold text-[var(--color-primary)] flex items-center space-x-2">
+              <FolderArchive className="w-6 h-6 text-[var(--color-primary)]" />
               <span>Archives Documentaires des Clôtures</span>
             </h2>
-            <p className="text-sm text-[#737373] mt-1">Gestion centralisée des documents de clôture</p>
+            <p className="text-sm text-[var(--color-text-tertiary)] mt-1">Gestion centralisée des documents de clôture</p>
           </div>
           <div className="flex items-center space-x-3">
             <button
               onClick={() => setShowUploadModal(true)}
-              className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#262626] flex items-center space-x-2"
+              className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] flex items-center space-x-2"
             >
               <Upload className="w-4 h-4" />
               <span>Ajouter documents</span>
             </button>
-            <button className="px-4 py-2 border border-[#e5e5e5] rounded-lg hover:bg-[var(--color-background-secondary)] flex items-center space-x-2">
+            <button className="px-4 py-2 border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-background-secondary)] flex items-center space-x-2">
               <Download className="w-4 h-4" />
               <span>Exporter archive</span>
             </button>
@@ -359,14 +359,14 @@ const DocumentsArchives: React.FC = () => {
                     onClick={() => setSelectedDossier(dossier.periode)}
                     className={`w-full text-left p-3 hover:bg-[var(--color-background-secondary)] border-l-4 transition-colors ${
                       selectedDossier === dossier.periode
-                        ? 'bg-[#171717]/10 border-[#171717]'
+                        ? 'bg-[var(--color-primary)]/10 border-[var(--color-primary)]'
                         : 'border-transparent'
                     }`}
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center space-x-2 mb-1">
-                          <FolderOpen className="w-4 h-4 text-[#171717]" />
+                          <FolderOpen className="w-4 h-4 text-[var(--color-primary)]" />
                           <span className="font-medium text-sm">{dossier.periode}</span>
                           <Badge
                             variant="outline"
@@ -381,14 +381,14 @@ const DocumentsArchives: React.FC = () => {
                             {dossier.type}
                           </Badge>
                         </div>
-                        <div className="text-xs text-[#737373]">
+                        <div className="text-xs text-[var(--color-text-tertiary)]">
                           {dossier.responsable}
                         </div>
                         <div className="flex items-center justify-between mt-2">
-                          <span className="text-xs text-[#737373]">
+                          <span className="text-xs text-[var(--color-text-tertiary)]">
                             {dossier.documentsPresents}/{dossier.documentsObligatoires} docs
                           </span>
-                          <span className="text-xs text-[#737373]">
+                          <span className="text-xs text-[var(--color-text-tertiary)]">
                             {dossier.tailleTotale}
                           </span>
                         </div>
@@ -426,15 +426,15 @@ const DocumentsArchives: React.FC = () => {
             </CardHeader>
             <CardContent className="space-y-2">
               <button className="w-full text-left p-2 hover:bg-[var(--color-background-secondary)] rounded flex items-center space-x-2">
-                <FilePlus className="w-4 h-4 text-[#171717]" />
+                <FilePlus className="w-4 h-4 text-[var(--color-primary)]" />
                 <span className="text-sm">Créer nouveau dossier</span>
               </button>
               <button className="w-full text-left p-2 hover:bg-[var(--color-background-secondary)] rounded flex items-center space-x-2">
-                <History className="w-4 h-4 text-[#737373]" />
+                <History className="w-4 h-4 text-[var(--color-text-tertiary)]" />
                 <span className="text-sm">Historique des modifications</span>
               </button>
               <button className="w-full text-left p-2 hover:bg-[var(--color-background-secondary)] rounded flex items-center space-x-2">
-                <Key className="w-4 h-4 text-[#737373]" />
+                <Key className="w-4 h-4 text-[var(--color-text-tertiary)]" />
                 <span className="text-sm">Gérer les accès</span>
               </button>
             </CardContent>
@@ -444,26 +444,26 @@ const DocumentsArchives: React.FC = () => {
         {/* Contenu principal - Liste des documents */}
         <div className="flex-1">
           {/* Barre d'outils */}
-          <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] mb-4">
+          <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] mb-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <select
                   value={filterCategorie}
                   onChange={(e) => setFilterCategorie(e.target.value)}
-                  className="px-3 py-2 border border-[#e5e5e5] rounded-lg text-sm"
+                  className="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm"
                 >
                   {categories.map(cat => (
                     <option key={cat.value} value={cat.value}>{cat.label}</option>
                   ))}
                 </select>
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -tranprimary-y-1/2 w-4 h-4 text-[#737373]" />
+                  <Search className="absolute left-3 top-1/2 transform -tranprimary-y-1/2 w-4 h-4 text-[var(--color-text-tertiary)]" />
                   <input
                     type="text"
                     placeholder="Rechercher documents..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 pr-4 py-2 border border-[#e5e5e5] rounded-lg text-sm w-64"
+                    className="pl-10 pr-4 py-2 border border-[var(--color-border)] rounded-lg text-sm w-64"
                   />
                 </div>
               </div>
@@ -472,13 +472,13 @@ const DocumentsArchives: React.FC = () => {
                   onClick={() => setViewMode('list')}
                   className={`p-2 rounded ${viewMode === 'list' ? 'bg-[var(--color-background-hover)]' : 'hover:bg-[var(--color-background-secondary)]'}`}
                 >
-                  <List className="w-5 h-5 text-[#737373]" />
+                  <List className="w-5 h-5 text-[var(--color-text-tertiary)]" />
                 </button>
                 <button
                   onClick={() => setViewMode('grid')}
                   className={`p-2 rounded ${viewMode === 'grid' ? 'bg-[var(--color-background-hover)]' : 'hover:bg-[var(--color-background-secondary)]'}`}
                 >
-                  <Grid className="w-5 h-5 text-[#737373]" />
+                  <Grid className="w-5 h-5 text-[var(--color-text-tertiary)]" />
                 </button>
               </div>
             </div>
@@ -486,10 +486,10 @@ const DocumentsArchives: React.FC = () => {
 
           {/* Liste des documents */}
           {viewMode === 'list' ? (
-            <div className="bg-white rounded-lg border border-[#e5e5e5]">
+            <div className="bg-white rounded-lg border border-[var(--color-border)]">
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-[var(--color-background-secondary)] border-b border-[#e5e5e5]">
+                  <thead className="bg-[var(--color-background-secondary)] border-b border-[var(--color-border)]">
                     <tr>
                       <th className="text-left py-3 px-4 text-sm font-semibold text-[#404040]">Document</th>
                       <th className="text-left py-3 px-4 text-sm font-semibold text-[#404040]">Catégorie</th>
@@ -502,13 +502,13 @@ const DocumentsArchives: React.FC = () => {
                   </thead>
                   <tbody>
                     {filteredDocuments.map(doc => (
-                      <tr key={doc.id} className="border-b border-[#e5e5e5] hover:bg-[var(--color-background-secondary)]">
+                      <tr key={doc.id} className="border-b border-[var(--color-border)] hover:bg-[var(--color-background-secondary)]">
                         <td className="py-3 px-4">
                           <div className="flex items-center space-x-3">
                             {getFileIcon(doc.type)}
                             <div>
-                              <p className="font-medium text-sm text-[#171717]">{doc.nom}</p>
-                              <p className="text-xs text-[#737373]">{doc.taille} • v{doc.version}</p>
+                              <p className="font-medium text-sm text-[var(--color-primary)]">{doc.nom}</p>
+                              <p className="text-xs text-[var(--color-text-tertiary)]">{doc.taille} • v{doc.version}</p>
                             </div>
                           </div>
                         </td>
@@ -521,7 +521,7 @@ const DocumentsArchives: React.FC = () => {
                           <span className="text-sm text-[#404040]">{doc.auteur}</span>
                         </td>
                         <td className="py-3 px-4">
-                          <span className="text-sm text-[#737373]">{doc.dateModification}</span>
+                          <span className="text-sm text-[var(--color-text-tertiary)]">{doc.dateModification}</span>
                         </td>
                         <td className="py-3 px-4 text-center">
                           <Badge variant="outline" className={`text-xs ${getStatutColor(doc.statut)}`}>
@@ -546,16 +546,16 @@ const DocumentsArchives: React.FC = () => {
                         <td className="py-3 px-4">
                           <div className="flex items-center justify-center space-x-1">
                             <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label="Voir les détails">
-                              <Eye className="w-4 h-4 text-[#737373]" />
+                              <Eye className="w-4 h-4 text-[var(--color-text-tertiary)]" />
                             </button>
                             <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label="Télécharger">
-                              <Download className="w-4 h-4 text-[#737373]" />
+                              <Download className="w-4 h-4 text-[var(--color-text-tertiary)]" />
                             </button>
                             <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label="Partager">
-                              <Share2 className="w-4 h-4 text-[#737373]" />
+                              <Share2 className="w-4 h-4 text-[var(--color-text-tertiary)]" />
                             </button>
                             <button className="p-1 hover:bg-[var(--color-background-hover)] rounded">
-                              <MoreVertical className="w-4 h-4 text-[#737373]" />
+                              <MoreVertical className="w-4 h-4 text-[var(--color-text-tertiary)]" />
                             </button>
                           </div>
                         </td>
@@ -565,17 +565,17 @@ const DocumentsArchives: React.FC = () => {
                 </table>
               </div>
               {/* Pagination */}
-              <div className="p-4 border-t border-[#e5e5e5] flex items-center justify-between">
-                <span className="text-sm text-[#737373]">
+              <div className="p-4 border-t border-[var(--color-border)] flex items-center justify-between">
+                <span className="text-sm text-[var(--color-text-tertiary)]">
                   Affichage de 1-{Math.min(10, filteredDocuments.length)} sur {filteredDocuments.length} documents
                 </span>
                 <div className="flex items-center space-x-2">
-                  <button className="px-3 py-1 border border-[#e5e5e5] rounded hover:bg-[var(--color-background-secondary)] text-sm">
+                  <button className="px-3 py-1 border border-[var(--color-border)] rounded hover:bg-[var(--color-background-secondary)] text-sm">
                     Précédent
                   </button>
-                  <button className="px-3 py-1 bg-[#171717] text-white rounded text-sm">1</button>
-                  <button className="px-3 py-1 border border-[#e5e5e5] rounded hover:bg-[var(--color-background-secondary)] text-sm">2</button>
-                  <button className="px-3 py-1 border border-[#e5e5e5] rounded hover:bg-[var(--color-background-secondary)] text-sm">
+                  <button className="px-3 py-1 bg-[var(--color-primary)] text-white rounded text-sm">1</button>
+                  <button className="px-3 py-1 border border-[var(--color-border)] rounded hover:bg-[var(--color-background-secondary)] text-sm">2</button>
+                  <button className="px-3 py-1 border border-[var(--color-border)] rounded hover:bg-[var(--color-background-secondary)] text-sm">
                     Suivant
                   </button>
                 </div>
@@ -595,11 +595,11 @@ const DocumentsArchives: React.FC = () => {
                         {doc.conforme && <CheckCircle className="w-3 h-3 text-[var(--color-primary)]" />}
                       </div>
                     </div>
-                    <h3 className="font-medium text-sm text-[#171717] mb-1 truncate">{doc.nom}</h3>
-                    <p className="text-xs text-[#737373] mb-3">{doc.taille} • v{doc.version}</p>
+                    <h3 className="font-medium text-sm text-[var(--color-primary)] mb-1 truncate">{doc.nom}</h3>
+                    <p className="text-xs text-[var(--color-text-tertiary)] mb-3">{doc.taille} • v{doc.version}</p>
                     <div className="flex items-center justify-between mb-3">
-                      <span className="text-xs text-[#737373]">{doc.auteur}</span>
-                      <span className="text-xs text-[#737373]">{doc.dateModification}</span>
+                      <span className="text-xs text-[var(--color-text-tertiary)]">{doc.auteur}</span>
+                      <span className="text-xs text-[var(--color-text-tertiary)]">{doc.dateModification}</span>
                     </div>
                     <div className="flex flex-wrap gap-1 mb-3">
                       {doc.tags.slice(0, 3).map((tag, index) => (
@@ -614,10 +614,10 @@ const DocumentsArchives: React.FC = () => {
                       </Badge>
                       <div className="flex items-center space-x-1">
                         <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label="Voir les détails">
-                          <Eye className="w-3 h-3 text-[#737373]" />
+                          <Eye className="w-3 h-3 text-[var(--color-text-tertiary)]" />
                         </button>
                         <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label="Télécharger">
-                          <Download className="w-3 h-3 text-[#737373]" />
+                          <Download className="w-3 h-3 text-[var(--color-text-tertiary)]" />
                         </button>
                       </div>
                     </div>
@@ -633,7 +633,7 @@ const DocumentsArchives: React.FC = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
-            <Hash className="w-5 h-5 text-[#171717]" />
+            <Hash className="w-5 h-5 text-[var(--color-primary)]" />
             <span>Traçabilité & Intégrité</span>
           </CardTitle>
         </CardHeader>
@@ -649,16 +649,16 @@ const DocumentsArchives: React.FC = () => {
             <h4 className="text-sm font-medium mb-3">Dernières activités</h4>
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-[#737373]">Document Balance_Generale_012025.pdf signé électroniquement</span>
-                <span className="text-xs text-[#737373]">Il y a 2h</span>
+                <span className="text-[var(--color-text-tertiary)]">Document Balance_Generale_012025.pdf signé électroniquement</span>
+                <span className="text-xs text-[var(--color-text-tertiary)]">Il y a 2h</span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-[#737373]">Dossier 2025-01 validé et verrouillé</span>
-                <span className="text-xs text-[#737373]">Il y a 5h</span>
+                <span className="text-[var(--color-text-tertiary)]">Dossier 2025-01 validé et verrouillé</span>
+                <span className="text-xs text-[var(--color-text-tertiary)]">Il y a 5h</span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-[#737373]">Archive automatique créée pour Q4-2024</span>
-                <span className="text-xs text-[#737373]">Il y a 1 jour</span>
+                <span className="text-[var(--color-text-tertiary)]">Archive automatique créée pour Q4-2024</span>
+                <span className="text-xs text-[var(--color-text-tertiary)]">Il y a 1 jour</span>
               </div>
             </div>
           </div>

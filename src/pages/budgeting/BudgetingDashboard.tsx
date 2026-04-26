@@ -674,11 +674,11 @@ const BudgetingDashboard: React.FC = () => {
                   >
                     <div className="flex flex-col items-center text-center space-y-4">
                       <div className="p-4 bg-gray-100 rounded-2xl group-hover:scale-110 transition-transform duration-300">
-                        <Target className="h-8 w-8 text-[#525252]" />
+                        <Target className="h-8 w-8 text-[var(--color-text-secondary)]" />
                       </div>
                       <div>
-                        <h3 className="font-bold text-[#171717] text-lg">Gerer Budgets</h3>
-                        <p className="text-sm text-[#525252] mt-1">Creer et modifier</p>
+                        <h3 className="font-bold text-[var(--color-primary)] text-lg">Gerer Budgets</h3>
+                        <p className="text-sm text-[var(--color-text-secondary)] mt-1">Creer et modifier</p>
                       </div>
                     </div>
                   </motion.div>
@@ -694,8 +694,8 @@ const BudgetingDashboard: React.FC = () => {
                         <BarChart3 className="h-8 w-8 text-[var(--color-text-secondary)]" />
                       </div>
                       <div>
-                        <h3 className="font-bold text-[#171717] text-lg">Controle</h3>
-                        <p className="text-sm text-[#525252] mt-1">Suivi et analyse</p>
+                        <h3 className="font-bold text-[var(--color-primary)] text-lg">Controle</h3>
+                        <p className="text-sm text-[var(--color-text-secondary)] mt-1">Suivi et analyse</p>
                       </div>
                     </div>
                   </motion.div>
@@ -708,11 +708,11 @@ const BudgetingDashboard: React.FC = () => {
                   >
                     <div className="flex flex-col items-center text-center space-y-4">
                       <div className="p-4 bg-gray-100 rounded-2xl group-hover:scale-110 transition-transform duration-300">
-                        <PieChart className="h-8 w-8 text-[#525252]" />
+                        <PieChart className="h-8 w-8 text-[var(--color-text-secondary)]" />
                       </div>
                       <div>
-                        <h3 className="font-bold text-[#171717] text-lg">Rapports</h3>
-                        <p className="text-sm text-[#525252] mt-1">Analyses detaillees</p>
+                        <h3 className="font-bold text-[var(--color-primary)] text-lg">Rapports</h3>
+                        <p className="text-sm text-[var(--color-text-secondary)] mt-1">Analyses detaillees</p>
                       </div>
                     </div>
                   </motion.div>
@@ -728,8 +728,8 @@ const BudgetingDashboard: React.FC = () => {
                         <AlertCircle className="h-8 w-8 text-[var(--color-text-secondary)]" />
                       </div>
                       <div>
-                        <h3 className="font-bold text-[#171717] text-lg">Alertes</h3>
-                        <p className="text-sm text-[#525252] mt-1">Notifications</p>
+                        <h3 className="font-bold text-[var(--color-primary)] text-lg">Alertes</h3>
+                        <p className="text-sm text-[var(--color-text-secondary)] mt-1">Notifications</p>
                       </div>
                     </div>
                   </motion.div>
@@ -791,7 +791,7 @@ const BudgetingDashboard: React.FC = () => {
                           return v.toString();
                         };
                         const statusLabel = perf >= 90 ? 'Excellent' : perf >= 70 ? 'En bonne voie' : perf >= 50 ? 'A surveiller' : 'Critique';
-                        const statusColor = perf >= 90 ? 'bg-green-100 text-green-800' : perf >= 70 ? 'bg-[#e5e5e5] text-[#171717]' : perf >= 50 ? 'bg-amber-100 text-amber-800' : 'bg-[var(--color-error-lighter)] text-[var(--color-error-darker)]';
+                        const statusColor = perf >= 90 ? 'bg-green-100 text-green-800' : perf >= 70 ? 'bg-[var(--color-border)] text-[var(--color-primary)]' : perf >= 50 ? 'bg-amber-100 text-amber-800' : 'bg-[var(--color-error-lighter)] text-[var(--color-error-darker)]';
                         return (
                         <tr key={bl.id || idx} className="hover:bg-[var(--color-primary-lightest)]/30 transition-colors duration-200">
                           <td className="p-6">

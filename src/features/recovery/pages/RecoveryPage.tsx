@@ -119,8 +119,8 @@ const RecoveryPage: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-bold text-[#171717]">{t('thirdParty.collection')}</h1>
-          <p className="text-[#737373] mt-1">
+          <h1 className="text-lg font-bold text-[var(--color-primary)]">{t('thirdParty.collection')}</h1>
+          <p className="text-[var(--color-text-tertiary)] mt-1">
             Gestion des créances et dossiers de recouvrement
           </p>
         </div>

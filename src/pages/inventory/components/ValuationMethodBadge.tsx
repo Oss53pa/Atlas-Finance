@@ -21,9 +21,9 @@ const ValuationMethodBadge: React.FC<ValuationMethodBadgeProps> = ({
       fullLabel: 'First In, First Out',
       description: 'Items purchased first are sold first',
       icon: TrendingUp,
-      bgColor: 'bg-[#171717]/10',
-      textColor: 'text-[#171717]',
-      iconColor: 'text-[#171717]',
+      bgColor: 'bg-[var(--color-primary)]/10',
+      textColor: 'text-[var(--color-primary)]',
+      iconColor: 'text-[var(--color-primary)]',
       compliance: 'IFRS, US GAAP, SYSCOHADA'
     },
     LIFO: {
@@ -31,9 +31,9 @@ const ValuationMethodBadge: React.FC<ValuationMethodBadgeProps> = ({
       fullLabel: 'Last In, First Out',
       description: 'Items purchased last are sold first',
       icon: TrendingUp,
-      bgColor: 'bg-[#525252]/10',
-      textColor: 'text-[#525252]',
-      iconColor: 'text-[#525252]',
+      bgColor: 'bg-[var(--color-text-secondary)]/10',
+      textColor: 'text-[var(--color-text-secondary)]',
+      iconColor: 'text-[var(--color-text-secondary)]',
       compliance: 'US GAAP only'
     },
     WEIGHTED_AVERAGE: {

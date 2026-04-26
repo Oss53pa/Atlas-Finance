@@ -204,7 +204,7 @@ const BalanceSheetSYSCOHADA: React.FC = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#171717]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--color-primary)]"></div>
       </div>
     );
   }
@@ -212,7 +212,7 @@ const BalanceSheetSYSCOHADA: React.FC = () => {
   if (!balanceData) {
     return (
       <div className="text-center p-8">
-        <p className="text-[#171717]/50">Aucune donnée de bilan disponible</p>
+        <p className="text-[var(--color-primary)]/50">Aucune donnée de bilan disponible</p>
       </div>
     );
   }
@@ -220,17 +220,17 @@ const BalanceSheetSYSCOHADA: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-6">
       {/* En-tête */}
-      <div className="bg-[#f5f5f5] rounded-lg shadow-sm border border-[#e5e5e5] p-6">
+      <div className="bg-[var(--color-surface-hover)] rounded-lg shadow-sm border border-[var(--color-border)] p-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-lg font-bold text-[#171717] flex items-center">
-              <ScaleIcon className="h-6 w-6 mr-2 text-[#171717]" />
+            <h1 className="text-lg font-bold text-[var(--color-primary)] flex items-center">
+              <ScaleIcon className="h-6 w-6 mr-2 text-[var(--color-primary)]" />
               BILAN SYSCOHADA
             </h1>
             <div className="mt-2 space-y-1">
-              <p className="text-lg font-semibold text-[#171717]/90">{balanceData.company.name}</p>
-              <p className="text-sm text-[#171717]/70">{balanceData.company.address}</p>
-              <p className="text-sm text-[#171717]/70">
+              <p className="text-lg font-semibold text-[var(--color-primary)]/90">{balanceData.company.name}</p>
+              <p className="text-sm text-[var(--color-primary)]/70">{balanceData.company.address}</p>
+              <p className="text-sm text-[var(--color-primary)]/70">
                 Exercice {balanceData.fiscalYear} - Arrêté au {new Date(balanceData.statementDate).toLocaleDateString('fr-FR')}
               </p>
             </div>
@@ -243,21 +243,21 @@ const BalanceSheetSYSCOHADA: React.FC = () => {
                 <ExclamationTriangleIcon className="h-5 w-5 text-red-500" />
               )}
               <span className={`text-sm font-medium ${
-                balanceData.isBalanced ? 'text-[#171717]' : 'text-red-600'
+                balanceData.isBalanced ? 'text-[var(--color-primary)]' : 'text-red-600'
               }`}>
                 {balanceData.isBalanced ? 'Équilibré' : `Écart: ${fmt(balanceData.balanceDifference)} XAF`}
               </span>
             </div>
             <div className="flex space-x-2">
-              <button className="flex items-center space-x-2 px-3 py-2 border border-[#e5e5e5] rounded-md hover:bg-[#e5e5e5]">
+              <button className="flex items-center space-x-2 px-3 py-2 border border-[var(--color-border)] rounded-md hover:bg-[var(--color-border)]">
                 <EyeIcon className="h-4 w-4" />
                 <span>Voir N-1</span>
               </button>
-              <button className="flex items-center space-x-2 px-3 py-2 border border-[#e5e5e5] rounded-md hover:bg-[#e5e5e5]">
+              <button className="flex items-center space-x-2 px-3 py-2 border border-[var(--color-border)] rounded-md hover:bg-[var(--color-border)]">
                 <ArrowDownTrayIcon className="h-4 w-4" />
                 <span>Export Excel</span>
               </button>
-              <button className="flex items-center space-x-2 px-3 py-2 bg-[#525252] text-[#f5f5f5] rounded-md hover:bg-[#404040]">
+              <button className="flex items-center space-x-2 px-3 py-2 bg-[var(--color-text-secondary)] text-[var(--color-surface-hover)] rounded-md hover:bg-[#404040]">
                 <DocumentTextIcon className="h-4 w-4" />
                 <span>Imprimer PDF</span>
               </button>
@@ -267,174 +267,174 @@ const BalanceSheetSYSCOHADA: React.FC = () => {
       </div>
 
       {/* Bilan SYSCOHADA */}
-      <div className="bg-[#f5f5f5] rounded-lg shadow-sm border border-[#e5e5e5] overflow-hidden">
+      <div className="bg-[var(--color-surface-hover)] rounded-lg shadow-sm border border-[var(--color-border)] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full">
-            <thead className="bg-[#171717]">
+            <thead className="bg-[var(--color-primary)]">
               <tr>
-                <th colSpan={3} className="px-6 py-4 text-center text-lg font-bold text-[#f5f5f5] border-b-2 border-[#171717]">
+                <th colSpan={3} className="px-6 py-4 text-center text-lg font-bold text-[var(--color-surface-hover)] border-b-2 border-[var(--color-primary)]">
                   BILAN AU {new Date(balanceData.statementDate).toLocaleDateString('fr-FR')} - Exercice {balanceData.fiscalYear}
                 </th>
-                <th colSpan={3} className="px-6 py-4 text-center text-lg font-bold text-[#f5f5f5] border-b-2 border-[#171717]">
+                <th colSpan={3} className="px-6 py-4 text-center text-lg font-bold text-[var(--color-surface-hover)] border-b-2 border-[var(--color-primary)]">
                   (en XAF)
                 </th>
               </tr>
-              <tr className="bg-[#e5e5e5]">
-                <th className="px-6 py-3 text-left text-sm font-bold text-[#171717] w-1/2">ACTIF</th>
-                <th className="px-6 py-3 text-right text-sm font-bold text-[#171717] w-1/6">BRUT</th>
-                <th className="px-6 py-3 text-right text-sm font-bold text-[#171717] w-1/6">AMORT/PROV</th>
-                <th className="px-6 py-3 text-right text-sm font-bold text-[#171717] w-1/6">NET</th>
-                <th className="px-6 py-3 text-left text-sm font-bold text-[#171717] w-1/2">PASSIF</th>
-                <th className="px-6 py-3 text-right text-sm font-bold text-[#171717] w-1/6">MONTANT</th>
+              <tr className="bg-[var(--color-border)]">
+                <th className="px-6 py-3 text-left text-sm font-bold text-[var(--color-primary)] w-1/2">ACTIF</th>
+                <th className="px-6 py-3 text-right text-sm font-bold text-[var(--color-primary)] w-1/6">BRUT</th>
+                <th className="px-6 py-3 text-right text-sm font-bold text-[var(--color-primary)] w-1/6">AMORT/PROV</th>
+                <th className="px-6 py-3 text-right text-sm font-bold text-[var(--color-primary)] w-1/6">NET</th>
+                <th className="px-6 py-3 text-left text-sm font-bold text-[var(--color-primary)] w-1/2">PASSIF</th>
+                <th className="px-6 py-3 text-right text-sm font-bold text-[var(--color-primary)] w-1/6">MONTANT</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#e5e5e5]">
+            <tbody className="divide-y divide-[var(--color-border)]">
               {/* ACTIF IMMOBILISE */}
-              <tr className="bg-[#171717]/10">
-                <td className="px-6 py-3 font-semibold text-[#171717]">ACTIF IMMOBILISE</td>
+              <tr className="bg-[var(--color-primary)]/10">
+                <td className="px-6 py-3 font-semibold text-[var(--color-primary)]">ACTIF IMMOBILISE</td>
                 <td className="px-6 py-3"></td>
                 <td className="px-6 py-3"></td>
-                <td className="px-6 py-3 text-right font-semibold text-[#171717]">
+                <td className="px-6 py-3 text-right font-semibold text-[var(--color-primary)]">
                   {fmt(balanceData.totalFixedAssets)}
                 </td>
-                <td className="px-6 py-3 font-semibold text-[#525252]">CAPITAUX PROPRES</td>
-                <td className="px-6 py-3 text-right font-semibold text-[#525252]">
+                <td className="px-6 py-3 font-semibold text-[var(--color-text-secondary)]">CAPITAUX PROPRES</td>
+                <td className="px-6 py-3 text-right font-semibold text-[var(--color-text-secondary)]">
                   {fmt(balanceData.totalEquity)}
                 </td>
               </tr>
               
               <tr>
-                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Immobilisations incorporelles</td>
+                <td className="px-6 py-2 pl-8 text-sm text-[var(--color-primary)]/70">Immobilisations incorporelles</td>
                 <td className="px-6 py-2 text-right text-sm">{fmt(balanceData.intangibleAssetsGross)}</td>
                 <td className="px-6 py-2 text-right text-sm">{fmt(balanceData.intangibleAssetsDepreciation)}</td>
                 <td className="px-6 py-2 text-right text-sm font-medium">{fmt(balanceData.intangibleAssetsNet)}</td>
-                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Capital</td>
+                <td className="px-6 py-2 pl-8 text-sm text-[var(--color-primary)]/70">Capital</td>
                 <td className="px-6 py-2 text-right text-sm">{fmt(balanceData.shareCapital)}</td>
               </tr>
               
               <tr>
-                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Immobilisations corporelles</td>
+                <td className="px-6 py-2 pl-8 text-sm text-[var(--color-primary)]/70">Immobilisations corporelles</td>
                 <td className="px-6 py-2 text-right text-sm">{fmt(balanceData.tangibleAssetsGross)}</td>
                 <td className="px-6 py-2 text-right text-sm">{fmt(balanceData.tangibleAssetsDepreciation)}</td>
                 <td className="px-6 py-2 text-right text-sm font-medium">{fmt(balanceData.tangibleAssetsNet)}</td>
-                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Primes et réserves</td>
+                <td className="px-6 py-2 pl-8 text-sm text-[var(--color-primary)]/70">Primes et réserves</td>
                 <td className="px-6 py-2 text-right text-sm">{fmt(balanceData.premiumsAndReserves)}</td>
               </tr>
               
               <tr>
-                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Avances et acomptes sur immobilisations</td>
+                <td className="px-6 py-2 pl-8 text-sm text-[var(--color-primary)]/70">Avances et acomptes sur immobilisations</td>
                 <td className="px-6 py-2 text-right text-sm">{fmt(balanceData.advancesOnFixedAssets)}</td>
                 <td className="px-6 py-2 text-right text-sm">-</td>
                 <td className="px-6 py-2 text-right text-sm font-medium">{fmt(balanceData.advancesOnFixedAssets)}</td>
-                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Écarts de réévaluation</td>
+                <td className="px-6 py-2 pl-8 text-sm text-[var(--color-primary)]/70">Écarts de réévaluation</td>
                 <td className="px-6 py-2 text-right text-sm">{fmt(balanceData.revaluationDifferences)}</td>
               </tr>
               
               <tr>
-                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Immobilisations financières</td>
+                <td className="px-6 py-2 pl-8 text-sm text-[var(--color-primary)]/70">Immobilisations financières</td>
                 <td className="px-6 py-2 text-right text-sm">{fmt(balanceData.financialAssetsGross)}</td>
                 <td className="px-6 py-2 text-right text-sm">{fmt(balanceData.financialAssetsProvisions)}</td>
                 <td className="px-6 py-2 text-right text-sm font-medium">{fmt(balanceData.financialAssetsNet)}</td>
-                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Résultat net de l'exercice</td>
-                <td className="px-6 py-2 text-right text-sm font-semibold text-[#525252]">
+                <td className="px-6 py-2 pl-8 text-sm text-[var(--color-primary)]/70">Résultat net de l'exercice</td>
+                <td className="px-6 py-2 text-right text-sm font-semibold text-[var(--color-text-secondary)]">
                   {fmt(balanceData.netResult)}
                 </td>
               </tr>
               
               {/* ACTIF CIRCULANT */}
-              <tr className="bg-[#525252]/10">
-                <td className="px-6 py-3 font-semibold text-[#525252]">ACTIF CIRCULANT</td>
+              <tr className="bg-[var(--color-text-secondary)]/10">
+                <td className="px-6 py-3 font-semibold text-[var(--color-text-secondary)]">ACTIF CIRCULANT</td>
                 <td className="px-6 py-3"></td>
                 <td className="px-6 py-3"></td>
-                <td className="px-6 py-3 text-right font-semibold text-[#525252]">
+                <td className="px-6 py-3 text-right font-semibold text-[var(--color-text-secondary)]">
                   {fmt(balanceData.totalCurrentAssets)}
                 </td>
-                <td className="px-6 py-3 font-semibold text-[#171717]">DETTES FINANCIERES</td>
-                <td className="px-6 py-3 text-right font-semibold text-[#171717]">
+                <td className="px-6 py-3 font-semibold text-[var(--color-primary)]">DETTES FINANCIERES</td>
+                <td className="px-6 py-3 text-right font-semibold text-[var(--color-primary)]">
                   {fmt(balanceData.totalFinancialDebts)}
                 </td>
               </tr>
               
               <tr>
-                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Actif circulant HAO</td>
+                <td className="px-6 py-2 pl-8 text-sm text-[var(--color-primary)]/70">Actif circulant HAO</td>
                 <td className="px-6 py-2 text-right text-sm">{fmt(balanceData.haoCurrentAssets)}</td>
                 <td className="px-6 py-2 text-right text-sm">-</td>
                 <td className="px-6 py-2 text-right text-sm font-medium">{fmt(balanceData.haoCurrentAssets)}</td>
-                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Subventions d'investissement</td>
+                <td className="px-6 py-2 pl-8 text-sm text-[var(--color-primary)]/70">Subventions d'investissement</td>
                 <td className="px-6 py-2 text-right text-sm">{fmt(balanceData.investmentSubsidies)}</td>
               </tr>
               
               <tr>
-                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Stocks et en-cours</td>
+                <td className="px-6 py-2 pl-8 text-sm text-[var(--color-primary)]/70">Stocks et en-cours</td>
                 <td className="px-6 py-2 text-right text-sm">{fmt(balanceData.stocksGross)}</td>
                 <td className="px-6 py-2 text-right text-sm">{fmt(balanceData.stocksProvisions)}</td>
                 <td className="px-6 py-2 text-right text-sm font-medium">{fmt(balanceData.stocksNet)}</td>
-                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Provisions réglementées</td>
+                <td className="px-6 py-2 pl-8 text-sm text-[var(--color-primary)]/70">Provisions réglementées</td>
                 <td className="px-6 py-2 text-right text-sm">{fmt(balanceData.regulatedProvisions)}</td>
               </tr>
               
               <tr>
-                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Créances et emplois assimilés</td>
+                <td className="px-6 py-2 pl-8 text-sm text-[var(--color-primary)]/70">Créances et emplois assimilés</td>
                 <td className="px-6 py-2 text-right text-sm">{fmt(balanceData.receivablesGross)}</td>
                 <td className="px-6 py-2 text-right text-sm">{fmt(balanceData.receivablesProvisions)}</td>
                 <td className="px-6 py-2 text-right text-sm font-medium">{fmt(balanceData.receivablesNet)}</td>
-                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Emprunts et dettes financières</td>
+                <td className="px-6 py-2 pl-8 text-sm text-[var(--color-primary)]/70">Emprunts et dettes financières</td>
                 <td className="px-6 py-2 text-right text-sm">{fmt(balanceData.financialDebts)}</td>
               </tr>
               
               {/* TRESORERIE ACTIF */}
-              <tr className="bg-[#171717]/15">
-                <td className="px-6 py-3 font-semibold text-[#171717]">TRESORERIE-ACTIF</td>
+              <tr className="bg-[var(--color-primary)]/15">
+                <td className="px-6 py-3 font-semibold text-[var(--color-primary)]">TRESORERIE-ACTIF</td>
                 <td className="px-6 py-3"></td>
                 <td className="px-6 py-3"></td>
-                <td className="px-6 py-3 text-right font-semibold text-[#171717]">
+                <td className="px-6 py-3 text-right font-semibold text-[var(--color-primary)]">
                   {fmt(balanceData.totalTreasuryAssets)}
                 </td>
-                <td className="px-6 py-3 font-semibold text-[#525252]">PASSIF CIRCULANT</td>
-                <td className="px-6 py-3 text-right font-semibold text-[#525252]">
+                <td className="px-6 py-3 font-semibold text-[var(--color-text-secondary)]">PASSIF CIRCULANT</td>
+                <td className="px-6 py-3 text-right font-semibold text-[var(--color-text-secondary)]">
                   {fmt(balanceData.totalCurrentLiabilities)}
                 </td>
               </tr>
               
               <tr>
-                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Titres de placement</td>
+                <td className="px-6 py-2 pl-8 text-sm text-[var(--color-primary)]/70">Titres de placement</td>
                 <td className="px-6 py-2 text-right text-sm">{fmt(balanceData.marketableSecurities)}</td>
                 <td className="px-6 py-2 text-right text-sm">-</td>
                 <td className="px-6 py-2 text-right text-sm font-medium">{fmt(balanceData.marketableSecurities)}</td>
-                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Clients, avances reçues</td>
+                <td className="px-6 py-2 pl-8 text-sm text-[var(--color-primary)]/70">Clients, avances reçues</td>
                 <td className="px-6 py-2 text-right text-sm">{fmt(balanceData.customerAdvances)}</td>
               </tr>
               
               <tr>
-                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Valeurs Ãƒ  encaisser</td>
+                <td className="px-6 py-2 pl-8 text-sm text-[var(--color-primary)]/70">Valeurs Ãƒ  encaisser</td>
                 <td className="px-6 py-2 text-right text-sm">{fmt(balanceData.valuesToCollect)}</td>
                 <td className="px-6 py-2 text-right text-sm">-</td>
                 <td className="px-6 py-2 text-right text-sm font-medium">{fmt(balanceData.valuesToCollect)}</td>
-                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Fournisseurs et comptes rattachés</td>
+                <td className="px-6 py-2 pl-8 text-sm text-[var(--color-primary)]/70">Fournisseurs et comptes rattachés</td>
                 <td className="px-6 py-2 text-right text-sm">{fmt(balanceData.suppliersAndRelated)}</td>
               </tr>
               
               <tr>
-                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Banques, chèques postaux, caisse</td>
+                <td className="px-6 py-2 pl-8 text-sm text-[var(--color-primary)]/70">Banques, chèques postaux, caisse</td>
                 <td className="px-6 py-2 text-right text-sm">{fmt(balanceData.cashAndBanks)}</td>
                 <td className="px-6 py-2 text-right text-sm">-</td>
                 <td className="px-6 py-2 text-right text-sm font-medium">{fmt(balanceData.cashAndBanks)}</td>
-                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Dettes fiscales et sociales</td>
+                <td className="px-6 py-2 pl-8 text-sm text-[var(--color-primary)]/70">Dettes fiscales et sociales</td>
                 <td className="px-6 py-2 text-right text-sm">{fmt(balanceData.taxAndSocialDebts)}</td>
               </tr>
               
               {/* Écart de conversion */}
               <tr>
-                <td className="px-6 py-2 text-sm text-[#171717]/70">Écart de conversion-Actif</td>
+                <td className="px-6 py-2 text-sm text-[var(--color-primary)]/70">Écart de conversion-Actif</td>
                 <td className="px-6 py-2 text-right text-sm">{fmt(balanceData.currencyTranslationDiffAssets)}</td>
                 <td className="px-6 py-2 text-right text-sm">-</td>
                 <td className="px-6 py-2 text-right text-sm font-medium">{fmt(balanceData.currencyTranslationDiffAssets)}</td>
-                <td className="px-6 py-2 pl-8 text-sm text-[#171717]/70">Autres dettes</td>
+                <td className="px-6 py-2 pl-8 text-sm text-[var(--color-primary)]/70">Autres dettes</td>
                 <td className="px-6 py-2 text-right text-sm">{fmt(balanceData.otherDebts)}</td>
               </tr>
               
               {/* TOTAUX */}
-              <tr className="bg-[#e5e5e5] font-bold text-[#171717]">
+              <tr className="bg-[var(--color-border)] font-bold text-[var(--color-primary)]">
                 <td className="px-6 py-4 text-lg">TOTAL GENERAL</td>
                 <td className="px-6 py-4"></td>
                 <td className="px-6 py-4"></td>
@@ -449,23 +449,23 @@ const BalanceSheetSYSCOHADA: React.FC = () => {
 
       {/* Informations complémentaires */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-[#f5f5f5] rounded-lg shadow-sm border border-[#e5e5e5] p-6">
-          <h3 className="text-lg font-medium text-[#171717] mb-4">Ratios Clés</h3>
+        <div className="bg-[var(--color-surface-hover)] rounded-lg shadow-sm border border-[var(--color-border)] p-6">
+          <h3 className="text-lg font-medium text-[var(--color-primary)] mb-4">Ratios Clés</h3>
           <div className="space-y-3">
             <div className="flex justify-between">
-              <span className="text-sm text-[#171717]/70">Autonomie financière:</span>
+              <span className="text-sm text-[var(--color-primary)]/70">Autonomie financière:</span>
               <span className="text-sm font-medium">
                 {((balanceData.totalEquity / balanceData.totalAssets) * 100).toFixed(1)}%
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-[#171717]/70">Endettement:</span>
+              <span className="text-sm text-[var(--color-primary)]/70">Endettement:</span>
               <span className="text-sm font-medium">
                 {((balanceData.totalFinancialDebts / balanceData.totalAssets) * 100).toFixed(1)}%
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-[#171717]/70">Liquidité générale:</span>
+              <span className="text-sm text-[var(--color-primary)]/70">Liquidité générale:</span>
               <span className="text-sm font-medium">
                 {(balanceData.totalCurrentAssets / balanceData.totalCurrentLiabilities).toFixed(2)}
               </span>
@@ -473,32 +473,32 @@ const BalanceSheetSYSCOHADA: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-[#f5f5f5] rounded-lg shadow-sm border border-[#e5e5e5] p-6">
-          <h3 className="text-lg font-medium text-[#171717] mb-4">Équilibre Financier</h3>
+        <div className="bg-[var(--color-surface-hover)] rounded-lg shadow-sm border border-[var(--color-border)] p-6">
+          <h3 className="text-lg font-medium text-[var(--color-primary)] mb-4">Équilibre Financier</h3>
           <div className="space-y-3">
             <div className="flex justify-between">
-              <span className="text-sm text-[#171717]/70">Fonds de roulement:</span>
-              <span className="text-sm font-medium text-[#171717]">
+              <span className="text-sm text-[var(--color-primary)]/70">Fonds de roulement:</span>
+              <span className="text-sm font-medium text-[var(--color-primary)]">
                 {fmt(balanceData.totalEquity + balanceData.totalFinancialDebts - balanceData.totalFixedAssets)}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-[#171717]/70">BFR:</span>
-              <span className="text-sm font-medium text-[#525252]">
+              <span className="text-sm text-[var(--color-primary)]/70">BFR:</span>
+              <span className="text-sm font-medium text-[var(--color-text-secondary)]">
                 {fmt(balanceData.totalCurrentAssets - balanceData.totalCurrentLiabilities)}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-[#171717]/70">Trésorerie nette:</span>
-              <span className="text-sm font-medium text-[#171717]">
+              <span className="text-sm text-[var(--color-primary)]/70">Trésorerie nette:</span>
+              <span className="text-sm font-medium text-[var(--color-primary)]">
                 {fmt(balanceData.totalTreasuryAssets - balanceData.totalTreasuryLiabilities)}
               </span>
             </div>
           </div>
         </div>
 
-        <div className="bg-[#f5f5f5] rounded-lg shadow-sm border border-[#e5e5e5] p-6">
-          <h3 className="text-lg font-medium text-[#171717] mb-4">Validation</h3>
+        <div className="bg-[var(--color-surface-hover)] rounded-lg shadow-sm border border-[var(--color-border)] p-6">
+          <h3 className="text-lg font-medium text-[var(--color-primary)] mb-4">Validation</h3>
           <div className="space-y-3">
             <div className="flex items-center space-x-2">
               {balanceData.isBalanced ? (
@@ -507,20 +507,20 @@ const BalanceSheetSYSCOHADA: React.FC = () => {
                 <ExclamationTriangleIcon className="h-5 w-5 text-red-500" />
               )}
               <span className={`text-sm font-medium ${
-                balanceData.isBalanced ? 'text-[#171717]' : 'text-red-600'
+                balanceData.isBalanced ? 'text-[var(--color-primary)]' : 'text-red-600'
               }`}>
                 {balanceData.isBalanced ? 'Bilan équilibré' : 'Bilan déséquilibré'}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-[#171717]/70">Écart:</span>
+              <span className="text-sm text-[var(--color-primary)]/70">Écart:</span>
               <span className="text-sm font-medium">{fmt(balanceData.balanceDifference)}</span>
             </div>
             <div className="flex items-center space-x-2">
               {balanceData.isValidated ? (
                 <>
                   <CheckCircleIcon className="h-5 w-5 text-green-500" />
-                  <span className="text-sm text-[#171717]">{t('accounting.validated')}</span>
+                  <span className="text-sm text-[var(--color-primary)]">{t('accounting.validated')}</span>
                 </>
               ) : (
                 <>
@@ -534,7 +534,7 @@ const BalanceSheetSYSCOHADA: React.FC = () => {
       </div>
 
       {/* Note de bas de page */}
-      <div className="bg-[#e5e5e5] rounded-lg p-4 text-xs text-[#171717]/70">
+      <div className="bg-[var(--color-border)] rounded-lg p-4 text-xs text-[var(--color-primary)]/70">
         <p className="text-center">
           Bilan établi conformément aux dispositions du Système Comptable OHADA (SYSCOHADA) révisé en 2017.
           <br />

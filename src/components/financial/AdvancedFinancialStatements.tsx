@@ -302,7 +302,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
       <div className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <FileText className="w-8 h-8 text-[#171717]" />
+            <FileText className="w-8 h-8 text-[var(--color-primary)]" />
             <div>
               <h1 className="text-lg font-bold text-gray-900">États Financiers</h1>
               <p className="text-sm text-gray-600">Reporting financier complet - Conforme {config.norme}</p>
@@ -333,7 +333,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
             
             <button 
               onClick={() => setShowComparative(!showComparative)}
-              className={`px-4 py-2 rounded-lg border transition-colors ${showComparative ? 'bg-[#171717] text-white border-[#171717]' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}
+              className={`px-4 py-2 rounded-lg border transition-colors ${showComparative ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)]' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}
             >
               <BarChart3 className="w-4 h-4 mr-2 inline" />
               Comparatif
@@ -347,7 +347,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
               Aperçu
             </button>
             
-            <button className="px-4 py-2 bg-[#525252] text-white rounded-lg hover:bg-[#404040] transition-colors">
+            <button className="px-4 py-2 bg-[var(--color-text-secondary)] text-white rounded-lg hover:bg-[#404040] transition-colors">
               <Download className="w-4 h-4 mr-2 inline" />
               Exporter
             </button>
@@ -368,7 +368,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
               onClick={() => setActiveView(view.id as typeof activeView)}
               className={`px-4 py-2 rounded-lg transition-colors ${
                 activeView === view.id 
-                  ? 'bg-[#171717] text-white' 
+                  ? 'bg-[var(--color-primary)] text-white' 
                   : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
@@ -389,13 +389,13 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Chiffre d'Affaires</p>
-                  <p className="text-lg font-bold text-[#171717]">
+                  <p className="text-lg font-bold text-[var(--color-primary)]">
                     {fmt(compteResultatData.produits.chiffreAffaires)}
                   </p>
                   <p className="text-xs text-gray-700">XAF</p>
                 </div>
-                <div className="w-12 h-12 bg-[#171717]/10 rounded-lg flex items-center justify-center">
-                  <DollarSign className="w-6 h-6 text-[#171717]" />
+                <div className="w-12 h-12 bg-[var(--color-primary)]/10 rounded-lg flex items-center justify-center">
+                  <DollarSign className="w-6 h-6 text-[var(--color-primary)]" />
                 </div>
               </div>
             </div>
@@ -609,7 +609,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">{t('navigation.treasury')}</span>
-                  <span className="text-sm font-medium text-[#171717]">
+                  <span className="text-sm font-medium text-[var(--color-primary)]">
                     {fmt(bilanData.actifCirculant.disponibilites)}
                   </span>
                 </div>
@@ -622,7 +622,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold text-gray-900">Évolution de la Rentabilité</h3>
               <div className="flex items-center space-x-2">
-                <button className="px-3 py-1 text-sm bg-[#171717] text-white rounded">
+                <button className="px-3 py-1 text-sm bg-[var(--color-primary)] text-white rounded">
                   Mensuel
                 </button>
                 <button className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">
@@ -675,7 +675,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
             <div className="flex items-center space-x-4">
               <h3 className="text-lg font-semibold text-gray-900">Type de Bilan</h3>
               <div className="flex space-x-2">
-                <button className="px-4 py-2 bg-[#171717] text-white rounded-lg">
+                <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg">
                   Bilan Comptable
                 </button>
                 <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
@@ -1496,7 +1496,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
               <div className="grid grid-cols-4 gap-4 mb-6 p-4 bg-gray-50 rounded">
                 <div className="text-center">
                   <div className="text-xs text-gray-600">Chiffre d'Affaires</div>
-                  <div className="font-bold text-[#171717]">{fmt(compteResultatData.produits.chiffreAffaires)}</div>
+                  <div className="font-bold text-[var(--color-primary)]">{fmt(compteResultatData.produits.chiffreAffaires)}</div>
                 </div>
                 <div className="text-center">
                   <div className="text-xs text-gray-600">Résultat Net</div>
@@ -1548,7 +1548,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                     setShowPrintPreview(false);
                     handlePrint();
                   }}
-                  className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#262626]"
+                  className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)]"
                 >
                   <Printer className="w-4 h-4 mr-2 inline" />
                   Imprimer

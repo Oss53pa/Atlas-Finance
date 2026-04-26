@@ -605,7 +605,7 @@ const KPIsRealTime: React.FC = () => {
                     <div className={cn(
                       "w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-xl",
                       index === 0 && "bg-gradient-to-br from-amber-400 to-amber-600",
-                      index === 1 && "bg-gradient-to-br from-[#a3a3a3] to-[#171717]",
+                      index === 1 && "bg-gradient-to-br from-[var(--color-text-tertiary)] to-[var(--color-primary)]",
                       index === 2 && "bg-gradient-to-br from-primary-400 to-primary-600"
                     )}>
                       #{index + 1}
@@ -619,7 +619,7 @@ const KPIsRealTime: React.FC = () => {
           </div>
 
           {/* Alerts */}
-          <div className="bg-gradient-to-r from-[#f5f5f5] to-primary-50 rounded-lg p-6">
+          <div className="bg-gradient-to-r from-[var(--color-surface-hover)] to-primary-50 rounded-lg p-6">
             <div className="flex items-center gap-3 mb-4">
               <Bell className="w-6 h-6 text-[var(--color-primary)]" />
               <h2 className="text-lg font-semibold text-gray-900">Alertes KPI</h2>

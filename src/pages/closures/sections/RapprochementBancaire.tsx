@@ -513,7 +513,7 @@ const RapprochementBancaire: React.FC = () => {
   return (
     <div className="p-6 space-y-6">
       {/* Onglets pour les différents moyens de paiement */}
-      <div className="bg-white rounded-lg border border-[#e5e5e5] p-4">
+      <div className="bg-white rounded-lg border border-[var(--color-border)] p-4">
         <Tabs value={selectedTab} onValueChange={setSelectedTab}>
           <TabsList className="grid grid-cols-6 w-full">
             <TabsTrigger value="banques" className="flex items-center space-x-2">
@@ -550,7 +550,7 @@ const RapprochementBancaire: React.FC = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
-                <Shield className="w-5 h-5 text-[#171717]" />
+                <Shield className="w-5 h-5 text-[var(--color-primary)]" />
                 <span>Vue Consolidée des Moyens de Paiement</span>
               </CardTitle>
             </CardHeader>
@@ -595,19 +595,19 @@ const RapprochementBancaire: React.FC = () => {
       {/* Header avec sélection selon l'onglet */}
       {selectedTab !== 'consolidation' && (
         <>
-          <div className="bg-white rounded-lg p-6 border border-[#e5e5e5]">
+          <div className="bg-white rounded-lg p-6 border border-[var(--color-border)]">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-lg font-bold text-[#171717]">
+                <h2 className="text-lg font-bold text-[var(--color-primary)]">
                   {selectedTab === 'banques' && 'Rapprochement Bancaire'}
                   {selectedTab === 'cb' && 'Rapprochement Cartes Bancaires'}
                   {selectedTab === 'mobile' && 'Rapprochement Mobile Money'}
                   {selectedTab === 'tpe' && 'Rapprochement TPE'}
                   {selectedTab === 'especes' && 'Rapprochement Caisse'}
                 </h2>
-                <p className="text-sm text-[#737373] mt-1">Période: {selectedPeriod}</p>
+                <p className="text-sm text-[var(--color-text-tertiary)] mt-1">Période: {selectedPeriod}</p>
                 {selectedTab !== 'banques' && (
-                  <p className="text-xs text-[#171717] mt-1">
+                  <p className="text-xs text-[var(--color-primary)] mt-1">
                     Compte SYSCOHADA: {comptesSYSCOHADA[selectedTab as keyof typeof comptesSYSCOHADA]?.numero} -
                     {comptesSYSCOHADA[selectedTab as keyof typeof comptesSYSCOHADA]?.libelle}
                   </p>
@@ -618,7 +618,7 @@ const RapprochementBancaire: React.FC = () => {
                   <select
                     value={selectedBank}
                     onChange={(e) => setSelectedBank(e.target.value)}
-                    className="px-4 py-2 border border-[#e5e5e5] rounded-lg"
+                    className="px-4 py-2 border border-[var(--color-border)] rounded-lg"
                   >
                     {banques.map(bank => (
                       <option key={bank.id} value={bank.id}>
@@ -628,7 +628,7 @@ const RapprochementBancaire: React.FC = () => {
                   </select>
                 )}
                 {(selectedTab === 'mobile' || selectedTab === 'cb' || selectedTab === 'tpe') && (
-                  <select className="px-4 py-2 border border-[#e5e5e5] rounded-lg">
+                  <select className="px-4 py-2 border border-[var(--color-border)] rounded-lg">
                     {moyensPaiement
                       .filter(mp => {
                         if (selectedTab === 'mobile') return mp.type === 'mobile';
@@ -661,34 +661,34 @@ const RapprochementBancaire: React.FC = () => {
 
             {/* Statistiques pour moyens de paiement électroniques */}
             {(selectedTab === 'mobile' || selectedTab === 'cb' || selectedTab === 'tpe') && (
-              <div className="mb-4 p-4 bg-[#171717]/10 rounded-lg border border-[#171717]/20">
+              <div className="mb-4 p-4 bg-[var(--color-primary)]/10 rounded-lg border border-[var(--color-primary)]/20">
                 <div className="grid grid-cols-4 gap-4">
                   <div>
-                    <p className="text-xs text-[#737373]">Volume Jour</p>
-                    <p className="text-lg font-bold text-[#171717]">
+                    <p className="text-xs text-[var(--color-text-tertiary)]">Volume Jour</p>
+                    <p className="text-lg font-bold text-[var(--color-primary)]">
                       {formatCurrency(moyensPaiement
                         .filter(mp => mp.type === selectedTab)
                         .reduce((sum, mp) => sum + mp.montantJour, 0))}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-[#737373]">Volume Mois</p>
-                    <p className="text-lg font-bold text-[#171717]">
+                    <p className="text-xs text-[var(--color-text-tertiary)]">Volume Mois</p>
+                    <p className="text-lg font-bold text-[var(--color-primary)]">
                       {formatCurrency(moyensPaiement
                         .filter(mp => mp.type === selectedTab)
                         .reduce((sum, mp) => sum + mp.montantMois, 0))}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-[#737373]">Transactions</p>
-                    <p className="text-lg font-bold text-[#171717]">
+                    <p className="text-xs text-[var(--color-text-tertiary)]">Transactions</p>
+                    <p className="text-lg font-bold text-[var(--color-primary)]">
                       {moyensPaiement
                         .filter(mp => mp.type === selectedTab)
                         .reduce((sum, mp) => sum + mp.nombreTransactions, 0)}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-[#737373]">Commission Moyenne</p>
+                    <p className="text-xs text-[var(--color-text-tertiary)]">Commission Moyenne</p>
                     <p className="text-lg font-bold text-[#f59e0b]">
                       {(moyensPaiement
                         .filter(mp => mp.type === selectedTab)
@@ -741,7 +741,7 @@ const RapprochementBancaire: React.FC = () => {
           </div>
 
           {/* Barre d'outils */}
-          <div className="bg-white rounded-lg p-4 border border-[#e5e5e5]">
+          <div className="bg-white rounded-lg p-4 border border-[var(--color-border)]">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <button
@@ -754,7 +754,7 @@ const RapprochementBancaire: React.FC = () => {
                 <select
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
-                  className="px-4 py-2 border border-[#e5e5e5] rounded-lg"
+                  className="px-4 py-2 border border-[var(--color-border)] rounded-lg"
                 >
                   <option value="tous">Tous les statuts</option>
                   <option value="rapproche">Rapprochés</option>
@@ -763,11 +763,11 @@ const RapprochementBancaire: React.FC = () => {
                   <option value="suggere">Suggestions IA</option>
                 </select>
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -tranprimary-y-1/2 w-4 h-4 text-[#737373]" />
+                  <Search className="absolute left-3 top-1/2 transform -tranprimary-y-1/2 w-4 h-4 text-[var(--color-text-tertiary)]" />
                   <input
                     type="text"
                     placeholder="Rechercher..."
-                    className="pl-10 pr-4 py-2 border border-[#e5e5e5] rounded-lg w-64"
+                    className="pl-10 pr-4 py-2 border border-[var(--color-border)] rounded-lg w-64"
                   />
                 </div>
               </div>
@@ -777,24 +777,24 @@ const RapprochementBancaire: React.FC = () => {
                   className="p-2 hover:bg-[var(--color-background-hover)] rounded-lg"
                   aria-label="Actualiser"
                 >
-                  <RefreshCw className="w-5 h-5 text-[#737373]" />
+                  <RefreshCw className="w-5 h-5 text-[var(--color-text-tertiary)]" />
                 </button>
                 <button
                   onClick={handleExport}
                   className="p-2 hover:bg-[var(--color-background-hover)] rounded-lg"
                   aria-label="Télécharger"
                 >
-                  <Download className="w-5 h-5 text-[#737373]" />
+                  <Download className="w-5 h-5 text-[var(--color-text-tertiary)]" />
                 </button>
               </div>
             </div>
           </div>
 
           {/* Liste des opérations */}
-          <div className="bg-white rounded-lg border border-[#e5e5e5]">
+          <div className="bg-white rounded-lg border border-[var(--color-border)]">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-[var(--color-background-secondary)] border-b border-[#e5e5e5]">
+                <thead className="bg-[var(--color-background-secondary)] border-b border-[var(--color-border)]">
                   <tr>
                     <th className="text-left py-3 px-4 text-sm font-semibold text-[#404040]">{t('common.date')}</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold text-[#404040]">{t('accounting.label')}</th>
@@ -810,15 +810,15 @@ const RapprochementBancaire: React.FC = () => {
                 </thead>
                 <tbody>
                   {filteredOperations.map((op) => (
-                    <tr key={op.id} className="border-b border-[#e5e5e5] hover:bg-[var(--color-background-secondary)]">
+                    <tr key={op.id} className="border-b border-[var(--color-border)] hover:bg-[var(--color-background-secondary)]">
                       <td className="py-3 px-4">
                         <span className="text-sm text-[#404040]">{op.date}</span>
                       </td>
                       <td className="py-3 px-4">
-                        <span className="text-sm font-medium text-[#171717]">{op.libelle}</span>
+                        <span className="text-sm font-medium text-[var(--color-primary)]">{op.libelle}</span>
                       </td>
                       <td className="py-3 px-4">
-                        <span className="text-sm text-[#737373] font-mono">{op.reference}</span>
+                        <span className="text-sm text-[var(--color-text-tertiary)] font-mono">{op.reference}</span>
                       </td>
                       <td className="py-3 px-4 text-right">
                         <span className={`font-mono font-semibold ${
@@ -905,7 +905,7 @@ const RapprochementBancaire: React.FC = () => {
                           )}
                           <button
                             onClick={() => handleViewDetail(op)}
-                            className="p-1 text-[#737373] hover:bg-[var(--color-background-hover)] rounded"
+                            className="p-1 text-[var(--color-text-tertiary)] hover:bg-[var(--color-background-hover)] rounded"
                             aria-label="Voir les détails"
                           >
                             <Eye className="w-4 h-4" />
@@ -919,15 +919,15 @@ const RapprochementBancaire: React.FC = () => {
             </div>
 
             {/* Footer avec pagination */}
-            <div className="p-4 border-t border-[#e5e5e5] flex items-center justify-between">
-              <span className="text-sm text-[#737373]">
+            <div className="p-4 border-t border-[var(--color-border)] flex items-center justify-between">
+              <span className="text-sm text-[var(--color-text-tertiary)]">
                 Affichage de {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, filteredOperations.length)} sur {filteredOperations.length} opérations
               </span>
               <div className="flex items-center space-x-2">
                 <button
                   onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                   disabled={currentPage === 1}
-                  className="px-3 py-1 border border-[#e5e5e5] rounded hover:bg-[var(--color-background-secondary)] disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-1 border border-[var(--color-border)] rounded hover:bg-[var(--color-background-secondary)] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Précédent
                 </button>
@@ -935,7 +935,7 @@ const RapprochementBancaire: React.FC = () => {
                   <button
                     key={page}
                     onClick={() => setCurrentPage(page)}
-                    className={`px-3 py-1 rounded ${currentPage === page ? 'bg-[#171717] text-white' : 'border border-[#e5e5e5] hover:bg-[var(--color-background-secondary)]'}`}
+                    className={`px-3 py-1 rounded ${currentPage === page ? 'bg-[var(--color-primary)] text-white' : 'border border-[var(--color-border)] hover:bg-[var(--color-background-secondary)]'}`}
                   >
                     {page}
                   </button>
@@ -943,7 +943,7 @@ const RapprochementBancaire: React.FC = () => {
                 <button
                   onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                   disabled={currentPage === totalPages}
-                  className="px-3 py-1 border border-[#e5e5e5] rounded hover:bg-[var(--color-background-secondary)] disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-1 border border-[var(--color-border)] rounded hover:bg-[var(--color-background-secondary)] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Suivant
                 </button>
@@ -959,12 +959,12 @@ const RapprochementBancaire: React.FC = () => {
                   <Bot className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-[#171717]">Assistant IA de Rapprochement</h3>
-                  <p className="text-sm text-[#737373]">Pattern matching & Machine Learning activés</p>
+                  <h3 className="font-bold text-[var(--color-primary)]">Assistant IA de Rapprochement</h3>
+                  <p className="text-sm text-[var(--color-text-tertiary)]">Pattern matching & Machine Learning activés</p>
                 </div>
               </div>
               <div className="flex items-center space-x-2">
-                <span className="text-sm text-[#737373]">Auto-rapprochement</span>
+                <span className="text-sm text-[var(--color-text-tertiary)]">Auto-rapprochement</span>
                 <button
                   onClick={() => setAutoRapprochement(!autoRapprochement)}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full ${
@@ -980,17 +980,17 @@ const RapprochementBancaire: React.FC = () => {
 
             <div className="grid grid-cols-3 gap-4">
               <div className="bg-white/50 rounded-lg p-3">
-                <p className="text-xs text-[#737373] mb-1">Taux de matching</p>
+                <p className="text-xs text-[var(--color-text-tertiary)] mb-1">Taux de matching</p>
                 <p className="font-semibold">94%</p>
                 <p className="text-xs text-[var(--color-success)]">+2% vs mois dernier</p>
               </div>
               <div className="bg-white/50 rounded-lg p-3">
-                <p className="text-xs text-[#737373] mb-1">Suggestions validées</p>
+                <p className="text-xs text-[var(--color-text-tertiary)] mb-1">Suggestions validées</p>
                 <p className="font-semibold">127/135</p>
                 <p className="text-xs text-[var(--color-primary)]">Précision: 94%</p>
               </div>
               <div className="bg-white/50 rounded-lg p-3">
-                <p className="text-xs text-[#737373] mb-1">Temps économisé</p>
+                <p className="text-xs text-[var(--color-text-tertiary)] mb-1">Temps économisé</p>
                 <p className="font-semibold">3h 45min</p>
                 <p className="text-xs text-primary-600">Ce mois</p>
               </div>
@@ -1285,8 +1285,8 @@ const RapprochementBancaire: React.FC = () => {
               <div className="space-y-6">
                 {/* Section Informations Générales */}
                 <div>
-                  <h3 className="text-sm font-bold text-[#171717] uppercase tracking-wide mb-3 border-b border-[#171717] pb-2 flex items-center gap-2">
-                    <span className="w-1 h-4 bg-[#171717] rounded"></span>
+                  <h3 className="text-sm font-bold text-[var(--color-primary)] uppercase tracking-wide mb-3 border-b border-[var(--color-primary)] pb-2 flex items-center gap-2">
+                    <span className="w-1 h-4 bg-[var(--color-primary)] rounded"></span>
                     Informations Générales
                   </h3>
                   <div className="grid grid-cols-2 gap-4">
@@ -1324,8 +1324,8 @@ const RapprochementBancaire: React.FC = () => {
 
                 {/* Section Montants */}
                 <div>
-                  <h3 className="text-sm font-bold text-[#171717] uppercase tracking-wide mb-3 border-b border-[#171717] pb-2 flex items-center gap-2">
-                    <span className="w-1 h-4 bg-[#171717] rounded"></span>
+                  <h3 className="text-sm font-bold text-[var(--color-primary)] uppercase tracking-wide mb-3 border-b border-[var(--color-primary)] pb-2 flex items-center gap-2">
+                    <span className="w-1 h-4 bg-[var(--color-primary)] rounded"></span>
                     Montants
                   </h3>
                   <div className="grid grid-cols-2 gap-4">
@@ -1362,8 +1362,8 @@ const RapprochementBancaire: React.FC = () => {
 
                 {/* Section Informations Comptables */}
                 <div>
-                  <h3 className="text-sm font-bold text-[#171717] uppercase tracking-wide mb-3 border-b border-[#171717] pb-2 flex items-center gap-2">
-                    <span className="w-1 h-4 bg-[#171717] rounded"></span>
+                  <h3 className="text-sm font-bold text-[var(--color-primary)] uppercase tracking-wide mb-3 border-b border-[var(--color-primary)] pb-2 flex items-center gap-2">
+                    <span className="w-1 h-4 bg-[var(--color-primary)] rounded"></span>
                     Informations Comptables
                   </h3>
                   <div className="grid grid-cols-2 gap-4">
@@ -1397,8 +1397,8 @@ const RapprochementBancaire: React.FC = () => {
                 {/* Section Tiers */}
                 {(selectedOperation.tiers || selectedOperation.tierCode) && (
                   <div>
-                    <h3 className="text-sm font-bold text-[#171717] uppercase tracking-wide mb-3 border-b border-[#171717] pb-2 flex items-center gap-2">
-                      <span className="w-1 h-4 bg-[#171717] rounded"></span>
+                    <h3 className="text-sm font-bold text-[var(--color-primary)] uppercase tracking-wide mb-3 border-b border-[var(--color-primary)] pb-2 flex items-center gap-2">
+                      <span className="w-1 h-4 bg-[var(--color-primary)] rounded"></span>
                       Tiers
                     </h3>
                     <div className="grid grid-cols-2 gap-4">
@@ -1417,7 +1417,7 @@ const RapprochementBancaire: React.FC = () => {
                 {/* Section IA */}
                 {selectedOperation.confidence && (
                   <div>
-                    <h3 className="text-sm font-bold text-[#171717] uppercase tracking-wide mb-3 border-b border-primary-400 pb-2 flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-[var(--color-primary)] uppercase tracking-wide mb-3 border-b border-primary-400 pb-2 flex items-center gap-2">
                       <span className="w-1 h-4 bg-primary-500 rounded"></span>
                       Analyse IA
                     </h3>

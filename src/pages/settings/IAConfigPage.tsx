@@ -608,7 +608,7 @@ const IAConfigPage: React.FC = () => {
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-gradient-to-br from-[#171717] to-[#262626] rounded-lg p-6 text-white">
+            <div className="bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-hover)] rounded-lg p-6 text-white">
               <div className="flex items-center gap-2 mb-3">
                 <CheckCircle2 className="w-6 h-6" />
                 <h3 className="font-bold text-lg">40%</h3>
@@ -617,7 +617,7 @@ const IAConfigPage: React.FC = () => {
               <p className="text-xs opacity-75">Détection immédiate des violations évidentes: équilibre comptable, limites crédit, cohérence TVA</p>
             </div>
 
-            <div className="bg-gradient-to-br from-[#525252] to-[#404040] rounded-lg p-6 text-white">
+            <div className="bg-gradient-to-br from-[var(--color-text-secondary)] to-[#404040] rounded-lg p-6 text-white">
               <div className="flex items-center gap-2 mb-3">
                 <Brain className="w-6 h-6" />
                 <h3 className="font-bold text-lg">60%</h3>
@@ -626,7 +626,7 @@ const IAConfigPage: React.FC = () => {
               <p className="text-xs opacity-75">Identification de patterns subtils et anomalies complexes via apprentissage continu</p>
             </div>
 
-            <div className="bg-gradient-to-br from-[#737373] to-[#525252] rounded-lg p-6 text-white">
+            <div className="bg-gradient-to-br from-[var(--color-text-tertiary)] to-[var(--color-text-secondary)] rounded-lg p-6 text-white">
               <div className="flex items-center gap-2 mb-3">
                 <Layers className="w-6 h-6" />
                 <h3 className="font-bold text-lg">Fusion</h3>
@@ -1382,7 +1382,7 @@ const IAConfigPage: React.FC = () => {
       {activeTab === 'algorithms' && (
         <>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <ModernCard className="bg-gradient-to-br from-[#171717] to-[#262626]">
+        <ModernCard className="bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-hover)]">
           <CardBody className="p-6">
             <div className="flex items-center justify-between mb-2">
               <Activity className="w-8 h-8 text-white opacity-80" />
@@ -1391,7 +1391,7 @@ const IAConfigPage: React.FC = () => {
             <p className="text-sm text-white opacity-90">Modèles Actifs</p>
           </CardBody>
         </ModernCard>
-        <ModernCard className="bg-gradient-to-br from-[#525252] to-[#404040]">
+        <ModernCard className="bg-gradient-to-br from-[var(--color-text-secondary)] to-[#404040]">
           <CardBody className="p-6">
             <div className="flex items-center justify-between mb-2">
               <TrendingUp className="w-8 h-8 text-white opacity-80" />
@@ -1400,7 +1400,7 @@ const IAConfigPage: React.FC = () => {
             <p className="text-sm text-white opacity-90">Précision Moyenne</p>
           </CardBody>
         </ModernCard>
-        <ModernCard className="bg-gradient-to-br from-[#737373] to-[#525252]">
+        <ModernCard className="bg-gradient-to-br from-[var(--color-text-tertiary)] to-[var(--color-text-secondary)]">
           <CardBody className="p-6">
             <div className="flex items-center justify-between mb-2">
               <Zap className="w-8 h-8 text-white opacity-80" />
@@ -1438,7 +1438,7 @@ const IAConfigPage: React.FC = () => {
               </CardHeader>
               <CardBody className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <ModernCard className="bg-gradient-to-br from-[#171717] to-[#262626]">
+                  <ModernCard className="bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-hover)]">
                     <CardBody className="p-4">
                       <div className="flex items-center justify-between mb-2">
                         <Brain className="w-6 h-6 text-white opacity-80" />
@@ -1447,7 +1447,7 @@ const IAConfigPage: React.FC = () => {
                       <p className="text-xs text-white opacity-90">Type d'Algorithme</p>
                     </CardBody>
                   </ModernCard>
-                  <ModernCard className="bg-gradient-to-br from-[#525252] to-[#404040]">
+                  <ModernCard className="bg-gradient-to-br from-[var(--color-text-secondary)] to-[#404040]">
                     <CardBody className="p-4">
                       <div className="flex items-center justify-between mb-2">
                         <BarChart3 className="w-6 h-6 text-white opacity-80" />
@@ -1456,7 +1456,7 @@ const IAConfigPage: React.FC = () => {
                       <p className="text-xs text-white opacity-90">Précision</p>
                     </CardBody>
                   </ModernCard>
-                  <ModernCard className="bg-gradient-to-br from-[#737373] to-[#525252]">
+                  <ModernCard className="bg-gradient-to-br from-[var(--color-text-tertiary)] to-[var(--color-text-secondary)]">
                     <CardBody className="p-4">
                       <div className="flex items-center justify-between mb-2">
                         <TrendingUp className="w-6 h-6 text-white opacity-80" />

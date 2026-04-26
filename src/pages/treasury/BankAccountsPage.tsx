@@ -147,9 +147,9 @@ const BankAccountsPage: React.FC = () => {
 
   const getAccountTypeColor = (type: string) => {
     switch (type) {
-      case 'courant': return 'bg-[#171717]/10 text-[#171717]';
+      case 'courant': return 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]';
       case 'epargne': return 'bg-green-100 text-green-800';
-      case 'terme': return 'bg-[#525252]/10 text-[#525252]';
+      case 'terme': return 'bg-[var(--color-text-secondary)]/10 text-[var(--color-text-secondary)]';
       case 'credit': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
@@ -220,8 +220,8 @@ const BankAccountsPage: React.FC = () => {
         <Card>
           <CardContent className="flex items-center p-6">
             <div className="flex items-center space-x-4">
-              <div className="p-2 bg-[#171717]/10 rounded-full">
-                <CreditCard className="h-6 w-6 text-[#171717]" />
+              <div className="p-2 bg-[var(--color-primary)]/10 rounded-full">
+                <CreditCard className="h-6 w-6 text-[var(--color-primary)]" />
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Comptes</p>
@@ -252,7 +252,7 @@ const BankAccountsPage: React.FC = () => {
         <Card>
           <CardContent className="flex items-center p-6">
             <div className="flex items-center space-x-4">
-              <div className="p-2 bg-[#525252]/10 rounded-full">
+              <div className="p-2 bg-[var(--color-text-secondary)]/10 rounded-full">
                 <Banknote className="h-6 w-6 text-primary-600" />
               </div>
               <div>
@@ -568,7 +568,7 @@ const BankAccountsPage: React.FC = () => {
               </div>
               <div className="flex mt-4 space-x-2">
                 {[1, 2, 3, 4].map((step) => (
-                  <div key={step} className={`flex-1 h-2 rounded-full ${step <= formStep ? 'bg-[#171717]' : 'bg-gray-200'}`} />
+                  <div key={step} className={`flex-1 h-2 rounded-full ${step <= formStep ? 'bg-[var(--color-primary)]' : 'bg-gray-200'}`} />
                 ))}
               </div>
               <div className="flex mt-2 text-xs text-gray-500">
@@ -588,23 +588,23 @@ const BankAccountsPage: React.FC = () => {
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Numéro de compte *</label>
                       <input type="text" value={newAccount.numeroCompte} onChange={(e) => setNewAccount({ ...newAccount, numeroCompte: e.target.value })}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717]" placeholder="Ex: 12345678901" />
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]" placeholder="Ex: 12345678901" />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">IBAN</label>
                       <input type="text" value={newAccount.iban} onChange={(e) => setNewAccount({ ...newAccount, iban: e.target.value })}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] font-mono" placeholder="CM21 XXXX XXXX XXXX XXXX XXXX XXX" />
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] font-mono" placeholder="CM21 XXXX XXXX XXXX XXXX XXXX XXX" />
                     </div>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Libellé du compte *</label>
                     <input type="text" value={newAccount.libelle} onChange={(e) => setNewAccount({ ...newAccount, libelle: e.target.value })}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717]" placeholder="Ex: Compte courant principal" />
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]" placeholder="Ex: Compte courant principal" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Titulaire du compte *</label>
                     <input type="text" value={newAccount.titulaire} onChange={(e) => setNewAccount({ ...newAccount, titulaire: e.target.value })}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717]" placeholder="Nom du titulaire" />
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]" placeholder="Nom du titulaire" />
                   </div>
                 </div>
               )}
@@ -617,7 +617,7 @@ const BankAccountsPage: React.FC = () => {
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Nom de la banque *</label>
                       <select value={newAccount.banque} onChange={(e) => setNewAccount({ ...newAccount, banque: e.target.value })}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717]">
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]">
                         <option value="">Sélectionner...</option>
                         <option value="SGBC">Société Générale Cameroun</option>
                         <option value="Afriland">Afriland First Bank</option>
@@ -633,25 +633,25 @@ const BankAccountsPage: React.FC = () => {
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Code banque</label>
                       <input type="text" value={newAccount.codeBanque} onChange={(e) => setNewAccount({ ...newAccount, codeBanque: e.target.value })}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] font-mono" placeholder="Ex: 10005" />
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] font-mono" placeholder="Ex: 10005" />
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Code guichet</label>
                       <input type="text" value={newAccount.codeGuichet} onChange={(e) => setNewAccount({ ...newAccount, codeGuichet: e.target.value })}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] font-mono" placeholder="Ex: 00100" />
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] font-mono" placeholder="Ex: 00100" />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Code BIC/SWIFT</label>
                       <input type="text" value={newAccount.swift} onChange={(e) => setNewAccount({ ...newAccount, swift: e.target.value })}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] font-mono" placeholder="Ex: SGCMCMCX" />
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] font-mono" placeholder="Ex: SGCMCMCX" />
                     </div>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Agence</label>
                     <input type="text" value={newAccount.agence} onChange={(e) => setNewAccount({ ...newAccount, agence: e.target.value })}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717]" placeholder="Ex: Akwa, Douala" />
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]" placeholder="Ex: Akwa, Douala" />
                   </div>
                 </div>
               )}
@@ -664,7 +664,7 @@ const BankAccountsPage: React.FC = () => {
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Type de compte *</label>
                       <select value={newAccount.typeCompte} onChange={(e) => setNewAccount({ ...newAccount, typeCompte: e.target.value })}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717]">
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]">
                         <option value="courant">Courant</option>
                         <option value="epargne">Épargne</option>
                         <option value="depot">Dépôt à terme</option>
@@ -674,7 +674,7 @@ const BankAccountsPage: React.FC = () => {
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Devise *</label>
                       <select value={newAccount.devise} onChange={(e) => setNewAccount({ ...newAccount, devise: e.target.value })}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717]">
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]">
                         <option value="XAF">XAF (Franc CFA CEMAC)</option>
                         <option value="EUR">EUR (Euro)</option>
                         <option value="USD">USD (Dollar)</option>
@@ -684,7 +684,7 @@ const BankAccountsPage: React.FC = () => {
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Statut *</label>
                       <select value={newAccount.statut} onChange={(e) => setNewAccount({ ...newAccount, statut: e.target.value })}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717]">
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]">
                         <option value="actif">Actif</option>
                         <option value="inactif">Inactif</option>
                         <option value="ferme">Fermé</option>
@@ -696,12 +696,12 @@ const BankAccountsPage: React.FC = () => {
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Solde initial</label>
                       <input type="number" value={newAccount.soldeInitial} onChange={(e) => setNewAccount({ ...newAccount, soldeInitial: parseFloat(e.target.value) || 0 })}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717]" placeholder="0" />
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]" placeholder="0" />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Date d'ouverture</label>
                       <input type="date" value={newAccount.dateOuverture} onChange={(e) => setNewAccount({ ...newAccount, dateOuverture: e.target.value })}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717]" />
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]" />
                     </div>
                   </div>
                 </div>
@@ -716,23 +716,23 @@ const BankAccountsPage: React.FC = () => {
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Chargé de compte</label>
                         <input type="text" value={newAccount.chargeCompte} onChange={(e) => setNewAccount({ ...newAccount, chargeCompte: e.target.value })}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717]" placeholder="Nom du conseiller" />
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]" placeholder="Nom du conseiller" />
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
                         <input type="tel" value={newAccount.telephoneBanque} onChange={(e) => setNewAccount({ ...newAccount, telephoneBanque: e.target.value })}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717]" placeholder="+237 6XX XXX XXX" />
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]" placeholder="+237 6XX XXX XXX" />
                       </div>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                       <input type="email" value={newAccount.emailBanque} onChange={(e) => setNewAccount({ ...newAccount, emailBanque: e.target.value })}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717]" placeholder="conseiller@banque.com" />
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]" placeholder="conseiller@banque.com" />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
                       <textarea rows={2} value={newAccount.notes} onChange={(e) => setNewAccount({ ...newAccount, notes: e.target.value })}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717]" placeholder="Informations complémentaires..." />
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]" placeholder="Informations complémentaires..." />
                     </div>
                   </div>
 
@@ -764,7 +764,7 @@ const BankAccountsPage: React.FC = () => {
               <div className="flex space-x-3">
                 {formStep < 4 ? (
                   <button onClick={() => setFormStep(formStep + 1)}
-                    className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/90">Suivant</button>
+                    className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90">Suivant</button>
                 ) : (
                   <button
                     onClick={() => {
@@ -776,7 +776,7 @@ const BankAccountsPage: React.FC = () => {
                       setShowCreateModal(false);
                       resetNewAccount();
                     }}
-                    className="px-6 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/90 font-semibold"
+                    className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 font-semibold"
                   >
                     Créer le compte
                   </button>
@@ -791,9 +791,9 @@ const BankAccountsPage: React.FC = () => {
       {showViewModal && selectedAccount && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-[#171717]/10 to-[#525252]/10">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-[var(--color-primary)]/10 to-[var(--color-text-secondary)]/10">
               <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-[#171717] rounded-lg flex items-center justify-center text-white">
+                <div className="w-12 h-12 bg-[var(--color-primary)] rounded-lg flex items-center justify-center text-white">
                   <Building className="w-6 h-6" />
                 </div>
                 <div>
@@ -968,7 +968,7 @@ const BankAccountsPage: React.FC = () => {
                     // Exporter le RIB en PDF
                     toast.success('Export RIB en cours...');
                   }}
-                  className="px-4 py-2 border border-[#171717] text-[#171717] rounded-lg hover:bg-[#171717]/10 transition-colors"
+                  className="px-4 py-2 border border-[var(--color-primary)] text-[var(--color-primary)] rounded-lg hover:bg-[var(--color-primary)]/10 transition-colors"
                 >
                   <Download className="w-4 h-4 inline mr-2" />
                   Exporter RIB
@@ -978,7 +978,7 @@ const BankAccountsPage: React.FC = () => {
                     setShowViewModal(false);
                     setShowEditModal(true);
                   }}
-                  className="px-4 py-2 bg-[#525252] text-white rounded-lg hover:bg-[#404040] transition-colors"
+                  className="px-4 py-2 bg-[var(--color-text-secondary)] text-white rounded-lg hover:bg-[#404040] transition-colors"
                 >
                   Modifier
                 </button>
@@ -1081,7 +1081,7 @@ const BankAccountsPage: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-[#525252] text-white rounded-lg hover:bg-[#404040]"
+                  className="px-4 py-2 bg-[var(--color-text-secondary)] text-white rounded-lg hover:bg-[#404040]"
                 >
                   Enregistrer
                 </button>
@@ -1108,7 +1108,7 @@ const BankAccountsPage: React.FC = () => {
             </div>
 
             <div className="p-6 space-y-4">
-              <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-[#171717] transition-colors">
+              <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-[var(--color-primary)] transition-colors">
                 <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                 <p className="text-lg font-medium text-gray-700 mb-2">Glissez votre fichier ici</p>
                 <p className="text-sm text-gray-500 mb-4">ou cliquez pour sélectionner</p>
@@ -1125,7 +1125,7 @@ const BankAccountsPage: React.FC = () => {
                 />
                 <label
                   htmlFor="file-import-bank"
-                  className="inline-block px-6 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#262626] cursor-pointer"
+                  className="inline-block px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] cursor-pointer"
                 >
                   Sélectionner un fichier
                 </label>
@@ -1153,7 +1153,7 @@ const BankAccountsPage: React.FC = () => {
                   toast.success('Import lancé !');
                   setShowImportModal(false);
                 }}
-                className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#262626]"
+                className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)]"
               >
                 Importer
               </button>

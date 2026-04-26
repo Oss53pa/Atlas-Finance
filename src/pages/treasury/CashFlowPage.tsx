@@ -143,8 +143,8 @@ const CashFlowPage: React.FC = () => {
   const getCategoryColor = (categorie: string) => {
     const colors: Record<string, string> = {
       'ventes': 'bg-green-100 text-green-800',
-      'achats': 'bg-[#171717]/10 text-[#171717]',
-      'salaires': 'bg-[#525252]/10 text-[#525252]',
+      'achats': 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]',
+      'salaires': 'bg-[var(--color-text-secondary)]/10 text-[var(--color-text-secondary)]',
       'charges': 'bg-red-100 text-red-800',
       'investissements': 'bg-orange-100 text-orange-800',
       'financement': 'bg-yellow-100 text-yellow-800',
@@ -445,8 +445,8 @@ const CashFlowPage: React.FC = () => {
         <Card>
           <CardContent className="flex items-center p-6">
             <div className="flex items-center space-x-4">
-              <div className="p-2 bg-[#171717]/10 rounded-full">
-                <DollarSign className="h-6 w-6 text-[#171717]" />
+              <div className="p-2 bg-[var(--color-primary)]/10 rounded-full">
+                <DollarSign className="h-6 w-6 text-[var(--color-primary)]" />
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">Solde Initial</p>
@@ -493,7 +493,7 @@ const CashFlowPage: React.FC = () => {
         <Card>
           <CardContent className="flex items-center p-6">
             <div className="flex items-center space-x-4">
-              <div className="p-2 bg-[#525252]/10 rounded-full">
+              <div className="p-2 bg-[var(--color-text-secondary)]/10 rounded-full">
                 <ArrowUpRight className="h-6 w-6 text-primary-600" />
               </div>
               <div>
@@ -541,8 +541,8 @@ const CashFlowPage: React.FC = () => {
                   {cashFlowData?.rotation_moyenne || 0} jours
                 </p>
               </div>
-              <div className="p-2 bg-[#171717]/10 rounded-full">
-                <RefreshCw className="h-6 w-6 text-[#171717]" />
+              <div className="p-2 bg-[var(--color-primary)]/10 rounded-full">
+                <RefreshCw className="h-6 w-6 text-[var(--color-primary)]" />
               </div>
             </div>
           </CardContent>
@@ -557,7 +557,7 @@ const CashFlowPage: React.FC = () => {
                   {cashFlowData?.jours_couverture || 0} jours
                 </p>
               </div>
-              <div className="p-2 bg-[#525252]/10 rounded-full">
+              <div className="p-2 bg-[var(--color-text-secondary)]/10 rounded-full">
                 {(cashFlowData?.jours_couverture || 0) > 30 ? (
                   <CheckCircle className="h-6 w-6 text-green-600" />
                 ) : (

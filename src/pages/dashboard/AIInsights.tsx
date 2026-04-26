@@ -301,7 +301,7 @@ const AIInsights: React.FC = () => {
   const renderPredictionsTab = () => (
     <div className="space-y-6">
       {/* AI Performance Overview */}
-      <div className="bg-gradient-to-r from-[#171717] to-[#525252] rounded-lg p-6">
+      <div className="bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-text-secondary)] rounded-lg p-6">
         <div className="flex items-center gap-3 mb-4">
           <Brain className="w-8 h-8 text-white" />
           <div>
@@ -522,7 +522,7 @@ const AIInsights: React.FC = () => {
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Recommandations Prioritaires</h2>
           <div className="space-y-4">
             {insights.filter(i => i.priority === 'urgent' || i.priority === 'high').map((insight) => (
-              <div key={`priority-${insight.id}`} className="p-4 bg-gradient-to-r from-[#171717]/10 to-[#525252]/10 rounded-lg border border-[var(--color-primary)]/20">
+              <div key={`priority-${insight.id}`} className="p-4 bg-gradient-to-r from-[var(--color-primary)]/10 to-[var(--color-text-secondary)]/10 rounded-lg border border-[var(--color-primary)]/20">
                 <div className="flex items-start gap-3">
                   <div className="p-2 bg-[var(--color-primary)]/20 rounded-lg">
                     <Lightbulb className="w-5 h-5 text-[var(--color-text-primary)]" />
@@ -586,28 +586,28 @@ const AIInsights: React.FC = () => {
       <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Métriques de Performance Détaillées</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          <div className="text-center p-4 bg-gradient-to-br from-[#171717]/10 to-[#171717]/5 rounded-lg">
+          <div className="text-center p-4 bg-gradient-to-br from-[var(--color-primary)]/10 to-[var(--color-primary)]/5 rounded-lg">
             <div className="w-12 h-12 mx-auto bg-[var(--color-primary)]/20 rounded-lg flex items-center justify-center mb-2">
               <Target className="w-6 h-6 text-[var(--color-text-primary)]" />
             </div>
             <div className="text-lg font-bold text-gray-900">{totalEntries}</div>
             <div className="text-sm text-gray-900">Écritures analysées</div>
           </div>
-          <div className="text-center p-4 bg-gradient-to-br from-[#171717]/10 to-[#171717]/5 rounded-lg">
+          <div className="text-center p-4 bg-gradient-to-br from-[var(--color-primary)]/10 to-[var(--color-primary)]/5 rounded-lg">
             <div className="w-12 h-12 mx-auto bg-[var(--color-primary)]/20 rounded-lg flex items-center justify-center mb-2">
               <CheckCircle className="w-6 h-6 text-[var(--color-text-primary)]" />
             </div>
             <div className="text-lg font-bold text-gray-900">{predictions.length}</div>
             <div className="text-sm text-gray-900">Indicateurs suivis</div>
           </div>
-          <div className="text-center p-4 bg-gradient-to-br from-[#525252]/10 to-[#525252]/5 rounded-lg">
-            <div className="w-12 h-12 mx-auto bg-[#525252]/20 rounded-lg flex items-center justify-center mb-2">
+          <div className="text-center p-4 bg-gradient-to-br from-[var(--color-text-secondary)]/10 to-[var(--color-text-secondary)]/5 rounded-lg">
+            <div className="w-12 h-12 mx-auto bg-[var(--color-text-secondary)]/20 rounded-lg flex items-center justify-center mb-2">
               <AlertTriangle className="w-6 h-6 text-[var(--color-text-secondary)]" />
             </div>
             <div className="text-lg font-bold text-gray-900">{anomalies.length}</div>
             <div className="text-sm text-gray-900">Anomalies détectées</div>
           </div>
-          <div className="text-center p-4 bg-gradient-to-br from-[#171717]/10 to-[#171717]/5 rounded-lg">
+          <div className="text-center p-4 bg-gradient-to-br from-[var(--color-primary)]/10 to-[var(--color-primary)]/5 rounded-lg">
             <div className="w-12 h-12 mx-auto bg-[var(--color-primary)]/10 rounded-lg flex items-center justify-center mb-2">
               <Lightbulb className="w-6 h-6 text-[var(--color-text-primary)]" />
             </div>

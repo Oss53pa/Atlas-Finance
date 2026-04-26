@@ -60,9 +60,9 @@ const StockStatusBadge: React.FC<StockStatusBadgeProps> = ({
     reorder_needed: {
       label: 'Reorder Needed',
       icon: Clock,
-      bgColor: 'bg-[#171717]/10',
-      textColor: 'text-[#171717]',
-      iconColor: 'text-[#171717]'
+      bgColor: 'bg-[var(--color-primary)]/10',
+      textColor: 'text-[var(--color-primary)]',
+      iconColor: 'text-[var(--color-primary)]'
     }
   };
 

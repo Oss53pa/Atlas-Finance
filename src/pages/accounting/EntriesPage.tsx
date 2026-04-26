@@ -94,7 +94,7 @@ const EntriesPage: React.FC = () => {
       width: '80px',
       align: 'center',
       render: (item) => (
-        <span className="text-sm font-mono text-[#525252] font-semibold">{item.journal}</span>
+        <span className="text-sm font-mono text-[var(--color-text-secondary)] font-semibold">{item.journal}</span>
       )
     },
     {
@@ -247,26 +247,26 @@ const EntriesPage: React.FC = () => {
   };
 
   return (
-    <div className="h-screen bg-[#e5e5e5] flex flex-col overflow-hidden">
+    <div className="h-screen bg-[var(--color-border)] flex flex-col overflow-hidden">
       {/* En-tête avec navigation de retour */}
-      <div className="bg-white border-b border-[#e5e5e5] px-4 py-3 flex-shrink-0">
+      <div className="bg-white border-b border-[var(--color-border)] px-4 py-3 flex-shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button
               onClick={() => navigate('/accounting')}
-              className="flex items-center space-x-2 text-[#737373] hover:text-[#171717] transition-colors"
+              className="flex items-center space-x-2 text-[var(--color-text-tertiary)] hover:text-[var(--color-primary)] transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               <span className="text-sm">Retour</span>
             </button>
 
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-[#171717]/20 rounded-lg flex items-center justify-center">
-                <FileText className="w-5 h-5 text-[#171717]" />
+              <div className="w-10 h-10 bg-[var(--color-primary)]/20 rounded-lg flex items-center justify-center">
+                <FileText className="w-5 h-5 text-[var(--color-primary)]" />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-[#171717]">Écritures Comptables</h1>
-                <p className="text-sm text-[#737373]">Saisie et gestion des écritures SYSCOHADA</p>
+                <h1 className="text-lg font-bold text-[var(--color-primary)]">Écritures Comptables</h1>
+                <p className="text-sm text-[var(--color-text-tertiary)]">Saisie et gestion des écritures SYSCOHADA</p>
               </div>
             </div>
           </div>
@@ -279,7 +279,7 @@ const EntriesPage: React.FC = () => {
 
             <button
               onClick={() => setShowTemplateModal(true)}
-              className="px-4 py-2 bg-[#525252] text-white rounded-lg hover:bg-[#404040] transition-colors flex items-center space-x-2"
+              className="px-4 py-2 bg-[var(--color-text-secondary)] text-white rounded-lg hover:bg-[#404040] transition-colors flex items-center space-x-2"
             >
               <FileType className="w-4 h-4" />
               <span className="text-sm">Ajouter un modèle de saisie</span>
@@ -288,7 +288,7 @@ const EntriesPage: React.FC = () => {
             <div className="relative">
               <button
                 onClick={() => setShowTemplateDropdown(!showTemplateDropdown)}
-                className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#262626] transition-colors flex items-center space-x-2"
+                className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] transition-colors flex items-center space-x-2"
               >
                 <Eye className="w-4 h-4" />
                 <span className="text-sm">Consulter un modèle</span>
@@ -314,7 +314,7 @@ const EntriesPage: React.FC = () => {
 
             <button
               onClick={() => navigate('/dashboard/comptable')}
-              className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#262626] transition-colors flex items-center space-x-2"
+              className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] transition-colors flex items-center space-x-2"
             >
               <Home className="w-4 h-4" />
               <span className="text-sm">Workspace</span>
@@ -324,8 +324,8 @@ const EntriesPage: React.FC = () => {
       </div>
 
       {/* Navigation par onglets - Pleine largeur */}
-      <div className="bg-white border-y border-[#e5e5e5] shadow-sm flex flex-col flex-1 overflow-hidden w-full">
-        <div className="px-4 border-b border-[#e5e5e5]">
+      <div className="bg-white border-y border-[var(--color-border)] shadow-sm flex flex-col flex-1 overflow-hidden w-full">
+        <div className="px-4 border-b border-[var(--color-border)]">
           <nav className="flex space-x-8">
             {tabs.map((tab) => {
               const IconComponent = tab.icon;
@@ -336,8 +336,8 @@ const EntriesPage: React.FC = () => {
                   className={`
                     flex items-center space-x-2 py-4 px-2 text-sm font-medium border-b-2 transition-colors
                     ${activeTab === tab.id
-                      ? 'border-[#171717] text-[#171717]'
-                      : 'border-transparent text-[#737373] hover:text-[#171717] hover:border-[#171717]/30'
+                      ? 'border-[var(--color-primary)] text-[var(--color-primary)]'
+                      : 'border-transparent text-[var(--color-text-tertiary)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)]/30'
                     }
                   `}
                 >
@@ -422,7 +422,7 @@ const EntriesPage: React.FC = () => {
       <button
         onClick={() => setShowEntryModal(true)}
         className="fixed top-1/2 right-8 transform -tranprimary-y-1/2
-        w-14 h-14 bg-[#525252] text-white rounded-full shadow-lg hover:bg-[#404040] hover:shadow-xl transition-all duration-300 flex items-center
+        w-14 h-14 bg-[var(--color-text-secondary)] text-white rounded-full shadow-lg hover:bg-[#404040] hover:shadow-xl transition-all duration-300 flex items-center
         justify-center z-40 group"
       >
         <Plus className="w-6 h-6" />
@@ -454,9 +454,9 @@ const EntriesPage: React.FC = () => {
             <div className="flex items-center justify-center min-h-screen p-4">
               <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full relative">
                 {/* Header */}
-                <div className="p-6 border-b border-[#e5e5e5] bg-gradient-to-r from-[#171717]/10 to-[#525252]/10">
+                <div className="p-6 border-b border-[var(--color-border)] bg-gradient-to-r from-[var(--color-primary)]/10 to-[var(--color-text-secondary)]/10">
                   <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-bold text-[#171717]">
+                    <h2 className="text-lg font-bold text-[var(--color-primary)]">
                       Détails de l'écriture {selectedEntry.numero}
                     </h2>
                     <button
@@ -472,7 +472,7 @@ const EntriesPage: React.FC = () => {
                 <div className="p-6 space-y-6">
                   <div className="grid grid-cols-2 gap-6">
                     <div>
-                      <h3 className="text-sm font-medium text-[#737373] mb-2">Informations générales</h3>
+                      <h3 className="text-sm font-medium text-[var(--color-text-tertiary)] mb-2">Informations générales</h3>
                       <div className="space-y-2">
                         <div className="flex justify-between">
                           <span className="text-sm text-[#404040]">N° Pièce:</span>
@@ -494,7 +494,7 @@ const EntriesPage: React.FC = () => {
                     </div>
 
                     <div>
-                      <h3 className="text-sm font-medium text-[#737373] mb-2">Montants</h3>
+                      <h3 className="text-sm font-medium text-[var(--color-text-tertiary)] mb-2">Montants</h3>
                       <div className="space-y-2">
                         <div className="flex justify-between">
                           <span className="text-sm text-[#404040]">Débit:</span>
@@ -530,7 +530,7 @@ const EntriesPage: React.FC = () => {
 
                   {/* Lignes d'écriture */}
                   <div>
-                    <h3 className="text-sm font-medium text-[#737373] mb-3">Lignes d'écriture</h3>
+                    <h3 className="text-sm font-medium text-[var(--color-text-tertiary)] mb-3">Lignes d'écriture</h3>
                     <div className="border rounded-lg overflow-hidden">
                       <table className="w-full">
                         <thead className="bg-[var(--color-surface-hover)]">
@@ -561,13 +561,13 @@ const EntriesPage: React.FC = () => {
                 </div>
 
                 {/* Footer */}
-                <div className="p-6 border-t border-[#e5e5e5] flex justify-between">
+                <div className="p-6 border-t border-[var(--color-border)] flex justify-between">
                   <button
                     onClick={() => {
                       setShowDetailsModal(false);
                       handleEditEntry(selectedEntry);
                     }}
-                    className="px-4 py-2 border border-[#d4d4d4] rounded-lg hover:bg-[var(--color-surface-hover)] flex items-center space-x-2"
+                    className="px-4 py-2 border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-surface-hover)] flex items-center space-x-2"
                   >
                     <Edit className="w-4 h-4" />
                     <span>{t('common.edit')}</span>
@@ -575,7 +575,7 @@ const EntriesPage: React.FC = () => {
                   <div className="flex space-x-3">
                     <button
                       onClick={() => setShowDetailsModal(false)}
-                      className="px-4 py-2 text-[#404040] border border-[#d4d4d4] rounded-lg hover:bg-[var(--color-surface-hover)]"
+                      className="px-4 py-2 text-[#404040] border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-surface-hover)]"
                     >
                       Fermer
                     </button>
@@ -608,9 +608,9 @@ const EntriesPage: React.FC = () => {
             <div className="flex items-center justify-center min-h-screen p-4">
               <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full relative">
                 {/* Header */}
-                <div className="p-6 border-b border-[#e5e5e5]">
+                <div className="p-6 border-b border-[var(--color-border)]">
                   <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-bold text-[#171717]">Créer un modèle de saisie</h2>
+                    <h2 className="text-lg font-bold text-[var(--color-primary)]">Créer un modèle de saisie</h2>
                     <button
                       onClick={() => setShowTemplateModal(false)}
                       className="p-2 hover:bg-[var(--color-surface-hover)] rounded-lg transition-colors"
@@ -627,13 +627,13 @@ const EntriesPage: React.FC = () => {
                     <input
                       type="text"
                       placeholder="Ex: Facture fournisseur avec TVA"
-                      className="w-full px-3 py-2 border border-[#d4d4d4] rounded-lg focus:ring-2 focus:ring-[#171717]/20"
+                      className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]/20"
                     />
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-[#404040] mb-2">Type de transaction *</label>
-                    <select className="w-full px-3 py-2 border border-[#d4d4d4] rounded-lg focus:ring-2 focus:ring-[#171717]/20">
+                    <select className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]/20">
                       <option value="">Sélectionnez un type</option>
                       <option value="achats">Facture d'Achat</option>
                       <option value="ventes">Facture de Vente</option>
@@ -665,7 +665,7 @@ const EntriesPage: React.FC = () => {
                     <textarea
                       rows={3}
                       placeholder="Description du modèle..."
-                      className="w-full px-3 py-2 border border-[#d4d4d4] rounded-lg focus:ring-2 focus:ring-[#171717]/20"
+                      className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]/20"
                     />
                   </div>
 
@@ -679,7 +679,7 @@ const EntriesPage: React.FC = () => {
                         <input type="text" placeholder={t('accounting.credit')} className="w-24 px-2 py-1 border rounded text-sm" />
                       </div>
                     </div>
-                    <button className="mt-3 text-sm text-[#171717] hover:text-[#262626] flex items-center space-x-1">
+                    <button className="mt-3 text-sm text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] flex items-center space-x-1">
                       <Plus className="w-4 h-4" />
                       <span>Ajouter une ligne</span>
                     </button>
@@ -694,14 +694,14 @@ const EntriesPage: React.FC = () => {
                 </div>
 
                 {/* Footer */}
-                <div className="p-6 border-t border-[#e5e5e5] flex justify-end space-x-3">
+                <div className="p-6 border-t border-[var(--color-border)] flex justify-end space-x-3">
                   <button
                     onClick={() => setShowTemplateModal(false)}
-                    className="px-4 py-2 text-[#404040] border border-[#d4d4d4] rounded-lg hover:bg-[var(--color-surface-hover)]"
+                    className="px-4 py-2 text-[#404040] border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-surface-hover)]"
                   >
                     Annuler
                   </button>
-                  <button className="px-6 py-2 bg-[#525252] text-white rounded-lg hover:bg-[#404040]">
+                  <button className="px-6 py-2 bg-[var(--color-text-secondary)] text-white rounded-lg hover:bg-[#404040]">
                     Créer le modèle
                   </button>
                 </div>

@@ -8,28 +8,28 @@ import { LucideIcon } from 'lucide-react';
 export const designTokens = {
   colors: {
     primary: {
-      50: '#fafafa',
-      100: '#f5f5f5',
-      200: '#e5e5e5',
-      300: '#d4d4d4',
-      400: '#a3a3a3',
-      500: '#737373',
-      600: '#525252',
-      700: '#404040',
-      800: '#262626',
-      900: '#171717',
+      50: '#faf8f3',
+      100: '#f0ece4',
+      200: '#e5e0d5',
+      300: '#D4B870',
+      400: '#C4A65C',
+      500: '#B8954A',
+      600: '#9A7D3E',
+      700: '#7A6332',
+      800: '#1F1F23',
+      900: '#16161A',
     },
     neutral: {
-      50: '#fafafa',
-      100: '#f5f5f5',
-      200: '#e5e5e5',
-      300: '#d4d4d4',
-      400: '#a3a3a3',
-      500: '#737373',
-      600: '#525252',
-      700: '#404040',
-      800: '#262626',
-      900: '#171717',
+      50: '#faf8f3',
+      100: '#f0ece4',
+      200: '#e5e0d5',
+      300: '#c8c0b0',
+      400: '#A09880',
+      500: '#8C7A5A',
+      600: '#6B6B73',
+      700: '#3A3A3F',
+      800: '#1F1F23',
+      900: '#16161A',
     },
     success: {
       50: '#f0fdf4',
@@ -62,14 +62,14 @@ export const designTokens = {
       700: '#b91c1c',
     },
     chart: {
-      primary: '#171717',
-      secondary: '#525252',
-      tertiary: '#737373',
+      primary: '#B8954A',
+      secondary: '#C4A65C',
+      tertiary: '#D4B870',
       success: '#22c55e',
       warning: '#f59e0b',
       error: '#ef4444',
       info: '#3b82f6',
-      neutral: '#a3a3a3',
+      neutral: '#A09880',
     }
   },
   spacing: {
@@ -178,38 +178,38 @@ export const KPICard: React.FC<KPICardProps> = ({
   const colorVariants = {
     primary: {
       bg: 'bg-white/90',
-      icon: 'bg-neutral-100 text-neutral-700',
-      text: 'text-[#171717]',
-      accent: 'text-neutral-700',
-      border: 'border-[#d4d4d4]/40'
+      icon: 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]',
+      text: 'text-[var(--color-primary)]',
+      accent: 'text-[var(--color-primary)]',
+      border: 'border-[var(--color-primary)]/20'
     },
     success: {
       bg: 'bg-white/90',
-      icon: 'bg-neutral-100 text-neutral-700',
-      text: 'text-[#171717]',
-      accent: 'text-neutral-700',
-      border: 'border-[#d4d4d4]/40'
+      icon: 'bg-[var(--color-success)]/10 text-[var(--color-success)]',
+      text: 'text-[var(--color-success)]',
+      accent: 'text-[var(--color-success)]',
+      border: 'border-[var(--color-success)]/20'
     },
     warning: {
       bg: 'bg-white/90',
-      icon: 'bg-neutral-100 text-neutral-600',
-      text: 'text-[#171717]',
-      accent: 'text-neutral-600',
-      border: 'border-[#d4d4d4]/40'
+      icon: 'bg-[var(--color-warning)]/10 text-[var(--color-warning)]',
+      text: 'text-[var(--color-warning)]',
+      accent: 'text-[var(--color-warning)]',
+      border: 'border-[var(--color-warning)]/20'
     },
     error: {
       bg: 'bg-white/90',
-      icon: 'bg-neutral-100 text-neutral-600',
-      text: 'text-[#171717]',
-      accent: 'text-neutral-600',
-      border: 'border-[#d4d4d4]/40'
+      icon: 'bg-[var(--color-error)]/10 text-[var(--color-error)]',
+      text: 'text-[var(--color-error)]',
+      accent: 'text-[var(--color-error)]',
+      border: 'border-[var(--color-error)]/20'
     },
     neutral: {
       bg: 'bg-white/90',
-      icon: 'bg-neutral-100 text-neutral-600',
-      text: 'text-neutral-800',
-      accent: 'text-neutral-600',
-      border: 'border-neutral-200/40'
+      icon: 'bg-[var(--color-surface-hover)] text-[var(--color-text-secondary)]',
+      text: 'text-[var(--color-text-primary)]',
+      accent: 'text-[var(--color-text-secondary)]',
+      border: 'border-[var(--color-border)]/40'
     }
   };
 
@@ -255,7 +255,7 @@ export const KPICard: React.FC<KPICardProps> = ({
             {trend && (
               <div className={`
                 inline-flex items-center px-2 py-1 rounded-md text-xs font-medium
-                ${trend.isPositive ? 'bg-[#171717]/10 text-[#171717]' : 'bg-[#ef4444]/10 text-[#ef4444]'}
+                ${trend.isPositive ? 'bg-[var(--color-success)]/10 text-[var(--color-success)]' : 'bg-[var(--color-error)]/10 text-[var(--color-error)]'}
               `}>
                 {trend.value}
               </div>
@@ -307,7 +307,7 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
   <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0 mb-6 ${className}`}>
     <div className="flex items-center space-x-3">
       {Icon && (
-        <div className="p-2.5 bg-gradient-to-br from-[#171717] to-[#262626] rounded-xl shadow-md">
+        <div className="p-2.5 bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-hover)] rounded-xl shadow-md">
           <Icon className="h-5 w-5 text-white" />
         </div>
       )}
@@ -347,10 +347,10 @@ export const ElegantButton: React.FC<ElegantButtonProps> = ({
   className = ''
 }) => {
   const variants = {
-    primary: 'bg-gradient-to-r from-[#171717] to-[#262626] text-white shadow-lg hover:shadow-xl hover:from-[#262626] hover:to-[#262626]',
-    secondary: 'bg-[#e5e5e5] text-[#171717] hover:bg-[#d4d4d4] shadow-sm',
-    outline: 'border-2 border-[#d4d4d4] text-[#404040] hover:border-[#171717] hover:text-[#171717] hover:bg-[#171717]/5',
-    ghost: 'text-[#737373] hover:text-[#171717] hover:bg-[#e5e5e5]'
+    primary: 'bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-hover)] text-white shadow-lg hover:shadow-xl hover:from-[var(--color-primary-hover)] hover:to-[var(--color-primary-hover)]',
+    secondary: 'bg-[var(--color-surface-hover)] text-[var(--color-primary)] hover:bg-[var(--color-border)] shadow-sm',
+    outline: 'border-2 border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/5',
+    ghost: 'text-[var(--color-text-tertiary)] hover:text-[var(--color-primary)] hover:bg-[var(--color-surface-hover)]'
   };
 
   const sizes = {
@@ -403,6 +403,11 @@ export const ModernChartCard: React.FC<ModernChartCardProps> = ({
   className = '',
   gradient = 'warm'
 }) => {
+  const gradientStyles: Record<NonNullable<ModernChartCardProps['gradient']>, string> = {
+    warm: 'bg-gradient-to-br from-white via-[#faf8f3] to-[#f0ece4]/40',
+    cool: 'bg-gradient-to-br from-white via-slate-50 to-slate-100/40',
+    neutral: 'bg-white/90'
+  };
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -410,13 +415,13 @@ export const ModernChartCard: React.FC<ModernChartCardProps> = ({
       transition={{ duration: 0.3 }}
       className={`group ${className}`}
     >
-      <div className="
+      <div className={`
         relative overflow-hidden rounded-xl
-        bg-white/90
+        ${gradientStyles[gradient]}
         border border-neutral-200/40 shadow-sm hover:shadow-md
         transition-all duration-300
         backdrop-blur-sm
-      ">
+      `}>
         {/* Header épuré */}
         <div className="p-6 pb-4 border-b border-neutral-100">
           <div className="flex items-center space-x-3">

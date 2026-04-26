@@ -202,7 +202,7 @@ const CollaborationModule: React.FC = () => {
               placeholder="Rechercher..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#171717]/50 text-sm"
+              className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/50 text-sm"
             />
           </div>
         </div>
@@ -223,7 +223,7 @@ const CollaborationModule: React.FC = () => {
                 onClick={() => setActiveChannel(channel.id)}
                 className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
                   activeChannel === channel.id
-                    ? 'bg-[#171717]/10 text-[#171717]'
+                    ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]'
                     : 'hover:bg-gray-100 text-gray-700'
                 }`}
               >
@@ -232,7 +232,7 @@ const CollaborationModule: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">{channel.name}</span>
                     {channel.unreadCount > 0 && (
-                      <span className="px-2 py-0.5 bg-[#525252] text-white text-xs rounded-full">
+                      <span className="px-2 py-0.5 bg-[var(--color-text-secondary)] text-white text-xs rounded-full">
                         {channel.unreadCount}
                       </span>
                     )}
@@ -258,7 +258,7 @@ const CollaborationModule: React.FC = () => {
                 onClick={() => setActiveChannel(channel.id)}
                 className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
                   activeChannel === channel.id
-                    ? 'bg-[#171717]/10 text-[#171717]'
+                    ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]'
                     : 'hover:bg-gray-100 text-gray-700'
                 }`}
               >
@@ -274,7 +274,7 @@ const CollaborationModule: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">{channel.name}</span>
                     {channel.unreadCount > 0 && (
-                      <span className="px-2 py-0.5 bg-[#525252] text-white text-xs rounded-full">
+                      <span className="px-2 py-0.5 bg-[var(--color-text-secondary)] text-white text-xs rounded-full">
                         {channel.unreadCount}
                       </span>
                     )}
@@ -290,7 +290,7 @@ const CollaborationModule: React.FC = () => {
         <div className="p-3 border-t bg-gray-50">
           <div className="flex items-center space-x-2">
             <div className="relative">
-              <div className="w-8 h-8 rounded-full bg-[#171717] flex items-center justify-center text-white text-xs font-medium">
+              <div className="w-8 h-8 rounded-full bg-[var(--color-primary)] flex items-center justify-center text-white text-xs font-medium">
                 {currentUserInitials}
               </div>
               <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-gray-50" />
@@ -400,7 +400,7 @@ const CollaborationModule: React.FC = () => {
 
                       <div className={`rounded-lg px-4 py-2 ${
                         msg.senderId === (authUser?.id || 'current-user')
-                          ? 'bg-[#171717] text-white'
+                          ? 'bg-[var(--color-primary)] text-white'
                           : 'bg-gray-100 text-gray-900'
                       }`}>
                         <p className="text-sm">{msg.text}</p>
@@ -471,7 +471,7 @@ const CollaborationModule: React.FC = () => {
                     onChange={(e) => setMessage(e.target.value)}
                     onKeyDown={handleKeyPress}
                     placeholder="Tapez votre message..."
-                    className="w-full px-4 py-2 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-[#171717]/50"
+                    className="w-full px-4 py-2 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/50"
                     rows={1}
                     style={{ minHeight: '40px', maxHeight: '120px' }}
                   />
@@ -486,7 +486,7 @@ const CollaborationModule: React.FC = () => {
                   disabled={!message.trim()}
                   className={`p-2 rounded-lg transition-colors ${
                     message.trim()
-                      ? 'bg-[#171717] hover:bg-[#262626] text-white'
+                      ? 'bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white'
                       : 'bg-gray-100 text-gray-700 cursor-not-allowed'
                   }`}
                 >

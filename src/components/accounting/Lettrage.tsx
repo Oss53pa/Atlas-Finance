@@ -331,7 +331,7 @@ const Lettrage: React.FC = () => {
       <div className="bg-white border-b border-gray-200 p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <Link2 className="w-8 h-8 text-[#171717]" />
+            <Link2 className="w-8 h-8 text-[var(--color-primary)]" />
             <div>
               <h1 className="text-lg font-bold text-gray-900">Module de Lettrage</h1>
               <p className="text-sm text-gray-600">Rapprochement et lettrage des comptes - Conforme SYSCOHADA</p>
@@ -343,7 +343,7 @@ const Lettrage: React.FC = () => {
               <Calendar className="w-4 h-4 mr-2 inline" />
               Période
             </button>
-            <button className="px-4 py-2 text-sm bg-[#171717] text-white rounded-lg hover:bg-[#262626]">
+            <button className="px-4 py-2 text-sm bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)]">
               <Download className="w-4 h-4 mr-2 inline" />
               Exporter
             </button>
@@ -356,7 +356,7 @@ const Lettrage: React.FC = () => {
             onClick={() => setViewMode('manual')}
             className={`px-4 py-2 text-sm rounded-lg transition-all whitespace-nowrap ${
               viewMode === 'manual'
-                ? 'bg-[#171717] text-white shadow-md'
+                ? 'bg-[var(--color-primary)] text-white shadow-md'
                 : 'text-gray-600 hover:bg-gray-100'
             }`}
           >
@@ -367,7 +367,7 @@ const Lettrage: React.FC = () => {
             onClick={() => setViewMode('automatic')}
             className={`px-4 py-2 text-sm rounded-lg transition-all whitespace-nowrap ${
               viewMode === 'automatic'
-                ? 'bg-[#171717] text-white shadow-md'
+                ? 'bg-[var(--color-primary)] text-white shadow-md'
                 : 'text-gray-600 hover:bg-gray-100'
             }`}
           >
@@ -378,7 +378,7 @@ const Lettrage: React.FC = () => {
             onClick={() => setViewMode('analysis')}
             className={`px-4 py-2 text-sm rounded-lg transition-all whitespace-nowrap ${
               viewMode === 'analysis'
-                ? 'bg-[#171717] text-white shadow-md'
+                ? 'bg-[var(--color-primary)] text-white shadow-md'
                 : 'text-gray-600 hover:bg-gray-100'
             }`}
           >
@@ -389,7 +389,7 @@ const Lettrage: React.FC = () => {
             onClick={() => setViewMode('history')}
             className={`px-4 py-2 text-sm rounded-lg transition-all whitespace-nowrap ${
               viewMode === 'history'
-                ? 'bg-[#171717] text-white shadow-md'
+                ? 'bg-[var(--color-primary)] text-white shadow-md'
                 : 'text-gray-600 hover:bg-gray-100'
             }`}
           >
@@ -400,7 +400,7 @@ const Lettrage: React.FC = () => {
             onClick={() => setViewMode('config')}
             className={`px-4 py-2 text-sm rounded-lg transition-all whitespace-nowrap ${
               viewMode === 'config'
-                ? 'bg-[#171717] text-white shadow-md'
+                ? 'bg-[var(--color-primary)] text-white shadow-md'
                 : 'text-gray-600 hover:bg-gray-100'
             }`}
           >
@@ -424,7 +424,7 @@ const Lettrage: React.FC = () => {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="Rechercher par libellé ou numéro de pièce..."
-                    className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#171717]"
+                    className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                   />
                 </div>
 
@@ -433,7 +433,7 @@ const Lettrage: React.FC = () => {
                     type="checkbox"
                     checked={showOnlyNonLettrage}
                     onChange={(e) => setShowOnlyNonLettrage(e.target.checked)}
-                    className="rounded border-gray-300 text-[#171717] focus:ring-[#171717]"
+                    className="rounded border-gray-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
                   />
                   <span className="text-sm text-gray-600">Écritures non lettrées uniquement</span>
                 </label>
@@ -454,7 +454,7 @@ const Lettrage: React.FC = () => {
                     type="checkbox"
                     checked={lettrageMode === 'partial'}
                     onChange={(e) => setLettrageMode(e.target.checked ? 'partial' : 'complete')}
-                    className="rounded border-gray-300 text-[#171717] focus:ring-[#171717]"
+                    className="rounded border-gray-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
                   />
                   <span className="text-sm text-gray-600">Lettrage partiel</span>
                 </label>
@@ -575,7 +575,7 @@ const Lettrage: React.FC = () => {
                         <ChevronRight className="w-5 h-5 text-gray-700" />
                       )}
                       <div>
-                        <span className="font-mono font-bold text-[#171717]">{group.compte}</span>
+                        <span className="font-mono font-bold text-[var(--color-primary)]">{group.compte}</span>
                         <span className="ml-2 text-gray-700">
                           {group.compte.startsWith('411') ? t('thirdParty.customers') :
                            group.compte.startsWith('401') ? t('thirdParty.suppliers') :
@@ -740,19 +740,19 @@ const Lettrage: React.FC = () => {
                 </label>
                 <div className="space-y-2">
                   <label className="flex items-center">
-                    <input type="checkbox" defaultChecked className="mr-2 rounded border-gray-300 text-[#171717]" />
+                    <input type="checkbox" defaultChecked className="mr-2 rounded border-gray-300 text-[var(--color-primary)]" />
                     <span className="text-sm">Par montant exact</span>
                   </label>
                   <label className="flex items-center">
-                    <input type="checkbox" defaultChecked className="mr-2 rounded border-gray-300 text-[#171717]" />
+                    <input type="checkbox" defaultChecked className="mr-2 rounded border-gray-300 text-[var(--color-primary)]" />
                     <span className="text-sm">Par numéro de pièce</span>
                   </label>
                   <label className="flex items-center">
-                    <input type="checkbox" className="mr-2 rounded border-gray-300 text-[#171717]" />
+                    <input type="checkbox" className="mr-2 rounded border-gray-300 text-[var(--color-primary)]" />
                     <span className="text-sm">Par référence client/fournisseur</span>
                   </label>
                   <label className="flex items-center">
-                    <input type="checkbox" className="mr-2 rounded border-gray-300 text-[#171717]" />
+                    <input type="checkbox" className="mr-2 rounded border-gray-300 text-[var(--color-primary)]" />
                     <span className="text-sm">Lettrage partiel autorisé</span>
                   </label>
                 </div>
@@ -790,7 +790,7 @@ const Lettrage: React.FC = () => {
               </div>
 
               <div className="pt-4 flex space-x-3">
-                <button className="px-6 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#262626]">
+                <button className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)]">
                   <RefreshCw className="w-4 h-4 mr-2 inline" />
                   Lancer le lettrage automatique
                 </button>
@@ -998,7 +998,7 @@ const Lettrage: React.FC = () => {
                 <button className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">
                   Précédent
                 </button>
-                <button className="px-3 py-1 text-sm bg-[#171717] text-white rounded">1</button>
+                <button className="px-3 py-1 text-sm bg-[var(--color-primary)] text-white rounded">1</button>
                 <button className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">
                   Suivant
                 </button>
@@ -1092,7 +1092,7 @@ const Lettrage: React.FC = () => {
                         type="checkbox"
                         checked={autoLettrageConfig.parMontant}
                         onChange={(e) => setAutoLettrageConfig({...autoLettrageConfig, parMontant: e.target.checked})}
-                        className="mr-2 rounded border-gray-300 text-[#171717]"
+                        className="mr-2 rounded border-gray-300 text-[var(--color-primary)]"
                       />
                       <span className="text-sm">Par montant exact</span>
                     </label>
@@ -1101,7 +1101,7 @@ const Lettrage: React.FC = () => {
                         type="checkbox"
                         checked={autoLettrageConfig.parReference}
                         onChange={(e) => setAutoLettrageConfig({...autoLettrageConfig, parReference: e.target.checked})}
-                        className="mr-2 rounded border-gray-300 text-[#171717]"
+                        className="mr-2 rounded border-gray-300 text-[var(--color-primary)]"
                       />
                       <span className="text-sm">Par référence de pièce</span>
                     </label>
@@ -1110,7 +1110,7 @@ const Lettrage: React.FC = () => {
                         type="checkbox"
                         checked={autoLettrageConfig.parTiers}
                         onChange={(e) => setAutoLettrageConfig({...autoLettrageConfig, parTiers: e.target.checked})}
-                        className="mr-2 rounded border-gray-300 text-[#171717]"
+                        className="mr-2 rounded border-gray-300 text-[var(--color-primary)]"
                       />
                       <span className="text-sm">Par tiers</span>
                     </label>
@@ -1119,7 +1119,7 @@ const Lettrage: React.FC = () => {
                         type="checkbox"
                         checked={autoLettrageConfig.parDate}
                         onChange={(e) => setAutoLettrageConfig({...autoLettrageConfig, parDate: e.target.checked})}
-                        className="mr-2 rounded border-gray-300 text-[#171717]"
+                        className="mr-2 rounded border-gray-300 text-[var(--color-primary)]"
                       />
                       <span className="text-sm">Par proximité de date</span>
                     </label>
@@ -1153,7 +1153,7 @@ const Lettrage: React.FC = () => {
 
                 <button
                   onClick={() => {}}
-                  className="w-full px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#262626]"
+                  className="w-full px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)]"
                 >
                   <Save className="w-4 h-4 mr-2 inline" />
                   Sauvegarder la configuration
@@ -1195,7 +1195,7 @@ const Lettrage: React.FC = () => {
                     <input
                       type="checkbox"
                       defaultChecked
-                      className="mr-2 rounded border-gray-300 text-[#171717]"
+                      className="mr-2 rounded border-gray-300 text-[var(--color-primary)]"
                     />
                     <span className="text-sm">Autoriser le lettrage partiel</span>
                   </label>
@@ -1206,7 +1206,7 @@ const Lettrage: React.FC = () => {
                     <input
                       type="checkbox"
                       defaultChecked
-                      className="mr-2 rounded border-gray-300 text-[#171717]"
+                      className="mr-2 rounded border-gray-300 text-[var(--color-primary)]"
                     />
                     <span className="text-sm">Envoyer des notifications pour les écritures anciennes</span>
                   </label>

@@ -146,11 +146,11 @@ const ReportsPage: React.FC = () => {
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'financial': return 'bg-[#171717]/10 text-[#171717]';
-      case 'analytical': return 'bg-[#525252]/10 text-[#525252]';
+      case 'financial': return 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]';
+      case 'analytical': return 'bg-[var(--color-text-secondary)]/10 text-[var(--color-text-secondary)]';
       case 'management': return 'bg-green-100 text-green-800';
       case 'regulatory': return 'bg-orange-100 text-orange-800';
-      case 'operational': return 'bg-[#171717]/10 text-[#171717]';
+      case 'operational': return 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -160,7 +160,7 @@ const ReportsPage: React.FC = () => {
       case 'active': return 'bg-green-100 text-green-800';
       case 'draft': return 'bg-yellow-100 text-yellow-800';
       case 'archived': return 'bg-gray-100 text-gray-800';
-      case 'scheduled': return 'bg-[#171717]/10 text-[#171717]';
+      case 'scheduled': return 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -246,7 +246,7 @@ const ReportsPage: React.FC = () => {
           </button>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="bg-[#171717] hover:bg-[#171717]/90 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+            className="bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/90 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
           >
             <PlusIcon className="h-5 w-5" />
             <span>Nouveau Rapport</span>
@@ -262,8 +262,8 @@ const ReportsPage: React.FC = () => {
               <p className="text-sm font-medium text-gray-600">Total Rapports</p>
               <p className="text-lg font-bold text-gray-900">{totalReports}</p>
             </div>
-            <div className="h-12 w-12 bg-[#171717]/10 rounded-lg flex items-center justify-center">
-              <DocumentTextIcon className="h-6 w-6 text-[#171717]" />
+            <div className="h-12 w-12 bg-[var(--color-primary)]/10 rounded-lg flex items-center justify-center">
+              <DocumentTextIcon className="h-6 w-6 text-[var(--color-primary)]" />
             </div>
           </div>
         </div>
@@ -284,10 +284,10 @@ const ReportsPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Programmés</p>
-              <p className="text-lg font-bold text-[#171717]">{scheduledReports}</p>
+              <p className="text-lg font-bold text-[var(--color-primary)]">{scheduledReports}</p>
             </div>
-            <div className="h-12 w-12 bg-[#171717]/10 rounded-lg flex items-center justify-center">
-              <ClockIcon className="h-6 w-6 text-[#171717]" />
+            <div className="h-12 w-12 bg-[var(--color-primary)]/10 rounded-lg flex items-center justify-center">
+              <ClockIcon className="h-6 w-6 text-[var(--color-primary)]" />
             </div>
           </div>
         </div>
@@ -296,10 +296,10 @@ const ReportsPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Vues Totales</p>
-              <p className="text-lg font-bold text-[#525252]">{totalViews.toLocaleString()}</p>
+              <p className="text-lg font-bold text-[var(--color-text-secondary)]">{totalViews.toLocaleString()}</p>
             </div>
-            <div className="h-12 w-12 bg-[#525252]/10 rounded-lg flex items-center justify-center">
-              <EyeIcon className="h-6 w-6 text-[#525252]" />
+            <div className="h-12 w-12 bg-[var(--color-text-secondary)]/10 rounded-lg flex items-center justify-center">
+              <EyeIcon className="h-6 w-6 text-[var(--color-text-secondary)]" />
             </div>
           </div>
         </div>
@@ -316,7 +316,7 @@ const ReportsPage: React.FC = () => {
                 placeholder="Rechercher un rapport..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
               />
             </div>
             <button
@@ -336,7 +336,7 @@ const ReportsPage: React.FC = () => {
               <select
                 value={selectedType}
                 onChange={(e) => setSelectedType(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
               >
                 <option value="all">Tous les types</option>
                 <option value="financial">Financier</option>
@@ -352,7 +352,7 @@ const ReportsPage: React.FC = () => {
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
               >
                 <option value="all">Toutes les catégories</option>
                 <option value="Comptabilité">{t('accounting.title')}</option>
@@ -369,7 +369,7 @@ const ReportsPage: React.FC = () => {
               <select
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
               >
                 <option value="all">Tous les statuts</option>
                 <option value="active">Actif</option>
@@ -384,7 +384,7 @@ const ReportsPage: React.FC = () => {
               <select
                 value={selectedFormat}
                 onChange={(e) => setSelectedFormat(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
               >
                 <option value="all">Tous les formats</option>
                 <option value="pdf">PDF</option>
@@ -523,7 +523,7 @@ const ReportsPage: React.FC = () => {
 
               {/* Prochaine génération si programmé */}
               {report.nextGeneration && (
-                <div className="text-xs text-[#171717] mb-4">
+                <div className="text-xs text-[var(--color-primary)] mb-4">
                   Prochaine génération: {new Date(report.nextGeneration).toLocaleDateString('fr-FR')} à {new Date(report.nextGeneration).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                 </div>
               )}
@@ -532,7 +532,7 @@ const ReportsPage: React.FC = () => {
               <div className="flex items-center justify-between">
                 <button
                   onClick={() => handleGenerate(report)}
-                  className="bg-[#171717] hover:bg-[#171717]/90 text-white px-3 py-2 rounded text-sm flex items-center space-x-1 transition-colors"
+                  className="bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/90 text-white px-3 py-2 rounded text-sm flex items-center space-x-1 transition-colors"
                   disabled={generateReportMutation.isPending}
                 >
                   <PlayIcon className="h-4 w-4" />
@@ -545,7 +545,7 @@ const ReportsPage: React.FC = () => {
                       setSelectedReport(report);
                       setShowViewModal(true);
                     }}
-                    className="p-2 text-gray-700 hover:text-[#171717] transition-colors"
+                    className="p-2 text-gray-700 hover:text-[var(--color-primary)] transition-colors"
                     title="Voir les détails"
                   >
                     <EyeIcon className="h-4 w-4" />
@@ -553,7 +553,7 @@ const ReportsPage: React.FC = () => {
 
                   <button
                     onClick={() => handleToggleSchedule(report)}
-                    className="p-2 text-gray-700 hover:text-[#171717] transition-colors"
+                    className="p-2 text-gray-700 hover:text-[var(--color-primary)] transition-colors"
                     title={report.isScheduled ? "Désactiver la programmation" : "Activer la programmation"}
                     disabled={toggleScheduleMutation.isPending}
                   >
@@ -565,7 +565,7 @@ const ReportsPage: React.FC = () => {
                       setSelectedReport(report);
                       setShowEditModal(true);
                     }}
-                    className="p-2 text-gray-700 hover:text-[#171717] transition-colors"
+                    className="p-2 text-gray-700 hover:text-[var(--color-primary)] transition-colors"
                     title={t('common.edit')}
                   >
                     <PencilIcon className="h-4 w-4" />
@@ -651,7 +651,7 @@ const ReportsPage: React.FC = () => {
                   </label>
                   <input
                     type="text"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                     placeholder="Bilan Comptable..."
                   />
                 </div>
@@ -662,7 +662,7 @@ const ReportsPage: React.FC = () => {
                   </label>
                   <input
                     type="text"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                     placeholder="BCM-001"
                   />
                 </div>
@@ -672,7 +672,7 @@ const ReportsPage: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
                 <textarea
                   rows={3}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                   placeholder="Description détaillée du rapport..."
                 />
               </div>
@@ -682,7 +682,7 @@ const ReportsPage: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Type <span className="text-red-500">*</span>
                   </label>
-                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent">
+                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent">
                     <option value="financial">Financier</option>
                     <option value="analytical">Analytique</option>
                     <option value="management">Gestion</option>
@@ -693,7 +693,7 @@ const ReportsPage: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Catégorie</label>
-                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent">
+                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent">
                     <option value="Comptabilité">{t('accounting.title')}</option>
                     <option value="Commercial">Commercial</option>
                     <option value="Analytique">Analytique</option>
@@ -705,7 +705,7 @@ const ReportsPage: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Format</label>
-                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent">
+                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent">
                     <option value="pdf">PDF</option>
                     <option value="excel">Excel</option>
                     <option value="word">Word</option>
@@ -718,7 +718,7 @@ const ReportsPage: React.FC = () => {
               <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Fréquence</label>
-                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent">
+                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent">
                     <option value="on_demand">À la demande</option>
                     <option value="daily">Quotidien</option>
                     <option value="weekly">Hebdomadaire</option>
@@ -730,7 +730,7 @@ const ReportsPage: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
-                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent">
+                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent">
                     <option value="draft">{t('accounting.draft')}</option>
                     <option value="active">Actif</option>
                     <option value="scheduled">Programmé</option>
@@ -742,7 +742,7 @@ const ReportsPage: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Durée estimée (min)</label>
                   <input
                     type="number"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                     placeholder="15"
                     min="1"
                   />
@@ -753,7 +753,7 @@ const ReportsPage: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Modèle de rapport</label>
                 <input
                   type="text"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                   placeholder="template_name.xlsx"
                 />
               </div>
@@ -763,7 +763,7 @@ const ReportsPage: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Paramètres (séparés par virgule)</label>
                   <input
                     type="text"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                     placeholder="periode, comparaison, devise"
                   />
                 </div>
@@ -772,7 +772,7 @@ const ReportsPage: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Filtres (séparés par virgule)</label>
                   <input
                     type="text"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                     placeholder="compte, departement, montant_min"
                   />
                 </div>
@@ -782,19 +782,19 @@ const ReportsPage: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Tags (séparés par virgule)</label>
                 <input
                   type="text"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                   placeholder="bilan, comptabilité, syscohada"
                 />
               </div>
 
               <div className="flex items-center space-x-6">
                 <label className="flex items-center">
-                  <input type="checkbox" className="rounded text-[#171717] focus:ring-[#171717]" />
+                  <input type="checkbox" className="rounded text-[var(--color-primary)] focus:ring-[var(--color-primary)]" />
                   <span className="ml-2 text-sm text-gray-700">Rapport public</span>
                 </label>
 
                 <label className="flex items-center">
-                  <input type="checkbox" className="rounded text-[#171717] focus:ring-[#171717]" />
+                  <input type="checkbox" className="rounded text-[var(--color-primary)] focus:ring-[var(--color-primary)]" />
                   <span className="ml-2 text-sm text-gray-700">Activer la programmation</span>
                 </label>
               </div>
@@ -807,7 +807,7 @@ const ReportsPage: React.FC = () => {
               >
                 Annuler
               </button>
-              <button className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/90 transition-colors">
+              <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 transition-colors">
                 Créer le rapport
               </button>
             </div>
@@ -936,7 +936,7 @@ const ReportsPage: React.FC = () => {
                     <span className="text-gray-600 text-sm">Paramètres:</span>
                     <div className="flex flex-wrap gap-2 mt-1">
                       {selectedReport.parameters.map((param, idx) => (
-                        <span key={idx} className="px-2 py-1 bg-[#171717]/10 text-[#171717] rounded text-sm">
+                        <span key={idx} className="px-2 py-1 bg-[var(--color-primary)]/10 text-[var(--color-primary)] rounded text-sm">
                           {param}
                         </span>
                       ))}
@@ -946,7 +946,7 @@ const ReportsPage: React.FC = () => {
                     <span className="text-gray-600 text-sm">Filtres:</span>
                     <div className="flex flex-wrap gap-2 mt-1">
                       {selectedReport.filters.map((filter, idx) => (
-                        <span key={idx} className="px-2 py-1 bg-[#525252]/10 text-[#525252] rounded text-sm">
+                        <span key={idx} className="px-2 py-1 bg-[var(--color-text-secondary)]/10 text-[var(--color-text-secondary)] rounded text-sm">
                           {filter}
                         </span>
                       ))}
@@ -976,7 +976,7 @@ const ReportsPage: React.FC = () => {
             <div className="p-6 bg-gray-50 border-t border-gray-200 flex justify-between sticky bottom-0">
               <button
                 onClick={() => handleGenerate(selectedReport)}
-                className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/90 transition-colors flex items-center space-x-2"
+                className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 transition-colors flex items-center space-x-2"
               >
                 <PlayIcon className="h-4 w-4" />
                 <span>Générer le rapport</span>
@@ -1032,7 +1032,7 @@ const ReportsPage: React.FC = () => {
                   <input
                     type="text"
                     defaultValue={selectedReport.name}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                   />
                 </div>
 
@@ -1043,7 +1043,7 @@ const ReportsPage: React.FC = () => {
                   <input
                     type="text"
                     defaultValue={selectedReport.code}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                   />
                 </div>
               </div>
@@ -1053,7 +1053,7 @@ const ReportsPage: React.FC = () => {
                 <textarea
                   rows={3}
                   defaultValue={selectedReport.description}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                 />
               </div>
 
@@ -1064,7 +1064,7 @@ const ReportsPage: React.FC = () => {
                   </label>
                   <select
                     defaultValue={selectedReport.type}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                   >
                     <option value="financial">Financier</option>
                     <option value="analytical">Analytique</option>
@@ -1078,7 +1078,7 @@ const ReportsPage: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Catégorie</label>
                   <select
                     defaultValue={selectedReport.category}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                   >
                     <option value="Comptabilité">{t('accounting.title')}</option>
                     <option value="Commercial">Commercial</option>
@@ -1093,7 +1093,7 @@ const ReportsPage: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Format</label>
                   <select
                     defaultValue={selectedReport.format}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                   >
                     <option value="pdf">PDF</option>
                     <option value="excel">Excel</option>
@@ -1109,7 +1109,7 @@ const ReportsPage: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Fréquence</label>
                   <select
                     defaultValue={selectedReport.frequency}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                   >
                     <option value="on_demand">À la demande</option>
                     <option value="daily">Quotidien</option>
@@ -1124,7 +1124,7 @@ const ReportsPage: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
                   <select
                     defaultValue={selectedReport.status}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                   >
                     <option value="draft">{t('accounting.draft')}</option>
                     <option value="active">Actif</option>
@@ -1138,7 +1138,7 @@ const ReportsPage: React.FC = () => {
                   <input
                     type="number"
                     defaultValue={selectedReport.estimatedDuration}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                     min="1"
                   />
                 </div>
@@ -1149,7 +1149,7 @@ const ReportsPage: React.FC = () => {
                 <input
                   type="text"
                   defaultValue={selectedReport.template}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                 />
               </div>
 
@@ -1159,7 +1159,7 @@ const ReportsPage: React.FC = () => {
                   <input
                     type="text"
                     defaultValue={selectedReport.parameters.join(', ')}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                   />
                 </div>
 
@@ -1168,7 +1168,7 @@ const ReportsPage: React.FC = () => {
                   <input
                     type="text"
                     defaultValue={selectedReport.filters.join(', ')}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                   />
                 </div>
               </div>
@@ -1178,7 +1178,7 @@ const ReportsPage: React.FC = () => {
                 <input
                   type="text"
                   defaultValue={selectedReport.tags.join(', ')}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                 />
               </div>
 
@@ -1187,7 +1187,7 @@ const ReportsPage: React.FC = () => {
                   <input
                     type="checkbox"
                     defaultChecked={selectedReport.isPublic}
-                    className="rounded text-[#171717] focus:ring-[#171717]"
+                    className="rounded text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
                   />
                   <span className="ml-2 text-sm text-gray-700">Rapport public</span>
                 </label>
@@ -1196,7 +1196,7 @@ const ReportsPage: React.FC = () => {
                   <input
                     type="checkbox"
                     defaultChecked={selectedReport.isScheduled}
-                    className="rounded text-[#171717] focus:ring-[#171717]"
+                    className="rounded text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
                   />
                   <span className="ml-2 text-sm text-gray-700">Activer la programmation</span>
                 </label>
@@ -1213,7 +1213,7 @@ const ReportsPage: React.FC = () => {
               >
                 Annuler
               </button>
-              <button className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/90 transition-colors">
+              <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 transition-colors">
                 Enregistrer
               </button>
             </div>
@@ -1249,7 +1249,7 @@ const ReportsPage: React.FC = () => {
                 </label>
                 <select
                   defaultValue={selectedReport.frequency}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                 >
                   <option value="daily">Quotidien</option>
                   <option value="weekly">Hebdomadaire</option>
@@ -1266,7 +1266,7 @@ const ReportsPage: React.FC = () => {
                   </label>
                   <input
                     type="date"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                   />
                 </div>
 
@@ -1276,7 +1276,7 @@ const ReportsPage: React.FC = () => {
                   </label>
                   <input
                     type="time"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                   />
                 </div>
               </div>
@@ -1285,7 +1285,7 @@ const ReportsPage: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Date de fin (optionnelle)</label>
                 <input
                   type="date"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                 />
               </div>
 
@@ -1293,7 +1293,7 @@ const ReportsPage: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Destinataires (emails séparés par virgule)</label>
                 <textarea
                   rows={2}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                   placeholder="user1@example.com, user2@example.com"
                 />
               </div>
@@ -1302,7 +1302,7 @@ const ReportsPage: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Format de sortie</label>
                 <select
                   defaultValue={selectedReport.format}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                 >
                   <option value="pdf">PDF</option>
                   <option value="excel">Excel</option>
@@ -1313,17 +1313,17 @@ const ReportsPage: React.FC = () => {
 
               <div className="space-y-2">
                 <label className="flex items-center">
-                  <input type="checkbox" className="rounded text-[#171717] focus:ring-[#171717]" />
+                  <input type="checkbox" className="rounded text-[var(--color-primary)] focus:ring-[var(--color-primary)]" />
                   <span className="ml-2 text-sm text-gray-700">Envoyer par email automatiquement</span>
                 </label>
 
                 <label className="flex items-center">
-                  <input type="checkbox" className="rounded text-[#171717] focus:ring-[#171717]" />
+                  <input type="checkbox" className="rounded text-[var(--color-primary)] focus:ring-[var(--color-primary)]" />
                   <span className="ml-2 text-sm text-gray-700">Archiver automatiquement après génération</span>
                 </label>
 
                 <label className="flex items-center">
-                  <input type="checkbox" defaultChecked className="rounded text-[#171717] focus:ring-[#171717]" />
+                  <input type="checkbox" defaultChecked className="rounded text-[var(--color-primary)] focus:ring-[var(--color-primary)]" />
                   <span className="ml-2 text-sm text-gray-700">Notifier en cas d'erreur</span>
                 </label>
               </div>
@@ -1346,7 +1346,7 @@ const ReportsPage: React.FC = () => {
               >
                 Annuler
               </button>
-              <button className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/90 transition-colors">
+              <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 transition-colors">
                 Activer la programmation
               </button>
             </div>

@@ -96,7 +96,7 @@ const ValuationComparison: React.FC<ValuationComparisonProps> = ({
               key={data.method}
               className={`p-4 rounded-lg border-2 cursor-pointer transition-colors ${
                 selectedMethod === data.method
-                  ? 'border-[#171717] bg-[#171717]/10'
+                  ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/10'
                   : 'border-gray-200 hover:border-gray-300'
               }`}
               onClick={() => onMethodSelect(data.method as ValuationMethod)}
@@ -107,7 +107,7 @@ const ValuationComparison: React.FC<ValuationComparisonProps> = ({
                   showDescription={false}
                 />
                 {selectedMethod === data.method && (
-                  <CheckCircle className="w-5 h-5 text-[#171717]" />
+                  <CheckCircle className="w-5 h-5 text-[var(--color-primary)]" />
                 )}
               </div>
 
@@ -219,7 +219,7 @@ const LCMTesting: React.FC<LCMTestingProps> = ({ onTestComplete }) => {
           <button
             onClick={runLCMTest}
             disabled={isRunning}
-            className="flex items-center gap-2 px-4 py-2 bg-[#171717] text-white rounded-md hover:bg-[#262626] disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2 bg-[var(--color-primary)] text-white rounded-md hover:bg-[var(--color-primary-hover)] disabled:opacity-50"
           >
             {isRunning ? (
               <LoadingSpinner size="sm" />
@@ -232,11 +232,11 @@ const LCMTesting: React.FC<LCMTestingProps> = ({ onTestComplete }) => {
       </div>
 
       {/* Compliance Information */}
-      <div className="bg-[#171717]/10 border border-[#171717]/20 rounded-lg p-4 mb-6">
+      <div className="bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20 rounded-lg p-4 mb-6">
         <div className="flex items-start gap-3">
-          <Info className="w-5 h-5 text-[#171717] mt-0.5" />
+          <Info className="w-5 h-5 text-[var(--color-primary)] mt-0.5" />
           <div className="text-sm">
-            <h4 className="font-medium text-[#171717] mb-1">
+            <h4 className="font-medium text-[var(--color-primary)] mb-1">
               {complianceStandard === 'IFRS_IAS2' ? 'IFRS IAS 2 - Inventories' : 'US GAAP ASC 330 - Inventory'}
             </h4>
             <p className="text-blue-700">
@@ -460,7 +460,7 @@ const InventoryValuation: React.FC = () => {
         <div className="flex gap-4 mt-4 lg:mt-0">
           <button
             onClick={() => setShowPeriodModal(true)}
-            className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-md text-sm hover:bg-gray-50 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+            className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-md text-sm hover:bg-gray-50 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
           >
             <Calendar className="w-4 h-4 text-gray-700" />
             {dateRange.startDate && dateRange.endDate
@@ -471,7 +471,7 @@ const InventoryValuation: React.FC = () => {
           <button
             onClick={runValuation}
             disabled={isLoading}
-            className="flex items-center gap-2 px-4 py-2 bg-[#171717] text-white rounded-md hover:bg-[#262626] disabled:opacity-50" aria-label="Actualiser">
+            className="flex items-center gap-2 px-4 py-2 bg-[var(--color-primary)] text-white rounded-md hover:bg-[var(--color-primary-hover)] disabled:opacity-50" aria-label="Actualiser">
             {isLoading ? (
               <LoadingSpinner size="sm" />
             ) : (
@@ -491,10 +491,10 @@ const InventoryValuation: React.FC = () => {
 
       {/* Compliance Standards Information */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-[#171717]/10 border border-[#171717]/20 rounded-lg p-6">
+        <div className="bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20 rounded-lg p-6">
           <div className="flex items-center gap-3 mb-3">
-            <Globe className="w-5 h-5 text-[#171717]" />
-            <h3 className="font-semibold text-[#171717]">IFRS IAS 2</h3>
+            <Globe className="w-5 h-5 text-[var(--color-primary)]" />
+            <h3 className="font-semibold text-[var(--color-primary)]">IFRS IAS 2</h3>
           </div>
           <p className="text-sm text-blue-700">
             International Financial Reporting Standards for inventory measurement at lower of cost and net realizable value.
@@ -557,11 +557,11 @@ const InventoryValuation: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div className="text-center p-4 bg-[#171717]/10 rounded-lg">
-              <div className="text-lg font-bold text-[#171717] mb-1">
+            <div className="text-center p-4 bg-[var(--color-primary)]/10 rounded-lg">
+              <div className="text-lg font-bold text-[var(--color-primary)] mb-1">
                 <CurrencyDisplay amount={valuationData.totalInventoryValue} currency="USD" size="lg" />
               </div>
-              <div className="text-sm text-[#171717]">Total Inventory Value</div>
+              <div className="text-sm text-[var(--color-primary)]">Total Inventory Value</div>
             </div>
 
             <div className="text-center p-4 bg-green-50 rounded-lg">

@@ -29,16 +29,16 @@ export const MonthlyBudgetChart: React.FC<MonthlyBudgetChartProps> = ({
 }) => {
   if (loading) {
     return (
-      <div className="w-full h-[400px] bg-[#F5F5F5] rounded-lg animate-pulse flex items-center justify-center">
-        <p className="text-[#737373]">Chargement du graphique...</p>
+      <div className="w-full h-[400px] bg-[var(--color-surface-hover)] rounded-lg animate-pulse flex items-center justify-center">
+        <p className="text-[var(--color-text-tertiary)]">Chargement du graphique...</p>
       </div>
     );
   }
 
   if (!data || data.length === 0) {
     return (
-      <div className="w-full h-[400px] bg-[#F5F5F5] rounded-lg flex items-center justify-center">
-        <p className="text-[#737373]">Aucune donnée disponible</p>
+      <div className="w-full h-[400px] bg-[var(--color-surface-hover)] rounded-lg flex items-center justify-center">
+        <p className="text-[var(--color-text-tertiary)]">Aucune donnée disponible</p>
       </div>
     );
   }
@@ -47,15 +47,15 @@ export const MonthlyBudgetChart: React.FC<MonthlyBudgetChartProps> = ({
     if (!active || !payload || !payload.length) return null;
 
     return (
-      <div className="bg-white border border-[#d4d4d4] rounded-lg shadow-lg p-3">
-        <p className="font-semibold text-[#171717] mb-2">{payload[0].payload.month as string}</p>
+      <div className="bg-white border border-[var(--color-border)] rounded-lg shadow-lg p-3">
+        <p className="font-semibold text-[var(--color-primary)] mb-2">{payload[0].payload.month as string}</p>
         {payload.map((entry, index: number) => (
           <p key={index} className="text-sm" style={{ color: entry.color }}>
             {entry.name}: {formatCurrency(entry.value)}
           </p>
         ))}
         {payload[0].payload.variance !== undefined && (
-          <p className="text-sm text-[#737373] mt-1 pt-1 border-t border-[#d4d4d4]">
+          <p className="text-sm text-[var(--color-text-tertiary)] mt-1 pt-1 border-t border-[var(--color-border)]">
             Écart: {formatCurrency(Math.abs(payload[0].payload.variance))}
           </p>
         )}

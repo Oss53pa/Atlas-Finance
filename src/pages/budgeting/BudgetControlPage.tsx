@@ -178,7 +178,7 @@ const BudgetControlPage: React.FC = () => {
       case 'on_track': return 'bg-green-100 text-green-800';
       case 'at_risk': return 'bg-yellow-100 text-yellow-800';
       case 'over_budget': return 'bg-red-100 text-red-800';
-      case 'under_budget': return 'bg-[#171717]/10 text-[#171717]';
+      case 'under_budget': return 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -188,7 +188,7 @@ const BudgetControlPage: React.FC = () => {
       case 'on_track': return <CheckCircleIcon className="h-5 w-5 text-green-600" />;
       case 'at_risk': return <ClockIcon className="h-5 w-5 text-yellow-600" />;
       case 'over_budget': return <ExclamationTriangleIcon className="h-5 w-5 text-red-600" />;
-      case 'under_budget': return <ArrowTrendingDownIcon className="h-5 w-5 text-[#171717]" />;
+      case 'under_budget': return <ArrowTrendingDownIcon className="h-5 w-5 text-[var(--color-primary)]" />;
       default: return <ChartBarIcon className="h-5 w-5 text-gray-600" />;
     }
   };
@@ -238,7 +238,7 @@ const BudgetControlPage: React.FC = () => {
             <ChartBarIcon className="h-5 w-5" />
             <span>{viewMode === 'table' ? 'Vue Graphiques' : 'Vue Tableau'}</span>
           </button>
-          <button className="bg-[#171717] hover:bg-[#171717]/90 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors" aria-label="Télécharger">
+          <button className="bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/90 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors" aria-label="Télécharger">
             <DocumentArrowDownIcon className="h-5 w-5" />
             <span>{t('common.export')}</span>
           </button>
@@ -253,8 +253,8 @@ const BudgetControlPage: React.FC = () => {
               <p className="text-sm font-medium text-gray-600">Budget Total</p>
               <p className="text-lg font-bold text-gray-900">{formatCurrency(totalBudgeted)}</p>
             </div>
-            <div className="h-12 w-12 bg-[#171717]/10 rounded-lg flex items-center justify-center">
-              <BanknotesIcon className="h-6 w-6 text-[#171717]" />
+            <div className="h-12 w-12 bg-[var(--color-primary)]/10 rounded-lg flex items-center justify-center">
+              <BanknotesIcon className="h-6 w-6 text-[var(--color-primary)]" />
             </div>
           </div>
         </div>
@@ -315,7 +315,7 @@ const BudgetControlPage: React.FC = () => {
                 placeholder="Rechercher un budget..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
               />
             </div>
             <button
@@ -335,7 +335,7 @@ const BudgetControlPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setShowPeriodModal(true)}
-                className="w-full flex items-center justify-center space-x-2 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                className="w-full flex items-center justify-center space-x-2 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
               >
                 <CalendarIcon className="h-4 w-4" />
                 <span>
@@ -352,7 +352,7 @@ const BudgetControlPage: React.FC = () => {
               <select
                 value={selectedDepartment}
                 onChange={(e) => setSelectedDepartment(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
               >
                 <option value="all">Tous les départements</option>
                 <option value="Exploitation">Exploitation</option>
@@ -367,7 +367,7 @@ const BudgetControlPage: React.FC = () => {
               <select
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
               >
                 <option value="all">Tous les statuts</option>
                 <option value="on_track">{t('status.inProgress')}</option>
@@ -573,7 +573,7 @@ const BudgetControlPage: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <button
-                          className="p-2 text-gray-700 hover:text-[#171717] transition-colors"
+                          className="p-2 text-gray-700 hover:text-[var(--color-primary)] transition-colors"
                           title="Voir les détails" aria-label="Voir les détails">
                           <EyeIcon className="h-5 w-5" />
                         </button>

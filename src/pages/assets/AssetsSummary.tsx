@@ -159,7 +159,7 @@ const AssetsSummary: React.FC = () => {
       change: 0,
       changeLabel: 'depuis Dexie',
       icon: <DollarSign className="w-6 h-6" />,
-      color: '[#171717]',
+      color: '[var(--color-primary)]',
       trend: 'up' as const,
       description: 'Valeur brute de tous les actifs immobilisés'
     },
@@ -192,7 +192,7 @@ const AssetsSummary: React.FC = () => {
       change: 0,
       changeLabel: 'estimation',
       icon: <Wrench className="w-6 h-6" />,
-      color: '[#525252]',
+      color: '[var(--color-text-secondary)]',
       trend: 'down' as const,
       description: 'Estimation basée sur 2% de la valeur brute'
     },
@@ -203,7 +203,7 @@ const AssetsSummary: React.FC = () => {
       change: 0,
       changeLabel: 'depuis Dexie',
       icon: <Package className="w-6 h-6" />,
-      color: '[#171717]',
+      color: '[var(--color-primary)]',
       trend: 'up' as const,
       description: 'Total des actifs enregistrés'
     },
@@ -214,7 +214,7 @@ const AssetsSummary: React.FC = () => {
       change: 0,
       changeLabel: 'actifs actifs / total',
       icon: <Activity className="w-6 h-6" />,
-      color: '[#171717]',
+      color: '[var(--color-primary)]',
       trend: 'up' as const,
       description: 'Pourcentage d\'actifs en utilisation'
     }
@@ -873,11 +873,11 @@ const AssetsSummary: React.FC = () => {
             <div className="text-lg font-bold text-orange-600">{criticalMaintenanceCount}</div>
             <div className="text-sm text-orange-600">Critique</div>
           </div>
-          <div className="text-center p-4 rounded-lg bg-[#171717]/10 border border-[#171717]/20">
-            <div className="text-lg font-bold text-[#171717]">
+          <div className="text-center p-4 rounded-lg bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20">
+            <div className="text-lg font-bold text-[var(--color-primary)]">
               {formatCurrency(totalMaintenanceCost)}
             </div>
-            <div className="text-sm text-[#171717]">Coût total</div>
+            <div className="text-sm text-[var(--color-primary)]">Coût total</div>
           </div>
         </div>
 
@@ -967,7 +967,7 @@ const AssetsSummary: React.FC = () => {
                   item.priority === 'critical' ? 'bg-red-100 text-red-800' :
                   item.priority === 'high' ? 'bg-orange-100 text-orange-800' :
                   item.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                  'bg-[#171717]/10 text-[#171717]'
+                  'bg-[var(--color-primary)]/10 text-[var(--color-primary)]'
                 }`}>
                   {item.priority}
                 </span>
@@ -983,7 +983,7 @@ const AssetsSummary: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-[#171717]/10 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-[var(--color-primary)]/10 p-6">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* En-tête */}
         <motion.div
@@ -1006,7 +1006,7 @@ const AssetsSummary: React.FC = () => {
                 <button
                   onClick={handleRefresh}
                   disabled={refreshing}
-                  className="flex items-center gap-2 px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#262626] transition-colors disabled:opacity-50"
+                  className="flex items-center gap-2 px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] transition-colors disabled:opacity-50"
                 >
                   <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
                   Actualiser
@@ -1032,7 +1032,7 @@ const AssetsSummary: React.FC = () => {
               <select
                 value={selectedPeriod}
                 onChange={(e) => setSelectedPeriod(e.target.value)}
-                className="px-4 py-2 border border-primary-300 rounded-lg focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                className="px-4 py-2 border border-primary-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
               >
                 <option value="month">Ce mois</option>
                 <option value="quarter">Ce trimestre</option>
@@ -1059,7 +1059,7 @@ const AssetsSummary: React.FC = () => {
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                     activeTab === tab.id
-                      ? 'border-[#171717] text-[#171717]'
+                      ? 'border-[var(--color-primary)] text-[var(--color-primary)]'
                       : 'border-transparent text-primary-500 hover:text-primary-700 hover:border-primary-300'
                   }`}
                 >

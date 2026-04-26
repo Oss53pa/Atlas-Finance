@@ -14,7 +14,7 @@ export const BalanceTotalsRow: React.FC<BalanceTotalsRowProps> = ({
   const formatAmount = (amount: number) => formatNumber(amount);
 
   return (
-    <tfoot className="bg-[#171717] text-white font-bold">
+    <tfoot className="bg-[var(--color-primary)] text-white font-bold">
       <tr>
         {visibleColumns.compte && (
           <td className="px-4 py-3" colSpan={visibleColumns.libelle ? 2 : 1}>
@@ -55,7 +55,7 @@ export const BalanceTotalsRow: React.FC<BalanceTotalsRowProps> = ({
           </td>
         )}
       </tr>
-      <tr className="bg-[#171717]/90">
+      <tr className="bg-[var(--color-primary)]/90">
         <td className="px-4 py-2 text-sm" colSpan={8}>
           <div className="flex items-center justify-between">
             <span>Équilibre de la balance</span>

@@ -37,11 +37,11 @@ const AtlasStudioHub: React.FC = () => {
       {/* Header compact */}
       <header className="flex items-center justify-between px-8 py-3 bg-white border-b shrink-0">
         <div className="flex items-center gap-2.5">
-          <AtlasStudioBrand className="atlas-brand text-2xl text-[#171717]" />
+          <AtlasStudioBrand className="atlas-brand text-2xl text-[var(--color-primary)]" />
         </div>
         <div className="flex items-center gap-3">
           <span className="text-sm text-gray-600">{user?.name}</span>
-          <div className="w-8 h-8 rounded-full bg-[#171717] flex items-center justify-center text-white text-xs font-bold">
+          <div className="w-8 h-8 rounded-full bg-[var(--color-primary)] flex items-center justify-center text-white text-xs font-bold">
             {(user?.name || 'U')[0]}
           </div>
           <button onClick={handleLogout} className="p-1.5 hover:bg-gray-100 rounded text-gray-400 hover:text-gray-700">
@@ -53,7 +53,7 @@ const AtlasStudioHub: React.FC = () => {
       {/* Content — centré verticalement, pas de scroll */}
       <div className="flex-1 flex flex-col items-center justify-center px-6">
         <p className="text-gray-500 text-sm mb-2">{greeting}, {user?.name?.split(' ')[0]}</p>
-        <h1 className="text-2xl font-bold text-[#171717] mb-8">Choisissez votre application</h1>
+        <h1 className="text-2xl font-bold text-[var(--color-primary)] mb-8">Choisissez votre application</h1>
 
         <div className="flex gap-4 flex-wrap justify-center max-w-4xl">
           {APPS.map(app => (
@@ -63,7 +63,7 @@ const AtlasStudioHub: React.FC = () => {
               disabled={!app.active}
               className={`group relative w-44 h-44 rounded-2xl border-2 transition-all flex flex-col items-center justify-center gap-3 ${
                 app.active
-                  ? 'bg-white border-gray-200 hover:border-[#171717] hover:shadow-xl cursor-pointer'
+                  ? 'bg-white border-gray-200 hover:border-[var(--color-primary)] hover:shadow-xl cursor-pointer'
                   : 'bg-gray-50 border-gray-100 cursor-not-allowed'
               }`}
             >
@@ -75,13 +75,13 @@ const AtlasStudioHub: React.FC = () => {
                 <app.icon className="w-7 h-7" style={{ color: app.active ? app.color : '#9ca3af' }} />
               </div>
               <div className="text-center">
-                <div className={`text-sm font-bold ${app.active ? 'text-[#171717]' : 'text-gray-400'}`}>{app.name}</div>
+                <div className={`text-sm font-bold ${app.active ? 'text-[var(--color-primary)]' : 'text-gray-400'}`}>{app.name}</div>
                 <div className="text-[11px] text-gray-400 mt-0.5">
                   {app.active ? app.desc : 'Bientôt'}
                 </div>
               </div>
               {app.active && (
-                <ArrowRight className="absolute bottom-3 right-3 w-4 h-4 text-gray-300 group-hover:text-[#171717] group-hover:translate-x-0.5 transition-all" />
+                <ArrowRight className="absolute bottom-3 right-3 w-4 h-4 text-gray-300 group-hover:text-[var(--color-primary)] group-hover:translate-x-0.5 transition-all" />
               )}
             </button>
           ))}

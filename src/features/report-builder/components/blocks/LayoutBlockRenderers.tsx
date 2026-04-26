@@ -11,7 +11,7 @@ export const SeparatorBlockRenderer: React.FC<{ block: SeparatorBlock }> = ({ bl
     className="my-2"
     style={{
       borderStyle: block.lineStyle,
-      borderColor: block.color || '#e5e5e5',
+      borderColor: block.color || 'var(--color-border)',
       borderWidth: `${block.thickness}px 0 0 0`,
     }}
   />

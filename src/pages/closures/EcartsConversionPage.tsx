@@ -69,8 +69,8 @@ const EcartsConversionPage: React.FC = () => {
 
   return (
     <FeatureGuard module="ecarts_conversion">
-      <div className="p-6 bg-[#e5e5e5] min-h-screen">
-        <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm mb-6">
+      <div className="p-6 bg-[var(--color-border)] min-h-screen">
+        <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm mb-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <button onClick={() => navigate('/closures')} className="flex items-center px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200">
@@ -80,15 +80,15 @@ const EcartsConversionPage: React.FC = () => {
                 <ArrowLeftRight className="w-5 h-5 text-gray-600" />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-[#171717]">Écarts de Conversion (476 / 477)</h1>
-                <p className="text-sm text-[#737373]">Gestion et extourne des écarts de conversion — SYSCOHADA</p>
+                <h1 className="text-lg font-bold text-[var(--color-primary)]">Écarts de Conversion (476 / 477)</h1>
+                <p className="text-sm text-[var(--color-text-tertiary)]">Gestion et extourne des écarts de conversion — SYSCOHADA</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <div>
-                <label className="text-xs text-[#737373]">Date d'extourne</label>
+                <label className="text-xs text-[var(--color-text-tertiary)]">Date d'extourne</label>
                 <input type="date" value={dateExtourne} onChange={e => setDateExtourne(e.target.value)}
-                  className="block border border-[#e5e5e5] rounded-lg px-3 py-1.5 text-sm" />
+                  className="block border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-sm" />
               </div>
               <button onClick={handleExtourne} disabled={processing || ecarts.length === 0}
                 className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-50 mt-4">
@@ -101,26 +101,26 @@ const EcartsConversionPage: React.FC = () => {
 
         {/* KPI */}
         <div className="grid grid-cols-3 gap-4 mb-6">
-          <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
-            <p className="text-xs text-[#737373]">Écarts actif (476)</p>
-            <p className="text-xl font-bold text-[#171717]">{formatCurrency(Math.abs(total476))}</p>
+          <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
+            <p className="text-xs text-[var(--color-text-tertiary)]">Écarts actif (476)</p>
+            <p className="text-xl font-bold text-[var(--color-primary)]">{formatCurrency(Math.abs(total476))}</p>
           </div>
-          <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
-            <p className="text-xs text-[#737373]">Écarts passif (477)</p>
-            <p className="text-xl font-bold text-[#171717]">{formatCurrency(Math.abs(total477))}</p>
+          <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
+            <p className="text-xs text-[var(--color-text-tertiary)]">Écarts passif (477)</p>
+            <p className="text-xl font-bold text-[var(--color-primary)]">{formatCurrency(Math.abs(total477))}</p>
           </div>
-          <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
-            <p className="text-xs text-[#737373]">Lignes d'écart</p>
-            <p className="text-xl font-bold text-[#171717]">{ecarts.length}</p>
+          <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
+            <p className="text-xs text-[var(--color-text-tertiary)]">Lignes d'écart</p>
+            <p className="text-xl font-bold text-[var(--color-primary)]">{ecarts.length}</p>
           </div>
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-lg border border-[#e5e5e5] shadow-sm overflow-hidden">
+        <div className="bg-white rounded-lg border border-[var(--color-border)] shadow-sm overflow-hidden">
           {loading ? (
-            <div className="p-12 text-center text-[#737373]">Chargement...</div>
+            <div className="p-12 text-center text-[var(--color-text-tertiary)]">Chargement...</div>
           ) : ecarts.length === 0 ? (
-            <div className="p-12 text-center text-[#737373]">
+            <div className="p-12 text-center text-[var(--color-text-tertiary)]">
               <ArrowLeftRight className="w-12 h-12 mx-auto mb-3 text-gray-300" />
               <p className="font-medium">Aucun écart de conversion</p>
               <p className="text-sm mt-1">Les comptes 476 et 477 ne contiennent aucune écriture</p>
@@ -128,18 +128,18 @@ const EcartsConversionPage: React.FC = () => {
           ) : (
             <table className="w-full">
               <thead>
-                <tr className="bg-gray-50 border-b border-[#e5e5e5]">
-                  <th className="p-3 text-left text-xs font-semibold text-[#737373] uppercase">N° écriture</th>
-                  <th className="p-3 text-left text-xs font-semibold text-[#737373] uppercase">Date</th>
-                  <th className="p-3 text-left text-xs font-semibold text-[#737373] uppercase">Compte</th>
-                  <th className="p-3 text-left text-xs font-semibold text-[#737373] uppercase">Libellé</th>
-                  <th className="p-3 text-right text-xs font-semibold text-[#737373] uppercase">Débit</th>
-                  <th className="p-3 text-right text-xs font-semibold text-[#737373] uppercase">Crédit</th>
+                <tr className="bg-gray-50 border-b border-[var(--color-border)]">
+                  <th className="p-3 text-left text-xs font-semibold text-[var(--color-text-tertiary)] uppercase">N° écriture</th>
+                  <th className="p-3 text-left text-xs font-semibold text-[var(--color-text-tertiary)] uppercase">Date</th>
+                  <th className="p-3 text-left text-xs font-semibold text-[var(--color-text-tertiary)] uppercase">Compte</th>
+                  <th className="p-3 text-left text-xs font-semibold text-[var(--color-text-tertiary)] uppercase">Libellé</th>
+                  <th className="p-3 text-right text-xs font-semibold text-[var(--color-text-tertiary)] uppercase">Débit</th>
+                  <th className="p-3 text-right text-xs font-semibold text-[var(--color-text-tertiary)] uppercase">Crédit</th>
                 </tr>
               </thead>
               <tbody>
                 {ecarts.map(e => (
-                  <tr key={e.id} className="border-b border-[#e5e5e5] hover:bg-gray-50">
+                  <tr key={e.id} className="border-b border-[var(--color-border)] hover:bg-gray-50">
                     <td className="p-3 text-sm font-mono">{e.entryNumber || '—'}</td>
                     <td className="p-3 text-sm">{e.date ? new Date(e.date).toLocaleDateString('fr-FR') : '—'}</td>
                     <td className="p-3 text-sm">

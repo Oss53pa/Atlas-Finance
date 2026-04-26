@@ -266,8 +266,8 @@ const ReportingSyscohada: React.FC = () => {
     switch (status) {
       case 'approved': return 'text-green-600 bg-green-50';
       case 'review': return 'text-yellow-600 bg-yellow-50';
-      case 'draft': return 'text-[#171717] bg-[#171717]/5';
-      case 'filed': return 'text-[#525252] bg-[#525252]/5';
+      case 'draft': return 'text-[var(--color-primary)] bg-[var(--color-primary)]/5';
+      case 'filed': return 'text-[var(--color-text-secondary)] bg-[var(--color-text-secondary)]/5';
       default: return 'text-gray-600 bg-gray-50';
     }
   };
@@ -311,7 +311,7 @@ const ReportingSyscohada: React.FC = () => {
   const chartData = [
     { label: 'Déposés', value: aggregatedData.approvedReports, color: 'bg-green-500' },
     { label: 'En révision', value: aggregatedData.reviewReports, color: 'bg-yellow-500' },
-    { label: 'Brouillons', value: aggregatedData.draftReports, color: 'bg-[#171717]' }
+    { label: 'Brouillons', value: aggregatedData.draftReports, color: 'bg-[var(--color-primary)]' }
   ];
 
   const countryChartData = MEMBER_COUNTRIES.map(country => ({
@@ -401,8 +401,8 @@ const ReportingSyscohada: React.FC = () => {
                   onClick={() => setViewMode(mode)}
                   className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
                     viewMode === mode
-                      ? 'bg-[#171717] text-white shadow-md'
-                      : 'text-neutral-600 hover:text-[#171717]'
+                      ? 'bg-[var(--color-primary)] text-white shadow-md'
+                      : 'text-neutral-600 hover:text-[var(--color-primary)]'
                   }`}
                 >
                   {mode === 'reports' ? 'Rapports' :
@@ -549,7 +549,7 @@ const ReportingSyscohada: React.FC = () => {
                                   <Flag className="h-4 w-4 text-neutral-400" />
                                   <span className="text-sm text-neutral-600">{report.country}</span>
                                 </div>
-                                <span className="px-2 py-1 text-xs font-medium rounded-full bg-[#171717]/10 text-[#171717]">
+                                <span className="px-2 py-1 text-xs font-medium rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
                                   {report.currency}
                                 </span>
                                 <span className="text-xs text-neutral-500">{report.regulatoryRef}</span>
@@ -569,7 +569,7 @@ const ReportingSyscohada: React.FC = () => {
                             <div className="flex space-x-2">
                               <button
                                 onClick={() => setReportModal({ isOpen: true, mode: 'view', report })}
-                                className="p-2 text-neutral-400 hover:text-[#171717] transition-colors"
+                                className="p-2 text-neutral-400 hover:text-[var(--color-primary)] transition-colors"
                               >
                                 <Eye className="h-4 w-4" />
                               </button>
@@ -668,7 +668,7 @@ const ReportingSyscohada: React.FC = () => {
                             {standard.applicableCountries.slice(0, 4).map(country => (
                               <span
                                 key={country}
-                                className="px-1 py-0.5 text-xs bg-[#171717]/10 text-[#171717] rounded"
+                                className="px-1 py-0.5 text-xs bg-[var(--color-primary)]/10 text-[var(--color-primary)] rounded"
                               >
                                 {country}
                               </span>
@@ -778,7 +778,7 @@ const ReportingSyscohada: React.FC = () => {
                             {country.localRequirements.map(req => (
                               <span
                                 key={req}
-                                className="px-2 py-1 text-xs bg-[#171717]/10 text-[#171717] rounded-full"
+                                className="px-2 py-1 text-xs bg-[var(--color-primary)]/10 text-[var(--color-primary)] rounded-full"
                               >
                                 {req}
                               </span>

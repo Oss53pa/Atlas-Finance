@@ -558,7 +558,7 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 <span>Appels de Fonds en Cours</span>
-                <Button className="bg-[#525252] hover:bg-[#404040] text-white">
+                <Button className="bg-[var(--color-text-secondary)] hover:bg-[#404040] text-white">
                   <DollarSign className="h-4 w-4 mr-2" />
                   Nouvel Appel
                 </Button>

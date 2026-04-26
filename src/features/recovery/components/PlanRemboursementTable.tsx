@@ -98,63 +98,63 @@ export const PlanRemboursementTable: React.FC<PlanRemboursementTableProps> = ({
 
   return (
     <div className="space-y-4">
-      <div className="bg-[#F5F5F5] border border-[#d4d4d4] rounded-lg p-4">
+      <div className="bg-[var(--color-surface-hover)] border border-[var(--color-border)] rounded-lg p-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
-            <p className="text-sm text-[#737373]">Montant Total</p>
-            <p className="text-lg font-semibold text-[#171717]">
+            <p className="text-sm text-[var(--color-text-tertiary)]">Montant Total</p>
+            <p className="text-lg font-semibold text-[var(--color-primary)]">
               {formatCurrency(plan.montantTotal)}
             </p>
           </div>
 
           <div>
-            <p className="text-sm text-[#737373]">Montant Payé</p>
-            <p className="text-lg font-semibold text-[#171717]">
+            <p className="text-sm text-[var(--color-text-tertiary)]">Montant Payé</p>
+            <p className="text-lg font-semibold text-[var(--color-primary)]">
               {formatCurrency(totalPaye)}
             </p>
           </div>
 
           <div>
-            <p className="text-sm text-[#737373]">Montant Restant</p>
+            <p className="text-sm text-[var(--color-text-tertiary)]">Montant Restant</p>
             <p className="text-lg font-semibold text-[#ef4444]">
               {formatCurrency(totalRestant)}
             </p>
           </div>
 
           <div>
-            <p className="text-sm text-[#737373]">Progression</p>
+            <p className="text-sm text-[var(--color-text-tertiary)]">Progression</p>
             <div className="flex items-center gap-2 mt-1">
-              <div className="flex-1 bg-white rounded-full h-2 border border-[#d4d4d4]">
+              <div className="flex-1 bg-white rounded-full h-2 border border-[var(--color-border)]">
                 <div
-                  className="bg-[#171717] h-full rounded-full transition-all"
+                  className="bg-[var(--color-primary)] h-full rounded-full transition-all"
                   style={{ width: `${Math.min(pourcentagePaye, 100)}%` }}
                 />
               </div>
-              <span className="text-sm font-semibold text-[#171717]">
+              <span className="text-sm font-semibold text-[var(--color-primary)]">
                 {pourcentagePaye.toFixed(0)}%
               </span>
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 pt-4 border-t border-[#d4d4d4]">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 pt-4 border-t border-[var(--color-border)]">
           <div>
-            <p className="text-sm text-[#737373]">Date Début</p>
-            <p className="font-medium text-[#171717]">
+            <p className="text-sm text-[var(--color-text-tertiary)]">Date Début</p>
+            <p className="font-medium text-[var(--color-primary)]">
               {formatDate(plan.dateDebut, 'short')}
             </p>
           </div>
 
           <div>
-            <p className="text-sm text-[#737373]">Date Fin</p>
-            <p className="font-medium text-[#171717]">
+            <p className="text-sm text-[var(--color-text-tertiary)]">Date Fin</p>
+            <p className="font-medium text-[var(--color-primary)]">
               {formatDate(plan.dateFin, 'short')}
             </p>
           </div>
 
           <div>
-            <p className="text-sm text-[#737373]">Nombre d'Échéances</p>
-            <p className="font-medium text-[#171717]">{plan.nombreEcheances}</p>
+            <p className="text-sm text-[var(--color-text-tertiary)]">Nombre d'Échéances</p>
+            <p className="font-medium text-[var(--color-primary)]">{plan.nombreEcheances}</p>
           </div>
         </div>
       </div>

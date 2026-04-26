@@ -24,7 +24,7 @@ const RoleGuard: React.FC<RoleGuardProps> = ({ allowedRoles, children, redirectT
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center max-w-sm">
           <Shield className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-          <h2 className="text-lg font-bold text-[#171717] mb-2">Accès restreint</h2>
+          <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">Accès restreint</h2>
           <p className="text-sm text-gray-500">Vous n'avez pas les permissions nécessaires pour accéder à cette page.</p>
         </div>
       </div>

@@ -186,7 +186,7 @@ const AdvancedBalance: React.FC = () => {
   const COLORS = ['#171717', '#525252', '#a3a3a3', '#3b82f6', '#22c55e', '#f59e0b'];
 
   return (
-    <div className="min-h-screen bg-[#f5f5f5]">
+    <div className="min-h-screen bg-[var(--color-surface-hover)]">
       <PrintableArea
         ref={printRef}
         orientation={printConfig.orientation}
@@ -200,13 +200,13 @@ const AdvancedBalance: React.FC = () => {
         }
       >
       {/* En-tête principal */}
-      <div className="bg-[#f5f5f5] border-b border-[#e5e5e5] px-6 py-4">
+      <div className="bg-[var(--color-surface-hover)] border-b border-[var(--color-border)] px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <BarChart3 className="w-8 h-8 text-[#171717]" />
+            <BarChart3 className="w-8 h-8 text-[var(--color-primary)]" />
             <div>
-              <h1 className="text-lg font-bold text-[#171717]">Balance Avancée</h1>
-              <p className="text-sm text-[#171717]/70">Tableau de bord interactif - Conforme SYSCOHADA</p>
+              <h1 className="text-lg font-bold text-[var(--color-primary)]">Balance Avancée</h1>
+              <p className="text-sm text-[var(--color-primary)]/70">Tableau de bord interactif - Conforme SYSCOHADA</p>
             </div>
           </div>
           
@@ -214,9 +214,9 @@ const AdvancedBalance: React.FC = () => {
             {/* Bouton de sélection de période */}
             <button
               onClick={() => setShowPeriodModal(true)}
-              className="px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717] text-left flex items-center space-x-2 hover:bg-gray-50"
+              className="px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] text-left flex items-center space-x-2 hover:bg-gray-50"
             >
-              <Calendar className="w-4 h-4 text-[#171717]" />
+              <Calendar className="w-4 h-4 text-[var(--color-primary)]" />
               <span className="text-sm">
                 {dateRange.start && dateRange.end
                   ? `${new Date(dateRange.start).toLocaleDateString('fr-FR')} - ${new Date(dateRange.end).toLocaleDateString('fr-FR')}`
@@ -227,7 +227,7 @@ const AdvancedBalance: React.FC = () => {
 
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className={`px-4 py-2 rounded-lg border transition-colors ${showFilters ? 'bg-[#171717] text-[#f5f5f5] border-[#171717]' : 'bg-[#f5f5f5] text-[#171717]/70 border-[#e5e5e5] hover:bg-[#e5e5e5]'}`}
+              className={`px-4 py-2 rounded-lg border transition-colors ${showFilters ? 'bg-[var(--color-primary)] text-[var(--color-surface-hover)] border-[var(--color-primary)]' : 'bg-[var(--color-surface-hover)] text-[var(--color-primary)]/70 border-[var(--color-border)] hover:bg-[var(--color-border)]'}`}
             >
               <Filter className="w-4 h-4 mr-2 inline" />
               Filtres
@@ -235,7 +235,7 @@ const AdvancedBalance: React.FC = () => {
             
             <button 
               onClick={() => setShowConfig(!showConfig)}
-              className="px-4 py-2 bg-[#f5f5f5] text-[#171717]/70 border border-[#e5e5e5] rounded-lg hover:bg-[#e5e5e5] transition-colors"
+              className="px-4 py-2 bg-[var(--color-surface-hover)] text-[var(--color-primary)]/70 border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-border)] transition-colors"
             >
               <Settings className="w-4 h-4 mr-2 inline" />
               Configuration
@@ -243,7 +243,7 @@ const AdvancedBalance: React.FC = () => {
             
             <button 
               onClick={() => setShowPrintPreview(true)}
-              className="px-4 py-2 bg-[#f5f5f5] text-[#171717]/70 border border-[#e5e5e5] rounded-lg hover:bg-[#e5e5e5] transition-colors"
+              className="px-4 py-2 bg-[var(--color-surface-hover)] text-[var(--color-primary)]/70 border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-border)] transition-colors"
             >
               <Printer className="w-4 h-4 mr-2 inline" />
               Aperçu
@@ -280,8 +280,8 @@ const AdvancedBalance: React.FC = () => {
               onClick={() => setActiveView(view.id as 'dashboard' | 'generale' | 'analytique')}
               className={`px-4 py-2 rounded-lg transition-colors ${
                 activeView === view.id 
-                  ? 'bg-[#171717] text-[#f5f5f5]'
-                  : 'text-[#171717]/70 hover:bg-[#e5e5e5]'
+                  ? 'bg-[var(--color-primary)] text-[var(--color-surface-hover)]'
+                  : 'text-[var(--color-primary)]/70 hover:bg-[var(--color-border)]'
               }`}
             >
               <view.icon className="w-4 h-4 mr-2 inline" />
@@ -293,28 +293,28 @@ const AdvancedBalance: React.FC = () => {
 
       {/* Filtres avancés (collapsible) */}
       {showFilters && (
-        <div className="bg-[#f5f5f5] border-b border-[#e5e5e5] px-6 py-4">
+        <div className="bg-[var(--color-surface-hover)] border-b border-[var(--color-border)] px-6 py-4">
           <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-6 gap-4">
             <div>
-              <label className="block text-sm font-medium text-[#171717] mb-1">Date début</label>
+              <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Date début</label>
               <input 
                 type="date" 
                 value={filters.dateDebut}
                 onChange={(e) => setFilters({...filters, dateDebut: e.target.value})}
-                className="w-full px-3 py-2 border border-[#e5e5e5] rounded-md text-sm"
+                className="w-full px-3 py-2 border border-[var(--color-border)] rounded-md text-sm"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-[#171717] mb-1">Date fin</label>
+              <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Date fin</label>
               <input 
                 type="date" 
                 value={filters.dateFin}
                 onChange={(e) => setFilters({...filters, dateFin: e.target.value})}
-                className="w-full px-3 py-2 border border-[#e5e5e5] rounded-md text-sm"
+                className="w-full px-3 py-2 border border-[var(--color-border)] rounded-md text-sm"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-[#171717] mb-1">Compte (Min)</label>
+              <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Compte (Min)</label>
               <input 
                 type="text" 
                 placeholder="101000"
@@ -324,7 +324,7 @@ const AdvancedBalance: React.FC = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-[#171717] mb-1">Compte (Max)</label>
+              <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Compte (Max)</label>
               <input 
                 type="text" 
                 placeholder="899999"
@@ -334,9 +334,9 @@ const AdvancedBalance: React.FC = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-[#171717] mb-1">Recherche libellé</label>
+              <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Recherche libellé</label>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -tranprimary-y-1/2 w-4 h-4 text-[#171717]/50" />
+                <Search className="absolute left-3 top-1/2 transform -tranprimary-y-1/2 w-4 h-4 text-[var(--color-primary)]/50" />
                 <input
                   type="text"
                   placeholder="Compte ou libellé..."
@@ -347,11 +347,11 @@ const AdvancedBalance: React.FC = () => {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-[#171717] mb-1">Centre de coût</label>
+              <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Centre de coût</label>
               <select
                 value={filters.centreCout}
                 onChange={(e) => setFilters({...filters, centreCout: e.target.value})}
-                className="w-full px-3 py-2 border border-[#e5e5e5] rounded-md text-sm"
+                className="w-full px-3 py-2 border border-[var(--color-border)] rounded-md text-sm"
               >
                 <option value="">Tous</option>
                 <option value="CC001">CC001 - Commercial</option>
@@ -369,9 +369,9 @@ const AdvancedBalance: React.FC = () => {
                   type="checkbox"
                   checked={filters.showZeroBalance}
                   onChange={(e) => setFilters({...filters, showZeroBalance: e.target.checked})}
-                  className="rounded border-gray-300 text-[#171717] focus:ring-[#171717]"
+                  className="rounded border-gray-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
                 />
-                <span className="text-sm text-[#171717]/70">Afficher soldes nuls</span>
+                <span className="text-sm text-[var(--color-primary)]/70">Afficher soldes nuls</span>
               </label>
             </div>
             <div className="flex items-center">
@@ -380,9 +380,9 @@ const AdvancedBalance: React.FC = () => {
                   type="checkbox"
                   checked={filters.onlyMovement}
                   onChange={(e) => setFilters({...filters, onlyMovement: e.target.checked})}
-                  className="rounded border-gray-300 text-[#171717] focus:ring-[#171717]"
+                  className="rounded border-gray-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
                 />
-                <span className="text-sm text-[#171717]/70">Avec mouvements seulement</span>
+                <span className="text-sm text-[var(--color-primary)]/70">Avec mouvements seulement</span>
               </label>
             </div>
             <div className="flex items-center">
@@ -391,9 +391,9 @@ const AdvancedBalance: React.FC = () => {
                   type="checkbox"
                   checked={filters.onlyUnbalanced}
                   onChange={(e) => setFilters({...filters, onlyUnbalanced: e.target.checked})}
-                  className="rounded border-gray-300 text-[#171717] focus:ring-[#171717]"
+                  className="rounded border-gray-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
                 />
-                <span className="text-sm text-[#171717]/70">Déséquilibrés seulement</span>
+                <span className="text-sm text-[var(--color-primary)]/70">Déséquilibrés seulement</span>
               </label>
             </div>
             <div className="col-span-3 flex items-center justify-end space-x-3">
@@ -413,11 +413,11 @@ const AdvancedBalance: React.FC = () => {
                   onlyUnbalanced: false,
                   showZeroBalance: false
                 })}
-                className="px-4 py-2 border border-[#e5e5e5] text-[#171717]/70 rounded-md hover:bg-[#e5e5e5] transition-colors"
+                className="px-4 py-2 border border-[var(--color-border)] text-[var(--color-primary)]/70 rounded-md hover:bg-[var(--color-border)] transition-colors"
               >
                 Réinitialiser
               </button>
-              <button className="px-4 py-2 bg-[#171717] text-white rounded-md hover:bg-[#262626] transition-colors">
+              <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-md hover:bg-[var(--color-primary-hover)] transition-colors">
                 <Search className="w-4 h-4 mr-2 inline" />
                 Appliquer filtres
               </button>
@@ -432,12 +432,12 @@ const AdvancedBalance: React.FC = () => {
           
           {/* Indicateurs clés */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-[#f5f5f5] p-6 rounded-lg shadow-sm border border-[#e5e5e5]">
+            <div className="bg-[var(--color-surface-hover)] p-6 rounded-lg shadow-sm border border-[var(--color-border)]">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-[#171717]/70">Total Débit</p>
+                  <p className="text-sm font-medium text-[var(--color-primary)]/70">Total Débit</p>
                   <p className="text-lg font-bold text-blue-600">{fmt(indicators.totalDebit)}</p>
-                  <p className="text-xs text-[#171717]/50">XAF</p>
+                  <p className="text-xs text-[var(--color-primary)]/50">XAF</p>
                 </div>
                 <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                   <TrendingUp className="w-6 h-6 text-blue-600" />
@@ -445,12 +445,12 @@ const AdvancedBalance: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-[#f5f5f5] p-6 rounded-lg shadow-sm border border-[#e5e5e5]">
+            <div className="bg-[var(--color-surface-hover)] p-6 rounded-lg shadow-sm border border-[var(--color-border)]">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-[#171717]/70">Total Crédit</p>
+                  <p className="text-sm font-medium text-[var(--color-primary)]/70">Total Crédit</p>
                   <p className="text-lg font-bold text-green-600">{fmt(indicators.totalCredit)}</p>
-                  <p className="text-xs text-[#171717]/50">XAF</p>
+                  <p className="text-xs text-[var(--color-primary)]/50">XAF</p>
                 </div>
                 <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                   <TrendingDown className="w-6 h-6 text-green-600" />
@@ -458,10 +458,10 @@ const AdvancedBalance: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-[#f5f5f5] p-6 rounded-lg shadow-sm border border-[#e5e5e5]">
+            <div className="bg-[var(--color-surface-hover)] p-6 rounded-lg shadow-sm border border-[var(--color-border)]">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-[#171717]/70">Taux d'Équilibre</p>
+                  <p className="text-sm font-medium text-[var(--color-primary)]/70">Taux d'Équilibre</p>
                   <p className={`text-lg font-bold ${indicators.tauxEquilibre > 98 ? 'text-green-600' : 'text-orange-600'}`}>
                     {indicators.tauxEquilibre.toFixed(1)}%
                   </p>
@@ -478,15 +478,15 @@ const AdvancedBalance: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-[#f5f5f5] p-6 rounded-lg shadow-sm border border-[#e5e5e5]">
+            <div className="bg-[var(--color-surface-hover)] p-6 rounded-lg shadow-sm border border-[var(--color-border)]">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-[#171717]/70">Comptes Actifs</p>
-                  <p className="text-lg font-bold text-[#171717]">{balanceData.filter(item => item.debitSolde > 0 || item.creditSolde > 0).length}</p>
+                  <p className="text-sm font-medium text-[var(--color-primary)]/70">Comptes Actifs</p>
+                  <p className="text-lg font-bold text-[var(--color-primary)]">{balanceData.filter(item => item.debitSolde > 0 || item.creditSolde > 0).length}</p>
                   <p className="text-xs text-gray-700">sur {balanceData.length} total</p>
                 </div>
-                <div className="w-12 h-12 bg-[#171717]/10 rounded-lg flex items-center justify-center">
-                  <Building className="w-6 h-6 text-[#171717]" />
+                <div className="w-12 h-12 bg-[var(--color-primary)]/10 rounded-lg flex items-center justify-center">
+                  <Building className="w-6 h-6 text-[var(--color-primary)]" />
                 </div>
               </div>
             </div>
@@ -494,9 +494,9 @@ const AdvancedBalance: React.FC = () => {
 
           {/* Vérification balance de vérification */}
           {trialBalance && (
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-[#e5e5e5]">
+            <div className="bg-white p-6 rounded-lg shadow-sm border border-[var(--color-border)]">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-[#171717]">
+                <h3 className="text-lg font-semibold text-[var(--color-primary)]">
                   Balance de Vérification
                 </h3>
                 <span className={`px-3 py-1 rounded-full text-sm font-medium ${
@@ -536,16 +536,16 @@ const AdvancedBalance: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             
             {/* Évolution par période */}
-            <div className="bg-[#f5f5f5] p-6 rounded-lg shadow-sm border border-[#e5e5e5]">
+            <div className="bg-[var(--color-surface-hover)] p-6 rounded-lg shadow-sm border border-[var(--color-border)]">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold text-[#171717]">Évolution par Période</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-primary)]">Évolution par Période</h3>
                 <div className="flex items-center space-x-2">
-                  <select className="px-3 py-1 border border-[#e5e5e5] rounded text-sm">
+                  <select className="px-3 py-1 border border-[var(--color-border)] rounded text-sm">
                     <option>Mensuelle</option>
                     <option>Trimestrielle</option>
                     <option>Annuelle</option>
                   </select>
-                  <button className="p-2 text-[#171717]/50 hover:text-[#171717]/70">
+                  <button className="p-2 text-[var(--color-primary)]/50 hover:text-[var(--color-primary)]/70">
                     <ZoomIn className="w-4 h-4" />
                   </button>
                 </div>
@@ -566,9 +566,9 @@ const AdvancedBalance: React.FC = () => {
             </div>
 
             {/* Répartition par type */}
-            <div className="bg-[#f5f5f5] p-6 rounded-lg shadow-sm border border-[#e5e5e5]">
+            <div className="bg-[var(--color-surface-hover)] p-6 rounded-lg shadow-sm border border-[var(--color-border)]">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold text-[#171717]">Répartition par Type</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-primary)]">Répartition par Type</h3>
                 <button className="p-2 text-gray-700 hover:text-gray-600" aria-label="Voir les détails">
                   <Eye className="w-4 h-4" />
                 </button>
@@ -602,18 +602,18 @@ const AdvancedBalance: React.FC = () => {
           </div>
 
           {/* Top comptes mouvementés */}
-          <div className="bg-[#f5f5f5] rounded-lg shadow-sm border border-[#e5e5e5]">
-            <div className="p-6 border-b border-[#e5e5e5]">
+          <div className="bg-[var(--color-surface-hover)] rounded-lg shadow-sm border border-[var(--color-border)]">
+            <div className="p-6 border-b border-[var(--color-border)]">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-[#171717]">Top 10 - Comptes les Plus Mouvementés</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-primary)]">Top 10 - Comptes les Plus Mouvementés</h3>
                 <div className="flex items-center space-x-2">
-                  <button className="px-3 py-1 text-sm border border-[#e5e5e5] rounded hover:bg-[#e5e5e5]">
+                  <button className="px-3 py-1 text-sm border border-[var(--color-border)] rounded hover:bg-[var(--color-border)]">
                     Débit
                   </button>
-                  <button className="px-3 py-1 text-sm border border-[#e5e5e5] rounded hover:bg-[#e5e5e5]">
+                  <button className="px-3 py-1 text-sm border border-[var(--color-border)] rounded hover:bg-[var(--color-border)]">
                     Crédit
                   </button>
-                  <button className="px-3 py-1 text-sm bg-[#171717] text-white rounded">
+                  <button className="px-3 py-1 text-sm bg-[var(--color-primary)] text-white rounded">
                     Mouvement
                   </button>
                 </div>
@@ -622,34 +622,34 @@ const AdvancedBalance: React.FC = () => {
             
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-[#171717]">
+                <thead className="bg-[var(--color-primary)]">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-[#f5f5f5] uppercase tracking-wider">Rang</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-[#f5f5f5] uppercase tracking-wider">{t('accounting.account')}</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-[#f5f5f5] uppercase tracking-wider">{t('accounting.label')}</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-[#f5f5f5] uppercase tracking-wider">Mouvement Débit</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-[#f5f5f5] uppercase tracking-wider">Mouvement Crédit</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-[#f5f5f5] uppercase tracking-wider">Total Mouvement</th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-[#f5f5f5] uppercase tracking-wider">Statut</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-surface-hover)] uppercase tracking-wider">Rang</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-surface-hover)] uppercase tracking-wider">{t('accounting.account')}</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-surface-hover)] uppercase tracking-wider">{t('accounting.label')}</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-[var(--color-surface-hover)] uppercase tracking-wider">Mouvement Débit</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-[var(--color-surface-hover)] uppercase tracking-wider">Mouvement Crédit</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-[var(--color-surface-hover)] uppercase tracking-wider">Total Mouvement</th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-[var(--color-surface-hover)] uppercase tracking-wider">Statut</th>
                   </tr>
                 </thead>
-                <tbody className="bg-[#f5f5f5] divide-y divide-[#e5e5e5]">
+                <tbody className="bg-[var(--color-surface-hover)] divide-y divide-[var(--color-border)]">
                   {balanceData
                     .sort((a, b) => (b.debitMouvement + b.creditMouvement) - (a.debitMouvement + a.creditMouvement))
                     .slice(0, 10)
                     .map((item, index) => (
-                      <tr key={item.compte} className="hover:bg-[#e5e5e5]">
+                      <tr key={item.compte} className="hover:bg-[var(--color-border)]">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
                             <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
-                              index < 3 ? 'bg-yellow-100 text-yellow-800' : 'bg-[#e5e5e5] text-[#171717]/70'
+                              index < 3 ? 'bg-yellow-100 text-yellow-800' : 'bg-[var(--color-border)] text-[var(--color-primary)]/70'
                             }`}>
                               {index + 1}
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-[#171717]">{item.compte}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[#171717]">{item.libelle}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-[var(--color-primary)]">{item.compte}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-primary)]">{item.libelle}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-right text-blue-600">
                           {fmt(item.debitMouvement)}
                         </td>
@@ -680,23 +680,23 @@ const AdvancedBalance: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             
             {/* Comptes non lettrés */}
-            <div className="bg-[#f5f5f5] p-6 rounded-lg shadow-sm border border-[#e5e5e5]">
+            <div className="bg-[var(--color-surface-hover)] p-6 rounded-lg shadow-sm border border-[var(--color-border)]">
               <div className="flex items-center justify-between mb-4">
-                <h4 className="text-md font-semibold text-[#171717]">Comptes Non Lettrés</h4>
+                <h4 className="text-md font-semibold text-[var(--color-primary)]">Comptes Non Lettrés</h4>
                 <AlertCircle className="w-5 h-5 text-orange-500" />
               </div>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-[#171717]/70">Clients (411xxx)</span>
+                  <span className="text-sm text-[var(--color-primary)]/70">Clients (411xxx)</span>
                   <span className="text-sm font-medium text-orange-600">3 comptes</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-[#171717]/70">Fournisseurs (401xxx)</span>
+                  <span className="text-sm text-[var(--color-primary)]/70">Fournisseurs (401xxx)</span>
                   <span className="text-sm font-medium text-orange-600">2 comptes</span>
                 </div>
                 <div className="pt-2 border-t">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-[#171717]">Total non lettré</span>
+                    <span className="text-sm font-medium text-[var(--color-primary)]">Total non lettré</span>
                     <span className="text-sm font-bold text-orange-600">3.2M XAF</span>
                   </div>
                 </div>
@@ -704,23 +704,23 @@ const AdvancedBalance: React.FC = () => {
             </div>
 
             {/* Variations significatives */}
-            <div className="bg-[#f5f5f5] p-6 rounded-lg shadow-sm border border-[#e5e5e5]">
+            <div className="bg-[var(--color-surface-hover)] p-6 rounded-lg shadow-sm border border-[var(--color-border)]">
               <div className="flex items-center justify-between mb-4">
-                <h4 className="text-md font-semibold text-[#171717]">Variations Importantes</h4>
+                <h4 className="text-md font-semibold text-[var(--color-primary)]">Variations Importantes</h4>
                 <TrendingUp className="w-5 h-5 text-blue-500" />
               </div>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <div>
-                    <span className="text-sm font-medium text-[#171717]">607000</span>
-                    <p className="text-xs text-[#171717]/50">Achats marchandises</p>
+                    <span className="text-sm font-medium text-[var(--color-primary)]">607000</span>
+                    <p className="text-xs text-[var(--color-primary)]/50">Achats marchandises</p>
                   </div>
                   <span className="text-sm font-medium text-red-600">+56%</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <div>
-                    <span className="text-sm font-medium text-[#171717]">241000</span>
-                    <p className="text-xs text-[#171717]/50">Matériel industriel</p>
+                    <span className="text-sm font-medium text-[var(--color-primary)]">241000</span>
+                    <p className="text-xs text-[var(--color-primary)]/50">Matériel industriel</p>
                   </div>
                   <span className="text-sm font-medium text-green-600">+16%</span>
                 </div>
@@ -728,22 +728,22 @@ const AdvancedBalance: React.FC = () => {
             </div>
 
             {/* Taux de rapprochement */}
-            <div className="bg-[#f5f5f5] p-6 rounded-lg shadow-sm border border-[#e5e5e5]">
+            <div className="bg-[var(--color-surface-hover)] p-6 rounded-lg shadow-sm border border-[var(--color-border)]">
               <div className="flex items-center justify-between mb-4">
-                <h4 className="text-md font-semibold text-[#171717]">Taux de Rapprochement</h4>
+                <h4 className="text-md font-semibold text-[var(--color-primary)]">Taux de Rapprochement</h4>
                 <CheckCircle className="w-5 h-5 text-green-500" />
               </div>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-[#171717]/70">Rappr. bancaire</span>
+                  <span className="text-sm text-[var(--color-primary)]/70">Rappr. bancaire</span>
                   <span className="text-sm font-medium text-green-600">98%</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-[#171717]/70">Lettrage clients</span>
+                  <span className="text-sm text-[var(--color-primary)]/70">Lettrage clients</span>
                   <span className="text-sm font-medium text-orange-600">87%</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-[#171717]/70">Lettrage fournisseurs</span>
+                  <span className="text-sm text-[var(--color-primary)]/70">Lettrage fournisseurs</span>
                   <span className="text-sm font-medium text-green-600">94%</span>
                 </div>
               </div>
@@ -763,8 +763,8 @@ const AdvancedBalance: React.FC = () => {
           
           {/* Graphique par centre de coût */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-[#f5f5f5] p-6 rounded-lg shadow-sm border border-[#e5e5e5]">
-              <h3 className="text-lg font-semibold text-[#171717] mb-6">Répartition par Centre de Coût</h3>
+            <div className="bg-[var(--color-surface-hover)] p-6 rounded-lg shadow-sm border border-[var(--color-border)]">
+              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-6">Répartition par Centre de Coût</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={[
                   { centre: 'CC001 - Commercial', budget: 15000000, reel: 16200000, ecart: 1200000 },
@@ -782,8 +782,8 @@ const AdvancedBalance: React.FC = () => {
               </ResponsiveContainer>
             </div>
 
-            <div className="bg-[#f5f5f5] p-6 rounded-lg shadow-sm border border-[#e5e5e5]">
-              <h3 className="text-lg font-semibold text-[#171717] mb-6">Évolution des Écarts</h3>
+            <div className="bg-[var(--color-surface-hover)] p-6 rounded-lg shadow-sm border border-[var(--color-border)]">
+              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-6">Évolution des Écarts</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={[
                   { mois: 'Jan', commercial: 200000, production: -500000, admin: 100000 },
@@ -809,18 +809,18 @@ const AdvancedBalance: React.FC = () => {
           {/* Tableau analytique détaillé */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200">
             <div className="p-6 border-b border-gray-200">
-              <h4 className="text-md font-semibold text-[#171717]">Balance Analytique Détaillée</h4>
+              <h4 className="text-md font-semibold text-[var(--color-primary)]">Balance Analytique Détaillée</h4>
             </div>
             
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-[#171717]">
+                <thead className="bg-[var(--color-primary)]">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-[#f5f5f5] uppercase">Centre</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-[#f5f5f5] uppercase">Projet</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-[#f5f5f5] uppercase">Budget Initial</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-[#f5f5f5] uppercase">Réalisé</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-[#f5f5f5] uppercase">Écart €</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-surface-hover)] uppercase">Centre</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-surface-hover)] uppercase">Projet</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-[var(--color-surface-hover)] uppercase">Budget Initial</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-[var(--color-surface-hover)] uppercase">Réalisé</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-[var(--color-surface-hover)] uppercase">Écart €</th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase">Écart %</th>
                     <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase">Statut</th>
                   </tr>
@@ -873,13 +873,13 @@ const AdvancedBalance: React.FC = () => {
       {/* Modal Configuration des Colonnes */}
       {showConfig && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-[#f5f5f5] rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto">
-            <div className="p-6 border-b border-[#e5e5e5]">
+          <div className="bg-[var(--color-surface-hover)] rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+            <div className="p-6 border-b border-[var(--color-border)]">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-[#171717]">Configuration des Colonnes</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-primary)]">Configuration des Colonnes</h3>
                 <button
                   onClick={() => setShowConfig(false)}
-                  className="text-[#171717]/50 hover:text-[#171717]/70"
+                  className="text-[var(--color-primary)]/50 hover:text-[var(--color-primary)]/70"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -890,7 +890,7 @@ const AdvancedBalance: React.FC = () => {
             
             <div className="p-6 space-y-6">
               <div>
-                <label className="block text-sm font-medium text-[#171717] mb-2">
+                <label className="block text-sm font-medium text-[var(--color-primary)] mb-2">
                   Nombre total de colonnes ({columnConfig.totalColumns})
                 </label>
                 <input 
@@ -901,7 +901,7 @@ const AdvancedBalance: React.FC = () => {
                   onChange={(e) => setColumnConfig({...columnConfig, totalColumns: parseInt(e.target.value)})}
                   className="w-full"
                 />
-                <div className="flex justify-between text-xs text-[#171717]/50 mt-1">
+                <div className="flex justify-between text-xs text-[var(--color-primary)]/50 mt-1">
                   <span>4 (Minimal)</span>
                   <span>8 (Recommandé)</span>
                   <span>12 (Complet)</span>
@@ -909,7 +909,7 @@ const AdvancedBalance: React.FC = () => {
               </div>
 
               <div>
-                <h4 className="text-md font-medium text-[#171717] mb-4">Colonnes disponibles</h4>
+                <h4 className="text-md font-medium text-[var(--color-primary)] mb-4">Colonnes disponibles</h4>
                 <div className="grid grid-cols-2 gap-4">
                   {[
                     { id: 'debitPrecedent', label: 'Débit Précédent' },
@@ -945,10 +945,10 @@ const AdvancedBalance: React.FC = () => {
               </div>
             </div>
             
-            <div className="p-6 border-t border-[#e5e5e5] flex justify-end space-x-3">
+            <div className="p-6 border-t border-[var(--color-border)] flex justify-end space-x-3">
               <button
                 onClick={() => setShowConfig(false)}
-                className="px-4 py-2 text-[#171717]/70 border border-[#e5e5e5] rounded-lg hover:bg-[#e5e5e5]"
+                className="px-4 py-2 text-[var(--color-primary)]/70 border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-border)]"
               >
                 Annuler
               </button>
@@ -957,7 +957,7 @@ const AdvancedBalance: React.FC = () => {
                   // Sauvegarder la configuration
                   setShowConfig(false);
                 }}
-                className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#262626]"
+                className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)]"
               >
                 <Save className="w-4 h-4 mr-2 inline" />
                 Sauvegarder
@@ -970,28 +970,28 @@ const AdvancedBalance: React.FC = () => {
       {/* Modal Aperçu Avant Impression */}
       {showPrintPreview && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-[#f5f5f5] rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-[var(--color-surface-hover)] rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-[#171717]">Aperçu Avant Impression</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-primary)]">Aperçu Avant Impression</h3>
                 <div className="flex items-center space-x-3">
                   <div className="flex items-center space-x-2">
-                    <label className="text-sm text-[#171717]/70">Format:</label>
+                    <label className="text-sm text-[var(--color-primary)]/70">Format:</label>
                     <select 
                       value={printConfig.format}
                       onChange={(e) => setPrintConfig({...printConfig, format: e.target.value as 'A4' | 'A3'})}
-                      className="px-2 py-1 border border-[#e5e5e5] rounded text-sm"
+                      className="px-2 py-1 border border-[var(--color-border)] rounded text-sm"
                     >
                       <option value="A4">A4</option>
                       <option value="A3">A3</option>
                     </select>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <label className="text-sm text-[#171717]/70">Orientation:</label>
+                    <label className="text-sm text-[var(--color-primary)]/70">Orientation:</label>
                     <select 
                       value={printConfig.orientation}
                       onChange={(e) => setPrintConfig({...printConfig, orientation: e.target.value as 'portrait' | 'landscape'})}
-                      className="px-2 py-1 border border-[#e5e5e5] rounded text-sm"
+                      className="px-2 py-1 border border-[var(--color-border)] rounded text-sm"
                     >
                       <option value="portrait">Portrait</option>
                       <option value="landscape">Paysage</option>
@@ -999,7 +999,7 @@ const AdvancedBalance: React.FC = () => {
                   </div>
                   <button 
                     onClick={() => setShowPrintPreview(false)}
-                    className="text-[#171717]/50 hover:text-[#171717]/70"
+                    className="text-[var(--color-primary)]/50 hover:text-[var(--color-primary)]/70"
                   >
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1010,7 +1010,7 @@ const AdvancedBalance: React.FC = () => {
             </div>
             
             {/* Options d'impression */}
-            <div className="p-4 bg-[#e5e5e5] border-b border-[#e5e5e5]">
+            <div className="p-4 bg-[var(--color-border)] border-b border-[var(--color-border)]">
               <div className="flex items-center space-x-6">
                 <label className="flex items-center">
                   <input 
@@ -1043,62 +1043,62 @@ const AdvancedBalance: React.FC = () => {
             </div>
 
             {/* Prévisualisation */}
-            <div className={`p-8 bg-[#f5f5f5] ${printConfig.format === 'A3' ? 'text-sm' : 'text-xs'} ${printConfig.orientation === 'landscape' ? 'landscape-preview' : 'portrait-preview'}`}>
+            <div className={`p-8 bg-[var(--color-surface-hover)] ${printConfig.format === 'A3' ? 'text-sm' : 'text-xs'} ${printConfig.orientation === 'landscape' ? 'landscape-preview' : 'portrait-preview'}`}>
               
               {/* En-tête du rapport */}
               <div className="text-center mb-6">
                 {printConfig.showLogos && (
                   <div className="flex items-center justify-center mb-4">
-                    <div className="w-16 h-16 bg-[#e5e5e5] rounded-lg flex items-center justify-center">
-                      <Building className="w-8 h-8 text-[#171717]/50" />
+                    <div className="w-16 h-16 bg-[var(--color-border)] rounded-lg flex items-center justify-center">
+                      <Building className="w-8 h-8 text-[var(--color-primary)]/50" />
                     </div>
                   </div>
                 )}
-                <h1 className="text-lg font-bold text-[#171717]">BALANCE GÉNÉRALE</h1>
-                <p className="text-[#171717]/70">Période du {filters.dateDebut} au {filters.dateFin}</p>
-                <p className="text-[#171717]/50 text-sm">Généré le {new Date().toLocaleDateString('fr-FR')} - Conforme SYSCOHADA</p>
+                <h1 className="text-lg font-bold text-[var(--color-primary)]">BALANCE GÉNÉRALE</h1>
+                <p className="text-[var(--color-primary)]/70">Période du {filters.dateDebut} au {filters.dateFin}</p>
+                <p className="text-[var(--color-primary)]/50 text-sm">Généré le {new Date().toLocaleDateString('fr-FR')} - Conforme SYSCOHADA</p>
               </div>
 
               {/* Résumé des indicateurs */}
-              <div className="grid grid-cols-4 gap-4 mb-6 p-4 bg-[#e5e5e5] rounded">
+              <div className="grid grid-cols-4 gap-4 mb-6 p-4 bg-[var(--color-border)] rounded">
                 <div className="text-center">
-                  <div className="text-xs text-[#171717]/70">Total Débit</div>
+                  <div className="text-xs text-[var(--color-primary)]/70">Total Débit</div>
                   <div className="font-bold text-blue-600">{fmt(indicators.totalDebit)} XAF</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-xs text-[#171717]/70">Total Crédit</div>
+                  <div className="text-xs text-[var(--color-primary)]/70">Total Crédit</div>
                   <div className="font-bold text-green-600">{fmt(indicators.totalCredit)} XAF</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-xs text-[#171717]/70">Équilibre</div>
+                  <div className="text-xs text-[var(--color-primary)]/70">Équilibre</div>
                   <div className={`font-bold ${indicators.equilibre === 0 ? 'text-green-600' : 'text-orange-600'}`}>
                     {indicators.equilibre === 0 ? 'Parfait' : `Écart: ${(indicators.equilibre / 1000).toFixed(0)}K`}
                   </div>
                 </div>
                 <div className="text-center">
-                  <div className="text-xs text-[#171717]/70">Comptes Actifs</div>
-                  <div className="font-bold text-[#171717]">
+                  <div className="text-xs text-[var(--color-primary)]/70">Comptes Actifs</div>
+                  <div className="font-bold text-[var(--color-primary)]">
                     {balanceData.filter(item => item.debitSolde > 0 || item.creditSolde > 0).length}
                   </div>
                 </div>
               </div>
 
               {/* Tableau principal */}
-              <table className="w-full border border-[#e5e5e5]">
+              <table className="w-full border border-[var(--color-border)]">
                 <thead>
-                  <tr className="bg-[#171717] border-b border-[#e5e5e5]">
-                    <th className="border-r border-[#e5e5e5] px-2 py-1 text-left font-medium text-[#f5f5f5]">{t('accounting.account')}</th>
-                    <th className="border-r border-[#e5e5e5] px-2 py-1 text-left font-medium text-[#f5f5f5]">{t('accounting.label')}</th>
-                    <th className="border-r border-[#e5e5e5] px-2 py-1 text-right font-medium text-[#f5f5f5]">Solde Débit</th>
-                    <th className="px-2 py-1 text-right font-medium text-[#f5f5f5]">Solde Crédit</th>
+                  <tr className="bg-[var(--color-primary)] border-b border-[var(--color-border)]">
+                    <th className="border-r border-[var(--color-border)] px-2 py-1 text-left font-medium text-[var(--color-surface-hover)]">{t('accounting.account')}</th>
+                    <th className="border-r border-[var(--color-border)] px-2 py-1 text-left font-medium text-[var(--color-surface-hover)]">{t('accounting.label')}</th>
+                    <th className="border-r border-[var(--color-border)] px-2 py-1 text-right font-medium text-[var(--color-surface-hover)]">Solde Débit</th>
+                    <th className="px-2 py-1 text-right font-medium text-[var(--color-surface-hover)]">Solde Crédit</th>
                   </tr>
                 </thead>
                 <tbody>
                   {balanceData.slice(0, 15).map((item) => (
-                    <tr key={item.compte} className="border-b border-[#e5e5e5]">
-                      <td className="border-r border-[#e5e5e5] px-2 py-1 font-mono">{item.compte}</td>
-                      <td className="border-r border-[#e5e5e5] px-2 py-1">{item.libelle}</td>
-                      <td className="border-r border-[#e5e5e5] px-2 py-1 text-right font-mono">
+                    <tr key={item.compte} className="border-b border-[var(--color-border)]">
+                      <td className="border-r border-[var(--color-border)] px-2 py-1 font-mono">{item.compte}</td>
+                      <td className="border-r border-[var(--color-border)] px-2 py-1">{item.libelle}</td>
+                      <td className="border-r border-[var(--color-border)] px-2 py-1 text-right font-mono">
                         {item.debitSolde > 0 ? fmt(item.debitSolde) : '-'}
                       </td>
                       <td className="px-2 py-1 text-right font-mono">
@@ -1107,13 +1107,13 @@ const AdvancedBalance: React.FC = () => {
                     </tr>
                   ))}
                 </tbody>
-                <tfoot className="bg-[#171717] border-t-2 border-[#e5e5e5]">
+                <tfoot className="bg-[var(--color-primary)] border-t-2 border-[var(--color-border)]">
                   <tr>
-                    <td colSpan={2} className="px-2 py-2 font-bold text-[#f5f5f5]">TOTAUX</td>
-                    <td className="px-2 py-2 text-right font-mono font-bold border-r border-[#e5e5e5] text-[#f5f5f5]">
+                    <td colSpan={2} className="px-2 py-2 font-bold text-[var(--color-surface-hover)]">TOTAUX</td>
+                    <td className="px-2 py-2 text-right font-mono font-bold border-r border-[var(--color-border)] text-[var(--color-surface-hover)]">
                       {fmt(indicators.totalDebit)}
                     </td>
-                    <td className="px-2 py-2 text-right font-mono font-bold text-[#f5f5f5]">
+                    <td className="px-2 py-2 text-right font-mono font-bold text-[var(--color-surface-hover)]">
                       {fmt(indicators.totalCredit)}
                     </td>
                   </tr>
@@ -1121,7 +1121,7 @@ const AdvancedBalance: React.FC = () => {
               </table>
 
               {/* Pied de page */}
-              <div className="mt-8 pt-4 border-t border-[#e5e5e5] flex justify-between items-center text-xs text-[#171717]/50">
+              <div className="mt-8 pt-4 border-t border-[var(--color-border)] flex justify-between items-center text-xs text-[var(--color-primary)]/50">
                 <div>
                   <p><span className="atlas-brand">Atlas F&A</span> - Balance Générale</p>
                   <p>Système conforme SYSCOHADA</p>
@@ -1133,10 +1133,10 @@ const AdvancedBalance: React.FC = () => {
               </div>
             </div>
             
-            <div className="p-6 border-t border-[#e5e5e5] flex justify-between">
+            <div className="p-6 border-t border-[var(--color-border)] flex justify-between">
               <button
                 onClick={() => setShowPrintPreview(false)}
-                className="px-4 py-2 text-[#171717]/70 border border-[#e5e5e5] rounded-lg hover:bg-[#e5e5e5]"
+                className="px-4 py-2 text-[var(--color-primary)]/70 border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-border)]"
               >
                 Fermer
               </button>
@@ -1151,7 +1151,7 @@ const AdvancedBalance: React.FC = () => {
                 </button>
                 <button
                   onClick={handlePrint}
-                  className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#262626]"
+                  className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)]"
                 >
                   <Printer className="w-4 h-4 mr-2 inline" />
                   Imprimer

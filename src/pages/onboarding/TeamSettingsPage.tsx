@@ -35,7 +35,7 @@ const TeamSettingsPage: React.FC = () => {
   });
 
   return (
-    <div className="min-h-screen bg-[#fafafa]">
+    <div className="min-h-screen bg-[var(--color-background)]">
       <header className="bg-white border-b">
         <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -43,12 +43,12 @@ const TeamSettingsPage: React.FC = () => {
               <ArrowLeft className="w-5 h-5" />
             </button>
             <div>
-              <h1 className="font-bold text-[#171717]">Gestion de l'équipe</h1>
+              <h1 className="font-bold text-[var(--color-primary)]">Gestion de l'équipe</h1>
               <p className="text-xs text-gray-500">{members.length} membre(s) · {invitations.length} invitation(s) en attente</p>
             </div>
           </div>
           <button onClick={() => setShowInviteForm(true)}
-            className="px-4 py-2 bg-[#171717] text-white rounded-lg text-sm font-semibold hover:bg-[#333] flex items-center gap-2">
+            className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm font-semibold hover:bg-[#333] flex items-center gap-2">
             <Plus className="w-4 h-4" /> Inviter
           </button>
         </div>
@@ -58,7 +58,7 @@ const TeamSettingsPage: React.FC = () => {
         {/* Invite form */}
         {showInviteForm && (
           <div className="bg-white rounded-xl border p-6">
-            <h2 className="font-bold text-[#171717] mb-4 flex items-center gap-2">
+            <h2 className="font-bold text-[var(--color-primary)] mb-4 flex items-center gap-2">
               <Send className="w-5 h-5" /> Inviter un collaborateur
             </h2>
             <div className="flex gap-3">
@@ -74,7 +74,7 @@ const TeamSettingsPage: React.FC = () => {
               </select>
               <button onClick={() => inviteMutation.mutate()}
                 disabled={!inviteEmail || inviteMutation.isPending}
-                className="px-5 py-2.5 bg-[#171717] text-white rounded-lg text-sm font-semibold hover:bg-[#333] disabled:opacity-50">
+                className="px-5 py-2.5 bg-[var(--color-primary)] text-white rounded-lg text-sm font-semibold hover:bg-[#333] disabled:opacity-50">
                 Envoyer
               </button>
               <button onClick={() => setShowInviteForm(false)}
@@ -96,11 +96,11 @@ const TeamSettingsPage: React.FC = () => {
             {members.map(m => (
               <div key={m.id} className="px-6 py-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-[#171717] flex items-center justify-center text-white text-sm font-bold">
+                  <div className="w-9 h-9 rounded-full bg-[var(--color-primary)] flex items-center justify-center text-white text-sm font-bold">
                     {(m.full_name || m.email)[0].toUpperCase()}
                   </div>
                   <div>
-                    <div className="font-medium text-sm text-[#171717]">{m.full_name || m.email}</div>
+                    <div className="font-medium text-sm text-[var(--color-primary)]">{m.full_name || m.email}</div>
                     <div className="text-xs text-gray-500">{m.email}</div>
                   </div>
                 </div>

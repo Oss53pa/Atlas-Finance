@@ -70,7 +70,7 @@ const AssetFormsComparison: React.FC = () => {
 
   const FormCard = ({ form }: { form: typeof forms[0] }) => (
     <div
-      className="bg-white rounded-lg border border-[#e5e5e5] hover:border-[#171717]/30 hover:shadow-lg transition-all cursor-pointer group"
+      className="bg-white rounded-lg border border-[var(--color-border)] hover:border-[var(--color-primary)]/30 hover:shadow-lg transition-all cursor-pointer group"
       onClick={() => setSelectedForm(form.id)}
     >
       <div className="p-6">
@@ -82,22 +82,22 @@ const AssetFormsComparison: React.FC = () => {
           >
             <form.icon className="w-6 h-6" style={{ color: form.color }} />
           </div>
-          <ChevronRight className="w-5 h-5 text-gray-700 group-hover:text-[#171717] transition-colors" />
+          <ChevronRight className="w-5 h-5 text-gray-700 group-hover:text-[var(--color-primary)] transition-colors" />
         </div>
 
         {/* Title and Description */}
-        <h3 className="text-lg font-bold text-[#171717] mb-2">{form.name}</h3>
-        <p className="text-sm text-[#737373] mb-4">{form.description}</p>
+        <h3 className="text-lg font-bold text-[var(--color-primary)] mb-2">{form.name}</h3>
+        <p className="text-sm text-[var(--color-text-tertiary)] mb-4">{form.description}</p>
 
         {/* Stats */}
         <div className="flex items-center space-x-4 mb-4">
           <div className="text-center">
             <p className="text-lg font-bold" style={{ color: form.color }}>{form.fields}</p>
-            <p className="text-xs text-[#737373]">Champs</p>
+            <p className="text-xs text-[var(--color-text-tertiary)]">Champs</p>
           </div>
           <div className="text-center">
             <p className="text-lg font-bold text-[#404040]">{form.sections}</p>
-            <p className="text-xs text-[#737373]">Sections</p>
+            <p className="text-xs text-[var(--color-text-tertiary)]">Sections</p>
           </div>
         </div>
 
@@ -106,7 +106,7 @@ const AssetFormsComparison: React.FC = () => {
           {form.features.map((feature, index) => (
             <div key={index} className="flex items-center space-x-2">
               <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: form.color }} />
-              <span className="text-xs text-[#737373]">{feature}</span>
+              <span className="text-xs text-[var(--color-text-tertiary)]">{feature}</span>
             </div>
           ))}
         </div>
@@ -151,19 +151,19 @@ const AssetFormsComparison: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA]">
+    <div className="min-h-screen bg-[var(--color-background)]">
       {/* Header */}
-      <div className="bg-white border-b border-[#e5e5e5] px-6 py-4">
+      <div className="bg-white border-b border-[var(--color-border)] px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-bold text-[#171717]">Comparaison des Formulaires d'Actifs</h1>
-            <p className="text-sm text-[#737373] mt-1">
+            <h1 className="text-lg font-bold text-[var(--color-primary)]">Comparaison des Formulaires d'Actifs</h1>
+            <p className="text-sm text-[var(--color-text-tertiary)] mt-1">
               Choisissez le formulaire adapté à vos besoins
             </p>
           </div>
           <button
             onClick={() => window.history.back()}
-            className="px-4 py-2 text-sm font-medium text-[#737373] hover:text-[#171717] border border-[#e5e5e5] rounded-lg hover:bg-gray-50 transition-colors"
+            className="px-4 py-2 text-sm font-medium text-[var(--color-text-tertiary)] hover:text-[var(--color-primary)] border border-[var(--color-border)] rounded-lg hover:bg-gray-50 transition-colors"
           >
             Retour
           </button>
@@ -180,21 +180,21 @@ const AssetFormsComparison: React.FC = () => {
         </div>
 
         {/* Comparison Table */}
-        <div className="bg-white rounded-lg border border-[#e5e5e5] overflow-hidden">
-          <div className="px-6 py-4 bg-gradient-to-r from-[#171717]/5 to-[#525252]/5 border-b border-[#e5e5e5]">
-            <h2 className="text-lg font-bold text-[#171717]">Tableau Comparatif Détaillé</h2>
+        <div className="bg-white rounded-lg border border-[var(--color-border)] overflow-hidden">
+          <div className="px-6 py-4 bg-gradient-to-r from-[var(--color-primary)]/5 to-[var(--color-text-secondary)]/5 border-b border-[var(--color-border)]">
+            <h2 className="text-lg font-bold text-[var(--color-primary)]">Tableau Comparatif Détaillé</h2>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-[#e5e5e5]">
-                  <th className="px-6 py-3 text-left text-xs font-medium text-[#737373] uppercase tracking-wider">
+                <tr className="border-b border-[var(--color-border)]">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-tertiary)] uppercase tracking-wider">
                     Fonctionnalité
                   </th>
                   {forms.map((form) => (
                     <th
                       key={form.id}
-                      className="px-6 py-3 text-center text-xs font-medium text-[#737373] uppercase tracking-wider"
+                      className="px-6 py-3 text-center text-xs font-medium text-[var(--color-text-tertiary)] uppercase tracking-wider"
                     >
                       {form.name}
                     </th>
@@ -224,7 +224,7 @@ const AssetFormsComparison: React.FC = () => {
                           className="w-6 h-6 rounded-full mx-auto"
                           style={{
                             backgroundColor:
-                              (index < 4 || form.id === 'complete') ? `${form.color}20` : '#f5f5f5'
+                              (index < 4 || form.id === 'complete') ? `${form.color}20` : 'var(--color-surface-hover)'
                           }}
                         >
                           {(index < 4 || form.id === 'complete') && (
@@ -249,23 +249,23 @@ const AssetFormsComparison: React.FC = () => {
         </div>
 
         {/* Recommendation */}
-        <div className="mt-8 bg-gradient-to-r from-[#171717]/10 to-[#525252]/10 rounded-lg border border-[#e5e5e5] p-6">
-          <h3 className="text-lg font-bold text-[#171717] mb-3">Recommandation</h3>
-          <p className="text-sm text-[#737373] mb-4">
+        <div className="mt-8 bg-gradient-to-r from-[var(--color-primary)]/10 to-[var(--color-text-secondary)]/10 rounded-lg border border-[var(--color-border)] p-6">
+          <h3 className="text-lg font-bold text-[var(--color-primary)] mb-3">Recommandation</h3>
+          <p className="text-sm text-[var(--color-text-tertiary)] mb-4">
             Pour une gestion complète des immobilisations avec suivi détaillé et reporting avancé,
-            nous recommandons le <span className="font-semibold text-[#171717]">Formulaire Complet</span>.
-            Pour une saisie rapide au quotidien, le <span className="font-semibold text-[#737373]">Formulaire Simplifié</span> est plus adapté.
+            nous recommandons le <span className="font-semibold text-[var(--color-primary)]">Formulaire Complet</span>.
+            Pour une saisie rapide au quotidien, le <span className="font-semibold text-[var(--color-text-tertiary)]">Formulaire Simplifié</span> est plus adapté.
           </p>
           <div className="flex items-center space-x-3">
             <button
               onClick={() => window.location.href = '/assets/registry'}
-              className="px-4 py-2 bg-[#171717] text-white font-medium rounded-lg hover:bg-[#262626] transition-colors"
+              className="px-4 py-2 bg-[var(--color-primary)] text-white font-medium rounded-lg hover:bg-[var(--color-primary-hover)] transition-colors"
             >
               Utiliser le Formulaire Recommandé
             </button>
             <button
               onClick={() => window.location.href = '/assets'}
-              className="px-4 py-2 border border-[#e5e5e5] text-[#737373] font-medium rounded-lg hover:bg-gray-50 transition-colors"
+              className="px-4 py-2 border border-[var(--color-border)] text-[var(--color-text-tertiary)] font-medium rounded-lg hover:bg-gray-50 transition-colors"
             >
               Voir tous les modules
             </button>
@@ -277,8 +277,8 @@ const AssetFormsComparison: React.FC = () => {
       {selectedForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-auto">
-            <div className="sticky top-0 bg-white border-b border-[#e5e5e5] px-6 py-4 flex items-center justify-between">
-              <h2 className="text-lg font-bold text-[#171717]">
+            <div className="sticky top-0 bg-white border-b border-[var(--color-border)] px-6 py-4 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-[var(--color-primary)]">
                 {forms.find(f => f.id === selectedForm)?.name}
               </h2>
               <button
@@ -289,35 +289,35 @@ const AssetFormsComparison: React.FC = () => {
               </button>
             </div>
             <div className="p-6">
-              <p className="text-[#737373] mb-4">
+              <p className="text-[var(--color-text-tertiary)] mb-4">
                 {forms.find(f => f.id === selectedForm)?.description}
               </p>
               <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <h3 className="font-semibold text-[#171717] mb-3">Caractéristiques principales</h3>
+                  <h3 className="font-semibold text-[var(--color-primary)] mb-3">Caractéristiques principales</h3>
                   <ul className="space-y-2">
                     {forms.find(f => f.id === selectedForm)?.features.map((feature, index) => (
                       <li key={index} className="flex items-center space-x-2">
-                        <div className="w-2 h-2 rounded-full bg-[#171717]" />
-                        <span className="text-sm text-[#737373]">{feature}</span>
+                        <div className="w-2 h-2 rounded-full bg-[var(--color-primary)]" />
+                        <span className="text-sm text-[var(--color-text-tertiary)]">{feature}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-[#171717] mb-3">Cas d'usage recommandés</h3>
+                  <h3 className="font-semibold text-[var(--color-primary)] mb-3">Cas d'usage recommandés</h3>
                   <ul className="space-y-2">
                     <li className="flex items-start space-x-2">
-                      <ChevronRight className="w-4 h-4 text-[#171717] mt-0.5" />
-                      <span className="text-sm text-[#737373]">Gestion quotidienne des actifs</span>
+                      <ChevronRight className="w-4 h-4 text-[var(--color-primary)] mt-0.5" />
+                      <span className="text-sm text-[var(--color-text-tertiary)]">Gestion quotidienne des actifs</span>
                     </li>
                     <li className="flex items-start space-x-2">
-                      <ChevronRight className="w-4 h-4 text-[#171717] mt-0.5" />
-                      <span className="text-sm text-[#737373]">Suivi des amortissements</span>
+                      <ChevronRight className="w-4 h-4 text-[var(--color-primary)] mt-0.5" />
+                      <span className="text-sm text-[var(--color-text-tertiary)]">Suivi des amortissements</span>
                     </li>
                     <li className="flex items-start space-x-2">
-                      <ChevronRight className="w-4 h-4 text-[#171717] mt-0.5" />
-                      <span className="text-sm text-[#737373]">Reporting financier</span>
+                      <ChevronRight className="w-4 h-4 text-[var(--color-primary)] mt-0.5" />
+                      <span className="text-sm text-[var(--color-text-tertiary)]">Reporting financier</span>
                     </li>
                   </ul>
                 </div>
@@ -325,13 +325,13 @@ const AssetFormsComparison: React.FC = () => {
               <div className="mt-6 flex items-center space-x-3">
                 <button
                   onClick={() => window.location.href = `/assets/${selectedForm}`}
-                  className="px-4 py-2 bg-[#171717] text-white font-medium rounded-lg hover:bg-[#262626] transition-colors"
+                  className="px-4 py-2 bg-[var(--color-primary)] text-white font-medium rounded-lg hover:bg-[var(--color-primary-hover)] transition-colors"
                 >
                   Utiliser ce formulaire
                 </button>
                 <button
                   onClick={() => setSelectedForm(null)}
-                  className="px-4 py-2 border border-[#e5e5e5] text-[#737373] font-medium rounded-lg hover:bg-gray-50 transition-colors"
+                  className="px-4 py-2 border border-[var(--color-border)] text-[var(--color-text-tertiary)] font-medium rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   Fermer
                 </button>

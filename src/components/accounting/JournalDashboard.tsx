@@ -513,7 +513,7 @@ const JournalDashboard: React.FC = () => {
                     <div className="mt-2">
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div
-                          className="bg-[#525252] h-2 rounded-full"
+                          className="bg-[var(--color-text-secondary)] h-2 rounded-full"
                           style={{ width: `${kpis.automationRate}%` }}
                         ></div>
                       </div>

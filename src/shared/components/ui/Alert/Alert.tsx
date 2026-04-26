@@ -11,9 +11,9 @@ export interface AlertProps {
 
 const variantConfig = {
   success: {
-    bg: 'bg-[#171717]/10',
-    border: 'border-[#171717]',
-    text: 'text-[#171717]',
+    bg: 'bg-[var(--color-primary)]/10',
+    border: 'border-[var(--color-primary)]',
+    text: 'text-[var(--color-primary)]',
     icon: CheckCircle,
   },
   error: {
@@ -23,15 +23,15 @@ const variantConfig = {
     icon: AlertCircle,
   },
   warning: {
-    bg: 'bg-[#525252]/10',
-    border: 'border-[#525252]',
-    text: 'text-[#525252]',
+    bg: 'bg-[var(--color-text-secondary)]/10',
+    border: 'border-[var(--color-text-secondary)]',
+    text: 'text-[var(--color-text-secondary)]',
     icon: AlertTriangle,
   },
   info: {
-    bg: 'bg-[#737373]/10',
-    border: 'border-[#737373]',
-    text: 'text-[#737373]',
+    bg: 'bg-[var(--color-text-tertiary)]/10',
+    border: 'border-[var(--color-text-tertiary)]',
+    text: 'text-[var(--color-text-tertiary)]',
     icon: Info,
   },
 };

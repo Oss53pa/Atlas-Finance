@@ -80,7 +80,7 @@ const AssetMasterDataModal: React.FC<AssetMasterDataModalProps> = ({
     className?: string;
   }) => {
     const variants: Record<string, string> = {
-      primary: 'bg-[#171717] text-white hover:bg-[#262626]',
+      primary: 'bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)]',
       outline: 'border border-gray-300 text-gray-700 hover:bg-gray-50'
     };
 

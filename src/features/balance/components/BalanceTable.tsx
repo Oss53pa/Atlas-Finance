@@ -21,8 +21,8 @@ export const BalanceTable: React.FC<BalanceTableProps> = ({
   const renderAccounts = (accounts: BalanceAccount[], level: number = 0): React.ReactNode => {
     return accounts.map((account) => (
       <React.Fragment key={account.code}>
-        <tr className={`hover:bg-[#f5f5f5]/50 transition-colors ${
-          level === 0 ? 'bg-[#171717]/5 font-semibold' : ''
+        <tr className={`hover:bg-[var(--color-surface-hover)]/50 transition-colors ${
+          level === 0 ? 'bg-[var(--color-primary)]/5 font-semibold' : ''
         }`}>
           {visibleColumns.compte && (
             <td className="px-4 py-2 whitespace-nowrap">
@@ -30,7 +30,7 @@ export const BalanceTable: React.FC<BalanceTableProps> = ({
                 {account.children && account.children.length > 0 && (
                   <button
                     onClick={() => onToggleAccount(account.code)}
-                    className="mr-2 text-[#171717] hover:text-[#171717]"
+                    className="mr-2 text-[var(--color-primary)] hover:text-[var(--color-primary)]"
                   >
                     {account.isExpanded ? (
                       <ChevronDown className="w-4 h-4" />

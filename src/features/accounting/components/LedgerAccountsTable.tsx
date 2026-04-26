@@ -38,7 +38,7 @@ export const LedgerAccountsTable: React.FC<LedgerAccountsTableProps> = ({
                 e.stopPropagation();
                 onToggleExpand(row.compte);
               }}
-              className="text-[#737373] hover:text-[#171717] transition-colors"
+              className="text-[var(--color-text-tertiary)] hover:text-[var(--color-primary)] transition-colors"
             >
               {expandedAccounts.includes(row.compte) ? (
                 <ChevronDown className="w-4 h-4" />
@@ -63,7 +63,7 @@ export const LedgerAccountsTable: React.FC<LedgerAccountsTableProps> = ({
       render: (value) => {
         const amount = value as number;
         return (
-          <span className={amount < 0 ? 'text-[#ef4444]' : amount > 0 ? 'text-[#171717]' : ''}>
+          <span className={amount < 0 ? 'text-[#ef4444]' : amount > 0 ? 'text-[var(--color-primary)]' : ''}>
             {formatCurrency(Math.abs(amount))} {amount < 0 ? 'C' : amount > 0 ? 'D' : ''}
           </span>
         );
@@ -93,7 +93,7 @@ export const LedgerAccountsTable: React.FC<LedgerAccountsTableProps> = ({
         return (
           <span
             className={`font-semibold ${
-              amount < 0 ? 'text-[#ef4444]' : amount > 0 ? 'text-[#171717]' : ''
+              amount < 0 ? 'text-[#ef4444]' : amount > 0 ? 'text-[var(--color-primary)]' : ''
             }`}
           >
             {formatCurrency(Math.abs(amount))} {amount < 0 ? 'C' : amount > 0 ? 'D' : ''}

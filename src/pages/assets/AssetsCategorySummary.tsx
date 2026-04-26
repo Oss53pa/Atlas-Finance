@@ -512,7 +512,7 @@ const AssetsCategorySummary: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-r from-[#171717] to-[#262626] rounded-lg p-6 text-white">
+      <div className="bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-hover)] rounded-lg p-6 text-white">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <p className="text-white/80 text-sm uppercase tracking-wide">Catégorie</p>
@@ -630,7 +630,7 @@ const AssetsCategorySummary: React.FC = () => {
               <thead>
                 <tr className="border-b-2 border-[var(--color-border)]">
                   <th colSpan={2} className="text-left py-2 px-2 font-semibold"></th>
-                  <th colSpan={6} className="text-center py-2 px-2 font-semibold text-[var(--color-text-primary)] bg-[#171717]/10/50 dark:bg-blue-900/10">
+                  <th colSpan={6} className="text-center py-2 px-2 font-semibold text-[var(--color-text-primary)] bg-[var(--color-primary)]/10/50 dark:bg-blue-900/10">
                     Assets at Cost
                   </th>
                   <th colSpan={7} className="text-center py-2 px-2 font-semibold text-[var(--color-text-primary)] bg-orange-50/50 dark:bg-orange-900/10">
@@ -639,7 +639,7 @@ const AssetsCategorySummary: React.FC = () => {
                   <th className="text-center py-2 px-2 font-semibold text-[var(--color-text-primary)] bg-green-50/50 dark:bg-green-900/10">
                     Closing Value
                   </th>
-                  <th colSpan={4} className="text-center py-2 px-2 font-semibold text-[var(--color-text-primary)] bg-[#525252]/10/50 dark:bg-primary-900/10">
+                  <th colSpan={4} className="text-center py-2 px-2 font-semibold text-[var(--color-text-primary)] bg-[var(--color-text-secondary)]/10/50 dark:bg-primary-900/10">
                     Revaluation Reserve
                   </th>
                   <th colSpan={2} className="text-center py-2 px-2 font-semibold text-[var(--color-text-primary)] bg-red-50/50 dark:bg-red-900/10">
@@ -802,13 +802,13 @@ const AssetsCategorySummary: React.FC = () => {
                 return (
                   <div key={category.code} className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-[#171717]/100" />
+                      <div className="w-3 h-3 rounded-full bg-[var(--color-primary)]/100" />
                       <span className="text-sm">{category.description}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="w-24 bg-gray-200 rounded-full h-2">
                         <div
-                          className="bg-[#171717]/100 h-2 rounded-full"
+                          className="bg-[var(--color-primary)]/100 h-2 rounded-full"
                           style={{ width: `${percentage}%` }}
                         />
                       </div>

@@ -697,7 +697,7 @@ const AssetsRegistry: React.FC = () => {
   const getConditionColor = (condition: string) => {
     switch (condition) {
       case 'excellent': return 'text-green-600 bg-green-50';
-      case 'good': return 'text-[#171717] bg-[#171717]/10';
+      case 'good': return 'text-[var(--color-primary)] bg-[var(--color-primary)]/10';
       case 'fair': return 'text-yellow-600 bg-yellow-50';
       case 'poor': return 'text-red-600 bg-red-50';
       default: return 'text-gray-600 bg-gray-50';
@@ -733,9 +733,9 @@ const AssetsRegistry: React.FC = () => {
   const chartData = mockCategories.map(cat => ({
     label: cat.name.replace(' ', '\n'),
     value: cat.totalValue / 1000,
-    color: cat.code === 'materiel_informatique' ? 'bg-[#171717]' :
+    color: cat.code === 'materiel_informatique' ? 'bg-[var(--color-primary)]' :
            cat.code === 'vehicules' ? 'bg-green-500' :
-           cat.code === 'mobilier' ? 'bg-[#525252]' :
+           cat.code === 'mobilier' ? 'bg-[var(--color-text-secondary)]' :
            cat.code === 'equipements' ? 'bg-orange-500' : 'bg-red-500'
   }));
 
@@ -849,7 +849,7 @@ const AssetsRegistry: React.FC = () => {
               {mockCategories.slice(0, 5).map((category, index) => (
                 <div key={category.code} className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <div className="w-3 h-3 rounded-full bg-[#171717]"></div>
+                    <div className="w-3 h-3 rounded-full bg-[var(--color-primary)]"></div>
                     <span className="text-sm text-neutral-700">{category.name}</span>
                   </div>
                   <div className="text-right">
@@ -943,7 +943,7 @@ const AssetsRegistry: React.FC = () => {
               <button
                 onClick={() => setViewMode('table')}
                 className={`p-2 rounded-lg transition-colors ${
-                  viewMode === 'table' ? 'bg-[#171717]/20 text-[#171717]' : 'text-neutral-400 hover:text-neutral-600'
+                  viewMode === 'table' ? 'bg-[var(--color-primary)]/20 text-[var(--color-primary)]' : 'text-neutral-400 hover:text-neutral-600'
                 }`}
               >
                 <BarChart3 className="h-4 w-4" />
@@ -951,7 +951,7 @@ const AssetsRegistry: React.FC = () => {
               <button
                 onClick={() => setViewMode('grid')}
                 className={`p-2 rounded-lg transition-colors ${
-                  viewMode === 'grid' ? 'bg-[#171717]/20 text-[#171717]' : 'text-neutral-400 hover:text-neutral-600'
+                  viewMode === 'grid' ? 'bg-[var(--color-primary)]/20 text-[var(--color-primary)]' : 'text-neutral-400 hover:text-neutral-600'
                 }`}
               >
                 <Target className="h-4 w-4" />
@@ -1086,7 +1086,7 @@ const AssetsRegistry: React.FC = () => {
                       </td>
                       <td className="py-4 px-4">
                         <div className="flex items-center space-x-3">
-                          <div className="p-2 bg-[#171717]/50 rounded-lg">
+                          <div className="p-2 bg-[var(--color-primary)]/50 rounded-lg">
                             {getCategoryIcon(asset.category)}
                           </div>
                           <div>
@@ -1153,7 +1153,7 @@ const AssetsRegistry: React.FC = () => {
                               setModalMode('edit');
                               setShowAssetModal(true);
                             }}
-                            className="p-2 text-neutral-400 hover:text-[#171717] transition-colors"
+                            className="p-2 text-neutral-400 hover:text-[var(--color-primary)] transition-colors"
                           >
                             <Eye className="h-4 w-4" />
                           </button>
@@ -1256,7 +1256,7 @@ const AssetsRegistry: React.FC = () => {
                   <div className="space-y-4">
                     <div className="flex justify-between items-start">
                       <div className="flex items-center space-x-3">
-                        <div className="p-2 bg-[#171717]/50 rounded-lg">
+                        <div className="p-2 bg-[var(--color-primary)]/50 rounded-lg">
                           {getCategoryIcon(asset.category)}
                         </div>
                         <div>
@@ -1311,7 +1311,7 @@ const AssetsRegistry: React.FC = () => {
                               setModalMode('edit');
                               setShowAssetModal(true);
                             }}
-                            className="p-2 text-neutral-400 hover:text-[#171717] transition-colors"
+                            className="p-2 text-neutral-400 hover:text-[var(--color-primary)] transition-colors"
                           >
                             <Eye className="h-4 w-4" />
                           </button>
@@ -1347,7 +1347,7 @@ const AssetsRegistry: React.FC = () => {
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-sm text-neutral-600">Actifs sélectionnés</span>
-                <span className="text-lg font-bold text-[#171717]">{selectedAssets.length}</span>
+                <span className="text-lg font-bold text-[var(--color-primary)]">{selectedAssets.length}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-neutral-600">Total disponible</span>
@@ -1503,7 +1503,7 @@ const AssetsRegistry: React.FC = () => {
         <div className="space-y-4">
           <h3 className="text-lg font-semibold text-neutral-800">Modèles d'Actions Rapides</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <button className="p-4 border border-neutral-200 rounded-lg hover:border-[#171717]/30 hover:bg-[#171717]/50 transition-colors text-left">
+            <button className="p-4 border border-neutral-200 rounded-lg hover:border-[var(--color-primary)]/30 hover:bg-[var(--color-primary)]/50 transition-colors text-left">
               <div className="flex items-center space-x-3 mb-2">
                 <div className="p-2 bg-green-100 rounded-lg">
                   <CheckCircle className="h-4 w-4 text-green-600" />
@@ -1513,7 +1513,7 @@ const AssetsRegistry: React.FC = () => {
               <p className="text-sm text-neutral-500">Marquer comme vérifié pour inventaire annuel</p>
             </button>
 
-            <button className="p-4 border border-neutral-200 rounded-lg hover:border-[#171717]/30 hover:bg-[#171717]/50 transition-colors text-left">
+            <button className="p-4 border border-neutral-200 rounded-lg hover:border-[var(--color-primary)]/30 hover:bg-[var(--color-primary)]/50 transition-colors text-left">
               <div className="flex items-center space-x-3 mb-2">
                 <div className="p-2 bg-orange-100 rounded-lg">
                   <Wrench className="h-4 w-4 text-orange-600" />
@@ -1523,17 +1523,17 @@ const AssetsRegistry: React.FC = () => {
               <p className="text-sm text-neutral-500">Planifier maintenance préventive</p>
             </button>
 
-            <button className="p-4 border border-neutral-200 rounded-lg hover:border-[#171717]/30 hover:bg-[#171717]/50 transition-colors text-left">
+            <button className="p-4 border border-neutral-200 rounded-lg hover:border-[var(--color-primary)]/30 hover:bg-[var(--color-primary)]/50 transition-colors text-left">
               <div className="flex items-center space-x-3 mb-2">
-                <div className="p-2 bg-[#171717]/20 rounded-lg">
-                  <RotateCcw className="h-4 w-4 text-[#171717]" />
+                <div className="p-2 bg-[var(--color-primary)]/20 rounded-lg">
+                  <RotateCcw className="h-4 w-4 text-[var(--color-primary)]" />
                 </div>
                 <span className="font-medium text-neutral-800">Réaffectation</span>
               </div>
               <p className="text-sm text-neutral-500">Changer département/employé</p>
             </button>
 
-            <button className="p-4 border border-neutral-200 rounded-lg hover:border-[#171717]/30 hover:bg-[#171717]/50 transition-colors text-left">
+            <button className="p-4 border border-neutral-200 rounded-lg hover:border-[var(--color-primary)]/30 hover:bg-[var(--color-primary)]/50 transition-colors text-left">
               <div className="flex items-center space-x-3 mb-2">
                 <div className="p-2 bg-red-100 rounded-lg">
                   <Archive className="h-4 w-4 text-red-600" />
@@ -1623,7 +1623,7 @@ const AssetsRegistry: React.FC = () => {
                 date: '2024-01-14 15:45',
                 asset: 'Serveur Dell PowerEdge R750 (#235378)',
                 icon: Edit,
-                color: 'bg-[#171717]'
+                color: 'bg-[var(--color-primary)]'
               },
               {
                 id: 3,
@@ -1633,7 +1633,7 @@ const AssetsRegistry: React.FC = () => {
                 date: '2024-01-13 09:15',
                 asset: 'ARIC TRAVAUX D\'ASSAINISSEMENT (#235377)',
                 icon: User,
-                color: 'bg-[#525252]'
+                color: 'bg-[var(--color-text-secondary)]'
               },
               {
                 id: 4,
@@ -1726,7 +1726,7 @@ const AssetsRegistry: React.FC = () => {
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-sm text-neutral-600">Modifications</span>
-                <span className="text-sm font-semibold text-[#171717]">45%</span>
+                <span className="text-sm font-semibold text-[var(--color-primary)]">45%</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-neutral-600">Transferts</span>
@@ -1753,7 +1753,7 @@ const AssetsRegistry: React.FC = () => {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <div className="w-6 h-6 bg-[#171717] rounded-full flex items-center justify-center">
+                  <div className="w-6 h-6 bg-[var(--color-primary)] rounded-full flex items-center justify-center">
                     <span className="text-xs text-white font-semibold">MK</span>
                   </div>
                   <span className="text-sm text-neutral-700">Mohamed Kane</span>
@@ -1771,7 +1771,7 @@ const AssetsRegistry: React.FC = () => {
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <div className="w-6 h-6 bg-[#525252] rounded-full flex items-center justify-center">
+                  <div className="w-6 h-6 bg-[var(--color-text-secondary)] rounded-full flex items-center justify-center">
                     <span className="text-xs text-white font-semibold">CD</span>
                   </div>
                   <span className="text-sm text-neutral-700">Cheikh Diop</span>
@@ -1824,7 +1824,7 @@ const AssetsRegistry: React.FC = () => {
                     onClick={() => setActiveMainTab(tab.id)}
                     className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                       activeMainTab === tab.id
-                        ? 'border-[#171717] text-[#171717]'
+                        ? 'border-[var(--color-primary)] text-[var(--color-primary)]'
                         : 'border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-300'
                     }`}
                   >

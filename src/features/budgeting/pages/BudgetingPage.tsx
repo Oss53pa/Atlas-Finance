@@ -55,8 +55,8 @@ const BudgetingPage: React.FC = () => {
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-bold text-[#171717]">Budget & Planification</h1>
-          <p className="text-[#737373] mt-1">
+          <h1 className="text-lg font-bold text-[var(--color-primary)]">Budget & Planification</h1>
+          <p className="text-[var(--color-text-tertiary)] mt-1">
             Gestion et suivi des budgets départementaux
           </p>
         </div>
@@ -79,7 +79,7 @@ const BudgetingPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex gap-2 border-b border-[#d4d4d4]">
+      <div className="flex gap-2 border-b border-[var(--color-border)]">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           return (
@@ -88,8 +88,8 @@ const BudgetingPage: React.FC = () => {
               onClick={() => setActiveTab(tab.id as typeof activeTab)}
               className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-colors ${
                 activeTab === tab.id
-                  ? 'border-[#171717] text-[#171717] font-semibold'
-                  : 'border-transparent text-[#737373] hover:text-[#171717]'
+                  ? 'border-[var(--color-primary)] text-[var(--color-primary)] font-semibold'
+                  : 'border-transparent text-[var(--color-text-tertiary)] hover:text-[var(--color-primary)]'
               }`}
             >
               <Icon className="w-4 h-4" />
@@ -105,8 +105,8 @@ const BudgetingPage: React.FC = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
-              <div className="bg-white rounded-lg border border-[#d4d4d4] p-6">
-                <h2 className="text-lg font-semibold text-[#171717] mb-4">
+              <div className="bg-white rounded-lg border border-[var(--color-border)] p-6">
+                <h2 className="text-lg font-semibold text-[var(--color-primary)] mb-4">
                   Budgets par Département
                 </h2>
                 <DepartmentsTable
@@ -121,8 +121,8 @@ const BudgetingPage: React.FC = () => {
             </div>
 
             <div className="space-y-6">
-              <div className="bg-white rounded-lg border border-[#d4d4d4] p-6">
-                <h2 className="text-lg font-semibold text-[#171717] mb-4">Alertes</h2>
+              <div className="bg-white rounded-lg border border-[var(--color-border)] p-6">
+                <h2 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Alertes</h2>
                 <BudgetAlerts alerts={alerts} loading={alertsLoading} maxDisplay={5} />
               </div>
             </div>
@@ -132,8 +132,8 @@ const BudgetingPage: React.FC = () => {
 
       {activeTab === 'sessions' && (
         <div className="space-y-6">
-          <div className="bg-white rounded-lg border border-[#d4d4d4] p-6">
-            <h2 className="text-lg font-semibold text-[#171717] mb-4">
+          <div className="bg-white rounded-lg border border-[var(--color-border)] p-6">
+            <h2 className="text-lg font-semibold text-[var(--color-primary)] mb-4">
               Sessions Budgétaires
             </h2>
             <SessionsTable sessions={sessions} loading={loading} />
@@ -143,9 +143,9 @@ const BudgetingPage: React.FC = () => {
 
       {activeTab === 'analysis' && (
         <div className="space-y-6">
-          <div className="bg-white rounded-lg border border-[#d4d4d4] p-6">
+          <div className="bg-white rounded-lg border border-[var(--color-border)] p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold text-[#171717]">
+              <h2 className="text-lg font-semibold text-[var(--color-primary)]">
                 Analyse Mensuelle {selectedYear}
               </h2>
               <div className="flex gap-2">
@@ -153,8 +153,8 @@ const BudgetingPage: React.FC = () => {
                   onClick={() => setChartType('bar')}
                   className={`px-3 py-1 rounded ${
                     chartType === 'bar'
-                      ? 'bg-[#171717] text-white'
-                      : 'bg-[#F5F5F5] text-[#737373]'
+                      ? 'bg-[var(--color-primary)] text-white'
+                      : 'bg-[var(--color-surface-hover)] text-[var(--color-text-tertiary)]'
                   }`}
                 >
                   Barres
@@ -163,8 +163,8 @@ const BudgetingPage: React.FC = () => {
                   onClick={() => setChartType('line')}
                   className={`px-3 py-1 rounded ${
                     chartType === 'line'
-                      ? 'bg-[#171717] text-white'
-                      : 'bg-[#F5F5F5] text-[#737373]'
+                      ? 'bg-[var(--color-primary)] text-white'
+                      : 'bg-[var(--color-surface-hover)] text-[var(--color-text-tertiary)]'
                   }`}
                 >
                   Lignes
@@ -187,7 +187,7 @@ const BudgetingPage: React.FC = () => {
         size="lg"
       >
         <ModalBody>
-          <p className="text-[#737373]">Formulaire de création de session à venir...</p>
+          <p className="text-[var(--color-text-tertiary)]">Formulaire de création de session à venir...</p>
         </ModalBody>
         <ModalFooter>
           <div className="flex gap-2">
@@ -210,14 +210,14 @@ const BudgetingPage: React.FC = () => {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-[#737373]">{t('navigation.budget')}</p>
-                  <p className="text-lg font-bold text-[#171717]">
+                  <p className="text-sm text-[var(--color-text-tertiary)]">{t('navigation.budget')}</p>
+                  <p className="text-lg font-bold text-[var(--color-primary)]">
                     {formatCurrency(selectedDepartment.budget)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-[#737373]">Réalisé</p>
-                  <p className="text-lg font-bold text-[#171717]">
+                  <p className="text-sm text-[var(--color-text-tertiary)]">Réalisé</p>
+                  <p className="text-lg font-bold text-[var(--color-primary)]">
                     {formatCurrency(selectedDepartment.actual)}
                   </p>
                 </div>

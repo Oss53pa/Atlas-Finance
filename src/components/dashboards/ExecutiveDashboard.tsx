@@ -217,7 +217,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-[#171717] to-[#525252] rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-text-secondary)] rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-lg">W</span>
             </div>
             <div>
@@ -327,7 +327,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
             const moduleColor = getModuleColor(kpi.module);
             
             return (
-              <Card key={index} className={`hover:shadow-lg transition-all duration-300 border-l-4 border-l-[#171717]`}>
+              <Card key={index} className={`hover:shadow-lg transition-all duration-300 border-l-4 border-l-[var(--color-primary)]`}>
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
@@ -494,7 +494,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
           {/* Widgets temps réel modulaires */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {/* Widget Trésorerie */}
-            <Card className="border-l-4 border-l-[#171717]">
+            <Card className="border-l-4 border-l-[var(--color-primary)]">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-[var(--color-text-primary)] flex items-center">
                   <DollarSign className="h-4 w-4 mr-2" />
@@ -554,7 +554,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
             </Card>
 
             {/* Widget Fournisseurs */}
-            <Card className="border-l-4 border-l-[#525252]">
+            <Card className="border-l-4 border-l-[var(--color-text-secondary)]">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-[var(--color-text-secondary)] flex items-center">
                   <CreditCard className="h-4 w-4 mr-2" />
@@ -581,7 +581,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
             </Card>
 
             {/* Widget Performance */}
-            <Card className="border-l-4 border-l-[#171717]">
+            <Card className="border-l-4 border-l-[var(--color-primary)]">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-[var(--color-text-primary)] flex items-center">
                   <Activity className="h-4 w-4 mr-2" />

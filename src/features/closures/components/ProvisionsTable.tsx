@@ -62,7 +62,7 @@ export const ProvisionsTable: React.FC<ProvisionsTableProps> = ({
             (value as number) > 365
               ? 'text-[#ef4444] font-semibold'
               : (value as number) > 180
-              ? 'text-[#525252]'
+              ? 'text-[var(--color-text-secondary)]'
               : ''
           }
         >

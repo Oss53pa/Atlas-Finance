@@ -125,8 +125,8 @@ const ReportingDashboard: React.FC = () => {
 
   const getReportTypeColor = (type: string) => {
     switch (type) {
-      case 'financial': return 'bg-[#171717]/10 text-[#171717]';
-      case 'analytical': return 'bg-[#525252]/10 text-[#525252]';
+      case 'financial': return 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]';
+      case 'analytical': return 'bg-[var(--color-text-secondary)]/10 text-[var(--color-text-secondary)]';
       case 'management': return 'bg-primary-100 text-primary-700';
       default: return 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]';
     }
@@ -150,7 +150,7 @@ const ReportingDashboard: React.FC = () => {
             animate={{ opacity: 1, scale: 1 }}
             className="flex flex-col items-center space-y-6 bg-white/90 backdrop-blur-sm p-12 rounded-xl shadow-md"
           >
-            <div className="w-20 h-20 border-4 border-[#171717]/20 border-t-[#171717] rounded-full animate-spin"></div>
+            <div className="w-20 h-20 border-4 border-[var(--color-primary)]/20 border-t-[var(--color-primary)] rounded-full animate-spin"></div>
             <p className="text-lg font-semibold text-neutral-700">Chargement du tableau de bord reporting...</p>
           </motion.div>
         </div>
@@ -237,8 +237,8 @@ const ReportingDashboard: React.FC = () => {
           >
             <ColorfulBarChart
               data={[
-                { label: 'Financier', value: reports.filter(r => r.type === 'financial').length, color: 'bg-[#171717]' },
-                { label: 'Analytique', value: reports.filter(r => r.type === 'analytical').length, color: 'bg-[#525252]' },
+                { label: 'Financier', value: reports.filter(r => r.type === 'financial').length, color: 'bg-[var(--color-primary)]' },
+                { label: 'Analytique', value: reports.filter(r => r.type === 'analytical').length, color: 'bg-[var(--color-text-secondary)]' },
                 { label: 'Gestion', value: reports.filter(r => r.type === 'management').length, color: 'bg-primary-400' },
                 { label: 'Réglementaire', value: reports.filter(r => r.type === 'regulatory').length, color: 'bg-orange-400' }
               ]}
@@ -254,7 +254,7 @@ const ReportingDashboard: React.FC = () => {
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center space-x-3">
                 <div className="p-3 bg-white/90 rounded-2xl">
-                  <FileText className="h-6 w-6 text-[#171717]" />
+                  <FileText className="h-6 w-6 text-[var(--color-primary)]" />
                 </div>
                 <div>
                   <h2 className="text-lg font-bold text-neutral-900">Rapports Récents</h2>
@@ -275,14 +275,14 @@ const ReportingDashboard: React.FC = () => {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className="group flex items-start justify-between p-6 border border-neutral-200 rounded-2xl hover:border-[#171717]/30 hover:shadow-lg transition-all duration-300"
+                  className="group flex items-start justify-between p-6 border border-neutral-200 rounded-2xl hover:border-[var(--color-primary)]/30 hover:shadow-lg transition-all duration-300"
                 >
                   <div className="flex items-start space-x-4">
-                    <div className="flex items-center justify-center w-12 h-12 bg-[#171717]/10 rounded-2xl text-[#171717]">
+                    <div className="flex items-center justify-center w-12 h-12 bg-[var(--color-primary)]/10 rounded-2xl text-[var(--color-primary)]">
                       {getReportTypeIcon(report.type)}
                     </div>
                     <div>
-                      <h4 className="font-semibold text-neutral-900 group-hover:text-[#171717] transition-colors">
+                      <h4 className="font-semibold text-neutral-900 group-hover:text-[var(--color-primary)] transition-colors">
                         {report.name}
                       </h4>
                       <p className="text-sm text-neutral-600 mb-2">{report.description}</p>
@@ -338,15 +338,15 @@ const ReportingDashboard: React.FC = () => {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.1 }}
-                className="p-6 rounded-2xl border bg-[#171717]/5 border-[#171717]/20"
+                className="p-6 rounded-2xl border bg-[var(--color-primary)]/5 border-[var(--color-primary)]/20"
               >
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-semibold text-[#171717]">Rapports Automatiques</span>
-                  <span className="font-bold text-xl text-[#171717]">
+                  <span className="text-sm font-semibold text-[var(--color-primary)]">Rapports Automatiques</span>
+                  <span className="font-bold text-xl text-[var(--color-primary)]">
                     {reports.filter(r => r.frequency !== 'on_demand').length}
                   </span>
                 </div>
-                <p className="text-sm text-[#171717]/80">Générés automatiquement</p>
+                <p className="text-sm text-[var(--color-primary)]/80">Générés automatiquement</p>
               </motion.div>
 
               <motion.div
@@ -366,13 +366,13 @@ const ReportingDashboard: React.FC = () => {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.3 }}
-                className="p-6 rounded-2xl border bg-[#525252]/5 border-[#525252]/20"
+                className="p-6 rounded-2xl border bg-[var(--color-text-secondary)]/5 border-[var(--color-text-secondary)]/20"
               >
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-semibold text-[#525252]">Exercices</span>
-                  <span className="font-bold text-xl text-[#525252]">{fiscalYears.length}</span>
+                  <span className="text-sm font-semibold text-[var(--color-text-secondary)]">Exercices</span>
+                  <span className="font-bold text-xl text-[var(--color-text-secondary)]">{fiscalYears.length}</span>
                 </div>
-                <p className="text-sm text-[#525252]/80">Exercices comptables</p>
+                <p className="text-sm text-[var(--color-text-secondary)]/80">Exercices comptables</p>
               </motion.div>
             </div>
           </UnifiedCard>
@@ -391,10 +391,10 @@ const ReportingDashboard: React.FC = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
-                className="group p-6 border border-neutral-200 rounded-2xl hover:border-[#171717]/30 hover:shadow-lg transition-all duration-300 cursor-pointer"
+                className="group p-6 border border-neutral-200 rounded-2xl hover:border-[var(--color-primary)]/30 hover:shadow-lg transition-all duration-300 cursor-pointer"
               >
-                <div className="flex items-center justify-center w-12 h-12 bg-[#171717]/10 rounded-2xl mb-4 group-hover:scale-110 transition-transform">
-                  <PlusIcon className="h-6 w-6 text-[#171717]" />
+                <div className="flex items-center justify-center w-12 h-12 bg-[var(--color-primary)]/10 rounded-2xl mb-4 group-hover:scale-110 transition-transform">
+                  <PlusIcon className="h-6 w-6 text-[var(--color-primary)]" />
                 </div>
                 <h3 className="font-bold text-neutral-900 mb-1">Créer un Rapport</h3>
                 <p className="text-sm text-neutral-600">Nouveau rapport personnalisé</p>
@@ -423,10 +423,10 @@ const ReportingDashboard: React.FC = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="group p-6 border border-neutral-200 rounded-2xl hover:border-[#525252]/30 hover:shadow-lg transition-all duration-300 cursor-pointer"
+                className="group p-6 border border-neutral-200 rounded-2xl hover:border-[var(--color-text-secondary)]/30 hover:shadow-lg transition-all duration-300 cursor-pointer"
               >
-                <div className="flex items-center justify-center w-12 h-12 bg-[#525252]/10 rounded-2xl mb-4 group-hover:scale-110 transition-transform">
-                  <ChartBarIcon className="h-6 w-6 text-[#525252]" />
+                <div className="flex items-center justify-center w-12 h-12 bg-[var(--color-text-secondary)]/10 rounded-2xl mb-4 group-hover:scale-110 transition-transform">
+                  <ChartBarIcon className="h-6 w-6 text-[var(--color-text-secondary)]" />
                 </div>
                 <h3 className="font-bold text-neutral-900 mb-1">Tableaux de Bord</h3>
                 <p className="text-sm text-neutral-600">Créer et gérer</p>

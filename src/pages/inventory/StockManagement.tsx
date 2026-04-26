@@ -187,7 +187,7 @@ const StockMovementModal: React.FC<StockMovementModalProps> = ({
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     On Order
                   </label>
-                  <p className="text-sm text-[#171717]">
+                  <p className="text-sm text-[var(--color-primary)]">
                     {formatCurrency(stockLevel.quantityOnOrder)}
                   </p>
                 </div>
@@ -239,7 +239,7 @@ const StockMovementModal: React.FC<StockMovementModalProps> = ({
                   <select
                     value={formData.toLocationId}
                     onChange={(e) => setFormData({ ...formData, toLocationId: e.target.value })}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                     required
                   >
                     <option value="">Select location...</option>
@@ -262,7 +262,7 @@ const StockMovementModal: React.FC<StockMovementModalProps> = ({
                   type="number"
                   value={formData.quantity}
                   onChange={(e) => setFormData({ ...formData, quantity: Number(e.target.value) })}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                   min={type === 'adjustment' ? -stockLevel.quantityOnHand : 0}
                   max={type === 'transfer' ? stockLevel.quantityAvailable : undefined}
                   required
@@ -282,7 +282,7 @@ const StockMovementModal: React.FC<StockMovementModalProps> = ({
                 <select
                   value={formData.reason}
                   onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                   required
                 >
                   <option value="">Select reason...</option>
@@ -312,7 +312,7 @@ const StockMovementModal: React.FC<StockMovementModalProps> = ({
                 <textarea
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                   rows={3}
                   placeholder="Additional notes..."
                 />
@@ -321,7 +321,7 @@ const StockMovementModal: React.FC<StockMovementModalProps> = ({
               <div className="flex gap-3 pt-4">
                 <button
                   type="submit"
-                  className="flex-1 bg-[#171717] text-white py-2 px-4 rounded-md hover:bg-[#262626] transition-colors"
+                  className="flex-1 bg-[var(--color-primary)] text-white py-2 px-4 rounded-md hover:bg-[var(--color-primary-hover)] transition-colors"
                 >
                   {type === 'adjustment' ? 'Adjust Stock' : 'Transfer Stock'}
                 </button>
@@ -568,7 +568,7 @@ const StockManagement: React.FC = () => {
                 <th className="text-left py-3 px-4">
                   <button
                     onClick={() => handleSort('item.name')}
-                    className="flex items-center gap-1 font-medium text-gray-900 hover:text-[#171717]"
+                    className="flex items-center gap-1 font-medium text-gray-900 hover:text-[var(--color-primary)]"
                   >
                     Item
                     <ArrowUpDown className="w-4 h-4" />
@@ -577,7 +577,7 @@ const StockManagement: React.FC = () => {
                 <th className="text-left py-3 px-4">
                   <button
                     onClick={() => handleSort('location.name')}
-                    className="flex items-center gap-1 font-medium text-gray-900 hover:text-[#171717]"
+                    className="flex items-center gap-1 font-medium text-gray-900 hover:text-[var(--color-primary)]"
                   >
                     Location
                     <ArrowUpDown className="w-4 h-4" />
@@ -586,7 +586,7 @@ const StockManagement: React.FC = () => {
                 <th className="text-right py-3 px-4">
                   <button
                     onClick={() => handleSort('quantityOnHand')}
-                    className="flex items-center gap-1 font-medium text-gray-900 hover:text-[#171717]"
+                    className="flex items-center gap-1 font-medium text-gray-900 hover:text-[var(--color-primary)]"
                   >
                     On Hand
                     <ArrowUpDown className="w-4 h-4" />
@@ -598,7 +598,7 @@ const StockManagement: React.FC = () => {
                 <th className="text-right py-3 px-4">
                   <button
                     onClick={() => handleSort('totalValue')}
-                    className="flex items-center gap-1 font-medium text-gray-900 hover:text-[#171717]"
+                    className="flex items-center gap-1 font-medium text-gray-900 hover:text-[var(--color-primary)]"
                   >
                     Value
                     <ArrowUpDown className="w-4 h-4" />
@@ -633,7 +633,7 @@ const StockManagement: React.FC = () => {
                   <td className="py-4 px-4 text-right font-mono text-yellow-600">
                     {formatCurrency(stock.quantityAllocated)}
                   </td>
-                  <td className="py-4 px-4 text-right font-mono text-[#171717]">
+                  <td className="py-4 px-4 text-right font-mono text-[var(--color-primary)]">
                     {formatCurrency(stock.quantityOnOrder)}
                   </td>
                   <td className="py-4 px-4 text-right">
@@ -654,7 +654,7 @@ const StockManagement: React.FC = () => {
                     <div className="flex items-center justify-center gap-2">
                       <button
                         onClick={() => handleStockAction(stock, 'view')}
-                        className="p-1 text-gray-700 hover:text-[#171717]"
+                        className="p-1 text-gray-700 hover:text-[var(--color-primary)]"
                         title="View Details"
                       >
                         <Eye className="w-4 h-4" />

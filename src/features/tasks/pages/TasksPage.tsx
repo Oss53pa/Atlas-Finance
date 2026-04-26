@@ -34,20 +34,20 @@ const TasksPage: React.FC = () => {
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-bold text-[#171717]">Gestion des Tâches</h1>
-          <p className="text-[#737373] mt-1">
+          <h1 className="text-lg font-bold text-[var(--color-primary)]">Gestion des Tâches</h1>
+          <p className="text-[var(--color-text-tertiary)] mt-1">
             Planifiez, suivez et collaborez sur vos tâches
           </p>
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="flex bg-[#e5e5e5] rounded-lg p-1">
+          <div className="flex bg-[var(--color-border)] rounded-lg p-1">
             <button
               onClick={() => setViewMode('list')}
               className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
                 viewMode === 'list'
-                  ? 'bg-[#171717] text-white'
-                  : 'text-[#737373] hover:bg-[#d4d4d4]'
+                  ? 'bg-[var(--color-primary)] text-white'
+                  : 'text-[var(--color-text-tertiary)] hover:bg-[var(--color-border)]'
               }`}
             >
               <List className="w-4 h-4" />
@@ -56,8 +56,8 @@ const TasksPage: React.FC = () => {
               onClick={() => setViewMode('kanban')}
               className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
                 viewMode === 'kanban'
-                  ? 'bg-[#171717] text-white'
-                  : 'text-[#737373] hover:bg-[#d4d4d4]'
+                  ? 'bg-[var(--color-primary)] text-white'
+                  : 'text-[var(--color-text-tertiary)] hover:bg-[var(--color-border)]'
               }`}
             >
               <Kanban className="w-4 h-4" />
@@ -66,8 +66,8 @@ const TasksPage: React.FC = () => {
               onClick={() => setViewMode('calendar')}
               className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
                 viewMode === 'calendar'
-                  ? 'bg-[#171717] text-white'
-                  : 'text-[#737373] hover:bg-[#d4d4d4]'
+                  ? 'bg-[var(--color-primary)] text-white'
+                  : 'text-[var(--color-text-tertiary)] hover:bg-[var(--color-border)]'
               }`}
             >
               <CalendarIcon className="w-4 h-4" />
@@ -89,7 +89,7 @@ const TasksPage: React.FC = () => {
         onToggleFilters={() => setShowFilters(!showFilters)}
       />
 
-      <div className="bg-white rounded-lg border border-[#d4d4d4] p-6">
+      <div className="bg-white rounded-lg border border-[var(--color-border)] p-6">
         {viewMode === 'list' && (
           <TaskTable
             tasks={tasks}
@@ -99,13 +99,13 @@ const TasksPage: React.FC = () => {
         )}
 
         {viewMode === 'kanban' && (
-          <div className="text-center text-[#737373] py-8">
+          <div className="text-center text-[var(--color-text-tertiary)] py-8">
             Vue Kanban à implémenter
           </div>
         )}
 
         {viewMode === 'calendar' && (
-          <div className="text-center text-[#737373] py-8">
+          <div className="text-center text-[var(--color-text-tertiary)] py-8">
             Vue Calendrier à implémenter
           </div>
         )}
@@ -118,7 +118,7 @@ const TasksPage: React.FC = () => {
         size="lg"
       >
         <ModalBody>
-          <div className="text-center text-[#737373] py-8">
+          <div className="text-center text-[var(--color-text-tertiary)] py-8">
             Formulaire de création de tâche à implémenter
           </div>
         </ModalBody>
@@ -144,34 +144,34 @@ const TasksPage: React.FC = () => {
           {selectedTask && (
             <div className="space-y-4">
               <div>
-                <p className="text-sm text-[#737373]">Description</p>
-                <p className="text-[#171717]">
+                <p className="text-sm text-[var(--color-text-tertiary)]">Description</p>
+                <p className="text-[var(--color-primary)]">
                   {selectedTask.description || 'Aucune description'}
                 </p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-[#737373]">Statut</p>
+                  <p className="text-sm text-[var(--color-text-tertiary)]">Statut</p>
                   <p className="font-semibold">{selectedTask.status}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-[#737373]">Priorité</p>
+                  <p className="text-sm text-[var(--color-text-tertiary)]">Priorité</p>
                   <p className="font-semibold">{selectedTask.priority}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-[#737373]">Assigné à</p>
+                  <p className="text-sm text-[var(--color-text-tertiary)]">Assigné à</p>
                   <p className="font-semibold">{selectedTask.assignee || '-'}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-[#737373]">Progression</p>
+                  <p className="text-sm text-[var(--color-text-tertiary)]">Progression</p>
                   <p className="font-semibold">{selectedTask.progress || 0}%</p>
                 </div>
               </div>
 
               {selectedTask.subTasks && selectedTask.subTasks.length > 0 && (
                 <div>
-                  <p className="text-sm text-[#737373] mb-2">Sous-tâches</p>
+                  <p className="text-sm text-[var(--color-text-tertiary)] mb-2">Sous-tâches</p>
                   <div className="space-y-2">
                     {selectedTask.subTasks.map((subtask) => (
                       <div key={subtask.id} className="flex items-center gap-2">
@@ -181,7 +181,7 @@ const TasksPage: React.FC = () => {
                           readOnly
                           className="rounded"
                         />
-                        <span className={subtask.completed ? 'line-through text-[#737373]' : ''}>
+                        <span className={subtask.completed ? 'line-through text-[var(--color-text-tertiary)]' : ''}>
                           {subtask.title}
                         </span>
                       </div>

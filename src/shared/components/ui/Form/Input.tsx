@@ -34,7 +34,7 @@ export const Input: React.FC<InputProps> = ({
       <div className="relative">
         {Icon && iconPosition === 'left' && (
           <div className="absolute left-3 top-1/2 -tranprimary-y-1/2">
-            <Icon className="h-5 w-5 text-[#737373]" />
+            <Icon className="h-5 w-5 text-[var(--color-text-tertiary)]" />
           </div>
         )}
 
@@ -42,11 +42,11 @@ export const Input: React.FC<InputProps> = ({
           id={inputId}
           className={`
             w-full px-3 py-2 rounded-lg
-            bg-white border border-[#d4d4d4]
-            text-[#171717] placeholder-[#737373]
+            bg-white border border-[var(--color-border)]
+            text-[var(--color-primary)] placeholder-[var(--color-text-tertiary)]
             transition-all duration-200
-            focus:outline-none focus:ring-2 focus:ring-[#171717] focus:border-transparent
-            disabled:bg-[#e5e5e5] disabled:cursor-not-allowed
+            focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent
+            disabled:bg-[var(--color-border)] disabled:cursor-not-allowed
             ${error ? 'border-[#ef4444] focus:ring-[#ef4444]' : ''}
             ${Icon && iconPosition === 'left' ? 'pl-10' : ''}
             ${Icon && iconPosition === 'right' ? 'pr-10' : ''}
@@ -57,7 +57,7 @@ export const Input: React.FC<InputProps> = ({
 
         {Icon && iconPosition === 'right' && (
           <div className="absolute right-3 top-1/2 -tranprimary-y-1/2">
-            <Icon className="h-5 w-5 text-[#737373]" />
+            <Icon className="h-5 w-5 text-[var(--color-text-tertiary)]" />
           </div>
         )}
       </div>
@@ -67,7 +67,7 @@ export const Input: React.FC<InputProps> = ({
       )}
 
       {helperText && !error && (
-        <p className="mt-1 text-sm text-[#737373]">{helperText}</p>
+        <p className="mt-1 text-sm text-[var(--color-text-tertiary)]">{helperText}</p>
       )}
     </div>
   );

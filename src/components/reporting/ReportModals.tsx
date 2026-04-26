@@ -74,12 +74,12 @@ export const ViewReportModal: React.FC<ViewReportModalProps> = ({ isOpen, onClos
         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-lg">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="bg-[#171717]/10 text-[#171717] p-2 rounded-lg">
+              <div className="bg-[var(--color-primary)]/10 text-[var(--color-primary)] p-2 rounded-lg">
                 <Eye className="w-5 h-5" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-[#171717]">Détails du Rapport</h2>
-                <p className="text-sm text-[#737373]">Informations complètes</p>
+                <h2 className="text-lg font-bold text-[var(--color-primary)]">Détails du Rapport</h2>
+                <p className="text-sm text-[var(--color-text-tertiary)]">Informations complètes</p>
               </div>
             </div>
             <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-600">
@@ -93,8 +93,8 @@ export const ViewReportModal: React.FC<ViewReportModalProps> = ({ isOpen, onClos
           <div className="space-y-6">
             {/* Section Identification */}
             <div>
-              <h3 className="text-sm font-bold text-[#171717] uppercase tracking-wide mb-3 flex items-center gap-2 border-b border-[#171717] pb-2">
-                <span className="w-1 h-4 bg-[#171717] rounded"></span>
+              <h3 className="text-sm font-bold text-[var(--color-primary)] uppercase tracking-wide mb-3 flex items-center gap-2 border-b border-[var(--color-primary)] pb-2">
+                <span className="w-1 h-4 bg-[var(--color-primary)] rounded"></span>
                 Identification du Rapport
               </h3>
               <div className="grid grid-cols-2 gap-4">
@@ -110,21 +110,21 @@ export const ViewReportModal: React.FC<ViewReportModalProps> = ({ isOpen, onClos
                       {getTypeIcon(rapport.type)}
                     </div>
                     <div>
-                      <h4 className="text-lg font-bold text-[#171717]">{rapport.nom}</h4>
-                      <p className="text-sm text-[#737373]">ID: RPT-{rapport.id}</p>
+                      <h4 className="text-lg font-bold text-[var(--color-primary)]">{rapport.nom}</h4>
+                      <p className="text-sm text-[var(--color-text-tertiary)]">ID: RPT-{rapport.id}</p>
                     </div>
                   </div>
                 </div>
                 <div className="bg-gray-50 p-3 rounded-lg">
-                  <p className="text-xs text-[#737373] mb-1">Type de Rapport</p>
-                  <p className="font-semibold text-[#171717] capitalize">{rapport.type}</p>
+                  <p className="text-xs text-[var(--color-text-tertiary)] mb-1">Type de Rapport</p>
+                  <p className="font-semibold text-[var(--color-primary)] capitalize">{rapport.type}</p>
                 </div>
                 <div className="bg-gray-50 p-3 rounded-lg">
-                  <p className="text-xs text-[#737373] mb-1">Module</p>
-                  <p className="font-semibold text-[#171717]">{rapport.module}</p>
+                  <p className="text-xs text-[var(--color-text-tertiary)] mb-1">Module</p>
+                  <p className="font-semibold text-[var(--color-primary)]">{rapport.module}</p>
                 </div>
                 <div className="bg-gray-50 p-3 rounded-lg">
-                  <p className="text-xs text-[#737373] mb-1">Statut</p>
+                  <p className="text-xs text-[var(--color-text-tertiary)] mb-1">Statut</p>
                   <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium border ${getStatutColor(rapport.statut)}`}>
                     {rapport.statut === 'termine' && <CheckCircle className="w-4 h-4" />}
                     {rapport.statut === 'en_cours' && <RefreshCw className="w-4 h-4 animate-spin" />}
@@ -137,7 +137,7 @@ export const ViewReportModal: React.FC<ViewReportModalProps> = ({ isOpen, onClos
                   </span>
                 </div>
                 <div className="bg-gray-50 p-3 rounded-lg">
-                  <p className="text-xs text-[#737373] mb-1">Priorité</p>
+                  <p className="text-xs text-[var(--color-text-tertiary)] mb-1">Priorité</p>
                   <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${
                     rapport.priorite === 'critique' ? 'bg-red-100 text-red-800' :
                     rapport.priorite === 'haute' ? 'bg-orange-100 text-orange-800' :
@@ -154,7 +154,7 @@ export const ViewReportModal: React.FC<ViewReportModalProps> = ({ isOpen, onClos
             {/* Section Progression */}
             {rapport.progression !== undefined && rapport.statut === 'en_cours' && (
               <div>
-                <h3 className="text-sm font-bold text-[#171717] uppercase tracking-wide mb-3 flex items-center gap-2 border-b border-blue-400 pb-2">
+                <h3 className="text-sm font-bold text-[var(--color-primary)] uppercase tracking-wide mb-3 flex items-center gap-2 border-b border-blue-400 pb-2">
                   <span className="w-1 h-4 bg-blue-500 rounded"></span>
                   Progression
                 </h3>
@@ -171,7 +171,7 @@ export const ViewReportModal: React.FC<ViewReportModalProps> = ({ isOpen, onClos
 
             {/* Section Responsable et Dates */}
             <div>
-              <h3 className="text-sm font-bold text-[#171717] uppercase tracking-wide mb-3 flex items-center gap-2 border-b border-primary-400 pb-2">
+              <h3 className="text-sm font-bold text-[var(--color-primary)] uppercase tracking-wide mb-3 flex items-center gap-2 border-b border-primary-400 pb-2">
                 <span className="w-1 h-4 bg-primary-500 rounded"></span>
                 Responsable et Dates
               </h3>
@@ -189,17 +189,17 @@ export const ViewReportModal: React.FC<ViewReportModalProps> = ({ isOpen, onClos
                   </div>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-xs text-[#737373] mb-1">Date de Création</p>
+                  <p className="text-xs text-[var(--color-text-tertiary)] mb-1">Date de Création</p>
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-gray-500" />
-                    <p className="font-semibold text-[#171717]">{rapport.dateCreation}</p>
+                    <p className="font-semibold text-[var(--color-primary)]">{rapport.dateCreation}</p>
                   </div>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-xs text-[#737373] mb-1">Dernière Modification</p>
+                  <p className="text-xs text-[var(--color-text-tertiary)] mb-1">Dernière Modification</p>
                   <div className="flex items-center gap-2">
                     <History className="w-4 h-4 text-gray-500" />
-                    <p className="font-semibold text-[#171717]">{rapport.dateModification}</p>
+                    <p className="font-semibold text-[var(--color-primary)]">{rapport.dateModification}</p>
                   </div>
                 </div>
               </div>
@@ -208,7 +208,7 @@ export const ViewReportModal: React.FC<ViewReportModalProps> = ({ isOpen, onClos
             {/* Section Fichier */}
             {(rapport.taille || rapport.format) && (
               <div>
-                <h3 className="text-sm font-bold text-[#171717] uppercase tracking-wide mb-3 flex items-center gap-2 border-b border-green-400 pb-2">
+                <h3 className="text-sm font-bold text-[var(--color-primary)] uppercase tracking-wide mb-3 flex items-center gap-2 border-b border-green-400 pb-2">
                   <span className="w-1 h-4 bg-green-500 rounded"></span>
                   Informations du Fichier
                 </h3>
@@ -221,12 +221,12 @@ export const ViewReportModal: React.FC<ViewReportModalProps> = ({ isOpen, onClos
                     </div>
                   </div>
                   <div className="bg-gray-50 p-4 rounded-lg">
-                    <p className="text-xs text-[#737373] mb-1">Taille</p>
-                    <p className="font-bold text-[#171717]">{rapport.taille || 'Non généré'}</p>
+                    <p className="text-xs text-[var(--color-text-tertiary)] mb-1">Taille</p>
+                    <p className="font-bold text-[var(--color-primary)]">{rapport.taille || 'Non généré'}</p>
                   </div>
                   <div className="bg-gray-50 p-4 rounded-lg">
-                    <p className="text-xs text-[#737373] mb-1">Téléchargements</p>
-                    <p className="font-bold text-[#171717]">12 fois</p>
+                    <p className="text-xs text-[var(--color-text-tertiary)] mb-1">Téléchargements</p>
+                    <p className="font-bold text-[var(--color-primary)]">12 fois</p>
                   </div>
                 </div>
               </div>
@@ -235,7 +235,7 @@ export const ViewReportModal: React.FC<ViewReportModalProps> = ({ isOpen, onClos
             {/* Section Tags */}
             {rapport.tags && rapport.tags.length > 0 && (
               <div>
-                <h3 className="text-sm font-bold text-[#171717] uppercase tracking-wide mb-3 flex items-center gap-2 border-b border-orange-400 pb-2">
+                <h3 className="text-sm font-bold text-[var(--color-primary)] uppercase tracking-wide mb-3 flex items-center gap-2 border-b border-orange-400 pb-2">
                   <span className="w-1 h-4 bg-orange-500 rounded"></span>
                   Tags et Catégories
                 </h3>
@@ -253,7 +253,7 @@ export const ViewReportModal: React.FC<ViewReportModalProps> = ({ isOpen, onClos
             {/* Section Planification */}
             {rapport.prochaineLancement && (
               <div>
-                <h3 className="text-sm font-bold text-[#171717] uppercase tracking-wide mb-3 flex items-center gap-2 border-b border-primary-400 pb-2">
+                <h3 className="text-sm font-bold text-[var(--color-primary)] uppercase tracking-wide mb-3 flex items-center gap-2 border-b border-primary-400 pb-2">
                   <span className="w-1 h-4 bg-primary-500 rounded"></span>
                   Planification
                 </h3>
@@ -311,7 +311,7 @@ export const ViewReportModal: React.FC<ViewReportModalProps> = ({ isOpen, onClos
                     toast.success('Téléchargement du rapport...');
                     onClose();
                   }}
-                  className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#262626] flex items-center gap-2"
+                  className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] flex items-center gap-2"
                 >
                   <Download className="w-4 h-4" />
                   Télécharger
@@ -378,8 +378,8 @@ export const EditReportModal: React.FC<EditReportModalProps> = ({ isOpen, onClos
                 <Edit className="w-5 h-5" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-[#171717]">Modifier le Rapport</h2>
-                <p className="text-sm text-[#737373]">ID: RPT-{rapport.id}</p>
+                <h2 className="text-lg font-bold text-[var(--color-primary)]">Modifier le Rapport</h2>
+                <p className="text-sm text-[var(--color-text-tertiary)]">ID: RPT-{rapport.id}</p>
               </div>
             </div>
             <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-600">
@@ -393,13 +393,13 @@ export const EditReportModal: React.FC<EditReportModalProps> = ({ isOpen, onClos
           <div className="space-y-6">
             {/* Nom du rapport */}
             <div>
-              <h3 className="text-sm font-bold text-[#171717] mb-3 flex items-center gap-2">
-                <span className="w-1 h-4 bg-[#171717] rounded"></span>
+              <h3 className="text-sm font-bold text-[var(--color-primary)] mb-3 flex items-center gap-2">
+                <span className="w-1 h-4 bg-[var(--color-primary)] rounded"></span>
                 Informations Générales
               </h3>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-[#171717] mb-1">Nom du rapport *</label>
+                  <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Nom du rapport *</label>
                   <Input
                     value={formData.nom || ''}
                     onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
@@ -409,11 +409,11 @@ export const EditReportModal: React.FC<EditReportModalProps> = ({ isOpen, onClos
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-[#171717] mb-1">Type</label>
+                    <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Type</label>
                     <select
                       value={formData.type || ''}
                       onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#171717]"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                     >
                       <option value="financier">Financier</option>
                       <option value="comptable">Comptable</option>
@@ -424,11 +424,11 @@ export const EditReportModal: React.FC<EditReportModalProps> = ({ isOpen, onClos
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-[#171717] mb-1">Module</label>
+                    <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Module</label>
                     <select
                       value={formData.module || ''}
                       onChange={(e) => setFormData({ ...formData, module: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#171717]"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                     >
                       <option value="Finance">Finance</option>
                       <option value="Marketing">Marketing</option>
@@ -443,17 +443,17 @@ export const EditReportModal: React.FC<EditReportModalProps> = ({ isOpen, onClos
 
             {/* Priorité et Statut */}
             <div>
-              <h3 className="text-sm font-bold text-[#171717] mb-3 flex items-center gap-2">
+              <h3 className="text-sm font-bold text-[var(--color-primary)] mb-3 flex items-center gap-2">
                 <span className="w-1 h-4 bg-orange-500 rounded"></span>
                 Priorité et Statut
               </h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-[#171717] mb-1">Priorité</label>
+                  <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Priorité</label>
                   <select
                     value={formData.priorite || ''}
                     onChange={(e) => setFormData({ ...formData, priorite: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#171717]"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                   >
                     <option value="basse">Basse</option>
                     <option value="normale">Normale</option>
@@ -462,11 +462,11 @@ export const EditReportModal: React.FC<EditReportModalProps> = ({ isOpen, onClos
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-[#171717] mb-1">Statut</label>
+                  <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Statut</label>
                   <select
                     value={formData.statut || ''}
                     onChange={(e) => setFormData({ ...formData, statut: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#171717]"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                   >
                     <option value="en_attente">En attente</option>
                     <option value="en_cours">En cours</option>
@@ -480,12 +480,12 @@ export const EditReportModal: React.FC<EditReportModalProps> = ({ isOpen, onClos
 
             {/* Responsable */}
             <div>
-              <h3 className="text-sm font-bold text-[#171717] mb-3 flex items-center gap-2">
+              <h3 className="text-sm font-bold text-[var(--color-primary)] mb-3 flex items-center gap-2">
                 <span className="w-1 h-4 bg-primary-500 rounded"></span>
                 Responsable
               </h3>
               <div>
-                <label className="block text-sm font-medium text-[#171717] mb-1">Responsable du rapport</label>
+                <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Responsable du rapport</label>
                 <Input
                   value={formData.responsable || ''}
                   onChange={(e) => setFormData({ ...formData, responsable: e.target.value })}
@@ -497,7 +497,7 @@ export const EditReportModal: React.FC<EditReportModalProps> = ({ isOpen, onClos
 
             {/* Tags */}
             <div>
-              <h3 className="text-sm font-bold text-[#171717] mb-3 flex items-center gap-2">
+              <h3 className="text-sm font-bold text-[var(--color-primary)] mb-3 flex items-center gap-2">
                 <span className="w-1 h-4 bg-primary-500 rounded"></span>
                 Tags
               </h3>
@@ -558,7 +558,7 @@ export const EditReportModal: React.FC<EditReportModalProps> = ({ isOpen, onClos
               </button>
               <button
                 onClick={handleSave}
-                className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#262626] flex items-center gap-2"
+                className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] flex items-center gap-2"
               >
                 <CheckCircle className="w-4 h-4" />
                 Enregistrer
@@ -601,8 +601,8 @@ export const DownloadReportModal: React.FC<DownloadReportModalProps> = ({ isOpen
                 <Download className="w-5 h-5" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-[#171717]">Télécharger le Rapport</h2>
-                <p className="text-sm text-[#737373]">Choisissez vos options d'export</p>
+                <h2 className="text-lg font-bold text-[var(--color-primary)]">Télécharger le Rapport</h2>
+                <p className="text-sm text-[var(--color-text-tertiary)]">Choisissez vos options d'export</p>
               </div>
             </div>
             <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-600">
@@ -618,15 +618,15 @@ export const DownloadReportModal: React.FC<DownloadReportModalProps> = ({ isOpen
             <div className="flex items-center gap-3">
               <FileText className="w-8 h-8 text-gray-500" />
               <div>
-                <p className="font-semibold text-[#171717]">{rapport.nom}</p>
-                <p className="text-sm text-[#737373]">{rapport.taille || 'Génération à la demande'}</p>
+                <p className="font-semibold text-[var(--color-primary)]">{rapport.nom}</p>
+                <p className="text-sm text-[var(--color-text-tertiary)]">{rapport.taille || 'Génération à la demande'}</p>
               </div>
             </div>
           </div>
 
           {/* Format */}
           <div>
-            <label className="block text-sm font-bold text-[#171717] mb-3">Format d'export</label>
+            <label className="block text-sm font-bold text-[var(--color-primary)] mb-3">Format d'export</label>
             <div className="grid grid-cols-4 gap-2">
               {[
                 { id: 'pdf', label: 'PDF', icon: <File className="w-5 h-5" /> },
@@ -639,7 +639,7 @@ export const DownloadReportModal: React.FC<DownloadReportModalProps> = ({ isOpen
                   onClick={() => setFormat(f.id)}
                   className={`p-3 rounded-lg border-2 flex flex-col items-center gap-1 transition-colors ${
                     format === f.id
-                      ? 'border-[#171717] bg-[#171717]/10 text-[#171717]'
+                      ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/10 text-[var(--color-primary)]'
                       : 'border-gray-200 hover:border-gray-300 text-gray-600'
                   }`}
                 >
@@ -652,42 +652,42 @@ export const DownloadReportModal: React.FC<DownloadReportModalProps> = ({ isOpen
 
           {/* Options */}
           <div>
-            <label className="block text-sm font-bold text-[#171717] mb-3">Options d'inclusion</label>
+            <label className="block text-sm font-bold text-[var(--color-primary)] mb-3">Options d'inclusion</label>
             <div className="space-y-3">
               <label className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100">
                 <div className="flex items-center gap-3">
                   <PieChart className="w-5 h-5 text-gray-500" />
-                  <span className="text-sm text-[#171717]">Inclure les graphiques</span>
+                  <span className="text-sm text-[var(--color-primary)]">Inclure les graphiques</span>
                 </div>
                 <input
                   type="checkbox"
                   checked={includeCharts}
                   onChange={(e) => setIncludeCharts(e.target.checked)}
-                  className="rounded border-gray-300 text-[#171717] focus:ring-[#171717]"
+                  className="rounded border-gray-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
                 />
               </label>
               <label className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100">
                 <div className="flex items-center gap-3">
                   <BarChart3 className="w-5 h-5 text-gray-500" />
-                  <span className="text-sm text-[#171717]">Inclure les données brutes</span>
+                  <span className="text-sm text-[var(--color-primary)]">Inclure les données brutes</span>
                 </div>
                 <input
                   type="checkbox"
                   checked={includeData}
                   onChange={(e) => setIncludeData(e.target.checked)}
-                  className="rounded border-gray-300 text-[#171717] focus:ring-[#171717]"
+                  className="rounded border-gray-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
                 />
               </label>
               <label className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100">
                 <div className="flex items-center gap-3">
                   <FileText className="w-5 h-5 text-gray-500" />
-                  <span className="text-sm text-[#171717]">Inclure le résumé exécutif</span>
+                  <span className="text-sm text-[var(--color-primary)]">Inclure le résumé exécutif</span>
                 </div>
                 <input
                   type="checkbox"
                   checked={includeSummary}
                   onChange={(e) => setIncludeSummary(e.target.checked)}
-                  className="rounded border-gray-300 text-[#171717] focus:ring-[#171717]"
+                  className="rounded border-gray-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
                 />
               </label>
             </div>
@@ -695,11 +695,11 @@ export const DownloadReportModal: React.FC<DownloadReportModalProps> = ({ isOpen
 
           {/* Période */}
           <div>
-            <label className="block text-sm font-bold text-[#171717] mb-2">Période des données</label>
+            <label className="block text-sm font-bold text-[var(--color-primary)] mb-2">Période des données</label>
             <select
               value={dateRange}
               onChange={(e) => setDateRange(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#171717]"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
             >
               <option value="all">Toutes les données</option>
               <option value="month">Ce mois</option>
@@ -779,8 +779,8 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, item, t
                 <Share2 className="w-5 h-5" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-[#171717]">Partager</h2>
-                <p className="text-sm text-[#737373]">{item.nom || item.name}</p>
+                <h2 className="text-lg font-bold text-[var(--color-primary)]">Partager</h2>
+                <p className="text-sm text-[var(--color-text-tertiary)]">{item.nom || item.name}</p>
               </div>
             </div>
             <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-600">
@@ -793,7 +793,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, item, t
         <div className="px-6 py-4 space-y-6">
           {/* Lien de partage */}
           <div>
-            <label className="block text-sm font-bold text-[#171717] mb-2">Lien de partage</label>
+            <label className="block text-sm font-bold text-[var(--color-primary)] mb-2">Lien de partage</label>
             <div className="flex gap-2">
               <div className="flex-1 px-3 py-2 bg-gray-100 rounded-lg text-sm text-gray-600 truncate">
                 https://atlasfna.app/{type}s/{item.id}
@@ -810,7 +810,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, item, t
 
           {/* Invitation par email */}
           <div>
-            <label className="block text-sm font-bold text-[#171717] mb-2">Inviter par email</label>
+            <label className="block text-sm font-bold text-[var(--color-primary)] mb-2">Inviter par email</label>
             <div className="flex gap-2">
               <Input
                 type="email"
@@ -822,7 +822,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, item, t
               <select
                 value={permission}
                 onChange={(e) => setPermission(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#171717]"
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
               >
                 <option value="view">Lecture</option>
                 <option value="edit">Édition</option>
@@ -831,7 +831,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, item, t
             </div>
             <button
               onClick={handleShare}
-              className="mt-3 w-full px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#262626] flex items-center justify-center gap-2"
+              className="mt-3 w-full px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] flex items-center justify-center gap-2"
             >
               <Send className="w-4 h-4" />
               Envoyer l'invitation
@@ -840,20 +840,20 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, item, t
 
           {/* Message personnalisé */}
           <div>
-            <label className="block text-sm font-bold text-[#171717] mb-2">Message (optionnel)</label>
+            <label className="block text-sm font-bold text-[var(--color-primary)] mb-2">Message (optionnel)</label>
             <textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Ajouter un message personnalisé..."
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#171717]"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
             />
           </div>
 
           {/* Personnes avec accès */}
           {sharedWith.length > 0 && (
             <div>
-              <label className="block text-sm font-bold text-[#171717] mb-2">Personnes avec accès</label>
+              <label className="block text-sm font-bold text-[var(--color-primary)] mb-2">Personnes avec accès</label>
               <div className="space-y-2">
                 {sharedWith.map((user, index) => (
                   <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -861,10 +861,10 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, item, t
                       <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm">
                         {user.email.charAt(0).toUpperCase()}
                       </div>
-                      <span className="text-sm text-[#171717]">{user.email}</span>
+                      <span className="text-sm text-[var(--color-primary)]">{user.email}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-[#737373] bg-gray-200 px-2 py-1 rounded">
+                      <span className="text-xs text-[var(--color-text-tertiary)] bg-gray-200 px-2 py-1 rounded">
                         {user.permission === 'view' ? 'Lecture' : user.permission === 'edit' ? 'Édition' : 'Admin'}
                       </span>
                       <button
@@ -945,8 +945,8 @@ export const ScheduleSettingsModal: React.FC<ScheduleSettingsModalProps> = ({ is
                 <Settings className="w-5 h-5" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-[#171717]">Paramètres de Planification</h2>
-                <p className="text-sm text-[#737373]">{schedule.rapport}</p>
+                <h2 className="text-lg font-bold text-[var(--color-primary)]">Paramètres de Planification</h2>
+                <p className="text-sm text-[var(--color-text-tertiary)]">{schedule.rapport}</p>
               </div>
             </div>
             <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-600">
@@ -960,14 +960,14 @@ export const ScheduleSettingsModal: React.FC<ScheduleSettingsModalProps> = ({ is
           <div className="space-y-6">
             {/* Fréquence */}
             <div>
-              <h3 className="text-sm font-bold text-[#171717] mb-3 flex items-center gap-2">
-                <span className="w-1 h-4 bg-[#171717] rounded"></span>
+              <h3 className="text-sm font-bold text-[var(--color-primary)] mb-3 flex items-center gap-2">
+                <span className="w-1 h-4 bg-[var(--color-primary)] rounded"></span>
                 Fréquence d'exécution
               </h3>
               <select
                 value={formData.frequence || ''}
                 onChange={(e) => setFormData({ ...formData, frequence: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#171717]"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
               >
                 <option value="quotidienne">Quotidienne</option>
                 <option value="hebdomadaire">Hebdomadaire</option>
@@ -980,7 +980,7 @@ export const ScheduleSettingsModal: React.FC<ScheduleSettingsModalProps> = ({ is
             {/* Heure et jour */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-[#171717] mb-1">Heure d'exécution</label>
+                <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Heure d'exécution</label>
                 <Input
                   type="time"
                   value={formData.heure || '09:00'}
@@ -988,11 +988,11 @@ export const ScheduleSettingsModal: React.FC<ScheduleSettingsModalProps> = ({ is
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-[#171717] mb-1">Fuseau horaire</label>
+                <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Fuseau horaire</label>
                 <select
                   value={formData.fuseau || 'Africa/Douala'}
                   onChange={(e) => setFormData({ ...formData, fuseau: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#171717]"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                 >
                   <option value="Africa/Douala">Africa/Douala (GMT+1)</option>
                   <option value="Africa/Abidjan">Africa/Abidjan (GMT)</option>
@@ -1003,14 +1003,14 @@ export const ScheduleSettingsModal: React.FC<ScheduleSettingsModalProps> = ({ is
 
             {/* Format de sortie */}
             <div>
-              <h3 className="text-sm font-bold text-[#171717] mb-3 flex items-center gap-2">
+              <h3 className="text-sm font-bold text-[var(--color-primary)] mb-3 flex items-center gap-2">
                 <span className="w-1 h-4 bg-blue-500 rounded"></span>
                 Format de sortie
               </h3>
               <select
                 value={formData.format || 'PDF'}
                 onChange={(e) => setFormData({ ...formData, format: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#171717]"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
               >
                 <option value="PDF">PDF</option>
                 <option value="Excel">Excel</option>
@@ -1020,7 +1020,7 @@ export const ScheduleSettingsModal: React.FC<ScheduleSettingsModalProps> = ({ is
 
             {/* Destinataires */}
             <div>
-              <h3 className="text-sm font-bold text-[#171717] mb-3 flex items-center gap-2">
+              <h3 className="text-sm font-bold text-[var(--color-primary)] mb-3 flex items-center gap-2">
                 <span className="w-1 h-4 bg-primary-500 rounded"></span>
                 Destinataires
               </h3>
@@ -1030,41 +1030,41 @@ export const ScheduleSettingsModal: React.FC<ScheduleSettingsModalProps> = ({ is
                 onChange={(e) => setFormData({ ...formData, destinataires: e.target.value })}
                 placeholder="email1@example.com, email2@example.com"
               />
-              <p className="text-xs text-[#737373] mt-1">Séparez les adresses email par des virgules</p>
+              <p className="text-xs text-[var(--color-text-tertiary)] mt-1">Séparez les adresses email par des virgules</p>
             </div>
 
             {/* Options */}
             <div>
-              <h3 className="text-sm font-bold text-[#171717] mb-3 flex items-center gap-2">
+              <h3 className="text-sm font-bold text-[var(--color-primary)] mb-3 flex items-center gap-2">
                 <span className="w-1 h-4 bg-orange-500 rounded"></span>
                 Options
               </h3>
               <div className="space-y-3">
                 <label className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer">
-                  <span className="text-sm text-[#171717]">Planification active</span>
+                  <span className="text-sm text-[var(--color-primary)]">Planification active</span>
                   <input
                     type="checkbox"
                     checked={formData.actif !== false}
                     onChange={(e) => setFormData({ ...formData, actif: e.target.checked })}
-                    className="rounded border-gray-300 text-[#171717] focus:ring-[#171717]"
+                    className="rounded border-gray-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
                   />
                 </label>
                 <label className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer">
-                  <span className="text-sm text-[#171717]">Notification en cas d'échec</span>
+                  <span className="text-sm text-[var(--color-primary)]">Notification en cas d'échec</span>
                   <input
                     type="checkbox"
                     checked={formData.notifEchec !== false}
                     onChange={(e) => setFormData({ ...formData, notifEchec: e.target.checked })}
-                    className="rounded border-gray-300 text-[#171717] focus:ring-[#171717]"
+                    className="rounded border-gray-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
                   />
                 </label>
                 <label className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer">
-                  <span className="text-sm text-[#171717]">Inclure les pièces jointes</span>
+                  <span className="text-sm text-[var(--color-primary)]">Inclure les pièces jointes</span>
                   <input
                     type="checkbox"
                     checked={formData.piecesJointes !== false}
                     onChange={(e) => setFormData({ ...formData, piecesJointes: e.target.checked })}
-                    className="rounded border-gray-300 text-[#171717] focus:ring-[#171717]"
+                    className="rounded border-gray-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
                   />
                 </label>
               </div>
@@ -1083,7 +1083,7 @@ export const ScheduleSettingsModal: React.FC<ScheduleSettingsModalProps> = ({ is
             </button>
             <button
               onClick={handleSave}
-              className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#262626] flex items-center gap-2"
+              className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] flex items-center gap-2"
             >
               <CheckCircle className="w-4 h-4" />
               Enregistrer

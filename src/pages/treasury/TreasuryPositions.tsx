@@ -205,9 +205,9 @@ const TreasuryPositions: React.FC = () => {
   const uniqueBanks = [...new Set(positions.map(p => p.bankName))];
 
   const chartData = [
-    { label: 'EUR', value: aggregatedData.totalEUR / 1000000, color: 'bg-[#171717]' },
+    { label: 'EUR', value: aggregatedData.totalEUR / 1000000, color: 'bg-[var(--color-primary)]' },
     { label: 'USD', value: (aggregatedData.totalUSD * (exchangeRateLookup['USD'] || 0.92)) / 1000000, color: 'bg-green-500' },
-    { label: 'GBP', value: (aggregatedData.totalGBP * (exchangeRateLookup['GBP'] || 1.15)) / 1000000, color: 'bg-[#525252]' },
+    { label: 'GBP', value: (aggregatedData.totalGBP * (exchangeRateLookup['GBP'] || 1.15)) / 1000000, color: 'bg-[var(--color-text-secondary)]' },
     { label: 'CHF', value: (aggregatedData.totalCHF * (exchangeRateLookup['CHF'] || 1.08)) / 1000000, color: 'bg-orange-500' }
   ];
 
@@ -310,7 +310,7 @@ const TreasuryPositions: React.FC = () => {
                 <button
                   onClick={() => setViewMode('table')}
                   className={`p-2 rounded-lg transition-colors ${
-                    viewMode === 'table' ? 'bg-[#171717]/10 text-[#171717]' : 'text-neutral-400 hover:text-neutral-600'
+                    viewMode === 'table' ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]' : 'text-neutral-400 hover:text-neutral-600'
                   }`}
                 >
                   <BarChart3 className="h-4 w-4" />
@@ -318,7 +318,7 @@ const TreasuryPositions: React.FC = () => {
                 <button
                   onClick={() => setViewMode('grid')}
                   className={`p-2 rounded-lg transition-colors ${
-                    viewMode === 'grid' ? 'bg-[#171717]/10 text-[#171717]' : 'text-neutral-400 hover:text-neutral-600'
+                    viewMode === 'grid' ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]' : 'text-neutral-400 hover:text-neutral-600'
                   }`}
                 >
                   <Target className="h-4 w-4" />
@@ -334,14 +334,14 @@ const TreasuryPositions: React.FC = () => {
                   placeholder="Rechercher..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                 />
               </div>
 
               <select
                 value={filterCurrency}
                 onChange={(e) => setFilterCurrency(e.target.value)}
-                className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
               >
                 <option value="all">Toutes les devises</option>
                 {uniqueCurrencies.map(currency => (
@@ -352,7 +352,7 @@ const TreasuryPositions: React.FC = () => {
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
               >
                 <option value="all">Tous les statuts</option>
                 <option value="active">Actif</option>
@@ -363,7 +363,7 @@ const TreasuryPositions: React.FC = () => {
               <select
                 value={filterBank}
                 onChange={(e) => setFilterBank(e.target.value)}
-                className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
               >
                 <option value="all">Toutes les banques</option>
                 {uniqueBanks.map(bank => (
@@ -408,8 +408,8 @@ const TreasuryPositions: React.FC = () => {
                       >
                         <td className="py-4 px-4">
                           <div className="flex items-center space-x-3">
-                            <div className="p-2 bg-[#171717]/5 rounded-lg">
-                              <Building2 className="h-4 w-4 text-[#171717]" />
+                            <div className="p-2 bg-[var(--color-primary)]/5 rounded-lg">
+                              <Building2 className="h-4 w-4 text-[var(--color-primary)]" />
                             </div>
                             <div>
                               <p className="font-medium text-neutral-800">{position.bankName}</p>
@@ -457,7 +457,7 @@ const TreasuryPositions: React.FC = () => {
                           <div className="flex justify-center space-x-2">
                             <button
                               onClick={() => setPositionModal({ isOpen: true, mode: 'view', position })}
-                              className="p-2 text-neutral-400 hover:text-[#171717] transition-colors"
+                              className="p-2 text-neutral-400 hover:text-[var(--color-primary)] transition-colors"
                             >
                               <Eye className="h-4 w-4" />
                             </button>
@@ -487,8 +487,8 @@ const TreasuryPositions: React.FC = () => {
                     <div className="space-y-4">
                       <div className="flex justify-between items-start">
                         <div className="flex items-center space-x-3">
-                          <div className="p-2 bg-[#171717]/5 rounded-lg">
-                            <Building2 className="h-5 w-5 text-[#171717]" />
+                          <div className="p-2 bg-[var(--color-primary)]/5 rounded-lg">
+                            <Building2 className="h-5 w-5 text-[var(--color-primary)]" />
                           </div>
                           <div>
                             <h4 className="font-semibold text-neutral-800">{position.bankName}</h4>
@@ -527,7 +527,7 @@ const TreasuryPositions: React.FC = () => {
                           <div className="flex space-x-2">
                             <button
                               onClick={() => setPositionModal({ isOpen: true, mode: 'view', position })}
-                              className="p-2 text-neutral-400 hover:text-[#171717] transition-colors"
+                              className="p-2 text-neutral-400 hover:text-[var(--color-primary)] transition-colors"
                             >
                               <Eye className="h-4 w-4" />
                             </button>
@@ -579,7 +579,7 @@ const TreasuryPositions: React.FC = () => {
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-1">Banque *</label>
                         <select value={newPosition.bankName} onChange={(e) => setNewPosition({ ...newPosition, bankName: e.target.value })}
-                          className="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717]">
+                          className="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]">
                           <option value="">Sélectionner...</option>
                           <option value="SGBC">Société Générale Cameroun</option>
                           <option value="Afriland">Afriland First Bank</option>
@@ -592,26 +592,26 @@ const TreasuryPositions: React.FC = () => {
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-1">Agence</label>
                         <input type="text" value={newPosition.branch} onChange={(e) => setNewPosition({ ...newPosition, branch: e.target.value })}
-                          className="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717]" placeholder="Ex: Akwa, Douala" />
+                          className="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]" placeholder="Ex: Akwa, Douala" />
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-1">IBAN *</label>
                         <input type="text" value={newPosition.iban} onChange={(e) => setNewPosition({ ...newPosition, iban: e.target.value })}
-                          className="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] font-mono" placeholder="CM21 XXXX XXXX XXXX" />
+                          className="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] font-mono" placeholder="CM21 XXXX XXXX XXXX" />
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-1">BIC/SWIFT</label>
                         <input type="text" value={newPosition.bic} onChange={(e) => setNewPosition({ ...newPosition, bic: e.target.value })}
-                          className="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] font-mono" placeholder="SGCMCMCX" />
+                          className="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] font-mono" placeholder="SGCMCMCX" />
                       </div>
                     </div>
                     <div className="grid grid-cols-3 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-1">Devise *</label>
                         <select value={newPosition.currency} onChange={(e) => setNewPosition({ ...newPosition, currency: e.target.value })}
-                          className="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717]">
+                          className="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]">
                           <option value="XAF">XAF (FCFA CEMAC)</option>
                           <option value="EUR">EUR</option>
                           <option value="USD">USD</option>
@@ -621,12 +621,12 @@ const TreasuryPositions: React.FC = () => {
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-1">Solde initial</label>
                         <input type="number" value={newPosition.balance} onChange={(e) => setNewPosition({ ...newPosition, balance: parseFloat(e.target.value) || 0 })}
-                          className="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717]" />
+                          className="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]" />
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-1">Type de compte</label>
                         <select value={newPosition.accountType} onChange={(e) => setNewPosition({ ...newPosition, accountType: e.target.value })}
-                          className="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717]">
+                          className="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]">
                           <option value="courant">Courant</option>
                           <option value="epargne">Épargne</option>
                           <option value="depot">Dépôt à terme</option>

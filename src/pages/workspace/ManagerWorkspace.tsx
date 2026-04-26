@@ -264,7 +264,7 @@ const ManagerWorkspace: React.FC = () => {
           </div>
           <div className="flex-1 max-w-md mx-6 hidden md:block"><div className="relative"><Search className="w-4 h-4 absolute left-3 top-1/2 -tranprimary-y-1/2 text-gray-400" /><input placeholder="Recherche..." className="w-full pl-10 pr-4 py-2 border rounded-lg text-sm" /></div></div>
           <div className="flex items-center space-x-3">
-            <button onClick={() => navigate('/dashboard')} className="group px-6 py-2.5 bg-[var(--color-primary)] hover:bg-[#262626] rounded-lg text-white font-semibold flex items-center space-x-2 transition-all shadow-sm hover:shadow-md"><LayoutDashboard className="w-5 h-5" /><span><span className="atlas-brand">Atlas F&A</span></span><ExternalLink className="w-4 h-4 opacity-60 group-hover:opacity-100 group-hover:tranprimary-x-0.5 transition-all" /></button>
+            <button onClick={() => navigate('/dashboard')} className="group px-6 py-2.5 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] rounded-lg text-white font-semibold flex items-center space-x-2 transition-all shadow-sm hover:shadow-md"><LayoutDashboard className="w-5 h-5" /><span><span className="atlas-brand">Atlas F&A</span></span><ExternalLink className="w-4 h-4 opacity-60 group-hover:opacity-100 group-hover:tranprimary-x-0.5 transition-all" /></button>
             <button className="relative p-2 rounded-lg hover:bg-gray-100"><Bell className="w-5 h-5 text-gray-500" /></button>
             <button onClick={() => setActiveSection('help')} className="p-2 rounded-lg hover:bg-gray-100"><HelpCircle className="w-5 h-5 text-gray-500" /></button>
             <div className="relative">

@@ -189,7 +189,7 @@ const GestionPaiementsPage: React.FC = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'executed': return 'text-green-600 bg-green-100';
-      case 'validated': return 'text-[#171717] bg-[#171717]/10';
+      case 'validated': return 'text-[var(--color-primary)] bg-[var(--color-primary)]/10';
       case 'pending': return 'text-yellow-600 bg-yellow-100';
       case 'failed': return 'text-red-600 bg-red-100';
       default: return 'text-gray-600 bg-gray-100';
@@ -264,7 +264,7 @@ const GestionPaiementsPage: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-primary-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#171717]"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--color-primary)]"></div>
       </div>
     );
   }
@@ -287,7 +287,7 @@ const GestionPaiementsPage: React.FC = () => {
             
             <button
               onClick={() => setShowNewPaymentModal(true)}
-              className="inline-flex items-center px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/80 transition-colors"
+              className="inline-flex items-center px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/80 transition-colors"
             >
               <Send className="h-4 w-4 mr-2" />
               Nouveau paiement
@@ -303,8 +303,8 @@ const GestionPaiementsPage: React.FC = () => {
             className="bg-white rounded-xl shadow-sm border border-gray-200 p-6"
           >
             <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-[#171717]/10 rounded-lg">
-                <Calendar className="h-6 w-6 text-[#171717]" />
+              <div className="p-3 bg-[var(--color-primary)]/10 rounded-lg">
+                <Calendar className="h-6 w-6 text-[var(--color-primary)]" />
               </div>
             </div>
             <div>
@@ -521,7 +521,7 @@ const GestionPaiementsPage: React.FC = () => {
                       {payment.status === 'pending' && (
                         <button
                           onClick={() => handleValidatePayment(payment)}
-                          className="px-3 py-1 bg-[#171717] text-white text-xs rounded-lg hover:bg-[#171717]/80 transition-colors"
+                          className="px-3 py-1 bg-[var(--color-primary)] text-white text-xs rounded-lg hover:bg-[var(--color-primary)]/80 transition-colors"
                         >
                           Valider
                         </button>
@@ -578,7 +578,7 @@ const GestionPaiementsPage: React.FC = () => {
                     <select
                       value={newPayment.type}
                       onChange={(e) => setNewPayment({ ...newPayment, type: e.target.value as 'outgoing' | 'incoming' })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                     >
                       <option value="outgoing">Sortant (Décaissement)</option>
                       <option value="incoming">Entrant (Encaissement)</option>
@@ -591,7 +591,7 @@ const GestionPaiementsPage: React.FC = () => {
                     <select
                       value={newPayment.method}
                       onChange={(e) => setNewPayment({ ...newPayment, method: e.target.value as typeof newPayment.method })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                     >
                       <option value="sepa">SEPA</option>
                       <option value="swift">SWIFT</option>
@@ -610,7 +610,7 @@ const GestionPaiementsPage: React.FC = () => {
                     type="text"
                     value={newPayment.beneficiary}
                     onChange={(e) => setNewPayment({ ...newPayment, beneficiary: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                     placeholder="Nom du bénéficiaire"
                   />
                 </div>
@@ -624,7 +624,7 @@ const GestionPaiementsPage: React.FC = () => {
                       type="number"
                       value={newPayment.amount}
                       onChange={(e) => setNewPayment({ ...newPayment, amount: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                       placeholder="0"
                     />
                   </div>
@@ -635,7 +635,7 @@ const GestionPaiementsPage: React.FC = () => {
                     <select
                       value={newPayment.currency}
                       onChange={(e) => setNewPayment({ ...newPayment, currency: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                     >
                       <option value="XOF">XOF (FCFA)</option>
                       <option value="EUR">EUR</option>
@@ -653,7 +653,7 @@ const GestionPaiementsPage: React.FC = () => {
                       type="text"
                       value={newPayment.reference}
                       onChange={(e) => setNewPayment({ ...newPayment, reference: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                       placeholder="PAY-2024-001"
                     />
                   </div>
@@ -665,7 +665,7 @@ const GestionPaiementsPage: React.FC = () => {
                       type="date"
                       value={newPayment.scheduledDate}
                       onChange={(e) => setNewPayment({ ...newPayment, scheduledDate: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                     />
                   </div>
                 </div>
@@ -678,7 +678,7 @@ const GestionPaiementsPage: React.FC = () => {
                     value={newPayment.description}
                     onChange={(e) => setNewPayment({ ...newPayment, description: e.target.value })}
                     rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                     placeholder="Description du paiement..."
                   />
                 </div>
@@ -692,7 +692,7 @@ const GestionPaiementsPage: React.FC = () => {
                 </button>
                 <button
                   onClick={handleCreatePayment}
-                  className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/80 transition-colors"
+                  className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/80 transition-colors"
                 >
                   Créer le paiement
                 </button>
@@ -718,8 +718,8 @@ const GestionPaiementsPage: React.FC = () => {
               </div>
               <div className="p-6">
                 <div className="flex items-center justify-center mb-4">
-                  <div className="w-16 h-16 bg-[#171717]/10 rounded-full flex items-center justify-center">
-                    <CheckCircle className="h-8 w-8 text-[#171717]" />
+                  <div className="w-16 h-16 bg-[var(--color-primary)]/10 rounded-full flex items-center justify-center">
+                    <CheckCircle className="h-8 w-8 text-[var(--color-primary)]" />
                   </div>
                 </div>
                 <p className="text-center text-gray-700 mb-4">
@@ -749,7 +749,7 @@ const GestionPaiementsPage: React.FC = () => {
                 </button>
                 <button
                   onClick={confirmValidation}
-                  className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/80 transition-colors"
+                  className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/80 transition-colors"
                 >
                   Valider
                 </button>
@@ -892,7 +892,7 @@ const GestionPaiementsPage: React.FC = () => {
               <div className="p-6 border-t border-gray-200 flex justify-end">
                 <button
                   onClick={() => setShowViewDetailModal(false)}
-                  className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/80 transition-colors"
+                  className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/80 transition-colors"
                 >
                   Fermer
                 </button>

@@ -45,16 +45,16 @@ const VerifyEmailPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#fafafa] p-4">
+    <div className="min-h-screen flex items-center justify-center bg-[var(--color-background)] p-4">
       <div className="w-full max-w-md text-center">
         <div className="bg-white rounded-2xl shadow-xl border p-8">
           <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
             <Mail className="w-8 h-8 text-blue-600" />
           </div>
-          <h1 className="text-2xl font-bold text-[#171717] mb-2">Vérifiez votre email</h1>
+          <h1 className="text-2xl font-bold text-[var(--color-primary)] mb-2">Vérifiez votre email</h1>
           <p className="text-gray-500 text-sm mb-6">
             Nous avons envoyé un lien de confirmation à
-            {email && <strong className="block mt-1 text-[#171717]">{email}</strong>}
+            {email && <strong className="block mt-1 text-[var(--color-primary)]">{email}</strong>}
           </p>
           <p className="text-gray-400 text-xs mb-6">
             Cliquez sur le lien dans l'email pour activer votre compte.

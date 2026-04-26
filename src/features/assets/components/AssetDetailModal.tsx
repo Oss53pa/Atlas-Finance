@@ -74,8 +74,8 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({ asset }) => 
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-bold text-[#171717]">{asset.assetNumber}</h3>
-          <p className="text-[#737373] mt-1">{asset.description}</p>
+          <h3 className="text-lg font-bold text-[var(--color-primary)]">{asset.assetNumber}</h3>
+          <p className="text-[var(--color-text-tertiary)] mt-1">{asset.description}</p>
         </div>
         <div className="flex gap-2">
           {getStatusBadge(asset.status)}
@@ -85,51 +85,51 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({ asset }) => 
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-4">
-          <h4 className="text-lg font-semibold text-[#171717] border-b border-[#d4d4d4] pb-2">
+          <h4 className="text-lg font-semibold text-[var(--color-primary)] border-b border-[var(--color-border)] pb-2">
             Informations Générales
           </h4>
 
           <div className="space-y-3">
             <div className="flex items-start gap-2">
-              <Tag className="w-4 h-4 text-[#737373] mt-1" />
+              <Tag className="w-4 h-4 text-[var(--color-text-tertiary)] mt-1" />
               <div>
-                <p className="text-sm text-[#737373]">Classe</p>
-                <p className="font-medium text-[#171717]">{asset.assetClass}</p>
+                <p className="text-sm text-[var(--color-text-tertiary)]">Classe</p>
+                <p className="font-medium text-[var(--color-primary)]">{asset.assetClass}</p>
               </div>
             </div>
 
             <div className="flex items-start gap-2">
-              <Package className="w-4 h-4 text-[#737373] mt-1" />
+              <Package className="w-4 h-4 text-[var(--color-text-tertiary)] mt-1" />
               <div>
-                <p className="text-sm text-[#737373]">Catégorie</p>
-                <p className="font-medium text-[#171717]">{asset.assetCategory}</p>
+                <p className="text-sm text-[var(--color-text-tertiary)]">Catégorie</p>
+                <p className="font-medium text-[var(--color-primary)]">{asset.assetCategory}</p>
               </div>
             </div>
 
             <div className="flex items-start gap-2">
-              <MapPin className="w-4 h-4 text-[#737373] mt-1" />
+              <MapPin className="w-4 h-4 text-[var(--color-text-tertiary)] mt-1" />
               <div>
-                <p className="text-sm text-[#737373]">Localisation</p>
-                <p className="font-medium text-[#171717]">{asset.location}</p>
+                <p className="text-sm text-[var(--color-text-tertiary)]">Localisation</p>
+                <p className="font-medium text-[var(--color-primary)]">{asset.location}</p>
               </div>
             </div>
 
             {asset.technician && (
               <div className="flex items-start gap-2">
-                <User className="w-4 h-4 text-[#737373] mt-1" />
+                <User className="w-4 h-4 text-[var(--color-text-tertiary)] mt-1" />
                 <div>
-                  <p className="text-sm text-[#737373]">Technicien</p>
-                  <p className="font-medium text-[#171717]">{asset.technician}</p>
+                  <p className="text-sm text-[var(--color-text-tertiary)]">Technicien</p>
+                  <p className="font-medium text-[var(--color-primary)]">{asset.technician}</p>
                 </div>
               </div>
             )}
 
             {asset.employee && (
               <div className="flex items-start gap-2">
-                <User className="w-4 h-4 text-[#737373] mt-1" />
+                <User className="w-4 h-4 text-[var(--color-text-tertiary)] mt-1" />
                 <div>
-                  <p className="text-sm text-[#737373]">Employé Assigné</p>
-                  <p className="font-medium text-[#171717]">{asset.employee}</p>
+                  <p className="text-sm text-[var(--color-text-tertiary)]">Employé Assigné</p>
+                  <p className="font-medium text-[var(--color-primary)]">{asset.employee}</p>
                 </div>
               </div>
             )}
@@ -137,39 +137,39 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({ asset }) => 
         </div>
 
         <div className="space-y-4">
-          <h4 className="text-lg font-semibold text-[#171717] border-b border-[#d4d4d4] pb-2">
+          <h4 className="text-lg font-semibold text-[var(--color-primary)] border-b border-[var(--color-border)] pb-2">
             Informations Financières
           </h4>
 
           <div className="space-y-3">
             <div className="flex items-start gap-2">
-              <DollarSign className="w-4 h-4 text-[#737373] mt-1" />
+              <DollarSign className="w-4 h-4 text-[var(--color-text-tertiary)] mt-1" />
               <div className="flex-1">
-                <p className="text-sm text-[#737373]">Coût d'Acquisition</p>
-                <p className="text-lg font-bold text-[#171717]">
+                <p className="text-sm text-[var(--color-text-tertiary)]">Coût d'Acquisition</p>
+                <p className="text-lg font-bold text-[var(--color-primary)]">
                   {formatCurrency(asset.acquisitionCost)}
                 </p>
               </div>
             </div>
 
             <div className="flex items-start gap-2">
-              <TrendingDown className="w-4 h-4 text-[#525252] mt-1" />
+              <TrendingDown className="w-4 h-4 text-[var(--color-text-secondary)] mt-1" />
               <div className="flex-1">
-                <p className="text-sm text-[#737373]">Dépréciation Cumulée</p>
-                <p className="text-lg font-semibold text-[#525252]">
+                <p className="text-sm text-[var(--color-text-tertiary)]">Dépréciation Cumulée</p>
+                <p className="text-lg font-semibold text-[var(--color-text-secondary)]">
                   {formatCurrency(asset.historicalApc)}
                 </p>
-                <p className="text-xs text-[#737373]">
+                <p className="text-xs text-[var(--color-text-tertiary)]">
                   {depreciationRate.toFixed(1)}% du coût initial
                 </p>
               </div>
             </div>
 
             <div className="flex items-start gap-2">
-              <CheckCircle className="w-4 h-4 text-[#171717] mt-1" />
+              <CheckCircle className="w-4 h-4 text-[var(--color-primary)] mt-1" />
               <div className="flex-1">
-                <p className="text-sm text-[#737373]">Valeur Nette Comptable</p>
-                <p className="text-lg font-semibold text-[#171717]">
+                <p className="text-sm text-[var(--color-text-tertiary)]">Valeur Nette Comptable</p>
+                <p className="text-lg font-semibold text-[var(--color-primary)]">
                   {formatCurrency(asset.netBookValue)}
                 </p>
               </div>
@@ -177,10 +177,10 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({ asset }) => 
 
             {asset.salvageValue !== undefined && asset.salvageValue > 0 && (
               <div className="flex items-start gap-2">
-                <DollarSign className="w-4 h-4 text-[#737373] mt-1" />
+                <DollarSign className="w-4 h-4 text-[var(--color-text-tertiary)] mt-1" />
                 <div className="flex-1">
-                  <p className="text-sm text-[#737373]">Valeur de Récupération</p>
-                  <p className="font-medium text-[#171717]">
+                  <p className="text-sm text-[var(--color-text-tertiary)]">Valeur de Récupération</p>
+                  <p className="font-medium text-[var(--color-primary)]">
                     {formatCurrency(asset.salvageValue)}
                   </p>
                 </div>
@@ -190,34 +190,34 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({ asset }) => 
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-[#d4d4d4]">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-[var(--color-border)]">
         <div>
-          <p className="text-sm text-[#737373] mb-1">
+          <p className="text-sm text-[var(--color-text-tertiary)] mb-1">
             <Calendar className="w-3 h-3 inline mr-1" />
             Date d'Acquisition
           </p>
-          <p className="font-medium text-[#171717]">
+          <p className="font-medium text-[var(--color-primary)]">
             {formatDate(asset.acquisitionDate, 'long')}
           </p>
         </div>
 
         <div>
-          <p className="text-sm text-[#737373] mb-1">
+          <p className="text-sm text-[var(--color-text-tertiary)] mb-1">
             <Calendar className="w-3 h-3 inline mr-1" />
             Date de Capitalisation
           </p>
-          <p className="font-medium text-[#171717]">
+          <p className="font-medium text-[var(--color-primary)]">
             {formatDate(asset.capitalizationDate, 'long')}
           </p>
         </div>
 
         {asset.lastInventory && (
           <div>
-            <p className="text-sm text-[#737373] mb-1">
+            <p className="text-sm text-[var(--color-text-tertiary)] mb-1">
               <FileText className="w-3 h-3 inline mr-1" />
               Dernier Inventaire
             </p>
-            <p className="font-medium text-[#171717]">
+            <p className="font-medium text-[var(--color-primary)]">
               {formatDate(asset.lastInventory, 'long')}
             </p>
           </div>
@@ -225,27 +225,27 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({ asset }) => 
       </div>
 
       {(asset.manufacturer || asset.model || asset.serialNumber) && (
-        <div className="pt-4 border-t border-[#d4d4d4]">
-          <h4 className="text-sm font-semibold text-[#171717] mb-3">
+        <div className="pt-4 border-t border-[var(--color-border)]">
+          <h4 className="text-sm font-semibold text-[var(--color-primary)] mb-3">
             Informations Techniques
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {asset.manufacturer && (
               <div>
-                <p className="text-sm text-[#737373]">Fabricant</p>
-                <p className="font-medium text-[#171717]">{asset.manufacturer}</p>
+                <p className="text-sm text-[var(--color-text-tertiary)]">Fabricant</p>
+                <p className="font-medium text-[var(--color-primary)]">{asset.manufacturer}</p>
               </div>
             )}
             {asset.model && (
               <div>
-                <p className="text-sm text-[#737373]">Modèle</p>
-                <p className="font-medium text-[#171717]">{asset.model}</p>
+                <p className="text-sm text-[var(--color-text-tertiary)]">Modèle</p>
+                <p className="font-medium text-[var(--color-primary)]">{asset.model}</p>
               </div>
             )}
             {asset.serialNumber && (
               <div>
-                <p className="text-sm text-[#737373]">N° de Série</p>
-                <p className="font-medium text-[#171717]">{asset.serialNumber}</p>
+                <p className="text-sm text-[var(--color-text-tertiary)]">N° de Série</p>
+                <p className="font-medium text-[var(--color-primary)]">{asset.serialNumber}</p>
               </div>
             )}
           </div>
@@ -253,9 +253,9 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({ asset }) => 
       )}
 
       {asset.notes && (
-        <div className="pt-4 border-t border-[#d4d4d4]">
-          <h4 className="text-sm font-semibold text-[#171717] mb-2">Notes</h4>
-          <p className="text-sm text-[#737373] whitespace-pre-wrap">{asset.notes}</p>
+        <div className="pt-4 border-t border-[var(--color-border)]">
+          <h4 className="text-sm font-semibold text-[var(--color-primary)] mb-2">Notes</h4>
+          <p className="text-sm text-[var(--color-text-tertiary)] whitespace-pre-wrap">{asset.notes}</p>
         </div>
       )}
     </div>

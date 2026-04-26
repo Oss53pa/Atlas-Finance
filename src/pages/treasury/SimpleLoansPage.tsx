@@ -55,7 +55,7 @@ const SimpleLoansPage: React.FC = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'ACTIVE': return 'bg-green-100 text-green-800';
-      case 'COMPLETED': return 'bg-[#171717]/10 text-[#171717]';
+      case 'COMPLETED': return 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]';
       case 'SUSPENDED': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
@@ -63,9 +63,9 @@ const SimpleLoansPage: React.FC = () => {
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'INVESTMENT': return <ChartBarIcon className="h-5 w-5 text-[#171717]" />;
+      case 'INVESTMENT': return <ChartBarIcon className="h-5 w-5 text-[var(--color-primary)]" />;
       case 'WORKING_CAPITAL': return <CreditCardIcon className="h-5 w-5 text-green-600" />;
-      case 'REAL_ESTATE': return <DocumentTextIcon className="h-5 w-5 text-[#525252]" />;
+      case 'REAL_ESTATE': return <DocumentTextIcon className="h-5 w-5 text-[var(--color-text-secondary)]" />;
       case 'EQUIPMENT': return <CalculatorIcon className="h-5 w-5 text-orange-600" />;
       default: return <DocumentTextIcon className="h-5 w-5 text-gray-600" />;
     }
@@ -103,10 +103,10 @@ const SimpleLoansPage: React.FC = () => {
             <div>
               <p className="text-sm font-medium text-gray-600">Total Emprunts</p>
               <p className="text-lg font-bold text-gray-900">{loans.length}</p>
-              <p className="text-sm text-[#171717]">{loans.filter(l => l.status === 'ACTIVE').length} actifs</p>
+              <p className="text-sm text-[var(--color-primary)]">{loans.filter(l => l.status === 'ACTIVE').length} actifs</p>
             </div>
-            <div className="h-12 w-12 bg-[#171717]/10 rounded-lg flex items-center justify-center">
-              <DocumentTextIcon className="h-6 w-6 text-[#171717]" />
+            <div className="h-12 w-12 bg-[var(--color-primary)]/10 rounded-lg flex items-center justify-center">
+              <DocumentTextIcon className="h-6 w-6 text-[var(--color-primary)]" />
             </div>
           </div>
         </div>
@@ -133,10 +133,10 @@ const SimpleLoansPage: React.FC = () => {
               <p className="text-lg font-bold text-gray-900">
                 {formatCurrency(loans.reduce((sum, loan) => sum + loan.remainingBalance, 0))}
               </p>
-              <p className="text-sm text-[#525252]">À rembourser</p>
+              <p className="text-sm text-[var(--color-text-secondary)]">À rembourser</p>
             </div>
-            <div className="h-12 w-12 bg-[#525252]/10 rounded-lg flex items-center justify-center">
-              <CreditCardIcon className="h-6 w-6 text-[#525252]" />
+            <div className="h-12 w-12 bg-[var(--color-text-secondary)]/10 rounded-lg flex items-center justify-center">
+              <CreditCardIcon className="h-6 w-6 text-[var(--color-text-secondary)]" />
             </div>
           </div>
         </div>
@@ -234,7 +234,7 @@ const SimpleLoansPage: React.FC = () => {
                         >
                           <EyeIcon className="h-4 w-4" />
                         </button>
-                        <button className="text-[#171717] hover:text-[#171717]/80" aria-label="Modifier">
+                        <button className="text-[var(--color-primary)] hover:text-[var(--color-primary)]/80" aria-label="Modifier">
                           <PencilIcon className="h-4 w-4" />
                         </button>
                         <button className="text-red-600 hover:text-red-900" aria-label="Supprimer">

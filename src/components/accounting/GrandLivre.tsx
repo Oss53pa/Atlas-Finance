@@ -154,27 +154,27 @@ const GrandLivre: React.FC = () => {
   }), { totalDebit: 0, totalCredit: 0, soldeDebiteur: 0, soldeCrediteur: 0 });
 
   return (
-    <div className="p-6 space-y-6 bg-[#f5f5f5] min-h-screen">
+    <div className="p-6 space-y-6 bg-[var(--color-surface-hover)] min-h-screen">
       {/* En-tête */}
-      <div className="bg-[#f5f5f5] rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
+      <div className="bg-[var(--color-surface-hover)] rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <BookOpen className="w-6 h-6 text-[#171717]" />
+            <BookOpen className="w-6 h-6 text-[var(--color-primary)]" />
             <div>
-              <h2 className="text-lg font-bold text-[#171717]">{t('accounting.generalLedger')}</h2>
-              <p className="text-sm text-[#171717]/70">Vue détaillée des mouvements par compte</p>
+              <h2 className="text-lg font-bold text-[var(--color-primary)]">{t('accounting.generalLedger')}</h2>
+              <p className="text-sm text-[var(--color-primary)]/70">Vue détaillée des mouvements par compte</p>
             </div>
           </div>
 
           {/* BOUTONS DE MODE D'AFFICHAGE */}
           <div className="flex items-center space-x-4">
-            <div className="flex bg-[#e5e5e5] rounded-lg p-1">
+            <div className="flex bg-[var(--color-border)] rounded-lg p-1">
               <button
                 onClick={() => setViewMode('grouped')}
                 className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                   viewMode === 'grouped'
-                    ? 'bg-[#525252] text-white'
-                    : 'text-[#171717]/70 hover:bg-[#e5e5e5]'
+                    ? 'bg-[var(--color-text-secondary)] text-white'
+                    : 'text-[var(--color-primary)]/70 hover:bg-[var(--color-border)]'
                 }`}
               >
                 Groupé
@@ -183,8 +183,8 @@ const GrandLivre: React.FC = () => {
                 onClick={() => setViewMode('list')}
                 className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                   viewMode === 'list'
-                    ? 'bg-[#525252] text-white'
-                    : 'text-[#171717]/70 hover:bg-[#e5e5e5]'
+                    ? 'bg-[var(--color-text-secondary)] text-white'
+                    : 'text-[var(--color-primary)]/70 hover:bg-[var(--color-border)]'
                 }`}
               >
                 Liste
@@ -192,7 +192,7 @@ const GrandLivre: React.FC = () => {
             </div>
 
             <div className="flex items-center space-x-3">
-              <button className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#262626] transition-colors flex items-center space-x-2" aria-label="Imprimer">
+              <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] transition-colors flex items-center space-x-2" aria-label="Imprimer">
                 <Printer className="w-4 h-4" />
                 <span>{t('common.print')}</span>
               </button>
@@ -206,14 +206,14 @@ const GrandLivre: React.FC = () => {
       </div>
 
       {/* Filtres */}
-      <div className="bg-[#f5f5f5] rounded-lg p-4 border border-[#e5e5e5]">
+      <div className="bg-[var(--color-surface-hover)] rounded-lg p-4 border border-[var(--color-border)]">
         {/* Filtres de période et recherche */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-[#171717] mb-1">Période</label>
+            <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Période</label>
             <button
               onClick={() => setShowPeriodModal(true)}
-              className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717] text-left flex items-center justify-between hover:bg-gray-50"
+              className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] text-left flex items-center justify-between hover:bg-gray-50"
             >
               <span className="text-sm">
                 {dateRange.start && dateRange.end
@@ -221,19 +221,19 @@ const GrandLivre: React.FC = () => {
                   : 'Sélectionner une période'
                 }
               </span>
-              <Calendar className="w-4 h-4 text-[#171717]" />
+              <Calendar className="w-4 h-4 text-[var(--color-primary)]" />
             </button>
           </div>
           <div>
-            <label className="block text-sm font-medium text-[#171717] mb-1">Rechercher compte</label>
+            <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Rechercher compte</label>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -tranprimary-y-1/2 w-4 h-4 text-[#171717]/50" />
+              <Search className="absolute left-3 top-1/2 transform -tranprimary-y-1/2 w-4 h-4 text-[var(--color-primary)]/50" />
               <input
                 type="text"
                 value={searchAccount}
                 onChange={(e) => setSearchAccount(e.target.value)}
                 placeholder="Code ou libellé..."
-                className="w-full pl-10 pr-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]"
+                className="w-full pl-10 pr-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
               />
             </div>
           </div>
@@ -243,16 +243,16 @@ const GrandLivre: React.FC = () => {
                 type="checkbox"
                 checked={showZeroBalance}
                 onChange={(e) => setShowZeroBalance(e.target.checked)}
-                className="rounded border-[#e5e5e5] text-[#171717] focus:ring-[#171717]"
+                className="rounded border-[var(--color-border)] text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
               />
-              <span className="text-sm text-[#171717]/70">Afficher soldes nuls</span>
+              <span className="text-sm text-[var(--color-primary)]/70">Afficher soldes nuls</span>
             </label>
           </div>
         </div>
 
         {/* Statistiques */}
-        <div className="flex items-center justify-end mt-4 pt-4 border-t border-[#e5e5e5]">
-          <div className="text-sm text-[#171717]/70">
+        <div className="flex items-center justify-end mt-4 pt-4 border-t border-[var(--color-border)]">
+          <div className="text-sm text-[var(--color-primary)]/70">
             {filteredAccounts.length} compte(s) - {
               filteredAccounts.reduce((total, acc) => total + acc.entries.length, 0)
             } écriture(s)
@@ -266,15 +266,15 @@ const GrandLivre: React.FC = () => {
         <div className="space-y-4">
           {/* Comptes groupés */}
           {filteredAccounts.map((account) => (
-          <div key={account.code} className="bg-[#f5f5f5] rounded-lg border border-[#e5e5e5] overflow-hidden">
+          <div key={account.code} className="bg-[var(--color-surface-hover)] rounded-lg border border-[var(--color-border)] overflow-hidden">
             {/* En-tête du compte */}
             <div
-              className="px-4 py-3 bg-gradient-to-r from-[#171717]/10 to-[#171717]/15 cursor-pointer hover:bg-[#171717]/20 transition-colors"
+              className="px-4 py-3 bg-gradient-to-r from-[var(--color-primary)]/10 to-[var(--color-primary)]/15 cursor-pointer hover:bg-[var(--color-primary)]/20 transition-colors"
               onClick={() => toggleAccount(account.code)}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <button className="text-[#171717] hover:text-[#262626]" aria-label="Ouvrir le menu">
+                  <button className="text-[var(--color-primary)] hover:text-[var(--color-primary-hover)]" aria-label="Ouvrir le menu">
                     {account.isExpanded ? (
                       <ChevronDown className="w-5 h-5" />
                     ) : (
@@ -283,10 +283,10 @@ const GrandLivre: React.FC = () => {
                   </button>
                   <div>
                     <div className="flex items-center space-x-2">
-                      <span className="font-mono font-bold text-[#525252]">{account.code}</span>
-                      <span className="font-semibold text-[#171717]">{account.libelle}</span>
+                      <span className="font-mono font-bold text-[var(--color-text-secondary)]">{account.code}</span>
+                      <span className="font-semibold text-[var(--color-primary)]">{account.libelle}</span>
                     </div>
-                    <div className="text-xs text-[#171717]/70 mt-1">
+                    <div className="text-xs text-[var(--color-primary)]/70 mt-1">
                       {account.entries.length} mouvement(s)
                     </div>
                   </div>
@@ -295,15 +295,15 @@ const GrandLivre: React.FC = () => {
                 {/* Totaux du compte */}
                 <div className="flex items-center space-x-6 text-sm">
                   <div className="text-right">
-                    <p className="text-xs text-[#171717]/70">Total Débit</p>
+                    <p className="text-xs text-[var(--color-primary)]/70">Total Débit</p>
                     <p className="font-semibold text-red-600">{formatAmount(account.totalDebit)}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs text-[#737373]">Total Crédit</p>
+                    <p className="text-xs text-[var(--color-text-tertiary)]">Total Crédit</p>
                     <p className="font-semibold text-green-600">{formatAmount(account.totalCredit)}</p>
                   </div>
                   <div className="text-right min-w-[120px]">
-                    <p className="text-xs text-[#737373]">{t('accounting.balance')}</p>
+                    <p className="text-xs text-[var(--color-text-tertiary)]">{t('accounting.balance')}</p>
                     {account.soldeDebiteur > 0 ? (
                       <p className="font-bold text-red-600">D: {formatAmount(account.soldeDebiteur)}</p>
                     ) : (
@@ -316,10 +316,10 @@ const GrandLivre: React.FC = () => {
 
             {/* Détail des écritures */}
             {account.isExpanded && (
-              <div className="border-t border-[#e5e5e5] max-h-[400px] overflow-auto">
+              <div className="border-t border-[var(--color-border)] max-h-[400px] overflow-auto">
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50 sticky top-0 z-10">
-                    <tr className="text-xs text-[#737373]">
+                    <tr className="text-xs text-[var(--color-text-tertiary)]">
                       <th className="px-4 py-2 text-left font-medium">{t('common.date')}</th>
                       <th className="px-4 py-2 text-left font-medium">{t('accounting.piece')}</th>
                       <th className="px-4 py-2 text-left font-medium">{t('accounting.journal')}</th>
@@ -329,12 +329,12 @@ const GrandLivre: React.FC = () => {
                       <th className="px-4 py-2 text-right font-medium">{t('accounting.balance')}</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#e5e5e5]">
+                  <tbody className="divide-y divide-[var(--color-border)]">
                     {account.entries.map((entry, index) => (
                       <tr key={index} className="hover:bg-gray-50">
                         <td className="px-4 py-2 text-xs">{entry.date}</td>
                         <td className="px-4 py-2 text-xs font-mono">{entry.piece}</td>
-                        <td className="px-4 py-2 text-xs font-bold text-[#525252]">{entry.journal}</td>
+                        <td className="px-4 py-2 text-xs font-bold text-[var(--color-text-secondary)]">{entry.journal}</td>
                         <td className="px-4 py-2 text-xs">{entry.libelle}</td>
                         <td className="px-4 py-2 text-xs text-right text-red-600">
                           {entry.debit > 0 ? formatAmount(entry.debit) : '-'}
@@ -354,8 +354,8 @@ const GrandLivre: React.FC = () => {
                       </tr>
                     ))}
                     {/* Ligne de total du compte */}
-                    <tr className="bg-[#171717]/10 font-semibold">
-                      <td colSpan={4} className="px-4 py-2 text-sm text-[#171717]">
+                    <tr className="bg-[var(--color-primary)]/10 font-semibold">
+                      <td colSpan={4} className="px-4 py-2 text-sm text-[var(--color-primary)]">
                         Total compte {account.code}
                       </td>
                       <td className="px-4 py-2 text-sm text-right text-red-600">
@@ -381,11 +381,11 @@ const GrandLivre: React.FC = () => {
         </div>
       ) : (
         // Mode liste chronologique
-        <div className="bg-[#f5f5f5] rounded-lg border-2 border-[#525252] overflow-hidden shadow-lg h-[600px] flex flex-col">
+        <div className="bg-[var(--color-surface-hover)] rounded-lg border-2 border-[var(--color-text-secondary)] overflow-hidden shadow-lg h-[600px] flex flex-col">
           <div className="overflow-auto flex-1">
             <table className="w-full text-sm">
-              <thead className="bg-[#171717] sticky top-0 z-10">
-              <tr className="text-xs text-[#f5f5f5]">
+              <thead className="bg-[var(--color-primary)] sticky top-0 z-10">
+              <tr className="text-xs text-[var(--color-surface-hover)]">
                 <th className="px-4 py-3 text-left font-medium">{t('common.date')}</th>
                 <th className="px-4 py-3 text-left font-medium">{t('accounting.piece')}</th>
                 <th className="px-4 py-3 text-left font-medium">{t('accounting.journal')}</th>
@@ -397,14 +397,14 @@ const GrandLivre: React.FC = () => {
                 <th className="px-4 py-3 text-right font-medium">{t('accounting.balance')}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#e5e5e5]">
+            <tbody className="divide-y divide-[var(--color-border)]">
               {filteredAccounts.flatMap(account =>
                 account.entries.map((entry, index) => (
                   <tr key={`${account.code}-${index}`} className="hover:bg-gray-50">
                     <td className="px-4 py-2 text-xs">{entry.date}</td>
                     <td className="px-4 py-2 text-xs font-mono">{entry.piece}</td>
-                    <td className="px-4 py-2 text-xs font-bold text-[#525252]">{entry.journal}</td>
-                    <td className="px-4 py-2 text-xs font-mono text-[#171717] font-semibold">{account.code}</td>
+                    <td className="px-4 py-2 text-xs font-bold text-[var(--color-text-secondary)]">{entry.journal}</td>
+                    <td className="px-4 py-2 text-xs font-mono text-[var(--color-primary)] font-semibold">{account.code}</td>
                     <td className="px-4 py-2 text-xs">{account.libelle}</td>
                     <td className="px-4 py-2 text-xs">{entry.libelle}</td>
                     <td className="px-4 py-2 text-xs text-right text-red-600">
@@ -437,26 +437,26 @@ const GrandLivre: React.FC = () => {
       )}
 
       {/* Totaux généraux */}
-      <div className="bg-[#f5f5f5] rounded-lg p-4 border-2 border-[#525252]">
-        <h3 className="text-lg font-semibold text-[#171717] mb-3 flex items-center">
-          <Calculator className="w-5 h-5 mr-2 text-[#525252]" />
+      <div className="bg-[var(--color-surface-hover)] rounded-lg p-4 border-2 border-[var(--color-text-secondary)]">
+        <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-3 flex items-center">
+          <Calculator className="w-5 h-5 mr-2 text-[var(--color-text-secondary)]" />
           Totaux généraux
         </h3>
         <div className="grid grid-cols-4 gap-4">
           <div className="text-center p-3 bg-red-50 rounded-lg">
-            <p className="text-sm text-[#171717]/70">Total Débits</p>
+            <p className="text-sm text-[var(--color-primary)]/70">Total Débits</p>
             <p className="text-lg font-bold text-red-600">{formatAmount(totals.totalDebit)}</p>
           </div>
           <div className="text-center p-3 bg-green-50 rounded-lg">
-            <p className="text-sm text-[#171717]/70">Total Crédits</p>
+            <p className="text-sm text-[var(--color-primary)]/70">Total Crédits</p>
             <p className="text-lg font-bold text-green-600">{formatAmount(totals.totalCredit)}</p>
           </div>
           <div className="text-center p-3 bg-orange-50 rounded-lg">
-            <p className="text-sm text-[#171717]/70">Solde Débiteur</p>
+            <p className="text-sm text-[var(--color-primary)]/70">Solde Débiteur</p>
             <p className="text-lg font-bold text-orange-600">{formatAmount(totals.soldeDebiteur)}</p>
           </div>
           <div className="text-center p-3 bg-blue-50 rounded-lg">
-            <p className="text-sm text-[#171717]/70">Solde Créditeur</p>
+            <p className="text-sm text-[var(--color-primary)]/70">Solde Créditeur</p>
             <p className="text-lg font-bold text-blue-600">{formatAmount(totals.soldeCrediteur)}</p>
           </div>
         </div>

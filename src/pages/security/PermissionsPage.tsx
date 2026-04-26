@@ -70,9 +70,9 @@ const PermissionsPage: React.FC = () => {
   ];
 
   return (
-    <div className="p-6 bg-[#e5e5e5] min-h-screen ">
+    <div className="p-6 bg-[var(--color-border)] min-h-screen ">
       {/* Header */}
-      <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm mb-6">
+      <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm mb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button 
@@ -88,8 +88,8 @@ const PermissionsPage: React.FC = () => {
                 <Key className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-[#171717]">Gestion des Permissions</h1>
-                <p className="text-sm text-[#737373]">Contrôle d'accès RBAC</p>
+                <h1 className="text-lg font-bold text-[var(--color-primary)]">Gestion des Permissions</h1>
+                <p className="text-sm text-[var(--color-text-tertiary)]">Contrôle d'accès RBAC</p>
               </div>
             </div>
           </div>
@@ -97,7 +97,7 @@ const PermissionsPage: React.FC = () => {
           <div className="flex items-center space-x-3">
             <button 
               onClick={() => navigate('/dashboard/admin')}
-              className="px-4 py-2 bg-[#737373] text-white rounded-lg hover:bg-[#525252] transition-colors flex items-center space-x-2"
+              className="px-4 py-2 bg-[var(--color-text-tertiary)] text-white rounded-lg hover:bg-[var(--color-text-secondary)] transition-colors flex items-center space-x-2"
             >
               <Home className="w-4 h-4" />
               <span className="text-sm">Admin</span>
@@ -112,8 +112,8 @@ const PermissionsPage: React.FC = () => {
       </div>
 
       {/* Navigation par onglets */}
-      <div className="bg-white rounded-lg border border-[#e5e5e5] shadow-sm">
-        <div className="px-6 border-b border-[#e5e5e5]">
+      <div className="bg-white rounded-lg border border-[var(--color-border)] shadow-sm">
+        <div className="px-6 border-b border-[var(--color-border)]">
           <nav className="flex space-x-8">
             {tabs.map((tab) => {
               const IconComponent = tab.icon;
@@ -125,7 +125,7 @@ const PermissionsPage: React.FC = () => {
                     flex items-center space-x-2 py-4 border-b-2 font-medium text-sm transition-colors
                     ${activeTab === tab.id 
                       ? 'border-[#ef4444] text-[#ef4444]' 
-                      : 'border-transparent text-[#737373] hover:text-[#404040]'
+                      : 'border-transparent text-[var(--color-text-tertiary)] hover:text-[#404040]'
                     }
                   `}
                 >
@@ -149,24 +149,24 @@ const PermissionsPage: React.FC = () => {
         <div className="p-6">
           {activeTab === 'matrix' && (
             <div className="space-y-6">
-              <div className="bg-white rounded-lg p-6 border border-[#e5e5e5]">
-                <h3 className="font-semibold text-[#171717] mb-4">🔐 Matrice des Permissions</h3>
+              <div className="bg-white rounded-lg p-6 border border-[var(--color-border)]">
+                <h3 className="font-semibold text-[var(--color-primary)] mb-4">🔐 Matrice des Permissions</h3>
                 
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="border-b border-[#e5e5e5]">
-                        <th className="text-left py-3 text-xs font-medium text-[#737373] uppercase">Module</th>
-                        <th className="text-center py-3 text-xs font-medium text-[#737373] uppercase">Comptable</th>
-                        <th className="text-center py-3 text-xs font-medium text-[#737373] uppercase">Manager</th>
-                        <th className="text-center py-3 text-xs font-medium text-[#737373] uppercase">Admin</th>
-                        <th className="text-center py-3 text-xs font-medium text-[#737373] uppercase">Consultant</th>
+                      <tr className="border-b border-[var(--color-border)]">
+                        <th className="text-left py-3 text-xs font-medium text-[var(--color-text-tertiary)] uppercase">Module</th>
+                        <th className="text-center py-3 text-xs font-medium text-[var(--color-text-tertiary)] uppercase">Comptable</th>
+                        <th className="text-center py-3 text-xs font-medium text-[var(--color-text-tertiary)] uppercase">Manager</th>
+                        <th className="text-center py-3 text-xs font-medium text-[var(--color-text-tertiary)] uppercase">Admin</th>
+                        <th className="text-center py-3 text-xs font-medium text-[var(--color-text-tertiary)] uppercase">Consultant</th>
                       </tr>
                     </thead>
                     <tbody>
                       {permissionMatrix.map((perm, index) => (
                         <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
-                          <td className="py-3 text-sm font-medium text-[#171717]">{perm.module}</td>
+                          <td className="py-3 text-sm font-medium text-[var(--color-primary)]">{perm.module}</td>
                           <td className="py-3 text-center">
                             {perm.comptable ? (
                               <CheckCircle className="w-4 h-4 text-green-600 mx-auto" />
@@ -208,9 +208,9 @@ const PermissionsPage: React.FC = () => {
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {rolesCards.map((role, index) => (
-                  <div key={index} className="bg-white rounded-lg p-6 border border-[#e5e5e5] hover:shadow-lg transition-all">
+                  <div key={index} className="bg-white rounded-lg p-6 border border-[var(--color-border)] hover:shadow-lg transition-all">
                     <div className="flex items-center justify-between mb-4">
-                      <h4 className="font-semibold text-[#171717]">{role.role}</h4>
+                      <h4 className="font-semibold text-[var(--color-primary)]">{role.role}</h4>
                       <div 
                         className="w-8 h-8 rounded-lg text-white flex items-center justify-center text-sm font-bold"
                         style={{backgroundColor: role.color}}

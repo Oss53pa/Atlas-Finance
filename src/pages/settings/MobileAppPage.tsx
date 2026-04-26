@@ -852,7 +852,7 @@ const MobileAppPage: React.FC = () => {
                   toast.success('Code copié dans le presse-papier !');
                   navigator.clipboard.writeText('WB-2024-XYZ-123');
                 }}
-                className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#262626] transition-colors"
+                className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] transition-colors"
               >
                 Copier le code
               </button>

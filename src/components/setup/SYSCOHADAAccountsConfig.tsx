@@ -545,14 +545,14 @@ const SYSCOHADAAccountsConfig: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-6">
       {/* Header */}
-      <div className="bg-[#171717] rounded-lg shadow-sm border border-gray-200 p-6">
+      <div className="bg-[var(--color-primary)] rounded-lg shadow-sm border border-gray-200 p-6">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-lg font-bold text-white flex items-center">
               <CalculatorIcon className="h-8 w-8 mr-3 text-white" />
               Configuration Plan SYSCOHADA Révisé
             </h1>
-            <p className="text-[#f5f5f5] mt-2">
+            <p className="text-[var(--color-surface-hover)] mt-2">
               Plan comptable OHADA 2017 • {accounts.length} comptes configurés • 
               Conforme référentiel {selectedClass === 'all' ? 'complet' : `classe ${selectedClass}`}
             </p>
@@ -567,7 +567,7 @@ const SYSCOHADAAccountsConfig: React.FC = () => {
               <option value="list">Vue Liste</option>
               <option value="config">Configuration</option>
             </select>
-            <button className="bg-[#525252] hover:bg-[#171717] text-white px-4 py-2 rounded-lg flex items-center space-x-2">
+            <button className="bg-[var(--color-text-secondary)] hover:bg-[var(--color-primary)] text-white px-4 py-2 rounded-lg flex items-center space-x-2">
               <PlusIcon className="h-5 w-5" />
               <span>Nouveau Compte</span>
             </button>
@@ -576,8 +576,8 @@ const SYSCOHADAAccountsConfig: React.FC = () => {
       </div>
 
       {/* Classes SYSCOHADA */}
-      <div className="bg-[#f5f5f5] rounded-lg shadow-sm border border-gray-200 p-6">
-        <h2 className="text-lg font-bold text-[#171717] mb-4">Classes de Comptes SYSCOHADA</h2>
+      <div className="bg-[var(--color-surface-hover)] rounded-lg shadow-sm border border-gray-200 p-6">
+        <h2 className="text-lg font-bold text-[var(--color-primary)] mb-4">Classes de Comptes SYSCOHADA</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
           <button
             onClick={() => setSelectedClass('all')}
@@ -648,7 +648,7 @@ const SYSCOHADAAccountsConfig: React.FC = () => {
       </div>
 
       {/* Filtres et recherche */}
-      <div className="bg-[#f5f5f5] rounded-lg shadow-sm border border-gray-200 p-6">
+      <div className="bg-[var(--color-surface-hover)] rounded-lg shadow-sm border border-gray-200 p-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
           <div className="flex items-center space-x-4">
             <div className="relative">
@@ -690,8 +690,8 @@ const SYSCOHADAAccountsConfig: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Liste/Arbre des comptes */}
         <div className="lg:col-span-2">
-          <div className="bg-[#f5f5f5] rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-bold text-[#171717] mb-4">
+          <div className="bg-[var(--color-surface-hover)] rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 className="text-lg font-bold text-[var(--color-primary)] mb-4">
               {selectedClass === 'all' ? 'Plan Comptable Complet' : `Classe ${selectedClass}`}
             </h2>
             
@@ -800,8 +800,8 @@ const SYSCOHADAAccountsConfig: React.FC = () => {
             return (
               <>
                 {/* Informations de base */}
-                <div className="bg-[#e5e5e5] rounded-lg shadow-sm border border-gray-200 p-6">
-                  <h3 className="text-lg font-medium text-[#171717] mb-4">Configuration du Compte</h3>
+                <div className="bg-[var(--color-border)] rounded-lg shadow-sm border border-gray-200 p-6">
+                  <h3 className="text-lg font-medium text-[var(--color-primary)] mb-4">Configuration du Compte</h3>
                   <div className="space-y-4">
                     <div>
                       <div className="font-mono text-lg font-bold text-gray-900">{account.code}</div>
@@ -835,8 +835,8 @@ const SYSCOHADAAccountsConfig: React.FC = () => {
                 </div>
 
                 {/* Paramètres avancés */}
-                <div className="bg-[#e5e5e5] rounded-lg shadow-sm border border-gray-200 p-6">
-                  <h3 className="text-lg font-medium text-[#171717] mb-4">Paramètres Avancés</h3>
+                <div className="bg-[var(--color-border)] rounded-lg shadow-sm border border-gray-200 p-6">
+                  <h3 className="text-lg font-medium text-[var(--color-primary)] mb-4">Paramètres Avancés</h3>
                   <div className="space-y-3">
                     {[
                       { key: 'allowDirectEntry', label: 'Saisie directe autorisée', icon: LockOpenIcon },
@@ -876,8 +876,8 @@ const SYSCOHADAAccountsConfig: React.FC = () => {
                 </div>
 
                 {/* Statistiques d'utilisation */}
-                <div className="bg-[#e5e5e5] rounded-lg shadow-sm border border-gray-200 p-6">
-                  <h3 className="text-lg font-medium text-[#171717] mb-4">Statistiques</h3>
+                <div className="bg-[var(--color-border)] rounded-lg shadow-sm border border-gray-200 p-6">
+                  <h3 className="text-lg font-medium text-[var(--color-primary)] mb-4">Statistiques</h3>
                   <div className="space-y-3 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-600">Nombre d'écritures:</span>

@@ -67,8 +67,8 @@ const GeneralLedgerPage: React.FC = () => {
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-bold text-[#171717]">Grand Livre</h1>
-          <p className="text-[#737373] mt-1">
+          <h1 className="text-lg font-bold text-[var(--color-primary)]">Grand Livre</h1>
+          <p className="text-[var(--color-text-tertiary)] mt-1">
             Consultation du grand livre général et auxiliaires
           </p>
         </div>
@@ -100,7 +100,7 @@ const GeneralLedgerPage: React.FC = () => {
 
       <GeneralLedgerStats stats={stats} loading={loading} />
 
-      <div className="bg-white rounded-lg border border-[#d4d4d4] p-4">
+      <div className="bg-white rounded-lg border border-[var(--color-border)] p-4">
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <Input
             label="Date Début"
@@ -153,15 +153,15 @@ const GeneralLedgerPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex gap-2 border-b border-[#d4d4d4]">
+      <div className="flex gap-2 border-b border-[var(--color-border)]">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as typeof activeTab)}
             className={`px-4 py-3 border-b-2 transition-colors ${
               activeTab === tab.id
-                ? 'border-[#171717] text-[#171717] font-semibold'
-                : 'border-transparent text-[#737373] hover:text-[#171717]'
+                ? 'border-[var(--color-primary)] text-[var(--color-primary)] font-semibold'
+                : 'border-transparent text-[var(--color-text-tertiary)] hover:text-[var(--color-primary)]'
             }`}
           >
             {tab.label}
@@ -170,8 +170,8 @@ const GeneralLedgerPage: React.FC = () => {
       </div>
 
       {activeTab === 'accounts' && (
-        <div className="bg-white rounded-lg border border-[#d4d4d4] p-6">
-          <h2 className="text-lg font-semibold text-[#171717] mb-4">
+        <div className="bg-white rounded-lg border border-[var(--color-border)] p-6">
+          <h2 className="text-lg font-semibold text-[var(--color-primary)] mb-4">
             Comptes Mouvementés
           </h2>
           <LedgerAccountsTable
@@ -187,7 +187,7 @@ const GeneralLedgerPage: React.FC = () => {
 
       {activeTab === 'search' && (
         <div className="space-y-4">
-          <div className="bg-white rounded-lg border border-[#d4d4d4] p-4">
+          <div className="bg-white rounded-lg border border-[var(--color-border)] p-4">
             <Input
               placeholder="Rechercher par libellé, pièce, montant..."
               value={searchQuery}
@@ -198,12 +198,12 @@ const GeneralLedgerPage: React.FC = () => {
           </div>
 
           {searchResults && (
-            <div className="bg-white rounded-lg border border-[#d4d4d4] p-6">
+            <div className="bg-white rounded-lg border border-[var(--color-border)] p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-[#171717]">
+                <h2 className="text-lg font-semibold text-[var(--color-primary)]">
                   Résultats ({searchResults.totalResults})
                 </h2>
-                <p className="text-sm text-[#737373]">
+                <p className="text-sm text-[var(--color-text-tertiary)]">
                   Recherche effectuée en {searchResults.searchTime}ms
                 </p>
               </div>
@@ -211,7 +211,7 @@ const GeneralLedgerPage: React.FC = () => {
               {searchResults.entries.length > 0 ? (
                 <LedgerEntriesTable entries={searchResults.entries} loading={searchLoading} />
               ) : (
-                <p className="text-center text-[#737373] py-8">
+                <p className="text-center text-[var(--color-text-tertiary)] py-8">
                   Aucun résultat pour cette recherche
                 </p>
               )}
@@ -229,22 +229,22 @@ const GeneralLedgerPage: React.FC = () => {
         <ModalBody>
           {selectedAccount && (
             <div className="space-y-4">
-              <div className="grid grid-cols-3 gap-4 p-4 bg-[#F5F5F5] rounded-lg">
+              <div className="grid grid-cols-3 gap-4 p-4 bg-[var(--color-surface-hover)] rounded-lg">
                 <div>
-                  <p className="text-sm text-[#737373]">Solde Ouverture</p>
-                  <p className="text-lg font-semibold text-[#171717]">
+                  <p className="text-sm text-[var(--color-text-tertiary)]">Solde Ouverture</p>
+                  <p className="text-lg font-semibold text-[var(--color-primary)]">
                     {formatCurrency(selectedAccount.soldeOuverture)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-[#737373]">Mouvements</p>
-                  <p className="text-lg font-semibold text-[#171717]">
+                  <p className="text-sm text-[var(--color-text-tertiary)]">Mouvements</p>
+                  <p className="text-lg font-semibold text-[var(--color-primary)]">
                     {selectedAccount.nombreEcritures} écritures
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-[#737373]">Solde Clôture</p>
-                  <p className="text-lg font-semibold text-[#171717]">
+                  <p className="text-sm text-[var(--color-text-tertiary)]">Solde Clôture</p>
+                  <p className="text-lg font-semibold text-[var(--color-primary)]">
                     {formatCurrency(selectedAccount.soldeFermeture)}
                   </p>
                 </div>
@@ -278,7 +278,7 @@ const GeneralLedgerPage: React.FC = () => {
               ]}
               fullWidth
             />
-            <p className="text-sm text-[#737373]">
+            <p className="text-sm text-[var(--color-text-tertiary)]">
               L'export utilisera les filtres actuellement appliqués.
             </p>
           </div>

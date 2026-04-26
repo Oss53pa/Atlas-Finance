@@ -10,47 +10,47 @@ interface ClientInfoCardProps {
 export const ClientInfoCard: React.FC<ClientInfoCardProps> = ({ client }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div className="bg-white rounded-lg border border-[#d4d4d4] p-6">
-        <h3 className="text-lg font-semibold text-[#171717] mb-4">
+      <div className="bg-white rounded-lg border border-[var(--color-border)] p-6">
+        <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">
           <Building className="w-5 h-5 inline mr-2" />
           Informations Générales
         </h3>
         <div className="space-y-3">
           <div className="flex justify-between">
-            <span className="text-[#737373]">Forme juridique</span>
+            <span className="text-[var(--color-text-tertiary)]">Forme juridique</span>
             <span className="font-medium">{client.formeJuridique}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-[#737373]">Secteur d'activité</span>
+            <span className="text-[var(--color-text-tertiary)]">Secteur d'activité</span>
             <span className="font-medium">{client.secteurActivite}</span>
           </div>
           {client.effectif && (
             <div className="flex justify-between">
-              <span className="text-[#737373]">Effectif</span>
+              <span className="text-[var(--color-text-tertiary)]">Effectif</span>
               <span className="font-medium">{client.effectif} employés</span>
             </div>
           )}
           {client.capitalSocial && (
             <div className="flex justify-between">
-              <span className="text-[#737373]">Capital social</span>
+              <span className="text-[var(--color-text-tertiary)]">Capital social</span>
               <span className="font-medium">{formatNumber(client.capitalSocial)} €</span>
             </div>
           )}
           <div className="flex justify-between">
-            <span className="text-[#737373]">Date création</span>
+            <span className="text-[var(--color-text-tertiary)]">Date création</span>
             <span className="font-medium">{formatDate(client.dateCreation)}</span>
           </div>
         </div>
       </div>
 
-      <div className="bg-white rounded-lg border border-[#d4d4d4] p-6">
-        <h3 className="text-lg font-semibold text-[#171717] mb-4">
+      <div className="bg-white rounded-lg border border-[var(--color-border)] p-6">
+        <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">
           <MapPin className="w-5 h-5 inline mr-2" />
           Coordonnées
         </h3>
         <div className="space-y-3">
           <div>
-            <span className="text-[#737373] block mb-1">Adresse</span>
+            <span className="text-[var(--color-text-tertiary)] block mb-1">Adresse</span>
             <span className="font-medium">
               {client.adresseFacturation.rue}<br />
               {client.adresseFacturation.codePostal} {client.adresseFacturation.ville}<br />
@@ -58,11 +58,11 @@ export const ClientInfoCard: React.FC<ClientInfoCardProps> = ({ client }) => {
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <Phone className="w-4 h-4 text-[#737373]" />
+            <Phone className="w-4 h-4 text-[var(--color-text-tertiary)]" />
             <span className="font-medium">{client.contacts.principal.telephone}</span>
           </div>
           <div className="flex items-center gap-2">
-            <Mail className="w-4 h-4 text-[#737373]" />
+            <Mail className="w-4 h-4 text-[var(--color-text-tertiary)]" />
             <span className="font-medium">{client.contacts.principal.email}</span>
           </div>
         </div>

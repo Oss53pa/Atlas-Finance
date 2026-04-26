@@ -21,9 +21,9 @@ const ReportsPage: React.FC = () => {
   ];
 
   return (
-    <div className="p-6 bg-[#e5e5e5] min-h-screen ">
+    <div className="p-6 bg-[var(--color-border)] min-h-screen ">
       {/* Header avec navigation */}
-      <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm mb-6">
+      <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm mb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button
@@ -35,12 +35,12 @@ const ReportsPage: React.FC = () => {
             </button>
 
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-[#171717] to-[#737373] flex items-center justify-center">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-text-tertiary)] flex items-center justify-center">
                 <BarChart3 className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-[#171717]">États Financiers</h1>
-                <p className="text-sm text-[#737373]">Grand Livre, Balance et Rapports</p>
+                <h1 className="text-lg font-bold text-[var(--color-primary)]">États Financiers</h1>
+                <p className="text-sm text-[var(--color-text-tertiary)]">Grand Livre, Balance et Rapports</p>
               </div>
             </div>
           </div>
@@ -48,8 +48,8 @@ const ReportsPage: React.FC = () => {
       </div>
 
       {/* Navigation par onglets */}
-      <div className="bg-white rounded-lg border border-[#e5e5e5] shadow-sm">
-        <div className="px-6 border-b border-[#e5e5e5]">
+      <div className="bg-white rounded-lg border border-[var(--color-border)] shadow-sm">
+        <div className="px-6 border-b border-[var(--color-border)]">
           <nav className="flex space-x-8">
             {tabs.map((tab) => {
               const IconComponent = tab.icon;
@@ -59,8 +59,8 @@ const ReportsPage: React.FC = () => {
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex items-center space-x-2 py-4 border-b-2 font-medium text-sm transition-colors ${
                     activeTab === tab.id
-                      ? 'border-[#171717] text-[#171717]'
-                      : 'border-transparent text-[#737373] hover:text-[#404040]'
+                      ? 'border-[var(--color-primary)] text-[var(--color-primary)]'
+                      : 'border-transparent text-[var(--color-text-tertiary)] hover:text-[#404040]'
                   }`}
                 >
                   <IconComponent className="w-4 h-4" />
@@ -83,14 +83,14 @@ const ReportsPage: React.FC = () => {
           {activeTab === 'compte-resultat' && (
             <div className="p-6">
               <div className="text-center py-12">
-                <TrendingUp className="w-16 h-16 text-[#737373] mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-[#171717] mb-2">
+                <TrendingUp className="w-16 h-16 text-[var(--color-text-tertiary)] mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-2">
                   Compte de Résultat
                 </h3>
-                <p className="text-[#737373]">
+                <p className="text-[var(--color-text-tertiary)]">
                   État des charges et produits de l'exercice
                 </p>
-                <button className="mt-4 px-6 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#262626] transition-colors">
+                <button className="mt-4 px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] transition-colors">
                   Générer le compte de résultat
                 </button>
               </div>
@@ -101,14 +101,14 @@ const ReportsPage: React.FC = () => {
           {activeTab === 'bilan' && (
             <div className="p-6">
               <div className="text-center py-12">
-                <FileSpreadsheet className="w-16 h-16 text-[#737373] mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-[#171717] mb-2">
+                <FileSpreadsheet className="w-16 h-16 text-[var(--color-text-tertiary)] mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-2">
                   Bilan Comptable
                 </h3>
-                <p className="text-[#737373]">
+                <p className="text-[var(--color-text-tertiary)]">
                   Situation patrimoniale de l'entreprise
                 </p>
-                <button className="mt-4 px-6 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#262626] transition-colors">
+                <button className="mt-4 px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] transition-colors">
                   Générer le bilan
                 </button>
               </div>

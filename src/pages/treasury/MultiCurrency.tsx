@@ -240,11 +240,11 @@ const MultiCurrency: React.FC = () => {
     return 'text-neutral-600';
   };
 
-  const chartColors = ['bg-[#171717]', 'bg-green-500', 'bg-[#525252]', 'bg-orange-500', 'bg-primary-500', 'bg-blue-500', 'bg-purple-500'];
+  const chartColors = ['bg-[var(--color-primary)]', 'bg-green-500', 'bg-[var(--color-text-secondary)]', 'bg-orange-500', 'bg-primary-500', 'bg-blue-500', 'bg-purple-500'];
   const chartData = filteredCurrencies.map((curr, i) => ({
     label: curr.currency,
     value: curr.equivalentBase / 1000000,
-    color: curr.currency === selectedBaseCurrency ? 'bg-[#171717]' : chartColors[i % chartColors.length]
+    color: curr.currency === selectedBaseCurrency ? 'bg-[var(--color-primary)]' : chartColors[i % chartColors.length]
   }));
 
   // Trend computed from real exchange rates or empty
@@ -344,8 +344,8 @@ const MultiCurrency: React.FC = () => {
                   onClick={() => setViewMode(mode)}
                   className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
                     viewMode === mode
-                      ? 'bg-[#171717] text-white shadow-md'
-                      : 'text-neutral-600 hover:text-[#171717]'
+                      ? 'bg-[var(--color-primary)] text-white shadow-md'
+                      : 'text-neutral-600 hover:text-[var(--color-primary)]'
                   }`}
                 >
                   {mode === 'overview' ? 'Vue d\'ensemble' :
@@ -359,7 +359,7 @@ const MultiCurrency: React.FC = () => {
               <select
                 value={selectedBaseCurrency}
                 onChange={(e) => setSelectedBaseCurrency(e.target.value)}
-                className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#171717]"
+                className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
               >
                 <option value={BASE_CURRENCY}>{BASE_CURRENCY}</option>
                 {Array.from(new Set(exchangeRates.flatMap(r => [r.from, r.to])))
@@ -407,14 +407,14 @@ const MultiCurrency: React.FC = () => {
                       placeholder="Rechercher une devise..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#171717]"
+                      className="w-full pl-10 pr-4 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
                     />
                   </div>
 
                   <select
                     value={filterExposure}
                     onChange={(e) => setFilterExposure(e.target.value)}
-                    className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#171717]"
+                    className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
                   >
                     <option value="all">Toutes les expositions</option>
                     <option value="low">Exposition faible</option>
@@ -425,7 +425,7 @@ const MultiCurrency: React.FC = () => {
                   <select
                     value={filterHedged}
                     onChange={(e) => setFilterHedged(e.target.value)}
-                    className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#171717]"
+                    className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
                   >
                     <option value="all">Toutes les positions</option>
                     <option value="hedged">Positions couvertes</option>
@@ -467,7 +467,7 @@ const MultiCurrency: React.FC = () => {
                         >
                           <td className="py-4 px-4">
                             <div className="flex items-center space-x-3">
-                              <div className="p-2 bg-[#171717]/5 rounded-lg">
+                              <div className="p-2 bg-[var(--color-primary)]/5 rounded-lg">
                                 {getCurrencyIcon(currency.currency)}
                               </div>
                               <div>
@@ -530,7 +530,7 @@ const MultiCurrency: React.FC = () => {
                             <div className="flex justify-center space-x-2">
                               <button
                                 onClick={() => setCurrencyModal({ isOpen: true, mode: 'view', currency: currency.currency })}
-                                className="p-2 text-neutral-400 hover:text-[#171717] transition-colors"
+                                className="p-2 text-neutral-400 hover:text-[var(--color-primary)] transition-colors"
                               >
                                 <Eye className="h-4 w-4" />
                               </button>
@@ -645,14 +645,14 @@ const MultiCurrency: React.FC = () => {
                       >
                         <td className="py-4 px-4">
                           <div className="flex items-center space-x-3">
-                            <div className="p-2 bg-[#171717]/5 rounded-lg">
+                            <div className="p-2 bg-[var(--color-primary)]/5 rounded-lg">
                               {getCurrencyIcon(position.currency)}
                             </div>
                             <span className="font-semibold text-neutral-800">{position.currency}</span>
                           </div>
                         </td>
                         <td className="py-4 px-4">
-                          <span className="px-2 py-1 text-xs font-medium rounded-full bg-[#171717]/10 text-[#171717]">
+                          <span className="px-2 py-1 text-xs font-medium rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
                             {position.type.toUpperCase()}
                           </span>
                         </td>
@@ -687,7 +687,7 @@ const MultiCurrency: React.FC = () => {
                           <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                             position.status === 'active' ? 'bg-green-50 text-green-600' :
                             position.status === 'expired' ? 'bg-gray-50 text-gray-600' :
-                            'bg-[#171717]/10 text-[#171717]'
+                            'bg-[var(--color-primary)]/10 text-[var(--color-primary)]'
                           }`}>
                             {position.status === 'active' ? 'Actif' :
                              position.status === 'expired' ? 'Expiré' : 'Exercé'}

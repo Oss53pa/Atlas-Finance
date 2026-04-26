@@ -347,9 +347,9 @@ const Balance: React.FC = () => {
   const getNiveauStyle = (niveau: number) => {
     switch (niveau) {
       case 1:
-        return 'font-bold text-base bg-[#171717]/20';
+        return 'font-bold text-base bg-[var(--color-primary)]/20';
       case 2:
-        return 'font-semibold text-sm bg-[#737373]/10';
+        return 'font-semibold text-sm bg-[var(--color-text-tertiary)]/10';
       case 3:
         return 'text-sm';
       default:
@@ -360,14 +360,14 @@ const Balance: React.FC = () => {
   const renderAccounts = (accounts: BalanceAccount[], parentLevel = 0) => {
     return accounts.map((account) => (
       <React.Fragment key={account.code}>
-        <tr className={`hover:bg-[#e5e5e5] ${getNiveauStyle(account.niveau)}`}>
+        <tr className={`hover:bg-[var(--color-border)] ${getNiveauStyle(account.niveau)}`}>
           {visibleColumns.compte && (
             <td className={`px-4 py-2 ${account.niveau > 1 ? `pl-${4 + (account.niveau - 1) * 8}` : ''}`}>
               <div className="flex items-center space-x-2">
                 {account.children && account.children.length > 0 && (
                   <button
                     onClick={() => handleToggle(account.code)}
-                    className="text-[#171717] hover:text-[#262626]"
+                    className="text-[var(--color-primary)] hover:text-[var(--color-primary-hover)]"
                   >
                     {account.isExpanded ? (
                       <ChevronDown className="w-4 h-4" />
@@ -377,12 +377,12 @@ const Balance: React.FC = () => {
                   </button>
                 )}
                 {account.niveau === 1 && (
-                  <Folder className={`w-4 h-4 text-[#525252] ${account.isExpanded ? 'hidden' : ''}`} />
+                  <Folder className={`w-4 h-4 text-[var(--color-text-secondary)] ${account.isExpanded ? 'hidden' : ''}`} />
                 )}
                 {account.niveau === 1 && account.isExpanded && (
-                  <FolderOpen className="w-4 h-4 text-[#525252]" />
+                  <FolderOpen className="w-4 h-4 text-[var(--color-text-secondary)]" />
                 )}
-                <span className={`font-mono ${account.niveau === 1 ? 'text-[#525252]' : 'text-[#171717]'}`}>
+                <span className={`font-mono ${account.niveau === 1 ? 'text-[var(--color-text-secondary)]' : 'text-[var(--color-primary)]'}`}>
                   {account.code}
                 </span>
               </div>
@@ -456,7 +456,7 @@ const Balance: React.FC = () => {
   const totals = calculateTotals(accounts);
 
   return (
-    <div className="p-6 space-y-6 bg-[#f5f5f5] min-h-screen">
+    <div className="p-6 space-y-6 bg-[var(--color-surface-hover)] min-h-screen">
       <PrintableArea
         ref={printRef}
         documentTitle={`Balance Comptable - ${dateRange.start} au ${dateRange.end}`}
@@ -470,13 +470,13 @@ const Balance: React.FC = () => {
         }
       >
       {/* En-tête */}
-      <div className="bg-[#f5f5f5] rounded-lg p-4 border border-[#e5e5e5] shadow-sm print-hide">
+      <div className="bg-[var(--color-surface-hover)] rounded-lg p-4 border border-[var(--color-border)] shadow-sm print-hide">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <Scale className="w-6 h-6 text-[#171717]" />
+            <Scale className="w-6 h-6 text-[var(--color-primary)]" />
             <div>
-              <h2 className="text-lg font-bold text-[#171717]">Balance Générale</h2>
-              <p className="text-sm text-[#171717]/70">Vue synthétique des comptes</p>
+              <h2 className="text-lg font-bold text-[var(--color-primary)]">Balance Générale</h2>
+              <p className="text-sm text-[var(--color-primary)]/70">Vue synthétique des comptes</p>
             </div>
           </div>
 
@@ -484,9 +484,9 @@ const Balance: React.FC = () => {
             {/* Bouton de sélection de période */}
             <button
               onClick={() => setShowPeriodModal(true)}
-              className="px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717] text-left flex items-center space-x-2 hover:bg-gray-50"
+              className="px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] text-left flex items-center space-x-2 hover:bg-gray-50"
             >
-              <Calendar className="w-4 h-4 text-[#171717]" />
+              <Calendar className="w-4 h-4 text-[var(--color-primary)]" />
               <span className="text-sm">
                 {dateRange.start && dateRange.end
                   ? `${new Date(dateRange.start).toLocaleDateString('fr-FR')} - ${new Date(dateRange.end).toLocaleDateString('fr-FR')}`
@@ -496,13 +496,13 @@ const Balance: React.FC = () => {
             </button>
 
             {/* BOUTONS DE MODE D'AFFICHAGE */}
-            <div className="flex bg-[#e5e5e5] rounded-lg p-1">
+            <div className="flex bg-[var(--color-border)] rounded-lg p-1">
               <button
                 onClick={() => setViewMode('tree')}
                 className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
                   viewMode === 'tree'
-                    ? 'bg-[#171717] text-[#f5f5f5]'
-                    : 'text-[#171717]/70 hover:bg-[#e5e5e5]'
+                    ? 'bg-[var(--color-primary)] text-[var(--color-surface-hover)]'
+                    : 'text-[var(--color-primary)]/70 hover:bg-[var(--color-border)]'
                 }`}
               >
                 Arborescence
@@ -511,8 +511,8 @@ const Balance: React.FC = () => {
                 onClick={() => setViewMode('list')}
                 className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
                   viewMode === 'list'
-                    ? 'bg-[#171717] text-[#f5f5f5]'
-                    : 'text-[#171717]/70 hover:bg-[#e5e5e5]'
+                    ? 'bg-[var(--color-primary)] text-[var(--color-surface-hover)]'
+                    : 'text-[var(--color-primary)]/70 hover:bg-[var(--color-border)]'
                 }`}
               >
                 Liste
@@ -521,8 +521,8 @@ const Balance: React.FC = () => {
                 onClick={() => setViewMode('grid')}
                 className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
                   viewMode === 'grid'
-                    ? 'bg-[#171717] text-[#f5f5f5]'
-                    : 'text-[#171717]/70 hover:bg-[#e5e5e5]'
+                    ? 'bg-[var(--color-primary)] text-[var(--color-surface-hover)]'
+                    : 'text-[var(--color-primary)]/70 hover:bg-[var(--color-border)]'
                 }`}
               >
                 Grille
@@ -532,7 +532,7 @@ const Balance: React.FC = () => {
             <select
               value={balanceType}
               onChange={(e) => setBalanceType(e.target.value as typeof balanceType)}
-              className="px-3 py-1.5 text-sm border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]"
+              className="px-3 py-1.5 text-sm border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
             >
               <option value="generale">Balance Générale</option>
               <option value="auxiliaire">Balance Auxiliaire</option>
@@ -543,7 +543,7 @@ const Balance: React.FC = () => {
             <div className="relative">
               <button
                 onClick={() => setShowColumnsDropdown(!showColumnsDropdown)}
-                className="px-3 py-1.5 text-sm border border-[#e5e5e5] rounded-lg hover:bg-[#e5e5e5] flex items-center space-x-1"
+                className="px-3 py-1.5 text-sm border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-border)] flex items-center space-x-1"
               >
                 <Columns className="w-4 h-4" />
                 <span>Colonnes ({columnCount})</span>
@@ -561,7 +561,7 @@ const Balance: React.FC = () => {
                           name="columnFormat"
                           checked={columnCount === 4}
                           onChange={() => setColumnCount(4)}
-                          className="mt-1 text-[#171717] focus:ring-[#171717]"
+                          className="mt-1 text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
                         />
                         <div>
                           <div className="text-sm font-medium text-gray-900">4 colonnes (Version simplifiée)</div>
@@ -577,7 +577,7 @@ const Balance: React.FC = () => {
                           name="columnFormat"
                           checked={columnCount === 5}
                           onChange={() => setColumnCount(5)}
-                          className="mt-1 text-[#171717] focus:ring-[#171717]"
+                          className="mt-1 text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
                         />
                         <div>
                           <div className="text-sm font-medium text-gray-900">5 colonnes (Version intermédiaire)</div>
@@ -593,7 +593,7 @@ const Balance: React.FC = () => {
                           name="columnFormat"
                           checked={columnCount === 6}
                           onChange={() => setColumnCount(6)}
-                          className="mt-1 text-[#171717] focus:ring-[#171717]"
+                          className="mt-1 text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
                         />
                         <div>
                           <div className="text-sm font-medium text-gray-900">6 colonnes (Version complète SYSCOHADA)</div>
@@ -608,7 +608,7 @@ const Balance: React.FC = () => {
               )}
             </div>
 
-            <button className="px-3 py-1.5 text-sm bg-[#171717] text-white rounded-lg hover:bg-[#262626] transition-colors flex items-center space-x-1" aria-label="Actualiser">
+            <button className="px-3 py-1.5 text-sm bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] transition-colors flex items-center space-x-1" aria-label="Actualiser">
               <RefreshCw className="w-4 h-4" />
               <span>{t('common.refresh')}</span>
             </button>
@@ -621,33 +621,33 @@ const Balance: React.FC = () => {
 
       {/* Table de la balance - Mode Arborescence */}
       {viewMode === 'tree' && balanceType === 'generale' && (
-        <div className="bg-white rounded-lg border-2 border-[#171717] overflow-hidden shadow-lg h-[600px] flex flex-col">
+        <div className="bg-white rounded-lg border-2 border-[var(--color-primary)] overflow-hidden shadow-lg h-[600px] flex flex-col">
           <div className="overflow-auto flex-1">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 sticky top-0 z-10">
                 <tr>
-                  {visibleColumns.compte && <th className="px-4 py-3 text-left font-semibold text-[#171717]">{t('accounting.account')}</th>}
-                  {visibleColumns.libelle && <th className="px-4 py-3 text-left font-semibold text-[#171717]">{t('accounting.label')}</th>}
+                  {visibleColumns.compte && <th className="px-4 py-3 text-left font-semibold text-[var(--color-primary)]">{t('accounting.account')}</th>}
+                  {visibleColumns.libelle && <th className="px-4 py-3 text-left font-semibold text-[var(--color-primary)]">{t('accounting.label')}</th>}
                   {(visibleColumns.soldeDebiteurAN || visibleColumns.soldeCrediteurAN) && (
-                    <th className="px-4 py-3 text-right font-semibold text-[#171717]"
+                    <th className="px-4 py-3 text-right font-semibold text-[var(--color-primary)]"
                         colSpan={(visibleColumns.soldeDebiteurAN && visibleColumns.soldeCrediteurAN) ? 2 : 1}>
                       <div className="text-center">Soldes à nouveau</div>
                     </th>
                   )}
                   {(visibleColumns.mouvementsDebit || visibleColumns.mouvementsCredit) && (
-                    <th className="px-4 py-3 text-right font-semibold text-[#171717]"
+                    <th className="px-4 py-3 text-right font-semibold text-[var(--color-primary)]"
                         colSpan={(visibleColumns.mouvementsDebit && visibleColumns.mouvementsCredit) ? 2 : 1}>
                       <div className="text-center">Mouvements période</div>
                     </th>
                   )}
                   {(visibleColumns.soldeDebiteur || visibleColumns.soldeCrediteur) && (
-                    <th className="px-4 py-3 text-right font-semibold text-[#171717]"
+                    <th className="px-4 py-3 text-right font-semibold text-[var(--color-primary)]"
                         colSpan={(visibleColumns.soldeDebiteur && visibleColumns.soldeCrediteur) ? 2 : 1}>
                       <div className="text-center">Soldes fin période</div>
                     </th>
                   )}
                 </tr>
-                <tr className="text-xs text-[#737373]">
+                <tr className="text-xs text-[var(--color-text-tertiary)]">
                   {visibleColumns.compte && <th className="px-4 py-2 text-left font-medium"></th>}
                   {visibleColumns.libelle && <th className="px-4 py-2 text-left font-medium"></th>}
                   {visibleColumns.soldeDebiteurAN && <th className="px-4 py-2 text-right font-medium">Débiteur</th>}
@@ -662,8 +662,8 @@ const Balance: React.FC = () => {
                 {renderAccounts(accounts)}
 
                 {/* Ligne de totaux */}
-                <tr className="bg-[#525252]/20 font-bold border-t-2 border-[#525252]">
-                  <td colSpan={(visibleColumns.compte ? 1 : 0) + (visibleColumns.libelle ? 1 : 0)} className="px-4 py-3 text-[#171717]">TOTAUX</td>
+                <tr className="bg-[var(--color-text-secondary)]/20 font-bold border-t-2 border-[var(--color-text-secondary)]">
+                  <td colSpan={(visibleColumns.compte ? 1 : 0) + (visibleColumns.libelle ? 1 : 0)} className="px-4 py-3 text-[var(--color-primary)]">TOTAUX</td>
                   {visibleColumns.soldeDebiteurAN && <td className="px-4 py-3 text-right">{formatAmount(totals.soldeDebiteurAN)}</td>}
                   {visibleColumns.soldeCrediteurAN && <td className="px-4 py-3 text-right">{formatAmount(totals.soldeCrediteurAN)}</td>}
                   {visibleColumns.mouvementsDebit && <td className="px-4 py-3 text-right text-red-600">{formatAmount(totals.mouvementsDebit)}</td>}
@@ -679,28 +679,28 @@ const Balance: React.FC = () => {
 
       {/* Mode Liste */}
       {viewMode === 'list' && balanceType === 'generale' && (
-        <div className="bg-white rounded-lg border-2 border-[#171717] overflow-hidden shadow-lg h-[600px] flex flex-col">
+        <div className="bg-white rounded-lg border-2 border-[var(--color-primary)] overflow-hidden shadow-lg h-[600px] flex flex-col">
           <div className="overflow-auto flex-1">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 sticky top-0 z-10">
                 <tr>
-                  <th className="px-4 py-3 text-left font-semibold text-[#171717]">
+                  <th className="px-4 py-3 text-left font-semibold text-[var(--color-primary)]">
                     <input type="checkbox" className="rounded" />
                   </th>
-                  <th className="px-4 py-3 text-left font-semibold text-[#171717]">N° Compte</th>
-                  <th className="px-4 py-3 text-left font-semibold text-[#171717]">Intitulé</th>
-                  <th className="px-4 py-3 text-right font-semibold text-[#171717]">Total Débit</th>
-                  <th className="px-4 py-3 text-right font-semibold text-[#171717]">Total Crédit</th>
+                  <th className="px-4 py-3 text-left font-semibold text-[var(--color-primary)]">N° Compte</th>
+                  <th className="px-4 py-3 text-left font-semibold text-[var(--color-primary)]">Intitulé</th>
+                  <th className="px-4 py-3 text-right font-semibold text-[var(--color-primary)]">Total Débit</th>
+                  <th className="px-4 py-3 text-right font-semibold text-[var(--color-primary)]">Total Crédit</th>
                   {columnCount >= 5 && (
-                    <th className="px-4 py-3 text-right font-semibold text-[#171717]">{t('accounting.balance')}</th>
+                    <th className="px-4 py-3 text-right font-semibold text-[var(--color-primary)]">{t('accounting.balance')}</th>
                   )}
                   {columnCount === 6 && (
                     <>
-                      <th className="px-4 py-3 text-right font-semibold text-[#171717]">Solde Débiteur</th>
-                      <th className="px-4 py-3 text-right font-semibold text-[#171717]">Solde Créditeur</th>
+                      <th className="px-4 py-3 text-right font-semibold text-[var(--color-primary)]">Solde Débiteur</th>
+                      <th className="px-4 py-3 text-right font-semibold text-[var(--color-primary)]">Solde Créditeur</th>
                     </>
                   )}
-                  <th className="px-4 py-3 text-center font-semibold text-[#171717]">Actions</th>
+                  <th className="px-4 py-3 text-center font-semibold text-[var(--color-primary)]">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -727,7 +727,7 @@ const Balance: React.FC = () => {
                         }}
                       />
                     </td>
-                    <td className={`px-4 py-2 font-mono ${account.niveau === 1 ? 'font-bold text-[#525252]' : 'text-[#171717]'}`}>
+                    <td className={`px-4 py-2 font-mono ${account.niveau === 1 ? 'font-bold text-[var(--color-text-secondary)]' : 'text-[var(--color-primary)]'}`}>
                       {account.code}
                     </td>
                     <td className={`px-4 py-2 ${account.niveau === 1 ? 'font-bold' : ''}`}>
@@ -805,10 +805,10 @@ const Balance: React.FC = () => {
                 ))}
               </tbody>
               {/* Ligne de totaux */}
-              <tfoot className="bg-[#525252]/20 font-bold">
-                <tr className="border-t-2 border-[#525252]">
+              <tfoot className="bg-[var(--color-text-secondary)]/20 font-bold">
+                <tr className="border-t-2 border-[var(--color-text-secondary)]">
                   <td className="px-4 py-3"></td>
-                  <td colSpan={2} className="px-4 py-3 text-[#171717]">TOTAUX</td>
+                  <td colSpan={2} className="px-4 py-3 text-[var(--color-primary)]">TOTAUX</td>
                   <td className="px-4 py-3 text-right">{formatAmount(totals.soldeDebiteurAN)}</td>
                   <td className="px-4 py-3 text-right">{formatAmount(totals.soldeCrediteurAN)}</td>
                   <td className="px-4 py-3 text-right text-red-600">{formatAmount(totals.mouvementsDebit)}</td>
@@ -825,9 +825,9 @@ const Balance: React.FC = () => {
 
       {/* Mode Grille */}
       {viewMode === 'grid' && balanceType === 'generale' && (
-        <div className="bg-white rounded-lg border-2 border-[#171717] overflow-hidden shadow-lg h-[600px] flex flex-col">
+        <div className="bg-white rounded-lg border-2 border-[var(--color-primary)] overflow-hidden shadow-lg h-[600px] flex flex-col">
           <div className="p-4 bg-gray-50 border-b">
-            <h3 className="text-lg font-semibold text-[#171717]">Balance Générale - Vue Grille</h3>
+            <h3 className="text-lg font-semibold text-[var(--color-primary)]">Balance Générale - Vue Grille</h3>
           </div>
           <div className="overflow-auto flex-1 p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -836,18 +836,18 @@ const Balance: React.FC = () => {
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center space-x-2">
                       {account.niveau === 1 ? (
-                        <Folder className="w-5 h-5 text-[#525252]" />
+                        <Folder className="w-5 h-5 text-[var(--color-text-secondary)]" />
                       ) : (
-                        <FileText className="w-4 h-4 text-[#171717]" />
+                        <FileText className="w-4 h-4 text-[var(--color-primary)]" />
                       )}
-                      <span className={`font-mono text-sm ${account.niveau === 1 ? 'text-[#525252] font-bold' : 'text-[#171717]'}`}>
+                      <span className={`font-mono text-sm ${account.niveau === 1 ? 'text-[var(--color-text-secondary)] font-bold' : 'text-[var(--color-primary)]'}`}>
                         {account.code}
                       </span>
                     </div>
                     {account.children && account.children.length > 0 && (
                       <button
                         onClick={() => handleToggle(account.code)}
-                        className="text-[#171717] hover:text-[#262626]"
+                        className="text-[var(--color-primary)] hover:text-[var(--color-primary-hover)]"
                       >
                         {account.isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                       </button>
@@ -915,10 +915,10 @@ const Balance: React.FC = () => {
       {balanceType === 'auxiliaire' && (
         <>
           {viewMode === 'tree' && (
-            <div className="bg-white rounded-lg border-2 border-[#171717] overflow-hidden shadow-lg h-[600px] flex flex-col">
+            <div className="bg-white rounded-lg border-2 border-[var(--color-primary)] overflow-hidden shadow-lg h-[600px] flex flex-col">
               <div className="p-4 bg-gray-50 border-b">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-[#171717]">Balance Auxiliaire - Vue Arborescence</h3>
+                  <h3 className="text-lg font-semibold text-[var(--color-primary)]">Balance Auxiliaire - Vue Arborescence</h3>
                   <div className="flex space-x-2">
                     <button className="px-3 py-1 bg-blue-100 text-blue-700 rounded-md text-sm">Clients (411)</button>
                     <button className="px-3 py-1 bg-gray-100 text-gray-700 rounded-md text-sm">Fournisseurs (401)</button>
@@ -932,8 +932,8 @@ const Balance: React.FC = () => {
                   <div className="border rounded-lg p-4 bg-blue-50">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center space-x-2">
-                        <ChevronDown className="w-4 h-4 text-[#171717]" />
-                        <span className="font-bold text-[#171717]">411 - CLIENTS</span>
+                        <ChevronDown className="w-4 h-4 text-[var(--color-primary)]" />
+                        <span className="font-bold text-[var(--color-primary)]">411 - CLIENTS</span>
                       </div>
                       <span className="font-semibold">Solde Total: 3 300 000,00 FCFA</span>
                     </div>
@@ -951,8 +951,8 @@ const Balance: React.FC = () => {
                   <div className="border rounded-lg p-4 bg-orange-50">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center space-x-2">
-                        <ChevronRight className="w-4 h-4 text-[#171717]" />
-                        <span className="font-bold text-[#171717]">401 - FOURNISSEURS</span>
+                        <ChevronRight className="w-4 h-4 text-[var(--color-primary)]" />
+                        <span className="font-bold text-[var(--color-primary)]">401 - FOURNISSEURS</span>
                       </div>
                       <span className="font-semibold">Solde Total: 1 400 000,00 FCFA</span>
                     </div>
@@ -963,10 +963,10 @@ const Balance: React.FC = () => {
           )}
 
           {viewMode === 'list' && (
-            <div className="bg-white rounded-lg border-2 border-[#171717] overflow-hidden shadow-lg h-[600px] flex flex-col">
+            <div className="bg-white rounded-lg border-2 border-[var(--color-primary)] overflow-hidden shadow-lg h-[600px] flex flex-col">
               <div className="p-4 bg-gray-50 border-b">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-[#171717]">Balance Auxiliaire - Vue Liste</h3>
+                  <h3 className="text-lg font-semibold text-[var(--color-primary)]">Balance Auxiliaire - Vue Liste</h3>
                   <div className="flex space-x-2">
                     <button className="px-3 py-1 bg-blue-100 text-blue-700 rounded-md text-sm">Clients (411)</button>
                     <button className="px-3 py-1 bg-gray-100 text-gray-700 rounded-md text-sm">Fournisseurs (401)</button>
@@ -979,19 +979,19 @@ const Balance: React.FC = () => {
                 <table className="w-full text-sm">
               <thead className="bg-gray-50 sticky top-0 z-10">
                 <tr>
-                  <th className="px-4 py-3 text-left font-semibold text-[#171717]">{t('accounting.account')}</th>
-                  <th className="px-4 py-3 text-left font-semibold text-[#171717]">Tiers</th>
-                  <th className="px-4 py-3 text-right font-semibold text-[#171717]">Solde Antérieur</th>
-                  <th className="px-4 py-3 text-right font-semibold text-[#171717]">Débit Période</th>
-                  <th className="px-4 py-3 text-right font-semibold text-[#171717]">Crédit Période</th>
-                  <th className="px-4 py-3 text-right font-semibold text-[#171717]">Solde Final</th>
-                  <th className="px-4 py-3 text-center font-semibold text-[#171717]">{t('thirdParty.reconciliation')}</th>
-                  <th className="px-4 py-3 text-center font-semibold text-[#171717]">Actions</th>
+                  <th className="px-4 py-3 text-left font-semibold text-[var(--color-primary)]">{t('accounting.account')}</th>
+                  <th className="px-4 py-3 text-left font-semibold text-[var(--color-primary)]">Tiers</th>
+                  <th className="px-4 py-3 text-right font-semibold text-[var(--color-primary)]">Solde Antérieur</th>
+                  <th className="px-4 py-3 text-right font-semibold text-[var(--color-primary)]">Débit Période</th>
+                  <th className="px-4 py-3 text-right font-semibold text-[var(--color-primary)]">Crédit Période</th>
+                  <th className="px-4 py-3 text-right font-semibold text-[var(--color-primary)]">Solde Final</th>
+                  <th className="px-4 py-3 text-center font-semibold text-[var(--color-primary)]">{t('thirdParty.reconciliation')}</th>
+                  <th className="px-4 py-3 text-center font-semibold text-[var(--color-primary)]">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 <tr className="hover:bg-gray-50 border-b">
-                  <td className="px-4 py-2 font-mono text-[#171717]">411001</td>
+                  <td className="px-4 py-2 font-mono text-[var(--color-primary)]">411001</td>
                   <td className="px-4 py-2">Client A SARL</td>
                   <td className="px-4 py-2 text-right">1 500 000,00</td>
                   <td className="px-4 py-2 text-right text-red-600">2 500 000,00</td>
@@ -1025,7 +1025,7 @@ const Balance: React.FC = () => {
                   </td>
                 </tr>
                 <tr className="hover:bg-gray-50 border-b">
-                  <td className="px-4 py-2 font-mono text-[#171717]">411002</td>
+                  <td className="px-4 py-2 font-mono text-[var(--color-primary)]">411002</td>
                   <td className="px-4 py-2">Client B SAS</td>
                   <td className="px-4 py-2 text-right">800 000,00</td>
                   <td className="px-4 py-2 text-right text-red-600">1 200 000,00</td>
@@ -1065,9 +1065,9 @@ const Balance: React.FC = () => {
           )}
 
           {viewMode === 'grid' && (
-            <div className="bg-white rounded-lg border-2 border-[#171717] overflow-hidden shadow-lg h-[600px] flex flex-col">
+            <div className="bg-white rounded-lg border-2 border-[var(--color-primary)] overflow-hidden shadow-lg h-[600px] flex flex-col">
               <div className="p-4 bg-gray-50 border-b">
-                <h3 className="text-lg font-semibold text-[#171717]">Balance Auxiliaire - Vue Grille</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-primary)]">Balance Auxiliaire - Vue Grille</h3>
               </div>
               <div className="overflow-auto flex-1 p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -1075,8 +1075,8 @@ const Balance: React.FC = () => {
                   <div className="bg-white border-2 border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center space-x-2">
-                        <Users className="w-5 h-5 text-[#525252]" />
-                        <span className="font-mono text-sm text-[#525252] font-bold">411001</span>
+                        <Users className="w-5 h-5 text-[var(--color-text-secondary)]" />
+                        <span className="font-mono text-sm text-[var(--color-text-secondary)] font-bold">411001</span>
                       </div>
                     </div>
 
@@ -1107,8 +1107,8 @@ const Balance: React.FC = () => {
                   <div className="bg-white border-2 border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center space-x-2">
-                        <Users className="w-5 h-5 text-[#525252]" />
-                        <span className="font-mono text-sm text-[#525252] font-bold">411002</span>
+                        <Users className="w-5 h-5 text-[var(--color-text-secondary)]" />
+                        <span className="font-mono text-sm text-[var(--color-text-secondary)] font-bold">411002</span>
                       </div>
                     </div>
 
@@ -1139,8 +1139,8 @@ const Balance: React.FC = () => {
                   <div className="bg-white border-2 border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center space-x-2">
-                        <Building className="w-5 h-5 text-[#171717]" />
-                        <span className="font-mono text-sm text-[#171717] font-bold">401001</span>
+                        <Building className="w-5 h-5 text-[var(--color-primary)]" />
+                        <span className="font-mono text-sm text-[var(--color-primary)] font-bold">401001</span>
                       </div>
                     </div>
 
@@ -1171,8 +1171,8 @@ const Balance: React.FC = () => {
                   <div className="bg-white border-2 border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center space-x-2">
-                        <Users className="w-5 h-5 text-[#171717]" />
-                        <span className="font-mono text-sm text-[#171717] font-bold">421001</span>
+                        <Users className="w-5 h-5 text-[var(--color-primary)]" />
+                        <span className="font-mono text-sm text-[var(--color-primary)] font-bold">421001</span>
                       </div>
                     </div>
 
@@ -1209,10 +1209,10 @@ const Balance: React.FC = () => {
       {balanceType === 'agee' && (
         <>
           {viewMode === 'tree' && (
-        <div className="bg-white rounded-lg border-2 border-[#171717] overflow-hidden shadow-lg h-[600px] flex flex-col">
+        <div className="bg-white rounded-lg border-2 border-[var(--color-primary)] overflow-hidden shadow-lg h-[600px] flex flex-col">
           <div className="p-4 bg-gray-50 border-b">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-[#171717]">Balance Âgée des Créances</h3>
+              <h3 className="text-lg font-semibold text-[var(--color-primary)]">Balance Âgée des Créances</h3>
               <div className="flex space-x-2">
                 <span className="px-3 py-1 bg-green-100 text-green-700 rounded-md text-sm">Non échu</span>
                 <span className="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-md text-sm">0-30 jours</span>
@@ -1225,21 +1225,21 @@ const Balance: React.FC = () => {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 sticky top-0 z-10">
                 <tr>
-                  <th className="px-4 py-3 text-left font-semibold text-[#171717]">Client</th>
-                  <th className="px-4 py-3 text-right font-semibold text-[#171717]">Solde Total</th>
+                  <th className="px-4 py-3 text-left font-semibold text-[var(--color-primary)]">Client</th>
+                  <th className="px-4 py-3 text-right font-semibold text-[var(--color-primary)]">Solde Total</th>
                   <th className="px-4 py-3 text-right font-semibold text-green-700">Non échu</th>
                   <th className="px-4 py-3 text-right font-semibold text-yellow-700">0-30 jours</th>
                   <th className="px-4 py-3 text-right font-semibold text-orange-700">31-60 jours</th>
                   <th className="px-4 py-3 text-right font-semibold text-red-700">&gt;60 jours</th>
-                  <th className="px-4 py-3 text-center font-semibold text-[#171717]">Risque</th>
-                  <th className="px-4 py-3 text-center font-semibold text-[#171717]">Actions</th>
+                  <th className="px-4 py-3 text-center font-semibold text-[var(--color-primary)]">Risque</th>
+                  <th className="px-4 py-3 text-center font-semibold text-[var(--color-primary)]">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 <tr className="hover:bg-gray-50 border-b">
                   <td className="px-4 py-2">
                     <div>
-                      <span className="font-mono text-[#171717]">411001</span> - Client A SARL
+                      <span className="font-mono text-[var(--color-primary)]">411001</span> - Client A SARL
                     </div>
                   </td>
                   <td className="px-4 py-2 text-right font-semibold">2 200 000,00</td>
@@ -1270,7 +1270,7 @@ const Balance: React.FC = () => {
                 <tr className="hover:bg-gray-50 border-b">
                   <td className="px-4 py-2">
                     <div>
-                      <span className="font-mono text-[#171717]">411002</span> - Client B SAS
+                      <span className="font-mono text-[var(--color-primary)]">411002</span> - Client B SAS
                     </div>
                   </td>
                   <td className="px-4 py-2 text-right font-semibold">1 100 000,00</td>
@@ -1305,9 +1305,9 @@ const Balance: React.FC = () => {
           )}
 
           {viewMode === 'list' && (
-            <div className="bg-white rounded-lg border-2 border-[#171717] overflow-hidden shadow-lg h-[600px] flex flex-col">
+            <div className="bg-white rounded-lg border-2 border-[var(--color-primary)] overflow-hidden shadow-lg h-[600px] flex flex-col">
               <div className="p-4 bg-gray-50 border-b">
-                <h3 className="text-lg font-semibold text-[#171717]">Balance Âgée - Vue Liste</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-primary)]">Balance Âgée - Vue Liste</h3>
               </div>
               <div className="overflow-auto flex-1">
                 <table className="w-full text-sm">
@@ -1325,7 +1325,7 @@ const Balance: React.FC = () => {
                   </thead>
                   <tbody>
                     <tr className="hover:bg-gray-50 border-b">
-                      <td className="px-4 py-2 font-mono text-[#171717]">411001</td>
+                      <td className="px-4 py-2 font-mono text-[var(--color-primary)]">411001</td>
                       <td className="px-4 py-2">Client A SARL</td>
                       <td className="px-4 py-2 text-right font-semibold">2 200 000,00</td>
                       <td className="px-4 py-2 text-right text-green-600">800 000,00</td>
@@ -1343,9 +1343,9 @@ const Balance: React.FC = () => {
           )}
 
           {viewMode === 'grid' && (
-            <div className="bg-white rounded-lg border-2 border-[#171717] overflow-hidden shadow-lg h-[600px] flex flex-col">
+            <div className="bg-white rounded-lg border-2 border-[var(--color-primary)] overflow-hidden shadow-lg h-[600px] flex flex-col">
               <div className="p-4 bg-gray-50 border-b">
-                <h3 className="text-lg font-semibold text-[#171717]">Balance Âgée - Vue Grille</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-primary)]">Balance Âgée - Vue Grille</h3>
               </div>
               <div className="overflow-auto flex-1 p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -1353,8 +1353,8 @@ const Balance: React.FC = () => {
                   <div className="bg-white border-2 border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center space-x-2">
-                        <Users className="w-5 h-5 text-[#525252]" />
-                        <span className="font-mono text-sm text-[#525252] font-bold">411001</span>
+                        <Users className="w-5 h-5 text-[var(--color-text-secondary)]" />
+                        <span className="font-mono text-sm text-[var(--color-text-secondary)] font-bold">411001</span>
                       </div>
                     </div>
 
@@ -1392,8 +1392,8 @@ const Balance: React.FC = () => {
                   <div className="bg-white border-2 border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center space-x-2">
-                        <Users className="w-5 h-5 text-[#525252]" />
-                        <span className="font-mono text-sm text-[#525252] font-bold">411002</span>
+                        <Users className="w-5 h-5 text-[var(--color-text-secondary)]" />
+                        <span className="font-mono text-sm text-[var(--color-text-secondary)] font-bold">411002</span>
                       </div>
                     </div>
 
@@ -1431,8 +1431,8 @@ const Balance: React.FC = () => {
                   <div className="bg-white border-2 border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center space-x-2">
-                        <Users className="w-5 h-5 text-[#525252]" />
-                        <span className="font-mono text-sm text-[#525252] font-bold">411003</span>
+                        <Users className="w-5 h-5 text-[var(--color-text-secondary)]" />
+                        <span className="font-mono text-sm text-[var(--color-text-secondary)] font-bold">411003</span>
                       </div>
                     </div>
 
@@ -1476,10 +1476,10 @@ const Balance: React.FC = () => {
       {balanceType === 'cloture' && (
         <>
           {viewMode === 'tree' && (
-        <div className="bg-white rounded-lg border-2 border-[#171717] overflow-hidden shadow-lg h-[600px] flex flex-col">
+        <div className="bg-white rounded-lg border-2 border-[var(--color-primary)] overflow-hidden shadow-lg h-[600px] flex flex-col">
           <div className="p-4 bg-gray-50 border-b">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-[#171717]">Balance de Clôture</h3>
+              <h3 className="text-lg font-semibold text-[var(--color-primary)]">Balance de Clôture</h3>
               <div className="flex items-center space-x-4">
                 <span className="text-sm text-gray-600">Exercice: 2024</span>
                 <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-md text-sm">État: En cours</span>
@@ -1490,20 +1490,20 @@ const Balance: React.FC = () => {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 sticky top-0 z-10">
                 <tr>
-                  <th className="px-4 py-3 text-left font-semibold text-[#171717]">{t('accounting.account')}</th>
-                  <th className="px-4 py-3 text-left font-semibold text-[#171717]">{t('accounting.label')}</th>
-                  <th className="px-4 py-3 text-right font-semibold text-[#171717]" colSpan={2}>
+                  <th className="px-4 py-3 text-left font-semibold text-[var(--color-primary)]">{t('accounting.account')}</th>
+                  <th className="px-4 py-3 text-left font-semibold text-[var(--color-primary)]">{t('accounting.label')}</th>
+                  <th className="px-4 py-3 text-right font-semibold text-[var(--color-primary)]" colSpan={2}>
                     <div className="text-center">Soldes d'ouverture</div>
                   </th>
-                  <th className="px-4 py-3 text-right font-semibold text-[#171717]" colSpan={2}>
+                  <th className="px-4 py-3 text-right font-semibold text-[var(--color-primary)]" colSpan={2}>
                     <div className="text-center">Mouvements de l'exercice</div>
                   </th>
-                  <th className="px-4 py-3 text-right font-semibold text-[#171717]" colSpan={2}>
+                  <th className="px-4 py-3 text-right font-semibold text-[var(--color-primary)]" colSpan={2}>
                     <div className="text-center">Soldes de clôture</div>
                   </th>
-                  <th className="px-4 py-3 text-center font-semibold text-[#171717]">Affectation</th>
+                  <th className="px-4 py-3 text-center font-semibold text-[var(--color-primary)]">Affectation</th>
                 </tr>
-                <tr className="text-xs text-[#737373]">
+                <tr className="text-xs text-[var(--color-text-tertiary)]">
                   <th className="px-4 py-2"></th>
                   <th className="px-4 py-2"></th>
                   <th className="px-4 py-2 text-right">{t('accounting.debit')}</th>
@@ -1517,7 +1517,7 @@ const Balance: React.FC = () => {
               </thead>
               <tbody>
                 <tr className="hover:bg-gray-50 border-b bg-blue-50">
-                  <td className="px-4 py-2 font-mono text-[#171717] font-bold">1-5</td>
+                  <td className="px-4 py-2 font-mono text-[var(--color-primary)] font-bold">1-5</td>
                   <td className="px-4 py-2 font-semibold">BILAN</td>
                   <td className="px-4 py-2 text-right">15 000 000,00</td>
                   <td className="px-4 py-2 text-right">10 000 000,00</td>
@@ -1530,7 +1530,7 @@ const Balance: React.FC = () => {
                   </td>
                 </tr>
                 <tr className="hover:bg-gray-50 border-b bg-green-50">
-                  <td className="px-4 py-2 font-mono text-[#171717] font-bold">6</td>
+                  <td className="px-4 py-2 font-mono text-[var(--color-primary)] font-bold">6</td>
                   <td className="px-4 py-2 font-semibold">CHARGES</td>
                   <td className="px-4 py-2 text-right">0,00</td>
                   <td className="px-4 py-2 text-right">0,00</td>
@@ -1543,7 +1543,7 @@ const Balance: React.FC = () => {
                   </td>
                 </tr>
                 <tr className="hover:bg-gray-50 border-b bg-green-50">
-                  <td className="px-4 py-2 font-mono text-[#171717] font-bold">7</td>
+                  <td className="px-4 py-2 font-mono text-[var(--color-primary)] font-bold">7</td>
                   <td className="px-4 py-2 font-semibold">PRODUITS</td>
                   <td className="px-4 py-2 text-right">0,00</td>
                   <td className="px-4 py-2 text-right">0,00</td>
@@ -1556,7 +1556,7 @@ const Balance: React.FC = () => {
                   </td>
                 </tr>
                 <tr className="hover:bg-gray-50 border-b bg-yellow-50">
-                  <td className="px-4 py-2 font-mono text-[#171717] font-bold">89</td>
+                  <td className="px-4 py-2 font-mono text-[var(--color-primary)] font-bold">89</td>
                   <td className="px-4 py-2 font-semibold">RÉSULTAT NET</td>
                   <td className="px-4 py-2 text-right">0,00</td>
                   <td className="px-4 py-2 text-right">0,00</td>
@@ -1569,9 +1569,9 @@ const Balance: React.FC = () => {
                   </td>
                 </tr>
               </tbody>
-              <tfoot className="bg-[#525252]/20 font-bold">
-                <tr className="border-t-2 border-[#525252]">
-                  <td colSpan={2} className="px-4 py-3 text-[#171717]">TOTAUX</td>
+              <tfoot className="bg-[var(--color-text-secondary)]/20 font-bold">
+                <tr className="border-t-2 border-[var(--color-text-secondary)]">
+                  <td colSpan={2} className="px-4 py-3 text-[var(--color-primary)]">TOTAUX</td>
                   <td className="px-4 py-3 text-right">15 000 000,00</td>
                   <td className="px-4 py-3 text-right">10 000 000,00</td>
                   <td className="px-4 py-3 text-right text-red-600">28 500 000,00</td>
@@ -1591,7 +1591,7 @@ const Balance: React.FC = () => {
                 </span>
               </div>
               <div className="flex space-x-2">
-                <button className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#262626] text-sm">
+                <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] text-sm">
                   Valider la clôture
                 </button>
                 <button className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 text-sm">
@@ -1604,9 +1604,9 @@ const Balance: React.FC = () => {
           )}
 
           {viewMode === 'list' && (
-            <div className="bg-white rounded-lg border-2 border-[#171717] overflow-hidden shadow-lg h-[600px] flex flex-col">
+            <div className="bg-white rounded-lg border-2 border-[var(--color-primary)] overflow-hidden shadow-lg h-[600px] flex flex-col">
               <div className="p-4 bg-gray-50 border-b">
-                <h3 className="text-lg font-semibold text-[#171717]">Balance de Clôture - Vue Liste</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-primary)]">Balance de Clôture - Vue Liste</h3>
               </div>
               <div className="overflow-auto flex-1">
                 <table className="w-full text-sm">
@@ -1622,7 +1622,7 @@ const Balance: React.FC = () => {
                   </thead>
                   <tbody>
                     <tr className="hover:bg-gray-50 border-b">
-                      <td className="px-4 py-2 font-mono text-[#171717]">1-5</td>
+                      <td className="px-4 py-2 font-mono text-[var(--color-primary)]">1-5</td>
                       <td className="px-4 py-2">BILAN</td>
                       <td className="px-4 py-2 text-right">5 000 000,00</td>
                       <td className="px-4 py-2 text-right">1 500 000,00</td>
@@ -1638,9 +1638,9 @@ const Balance: React.FC = () => {
           )}
 
           {viewMode === 'grid' && (
-            <div className="bg-white rounded-lg border-2 border-[#171717] overflow-hidden shadow-lg h-[600px] flex flex-col">
+            <div className="bg-white rounded-lg border-2 border-[var(--color-primary)] overflow-hidden shadow-lg h-[600px] flex flex-col">
               <div className="p-4 bg-gray-50 border-b">
-                <h3 className="text-lg font-semibold text-[#171717]">Balance de Clôture - Vue Grille</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-primary)]">Balance de Clôture - Vue Grille</h3>
               </div>
               <div className="overflow-auto flex-1 p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -1649,8 +1649,8 @@ const Balance: React.FC = () => {
                   <div className="bg-white border-2 border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center space-x-2">
-                        <Scale className="w-5 h-5 text-[#171717]" />
-                        <span className="font-mono text-sm text-[#171717] font-bold">1-5</span>
+                        <Scale className="w-5 h-5 text-[var(--color-primary)]" />
+                        <span className="font-mono text-sm text-[var(--color-primary)] font-bold">1-5</span>
                       </div>
                     </div>
 
@@ -1681,8 +1681,8 @@ const Balance: React.FC = () => {
                   <div className="bg-white border-2 border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center space-x-2">
-                        <TrendingDown className="w-5 h-5 text-[#525252]" />
-                        <span className="font-mono text-sm text-[#525252] font-bold">6</span>
+                        <TrendingDown className="w-5 h-5 text-[var(--color-text-secondary)]" />
+                        <span className="font-mono text-sm text-[var(--color-text-secondary)] font-bold">6</span>
                       </div>
                     </div>
 
@@ -1745,8 +1745,8 @@ const Balance: React.FC = () => {
                   <div className="bg-white border-2 border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center space-x-2">
-                        <Calculator className="w-5 h-5 text-[#525252]" />
-                        <span className="font-mono text-sm text-[#525252] font-bold">89</span>
+                        <Calculator className="w-5 h-5 text-[var(--color-text-secondary)]" />
+                        <span className="font-mono text-sm text-[var(--color-text-secondary)] font-bold">89</span>
                       </div>
                     </div>
 
@@ -1774,8 +1774,8 @@ const Balance: React.FC = () => {
                   <div className="bg-white border-2 border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center space-x-2">
-                        <FileSpreadsheet className="w-5 h-5 text-[#171717]" />
-                        <span className="font-mono text-sm text-[#171717] font-bold">ΣΣ</span>
+                        <FileSpreadsheet className="w-5 h-5 text-[var(--color-primary)]" />
+                        <span className="font-mono text-sm text-[var(--color-primary)] font-bold">ΣΣ</span>
                       </div>
                     </div>
 
@@ -1799,7 +1799,7 @@ const Balance: React.FC = () => {
                     </div>
 
                     <div className="mt-3 pt-3 border-t">
-                      <button className="w-full px-3 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#262626] text-sm font-semibold">
+                      <button className="w-full px-3 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] text-sm font-semibold">
                         Valider la clôture
                       </button>
                     </div>
@@ -1811,8 +1811,8 @@ const Balance: React.FC = () => {
 
           {/* Section Actions rapides */}
           {viewMode === 'grid' && (
-            <div className="mt-4 bg-white rounded-lg border-2 border-[#171717] p-4 shadow-lg">
-              <h4 className="font-bold text-[#171717] mb-3">Actions rapides</h4>
+            <div className="mt-4 bg-white rounded-lg border-2 border-[var(--color-primary)] p-4 shadow-lg">
+              <h4 className="font-bold text-[var(--color-primary)] mb-3">Actions rapides</h4>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <button
                   onClick={() => window.print()}
@@ -1859,14 +1859,14 @@ const Balance: React.FC = () => {
 
       {/* Résumé */}
       {balanceType === 'generale' && (
-        <div className="bg-white rounded-lg p-4 border-2 border-[#525252]">
-        <h3 className="text-lg font-semibold text-[#171717] mb-3 flex items-center">
-          <Calculator className="w-5 h-5 mr-2 text-[#525252]" />
+        <div className="bg-white rounded-lg p-4 border-2 border-[var(--color-text-secondary)]">
+        <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-3 flex items-center">
+          <Calculator className="w-5 h-5 mr-2 text-[var(--color-text-secondary)]" />
           Contrôle d'équilibre
         </h3>
         <div className="grid grid-cols-3 gap-4">
           <div className="text-center p-3 bg-blue-50 rounded-lg">
-            <p className="text-sm text-[#737373]">Balance A Nouveau</p>
+            <p className="text-sm text-[var(--color-text-tertiary)]">Balance A Nouveau</p>
             <div className="mt-2">
               <p className="text-sm">Débit: <span className="font-bold">{formatAmount(totals.soldeDebiteurAN)}</span></p>
               <p className="text-sm">Crédit: <span className="font-bold">{formatAmount(totals.soldeCrediteurAN)}</span></p>
@@ -1876,7 +1876,7 @@ const Balance: React.FC = () => {
             )}
           </div>
           <div className="text-center p-3 bg-orange-50 rounded-lg">
-            <p className="text-sm text-[#737373]">Mouvements Période</p>
+            <p className="text-sm text-[var(--color-text-tertiary)]">Mouvements Période</p>
             <div className="mt-2">
               <p className="text-sm">Débit: <span className="font-bold text-red-600">{formatAmount(totals.mouvementsDebit)}</span></p>
               <p className="text-sm">Crédit: <span className="font-bold text-green-600">{formatAmount(totals.mouvementsCredit)}</span></p>
@@ -1886,7 +1886,7 @@ const Balance: React.FC = () => {
             )}
           </div>
           <div className="text-center p-3 bg-green-50 rounded-lg">
-            <p className="text-sm text-[#737373]">Soldes Fin Période</p>
+            <p className="text-sm text-[var(--color-text-tertiary)]">Soldes Fin Période</p>
             <div className="mt-2">
               <p className="text-sm">Débiteur: <span className="font-bold text-red-600">{formatAmount(totals.soldeDebiteur)}</span></p>
               <p className="text-sm">Créditeur: <span className="font-bold text-green-600">{formatAmount(totals.soldeCrediteur)}</span></p>

@@ -217,9 +217,9 @@ const ProspectsModule: React.FC = () => {
   const getStatutBadge = (statut: string) => {
     const statusConfig = {
       'NOUVEAU': 'bg-blue-100 text-blue-800',
-      'QUALIFIE': 'bg-[#171717]/10 text-[#171717]',
+      'QUALIFIE': 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]',
       'INTERESSE': 'bg-green-100 text-green-800',
-      'NEGOCIATION': 'bg-[#525252]/10 text-[#525252]',
+      'NEGOCIATION': 'bg-[var(--color-text-secondary)]/10 text-[var(--color-text-secondary)]',
       'PERDU': 'bg-red-100 text-red-800',
       'GAGNE': 'bg-primary-100 text-primary-800'
     };
@@ -241,9 +241,9 @@ const ProspectsModule: React.FC = () => {
   const COLORS = ['#171717', '#525252', '#a3a3a3', '#3b82f6', '#22c55e', '#f59e0b'];
 
   return (
-    <div className="p-6 bg-[#e5e5e5] min-h-screen ">
+    <div className="p-6 bg-[var(--color-border)] min-h-screen ">
       {/* Header */}
-      <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm mb-6">
+      <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm mb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button
@@ -255,12 +255,12 @@ const ProspectsModule: React.FC = () => {
             </button>
 
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-[#171717] to-[#525252] flex items-center justify-center">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-text-secondary)] flex items-center justify-center">
                 <Target className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-[#171717]">Gestion des Prospects</h1>
-                <p className="text-sm text-[#525252]">Pipeline commercial et suivi des opportunités</p>
+                <h1 className="text-lg font-bold text-[var(--color-primary)]">Gestion des Prospects</h1>
+                <p className="text-sm text-[var(--color-text-secondary)]">Pipeline commercial et suivi des opportunités</p>
               </div>
             </div>
           </div>
@@ -280,7 +280,7 @@ const ProspectsModule: React.FC = () => {
             <select
               value={filterSource}
               onChange={(e) => setFilterSource(e.target.value)}
-              className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#171717]"
+              className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
             >
               {sources.map(source => (
                 <option key={source.value} value={source.value}>{source.label}</option>
@@ -290,14 +290,14 @@ const ProspectsModule: React.FC = () => {
             <select
               value={filterStatut}
               onChange={(e) => setFilterStatut(e.target.value)}
-              className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#171717]"
+              className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
             >
               {statuts.map(statut => (
                 <option key={statut.value} value={statut.value}>{statut.label}</option>
               ))}
             </select>
 
-            <button className="flex items-center space-x-2 px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/90 transition-colors" aria-label="Télécharger">
+            <button className="flex items-center space-x-2 px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 transition-colors" aria-label="Télécharger">
               <Download className="w-4 h-4" />
               <span className="text-sm font-semibold">{t('common.export')}</span>
             </button>
@@ -320,8 +320,8 @@ const ProspectsModule: React.FC = () => {
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-colors ${
                 activeTab === tab.id
-                  ? 'bg-white text-[#171717] shadow-sm'
-                  : 'text-[#525252] hover:text-[#404040]'
+                  ? 'bg-white text-[var(--color-primary)] shadow-sm'
+                  : 'text-[var(--color-text-secondary)] hover:text-[#404040]'
               }`}
             >
               <tab.icon className="w-4 h-4" />
@@ -333,24 +333,24 @@ const ProspectsModule: React.FC = () => {
 
       {/* KPIs Overview */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
+        <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-[#525252]">Prospects Actifs</p>
-              <p className="text-lg font-bold text-[#171717]">{mockProspects.length}</p>
-              <p className="text-xs text-[#171717]">+12 ce mois</p>
+              <p className="text-sm text-[var(--color-text-secondary)]">Prospects Actifs</p>
+              <p className="text-lg font-bold text-[var(--color-primary)]">{mockProspects.length}</p>
+              <p className="text-xs text-[var(--color-primary)]">+12 ce mois</p>
             </div>
-            <div className="w-10 h-10 bg-[#171717]/10 rounded-lg flex items-center justify-center">
-              <Target className="w-5 h-5 text-[#171717]" />
+            <div className="w-10 h-10 bg-[var(--color-primary)]/10 rounded-lg flex items-center justify-center">
+              <Target className="w-5 h-5 text-[var(--color-primary)]" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
+        <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-[#525252]">Taux Conversion</p>
-              <p className="text-lg font-bold text-[#171717]">{analytics.conversionRate}%</p>
+              <p className="text-sm text-[var(--color-text-secondary)]">Taux Conversion</p>
+              <p className="text-lg font-bold text-[var(--color-primary)]">{analytics.conversionRate}%</p>
               <p className="text-xs text-green-600">+2.3% vs mois dernier</p>
             </div>
             <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
@@ -359,24 +359,24 @@ const ProspectsModule: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
+        <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-[#525252]">Pipeline Valeur</p>
-              <p className="text-lg font-bold text-[#171717]">{formatCurrency(22500000)}</p>
-              <p className="text-xs text-[#525252]">68 opportunités</p>
+              <p className="text-sm text-[var(--color-text-secondary)]">Pipeline Valeur</p>
+              <p className="text-lg font-bold text-[var(--color-primary)]">{formatCurrency(22500000)}</p>
+              <p className="text-xs text-[var(--color-text-secondary)]">68 opportunités</p>
             </div>
-            <div className="w-10 h-10 bg-[#525252]/10 rounded-lg flex items-center justify-center">
-              <DollarSign className="w-5 h-5 text-[#525252]" />
+            <div className="w-10 h-10 bg-[var(--color-text-secondary)]/10 rounded-lg flex items-center justify-center">
+              <DollarSign className="w-5 h-5 text-[var(--color-text-secondary)]" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
+        <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-[#525252]">Cycle de Vente</p>
-              <p className="text-lg font-bold text-[#171717]">{analytics.tempsConversionMoyen}j</p>
+              <p className="text-sm text-[var(--color-text-secondary)]">Cycle de Vente</p>
+              <p className="text-lg font-bold text-[var(--color-primary)]">{analytics.tempsConversionMoyen}j</p>
               <p className="text-xs text-orange-600">-5j vs moyenne</p>
             </div>
             <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
@@ -390,8 +390,8 @@ const ProspectsModule: React.FC = () => {
       {activeTab === 'pipeline' && (
         <div className="space-y-6">
           {/* Entonnoir de Vente */}
-          <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
-            <h3 className="text-lg font-semibold text-[#171717] mb-4">Entonnoir de Vente</h3>
+          <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Entonnoir de Vente</h3>
             <div className="grid grid-cols-5 gap-4">
               {analytics.repartitionParStade.map((stade, index) => (
                 <div key={stade.stade} className="text-center">
@@ -410,8 +410,8 @@ const ProspectsModule: React.FC = () => {
           </div>
 
           {/* Évolution Pipeline */}
-          <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
-            <h3 className="text-lg font-semibold text-[#171717] mb-4">Évolution du Pipeline</h3>
+          <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Évolution du Pipeline</h3>
             <ResponsiveContainer width="100%" height={300}>
               <AreaChart data={analytics.evolutionPipeline}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -430,43 +430,43 @@ const ProspectsModule: React.FC = () => {
 
       {/* Prospects List Tab */}
       {activeTab === 'prospects' && (
-        <div className="bg-white rounded-lg border border-[#e5e5e5] shadow-sm">
+        <div className="bg-white rounded-lg border border-[var(--color-border)] shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b border-[#e5e5e5]">
+              <thead className="bg-gray-50 border-b border-[var(--color-border)]">
                 <tr>
-                  <th className="text-left p-4 text-sm font-medium text-[#525252]">Prospect</th>
-                  <th className="text-left p-4 text-sm font-medium text-[#525252]">Contact</th>
-                  <th className="text-left p-4 text-sm font-medium text-[#525252]">Source</th>
-                  <th className="text-left p-4 text-sm font-medium text-[#525252]">Statut</th>
-                  <th className="text-left p-4 text-sm font-medium text-[#525252]">Valeur Pot.</th>
-                  <th className="text-left p-4 text-sm font-medium text-[#525252]">Probabilité</th>
-                  <th className="text-left p-4 text-sm font-medium text-[#525252]">Suivi</th>
-                  <th className="text-left p-4 text-sm font-medium text-[#525252]">Actions</th>
+                  <th className="text-left p-4 text-sm font-medium text-[var(--color-text-secondary)]">Prospect</th>
+                  <th className="text-left p-4 text-sm font-medium text-[var(--color-text-secondary)]">Contact</th>
+                  <th className="text-left p-4 text-sm font-medium text-[var(--color-text-secondary)]">Source</th>
+                  <th className="text-left p-4 text-sm font-medium text-[var(--color-text-secondary)]">Statut</th>
+                  <th className="text-left p-4 text-sm font-medium text-[var(--color-text-secondary)]">Valeur Pot.</th>
+                  <th className="text-left p-4 text-sm font-medium text-[var(--color-text-secondary)]">Probabilité</th>
+                  <th className="text-left p-4 text-sm font-medium text-[var(--color-text-secondary)]">Suivi</th>
+                  <th className="text-left p-4 text-sm font-medium text-[var(--color-text-secondary)]">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredProspects.map((prospect) => {
                   const SourceIcon = getSourceIcon(prospect.source);
                   return (
-                    <tr key={prospect.id} className="border-b border-[#e5e5e5] hover:bg-gray-50">
+                    <tr key={prospect.id} className="border-b border-[var(--color-border)] hover:bg-gray-50">
                       <td className="p-4">
                         <div>
-                          <p className="font-medium text-[#171717]">{prospect.nom}</p>
-                          <p className="text-sm text-[#525252]">{prospect.secteurActivite}</p>
+                          <p className="font-medium text-[var(--color-primary)]">{prospect.nom}</p>
+                          <p className="text-sm text-[var(--color-text-secondary)]">{prospect.secteurActivite}</p>
                         </div>
                       </td>
                       <td className="p-4">
                         <div>
-                          <p className="font-medium text-[#171717]">{prospect.contact.prenom} {prospect.contact.nom}</p>
-                          <p className="text-sm text-[#525252]">{prospect.contact.fonction}</p>
-                          <p className="text-sm text-[#525252]">{prospect.contact.email}</p>
+                          <p className="font-medium text-[var(--color-primary)]">{prospect.contact.prenom} {prospect.contact.nom}</p>
+                          <p className="text-sm text-[var(--color-text-secondary)]">{prospect.contact.fonction}</p>
+                          <p className="text-sm text-[var(--color-text-secondary)]">{prospect.contact.email}</p>
                         </div>
                       </td>
                       <td className="p-4">
                         <div className="flex items-center space-x-2">
-                          <SourceIcon className="w-4 h-4 text-[#171717]" />
-                          <span className="text-sm text-[#525252]">{prospect.source}</span>
+                          <SourceIcon className="w-4 h-4 text-[var(--color-primary)]" />
+                          <span className="text-sm text-[var(--color-text-secondary)]">{prospect.source}</span>
                         </div>
                       </td>
                       <td className="p-4">
@@ -475,22 +475,22 @@ const ProspectsModule: React.FC = () => {
                         </span>
                       </td>
                       <td className="p-4">
-                        <p className="font-medium text-[#171717]">{formatCurrency(prospect.valeurPotentielle)}</p>
+                        <p className="font-medium text-[var(--color-primary)]">{formatCurrency(prospect.valeurPotentielle)}</p>
                       </td>
                       <td className="p-4">
                         <div className="flex items-center space-x-2">
                           <div className="w-16 bg-gray-200 rounded-full h-2">
                             <div
-                              className="bg-[#171717] h-2 rounded-full"
+                              className="bg-[var(--color-primary)] h-2 rounded-full"
                               style={{ width: `${prospect.probabiliteConversion}%` }}
                             />
                           </div>
-                          <span className="text-sm text-[#525252]">{prospect.probabiliteConversion}%</span>
+                          <span className="text-sm text-[var(--color-text-secondary)]">{prospect.probabiliteConversion}%</span>
                         </div>
                       </td>
                       <td className="p-4">
-                        <p className="text-sm text-[#525252]">{new Date(prospect.prochaineSuivi).toLocaleDateString('fr-FR')}</p>
-                        <p className="text-sm text-[#525252]">{prospect.responsableCommercial}</p>
+                        <p className="text-sm text-[var(--color-text-secondary)]">{new Date(prospect.prochaineSuivi).toLocaleDateString('fr-FR')}</p>
+                        <p className="text-sm text-[var(--color-text-secondary)]">{prospect.responsableCommercial}</p>
                       </td>
                       <td className="p-4">
                         <div className="flex items-center space-x-2">
@@ -499,7 +499,7 @@ const ProspectsModule: React.FC = () => {
                               setSelectedProspect(prospect);
                               setShowInteractionModal(true);
                             }}
-                            className="p-1 text-[#171717] hover:bg-[#171717]/10 rounded"
+                            className="p-1 text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 rounded"
                           >
                             <Phone className="w-4 h-4" />
                           </button>
@@ -509,7 +509,7 @@ const ProspectsModule: React.FC = () => {
                           >
                             <Eye className="w-4 h-4" />
                           </button>
-                          <button className="p-1 text-[#525252] hover:bg-[#525252]/10 rounded">
+                          <button className="p-1 text-[var(--color-text-secondary)] hover:bg-[var(--color-text-secondary)]/10 rounded">
                             <Edit className="w-4 h-4" />
                           </button>
                         </div>
@@ -527,8 +527,8 @@ const ProspectsModule: React.FC = () => {
       {activeTab === 'analytics' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Sources Performance */}
-          <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
-            <h3 className="text-lg font-semibold text-[#171717] mb-4">Performance par Source</h3>
+          <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Performance par Source</h3>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={analytics.sourcesMeilleurTaux}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -543,8 +543,8 @@ const ProspectsModule: React.FC = () => {
           </div>
 
           {/* Répartition par Stade */}
-          <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
-            <h3 className="text-lg font-semibold text-[#171717] mb-4">Répartition par Stade</h3>
+          <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Répartition par Stade</h3>
             <ResponsiveContainer width="100%" height={300}>
               <RechartsPieChart>
                 <Pie
@@ -569,12 +569,12 @@ const ProspectsModule: React.FC = () => {
 
       {/* Autres onglets avec contenu similaire... */}
       {activeTab === 'opportunites' && (
-        <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+        <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
           <div className="text-center py-12">
             <DollarSign className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-[#171717] mb-2">Gestion des Opportunités</h3>
-            <p className="text-[#525252] mb-4">Suivi détaillé de toutes les opportunités commerciales</p>
-            <button className="px-6 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/90 transition-colors">
+            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-2">Gestion des Opportunités</h3>
+            <p className="text-[var(--color-text-secondary)] mb-4">Suivi détaillé de toutes les opportunités commerciales</p>
+            <button className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 transition-colors">
               Voir les opportunités
             </button>
           </div>
@@ -582,12 +582,12 @@ const ProspectsModule: React.FC = () => {
       )}
 
       {activeTab === 'actions' && (
-        <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+        <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
           <div className="text-center py-12">
             <MessageSquare className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-[#171717] mb-2">Actions Marketing</h3>
-            <p className="text-[#525252] mb-4">Campagnes marketing et actions de prospection</p>
-            <button className="px-6 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/90 transition-colors">
+            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-2">Actions Marketing</h3>
+            <p className="text-[var(--color-text-secondary)] mb-4">Campagnes marketing et actions de prospection</p>
+            <button className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 transition-colors">
               Créer une campagne
             </button>
           </div>

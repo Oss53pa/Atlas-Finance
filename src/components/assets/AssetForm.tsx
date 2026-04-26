@@ -448,7 +448,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
 
   if (!isOpen) return null;
 
-  const inputClass = "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#171717] focus:border-[#171717] text-sm transition-colors";
+  const inputClass = "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] text-sm transition-colors";
   const inputReadOnly = "w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-sm text-gray-700 cursor-not-allowed";
   const labelClass = "block text-sm font-medium text-gray-700 mb-1";
 
@@ -456,7 +456,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
       <div className="bg-white rounded-xl w-[92%] max-w-7xl h-[90vh] flex flex-col shadow-2xl">
         {/* Header */}
-        <div className="px-6 py-4 border-b flex justify-between items-center bg-gradient-to-r from-[#171717] to-[#525252] text-white rounded-t-xl">
+        <div className="px-6 py-4 border-b flex justify-between items-center bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-text-secondary)] text-white rounded-t-xl">
           <div>
             <h2 className="text-lg font-bold">
               {mode === 'create' ? 'Nouvel Actif' : "Modifier l'Actif"}
@@ -489,7 +489,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
                     onClick={() => setActiveTab(tab.id)}
                     className={`w-full text-left px-4 py-3 rounded-lg transition-colors flex items-center gap-3 text-sm ${
                       activeTab === tab.id
-                        ? 'bg-[#171717] text-white shadow-md'
+                        ? 'bg-[var(--color-primary)] text-white shadow-md'
                         : 'hover:bg-gray-200 text-gray-700'
                     }`}
                   >
@@ -507,7 +507,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
             <div className="mt-6 border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
               <Camera className="w-8 h-8 mx-auto text-gray-400 mb-2" />
               <p className="text-xs text-gray-500">Photo de l'actif</p>
-              <button className="mt-2 text-xs text-[#171717] hover:underline">Ajouter une photo</button>
+              <button className="mt-2 text-xs text-[var(--color-primary)] hover:underline">Ajouter une photo</button>
             </div>
 
             {/* Quick summary */}
@@ -525,7 +525,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
                   </div>
                   <div className="flex justify-between border-t pt-1">
                     <span className="text-gray-500">VNC</span>
-                    <span className="font-bold text-[#171717]">{fmt(computedVNC)}</span>
+                    <span className="font-bold text-[var(--color-primary)]">{fmt(computedVNC)}</span>
                   </div>
                 </div>
               </div>
@@ -551,7 +551,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
                           onClick={() => setActiveGeneralTab(tab.id)}
                           className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
                             activeGeneralTab === tab.id
-                              ? 'border-[#171717] text-[#171717]'
+                              ? 'border-[var(--color-primary)] text-[var(--color-primary)]'
                               : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                           }`}
                         >
@@ -699,7 +699,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
                   {activeGeneralTab === 'material' && (
                     <div className="space-y-6">
                       <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                        <Package className="w-5 h-5 mr-2 text-[#171717]" />
+                        <Package className="w-5 h-5 mr-2 text-[var(--color-primary)]" />
                         Donnees materielles
                       </h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -763,15 +763,15 @@ const AssetForm: React.FC<AssetFormProps> = ({
                   {activeGeneralTab === 'warranty' && (
                     <div className="space-y-6">
                       <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                        <Shield className="w-5 h-5 mr-2 text-[#171717]" />
+                        <Shield className="w-5 h-5 mr-2 text-[var(--color-primary)]" />
                         Informations de garantie
                       </h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div>
                           <label className={labelClass}>Duree de garantie</label>
                           <div className="flex items-center space-x-2">
-                            <input type="number" value={formData.warranty_period} onChange={e => handleChange('warranty_period', e.target.value)} className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#171717] text-sm" placeholder="12" />
-                            <select value={formData.warranty_unit} onChange={e => handleChange('warranty_unit', e.target.value)} className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#171717] text-sm">
+                            <input type="number" value={formData.warranty_period} onChange={e => handleChange('warranty_period', e.target.value)} className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] text-sm" placeholder="12" />
+                            <select value={formData.warranty_unit} onChange={e => handleChange('warranty_unit', e.target.value)} className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] text-sm">
                               <option value="days">Jours</option>
                               <option value="months">Mois</option>
                               <option value="years">Annees</option>
@@ -806,7 +806,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
                   {activeGeneralTab === 'insurance' && (
                     <div className="space-y-6">
                       <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                        <FileText className="w-5 h-5 mr-2 text-[#171717]" />
+                        <FileText className="w-5 h-5 mr-2 text-[var(--color-primary)]" />
                         Informations d'assurance
                       </h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -849,7 +849,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
                   {activeGeneralTab === 'location' && (
                     <div className="space-y-6">
                       <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                        <MapPin className="w-5 h-5 mr-2 text-[#171717]" />
+                        <MapPin className="w-5 h-5 mr-2 text-[var(--color-primary)]" />
                         Emplacement de l'actif
                       </h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -902,7 +902,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
             {activeTab === 'acquisition' && (
               <div className="space-y-6">
                 <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                  <DollarSign className="w-5 h-5 mr-2 text-[#525252]" />
+                  <DollarSign className="w-5 h-5 mr-2 text-[var(--color-text-secondary)]" />
                   Informations d'acquisition
                 </h3>
 
@@ -980,7 +980,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
                   </div>
                   <div className="mt-4 pt-4 border-t border-gray-200 flex justify-between items-center">
                     <span className="text-sm font-semibold text-gray-700">Cout total d'acquisition</span>
-                    <span className="text-lg font-bold text-[#525252]">
+                    <span className="text-lg font-bold text-[var(--color-text-secondary)]">
                       {fmt(totalAcquisitionCost)} {formData.acquisition_currency}
                     </span>
                   </div>
@@ -994,7 +994,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
             {activeTab === 'immobilisation' && (
               <div className="space-y-6">
                 <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                  <Building2 className="w-5 h-5 mr-2 text-[#171717]" />
+                  <Building2 className="w-5 h-5 mr-2 text-[var(--color-primary)]" />
                   Donnees comptables d'immobilisation
                 </h3>
 
@@ -1124,7 +1124,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
                       </div>
                       <div>
                         <p className="text-xs text-gray-500">Base amortissable</p>
-                        <p className="text-sm font-bold text-[#525252]">= {fmt(baseAmortissable)}</p>
+                        <p className="text-sm font-bold text-[var(--color-text-secondary)]">= {fmt(baseAmortissable)}</p>
                       </div>
                     </div>
                   )}
@@ -1140,7 +1140,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
                     </div>
                     <div>
                       <label className={labelClass}>Valeur nette comptable (VNC)</label>
-                      <div className={`${inputReadOnly} font-bold text-[#171717]`}>
+                      <div className={`${inputReadOnly} font-bold text-[var(--color-primary)]`}>
                         {fmt(computedVNC)} {formData.acquisition_currency}
                       </div>
                       <p className="text-xs text-gray-400 mt-1">Cout - Amort. cumules - Depreciation + Reevaluation</p>
@@ -1181,7 +1181,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
                       </h4>
                       <button
                         onClick={() => setActiveTab('amortissement')}
-                        className="text-xs text-[#171717] hover:underline flex items-center gap-1"
+                        className="text-xs text-[var(--color-primary)] hover:underline flex items-center gap-1"
                       >
                         Voir le tableau complet <ChevronRight className="w-3 h-3" />
                       </button>
@@ -1201,7 +1201,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
                       </div>
                       <div className="bg-gray-50 rounded p-2">
                         <p className="text-xs text-gray-500">VNC finale</p>
-                        <p className="text-sm font-bold text-[#171717]">{fmt(tableauAmortissement[tableauAmortissement.length - 1]?.vnc || 0)}</p>
+                        <p className="text-sm font-bold text-[var(--color-primary)]">{fmt(tableauAmortissement[tableauAmortissement.length - 1]?.vnc || 0)}</p>
                       </div>
                     </div>
                   </div>
@@ -1216,7 +1216,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
               <div className="space-y-6">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                    <Table2 className="w-5 h-5 mr-2 text-[#171717]" />
+                    <Table2 className="w-5 h-5 mr-2 text-[var(--color-primary)]" />
                     Tableau d'amortissement previsionnel
                   </h3>
                   {formData.depreciation_method === 'degressif' && (
@@ -1236,7 +1236,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
                     </p>
                     <button
                       onClick={() => setActiveTab('immobilisation')}
-                      className="mt-4 px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#262626] transition-colors text-sm"
+                      className="mt-4 px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] transition-colors text-sm"
                     >
                       Aller a Immobilisation
                     </button>
@@ -1271,7 +1271,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
                     <div className="border border-gray-200 rounded-lg overflow-hidden">
                       <table className="w-full text-sm">
                         <thead>
-                          <tr className="bg-gradient-to-r from-[#171717] to-[#262626] text-white">
+                          <tr className="bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-hover)] text-white">
                             <th className="px-4 py-3 text-left font-semibold">Annee</th>
                             <th className="px-4 py-3 text-left font-semibold">Periode</th>
                             <th className="px-4 py-3 text-right font-semibold">Base amortissable</th>
@@ -1293,7 +1293,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
                               >
                                 <td className="px-4 py-3">
                                   <div className="flex items-center gap-2">
-                                    <span className="w-7 h-7 rounded-full bg-[#171717]/10 text-[#171717] flex items-center justify-center text-xs font-bold">
+                                    <span className="w-7 h-7 rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)] flex items-center justify-center text-xs font-bold">
                                       {idx + 1}
                                     </span>
                                     {ligne.annee}
@@ -1311,14 +1311,14 @@ const AssetForm: React.FC<AssetFormProps> = ({
                                     <span className="text-gray-900">{fmt(ligne.amortissementCumule)}</span>
                                     <div className="w-full bg-gray-200 rounded-full h-1 mt-1">
                                       <div
-                                        className="bg-[#171717] h-1 rounded-full transition-all"
+                                        className="bg-[var(--color-primary)] h-1 rounded-full transition-all"
                                         style={{ width: `${Math.min(progress, 100)}%` }}
                                       />
                                     </div>
                                   </div>
                                 </td>
                                 <td className={`px-4 py-3 text-right font-bold ${
-                                  isLast ? 'text-[#171717]' : 'text-gray-900'
+                                  isLast ? 'text-[var(--color-primary)]' : 'text-gray-900'
                                 }`}>
                                   {fmt(ligne.vnc)}
                                 </td>
@@ -1338,7 +1338,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
                             <td className="px-4 py-3 text-right">
                               {fmt(tableauAmortissement[tableauAmortissement.length - 1]?.amortissementCumule || 0)}
                             </td>
-                            <td className="px-4 py-3 text-right text-[#171717]">
+                            <td className="px-4 py-3 text-right text-[var(--color-primary)]">
                               {fmt(tableauAmortissement[tableauAmortissement.length - 1]?.vnc || 0)}
                             </td>
                           </tr>
@@ -1388,7 +1388,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
             <button onClick={onClose} className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
               Annuler
             </button>
-            <button onClick={handleSubmit} className="px-6 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#262626] transition-colors flex items-center gap-2 font-medium" aria-label="Valider">
+            <button onClick={handleSubmit} className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] transition-colors flex items-center gap-2 font-medium" aria-label="Valider">
               <CheckCircle className="w-5 h-5" />
               {mode === 'create' ? "Creer l'actif" : 'Enregistrer'}
             </button>

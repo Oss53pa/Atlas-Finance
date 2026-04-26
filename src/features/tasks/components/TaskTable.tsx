@@ -58,9 +58,9 @@ export const TaskTable: React.FC<TaskTableProps> = ({
       sortable: true,
       render: (row: Task) => (
         <div>
-          <div className="font-medium text-[#171717]">{row.title}</div>
+          <div className="font-medium text-[var(--color-primary)]">{row.title}</div>
           {row.description && (
-            <div className="text-sm text-[#737373] truncate max-w-md">
+            <div className="text-sm text-[var(--color-text-tertiary)] truncate max-w-md">
               {row.description}
             </div>
           )}
@@ -115,13 +115,13 @@ export const TaskTable: React.FC<TaskTableProps> = ({
       label: 'Progression',
       render: (row: Task) => (
         <div className="flex items-center gap-2">
-          <div className="w-20 h-2 bg-[#e5e5e5] rounded-full overflow-hidden">
+          <div className="w-20 h-2 bg-[var(--color-border)] rounded-full overflow-hidden">
             <div
-              className="h-full bg-[#171717] rounded-full transition-all"
+              className="h-full bg-[var(--color-primary)] rounded-full transition-all"
               style={{ width: `${row.progress || 0}%` }}
             />
           </div>
-          <span className="text-sm text-[#737373]">{row.progress || 0}%</span>
+          <span className="text-sm text-[var(--color-text-tertiary)]">{row.progress || 0}%</span>
         </div>
       )
     }

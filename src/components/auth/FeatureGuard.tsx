@@ -34,11 +34,11 @@ const FeatureGuard: React.FC<FeatureGuardProps> = ({ module, children, fallback 
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center max-w-sm">
           <Lock className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-          <h2 className="text-lg font-bold text-[#171717] mb-2">Module non activé</h2>
+          <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">Module non activé</h2>
           <p className="text-sm text-gray-500 mb-4">
             Ce module n'est pas inclus dans votre abonnement actuel.
           </p>
-          <a href="/solutions" className="px-5 py-2.5 bg-[#171717] text-white rounded-lg text-sm font-semibold inline-block">
+          <a href="/solutions" className="px-5 py-2.5 bg-[var(--color-primary)] text-white rounded-lg text-sm font-semibold inline-block">
             Voir les solutions
           </a>
         </div>

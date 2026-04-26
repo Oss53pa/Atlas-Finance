@@ -42,7 +42,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
 
   return (
     <div className={`${containerClasses} ${className}`}>
-      <Loader2 className={`${getSizeClasses()} animate-spin text-[#171717]`} />
+      <Loader2 className={`${getSizeClasses()} animate-spin text-[var(--color-primary)]`} />
       {text && (
         <span className={`${getTextSize()} text-gray-600 ${centered ? 'mt-2' : ''}`}>
           {text}

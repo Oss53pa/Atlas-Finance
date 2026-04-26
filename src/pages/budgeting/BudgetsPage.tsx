@@ -197,7 +197,7 @@ const BudgetsPage: React.FC = () => {
   const getTypeColor = (type: string) => {
     switch (type) {
       case 'operational': return 'bg-blue-100 text-blue-800';
-      case 'investment': return 'bg-[#525252]/10 text-[#525252]';
+      case 'investment': return 'bg-[var(--color-text-secondary)]/10 text-[var(--color-text-secondary)]';
       case 'treasury': return 'bg-green-100 text-green-800';
       default: return 'bg-gray-100 text-gray-800';
     }
@@ -264,7 +264,7 @@ const BudgetsPage: React.FC = () => {
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="bg-[#171717] hover:bg-[#171717]/90 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+          className="bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/90 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
         >
           <PlusIcon className="h-5 w-5" />
           <span>Nouveau Budget</span>
@@ -280,7 +280,7 @@ const BudgetsPage: React.FC = () => {
               <p className="text-lg font-bold text-gray-900">{activeBudgets.length}</p>
             </div>
             <div className="h-12 w-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <CalendarIcon className="h-6 w-6 text-[#171717]" />
+              <CalendarIcon className="h-6 w-6 text-[var(--color-primary)]" />
             </div>
           </div>
         </div>
@@ -317,8 +317,8 @@ const BudgetsPage: React.FC = () => {
                 {averageConsumption.toFixed(1)}%
               </p>
             </div>
-            <div className="h-12 w-12 bg-[#525252]/10 rounded-lg flex items-center justify-center">
-              <ExclamationTriangleIcon className="h-6 w-6 text-[#525252]" />
+            <div className="h-12 w-12 bg-[var(--color-text-secondary)]/10 rounded-lg flex items-center justify-center">
+              <ExclamationTriangleIcon className="h-6 w-6 text-[var(--color-text-secondary)]" />
             </div>
           </div>
         </div>
@@ -335,7 +335,7 @@ const BudgetsPage: React.FC = () => {
                 placeholder="Rechercher un budget..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
               />
             </div>
             <button
@@ -355,7 +355,7 @@ const BudgetsPage: React.FC = () => {
               <select
                 value={selectedType}
                 onChange={(e) => setSelectedType(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
               >
                 <option value="all">Tous les types</option>
                 <option value="operational">Opérationnel</option>
@@ -369,7 +369,7 @@ const BudgetsPage: React.FC = () => {
               <select
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
               >
                 <option value="all">Tous les statuts</option>
                 <option value="draft">{t('accounting.draft')}</option>
@@ -384,7 +384,7 @@ const BudgetsPage: React.FC = () => {
               <select
                 value={selectedDepartment}
                 onChange={(e) => setSelectedDepartment(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
               >
                 <option value="all">Tous les départements</option>
                 <option value="Exploitation">Exploitation</option>
@@ -530,7 +530,7 @@ const BudgetsPage: React.FC = () => {
                             setSelectedBudget(budget);
                             setShowViewModal(true);
                           }}
-                          className="p-2 text-gray-700 hover:text-[#171717] transition-colors"
+                          className="p-2 text-gray-700 hover:text-[var(--color-primary)] transition-colors"
                           title="Voir les détails"
                         >
                           <EyeIcon className="h-5 w-5" />
@@ -540,14 +540,14 @@ const BudgetsPage: React.FC = () => {
                             setSelectedBudget(budget);
                             setShowEditModal(true);
                           }}
-                          className="p-2 text-gray-700 hover:text-[#171717] transition-colors"
+                          className="p-2 text-gray-700 hover:text-[var(--color-primary)] transition-colors"
                           title={t('common.edit')}
                         >
                           <PencilIcon className="h-5 w-5" />
                         </button>
                         <button
                           onClick={() => handleDuplicate(budget)}
-                          className="p-2 text-gray-700 hover:text-[#171717] transition-colors"
+                          className="p-2 text-gray-700 hover:text-[var(--color-primary)] transition-colors"
                           title="Dupliquer"
                           disabled={duplicateBudgetMutation.isPending}
                         >
@@ -626,7 +626,7 @@ const BudgetsPage: React.FC = () => {
               </div>
               <div className="flex mt-4 space-x-2">
                 {[1, 2, 3].map((step) => (
-                  <div key={step} className={`flex-1 h-2 rounded-full ${step <= createStep ? 'bg-[#171717]' : 'bg-gray-200'}`} />
+                  <div key={step} className={`flex-1 h-2 rounded-full ${step <= createStep ? 'bg-[var(--color-primary)]' : 'bg-gray-200'}`} />
                 ))}
               </div>
               <div className="flex mt-2 text-xs text-gray-500">
@@ -644,19 +644,19 @@ const BudgetsPage: React.FC = () => {
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Nom du budget *</label>
                       <input type="text" value={newBudget.name} onChange={(e) => setNewBudget({ ...newBudget, name: e.target.value })}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717]" placeholder="Ex: Budget Exploitation 2025" />
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]" placeholder="Ex: Budget Exploitation 2025" />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Code *</label>
                       <input type="text" value={newBudget.code} onChange={(e) => setNewBudget({ ...newBudget, code: e.target.value })}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717]" placeholder="Ex: BUDG-2025" />
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]" placeholder="Ex: BUDG-2025" />
                     </div>
                   </div>
                   <div className="grid grid-cols-3 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Type *</label>
                       <select value={newBudget.type} onChange={(e) => setNewBudget({ ...newBudget, type: e.target.value as Budget['type'] })}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717]">
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]">
                         <option value="operational">Opérationnel</option>
                         <option value="investment">Investissement</option>
                         <option value="treasury">Trésorerie</option>
@@ -665,7 +665,7 @@ const BudgetsPage: React.FC = () => {
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Devise *</label>
                       <select value={newBudget.currency} onChange={(e) => setNewBudget({ ...newBudget, currency: e.target.value })}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717]">
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]">
                         <option value="XAF">XAF (FCFA CEMAC)</option>
                         <option value="EUR">EUR</option>
                         <option value="USD">USD</option>
@@ -674,7 +674,7 @@ const BudgetsPage: React.FC = () => {
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Responsable</label>
                       <input type="text" value={newBudget.responsible} onChange={(e) => setNewBudget({ ...newBudget, responsible: e.target.value })}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717]" placeholder="Nom du responsable" />
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]" placeholder="Nom du responsable" />
                     </div>
                   </div>
                   <div>
@@ -692,7 +692,7 @@ const BudgetsPage: React.FC = () => {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
                     <textarea rows={2} value={newBudget.description} onChange={(e) => setNewBudget({ ...newBudget, description: e.target.value })}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717]" placeholder="Objectifs et périmètre..." />
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]" placeholder="Objectifs et périmètre..." />
                   </div>
                 </div>
               )}
@@ -710,7 +710,7 @@ const BudgetsPage: React.FC = () => {
                     <div className="flex-1">
                       <label className="block text-sm font-medium text-gray-700 mb-1">Centre de coûts</label>
                       {costCenters.length > 0 ? (
-                        <select id="cc-select" className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717]">
+                        <select id="cc-select" className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]">
                           <option value="">Sélectionner un centre de coûts...</option>
                           {costCenters
                             .filter((cc: any) => !newBudget.costCenterAllocations.some(a => a.costCenterId === cc.id))
@@ -736,7 +736,7 @@ const BudgetsPage: React.FC = () => {
                             { costCenterId: cc.id, costCenterName: cc.libelle || cc.code || cc.id, amount: 0 }
                           ]});
                         }}
-                        className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/90 flex items-center space-x-2 whitespace-nowrap">
+                        className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 flex items-center space-x-2 whitespace-nowrap">
                         <PlusIcon className="w-4 h-4" /><span>Ajouter</span>
                       </button>
                     )}
@@ -767,7 +767,7 @@ const BudgetsPage: React.FC = () => {
                                     );
                                     setNewBudget({ ...newBudget, costCenterAllocations: updated });
                                   }}
-                                  className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm text-right focus:ring-2 focus:ring-[#171717]"
+                                  className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm text-right focus:ring-2 focus:ring-[var(--color-primary)]"
                                   placeholder="0" />
                               </td>
                               <td className="p-3 text-center">
@@ -781,10 +781,10 @@ const BudgetsPage: React.FC = () => {
                             </tr>
                           ))}
                         </tbody>
-                        <tfoot className="bg-[#171717]/5">
+                        <tfoot className="bg-[var(--color-primary)]/5">
                           <tr>
                             <td className="p-3 font-bold text-gray-900">TOTAL CONSOLIDÉ</td>
-                            <td className="p-3 text-right font-bold text-lg text-[#171717]">
+                            <td className="p-3 text-right font-bold text-lg text-[var(--color-primary)]">
                               {formatCurrency(newBudget.costCenterAllocations.reduce((s, a) => s + a.amount, 0))}
                             </td>
                             <td></td>
@@ -834,9 +834,9 @@ const BudgetsPage: React.FC = () => {
                             <span className="text-sm font-bold text-gray-900">{formatCurrency(alloc.amount)}</span>
                           </div>
                         ))}
-                        <div className="flex items-center justify-between p-4 bg-[#171717]/5 font-bold">
+                        <div className="flex items-center justify-between p-4 bg-[var(--color-primary)]/5 font-bold">
                           <span className="text-gray-900">TOTAL CONSOLIDÉ</span>
-                          <span className="text-lg text-[#171717]">
+                          <span className="text-lg text-[var(--color-primary)]">
                             {formatCurrency(newBudget.costCenterAllocations.reduce((s, a) => s + a.amount, 0))}
                           </span>
                         </div>
@@ -866,7 +866,7 @@ const BudgetsPage: React.FC = () => {
               <div className="flex space-x-3">
                 {createStep < 3 ? (
                   <button onClick={() => setCreateStep(createStep + 1)}
-                    className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/90">Suivant</button>
+                    className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90">Suivant</button>
                 ) : (
                   <button
                     onClick={async () => {
@@ -902,7 +902,7 @@ const BudgetsPage: React.FC = () => {
                       } catch (err) {
                       }
                     }}
-                    className="px-6 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/90 font-semibold">
+                    className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 font-semibold">
                     Créer le budget
                   </button>
                 )}
@@ -996,7 +996,7 @@ const BudgetsPage: React.FC = () => {
                     });
                     setShowEditPeriodModal(true);
                   }}
-                  className="w-full flex items-center justify-center space-x-2 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
+                  className="w-full flex items-center justify-center space-x-2 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                 >
                   <CalendarIcon className="h-4 w-4" />
                   <span>
@@ -1070,7 +1070,7 @@ const BudgetsPage: React.FC = () => {
                 onClick={() => {
                   setShowEditModal(false);
                 }}
-                className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/90"
+                className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90"
               >
                 Enregistrer les modifications
               </button>
@@ -1102,7 +1102,7 @@ const BudgetsPage: React.FC = () => {
               {/* Statistiques */}
               <div className="grid grid-cols-3 gap-4">
                 <div className="bg-blue-50 p-4 rounded-lg">
-                  <div className="text-sm text-[#171717] font-medium mb-1">Montant Total</div>
+                  <div className="text-sm text-[var(--color-primary)] font-medium mb-1">Montant Total</div>
                   <div className="text-lg font-bold text-blue-900">
                     {formatCurrency(selectedBudget.totalAmount)}
                   </div>
@@ -1238,7 +1238,7 @@ const BudgetsPage: React.FC = () => {
                   setShowViewModal(false);
                   setShowEditModal(true);
                 }}
-                className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/90"
+                className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90"
               >
                 Modifier
               </button>

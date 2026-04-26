@@ -13,7 +13,7 @@ export const RatiosCard: React.FC<RatiosCardProps> = ({ ratios, loading }) => {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="h-32 bg-[#F5F5F5] rounded-lg animate-pulse" />
+          <div key={i} className="h-32 bg-[var(--color-surface-hover)] rounded-lg animate-pulse" />
         ))}
       </div>
     );
@@ -21,17 +21,17 @@ export const RatiosCard: React.FC<RatiosCardProps> = ({ ratios, loading }) => {
 
   const getRatioStatus = (value: number, type: 'structure' | 'liquidite' | 'rentabilite') => {
     if (type === 'structure') {
-      if (value > 50) return { color: 'text-[#171717]', bg: 'bg-[#171717]/10', label: 'Excellent' };
-      if (value > 30) return { color: 'text-[#525252]', bg: 'bg-[#525252]/10', label: 'Bon' };
+      if (value > 50) return { color: 'text-[var(--color-primary)]', bg: 'bg-[var(--color-primary)]/10', label: 'Excellent' };
+      if (value > 30) return { color: 'text-[var(--color-text-secondary)]', bg: 'bg-[var(--color-text-secondary)]/10', label: 'Bon' };
       return { color: 'text-[#ef4444]', bg: 'bg-[#ef4444]/10', label: 'Faible' };
     }
     if (type === 'liquidite') {
-      if (value > 100) return { color: 'text-[#171717]', bg: 'bg-[#171717]/10', label: 'Excellent' };
-      if (value > 50) return { color: 'text-[#525252]', bg: 'bg-[#525252]/10', label: 'Correct' };
+      if (value > 100) return { color: 'text-[var(--color-primary)]', bg: 'bg-[var(--color-primary)]/10', label: 'Excellent' };
+      if (value > 50) return { color: 'text-[var(--color-text-secondary)]', bg: 'bg-[var(--color-text-secondary)]/10', label: 'Correct' };
       return { color: 'text-[#ef4444]', bg: 'bg-[#ef4444]/10', label: 'Risque' };
     }
-    if (value > 15) return { color: 'text-[#171717]', bg: 'bg-[#171717]/10', label: 'Excellent' };
-    if (value > 5) return { color: 'text-[#525252]', bg: 'bg-[#525252]/10', label: 'Bon' };
+    if (value > 15) return { color: 'text-[var(--color-primary)]', bg: 'bg-[var(--color-primary)]/10', label: 'Excellent' };
+    if (value > 5) return { color: 'text-[var(--color-text-secondary)]', bg: 'bg-[var(--color-text-secondary)]/10', label: 'Bon' };
     return { color: 'text-[#ef4444]', bg: 'bg-[#ef4444]/10', label: 'Faible' };
   };
 
@@ -75,7 +75,7 @@ export const RatiosCard: React.FC<RatiosCardProps> = ({ ratios, loading }) => {
         return (
           <div
             key={card.title}
-            className="bg-white rounded-lg border border-[#d4d4d4] p-4 hover:shadow-md transition-shadow"
+            className="bg-white rounded-lg border border-[var(--color-border)] p-4 hover:shadow-md transition-shadow"
           >
             <div className="flex items-center justify-between mb-3">
               <div className={`${status.bg} p-2 rounded-lg`}>
@@ -85,11 +85,11 @@ export const RatiosCard: React.FC<RatiosCardProps> = ({ ratios, loading }) => {
                 {status.label}
               </span>
             </div>
-            <h4 className="text-sm text-[#737373] mb-1">{card.title}</h4>
+            <h4 className="text-sm text-[var(--color-text-tertiary)] mb-1">{card.title}</h4>
             <p className={`text-lg font-bold ${status.color}`}>
               {formatPercent(card.value / 100)}
             </p>
-            <p className="text-xs text-[#737373] mt-2">{card.description}</p>
+            <p className="text-xs text-[var(--color-text-tertiary)] mt-2">{card.description}</p>
           </div>
         );
       })}
