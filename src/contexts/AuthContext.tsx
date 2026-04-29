@@ -75,12 +75,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           await supabase.auth.signOut();
           setUser(null);
           setSession(null);
+          // Nettoyer le tenant en cache pour ne pas leaker entre comptes
+          try { localStorage.removeItem('atlas-tenant-id'); } catch (_e) { /* ignore */ }
           return;
         }
         const permissions = await getUserPermissions();
         const userData = mapProfileToUser(profile);
         userData.permissions = permissions;
         setUser(userData);
+
+        // Synchroniser le tenant_id pour le SupabaseAdapter (DataContext lit
+        // localStorage['atlas-tenant-id'] au démarrage). Sans ce sync, l'adapter
+        // utilise le placeholder 'default' qui n'est pas un UUID -> 400 sur
+        // toutes les queries (journal_entries, accounts, ...).
+        try {
+          if (userData.company_id) {
+            localStorage.setItem('atlas-tenant-id', userData.company_id);
+          }
+        } catch (_e) { /* localStorage indisponible (mode privé) */ }
       } else {
         setUser(null);
       }
