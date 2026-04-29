@@ -192,8 +192,13 @@ export function generatePlanComptableFromGL(
     );
     if (!numero) continue;
 
+    // Libellé du compte (≠ description d'écriture). Aliases courants des
+    // exports d'autres logiciels (Sage, Cegid, Ciel, Saari, Tompro, etc.).
     const libelleFromGL = String(
-      findField(row, ['libellecompte', 'libellecompte', 'comptelib', 'intitulecompte', 'accountname']) ?? ''
+      findField(row, [
+        'libellecompte', 'libelle_compte', 'comptelib', 'intitulecompte', 'intitule',
+        'libelle', 'nomcompte', 'accountname', 'accountlabel'
+      ]) ?? ''
     ).trim() || undefined;
 
     const tiers = normalizeAccountNumber(

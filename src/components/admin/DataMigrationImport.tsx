@@ -211,15 +211,20 @@ const TARGET_FIELDS: Record<string, { field: string; label: string; required: bo
     { field: 'telephone', label: 'Telephone', required: false },
   ],
   // Grand Livre : source principale recommandée (écritures + AN incluses)
+  // Deux libellés distincts :
+  //   - libelleCompte    : intitulé du compte SYSCOHADA (ex: "Clients")
+  //   - libelleEcriture  : description de l'écriture / pièce (ex: "Facture SANGA")
   grandLivre: [
     { field: 'date', label: 'Date', required: true },
     { field: 'journal', label: 'Code journal', required: true },
     { field: 'compte', label: 'Numéro de compte', required: true },
-    { field: 'libelle', label: 'Libellé écriture', required: true },
+    { field: 'libelleCompte', label: 'Libellé du compte', required: false },
+    { field: 'libelleEcriture', label: 'Libellé écriture / Description', required: true },
     { field: 'debit', label: 'Débit', required: true },
     { field: 'credit', label: 'Crédit', required: true },
     { field: 'tiers', label: 'Code tiers', required: false },
     { field: 'piece', label: 'Pièce', required: false },
+    { field: 'numeroEcriture', label: 'N° écriture / saisie', required: false },
     { field: 'lettrage', label: 'Lettrage', required: false },
     { field: 'echeance', label: 'Échéance', required: false },
   ],
@@ -340,8 +345,14 @@ function getAliasMap(fileKey: string): Record<string, string[]> {
     // Mapping traditionnel (compatibilité ancienne structure)
     if (col.key === 'date') map['dateEcriture'] = aliases;
     if (col.key === 'compte') map['numeroCompte'] = aliases;
-    if (col.key === 'libelleEcriture') map['libelle'] = aliases;
+    // Libellé écriture : alias historique 'libelle' (legacy ecritures), nouveau 'libelleEcriture'
+    if (col.key === 'libelleEcriture') {
+      map['libelle'] = aliases;
+      map['libelleEcriture'] = aliases;
+    }
+    if (col.key === 'libelleCompte') map['libelleCompte'] = aliases;
     if (col.key === 'piece') map['numeroPiece'] = aliases;
+    if (col.key === 'numeroEcriture') map['numeroEcriture'] = aliases;
   }
   return map;
 }
@@ -698,24 +709,41 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
   // ─── Step 6: Simulation ────────────────────────────────
 
   const runSimulation = useCallback(() => {
-    const ecr = uploadedFiles.ecritures?.data || uploadedFiles.fec?.data || [];
+    // Mode 1 (Bascule) : source principale = grandLivre.
+    const ecr = uploadedFiles.grandLivre?.data || uploadedFiles.ecritures?.data || uploadedFiles.fec?.data || [];
+    const ecrMapping = mappings.grandLivre || mappings.ecritures || mappings.fec || [];
     const an = uploadedFiles.reportAN?.data || [];
+    const anMapping = mappings.reportAN || [];
     const assets = uploadedFiles.immobilisations?.data || [];
     let totalDebit = 0, totalCredit = 0;
 
-    [...ecr, ...an].forEach((row: any) => {
-      const vals = Object.values(row).map(v => parseNumber(v));
-      totalDebit = money(totalDebit).add(money(vals[vals.length - 2] || 0)).toNumber();
-      totalCredit = money(totalCredit).add(money(vals[vals.length - 1] || 0)).toNumber();
+    // Resoudre les colonnes debit/credit via le mapping plutot que par position
+    // (sinon on tombe sur 'Solde progressif'/'Solde' en fin de ligne pour un GL).
+    const debCol = ecrMapping.find(m => m.target === 'debit')?.source;
+    const credCol = ecrMapping.find(m => m.target === 'credit')?.source;
+    const anDebCol = anMapping.find(m => m.target === 'debit')?.source;
+    const anCredCol = anMapping.find(m => m.target === 'credit')?.source;
+
+    ecr.forEach((row: any) => {
+      const d = debCol ? parseNumber((row as Record<string, any>)[debCol]) : 0;
+      const c = credCol ? parseNumber((row as Record<string, any>)[credCol]) : 0;
+      totalDebit = money(totalDebit).add(money(d)).toNumber();
+      totalCredit = money(totalCredit).add(money(c)).toNumber();
+    });
+    an.forEach((row: any) => {
+      const d = anDebCol ? parseNumber((row as Record<string, any>)[anDebCol]) : 0;
+      const c = anCredCol ? parseNumber((row as Record<string, any>)[anCredCol]) : 0;
+      totalDebit = money(totalDebit).add(money(d)).toNumber();
+      totalCredit = money(totalCredit).add(money(c)).toNumber();
     });
 
-    // Approximate actif/passif from accounts
+    // Approximate actif/passif from accounts (AN file)
     let totalActif = 0, totalPassif = 0;
+    const anNumCol = anMapping.find(m => m.target === 'numeroCompte')?.source;
     an.forEach((row: any) => {
-      const vals = Object.values(row);
-      const num = String(vals[0] || '');
-      const d = parseNumber(vals[vals.length - 2]);
-      const c = parseNumber(vals[vals.length - 1]);
+      const num = String(anNumCol ? (row as Record<string, any>)[anNumCol] : '');
+      const d = anDebCol ? parseNumber((row as Record<string, any>)[anDebCol]) : 0;
+      const c = anCredCol ? parseNumber((row as Record<string, any>)[anCredCol]) : 0;
       const solde = money(d).subtract(money(c)).toNumber();
       if (['2', '3', '4', '5'].includes(num[0]) && solde > 0) totalActif = money(totalActif).add(money(solde)).toNumber();
       else if (['1', '4', '5'].includes(num[0]) && solde < 0) totalPassif = money(totalPassif).add(money(solde).abs()).toNumber();
@@ -730,20 +758,29 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
     const totalRecords = (uploadedFiles.planComptable?.data.length || 0) +
       (uploadedFiles.tiers?.data.length || 0) + ecr.length + an.length + assets.length;
 
+    // Comptes : si pas de plan comptable uploade mais un GL, le PC sera
+    // generé automatiquement (genere lors de l'analyse). On compte donc
+    // les lignes uniques de comptes presentes dans le GL.
+    const numCol = ecrMapping.find(m => m.target === 'compte')?.source ||
+                   ecrMapping.find(m => m.target === 'numeroCompte')?.source;
+    const comptesUniques = numCol
+      ? new Set(ecr.map((row: any) => String((row as Record<string, any>)[numCol] || '')).filter(Boolean)).size
+      : (uploadedFiles.planComptable?.data.length || 0);
+
     setSimulation({
       totalDebit, totalCredit,
       balanced: money(totalDebit).subtract(money(totalCredit)).abs().toNumber() < 0.01,
       totalActif, totalPassif, assetVNC,
       estimatedTime: Math.max(5, Math.ceil(totalRecords / 200)),
       counts: {
-        comptes: uploadedFiles.planComptable?.data.length || 0,
+        comptes: uploadedFiles.planComptable?.data.length || comptesUniques,
         tiers: uploadedFiles.tiers?.data.length || 0,
         ecritures: ecr.length,
         reportAN: an.length,
         immobilisations: assets.length,
       },
     });
-  }, [uploadedFiles]);
+  }, [uploadedFiles, mappings]);
 
   // ─── Step 7: Import ────────────────────────────────────
 
@@ -760,23 +797,72 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
 
     try {
       // 1. Accounts
+      // Sources possibles, par ordre de priorite :
+      //   a) Fichier planComptable explicitement uploade (rare en Mode 1/2)
+      //   b) generatedPC (extrait automatiquement du Grand Livre via SYSCOHADA)
+      //   c) Fallback Mode 2 : extrait du fichier Balance / Reports a nouveau
       const pcMapping = mappings.planComptable || [];
       const pcData = uploadedFiles.planComptable?.data || [];
       setImportLabel('Import du plan comptable...');
-      for (let i = 0; i < pcData.length; i++) {
-        const row = pcData[i] as Record<string, any>;
-        const numCol = pcMapping.find(m => m.target === 'numero')?.source;
-        const libCol = pcMapping.find(m => m.target === 'libelle')?.source;
-        if (!numCol) continue;
-        await adapter.create('accounts', {
-          numero: String(row[numCol] || ''),
-          libelle: String(row[libCol || ''] || ''),
-          type: 'general',
-          importSessionId: sessionId,
-          createdAt: new Date().toISOString(),
-        } as Record<string, unknown>);
-        report.accounts++;
-        setImportProgress(Math.round((i / pcData.length) * 15));
+
+      if (pcData.length > 0) {
+        // Source explicite
+        for (let i = 0; i < pcData.length; i++) {
+          const row = pcData[i] as Record<string, any>;
+          const numCol = pcMapping.find(m => m.target === 'numero')?.source;
+          const libCol = pcMapping.find(m => m.target === 'libelle')?.source;
+          if (!numCol) continue;
+          await adapter.create('accounts', {
+            numero: String(row[numCol] || ''),
+            libelle: String(row[libCol || ''] || ''),
+            type: 'general',
+            importSessionId: sessionId,
+            createdAt: new Date().toISOString(),
+          } as Record<string, unknown>);
+          report.accounts++;
+          setImportProgress(Math.round((i / pcData.length) * 15));
+        }
+      } else if (generatedPC && generatedPC.accounts.length > 0) {
+        // Plan genere automatiquement depuis le GL (Mode 1 / Mode 3)
+        const accs = generatedPC.accounts;
+        for (let i = 0; i < accs.length; i++) {
+          const acc = accs[i];
+          await adapter.create('accounts', {
+            numero: acc.numero,
+            libelle: acc.libelle,
+            classe: acc.classe,
+            type: acc.auxiliaire ? 'auxiliary' : 'general',
+            sens: acc.sens,
+            nature: acc.nature,
+            importSessionId: sessionId,
+            createdAt: new Date().toISOString(),
+          } as Record<string, unknown>);
+          report.accounts++;
+          setImportProgress(Math.round((i / accs.length) * 15));
+        }
+      } else if (uploadedFiles.reportAN?.data && uploadedFiles.reportAN.data.length > 0) {
+        // Fallback Mode 2 : extraire les comptes du Balance/AN
+        const anMappingForPC = mappings.reportAN || [];
+        const numCol = anMappingForPC.find(m => m.target === 'numeroCompte')?.source;
+        const libCol = anMappingForPC.find(m => m.target === 'libelle')?.source;
+        if (numCol) {
+          const seen = new Set<string>();
+          const rows = uploadedFiles.reportAN.data as Record<string, any>[];
+          for (let i = 0; i < rows.length; i++) {
+            const num = String(rows[i][numCol] || '').trim();
+            if (!num || seen.has(num)) continue;
+            seen.add(num);
+            await adapter.create('accounts', {
+              numero: num,
+              libelle: String(libCol ? rows[i][libCol] : '') || `Compte ${num}`,
+              type: 'general',
+              importSessionId: sessionId,
+              createdAt: new Date().toISOString(),
+            } as Record<string, unknown>);
+            report.accounts++;
+            setImportProgress(Math.round((i / rows.length) * 15));
+          }
+        }
       }
 
       // 2. Tiers
@@ -827,18 +913,26 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       }
 
       // 4. Entries (group by piece number)
-      const ecrMapping = mappings.ecritures || mappings.fec || [];
-      const ecrData = uploadedFiles.ecritures?.data || uploadedFiles.fec?.data || [];
+      // Mode 1 (Bascule en cours d'exercice) : source principale = grandLivre.
+      // Fallback historique : ecritures puis fec.
+      const ecrMapping = mappings.grandLivre || mappings.ecritures || mappings.fec || [];
+      const ecrData = uploadedFiles.grandLivre?.data || uploadedFiles.ecritures?.data || uploadedFiles.fec?.data || [];
       setImportLabel('Import des ecritures...');
       const getEcrVal = (row: any, field: string) => {
         const col = ecrMapping.find(m => m.target === field)?.source;
         return col ? (row as Record<string, any>)[col] : '';
       };
 
-      // Group entries by piece
+      // Group entries by piece (ou numero d'écriture pour le grand livre)
       const groups = new Map<string, any[]>();
       ecrData.forEach((row: any, i: number) => {
-        const piece = String(getEcrVal(row, 'numeroPiece') || getEcrVal(row, 'EcritureNum') || `AUTO_${i}`);
+        const piece = String(
+          getEcrVal(row, 'numeroEcriture') ||
+          getEcrVal(row, 'numeroPiece') ||
+          getEcrVal(row, 'piece') ||
+          getEcrVal(row, 'EcritureNum') ||
+          `AUTO_${i}`
+        );
         if (excludedEntries.includes(piece)) return;
         if (!groups.has(piece)) groups.set(piece, []);
         groups.get(piece)!.push(row);
@@ -849,15 +943,28 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
         const journalCode = String(getEcrVal(lines[0], 'journal') || getEcrVal(lines[0], 'JournalCode') || 'OD');
         journals.add(journalCode);
         const entryLines = lines.map((line: any) => ({
-          accountNumber: String(getEcrVal(line, 'numeroCompte') || getEcrVal(line, 'CompteNum') || ''),
-          label: String(getEcrVal(line, 'libelle') || getEcrVal(line, 'EcritureLib') || ''),
+          accountNumber: String(
+            getEcrVal(line, 'compte') ||
+            getEcrVal(line, 'numeroCompte') ||
+            getEcrVal(line, 'CompteNum') || ''
+          ),
+          // Description de l'écriture : libelleEcriture (grand livre) ou libelle (legacy ecritures)
+          label: String(
+            getEcrVal(line, 'libelleEcriture') ||
+            getEcrVal(line, 'libelle') ||
+            getEcrVal(line, 'EcritureLib') || ''
+          ),
           debit: parseNumber(getEcrVal(line, 'debit') || getEcrVal(line, 'Debit')),
           credit: parseNumber(getEcrVal(line, 'credit') || getEcrVal(line, 'Credit')),
         }));
 
         try {
           await adapter.saveJournalEntry({
-            date: parseDate(getEcrVal(lines[0], 'dateEcriture') || getEcrVal(lines[0], 'EcritureDate')),
+            date: parseDate(
+              getEcrVal(lines[0], 'date') ||
+              getEcrVal(lines[0], 'dateEcriture') ||
+              getEcrVal(lines[0], 'EcritureDate')
+            ),
             journalCode,
             reference: piece,
             status: params.entryStatus === 'validated' ? 'validated' : 'draft',

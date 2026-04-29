@@ -88,6 +88,21 @@ const ExternalAuthPage: React.FC = () => {
         localStorage.setItem('atlas_fna_plan_tier', 'pme');
       }
 
+      // Synchroniser le tenant_id immediatement apres SSO pour que le
+      // SupabaseAdapter ne demarre pas avec le placeholder 'default'.
+      // Le profile sera ensuite reconfirme par AuthContext.loadUserProfile.
+      try {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('company_id')
+          .eq('id', (await supabase.auth.getUser()).data.user?.id || '')
+          .maybeSingle();
+        const companyId = (profileData as { company_id?: string } | null)?.company_id;
+        if (companyId) {
+          localStorage.setItem('atlas-tenant-id', companyId);
+        }
+      } catch (_e) { /* fallback : AuthContext se chargera du sync */ }
+
       // Session is now established, AuthContext will pick it up
       navigate('/home', { replace: true });
     } catch (err) {
