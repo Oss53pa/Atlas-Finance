@@ -797,23 +797,72 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
 
     try {
       // 1. Accounts
+      // Sources possibles, par ordre de priorite :
+      //   a) Fichier planComptable explicitement uploade (rare en Mode 1/2)
+      //   b) generatedPC (extrait automatiquement du Grand Livre via SYSCOHADA)
+      //   c) Fallback Mode 2 : extrait du fichier Balance / Reports a nouveau
       const pcMapping = mappings.planComptable || [];
       const pcData = uploadedFiles.planComptable?.data || [];
       setImportLabel('Import du plan comptable...');
-      for (let i = 0; i < pcData.length; i++) {
-        const row = pcData[i] as Record<string, any>;
-        const numCol = pcMapping.find(m => m.target === 'numero')?.source;
-        const libCol = pcMapping.find(m => m.target === 'libelle')?.source;
-        if (!numCol) continue;
-        await adapter.create('accounts', {
-          numero: String(row[numCol] || ''),
-          libelle: String(row[libCol || ''] || ''),
-          type: 'general',
-          importSessionId: sessionId,
-          createdAt: new Date().toISOString(),
-        } as Record<string, unknown>);
-        report.accounts++;
-        setImportProgress(Math.round((i / pcData.length) * 15));
+
+      if (pcData.length > 0) {
+        // Source explicite
+        for (let i = 0; i < pcData.length; i++) {
+          const row = pcData[i] as Record<string, any>;
+          const numCol = pcMapping.find(m => m.target === 'numero')?.source;
+          const libCol = pcMapping.find(m => m.target === 'libelle')?.source;
+          if (!numCol) continue;
+          await adapter.create('accounts', {
+            numero: String(row[numCol] || ''),
+            libelle: String(row[libCol || ''] || ''),
+            type: 'general',
+            importSessionId: sessionId,
+            createdAt: new Date().toISOString(),
+          } as Record<string, unknown>);
+          report.accounts++;
+          setImportProgress(Math.round((i / pcData.length) * 15));
+        }
+      } else if (generatedPC && generatedPC.accounts.length > 0) {
+        // Plan genere automatiquement depuis le GL (Mode 1 / Mode 3)
+        const accs = generatedPC.accounts;
+        for (let i = 0; i < accs.length; i++) {
+          const acc = accs[i];
+          await adapter.create('accounts', {
+            numero: acc.numero,
+            libelle: acc.libelle,
+            classe: acc.classe,
+            type: acc.auxiliaire ? 'auxiliary' : 'general',
+            sens: acc.sens,
+            nature: acc.nature,
+            importSessionId: sessionId,
+            createdAt: new Date().toISOString(),
+          } as Record<string, unknown>);
+          report.accounts++;
+          setImportProgress(Math.round((i / accs.length) * 15));
+        }
+      } else if (uploadedFiles.reportAN?.data && uploadedFiles.reportAN.data.length > 0) {
+        // Fallback Mode 2 : extraire les comptes du Balance/AN
+        const anMappingForPC = mappings.reportAN || [];
+        const numCol = anMappingForPC.find(m => m.target === 'numeroCompte')?.source;
+        const libCol = anMappingForPC.find(m => m.target === 'libelle')?.source;
+        if (numCol) {
+          const seen = new Set<string>();
+          const rows = uploadedFiles.reportAN.data as Record<string, any>[];
+          for (let i = 0; i < rows.length; i++) {
+            const num = String(rows[i][numCol] || '').trim();
+            if (!num || seen.has(num)) continue;
+            seen.add(num);
+            await adapter.create('accounts', {
+              numero: num,
+              libelle: String(libCol ? rows[i][libCol] : '') || `Compte ${num}`,
+              type: 'general',
+              importSessionId: sessionId,
+              createdAt: new Date().toISOString(),
+            } as Record<string, unknown>);
+            report.accounts++;
+            setImportProgress(Math.round((i / rows.length) * 15));
+          }
+        }
       }
 
       // 2. Tiers
