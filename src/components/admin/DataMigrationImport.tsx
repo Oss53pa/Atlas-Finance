@@ -278,16 +278,35 @@ function parseNumber(val: any): number {
 }
 
 function parseDate(val: any): string {
-  if (!val) return '';
+  if (val == null || val === '') return '';
+  // 1. Date JS (xlsx peut renvoyer des objets Date)
+  if (val instanceof Date) {
+    if (isNaN(val.getTime())) return '';
+    return val.toISOString().slice(0, 10);
+  }
+  // 2. Number = numero serie Excel (jours depuis 1900-01-00, epoch 25569 = 1970-01-01)
+  if (typeof val === 'number') {
+    if (!isFinite(val)) return '';
+    const d = new Date(Math.round((val - 25569) * 86400 * 1000));
+    if (!isNaN(d.getTime())) return d.toISOString().slice(0, 10);
+    return '';
+  }
   const s = String(val).trim();
-  // DD/MM/YYYY
+  if (!s) return '';
+  // 3. YYYY-MM-DD direct (ISO)
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+  // 4. DD/MM/YYYY
   const fr = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
   if (fr) return `${fr[3]}-${fr[2]}-${fr[1]}`;
-  // YYYYMMDD
+  // 5. DD-MM-YYYY
+  const frDash = s.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+  if (frDash) return `${frDash[3]}-${frDash[2]}-${frDash[1]}`;
+  // 6. YYYYMMDD compact
   const compact = s.match(/^(\d{4})(\d{2})(\d{2})$/);
   if (compact) return `${compact[1]}-${compact[2]}-${compact[3]}`;
-  // YYYY-MM-DD
-  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  // 7. Fallback : laisser Date() parser ("Thu Jan 01 2026...", "01/15/2026", etc.)
+  const d = new Date(s);
+  if (!isNaN(d.getTime())) return d.toISOString().slice(0, 10);
   return s;
 }
 
