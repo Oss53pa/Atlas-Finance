@@ -14,6 +14,7 @@
 import React, { createContext, useContext, useMemo, useRef, useState, useEffect, useCallback } from 'react'
 import type { DataAdapter, DataMode } from '@atlas/data'
 import { DexieAdapter, SupabaseAdapter } from '@atlas/data'
+import { supabase as globalSupabaseClient } from '@/lib/supabase'
 
 // ============================================================================
 // CONTEXT
@@ -54,9 +55,13 @@ export function DataProvider({ children, forceMode, forceAdapter }: DataProvider
         if (!url || !key || url.includes('YOUR_PROJECT_ID')) {
           return new DexieAdapter()
         }
-        // tenantId will be set after auth — use placeholder, RLS handles it server-side
+        // tenantId synchronise depuis le profile par AuthContext apres login
         const tenantId = localStorage.getItem('atlas-tenant-id') || 'default'
-        return new SupabaseAdapter(url, key, tenantId)
+        // CRITICAL : passer le client supabase global (avec session authentifiee
+        // dans sessionStorage cle 'atlas-fna-auth'). Sinon l'adapter cree son
+        // propre client sans session -> toutes les operations tournent en anon
+        // et echouent avec 'permission denied' sur INSERT/UPDATE/DELETE.
+        return new SupabaseAdapter(url, key, tenantId, globalSupabaseClient as unknown as Parameters<typeof SupabaseAdapter>[3])
       }
       case 'hybrid': {
         return new DexieAdapter()
