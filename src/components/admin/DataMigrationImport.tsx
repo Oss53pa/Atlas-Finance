@@ -805,6 +805,15 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       const pcData = uploadedFiles.planComptable?.data || [];
       setImportLabel('Import du plan comptable...');
 
+      // Helper : mapping nom de colonne accounts cote Supabase
+      // Schema reel : code, name, account_class, account_type, level,
+      // normal_balance, is_active. Pas de colonnes 'numero'/'libelle'/'sens'.
+      // L'adapter ajoute deja id, tenant_id, created_at automatiquement.
+      const accountClassFromNumero = (num: string): string => {
+        const c = (num || '').replace(/[^0-9]/g, '').charAt(0);
+        return c || '0';
+      };
+
       if (pcData.length > 0) {
         // Source explicite
         for (let i = 0; i < pcData.length; i++) {
@@ -812,12 +821,15 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
           const numCol = pcMapping.find(m => m.target === 'numero')?.source;
           const libCol = pcMapping.find(m => m.target === 'libelle')?.source;
           if (!numCol) continue;
+          const code = String(row[numCol] || '').trim();
+          if (!code) continue;
           await adapter.create('accounts', {
-            numero: String(row[numCol] || ''),
-            libelle: String(row[libCol || ''] || ''),
-            type: 'general',
-            importSessionId: sessionId,
-            createdAt: new Date().toISOString(),
+            code,
+            name: String(row[libCol || ''] || `Compte ${code}`),
+            account_class: accountClassFromNumero(code),
+            account_type: 'general',
+            level: code.length,
+            is_active: true,
           } as Record<string, unknown>);
           report.accounts++;
           setImportProgress(Math.round((i / pcData.length) * 15));
@@ -828,14 +840,13 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
         for (let i = 0; i < accs.length; i++) {
           const acc = accs[i];
           await adapter.create('accounts', {
-            numero: acc.numero,
-            libelle: acc.libelle,
-            classe: acc.classe,
-            type: acc.auxiliaire ? 'auxiliary' : 'general',
-            sens: acc.sens,
-            nature: acc.nature,
-            importSessionId: sessionId,
-            createdAt: new Date().toISOString(),
+            code: acc.numero,
+            name: acc.libelle,
+            account_class: String(acc.classe),
+            account_type: acc.auxiliaire ? 'auxiliary' : 'general',
+            level: acc.numero.length,
+            normal_balance: acc.sens === 'M' ? null : acc.sens, // 'D' ou 'C'
+            is_active: true,
           } as Record<string, unknown>);
           report.accounts++;
           setImportProgress(Math.round((i / accs.length) * 15));
@@ -853,11 +864,12 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
             if (!num || seen.has(num)) continue;
             seen.add(num);
             await adapter.create('accounts', {
-              numero: num,
-              libelle: String(libCol ? rows[i][libCol] : '') || `Compte ${num}`,
-              type: 'general',
-              importSessionId: sessionId,
-              createdAt: new Date().toISOString(),
+              code: num,
+              name: String(libCol ? rows[i][libCol] : '') || `Compte ${num}`,
+              account_class: accountClassFromNumero(num),
+              account_type: 'general',
+              level: num.length,
+              is_active: true,
             } as Record<string, unknown>);
             report.accounts++;
             setImportProgress(Math.round((i / rows.length) * 15));
@@ -865,7 +877,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
         }
       }
 
-      // 2. Tiers
+      // 2. Tiers — schema : code, name, type, email, phone, address, tax_id, ...
       const tiersMapping = mappings.tiers || [];
       const tiersData = uploadedFiles.tiers?.data || [];
       setImportLabel('Import des tiers...');
@@ -877,16 +889,17 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
         if (!codeCol || !nomCol) continue;
         await adapter.create('thirdParties', {
           code: String(row[codeCol] || ''),
-          nom: String(row[nomCol] || ''),
+          name: String(row[nomCol] || ''),
           type: String(row[typeCol || ''] || 'client'),
-          importSessionId: sessionId,
-          createdAt: new Date().toISOString(),
+          is_active: true,
         } as Record<string, unknown>);
         report.tiers++;
         setImportProgress(15 + Math.round((i / tiersData.length) * 15));
       }
 
-      // 3. Assets
+      // 3. Assets — schema : code, name, category, acquisition_date,
+      // acquisition_value, useful_life_years, account_code,
+      // depreciation_account_code, depreciation_method, status
       const assetMapping = mappings.immobilisations || [];
       const assetData = uploadedFiles.immobilisations?.data || [];
       setImportLabel('Import des immobilisations...');
@@ -896,17 +909,20 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
           const col = assetMapping.find(m => m.target === field)?.source;
           return col ? row[col] : '';
         };
+        const code = String(getVal('code') || '').trim();
+        if (!code) continue;
         await adapter.create('assets', {
-          code: String(getVal('code')),
-          libelle: String(getVal('libelle')),
-          compteImmo: String(getVal('compteImmo')),
-          compteAmort: String(getVal('compteAmort')),
-          dateAcquisition: parseDate(getVal('dateAcquisition')),
-          valeurOrigine: parseNumber(getVal('valeurOrigine')),
-          amortCumule: parseNumber(getVal('amortCumule')),
-          duree: parseNumber(getVal('duree')),
-          importSessionId: sessionId,
-          createdAt: new Date().toISOString(),
+          code,
+          name: String(getVal('libelle') || `Immo ${code}`),
+          category: String(getVal('categorie') || 'Autre'),
+          account_code: String(getVal('compteImmo') || ''),
+          depreciation_account_code: String(getVal('compteAmort') || ''),
+          acquisition_date: parseDate(getVal('dateAcquisition')) || new Date().toISOString().slice(0, 10),
+          acquisition_value: parseNumber(getVal('valeurOrigine')),
+          cumul_depreciation: parseNumber(getVal('amortCumule')),
+          useful_life_years: parseNumber(getVal('duree')) || 1,
+          depreciation_method: String(getVal('methode') || 'LINEAIRE'),
+          status: 'active',
         } as Record<string, unknown>);
         report.assets++;
         setImportProgress(30 + Math.round((i / assetData.length) * 15));
@@ -942,77 +958,128 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       for (const [piece, lines] of groups) {
         const journalCode = String(getEcrVal(lines[0], 'journal') || getEcrVal(lines[0], 'JournalCode') || 'OD');
         journals.add(journalCode);
-        const entryLines = lines.map((line: any) => ({
-          accountNumber: String(
-            getEcrVal(line, 'compte') ||
-            getEcrVal(line, 'numeroCompte') ||
-            getEcrVal(line, 'CompteNum') || ''
-          ),
-          // Description de l'écriture : libelleEcriture (grand livre) ou libelle (legacy ecritures)
-          label: String(
-            getEcrVal(line, 'libelleEcriture') ||
-            getEcrVal(line, 'libelle') ||
-            getEcrVal(line, 'EcritureLib') || ''
-          ),
-          debit: parseNumber(getEcrVal(line, 'debit') || getEcrVal(line, 'Debit')),
-          credit: parseNumber(getEcrVal(line, 'credit') || getEcrVal(line, 'Credit')),
-        }));
+
+        // Schema journal_entries : entry_number, journal, date, label, status,
+        // total_debit, total_credit, reference. Pas de colonne 'lines' ni
+        // 'importSessionId' — les lignes sont une autre table journal_lines.
+        const entryDate = parseDate(
+          getEcrVal(lines[0], 'date') ||
+          getEcrVal(lines[0], 'dateEcriture') ||
+          getEcrVal(lines[0], 'EcritureDate')
+        ) || new Date().toISOString().slice(0, 10);
+
+        const totalDebit = lines.reduce(
+          (s: number, l: any) => s + parseNumber(getEcrVal(l, 'debit') || getEcrVal(l, 'Debit')),
+          0
+        );
+        const totalCredit = lines.reduce(
+          (s: number, l: any) => s + parseNumber(getEcrVal(l, 'credit') || getEcrVal(l, 'Credit')),
+          0
+        );
+
+        const entryLabel = String(
+          getEcrVal(lines[0], 'libelleEcriture') ||
+          getEcrVal(lines[0], 'libelle') ||
+          getEcrVal(lines[0], 'EcritureLib') ||
+          piece
+        );
 
         try {
-          await adapter.saveJournalEntry({
-            date: parseDate(
-              getEcrVal(lines[0], 'date') ||
-              getEcrVal(lines[0], 'dateEcriture') ||
-              getEcrVal(lines[0], 'EcritureDate')
-            ),
-            journalCode,
+          // Insert le journal_entry sans 'lines'
+          const created = await adapter.create<{ id: string }>('journalEntries', {
+            entry_number: piece,
+            journal: journalCode,
+            date: entryDate,
+            label: entryLabel,
             reference: piece,
             status: params.entryStatus === 'validated' ? 'validated' : 'draft',
-            lines: entryLines,
-            importSessionId: sessionId,
-          } as unknown as Omit<import('@atlas/shared').JournalEntry, 'id' | 'createdAt'>);
+            total_debit: totalDebit,
+            total_credit: totalCredit,
+          } as Record<string, unknown>);
+
+          // Insert chaque journal_line separement (schema : entry_id,
+          // account_code, account_name, label, debit, credit, ...)
+          for (const line of lines) {
+            const accountCode = String(
+              getEcrVal(line, 'compte') ||
+              getEcrVal(line, 'numeroCompte') ||
+              getEcrVal(line, 'CompteNum') || ''
+            );
+            const accountName = String(
+              getEcrVal(line, 'libelleCompte') ||
+              getEcrVal(line, 'CompteLib') ||
+              accountCode
+            );
+            const lineLabel = String(
+              getEcrVal(line, 'libelleEcriture') ||
+              getEcrVal(line, 'libelle') ||
+              getEcrVal(line, 'EcritureLib') || entryLabel
+            );
+            await adapter.create('journalLines', {
+              entry_id: created.id,
+              account_code: accountCode,
+              account_name: accountName,
+              label: lineLabel,
+              debit: parseNumber(getEcrVal(line, 'debit') || getEcrVal(line, 'Debit')),
+              credit: parseNumber(getEcrVal(line, 'credit') || getEcrVal(line, 'Credit')),
+            } as Record<string, unknown>);
+            report.lines++;
+          }
           report.entries++;
-          report.lines += lines.length;
-        } catch (err) { /* silent */
-          report.warnings.push(`Ecriture ${piece} ignoree (desequilibree ou erreur)`);
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : 'erreur inconnue';
+          report.warnings.push(`Ecriture ${piece} ignoree : ${msg}`);
         }
         ecrIdx++;
         setImportProgress(45 + Math.round((ecrIdx / groups.size) * 35));
       }
 
-      // 5. AN entries
+      // 5. AN entries — Mode 2 / fallback Mode 1
       const anData = uploadedFiles.reportAN?.data || [];
       if (anData.length > 0) {
         setImportLabel('Import des reports a nouveau...');
         const anMapping = mappings.reportAN || [];
-        const anLines = anData.map((row: Record<string, unknown>) => {
+        const anLinesData = anData.map((row: Record<string, unknown>) => {
           const numCol = anMapping.find(m => m.target === 'numeroCompte')?.source;
           const libCol = anMapping.find(m => m.target === 'libelle')?.source;
           const dCol = anMapping.find(m => m.target === 'debit')?.source;
           const cCol = anMapping.find(m => m.target === 'credit')?.source;
           return {
-            accountNumber: String(numCol ? row[numCol] : ''),
+            account_code: String(numCol ? row[numCol] : ''),
+            account_name: String(libCol ? row[libCol] : '') || String(numCol ? row[numCol] : ''),
             label: String(libCol ? row[libCol] : 'Report AN'),
             debit: parseNumber(dCol ? row[dCol] : 0),
             credit: parseNumber(cCol ? row[cCol] : 0),
           };
         }).filter(l => l.debit > 0 || l.credit > 0);
 
-        if (anLines.length > 0) {
+        if (anLinesData.length > 0) {
           try {
-            await adapter.saveJournalEntry({
-              date: params.exerciceStart || params.dateBascule,
-              journalCode: 'AN',
+            const anTotalDebit = anLinesData.reduce((s, l) => s + l.debit, 0);
+            const anTotalCredit = anLinesData.reduce((s, l) => s + l.credit, 0);
+            const anEntry = await adapter.create<{ id: string }>('journalEntries', {
+              entry_number: 'AN-MIGRATION',
+              journal: 'AN',
+              date: params.exerciceStart || params.dateBascule || new Date().toISOString().slice(0, 10),
+              label: 'Reports a nouveau — Migration',
               reference: 'AN-MIGRATION',
               status: 'validated',
-              lines: anLines,
-              importSessionId: sessionId,
-            } as unknown as Omit<import('@atlas/shared').JournalEntry, 'id' | 'createdAt'>);
+              total_debit: anTotalDebit,
+              total_credit: anTotalCredit,
+            } as Record<string, unknown>);
+
+            for (const ln of anLinesData) {
+              await adapter.create('journalLines', {
+                entry_id: anEntry.id,
+                ...ln,
+              } as Record<string, unknown>);
+              report.lines++;
+            }
             report.entries++;
-            report.lines += anLines.length;
             journals.add('AN');
-          } catch (err) { /* silent */
-            report.warnings.push('Report AN ignore (desequilibre)');
+          } catch (err) {
+            const msg = err instanceof Error ? err.message : 'erreur inconnue';
+            report.warnings.push(`Report AN ignore : ${msg}`);
           }
         }
         setImportProgress(90);
