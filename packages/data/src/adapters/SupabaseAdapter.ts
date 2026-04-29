@@ -55,8 +55,21 @@ export class SupabaseAdapter implements DataAdapter {
   private client: SupabaseClient
   private tenantId: string
 
-  constructor(url: string, anonKey: string, tenantId: string) {
-    this.client = createClient(url, anonKey)
+  /**
+   * Cree l'adapter Supabase.
+   *
+   * IMPORTANT : si l'app a deja un client Supabase global (avec session
+   * authentifiee dans un storage custom), il faut PASSER CE CLIENT en 4e
+   * parametre pour que l'adapter partage la meme session. Sinon, le client
+   * cree par l'adapter ne voit pas la session du user et tourne en anon.
+   */
+  constructor(
+    url: string,
+    anonKey: string,
+    tenantId: string,
+    existingClient?: SupabaseClient,
+  ) {
+    this.client = existingClient ?? createClient(url, anonKey)
     this.tenantId = tenantId
   }
 
