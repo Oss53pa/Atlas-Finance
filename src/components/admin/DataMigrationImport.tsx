@@ -709,24 +709,41 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
   // ─── Step 6: Simulation ────────────────────────────────
 
   const runSimulation = useCallback(() => {
-    const ecr = uploadedFiles.ecritures?.data || uploadedFiles.fec?.data || [];
+    // Mode 1 (Bascule) : source principale = grandLivre.
+    const ecr = uploadedFiles.grandLivre?.data || uploadedFiles.ecritures?.data || uploadedFiles.fec?.data || [];
+    const ecrMapping = mappings.grandLivre || mappings.ecritures || mappings.fec || [];
     const an = uploadedFiles.reportAN?.data || [];
+    const anMapping = mappings.reportAN || [];
     const assets = uploadedFiles.immobilisations?.data || [];
     let totalDebit = 0, totalCredit = 0;
 
-    [...ecr, ...an].forEach((row: any) => {
-      const vals = Object.values(row).map(v => parseNumber(v));
-      totalDebit = money(totalDebit).add(money(vals[vals.length - 2] || 0)).toNumber();
-      totalCredit = money(totalCredit).add(money(vals[vals.length - 1] || 0)).toNumber();
+    // Resoudre les colonnes debit/credit via le mapping plutot que par position
+    // (sinon on tombe sur 'Solde progressif'/'Solde' en fin de ligne pour un GL).
+    const debCol = ecrMapping.find(m => m.target === 'debit')?.source;
+    const credCol = ecrMapping.find(m => m.target === 'credit')?.source;
+    const anDebCol = anMapping.find(m => m.target === 'debit')?.source;
+    const anCredCol = anMapping.find(m => m.target === 'credit')?.source;
+
+    ecr.forEach((row: any) => {
+      const d = debCol ? parseNumber((row as Record<string, any>)[debCol]) : 0;
+      const c = credCol ? parseNumber((row as Record<string, any>)[credCol]) : 0;
+      totalDebit = money(totalDebit).add(money(d)).toNumber();
+      totalCredit = money(totalCredit).add(money(c)).toNumber();
+    });
+    an.forEach((row: any) => {
+      const d = anDebCol ? parseNumber((row as Record<string, any>)[anDebCol]) : 0;
+      const c = anCredCol ? parseNumber((row as Record<string, any>)[anCredCol]) : 0;
+      totalDebit = money(totalDebit).add(money(d)).toNumber();
+      totalCredit = money(totalCredit).add(money(c)).toNumber();
     });
 
-    // Approximate actif/passif from accounts
+    // Approximate actif/passif from accounts (AN file)
     let totalActif = 0, totalPassif = 0;
+    const anNumCol = anMapping.find(m => m.target === 'numeroCompte')?.source;
     an.forEach((row: any) => {
-      const vals = Object.values(row);
-      const num = String(vals[0] || '');
-      const d = parseNumber(vals[vals.length - 2]);
-      const c = parseNumber(vals[vals.length - 1]);
+      const num = String(anNumCol ? (row as Record<string, any>)[anNumCol] : '');
+      const d = anDebCol ? parseNumber((row as Record<string, any>)[anDebCol]) : 0;
+      const c = anCredCol ? parseNumber((row as Record<string, any>)[anCredCol]) : 0;
       const solde = money(d).subtract(money(c)).toNumber();
       if (['2', '3', '4', '5'].includes(num[0]) && solde > 0) totalActif = money(totalActif).add(money(solde)).toNumber();
       else if (['1', '4', '5'].includes(num[0]) && solde < 0) totalPassif = money(totalPassif).add(money(solde).abs()).toNumber();
@@ -741,20 +758,29 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
     const totalRecords = (uploadedFiles.planComptable?.data.length || 0) +
       (uploadedFiles.tiers?.data.length || 0) + ecr.length + an.length + assets.length;
 
+    // Comptes : si pas de plan comptable uploade mais un GL, le PC sera
+    // generé automatiquement (genere lors de l'analyse). On compte donc
+    // les lignes uniques de comptes presentes dans le GL.
+    const numCol = ecrMapping.find(m => m.target === 'compte')?.source ||
+                   ecrMapping.find(m => m.target === 'numeroCompte')?.source;
+    const comptesUniques = numCol
+      ? new Set(ecr.map((row: any) => String((row as Record<string, any>)[numCol] || '')).filter(Boolean)).size
+      : (uploadedFiles.planComptable?.data.length || 0);
+
     setSimulation({
       totalDebit, totalCredit,
       balanced: money(totalDebit).subtract(money(totalCredit)).abs().toNumber() < 0.01,
       totalActif, totalPassif, assetVNC,
       estimatedTime: Math.max(5, Math.ceil(totalRecords / 200)),
       counts: {
-        comptes: uploadedFiles.planComptable?.data.length || 0,
+        comptes: uploadedFiles.planComptable?.data.length || comptesUniques,
         tiers: uploadedFiles.tiers?.data.length || 0,
         ecritures: ecr.length,
         reportAN: an.length,
         immobilisations: assets.length,
       },
     });
-  }, [uploadedFiles]);
+  }, [uploadedFiles, mappings]);
 
   // ─── Step 7: Import ────────────────────────────────────
 
