@@ -16,6 +16,7 @@ import type { DataAdapter, DataMode, TableName, QueryFilters } from '../DataAdap
 // Mapping camelCase (TS) -> snake_case (Supabase)
 const TABLE_MAP: Record<TableName, string> = {
   journalEntries: 'journal_entries',
+  journalLines: 'journal_lines',
   accounts: 'accounts',
   thirdParties: 'third_parties',
   assets: 'assets',

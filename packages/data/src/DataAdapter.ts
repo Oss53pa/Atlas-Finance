@@ -24,6 +24,7 @@ export type DataMode = 'local' | 'saas' | 'hybrid'
 
 export type TableName =
   | 'journalEntries'
+  | 'journalLines'
   | 'accounts'
   | 'thirdParties'
   | 'assets'
