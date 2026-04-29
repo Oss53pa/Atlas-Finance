@@ -833,6 +833,23 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
         return c || '0';
       };
 
+      // Helper : create + skip silencieux si duplicate (re-import idempotent).
+      // Ne stoppe pas l'import sur une erreur de doublon comme accounts_tenant_id_code_key.
+      let accountsSkipped = 0;
+      const tryCreateAccount = async (data: Record<string, unknown>) => {
+        try {
+          await adapter.create('accounts', data);
+          report.accounts++;
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : '';
+          if (msg.includes('duplicate key') || msg.includes('unique constraint')) {
+            accountsSkipped++;
+          } else {
+            throw err; // erreur reelle (FK, NOT NULL, ...) -> remonter
+          }
+        }
+      };
+
       if (pcData.length > 0) {
         // Source explicite
         for (let i = 0; i < pcData.length; i++) {
@@ -842,15 +859,14 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
           if (!numCol) continue;
           const code = String(row[numCol] || '').trim();
           if (!code) continue;
-          await adapter.create('accounts', {
+          await tryCreateAccount({
             code,
             name: String(row[libCol || ''] || `Compte ${code}`),
             account_class: accountClassFromNumero(code),
             account_type: 'general',
             level: code.length,
             is_active: true,
-          } as Record<string, unknown>);
-          report.accounts++;
+          });
           setImportProgress(Math.round((i / pcData.length) * 15));
         }
       } else if (generatedPC && generatedPC.accounts.length > 0) {
@@ -858,7 +874,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
         const accs = generatedPC.accounts;
         for (let i = 0; i < accs.length; i++) {
           const acc = accs[i];
-          await adapter.create('accounts', {
+          await tryCreateAccount({
             code: acc.numero,
             name: acc.libelle,
             account_class: String(acc.classe),
@@ -866,8 +882,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
             level: acc.numero.length,
             normal_balance: acc.sens === 'M' ? null : acc.sens, // 'D' ou 'C'
             is_active: true,
-          } as Record<string, unknown>);
-          report.accounts++;
+          });
           setImportProgress(Math.round((i / accs.length) * 15));
         }
       } else if (uploadedFiles.reportAN?.data && uploadedFiles.reportAN.data.length > 0) {
@@ -882,38 +897,53 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
             const num = String(rows[i][numCol] || '').trim();
             if (!num || seen.has(num)) continue;
             seen.add(num);
-            await adapter.create('accounts', {
+            await tryCreateAccount({
               code: num,
               name: String(libCol ? rows[i][libCol] : '') || `Compte ${num}`,
               account_class: accountClassFromNumero(num),
               account_type: 'general',
               level: num.length,
               is_active: true,
-            } as Record<string, unknown>);
-            report.accounts++;
+            });
             setImportProgress(Math.round((i / rows.length) * 15));
           }
         }
+      }
+      if (accountsSkipped > 0) {
+        report.warnings.push(`${accountsSkipped} comptes deja existants (ignores)`);
       }
 
       // 2. Tiers — schema : code, name, type, email, phone, address, tax_id, ...
       const tiersMapping = mappings.tiers || [];
       const tiersData = uploadedFiles.tiers?.data || [];
       setImportLabel('Import des tiers...');
+      let tiersSkipped = 0;
       for (let i = 0; i < tiersData.length; i++) {
         const row = tiersData[i] as Record<string, any>;
         const codeCol = tiersMapping.find(m => m.target === 'code')?.source;
         const nomCol = tiersMapping.find(m => m.target === 'nom')?.source;
         const typeCol = tiersMapping.find(m => m.target === 'type')?.source;
         if (!codeCol || !nomCol) continue;
-        await adapter.create('thirdParties', {
-          code: String(row[codeCol] || ''),
-          name: String(row[nomCol] || ''),
-          type: String(row[typeCol || ''] || 'client'),
-          is_active: true,
-        } as Record<string, unknown>);
-        report.tiers++;
+        try {
+          await adapter.create('thirdParties', {
+            code: String(row[codeCol] || ''),
+            name: String(row[nomCol] || ''),
+            type: String(row[typeCol || ''] || 'client'),
+            is_active: true,
+          } as Record<string, unknown>);
+          report.tiers++;
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : '';
+          if (msg.includes('duplicate key') || msg.includes('unique constraint')) {
+            tiersSkipped++;
+          } else {
+            throw err;
+          }
+        }
         setImportProgress(15 + Math.round((i / tiersData.length) * 15));
+      }
+      if (tiersSkipped > 0) {
+        report.warnings.push(`${tiersSkipped} tiers deja existants (ignores)`);
       }
 
       // 3. Assets — schema : code, name, category, acquisition_date,
@@ -922,6 +952,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       const assetMapping = mappings.immobilisations || [];
       const assetData = uploadedFiles.immobilisations?.data || [];
       setImportLabel('Import des immobilisations...');
+      let assetsSkipped = 0;
       for (let i = 0; i < assetData.length; i++) {
         const row = assetData[i] as Record<string, any>;
         const getVal = (field: string) => {
@@ -930,21 +961,33 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
         };
         const code = String(getVal('code') || '').trim();
         if (!code) continue;
-        await adapter.create('assets', {
-          code,
-          name: String(getVal('libelle') || `Immo ${code}`),
-          category: String(getVal('categorie') || 'Autre'),
-          account_code: String(getVal('compteImmo') || ''),
-          depreciation_account_code: String(getVal('compteAmort') || ''),
-          acquisition_date: parseDate(getVal('dateAcquisition')) || new Date().toISOString().slice(0, 10),
-          acquisition_value: parseNumber(getVal('valeurOrigine')),
-          cumul_depreciation: parseNumber(getVal('amortCumule')),
-          useful_life_years: parseNumber(getVal('duree')) || 1,
-          depreciation_method: String(getVal('methode') || 'LINEAIRE'),
-          status: 'active',
-        } as Record<string, unknown>);
-        report.assets++;
+        try {
+          await adapter.create('assets', {
+            code,
+            name: String(getVal('libelle') || `Immo ${code}`),
+            category: String(getVal('categorie') || 'Autre'),
+            account_code: String(getVal('compteImmo') || ''),
+            depreciation_account_code: String(getVal('compteAmort') || ''),
+            acquisition_date: parseDate(getVal('dateAcquisition')) || new Date().toISOString().slice(0, 10),
+            acquisition_value: parseNumber(getVal('valeurOrigine')),
+            cumul_depreciation: parseNumber(getVal('amortCumule')),
+            useful_life_years: parseNumber(getVal('duree')) || 1,
+            depreciation_method: String(getVal('methode') || 'LINEAIRE'),
+            status: 'active',
+          } as Record<string, unknown>);
+          report.assets++;
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : '';
+          if (msg.includes('duplicate key') || msg.includes('unique constraint')) {
+            assetsSkipped++;
+          } else {
+            throw err;
+          }
+        }
         setImportProgress(30 + Math.round((i / assetData.length) * 15));
+      }
+      if (assetsSkipped > 0) {
+        report.warnings.push(`${assetsSkipped} immobilisations deja existantes (ignorees)`);
       }
 
       // 4. Entries (group by piece number)
@@ -974,6 +1017,8 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       });
 
       let ecrIdx = 0;
+      let entriesSkipped = 0;
+      const entryErrors: string[] = [];
       for (const [piece, lines] of groups) {
         const journalCode = String(getEcrVal(lines[0], 'journal') || getEcrVal(lines[0], 'JournalCode') || 'OD');
         journals.add(journalCode);
@@ -1047,10 +1092,25 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
           report.entries++;
         } catch (err) {
           const msg = err instanceof Error ? err.message : 'erreur inconnue';
-          report.warnings.push(`Ecriture ${piece} ignoree : ${msg}`);
+          if (msg.includes('duplicate key') || msg.includes('unique constraint')) {
+            entriesSkipped++;
+          } else {
+            // Limiter a 10 erreurs detaillees pour ne pas saturer le rapport
+            if (entryErrors.length < 10) {
+              entryErrors.push(`Ecriture ${piece} : ${msg}`);
+            }
+          }
         }
         ecrIdx++;
         setImportProgress(45 + Math.round((ecrIdx / groups.size) * 35));
+      }
+      if (entriesSkipped > 0) {
+        report.warnings.push(`${entriesSkipped} ecritures deja existantes (ignorees)`);
+      }
+      for (const e of entryErrors) report.warnings.push(e);
+      const otherErrors = (groups.size - report.entries - entriesSkipped) - entryErrors.length;
+      if (otherErrors > 0) {
+        report.warnings.push(`+ ${otherErrors} autres ecritures en erreur (voir logs)`);
       }
 
       // 5. AN entries — Mode 2 / fallback Mode 1
