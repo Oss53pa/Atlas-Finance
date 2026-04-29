@@ -211,15 +211,20 @@ const TARGET_FIELDS: Record<string, { field: string; label: string; required: bo
     { field: 'telephone', label: 'Telephone', required: false },
   ],
   // Grand Livre : source principale recommandée (écritures + AN incluses)
+  // Deux libellés distincts :
+  //   - libelleCompte    : intitulé du compte SYSCOHADA (ex: "Clients")
+  //   - libelleEcriture  : description de l'écriture / pièce (ex: "Facture SANGA")
   grandLivre: [
     { field: 'date', label: 'Date', required: true },
     { field: 'journal', label: 'Code journal', required: true },
     { field: 'compte', label: 'Numéro de compte', required: true },
-    { field: 'libelle', label: 'Libellé écriture', required: true },
+    { field: 'libelleCompte', label: 'Libellé du compte', required: false },
+    { field: 'libelleEcriture', label: 'Libellé écriture / Description', required: true },
     { field: 'debit', label: 'Débit', required: true },
     { field: 'credit', label: 'Crédit', required: true },
     { field: 'tiers', label: 'Code tiers', required: false },
     { field: 'piece', label: 'Pièce', required: false },
+    { field: 'numeroEcriture', label: 'N° écriture / saisie', required: false },
     { field: 'lettrage', label: 'Lettrage', required: false },
     { field: 'echeance', label: 'Échéance', required: false },
   ],
@@ -340,8 +345,14 @@ function getAliasMap(fileKey: string): Record<string, string[]> {
     // Mapping traditionnel (compatibilité ancienne structure)
     if (col.key === 'date') map['dateEcriture'] = aliases;
     if (col.key === 'compte') map['numeroCompte'] = aliases;
-    if (col.key === 'libelleEcriture') map['libelle'] = aliases;
+    // Libellé écriture : alias historique 'libelle' (legacy ecritures), nouveau 'libelleEcriture'
+    if (col.key === 'libelleEcriture') {
+      map['libelle'] = aliases;
+      map['libelleEcriture'] = aliases;
+    }
+    if (col.key === 'libelleCompte') map['libelleCompte'] = aliases;
     if (col.key === 'piece') map['numeroPiece'] = aliases;
+    if (col.key === 'numeroEcriture') map['numeroEcriture'] = aliases;
   }
   return map;
 }
@@ -827,18 +838,26 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       }
 
       // 4. Entries (group by piece number)
-      const ecrMapping = mappings.ecritures || mappings.fec || [];
-      const ecrData = uploadedFiles.ecritures?.data || uploadedFiles.fec?.data || [];
+      // Mode 1 (Bascule en cours d'exercice) : source principale = grandLivre.
+      // Fallback historique : ecritures puis fec.
+      const ecrMapping = mappings.grandLivre || mappings.ecritures || mappings.fec || [];
+      const ecrData = uploadedFiles.grandLivre?.data || uploadedFiles.ecritures?.data || uploadedFiles.fec?.data || [];
       setImportLabel('Import des ecritures...');
       const getEcrVal = (row: any, field: string) => {
         const col = ecrMapping.find(m => m.target === field)?.source;
         return col ? (row as Record<string, any>)[col] : '';
       };
 
-      // Group entries by piece
+      // Group entries by piece (ou numero d'écriture pour le grand livre)
       const groups = new Map<string, any[]>();
       ecrData.forEach((row: any, i: number) => {
-        const piece = String(getEcrVal(row, 'numeroPiece') || getEcrVal(row, 'EcritureNum') || `AUTO_${i}`);
+        const piece = String(
+          getEcrVal(row, 'numeroEcriture') ||
+          getEcrVal(row, 'numeroPiece') ||
+          getEcrVal(row, 'piece') ||
+          getEcrVal(row, 'EcritureNum') ||
+          `AUTO_${i}`
+        );
         if (excludedEntries.includes(piece)) return;
         if (!groups.has(piece)) groups.set(piece, []);
         groups.get(piece)!.push(row);
@@ -849,15 +868,28 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
         const journalCode = String(getEcrVal(lines[0], 'journal') || getEcrVal(lines[0], 'JournalCode') || 'OD');
         journals.add(journalCode);
         const entryLines = lines.map((line: any) => ({
-          accountNumber: String(getEcrVal(line, 'numeroCompte') || getEcrVal(line, 'CompteNum') || ''),
-          label: String(getEcrVal(line, 'libelle') || getEcrVal(line, 'EcritureLib') || ''),
+          accountNumber: String(
+            getEcrVal(line, 'compte') ||
+            getEcrVal(line, 'numeroCompte') ||
+            getEcrVal(line, 'CompteNum') || ''
+          ),
+          // Description de l'écriture : libelleEcriture (grand livre) ou libelle (legacy ecritures)
+          label: String(
+            getEcrVal(line, 'libelleEcriture') ||
+            getEcrVal(line, 'libelle') ||
+            getEcrVal(line, 'EcritureLib') || ''
+          ),
           debit: parseNumber(getEcrVal(line, 'debit') || getEcrVal(line, 'Debit')),
           credit: parseNumber(getEcrVal(line, 'credit') || getEcrVal(line, 'Credit')),
         }));
 
         try {
           await adapter.saveJournalEntry({
-            date: parseDate(getEcrVal(lines[0], 'dateEcriture') || getEcrVal(lines[0], 'EcritureDate')),
+            date: parseDate(
+              getEcrVal(lines[0], 'date') ||
+              getEcrVal(lines[0], 'dateEcriture') ||
+              getEcrVal(lines[0], 'EcritureDate')
+            ),
             journalCode,
             reference: piece,
             status: params.entryStatus === 'validated' ? 'validated' : 'draft',
