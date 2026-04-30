@@ -115,6 +115,28 @@ export class SupabaseAdapter implements DataAdapter {
     return (data || []) as T[]
   }
 
+  /**
+   * Bulk insert : insere plusieurs lignes en UNE seule requete HTTP -> une
+   * seule transaction Postgres -> les triggers DEFERRABLE INITIALLY DEFERRED
+   * (notamment validate_entry_balance sur journal_lines) ne s'evaluent qu'a
+   * la fin du batch. Indispensable pour journal_lines ou inserer ligne-par-
+   * ligne fait foirer le check d'equilibre sur la 1ere ligne.
+   */
+  async createMany<T>(table: TableName, items: any[]): Promise<T[]> {
+    if (!items || items.length === 0) return []
+    const now = new Date().toISOString()
+    const records = items.map(item => ({
+      ...item,
+      id: item.id ?? crypto.randomUUID(),
+      tenant_id: this.tenantId,
+      created_at: now,
+    }))
+    const { data, error } = await this.client
+      .from(this.pgTable(table)).insert(records).select()
+    if (error) throw new Error(`CreateMany failed: ${error.message}`)
+    return (data || []) as T[]
+  }
+
   async create<T>(table: TableName, data: any, initiatedBy?: string): Promise<T> {
     const record = {
       ...data,
