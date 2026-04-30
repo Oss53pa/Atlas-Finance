@@ -1061,9 +1061,13 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
             total_credit: totalCredit,
           } as Record<string, unknown>);
 
-          // Insert chaque journal_line separement (schema : entry_id,
-          // account_code, account_name, label, debit, credit, ...)
-          for (const line of lines) {
+          // Insert TOUTES les lignes en UN SEUL appel (bulk).
+          // Critique : le trigger validate_entry_balance est DEFERRABLE INITIALLY
+          // DEFERRED et s'execute au COMMIT de la transaction. Si on inserait les
+          // lignes une par une, chaque commit verrait l'ecriture desequilibree
+          // (ex: 1ere ligne debit=100/credit=0 => 100 != 0 => reject).
+          // En batch, le commit voit toutes les lignes ensemble => equilibre OK.
+          const lineRecords = lines.map((line: any) => {
             const accountCode = String(
               getEcrVal(line, 'compte') ||
               getEcrVal(line, 'numeroCompte') ||
@@ -1079,15 +1083,25 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
               getEcrVal(line, 'libelle') ||
               getEcrVal(line, 'EcritureLib') || entryLabel
             );
-            await adapter.create('journalLines', {
+            return {
               entry_id: created.id,
               account_code: accountCode,
               account_name: accountName,
               label: lineLabel,
               debit: parseNumber(getEcrVal(line, 'debit') || getEcrVal(line, 'Debit')),
               credit: parseNumber(getEcrVal(line, 'credit') || getEcrVal(line, 'Credit')),
-            } as Record<string, unknown>);
-            report.lines++;
+            };
+          });
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const adapterAny = adapter as unknown as { createMany?: (t: string, items: any[]) => Promise<any[]> };
+          if (adapterAny.createMany) {
+            await adapterAny.createMany('journalLines', lineRecords);
+            report.lines += lineRecords.length;
+          } else {
+            for (const ln of lineRecords) {
+              await adapter.create('journalLines', ln as Record<string, unknown>);
+              report.lines++;
+            }
           }
           report.entries++;
         } catch (err) {
@@ -1147,12 +1161,18 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
               total_credit: anTotalCredit,
             } as Record<string, unknown>);
 
-            for (const ln of anLinesData) {
-              await adapter.create('journalLines', {
-                entry_id: anEntry.id,
-                ...ln,
-              } as Record<string, unknown>);
-              report.lines++;
+            // Bulk insert AN lines (meme raison que pour les entries du GL)
+            const anLineRecords = anLinesData.map(ln => ({ entry_id: anEntry.id, ...ln }));
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const adapterAnyAN = adapter as unknown as { createMany?: (t: string, items: any[]) => Promise<any[]> };
+            if (adapterAnyAN.createMany) {
+              await adapterAnyAN.createMany('journalLines', anLineRecords);
+              report.lines += anLineRecords.length;
+            } else {
+              for (const ln of anLineRecords) {
+                await adapter.create('journalLines', ln as Record<string, unknown>);
+                report.lines++;
+              }
             }
             report.entries++;
             journals.add('AN');
