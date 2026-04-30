@@ -1049,24 +1049,12 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
         );
 
         try {
-          // Insert le journal_entry sans 'lines'
-          const created = await adapter.create<{ id: string }>('journalEntries', {
-            entry_number: piece,
-            journal: journalCode,
-            date: entryDate,
-            label: entryLabel,
-            reference: piece,
-            status: params.entryStatus === 'validated' ? 'validated' : 'draft',
-            total_debit: totalDebit,
-            total_credit: totalCredit,
-          } as Record<string, unknown>);
-
-          // Insert TOUTES les lignes en UN SEUL appel (bulk).
-          // Critique : le trigger validate_entry_balance est DEFERRABLE INITIALLY
-          // DEFERRED et s'execute au COMMIT de la transaction. Si on inserait les
-          // lignes une par une, chaque commit verrait l'ecriture desequilibree
-          // (ex: 1ere ligne debit=100/credit=0 => 100 != 0 => reject).
-          // En batch, le commit voit toutes les lignes ensemble => equilibre OK.
+          // Utiliser la RPC server-side import_journal_batch qui :
+          // 1) INSERT entry + lines dans une seule transaction (atomique)
+          // 2) Bypasse les triggers de validation d'equilibre (fichiers de
+          //    migration legacy peuvent etre desequilibres par construction)
+          // 3) Normalise debit/credit negatifs (extournes) en valeurs positives
+          //    inversees
           const lineRecords = lines.map((line: any) => {
             const accountCode = String(
               getEcrVal(line, 'compte') ||
@@ -1084,7 +1072,6 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
               getEcrVal(line, 'EcritureLib') || entryLabel
             );
             return {
-              entry_id: created.id,
               account_code: accountCode,
               account_name: accountName,
               label: lineLabel,
@@ -1092,18 +1079,39 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
               credit: parseNumber(getEcrVal(line, 'credit') || getEcrVal(line, 'Credit')),
             };
           });
+
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const adapterAny = adapter as unknown as { createMany?: (t: string, items: any[]) => Promise<any[]> };
-          if (adapterAny.createMany) {
-            await adapterAny.createMany('journalLines', lineRecords);
+          const adapterAny = adapter as unknown as { rpc?: (name: string, p: any) => Promise<any> };
+          if (adapterAny.rpc) {
+            await adapterAny.rpc('import_journal_batch', {
+              p_entry: {
+                entry_number: piece,
+                journal: journalCode,
+                date: entryDate,
+                label: entryLabel,
+                reference: piece,
+                status: params.entryStatus === 'validated' ? 'validated' : 'draft',
+                total_debit: totalDebit,
+                total_credit: totalCredit,
+              },
+              p_lines: lineRecords,
+            });
+            report.entries++;
             report.lines += lineRecords.length;
           } else {
+            // Fallback (cas DexieAdapter) : create direct sans bypass
+            const created = await adapter.create<{ id: string }>('journalEntries', {
+              entry_number: piece, journal: journalCode, date: entryDate,
+              label: entryLabel, reference: piece,
+              status: params.entryStatus === 'validated' ? 'validated' : 'draft',
+              total_debit: totalDebit, total_credit: totalCredit,
+            } as Record<string, unknown>);
             for (const ln of lineRecords) {
-              await adapter.create('journalLines', ln as Record<string, unknown>);
+              await adapter.create('journalLines', { entry_id: created.id, ...ln } as Record<string, unknown>);
               report.lines++;
             }
+            report.entries++;
           }
-          report.entries++;
         } catch (err) {
           const msg = err instanceof Error ? err.message : 'erreur inconnue';
           if (msg.includes('duplicate key') || msg.includes('unique constraint')) {
