@@ -37,55 +37,9 @@ interface Task {
   progress?: number;
 }
 
+  // Pas de donnees mock — partir d une liste vide.
+  const [tasks, setTasks] = useState<Task[]>([]);
 const TasksModule: React.FC = () => {
-  const [tasks, setTasks] = useState<Task[]>([
-    {
-      id: '1',
-      title: 'Révision budget Q2 2024',
-      description: 'Analyser et valider le budget prévisionnel du deuxième trimestre',
-      status: 'in-progress',
-      priority: 'high',
-      assignee: '',
-      dueDate: new Date('2024-03-15'),
-      tags: ['Budget', 'Q2'],
-      createdAt: new Date(),
-      progress: 65
-    },
-    {
-      id: '2',
-      title: 'Clôture comptable mensuelle',
-      description: 'Finaliser les écritures et préparer les états financiers',
-      status: 'todo',
-      priority: 'urgent',
-      assignee: '',
-      dueDate: new Date('2024-03-10'),
-      tags: ['Comptabilité', 'Mensuel'],
-      createdAt: new Date()
-    },
-    {
-      id: '3',
-      title: 'Audit fournisseurs',
-      description: 'Vérifier les contrats et conditions avec les principaux fournisseurs',
-      status: 'review',
-      priority: 'medium',
-      assignee: '',
-      dueDate: new Date('2024-03-20'),
-      tags: ['Audit', 'Fournisseurs'],
-      createdAt: new Date(),
-      progress: 90
-    },
-    {
-      id: '4',
-      title: 'Formation SYSCOHADA',
-      description: 'Organiser la session de formation sur les nouvelles normes',
-      status: 'done',
-      priority: 'low',
-      assignee: '',
-      completedAt: new Date('2024-03-01'),
-      tags: ['Formation'],
-      createdAt: new Date()
-    }
-  ]);
 
   const [filter, setFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');

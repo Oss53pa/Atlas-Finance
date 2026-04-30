@@ -54,79 +54,9 @@ interface Task {
 
 const TasksModuleWithSidebar: React.FC = () => {
   const { t } = useLanguage();
+  // Pas de donnees mock — partir d une liste vide.
+  const [tasks, setTasks] = useState<Task[]>([]);
   const navigate = useNavigate();
-  const [tasks, setTasks] = useState<Task[]>([
-    {
-      id: '1',
-      title: 'Révision budget Q2 2024',
-      description: 'Note: Analyser les écarts budgétaires',
-      status: 'todo',
-      priority: 'medium',
-      assignee: '',
-      dueDate: new Date('2024-03-15'),
-      tags: ['#budget', '#finance'],
-      createdAt: new Date(),
-      progress: 40,
-      attachments: 12,
-      comments: 0
-    },
-    {
-      id: '2',
-      title: 'Clôture comptable mensuelle',
-      status: 'in-progress',
-      priority: 'high',
-      assignee: '',
-      dueDate: new Date('2024-03-10'),
-      createdAt: new Date(),
-      progress: 65,
-      attachments: 0,
-      comments: 1
-    },
-    {
-      id: '3',
-      title: 'Validation des écritures SYSCOHADA',
-      status: 'in-progress',
-      priority: 'medium',
-      assignee: '',
-      dueDate: new Date('2024-03-20'),
-      createdAt: new Date(),
-      progress: 48,
-      attachments: 12,
-      comments: 0
-    },
-    {
-      id: '4',
-      title: 'Rapprochement bancaire automatique',
-      status: 'review',
-      priority: 'high',
-      assignee: '',
-      createdAt: new Date(),
-      attachments: 12,
-      comments: 0
-    },
-    {
-      id: '5',
-      title: 'Formation équipe sur nouveau module',
-      status: 'review',
-      priority: 'medium',
-      dueDate: new Date('2024-03-25'),
-      assignee: '',
-      createdAt: new Date(),
-      attachments: 12,
-      comments: 0
-    },
-    {
-      id: '6',
-      title: 'Audit fournisseurs terminé',
-      status: 'done',
-      priority: 'low',
-      assignee: '',
-      completedAt: new Date('2024-03-01'),
-      createdAt: new Date(),
-      attachments: 12,
-      comments: 0
-    }
-  ]);
 
   const [activeSection, setActiveSection] = useState('tasks');
   const [filter, setFilter] = useState<string>('all');
