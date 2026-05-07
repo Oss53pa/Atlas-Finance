@@ -46,7 +46,7 @@ const AtlasStudioHub = lazyRetry(() => import('./pages/auth/AtlasStudioHub'));
 const RegisterPage = lazyRetry(() => import('./pages/onboarding/RegisterPage'));
 const VerifyEmailPage = lazyRetry(() => import('./pages/onboarding/VerifyEmailPage'));
 const SolutionCatalogPage = lazyRetry(() => import('./pages/onboarding/SolutionCatalogPage'));
-const TeamSettingsPage = lazyRetry(() => import('./pages/onboarding/TeamSettingsPage'));
+const TeamSettingsPage = lazyRetry(() => import('./pages/settings/TeamSettingsPage'));
 const AcceptInvitePage = lazyRetry(() => import('./pages/onboarding/AcceptInvitePage'));
 
 // Admin Console
