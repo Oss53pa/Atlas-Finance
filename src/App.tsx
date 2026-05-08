@@ -44,6 +44,7 @@ const AtlasStudioHub = lazyRetry(() => import('./pages/auth/AtlasStudioHub'));
 
 // Onboarding
 const RegisterPage = lazyRetry(() => import('./pages/onboarding/RegisterPage'));
+const AtlasStudioRedirect = lazyRetry(() => import('./pages/AtlasStudioRedirect'));
 const VerifyEmailPage = lazyRetry(() => import('./pages/onboarding/VerifyEmailPage'));
 const SolutionCatalogPage = lazyRetry(() => import('./pages/onboarding/SolutionCatalogPage'));
 const TeamSettingsPage = lazyRetry(() => import('./pages/settings/TeamSettingsPage'));
@@ -279,6 +280,11 @@ function App() {
                       <Route path="/demo" element={<DemoPage />} />
                       <Route path="/login" element={<LoginPage />} />
                       <Route path="/auth" element={<ExternalAuthPage />} />
+                      {/* Format unifié Atlas Studio Suite — auth centralisée */}
+                      <Route path="/signup" element={<AtlasStudioRedirect destination="signup" />} />
+                      <Route path="/forgot-password" element={<AtlasStudioRedirect destination="forgot-password" />} />
+                      <Route path="/reset-password" element={<AtlasStudioRedirect destination="reset-password" />} />
+                      {/* Alias rétro-compat : /register existant garde l'ancien comportement (formulaire local) */}
                       <Route path="/register" element={<RegisterPage />} />
                       <Route path="/verify-email" element={<VerifyEmailPage />} />
                       <Route path="/accept-invite/:token" element={<AcceptInvitePage />} />
