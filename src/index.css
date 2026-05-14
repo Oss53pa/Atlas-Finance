@@ -9,53 +9,55 @@
 
 @layer base {
   :root {
-    /* Atlas F&A Design System - Grayscale Monochrome */
-    --background: 0 0% 98%;
-    --foreground: 0 0% 9%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 9%;
+    /* === Obsidian & Champagne (shadcn HSL) === */
+    /* #F7F4ED · #FFFFFF · #E5DFD0 · #C9A961 · #0E0E14 */
+    --background: 42 39% 95%;          /* #F7F4ED */
+    --foreground: 240 18% 7%;          /* #0E0E14 */
+    --card: 0 0% 100%;                 /* #FFFFFF */
+    --card-foreground: 240 18% 7%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 45%;
-    --accent: 0 0% 96%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84% 60%;
+    --popover-foreground: 240 18% 7%;
+    --primary: 240 18% 7%;             /* obsidian */
+    --primary-foreground: 42 39% 95%;
+    --secondary: 41 39% 86%;           /* #E5DFD0 */
+    --secondary-foreground: 240 18% 7%;
+    --muted: 42 39% 90%;
+    --muted-foreground: 240 5% 43%;
+    --accent: 41 50% 59%;              /* #C9A961 champagne */
+    --accent-foreground: 240 18% 7%;
+    --destructive: 4 64% 46%;          /* #C0322B */
     --destructive-foreground: 0 0% 98%;
-    --success: 142 71% 45%;
-    --success-foreground: 0 0% 98%;
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 98%;
-    --info: 217 91% 60%;
-    --info-foreground: 0 0% 98%;
-    --border: 0 0% 90%;
-    --input: 0 0% 90%;
-    --ring: 0 0% 9%;
-    --radius: 1rem;
+    --success: 152 81% 31%;            /* #0F8F5F */
+    --success-foreground: 0 0% 100%;
+    --warning: 41 50% 59%;
+    --warning-foreground: 240 18% 7%;
+    --info: 240 5% 13%;
+    --info-foreground: 0 0% 100%;
+    --border: 41 39% 86%;              /* hairline beige */
+    --input: 41 39% 86%;
+    --ring: 41 50% 59%;                /* gold focus ring */
+    --radius: 0.875rem;                /* 14px premium */
   }
 
   .dark {
-    --background: 0 0% 9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 15%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 15%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 15%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 64%;
-    --accent: 0 0% 15%;
-    --accent-foreground: 0 0% 98%;
-    --border: 0 0% 25%;
-    --input: 0 0% 15%;
-    --ring: 0 0% 83%;
+    /* Obsidian Night mode — fond obsidian, accent champagne */
+    --background: 240 18% 7%;
+    --foreground: 42 39% 95%;
+    --card: 240 14% 11%;
+    --card-foreground: 42 39% 95%;
+    --popover: 240 14% 11%;
+    --popover-foreground: 42 39% 95%;
+    --primary: 41 50% 59%;
+    --primary-foreground: 240 18% 7%;
+    --secondary: 240 10% 15%;
+    --secondary-foreground: 42 39% 95%;
+    --muted: 240 10% 15%;
+    --muted-foreground: 41 12% 64%;
+    --accent: 41 50% 59%;
+    --accent-foreground: 240 18% 7%;
+    --border: 41 30% 25%;
+    --input: 240 10% 15%;
+    --ring: 41 50% 59%;
   }
 }
 
@@ -120,18 +122,26 @@
 @layer components {
   /* Atlas F&A Design System Components */
 
-  /* Enhanced KPI Card Styles */
+  /* Enhanced KPI Card — Obsidian & Champagne */
   .kpi-card-enhanced {
-    @apply bg-white rounded-2xl border border-neutral-200 hover:shadow-lg transition-all duration-300 overflow-hidden;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    @apply bg-white border overflow-hidden relative;
+    border-color: hsl(var(--border));
+    border-radius: 14px;
+    box-shadow: 0 1px 0 rgba(14, 14, 20, 0.02), 0 1px 2px rgba(14, 14, 20, 0.04);
+    transition: box-shadow 280ms cubic-bezier(0.16, 1, 0.3, 1),
+                border-color 280ms cubic-bezier(0.16, 1, 0.3, 1),
+                transform 280ms cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .kpi-card-enhanced:hover {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    box-shadow: 0 2px 4px rgba(14, 14, 20, 0.04), 0 12px 32px -10px rgba(14, 14, 20, 0.10);
+    border-color: #C9A961;
+    transform: translateY(-1px);
   }
 
   .kpi-gradient-top {
-    @apply h-1 bg-gradient-to-r from-neutral-700 to-neutral-900;
+    @apply h-px;
+    background: linear-gradient(90deg, transparent 0%, #C9A961 50%, transparent 100%);
   }
 
   /* Enhanced Table Hover Styles for better visibility */
@@ -162,15 +172,19 @@
   }
 
   .af-card {
-    @apply rounded-2xl border shadow-sm hover:shadow-md transition-all duration-200;
+    @apply border transition-all;
     background-color: hsl(var(--card));
     color: hsl(var(--card-foreground));
-    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
-    border-radius: 16px;
+    border-color: hsl(var(--border));
+    border-radius: 14px;
+    box-shadow: 0 1px 0 rgba(14, 14, 20, 0.02), 0 1px 2px rgba(14, 14, 20, 0.04);
+    transition-duration: 280ms;
+    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .af-card:hover {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    box-shadow: 0 2px 4px rgba(14, 14, 20, 0.04), 0 12px 32px -10px rgba(14, 14, 20, 0.10);
+    border-color: hsl(var(--accent));
   }
 
   .af-card-header {
@@ -196,9 +210,15 @@
 
   /* Buttons */
   .af-btn {
-    @apply inline-flex items-center justify-center text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
-    border-radius: 12px;
+    @apply inline-flex items-center justify-center text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
+    border-radius: 10px;
+    letter-spacing: -0.005em;
+    transition: background-color 200ms cubic-bezier(0.16, 1, 0.3, 1),
+                color 200ms cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 200ms cubic-bezier(0.16, 1, 0.3, 1),
+                transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
   }
+  .af-btn:active { transform: translateY(0.5px) scale(0.99); }
 
   .af-btn-sm {
     @apply h-8 px-3 text-xs;
@@ -215,7 +235,11 @@
   .af-btn-primary {
     background-color: hsl(var(--primary));
     color: hsl(var(--primary-foreground));
-    @apply hover:opacity-90 active:scale-95;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 1px 2px rgba(14, 14, 20, 0.10);
+  }
+  .af-btn-primary:hover {
+    background-color: hsl(240 14% 11%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 4px 12px rgba(14, 14, 20, 0.16);
   }
 
   .af-btn-secondary {
@@ -247,11 +271,17 @@
 
   /* Form elements */
   .af-input {
-    @apply flex h-10 w-full border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
-    border-color: hsl(var(--input));
-    background-color: hsl(var(--background));
+    @apply flex h-10 w-full border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50;
+    border-color: hsl(var(--border));
+    background-color: hsl(var(--card));
     --tw-ring-color: hsl(var(--ring));
-    border-radius: 12px;
+    border-radius: 10px;
+    transition: border-color 200ms cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .af-input:focus-visible {
+    border-color: hsl(var(--accent));
+    box-shadow: 0 0 0 3px rgba(201, 169, 97, 0.28);
   }
   .af-input::placeholder {
     color: hsl(var(--muted-foreground));
@@ -295,9 +325,19 @@
   }
 
   .af-nav-item.active {
-    @apply font-semibold;
-    background-color: hsl(var(--accent));
-    color: hsl(var(--accent-foreground));
+    @apply font-semibold relative;
+    background-color: rgba(201, 169, 97, 0.10);
+    color: hsl(var(--foreground));
+  }
+  .af-nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 25%;
+    bottom: 25%;
+    width: 2px;
+    border-radius: 0 2px 2px 0;
+    background: hsl(var(--accent));
   }
 
   .af-nav-icon {

@@ -18,8 +18,16 @@ interface PaletteMeta {
 
 const paletteMeta: Record<ThemeType, PaletteMeta> = {
   atlasStudio: {
-    longName: 'Atlas Studio — Anthracite & Or',
-    tagline: 'Élégance professionnelle, tons mate',
+    longName: 'Obsidian & Champagne',
+    tagline: 'Luxe institutionnel — Mercury · Brex · Cartier',
+  },
+  sapphireSlate: {
+    longName: 'Sapphire & Slate',
+    tagline: 'Institutionnel — Bloomberg · Stripe · Goldman Sachs',
+  },
+  steelCarbon: {
+    longName: 'Steel & Carbon',
+    tagline: 'Sobriété moderne — Linear · Vercel · Cockpit CR',
   },
   atlasFinance: {
     longName: 'Atlas F&A — Grayscale',

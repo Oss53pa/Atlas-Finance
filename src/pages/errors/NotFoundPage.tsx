@@ -7,45 +7,71 @@ export default function NotFoundPage() {
   return (
     <>
       <Helmet>
-        <title>404 - Page non trouvée | Atlas F&A</title>
+        <title>404 — Page introuvable · Atlas F&A</title>
       </Helmet>
 
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 px-4">
-        <div className="max-w-lg w-full text-center">
-          <div className="mb-8">
-            <h1 className="text-9xl font-bold text-blue-600 dark:text-blue-500 mb-4">
+      <div
+        className="min-h-screen flex items-center justify-center px-6"
+        style={{ background: 'linear-gradient(180deg, #F7F4ED 0%, #FFFFFF 100%)' }}
+      >
+        <div className="max-w-md w-full text-center">
+          <div className="mb-10">
+            <div className="eyebrow-gold mb-6">Atlas Studio · Erreur</div>
+            <div
+              role="heading"
+              aria-level={1}
+              className="text-champagne-gloss font-bold"
+              style={{
+                fontSize: 'clamp(5rem, 14vw, 8rem)',
+                lineHeight: 1,
+                letterSpacing: '-0.04em',
+                fontWeight: 700,
+              }}
+            >
               404
-            </h1>
-            <div className="w-24 h-1 bg-blue-600 dark:bg-blue-500 mx-auto mb-8"></div>
+            </div>
+            <hr className="divider-gold" style={{ maxWidth: 96, margin: '1.5rem auto' }} />
           </div>
 
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
-            Page non trouvée
+          <h2
+            className="font-semibold mb-3"
+            style={{ fontSize: '1.5rem', letterSpacing: '-0.02em', color: 'var(--color-text-primary)' }}
+          >
+            Cette page est introuvable
           </h2>
 
-          <p className="text-lg text-gray-600 dark:text-gray-700 mb-8">
-            Désolé, la page que vous recherchez n'existe pas ou a été déplacée.
+          <p style={{ color: 'var(--color-text-tertiary)', maxWidth: 360, margin: '0 auto 2rem' }}>
+            La page demandée a peut-être été déplacée ou n'existe plus.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <button
               onClick={() => navigate(-1)}
-              className="px-6 py-3 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 font-medium"
+              className="btn btn-outline"
+              style={{ minWidth: 140 }}
             >
-              Retour
+              ← Retour
             </button>
             <button
               onClick={() => navigate('/dashboard')}
-              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 font-medium shadow-lg hover:shadow-xl"
+              className="btn btn-secondary"
+              style={{ minWidth: 160 }}
             >
-              Accueil
+              Tableau de bord →
             </button>
           </div>
 
-          <div className="mt-12 text-sm text-gray-700 dark:text-gray-700">
-            <p>Code d'erreur: 404</p>
-            <p className="mt-2">
-              Besoin d'aide ? <a href="/support" className="text-blue-600 dark:text-blue-500 hover:underline">Contactez le support</a>
+          <div className="mt-10 text-xs" style={{ color: 'var(--color-text-quaternary)' }}>
+            <p>Code d'erreur · 404</p>
+            <p className="mt-1">
+              Besoin d'aide ?{' '}
+              <a
+                href="/support"
+                style={{ color: 'var(--color-accent-deep)' }}
+                className="hover:underline"
+              >
+                Contactez le support
+              </a>
             </p>
           </div>
         </div>
