@@ -63,30 +63,37 @@ const RBACGuard: React.FC<RBACGuardProps> = ({
 }) => {
   const { user, isAuthenticated, loading } = useAuth();
 
-  if (loading) {
-    return null; // or a spinner
-  }
-
-  // Mode démo : laisser passer sans auth (sessionStorage flag)
+  // Demo mode : laisser passer sans auth (sessionStorage flag)
   const isDemoMode = typeof sessionStorage !== 'undefined' && sessionStorage.getItem('atlas-demo-mode') === '1';
 
   // Dev local : laisser passer (pas de Supabase auth)
   const isDevMode = import.meta.env.DEV;
 
-  if (!isAuthenticated && !user && !isDemoMode && !isDevMode) {
+  // Fast-path : auth en cours de chargement → on évite tout redirect (spinner)
+  if (loading) {
+    return null;
+  }
+
+  // Détecter un user dev persisté (localStorage ou sessionStorage) — utile
+  // si l'AuthContext n'a pas encore propagé l'état après un reload direct.
+  const hasPersistedDevUser = typeof window !== 'undefined' &&
+    (localStorage.getItem('atlas-dev-user') !== null ||
+     sessionStorage.getItem('atlas-dev-user') !== null);
+
+  if (!isAuthenticated && !user && !isDemoMode && !isDevMode && !hasPersistedDevUser) {
     return <Navigate to="/login" replace />;
   }
 
-  // Check role (skip in demo mode)
-  if (!isDemoMode && allowedRoles && allowedRoles.length > 0) {
-    if (!user || !hasRole(user.role, allowedRoles)) {
+  // Check role (skip in demo / dev mode / when auth still hydrating)
+  if (!isDemoMode && !isDevMode && allowedRoles && allowedRoles.length > 0 && user) {
+    if (!hasRole(user.role, allowedRoles)) {
       if (fallback) return <>{fallback}</>;
       return <Navigate to={redirectTo} replace />;
     }
   }
 
-  // Check permissions (skip in demo mode)
-  if (!isDemoMode && requiredPermissions && requiredPermissions.length > 0) {
+  // Check permissions (skip in demo / dev mode)
+  if (!isDemoMode && !isDevMode && requiredPermissions && requiredPermissions.length > 0 && user) {
     const userPerms = user?.permissions ?? [];
     if (!hasPermissions(userPerms, requiredPermissions)) {
       if (fallback) return <>{fallback}</>;

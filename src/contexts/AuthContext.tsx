@@ -59,10 +59,42 @@ function mapProfileToUser(profile: Record<string, unknown>): User {
   };
 }
 
+// === Persistence helper (dev/non-Supabase mode) ===
+// Restaure depuis localStorage ou sessionStorage de façon synchrone, pour
+// éviter le flash "user=null" sur RBACGuard quand on navigue, recharge ou
+// ouvre un nouvel onglet.
+function readPersistedDevUser(): User | null {
+  try {
+    const fromLocal = typeof localStorage !== 'undefined' ? localStorage.getItem('atlas-dev-user') : null;
+    if (fromLocal) return JSON.parse(fromLocal) as User;
+    const fromSession = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('atlas-dev-user') : null;
+    if (fromSession) return JSON.parse(fromSession) as User;
+  } catch (_e) { /* ignore */ }
+  return null;
+}
+
+function persistDevUser(user: User | null): void {
+  try {
+    if (user) {
+      const serialized = JSON.stringify(user);
+      // localStorage = persiste entre onglets et redémarrages navigateur
+      localStorage.setItem('atlas-dev-user', serialized);
+      // sessionStorage gardé pour rétrocompatibilité (RBACGuard, etc.)
+      sessionStorage.setItem('atlas-dev-user', serialized);
+    } else {
+      localStorage.removeItem('atlas-dev-user');
+      sessionStorage.removeItem('atlas-dev-user');
+    }
+  } catch (_e) { /* ignore — mode privé */ }
+}
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  // Hydration synchrone : si un dev-user existe déjà, on le restaure AVANT
+  // le premier render — RBACGuard verra l'utilisateur dès le mount.
+  const initialDevUser = readPersistedDevUser();
+  const [user, setUser] = useState<User | null>(initialDevUser);
   const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(!initialDevUser);
 
   // Load user profile from Supabase
   const loadUserProfile = useCallback(async () => {
@@ -106,12 +138,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Initialize auth state
   useEffect(() => {
     if (!isSupabaseConfigured || isDev) {
-      // Dev mode : pas d'auto-login, on attend que l'utilisateur se connecte
-      // via la page /login (boutons démo)
-      const savedDevUser = sessionStorage.getItem('atlas-dev-user');
-      if (savedDevUser) {
-        setUser(JSON.parse(savedDevUser));
-      }
+      // Dev/no-Supabase mode : le user a déjà été restauré synchroniquement
+      // dans useState initializer (readPersistedDevUser). Il suffit de couper
+      // le loading flag pour débloquer le rendu.
       setLoading(false);
       return;
     }
@@ -163,7 +192,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         company: 'Atlas F&A',
       };
       setUser(devUser);
-      sessionStorage.setItem('atlas-dev-user', JSON.stringify(devUser));
+      persistDevUser(devUser);
       return;
     }
 
@@ -209,7 +238,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (isSupabaseConfigured && !isDev) {
       await supabase.auth.signOut();
     }
-    sessionStorage.removeItem('atlas-dev-user');
+    persistDevUser(null);
     setUser(null);
     setSession(null);
   }, []);

@@ -169,10 +169,12 @@ h1, h2, h3, h4, h5, h6 {
   background: transparent;
 }
 
-/* Sélection de texte — fond champagne discret */
+/* Sélection de texte — fond champagne ultra-discret, sans changer la couleur du texte */
 ::selection {
-  background: rgba(201, 169, 97, 0.28);
-  color: var(--color-text-primary);
+  background: rgba(201, 169, 97, 0.18);
+}
+::-moz-selection {
+  background: rgba(201, 169, 97, 0.18);
 }
 
 /* ============================================
