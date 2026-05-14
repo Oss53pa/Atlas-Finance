@@ -67,70 +67,77 @@ export interface Theme {
 }
 
 const sharedTransitions = {
-  fast: '150ms ease',
-  normal: '250ms ease',
-  slow: '350ms ease',
+  fast: '150ms cubic-bezier(0.16, 1, 0.3, 1)',
+  normal: '250ms cubic-bezier(0.16, 1, 0.3, 1)',
+  slow: '420ms cubic-bezier(0.16, 1, 0.3, 1)',
 };
 
 const sharedBorderRadius = {
-  sm: '4px',
-  md: '8px',
-  lg: '12px',
-  xl: '16px',
+  sm: '6px',
+  md: '10px',
+  lg: '14px',
+  xl: '18px',
   full: '9999px',
 };
 
 // ============================================================================
-// 0. Atlas Studio — Anthracite + Or Mat (DEFAULT)
+// 0. Obsidian & Champagne (DEFAULT) — Luxe institutionnel
+// Référence : Mercury · Brex · Cartier
+// Palette validée : #F7F4ED · #FFFFFF · #E5DFD0 · #C9A961 · #0E0E14
 // ============================================================================
 const atlasStudioTheme: Theme = {
-  name: 'Atlas Studio',
-  description: 'Anthracite profond + or mat — identité Atlas Studio',
+  name: 'Obsidian & Champagne',
+  description: 'Luxe institutionnel — Mercury · Brex · Cartier',
   colors: {
-    primary: '#1F1F23',
-    primaryHover: '#2A2A2F',
-    primaryLight: 'rgba(31, 31, 35, 0.1)',
-    secondary: '#8C7A5A',
-    accent: '#B8954A',
-    background: '#faf8f3',
+    // Obsidien profond (primaire / texte)
+    primary: '#0E0E14',
+    primaryHover: '#1A1A22',
+    primaryLight: 'rgba(14, 14, 20, 0.06)',
+    // Champagne gold (accent unique)
+    secondary: '#C9A961',
+    accent: '#C9A961',
+    // Crème chaude (fond) + blanc pur (surface) + beige doux (subtle)
+    background: '#F7F4ED',
     surface: '#FFFFFF',
-    surfaceHover: '#f5f2eb',
+    surfaceHover: '#FBF8F0',
     text: {
-      primary: '#16161A',
-      secondary: '#3A3A3F',
+      primary: '#0E0E14',
+      secondary: '#3A3A42',
       tertiary: '#6B6B73',
-      inverse: '#faf8f3'
+      inverse: '#F7F4ED'
     },
-    border: '#e5e0d5',
-    borderLight: '#f0ece4',
-    success: '#22c55e',
-    successLight: 'rgba(34, 197, 94, 0.1)',
-    error: '#ef4444',
-    errorLight: 'rgba(239, 68, 68, 0.1)',
-    warning: '#D4B870',
-    warningLight: 'rgba(212, 184, 112, 0.12)',
-    info: '#3b82f6',
-    infoLight: 'rgba(59, 130, 246, 0.1)',
+    // Hairlines extra-fines
+    border: '#E5DFD0',
+    borderLight: '#EDE7D6',
+    success: '#0F8F5F',
+    successLight: 'rgba(15, 143, 95, 0.10)',
+    error: '#C0322B',
+    errorLight: 'rgba(192, 50, 43, 0.10)',
+    warning: '#C9A961',
+    warningLight: 'rgba(201, 169, 97, 0.12)',
+    info: '#1F1F23',
+    infoLight: 'rgba(31, 31, 35, 0.08)',
     sidebar: {
-      bg: '#16161A',
-      bgHover: '#1F1F23',
-      text: '#A09880',
-      textHover: '#D4B870',
-      border: 'rgba(184, 149, 74, 0.12)',
-      active: '#D4B870',
-      activeBg: 'rgba(184, 149, 74, 0.15)'
+      bg: '#0E0E14',
+      bgHover: '#16161C',
+      text: '#8F8C82',
+      textHover: '#F7F4ED',
+      border: 'rgba(201, 169, 97, 0.10)',
+      active: '#C9A961',
+      activeBg: 'rgba(201, 169, 97, 0.10)'
     },
     card: {
       bg: '#FFFFFF',
-      border: '#e5e0d5',
-      shadow: 'rgba(22, 22, 26, 0.06)'
+      border: '#E5DFD0',
+      shadow: 'rgba(14, 14, 20, 0.04)'
     }
   },
   shadows: {
-    sm: '0 1px 2px rgba(22, 22, 26, 0.05)',
-    md: '0 4px 12px rgba(22, 22, 26, 0.08)',
-    lg: '0 10px 15px rgba(22, 22, 26, 0.1)',
-    xl: '0 20px 25px rgba(22, 22, 26, 0.12)'
+    // Shadows ultra-douces façon orfèvrerie : empilement de halos courts
+    sm: '0 1px 0 rgba(14, 14, 20, 0.02), 0 1px 2px rgba(14, 14, 20, 0.04)',
+    md: '0 2px 4px rgba(14, 14, 20, 0.04), 0 8px 24px -8px rgba(14, 14, 20, 0.08)',
+    lg: '0 4px 8px rgba(14, 14, 20, 0.05), 0 18px 40px -12px rgba(14, 14, 20, 0.10)',
+    xl: '0 12px 24px rgba(14, 14, 20, 0.06), 0 32px 64px -20px rgba(14, 14, 20, 0.14)'
   },
   transitions: sharedTransitions,
   borderRadius: sharedBorderRadius,
@@ -473,11 +480,127 @@ const royalIndigoTheme: Theme = {
 };
 
 // ============================================================================
+// 7. Sapphire & Slate — Institutionnel (Bloomberg · Stripe · Goldman Sachs)
+//    #F8FAFC · #FFFFFF · #E2E8F0 · #2563EB · #0A1628
+// ============================================================================
+const sapphireSlateTheme: Theme = {
+  name: 'Sapphire & Slate',
+  description: 'Institutionnel — Bloomberg · Stripe · Goldman Sachs',
+  colors: {
+    primary: '#0A1628',
+    primaryHover: '#15243D',
+    primaryLight: 'rgba(10, 22, 40, 0.06)',
+    secondary: '#2563EB',
+    accent: '#2563EB',
+    background: '#F8FAFC',
+    surface: '#FFFFFF',
+    surfaceHover: '#F1F5F9',
+    text: {
+      primary: '#0A1628',
+      secondary: '#334155',
+      tertiary: '#64748B',
+      inverse: '#F8FAFC'
+    },
+    border: '#E2E8F0',
+    borderLight: '#EEF2F7',
+    success: '#0F8F5F',
+    successLight: 'rgba(15, 143, 95, 0.10)',
+    error: '#DC2626',
+    errorLight: 'rgba(220, 38, 38, 0.10)',
+    warning: '#D97706',
+    warningLight: 'rgba(217, 119, 6, 0.10)',
+    info: '#2563EB',
+    infoLight: 'rgba(37, 99, 235, 0.10)',
+    sidebar: {
+      bg: '#0A1628',
+      bgHover: '#15243D',
+      text: '#94A3B8',
+      textHover: '#F8FAFC',
+      border: 'rgba(37, 99, 235, 0.12)',
+      active: '#2563EB',
+      activeBg: 'rgba(37, 99, 235, 0.14)'
+    },
+    card: {
+      bg: '#FFFFFF',
+      border: '#E2E8F0',
+      shadow: 'rgba(10, 22, 40, 0.04)'
+    }
+  },
+  shadows: {
+    sm: '0 1px 0 rgba(10, 22, 40, 0.02), 0 1px 2px rgba(10, 22, 40, 0.04)',
+    md: '0 2px 4px rgba(10, 22, 40, 0.04), 0 8px 24px -8px rgba(10, 22, 40, 0.08)',
+    lg: '0 4px 8px rgba(10, 22, 40, 0.05), 0 18px 40px -12px rgba(10, 22, 40, 0.10)',
+    xl: '0 12px 24px rgba(10, 22, 40, 0.06), 0 32px 64px -20px rgba(10, 22, 40, 0.14)'
+  },
+  transitions: sharedTransitions,
+  borderRadius: sharedBorderRadius,
+};
+
+// ============================================================================
+// 8. Steel & Carbon — Sobriété moderne (Linear · Vercel · Cockpit CR)
+//    #F5F6F8 · #FFFFFF · #E4E7EC · #475569 · #18181B
+// ============================================================================
+const steelCarbonTheme: Theme = {
+  name: 'Steel & Carbon',
+  description: 'Sobriété moderne — Linear · Vercel · Cockpit CR',
+  colors: {
+    primary: '#18181B',
+    primaryHover: '#27272A',
+    primaryLight: 'rgba(24, 24, 27, 0.06)',
+    secondary: '#475569',
+    accent: '#475569',
+    background: '#F5F6F8',
+    surface: '#FFFFFF',
+    surfaceHover: '#EEF0F4',
+    text: {
+      primary: '#18181B',
+      secondary: '#3F3F46',
+      tertiary: '#71717A',
+      inverse: '#F5F6F8'
+    },
+    border: '#E4E7EC',
+    borderLight: '#EEF0F4',
+    success: '#0F8F5F',
+    successLight: 'rgba(15, 143, 95, 0.10)',
+    error: '#DC2626',
+    errorLight: 'rgba(220, 38, 38, 0.10)',
+    warning: '#A16207',
+    warningLight: 'rgba(161, 98, 7, 0.10)',
+    info: '#475569',
+    infoLight: 'rgba(71, 85, 105, 0.10)',
+    sidebar: {
+      bg: '#18181B',
+      bgHover: '#27272A',
+      text: '#A1A1AA',
+      textHover: '#FFFFFF',
+      border: 'rgba(161, 161, 170, 0.10)',
+      active: '#FFFFFF',
+      activeBg: 'rgba(255, 255, 255, 0.10)'
+    },
+    card: {
+      bg: '#FFFFFF',
+      border: '#E4E7EC',
+      shadow: 'rgba(24, 24, 27, 0.04)'
+    }
+  },
+  shadows: {
+    sm: '0 1px 0 rgba(24, 24, 27, 0.02), 0 1px 2px rgba(24, 24, 27, 0.04)',
+    md: '0 2px 4px rgba(24, 24, 27, 0.04), 0 8px 24px -8px rgba(24, 24, 27, 0.08)',
+    lg: '0 4px 8px rgba(24, 24, 27, 0.05), 0 18px 40px -12px rgba(24, 24, 27, 0.10)',
+    xl: '0 12px 24px rgba(24, 24, 27, 0.06), 0 32px 64px -20px rgba(24, 24, 27, 0.14)'
+  },
+  transitions: sharedTransitions,
+  borderRadius: sharedBorderRadius,
+};
+
+// ============================================================================
 // Exports
 // ============================================================================
 
 export const themes = {
-  atlasStudio: atlasStudioTheme,
+  atlasStudio: atlasStudioTheme,           // Obsidian & Champagne (DEFAULT)
+  sapphireSlate: sapphireSlateTheme,       // Bloomberg · Stripe
+  steelCarbon: steelCarbonTheme,           // Linear · Vercel · Cockpit CR
   atlasFinance: atlasFinanceTheme,
   oceanBlue: oceanBlueTheme,
   forestGreen: forestGreenTheme,

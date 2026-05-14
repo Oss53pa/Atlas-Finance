@@ -81,7 +81,8 @@ const AdminWorkspace = lazyRetry(() => import('./pages/workspace/AdminWorkspace'
 const WorkspaceDashboard = lazyRetry(() => import('./pages/workspace/WorkspaceDashboard'));
 
 // Dashboards
-const ExecutiveDashboard = lazyRetry(() => import('./pages/dashboard/ExecutiveDashboard'));
+const ExecutiveDashboard = lazyRetry(() => import('./pages/dashboard/PremiumOverview'));
+const ExecutiveDashboardLegacy = lazyRetry(() => import('./pages/dashboard/ExecutiveDashboard'));
 const AdminDashboard = lazyRetry(() => import('./pages/dashboard/AdminDashboard'));
 const ComptableDashboard = lazyRetry(() => import('./pages/dashboard/ComptableDashboard'));
 const ManagerDashboard = lazyRetry(() => import('./pages/dashboard/ManagerDashboard'));
@@ -336,6 +337,7 @@ function App() {
                         <Route element={<RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant', 'user', 'viewer']}><Outlet /></RBACGuard>}>
                           <Route path="/dashboard" element={<AccountingDashboard />} />
                           <Route path="/executive" element={<ExecutiveDashboard />} />
+                          <Route path="/executive/legacy" element={<ExecutiveDashboardLegacy />} />
                           <Route path="/dashboard/admin" element={<AdminDashboard />} />
                           <Route path="/dashboard/comptable" element={<ComptableDashboard />} />
                           <Route path="/dashboard/manager" element={<ManagerDashboard />} />

@@ -15,59 +15,79 @@
 }
 
 
-/* Variables CSS globales - Atlas Studio (Anthracite + Or Mat) */
+/* ══════════════════════════════════════════════════════════════════
+   OBSIDIAN & CHAMPAGNE — Variables CSS globales
+   Palette luxe institutionnel · Mercury · Brex · Cartier
+   #F7F4ED · #FFFFFF · #E5DFD0 · #C9A961 · #0E0E14
+   ══════════════════════════════════════════════════════════════════ */
 :root {
   /* Couleurs principales */
-  --color-primary: #1F1F23;
-  --color-primary-hover: #2A2A2F;
-  --color-primary-light: rgba(31, 31, 35, 0.1);
-  --color-primary-rgb: 31, 31, 35;
-  --color-secondary-rgb: 140, 122, 90;
-  --color-secondary: #8C7A5A;
-  --color-accent: #B8954A;
-  --color-background: #fafafa;
+  --color-primary: #0E0E14;
+  --color-primary-hover: #1A1A22;
+  --color-primary-light: rgba(14, 14, 20, 0.06);
+  --color-primary-rgb: 14, 14, 20;
+  --color-secondary-rgb: 201, 169, 97;
+  --color-secondary: #C9A961;
+  --color-accent: #C9A961;
+  --color-accent-hover: #D4B574;
+  --color-accent-deep: #A88845;
+  --color-accent-light: rgba(201, 169, 97, 0.12);
+  --color-background: #F7F4ED;
   --color-surface: #FFFFFF;
-  --color-surface-hover: #f4f4f5;
+  --color-surface-hover: #FBF8F0;
+  --color-surface-elevated: #FFFFFF;
 
   /* Texte */
-  --color-text-primary: #16161A;
-  --color-text-secondary: #3A3A3F;
+  --color-text-primary: #0E0E14;
+  --color-text-secondary: #3A3A42;
   --color-text-tertiary: #6B6B73;
-  --color-text-inverse: #fafafa;
+  --color-text-quaternary: #9A968A;
+  --color-text-inverse: #F7F4ED;
 
-  /* Bordures */
-  --color-border: #e5e5e5;
-  --color-border-light: #f0f0f0;
+  /* Bordures — hairlines */
+  --color-border: #E5DFD0;
+  --color-border-light: #EDE7D6;
+  --color-hairline: rgba(14, 14, 20, 0.06);
+  --color-hairline-strong: rgba(14, 14, 20, 0.10);
 
   /* États */
-  --color-success: #22c55e;
-  --color-success-light: rgba(34, 197, 94, 0.1);
-  --color-error: #ef4444;
-  --color-error-light: rgba(239, 68, 68, 0.1);
-  --color-warning: #D4B870;
-  --color-warning-light: rgba(212, 184, 112, 0.12);
-  --color-info: #3b82f6;
-  --color-info-light: rgba(59, 130, 246, 0.1);
+  --color-success: #0F8F5F;
+  --color-success-light: rgba(15, 143, 95, 0.10);
+  --color-error: #C0322B;
+  --color-error-light: rgba(192, 50, 43, 0.10);
+  --color-warning: #C9A961;
+  --color-warning-light: rgba(201, 169, 97, 0.12);
+  --color-info: #1F1F23;
+  --color-info-light: rgba(31, 31, 35, 0.08);
 
-  /* Ombres */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
-  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.12);
+  /* Ombres — orfèvrerie, halos courts */
+  --shadow-sm: 0 1px 0 rgba(14, 14, 20, 0.02), 0 1px 2px rgba(14, 14, 20, 0.04);
+  --shadow-md: 0 2px 4px rgba(14, 14, 20, 0.04), 0 8px 24px -8px rgba(14, 14, 20, 0.08);
+  --shadow-lg: 0 4px 8px rgba(14, 14, 20, 0.05), 0 18px 40px -12px rgba(14, 14, 20, 0.10);
+  --shadow-xl: 0 12px 24px rgba(14, 14, 20, 0.06), 0 32px 64px -20px rgba(14, 14, 20, 0.14);
+  --shadow-gold: 0 0 0 1px rgba(201, 169, 97, 0.20), 0 8px 24px -8px rgba(201, 169, 97, 0.30);
+  --shadow-hairline: inset 0 0 0 1px var(--color-border);
+  --shadow-focus: 0 0 0 3px rgba(201, 169, 97, 0.28);
 
-  /* Transitions */
-  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+  /* Transitions — premium easing */
+  --ease-premium: cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-fast: 150ms var(--ease-premium);
+  --transition-normal: 280ms var(--ease-premium);
+  --transition-slow: 480ms var(--ease-premium);
 
-  /* Border Radius */
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
-  --radius-card: 16px;
-  --radius-btn: 12px;
+  /* Border Radius — légèrement plus serré, luxe contenu */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-card: 14px;
+  --radius-btn: 10px;
   --radius-full: 9999px;
+
+  /* Gradients champagne — usage très ponctuel */
+  --gradient-champagne: linear-gradient(135deg, #D4B574 0%, #C9A961 50%, #A88845 100%);
+  --gradient-obsidian: linear-gradient(180deg, #0E0E14 0%, #06060A 100%);
+  --gradient-cream: linear-gradient(180deg, #F7F4ED 0%, #FFFFFF 100%);
 }
 
 /* Reset et base */
@@ -77,10 +97,17 @@
   box-sizing: border-box;
 }
 
-/* Focus ring global — accessibilité clavier (Atlas Studio accent) */
+/* Focus ring global — anneau champagne premium */
 :focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
+  border-radius: 4px;
+}
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible {
+  box-shadow: var(--shadow-focus);
+  outline: none;
 }
 
 /* Réduire les animations pour les utilisateurs qui le préfèrent */
@@ -97,39 +124,55 @@ html {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'ss01', 'cv11', 'tnum';
+  text-rendering: optimizeLegibility;
 }
 
 body {
   font-family: 'Exo 2', sans-serif;
   background-color: var(--color-background);
   color: var(--color-text-primary);
-  line-height: 1.6;
+  line-height: 1.55;
+  letter-spacing: -0.005em;
   transition: background-color var(--transition-slow), color var(--transition-slow);
 }
 
 h1, h2, h3, h4, h5, h6 {
   font-family: 'Exo 2', sans-serif;
+  letter-spacing: -0.02em;
 }
 
-/* Scrollbar personnalisée */
+/* Scrollbar — fine, gold sur hover, presque invisible au repos */
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-background);
-  border-radius: var(--radius-md);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-border);
-  border-radius: var(--radius-md);
+  background: rgba(14, 14, 20, 0.12);
+  border-radius: var(--radius-full);
+  border: 2px solid transparent;
+  background-clip: content-box;
   transition: background var(--transition-fast);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-text-tertiary);
+  background: var(--color-accent);
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Sélection de texte — fond champagne discret */
+::selection {
+  background: rgba(201, 169, 97, 0.28);
+  color: var(--color-text-primary);
 }
 
 /* ============================================
@@ -180,26 +223,117 @@ table td, .table td, .af-table-cell {
 }
 
 /* ============================================
-   NEUTRALISATION DES COULEURS VIVES
-   Applique le thème monochrome partout.
+   DISCIPLINE CHROMATIQUE — Obsidian & Champagne
+   On laisse passer : surfaces neutres, accent champagne, statuts.
+   On neutralise les couleurs vives ad hoc dans le code legacy.
    ============================================ */
 
-/* Supprime les gradients décoratifs sur les cartes/conteneurs,
-   SAUF ceux qui portent text-white (headers, boutons, banners intentionnels) */
-[class*="bg-gradient"]:not([class*="text-white"]) {
+/* Gradients décoratifs : on garde ceux du thème, on neutralise les autres.
+   Exemptions : sidebar, landing page, boutons, headers (text-white), accent gold. */
+[class*="bg-gradient"]:not([class*="text-white"]):not([class*="from-champagne"]):not([class*="from-primary"]):not([class*="from-obsidian"]):not(.landing-page *):not(.premium-surface):not(.premium-bg) {
   background-image: none !important;
   background-color: var(--color-surface) !important;
 }
 
-/* Neutralise les bordures colorées inline (borderLeftColor etc.) */
-[style*="border-left-color"], [style*="borderLeftColor"] {
+/* Bordures inline : remplacées par hairline beige sauf si gold/status */
+[style*="border-left-color"]:not([class*="champagne"]):not([class*="success"]):not([class*="error"]):not([class*="warning"]),
+[style*="borderLeftColor"]:not([class*="champagne"]):not([class*="success"]):not([class*="error"]):not([class*="warning"]) {
   border-left-color: var(--color-border) !important;
 }
 
-/* Neutralise les fonds colorés inline */
-[style*="background-color"]:not([class*="sidebar"]):not(button) {
-  background-color: var(--color-surface-hover) !important;
-  color: var(--color-text-primary) !important;
+/* === Remap des Tailwind warm colors legacy vers la palette ===
+   Les pages historiques utilisent bg-red-50/100, text-red-600 comme accents
+   décoratifs (workspaces colorés, badges admin, etc.). On les neutralise
+   vers le champagne/obsidien pour respecter la discipline brand.
+   Exceptions volontaires : .destructive-action, [data-status="error"],
+   pour conserver le rouge dans les contextes de danger légitimes. */
+
+.bg-red-50:not(.destructive-action):not([data-status="error"]),
+.bg-red-100:not(.destructive-action):not([data-status="error"]),
+.bg-rose-50:not(.destructive-action):not([data-status="error"]),
+.bg-rose-100:not(.destructive-action):not([data-status="error"]),
+.bg-orange-50:not(.destructive-action):not([data-status="error"]),
+.bg-orange-100:not(.destructive-action):not([data-status="error"]),
+.bg-amber-50:not(.destructive-action):not([data-status="error"]),
+.bg-amber-100:not(.destructive-action):not([data-status="error"]),
+.bg-pink-50:not(.destructive-action):not([data-status="error"]),
+.bg-pink-100:not(.destructive-action):not([data-status="error"]) {
+  background-color: var(--color-accent-light) !important;
+}
+
+.text-red-500:not(.destructive-action):not([data-status="error"]):not([class*="hover:"]),
+.text-red-600:not(.destructive-action):not([data-status="error"]):not([class*="hover:"]),
+.text-red-700:not(.destructive-action):not([data-status="error"]):not([class*="hover:"]),
+.text-rose-500:not(.destructive-action):not([data-status="error"]):not([class*="hover:"]),
+.text-rose-600:not(.destructive-action):not([data-status="error"]):not([class*="hover:"]),
+.text-orange-500:not(.destructive-action):not([data-status="error"]),
+.text-orange-600:not(.destructive-action):not([data-status="error"]),
+.text-amber-500:not(.destructive-action):not([data-status="error"]),
+.text-amber-600:not(.destructive-action):not([data-status="error"]),
+.text-pink-500:not(.destructive-action):not([data-status="error"]),
+.text-pink-600:not(.destructive-action):not([data-status="error"]) {
+  color: var(--color-accent-deep) !important;
+}
+
+.border-red-200:not(.destructive-action),
+.border-red-300:not(.destructive-action),
+.border-red-500:not(.destructive-action),
+.border-rose-200:not(.destructive-action),
+.border-rose-300:not(.destructive-action),
+.border-orange-200:not(.destructive-action),
+.border-orange-300:not(.destructive-action),
+.border-amber-200:not(.destructive-action),
+.border-amber-300:not(.destructive-action) {
+  border-color: var(--color-border) !important;
+}
+
+/* Boutons "vifs" legacy : on les nettoie en obsidien */
+.bg-red-500:not(.destructive-action):not([data-status="error"]),
+.bg-red-600:not(.destructive-action):not([data-status="error"]),
+.bg-orange-500:not(.destructive-action):not([data-status="error"]),
+.bg-orange-600:not(.destructive-action):not([data-status="error"]),
+.bg-blue-500:not(.destructive-action):not([data-status="info"]):not(.bg-blue-500.text-white *),
+.bg-blue-600:not(.destructive-action):not([data-status="info"]) {
+  background-color: var(--color-primary) !important;
+  color: var(--color-text-inverse) !important;
+}
+
+/* Bleu "info" legacy → obsidien profond */
+.text-blue-500:not([class*="hover:"]):not(.destructive-action),
+.text-blue-600:not([class*="hover:"]):not(.destructive-action),
+.text-blue-700:not([class*="hover:"]):not(.destructive-action) {
+  color: var(--color-primary) !important;
+}
+
+/* === Icon tile premium : utilitaire pour les pastilles d'icône ===
+   Utilisation : <div class="icon-tile"> ou <div class="icon-tile icon-tile-gold">
+   Standardise les pastilles d'icône autour des KPI et raccourcis. */
+.icon-tile {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-surface-hover);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border-light);
+  flex-shrink: 0;
+}
+.icon-tile-gold {
+  background: var(--color-accent-light);
+  color: var(--color-accent-deep);
+  border-color: rgba(201, 169, 97, 0.20);
+}
+.icon-tile-obsidian {
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+  border-color: var(--color-primary);
+}
+.icon-tile-lg {
+  width: 3rem;
+  height: 3rem;
+  border-radius: var(--radius-lg);
 }
 
 a {
@@ -223,103 +357,109 @@ a:hover {
     @apply container-fluid max-w-7xl;
   }
 
-  /* Cards modernes */
+  /* Cards — premium, hairline, halo doré au hover */
   .card {
     background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-card);
     box-shadow: var(--shadow-sm);
-    transition: all var(--transition-normal);
+    transition: box-shadow var(--transition-normal), border-color var(--transition-normal), transform var(--transition-normal);
+    position: relative;
   }
 
   .card:hover {
     box-shadow: var(--shadow-md);
-    transform: translateY(-2px);
+    border-color: var(--color-accent);
+    transform: translateY(-1px);
   }
 
   .card-header {
-    padding: 0.75rem 1rem;
+    padding: 1rem 1.25rem;
     border-bottom: 1px solid var(--color-border-light);
   }
 
   .card-body {
-    padding: 1rem;
+    padding: 1.25rem;
   }
 
   .card-footer {
-    padding: 0.75rem 1rem;
+    padding: 0.875rem 1.25rem;
     border-top: 1px solid var(--color-border-light);
     background: var(--color-surface-hover);
     border-radius: 0 0 var(--radius-card) var(--radius-card);
   }
 
-  /* Boutons modernes */
+  /* Boutons — précision, micro-interactions, anneau gold au focus */
   .btn {
-    @apply inline-flex items-center justify-center px-3 py-1.5 font-medium transition-all duration-200;
+    @apply inline-flex items-center justify-center px-4 py-2 font-medium;
     border-radius: var(--radius-btn);
     font-size: 0.875rem;
-    transition: all var(--transition-fast);
+    letter-spacing: -0.005em;
+    transition: background-color var(--transition-fast), color var(--transition-fast),
+                box-shadow var(--transition-fast), transform var(--transition-fast);
+    will-change: transform;
   }
+  .btn:active { transform: translateY(0.5px) scale(0.99); }
 
   .btn-primary {
     background: var(--color-primary);
     color: var(--color-text-inverse);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 1px 2px rgba(14, 14, 20, 0.10);
   }
-
   .btn-primary:hover {
     background: var(--color-primary-hover);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 4px 12px rgba(14, 14, 20, 0.16);
   }
 
   .btn-secondary {
-    background: var(--color-secondary);
-    color: var(--color-text-inverse);
+    background: var(--color-accent);
+    color: var(--color-primary);
+    box-shadow: inset 0 0 0 1px rgba(14, 14, 20, 0.04), 0 1px 2px rgba(201, 169, 97, 0.16);
   }
-
   .btn-secondary:hover {
-    opacity: 0.9;
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
+    background: var(--color-accent-hover);
+    box-shadow: inset 0 0 0 1px rgba(14, 14, 20, 0.06), 0 6px 18px -4px rgba(201, 169, 97, 0.40);
   }
 
   .btn-outline {
-    background: transparent;
-    border: 2px solid var(--color-border);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
     color: var(--color-text-primary);
   }
-
   .btn-outline:hover {
     background: var(--color-surface-hover);
-    border-color: var(--color-primary);
-    color: var(--color-primary);
+    border-color: var(--color-accent);
+    color: var(--color-text-primary);
   }
 
   .btn-ghost {
     background: transparent;
     color: var(--color-text-secondary);
   }
-
   .btn-ghost:hover {
     background: var(--color-surface-hover);
     color: var(--color-text-primary);
   }
 
-  /* Inputs modernes */
+  /* Inputs — fond crème ultra-light, ring gold au focus */
   .input {
-    @apply w-full px-3 py-1.5 transition-all duration-200;
+    @apply w-full px-3 py-2;
     background: var(--color-surface);
     border: 1px solid var(--color-border);
     color: var(--color-text-primary);
     font-size: 0.875rem;
     border-radius: var(--radius-btn);
-    transition: all var(--transition-fast);
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
+  }
+
+  .input:hover {
+    border-color: var(--color-hairline-strong);
   }
 
   .input:focus {
     outline: none;
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px var(--color-primary-light);
+    border-color: var(--color-accent);
+    box-shadow: var(--shadow-focus);
   }
 
   .input:disabled {
@@ -507,5 +647,137 @@ a:hover {
 
   .show-mobile {
     @apply block md:hidden;
+  }
+
+  /* ════════════════════════════════════════════════════════════
+     PREMIUM PATTERNS — Obsidian & Champagne
+     Bibliothèque de classes ultra-premium : eyebrow,
+     hairline, KPI card, gold ring, monogram, etc.
+     ════════════════════════════════════════════════════════════ */
+
+  /* Eyebrow — petits intertitres ALL-CAPS gold subtil */
+  .eyebrow {
+    font-size: 0.6875rem;
+    line-height: 1;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--color-text-tertiary);
+  }
+  .eyebrow-gold {
+    font-size: 0.6875rem;
+    line-height: 1;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--color-accent-deep);
+  }
+
+  /* Hairline — 1px ultra-fine, parfaite pour séparateurs luxe */
+  .hairline { border-color: var(--color-border) !important; }
+  .hairline-b { border-bottom: 1px solid var(--color-border); }
+  .hairline-t { border-top: 1px solid var(--color-border); }
+  .hairline-l { border-left: 1px solid var(--color-border); }
+  .hairline-r { border-right: 1px solid var(--color-border); }
+
+  /* Bordure gold sur l'accent (à utiliser parcimonieusement) */
+  .ring-champagne {
+    box-shadow: inset 0 0 0 1px var(--color-accent);
+  }
+
+  /* KPI card premium — masque la racine, fond cream gradient,
+     filet gold haut, halo doré au hover */
+  .kpi-card-premium {
+    position: relative;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    padding: 1.25rem 1.25rem 1.125rem;
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow var(--transition-normal), border-color var(--transition-normal), transform var(--transition-normal);
+    overflow: hidden;
+  }
+  .kpi-card-premium::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, var(--color-accent) 50%, transparent 100%);
+    opacity: 0;
+    transition: opacity var(--transition-normal);
+  }
+  .kpi-card-premium:hover {
+    box-shadow: var(--shadow-md);
+    border-color: var(--color-accent);
+    transform: translateY(-1px);
+  }
+  .kpi-card-premium:hover::before { opacity: 1; }
+
+  /* Surface obsidienne (pour bandeaux dark, headers premium) */
+  .premium-surface-dark {
+    background: var(--gradient-obsidian);
+    color: var(--color-text-inverse);
+    border: 1px solid rgba(201, 169, 97, 0.12);
+  }
+
+  /* Texte champagne brillant (titres exceptionnels uniquement) */
+  .text-champagne-gloss {
+    background: linear-gradient(135deg, #D4B574 0%, #C9A961 35%, #A88845 60%, #C9A961 85%, #D4B574 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+
+  /* Monogram dot — petit point doré */
+  .gold-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-accent);
+    display: inline-block;
+    box-shadow: 0 0 0 3px rgba(201, 169, 97, 0.15);
+  }
+
+  /* Tabular numbers — monospace alignement (chiffres, montants) */
+  .num-tabular {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum';
+  }
+
+  /* Chip / pill subtil */
+  .chip {
+    @apply inline-flex items-center gap-1.5;
+    padding: 0.25rem 0.625rem;
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    font-weight: 500;
+    background: var(--color-surface-hover);
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border-light);
+  }
+  .chip-gold {
+    background: var(--color-accent-light);
+    color: var(--color-accent-deep);
+    border-color: rgba(201, 169, 97, 0.30);
+  }
+  .chip-success {
+    background: var(--color-success-light);
+    color: var(--color-success);
+    border-color: rgba(15, 143, 95, 0.25);
+  }
+  .chip-error {
+    background: var(--color-error-light);
+    color: var(--color-error);
+    border-color: rgba(192, 50, 43, 0.25);
+  }
+
+  /* Filet de séparation doré (très subtil) */
+  .divider-gold {
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, rgba(201, 169, 97, 0.30) 50%, transparent 100%);
+    border: none;
+    margin: 1.5rem 0;
   }
 }

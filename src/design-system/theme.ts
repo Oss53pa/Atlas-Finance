@@ -6,49 +6,50 @@
  */
 
 export const theme = {
-  // Brand Colors - Atlas Studio (Anthracite + Or Mat)
+  // Brand Colors — Obsidian & Champagne
+  // #F7F4ED · #FFFFFF · #E5DFD0 · #C9A961 · #0E0E14
   colors: {
     primary: {
-      50: '#faf8f3',
-      100: '#f0ece4',
-      200: '#e5e0d5',
-      300: '#D4B870',
-      400: '#C4A65C',
-      500: '#B8954A',
-      600: '#9A7D3E',
-      700: '#7A6332',
-      800: '#1F1F23',
-      900: '#1A1A1E',
-      950: '#16161A',
+      50: '#F7F4ED',  // crème
+      100: '#EDE7D6', // beige clair (hairline light)
+      200: '#E5DFD0', // beige (hairline)
+      300: '#D9C99C', // gold pâle
+      400: '#D4B574', // gold hover
+      500: '#C9A961', // CHAMPAGNE accent
+      600: '#A88845', // gold deep
+      700: '#7A6332', // gold antique
+      800: '#1A1A22', // obsidian hover
+      900: '#0E0E14', // OBSIDIAN
+      950: '#06060A', // obsidian deep
     },
     neutral: {
-      50: '#faf8f3',
-      100: '#f0ece4',
-      200: '#e5e0d5',
-      300: '#c8c0b0',
-      400: '#A09880',
-      500: '#8C7A5A',
-      600: '#6B6B73',
-      700: '#3A3A3F',
-      800: '#1F1F23',
-      900: '#16161A',
+      50: '#F7F4ED',
+      100: '#EDE7D6',
+      200: '#E5DFD0',
+      300: '#CFC8B8',
+      400: '#9A968A',
+      500: '#6B6B73',
+      600: '#4A4A52',
+      700: '#3A3A42',
+      800: '#1A1A22',
+      900: '#0E0E14',
     },
     status: {
-      success: '#22c55e',
-      warning: '#D4B870',
-      error: '#ef4444',
-      info: '#3b82f6',
+      success: '#0F8F5F',
+      warning: '#C9A961',
+      error: '#C0322B',
+      info: '#1F1F23',
     },
     semantic: {
-      background: '#faf8f3',
+      background: '#F7F4ED',
       surface: '#FFFFFF',
-      border: '#e5e0d5',
+      border: '#E5DFD0',
       text: {
-        primary: '#16161A',
-        secondary: '#3A3A3F',
+        primary: '#0E0E14',
+        secondary: '#3A3A42',
         tertiary: '#6B6B73',
-        disabled: '#A09880',
-        inverse: '#faf8f3',
+        disabled: '#9A968A',
+        inverse: '#F7F4ED',
       },
     },
   },
@@ -120,19 +121,19 @@ export const theme = {
     full: '9999px',
   },
 
-  // Shadows
+  // Shadows — Obsidian & Champagne (orfèvrerie, halos courts)
   shadows: {
     none: 'none',
-    sm: '0 1px 2px rgba(0, 0, 0, 0.04)',
-    card: '0 1px 2px rgba(0, 0, 0, 0.04)',
-    base: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
-    md: '0 4px 12px rgba(0, 0, 0, 0.08)',
-    'card-hover': '0 4px 12px rgba(0, 0, 0, 0.08)',
-    lg: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-    xl: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-    '2xl': '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-    focus: '0 0 0 3px rgba(184, 149, 74, 0.2)',
-    inner: 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.06)',
+    sm: '0 1px 0 rgba(14, 14, 20, 0.02), 0 1px 2px rgba(14, 14, 20, 0.04)',
+    card: '0 1px 0 rgba(14, 14, 20, 0.02), 0 1px 2px rgba(14, 14, 20, 0.04)',
+    base: '0 1px 2px rgba(14, 14, 20, 0.04), 0 1px 3px rgba(14, 14, 20, 0.06)',
+    md: '0 2px 4px rgba(14, 14, 20, 0.04), 0 8px 24px -8px rgba(14, 14, 20, 0.08)',
+    'card-hover': '0 2px 4px rgba(14, 14, 20, 0.04), 0 12px 32px -10px rgba(14, 14, 20, 0.10)',
+    lg: '0 4px 8px rgba(14, 14, 20, 0.05), 0 18px 40px -12px rgba(14, 14, 20, 0.10)',
+    xl: '0 12px 24px rgba(14, 14, 20, 0.06), 0 32px 64px -20px rgba(14, 14, 20, 0.14)',
+    '2xl': '0 24px 48px rgba(14, 14, 20, 0.08), 0 48px 96px -24px rgba(14, 14, 20, 0.18)',
+    focus: '0 0 0 3px rgba(201, 169, 97, 0.28)',
+    inner: 'inset 0 1px 2px rgba(14, 14, 20, 0.06)',
   },
 
   // Transitions

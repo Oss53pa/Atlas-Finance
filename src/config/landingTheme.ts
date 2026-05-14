@@ -29,25 +29,25 @@ export const DARK = {
   navBg: 'rgba(13,13,13,0.90)',
 } as const;
 
-/** Palette light — propre et pro */
+/** Palette light — Obsidian & Champagne (luxe institutionnel) */
 export const LIGHT = {
-  bg: '#ffffff',
-  bgAlt: '#f8f7f4',
-  surface: '#ffffff',
-  surfaceHover: '#f5f4f1',
-  border: '#e8e5de',
-  borderHover: '#d4d0c8',
-  text: '#1a1a1a',
-  textSecondary: '#5c5c5c',
-  textTertiary: '#8c8c8c',
-  textMuted: '#b5b5b5',
-  gold: '#9a7d3e',
-  goldLight: '#b8944f',
-  goldDark: '#7d6430',
-  goldBg: 'rgba(154,125,62,0.08)',
-  goldBorder: 'rgba(154,125,62,0.20)',
-  check: '#16a34a',
-  navBg: 'rgba(255,255,255,0.92)',
+  bg: '#F7F4ED',
+  bgAlt: '#FFFFFF',
+  surface: '#FFFFFF',
+  surfaceHover: '#FBF8F0',
+  border: '#E5DFD0',
+  borderHover: '#C9A961',
+  text: '#0E0E14',
+  textSecondary: '#3A3A42',
+  textTertiary: '#6B6B73',
+  textMuted: '#9A968A',
+  gold: '#C9A961',
+  goldLight: '#D4B574',
+  goldDark: '#A88845',
+  goldBg: 'rgba(201,169,97,0.12)',
+  goldBorder: 'rgba(201,169,97,0.30)',
+  check: '#0F8F5F',
+  navBg: 'rgba(247,244,237,0.92)',
 } as const;
 
 export function getLandingTheme(): LandingThemeMode {
@@ -55,7 +55,7 @@ export function getLandingTheme(): LandingThemeMode {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved === 'light' || saved === 'dark') return saved;
   } catch (err) { /* silent */}
-  return 'dark'; // default
+  return 'light'; // default — Obsidian & Champagne (fond crème)
 }
 
 export function setLandingTheme(mode: LandingThemeMode): void {
