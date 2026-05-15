@@ -97,17 +97,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState<boolean>(!initialDevUser);
 
   // Load user profile from Supabase
+  // Tolérant : ne setUser(null) QUE si l'utilisateur Supabase n'existe pas
+  // OU si le compte est désactivé. Toute autre erreur (profile manquant,
+  // RLS, 406) -> on construit un user minimal depuis auth.users pour ne
+  // pas bloquer le rendu de l'app.
   const loadUserProfile = useCallback(async () => {
     try {
       const profile = await getUserProfile();
       if (profile) {
-        // Vérifier que le compte est actif
+        // Vérifier que le compte est désactivé (explicitement)
         if ((profile as unknown as { is_active?: boolean }).is_active === false) {
-          // Deactivated account — sign out silently
           await supabase.auth.signOut();
           setUser(null);
           setSession(null);
-          // Nettoyer le tenant en cache pour ne pas leaker entre comptes
           try { localStorage.removeItem('atlas-tenant-id'); } catch (_e) { /* ignore */ }
           return;
         }
@@ -116,20 +118,48 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         userData.permissions = permissions;
         setUser(userData);
 
-        // Synchroniser le tenant_id pour le SupabaseAdapter (DataContext lit
-        // localStorage['atlas-tenant-id'] au démarrage). Sans ce sync, l'adapter
-        // utilise le placeholder 'default' qui n'est pas un UUID -> 400 sur
-        // toutes les queries (journal_entries, accounts, ...).
+        // Synchroniser le tenant_id pour le SupabaseAdapter
         try {
           if (userData.company_id) {
             localStorage.setItem('atlas-tenant-id', userData.company_id);
           }
-        } catch (_e) { /* localStorage indisponible (mode privé) */ }
+        } catch (_e) { /* localStorage indisponible */ }
+        return;
+      }
+
+      // Profile = null : tenter un fallback minimal depuis auth.users
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (authUser) {
+        const meta = (authUser.user_metadata as Record<string, unknown> | undefined) || {};
+        setUser({
+          id: authUser.id,
+          name: (meta.full_name as string) || (meta.name as string) || authUser.email || 'Utilisateur',
+          email: authUser.email || '',
+          role: ((meta.role as string) || 'user') as User['role'],
+          first_name: (meta.first_name as string) || undefined,
+          last_name: (meta.last_name as string) || undefined,
+          company: (meta.company_name as string) || undefined,
+          permissions: [],
+        });
       } else {
         setUser(null);
       }
-    } catch (err) { /* silent */
-      setUser(null);
+    } catch (_err) {
+      // Erreur réseau ou bug local : on ne déconnecte PAS l'utilisateur.
+      // Si on a déjà un user en state, on le garde. Sinon on tente le fallback auth.
+      try {
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        if (authUser) {
+          const meta = (authUser.user_metadata as Record<string, unknown> | undefined) || {};
+          setUser((prev) => prev ?? ({
+            id: authUser.id,
+            name: (meta.full_name as string) || authUser.email || 'Utilisateur',
+            email: authUser.email || '',
+            role: ((meta.role as string) || 'user') as User['role'],
+            permissions: [],
+          }));
+        }
+      } catch (_e2) { /* silent */ }
     }
   }, []);
 

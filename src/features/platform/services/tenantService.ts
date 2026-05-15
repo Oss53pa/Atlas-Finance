@@ -32,25 +32,61 @@ const DEMO_INVITATIONS = [
 // TENANT
 // ============================================================================
 
-export async function getMyTenant() {
+export async function getMyTenant(): Promise<Record<string, any> | null> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const { data: profile } = await supabase
-    .from('user_profiles')
-    .select('tenant_id, role, full_name, first_name, last_name')
-    .eq('id', user.id)
-    .single();
+  const meta = (user.user_metadata as Record<string, any> | undefined) || {};
 
-  if (!profile?.tenant_id) return null;
+  // Tolerant : pas de single() pour éviter 406 si la ligne n'existe pas encore.
+  let profile: Record<string, any> | null = null;
+  try {
+    const { data } = await supabase
+      .from('user_profiles')
+      .select('tenant_id, role, full_name, first_name, last_name')
+      .eq('id', user.id)
+      .maybeSingle();
+    profile = data as Record<string, any> | null;
+  } catch (_e) { /* table absente, RLS, ... */ }
 
-  const { data: tenant } = await supabase
-    .from('tenants')
-    .select('*')
-    .eq('id', profile.tenant_id)
-    .single();
+  // Fallback tenant minimal (compatible avec le typage tenants existant)
+  const fallbackTenant: Record<string, any> = {
+    id: (profile?.tenant_id as string) || (meta.tenant_id as string) || 'default',
+    name: (meta.company_name as string) || 'Mon entreprise',
+    plan: (meta.plan as string) || 'starter',
+    status: 'active',
+    created_at: new Date().toISOString(),
+    userRole: (profile?.role as string) || (meta.role as string) || 'user',
+    userName:
+      (profile?.full_name as string) ||
+      [profile?.first_name, profile?.last_name].filter(Boolean).join(' ').trim() ||
+      (meta.full_name as string) ||
+      user.email ||
+      'Utilisateur',
+  };
 
-  return tenant ? { ...tenant, userRole: profile.role, userName: profile.full_name || `${profile.first_name} ${profile.last_name}` } : null;
+  if (!profile?.tenant_id) return fallbackTenant;
+
+  let tenant: Record<string, any> | null = null;
+  try {
+    const { data } = await supabase
+      .from('tenants')
+      .select('*')
+      .eq('id', profile.tenant_id as string)
+      .maybeSingle();
+    tenant = data as Record<string, any> | null;
+  } catch (_e) { /* ignore */ }
+
+  if (!tenant) return fallbackTenant;
+
+  return {
+    ...tenant,
+    userRole: profile.role,
+    userName:
+      (profile.full_name as string) ||
+      [profile.first_name, profile.last_name].filter(Boolean).join(' ').trim() ||
+      user.email,
+  };
 }
 
 export async function updateTenant(tenantId: string, data: Record<string, unknown>) {
@@ -66,7 +102,11 @@ export async function getMySubscriptions() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return [];
 
-  const { data: profile } = await supabase.from('user_profiles').select('tenant_id').eq('id', user.id).single();
+  let profile: { tenant_id?: string } | null = null;
+  try {
+    const { data } = await supabase.from('user_profiles').select('tenant_id').eq('id', user.id).maybeSingle();
+    profile = data as { tenant_id?: string } | null;
+  } catch (_e) { /* ignore */ }
   if (!profile?.tenant_id) return [];
 
   const { data } = await supabase
