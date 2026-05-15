@@ -18,3 +18,6 @@ export type { PremiumChartProps, PremiumSeries } from './PremiumChart';
 
 export { default as PremiumBreadcrumb } from './PremiumBreadcrumb';
 export type { BreadcrumbItem } from './PremiumBreadcrumb';
+
+export { default as MoneyValue } from './MoneyValue';
+export type { MoneyValueProps } from './MoneyValue';

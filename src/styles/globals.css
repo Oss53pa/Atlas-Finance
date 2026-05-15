@@ -60,20 +60,62 @@
   --color-info: #1F1F23;
   --color-info-light: rgba(31, 31, 35, 0.08);
 
-  /* Ombres — orfèvrerie, halos courts */
-  --shadow-sm: 0 1px 0 rgba(14, 14, 20, 0.02), 0 1px 2px rgba(14, 14, 20, 0.04);
-  --shadow-md: 0 2px 4px rgba(14, 14, 20, 0.04), 0 8px 24px -8px rgba(14, 14, 20, 0.08);
-  --shadow-lg: 0 4px 8px rgba(14, 14, 20, 0.05), 0 18px 40px -12px rgba(14, 14, 20, 0.10);
-  --shadow-xl: 0 12px 24px rgba(14, 14, 20, 0.06), 0 32px 64px -20px rgba(14, 14, 20, 0.14);
-  --shadow-gold: 0 0 0 1px rgba(201, 169, 97, 0.20), 0 8px 24px -8px rgba(201, 169, 97, 0.30);
+  /* === Rythme de densité — espacement section (banking grade) === */
+  --section-gap-xs:  1rem;     /* 16px — entre micro-blocs */
+  --section-gap-sm:  1.5rem;   /* 24px — entre cards */
+  --section-gap-md:  2rem;     /* 32px — entre sections */
+  --section-gap-lg:  3rem;     /* 48px — entre groupes majeurs */
+  --section-gap-xl:  4.5rem;   /* 72px — entre régions */
+
+  --page-px:         clamp(1.5rem, 3vw, 2.5rem);   /* gutter horizontal */
+  --page-max-w:      1480px;                        /* width max contenu */
+
+  /* === Système de profondeur — banking grade (Mercury/Brex) ===
+   * Empilement multi-couches : (1) hairline subtile (2) halo court
+   * (3) ambient diffus loin. Couleur obsidienne baissée pour la chaleur cream. */
+  --shadow-xs:  0 1px 0 rgba(14, 14, 20, 0.02);
+  --shadow-sm:  0 1px 0 rgba(14, 14, 20, 0.02),
+                0 1px 2px rgba(14, 14, 20, 0.04);
+  --shadow-md:  0 1px 0 rgba(14, 14, 20, 0.02),
+                0 2px 4px rgba(14, 14, 20, 0.04),
+                0 8px 24px -8px rgba(14, 14, 20, 0.08);
+  --shadow-lg:  0 1px 0 rgba(14, 14, 20, 0.02),
+                0 4px 8px rgba(14, 14, 20, 0.05),
+                0 18px 40px -12px rgba(14, 14, 20, 0.10);
+  --shadow-xl:  0 2px 4px rgba(14, 14, 20, 0.04),
+                0 12px 24px rgba(14, 14, 20, 0.06),
+                0 32px 64px -20px rgba(14, 14, 20, 0.14);
+  --shadow-2xl: 0 4px 8px rgba(14, 14, 20, 0.05),
+                0 24px 48px rgba(14, 14, 20, 0.08),
+                0 48px 96px -24px rgba(14, 14, 20, 0.18);
+  /* Halo champagne pour CTA hero / status premium */
+  --shadow-gold: 0 0 0 1px rgba(201, 169, 97, 0.20),
+                 0 6px 16px -4px rgba(201, 169, 97, 0.28),
+                 0 16px 40px -16px rgba(201, 169, 97, 0.20);
+  /* Ring obsidian — pour focus & boutons primaires */
+  --shadow-obsidian: 0 1px 0 rgba(255, 255, 255, 0.04) inset,
+                     0 1px 2px rgba(14, 14, 20, 0.20),
+                     0 4px 12px -2px rgba(14, 14, 20, 0.18);
   --shadow-hairline: inset 0 0 0 1px var(--color-border);
   --shadow-focus: 0 0 0 3px rgba(201, 169, 97, 0.28);
 
-  /* Transitions — premium easing */
-  --ease-premium: cubic-bezier(0.16, 1, 0.3, 1);
-  --transition-fast: 150ms var(--ease-premium);
-  --transition-normal: 280ms var(--ease-premium);
-  --transition-slow: 480ms var(--ease-premium);
+  /* === Motion system — premium easing curves (Linear/Vercel/Mercury) === */
+  --ease-out-expo:     cubic-bezier(0.16, 1, 0.3, 1);   /* deceleration luxe */
+  --ease-out-back:     cubic-bezier(0.34, 1.32, 0.64, 1); /* léger overshoot */
+  --ease-in-out:       cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring:       cubic-bezier(0.5, 1.45, 0.5, 1);
+  --ease-premium:      var(--ease-out-expo);
+
+  --motion-instant:    100ms var(--ease-out-expo);
+  --motion-fast:       180ms var(--ease-out-expo);
+  --motion-normal:     280ms var(--ease-out-expo);
+  --motion-slow:       420ms var(--ease-out-expo);
+  --motion-deliberate: 640ms var(--ease-out-expo);
+
+  /* Compat anciens noms */
+  --transition-fast:   var(--motion-fast);
+  --transition-normal: var(--motion-normal);
+  --transition-slow:   var(--motion-slow);
 
   /* Border Radius — légèrement plus serré, luxe contenu */
   --radius-sm: 6px;
@@ -124,22 +166,43 @@ html {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font-feature-settings: 'ss01', 'cv11', 'tnum';
+  /* Inter OpenType features: contextual alternates, stylistic sets, kerning */
+  font-feature-settings: 'cv11' 1, 'ss01' 1, 'ss03' 1, 'cv02' 1, 'kern' 1, 'calt' 1;
+  font-variant-ligatures: contextual common-ligatures;
   text-rendering: optimizeLegibility;
 }
 
 body {
-  font-family: 'Exo 2', sans-serif;
+  /* Inter premium stack — Mercury/Brex/Linear/Vercel */
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Söhne', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   background-color: var(--color-background);
   color: var(--color-text-primary);
+  font-size: 0.9375rem;        /* 15px — densité ERP premium */
   line-height: 1.55;
   letter-spacing: -0.005em;
   transition: background-color var(--transition-slow), color var(--transition-slow);
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Exo 2', sans-serif;
-  letter-spacing: -0.02em;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Söhne', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-weight: 600;
+  /* Letter-spacing négatif progressif sur les displays — signature premium */
+  letter-spacing: -0.022em;
+}
+
+/* Wordmark gold script — UNIQUEMENT pour le logo Atlas/Cockpit */
+.atlas-brand,
+.brand-script {
+  font-family: 'Grand Hotel', cursive !important;
+  letter-spacing: 0.5px;
+  font-feature-settings: normal;
+}
+
+/* Italic éditorial pour citations & sous-titres élégants */
+.serif-italic {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-style: italic;
+  letter-spacing: 0;
 }
 
 /* Scrollbar — fine, gold sur hover, presque invisible au repos */
@@ -183,20 +246,90 @@ h1, h2, h3, h4, h5, h6 {
    Pour modifier les tailles, changez ici uniquement.
    ============================================ */
 
-/* Titres de page (h1) */
+/* === Scale typographique éditoriale — Mercury/Brex grade ===
+ * Chaque heading hérite d'un letter-spacing finement calibré
+ * (plus négatif pour les grandes tailles), poids 600 par défaut,
+ * line-height resserrée pour les displays. */
 h1, h2, h3, h4, h5, h6 {
   color: var(--color-text-primary);
   font-weight: 600;
-  line-height: 1.3;
+  line-height: 1.25;
 }
 
-h1 { font-size: 1.25rem !important; }   /* 20px - Titre de page */
-h1.landing-title { font-size: clamp(3rem, 8vw, 5rem) !important; font-weight: 400 !important; } /* Titre landing page */
-h2 { font-size: 1.125rem !important; }  /* 18px - Titre de section */
-h3 { font-size: 1rem !important; }      /* 16px - Sous-titre */
-h4 { font-size: 0.9375rem !important; } /* 15px - Label important */
-h5 { font-size: 0.875rem !important; }  /* 14px - Label */
-h6 { font-size: 0.8125rem !important; } /* 13px - Petit label */
+h1 {
+  font-size: 1.5rem !important;       /* 24px — Titre de page premium */
+  letter-spacing: -0.028em !important;
+  line-height: 1.2 !important;
+  font-weight: 600 !important;
+}
+h1.landing-title {
+  font-size: clamp(2.75rem, 7vw, 4.5rem) !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.04em !important;
+  line-height: 1 !important;
+}
+h2 {
+  font-size: 1.125rem !important;     /* 18px — Section */
+  letter-spacing: -0.018em !important;
+}
+h3 {
+  font-size: 0.9375rem !important;    /* 15px — Sous-section */
+  letter-spacing: -0.012em !important;
+}
+h4 {
+  font-size: 0.875rem !important;     /* 14px — Label important */
+  letter-spacing: -0.008em !important;
+  font-weight: 600 !important;
+}
+h5 {
+  font-size: 0.8125rem !important;    /* 13px — Label */
+  letter-spacing: -0.005em !important;
+  font-weight: 600 !important;
+}
+h6 {
+  font-size: 0.75rem !important;      /* 12px — Eyebrow */
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase;
+  font-weight: 600 !important;
+  color: var(--color-text-tertiary);
+}
+
+/* Display sizes — pour les valeurs KPI géantes (utiliser via classes) */
+.display-2xl {
+  font-size: clamp(3.5rem, 9vw, 5.5rem);
+  font-weight: 700;
+  letter-spacing: -0.045em;
+  line-height: 0.95;
+  font-variant-numeric: tabular-nums;
+}
+.display-xl {
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.display-lg {
+  font-size: clamp(2rem, 4.5vw, 2.75rem);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+}
+.display-md {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.display-sm {
+  font-size: 1.375rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+}
 
 /* Texte normal */
 p {
@@ -781,5 +914,189 @@ a:hover {
     background: linear-gradient(90deg, transparent 0%, rgba(201, 169, 97, 0.30) 50%, transparent 100%);
     border: none;
     margin: 1.5rem 0;
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     SURFACES PREMIUM — glassmorphism, panels obsidian, hairline cards
+     ════════════════════════════════════════════════════════════════ */
+
+  /* === Layout shells — banking grade === */
+  .page-shell {
+    min-height: 100vh;
+    background-color: var(--color-background);
+  }
+  .page-container {
+    width: 100%;
+    max-width: var(--page-max-w);
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: var(--page-px);
+    padding-right: var(--page-px);
+  }
+  .section-stack-sm > * + * { margin-top: var(--section-gap-sm); }
+  .section-stack-md > * + * { margin-top: var(--section-gap-md); }
+  .section-stack-lg > * + * { margin-top: var(--section-gap-lg); }
+
+  /* === Icônes Lucide : affiner le stroke à 1.5 globalement === */
+  /* Lucide rend par défaut stroke-width=2. Pour un rendu premium,
+   * on baisse à 1.65 par défaut, et 1.5 dans les contextes raffinés. */
+  svg.lucide,
+  [data-lucide] {
+    stroke-width: 1.65;
+  }
+  .icon-fine svg,
+  .icon-fine [data-lucide],
+  .surface-card svg.lucide,
+  .glass-bar svg.lucide,
+  header svg.lucide {
+    stroke-width: 1.5;
+  }
+  .icon-bold svg.lucide {
+    stroke-width: 2;
+  }
+
+  /* === Chiffres tabulaires premium (currency, KPI, percent) === */
+  .num-display {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum' 1, 'lnum' 1, 'zero' 1;
+  }
+  .num-mono {
+    font-family: 'JetBrains Mono', 'SF Mono', 'Söhne Mono', Menlo, Consolas, monospace;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum' 1, 'lnum' 1, 'zero' 1;
+  }
+  /* Décimales fines en superscript (à utiliser via <sup class="num-decimals">) */
+  .num-decimals {
+    font-size: 0.65em;
+    font-weight: 500;
+    color: var(--color-text-tertiary);
+    vertical-align: top;
+    line-height: 1;
+    margin-left: 0.05em;
+  }
+  /* Symbole monnaie subtil à gauche du chiffre */
+  .num-currency-sym {
+    font-size: 0.7em;
+    color: var(--color-text-tertiary);
+    margin-right: 0.25em;
+    font-weight: 500;
+  }
+
+  /* Sticky top bar avec backdrop-blur subtil (Mercury/Vercel) */
+  .glass-bar {
+    background: rgba(247, 244, 237, 0.72);
+    backdrop-filter: saturate(140%) blur(14px);
+    -webkit-backdrop-filter: saturate(140%) blur(14px);
+    border-bottom: 1px solid var(--color-border-light);
+  }
+
+  /* Surface obsidienne (panel gauche login, hero sombre) */
+  .surface-obsidian {
+    background: linear-gradient(180deg, #0E0E14 0%, #06060A 100%);
+    color: var(--color-text-inverse);
+    border: 1px solid rgba(201, 169, 97, 0.10);
+  }
+  .surface-obsidian-rich {
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 10%, rgba(201, 169, 97, 0.10) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 90%, rgba(201, 169, 97, 0.05) 0%, transparent 60%),
+      linear-gradient(180deg, #0E0E14 0%, #06060A 100%);
+    color: var(--color-text-inverse);
+  }
+
+  /* Card premium par défaut : white + hairline + shadow soft */
+  .surface-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow var(--motion-normal), border-color var(--motion-normal);
+  }
+  .surface-card:hover {
+    border-color: var(--color-hairline-strong);
+    box-shadow: var(--shadow-md);
+  }
+
+  /* Inset hairline ring — pour delimiter sans avoir une vraie border */
+  .ring-hairline {
+    box-shadow: var(--shadow-hairline);
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     MOTION ORCHESTRATION — premium entrance & micro-interactions
+     ════════════════════════════════════════════════════════════════ */
+
+  @keyframes premium-rise {
+    0%   { opacity: 0; transform: translateY(12px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes premium-fade {
+    0%   { opacity: 0; }
+    100% { opacity: 1; }
+  }
+  @keyframes premium-scale {
+    0%   { opacity: 0; transform: scale(0.96); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+  @keyframes premium-slide-r {
+    0%   { opacity: 0; transform: translateX(-16px); }
+    100% { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes premium-shimmer {
+    0%   { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  @keyframes premium-pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: 0.5; transform: scale(0.85); }
+  }
+
+  .anim-rise        { animation: premium-rise 640ms var(--ease-out-expo) both; }
+  .anim-fade        { animation: premium-fade 480ms var(--ease-out-expo) both; }
+  .anim-scale       { animation: premium-scale 480ms var(--ease-out-expo) both; }
+  .anim-slide-r     { animation: premium-slide-r 540ms var(--ease-out-expo) both; }
+  .anim-pulse-dot   { animation: premium-pulse-dot 2.4s ease-in-out infinite; }
+
+  /* Stagger d'orchestration : ajouter .stagger-children sur le parent,
+     les enfants directs s'animent en cascade avec un délai progressif. */
+  .stagger-children > *           { animation: premium-rise 640ms var(--ease-out-expo) both; }
+  .stagger-children > *:nth-child(1) { animation-delay:   0ms; }
+  .stagger-children > *:nth-child(2) { animation-delay:  60ms; }
+  .stagger-children > *:nth-child(3) { animation-delay: 120ms; }
+  .stagger-children > *:nth-child(4) { animation-delay: 180ms; }
+  .stagger-children > *:nth-child(5) { animation-delay: 240ms; }
+  .stagger-children > *:nth-child(6) { animation-delay: 300ms; }
+  .stagger-children > *:nth-child(7) { animation-delay: 360ms; }
+  .stagger-children > *:nth-child(8) { animation-delay: 420ms; }
+  .stagger-children > *:nth-child(9) { animation-delay: 480ms; }
+  .stagger-children > *:nth-child(n+10) { animation-delay: 540ms; }
+
+  /* Lift au hover — pour cards interactives premium */
+  .lift {
+    transition: transform var(--motion-normal),
+                box-shadow var(--motion-normal),
+                border-color var(--motion-normal);
+  }
+  .lift:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* Press feedback — pour boutons */
+  .press {
+    transition: transform var(--motion-fast);
+  }
+  .press:active {
+    transform: scale(0.97);
+  }
+
+  /* Respect prefers-reduced-motion partout */
+  @media (prefers-reduced-motion: reduce) {
+    .anim-rise, .anim-fade, .anim-scale, .anim-slide-r,
+    .stagger-children > *, .lift, .press {
+      animation: none !important;
+      transition: none !important;
+      transform: none !important;
+    }
   }
 }

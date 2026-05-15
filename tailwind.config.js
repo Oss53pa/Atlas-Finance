@@ -16,10 +16,31 @@ export default {
       },
     },
     fontFamily: {
-      'sans': ['Exo 2', 'sans-serif'],
-      'heading': ['Grand Hotel', 'cursive'],
-      'display': ['Grand Hotel', 'cursive'],
-      'mono': ['JetBrains Mono', 'monospace'],
+      // Inter + system stack premium (Mercury/Brex/Linear/Vercel/Stripe)
+      'sans': [
+        'Inter',
+        '-apple-system', 'BlinkMacSystemFont', 'SF Pro Text', 'Söhne', 'Söhne Buch',
+        'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif',
+      ],
+      // Serif éditorial pour displays sélectionnés (italics)
+      'serif': ['Instrument Serif', 'Söhne', 'Georgia', 'serif'],
+      // Script gold UNIQUEMENT pour le wordmark Atlas
+      'script': ['Grand Hotel', 'cursive'],
+      'brand': ['Grand Hotel', 'cursive'],
+      // Heading = Inter (le serif est opt-in)
+      'heading': [
+        'Inter',
+        '-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'Söhne',
+        'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif',
+      ],
+      // Display heavy : Inter (poids extra-bold pour gros chiffres)
+      'display': [
+        'Inter',
+        '-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'Söhne',
+        'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif',
+      ],
+      // Mono pour chiffres tabulaires + code
+      'mono': ['JetBrains Mono', 'SF Mono', 'Söhne Mono', 'Menlo', 'Consolas', 'monospace'],
     },
     extend: {
       colors: {
