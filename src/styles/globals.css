@@ -294,6 +294,202 @@ h6 {
   color: var(--color-text-tertiary);
 }
 
+/* ════════════════════════════════════════════════════════════════
+   MASS-OVERRIDES — élévation automatique du code legacy
+   Cible les patterns ERP typiques (Tailwind générique) et les fait
+   hériter du visuel Mercury/Brex-grade sans toucher aux composants.
+   ════════════════════════════════════════════════════════════════ */
+
+/* --- Cards génériques : bg-white + rounded-* + border --- */
+.bg-white.rounded-lg.border,
+.bg-white.rounded-xl.border,
+.bg-white.rounded-2xl.border,
+.bg-white.rounded-lg.border.border-gray-200,
+.bg-white.rounded-xl.border.border-gray-200,
+.bg-white.rounded-2xl.border.border-gray-200,
+.bg-white.rounded-lg.border.border-neutral-200,
+.bg-white.rounded-xl.border.border-neutral-200,
+.bg-white.rounded-2xl.border.border-neutral-200,
+.bg-white.shadow,
+.bg-white.shadow-sm,
+.bg-white.shadow-md,
+.bg-white.shadow-lg {
+  background: var(--color-surface) !important;
+  border-color: var(--color-border) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-sm) !important;
+  transition: box-shadow var(--motion-normal), border-color var(--motion-normal) !important;
+}
+.bg-white.rounded-lg.border:hover,
+.bg-white.rounded-xl.border:hover,
+.bg-white.rounded-2xl.border:hover,
+.bg-white.shadow-sm:hover,
+.bg-white.shadow-md:hover {
+  border-color: var(--color-hairline-strong) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+/* --- Background pages legacy --- */
+.bg-gray-50,
+.bg-gray-100,
+.bg-neutral-50,
+.bg-neutral-100,
+.bg-slate-50,
+.bg-slate-100,
+.bg-zinc-50,
+.bg-zinc-100,
+.bg-stone-50,
+.bg-stone-100 {
+  background-color: var(--color-background) !important;
+}
+
+/* --- Borders gris legacy --> hairline beige --- */
+.border-gray-100, .border-gray-200, .border-gray-300,
+.border-neutral-100, .border-neutral-200, .border-neutral-300,
+.border-slate-100, .border-slate-200, .border-slate-300,
+.border-zinc-100, .border-zinc-200, .border-zinc-300,
+.border-stone-100, .border-stone-200, .border-stone-300 {
+  border-color: var(--color-border) !important;
+}
+.divide-gray-100 > * + *, .divide-gray-200 > * + *,
+.divide-neutral-100 > * + *, .divide-neutral-200 > * + *,
+.divide-slate-100 > * + *, .divide-slate-200 > * + * {
+  border-color: var(--color-border-light) !important;
+}
+
+/* --- Texte gris legacy --> tertiaire premium --- */
+.text-gray-400, .text-neutral-400, .text-slate-400, .text-zinc-400, .text-stone-400 {
+  color: var(--color-text-quaternary) !important;
+}
+.text-gray-500, .text-neutral-500, .text-slate-500, .text-zinc-500, .text-stone-500 {
+  color: var(--color-text-tertiary) !important;
+}
+.text-gray-600, .text-neutral-600, .text-slate-600, .text-zinc-600, .text-stone-600 {
+  color: var(--color-text-secondary) !important;
+}
+.text-gray-700, .text-gray-800, .text-gray-900,
+.text-neutral-700, .text-neutral-800, .text-neutral-900,
+.text-slate-700, .text-slate-800, .text-slate-900 {
+  color: var(--color-text-primary) !important;
+}
+
+/* --- Headings legacy avec text-{2xl,3xl,4xl}.font-bold --> display premium --- */
+.text-2xl.font-bold,
+.text-3xl.font-bold {
+  letter-spacing: -0.025em !important;
+  font-weight: 600 !important;
+  line-height: 1.15 !important;
+}
+.text-4xl.font-bold,
+.text-5xl.font-bold {
+  letter-spacing: -0.035em !important;
+  font-weight: 700 !important;
+  line-height: 1.05 !important;
+  font-variant-numeric: tabular-nums !important;
+}
+
+/* --- Inputs/Selects legacy --- */
+input[type="text"]:not([class*="af-"]):not([class*="atlas"]):not([data-premium]),
+input[type="email"]:not([class*="af-"]):not([data-premium]),
+input[type="password"]:not([class*="af-"]):not([data-premium]),
+input[type="number"]:not([class*="af-"]):not([data-premium]),
+input[type="search"]:not([class*="af-"]):not([data-premium]),
+input[type="tel"]:not([class*="af-"]):not([data-premium]),
+input[type="url"]:not([class*="af-"]):not([data-premium]),
+input[type="date"]:not([class*="af-"]):not([data-premium]),
+textarea:not([class*="af-"]):not([data-premium]),
+select:not([class*="af-"]):not([data-premium]) {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: 0.9375rem;
+  letter-spacing: -0.005em;
+  color: var(--color-text-primary);
+  transition: border-color var(--motion-fast), box-shadow var(--motion-fast);
+}
+input:not([class*="af-"]):not([data-premium]):focus,
+textarea:not([class*="af-"]):not([data-premium]):focus,
+select:not([class*="af-"]):not([data-premium]):focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-focus);
+}
+input:not([class*="af-"]):not([data-premium])::placeholder,
+textarea:not([class*="af-"])::placeholder {
+  color: var(--color-text-quaternary);
+}
+
+/* --- Numbers heavy contexts auto-tabular --- */
+.text-3xl, .text-4xl, .text-5xl, .text-6xl, .text-7xl,
+[class*="text-2xl"].font-bold,
+[class*="font-bold"][class*="text-3xl"],
+[class*="font-bold"][class*="text-4xl"] {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1, 'lnum' 1;
+}
+
+/* --- Tableaux legacy --- */
+table:not([class*="af-"]) {
+  font-size: 0.875rem;
+  letter-spacing: -0.005em;
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+table:not([class*="af-"]) thead th {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--color-text-tertiary);
+  padding: 0.625rem 0.875rem;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface-hover);
+}
+table:not([class*="af-"]) tbody td {
+  padding: 0.75rem 0.875rem;
+  border-bottom: 1px solid var(--color-border-light);
+  color: var(--color-text-secondary);
+}
+table:not([class*="af-"]) tbody tr:hover td {
+  background: var(--color-surface-hover);
+}
+table:not([class*="af-"]) tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* --- Boutons "premium" automatique pour bg-black/bg-neutral-900/bg-zinc-900 --- */
+.bg-black, .bg-neutral-900, .bg-zinc-900, .bg-slate-900, .bg-gray-900 {
+  background-color: var(--color-primary) !important;
+  color: var(--color-text-inverse) !important;
+}
+button.bg-black, button.bg-neutral-900, button.bg-zinc-900,
+button.bg-slate-900, button.bg-gray-900 {
+  box-shadow: var(--shadow-obsidian) !important;
+  transition: background var(--motion-fast) !important;
+}
+
+/* --- Status badges legacy --> tonal premium --- */
+.bg-green-50, .bg-emerald-50, .bg-teal-50 {
+  background-color: rgba(15, 143, 95, 0.10) !important;
+}
+.text-green-600, .text-green-700, .text-emerald-600, .text-emerald-700 {
+  color: var(--color-success) !important;
+}
+.bg-yellow-50, .bg-yellow-100 {
+  background-color: var(--color-warning-light) !important;
+}
+.text-yellow-600, .text-yellow-700 {
+  color: var(--color-warning) !important;
+}
+
+/* --- Liens legacy --> obsidien avec underline subtil --- */
+a:not([class*="af-"]):not([class*="brand"]):not([class*="atlas"]) {
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+
 /* Display sizes — pour les valeurs KPI géantes (utiliser via classes) */
 .display-2xl {
   font-size: clamp(3.5rem, 9vw, 5.5rem);

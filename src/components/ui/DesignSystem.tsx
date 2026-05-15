@@ -114,36 +114,43 @@ export const UnifiedCard: React.FC<UnifiedCardProps> = ({
   className = '',
   onClick
 }) => {
-  const variants = {
-    default: 'bg-white border border-neutral-200/60 shadow-md',
-    elevated: 'bg-white shadow-xl border-0',
-    outlined: 'bg-transparent border-2 border-neutral-200',
-    glass: 'bg-white/80 backdrop-blur-sm border border-white/20 shadow-lg'
-  };
-
   const sizes = {
-    sm: 'p-4',
-    md: 'p-6',
-    lg: 'p-8'
+    sm: '0.875rem 1rem',
+    md: '1.125rem 1.25rem',
+    lg: '1.5rem 1.625rem'
   };
 
-  const hoverClass = hover ? 'hover:shadow-2xl hover:scale-[1.02] transition-all duration-300' : '';
-  const clickClass = onClick ? 'cursor-pointer' : '';
+  const baseStyle: React.CSSProperties = {
+    background: variant === 'outlined' ? 'transparent' : 'var(--color-surface)',
+    border: '1px solid var(--color-border)',
+    borderRadius: 'var(--radius-lg)',
+    boxShadow: variant === 'elevated' ? 'var(--shadow-md)' : 'var(--shadow-sm)',
+    padding: sizes[size],
+    cursor: onClick ? 'pointer' : 'default',
+    transition: 'box-shadow var(--motion-normal), border-color var(--motion-normal), transform var(--motion-normal)',
+  };
+  if (variant === 'glass') {
+    baseStyle.background = 'rgba(255, 255, 255, 0.72)';
+    (baseStyle as any).backdropFilter = 'saturate(140%) blur(14px)';
+    (baseStyle as any).WebkitBackdropFilter = 'saturate(140%) blur(14px)';
+  }
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className={`
-        ${variants[variant]}
-        ${sizes[size]}
-        ${hoverClass}
-        ${clickClass}
-        rounded-2xl
-        ${className}
-      `}
+      transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
+      className={`${hover ? 'lift' : ''} ${className}`}
+      style={baseStyle}
       onClick={onClick}
+      onMouseEnter={(e) => {
+        if (!hover) return;
+        (e.currentTarget as HTMLElement).style.borderColor = 'var(--color-accent)';
+      }}
+      onMouseLeave={(e) => {
+        if (!hover) return;
+        (e.currentTarget as HTMLElement).style.borderColor = 'var(--color-border)';
+      }}
     >
       {children}
     </motion.div>
@@ -175,116 +182,87 @@ export const KPICard: React.FC<KPICardProps> = ({
   delay = 0,
   withChart = false
 }) => {
-  const colorVariants = {
-    primary: {
-      bg: 'bg-white/90',
-      icon: 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]',
-      text: 'text-[var(--color-primary)]',
-      accent: 'text-[var(--color-primary)]',
-      border: 'border-[var(--color-primary)]/20'
-    },
-    success: {
-      bg: 'bg-white/90',
-      icon: 'bg-[var(--color-success)]/10 text-[var(--color-success)]',
-      text: 'text-[var(--color-success)]',
-      accent: 'text-[var(--color-success)]',
-      border: 'border-[var(--color-success)]/20'
-    },
-    warning: {
-      bg: 'bg-white/90',
-      icon: 'bg-[var(--color-warning)]/10 text-[var(--color-warning)]',
-      text: 'text-[var(--color-warning)]',
-      accent: 'text-[var(--color-warning)]',
-      border: 'border-[var(--color-warning)]/20'
-    },
-    error: {
-      bg: 'bg-white/90',
-      icon: 'bg-[var(--color-error)]/10 text-[var(--color-error)]',
-      text: 'text-[var(--color-error)]',
-      accent: 'text-[var(--color-error)]',
-      border: 'border-[var(--color-error)]/20'
-    },
-    neutral: {
-      bg: 'bg-white/90',
-      icon: 'bg-[var(--color-surface-hover)] text-[var(--color-text-secondary)]',
-      text: 'text-[var(--color-text-primary)]',
-      accent: 'text-[var(--color-text-secondary)]',
-      border: 'border-[var(--color-border)]/40'
-    }
+  const TONE: Record<NonNullable<KPICardProps['color']>, { stroke: string; tileBg: string; tileColor: string; trendBg: string; trendColor: string }> = {
+    primary: { stroke: '#C9A961', tileBg: 'var(--color-accent-light)',  tileColor: 'var(--color-accent-deep)', trendBg: 'rgba(15,143,95,0.10)', trendColor: '#0F8F5F' },
+    success: { stroke: '#0F8F5F', tileBg: 'rgba(15,143,95,0.10)',       tileColor: '#0F8F5F',                  trendBg: 'rgba(15,143,95,0.10)', trendColor: '#0F8F5F' },
+    warning: { stroke: '#C9A961', tileBg: 'rgba(201,169,97,0.14)',      tileColor: '#A88845',                  trendBg: 'rgba(201,169,97,0.14)', trendColor: '#A88845' },
+    error:   { stroke: '#C0322B', tileBg: 'rgba(192,50,43,0.10)',       tileColor: '#C0322B',                  trendBg: 'rgba(192,50,43,0.10)', trendColor: '#C0322B' },
+    neutral: { stroke: '#6B6B73', tileBg: 'var(--color-surface-hover)', tileColor: 'var(--color-text-secondary)', trendBg: 'var(--color-surface-hover)', trendColor: 'var(--color-text-secondary)' },
   };
-
-  const variant = colorVariants[color];
+  const t = TONE[color];
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
+    <motion.article
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay, duration: 0.3 }}
-      className="group"
+      transition={{ delay, duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
+      className="surface-card lift"
+      style={{ padding: '1.125rem 1.25rem 1rem', position: 'relative', overflow: 'hidden' }}
     >
-      <div className={`
-        relative overflow-hidden rounded-xl 
-        ${variant.bg}
-        border ${variant.border} shadow-sm hover:shadow-md
-        transition-all duration-300 cursor-default
-        backdrop-blur-sm
-      `}>
-        <div className="p-5">
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex-1">
-              <h3 className="text-xs font-medium tracking-wide text-neutral-500 uppercase mb-2">
-                {title}
-              </h3>
-              <p className={`text-lg font-bold ${variant.text} leading-none`}>
-                {value}
-              </p>
-            </div>
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex-1 min-w-0">
+          <h6
+            className="eyebrow"
+            style={{ fontSize: 10, color: 'var(--color-text-tertiary)', letterSpacing: '0.12em', marginBottom: '0.5rem' }}
+          >
+            {title}
+          </h6>
+          <p
+            className="display-md num-display"
+            style={{ color: 'var(--color-text-primary)', marginBottom: 0 }}
+          >
+            {value}
+          </p>
+        </div>
+        <span
+          className="shrink-0 inline-flex items-center justify-center"
+          style={{
+            width: 34, height: 34, borderRadius: 9,
+            background: t.tileBg, color: t.tileColor,
+          }}
+        >
+          <Icon size={16} strokeWidth={1.5} />
+        </span>
+      </div>
 
-            <div className={`
-              p-2.5 rounded-lg ${variant.icon}
-              transition-transform duration-300
-            `}>
-              <Icon size={20} />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            {subtitle && (
-              <p className="text-xs text-neutral-500">{subtitle}</p>
-            )}
-            {trend && (
-              <div className={`
-                inline-flex items-center px-2 py-1 rounded-md text-xs font-medium
-                ${trend.isPositive ? 'bg-[var(--color-success)]/10 text-[var(--color-success)]' : 'bg-[var(--color-error)]/10 text-[var(--color-error)]'}
-              `}>
-                {trend.value}
-              </div>
-            )}
-          </div>
-
-          {/* Graphique minimaliste simplifié */}
-          {withChart && (
-            <div className="mt-3">
-              <div className="flex items-end justify-between h-8 gap-0.5">
-                {[40, 65, 45, 80, 55, 90, 70].map((height, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ scaleY: 0 }}
-                    animate={{ scaleY: 1 }}
-                    transition={{ delay: delay + 0.05 * index, duration: 0.2 }}
-                    className={`
-                      flex-1 rounded-t ${variant.icon.split(' ')[0]}
-                      opacity-30
-                    `}
-                    style={{ height: `${height}%` }}
-                  />
-                ))}
-              </div>
-            </div>
+      {(subtitle || trend) && (
+        <div className="flex items-center gap-2 mt-2">
+          {trend && (
+            <span
+              className="inline-flex items-center num-tabular"
+              style={{
+                padding: '0.125rem 0.5rem',
+                borderRadius: 9999,
+                fontSize: 11,
+                fontWeight: 600,
+                background: trend.isPositive ? 'rgba(15,143,95,0.10)' : 'rgba(192,50,43,0.10)',
+                color: trend.isPositive ? '#0F8F5F' : '#C0322B',
+              }}
+            >
+              {trend.value}
+            </span>
+          )}
+          {subtitle && (
+            <span className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>{subtitle}</span>
           )}
         </div>
-      </div>
-    </motion.div>
+      )}
+
+      {withChart && (
+        <div className="mt-3 -mx-1">
+          <svg width="100%" height="32" viewBox="0 0 200 32" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id={`kpi-grad-${title}`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={t.stroke} stopOpacity={0.32} />
+                <stop offset="100%" stopColor={t.stroke} stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <path d="M 0 24 C 30 22, 50 18, 70 14 S 110 8, 140 10 S 180 6, 200 4 L 200 32 L 0 32 Z" fill={`url(#kpi-grad-${title})`} />
+            <path d="M 0 24 C 30 22, 50 18, 70 14 S 110 8, 140 10 S 180 6, 200 4" fill="none" stroke={t.stroke} strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+        </div>
+      )}
+    </motion.article>
   );
 };
 
@@ -304,23 +282,41 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
   action,
   className = ''
 }) => (
-  <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0 mb-6 ${className}`}>
-    <div className="flex items-center space-x-3">
+  <div
+    className={`flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 sm:gap-6 mb-6 ${className}`}
+  >
+    <div className="flex items-start gap-3 min-w-0">
       {Icon && (
-        <div className="p-2.5 bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-hover)] rounded-xl shadow-md">
-          <Icon className="h-5 w-5 text-white" />
-        </div>
+        <span
+          className="shrink-0 inline-flex items-center justify-center mt-1"
+          style={{
+            width: 36, height: 36, borderRadius: 10,
+            background: 'var(--color-accent-light)',
+            color: 'var(--color-accent-deep)',
+            border: '1px solid rgba(201,169,97,0.20)',
+          }}
+        >
+          <Icon size={16} strokeWidth={1.5} />
+        </span>
       )}
-      <div>
-        <h1 className="text-lg sm:text-xl font-bold text-neutral-900 leading-tight">
+      <div className="min-w-0">
+        <h1
+          className="display-md"
+          style={{ color: 'var(--color-text-primary)', letterSpacing: '-0.025em', lineHeight: 1.15, fontWeight: 600, fontSize: '1.5rem' }}
+        >
           {title}
         </h1>
         {subtitle && (
-          <p className="text-neutral-500 mt-1 text-sm">{subtitle}</p>
+          <p
+            className="mt-1 text-sm"
+            style={{ color: 'var(--color-text-tertiary)', letterSpacing: '-0.005em', lineHeight: 1.5 }}
+          >
+            {subtitle}
+          </p>
         )}
       </div>
     </div>
-    {action && <div>{action}</div>}
+    {action && <div className="flex items-center gap-2 flex-wrap">{action}</div>}
   </div>
 );
 
@@ -346,39 +342,67 @@ export const ElegantButton: React.FC<ElegantButtonProps> = ({
   onClick,
   className = ''
 }) => {
-  const variants = {
-    primary: 'bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-hover)] text-white shadow-lg hover:shadow-xl hover:from-[var(--color-primary-hover)] hover:to-[var(--color-primary-hover)]',
-    secondary: 'bg-[var(--color-surface-hover)] text-[var(--color-primary)] hover:bg-[var(--color-border)] shadow-sm',
-    outline: 'border-2 border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/5',
-    ghost: 'text-[var(--color-text-tertiary)] hover:text-[var(--color-primary)] hover:bg-[var(--color-surface-hover)]'
+  const VARIANT_STYLE: Record<NonNullable<ElegantButtonProps['variant']>, React.CSSProperties> = {
+    primary: {
+      background: 'var(--color-primary)',
+      color: 'var(--color-text-inverse)',
+      boxShadow: 'var(--shadow-obsidian)',
+      border: '1px solid var(--color-primary)',
+    },
+    secondary: {
+      background: 'var(--color-accent)',
+      color: 'var(--color-text-primary)',
+      boxShadow: '0 1px 2px rgba(201,169,97,0.18)',
+      border: '1px solid var(--color-accent)',
+    },
+    outline: {
+      background: 'var(--color-surface)',
+      color: 'var(--color-text-primary)',
+      border: '1px solid var(--color-border)',
+    },
+    ghost: {
+      background: 'transparent',
+      color: 'var(--color-text-secondary)',
+      border: '1px solid transparent',
+    },
   };
-
-  const sizes = {
-    sm: 'px-3 py-1.5 text-xs',
-    md: 'px-5 py-2.5 text-sm',
-    lg: 'px-6 py-3 text-base'
+  const SIZE_STYLE = {
+    sm: { padding: '0.375rem 0.75rem', fontSize: '0.75rem',  borderRadius: 8,  gap: '0.375rem' },
+    md: { padding: '0.5rem 0.875rem',  fontSize: '0.875rem', borderRadius: 10, gap: '0.5rem'   },
+    lg: { padding: '0.75rem 1.125rem', fontSize: '0.9375rem',borderRadius: 12, gap: '0.625rem' },
   };
 
   return (
     <motion.button
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
-      className={`
-        ${variants[variant]}
-        ${sizes[size]}
-        rounded-xl font-semibold
-        transition-all duration-200
-        inline-flex items-center justify-center space-x-2
-        disabled:opacity-50 disabled:cursor-not-allowed
-        ${className}
-      `}
+      whileTap={disabled || loading ? undefined : { scale: 0.97 }}
+      className={`press inline-flex items-center justify-center font-semibold ${className}`}
+      style={{
+        ...VARIANT_STYLE[variant],
+        ...SIZE_STYLE[size],
+        letterSpacing: '-0.005em',
+        opacity: disabled || loading ? 0.55 : 1,
+        cursor: disabled || loading ? 'not-allowed' : 'pointer',
+        transition: 'background var(--motion-fast), border-color var(--motion-fast), box-shadow var(--motion-fast)',
+      }}
       disabled={disabled || loading}
       onClick={onClick}
+      onMouseEnter={(e) => {
+        if (disabled || loading) return;
+        if (variant === 'primary') (e.currentTarget as HTMLElement).style.background = 'var(--color-primary-hover)';
+        if (variant === 'secondary') (e.currentTarget as HTMLElement).style.background = 'var(--color-accent-hover)';
+        if (variant === 'outline') (e.currentTarget as HTMLElement).style.borderColor = 'var(--color-accent)';
+        if (variant === 'ghost') (e.currentTarget as HTMLElement).style.background = 'var(--color-surface-hover)';
+      }}
+      onMouseLeave={(e) => {
+        const base = VARIANT_STYLE[variant];
+        (e.currentTarget as HTMLElement).style.background = (base.background as string) || 'transparent';
+        if (variant === 'outline') (e.currentTarget as HTMLElement).style.borderColor = 'var(--color-border)';
+      }}
     >
       {loading ? (
-        <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
       ) : Icon ? (
-        <Icon size={18} />
+        <Icon size={size === 'lg' ? 16 : 14} strokeWidth={1.6} />
       ) : null}
       <span>{children}</span>
     </motion.button>
@@ -403,45 +427,54 @@ export const ModernChartCard: React.FC<ModernChartCardProps> = ({
   className = '',
   gradient = 'warm'
 }) => {
-  const gradientStyles: Record<NonNullable<ModernChartCardProps['gradient']>, string> = {
-    warm: 'bg-gradient-to-br from-white via-[#faf8f3] to-[#f0ece4]/40',
-    cool: 'bg-gradient-to-br from-white via-slate-50 to-slate-100/40',
-    neutral: 'bg-white/90'
-  };
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className={`group ${className}`}
+      transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
+      className={`surface-card ${className}`}
+      style={{ overflow: 'hidden', position: 'relative' }}
     >
-      <div className={`
-        relative overflow-hidden rounded-xl
-        ${gradientStyles[gradient]}
-        border border-neutral-200/40 shadow-sm hover:shadow-md
-        transition-all duration-300
-        backdrop-blur-sm
-      `}>
-        {/* Header épuré */}
-        <div className="p-6 pb-4 border-b border-neutral-100">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-neutral-100 rounded-lg">
-              <Icon className="h-5 w-5 text-neutral-600" />
-            </div>
-            <div>
-              <h2 className="text-base font-semibold text-neutral-800">{title}</h2>
-              {subtitle && (
-                <p className="text-sm text-neutral-500 mt-0.5">{subtitle}</p>
-              )}
-            </div>
+      {/* Filet gold supérieur subtil */}
+      <div
+        aria-hidden
+        style={{
+          position: 'absolute', top: 0, left: 0, right: 0, height: 1,
+          background: 'linear-gradient(90deg, transparent 0%, var(--color-accent) 50%, transparent 100%)',
+          opacity: 0.40,
+        }}
+      />
+      {/* Header */}
+      <div
+        className="flex items-center justify-between gap-4"
+        style={{ padding: '1rem 1.25rem', borderBottom: '1px solid var(--color-border-light)' }}
+      >
+        <div className="flex items-center gap-3 min-w-0">
+          <span
+            className="shrink-0 inline-flex items-center justify-center"
+            style={{
+              width: 30, height: 30, borderRadius: 8,
+              background: 'var(--color-accent-light)',
+              color: 'var(--color-accent-deep)',
+            }}
+          >
+            <Icon size={15} strokeWidth={1.5} />
+          </span>
+          <div className="min-w-0">
+            <h2
+              className="font-semibold truncate"
+              style={{ fontSize: '0.9375rem', letterSpacing: '-0.012em', color: 'var(--color-text-primary)' }}
+            >
+              {title}
+            </h2>
+            {subtitle && (
+              <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-tertiary)' }}>{subtitle}</p>
+            )}
           </div>
         </div>
-
-        {/* Contenu */}
-        <div className="p-6">
-          {children}
-        </div>
       </div>
+      {/* Contenu */}
+      <div style={{ padding: '1.25rem' }}>{children}</div>
     </motion.div>
   );
 };
@@ -505,30 +538,28 @@ export const PageContainer: React.FC<PageContainerProps> = ({
   padding = 'lg',
   background = 'warm'
 }) => {
-  const maxWidths = {
-    sm: 'max-w-2xl',
-    md: 'max-w-4xl', 
-    lg: 'max-w-6xl',
-    xl: 'max-w-7xl',
-    full: 'max-w-none'
+  const maxW: Record<NonNullable<PageContainerProps['maxWidth']>, string> = {
+    sm: '640px', md: '880px', lg: '1120px', xl: '1480px', full: 'none',
   };
-
-  const paddings = {
-    sm: 'p-4',
-    md: 'p-6',
-    lg: 'p-4 sm:p-6 lg:p-8'
+  const pad: Record<NonNullable<PageContainerProps['padding']>, string> = {
+    sm: '1rem',
+    md: '1.5rem',
+    lg: 'clamp(1.5rem, 3vw, 2.5rem)',
   };
-
-  const backgrounds = {
-    default: 'bg-neutral-50',
-    gradient: 'bg-gradient-to-br from-neutral-50 via-neutral-50/80 to-white',
-    pattern: 'bg-neutral-50',
-    warm: 'bg-white'
-  };
-
   return (
-    <div className={`min-h-screen ${backgrounds[background]}`}>
-      <div className={`mx-auto ${maxWidths[maxWidth]} ${paddings[padding]}`}>
+    <div className="page-shell anim-fade">
+      <div
+        style={{
+          width: '100%',
+          maxWidth: maxW[maxWidth],
+          marginLeft: 'auto',
+          marginRight: 'auto',
+          paddingLeft: pad[padding],
+          paddingRight: pad[padding],
+          paddingTop: '2rem',
+          paddingBottom: '4rem',
+        }}
+      >
         {children}
       </div>
     </div>
