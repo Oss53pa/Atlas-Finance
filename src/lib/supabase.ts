@@ -47,54 +47,86 @@ export async function getCurrentUser() {
 }
 
 // Helper to get user profile with role and company
-// Tolerant : si la table profiles n'existe pas, si la ligne manque,
-// ou si RLS bloque l'accès -> on construit un profil minimal à partir
-// des métadonnées Supabase Auth pour ne pas bloquer l'utilisateur.
+// Stratégie tolérante en 4 niveaux :
+//  1) select('*, role:roles(*), company:societes(*)') -- idéal, schéma complet
+//  2) select('*')                                       -- profil sans embeds
+//  3) fetch séparé de roles / societes si role_id / societe_id présent
+//  4) fallback complet construit depuis user_metadata Supabase Auth
+// Aucune étape ne throw -- le caller ne doit jamais déconnecter le user.
 export async function getUserProfile() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
 
-  // Profil minimal de secours, construit depuis auth.users uniquement
-  const metaName = (user.user_metadata as Record<string, unknown> | undefined) || {};
-  const fallbackProfile = {
+  const meta = (user.user_metadata as Record<string, unknown> | undefined) || {};
+  const fallbackProfile: Record<string, any> = {
     id: user.id,
     email: user.email,
-    full_name: (metaName.full_name as string) || (metaName.name as string) || user.email,
-    first_name: (metaName.first_name as string) || undefined,
-    last_name: (metaName.last_name as string) || undefined,
+    full_name: (meta.full_name as string) || (meta.name as string) || user.email,
+    first_name: (meta.first_name as string) || undefined,
+    last_name: (meta.last_name as string) || undefined,
     is_active: true,
-    role: { code: (metaName.role as string) || 'user' },
+    role: { code: (meta.role as string) || 'user' },
     company: undefined,
-    company_id: (metaName.company_id as string) || undefined,
-    photo_url: (metaName.photo_url as string) || (metaName.avatar_url as string) || undefined,
-    phone: (metaName.phone as string) || undefined,
-    department: (metaName.department as string) || undefined,
+    company_id: (meta.company_id as string) || undefined,
+    photo_url: (meta.photo_url as string) || (meta.avatar_url as string) || undefined,
+    phone: (meta.phone as string) || undefined,
+    department: (meta.department as string) || undefined,
     two_factor_enabled: false,
   };
 
+  // Étape 1 : essai avec embeds complets (idéal)
   try {
-    const { data: profile, error } = await supabase
+    const { data, error } = await supabase
       .from('profiles')
-      .select(`
-        *,
-        role:roles(*),
-        company:societes(*)
-      `)
+      .select('*, role:roles(*), company:societes(*)')
       .eq('id', user.id)
       .maybeSingle();
+    if (!error && data) return data;
+  } catch (_e) { /* embed pas dispo -- on passe à l'étape 2 */ }
 
-    if (error) {
-      // 406 / 404 / RLS / table missing -> on retombe sur le fallback
-      // sans logger en console.error pour ne pas polluer le Sentry du user.
-      return fallbackProfile;
-    }
-    return profile ?? fallbackProfile;
-  } catch (_e) {
-    return fallbackProfile;
+  // Étape 2 : profile brut sans embed
+  let baseProfile: Record<string, any> | null = null;
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .maybeSingle();
+    if (!error && data) baseProfile = data as Record<string, any>;
+  } catch (_e) { /* table absente -- fallback complet */ }
+
+  if (!baseProfile) return fallbackProfile;
+
+  // Étape 3 : compléter avec roles / societes en best-effort
+  let roleData: Record<string, any> | undefined;
+  const roleId = baseProfile.role_id || baseProfile.roleId;
+  if (roleId) {
+    try {
+      const { data } = await supabase.from('roles').select('*').eq('id', roleId).maybeSingle();
+      if (data) roleData = data as Record<string, any>;
+    } catch (_e) { /* roles table absente -- ignore */ }
   }
+
+  let companyData: Record<string, any> | undefined;
+  const companyId = baseProfile.company_id || baseProfile.societe_id;
+  if (companyId) {
+    try {
+      const { data } = await supabase.from('societes').select('*').eq('id', companyId).maybeSingle();
+      if (data) companyData = data as Record<string, any>;
+    } catch (_e) { /* ignore */ }
+  }
+
+  return {
+    ...baseProfile,
+    role: roleData || { code: baseProfile.role || (meta.role as string) || 'user' },
+    company: companyData,
+  };
 }
 
-// Helper to get user permissions — tolerant aussi
+// Helper to get user permissions — tolerant
+// Si la chaîne d'embeds roles -> role_permissions -> permissions n'existe
+// pas dans la DB (400), on retourne [] silencieusement et l'app continue
+// avec les permissions par défaut (front-side: tout ouvert pour role 'user').
 export async function getUserPermissions(): Promise<string[]> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return [];
@@ -102,13 +134,7 @@ export async function getUserPermissions(): Promise<string[]> {
   try {
     const { data, error } = await supabase
       .from('profiles')
-      .select(`
-        role:roles(
-          permissions:role_permissions(
-            permission:permissions(code)
-          )
-        )
-      `)
+      .select('role:roles(permissions:role_permissions(permission:permissions(code)))')
       .eq('id', user.id)
       .maybeSingle();
 
