@@ -234,18 +234,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     setLoading(true);
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      // Wrap signInWithPassword dans un timeout de 15s pour éviter qu'un
+      // bug réseau (CORS, DNS, supabase down) bloque le bouton indéfiniment.
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('La connexion prend trop de temps. Vérifiez votre réseau et réessayez.')), 15000)
+      );
+      const signInPromise = supabase.auth.signInWithPassword({ email, password });
+      const result = await Promise.race([signInPromise, timeoutPromise]);
+
+      const { data, error } = result as Awaited<ReturnType<typeof supabase.auth.signInWithPassword>>;
 
       if (error) {
         throw new Error(error.message === 'Invalid login credentials'
-          ? 'Identifiants incorrects. Veuillez reessayer.'
+          ? 'Identifiants incorrects. Veuillez réessayer.'
           : error.message
         );
       }
 
       if (data.session) {
         setSession(data.session);
-        await loadUserProfile();
+        // loadUserProfile est tolérante : ne throw jamais, fallback metadata.
+        // On la wrap aussi dans un timeout pour ne pas bloquer le bouton.
+        const profilePromise = loadUserProfile();
+        const profileTimeout = new Promise<void>((resolve) => setTimeout(resolve, 5000));
+        await Promise.race([profilePromise, profileTimeout]);
       }
     } finally {
       setLoading(false);

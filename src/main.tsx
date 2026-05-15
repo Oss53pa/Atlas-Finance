@@ -63,6 +63,27 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 // (Pas de hideLoader ici pour Test 8)
 
 // ── Service Worker Registration (production only) ────────────
-if ('serviceWorker' in navigator && import.meta.env.PROD) {
-  navigator.serviceWorker.register('/service-worker.js').catch(() => {});
+// Migration v1 -> v3 : on désactive temporairement le SW pour TOUT le monde
+// le temps que les caches obsolètes (chunks aux hashes périmés) soient purgés.
+// Quand le user revient avec un cache propre, on pourra ré-enregistrer le SW
+// (décommenter la ligne register ci-dessous au prochain déploiement).
+if ('serviceWorker' in navigator) {
+  // 1) Désinscrire TOUS les SW existants (v1 cassait l'app)
+  navigator.serviceWorker.getRegistrations()
+    .then((regs) => Promise.all(regs.map((reg) => reg.unregister())))
+    .catch(() => {});
+
+  // 2) Vider TOUS les caches (anciens chunks aux hashes obsolètes)
+  if ('caches' in window) {
+    caches.keys()
+      .then((keys) => Promise.all(keys.map((k) => caches.delete(k))))
+      .catch(() => {});
+  }
+
+  // 3) Pas de ré-enregistrement pour l'instant -- l'app fonctionne sans SW.
+  // À ré-activer dans un futur déploiement quand on est sûr que tous
+  // les utilisateurs ont purgé leurs caches v1 :
+  // if (import.meta.env.PROD) {
+  //   navigator.serviceWorker.register('/service-worker.js').catch(() => {});
+  // }
 }
