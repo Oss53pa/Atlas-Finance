@@ -632,8 +632,187 @@ table td, .table td, .af-table-cell {
 /* Bleu "info" legacy → obsidien profond */
 .text-blue-500:not([class*="hover:"]):not(.destructive-action),
 .text-blue-600:not([class*="hover:"]):not(.destructive-action),
-.text-blue-700:not([class*="hover:"]):not(.destructive-action) {
+.text-blue-700:not([class*="hover:"]):not(.destructive-action),
+.text-blue-800:not([class*="hover:"]):not(.destructive-action),
+.text-blue-900:not([class*="hover:"]):not(.destructive-action) {
   color: var(--color-primary) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   MASS-OVERRIDES ÉTENDUS — couverture systeme complete des
+   palettes Tailwind colorées que la couverture initiale ratait.
+   Ces règles élèvent ~150 pages legacy sans toucher au TSX.
+   ════════════════════════════════════════════════════════════ */
+
+/* === Backgrounds *-50/100 (lighter shades) : bleu/violet/cyan/etc → champagne pâle === */
+.bg-blue-50:not(.destructive-action):not([data-status="info"]),
+.bg-blue-100:not(.destructive-action):not([data-status="info"]),
+.bg-indigo-50:not(.destructive-action),
+.bg-indigo-100:not(.destructive-action),
+.bg-purple-50:not(.destructive-action),
+.bg-purple-100:not(.destructive-action),
+.bg-violet-50:not(.destructive-action),
+.bg-violet-100:not(.destructive-action),
+.bg-cyan-50:not(.destructive-action),
+.bg-cyan-100:not(.destructive-action),
+.bg-sky-50:not(.destructive-action),
+.bg-sky-100:not(.destructive-action),
+.bg-teal-50:not(.destructive-action),
+.bg-teal-100:not(.destructive-action),
+.bg-fuchsia-50:not(.destructive-action),
+.bg-fuchsia-100:not(.destructive-action),
+.bg-lime-50:not(.destructive-action),
+.bg-lime-100:not(.destructive-action) {
+  background-color: var(--color-accent-light) !important;
+}
+
+/* === Textes mid-tones (couleurs vives) → obsidien profond === */
+.text-indigo-500:not([class*="hover:"]):not(.destructive-action),
+.text-indigo-600:not([class*="hover:"]):not(.destructive-action),
+.text-indigo-700:not([class*="hover:"]):not(.destructive-action),
+.text-indigo-800:not([class*="hover:"]):not(.destructive-action),
+.text-purple-500:not([class*="hover:"]):not(.destructive-action),
+.text-purple-600:not([class*="hover:"]):not(.destructive-action),
+.text-purple-700:not([class*="hover:"]):not(.destructive-action),
+.text-purple-800:not([class*="hover:"]):not(.destructive-action),
+.text-violet-500:not([class*="hover:"]):not(.destructive-action),
+.text-violet-600:not([class*="hover:"]):not(.destructive-action),
+.text-violet-700:not([class*="hover:"]):not(.destructive-action),
+.text-cyan-500:not([class*="hover:"]):not(.destructive-action),
+.text-cyan-600:not([class*="hover:"]):not(.destructive-action),
+.text-cyan-700:not([class*="hover:"]):not(.destructive-action),
+.text-sky-500:not([class*="hover:"]):not(.destructive-action),
+.text-sky-600:not([class*="hover:"]):not(.destructive-action),
+.text-sky-700:not([class*="hover:"]):not(.destructive-action),
+.text-teal-500:not([class*="hover:"]):not(.destructive-action),
+.text-teal-600:not([class*="hover:"]):not(.destructive-action),
+.text-teal-700:not([class*="hover:"]):not(.destructive-action) {
+  color: var(--color-text-primary) !important;
+}
+
+/* === Borders colorées → hairline beige === */
+.border-blue-100, .border-blue-200, .border-blue-300, .border-blue-400, .border-blue-500,
+.border-indigo-100, .border-indigo-200, .border-indigo-300,
+.border-purple-100, .border-purple-200, .border-purple-300,
+.border-violet-100, .border-violet-200, .border-violet-300,
+.border-cyan-100, .border-cyan-200, .border-cyan-300,
+.border-sky-100, .border-sky-200, .border-sky-300,
+.border-teal-100, .border-teal-200, .border-teal-300,
+.border-pink-100, .border-pink-200, .border-pink-300,
+.border-fuchsia-100, .border-fuchsia-200,
+.border-lime-100, .border-lime-200,
+.border-green-100, .border-green-200,
+.border-emerald-100, .border-emerald-200,
+.border-yellow-100, .border-yellow-200, .border-yellow-300 {
+  border-color: var(--color-border) !important;
+}
+
+/* === Hover backgrounds — très répandus dans tables comptables === */
+.hover\:bg-blue-50:hover,
+.hover\:bg-blue-100:hover,
+.hover\:bg-indigo-50:hover,
+.hover\:bg-purple-50:hover,
+.hover\:bg-cyan-50:hover,
+.hover\:bg-sky-50:hover,
+.hover\:bg-teal-50:hover,
+.hover\:bg-green-50:hover,
+.hover\:bg-yellow-50:hover {
+  background-color: var(--color-surface-hover) !important;
+}
+
+/* === Badges status — pattern bg-{couleur}-100 text-{couleur}-700/800 === */
+[class*="bg-green-100"][class*="text-green-7"],
+[class*="bg-green-100"][class*="text-green-8"],
+[class*="bg-emerald-100"][class*="text-emerald-7"],
+[class*="bg-emerald-100"][class*="text-emerald-8"],
+[class*="bg-teal-100"][class*="text-teal-7"],
+[class*="bg-teal-100"][class*="text-teal-8"] {
+  background: var(--color-success-light) !important;
+  color: var(--color-success) !important;
+}
+[class*="bg-yellow-100"][class*="text-yellow-7"],
+[class*="bg-yellow-100"][class*="text-yellow-8"],
+[class*="bg-amber-100"][class*="text-amber-7"],
+[class*="bg-amber-100"][class*="text-amber-8"] {
+  background: var(--color-warning-light) !important;
+  color: var(--color-warning) !important;
+}
+[class*="bg-blue-100"][class*="text-blue-7"],
+[class*="bg-blue-100"][class*="text-blue-8"],
+[class*="bg-indigo-100"][class*="text-indigo-7"],
+[class*="bg-indigo-100"][class*="text-indigo-8"],
+[class*="bg-purple-100"][class*="text-purple-7"],
+[class*="bg-purple-100"][class*="text-purple-8"],
+[class*="bg-violet-100"][class*="text-violet-7"],
+[class*="bg-violet-100"][class*="text-violet-8"],
+[class*="bg-cyan-100"][class*="text-cyan-7"],
+[class*="bg-cyan-100"][class*="text-cyan-8"] {
+  background: var(--color-accent-light) !important;
+  color: var(--color-accent-deep) !important;
+}
+
+/* === Boutons & blocs vifs *-500/600 (vert/violet/cyan) → obsidien === */
+.bg-green-500:not(.destructive-action):not([data-status]),
+.bg-green-600:not(.destructive-action):not([data-status]),
+.bg-emerald-500:not(.destructive-action):not([data-status]),
+.bg-emerald-600:not(.destructive-action):not([data-status]),
+.bg-teal-500:not(.destructive-action),
+.bg-teal-600:not(.destructive-action),
+.bg-cyan-500:not(.destructive-action),
+.bg-cyan-600:not(.destructive-action),
+.bg-sky-500:not(.destructive-action),
+.bg-sky-600:not(.destructive-action),
+.bg-indigo-500:not(.destructive-action),
+.bg-indigo-600:not(.destructive-action),
+.bg-purple-500:not(.destructive-action),
+.bg-purple-600:not(.destructive-action),
+.bg-violet-500:not(.destructive-action),
+.bg-violet-600:not(.destructive-action),
+.bg-fuchsia-500:not(.destructive-action),
+.bg-fuchsia-600:not(.destructive-action) {
+  background-color: var(--color-primary) !important;
+  color: var(--color-text-inverse) !important;
+}
+
+/* === bg-{couleur}-300/400 pastilles d'icone classification → gold accent === */
+.bg-blue-300, .bg-blue-400,
+.bg-green-300, .bg-green-400,
+.bg-emerald-300, .bg-emerald-400,
+.bg-amber-300, .bg-amber-400,
+.bg-yellow-300, .bg-yellow-400,
+.bg-orange-300, .bg-orange-400,
+.bg-purple-300, .bg-purple-400,
+.bg-indigo-300, .bg-indigo-400,
+.bg-cyan-300, .bg-cyan-400 {
+  background-color: var(--color-accent) !important;
+  opacity: 0.85;
+}
+
+/* === Gradients colorés "from-X to-Y" inutilises → fond surface neutre === */
+[class*="from-blue-"]:not([class*="text-white"]):not(.landing-page *):not(.premium-surface):not(.premium-bg),
+[class*="from-indigo-"]:not([class*="text-white"]):not(.landing-page *):not(.premium-surface),
+[class*="from-purple-"]:not([class*="text-white"]):not(.landing-page *):not(.premium-surface),
+[class*="from-violet-"]:not([class*="text-white"]):not(.landing-page *):not(.premium-surface),
+[class*="from-cyan-"]:not([class*="text-white"]):not(.landing-page *):not(.premium-surface),
+[class*="from-pink-"]:not([class*="text-white"]):not(.landing-page *):not(.premium-surface),
+[class*="from-green-"]:not([class*="text-white"]):not(.landing-page *):not(.premium-surface),
+[class*="from-emerald-"]:not([class*="text-white"]):not(.landing-page *):not(.premium-surface),
+[class*="from-orange-"]:not([class*="text-white"]):not(.landing-page *):not(.premium-surface) {
+  background-image: none !important;
+  background-color: var(--color-surface) !important;
+}
+
+/* === Ring focus colore → ring champagne === */
+.ring-blue-500, .ring-indigo-500, .ring-purple-500, .ring-cyan-500,
+.ring-green-500, .ring-emerald-500, .ring-yellow-500, .ring-orange-500 {
+  --tw-ring-color: var(--color-accent) !important;
+}
+
+/* === Divides colorees → hairline === */
+.divide-blue-200 > * + *, .divide-indigo-200 > * + *,
+.divide-purple-200 > * + *, .divide-green-200 > * + *,
+.divide-cyan-200 > * + *, .divide-yellow-200 > * + * {
+  border-color: var(--color-border-light) !important;
 }
 
 /* === Icon tile premium : utilitaire pour les pastilles d'icône ===
