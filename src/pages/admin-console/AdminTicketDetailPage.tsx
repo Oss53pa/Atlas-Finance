@@ -23,7 +23,7 @@ const AdminTicketDetailPage: React.FC = () => {
   const { data: ticket } = useQuery({
     queryKey: ['admin-ticket', ticketId],
     queryFn: async () => {
-      const { data } = await supabase.from('support_tickets').select('*, tenant:tenants(name)').eq('id', ticketId).single();
+      const { data } = await supabase.from('support_tickets').select('*, tenant:tenants(name)').eq('id', ticketId).maybeSingle();
       return data;
     },
     enabled: !!ticketId,

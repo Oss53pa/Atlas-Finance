@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { themes, defaultTheme, getThemeCSSVariables, Theme, ThemeType, ThemeContextValue } from '../styles/theme';
+import { safeStorage } from '../utils/safeStorage';
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
@@ -18,7 +19,7 @@ interface ThemeProviderProps {
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   // Récupérer le thème sauvegardé ou utiliser le thème par défaut
   const [themeType, setThemeType] = useState<ThemeType>(() => {
-    const saved = localStorage.getItem('atlas-fna-theme') as ThemeType;
+    const saved = safeStorage.get('atlas-fna-theme') as ThemeType | null;
     return saved && saved in themes ? saved : 'atlasStudio';
   });
 
@@ -38,7 +39,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     root.style.color = theme.colors.text.primary;
 
     // Sauvegarder le choix
-    localStorage.setItem('atlas-fna-theme', themeType);
+    safeStorage.set('atlas-fna-theme', themeType);
   }, [theme, themeType]);
 
   const setTheme = (type: ThemeType) => {

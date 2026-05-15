@@ -87,10 +87,11 @@ export class SupabaseAdapter implements DataAdapter {
   }
 
   async getById<T>(table: TableName, id: string): Promise<T | null> {
+    // maybeSingle : retourne null si pas de row (au lieu de throw 406).
     const { data } = await this.client
       .from(this.pgTable(table)).select('*')
       .eq('id', id).eq('tenant_id', this.tenantId)
-      .single()
+      .maybeSingle()
     return data as T | null
   }
 

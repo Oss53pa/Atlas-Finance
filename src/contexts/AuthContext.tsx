@@ -253,11 +253,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (data.session) {
         setSession(data.session);
-        // loadUserProfile est tolérante : ne throw jamais, fallback metadata.
-        // On la wrap aussi dans un timeout pour ne pas bloquer le bouton.
-        const profilePromise = loadUserProfile();
-        const profileTimeout = new Promise<void>((resolve) => setTimeout(resolve, 5000));
-        await Promise.race([profilePromise, profileTimeout]);
+        // Si le profile prend trop longtemps, on construit IMMÉDIATEMENT un
+        // fallback à partir des metadata Supabase Auth pour que isAuthenticated
+        // bascule à true et éviter une redirection /login en boucle.
+        if (data.user) {
+          const meta = (data.user.user_metadata as Record<string, unknown> | undefined) || {};
+          setUser((prev) => prev ?? ({
+            id: data.user!.id,
+            name: (meta.full_name as string) || (meta.name as string) || data.user!.email || 'Utilisateur',
+            email: data.user!.email || '',
+            role: ((meta.role as string) || 'user') as User['role'],
+            first_name: (meta.first_name as string) || undefined,
+            last_name: (meta.last_name as string) || undefined,
+            company: (meta.company_name as string) || undefined,
+            permissions: [],
+          }));
+        }
+        // loadUserProfile complete le user en arrière-plan (tolérante, ne throw jamais).
+        loadUserProfile().catch(() => { /* silent */ });
       }
     } finally {
       setLoading(false);

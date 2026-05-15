@@ -8,6 +8,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
+import { safeStorage } from '../utils/safeStorage';
 import type { Workspace, WorkspaceRole, WorkspaceDashboard } from '../types/workspace.types';
 
 interface WorkspaceContextType {
@@ -48,13 +49,13 @@ export const WorkspaceProvider: React.FC<WorkspaceProviderProps> = ({ children }
 
   // Charger le workspace depuis le localStorage au démarrage
   useEffect(() => {
-    const savedWorkspace = localStorage.getItem(WORKSPACE_STORAGE_KEY);
+    const savedWorkspace = safeStorage.get(WORKSPACE_STORAGE_KEY);
     if (savedWorkspace && isAuthenticated) {
       try {
         const workspace = JSON.parse(savedWorkspace);
         setCurrentWorkspaceState(workspace);
       } catch (e) {
-        localStorage.removeItem(WORKSPACE_STORAGE_KEY);
+        safeStorage.del(WORKSPACE_STORAGE_KEY);
       }
     }
   }, [isAuthenticated]);
@@ -71,9 +72,9 @@ export const WorkspaceProvider: React.FC<WorkspaceProviderProps> = ({ children }
   const setCurrentWorkspace = useCallback((workspace: Workspace | null) => {
     setCurrentWorkspaceState(workspace);
     if (workspace) {
-      localStorage.setItem(WORKSPACE_STORAGE_KEY, JSON.stringify(workspace));
+      safeStorage.set(WORKSPACE_STORAGE_KEY, JSON.stringify(workspace));
     } else {
-      localStorage.removeItem(WORKSPACE_STORAGE_KEY);
+      safeStorage.del(WORKSPACE_STORAGE_KEY);
     }
   }, []);
 
@@ -115,7 +116,7 @@ export const WorkspaceProvider: React.FC<WorkspaceProviderProps> = ({ children }
   const clearWorkspace = useCallback(() => {
     setCurrentWorkspaceState(null);
     setWorkspaceDashboard(null);
-    localStorage.removeItem(WORKSPACE_STORAGE_KEY);
+    safeStorage.del(WORKSPACE_STORAGE_KEY);
   }, []);
 
   // Obtenir l'URL du workspace actuel

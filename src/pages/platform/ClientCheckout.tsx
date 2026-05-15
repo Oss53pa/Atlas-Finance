@@ -32,7 +32,7 @@ const ClientCheckout: React.FC = () => {
   const { data: solution } = useQuery({
     queryKey: ['solution', solutionCode],
     queryFn: async () => {
-      const { data } = await supabase.from('solutions').select('*').eq('code', solutionCode).single();
+      const { data } = await supabase.from('solutions').select('*').eq('code', solutionCode).maybeSingle();
       return data;
     },
     enabled: !!solutionCode,

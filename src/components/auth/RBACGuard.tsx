@@ -11,9 +11,10 @@
  *   </RBACGuard>
  */
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 
 type UserRole = 'admin' | 'manager' | 'comptable' | 'accountant' | 'user' | 'viewer' | 'super_admin';
 
@@ -62,6 +63,7 @@ const RBACGuard: React.FC<RBACGuardProps> = ({
   fallback,
 }) => {
   const { user, isAuthenticated, loading } = useAuth();
+  const [supabaseSession, setSupabaseSession] = useState<boolean | null>(null);
 
   // Demo mode : laisser passer sans auth (sessionStorage flag)
   const isDemoMode = typeof sessionStorage !== 'undefined' && sessionStorage.getItem('atlas-demo-mode') === '1';
@@ -69,18 +71,42 @@ const RBACGuard: React.FC<RBACGuardProps> = ({
   // Dev local : laisser passer (pas de Supabase auth)
   const isDevMode = import.meta.env.DEV;
 
+  // Détecter un user dev persisté (localStorage ou sessionStorage)
+  const hasPersistedDevUser = typeof window !== 'undefined' &&
+    ((() => { try { return localStorage.getItem('atlas-dev-user') !== null; } catch (_e) { return false; } })() ||
+     (() => { try { return sessionStorage.getItem('atlas-dev-user') !== null; } catch (_e) { return false; } })());
+
+  // Si on a une session Supabase persistée (auth-fna-auth dans localStorage),
+  // on ne redirige PAS vers /login avant que le AuthContext ait fini de
+  // rehydrater. Cette vérification est synchrone, indépendante de AuthContext.
+  const hasPersistedSupabaseSession = typeof window !== 'undefined' &&
+    (() => { try { return localStorage.getItem('atlas-fna-auth') !== null; } catch (_e) { return false; } })();
+
+  // En production avec Supabase : vérifier la session direct chez Supabase
+  // pour éviter de redirect alors que l'auth est en cours d'init.
+  useEffect(() => {
+    if (!isSupabaseConfigured || !hasPersistedSupabaseSession) {
+      setSupabaseSession(false);
+      return;
+    }
+    let cancelled = false;
+    supabase.auth.getSession().then(({ data }) => {
+      if (!cancelled) setSupabaseSession(!!data.session);
+    }).catch(() => { if (!cancelled) setSupabaseSession(false); });
+    return () => { cancelled = true; };
+  }, [hasPersistedSupabaseSession]);
+
   // Fast-path : auth en cours de chargement → on évite tout redirect (spinner)
   if (loading) {
     return null;
   }
 
-  // Détecter un user dev persisté (localStorage ou sessionStorage) — utile
-  // si l'AuthContext n'a pas encore propagé l'état après un reload direct.
-  const hasPersistedDevUser = typeof window !== 'undefined' &&
-    (localStorage.getItem('atlas-dev-user') !== null ||
-     sessionStorage.getItem('atlas-dev-user') !== null);
+  // Si on attend la vérif Supabase et qu'on a une session persistée, attendre
+  if (hasPersistedSupabaseSession && supabaseSession === null) {
+    return null;
+  }
 
-  if (!isAuthenticated && !user && !isDemoMode && !isDevMode && !hasPersistedDevUser) {
+  if (!isAuthenticated && !user && !isDemoMode && !isDevMode && !hasPersistedDevUser && !supabaseSession) {
     return <Navigate to="/login" replace />;
   }
 

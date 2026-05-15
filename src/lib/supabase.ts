@@ -21,7 +21,10 @@ export const supabase: SupabaseClient<Database> = createClient<Database>(
       autoRefreshToken: isSupabaseConfigured,
       persistSession: isSupabaseConfigured,
       detectSessionInUrl: isSupabaseConfigured,
-      storage: typeof sessionStorage !== 'undefined' ? sessionStorage : undefined,
+      // localStorage : persiste entre fermetures d'onglet et navigateur.
+      // (sessionStorage purgeait la session a chaque fermeture, ce qui forcait
+      // l'utilisateur a se reconnecter sans cesse.)
+      storage: typeof localStorage !== 'undefined' ? localStorage : undefined,
       storageKey: 'atlas-fna-auth',
     },
     realtime: {

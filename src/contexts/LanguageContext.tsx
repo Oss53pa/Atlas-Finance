@@ -1,6 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import frTranslations from '../locales/fr.json';
+import { safeStorage } from '../utils/safeStorage';
 
 export type Language = 'fr' | 'en' | 'es';
 
@@ -32,7 +33,7 @@ interface LanguageProviderProps {
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
   const [language, setLanguageState] = useState<Language>(() => {
     // Récupérer la langue sauvegardée ou utiliser le français par défaut
-    const savedLanguage = localStorage.getItem('atlas-fna-language') as Language;
+    const savedLanguage = safeStorage.get('atlas-fna-language') as Language | null;
     return savedLanguage || 'fr';
   });
 
@@ -58,7 +59,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
 
   const setLanguage = (newLanguage: Language) => {
     setLanguageState(newLanguage);
-    localStorage.setItem('atlas-fna-language', newLanguage);
+    safeStorage.set('atlas-fna-language', newLanguage);
   };
 
   // Fonction de traduction
