@@ -681,6 +681,146 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       errors.push({ code: 'AN_UNBALANCED', message: `Reports AN desequilibres: D=${anD.toFixed(2)} C=${anC.toFixed(2)}` });
     }
 
+    // ════════════════════════════════════════════════════════════════
+    // CONTROLES SYSCOHADA AVANT IMPORT (validations métier OHADA)
+    // ════════════════════════════════════════════════════════════════
+
+    // Helper : extraire le code compte depuis une ligne (PC ou écriture)
+    const extractAccountCode = (row: any): string => {
+      const aliases = ['numero', 'compte', 'numerocompte', 'code', 'account', 'no'];
+      for (const k of Object.keys(row || {})) {
+        const norm = k.toLowerCase().replace(/[\s_-]/g, '');
+        if (aliases.includes(norm)) return String(row[k] || '').trim();
+      }
+      return '';
+    };
+
+    // 1. Validation classes 1-9 (SYSCOHADA n'autorise que les classes 1 à 9)
+    //    Codes commençant par 0 ou non-numérique => non conforme
+    const allAccounts = [...pcData, ...anData];
+    let invalidClassCount = 0;
+    let shortCodeCount = 0;
+    const samplesInvalid: string[] = [];
+    const samplesShort: string[] = [];
+    allAccounts.forEach((row: any) => {
+      const code = extractAccountCode(row);
+      if (!code) return;
+      const firstChar = code.charAt(0);
+      if (firstChar < '1' || firstChar > '9') {
+        invalidClassCount++;
+        if (samplesInvalid.length < 3) samplesInvalid.push(code);
+      }
+      if (code.length < 3) {
+        shortCodeCount++;
+        if (samplesShort.length < 3) samplesShort.push(code);
+      }
+    });
+    if (invalidClassCount > 0) {
+      errors.push({
+        code: 'SYSCOHADA_INVALID_CLASS',
+        message: `${invalidClassCount} compte(s) hors classes 1-9 SYSCOHADA`,
+        details: `Exemples: ${samplesInvalid.join(', ')}. Les comptes doivent commencer par un chiffre entre 1 et 9.`,
+      });
+    }
+    if (shortCodeCount > 0) {
+      warnings.push({
+        code: 'SYSCOHADA_SHORT_CODE',
+        message: `${shortCodeCount} compte(s) avec longueur < 3 caractères`,
+        details: `Exemples: ${samplesShort.join(', ')}. SYSCOHADA recommande un radical minimum de 3 caractères.`,
+      });
+    }
+
+    // 2. Validation classes 6-7 à zéro en Mode 2 (annualisation N-1)
+    //    Mode 2 = Bascule début d'exercice : les comptes de gestion (charges
+    //    classe 6 et produits classe 7) doivent être annualisés à zéro car
+    //    le résultat de l'exercice N-1 a été soldé en clôture.
+    if (migrationMode === 2 && anData.length > 0) {
+      let class67NonZero = 0;
+      const samples67: string[] = [];
+      anData.forEach((row: any) => {
+        const code = extractAccountCode(row);
+        if (!code) return;
+        const firstChar = code.charAt(0);
+        if (firstChar === '6' || firstChar === '7') {
+          const d = findCol(row, [...debitAliases, 'soldedebiteur', 'soldedebit']);
+          const c = findCol(row, [...creditAliases, 'soldecrediteur', 'soldecredit']);
+          if (money(d).abs().toNumber() > 0.01 || money(c).abs().toNumber() > 0.01) {
+            class67NonZero++;
+            if (samples67.length < 3) samples67.push(`${code} (D=${d}, C=${c})`);
+          }
+        }
+      });
+      if (class67NonZero > 0) {
+        errors.push({
+          code: 'SYSCOHADA_CLASS67_NOT_ZERO',
+          message: `${class67NonZero} compte(s) classes 6-7 avec solde non nul en Mode 2`,
+          details: `Exemples: ${samples67.join(' · ')}. Les comptes de gestion (charges 6xx, produits 7xx) doivent être annualisés à zéro à l'ouverture de l'exercice N (le résultat N-1 ayant été soldé en clôture).`,
+        });
+      }
+    }
+
+    // 3. Validation date de bascule = début d'exercice fiscal
+    //    Mode 2 attend une date 01/01 (ou 1er jour du mois fiscal défini).
+    //    Mode 1 n'a pas cette contrainte mais on warn si date > date du jour.
+    if (params.dateBascule) {
+      const d = new Date(params.dateBascule);
+      if (!isNaN(d.getTime())) {
+        const today = new Date();
+        if (d > today) {
+          warnings.push({
+            code: 'BASCULE_FUTURE',
+            message: 'Date de bascule dans le futur',
+            details: `${params.dateBascule} est postérieure à aujourd'hui. Confirmez que c'est intentionnel.`,
+          });
+        }
+        if (migrationMode === 2) {
+          const isJan1 = d.getMonth() === 0 && d.getDate() === 1;
+          if (!isJan1) {
+            warnings.push({
+              code: 'BASCULE_NOT_FISCAL_START',
+              message: 'Date de bascule ≠ 1er janvier',
+              details: `Mode 2 (Bascule début d'exercice) attend généralement le 01/01. Date fournie : ${params.dateBascule}. Si votre exercice fiscal débute à une autre date (statuts particuliers), ignorez cet avertissement.`,
+            });
+          }
+        }
+      }
+    }
+
+    // 4. Cohérence exerciceStart / exerciceEnd (durée 12 mois normale)
+    if (params.exerciceStart && params.exerciceEnd) {
+      const ds = new Date(params.exerciceStart);
+      const de = new Date(params.exerciceEnd);
+      if (!isNaN(ds.getTime()) && !isNaN(de.getTime())) {
+        const months = (de.getFullYear() - ds.getFullYear()) * 12 + (de.getMonth() - ds.getMonth());
+        if (months < 6 || months > 18) {
+          warnings.push({
+            code: 'EXERCICE_DUREE_ATYPIQUE',
+            message: `Durée d'exercice atypique : ~${months} mois`,
+            details: 'SYSCOHADA prévoit normalement un exercice de 12 mois. Premier exercice ou clôture exceptionnelle ?',
+          });
+        }
+      }
+    }
+
+    // 5. Vérification : présence d'écritures équivalentes en doublon (anti-import multiple)
+    //    Heuristique simple : compter les doublons sur (date, debit, credit, libellé)
+    if (ecrituresData.length > 100) {
+      const seen = new Set<string>();
+      let duplicates = 0;
+      ecrituresData.forEach((row: any) => {
+        const key = `${row.date || ''}|${findCol(row, debitAliases)}|${findCol(row, creditAliases)}|${row.libelle || row.label || ''}`;
+        if (seen.has(key)) duplicates++;
+        else seen.add(key);
+      });
+      if (duplicates > ecrituresData.length * 0.05) {
+        warnings.push({
+          code: 'POSSIBLE_DUPLICATES',
+          message: `${duplicates} doublon(s) potentiel(s) détecté(s)`,
+          details: `Plus de 5% d'écritures identiques (date+montants+libellé). Vérifiez que le fichier n'a pas été concaténé deux fois.`,
+        });
+      }
+    }
+
     setAnalysisReport({
       accounts: pcData.length,
       tiers: tiersData.length,
@@ -690,7 +830,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       warnings: warnings.slice(0, 50),
       errors,
     });
-  }, [uploadedFiles]);
+  }, [uploadedFiles, migrationMode, params.dateBascule, params.exerciceStart, params.exerciceEnd]);
 
   // ─── Step 4: Auto-mapping ─────────────────────────────
 
