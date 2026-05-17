@@ -8,10 +8,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Bell, ArrowUpRight, ArrowDownRight, Plus, Search, ChevronDown,
+  Bell, ArrowUpRight, ArrowDownRight, ChevronRight, ArrowRight, ExternalLink,
   Sparkles, Brain, ShieldCheck, Wallet, TrendingUp, AlertTriangle,
-  Banknote, FileBarChart, Briefcase, Lock, FileText, Calendar,
-  Clock, ChevronRight, ArrowRight, ExternalLink,
+  Banknote, FileBarChart, Briefcase, FileText, Calendar,
+  BookOpen, CheckCircle2, Database, Package, ScrollText,
 } from 'lucide-react';
 import { Area, AreaChart, ResponsiveContainer } from 'recharts';
 import { useData } from '../../contexts/DataContext';
@@ -164,6 +164,11 @@ const AtlasFnAHome: React.FC = () => {
     danger:   { bg: 'rgba(192,50,43,0.10)',  color: '#C0322B' },
   };
 
+  // Padding latéral réduit + largeur quasi pleine (l'utilisateur veut une vue
+  // dense et large, pas centrée et étroite).
+  const homePagePx = 'clamp(1rem, 2vw, 1.5rem)';
+  const homeMaxW = '100%';
+
   return (
     <div className="page-shell">
       {/* ═════════════════ TOP BAR — context + actions ═════════════════ */}
@@ -171,32 +176,29 @@ const AtlasFnAHome: React.FC = () => {
         className="glass-bar anim-fade"
         style={{ position: 'sticky', top: 0, zIndex: 30, padding: '0.875rem 0' }}
       >
-        <div className="page-container flex items-center justify-between gap-6 flex-wrap">
-          {/* Brand + company */}
-          <div className="flex items-center gap-3 min-w-0">
-            <button
-              onClick={() => navigate('/')}
-              className="shrink-0 inline-flex items-center justify-center transition-opacity hover:opacity-80"
-              style={{
-                width: 38, height: 38, borderRadius: 10,
-                background: 'var(--color-primary)',
-                boxShadow: 'var(--shadow-obsidian)',
-              }}
-              aria-label="Atlas Studio"
-            >
-              <span
-                className="brand-script"
+        <div
+          className="flex items-center justify-between gap-6 flex-wrap"
+          style={{
+            width: '100%',
+            maxWidth: homeMaxW,
+            marginLeft: 'auto',
+            marginRight: 'auto',
+            paddingLeft: homePagePx,
+            paddingRight: homePagePx,
+          }}
+        >
+          {/* Nom entreprise (pas de logo : le nom EST le logo) */}
+          <div className="flex items-center min-w-0">
+            <div className="min-w-0">
+              <div
+                className="font-semibold truncate"
                 style={{
-                  fontSize: '1.05rem',
-                  color: '#C9A961',
-                  lineHeight: 1,
+                  letterSpacing: '-0.012em',
+                  color: 'var(--color-text-primary)',
+                  fontSize: '0.9375rem',
+                  lineHeight: 1.2,
                 }}
               >
-                A
-              </span>
-            </button>
-            <div className="min-w-0">
-              <div className="text-sm font-semibold truncate" style={{ letterSpacing: '-0.005em', color: 'var(--color-text-primary)' }}>
                 {companyName}
               </div>
               <div className="text-xs flex items-center gap-1.5 mt-0.5" style={{ color: 'var(--color-text-tertiary)' }}>
@@ -273,7 +275,18 @@ const AtlasFnAHome: React.FC = () => {
         </div>
       </header>
 
-      <main className="page-container" style={{ paddingTop: '3rem', paddingBottom: '4rem' }}>
+      <main
+        style={{
+          width: '100%',
+          maxWidth: homeMaxW,
+          marginLeft: 'auto',
+          marginRight: 'auto',
+          paddingLeft: homePagePx,
+          paddingRight: homePagePx,
+          paddingTop: '2rem',
+          paddingBottom: '3rem',
+        }}
+      >
         {/* ═════════════════ HERO WORDMARK (centered) ═════════════════ */}
         <section className="text-center anim-rise" style={{ marginBottom: 'var(--section-gap-lg)' }}>
           <div className="eyebrow-gold flex items-center justify-center gap-2 mb-5">

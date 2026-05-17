@@ -12,6 +12,17 @@ export const isSupabaseConfigured =
   !supabaseUrl.includes('YOUR_PROJECT_ID') &&
   !supabaseAnonKey.includes('YOUR_ANON_KEY');
 
+// Lock no-op : @supabase/gotrue-js essaie d'utiliser Navigator.locks pour
+// coordonner l'auth entre onglets. Certains contextes (iframes sandboxed,
+// vieux navigateurs, modes privés) retournent un lock null et le SDK
+// déclenche un warning console répétitif. On force une implémentation
+// no-op qui exécute simplement la fonction sans verrou. La coordination
+// cross-tab reste fonctionnelle via les events `onAuthStateChange` de
+// Supabase + le storage event de localStorage.
+const noopLock = async <R>(_name: string, _acquireTimeout: number, fn: () => Promise<R>): Promise<R> => {
+  return await fn();
+};
+
 // Create client only if real keys exist, otherwise use a dummy URL (client won't be called)
 export const supabase: SupabaseClient<Database> = createClient<Database>(
   isSupabaseConfigured ? supabaseUrl : 'https://placeholder.supabase.co',
@@ -26,6 +37,9 @@ export const supabase: SupabaseClient<Database> = createClient<Database>(
       // l'utilisateur a se reconnecter sans cesse.)
       storage: typeof localStorage !== 'undefined' ? localStorage : undefined,
       storageKey: 'atlas-fna-auth',
+      // Désactive le Navigator.locks (warning console répétitif sur navigateurs
+      // non-compliants ou iframes). Le lock est remplacé par une no-op.
+      lock: noopLock as any,
     },
     realtime: {
       params: {
