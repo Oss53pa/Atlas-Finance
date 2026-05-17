@@ -49,6 +49,8 @@ const TABLE_MAP: Record<TableName, string> = {
   goodsReceipts: 'goods_receipts',
   // Correction #11 — Off-Balance
   offBalanceCommitments: 'off_balance_commitments',
+  // Tenants / Societes : 'companies' (legacy TS) -> 'societes' (table Supabase OHADA)
+  companies: 'societes',
 }
 
 export class SupabaseAdapter implements DataAdapter {
@@ -96,24 +98,32 @@ export class SupabaseAdapter implements DataAdapter {
   }
 
   async getAll<T>(table: TableName, filters?: QueryFilters): Promise<T[]> {
-    let query = this.client.from(this.pgTable(table)).select('*').eq('tenant_id', this.tenantId)
+    try {
+      let query = this.client.from(this.pgTable(table)).select('*').eq('tenant_id', this.tenantId)
 
-    if (filters?.where) {
-      for (const [k, v] of Object.entries(filters.where)) {
-        query = query.eq(k, v)
+      if (filters?.where) {
+        for (const [k, v] of Object.entries(filters.where)) {
+          query = query.eq(k, v)
+        }
       }
-    }
-    if (filters?.startsWith) {
-      query = query.like(filters.startsWith.field, `${filters.startsWith.prefix}%`)
-    }
-    if (filters?.orderBy) {
-      query = query.order(filters.orderBy.field, { ascending: filters.orderBy.direction === 'asc' })
-    }
-    if (filters?.limit) query = query.limit(filters.limit)
-    if (filters?.offset) query = query.range(filters.offset, filters.offset + (filters.limit || 100) - 1)
+      if (filters?.startsWith) {
+        query = query.like(filters.startsWith.field, `${filters.startsWith.prefix}%`)
+      }
+      if (filters?.orderBy) {
+        query = query.order(filters.orderBy.field, { ascending: filters.orderBy.direction === 'asc' })
+      }
+      if (filters?.limit) query = query.limit(filters.limit)
+      if (filters?.offset) query = query.range(filters.offset, filters.offset + (filters.limit || 100) - 1)
 
-    const { data } = await query
-    return (data || []) as T[]
+      const { data, error } = await query
+      // Tolerant : si la table n'existe pas (404), RLS bloque (403), ou
+      // schema partial, on retourne [] silencieusement plutot que de propager
+      // une erreur qui casse la page entiere.
+      if (error) return []
+      return (data || []) as T[]
+    } catch (_e) {
+      return []
+    }
   }
 
   /**
@@ -201,14 +211,19 @@ export class SupabaseAdapter implements DataAdapter {
   }
 
   async count(table: TableName, filters?: QueryFilters): Promise<number> {
-    let query = this.client.from(this.pgTable(table)).select('*', { count: 'exact', head: true }).eq('tenant_id', this.tenantId)
-    if (filters?.where) {
-      for (const [k, v] of Object.entries(filters.where)) {
-        query = query.eq(k, v)
+    try {
+      let query = this.client.from(this.pgTable(table)).select('*', { count: 'exact', head: true }).eq('tenant_id', this.tenantId)
+      if (filters?.where) {
+        for (const [k, v] of Object.entries(filters.where)) {
+          query = query.eq(k, v)
+        }
       }
+      const { count, error } = await query
+      if (error) return 0
+      return count ?? 0
+    } catch (_e) {
+      return 0
     }
-    const { count } = await query
-    return count || 0
   }
 
   // ---- Requetes comptables via RPC ----

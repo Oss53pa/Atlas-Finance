@@ -57,6 +57,8 @@ export type TableName =
   | 'goodsReceipts'
   // Correction #11 — Off-Balance
   | 'offBalanceCommitments'
+  // Tenants / Societes / Compagnies
+  | 'companies'
 
 export interface QueryFilters {
   where?: Record<string, any>
