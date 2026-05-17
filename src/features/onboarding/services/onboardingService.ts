@@ -182,16 +182,39 @@ export async function getTeamMembers(): Promise<TeamMember[]> {
   const org = await getMyOrganization();
   if (!org) return [];
 
-  const { data } = await supabase
-    .from('profiles')
-    .select('id, email, full_name, is_active, created_at, role:roles(code)')
-    .eq('organization_id', org.id);
+  // Sans embed PostgREST (qui plante 400 si FK pas configuree).
+  // On lit profiles + roles separement, jointure cote JS.
+  let profiles: Array<Record<string, any>> = [];
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, email, full_name, is_active, created_at, role_id')
+      .eq('organization_id', org.id);
+    if (!error && data) profiles = data as Array<Record<string, any>>;
+  } catch (_e) { /* table absente -- return [] */ }
 
-  return (data || []).map(p => ({
+  if (profiles.length === 0) return [];
+
+  // Resolve role codes en best-effort (1 query batch)
+  const roleIds = Array.from(new Set(profiles.map(p => p.role_id).filter(Boolean)));
+  const roleMap = new Map<string, string>();
+  if (roleIds.length > 0) {
+    try {
+      const { data: roles } = await supabase
+        .from('roles')
+        .select('id, code')
+        .in('id', roleIds);
+      (roles || []).forEach((r: { id?: string; code?: string }) => {
+        if (r.id) roleMap.set(r.id, r.code || 'user');
+      });
+    } catch (_e) { /* roles absent */ }
+  }
+
+  return profiles.map(p => ({
     id: p.id,
     email: p.email || '',
     full_name: p.full_name || p.email || '',
-    role_code: (p.role as unknown as { code?: string })?.code || 'user',
+    role_code: roleMap.get(p.role_id) || 'user',
     is_active: p.is_active,
     created_at: p.created_at,
   }));

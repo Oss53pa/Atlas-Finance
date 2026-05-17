@@ -121,23 +121,41 @@ export async function getMySubscriptions() {
 // FEATURE FLAGS
 // ============================================================================
 
+// Garde-fou : tenant_id doit etre un UUID valide pour ne pas declencher
+// 400 sur des colonnes UUID (Supabase rejette 'default' / strings vides).
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const isValidTenantId = (id: string | undefined | null): id is string =>
+  typeof id === 'string' && UUID_RE.test(id);
+
 export async function getEnabledModules(tenantId: string): Promise<string[]> {
-  const { data } = await supabase
-    .from('feature_flags')
-    .select('module')
-    .eq('tenant_id', tenantId)
-    .eq('enabled', true);
-  return (data || []).map(f => f.module);
+  if (!isValidTenantId(tenantId)) return [];
+  try {
+    const { data, error } = await supabase
+      .from('feature_flags')
+      .select('module')
+      .eq('tenant_id', tenantId)
+      .eq('enabled', true);
+    if (error || !data) return [];
+    return data.map(f => f.module);
+  } catch (_e) {
+    return [];
+  }
 }
 
 export async function isModuleEnabled(tenantId: string, module: string): Promise<boolean> {
-  const { data } = await supabase
-    .from('feature_flags')
-    .select('enabled')
-    .eq('tenant_id', tenantId)
-    .eq('module', module)
-    .single();
-  return data?.enabled ?? false;
+  if (!isValidTenantId(tenantId)) return true; // permissif si pas de tenant valide
+  try {
+    const { data, error } = await supabase
+      .from('feature_flags')
+      .select('enabled')
+      .eq('tenant_id', tenantId)
+      .eq('module', module)
+      .maybeSingle();
+    if (error || !data) return true; // module activé par défaut si pas de flag
+    return data.enabled ?? true;
+  } catch (_e) {
+    return true;
+  }
 }
 
 // ============================================================================
