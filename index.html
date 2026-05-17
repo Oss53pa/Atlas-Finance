@@ -11,18 +11,9 @@
 
     <title>Atlas F&A - Système ERP Comptable SYSCOHADA</title>
 
-    <!-- Désinstaller un éventuel service worker obsolète (v1 cassait les chunks).
-         Le SW v3 sera ré-enregistré par main.tsx. -->
-    <script>
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(function (regs) {
-          regs.forEach(function (reg) {
-            // Demander un update immédiat ; si version obsolète, le SW v3 prendra le relais
-            reg.update().catch(function () {});
-          });
-        }).catch(function () {});
-      }
-    </script>
+    <!-- Le SW kill switch est gere dans main.tsx en one-shot via flag localStorage.
+         Pas de script bootstrap ici (qui forcait reg.update() a chaque chargement
+         et provoquait des reloads en boucle). -->
 
     <!-- Polices : Dosis (UI principale) + Grand Hotel (brand script / titres marque) + JetBrains Mono (chiffres) + Instrument Serif (italics éditoriaux) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

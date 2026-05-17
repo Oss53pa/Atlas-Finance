@@ -62,28 +62,33 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 // ✅ Le loader sera caché depuis le composant App après le premier rendu complet
 // (Pas de hideLoader ici pour Test 8)
 
-// ── Service Worker Registration (production only) ────────────
-// Migration v1 -> v3 : on désactive temporairement le SW pour TOUT le monde
-// le temps que les caches obsolètes (chunks aux hashes périmés) soient purgés.
-// Quand le user revient avec un cache propre, on pourra ré-enregistrer le SW
-// (décommenter la ligne register ci-dessous au prochain déploiement).
-if ('serviceWorker' in navigator) {
-  // 1) Désinscrire TOUS les SW existants (v1 cassait l'app)
-  navigator.serviceWorker.getRegistrations()
-    .then((regs) => Promise.all(regs.map((reg) => reg.unregister())))
-    .catch(() => {});
+// ── Service Worker kill switch — ONE-SHOT ──────────────────────────
+// Le SW v1 (cache-first) cassait l'app. On le desinstalle UNE SEULE FOIS,
+// puis on set un flag localStorage qui empeche tout re-traitement. Sans ce
+// flag, chaque chargement de l'app re-executait unregister + caches.delete,
+// ce qui obligeait le user a hard-reload (Ctrl+Shift+R) a chaque navigation.
+const KILL_FLAG = 'atlas-sw-killed-v1';
+function killLegacyServiceWorker() {
+  try {
+    if (localStorage.getItem(KILL_FLAG) === '1') return; // deja kill -> stop
+  } catch (_e) { /* mode prive : on ignore */ }
 
-  // 2) Vider TOUS les caches (anciens chunks aux hashes obsolètes)
-  if ('caches' in window) {
-    caches.keys()
-      .then((keys) => Promise.all(keys.map((k) => caches.delete(k))))
-      .catch(() => {});
+  if (!('serviceWorker' in navigator)) {
+    try { localStorage.setItem(KILL_FLAG, '1'); } catch (_e) {}
+    return;
   }
 
-  // 3) Pas de ré-enregistrement pour l'instant -- l'app fonctionne sans SW.
-  // À ré-activer dans un futur déploiement quand on est sûr que tous
-  // les utilisateurs ont purgé leurs caches v1 :
-  // if (import.meta.env.PROD) {
-  //   navigator.serviceWorker.register('/service-worker.js').catch(() => {});
-  // }
+  Promise.all([
+    navigator.serviceWorker.getRegistrations()
+      .then((regs) => Promise.all(regs.map((reg) => reg.unregister())))
+      .catch(() => {}),
+    'caches' in window
+      ? caches.keys()
+          .then((keys) => Promise.all(keys.map((k) => caches.delete(k))))
+          .catch(() => {})
+      : Promise.resolve(),
+  ]).finally(() => {
+    try { localStorage.setItem(KILL_FLAG, '1'); } catch (_e) {}
+  });
 }
+killLegacyServiceWorker();
