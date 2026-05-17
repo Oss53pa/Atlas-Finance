@@ -92,36 +92,43 @@ export async function getUserProfile() {
     two_factor_enabled: false,
   };
 
-  // Étape 1 : profile brut sans embed (jamais 400 sur une table existante)
+  // Étape 1 : profile brut sans embed (jamais 400 sur une table existante).
+  // Skip si on sait que la table profiles n'existe pas dans la DB.
   let baseProfile: Record<string, any> | null = null;
-  try {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .maybeSingle();
-    if (!error && data) baseProfile = data as Record<string, any>;
-  } catch (_e) { /* table absente -- fallback complet */ }
+  if (!isBroken('profiles-fetch')) {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .maybeSingle();
+      if (error) markBroken('profiles-fetch');
+      else if (data) baseProfile = data as Record<string, any>;
+    } catch (_e) { markBroken('profiles-fetch'); }
+  }
 
   if (!baseProfile) return fallbackProfile;
 
-  // Étape 2 : compléter avec roles / societes en best-effort (queries indépendantes)
+  // Étape 2 : compléter avec roles / societes en best-effort (queries indépendantes).
+  // Skip d'office si on sait que la table est cassée dans la session.
   let roleData: Record<string, any> | undefined;
   const roleId = baseProfile.role_id || baseProfile.roleId;
-  if (roleId) {
+  if (roleId && !isBroken('roles-fetch')) {
     try {
-      const { data } = await supabase.from('roles').select('*').eq('id', roleId).maybeSingle();
-      if (data) roleData = data as Record<string, any>;
-    } catch (_e) { /* roles table absente -- ignore */ }
+      const { data, error } = await supabase.from('roles').select('*').eq('id', roleId).maybeSingle();
+      if (error) markBroken('roles-fetch');
+      else if (data) roleData = data as Record<string, any>;
+    } catch (_e) { markBroken('roles-fetch'); }
   }
 
   let companyData: Record<string, any> | undefined;
   const companyId = baseProfile.company_id || baseProfile.societe_id;
-  if (companyId) {
+  if (companyId && !isBroken('societes-fetch')) {
     try {
-      const { data } = await supabase.from('societes').select('*').eq('id', companyId).maybeSingle();
-      if (data) companyData = data as Record<string, any>;
-    } catch (_e) { /* ignore */ }
+      const { data, error } = await supabase.from('societes').select('*').eq('id', companyId).maybeSingle();
+      if (error) markBroken('societes-fetch');
+      else if (data) companyData = data as Record<string, any>;
+    } catch (_e) { markBroken('societes-fetch'); }
   }
 
   return {
@@ -131,32 +138,44 @@ export async function getUserProfile() {
   };
 }
 
+// Cache de tables/colonnes "cassées" — une fois qu'on a vu une 400/404 sur
+// une query, on retient le résultat pour ne plus la rejouer dans la session.
+// Évite le bruit "400 répétés" dans le panneau Network du navigateur.
+const brokenQueries = new Set<string>();
+const markBroken = (key: string) => brokenQueries.add(key);
+const isBroken = (key: string) => brokenQueries.has(key);
+
 // Helper to get user permissions — tolerant, sans embed PostgREST.
-// Stratégie : lit role_id depuis profiles, puis fait 3 queries séparées
-// (role_permissions -> permissions). Si une table manque, return [].
-// L'app continue avec les permissions par défaut côté front (RBACGuard
-// se base sur le role.code, pas sur les permissions granulaires).
+// Stratégie défensive :
+//  - Lit `*` sur profiles (jamais 400 si la table existe) puis cherche role_id
+//    côté JS, évite un 400 si la colonne 'role_id' n'existe pas
+//  - Cache les queries qui ont déjà échoué -> jamais retentées dans la session
+//  - Retourne [] silencieusement à la moindre erreur
 export async function getUserPermissions(): Promise<string[]> {
+  if (isBroken('permissions-chain')) return [];
+
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return [];
 
   try {
-    // Étape 1 : récupérer role_id du profile
+    // Étape 1 : profile brut (déjà ce qu'on fait dans getUserProfile)
     const { data: profile, error: pErr } = await supabase
       .from('profiles')
-      .select('role_id')
+      .select('*')
       .eq('id', user.id)
       .maybeSingle();
-    if (pErr || !profile) return [];
-    const roleId = (profile as { role_id?: string }).role_id;
-    if (!roleId) return [];
+    if (pErr || !profile) { markBroken('permissions-chain'); return []; }
+    const roleId = (profile as { role_id?: string; roleId?: string }).role_id ||
+                   (profile as { role_id?: string; roleId?: string }).roleId;
+    if (!roleId) { markBroken('permissions-chain'); return []; }
 
     // Étape 2 : récupérer les permission_ids du rôle
     const { data: rolePerms, error: rpErr } = await supabase
       .from('role_permissions')
       .select('permission_id')
       .eq('role_id', roleId);
-    if (rpErr || !rolePerms || rolePerms.length === 0) return [];
+    if (rpErr) { markBroken('permissions-chain'); return []; }
+    if (!rolePerms || rolePerms.length === 0) return [];
     const permIds = rolePerms.map((rp: { permission_id?: string }) => rp.permission_id).filter(Boolean);
     if (permIds.length === 0) return [];
 
@@ -165,9 +184,10 @@ export async function getUserPermissions(): Promise<string[]> {
       .from('permissions')
       .select('code')
       .in('id', permIds);
-    if (peErr || !perms) return [];
-    return perms.map((p: { code?: string }) => p.code).filter(Boolean) as string[];
+    if (peErr) { markBroken('permissions-chain'); return []; }
+    return (perms || []).map((p: { code?: string }) => p.code).filter(Boolean) as string[];
   } catch (_e) {
+    markBroken('permissions-chain');
     return [];
   }
 }
