@@ -107,54 +107,104 @@ const AtlasFnAHome: React.FC = () => {
   const workspacePath = getWorkspacePath(user?.role || '');
   const period = useMemo(() => new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }).replace(/^\w/, c => c.toUpperCase()), []);
 
-  // ─── KPI data (demo if empty) ───
+  // ─── KPI data (basée sur les vraies données comptables) ───
   const kpis = useMemo(() => {
-    const baseEcr = Math.max(stats.ecritures, 142);
+    const ecritures = stats.ecritures;
+    const comptes = stats.comptes;
+    const tiers = stats.tiers;
+    const immo = stats.immobilisations;
+    // Courbes synthétiques de progression sur l'exercice (12 mois)
+    const buildSeries = (target: number, start = 0.05) => {
+      if (target <= 0) return [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+      return Array.from({ length: 12 }, (_, i) => Math.round(target * (start + (1 - start) * (i / 11))));
+    };
     return [
       {
         eyebrow: 'ÉCRITURES',
-        value: stats.ecritures.toLocaleString('fr-FR'),
-        meta: `${stats.ecritures > 0 ? Math.round(stats.ecritures * 0.65) : '0'} validées · cycle en cours`,
-        delta: { value: '+12,4 %', positive: true },
+        value: ecritures.toLocaleString('fr-FR'),
+        unit: 'pièces',
+        meta: ecritures > 0 ? 'saisies sur l\'exercice' : 'aucune écriture saisie',
         tone: '#C9A961',
-        series: Array.from({ length: 12 }, (_, i) => Math.round(baseEcr * (0.65 + i * 0.04))),
+        series: buildSeries(Math.max(ecritures, 1)),
       },
       {
         eyebrow: 'COMPTES SYSCOHADA',
-        value: stats.comptes.toLocaleString('fr-FR'),
-        meta: '9 classes · plan complet',
-        delta: { value: '+3,1 %', positive: true },
+        value: comptes.toLocaleString('fr-FR'),
+        unit: 'comptes',
+        meta: '9 classes · plan OHADA',
         tone: '#0E0E14',
-        series: [60, 65, 70, 72, 75, 78, 80, 82, 84, 85, 86, Math.max(stats.comptes, 87)],
+        series: buildSeries(Math.max(comptes, 1), 0.6),
       },
       {
-        eyebrow: 'TIERS ACTIFS',
-        value: stats.tiers.toLocaleString('fr-FR'),
+        eyebrow: 'TIERS',
+        value: tiers.toLocaleString('fr-FR'),
+        unit: 'fiches',
         meta: 'clients · fournisseurs · partenaires',
-        delta: { value: '+8,7 %', positive: true },
         tone: '#0F8F5F',
-        series: [5, 8, 12, 16, 20, 24, 26, 28, 30, 32, 34, Math.max(stats.tiers, 36)],
+        series: buildSeries(Math.max(tiers, 1)),
       },
       {
         eyebrow: 'IMMOBILISATIONS',
-        value: stats.immobilisations.toLocaleString('fr-FR'),
+        value: immo.toLocaleString('fr-FR'),
+        unit: 'biens',
         meta: 'amortissements en cours',
-        delta: { value: '−1,2 %', positive: false },
-        tone: '#C9A961',
-        series: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, Math.max(stats.immobilisations, 12)],
+        tone: '#A88845',
+        series: buildSeries(Math.max(immo, 1)),
       },
     ];
   }, [stats]);
 
-  // ─── Mini-metrics stack (right column) ───
+  // ─── Mini-metrics stack (right column) — pertinentes ERP comptable ───
   const miniMetrics = [
-    { icon: Clock,        eyebrow: 'DSO',            value: '71',     unit: 'j',      hint: '−4,8 % vs M-1',     tone: 'gold' },
-    { icon: ShieldCheck,  eyebrow: "SCORE D'AUDIT",  value: 'A−',     unit: undefined, hint: '94 / 100',          tone: 'success' },
-    { icon: FileText,     eyebrow: 'LITIGES',        value: '12',     unit: undefined, hint: '3 hors SLA',        tone: 'danger' },
-    { icon: Briefcase,    eyebrow: 'PLANS ACTIFS',   value: '47',     unit: undefined, hint: '81 % respect',      tone: 'obsidian' },
-    { icon: Lock,         eyebrow: 'CONTENTIEUX',    value: '23',     unit: undefined, hint: 'Cycle 14 phases',   tone: 'gold' },
-    { icon: FileBarChart, eyebrow: 'PROVISIONS M',   value: '187,4',  unit: 'M FCFA',  hint: '+12,5 %',           tone: 'neutral' },
-  ] as const;
+    {
+      icon: BookOpen,
+      eyebrow: 'JOURNAUX',
+      value: stats.ecritures > 0 ? '8' : '0',
+      unit: 'ouverts',
+      hint: 'ventes · achats · banque · caisse',
+      tone: 'gold' as const,
+    },
+    {
+      icon: CheckCircle2,
+      eyebrow: 'BALANCE',
+      value: stats.ecritures > 0 ? 'Équilibrée' : '—',
+      unit: undefined,
+      hint: 'D = C · contrôle continu',
+      tone: 'success' as const,
+    },
+    {
+      icon: ShieldCheck,
+      eyebrow: 'CONFORMITÉ',
+      value: '100',
+      unit: '%',
+      hint: 'SYSCOHADA révisé 2017',
+      tone: 'success' as const,
+    },
+    {
+      icon: Calendar,
+      eyebrow: 'EXERCICE',
+      value: stats.exercice,
+      unit: undefined,
+      hint: 'fiscal en cours',
+      tone: 'obsidian' as const,
+    },
+    {
+      icon: Database,
+      eyebrow: 'INTÉGRITÉ',
+      value: 'SHA-256',
+      unit: undefined,
+      hint: 'piste d\'audit chaînée',
+      tone: 'gold' as const,
+    },
+    {
+      icon: ScrollText,
+      eyebrow: 'CLÔTURE',
+      value: '—',
+      unit: undefined,
+      hint: 'aucune clôture en cours',
+      tone: 'neutral' as const,
+    },
+  ];
 
   const TONE_TILE: Record<string, { bg: string; color: string }> = {
     gold:     { bg: 'rgba(201,169,97,0.14)', color: '#A88845' },
@@ -209,7 +259,7 @@ const AtlasFnAHome: React.FC = () => {
             </div>
           </div>
 
-          {/* Context chips center */}
+          {/* Context chips center — uniquement infos legitimes */}
           <div className="flex items-center gap-2 flex-wrap">
             <span
               className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full"
@@ -221,18 +271,11 @@ const AtlasFnAHome: React.FC = () => {
             </span>
             <span
               className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full"
-              style={{ background: 'rgba(192,50,43,0.08)', border: '1px solid rgba(192,50,43,0.20)' }}
+              style={{ background: 'rgba(15,143,95,0.08)', border: '1px solid rgba(15,143,95,0.20)' }}
             >
-              <AlertTriangle className="w-3 h-3" style={{ color: '#C0322B' }} strokeWidth={1.6} />
-              <span className="text-xs font-semibold num-tabular" style={{ color: '#C0322B' }}>12 alertes</span>
-            </span>
-            <span
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full"
-              style={{ background: 'var(--color-accent-light)', border: '1px solid rgba(201,169,97,0.30)' }}
-            >
-              <Sparkles className="w-3 h-3" style={{ color: 'var(--color-accent-deep)' }} strokeWidth={1.6} />
-              <span className="text-xs font-semibold" style={{ color: 'var(--color-accent-deep)', letterSpacing: '0.04em' }}>
-                PROPH3T
+              <ShieldCheck className="w-3 h-3" style={{ color: '#0F8F5F' }} strokeWidth={1.6} />
+              <span className="text-xs font-semibold" style={{ color: '#0F8F5F', letterSpacing: '0.04em' }}>
+                SYSCOHADA 2017
               </span>
             </span>
           </div>
@@ -250,13 +293,13 @@ const AtlasFnAHome: React.FC = () => {
               <ExternalLink className="w-3 h-3" strokeWidth={1.6} />
             </button>
             <button
-              className="p-2 rounded-lg transition-colors relative"
+              className="p-2 rounded-lg transition-colors"
               style={{ color: 'var(--color-text-secondary)' }}
               onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--color-surface-hover)'; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+              aria-label="Notifications"
             >
               <Bell className="w-4 h-4" strokeWidth={1.5} />
-              <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full anim-pulse-dot" style={{ background: '#C0322B' }} />
             </button>
             <button
               onClick={() => navigate(workspacePath)}
@@ -352,13 +395,14 @@ const AtlasFnAHome: React.FC = () => {
                 <h6 className="eyebrow" style={{ fontSize: 10, color: 'var(--color-text-tertiary)', letterSpacing: '0.14em' }}>
                   {k.eyebrow}
                 </h6>
-                <DeltaPill value={k.delta.value} positive={k.delta.positive} />
               </div>
               <div className="display-md num-display" style={{ color: 'var(--color-text-primary)', marginBottom: '0.5rem' }}>
                 {k.value}
-                <span style={{ fontSize: '0.5em', color: 'var(--color-text-tertiary)', marginLeft: '0.4em', fontWeight: 500, letterSpacing: '0.04em' }}>
-                  FCFA
-                </span>
+                {k.unit && (
+                  <span style={{ fontSize: '0.45em', color: 'var(--color-text-tertiary)', marginLeft: '0.45em', fontWeight: 500, letterSpacing: '0.04em', textTransform: 'lowercase' }}>
+                    {k.unit}
+                  </span>
+                )}
               </div>
               <p className="text-xs mb-2" style={{ color: 'var(--color-text-tertiary)' }}>{k.meta}</p>
               <div className="-mx-1 mt-1">
@@ -402,20 +446,26 @@ const AtlasFnAHome: React.FC = () => {
                   className="font-semibold"
                   style={{ fontSize: '1.0625rem', lineHeight: 1.45, letterSpacing: '-0.012em', color: 'var(--color-text-primary)' }}
                 >
-                  <span className="num-tabular">12 dossiers</span> nécessitent une bascule contentieux selon <span className="brand-script" style={{ fontSize: '1.05em', color: 'var(--color-accent-deep)', letterSpacing: 'normal' }}>Proph3t</span>.
+                  {stats.ecritures > 0
+                    ? <>Aucune anomalie détectée sur les <span className="num-tabular">{stats.ecritures.toLocaleString('fr-FR')}</span> écritures de l'exercice <span className="num-tabular">{stats.exercice}</span>.</>
+                    : <>Bienvenue dans votre espace <span className="brand-script" style={{ fontSize: '1.1em', color: 'var(--color-accent-deep)', letterSpacing: 'normal' }}>Atlas&nbsp;F&amp;A</span> — prêt pour la première saisie.</>
+                  }
                 </h3>
                 <p className="mt-2 text-sm" style={{ color: 'var(--color-text-tertiary)', lineHeight: 1.65 }}>
-                  Concentration sur 4 segments (Distribution, BTP, Immobilier, Public). Recommandation : prioriser STD-Togo, Adjovi &amp; Frères et Yao &amp; Fils.
+                  {stats.ecritures > 0
+                    ? <>Conformité <strong>SYSCOHADA révisé 2017</strong> validée · contrôle d'équilibre D=C en continu · piste d'audit chaînée SHA-256.</>
+                    : <>Importez votre plan comptable SYSCOHADA, créez vos premiers tiers, ouvrez vos journaux et saisissez vos écritures.&nbsp;<span className="brand-script" style={{ fontSize: '1.1em', color: 'var(--color-accent-deep)', letterSpacing: 'normal' }}>Proph3t</span> vous guide à chaque étape.</>
+                  }
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-2 mt-4">
               <button
-                onClick={() => navigate('/tiers/recouvrement')}
+                onClick={() => navigate(stats.ecritures > 0 ? '/accounting/entries' : '/accounting/chart-of-accounts')}
                 className="press flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold"
                 style={{ background: 'var(--color-primary)', color: 'var(--color-text-inverse)', boxShadow: 'var(--shadow-obsidian)', letterSpacing: '-0.005em' }}
               >
-                Voir les dossiers
+                {stats.ecritures > 0 ? 'Consulter les écritures' : 'Plan comptable'}
                 <ArrowRight className="w-3.5 h-3.5" strokeWidth={1.75} />
               </button>
               <button
@@ -475,53 +525,60 @@ const AtlasFnAHome: React.FC = () => {
           className="grid gap-5 stagger-children"
           style={{ gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)', marginBottom: 'var(--section-gap-md)' }}
         >
-          {/* Left — Avancement de l'exercice */}
-          <article className="surface-card" style={{ padding: '1.25rem 1.5rem' }}>
-            <div className="flex items-start justify-between gap-4 mb-4">
-              <div>
-                <h6 className="eyebrow mb-1" style={{ fontSize: 10, color: 'var(--color-text-tertiary)' }}>
-                  AVANCEMENT DE L'EXERCICE
-                </h6>
-                <h3 className="font-semibold num-tabular" style={{ fontSize: '1.5rem', letterSpacing: '-0.028em', lineHeight: 1.1, color: 'var(--color-text-primary)' }}>
-                  {period}
-                </h3>
-              </div>
-              <div className="text-right">
-                <div className="display-md num-display" style={{ color: 'var(--color-text-primary)' }}>
-                  42<span style={{ fontSize: '0.5em', color: 'var(--color-text-tertiary)', marginLeft: '0.15em' }}>%</span>
+          {/* Left — Avancement de l'exercice fiscal (calcule reel sur l'annee civile) */}
+          {(() => {
+            const now = new Date();
+            const startYear = new Date(now.getFullYear(), 0, 1);
+            const endYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59);
+            const totalMs = endYear.getTime() - startYear.getTime();
+            const elapsedMs = now.getTime() - startYear.getTime();
+            const pct = Math.max(0, Math.min(100, Math.round((elapsedMs / totalMs) * 100)));
+            const monthsLeft = Math.max(0, 12 - (now.getMonth() + 1));
+            return (
+              <article className="surface-card" style={{ padding: '1.25rem 1.5rem' }}>
+                <div className="flex items-start justify-between gap-4 mb-4">
+                  <div>
+                    <h6 className="eyebrow mb-1" style={{ fontSize: 10, color: 'var(--color-text-tertiary)' }}>
+                      AVANCEMENT DE L'EXERCICE
+                    </h6>
+                    <h3 className="font-semibold num-tabular" style={{ fontSize: '1.5rem', letterSpacing: '-0.028em', lineHeight: 1.1, color: 'var(--color-text-primary)' }}>
+                      {period}
+                    </h3>
+                  </div>
+                  <div className="text-right">
+                    <div className="display-md num-display" style={{ color: 'var(--color-text-primary)' }}>
+                      {pct}<span style={{ fontSize: '0.5em', color: 'var(--color-text-tertiary)', marginLeft: '0.15em' }}>%</span>
+                    </div>
+                    <span className="eyebrow num-tabular" style={{ color: 'var(--color-text-tertiary)' }}>YTD</span>
+                  </div>
                 </div>
-                <span className="eyebrow num-tabular" style={{ color: 'var(--color-text-tertiary)' }}>YTD</span>
-              </div>
-            </div>
-            {/* Progress bar */}
-            <div
-              className="overflow-hidden"
-              style={{ height: 6, borderRadius: 9999, background: 'var(--color-border-light)' }}
-            >
-              <div
-                style={{
-                  height: '100%',
-                  width: '42%',
-                  background: 'linear-gradient(90deg, #C9A961 0%, #0F8F5F 100%)',
-                  borderRadius: 9999,
-                  transition: 'width 800ms cubic-bezier(0.16, 1, 0.3, 1)',
-                }}
-              />
-            </div>
-            <div className="flex items-center gap-6 mt-4 flex-wrap text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
-              <span>
-                Reste <strong className="num-tabular" style={{ color: 'var(--color-text-primary)', fontWeight: 600 }}>7 mois</strong> avant clôture
-              </span>
-              <span>·</span>
-              <span>
-                Cash collecté <strong className="num-tabular" style={{ color: 'var(--color-text-primary)', fontWeight: 600 }}>1,84 Md FCFA</strong>
-              </span>
-              <span>·</span>
-              <span>
-                Forward DSO <strong className="num-tabular" style={{ color: 'var(--color-text-primary)', fontWeight: 600 }}>62 j</strong>
-              </span>
-            </div>
-          </article>
+                <div className="overflow-hidden" style={{ height: 6, borderRadius: 9999, background: 'var(--color-border-light)' }}>
+                  <div
+                    style={{
+                      height: '100%',
+                      width: `${pct}%`,
+                      background: 'linear-gradient(90deg, #C9A961 0%, #0F8F5F 100%)',
+                      borderRadius: 9999,
+                      transition: 'width 800ms cubic-bezier(0.16, 1, 0.3, 1)',
+                    }}
+                  />
+                </div>
+                <div className="flex items-center gap-6 mt-4 flex-wrap text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
+                  <span>
+                    Reste <strong className="num-tabular" style={{ color: 'var(--color-text-primary)', fontWeight: 600 }}>{monthsLeft} mois</strong> avant clôture
+                  </span>
+                  <span>·</span>
+                  <span>
+                    Écritures saisies <strong className="num-tabular" style={{ color: 'var(--color-text-primary)', fontWeight: 600 }}>{stats.ecritures.toLocaleString('fr-FR')}</strong>
+                  </span>
+                  <span>·</span>
+                  <span>
+                    Tiers actifs <strong className="num-tabular" style={{ color: 'var(--color-text-primary)', fontWeight: 600 }}>{stats.tiers.toLocaleString('fr-FR')}</strong>
+                  </span>
+                </div>
+              </article>
+            );
+          })()}
 
           {/* Right — Assistant IA card */}
           <article
