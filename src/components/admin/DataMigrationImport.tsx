@@ -1275,122 +1275,230 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
   // ─── Render ────────────────────────────────────────────
 
   return (
-    <div className="w-full p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <button onClick={onBack} className="p-2 hover:bg-gray-100 rounded-lg">
-          <ArrowLeft className="w-5 h-5" />
+    <div className="w-full space-y-6" style={{ padding: '1.5rem clamp(1rem, 2vw, 1.5rem)' }}>
+      {/* Header — eyebrow gold + titre obsidien + sous-titre */}
+      <header className="flex items-start gap-3">
+        <button
+          onClick={onBack}
+          className="press shrink-0 mt-1 p-2 rounded-lg transition-colors"
+          style={{ color: 'var(--color-text-secondary)' }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--color-surface-hover)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+          aria-label="Retour"
+        >
+          <ArrowLeft className="w-4 h-4" strokeWidth={1.6} />
         </button>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Migration de donnees comptables</h1>
-          <p className="text-sm text-gray-500">Assistant d'import depuis un logiciel tiers</p>
+          <div className="eyebrow-gold mb-1">Atlas Studio · Migration SYSCOHADA</div>
+          <h1 style={{ fontSize: '1.625rem', letterSpacing: 0, lineHeight: 1.15, color: 'var(--color-text-primary)' }} className="font-semibold">
+            Migration de données comptables
+          </h1>
+          <p className="text-sm mt-1" style={{ color: 'var(--color-text-tertiary)' }}>
+            Assistant d'import depuis un logiciel tiers (Sage, Ciel, EBP, Odoo, FEC, Excel...). Conforme OHADA · Plan SYSCOHADA révisé 2017.
+          </p>
         </div>
-      </div>
+      </header>
 
-      {/* Stepper */}
-      <div className="flex items-center gap-1 bg-white border rounded-xl p-3 overflow-x-auto">
-        {STEPS.map((step, i) => (
-          <React.Fragment key={step.id}>
-            {i > 0 && <ChevronRight className="w-4 h-4 text-gray-300 flex-shrink-0" />}
-            <button
-              onClick={() => i < stepIndex ? setCurrentStep(step.id) : undefined}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
-                step.id === currentStep ? 'bg-red-50 text-red-700 border border-red-200' :
-                i < stepIndex ? 'text-green-700 hover:bg-green-50 cursor-pointer' :
-                'text-gray-400'
-              }`}
-            >
-              <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                step.id === currentStep ? 'bg-red-500 text-white' :
-                i < stepIndex ? 'bg-green-500 text-white' :
-                'bg-gray-200 text-gray-500'
-              }`}>{i + 1}</span>
-              {step.label}
-            </button>
-          </React.Fragment>
-        ))}
-      </div>
+      {/* Stepper premium — obsidien / champagne / hairlines */}
+      <nav
+        aria-label="Étapes de migration"
+        className="surface-card flex items-center gap-1 overflow-x-auto"
+        style={{ padding: '0.625rem 0.75rem' }}
+      >
+        {STEPS.map((step, i) => {
+          const isCurrent = step.id === currentStep;
+          const isDone = i < stepIndex;
+          return (
+            <React.Fragment key={step.id}>
+              {i > 0 && (
+                <ChevronRight
+                  className="w-3.5 h-3.5 shrink-0"
+                  strokeWidth={1.5}
+                  style={{ color: 'var(--color-text-quaternary)' }}
+                />
+              )}
+              <button
+                onClick={() => isDone ? setCurrentStep(step.id) : undefined}
+                className="press flex items-center gap-2 px-2.5 py-1.5 rounded-md text-sm whitespace-nowrap transition-colors"
+                style={{
+                  cursor: isDone ? 'pointer' : 'default',
+                  background: isCurrent ? 'var(--color-primary)' : isDone ? 'var(--color-accent-light)' : 'transparent',
+                  color: isCurrent ? 'var(--color-text-inverse)' : isDone ? 'var(--color-accent-deep)' : 'var(--color-text-quaternary)',
+                  fontWeight: isCurrent || isDone ? 500 : 400,
+                }}
+              >
+                <span
+                  className="inline-flex items-center justify-center num-tabular shrink-0"
+                  style={{
+                    width: 22, height: 22, borderRadius: '50%',
+                    fontSize: 11, fontWeight: 600,
+                    background: isCurrent
+                      ? 'rgba(255,255,255,0.18)'
+                      : isDone
+                      ? 'var(--color-accent)'
+                      : 'var(--color-border-light)',
+                    color: isCurrent
+                      ? 'var(--color-text-inverse)'
+                      : isDone
+                      ? 'var(--color-text-inverse)'
+                      : 'var(--color-text-tertiary)',
+                  }}
+                >
+                  {isDone ? '✓' : i + 1}
+                </span>
+                <span>{step.label}</span>
+              </button>
+            </React.Fragment>
+          );
+        })}
+      </nav>
 
       {/* ─── Step 1: Mode ─── */}
       {currentStep === 'mode' && (
-        <div className="space-y-6">
-          {/* Question cle */}
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-5">
-            <h2 className="text-base font-semibold text-amber-900 mb-2">A quelle date effectuez-vous la bascule vers Atlas F&A ?</h2>
-            <p className="text-sm text-amber-700">Selectionnez le mode qui correspond a votre situation. Le mode determine les fichiers a importer.</p>
-          </div>
+        <div className="space-y-5">
+          {/* Question clé — eyebrow gold + titre obsidien, plus de fond ambre satur */}
+          <section
+            className="surface-card"
+            style={{ padding: '1.25rem 1.5rem', position: 'relative', overflow: 'hidden' }}
+          >
+            <div aria-hidden style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: 'linear-gradient(90deg, transparent, var(--color-accent), transparent)', opacity: 0.55 }} />
+            <div className="eyebrow-gold mb-2">Étape 1 · Mode de migration</div>
+            <h2 className="font-medium" style={{ fontSize: '1.125rem', color: 'var(--color-text-primary)', letterSpacing: 0 }}>
+              À quelle date effectuez-vous la bascule vers <span className="atlas-brand" style={{ fontSize: '1.15em', color: 'var(--color-accent-deep)' }}>Atlas F&A</span> ?
+            </h2>
+            <p className="text-sm mt-1.5" style={{ color: 'var(--color-text-tertiary)' }}>
+              Le mode détermine le périmètre des fichiers à importer et la stratégie de reprise comptable selon SYSCOHADA révisé 2017.
+            </p>
+          </section>
 
-          <div className="bg-white border rounded-xl p-6 space-y-4">
-            <h2 className="text-lg font-semibold">Mode de migration</h2>
+          <section className="surface-card" style={{ padding: '1.5rem 1.5rem 1.375rem' }}>
+            <header className="flex items-baseline justify-between mb-4">
+              <h2 className="font-medium" style={{ fontSize: '1rem', color: 'var(--color-text-primary)' }}>Sélectionnez un mode</h2>
+              <span className="eyebrow" style={{ color: 'var(--color-text-tertiary)' }}>3 options · 1 choix obligatoire</span>
+            </header>
+            <div className="space-y-3">
             {([
               {
                 mode: 2 as MigrationMode,
                 title: 'Bascule début d\'exercice',
                 badge: 'RECOMMANDÉ',
-                desc: 'Au 01/01/N — juste après avoir clôturé l\'exercice N-1. Balance de clôture suffit.',
-                detail: 'Un seul fichier obligatoire : la Balance au 31/12/N-1 (= soldes d\'ouverture). Tiers et immobilisations sont optionnels pour enrichir le référentiel. Pas d\'écritures détaillées — l\'historique reste dans l\'ancien logiciel.',
+                desc: 'Au 01/01/N, juste après avoir clôturé l\'exercice précédent. Reprise minimale via la Balance de clôture N-1 (À Nouveau).',
+                detail: 'Standard SYSCOHADA pour les changements de logiciel comptable. Un seul fichier requis : la Balance au 31/12/N-1, qui devient automatiquement le journal AN (À Nouveau) d\'ouverture. Comptes de classe 1-5 (bilan) reportés en soldes d\'ouverture ; classes 6-7 (gestion) annualisées à zéro. Tiers et immobilisations facultatifs pour enrichir le référentiel. L\'historique des écritures détaillées reste consultable dans l\'ancien logiciel.',
                 files: '1 fichier obligatoire',
                 duration: '< 5 min',
                 risk: 'Faible',
-                riskColor: 'text-green-600',
+                riskTone: 'success' as const,
               },
               {
                 mode: 1 as MigrationMode,
                 title: 'Bascule en cours d\'exercice',
                 badge: '',
-                desc: 'En cours d\'année — l\'exercice N est déjà commencé. Grand Livre (AN inclus + mouvements du 01/01/N à la date de bascule).',
-                detail: 'Un seul fichier obligatoire : le Grand Livre de l\'exercice en cours. Tiers et immobilisations restent optionnels. Le plan comptable SYSCOHADA est déjà embarqué dans Atlas — nul besoin de l\'importer.',
+                desc: 'L\'exercice N est déjà commencé. Reprise via Grand Livre (À Nouveau + mouvements du 01/01/N à la date de bascule).',
+                detail: 'À utiliser quand vous changez de logiciel en milieu d\'année. Un seul fichier obligatoire : le Grand Livre de l\'exercice en cours, contenant les écritures d\'ouverture AN et tous les mouvements jusqu\'à la date de bascule. La numérotation des pièces continue à partir du dernier numéro de l\'ancien logiciel. Plan comptable SYSCOHADA déjà embarqué — pas besoin de l\'importer. Tiers et immobilisations restent optionnels.',
                 files: '1 fichier obligatoire',
                 duration: '5 à 30 min',
                 risk: 'Moyen',
-                riskColor: 'text-amber-600',
+                riskTone: 'warning' as const,
               },
               {
                 mode: 3 as MigrationMode,
                 title: 'Migration historique complète',
                 badge: '',
-                desc: 'Tout l\'historique des exercices passés dans Atlas. Déconseillé sauf besoin impératif (audit, fusion, obligation légale).',
-                detail: 'Grand Livre + Tiers + Immobilisations obligatoires. Un fichier Grand Livre par exercice à migrer. Peut représenter 200 000 à 500 000 lignes.',
+                desc: 'Tout l\'historique des exercices clos est repris dans Atlas. Réservé aux cas d\'audit, fusion, ou obligation légale OHADA.',
+                detail: 'Reprise lourde : un fichier Grand Livre par exercice à migrer + Tiers + Immobilisations obligatoires. Peut représenter 200 000 à 500 000 écritures. Chaque exercice migré génère une entrée distincte dans la piste d\'audit SHA-256 (conformité OHADA art. 24). Déconseillé hors besoin réglementaire — préférez Mode 2 et conservez l\'archive dans l\'ancien logiciel.',
                 files: '3+ fichiers obligatoires',
                 duration: '1 à 8 heures',
                 risk: 'Élevé',
-                riskColor: 'text-red-600',
+                riskTone: 'danger' as const,
               },
-            ]).map(({ mode, title, badge, desc, detail, files, duration, risk, riskColor }) => (
+            ]).map(({ mode, title, badge, desc, detail, files, duration, risk, riskTone }) => {
+              const selected = migrationMode === mode;
+              const riskColors = {
+                success: { bg: 'rgba(15,143,95,0.10)', color: '#0F8F5F' },
+                warning: { bg: 'rgba(201,169,97,0.14)', color: '#A88845' },
+                danger:  { bg: 'rgba(192,50,43,0.10)',  color: '#C0322B' },
+              }[riskTone];
+              return (
               <button
                 key={mode}
                 onClick={() => setMigrationMode(mode)}
-                className={`w-full text-left p-5 rounded-lg border-2 transition-colors ${
-                  migrationMode === mode ? 'border-gray-900 bg-gray-50' : 'border-gray-200 hover:border-gray-300'
-                }`}
+                className="w-full text-left transition-all press"
+                style={{
+                  padding: '1.125rem 1.25rem',
+                  borderRadius: 'var(--radius-lg)',
+                  border: '1px solid ' + (selected ? 'var(--color-primary)' : 'var(--color-border)'),
+                  background: selected ? 'var(--color-surface-hover)' : 'var(--color-surface)',
+                  boxShadow: selected ? '0 0 0 1px var(--color-primary)' : 'var(--shadow-sm)',
+                }}
+                onMouseEnter={(e) => { if (!selected) (e.currentTarget as HTMLElement).style.borderColor = 'var(--color-accent)'; }}
+                onMouseLeave={(e) => { if (!selected) (e.currentTarget as HTMLElement).style.borderColor = 'var(--color-border)'; }}
               >
                 <div className="flex items-start gap-3">
-                  <div className={`w-5 h-5 rounded-full border-2 mt-0.5 flex items-center justify-center flex-shrink-0 ${
-                    migrationMode === mode ? 'border-gray-900' : 'border-gray-300'
-                  }`}>
-                    {migrationMode === mode && <div className="w-2.5 h-2.5 rounded-full bg-gray-900" />}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <p className="font-semibold text-gray-900">Mode {mode} — {title}</p>
-                      {badge && <span className="text-[10px] bg-green-100 text-green-800 px-2 py-0.5 rounded-full font-bold">{badge}</span>}
+                  <span
+                    className="shrink-0 inline-flex items-center justify-center mt-0.5"
+                    style={{
+                      width: 18, height: 18, borderRadius: '50%',
+                      border: '1.5px solid ' + (selected ? 'var(--color-primary)' : 'var(--color-border)'),
+                      background: 'var(--color-surface)',
+                      transition: 'border-color var(--motion-fast)',
+                    }}
+                  >
+                    {selected && <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--color-primary)' }} />}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      <p className="font-medium" style={{ fontSize: '0.9375rem', color: 'var(--color-text-primary)' }}>
+                        Mode {mode} — {title}
+                      </p>
+                      {badge && (
+                        <span
+                          className="num-tabular"
+                          style={{
+                            fontSize: 10,
+                            background: 'rgba(15,143,95,0.10)',
+                            color: '#0F8F5F',
+                            padding: '0.125rem 0.5rem',
+                            borderRadius: 9999,
+                            fontWeight: 600,
+                            letterSpacing: '0.06em',
+                            border: '1px solid rgba(15,143,95,0.20)',
+                          }}
+                        >
+                          {badge}
+                        </span>
+                      )}
                     </div>
-                    <p className="text-sm text-gray-600 mb-2">{desc}</p>
-                    {migrationMode === mode && (
+                    <p className="text-sm mb-2" style={{ color: 'var(--color-text-secondary)', lineHeight: 1.5 }}>{desc}</p>
+                    {selected && (
                       <>
-                        <p className="text-xs text-gray-500 mb-3 italic">{detail}</p>
-                        <div className="flex items-center gap-4 text-xs">
-                          <span className="bg-gray-100 px-2 py-1 rounded font-medium">{files}</span>
-                          <span className="bg-gray-100 px-2 py-1 rounded font-medium">Duree: {duration}</span>
-                          <span className={`font-semibold ${riskColor}`}>Risque: {risk}</span>
+                        <p className="text-xs mb-3" style={{ color: 'var(--color-text-tertiary)', lineHeight: 1.6, letterSpacing: 0 }}>
+                          {detail}
+                        </p>
+                        <div className="flex items-center gap-2 flex-wrap text-xs">
+                          <span className="chip" style={{ padding: '0.25rem 0.625rem' }}>{files}</span>
+                          <span className="chip" style={{ padding: '0.25rem 0.625rem' }}>Durée · {duration}</span>
+                          <span
+                            className="inline-flex items-center gap-1.5"
+                            style={{
+                              padding: '0.25rem 0.625rem',
+                              borderRadius: 9999,
+                              fontSize: 11,
+                              fontWeight: 500,
+                              background: riskColors.bg,
+                              color: riskColors.color,
+                            }}
+                          >
+                            Risque · {risk}
+                          </span>
                         </div>
                       </>
                     )}
                   </div>
                 </div>
               </button>
-            ))}
-          </div>
+            );})}
+            </div>
+          </section>
 
           {/* Recap fichiers par mode */}
           <div className="bg-white border rounded-xl p-6">

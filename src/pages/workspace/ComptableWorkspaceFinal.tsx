@@ -238,7 +238,10 @@ const ComptableWorkspaceFinal: React.FC = () => {
           <div className="flex items-center space-x-4">
             <button onClick={() => navigate('/')} className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 border-2 border-gray-300"><ArrowLeft className="w-5 h-5" /><span className="text-sm font-semibold">Accueil</span></button>
             <button onClick={() => setSidebarOpen(!sidebarOpen)} className="lg:hidden p-2 rounded-lg hover:bg-gray-100">{sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}</button>
-            <div className="flex items-center space-x-3"><div className="w-10 h-10 rounded-lg bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-hover)] flex items-center justify-center"><BarChart3 className="w-5 h-5 text-white" /></div><div className="hidden sm:block"><h1 className="text-lg font-bold"><span className="atlas-brand">Atlas F&A</span></h1><p className="text-xs text-gray-500">v{APP_VERSION}</p></div></div>
+            <div className="hidden sm:flex items-baseline gap-2">
+              <span className="atlas-brand" style={{ fontSize: '1.5rem', color: 'var(--color-text-primary)' }}>Atlas F&A</span>
+              <span className="text-xs num-tabular" style={{ color: 'var(--color-text-quaternary)' }}>v{APP_VERSION}</span>
+            </div>
             <div className="hidden md:block relative">
               <button
                 onClick={() => setWorkspaceSwitcherOpen(!workspaceSwitcherOpen)}

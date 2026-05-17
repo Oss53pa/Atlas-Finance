@@ -171,11 +171,14 @@ html {
 }
 
 body {
-  /* Dosis (UI principale) + fallback systeme */
+  /* Dosis (UI principale) + fallback systeme.
+     Dosis a un trait epais en bold (600+) -> on force le poids normal 400
+     par defaut et on remonte juste sur les titres/displays specifiquement. */
   font-family: 'Dosis', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   background-color: var(--color-background);
   color: var(--color-text-primary);
   font-size: 0.9375rem;        /* 15px — densité ERP premium */
+  font-weight: 400;
   line-height: 1.55;
   letter-spacing: 0;
   transition: background-color var(--transition-slow), color var(--transition-slow);
@@ -183,9 +186,16 @@ body {
 
 h1, h2, h3, h4, h5, h6 {
   font-family: 'Dosis', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  font-weight: 600;
+  /* 500 = medium pour les titres (Dosis 600 est deja tres marque,
+     500 reste affirme sans devenir lourd) */
+  font-weight: 500;
   letter-spacing: 0;
 }
+
+/* Override des classes Tailwind font-bold/semibold qui rendent Dosis trop epaisse */
+.font-bold { font-weight: 600 !important; }
+.font-semibold { font-weight: 500 !important; }
+.font-medium { font-weight: 500 !important; }
 
 /* Wordmark Grand Hotel — UNIQUEMENT pour la marque (Atlas, Atlas F&A, Atlas Studio, Proph3t)
  * Cette regle a priorite sur tout heading h1/h2 contenant la classe. */
@@ -262,37 +272,39 @@ h1 {
   font-size: 1.5rem !important;       /* 24px — Titre de page premium */
   letter-spacing: 0 !important;
   line-height: 1.2 !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
 }
 h1.landing-title {
   font-size: clamp(2.75rem, 7vw, 4.5rem) !important;
-  font-weight: 700 !important;
+  font-weight: 600 !important;
   letter-spacing: 0 !important;
   line-height: 1 !important;
 }
 h2 {
   font-size: 1.125rem !important;     /* 18px — Section */
   letter-spacing: 0 !important;
+  font-weight: 500 !important;
 }
 h3 {
   font-size: 0.9375rem !important;    /* 15px — Sous-section */
   letter-spacing: 0 !important;
+  font-weight: 500 !important;
 }
 h4 {
   font-size: 0.875rem !important;     /* 14px — Label important */
   letter-spacing: 0 !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
 }
 h5 {
   font-size: 0.8125rem !important;    /* 13px — Label */
   letter-spacing: 0 !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
 }
 h6 {
   font-size: 0.75rem !important;      /* 12px — Eyebrow */
   letter-spacing: 0.06em !important;
   text-transform: uppercase;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
   color: var(--color-text-tertiary);
 }
 
