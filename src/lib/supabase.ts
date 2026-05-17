@@ -63,12 +63,13 @@ export async function getCurrentUser() {
   return user;
 }
 
-// Helper to get user profile with role and company
-// Stratégie tolérante en 4 niveaux :
-//  1) select('*, role:roles(*), company:societes(*)') -- idéal, schéma complet
-//  2) select('*')                                       -- profil sans embeds
-//  3) fetch séparé de roles / societes si role_id / societe_id présent
-//  4) fallback complet construit depuis user_metadata Supabase Auth
+// Helper to get user profile with role and company.
+// Stratégie en 3 étapes — aucune n'utilise d'embed PostgREST (les embeds
+// renvoient 400 si la FK relationship n'existe pas en DB, ce qui pollue
+// la console navigateur même en cas de gestion correcte côté JS).
+//  1) select('*') sur profiles                  -- profil brut
+//  2) fetch séparé de roles / societes en best-effort
+//  3) fallback complet construit depuis user_metadata Supabase Auth
 // Aucune étape ne throw -- le caller ne doit jamais déconnecter le user.
 export async function getUserProfile() {
   const { data: { user } } = await supabase.auth.getUser();
@@ -91,17 +92,7 @@ export async function getUserProfile() {
     two_factor_enabled: false,
   };
 
-  // Étape 1 : essai avec embeds complets (idéal)
-  try {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*, role:roles(*), company:societes(*)')
-      .eq('id', user.id)
-      .maybeSingle();
-    if (!error && data) return data;
-  } catch (_e) { /* embed pas dispo -- on passe à l'étape 2 */ }
-
-  // Étape 2 : profile brut sans embed
+  // Étape 1 : profile brut sans embed (jamais 400 sur une table existante)
   let baseProfile: Record<string, any> | null = null;
   try {
     const { data, error } = await supabase
@@ -114,7 +105,7 @@ export async function getUserProfile() {
 
   if (!baseProfile) return fallbackProfile;
 
-  // Étape 3 : compléter avec roles / societes en best-effort
+  // Étape 2 : compléter avec roles / societes en best-effort (queries indépendantes)
   let roleData: Record<string, any> | undefined;
   const roleId = baseProfile.role_id || baseProfile.roleId;
   if (roleId) {
@@ -140,28 +131,42 @@ export async function getUserProfile() {
   };
 }
 
-// Helper to get user permissions — tolerant
-// Si la chaîne d'embeds roles -> role_permissions -> permissions n'existe
-// pas dans la DB (400), on retourne [] silencieusement et l'app continue
-// avec les permissions par défaut (front-side: tout ouvert pour role 'user').
+// Helper to get user permissions — tolerant, sans embed PostgREST.
+// Stratégie : lit role_id depuis profiles, puis fait 3 queries séparées
+// (role_permissions -> permissions). Si une table manque, return [].
+// L'app continue avec les permissions par défaut côté front (RBACGuard
+// se base sur le role.code, pas sur les permissions granulaires).
 export async function getUserPermissions(): Promise<string[]> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return [];
 
   try {
-    const { data, error } = await supabase
+    // Étape 1 : récupérer role_id du profile
+    const { data: profile, error: pErr } = await supabase
       .from('profiles')
-      .select('role:roles(permissions:role_permissions(permission:permissions(code)))')
+      .select('role_id')
       .eq('id', user.id)
       .maybeSingle();
+    if (pErr || !profile) return [];
+    const roleId = (profile as { role_id?: string }).role_id;
+    if (!roleId) return [];
 
-    if (error || !data) return [];
+    // Étape 2 : récupérer les permission_ids du rôle
+    const { data: rolePerms, error: rpErr } = await supabase
+      .from('role_permissions')
+      .select('permission_id')
+      .eq('role_id', roleId);
+    if (rpErr || !rolePerms || rolePerms.length === 0) return [];
+    const permIds = rolePerms.map((rp: { permission_id?: string }) => rp.permission_id).filter(Boolean);
+    if (permIds.length === 0) return [];
 
-    const permissions = (data as unknown as { role?: { permissions?: Array<Record<string, Record<string, string>>> } })?.role?.permissions?.map(
-      (rp: Record<string, Record<string, string>>) => rp.permission?.code
-    ).filter(Boolean) || [];
-
-    return permissions;
+    // Étape 3 : récupérer les codes des permissions
+    const { data: perms, error: peErr } = await supabase
+      .from('permissions')
+      .select('code')
+      .in('id', permIds);
+    if (peErr || !perms) return [];
+    return perms.map((p: { code?: string }) => p.code).filter(Boolean) as string[];
   } catch (_e) {
     return [];
   }
