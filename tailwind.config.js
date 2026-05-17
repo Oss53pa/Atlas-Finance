@@ -16,31 +16,31 @@ export default {
       },
     },
     fontFamily: {
-      // Inter + system stack premium (Mercury/Brex/Linear/Vercel/Stripe)
+      // Dosis + fallback systeme — police principale UI
       'sans': [
-        'Inter',
-        '-apple-system', 'BlinkMacSystemFont', 'SF Pro Text', 'Söhne', 'Söhne Buch',
+        'Dosis',
+        '-apple-system', 'BlinkMacSystemFont', 'SF Pro Text',
         'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif',
       ],
-      // Serif éditorial pour displays sélectionnés (italics)
-      'serif': ['Instrument Serif', 'Söhne', 'Georgia', 'serif'],
-      // Script gold UNIQUEMENT pour le wordmark Atlas
+      // Serif editorial italics
+      'serif': ['Instrument Serif', 'Georgia', 'serif'],
+      // Grand Hotel — RESERVE au wordmark / titres marque uniquement
       'script': ['Grand Hotel', 'cursive'],
       'brand': ['Grand Hotel', 'cursive'],
-      // Heading = Inter (le serif est opt-in)
+      // Heading = Dosis
       'heading': [
-        'Inter',
-        '-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'Söhne',
+        'Dosis',
+        '-apple-system', 'BlinkMacSystemFont', 'SF Pro Display',
         'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif',
       ],
-      // Display heavy : Inter (poids extra-bold pour gros chiffres)
+      // Display = Dosis (bold pour gros chiffres KPI)
       'display': [
-        'Inter',
-        '-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'Söhne',
+        'Dosis',
+        '-apple-system', 'BlinkMacSystemFont', 'SF Pro Display',
         'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif',
       ],
       // Mono pour chiffres tabulaires + code
-      'mono': ['JetBrains Mono', 'SF Mono', 'Söhne Mono', 'Menlo', 'Consolas', 'monospace'],
+      'mono': ['JetBrains Mono', 'SF Mono', 'Menlo', 'Consolas', 'monospace'],
     },
     extend: {
       colors: {

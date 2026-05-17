@@ -1,10 +1,10 @@
 
-/* Atlas F&A - Design System — Mercury/Brex-grade editorial typography */
-/* Inter Variable (sans-serif premium, fallback Söhne/SF Pro)
- * Instrument Serif (serif éditorial pour displays sélectionnés)
- * JetBrains Mono (monospace pour chiffres tabulaires + code)
- * Grand Hotel (script gold pour wordmark uniquement) */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Instrument+Serif:ital@0;1&family=Grand+Hotel&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+/* Atlas F&A - Design System
+ * Dosis (sans-serif principale, tres lisible, geometrique douce)
+ * Grand Hotel (script — RESERVE au wordmark/titres marque)
+ * Instrument Serif (italic editorial)
+ * JetBrains Mono (chiffres tabulaires + code) */
+@import url('https://fonts.googleapis.com/css2?family=Dosis:wght@200;300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=Grand+Hotel&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 @import './styles/print.css';
 
 @tailwind base;
@@ -71,7 +71,7 @@
   }
 
   html {
-    font-family: 'Exo 2', sans-serif;
+    font-family: 'Dosis', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     @apply antialiased;
   }
 
@@ -79,12 +79,12 @@
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
     @apply font-normal leading-relaxed;
-    font-feature-settings: 'rlig' 1, 'calt' 1;
+    font-feature-settings: 'kern' 1, 'calt' 1;
   }
 
   /* Typography scale */
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Exo 2', sans-serif;
+    font-family: 'Dosis', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     @apply font-semibold;
   }
 
