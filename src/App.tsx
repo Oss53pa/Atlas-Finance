@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react';
-import { Routes, Route, Outlet, Navigate } from 'react-router-dom';
+import { Routes, Route, Outlet, Navigate, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -261,6 +261,7 @@ const LoadingFallback = () => <div className="flex items-center justify-center m
 
 
 function App() {
+  const location = useLocation();
   return (
     <QueryClientProvider client={queryClient}>
       <DataProvider>
@@ -270,7 +271,7 @@ function App() {
             <WorkspaceProvider>
               <ToastProvider>
                 <NavigationProvider>
-                    <ErrorBoundary>
+                    <ErrorBoundary resetKey={location.pathname}>
                     <Suspense fallback={<LoadingFallback />}>
                     <ImpersonationBanner />
                     <GuidedTourOverlay />
