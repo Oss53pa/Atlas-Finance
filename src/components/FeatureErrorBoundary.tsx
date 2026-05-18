@@ -1,5 +1,5 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 
 interface Props {
   children?: ReactNode;
@@ -14,8 +14,10 @@ interface State {
 /**
  * Per-feature Error Boundary — shows a compact error UI within the layout
  * instead of replacing the entire page. Used as a route wrapper in App.tsx.
+ *
+ * Resets automatically when the user navigates (via key={location.pathname}).
  */
-class FeatureErrorBoundary extends Component<Props, State> {
+class FeatureErrorBoundaryInner extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = { hasError: false, error: null };
@@ -68,5 +70,18 @@ class FeatureErrorBoundary extends Component<Props, State> {
     return this.props.children || <Outlet />;
   }
 }
+
+/**
+ * Functional wrapper that injects location.key so the class component
+ * can reset its error state on navigation.
+ */
+const FeatureErrorBoundary: React.FC<{ children?: ReactNode; feature: string }> = ({ children, feature }) => {
+  const location = useLocation();
+  return (
+    <FeatureErrorBoundaryInner key={location.pathname} feature={feature}>
+      {children}
+    </FeatureErrorBoundaryInner>
+  );
+};
 
 export default FeatureErrorBoundary;

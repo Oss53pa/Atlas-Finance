@@ -4,12 +4,15 @@ interface Props {
   children: ReactNode;
   fallback?: ReactNode;
   onError?: (error: Error, errorInfo: ErrorInfo) => void;
+  /** Pass a changing key (e.g. location.pathname) to auto-reset on navigation */
+  resetKey?: string;
 }
 
 interface State {
   hasError: boolean;
   error: Error | null;
   errorInfo: ErrorInfo | null;
+  prevResetKey?: string;
 }
 
 class ErrorBoundary extends Component<Props, State> {
@@ -18,16 +21,27 @@ class ErrorBoundary extends Component<Props, State> {
     this.state = {
       hasError: false,
       error: null,
-      errorInfo: null
+      errorInfo: null,
+      prevResetKey: props.resetKey,
     };
   }
 
-  static getDerivedStateFromError(error: Error): State {
+  static getDerivedStateFromError(error: Error): Partial<State> {
     return {
       hasError: true,
       error,
       errorInfo: null
     };
+  }
+
+  static getDerivedStateFromProps(props: Props, state: State): Partial<State> | null {
+    if (state.hasError && props.resetKey !== state.prevResetKey) {
+      return { hasError: false, error: null, errorInfo: null, prevResetKey: props.resetKey };
+    }
+    if (props.resetKey !== state.prevResetKey) {
+      return { prevResetKey: props.resetKey };
+    }
+    return null;
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
@@ -69,6 +83,7 @@ class ErrorBoundary extends Component<Props, State> {
       }).catch(err => {
       });
     } catch (err) {
+      /* ignored */
     }
   }
 
