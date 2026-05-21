@@ -134,11 +134,11 @@ const atlasStudioTheme: Theme = {
     }
   },
   shadows: {
-    // Shadows ultra-douces façon orfèvrerie : empilement de halos courts (chaud)
-    sm: '0 1px 0 rgba(38, 30, 21, 0.02), 0 1px 2px rgba(38, 30, 21, 0.04)',
-    md: '0 2px 4px rgba(38, 30, 21, 0.04), 0 8px 24px -8px rgba(38, 30, 21, 0.08)',
-    lg: '0 4px 8px rgba(38, 30, 21, 0.05), 0 18px 40px -12px rgba(38, 30, 21, 0.10)',
-    xl: '0 12px 24px rgba(38, 30, 21, 0.06), 0 32px 64px -20px rgba(38, 30, 21, 0.14)'
+    // Néomorphisme Petrol Cream : double ombre (lumière haut-gauche + ombre chaude bas-droite)
+    sm: '0 1px 2px rgba(38,30,21,.04), 5px 5px 13px rgba(38,30,21,.07), -4px -4px 10px rgba(255,255,255,.60)',
+    md: '0 1px 2px rgba(38,30,21,.04), 8px 8px 20px rgba(38,30,21,.11), -6px -6px 14px rgba(255,255,255,.72)',
+    lg: '12px 12px 30px rgba(38,30,21,.14), -8px -8px 18px rgba(255,255,255,.78)',
+    xl: '18px 18px 42px rgba(38,30,21,.17), -11px -11px 24px rgba(255,255,255,.82)'
   },
   transitions: sharedTransitions,
   borderRadius: sharedBorderRadius,

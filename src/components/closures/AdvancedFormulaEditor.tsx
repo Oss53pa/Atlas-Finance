@@ -293,7 +293,7 @@ const AdvancedFormulaEditor: React.FC = () => {
                   <div className="text-xs text-gray-700 mt-1">Ex: {variable.example}</div>
                   {variable.syscohadaReference && (
                     <div className="text-xs text-blue-500 mt-1">
-                      📖 {variable.syscohadaReference}
+                      {variable.syscohadaReference}
                     </div>
                   )}
                 </div>

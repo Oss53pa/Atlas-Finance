@@ -324,8 +324,8 @@ const LettrageAutomatiquePage: React.FC = () => {
                 Rapprochement par montant identique et date compatible
               </p>
               <div className="text-xs text-blue-600">
-                ✓ Fiabilité: 100%<br />
-                ✓ Vitesse: Instantanée
+                Fiabilité: 100%<br />
+                Vitesse: Instantanée
               </div>
             </div>
 
@@ -338,8 +338,8 @@ const LettrageAutomatiquePage: React.FC = () => {
                 Matching par numéro de facture dans libellé
               </p>
               <div className="text-xs text-green-600">
-                ✓ Fiabilité: 95%<br />
-                ✓ OCR intégré
+                Fiabilité: 95%<br />
+                OCR intégré
               </div>
             </div>
 
@@ -352,8 +352,8 @@ const LettrageAutomatiquePage: React.FC = () => {
                 Suggestions basées sur l'historique et patterns
               </p>
               <div className="text-xs text-primary-600">
-                ✓ Apprentissage continu<br />
-                ✓ Confiance variable
+                Apprentissage continu<br />
+                Confiance variable
               </div>
             </div>
           </div>

@@ -529,7 +529,7 @@ const IntelligentEntryAssistant: React.FC = () => {
                         />
                       </div>
                       <Badge className={calculatedMetrics.isBalanced ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
-                        {calculatedMetrics.isBalanced ? '⚖️ Équilibrée' : `❌ Écart: ${formatCurrency(Math.abs(calculatedMetrics.balance))}`}
+                        {calculatedMetrics.isBalanced ? 'Équilibrée' : `Écart: ${formatCurrency(Math.abs(calculatedMetrics.balance))}`}
                       </Badge>
                     </div>
                     
@@ -620,13 +620,13 @@ const IntelligentEntryAssistant: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
                     <Button type="button" variant="outline">
-                      💾 Sauvegarder Brouillon
+                      Sauvegarder Brouillon
                     </Button>
                     <Button type="button" variant="outline">
-                      📋 Créer Template
+                      Créer Template
                     </Button>
                     <Button type="button" variant="outline">
-                      🔄 Réinitialiser
+                      Réinitialiser
                     </Button>
                   </div>
                   
@@ -731,7 +731,7 @@ const IntelligentEntryAssistant: React.FC = () => {
                           <div className="flex justify-between">
                             <span className="text-gray-600">TVA applicable:</span>
                             <span className={contextAnalysis.vatApplicable ? 'text-green-600' : 'text-gray-600'}>
-                              {contextAnalysis.vatApplicable ? '✓ Oui' : '- Non'}
+                              {contextAnalysis.vatApplicable ? 'Oui' : '- Non'}
                             </span>
                           </div>
                         </div>

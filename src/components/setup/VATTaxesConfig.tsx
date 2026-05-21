@@ -245,7 +245,7 @@ const VATTaxesConfig: React.FC = () => {
             >
               <option value="CEMAC">{getRegionFlag('CEMAC')} Zone CEMAC</option>
               <option value="UEMOA">{getRegionFlag('UEMOA')} Zone UEMOA</option>
-              <option value="OTHER">🌍 Autre région</option>
+              <option value="OTHER">Autre région</option>
             </select>
           </div>
         </div>

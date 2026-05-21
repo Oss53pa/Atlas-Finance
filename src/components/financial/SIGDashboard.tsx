@@ -297,7 +297,7 @@ const SIGDashboard: React.FC = () => {
                 <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
                 <YAxis />
                 <Tooltip formatter={(value: number) => fmt(value)} />
-                <Bar dataKey="value" fill={(entry, index) => entry > 0 ? '#171717' : '#C0322B'} />
+                <Bar radius={[6,6,0,0]} dataKey="value" fill={(entry, index) => entry > 0 ? '#171717' : '#C0322B'} />
                 <Line type="monotone" dataKey="cumulative" stroke="#235A6E" strokeWidth={3} name="Cumul" />
               </ComposedChart>
             </ResponsiveContainer>

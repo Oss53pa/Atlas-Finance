@@ -536,8 +536,8 @@ const ProspectsModule: React.FC = () => {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="taux" fill="#235A6E" name="Taux de conversion %" />
-                <Bar dataKey="nombre" fill="#4E7E8D" name="Nombre de prospects" />
+                <Bar radius={[6,6,0,0]} dataKey="taux" fill="url(#gradPetrol)" name="Taux de conversion %" />
+                <Bar radius={[6,6,0,0]} dataKey="nombre" fill="url(#gradPetrolLight)" name="Nombre de prospects" />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -946,10 +946,10 @@ const ProspectsModule: React.FC = () => {
                   </label>
                   <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     <option value="">Évaluer</option>
-                    <option value="FAIBLE">⭐ Faible</option>
-                    <option value="MOYEN">⭐⭐ Moyen</option>
-                    <option value="ELEVE">⭐⭐⭐ Élevé</option>
-                    <option value="TRES_ELEVE">⭐⭐⭐⭐ Très élevé</option>
+                    <option value="FAIBLE">Faible</option>
+                    <option value="MOYEN">⭐Moyen</option>
+                    <option value="ELEVE">⭐⭐Élevé</option>
+                    <option value="TRES_ELEVE">⭐⭐⭐Très élevé</option>
                   </select>
                 </div>
 

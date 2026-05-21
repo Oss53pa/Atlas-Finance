@@ -118,7 +118,7 @@ export const handlers = [
 
   // Fallback pour routes non mockées
   rest.get('*', (req, res, ctx) => {
-    console.warn(`⚠️ Mock non défini pour: ${req.url.pathname}`);
+    console.warn(`Mock non défini pour: ${req.url.pathname}`);
     return res(ctx.status(404), ctx.json({ error: 'Not found' }));
   }),
 ];

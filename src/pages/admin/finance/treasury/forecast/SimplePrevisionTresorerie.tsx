@@ -49,13 +49,13 @@ export const SimplePrevisionTresorerie: React.FC = () => {
         <div className="card-header bg-info text-white">
           <div className="d-flex justify-content-between align-items-center">
             <h4 className="mb-0">
-              📊 Prévision Trésorerie
+              Prévision Trésorerie
             </h4>
             <button
               className="btn btn-light btn-sm"
               onClick={() => setShowModal(true)}
             >
-              ➕ Nouveau Plan
+              Nouveau Plan
             </button>
           </div>
         </div>
@@ -113,15 +113,15 @@ export const SimplePrevisionTresorerie: React.FC = () => {
                               className="dropdown-item"
                               to={`/admin/finance/treasury/forecast/details/${plan.id}`}
                             >
-                              👁️ Détails
+                              Détails
                             </Link>
                           </li>
                           <li>
-                            <button className="dropdown-item">✏️ Modifier</button>
+                            <button className="dropdown-item">Modifier</button>
                           </li>
                           <li><hr className="dropdown-divider" /></li>
                           <li>
-                            <button className="dropdown-item text-danger">🗑️ Supprimer</button>
+                            <button className="dropdown-item text-danger">Supprimer</button>
                           </li>
                         </ul>
                       </div>
@@ -137,7 +137,7 @@ export const SimplePrevisionTresorerie: React.FC = () => {
             <div className="col-12">
               <div className="card">
                 <div className="card-header">
-                  <h6 className="mb-0">📈 Évolution des Flux Mensuels</h6>
+                  <h6 className="mb-0">Évolution des Flux Mensuels</h6>
                 </div>
                 <div className="card-body">
                   <div className="row">

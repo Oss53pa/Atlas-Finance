@@ -279,13 +279,13 @@ export class TVAValidator {
     let report = '=== RAPPORT DE VALIDATION TVA ===\n\n';
 
     if (result.isValid) {
-      report += '✅ VALIDATION RÉUSSIE\n\n';
+      report += 'VALIDATION RÉUSSIE\n\n';
     } else {
-      report += '❌ VALIDATION ÉCHOUÉE\n\n';
+      report += 'VALIDATION ÉCHOUÉE\n\n';
     }
 
     if (result.errors.length > 0) {
-      report += '🚨 ERREURS:\n';
+      report += 'ERREURS:\n';
       result.errors.forEach((error, i) => {
         report += `${i + 1}. ${error}\n`;
       });
@@ -293,7 +293,7 @@ export class TVAValidator {
     }
 
     if (result.warnings.length > 0) {
-      report += '⚠️  AVERTISSEMENTS:\n';
+      report += 'AVERTISSEMENTS:\n';
       result.warnings.forEach((warning, i) => {
         report += `${i + 1}. ${warning}\n`;
       });
@@ -301,7 +301,7 @@ export class TVAValidator {
     }
 
     if (result.suggestions.length > 0) {
-      report += '💡 SUGGESTIONS:\n';
+      report += 'SUGGESTIONS:\n';
       result.suggestions.forEach((suggestion, i) => {
         report += `${i + 1}. ${suggestion}\n`;
       });

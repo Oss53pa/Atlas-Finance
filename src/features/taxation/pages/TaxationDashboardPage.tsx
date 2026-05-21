@@ -74,13 +74,13 @@ const TaxationDashboardPage: React.FC = () => {
             <h3 className="font-semibold text-gray-900 mb-2">Actions Rapides</h3>
             <div className="space-y-2">
               <button className="w-full text-left px-3 py-2 rounded hover:bg-white/50 transition-colors text-sm">
-                📊 Déclarations TVA
+                Déclarations TVA
               </button>
               <button className="w-full text-left px-3 py-2 rounded hover:bg-white/50 transition-colors text-sm">
-                📅 Échéances Fiscales
+                Échéances Fiscales
               </button>
               <button className="w-full text-left px-3 py-2 rounded hover:bg-white/50 transition-colors text-sm">
-                🧮 Calculs Automatiques
+                Calculs Automatiques
               </button>
             </div>
           </div>

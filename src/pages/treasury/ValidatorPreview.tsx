@@ -174,7 +174,7 @@ const ValidatorPreview: React.FC = () => {
             </div>
             <div>
               <h1 className="text-lg font-bold text-[var(--color-primary)]">
-                📋 Validation Appel de Fonds {fundCallData.reference}
+                Validation Appel de Fonds {fundCallData.reference}
               </h1>
               <p className="text-sm text-[var(--color-text-tertiary)]">
                 Initié par {fundCallData.initiePar} le {fundCallData.date} - Validation externe sécurisée
@@ -225,7 +225,7 @@ const ValidatorPreview: React.FC = () => {
             <div className="space-y-6">
               <div className="bg-white rounded-lg border border-[var(--color-border)] p-6">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="font-semibold text-[var(--color-primary)]">📊 Position des Comptes Avant l'Appel</h3>
+                  <h3 className="font-semibold text-[var(--color-primary)]">Position des Comptes Avant l'Appel</h3>
                   <div className="flex items-center space-x-4 text-sm">
                     <span className="text-[var(--color-text-tertiary)]">Issue: <strong className="text-[var(--color-primary)]">{fundCallData.date}</strong></span>
                     <span className="text-[var(--color-text-tertiary)]">Due: <strong className="text-[var(--color-text-secondary)]">23/05/2025</strong></span>
@@ -233,7 +233,7 @@ const ValidatorPreview: React.FC = () => {
                 </div>
 
                 <div className="space-y-4">
-                  <h4 className="font-medium text-gray-700 mb-4">🏦 NSIA Expense Bank Account Statement</h4>
+                  <h4 className="font-medium text-gray-700 mb-4">NSIA Expense Bank Account Statement</h4>
 
                   <div className="bg-gray-50 rounded-lg p-6" style={{maxHeight: '400px', overflowY: 'auto'}}>
                     {/* Reste du contenu identique... */}
@@ -260,7 +260,7 @@ const ValidatorPreview: React.FC = () => {
 
           {/* Section validation équilibrée */}
           <div className="mt-6 bg-[var(--color-text-secondary)]/10 border border-[var(--color-text-secondary)] rounded-lg p-4">
-            <h4 className="text-sm font-medium text-[var(--color-text-secondary)] mb-3">✅ Votre Validation</h4>
+            <h4 className="text-sm font-medium text-[var(--color-text-secondary)] mb-3">Votre Validation</h4>
 
             <form className="space-y-3">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -268,9 +268,9 @@ const ValidatorPreview: React.FC = () => {
                   <label className="block text-xs text-[var(--color-text-tertiary)] mb-1">Décision *</label>
                   <select className="w-full text-sm px-2 py-1 border border-[var(--color-border)] rounded">
                     <option>Sélectionnez...</option>
-                    <option>✅ Approuver</option>
-                    <option>❌ Rejeter</option>
-                    <option>📝 Demander modification</option>
+                    <option>Approuver</option>
+                    <option>Rejeter</option>
+                    <option>Demander modification</option>
                   </select>
                 </div>
                 <div>
@@ -279,7 +279,7 @@ const ValidatorPreview: React.FC = () => {
                 </div>
                 <div className="flex items-end">
                   <button className="w-full py-1 bg-[var(--color-text-secondary)] text-white rounded text-sm hover:bg-[#404040] transition-colors">
-                    📤 Valider
+                    Valider
                   </button>
                 </div>
               </div>

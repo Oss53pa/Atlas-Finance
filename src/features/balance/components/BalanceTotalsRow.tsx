@@ -65,8 +65,8 @@ export const BalanceTotalsRow: React.FC<BalanceTotalsRowProps> = ({
                 : 'text-red-300'
             }>
               {totals.soldeDebiteur === totals.soldeCrediteur
-                ? '✓ Balance équilibrée'
-                : '⚠ Balance non équilibrée'
+                ? 'Balance équilibrée'
+                : 'Balance non équilibrée'
               }
             </span>
           </div>

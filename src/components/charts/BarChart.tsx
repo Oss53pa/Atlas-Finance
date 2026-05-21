@@ -106,7 +106,7 @@ const BarChart: React.FC<BarChartProps> = ({
 
   return (
     <div style={{ position: 'relative', height: `${height}px`, width: '100%' }}>
-      <Bar data={chartData} options={options} />
+      <Bar radius={[6,6,0,0]} data={chartData} options={options} />
     </div>
   );
 };

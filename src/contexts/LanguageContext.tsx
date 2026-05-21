@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import frTranslations from '../locales/fr.json';
 import { safeStorage } from '../utils/safeStorage';
 
@@ -57,13 +57,13 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     }
   };
 
-  const setLanguage = (newLanguage: Language) => {
+  const setLanguage = useCallback((newLanguage: Language) => {
     setLanguageState(newLanguage);
     safeStorage.set('atlas-fna-language', newLanguage);
-  };
+  }, []);
 
   // Fonction de traduction
-  const t = (key: string, params?: Record<string, string>): string => {
+  const t = useCallback((key: string, params?: Record<string, string>): string => {
     const keys = key.split('.');
     let value: unknown = translations;
 
@@ -89,10 +89,14 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     }
 
     return value;
-  };
+  }, [translations]);
+
+  const contextValue = useMemo(() => ({
+    language, setLanguage, t, translations,
+  }), [language, setLanguage, t, translations]);
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t, translations }}>
+    <LanguageContext.Provider value={contextValue}>
       {children}
     </LanguageContext.Provider>
   );

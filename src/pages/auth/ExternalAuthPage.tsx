@@ -10,6 +10,7 @@ const SSO_TIMEOUT_MS = 12000; // 12 secondes max avant de proposer un fallback m
 const ExternalAuthPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const searchParamsString = searchParams.toString();
   const [status, setStatus] = useState<Status>('loading');
   const [errorMessage, setErrorMessage] = useState('');
   const [slowMode, setSlowMode] = useState(false);
@@ -43,7 +44,7 @@ const ExternalAuthPage: React.FC = () => {
     // Après 5s, on propose déjà l'option manuelle (sans la forcer)
     const slowTimer = setTimeout(() => setSlowMode(true), 5000);
     exchangeToken(token).finally(() => clearTimeout(slowTimer));
-  }, [searchParams]);
+  }, [searchParamsString]);
 
   async function exchangeToken(token: string) {
     try {

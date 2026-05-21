@@ -867,7 +867,7 @@ const IntelligentEntryForm: React.FC<IntelligentEntryFormProps> = ({
             {tvaValidation.isValid && tvaValidation.errors.length === 0 && (
               <div className="p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2">
                 <CheckCircle className="w-5 h-5 text-green-600" />
-                <span className="text-green-700 font-medium">✅ Validation TVA conforme SYSCOHADA</span>
+                <span className="text-green-700 font-medium">Validation TVA conforme SYSCOHADA</span>
               </div>
             )}
           </div>

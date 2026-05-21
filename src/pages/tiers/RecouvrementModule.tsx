@@ -1302,8 +1302,8 @@ Service Contentieux
                       <XAxis dataKey="zone" />
                       <YAxis tickFormatter={(value) => `${value / 1000}k`} />
                       <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                      <Bar dataKey="creances" fill="#C0322B" name="Créances" />
-                      <Bar dataKey="recouvre" fill="#15803D" name="Recouvré" />
+                      <Bar radius={[6,6,0,0]} dataKey="creances" fill="url(#gradRed)" name="Créances" />
+                      <Bar radius={[6,6,0,0]} dataKey="recouvre" fill="url(#gradGreen)" name="Recouvré" />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -1347,11 +1347,11 @@ Service Contentieux
                     <XAxis dataKey="periode" />
                     <YAxis tickFormatter={(value) => `${value / 1000}k`} />
                     <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                    <Bar dataKey="commerce" stackId="a" fill="#235A6E" name="Commerce" />
-                    <Bar dataKey="services" stackId="a" fill="#4E7E8D" name="Services" />
-                    <Bar dataKey="industrie" stackId="a" fill="#4E7E8D" name="Industrie" />
-                    <Bar dataKey="agriculture" stackId="a" fill="#404040" name="Agriculture" />
-                    <Bar dataKey="btp" stackId="a" fill="#404040" name="BTP" />
+                    <Bar radius={[6,6,0,0]} dataKey="commerce" stackId="a" fill="url(#gradPetrol)" name="Commerce" />
+                    <Bar radius={[6,6,0,0]} dataKey="services" stackId="a" fill="url(#gradPetrolLight)" name="Services" />
+                    <Bar radius={[6,6,0,0]} dataKey="industrie" stackId="a" fill="url(#gradPetrolLight)" name="Industrie" />
+                    <Bar radius={[6,6,0,0]} dataKey="agriculture" stackId="a" fill="#404040" name="Agriculture" />
+                    <Bar radius={[6,6,0,0]} dataKey="btp" stackId="a" fill="#404040" name="BTP" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -1384,8 +1384,8 @@ Service Contentieux
                     <YAxis yAxisId="left" tickFormatter={(value) => `${value / 1000}k`} />
                     <YAxis yAxisId="right" orientation="right" domain={[75, 85]} />
                     <Tooltip />
-                    <Bar yAxisId="left" dataKey="creances" fill="#C0322B" fillOpacity={0.3} name="Créances" />
-                    <Bar yAxisId="left" dataKey="recouvre" fill="#15803D" fillOpacity={0.6} name="Recouvré" />
+                    <Bar radius={[6,6,0,0]} yAxisId="left" dataKey="creances" fill="url(#gradRed)" fillOpacity={0.3} name="Créances" />
+                    <Bar radius={[6,6,0,0]} yAxisId="left" dataKey="recouvre" fill="url(#gradGreen)" fillOpacity={0.6} name="Recouvré" />
                     <Line yAxisId="right" type="monotone" dataKey="taux" stroke="#235A6E" strokeWidth={3} name="Taux %" />
                   </ComposedChart>
                 </ResponsiveContainer>
@@ -7093,8 +7093,8 @@ Service Contentieux
                     <YAxis />
                     <Tooltip />
                     <Legend />
-                    <Bar dataKey="taux_succes" fill="#235A6E" name="Taux succès %" />
-                    <Bar dataKey="delai_moyen" fill="#E89A2E" name="Délai (jours)" />
+                    <Bar radius={[6,6,0,0]} dataKey="taux_succes" fill="url(#gradPetrol)" name="Taux succès %" />
+                    <Bar radius={[6,6,0,0]} dataKey="delai_moyen" fill="url(#gradAmber)" name="Délai (jours)" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -8844,7 +8844,7 @@ Service Contentieux
                         {selectedCreance.commercialData.litigesActifs > 0 && (
                           <div className="bg-red-100 border border-red-200 rounded p-2">
                             <span className="text-sm font-medium text-red-800">
-                              ⚠️ {selectedCreance.commercialData.litigesActifs} litige{selectedCreance.commercialData.litigesActifs > 1 ? 's' : ''} actif{selectedCreance.commercialData.litigesActifs > 1 ? 's' : ''}
+                              {selectedCreance.commercialData.litigesActifs} litige{selectedCreance.commercialData.litigesActifs > 1 ? 's' : ''} actif{selectedCreance.commercialData.litigesActifs > 1 ? 's' : ''}
                             </span>
                           </div>
                         )}
@@ -9536,9 +9536,9 @@ Service Contentieux
                                 <h2 style={{ color: '#333', margin: '0', fontSize: '20px' }}>
                                   {selectedTemplateType === 'rappel_amical' && 'Rappel de paiement - Facture en attente'}
                                   {selectedTemplateType === 'relance_ferme' && '2ème Relance - Action requise'}
-                                  {selectedTemplateType === 'dernier_avis' && '⚠️ DERNIER AVIS avant procédure'}
-                                  {selectedTemplateType === 'mise_demeure' && '🔴 MISE EN DEMEURE'}
-                                  {selectedTemplateType === 'pre_contentieux' && '⚖️ TRANSMISSION AU SERVICE CONTENTIEUX'}
+                                  {selectedTemplateType === 'dernier_avis' && 'DERNIER AVIS avant procédure'}
+                                  {selectedTemplateType === 'mise_demeure' && 'MISE EN DEMEURE'}
+                                  {selectedTemplateType === 'pre_contentieux' && 'TRANSMISSION AU SERVICE CONTENTIEUX'}
                                 </h2>
                               </div>
 
@@ -9707,8 +9707,8 @@ Service Contentieux
                                       </ul>
                                       <p style={{ backgroundColor: '#fff3cd', padding: '10px', marginTop: '15px', borderRadius: '5px' }}>
                                         <strong>Pour éviter ces poursuites, contactez immédiatement notre service:</strong><br/>
-                                        ☎️ Tél: +242 06 XXX XX XX<br/>
-                                        ✉️ Email: contentieux@atlasfna.com
+                                        Tél: +242 06 XXX XX XX<br/>
+                                        Email: contentieux@atlasfna.com
                                       </p>
                                     </>
                                   )}
@@ -9727,7 +9727,7 @@ Service Contentieux
                                     fontSize: '14px',
                                     fontWeight: 'bold'
                                   }}>
-                                    💳 Régler maintenant en ligne
+                                    Régler maintenant en ligne
                                   </a>
                                   <p style={{ marginTop: '10px', fontSize: '12px', color: '#666' }}>
                                     Paiement sécurisé par carte bancaire ou virement
@@ -9759,8 +9759,8 @@ Service Contentieux
                               {/* Pied de page */}
                               <div style={{ backgroundColor: 'var(--color-background)', padding: '20px', borderTop: '1px solid #e5e5e5', fontSize: '11px', color: '#666' }}>
                                 <p style={{ margin: '5px 0', fontWeight: 'bold' }}><span className="atlas-brand">Atlas F&A</span> - Solutions de gestion d'entreprise</p>
-                                <p style={{ margin: '5px 0' }}>📍 123 Avenue de la République, Brazzaville, Congo</p>
-                                <p style={{ margin: '5px 0' }}>☎️ +242 06 XXX XX XX | ✉️ contact@atlasfna.com | 🌐 www.atlasfna.com</p>
+                                <p style={{ margin: '5px 0' }}>123 Avenue de la République, Brazzaville, Congo</p>
+                                <p style={{ margin: '5px 0' }}>+242 06 XXX XX XX | contact@atlasfna.com | www.atlasfna.com</p>
                                 <p style={{ margin: '10px 0 5px 0', fontSize: '10px', color: '#999' }}>
                                   Ce message et toutes les pièces jointes sont confidentiels et établis à l'intention exclusive de ses destinataires.
                                 </p>
@@ -10596,7 +10596,7 @@ Service Contentieux
                             <XAxis dataKey="name" />
                             <YAxis />
                             <Tooltip />
-                            <Bar dataKey="value" fill="#235A6E" />
+                            <Bar radius={[6,6,0,0]} dataKey="value" fill="url(#gradPetrol)" />
                           </BarChart>
                         </ResponsiveContainer>
                       </div>

@@ -211,7 +211,7 @@ const FinancialDetailModal: React.FC<ModalProps> = ({
       )}
 
       <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-        <h5 className="font-semibold text-yellow-800 mb-2">💡 Analyse</h5>
+        <h5 className="font-semibold text-yellow-800 mb-2">Analyse</h5>
         <div className="text-sm text-yellow-700 space-y-1">
           {data.comparaison?.variationPourcent && Math.abs(data.comparaison.variationPourcent) > 20 && (
             <p>• Variation significative de {formatPercent(data.comparaison.variationPourcent)} par rapport à l'exercice précédent</p>

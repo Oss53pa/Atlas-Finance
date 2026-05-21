@@ -191,17 +191,17 @@ export class IntelligentResponseGenerator {
     }
 
     const primary = results[0];
-    let message = `🎯 Parfait ! Voici comment ${this.extractAction(query)} :\n\n`;
+    let message = `Parfait ! Voici comment ${this.extractAction(query)} :\n\n`;
 
     if (primary.content.includes('1.')) {
       // Si le contenu a des étapes
       message += primary.content;
     } else {
-      message += `📋 **${primary.title}**\n\n${primary.content}`;
+      message += `**${primary.title}**\n\n${primary.content}`;
     }
 
     if (primary.examples && primary.examples.length > 0) {
-      message += '\n\n💡 **Exemples :**\n';
+      message += '\n\n**Exemples :**\n';
       primary.examples.forEach(ex => {
         message += `• ${ex}\n`;
       });
@@ -226,7 +226,7 @@ export class IntelligentResponseGenerator {
   }
 
   private generateProblemSolvingResponse(query: string, results: KnowledgeEntry[]): IntelligentResponse {
-    let message = '🔧 **Je vais vous aider à résoudre ce problème !**\n\n';
+    let message = '**Je vais vous aider à résoudre ce problème !**\n\n';
 
     if (results.length > 0 && results[0].category === 'Support') {
       message += results[0].content;
@@ -238,12 +238,12 @@ export class IntelligentResponseGenerator {
       message += `4. **Vérifiez votre connexion** internet\n`;
 
       if (results.length > 0) {
-        message += `\n📚 Cela pourrait être lié à : **${results[0].title}**\n`;
+        message += `\nCela pourrait être lié à : **${results[0].title}**\n`;
         message += `${results[0].description}`;
       }
     }
 
-    message += `\n\n💬 Si le problème persiste, décrivez-le moi en détail et je pourrai mieux vous aider !`;
+    message += `\n\nSi le problème persiste, décrivez-le moi en détail et je pourrai mieux vous aider !`;
 
     return {
       message,
@@ -268,7 +268,7 @@ export class IntelligentResponseGenerator {
     }
 
     const destination = results[0];
-    let message = `🧭 **Navigation vers ${destination.title}**\n\n`;
+    let message = `**Navigation vers ${destination.title}**\n\n`;
     message += `Pour y accéder :\n`;
 
     if (destination.navigationPath) {
@@ -280,7 +280,7 @@ export class IntelligentResponseGenerator {
       message += `Cette fonctionnalité se trouve dans le module **${destination.category}**`;
     }
 
-    message += `\n\n📝 **Description :** ${destination.description}`;
+    message += `\n\n**Description :** ${destination.description}`;
 
     return {
       message,
@@ -301,12 +301,12 @@ export class IntelligentResponseGenerator {
     }
 
     const topic = results[0];
-    let message = `📚 **${topic.title}**\n\n`;
+    let message = `**${topic.title}**\n\n`;
     message += `${topic.description}\n\n`;
     message += `**Détails :**\n${topic.content}`;
 
     if (topic.relatedTopics && topic.relatedTopics.length > 0) {
-      message += `\n\n🔗 **Sujets liés :**\n`;
+      message += `\n\n**Sujets liés :**\n`;
       topic.relatedTopics.forEach(t => {
         message += `• ${this.formatTopicName(t)}\n`;
       });
@@ -330,13 +330,13 @@ export class IntelligentResponseGenerator {
       return this.generateNotFoundResponse(query);
     }
 
-    let message = `✨ J'ai trouvé **${results.length} résultat${results.length > 1 ? 's' : ''}** pour votre recherche :\n\n`;
+    let message = `J'ai trouvé **${results.length} résultat${results.length > 1 ? 's' : ''}** pour votre recherche :\n\n`;
 
     results.slice(0, 3).forEach((result, index) => {
       message += `**${index + 1}. ${result.title}**\n`;
       message += `${result.description}\n`;
       if (result.navigationPath) {
-        message += `📍 Chemin : ${result.navigationPath}\n`;
+        message += `Chemin : ${result.navigationPath}\n`;
       }
       message += '\n';
     });
@@ -366,12 +366,12 @@ export class IntelligentResponseGenerator {
       'Contactez le support'
     ];
 
-    let message = `🤔 **Je n'ai pas trouvé d'information exacte pour : "${query}"**\n\n`;
+    let message = `**Je n'ai pas trouvé d'information exacte pour : "${query}"**\n\n`;
     message += `Voici ce que je peux vous proposer :\n\n`;
     message += `• Essayez de reformuler votre question\n`;
     message += `• Utilisez des mots-clés plus spécifiques\n`;
     message += `• Consultez le guide de démarrage\n\n`;
-    message += `💡 **Suggestions de recherche :**\n`;
+    message += `**Suggestions de recherche :**\n`;
 
     // Proposer des modules proches
     const modules = ['Finance', 'Stocks', 'Ventes', 'Achats', 'RH'];
@@ -575,7 +575,7 @@ export class IntelligentResponseGenerator {
       message = message.replace(/\./g, ' !');
     }
     if (!message.includes('✨')) {
-      message = `✨ ${message}`;
+      message = `${message}`;
     }
     return message;
   }
@@ -586,7 +586,7 @@ export class IntelligentResponseGenerator {
   }
 
   private addDetailedExplanation(message: string): string {
-    return `${message}\n\n💡 **Explication détaillée :**\nCette réponse prend en compte vos préférences d'apprentissage et adapte le contenu selon votre niveau d'expertise et vos interactions précédentes.`;
+    return `${message}\n\n**Explication détaillée :**\nCette réponse prend en compte vos préférences d'apprentissage et adapte le contenu selon votre niveau d'expertise et vos interactions précédentes.`;
   }
 
   private convertToStepByStep(message: string): string {
@@ -602,7 +602,7 @@ export class IntelligentResponseGenerator {
       `${index + 1}. ${sentence.trim()}`
     ).join('\n');
 
-    return `📋 **Étapes à suivre :**\n${steps}`;
+    return `**Étapes à suivre :**\n${steps}`;
   }
 
   // Méthodes publiques pour l'enregistrement des interactions

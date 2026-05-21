@@ -22,7 +22,7 @@ const FinancialStatementsIndexPage: React.FC = () => {
         {/* Header unifié */}
         <SectionHeader
           title="États Financiers SYSCOHADA"
-          subtitle="📊 États réglementaires conformes OHADA 2017"
+          subtitle="États réglementaires conformes OHADA 2017"
           icon={FileText}
         />
 

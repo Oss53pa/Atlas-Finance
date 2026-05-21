@@ -887,11 +887,11 @@ const FournisseursModule: React.FC = () => {
                       <YAxis type="category" dataKey="fournisseurCode" width={80} />
                       <Tooltip formatter={(value) => formatCurrency(value as number)} />
                       <Legend />
-                      <Bar dataKey="nonEchu" stackId="a" fill="#15803D" name="Non Échu" />
-                      <Bar dataKey="echu0_30" stackId="a" fill="#E89A2E" name="0-30j" />
-                      <Bar dataKey="echu31_60" stackId="a" fill="#E89A2E" name="31-60j" />
-                      <Bar dataKey="echu61_90" stackId="a" fill="#C0322B" name="61-90j" />
-                      <Bar dataKey="echuPlus90" stackId="a" fill="#C0322B" name="+90j" />
+                      <Bar radius={[6,6,0,0]} dataKey="nonEchu" stackId="a" fill="url(#gradGreen)" name="Non Échu" />
+                      <Bar radius={[6,6,0,0]} dataKey="echu0_30" stackId="a" fill="url(#gradAmber)" name="0-30j" />
+                      <Bar radius={[6,6,0,0]} dataKey="echu31_60" stackId="a" fill="url(#gradAmber)" name="31-60j" />
+                      <Bar radius={[6,6,0,0]} dataKey="echu61_90" stackId="a" fill="url(#gradRed)" name="61-90j" />
+                      <Bar radius={[6,6,0,0]} dataKey="echuPlus90" stackId="a" fill="url(#gradRed)" name="+90j" />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -1114,7 +1114,7 @@ const FournisseursModule: React.FC = () => {
                         <div className="p-3 bg-red-50 rounded-lg border-l-4 border-red-500">
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="font-medium text-red-800">🚨 Paiements urgents</p>
+                              <p className="font-medium text-red-800">Paiements urgents</p>
                               <p className="text-sm text-red-700">
                                 {balanceAgeeData.filter(i => i.echuPlus90 > 0).length} fournisseurs avec dettes +90 jours
                               </p>
@@ -1129,7 +1129,7 @@ const FournisseursModule: React.FC = () => {
                         <div className="p-3 bg-orange-50 rounded-lg border-l-4 border-orange-500">
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="font-medium text-orange-800">⚠️ Négociations délais</p>
+                              <p className="font-medium text-orange-800">Négociations délais</p>
                               <p className="text-sm text-orange-700">
                                 {balanceAgeeData.filter(i => i.echu61_90 > 0).length} fournisseurs avec dettes 61-90 jours
                               </p>
@@ -1144,7 +1144,7 @@ const FournisseursModule: React.FC = () => {
                         <div className="p-3 bg-yellow-50 rounded-lg border-l-4 border-yellow-500">
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="font-medium text-yellow-800">📅 Échéancier à établir</p>
+                              <p className="font-medium text-yellow-800">Échéancier à établir</p>
                               <p className="text-sm text-yellow-700">
                                 {balanceAgeeData.filter(i => i.echu31_60 > 0).length} fournisseurs avec dettes 31-60 jours
                               </p>
@@ -1159,7 +1159,7 @@ const FournisseursModule: React.FC = () => {
                         <div className="p-3 bg-green-50 rounded-lg border-l-4 border-green-500">
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="font-medium text-green-800">💰 Escomptes disponibles</p>
+                              <p className="font-medium text-green-800">Escomptes disponibles</p>
                               <p className="text-sm text-green-700">
                                 {fournisseurs.filter(f => f.escompte && f.escompte > 0).length} fournisseurs avec escompte disponible
                               </p>
@@ -1174,7 +1174,7 @@ const FournisseursModule: React.FC = () => {
                         <div className="p-3 bg-primary-50 rounded-lg border-l-4 border-primary-500">
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="font-medium text-primary-800">📊 Provisions à comptabiliser</p>
+                              <p className="font-medium text-primary-800">Provisions à comptabiliser</p>
                               <p className="text-sm text-primary-700">
                                 {formatCurrency(totauxBalanceAgee.provision)} selon règles SYSCOHADA
                               </p>

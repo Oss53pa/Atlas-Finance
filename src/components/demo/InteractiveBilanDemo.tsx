@@ -132,7 +132,7 @@ const InteractiveBilanDemo: React.FC<{ onClose: () => void }> = ({ onClose }) =>
         </div>
         <div className={`rounded-lg p-3 text-center ${isBalanced ? 'bg-green-50' : 'bg-red-50'}`}>
           <p className="text-xs text-gray-500">Équilibre</p>
-          <p className={`text-lg font-bold ${isBalanced ? 'text-green-700' : 'text-red-700'}`}>{isBalanced ? '✓ Équilibré' : 'Écart'}</p>
+          <p className={`text-lg font-bold ${isBalanced ? 'text-green-700' : 'text-red-700'}`}>{isBalanced ? 'Équilibré' : 'Écart'}</p>
         </div>
       </div>
 

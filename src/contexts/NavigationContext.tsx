@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 
 interface NavigationContextType {
   isMobile: boolean;
@@ -39,26 +39,26 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const toggleMobileSidebar = () => {
-    setMobileSidebarOpen(!mobileSidebarOpen);
-    if (!mobileSidebarOpen) {
-      setMainSidebarOpen(true);
-    }
-  };
+  const toggleMobileSidebar = useCallback(() => {
+    setMobileSidebarOpen(prev => {
+      if (!prev) setMainSidebarOpen(true);
+      return !prev;
+    });
+  }, []);
+
+  const value = useMemo<NavigationContextType>(() => ({
+    isMobile,
+    mainSidebarOpen,
+    subSidebarOpen,
+    mobileSidebarOpen,
+    setMainSidebarOpen,
+    setSubSidebarOpen,
+    setMobileSidebarOpen,
+    toggleMobileSidebar,
+  }), [isMobile, mainSidebarOpen, subSidebarOpen, mobileSidebarOpen, toggleMobileSidebar]);
 
   return (
-    <NavigationContext.Provider
-      value={{
-        isMobile,
-        mainSidebarOpen,
-        subSidebarOpen,
-        mobileSidebarOpen,
-        setMainSidebarOpen,
-        setSubSidebarOpen,
-        setMobileSidebarOpen,
-        toggleMobileSidebar,
-      }}
-    >
+    <NavigationContext.Provider value={value}>
       {children}
     </NavigationContext.Provider>
   );

@@ -65,14 +65,6 @@ const RBACGuard: React.FC<RBACGuardProps> = ({
   const { user, isAuthenticated, loading } = useAuth();
   const [supabaseSession, setSupabaseSession] = useState<boolean | null>(null);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[200px]">
-        <div className="w-6 h-6 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
-
   // Demo mode : laisser passer sans auth (sessionStorage flag)
   const isDemoMode = typeof sessionStorage !== 'undefined' && sessionStorage.getItem('atlas-demo-mode') === '1';
 
@@ -92,6 +84,7 @@ const RBACGuard: React.FC<RBACGuardProps> = ({
 
   // En production avec Supabase : vérifier la session direct chez Supabase
   // pour éviter de redirect alors que l'auth est en cours d'init.
+  // IMPORTANT: All hooks must be called before any conditional return.
   useEffect(() => {
     if (!isSupabaseConfigured || !hasPersistedSupabaseSession) {
       setSupabaseSession(false);
@@ -104,9 +97,12 @@ const RBACGuard: React.FC<RBACGuardProps> = ({
     return () => { cancelled = true; };
   }, [hasPersistedSupabaseSession]);
 
-  // Fast-path : auth en cours de chargement → on évite tout redirect (spinner)
   if (loading) {
-    return null;
+    return (
+      <div className="flex items-center justify-center min-h-[200px]">
+        <div className="w-6 h-6 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
   }
 
   // Si on attend la vérif Supabase et qu'on a une session persistée, attendre

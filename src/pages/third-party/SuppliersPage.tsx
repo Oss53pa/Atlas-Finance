@@ -343,11 +343,11 @@ const SuppliersPage: React.FC = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">Toutes les évaluations</SelectItem>
-                <SelectItem value="5">⭐⭐⭐⭐⭐ (5/5)</SelectItem>
-                <SelectItem value="4">⭐⭐⭐⭐ (4/5)</SelectItem>
-                <SelectItem value="3">⭐⭐⭐ (3/5)</SelectItem>
-                <SelectItem value="2">⭐⭐ (2/5)</SelectItem>
-                <SelectItem value="1">⭐ (1/5)</SelectItem>
+                <SelectItem value="5">⭐⭐⭐⭐(5/5)</SelectItem>
+                <SelectItem value="4">⭐⭐⭐(4/5)</SelectItem>
+                <SelectItem value="3">⭐⭐(3/5)</SelectItem>
+                <SelectItem value="2">⭐(2/5)</SelectItem>
+                <SelectItem value="1">(1/5)</SelectItem>
               </SelectContent>
             </Select>
           </div>

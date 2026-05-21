@@ -15,7 +15,7 @@ export const DiagnosticPanel: React.FC = () => {
     const results: string[] = [];
 
     // Test 1: React est chargé
-    results.push(typeof React !== 'undefined' ? '✅ React chargé' : '❌ React non chargé');
+    results.push(typeof React !== 'undefined' ? 'React chargé' : 'React non chargé');
 
     // Test 2: Z-index
     const highZElements = Array.from(document.querySelectorAll('*'))
@@ -23,7 +23,7 @@ export const DiagnosticPanel: React.FC = () => {
         const z = window.getComputedStyle(el).zIndex;
         return z !== 'auto' && parseInt(z) > 1000;
       });
-    results.push(`✅ ${highZElements.length} éléments avec z-index > 1000`);
+    results.push(`${highZElements.length} éléments avec z-index > 1000`);
 
     // Test 3: Modals dans le DOM
     const modals = document.querySelectorAll('[role="dialog"]');
@@ -39,7 +39,7 @@ export const DiagnosticPanel: React.FC = () => {
       const style = window.getComputedStyle(btn);
       return style.pointerEvents !== 'none';
     });
-    results.push(`✅ ${clickableButtons.length}/${buttons.length} boutons cliquables`);
+    results.push(`${clickableButtons.length}/${buttons.length} boutons cliquables`);
 
     // Test 6: Erreurs dans la console
     results.push('ℹ️ Vérifiez la console pour les erreurs JavaScript');
@@ -53,7 +53,7 @@ export const DiagnosticPanel: React.FC = () => {
     setTimeout(() => {
       const modalInDOM = document.querySelector('[role="dialog"]');
       if (!modalInDOM) {
-        toast('❌ Le modal ne s\'affiche pas dans le DOM!\nVérifiez la console pour plus de détails.');
+        toast('Le modal ne s\'affiche pas dans le DOM!\nVérifiez la console pour plus de détails.');
       }
     }, 100);
   };
@@ -83,15 +83,15 @@ export const DiagnosticPanel: React.FC = () => {
 
         <div className="space-y-3">
           <Button onClick={runDiagnostics} variant="outline" className="w-full">
-            🔍 Exécuter les diagnostics
+            Exécuter les diagnostics
           </Button>
 
           <Button onClick={testModal} variant="outline" className="w-full">
-            🧪 Tester un modal
+            Tester un modal
           </Button>
 
           <Button onClick={checkZIndex} variant="outline" className="w-full">
-            📊 Vérifier les z-index
+            Vérifier les z-index
           </Button>
 
           <Button
@@ -101,7 +101,7 @@ export const DiagnosticPanel: React.FC = () => {
             variant="outline"
             className="w-full"
           >
-            🔬 Inspecter les z-index
+            Inspecter les z-index
           </Button>
         </div>
 
@@ -120,7 +120,7 @@ export const DiagnosticPanel: React.FC = () => {
         )}
 
         <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded text-sm">
-          <p className="font-medium mb-2">💡 Instructions:</p>
+          <p className="font-medium mb-2">Instructions:</p>
           <ol className="list-decimal list-inside space-y-1 text-blue-800">
             <li>Cliquez sur "Exécuter les diagnostics"</li>
             <li>Cliquez sur "Tester un modal"</li>
@@ -136,7 +136,7 @@ export const DiagnosticPanel: React.FC = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center">
               <CheckCircle className="mr-2 h-5 w-5 text-green-500" />
-              ✅ Le Modal Fonctionne !
+              Le Modal Fonctionne !
             </DialogTitle>
           </DialogHeader>
           <div className="py-4 space-y-3">
@@ -146,10 +146,10 @@ export const DiagnosticPanel: React.FC = () => {
             <div className="p-3 bg-green-50 border border-green-200 rounded text-sm">
               <p className="font-medium mb-2">État du modal:</p>
               <ul className="space-y-1">
-                <li>✅ Le modal s'est ouvert</li>
-                <li>✅ Le backdrop est visible</li>
-                <li>✅ Le z-index est correct</li>
-                <li>✅ Le contenu est affiché</li>
+                <li>Le modal s'est ouvert</li>
+                <li>Le backdrop est visible</li>
+                <li>Le z-index est correct</li>
+                <li>Le contenu est affiché</li>
               </ul>
             </div>
             <Button onClick={() => setTestModalOpen(false)} className="w-full">

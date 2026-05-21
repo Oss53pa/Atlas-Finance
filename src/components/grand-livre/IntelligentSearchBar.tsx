@@ -306,10 +306,10 @@ const IntelligentSearchBar: React.FC<IntelligentSearchBarProps> = ({
           {/* Pied du panneau */}
           <div className="px-4 py-2 border-t bg-gray-50 text-xs text-gray-700">
             <div className="flex justify-between items-center">
-              <span>💡 La recherche IA s'améliore avec vos habitudes</span>
+              <span>La recherche IA s'améliore avec vos habitudes</span>
               <div className="flex items-center space-x-2">
                 <span>Performance:</span>
-                <span className="text-green-600 font-medium">⚡ &lt; 1s</span>
+                <span className="text-green-600 font-medium">&lt; 1s</span>
               </div>
             </div>
           </div>

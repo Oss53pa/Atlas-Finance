@@ -550,20 +550,20 @@ const CompanySetupWizard: React.FC = () => {
                             {...field}
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                           >
-                            <option value="Cameroun">🇨🇲 Cameroun</option>
-                            <option value="Gabon">🇬🇦 Gabon</option>
-                            <option value="Tchad">🇹🇩 Tchad</option>
-                            <option value="Centrafrique">🇨🇫 République Centrafricaine</option>
-                            <option value="Congo">🇨🇬 République du Congo</option>
-                            <option value="Guinée Équatoriale">🇬🇶 Guinée Équatoriale</option>
-                            <option value="Côte d'Ivoire">🇨🇮 Côte d'Ivoire</option>
-                            <option value="Sénégal">🇸🇳 Sénégal</option>
-                            <option value="Mali">🇲🇱 Mali</option>
-                            <option value="Burkina Faso">🇧🇫 Burkina Faso</option>
-                            <option value="Niger">🇳🇪 Niger</option>
-                            <option value="Bénin">🇧🇯 Bénin</option>
-                            <option value="Togo">🇹🇬 Togo</option>
-                            <option value="Guinée-Bissau">🇬🇼 Guinée-Bissau</option>
+                            <option value="Cameroun">🇨Cameroun</option>
+                            <option value="Gabon">🇬Gabon</option>
+                            <option value="Tchad">🇹Tchad</option>
+                            <option value="Centrafrique">🇨République Centrafricaine</option>
+                            <option value="Congo">🇨République du Congo</option>
+                            <option value="Guinée Équatoriale">🇬Guinée Équatoriale</option>
+                            <option value="Côte d'Ivoire">🇨Côte d'Ivoire</option>
+                            <option value="Sénégal">🇸Sénégal</option>
+                            <option value="Mali">🇲Mali</option>
+                            <option value="Burkina Faso">🇧Burkina Faso</option>
+                            <option value="Niger">🇳Niger</option>
+                            <option value="Bénin">🇧Bénin</option>
+                            <option value="Togo">🇹Togo</option>
+                            <option value="Guinée-Bissau">🇬Guinée-Bissau</option>
                           </select>
                         )}
                       />
@@ -765,7 +765,7 @@ const CompanySetupWizard: React.FC = () => {
                       {watchedValues.multiEtablissements && (
                         <div className="bg-[var(--color-surface-hover)] border border-[var(--color-primary)] rounded-lg p-4">
                           <p className="text-sm text-[var(--color-primary)] font-medium mb-2">
-                            🏢 Mode Multi-établissements activé
+                            Mode Multi-établissements activé
                           </p>
                           <p className="text-xs text-[var(--color-primary)]">
                             Vous pourrez configurer vos différents sites après cette étape.

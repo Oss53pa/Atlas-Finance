@@ -1181,8 +1181,8 @@ const ClientDetailView: React.FC = () => {
                   <YAxis />
                   <Tooltip formatter={(value, name) => name === 'ca' ? formatCurrency(value as number) : value} />
                   <Legend />
-                  <Bar dataKey="ca" fill="#235A6E" name="CA (FCFA)" />
-                  <Bar dataKey="commandes" fill="#4E7E8D" name="Nb Commandes" />
+                  <Bar radius={[6,6,0,0]} dataKey="ca" fill="url(#gradPetrol)" name="CA (FCFA)" />
+                  <Bar radius={[6,6,0,0]} dataKey="commandes" fill="url(#gradPetrolLight)" name="Nb Commandes" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -1333,7 +1333,7 @@ const ClientDetailView: React.FC = () => {
               <div className="space-y-3">
                 <div className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded cursor-pointer">
                   <Folder className="w-5 h-5 text-[var(--color-primary)]" />
-                  <span className="text-sm font-medium">📁 Contrats</span>
+                  <span className="text-sm font-medium">Contrats</span>
                   <span className="text-xs text-[var(--color-text-secondary)] ml-auto">(8)</span>
                 </div>
                 <div className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded cursor-pointer ml-4">
@@ -1347,7 +1347,7 @@ const ClientDetailView: React.FC = () => {
 
                 <div className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded cursor-pointer">
                   <Folder className="w-5 h-5 text-[var(--color-primary)]" />
-                  <span className="text-sm font-medium">📁 Factures</span>
+                  <span className="text-sm font-medium">Factures</span>
                   <span className="text-xs text-[var(--color-text-secondary)] ml-auto">(12)</span>
                 </div>
                 <div className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded cursor-pointer ml-4">
@@ -1361,7 +1361,7 @@ const ClientDetailView: React.FC = () => {
 
                 <div className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded cursor-pointer">
                   <Folder className="w-5 h-5 text-[var(--color-primary)]" />
-                  <span className="text-sm font-medium">📁 Juridique</span>
+                  <span className="text-sm font-medium">Juridique</span>
                   <span className="text-xs text-[var(--color-text-secondary)] ml-auto">(4)</span>
                 </div>
                 <div className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded cursor-pointer ml-4">
@@ -1375,7 +1375,7 @@ const ClientDetailView: React.FC = () => {
 
                 <div className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded cursor-pointer">
                   <Folder className="w-5 h-5 text-[var(--color-primary)]" />
-                  <span className="text-sm font-medium">📁 Correspondances</span>
+                  <span className="text-sm font-medium">Correspondances</span>
                   <span className="text-xs text-[var(--color-text-secondary)] ml-auto">(4)</span>
                 </div>
               </div>

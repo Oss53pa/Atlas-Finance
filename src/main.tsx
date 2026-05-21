@@ -26,14 +26,14 @@ if (SENTRY_DSN) {
     },
   });
 }
-// ✅ CHARGEMENT SYNCHRONE DES CSS - AVANT tout le reste
+// CHARGEMENT SYNCHRONE DES CSS - AVANT tout le reste
 import './styles/base.css'
 import './index.css'
 
 // DEBUG - Test des providers un par un
-// import App from './App.debug1'  // Test 1 : LanguageProvider seul ✅ OK
-// import App from './App.debug2'  // Test 2 : + ThemeProvider ✅ OK
-// import App from './App.debug3'  // Test 3 : + QueryClient ✅ OK
+// import App from './App.debug1'  // Test 1 : LanguageProvider seul OK
+// import App from './App.debug2'  // Test 2 : + ThemeProvider OK
+// import App from './App.debug3'  // Test 3 : + QueryClient OK
 // import App from './App.debug4'  // Test 4 : + AuthProvider SANS useEffect
 // import App from './App.debug6'  // Test 6 : + AuthProvider SANS TAILWIND (styles inline)
 // import App from './App.debug8'  // Test 8 : Loader caché depuis React
@@ -59,7 +59,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   </HelmetProvider>,
 )
 
-// ✅ Le loader sera caché depuis le composant App après le premier rendu complet
+// Le loader sera caché depuis le composant App après le premier rendu complet
 // (Pas de hideLoader ici pour Test 8)
 
 // ── Service Worker kill switch — ONE-SHOT ──────────────────────────

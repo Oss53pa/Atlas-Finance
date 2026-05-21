@@ -547,7 +547,7 @@ const ReconciliationManager: React.FC<ReconciliationManagerProps> = ({
                         </p>
                         <p className="text-sm text-gray-600">
                           Solde: {formatCurrency(calculateSelectedBalance())}
-                          {isBalanced ? ' ✓ Équilibré' : ' ✗ Déséquilibré'}
+                          {isBalanced ? ' Équilibré' : ' Déséquilibré'}
                         </p>
                       </div>
                     </div>

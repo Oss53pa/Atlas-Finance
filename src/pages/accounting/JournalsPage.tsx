@@ -231,7 +231,7 @@ const JournalsPage: React.FC = () => {
   const tabs = [
     { id: 'dashboard', label: t('navigation.dashboard'), icon: BarChart3 },
     { id: 'journaux', label: t('navigation.journals'), icon: BookOpen },
-    ...(selectedJournal ? [{ id: 'journal-view', label: `📚 ${selectedJournal.code}`, icon: Eye }] : [])
+    ...(selectedJournal ? [{ id: 'journal-view', label: `${selectedJournal.code}`, icon: Eye }] : [])
   ];
 
   // Journaux calculés depuis les données réelles
@@ -516,7 +516,7 @@ const JournalsPage: React.FC = () => {
               {/* Header avec switch */}
               <div className="bg-white rounded-lg border border-[var(--color-border)] p-4">
                 <div className="flex items-center justify-between">
-                  <h2 className="font-semibold text-[var(--color-primary)]">📚 Gestion des Journaux</h2>
+                  <h2 className="font-semibold text-[var(--color-primary)]">Gestion des Journaux</h2>
                   <div className="flex items-center space-x-3">
                     {/* Switch vue */}
                     <div className="flex items-center bg-[var(--color-surface-hover)] rounded-lg p-1">

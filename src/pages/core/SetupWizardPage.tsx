@@ -858,10 +858,10 @@ const SetupWizardPage: React.FC = () => {
               <CardTitle className="text-lg">Imports Programmés</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <div><strong>Plan Comptable:</strong> {formData.import.importPlanComptable ? '✓ Fichier sélectionné' : '✗ Aucun import'}</div>
-              <div><strong>Balance:</strong> {formData.import.importBalance ? '✓ Fichier sélectionné' : '✗ Aucun import'}</div>
-              <div><strong>Tiers:</strong> {formData.import.importTiers ? '✓ Fichier sélectionné' : '✗ Aucun import'}</div>
-              <div><strong>Immobilisations:</strong> {formData.import.importImmobilisations ? '✓ Fichier sélectionné' : '✗ Aucun import'}</div>
+              <div><strong>Plan Comptable:</strong> {formData.import.importPlanComptable ? 'Fichier sélectionné' : 'Aucun import'}</div>
+              <div><strong>Balance:</strong> {formData.import.importBalance ? 'Fichier sélectionné' : 'Aucun import'}</div>
+              <div><strong>Tiers:</strong> {formData.import.importTiers ? 'Fichier sélectionné' : 'Aucun import'}</div>
+              <div><strong>Immobilisations:</strong> {formData.import.importImmobilisations ? 'Fichier sélectionné' : 'Aucun import'}</div>
             </CardContent>
           </Card>
         </div>

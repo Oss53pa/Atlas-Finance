@@ -100,8 +100,8 @@ const AssetsClassificationSettings: React.FC = () => {
                 et comptes comptables lors de la capitalisation des immobilisations.
               </p>
               <div className="flex items-center gap-4 text-xs text-[var(--color-text-secondary)]">
-                <span>📊 {classifications.length} catégories configurées</span>
-                <span>🔗 Connexion automatique avec modules Comptabilité et Immobilisations</span>
+                <span>{classifications.length} catégories configurées</span>
+                <span>Connexion automatique avec modules Comptabilité et Immobilisations</span>
               </div>
             </div>
           </div>

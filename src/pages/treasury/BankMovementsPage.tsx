@@ -24,9 +24,9 @@ const BankMovementsPage: React.FC = () => {
 
   // Scénarios de prévision
   const forecastScenarios = [
-    { id: 'optimiste', name: '📈 Optimiste', multiplier: 1.3, color: 'text-green-600' },
-    { id: 'realiste', name: '📊 Réaliste', multiplier: 1.0, color: 'text-[var(--color-primary)]' },
-    { id: 'pessimiste', name: '📉 Pessimiste', multiplier: 0.7, color: 'text-red-600' }
+    { id: 'optimiste', name: 'Optimiste', multiplier: 1.3, color: 'text-green-600' },
+    { id: 'realiste', name: 'Réaliste', multiplier: 1.0, color: 'text-[var(--color-primary)]' },
+    { id: 'pessimiste', name: 'Pessimiste', multiplier: 0.7, color: 'text-red-600' }
   ];
 
   // Comptes de trésorerie dynamiques depuis les écritures comptables
@@ -124,7 +124,7 @@ const BankMovementsPage: React.FC = () => {
       <div className="border-b border-gray-200 pb-3">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-bold text-[var(--color-text-primary)]">💰 Mouvements Bancaires</h1>
+            <h1 className="text-lg font-bold text-[var(--color-text-primary)]">Mouvements Bancaires</h1>
             <p className="text-sm text-[var(--color-text-secondary)]">Gestion des flux de trésorerie</p>
           </div>
           <div className="flex items-center space-x-3">
@@ -140,7 +140,7 @@ const BankMovementsPage: React.FC = () => {
                     : 'bg-gray-100 text-gray-600'
                 }`}
               >
-                {autoRefresh ? '🔄 Auto ON' : '⏸️ Auto OFF'}
+                {autoRefresh ? 'Auto ON' : '⏸️ Auto OFF'}
               </button>
               <button
                 onClick={manualRefresh}
@@ -182,7 +182,7 @@ const BankMovementsPage: React.FC = () => {
           <div className="bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-text-tertiary)] rounded-lg p-4 text-white shadow-lg">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-bold mb-1">📈 Dashboard CashFlow</h2>
+                <h2 className="text-lg font-bold mb-1">Dashboard CashFlow</h2>
                 <p className="text-white/80 text-sm">Vue d'ensemble en temps réel</p>
               </div>
               <div>
@@ -206,7 +206,7 @@ const BankMovementsPage: React.FC = () => {
             <div className="lg:col-span-2">
               <div className="bg-white rounded-lg border border-[var(--color-border)] shadow-sm">
                 <div className="border-b border-[var(--color-border)] p-4 bg-gradient-to-r from-[var(--color-text-secondary)]/10 to-[var(--color-primary)]/10">
-                  <h3 className="text-lg font-semibold text-[var(--color-primary)]">📊 Trend Analysis & Dernières Transactions</h3>
+                  <h3 className="text-lg font-semibold text-[var(--color-primary)]">Trend Analysis & Dernières Transactions</h3>
                 </div>
                 <div className="overflow-hidden rounded-lg border border-[var(--color-border)]">
                   <table className="w-full">
@@ -250,7 +250,7 @@ const BankMovementsPage: React.FC = () => {
             <div>
               <div className="bg-white rounded-lg border border-[var(--color-border)] shadow-sm">
                 <div className="border-b border-[var(--color-border)] p-4 bg-gradient-to-r from-[var(--color-text-tertiary)]/10 to-[var(--color-text-secondary)]/10">
-                  <h3 className="text-lg font-semibold text-[var(--color-primary)]">📊 Overview</h3>
+                  <h3 className="text-lg font-semibold text-[var(--color-primary)]">Overview</h3>
                 </div>
                 <div className="p-6">
                   {/* Carte bancaire élégante */}
@@ -381,7 +381,7 @@ const BankMovementsPage: React.FC = () => {
           <div className="bg-white rounded-lg border border-[var(--color-border)] shadow-sm">
             <div className="border-b border-[var(--color-border)] p-4 bg-gradient-to-r from-[var(--color-text-secondary)]/10 to-[var(--color-text-tertiary)]/10">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-[var(--color-primary)]">🔮 Prévision de Trésorerie Globale</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-primary)]">Prévision de Trésorerie Globale</h3>
                 <div>
                   <label className="block text-xs text-[#404040] mb-1">Scénario de prévision :</label>
                   <select
@@ -493,7 +493,7 @@ const BankMovementsPage: React.FC = () => {
       {/* Journal */}
       {activeTab === 'journal' && (
         <div className="text-center py-12">
-          <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-2">💵 Journal Bancaire</h3>
+          <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-2">Journal Bancaire</h3>
           <p className="text-[var(--color-text-secondary)]">Contenu du journal bancaire à développer</p>
         </div>
       )}
@@ -503,7 +503,7 @@ const BankMovementsPage: React.FC = () => {
         <div className="space-y-6">
           <div className="bg-white border border-gray-200 rounded-lg p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">📈 Banking Sums Up</h2>
+              <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Banking Sums Up</h2>
               <select className="px-3 py-1 border border-gray-300 rounded text-sm">
                 <option>[Tous les comptes]</option>
               </select>
@@ -511,7 +511,7 @@ const BankMovementsPage: React.FC = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div>
-                <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">📅 Daily for selected month</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Daily for selected month</h3>
                 <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
                   <table className="w-full">
                     <thead className="bg-gray-50">
@@ -572,7 +572,7 @@ const BankMovementsPage: React.FC = () => {
               </div>
 
               <div>
-                <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">📊 Monthly for financial year</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Monthly for financial year</h3>
                 <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
                   <table className="w-full">
                     <thead className="bg-gray-50">
@@ -635,7 +635,7 @@ const BankMovementsPage: React.FC = () => {
           <div className="bg-white rounded-lg p-6 w-full max-w-4xl mx-4 max-h-[80vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
-                📋 Détail des Opérations - {selectedOperations.date}
+                Détail des Opérations - {selectedOperations.date}
               </h3>
               <button
                 onClick={() => setShowOperationsModal(false)}
@@ -674,7 +674,7 @@ const BankMovementsPage: React.FC = () => {
 
             <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
               <div className="p-4 border-b border-gray-200 bg-gray-50">
-                <h4 className="font-medium text-[var(--color-text-primary)]">📊 Opérations de la période</h4>
+                <h4 className="font-medium text-[var(--color-text-primary)]">Opérations de la période</h4>
               </div>
 
               <table className="w-full">

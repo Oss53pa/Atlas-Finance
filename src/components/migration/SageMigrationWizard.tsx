@@ -489,7 +489,7 @@ const SageMigrationWizard: React.FC<SageMigrationWizardProps> = ({
                   </label>
                   {selectedFiles.chart_of_accounts && (
                     <p className="text-sm text-green-600 mt-2">
-                      ✓ {selectedFiles.chart_of_accounts.name}
+                      {selectedFiles.chart_of_accounts.name}
                     </p>
                   )}
                 </div>
@@ -518,7 +518,7 @@ const SageMigrationWizard: React.FC<SageMigrationWizardProps> = ({
                   </label>
                   {selectedFiles.journal_entries && (
                     <p className="text-sm text-green-600 mt-2">
-                      ✓ {selectedFiles.journal_entries.name}
+                      {selectedFiles.journal_entries.name}
                     </p>
                   )}
                 </div>
@@ -547,7 +547,7 @@ const SageMigrationWizard: React.FC<SageMigrationWizardProps> = ({
                   </label>
                   {selectedFiles.balance && (
                     <p className="text-sm text-green-600 mt-2">
-                      ✓ {selectedFiles.balance.name}
+                      {selectedFiles.balance.name}
                     </p>
                   )}
                 </div>
@@ -576,7 +576,7 @@ const SageMigrationWizard: React.FC<SageMigrationWizardProps> = ({
                   </label>
                   {selectedFiles.customers && (
                     <p className="text-sm text-green-600 mt-2">
-                      ✓ {selectedFiles.customers.name}
+                      {selectedFiles.customers.name}
                     </p>
                   )}
                 </div>

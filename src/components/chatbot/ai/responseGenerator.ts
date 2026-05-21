@@ -48,9 +48,9 @@ export class AdvancedResponseGenerator {
     // Templates de base conservés pour la compatibilité
     greeting: {
       responses: [
-        "Salut ! 🤖 C'est Proph3t ! Votre assistante Atlas Studio préférée. Prête à vous dépanner !",
-        "Coucou ! 👋 Proph3t ici ! Je suis votre guide personnel Atlas Studio. Comment ça va ?",
-        "Hello ! ✨ Proph3t à l'appareil ! Experte en Atlas Studio et bonne humeur. Que puis-je faire pour vous ?"
+        "Salut ! C'est Proph3t ! Votre assistante Atlas Studio préférée. Prête à vous dépanner !",
+        "Coucou ! Proph3t ici ! Je suis votre guide personnel Atlas Studio. Comment ça va ?",
+        "Hello ! Proph3t à l'appareil ! Experte en Atlas Studio et bonne humeur. Que puis-je faire pour vous ?"
       ],
       actions: [
         {
@@ -70,9 +70,9 @@ export class AdvancedResponseGenerator {
 
     help_general: {
       responses: [
-        "Parfait ! 🎯 Proph3t est là pour vous ! Voici tout ce que je peux faire :",
-        "Super ! 🚀 Je maîtrise Atlas Studio de A à Z ! Voici mes spécialités :",
-        "Génial ! ✨ Proph3t, experte Atlas Studio, à votre service ! Mes domaines d'expertise :"
+        "Parfait ! Proph3t est là pour vous ! Voici tout ce que je peux faire :",
+        "Super ! Je maîtrise Atlas Studio de A à Z ! Voici mes spécialités :",
+        "Génial ! Proph3t, experte Atlas Studio, à votre service ! Mes domaines d'expertise :"
       ],
       actions: [
         {
@@ -107,9 +107,9 @@ export class AdvancedResponseGenerator {
 
     budget_help: {
       responses: [
-        "Super question ! 💰 Proph3t adore les budgets ! C'est le cœur de Atlas Studio. Voici comment faire :",
-        "Génial ! 📊 Les budgets, c'est mon dada ! Proph3t va tout vous expliquer :",
-        "Parfait ! 🎯 Planification budgétaire = spécialité Proph3t ! Suivez le guide :"
+        "Super question ! Proph3t adore les budgets ! C'est le cœur de Atlas Studio. Voici comment faire :",
+        "Génial ! Les budgets, c'est mon dada ! Proph3t va tout vous expliquer :",
+        "Parfait ! Planification budgétaire = spécialité Proph3t ! Suivez le guide :"
       ],
       actions: [
         {
@@ -313,9 +313,9 @@ export class AdvancedResponseGenerator {
 
     technical_issue: {
       responses: [
-        "Oh là là ! 🔧 Un pépin technique ? Pas de panique ! Proph3t va réparer ça !",
-        "Aïe ! 🚨 Problème détecté ! Mais heureusement, Proph3t est là pour vous dépanner !",
-        "Oups ! 🛠️ Un bug ? Proph3t sort sa boîte à outils virtuelle ! On va arranger ça !"
+        "Oh là là ! Un pépin technique ? Pas de panique ! Proph3t va réparer ça !",
+        "Aïe ! Problème détecté ! Mais heureusement, Proph3t est là pour vous dépanner !",
+        "Oups ! Un bug ? Proph3t sort sa boîte à outils virtuelle ! On va arranger ça !"
       ],
       actions: [
         {
@@ -365,9 +365,9 @@ export class AdvancedResponseGenerator {
 
     unknown: {
       responses: [
-        "Oups ! 🤔 Proph3t ne comprend pas très bien... Pouvez-vous reformuler différemment ?",
-        "Hmm... 🔍 Ma base de données Proph3t ne trouve pas ça ! Essayons autrement ?",
-        "Désolée ! 😅 Proph3t a besoin de plus de détails pour vous aider au mieux !"
+        "Oups ! Proph3t ne comprend pas très bien... Pouvez-vous reformuler différemment ?",
+        "Hmm... Ma base de données Proph3t ne trouve pas ça ! Essayons autrement ?",
+        "Désolée ! Proph3t a besoin de plus de détails pour vous aider au mieux !"
       ],
       quickReplies: [
         "Aide générale",
@@ -381,8 +381,8 @@ export class AdvancedResponseGenerator {
   // Nouvelles propriétés pour la génération dynamique
   private responseVariations: ResponseVariation = {
     opening: [
-      '🚀 Parfait !', '✨ Excellent !', '🎯 Super question !', '💡 Génial !',
-      '👍 Très bonne idée !', '🌟 Formidable !', '🔥 Top !', '⚡ Excellent timing !'
+      'Parfait !', 'Excellent !', 'Super question !', 'Génial !',
+      'Très bonne idée !', 'Formidable !', 'Top !', 'Excellent timing !'
     ],
     connecting: [
       'Laissez-moi vous expliquer', 'Voici comment procéder', 'Je vais vous guider',
@@ -486,7 +486,7 @@ export class AdvancedResponseGenerator {
     // Ajouter des informations de la base de connaissances si pertinentes
     if (knowledgeResults.length > 0 && this.shouldIncludeKnowledge(intent)) {
       const topResult = knowledgeResults[0];
-      baseMessage += `\n\n📚 **${topResult.title}**\n${topResult.content.substring(0, 200)}...`;
+      baseMessage += `\n\n**${topResult.title}**\n${topResult.content.substring(0, 200)}...`;
     }
 
     // Personnalisation selon le contexte
@@ -535,18 +535,18 @@ export class AdvancedResponseGenerator {
   private personalizeMessage(message: string, context: ChatContext): string {
     // Ajouter des touches personnelles selon le contexte
     if (context.currentModule === 'finance') {
-      message += "\n\n💡 *Conseil* : Pensez à sauvegarder régulièrement vos données financières !";
+      message += "\n\n*Conseil* : Pensez à sauvegarder régulièrement vos données financières !";
     } else if (context.currentModule === 'inventory') {
-      message += "\n\n📦 *Astuce* : Utilisez les filtres pour trouver rapidement vos produits !";
+      message += "\n\n*Astuce* : Utilisez les filtres pour trouver rapidement vos produits !";
     }
 
     // Ajouter des emojis contextuels
     if (message.includes('budget')) {
-      message = '💰 ' + message;
+      message = '' + message;
     } else if (message.includes('stock')) {
-      message = '📦 ' + message;
+      message = '' + message;
     } else if (message.includes('utilisateur')) {
-      message = '👥 ' + message;
+      message = '' + message;
     }
 
     return message;
@@ -709,14 +709,14 @@ export class AdvancedResponseGenerator {
     // Ajouter des informations de la base de connaissances si pertinentes
     if (knowledgeResults.length > 0 && personality.complexity !== 'simple') {
       const topResult = knowledgeResults[0];
-      message += `\n\n📚 **Référence**: ${topResult.title}\n${this.summarizeContent(topResult.content, personality.complexity)}`;
+      message += `\n\n**Référence**: ${topResult.title}\n${this.summarizeContent(topResult.content, personality.complexity)}`;
     }
 
     // Ajouter des conseils personnalisés
     if (personality.style === 'supportive') {
       const tip = this.generatePersonalizedTip(personality);
       if (tip) {
-        message += `\n\n💡 **Conseil Proph3t**: ${tip}`;
+        message += `\n\n**Conseil Proph3t**: ${tip}`;
       }
     }
 
@@ -859,10 +859,10 @@ export class AdvancedResponseGenerator {
     const selected = this.selectRandomFromArray(baseMessages);
 
     if (dynamicContext.emotionalState === 'frustrated') {
-      return `🤗 ${selected}. Je comprends que ce soit frustrant, prenons le temps de bien résoudre cela.`;
+      return `${selected}. Je comprends que ce soit frustrant, prenons le temps de bien résoudre cela.`;
     }
 
-    return `✨ ${selected}.`;
+    return `${selected}.`;
   }
 
   private adaptMessageToPersonality(message: string, personality: ResponsePersonality): string {
@@ -900,7 +900,7 @@ export class AdvancedResponseGenerator {
 
   private addEncouragement(message: string): string {
     const encouragement = this.selectRandomFromArray(this.responseVariations.encouraging);
-    return `${message}\n\n💪 ${encouragement}`;
+    return `${message}\n\n${encouragement}`;
   }
 
   private makeConcise(message: string): string {
@@ -912,9 +912,9 @@ export class AdvancedResponseGenerator {
 
   private addEmpathyToMessage(message: string): string {
     const empathyPhrases = [
-      '🤗 Je comprends que ce soit frustrant.',
-      '💙 Pas de souci, on va résoudre ça ensemble.',
-      '🤝 Je suis là pour vous accompagner.'
+      'Je comprends que ce soit frustrant.',
+      'Pas de souci, on va résoudre ça ensemble.',
+      'Je suis là pour vous accompagner.'
     ];
     const empathy = this.selectRandomFromArray(empathyPhrases);
     return `${empathy} ${message}`;

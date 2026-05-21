@@ -716,8 +716,8 @@ const PrevisionsTresoreriePage: React.FC = () => {
                   <YAxis tick={{ fontSize: 12 }} tickFormatter={v => `${(v / 1_000_000).toFixed(1)}M`} />
                   <Tooltip formatter={(value: number) => formatCurrency(value)} />
                   <Legend />
-                  <Bar dataKey="encaissements" fill="#15803D" name="Encaissements" />
-                  <Bar dataKey="decaissements" fill="#C0322B" name="Décaissements" />
+                  <Bar radius={[6,6,0,0]} dataKey="encaissements" fill="url(#gradGreen)" name="Encaissements" />
+                  <Bar radius={[6,6,0,0]} dataKey="decaissements" fill="url(#gradRed)" name="Décaissements" />
                   <Line type="monotone" dataKey="soldeFin" stroke="#235A6E" strokeWidth={2} name="Solde fin" dot={{ r: 4 }} />
                 </ComposedChart>
               </ResponsiveContainer>

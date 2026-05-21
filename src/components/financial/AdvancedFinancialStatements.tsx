@@ -657,8 +657,8 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                 <YAxis yAxisId="right" orientation="right" tickFormatter={(value) => `${value.toFixed(1)}%`} />
                 <Tooltip />
                 <Legend />
-                <Bar yAxisId="left" dataKey="ca" fill="#235A6E" name="Chiffre d'Affaires (M XAF)" />
-                <Bar yAxisId="left" dataKey="rn" fill="#4E7E8D" name="Résultat Net (M XAF)" />
+                <Bar radius={[6,6,0,0]} yAxisId="left" dataKey="ca" fill="url(#gradPetrol)" name="Chiffre d'Affaires (M XAF)" />
+                <Bar radius={[6,6,0,0]} yAxisId="left" dataKey="rn" fill="url(#gradPetrolLight)" name="Résultat Net (M XAF)" />
                 <Line yAxisId="right" type="monotone" dataKey="marge" stroke="#C0322B" strokeWidth={3} name="Marge Nette (%)" />
               </LineChart>
             </ResponsiveContainer>
@@ -1010,7 +1010,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                 {fmt(sigData.resultatNet)}
               </div>
               <div className={`text-lg ${sigData.resultatNet >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {sigData.resultatNet >= 0 ? '📈 Bénéfice' : '📉 Perte'}
+                {sigData.resultatNet >= 0 ? 'Bénéfice' : 'Perte'}
               </div>
               <div className="text-sm text-gray-700 mt-2">
                 Marge nette: {ratiosData.rentabilite.margeNette.toFixed(2)}%
@@ -1279,7 +1279,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                           {ratio.value.toFixed(1)}{ratio.unit}
                         </span>
                         <div className={`text-xs ${ratio.value >= ratio.seuil ? 'text-green-500' : 'text-orange-500'}`}>
-                          {ratio.value >= ratio.seuil ? '✓ Correct' : '⚠ Attention'}
+                          {ratio.value >= ratio.seuil ? 'Correct' : 'Attention'}
                         </div>
                       </div>
                     </div>
@@ -1300,7 +1300,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                           {ratio.value.toFixed(2)}
                         </span>
                         <div className={`text-xs ${ratio.value >= ratio.seuil ? 'text-green-500' : 'text-red-500'}`}>
-                          {ratio.value >= ratio.seuil ? '✓ Bon' : '✗ Risqué'}
+                          {ratio.value >= ratio.seuil ? 'Bon' : 'Risqué'}
                         </div>
                       </div>
                     </div>
@@ -1331,7 +1331,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                           {ratio.value.toFixed(1)}{ratio.unit}
                         </span>
                         <div className={`text-xs ${ratio.value >= ratio.seuil ? 'text-green-500' : 'text-orange-500'}`}>
-                          {ratio.value >= ratio.seuil ? '✓ Excellent' : '⚠ Faible'}
+                          {ratio.value >= ratio.seuil ? 'Excellent' : 'Faible'}
                         </div>
                       </div>
                     </div>
@@ -1362,8 +1362,8 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                             (ratio.value >= ratio.seuil ? 'text-green-500' : 'text-orange-500')
                         }`}>
                           {ratio.inverse ? 
-                            (ratio.value <= ratio.seuil ? '✓ Optimal' : '⚠ Long') :
-                            (ratio.value >= ratio.seuil ? '✓ Bon' : '⚠ Faible')
+                            (ratio.value <= ratio.seuil ? 'Optimal' : 'Long') :
+                            (ratio.value >= ratio.seuil ? 'Bon' : 'Faible')
                           }
                         </div>
                       </div>

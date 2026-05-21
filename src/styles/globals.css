@@ -81,17 +81,23 @@
    * Empilement multi-couches : (1) hairline subtile (2) halo court
    * (3) ambient diffus loin. Couleur obsidienne baissée pour la chaleur cream. */
   --shadow-xs:  0 1px 0 rgba(38, 30, 21, 0.02);
-  --shadow-sm:  0 1px 0 rgba(38, 30, 21, 0.02),
-                0 1px 2px rgba(38, 30, 21, 0.04);
-  --shadow-md:  0 1px 0 rgba(38, 30, 21, 0.02),
-                0 2px 4px rgba(38, 30, 21, 0.04),
-                0 8px 24px -8px rgba(38, 30, 21, 0.08);
-  --shadow-lg:  0 1px 0 rgba(38, 30, 21, 0.02),
-                0 4px 8px rgba(38, 30, 21, 0.05),
-                0 18px 40px -12px rgba(38, 30, 21, 0.10);
-  --shadow-xl:  0 2px 4px rgba(38, 30, 21, 0.04),
-                0 12px 24px rgba(38, 30, 21, 0.06),
-                0 32px 64px -20px rgba(38, 30, 21, 0.14);
+  /* Néomorphisme : double ombre (lumière haut-gauche + ombre chaude bas-droite) */
+  --shadow-sm:  0 1px 2px rgba(38,30,21,.04),
+                5px 5px 13px rgba(38,30,21,.07),
+                -4px -4px 10px rgba(255,255,255,.60);
+  --shadow-md:  0 1px 2px rgba(38,30,21,.04),
+                8px 8px 20px rgba(38,30,21,.11),
+                -6px -6px 14px rgba(255,255,255,.72);
+  --shadow-lg:  12px 12px 30px rgba(38,30,21,.14),
+                -8px -8px 18px rgba(255,255,255,.78);
+  --shadow-xl:  18px 18px 42px rgba(38,30,21,.17),
+                -11px -11px 24px rgba(255,255,255,.82);
+  /* Creux (champs, tuiles vides, pistes) + glows interactifs */
+  --shadow-inset: inset 3px 3px 7px rgba(38,30,21,.09), inset -3px -3px 7px rgba(255,255,255,.55);
+  --shadow-inset-deep: inset 5px 5px 12px rgba(38,30,21,.12), inset -4px -4px 10px rgba(255,255,255,.55);
+  --shadow-pressed: inset 3px 3px 8px rgba(0,0,0,.22), inset -2px -2px 6px rgba(255,255,255,.10);
+  --glow-petrol: 0 8px 22px -6px rgba(35,90,110,.50);
+  --glow-amber: 0 8px 22px -6px rgba(232,154,46,.50);
   --shadow-2xl: 0 4px 8px rgba(38, 30, 21, 0.05),
                 0 24px 48px rgba(38, 30, 21, 0.08),
                 0 48px 96px -24px rgba(38, 30, 21, 0.18);
@@ -430,6 +436,7 @@ select:not([class*="af-"]):not([data-premium]) {
   font-size: 0.9375rem;
   letter-spacing: -0.005em;
   color: var(--color-text-primary);
+  box-shadow: var(--shadow-inset);
   transition: border-color var(--motion-fast), box-shadow var(--motion-fast);
 }
 input:not([class*="af-"]):not([data-premium]):focus,
@@ -437,7 +444,7 @@ textarea:not([class*="af-"]):not([data-premium]):focus,
 select:not([class*="af-"]):not([data-premium]):focus {
   outline: none;
   border-color: var(--color-accent);
-  box-shadow: var(--shadow-focus);
+  box-shadow: var(--shadow-inset), var(--shadow-focus);
 }
 input:not([class*="af-"]):not([data-premium])::placeholder,
 textarea:not([class*="af-"])::placeholder {
@@ -907,6 +914,7 @@ table td, .table td, .af-table-cell {
   background: var(--color-surface-hover);
   color: var(--color-text-secondary);
   border: 1px solid var(--color-border-light);
+  box-shadow: var(--shadow-inset);
   flex-shrink: 0;
 }
 .icon-tile-gold {
@@ -993,11 +1001,16 @@ a:hover {
   .btn-primary {
     background: var(--color-primary);
     color: var(--color-text-inverse);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 1px 2px rgba(38, 30, 21, 0.10);
+    box-shadow: var(--glow-petrol), inset 0 1px 0 rgba(255, 255, 255, 0.18);
   }
   .btn-primary:hover {
     background: var(--color-primary-hover);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 4px 12px rgba(38, 30, 21, 0.16);
+    box-shadow: 0 12px 28px -6px rgba(35, 90, 110, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+    transform: translateY(-1px);
+  }
+  .btn-primary:active {
+    box-shadow: var(--shadow-pressed);
+    transform: translateY(1px);
   }
 
   .btn-secondary {
@@ -1038,6 +1051,7 @@ a:hover {
     color: var(--color-text-primary);
     font-size: 0.875rem;
     border-radius: var(--radius-btn);
+    box-shadow: var(--shadow-inset);
     transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
   }
 
@@ -1048,7 +1062,7 @@ a:hover {
   .input:focus {
     outline: none;
     border-color: var(--color-accent);
-    box-shadow: var(--shadow-focus);
+    box-shadow: var(--shadow-inset), var(--shadow-focus);
   }
 
   .input:disabled {

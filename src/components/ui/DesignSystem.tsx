@@ -190,6 +190,8 @@ export const KPICard: React.FC<KPICardProps> = ({
     neutral: { stroke: '#8A8170', tileBg: 'var(--color-surface-hover)', tileColor: 'var(--color-text-secondary)', trendBg: 'var(--color-surface-hover)', trendColor: 'var(--color-text-secondary)' },
   };
   const t = TONE[color];
+  // id de gradient SVG unique & valide (le titre contient des espaces -> id invalide -> fill noir)
+  const gradId = 'kpi-grad-' + React.useId().replace(/[^a-zA-Z0-9]/g, '');
 
   return (
     <motion.article
@@ -252,12 +254,12 @@ export const KPICard: React.FC<KPICardProps> = ({
         <div className="mt-3 -mx-1">
           <svg width="100%" height="32" viewBox="0 0 200 32" preserveAspectRatio="none">
             <defs>
-              <linearGradient id={`kpi-grad-${title}`} x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor={t.stroke} stopOpacity={0.32} />
                 <stop offset="100%" stopColor={t.stroke} stopOpacity={0} />
               </linearGradient>
             </defs>
-            <path d="M 0 24 C 30 22, 50 18, 70 14 S 110 8, 140 10 S 180 6, 200 4 L 200 32 L 0 32 Z" fill={`url(#kpi-grad-${title})`} />
+            <path d="M 0 24 C 30 22, 50 18, 70 14 S 110 8, 140 10 S 180 6, 200 4 L 200 32 L 0 32 Z" fill={`url(#${gradId})`} />
             <path d="M 0 24 C 30 22, 50 18, 70 14 S 110 8, 140 10 S 180 6, 200 4" fill="none" stroke={t.stroke} strokeWidth="1.5" strokeLinecap="round" />
           </svg>
         </div>
@@ -489,17 +491,20 @@ interface ColorfulBarChartProps {
   height?: number;
 }
 
+const BAR_SERIES = ['#235A6E', '#E89A2E', '#15803D', '#4E7E8D', '#C77E2C', '#7FA3AF', '#9E6322', '#2C6E86'];
+
 export const ColorfulBarChart: React.FC<ColorfulBarChartProps> = ({
   data,
   height = 200
 }) => {
-  const maxValue = Math.max(...data.map(d => d.value));
+  const maxValue = Math.max(...data.map(d => d.value), 1);
 
   return (
     <div className="space-y-4">
       <div className="flex items-end justify-between gap-2" style={{ height }}>
         {data.map((item, index) => {
           const barHeight = (item.value / maxValue) * 100;
+          const c = BAR_SERIES[index % BAR_SERIES.length];
           return (
             <motion.div
               key={index}
@@ -509,9 +514,13 @@ export const ColorfulBarChart: React.FC<ColorfulBarChartProps> = ({
               className="flex-1 flex flex-col items-center"
             >
               <motion.div
-                className={`w-full rounded-t-lg ${item.color} shadow-sm origin-bottom`}
-                style={{ height: `${barHeight}%` }}
-                whileHover={{ scale: 1.05 }}
+                className="w-full rounded-t-lg origin-bottom"
+                style={{
+                  height: `${barHeight}%`,
+                  background: `linear-gradient(180deg, ${c} 0%, ${c}D9 60%, ${c}A6 100%)`,
+                  boxShadow: `0 6px 14px -6px ${c}66`,
+                }}
+                whileHover={{ scale: 1.04 }}
               />
               <span className="text-xs text-neutral-600 mt-2 font-medium">
                 {item.label}

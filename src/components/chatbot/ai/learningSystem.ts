@@ -397,7 +397,7 @@ export class PalomaLearningSystem {
     // Règle pour ajouter de l'empathie
     this.adaptationRules.set('add_empathy', (response: string, context: InteractionContext) => {
       if (context['emotionalState'] === 'frustrated') {
-        return `🤗 Je comprends votre frustration. ${response}`;
+        return `Je comprends votre frustration. ${response}`;
       }
       return response;
     });

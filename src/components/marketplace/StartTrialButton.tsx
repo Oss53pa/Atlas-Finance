@@ -71,7 +71,7 @@ export default function StartTrialButton({
   if (success) {
     return (
       <div style={{ padding: 12, background: "#15803D20", border: "1px solid #15803D", borderRadius: 8, color: "#15803D", fontSize: 14 }}>
-        ✓ {success.message}
+        {success.message}
         <div style={{ fontSize: 12, marginTop: 4, opacity: 0.8 }}>Redirection en cours…</div>
       </div>
     );

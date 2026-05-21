@@ -925,8 +925,8 @@ const ImportExportPage: React.FC = () => {
                                 {execution.records_processed} traités
                               </p>
                               <div className="flex space-x-2 mt-1">
-                                <span className="text-green-600">✓ {execution.records_successful}</span>
-                                <span className="text-red-600">✗ {execution.records_failed}</span>
+                                <span className="text-green-600">{execution.records_successful}</span>
+                                <span className="text-red-600">{execution.records_failed}</span>
                               </div>
                             </div>
                           </TableCell>
@@ -1213,7 +1213,7 @@ const ImportExportPage: React.FC = () => {
                   className="block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                 />
                 {uploadedFile && (
-                  <p className="mt-2 text-sm text-green-600">✓ {uploadedFile.name}</p>
+                  <p className="mt-2 text-sm text-green-600">{uploadedFile.name}</p>
                 )}
               </div>
             )}

@@ -23,7 +23,7 @@ const EmailTemplate: React.FC = () => {
         {/* Contenu Email */}
         <div className="p-6">
           <h2 className="text-lg font-semibold text-[var(--color-primary)] mb-4">
-            📋 Demande de Validation - Appel de Fonds FC000{id}
+            Demande de Validation - Appel de Fonds FC000{id}
           </h2>
 
           <p className="text-[#404040] mb-4">
@@ -36,7 +36,7 @@ const EmailTemplate: React.FC = () => {
 
           {/* Détails de l'appel */}
           <div className="bg-[var(--color-primary)]/10 rounded-lg p-4 mb-6">
-            <h3 className="font-medium text-[var(--color-primary)] mb-3">📊 Détails de l'Appel de Fonds</h3>
+            <h3 className="font-medium text-[var(--color-primary)] mb-3">Détails de l'Appel de Fonds</h3>
 
             <div className="space-y-2">
               <div className="flex justify-between">
@@ -64,7 +64,7 @@ const EmailTemplate: React.FC = () => {
 
           {/* Justification */}
           <div className="bg-[var(--color-text-tertiary)]/10 rounded-lg p-4 mb-6">
-            <h3 className="font-medium text-[var(--color-text-tertiary)] mb-2">📝 Justification</h3>
+            <h3 className="font-medium text-[var(--color-text-tertiary)] mb-2">Justification</h3>
             <p className="text-sm text-[#404040]">
               Transfert pour charges opérationnelles - Nécessaire pour maintenir les opérations courantes de l'entreprise.
             </p>
@@ -72,7 +72,7 @@ const EmailTemplate: React.FC = () => {
 
           {/* Actions requises */}
           <div className="bg-[var(--color-text-secondary)]/10 rounded-lg p-4 mb-6">
-            <h3 className="font-medium text-[var(--color-text-secondary)] mb-3">⚡ Action Requise</h3>
+            <h3 className="font-medium text-[var(--color-text-secondary)] mb-3">Action Requise</h3>
             <p className="text-sm text-[#404040] mb-3">
               Merci de valider ou rejeter cette demande en cliquant sur le lien sécurisé ci-dessous :
             </p>
@@ -88,7 +88,7 @@ const EmailTemplate: React.FC = () => {
             </div>
 
             <p className="text-xs text-[var(--color-text-tertiary)] text-center mt-2">
-              🔒 Lien sécurisé valable 7 jours
+              Lien sécurisé valable 7 jours
             </p>
           </div>
 

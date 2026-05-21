@@ -282,8 +282,8 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({
                           popup.taskDetails.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' :
                           'bg-green-100 text-green-700'
                         }`}>
-                          {popup.taskDetails.priority === 'high' ? '🔴 Urgent' :
-                           popup.taskDetails.priority === 'medium' ? '🟡 Normal' : '🟢 Faible'}
+                          {popup.taskDetails.priority === 'high' ? 'Urgent' :
+                           popup.taskDetails.priority === 'medium' ? 'Normal' : 'Faible'}
                         </span>
                       </div>
                     )}

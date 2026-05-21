@@ -112,10 +112,10 @@ const ReportingDashboardPage: React.FC = () => {
             <h3 className="font-semibold text-gray-900 mb-2">Actions Rapides</h3>
             <div className="space-y-2">
               <button className="w-full text-left px-3 py-2 rounded hover:bg-white/50 transition-colors text-sm">
-                📊 Créer un Rapport
+                Créer un Rapport
               </button>
               <button className="w-full text-left px-3 py-2 rounded hover:bg-white/50 transition-colors text-sm">
-                📑 Bibliothèque de Modèles
+                Bibliothèque de Modèles
               </button>
               <button className="w-full text-left px-3 py-2 rounded hover:bg-white/50 transition-colors text-sm">
                 ⏰ Planification
