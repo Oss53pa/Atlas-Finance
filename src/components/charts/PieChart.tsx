@@ -15,6 +15,32 @@ const DEFAULT_COLORS = [
   '#2C6E86', '#F2A93B',
 ];
 
+// Plugin : total au centre du donut (style premium)
+const centerTextPlugin = {
+  id: 'atlasCenterText',
+  afterDraw(chart: any) {
+    const cutout = chart.config?.options?.cutout;
+    if (!cutout || cutout === 0) return;
+    const area = chart.chartArea;
+    if (!area) return;
+    const total = (chart.data.datasets[0]?.data || []).reduce((a: number, b: number) => a + (Number(b) || 0), 0);
+    const compact = new Intl.NumberFormat('fr-FR', { notation: 'compact', maximumFractionDigits: 1 }).format(total);
+    const cx = (area.left + area.right) / 2;
+    const cy = (area.top + area.bottom) / 2;
+    const ctx = chart.ctx;
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#261E15';
+    ctx.font = '700 21px Dosis, Inter, sans-serif';
+    ctx.fillText(compact, cx, cy - 5);
+    ctx.fillStyle = '#8A8170';
+    ctx.font = '600 9px Inter, sans-serif';
+    ctx.fillText('TOTAL', cx, cy + 13);
+    ctx.restore();
+  },
+};
+
 interface PieChartProps {
   data: Record<string, unknown>[];
   dataKey: string;
@@ -55,9 +81,10 @@ const PieChart: React.FC<PieChartProps> = ({
       {
         data: data.map((d) => Number(d[dataKey] ?? 0)),
         backgroundColor: data.map((_, i) => palette[i % palette.length]),
-        borderWidth: 2,
-        borderColor: '#ffffff',
-        hoverOffset: 8,
+        borderWidth: 0,
+        borderRadius: 8,
+        spacing: 3,
+        hoverOffset: 10,
       },
     ],
   };
@@ -65,7 +92,7 @@ const PieChart: React.FC<PieChartProps> = ({
   const options = {
     responsive: true,
     maintainAspectRatio: false,
-    cutout: doughnut ? '55%' : 0,
+    cutout: doughnut ? '68%' : 0,
     plugins: {
       legend: {
         display: showLegend,
@@ -91,11 +118,14 @@ const PieChart: React.FC<PieChartProps> = ({
         },
       },
       tooltip: {
-        backgroundColor: '#171717',
+        backgroundColor: '#13323D',
+        titleColor: '#F7F5EF',
+        bodyColor: '#E6DFD2',
         titleFont: { size: 13 },
         bodyFont: { size: 12 },
-        padding: 10,
-        cornerRadius: 8,
+        padding: 12,
+        cornerRadius: 10,
+        boxPadding: 6,
         callbacks: {
           label: (ctx: any) => {
             const total = ctx.dataset.data.reduce((a: number, b: number) => a + b, 0);
@@ -114,7 +144,7 @@ const PieChart: React.FC<PieChartProps> = ({
 
   return (
     <div style={{ position: 'relative', height: `${height}px`, width: '100%' }}>
-      <ChartComponent data={chartData} options={options} />
+      <ChartComponent data={chartData} options={options} plugins={doughnut ? [centerTextPlugin] : []} />
     </div>
   );
 };
