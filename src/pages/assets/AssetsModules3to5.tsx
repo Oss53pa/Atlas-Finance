@@ -1460,7 +1460,7 @@ export const RenderInventaireAuto = () => {
               <div>
                 <h4 className="text-lg font-semibold mb-4">Performance des Sessions</h4>
                 <div className="h-64">
-                  <Bar
+                  <Bar radius={[6,6,0,0]}
                     data={{
                       labels: ['Déc 2023', 'Jan 2024', 'Fév 2024', 'Mar 2024'],
                       datasets: [

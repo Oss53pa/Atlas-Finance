@@ -516,7 +516,7 @@ export const AssetsModules6to9: React.FC<AssetsModules6to9Props> = ({ activeModu
           <div>
             <h4 className="font-medium text-gray-900 mb-3">Analyses Prédictives</h4>
             <div className="h-64 mb-4">
-              <Bar
+              <Bar radius={[6,6,0,0]}
                 data={{
                   labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun'],
                   datasets: [
@@ -1031,7 +1031,7 @@ export const AssetsModules6to9: React.FC<AssetsModules6to9Props> = ({ activeModu
           <div>
             <h4 className="font-medium text-gray-900 mb-3">Évolution Mensuelle</h4>
             <div className="h-64">
-              <Bar
+              <Bar radius={[6,6,0,0]}
                 data={{
                   labels: ['Oct', 'Nov', 'Déc', 'Jan'],
                   datasets: [

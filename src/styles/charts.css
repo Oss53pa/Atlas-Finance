@@ -65,9 +65,9 @@ canvas {
   border-radius: 8px;
   padding: 0.75rem;
   pointer-events: none;
-  transform: tranprimary(-50%, -100%);
+  transform: translate(-50%, -100%);
   transition: all 0.1s ease;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 8px 24px -8px rgba(38, 30, 21, 0.20);
   z-index: 9999;
 }
 
@@ -109,3 +109,74 @@ canvas {
 .chart-container canvas {
   animation: fadeInChart 0.5s ease-out;
 }
+
+/* ════════════════════════════════════════════════════════════════
+   RECHARTS — habillage premium global (Petrol Cream)
+   Restyle TOUS les graphiques recharts (tooltips, grilles, axes,
+   curseur, légende) sans toucher aux composants.
+   ════════════════════════════════════════════════════════════════ */
+
+/* Tooltip par défaut → panneau pétrole flottant */
+.recharts-default-tooltip {
+  background: #13323D !important;
+  border: 1px solid rgba(232, 154, 46, 0.22) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 14px 30px -12px rgba(38, 30, 21, 0.45) !important;
+  padding: 10px 13px !important;
+}
+.recharts-tooltip-wrapper:focus,
+.recharts-wrapper:focus { outline: none; }
+.recharts-default-tooltip .recharts-tooltip-label {
+  color: #E89A2E !important;
+  font-weight: 600 !important;
+  font-size: 11px !important;
+  letter-spacing: 0.04em !important;
+  margin-bottom: 5px !important;
+}
+.recharts-default-tooltip .recharts-tooltip-item,
+.recharts-default-tooltip .recharts-tooltip-item-name,
+.recharts-default-tooltip .recharts-tooltip-item-separator {
+  color: rgba(247, 245, 239, 0.75) !important;
+  font-size: 12px !important;
+}
+.recharts-default-tooltip .recharts-tooltip-item-value {
+  color: #F7F5EF !important;
+  font-weight: 600 !important;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Grilles → hairline crème douce */
+.recharts-cartesian-grid line,
+.recharts-polar-grid line {
+  stroke: var(--color-border-light) !important;
+}
+
+/* Axes → texte tertiaire, lignes douces */
+.recharts-cartesian-axis-tick text,
+.recharts-polar-angle-axis-tick text,
+.recharts-polar-radius-axis-tick text {
+  fill: var(--color-text-tertiary) !important;
+  font-size: 11px;
+}
+.recharts-cartesian-axis line,
+.recharts-cartesian-axis-tick line {
+  stroke: var(--color-border) !important;
+}
+
+/* Curseur de survol → voile pétrole subtil */
+.recharts-tooltip-cursor {
+  fill: rgba(35, 90, 110, 0.06) !important;
+  stroke: rgba(35, 90, 110, 0.28) !important;
+}
+.recharts-rectangle.recharts-tooltip-cursor {
+  fill: rgba(35, 90, 110, 0.06) !important;
+}
+
+/* Légende */
+.recharts-legend-item-text {
+  color: var(--color-text-tertiary) !important;
+  font-size: 12px;
+}
+
+/* Laisse respirer dots/labels en bord de zone */
+.recharts-surface { overflow: visible; }

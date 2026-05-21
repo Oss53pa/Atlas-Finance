@@ -414,7 +414,7 @@ const FinancialAnalysisDashboard: React.FC = () => {
             Cascade de Trésorerie
           </h3>
           <div style={{ position: 'relative', height: '300px', width: '100%' }}>
-            <Bar data={cashFlowData} options={{ 
+            <Bar radius={[6,6,0,0]} data={cashFlowData} options={{ 
               responsive: true, 
               maintainAspectRatio: false,
               plugins: {
@@ -430,7 +430,7 @@ const FinancialAnalysisDashboard: React.FC = () => {
             Évolution du BFR
           </h3>
           <div style={{ position: 'relative', height: '300px', width: '100%' }}>
-            <Bar data={workingCapitalData} options={{ 
+            <Bar radius={[6,6,0,0]} data={workingCapitalData} options={{ 
               responsive: true, 
               maintainAspectRatio: false,
               scales: {

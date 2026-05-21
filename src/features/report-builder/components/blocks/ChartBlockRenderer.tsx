@@ -57,7 +57,7 @@ const ChartBlockRenderer: React.FC<{ block: ChartBlock }> = ({ block }) => {
             <Tooltip />
             {showLegend && <Legend />}
             {series.map((s, i) => (
-              <Bar key={s.key} dataKey={s.key} name={s.label} fill={s.color || COLORS[i % COLORS.length]} stackId="a" />
+              <Bar radius={[6,6,0,0]} key={s.key} dataKey={s.key} name={s.label} fill={s.color || COLORS[i % COLORS.length]} stackId="a" />
             ))}
           </BarChart>
         );

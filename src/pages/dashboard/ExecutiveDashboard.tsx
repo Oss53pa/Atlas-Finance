@@ -323,7 +323,7 @@ const ExecutiveDashboard: React.FC = () => {
               {dashboardConfig.chartLabels.marginLabel}
             </h3>
             <div style={{ position: 'relative', height: '300px', width: '100%' }}>
-              <Bar data={marginChartData} options={chartOptions} />
+              <Bar radius={[6,6,0,0]} data={marginChartData} options={chartOptions} />
             </div>
           </div>
         </div>

@@ -1302,8 +1302,8 @@ Service Contentieux
                       <XAxis dataKey="zone" />
                       <YAxis tickFormatter={(value) => `${value / 1000}k`} />
                       <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                      <Bar dataKey="creances" fill="#C0322B" name="Créances" />
-                      <Bar dataKey="recouvre" fill="#15803D" name="Recouvré" />
+                      <Bar radius={[6,6,0,0]} dataKey="creances" fill="#C0322B" name="Créances" />
+                      <Bar radius={[6,6,0,0]} dataKey="recouvre" fill="#15803D" name="Recouvré" />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -1347,11 +1347,11 @@ Service Contentieux
                     <XAxis dataKey="periode" />
                     <YAxis tickFormatter={(value) => `${value / 1000}k`} />
                     <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                    <Bar dataKey="commerce" stackId="a" fill="#235A6E" name="Commerce" />
-                    <Bar dataKey="services" stackId="a" fill="#4E7E8D" name="Services" />
-                    <Bar dataKey="industrie" stackId="a" fill="#4E7E8D" name="Industrie" />
-                    <Bar dataKey="agriculture" stackId="a" fill="#404040" name="Agriculture" />
-                    <Bar dataKey="btp" stackId="a" fill="#404040" name="BTP" />
+                    <Bar radius={[6,6,0,0]} dataKey="commerce" stackId="a" fill="#235A6E" name="Commerce" />
+                    <Bar radius={[6,6,0,0]} dataKey="services" stackId="a" fill="#4E7E8D" name="Services" />
+                    <Bar radius={[6,6,0,0]} dataKey="industrie" stackId="a" fill="#4E7E8D" name="Industrie" />
+                    <Bar radius={[6,6,0,0]} dataKey="agriculture" stackId="a" fill="#404040" name="Agriculture" />
+                    <Bar radius={[6,6,0,0]} dataKey="btp" stackId="a" fill="#404040" name="BTP" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -1384,8 +1384,8 @@ Service Contentieux
                     <YAxis yAxisId="left" tickFormatter={(value) => `${value / 1000}k`} />
                     <YAxis yAxisId="right" orientation="right" domain={[75, 85]} />
                     <Tooltip />
-                    <Bar yAxisId="left" dataKey="creances" fill="#C0322B" fillOpacity={0.3} name="Créances" />
-                    <Bar yAxisId="left" dataKey="recouvre" fill="#15803D" fillOpacity={0.6} name="Recouvré" />
+                    <Bar radius={[6,6,0,0]} yAxisId="left" dataKey="creances" fill="#C0322B" fillOpacity={0.3} name="Créances" />
+                    <Bar radius={[6,6,0,0]} yAxisId="left" dataKey="recouvre" fill="#15803D" fillOpacity={0.6} name="Recouvré" />
                     <Line yAxisId="right" type="monotone" dataKey="taux" stroke="#235A6E" strokeWidth={3} name="Taux %" />
                   </ComposedChart>
                 </ResponsiveContainer>
@@ -7093,8 +7093,8 @@ Service Contentieux
                     <YAxis />
                     <Tooltip />
                     <Legend />
-                    <Bar dataKey="taux_succes" fill="#235A6E" name="Taux succès %" />
-                    <Bar dataKey="delai_moyen" fill="#E89A2E" name="Délai (jours)" />
+                    <Bar radius={[6,6,0,0]} dataKey="taux_succes" fill="#235A6E" name="Taux succès %" />
+                    <Bar radius={[6,6,0,0]} dataKey="delai_moyen" fill="#E89A2E" name="Délai (jours)" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -10596,7 +10596,7 @@ Service Contentieux
                             <XAxis dataKey="name" />
                             <YAxis />
                             <Tooltip />
-                            <Bar dataKey="value" fill="#235A6E" />
+                            <Bar radius={[6,6,0,0]} dataKey="value" fill="#235A6E" />
                           </BarChart>
                         </ResponsiveContainer>
                       </div>

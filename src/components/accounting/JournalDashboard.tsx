@@ -335,8 +335,8 @@ const JournalDashboard: React.FC = () => {
                       <YAxis />
                       <Tooltip />
                       <Legend />
-                      <Bar dataKey="validated" stackId="a" fill="#15803D" name="Validées" />
-                      <Bar dataKey="pending" stackId="a" fill="#E89A2E" name="En attente" />
+                      <Bar radius={[6,6,0,0]} dataKey="validated" stackId="a" fill="#15803D" name="Validées" />
+                      <Bar radius={[6,6,0,0]} dataKey="pending" stackId="a" fill="#E89A2E" name="En attente" />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>

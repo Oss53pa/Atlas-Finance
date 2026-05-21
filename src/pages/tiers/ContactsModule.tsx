@@ -598,7 +598,7 @@ const ContactsModule: React.FC = () => {
                   <XAxis dataKey="fonction" />
                   <YAxis />
                   <Tooltip />
-                  <Bar dataKey="count" fill="#235A6E" />
+                  <Bar radius={[6,6,0,0]} dataKey="count" fill="#235A6E" />
                 </BarChart>
               </ResponsiveContainer>
             </div>

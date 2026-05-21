@@ -685,8 +685,8 @@ const CollaborationModule: React.FC = () => {
                   <YAxis />
                   <Tooltip />
                   <Legend />
-                  <Bar dataKey="messages" name="Messages" fill="#235A6E" />
-                  <Bar dataKey="collaborations" name="Collaborations" fill="#4E7E8D" />
+                  <Bar radius={[6,6,0,0]} dataKey="messages" name="Messages" fill="#235A6E" />
+                  <Bar radius={[6,6,0,0]} dataKey="collaborations" name="Collaborations" fill="#4E7E8D" />
                 </BarChart>
               </ResponsiveContainer>
             </div>

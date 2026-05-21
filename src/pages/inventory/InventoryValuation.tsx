@@ -84,7 +84,7 @@ const ValuationComparison: React.FC<ValuationComparisonProps> = ({
               <Tooltip
                 formatter={(value: number) => [`$${formatCurrency(value)}`, 'Inventory Value']}
               />
-              <Bar dataKey="value" fill="#235A6E" />
+              <Bar radius={[6,6,0,0]} dataKey="value" fill="#235A6E" />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -620,7 +620,7 @@ const InventoryValuation: React.FC = () => {
                     <XAxis dataKey="category" />
                     <YAxis />
                     <Tooltip formatter={(value: number) => [`$${formatCurrency(value)}`, 'Impairment']} />
-                    <Bar dataKey="impairment" fill="#C0322B" />
+                    <Bar radius={[6,6,0,0]} dataKey="impairment" fill="#C0322B" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>

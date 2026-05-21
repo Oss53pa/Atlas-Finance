@@ -557,8 +557,8 @@ const AdvancedBalance: React.FC = () => {
                   <YAxis tickFormatter={(value) => fmt(value)} />
                   <Tooltip formatter={(value) => [fmt(value as number), '']} />
                   <Legend />
-                  <Bar dataKey="actif" fill="#235A6E" name="Actif" />
-                  <Bar dataKey="passif" fill="#4E7E8D" name="Passif" />
+                  <Bar radius={[6,6,0,0]} dataKey="actif" fill="#235A6E" name="Actif" />
+                  <Bar radius={[6,6,0,0]} dataKey="passif" fill="#4E7E8D" name="Passif" />
                   <Line type="monotone" dataKey="charges" stroke="#C0322B" name="Charges" />
                   <Line type="monotone" dataKey="produits" stroke="#15803D" name="Produits" />
                 </ComposedChart>
@@ -776,8 +776,8 @@ const AdvancedBalance: React.FC = () => {
                   <YAxis tickFormatter={(value) => fmt(value)} />
                   <Tooltip formatter={(value) => [fmt(value as number), '']} />
                   <Legend />
-                  <Bar dataKey="budget" fill="#4E7E8D" name={t('navigation.budget')} />
-                  <Bar dataKey="reel" fill="#235A6E" name="Réel" />
+                  <Bar radius={[6,6,0,0]} dataKey="budget" fill="#4E7E8D" name={t('navigation.budget')} />
+                  <Bar radius={[6,6,0,0]} dataKey="reel" fill="#235A6E" name="Réel" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
