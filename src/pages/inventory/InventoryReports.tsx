@@ -512,14 +512,14 @@ const InventoryReports: React.FC = () => {
   ];
 
   const reportTypeDistribution = [
-    { name: 'Valuation', value: 35, color: '#3B82F6' },
-    { name: 'ABC Analysis', value: 25, color: '#22c55e' },
-    { name: 'Turnover', value: 20, color: '#F59E0B' },
-    { name: 'Aging', value: 15, color: '#EF4444' },
-    { name: 'Compliance', value: 5, color: '#8B5CF6' }
+    { name: 'Valuation', value: 35, color: '#235A6E' },
+    { name: 'ABC Analysis', value: 25, color: '#15803D' },
+    { name: 'Turnover', value: 20, color: '#E89A2E' },
+    { name: 'Aging', value: 15, color: '#C0322B' },
+    { name: 'Compliance', value: 5, color: '#C77E2C' }
   ];
 
-  const COLORS = ['#171717', '#525252', '#a3a3a3', '#3b82f6', '#22c55e', '#f59e0b'];
+  const COLORS = ['#235A6E', '#E89A2E', '#15803D', '#4E7E8D', '#C77E2C', '#7FA3AF'];
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -602,8 +602,8 @@ const InventoryReports: React.FC = () => {
                 type="monotone"
                 dataKey="count"
                 stackId="1"
-                stroke="#3B82F6"
-                fill="#3B82F6"
+                stroke="#235A6E"
+                fill="#235A6E"
                 fillOpacity={0.6}
                 name="Total Reports"
               />
@@ -611,8 +611,8 @@ const InventoryReports: React.FC = () => {
                 type="monotone"
                 dataKey="automated"
                 stackId="1"
-                stroke="#22c55e"
-                fill="#22c55e"
+                stroke="#15803D"
+                fill="#15803D"
                 fillOpacity={0.6}
                 name="Automated Reports"
               />

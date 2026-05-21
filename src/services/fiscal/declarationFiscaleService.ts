@@ -77,8 +77,8 @@ export async function calculerTVAMensuelle(
   let tvaCollectee = 0;
   let tvaDeductible = 0;
   let baseImposable18 = 0;
-  let baseImposable9 = 0;
-  let baseExoneree = 0;
+  const baseImposable9 = 0;
+  const baseExoneree = 0;
   const details: TVADetail[] = [];
 
   const accountTotals = new Map<string, { debit: number; credit: number }>();
@@ -231,6 +231,7 @@ export async function getCreditTVAPrecedent(
       return decl.creditAReporter || 0;
     }
   } catch (error) {
+    /* ignored */
   }
 
   return 0;

@@ -208,6 +208,7 @@ const RatiosFinanciersPage: React.FC = () => {
 
       setCategories(computedCategories);
     } catch (err) {
+      /* ignored */
     }
     setLoading(false);
   };

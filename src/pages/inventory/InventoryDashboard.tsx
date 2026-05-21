@@ -243,9 +243,9 @@ const InventoryDashboard: React.FC = () => {
       .sort((a, b) => b.totalVal - a.totalVal);
     const totalValue = sorted.reduce((s, i) => s + i.totalVal, 0);
     let cumulative = 0;
-    let classA = { items: 0, value: 0 };
-    let classB = { items: 0, value: 0 };
-    let classC = { items: 0, value: 0 };
+    const classA = { items: 0, value: 0 };
+    const classB = { items: 0, value: 0 };
+    const classC = { items: 0, value: 0 };
     sorted.forEach(item => {
       cumulative += item.totalVal;
       const pct = totalValue > 0 ? (cumulative / totalValue) * 100 : 0;
@@ -288,7 +288,7 @@ const InventoryDashboard: React.FC = () => {
     ];
   }, [inventoryItems]);
 
-  const COLORS = ['#171717', '#525252', '#a3a3a3', '#3b82f6', '#22c55e', '#f59e0b'];
+  const COLORS = ['#235A6E', '#E89A2E', '#15803D', '#4E7E8D', '#C77E2C', '#7FA3AF'];
 
   const handleRefresh = async () => {
     setIsLoading(true);
@@ -509,15 +509,15 @@ const InventoryDashboard: React.FC = () => {
               <Area
                 type="monotone"
                 dataKey="value"
-                stroke="#171717"
-                fill="#171717"
+                stroke="#235A6E"
+                fill="#235A6E"
                 fillOpacity={0.1}
                 strokeWidth={2}
               />
               <Line
                 type="monotone"
                 dataKey="forecast"
-                stroke="#22c55e"
+                stroke="#15803D"
                 strokeDasharray="5 5"
                 strokeWidth={2}
               />
@@ -539,7 +539,7 @@ const InventoryDashboard: React.FC = () => {
                   name === 'turnover' ? 'Turnover Ratio' : 'Inventory Value'
                 ]}
               />
-              <Bar dataKey="turnover" fill="#171717" />
+              <Bar dataKey="turnover" fill="#235A6E" />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -579,7 +579,7 @@ const InventoryDashboard: React.FC = () => {
               <XAxis type="number" tickFormatter={(value) => `$${(value / 1000).toFixed(0)}K`} />
               <YAxis type="category" dataKey="period" width={80} />
               <Tooltip formatter={(value: number) => [`$${formatCurrency(value)}`, 'Value']} />
-              <Bar dataKey="value" fill="#F59E0B" />
+              <Bar dataKey="value" fill="#E89A2E" />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -595,7 +595,7 @@ const InventoryDashboard: React.FC = () => {
               <XAxis dataKey="method" />
               <YAxis tickFormatter={(value) => `$${(value / 1000000).toFixed(1)}M`} />
               <Tooltip formatter={(value: number) => [`$${formatCurrency(value)}`, 'Inventory Value']} />
-              <Bar dataKey="value" fill="#525252" />
+              <Bar dataKey="value" fill="#4E7E8D" />
             </BarChart>
           </ResponsiveContainer>
 

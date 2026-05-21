@@ -541,7 +541,7 @@ const KPIsRealTime: React.FC = () => {
                             <stop offset="95%" stopColor="#737373" stopOpacity={0} />
                           </linearGradient>
                         </defs>
-                        <Area type="monotone" dataKey="value" stroke="#737373" fillOpacity={1} fill={`url(#gradient-${kpi.id})`} />
+                        <Area type="monotone" dataKey="value" stroke="#235A6E" fillOpacity={1} fill={`url(#gradient-${kpi.id})`} />
                       </AreaChart>
                     </ResponsiveContainer>
                   </div>
@@ -560,13 +560,13 @@ const KPIsRealTime: React.FC = () => {
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={realTimeData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#d4d4d4" />
-                <XAxis dataKey="timestamp" tickFormatter={(value) => new Date(value).toLocaleTimeString()} stroke="#737373" />
-                <YAxis stroke="#737373" />
+                <XAxis dataKey="timestamp" tickFormatter={(value) => new Date(value).toLocaleTimeString()} stroke="#235A6E" />
+                <YAxis stroke="#235A6E" />
                 <Tooltip labelFormatter={(value) => new Date(value).toLocaleTimeString()} />
                 <Legend />
-                <Line type="monotone" dataKey="sales" stroke="#737373" name="Ventes" strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey="orders" stroke="#22c55e" name="Commandes" strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey="conversion" stroke="#F59E0B" name="Conversion (%)" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="sales" stroke="#235A6E" name="Ventes" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="orders" stroke="#15803D" name="Commandes" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="conversion" stroke="#E89A2E" name="Conversion (%)" strokeWidth={2} dot={false} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -576,9 +576,9 @@ const KPIsRealTime: React.FC = () => {
             <ResponsiveContainer width="100%" height={300}>
               <RadarChart data={radarData}>
                 <PolarGrid stroke="#d4d4d4" />
-                <PolarAngleAxis dataKey="subject" stroke="#737373" />
-                <PolarRadiusAxis angle={90} domain={[0, 100]} stroke="#737373" />
-                <Radar name="Performance" dataKey="A" stroke="#737373" fill="#737373" fillOpacity={0.6} />
+                <PolarAngleAxis dataKey="subject" stroke="#235A6E" />
+                <PolarRadiusAxis angle={90} domain={[0, 100]} stroke="#235A6E" />
+                <Radar name="Performance" dataKey="A" stroke="#235A6E" fill="#235A6E" fillOpacity={0.6} />
                 <Tooltip />
               </RadarChart>
             </ResponsiveContainer>

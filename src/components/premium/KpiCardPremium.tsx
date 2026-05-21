@@ -18,10 +18,10 @@ export interface KpiCardPremiumProps {
 }
 
 const TONE_COLORS: Record<KpiTone, { stroke: string; fill: string; deltaBg: string; deltaText: string }> = {
-  neutral: { stroke: '#C9A961', fill: 'rgba(201,169,97,0.18)', deltaBg: 'rgba(201,169,97,0.12)', deltaText: '#A88845' },
-  gold:    { stroke: '#C9A961', fill: 'rgba(201,169,97,0.22)', deltaBg: 'rgba(201,169,97,0.14)', deltaText: '#A88845' },
-  success: { stroke: '#0F8F5F', fill: 'rgba(15,143,95,0.18)',  deltaBg: 'rgba(15,143,95,0.12)',  deltaText: '#0F8F5F' },
-  warning: { stroke: '#D4A04A', fill: 'rgba(212,160,74,0.18)', deltaBg: 'rgba(212,160,74,0.14)', deltaText: '#7A6332' },
+  neutral: { stroke: '#235A6E', fill: 'rgba(35,90,110,0.16)', deltaBg: 'rgba(35,90,110,0.12)', deltaText: '#1B4856' },
+  gold:    { stroke: '#235A6E', fill: 'rgba(35,90,110,0.20)', deltaBg: 'rgba(35,90,110,0.14)', deltaText: '#1B4856' },
+  success: { stroke: '#15803D', fill: 'rgba(21,128,61,0.18)',  deltaBg: 'rgba(21,128,61,0.12)',  deltaText: '#15803D' },
+  warning: { stroke: '#E89A2E', fill: 'rgba(232,154,46,0.18)', deltaBg: 'rgba(232,154,46,0.14)', deltaText: '#C77E2C' },
   danger:  { stroke: '#C0322B', fill: 'rgba(192,50,43,0.16)',  deltaBg: 'rgba(192,50,43,0.10)',  deltaText: '#C0322B' },
 };
 

@@ -757,7 +757,7 @@ export class AdvancedIntentRecognizer {
     }
 
     // Dates
-    const dateRegex = /(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})|aujourd'hui|demain|hier/i;
+    const dateRegex = /(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})|aujourd'hui|demain|hier/i;
     const dateMatch = message.match(dateRegex);
     if (dateMatch) {
       entities.date = dateMatch[0];

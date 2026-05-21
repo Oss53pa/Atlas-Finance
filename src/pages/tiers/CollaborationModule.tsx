@@ -180,7 +180,7 @@ const CollaborationModule: React.FC = () => {
     return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
 
-  const COLORS = ['#171717', '#525252', '#a3a3a3', '#3b82f6', '#22c55e', '#f59e0b'];
+  const COLORS = ['#235A6E', '#E89A2E', '#15803D', '#4E7E8D', '#C77E2C', '#7FA3AF'];
 
   return (
     <div className="p-6 bg-[var(--color-border)] min-h-screen ">
@@ -685,8 +685,8 @@ const CollaborationModule: React.FC = () => {
                   <YAxis />
                   <Tooltip />
                   <Legend />
-                  <Bar dataKey="messages" name="Messages" fill="#737373" />
-                  <Bar dataKey="collaborations" name="Collaborations" fill="#525252" />
+                  <Bar dataKey="messages" name="Messages" fill="#235A6E" />
+                  <Bar dataKey="collaborations" name="Collaborations" fill="#4E7E8D" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -702,7 +702,7 @@ const CollaborationModule: React.FC = () => {
                     cx="50%"
                     cy="50%"
                     outerRadius={100}
-                    fill="#737373"
+                    fill="#235A6E"
                     label={({ type, pourcentage }) => `${type} (${pourcentage}%)`}
                   >
                     {analyticsData.typesCommunication.map((entry, index) => (

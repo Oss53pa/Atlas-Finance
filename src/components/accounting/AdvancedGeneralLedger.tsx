@@ -181,7 +181,7 @@ const AdvancedGeneralLedger: React.FC = () => {
     return { totalComptes, comptesActifs, totalEcritures, moyenneEcritures, comptesPlusActifs };
   }, [accountsData]);
 
-  const COLORS = ['#171717', '#525252', '#a3a3a3', '#3b82f6', '#22c55e', '#f59e0b'];
+  const COLORS = ['#235A6E', '#E89A2E', '#15803D', '#4E7E8D', '#C77E2C', '#7FA3AF'];
 
   return (
     <PrintableArea
@@ -1219,8 +1219,8 @@ const AdvancedGeneralLedger: React.FC = () => {
                   <YAxis tickFormatter={(value) => fmt(value)} />
                   <Tooltip formatter={(value) => [fmt(value as number), '']} />
                   <Legend />
-                  <Area type="monotone" dataKey="actif" stackId="1" stroke="#171717" fill="#171717" fillOpacity={0.6} name="Actif" />
-                  <Area type="monotone" dataKey="passif" stackId="2" stroke="#525252" fill="#525252" fillOpacity={0.6} name="Passif" />
+                  <Area type="monotone" dataKey="actif" stackId="1" stroke="#235A6E" fill="#235A6E" fillOpacity={0.6} name="Actif" />
+                  <Area type="monotone" dataKey="passif" stackId="2" stroke="#4E7E8D" fill="#4E7E8D" fillOpacity={0.6} name="Passif" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -2363,9 +2363,9 @@ const AdvancedGeneralLedger: React.FC = () => {
                     <YAxis tickFormatter={(value) => fmt(value)} />
                     <Tooltip formatter={(value) => [fmt(value as number), '']} />
                     <Legend />
-                    <Line type="monotone" dataKey="actif" stroke="#171717" strokeWidth={3} name="Actif (Réel)" />
-                    <Line type="monotone" dataKey="passif" stroke="#525252" strokeWidth={3} name="Passif (Réel)" />
-                    <Line type="monotone" dataKey="actif" stroke="#171717" strokeWidth={1} strokeDasharray="5 5" name="Prédiction IA" />
+                    <Line type="monotone" dataKey="actif" stroke="#235A6E" strokeWidth={3} name="Actif (Réel)" />
+                    <Line type="monotone" dataKey="passif" stroke="#4E7E8D" strokeWidth={3} name="Passif (Réel)" />
+                    <Line type="monotone" dataKey="actif" stroke="#235A6E" strokeWidth={1} strokeDasharray="5 5" name="Prédiction IA" />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -2550,10 +2550,10 @@ const AdvancedGeneralLedger: React.FC = () => {
                 <YAxis tickFormatter={(value) => fmt(value)} />
                 <Tooltip formatter={(value) => [fmt(value as number), '']} />
                 <Legend />
-                <Line type="monotone" dataKey="produits" stroke="#22c55e" strokeWidth={3} name="Produits" />
-                <Line type="monotone" dataKey="charges" stroke="#ef4444" strokeWidth={3} name="Charges" />
-                <Line type="monotone" dataKey="actif" stroke="#171717" strokeWidth={2} name="Actif" />
-                <Line type="monotone" dataKey="passif" stroke="#525252" strokeWidth={2} name="Passif" />
+                <Line type="monotone" dataKey="produits" stroke="#15803D" strokeWidth={3} name="Produits" />
+                <Line type="monotone" dataKey="charges" stroke="#C0322B" strokeWidth={3} name="Charges" />
+                <Line type="monotone" dataKey="actif" stroke="#235A6E" strokeWidth={2} name="Actif" />
+                <Line type="monotone" dataKey="passif" stroke="#4E7E8D" strokeWidth={2} name="Passif" />
               </LineChart>
             </ResponsiveContainer>
           </div>

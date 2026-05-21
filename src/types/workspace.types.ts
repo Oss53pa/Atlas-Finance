@@ -157,7 +157,7 @@ export interface CreateWorkspaceDto {
   order?: number;
 }
 
-export interface UpdateWorkspaceDto extends Partial<CreateWorkspaceDto> {}
+export interface UpdateWorkspaceDto extends Partial<CreateWorkspaceDto> { /* ignored */ }
 
 export interface CreateWidgetDto {
   workspace: string;
@@ -176,7 +176,7 @@ export interface CreateWidgetDto {
   is_required?: boolean;
 }
 
-export interface UpdateWidgetDto extends Partial<CreateWidgetDto> {}
+export interface UpdateWidgetDto extends Partial<CreateWidgetDto> { /* ignored */ }
 
 export interface CreateStatisticDto {
   workspace: string;
@@ -192,7 +192,7 @@ export interface CreateStatisticDto {
   cache_duration?: number;
 }
 
-export interface UpdateStatisticDto extends Partial<CreateStatisticDto> {}
+export interface UpdateStatisticDto extends Partial<CreateStatisticDto> { /* ignored */ }
 
 export interface CreateQuickActionDto {
   workspace: string;
@@ -209,7 +209,7 @@ export interface CreateQuickActionDto {
   badge_api_endpoint?: string;
 }
 
-export interface UpdateQuickActionDto extends Partial<CreateQuickActionDto> {}
+export interface UpdateQuickActionDto extends Partial<CreateQuickActionDto> { /* ignored */ }
 
 export interface WorkspaceQueryParams {
   role?: WorkspaceRole;

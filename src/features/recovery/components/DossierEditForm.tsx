@@ -157,7 +157,7 @@ export const DossierEditForm: React.FC<DossierEditFormProps> = ({
           </div>
           <div>
             <span className="text-[var(--color-text-tertiary)]">Montant Restant: </span>
-            <span className="font-medium text-[#ef4444]">
+            <span className="font-medium text-[#C0322B]">
               {dossier.montantTotal - formData.montantPaye} FCFA
             </span>
           </div>

@@ -87,7 +87,7 @@ export const BudgetAlerts: React.FC<BudgetAlertsProps> = ({
                 <div className="mt-2 pt-2 border-t border-[var(--color-border)]">
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-[var(--color-text-tertiary)]">Seuil: {formatCurrency(alert.threshold)}</span>
-                    <span className={alert.currentValue > alert.threshold ? 'text-[#ef4444] font-semibold' : 'text-[var(--color-primary)]'}>
+                    <span className={alert.currentValue > alert.threshold ? 'text-[#C0322B] font-semibold' : 'text-[var(--color-primary)]'}>
                       Actuel: {formatCurrency(alert.currentValue)}
                     </span>
                   </div>
@@ -95,7 +95,7 @@ export const BudgetAlerts: React.FC<BudgetAlertsProps> = ({
                     <div
                       className={`h-2 rounded-full transition-all ${
                         alert.currentValue > alert.threshold
-                          ? 'bg-[#ef4444]'
+                          ? 'bg-[#C0322B]'
                           : 'bg-[var(--color-primary)]'
                       }`}
                       style={{

@@ -189,6 +189,7 @@ const FournisseursModule: React.FC = () => {
           setFournisseurs(fournisseursData);
         }
       } catch (err) {
+        /* ignored */
       } finally {
         if (mounted) setIsLoading(false);
       }
@@ -282,7 +283,7 @@ const FournisseursModule: React.FC = () => {
     };
   }, [fournisseurs]);
 
-  const COLORS = ['#171717', '#525252', '#a3a3a3', '#3b82f6', '#22c55e', '#f59e0b'];
+  const COLORS = ['#235A6E', '#E89A2E', '#15803D', '#4E7E8D', '#C77E2C', '#7FA3AF'];
 
   // Données Balance Âgée Fournisseurs (Dettes)
   const balanceAgeeData: BalanceAgeeFournisseurItem[] = useMemo(() => fournisseurs.map(f => ({
@@ -314,11 +315,11 @@ const FournisseursModule: React.FC = () => {
 
   // Data pour graphique Balance Âgée Fournisseurs
   const balanceAgeeChartData = [
-    { name: 'Non échu', value: totauxBalanceAgee.nonEchu, color: '#22c55e' },
-    { name: '0-30 jours', value: totauxBalanceAgee.echu0_30, color: '#f59e0b' },
-    { name: '31-60 jours', value: totauxBalanceAgee.echu31_60, color: '#f59e0b' },
-    { name: '61-90 jours', value: totauxBalanceAgee.echu61_90, color: '#ef4444' },
-    { name: '+90 jours', value: totauxBalanceAgee.echuPlus90, color: '#ef4444' }
+    { name: 'Non échu', value: totauxBalanceAgee.nonEchu, color: '#15803D' },
+    { name: '0-30 jours', value: totauxBalanceAgee.echu0_30, color: '#E89A2E' },
+    { name: '31-60 jours', value: totauxBalanceAgee.echu31_60, color: '#E89A2E' },
+    { name: '61-90 jours', value: totauxBalanceAgee.echu61_90, color: '#C0322B' },
+    { name: '+90 jours', value: totauxBalanceAgee.echuPlus90, color: '#C0322B' }
   ];
 
   const tabs = [
@@ -886,11 +887,11 @@ const FournisseursModule: React.FC = () => {
                       <YAxis type="category" dataKey="fournisseurCode" width={80} />
                       <Tooltip formatter={(value) => formatCurrency(value as number)} />
                       <Legend />
-                      <Bar dataKey="nonEchu" stackId="a" fill="#22C55E" name="Non Échu" />
-                      <Bar dataKey="echu0_30" stackId="a" fill="#f59e0b" name="0-30j" />
-                      <Bar dataKey="echu31_60" stackId="a" fill="#f59e0b" name="31-60j" />
-                      <Bar dataKey="echu61_90" stackId="a" fill="#EF4444" name="61-90j" />
-                      <Bar dataKey="echuPlus90" stackId="a" fill="#ef4444" name="+90j" />
+                      <Bar dataKey="nonEchu" stackId="a" fill="#15803D" name="Non Échu" />
+                      <Bar dataKey="echu0_30" stackId="a" fill="#E89A2E" name="0-30j" />
+                      <Bar dataKey="echu31_60" stackId="a" fill="#E89A2E" name="31-60j" />
+                      <Bar dataKey="echu61_90" stackId="a" fill="#C0322B" name="61-90j" />
+                      <Bar dataKey="echuPlus90" stackId="a" fill="#C0322B" name="+90j" />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -1330,7 +1331,7 @@ const FournisseursModule: React.FC = () => {
                 {catData.some(d => d.montant > 0) ? (
                   <ResponsiveContainer width="100%" height={300}>
                     <RechartsPieChart>
-                      <Pie dataKey="montant" data={catData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} fill="#737373"
+                      <Pie dataKey="montant" data={catData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} fill="#235A6E"
                         label={({ categorie, percent }) => `${categorie} ${(percent * 100).toFixed(0)}%`}>
                         {catData.map((_, index) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -1353,7 +1354,7 @@ const FournisseursModule: React.FC = () => {
                     <PolarGrid />
                     <PolarAngleAxis dataKey="critere" />
                     <PolarRadiusAxis angle={90} domain={[0, 100]} />
-                    <Radar name="Score" dataKey="score" stroke="#171717" fill="#171717" fillOpacity={0.6} />
+                    <Radar name="Score" dataKey="score" stroke="#235A6E" fill="#235A6E" fillOpacity={0.6} />
                     <Tooltip />
                   </RadarChart>
                 </ResponsiveContainer>
@@ -1764,7 +1765,7 @@ const FournisseursModule: React.FC = () => {
                           devise: 'XAF', scoreQualite: 0, respectDelais: 0,
                           notationInterne: 'B', conformite: true, statut: 'ACTIF',
                         } as Fournisseur)));
- } catch (err) { }
+ } catch (err) { /* ignored */ }
                     }}
                     className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 font-semibold">
                     Créer le fournisseur

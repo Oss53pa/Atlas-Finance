@@ -376,6 +376,7 @@ export const useReviewStore = create<ReviewState>()(
           await new Promise(resolve => setTimeout(resolve, 100));
           set({ stats: mockStats });
         } catch (error) {
+          /* ignored */
         }
       },
 

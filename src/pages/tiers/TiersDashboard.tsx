@@ -121,7 +121,7 @@ const TiersDashboard: React.FC = () => {
     return statusConfig[status as keyof typeof statusConfig] || 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]';
   };
 
-  const COLORS = ['#171717', '#525252', '#a3a3a3', '#3b82f6', '#22c55e', '#f59e0b'];
+  const COLORS = ['#235A6E', '#E89A2E', '#15803D', '#4E7E8D', '#C77E2C', '#7FA3AF'];
 
   return (
     <div className="p-6 bg-[var(--color-border)] min-h-screen">
@@ -291,7 +291,7 @@ const TiersDashboard: React.FC = () => {
                     cx="50%"
                     cy="50%"
                     outerRadius={100}
-                    fill="#737373"
+                    fill="#235A6E"
                     label={({ segment, pourcentage }) => `${segment} (${pourcentage}%)`}
                   >
                     {clientAnalytics.repartitionParSegment.map((entry, index) => (
@@ -312,7 +312,7 @@ const TiersDashboard: React.FC = () => {
                   <XAxis dataKey="date" />
                   <YAxis tickFormatter={(value) => `${value / 1000}k`} />
                   <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                  <Area type="monotone" dataKey="valeur" stroke="#171717" fill="#171717" fillOpacity={0.3} />
+                  <Area type="monotone" dataKey="valeur" stroke="#235A6E" fill="#235A6E" fillOpacity={0.3} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>

@@ -238,7 +238,7 @@ const ProspectsModule: React.FC = () => {
     return icons[source as keyof typeof icons] || Target;
   };
 
-  const COLORS = ['#171717', '#525252', '#a3a3a3', '#3b82f6', '#22c55e', '#f59e0b'];
+  const COLORS = ['#235A6E', '#E89A2E', '#15803D', '#4E7E8D', '#C77E2C', '#7FA3AF'];
 
   return (
     <div className="p-6 bg-[var(--color-border)] min-h-screen ">
@@ -419,9 +419,9 @@ const ProspectsModule: React.FC = () => {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Area type="monotone" dataKey="nouveaux" stackId="1" stroke="#171717" fill="#171717" name="Nouveaux" />
-                <Area type="monotone" dataKey="convertis" stackId="1" stroke="#22c55e" fill="#22c55e" name="Convertis" />
-                <Area type="monotone" dataKey="perdus" stackId="1" stroke="#EF4444" fill="#EF4444" name="Perdus" />
+                <Area type="monotone" dataKey="nouveaux" stackId="1" stroke="#235A6E" fill="#235A6E" name="Nouveaux" />
+                <Area type="monotone" dataKey="convertis" stackId="1" stroke="#15803D" fill="#15803D" name="Convertis" />
+                <Area type="monotone" dataKey="perdus" stackId="1" stroke="#C0322B" fill="#C0322B" name="Perdus" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -536,8 +536,8 @@ const ProspectsModule: React.FC = () => {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="taux" fill="#171717" name="Taux de conversion %" />
-                <Bar dataKey="nombre" fill="#525252" name="Nombre de prospects" />
+                <Bar dataKey="taux" fill="#235A6E" name="Taux de conversion %" />
+                <Bar dataKey="nombre" fill="#4E7E8D" name="Nombre de prospects" />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -553,7 +553,7 @@ const ProspectsModule: React.FC = () => {
                   cx="50%"
                   cy="50%"
                   outerRadius={100}
-                  fill="#737373"
+                  fill="#235A6E"
                   label={({ stade, nombre }) => `${stade}: ${nombre}`}
                 >
                   {analytics.repartitionParStade.map((entry, index) => (

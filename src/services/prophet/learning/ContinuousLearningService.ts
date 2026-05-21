@@ -522,6 +522,7 @@ ${corrections.map(c => `• [${c.category}] ${c.correctedContent.slice(0, 100)}`
         if (data.version === 1) return data;
       }
     } catch (e) {
+      /* ignored */
     }
     return this.createEmptyStore();
   }
@@ -530,6 +531,7 @@ ${corrections.map(c => `• [${c.category}] ${c.correctedContent.slice(0, 100)}`
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(this.store));
     } catch (e) {
+      /* ignored */
     }
   }
 

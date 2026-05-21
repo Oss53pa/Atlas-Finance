@@ -132,6 +132,7 @@ const BankAccountsExamplePage: React.FC = () => {
       setEditingAccount(null);
       // ✅ Cache invalidé automatiquement !
     } catch (error) {
+      /* ignored */
     }
   };
 
@@ -142,6 +143,7 @@ const BankAccountsExamplePage: React.FC = () => {
       await deleteAccount.mutateAsync(id);
       // ✅ Cache invalidé automatiquement !
     } catch (error) {
+      /* ignored */
     }
   };
 

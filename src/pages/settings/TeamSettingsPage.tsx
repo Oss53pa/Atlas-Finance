@@ -58,9 +58,9 @@ interface TenantInfo {
 }
 
 const ROLE_LABEL: Record<Role, { label: string; color: string; description: string }> = {
-  app_super_admin: { label: "Super-admin", color: "#10B981", description: "Accès total, gère l'abonnement et l'équipe" },
-  app_admin: { label: "Admin", color: "#3B82F6", description: "Gère l'équipe et les paramètres applicatifs" },
-  editor: { label: "Éditeur", color: "#F59E0B", description: "Peut créer et modifier les données" },
+  app_super_admin: { label: "Super-admin", color: "#15803D", description: "Accès total, gère l'abonnement et l'équipe" },
+  app_admin: { label: "Admin", color: "#235A6E", description: "Gère l'équipe et les paramètres applicatifs" },
+  editor: { label: "Éditeur", color: "#E89A2E", description: "Peut créer et modifier les données" },
   viewer: { label: "Lecteur", color: "#6B7280", description: "Consultation uniquement" },
 };
 
@@ -338,11 +338,11 @@ export default function TeamSettingsPage() {
                   </td>
                   <td style={styles.td}>
                     {seat.status === "suspended" ? (
-                      <span style={{ color: "#EF4444", fontSize: 13 }}>● Suspendu</span>
+                      <span style={{ color: "#C0322B", fontSize: 13 }}>● Suspendu</span>
                     ) : isPending ? (
-                      <span style={{ color: "#F59E0B", fontSize: 13 }}>● Invitation envoyée</span>
+                      <span style={{ color: "#E89A2E", fontSize: 13 }}>● Invitation envoyée</span>
                     ) : (
-                      <span style={{ color: "#10B981", fontSize: 13 }}>● Actif</span>
+                      <span style={{ color: "#15803D", fontSize: 13 }}>● Actif</span>
                     )}
                   </td>
                   <td style={styles.td}>
@@ -394,8 +394,8 @@ const styles: Record<string, React.CSSProperties> = {
   td: { padding: "14px 16px", borderBottom: "1px solid #F1F5F9", verticalAlign: "middle", fontSize: 14 },
   roleBadge: { display: "inline-block", padding: "4px 10px", borderRadius: 6, color: "#fff", fontSize: 12, fontWeight: 600 },
   select: { padding: "6px 10px", border: "1px solid", borderRadius: 6, fontSize: 13, fontWeight: 600, background: "#fff", cursor: "pointer" },
-  youTag: { fontSize: 10, padding: "2px 6px", background: "#10B981", color: "#fff", borderRadius: 4, marginLeft: 8, fontWeight: 700 },
-  btnPrimary: { padding: "10px 20px", background: "#10B981", color: "#042F1F", border: "none", borderRadius: 8, fontWeight: 700, fontSize: 14, cursor: "pointer" },
+  youTag: { fontSize: 10, padding: "2px 6px", background: "#15803D", color: "#fff", borderRadius: 4, marginLeft: 8, fontWeight: 700 },
+  btnPrimary: { padding: "10px 20px", background: "#15803D", color: "#042F1F", border: "none", borderRadius: 8, fontWeight: 700, fontSize: 14, cursor: "pointer" },
   btnSecondary: { padding: "8px 14px", background: "#fff", color: "#475569", border: "1px solid #CBD5E1", borderRadius: 6, fontSize: 12, cursor: "pointer" },
-  btnDanger: { padding: "8px 14px", background: "#fff", color: "#EF4444", border: "1px solid #FCA5A5", borderRadius: 6, fontSize: 12, cursor: "pointer" },
+  btnDanger: { padding: "8px 14px", background: "#fff", color: "#C0322B", border: "1px solid #FCA5A5", borderRadius: 6, fontSize: 12, cursor: "pointer" },
 };

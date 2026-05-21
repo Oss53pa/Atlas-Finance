@@ -176,6 +176,7 @@ export function useAccessibility(): AccessibilityState & AccessibilityActions {
         setContrastPreferences(prev => ({ ...prev, ...parsed.contrastPreferences }));
       }
     } catch (error) {
+      /* ignored */
     }
   }, []);
 
@@ -190,6 +191,7 @@ export function useAccessibility(): AccessibilityState & AccessibilityActions {
       };
       localStorage.setItem('accessibility-preferences', JSON.stringify(data));
     } catch (error) {
+      /* ignored */
     }
   }, [preferences, motionPreferences, textPreferences, contrastPreferences]);
 
@@ -294,6 +296,7 @@ export function useAccessibility(): AccessibilityState & AccessibilityActions {
       if (parsed.textPreferences) setTextPreferences(prev => ({ ...prev, ...parsed.textPreferences }));
       if (parsed.contrastPreferences) setContrastPreferences(prev => ({ ...prev, ...parsed.contrastPreferences }));
     } catch (error) {
+      /* ignored */
     }
   }, []);
 

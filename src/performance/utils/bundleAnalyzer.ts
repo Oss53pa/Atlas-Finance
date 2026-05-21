@@ -84,6 +84,7 @@ export class BundleAnalyzer {
         buffered: true
       });
     } catch (error) {
+      /* ignored */
     }
   }
 
@@ -135,7 +136,7 @@ export class BundleAnalyzer {
   private extractModuleName(moduleId: string): string {
     // Extract readable module name from webpack module ID
     if (moduleId.includes('node_modules')) {
-      const match = moduleId.match(/node_modules\/([^\/]+)/);
+      const match = moduleId.match(/node_modules\/([^/]+)/);
       return match ? match[1] : 'unknown';
     }
     return moduleId.split('/').pop() || 'unknown';

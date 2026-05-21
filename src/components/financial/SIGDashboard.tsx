@@ -200,7 +200,7 @@ const SIGDashboard: React.FC = () => {
 
   // Données pour la répartition de la VA
   const valueAddedBreakdown = [
-    { name: 'Personnel', value: sigData.staffCosts, color: '#ef4444' },
+    { name: 'Personnel', value: sigData.staffCosts, color: '#C0322B' },
     { name: 'Impôts/Taxes', value: sigData.taxesAndDuties, color: '#525252' },
     { name: 'Dotations', value: sigData.depreciationProvisionsDotations, color: '#737373' },
     { name: 'Résultat', value: sigData.finalNetResult, color: '#171717' }
@@ -297,8 +297,8 @@ const SIGDashboard: React.FC = () => {
                 <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
                 <YAxis />
                 <Tooltip formatter={(value: number) => fmt(value)} />
-                <Bar dataKey="value" fill={(entry, index) => entry > 0 ? '#171717' : '#ef4444'} />
-                <Line type="monotone" dataKey="cumulative" stroke="#737373" strokeWidth={3} name="Cumul" />
+                <Bar dataKey="value" fill={(entry, index) => entry > 0 ? '#171717' : '#C0322B'} />
+                <Line type="monotone" dataKey="cumulative" stroke="#235A6E" strokeWidth={3} name="Cumul" />
               </ComposedChart>
             </ResponsiveContainer>
           </div>
@@ -411,7 +411,7 @@ const SIGDashboard: React.FC = () => {
                     labelLine={false}
                     label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                     outerRadius={80}
-                    fill="#737373"
+                    fill="#235A6E"
                     dataKey="value"
                   >
                     {valueAddedBreakdown.map((entry, index) => (

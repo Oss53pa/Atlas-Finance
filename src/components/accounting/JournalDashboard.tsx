@@ -60,10 +60,10 @@ const JournalDashboard: React.FC = () => {
       const filtered = entries.filter(e => e.date >= dateRange.start && e.date <= dateRange.end);
       const byJournal: Record<string, number> = {};
       for (const e of filtered) byJournal[e.journal] = (byJournal[e.journal] || 0) + 1;
-      const colors: Record<string, string> = { VE: '#22c55e', AC: '#EF4444', BQ: '#3B82F6', CA: '#F59E0B', OD: '#737373' };
+      const colors: Record<string, string> = { VE: '#15803D', AC: '#C0322B', BQ: '#235A6E', CA: '#E89A2E', OD: '#8A8170' };
       const names: Record<string, string> = { VE: 'Ventes', AC: 'Achats', BQ: 'Banque', CA: 'Caisse', OD: 'Opérations Diverses' };
       return Object.entries(byJournal).map(([key, value]) => ({
-        name: names[key] || key, value, color: colors[key] || '#8B5CF6',
+        name: names[key] || key, value, color: colors[key] || '#C77E2C',
       }));
     },
   });
@@ -302,7 +302,7 @@ const JournalDashboard: React.FC = () => {
                         labelLine={false}
                         label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                         outerRadius={80}
-                        fill="#737373"
+                        fill="#235A6E"
                         dataKey="value"
                       >
                         {operationsByType.map((entry, index) => (
@@ -335,8 +335,8 @@ const JournalDashboard: React.FC = () => {
                       <YAxis />
                       <Tooltip />
                       <Legend />
-                      <Bar dataKey="validated" stackId="a" fill="#22c55e" name="Validées" />
-                      <Bar dataKey="pending" stackId="a" fill="#F59E0B" name="En attente" />
+                      <Bar dataKey="validated" stackId="a" fill="#15803D" name="Validées" />
+                      <Bar dataKey="pending" stackId="a" fill="#E89A2E" name="En attente" />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -396,7 +396,7 @@ const JournalDashboard: React.FC = () => {
                         {formatAmount(treasuryData.cashBalance)}
                       </p>
                     </div>
-                    <Wallet className="w-8 h-8 text-[#F59E0B]" />
+                    <Wallet className="w-8 h-8 text-[#E89A2E]" />
                   </div>
                 </div>
 
@@ -408,7 +408,7 @@ const JournalDashboard: React.FC = () => {
                         {formatAmount(treasuryData.bankBalance)}
                       </p>
                     </div>
-                    <CreditCard className="w-8 h-8 text-[#3B82F6]" />
+                    <CreditCard className="w-8 h-8 text-[#235A6E]" />
                   </div>
                 </div>
 
@@ -450,9 +450,9 @@ const JournalDashboard: React.FC = () => {
                     <YAxis tickFormatter={(value) => fmt(value)} />
                     <Tooltip formatter={(value: number) => formatAmount(value)} />
                     <Legend />
-                    <Area type="monotone" dataKey="encaissements" stackId="1" stroke="#22c55e" fill="#22c55e" fillOpacity={0.6} name={t('treasury.receipts')} />
-                    <Area type="monotone" dataKey="decaissements" stackId="2" stroke="#EF4444" fill="#EF4444" fillOpacity={0.6} name={t('treasury.payments')} />
-                    <Line type="monotone" dataKey="solde" stroke="#171717" strokeWidth={2} name={t('accounting.balance')} />
+                    <Area type="monotone" dataKey="encaissements" stackId="1" stroke="#15803D" fill="#15803D" fillOpacity={0.6} name={t('treasury.receipts')} />
+                    <Area type="monotone" dataKey="decaissements" stackId="2" stroke="#C0322B" fill="#C0322B" fillOpacity={0.6} name={t('treasury.payments')} />
+                    <Line type="monotone" dataKey="solde" stroke="#235A6E" strokeWidth={2} name={t('accounting.balance')} />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>

@@ -36,6 +36,7 @@ const TaxationDashboard: React.FC = () => {
         const je = await adapter.getAll('journalEntries');
         setJournalEntries(je as Record<string, unknown>[]);
       } catch (e) {
+        /* ignored */
       } finally {
         setLoading(false);
       }

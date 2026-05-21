@@ -50,6 +50,7 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
           if (auto.retention) setRetention(auto.retention);
         }
       } catch (err) {
+        /* ignored */
       } finally {
         setLoading(false);
       }
@@ -79,6 +80,7 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
     try {
       await saveSetting('admin_backup_history', history);
     } catch (err) {
+      /* ignored */
     }
   };
 

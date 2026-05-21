@@ -14,15 +14,15 @@ const Chip: React.FC<{ label: string; tone?: 'neutral' | 'gold' | 'live' }> = ({
   const base = 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium border';
   if (tone === 'live') {
     return (
-      <span className={base} style={{ background: 'rgba(15,143,95,0.08)', color: '#0F8F5F', borderColor: 'rgba(15,143,95,0.25)' }}>
-        <span className="w-1.5 h-1.5 rounded-full animate-subtle-pulse" style={{ background: '#0F8F5F' }} />
+      <span className={base} style={{ background: 'rgba(21,128,61,0.08)', color: '#15803D', borderColor: 'rgba(21,128,61,0.25)' }}>
+        <span className="w-1.5 h-1.5 rounded-full animate-subtle-pulse" style={{ background: '#15803D' }} />
         {label}
       </span>
     );
   }
   if (tone === 'gold') {
     return (
-      <span className={base} style={{ background: 'var(--color-accent-light)', color: 'var(--color-accent-deep)', borderColor: 'rgba(201,169,97,0.30)' }}>
+      <span className={base} style={{ background: 'var(--color-accent-light)', color: 'var(--color-accent-deep)', borderColor: 'rgba(35,90,110,0.30)' }}>
         {label}
       </span>
     );

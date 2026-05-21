@@ -16,49 +16,56 @@
 
 
 /* ══════════════════════════════════════════════════════════════════
-   OBSIDIAN & CHAMPAGNE — Variables CSS globales
-   Palette luxe institutionnel · Mercury · Brex · Cartier
-   #F7F4ED · #FFFFFF · #E5DFD0 · #C9A961 · #0E0E14
+   PETROL CREAM — Variables CSS globales
+   Pétrole (brand) + ambre (spark) sur crème · premium institutionnel
+   #F7F5EF · #FFFFFF · #E8E3D6 · #235A6E · #E89A2E · #261E15
    ══════════════════════════════════════════════════════════════════ */
 :root {
-  /* Couleurs principales */
-  --color-primary: #0E0E14;
-  --color-primary-hover: #1A1A22;
-  --color-primary-light: rgba(14, 14, 20, 0.06);
-  --color-primary-rgb: 14, 14, 20;
-  --color-secondary-rgb: 201, 169, 97;
-  --color-secondary: #C9A961;
-  --color-accent: #C9A961;
-  --color-accent-hover: #D4B574;
-  --color-accent-deep: #A88845;
-  --color-accent-light: rgba(201, 169, 97, 0.12);
-  --color-background: #F7F4ED;
+  /* Couleurs principales — pétrole = brand + accent interactif */
+  --color-primary: #235A6E;
+  --color-primary-hover: #1B4856;
+  --color-primary-light: rgba(35, 90, 110, 0.08);
+  --color-primary-rgb: 35, 90, 110;
+  --color-secondary-rgb: 232, 154, 46;
+  --color-secondary: #E89A2E;
+  --color-accent: #235A6E;
+  --color-accent-hover: #2C6E86;
+  --color-accent-deep: #1B4856;
+  --color-accent-light: rgba(35, 90, 110, 0.10);
+
+  /* Accent secondaire — ambre, à utiliser avec parcimonie (spark chaud) */
+  --color-accent-2: #E89A2E;
+  --color-accent-2-hover: #F2A93B;
+  --color-accent-2-deep: #C77E2C;
+  --color-accent-2-light: rgba(232, 154, 46, 0.12);
+
+  --color-background: #F7F5EF;
   --color-surface: #FFFFFF;
-  --color-surface-hover: #FBF8F0;
+  --color-surface-hover: #FAF8F2;
   --color-surface-elevated: #FFFFFF;
 
   /* Texte */
-  --color-text-primary: #0E0E14;
-  --color-text-secondary: #3A3A42;
-  --color-text-tertiary: #6B6B73;
-  --color-text-quaternary: #9A968A;
-  --color-text-inverse: #F7F4ED;
+  --color-text-primary: #261E15;
+  --color-text-secondary: #5C5347;
+  --color-text-tertiary: #8A8170;
+  --color-text-quaternary: #B0A893;
+  --color-text-inverse: #F7F5EF;
 
   /* Bordures — hairlines */
-  --color-border: #E5DFD0;
-  --color-border-light: #EDE7D6;
-  --color-hairline: rgba(14, 14, 20, 0.06);
-  --color-hairline-strong: rgba(14, 14, 20, 0.10);
+  --color-border: #E8E3D6;
+  --color-border-light: #F0EBE0;
+  --color-hairline: rgba(38, 30, 21, 0.07);
+  --color-hairline-strong: rgba(38, 30, 21, 0.12);
 
   /* États */
-  --color-success: #0F8F5F;
-  --color-success-light: rgba(15, 143, 95, 0.10);
+  --color-success: #15803D;
+  --color-success-light: rgba(21, 128, 61, 0.10);
   --color-error: #C0322B;
   --color-error-light: rgba(192, 50, 43, 0.10);
-  --color-warning: #C9A961;
-  --color-warning-light: rgba(201, 169, 97, 0.12);
-  --color-info: #1F1F23;
-  --color-info-light: rgba(31, 31, 35, 0.08);
+  --color-warning: #E89A2E;
+  --color-warning-light: rgba(232, 154, 46, 0.12);
+  --color-info: #235A6E;
+  --color-info-light: rgba(35, 90, 110, 0.08);
 
   /* === Rythme de densité — espacement section (banking grade) === */
   --section-gap-xs:  1rem;     /* 16px — entre micro-blocs */
@@ -73,31 +80,31 @@
   /* === Système de profondeur — banking grade (Mercury/Brex) ===
    * Empilement multi-couches : (1) hairline subtile (2) halo court
    * (3) ambient diffus loin. Couleur obsidienne baissée pour la chaleur cream. */
-  --shadow-xs:  0 1px 0 rgba(14, 14, 20, 0.02);
-  --shadow-sm:  0 1px 0 rgba(14, 14, 20, 0.02),
-                0 1px 2px rgba(14, 14, 20, 0.04);
-  --shadow-md:  0 1px 0 rgba(14, 14, 20, 0.02),
-                0 2px 4px rgba(14, 14, 20, 0.04),
-                0 8px 24px -8px rgba(14, 14, 20, 0.08);
-  --shadow-lg:  0 1px 0 rgba(14, 14, 20, 0.02),
-                0 4px 8px rgba(14, 14, 20, 0.05),
-                0 18px 40px -12px rgba(14, 14, 20, 0.10);
-  --shadow-xl:  0 2px 4px rgba(14, 14, 20, 0.04),
-                0 12px 24px rgba(14, 14, 20, 0.06),
-                0 32px 64px -20px rgba(14, 14, 20, 0.14);
-  --shadow-2xl: 0 4px 8px rgba(14, 14, 20, 0.05),
-                0 24px 48px rgba(14, 14, 20, 0.08),
-                0 48px 96px -24px rgba(14, 14, 20, 0.18);
-  /* Halo champagne pour CTA hero / status premium */
-  --shadow-gold: 0 0 0 1px rgba(201, 169, 97, 0.20),
-                 0 6px 16px -4px rgba(201, 169, 97, 0.28),
-                 0 16px 40px -16px rgba(201, 169, 97, 0.20);
+  --shadow-xs:  0 1px 0 rgba(38, 30, 21, 0.02);
+  --shadow-sm:  0 1px 0 rgba(38, 30, 21, 0.02),
+                0 1px 2px rgba(38, 30, 21, 0.04);
+  --shadow-md:  0 1px 0 rgba(38, 30, 21, 0.02),
+                0 2px 4px rgba(38, 30, 21, 0.04),
+                0 8px 24px -8px rgba(38, 30, 21, 0.08);
+  --shadow-lg:  0 1px 0 rgba(38, 30, 21, 0.02),
+                0 4px 8px rgba(38, 30, 21, 0.05),
+                0 18px 40px -12px rgba(38, 30, 21, 0.10);
+  --shadow-xl:  0 2px 4px rgba(38, 30, 21, 0.04),
+                0 12px 24px rgba(38, 30, 21, 0.06),
+                0 32px 64px -20px rgba(38, 30, 21, 0.14);
+  --shadow-2xl: 0 4px 8px rgba(38, 30, 21, 0.05),
+                0 24px 48px rgba(38, 30, 21, 0.08),
+                0 48px 96px -24px rgba(38, 30, 21, 0.18);
+  /* Halo ambre pour CTA hero / status premium (spark chaud) */
+  --shadow-gold: 0 0 0 1px rgba(232, 154, 46, 0.22),
+                 0 6px 16px -4px rgba(232, 154, 46, 0.30),
+                 0 16px 40px -16px rgba(232, 154, 46, 0.20);
   /* Ring obsidian — pour focus & boutons primaires */
   --shadow-obsidian: 0 1px 0 rgba(255, 255, 255, 0.04) inset,
-                     0 1px 2px rgba(14, 14, 20, 0.20),
-                     0 4px 12px -2px rgba(14, 14, 20, 0.18);
+                     0 1px 2px rgba(38, 30, 21, 0.20),
+                     0 4px 12px -2px rgba(38, 30, 21, 0.18);
   --shadow-hairline: inset 0 0 0 1px var(--color-border);
-  --shadow-focus: 0 0 0 3px rgba(201, 169, 97, 0.28);
+  --shadow-focus: 0 0 0 3px rgba(35, 90, 110, 0.30);
 
   /* === Motion system — premium easing curves (Linear/Vercel/Mercury) === */
   --ease-out-expo:     cubic-bezier(0.16, 1, 0.3, 1);   /* deceleration luxe */
@@ -126,10 +133,13 @@
   --radius-btn: 10px;
   --radius-full: 9999px;
 
-  /* Gradients champagne — usage très ponctuel */
-  --gradient-champagne: linear-gradient(135deg, #D4B574 0%, #C9A961 50%, #A88845 100%);
-  --gradient-obsidian: linear-gradient(180deg, #0E0E14 0%, #06060A 100%);
-  --gradient-cream: linear-gradient(180deg, #F7F4ED 0%, #FFFFFF 100%);
+  /* Gradients ambre — usage très ponctuel (spark) */
+  --gradient-champagne: linear-gradient(135deg, #F2A93B 0%, #E89A2E 50%, #C77E2C 100%);
+  --gradient-amber: linear-gradient(135deg, #F2A93B 0%, #E89A2E 50%, #C77E2C 100%);
+  /* Gradient pétrole profond — pour surfaces sombres (hero, panels) */
+  --gradient-obsidian: linear-gradient(180deg, #13323D 0%, #0C2530 100%);
+  --gradient-petrol: linear-gradient(180deg, #235A6E 0%, #13323D 100%);
+  --gradient-cream: linear-gradient(180deg, #F7F5EF 0%, #FFFFFF 100%);
 }
 
 /* Reset et base */
@@ -228,7 +238,7 @@ h1.brand-script, h2.brand-script, h3.brand-script {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(14, 14, 20, 0.12);
+  background: rgba(38, 30, 21, 0.12);
   border-radius: var(--radius-full);
   border: 2px solid transparent;
   background-clip: content-box;
@@ -246,10 +256,10 @@ h1.brand-script, h2.brand-script, h3.brand-script {
 
 /* Sélection de texte — fond champagne ultra-discret, sans changer la couleur du texte */
 ::selection {
-  background: rgba(201, 169, 97, 0.18);
+  background: rgba(35, 90, 110, 0.16);
 }
 ::-moz-selection {
-  background: rgba(201, 169, 97, 0.18);
+  background: rgba(35, 90, 110, 0.16);
 }
 
 /* ============================================
@@ -900,9 +910,9 @@ table td, .table td, .af-table-cell {
   flex-shrink: 0;
 }
 .icon-tile-gold {
-  background: var(--color-accent-light);
-  color: var(--color-accent-deep);
-  border-color: rgba(201, 169, 97, 0.20);
+  background: var(--color-accent-2-light);
+  color: var(--color-accent-2-deep);
+  border-color: rgba(232, 154, 46, 0.20);
 }
 .icon-tile-obsidian {
   background: var(--color-primary);
@@ -983,21 +993,21 @@ a:hover {
   .btn-primary {
     background: var(--color-primary);
     color: var(--color-text-inverse);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 1px 2px rgba(14, 14, 20, 0.10);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 1px 2px rgba(38, 30, 21, 0.10);
   }
   .btn-primary:hover {
     background: var(--color-primary-hover);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 4px 12px rgba(14, 14, 20, 0.16);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 4px 12px rgba(38, 30, 21, 0.16);
   }
 
   .btn-secondary {
-    background: var(--color-accent);
-    color: var(--color-primary);
-    box-shadow: inset 0 0 0 1px rgba(14, 14, 20, 0.04), 0 1px 2px rgba(201, 169, 97, 0.16);
+    background: var(--color-accent-2);
+    color: #FFFFFF;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 1px 2px rgba(232, 154, 46, 0.24);
   }
   .btn-secondary:hover {
-    background: var(--color-accent-hover);
-    box-shadow: inset 0 0 0 1px rgba(14, 14, 20, 0.06), 0 6px 18px -4px rgba(201, 169, 97, 0.40);
+    background: var(--color-accent-2-hover);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 6px 18px -4px rgba(232, 154, 46, 0.40);
   }
 
   .btn-outline {
@@ -1249,7 +1259,7 @@ a:hover {
     letter-spacing: 0.18em;
     text-transform: uppercase;
     font-weight: 600;
-    color: var(--color-accent-deep);
+    color: var(--color-accent-2-deep);
   }
 
   /* Hairline — 1px ultra-fine, parfaite pour séparateurs luxe */
@@ -1261,7 +1271,7 @@ a:hover {
 
   /* Bordure gold sur l'accent (à utiliser parcimonieusement) */
   .ring-champagne {
-    box-shadow: inset 0 0 0 1px var(--color-accent);
+    box-shadow: inset 0 0 0 1px var(--color-accent-2);
   }
 
   /* KPI card premium — masque la racine, fond cream gradient,
@@ -1296,12 +1306,12 @@ a:hover {
   .premium-surface-dark {
     background: var(--gradient-obsidian);
     color: var(--color-text-inverse);
-    border: 1px solid rgba(201, 169, 97, 0.12);
+    border: 1px solid rgba(232, 154, 46, 0.12);
   }
 
   /* Texte champagne brillant (titres exceptionnels uniquement) */
   .text-champagne-gloss {
-    background: linear-gradient(135deg, #D4B574 0%, #C9A961 35%, #A88845 60%, #C9A961 85%, #D4B574 100%);
+    background: linear-gradient(135deg, #F2A93B 0%, #E89A2E 35%, #C77E2C 60%, #E89A2E 85%, #F2A93B 100%);
     background-size: 200% auto;
     -webkit-background-clip: text;
     background-clip: text;
@@ -1314,9 +1324,9 @@ a:hover {
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: var(--color-accent);
+    background: var(--color-accent-2);
     display: inline-block;
-    box-shadow: 0 0 0 3px rgba(201, 169, 97, 0.15);
+    box-shadow: 0 0 0 3px rgba(232, 154, 46, 0.15);
   }
 
   /* Tabular numbers — monospace alignement (chiffres, montants) */
@@ -1337,9 +1347,9 @@ a:hover {
     border: 1px solid var(--color-border-light);
   }
   .chip-gold {
-    background: var(--color-accent-light);
-    color: var(--color-accent-deep);
-    border-color: rgba(201, 169, 97, 0.30);
+    background: var(--color-accent-2-light);
+    color: var(--color-accent-2-deep);
+    border-color: rgba(232, 154, 46, 0.30);
   }
   .chip-success {
     background: var(--color-success-light);
@@ -1355,7 +1365,7 @@ a:hover {
   /* Filet de séparation doré (très subtil) */
   .divider-gold {
     height: 1px;
-    background: linear-gradient(90deg, transparent 0%, rgba(201, 169, 97, 0.30) 50%, transparent 100%);
+    background: linear-gradient(90deg, transparent 0%, rgba(232, 154, 46, 0.30) 50%, transparent 100%);
     border: none;
     margin: 1.5rem 0;
   }
@@ -1436,15 +1446,15 @@ a:hover {
 
   /* Surface obsidienne (panel gauche login, hero sombre) */
   .surface-obsidian {
-    background: linear-gradient(180deg, #0E0E14 0%, #06060A 100%);
+    background: linear-gradient(180deg, #13323D 0%, #0C2530 100%);
     color: var(--color-text-inverse);
-    border: 1px solid rgba(201, 169, 97, 0.10);
+    border: 1px solid rgba(232, 154, 46, 0.10);
   }
   .surface-obsidian-rich {
     background:
-      radial-gradient(ellipse 80% 60% at 20% 10%, rgba(201, 169, 97, 0.10) 0%, transparent 60%),
-      radial-gradient(ellipse 60% 40% at 80% 90%, rgba(201, 169, 97, 0.05) 0%, transparent 60%),
-      linear-gradient(180deg, #0E0E14 0%, #06060A 100%);
+      radial-gradient(ellipse 80% 60% at 20% 10%, rgba(232, 154, 46, 0.10) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 90%, rgba(232, 154, 46, 0.05) 0%, transparent 60%),
+      linear-gradient(180deg, #13323D 0%, #0C2530 100%);
     color: var(--color-text-inverse);
   }
 

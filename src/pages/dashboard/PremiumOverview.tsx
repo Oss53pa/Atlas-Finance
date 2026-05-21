@@ -359,8 +359,8 @@ const PremiumOverview: React.FC = () => {
               <span
                 className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
                 style={{
-                  background: isBalanced ? 'rgba(15,143,95,0.10)' : 'rgba(192,50,43,0.10)',
-                  color: isBalanced ? '#0F8F5F' : '#C0322B',
+                  background: isBalanced ? 'rgba(21,128,61,0.10)' : 'rgba(192,50,43,0.10)',
+                  color: isBalanced ? '#15803D' : '#C0322B',
                 }}
               >
                 {isBalanced ? <CheckCircle2 className="w-3 h-3" strokeWidth={1.75} /> : <AlertTriangle className="w-3 h-3" strokeWidth={1.75} />}

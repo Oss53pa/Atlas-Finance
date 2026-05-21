@@ -143,6 +143,7 @@ async function handleChange(
       }
     }
   } catch (err) {
+    /* ignored */
   }
 }
 

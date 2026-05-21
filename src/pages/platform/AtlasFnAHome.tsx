@@ -21,7 +21,7 @@ import { useAuth } from '../../contexts/AuthContext';
 // Sparkline helper
 // ─────────────────────────────────────────────────────────────
 const Sparkline: React.FC<{ data: number[]; color?: string; height?: number }> = ({
-  data, color = '#C9A961', height = 56,
+  data, color = '#235A6E', height = 56,
 }) => {
   const series = data.map((y, i) => ({ x: i, y }));
   const id = React.useId();
@@ -54,7 +54,7 @@ const DeltaPill: React.FC<{ value: string; positive: boolean }> = ({ value, posi
         fontSize: 11,
         fontWeight: 600,
         background: positive ? 'rgba(15, 143, 95, 0.10)' : 'rgba(192, 50, 43, 0.10)',
-        color: positive ? '#0F8F5F' : '#C0322B',
+        color: positive ? '#15803D' : '#C0322B',
       }}
     >
       <Icon className="w-3 h-3" strokeWidth={2.4} />
@@ -124,7 +124,7 @@ const AtlasFnAHome: React.FC = () => {
         value: ecritures.toLocaleString('fr-FR'),
         unit: 'pièces',
         meta: ecritures > 0 ? 'saisies sur l\'exercice' : 'aucune écriture saisie',
-        tone: '#C9A961',
+        tone: '#235A6E',
         series: buildSeries(Math.max(ecritures, 1)),
       },
       {
@@ -132,7 +132,7 @@ const AtlasFnAHome: React.FC = () => {
         value: comptes.toLocaleString('fr-FR'),
         unit: 'comptes',
         meta: '9 classes · plan OHADA',
-        tone: '#0E0E14',
+        tone: '#E89A2E',
         series: buildSeries(Math.max(comptes, 1), 0.6),
       },
       {
@@ -140,7 +140,7 @@ const AtlasFnAHome: React.FC = () => {
         value: tiers.toLocaleString('fr-FR'),
         unit: 'fiches',
         meta: 'clients · fournisseurs · partenaires',
-        tone: '#0F8F5F',
+        tone: '#15803D',
         series: buildSeries(Math.max(tiers, 1)),
       },
       {
@@ -148,7 +148,7 @@ const AtlasFnAHome: React.FC = () => {
         value: immo.toLocaleString('fr-FR'),
         unit: 'biens',
         meta: 'amortissements en cours',
-        tone: '#A88845',
+        tone: '#C77E2C',
         series: buildSeries(Math.max(immo, 1)),
       },
     ];
@@ -207,10 +207,10 @@ const AtlasFnAHome: React.FC = () => {
   ];
 
   const TONE_TILE: Record<string, { bg: string; color: string }> = {
-    gold:     { bg: 'rgba(201,169,97,0.14)', color: '#A88845' },
-    obsidian: { bg: 'rgba(14,14,20,0.08)',   color: '#0E0E14' },
+    gold:     { bg: 'rgba(232,154,46,0.14)', color: '#C77E2C' },
+    obsidian: { bg: 'rgba(232,154,46,0.14)',   color: '#C77E2C' },
     neutral:  { bg: 'var(--color-surface-hover)', color: 'var(--color-text-secondary)' },
-    success:  { bg: 'rgba(15,143,95,0.12)',  color: '#0F8F5F' },
+    success:  { bg: 'rgba(21,128,61,0.12)',  color: '#15803D' },
     danger:   { bg: 'rgba(192,50,43,0.10)',  color: '#C0322B' },
   };
 
@@ -271,10 +271,10 @@ const AtlasFnAHome: React.FC = () => {
             </span>
             <span
               className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full"
-              style={{ background: 'rgba(15,143,95,0.08)', border: '1px solid rgba(15,143,95,0.20)' }}
+              style={{ background: 'rgba(21,128,61,0.08)', border: '1px solid rgba(21,128,61,0.20)' }}
             >
-              <ShieldCheck className="w-3 h-3" style={{ color: '#0F8F5F' }} strokeWidth={1.6} />
-              <span className="text-xs font-semibold" style={{ color: '#0F8F5F', letterSpacing: '0.04em' }}>
+              <ShieldCheck className="w-3 h-3" style={{ color: '#15803D' }} strokeWidth={1.6} />
+              <span className="text-xs font-semibold" style={{ color: '#15803D', letterSpacing: '0.04em' }}>
                 SYSCOHADA 2017
               </span>
             </span>
@@ -355,7 +355,7 @@ const AtlasFnAHome: React.FC = () => {
               className="brand-script"
               style={{
                 fontSize: '1em',
-                background: 'linear-gradient(135deg, #D4B574 0%, #C9A961 50%, #A88845 100%)',
+                background: 'linear-gradient(135deg, #F2A93B 0%, #E89A2E 50%, #C77E2C 100%)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text',
@@ -429,7 +429,7 @@ const AtlasFnAHome: React.FC = () => {
                 style={{
                   width: 44, height: 44, borderRadius: 12,
                   background: 'var(--gradient-champagne)',
-                  boxShadow: '0 6px 16px -4px rgba(201,169,97,0.40), inset 0 1px 0 rgba(255,255,255,0.25)',
+                  boxShadow: '0 6px 16px -4px rgba(232,154,46,0.40), inset 0 1px 0 rgba(255,255,255,0.25)',
                 }}
               >
                 <Sparkles className="w-5 h-5 text-white" strokeWidth={1.75} />
@@ -557,7 +557,7 @@ const AtlasFnAHome: React.FC = () => {
                     style={{
                       height: '100%',
                       width: `${pct}%`,
-                      background: 'linear-gradient(90deg, #C9A961 0%, #0F8F5F 100%)',
+                      background: 'linear-gradient(90deg, #235A6E 0%, #15803D 100%)',
                       borderRadius: 9999,
                       transition: 'width 800ms cubic-bezier(0.16, 1, 0.3, 1)',
                     }}
@@ -598,7 +598,7 @@ const AtlasFnAHome: React.FC = () => {
                   className="inline-flex items-center justify-center"
                   style={{
                     width: 32, height: 32, borderRadius: 9,
-                    background: 'linear-gradient(135deg, #6E5BC9 0%, #A88845 100%)',
+                    background: 'linear-gradient(135deg, #235A6E 0%, #E89A2E 100%)',
                   }}
                 >
                   <Brain className="w-4 h-4 text-white" strokeWidth={1.6} />

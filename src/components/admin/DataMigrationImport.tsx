@@ -1554,8 +1554,8 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
             ]).map(({ mode, title, badge, desc, detail, files, duration, risk, riskTone }) => {
               const selected = migrationMode === mode;
               const riskColors = {
-                success: { bg: 'rgba(15,143,95,0.10)', color: '#0F8F5F' },
-                warning: { bg: 'rgba(201,169,97,0.14)', color: '#A88845' },
+                success: { bg: 'rgba(21,128,61,0.10)', color: '#15803D' },
+                warning: { bg: 'rgba(232,154,46,0.14)', color: '#C77E2C' },
                 danger:  { bg: 'rgba(192,50,43,0.10)',  color: '#C0322B' },
               }[riskTone];
               return (
@@ -1595,8 +1595,8 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
                           className="num-tabular"
                           style={{
                             fontSize: 10,
-                            background: 'rgba(15,143,95,0.10)',
-                            color: '#0F8F5F',
+                            background: 'rgba(21,128,61,0.10)',
+                            color: '#15803D',
                             padding: '0.125rem 0.5rem',
                             borderRadius: 9999,
                             fontWeight: 600,

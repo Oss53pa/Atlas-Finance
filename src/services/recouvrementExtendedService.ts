@@ -245,7 +245,7 @@ export async function calculateClientRiskScore(
   let totalPaid = new Decimal(0);
   let totalOutstanding = new Decimal(0);
   let invoiceCount = 0;
-  let latePaymentCount = 0;
+  const latePaymentCount = 0;
   const paymentDelays: number[] = [];
 
   for (const entry of entries) {

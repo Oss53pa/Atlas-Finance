@@ -8,46 +8,48 @@ export type LandingThemeMode = 'dark' | 'light';
 
 const STORAGE_KEY = 'atlas-landing-theme';
 
-/** Palette dark — cohérente avec Atlas Studio */
+/** Palette dark — Petrol Night (accent ambre, cohérent avec l'app en mode sombre) */
 export const DARK = {
-  bg: '#0d0d0d',
-  bgAlt: '#141414',
+  bg: '#0C2530',
+  bgAlt: '#13323D',
   surface: 'rgba(255,255,255,0.03)',
   surfaceHover: 'rgba(255,255,255,0.06)',
-  border: 'rgba(255,255,255,0.06)',
-  borderHover: 'rgba(255,255,255,0.12)',
-  text: '#ffffff',
-  textSecondary: 'rgba(255,255,255,0.50)',
-  textTertiary: 'rgba(255,255,255,0.30)',
-  textMuted: 'rgba(255,255,255,0.20)',
-  gold: '#c9a96e',
-  goldLight: '#dbc396',
-  goldDark: '#a88b4a',
-  goldBg: 'rgba(201,169,110,0.10)',
-  goldBorder: 'rgba(201,169,110,0.20)',
+  border: 'rgba(255,255,255,0.07)',
+  borderHover: 'rgba(232,154,46,0.45)',
+  text: '#F7F5EF',
+  textSecondary: 'rgba(247,245,239,0.55)',
+  textTertiary: 'rgba(247,245,239,0.32)',
+  textMuted: 'rgba(247,245,239,0.20)',
+  // "gold" = accent — ambre en mode sombre
+  gold: '#E89A2E',
+  goldLight: '#F2A93B',
+  goldDark: '#C77E2C',
+  goldBg: 'rgba(232,154,46,0.12)',
+  goldBorder: 'rgba(232,154,46,0.24)',
   check: '#34d399',
-  navBg: 'rgba(13,13,13,0.90)',
+  navBg: 'rgba(12,37,48,0.92)',
 } as const;
 
-/** Palette light — Obsidian & Champagne (luxe institutionnel) */
+/** Palette light — Petrol Cream (pétrole brand + crème) */
 export const LIGHT = {
-  bg: '#F7F4ED',
+  bg: '#F7F5EF',
   bgAlt: '#FFFFFF',
   surface: '#FFFFFF',
-  surfaceHover: '#FBF8F0',
-  border: '#E5DFD0',
-  borderHover: '#C9A961',
-  text: '#0E0E14',
-  textSecondary: '#3A3A42',
-  textTertiary: '#6B6B73',
-  textMuted: '#9A968A',
-  gold: '#C9A961',
-  goldLight: '#D4B574',
-  goldDark: '#A88845',
-  goldBg: 'rgba(201,169,97,0.12)',
-  goldBorder: 'rgba(201,169,97,0.30)',
-  check: '#0F8F5F',
-  navBg: 'rgba(247,244,237,0.92)',
+  surfaceHover: '#FAF8F2',
+  border: '#E8E3D6',
+  borderHover: '#235A6E',
+  text: '#261E15',
+  textSecondary: '#5C5347',
+  textTertiary: '#8A8170',
+  textMuted: '#B0A893',
+  // "gold" = accent — pétrole (brand) en mode clair
+  gold: '#235A6E',
+  goldLight: '#2C6E86',
+  goldDark: '#1B4856',
+  goldBg: 'rgba(35,90,110,0.10)',
+  goldBorder: 'rgba(35,90,110,0.26)',
+  check: '#15803D',
+  navBg: 'rgba(247,245,239,0.92)',
 } as const;
 
 export function getLandingTheme(): LandingThemeMode {

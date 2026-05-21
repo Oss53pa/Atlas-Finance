@@ -116,25 +116,29 @@ const ExportButton: React.FC<ExportButtonProps> = ({
       const baseFilename = `${filename}_${timestamp}`;
 
       switch (format) {
-        case 'csv':
+        case 'csv': {
           const csvContent = generateCSV(data);
           downloadFile(csvContent, `${baseFilename}.csv`, 'text/csv');
           break;
+        }
 
-        case 'json':
+        case 'json': {
           const jsonContent = generateJSON(data);
           downloadFile(jsonContent, `${baseFilename}.json`, 'application/json');
           break;
+        }
 
-        case 'excel':
+        case 'excel': {
           const excelBlob = await generateExcel(data);
           downloadFile(excelBlob, `${baseFilename}.xlsx`, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
           break;
+        }
 
-        case 'pdf':
+        case 'pdf': {
           const pdfBlob = await generatePDF(data);
           downloadFile(pdfBlob, `${baseFilename}.pdf`, 'application/pdf');
           break;
+        }
 
         default:
       }

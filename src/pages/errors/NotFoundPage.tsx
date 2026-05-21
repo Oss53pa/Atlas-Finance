@@ -12,7 +12,7 @@ export default function NotFoundPage() {
 
       <div
         className="min-h-screen flex items-center justify-center px-6"
-        style={{ background: 'linear-gradient(180deg, #F7F4ED 0%, #FFFFFF 100%)' }}
+        style={{ background: 'linear-gradient(180deg, #F7F5EF 0%, #FFFFFF 100%)' }}
       >
         <div className="max-w-md w-full text-center">
           <div className="mb-10">

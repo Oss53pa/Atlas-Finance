@@ -137,6 +137,7 @@ const FiscalDashboard: React.FC = () => {
       const allDecl = await adapter.getAll('taxDeclarations');
       setDeclarations(allDecl as Record<string, unknown>[]);
     } catch (err) {
+      /* ignored */
     } finally {
       setLoading(false);
     }
@@ -233,6 +234,7 @@ const FiscalDashboard: React.FC = () => {
       }
       await loadData();
     } catch (err) {
+      /* ignored */
     } finally {
       setCalculating(false);
     }
@@ -245,6 +247,7 @@ const FiscalDashboard: React.FC = () => {
       await engine.createDeclaration(r.tax, period.start, period.end, amounts);
       await loadData();
     } catch (err) {
+      /* ignored */
     } finally {
       setActionLoading(null);
     }
@@ -262,6 +265,7 @@ const FiscalDashboard: React.FC = () => {
         await loadData();
       }
     } catch (err) {
+      /* ignored */
     } finally {
       setActionLoading(null);
     }

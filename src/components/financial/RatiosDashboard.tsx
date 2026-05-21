@@ -448,8 +448,8 @@ const RatiosDashboard: React.FC = () => {
                 <Radar
                   name="Score"
                   dataKey="score"
-                  stroke="#171717"
-                  fill="#171717"
+                  stroke="#235A6E"
+                  fill="#235A6E"
                   fillOpacity={0.3}
                   strokeWidth={2}
                 />
@@ -509,9 +509,9 @@ const RatiosDashboard: React.FC = () => {
               <YAxis />
               <Tooltip />
               <Legend />
-              <Line type="monotone" dataKey="current" stroke="#171717" strokeWidth={2} name="Actuel" />
-              <Line type="monotone" dataKey="previous" stroke="#737373" strokeWidth={2} name="Précédent" />
-              <Line type="monotone" dataKey="reference" stroke="#525252" strokeWidth={1} strokeDasharray="5 5" name="Référence" />
+              <Line type="monotone" dataKey="current" stroke="#235A6E" strokeWidth={2} name="Actuel" />
+              <Line type="monotone" dataKey="previous" stroke="#235A6E" strokeWidth={2} name="Précédent" />
+              <Line type="monotone" dataKey="reference" stroke="#4E7E8D" strokeWidth={1} strokeDasharray="5 5" name="Référence" />
             </LineChart>
           </ResponsiveContainer>
         </div>

@@ -106,6 +106,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
     try {
       await markAsRead(id);
     } catch (err) {
+      /* ignored */
     }
   };
 
@@ -116,6 +117,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
     try {
       await markAllAsRead();
     } catch (err) {
+      /* ignored */
     }
   };
 
@@ -127,6 +129,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
     try {
       await archiveNotification(id);
     } catch (err) {
+      /* ignored */
     }
   };
 

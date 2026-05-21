@@ -214,7 +214,8 @@ export const analytiqueTools: Record<string, ToolDefinition> = {
       },
     },
     execute: async (args, adapter) => {
-      let { montant, compte, libelle, sens, centres, donnees_prorata, piece } = args as Record<string, unknown>;
+      let { montant, compte, libelle, sens } = args as Record<string, unknown>;
+      const { centres, donnees_prorata, piece } = args as Record<string, unknown>;
 
       // Lire l'écriture depuis la base si pièce fournie
       if ((!montant || !compte) && adapter && piece) {
@@ -278,7 +279,8 @@ export const analytiqueTools: Record<string, ToolDefinition> = {
       },
     },
     execute: async (args, adapter) => {
-      let { periode, dimension, afficher, donnees, centres } = args as Record<string, unknown>;
+      const { periode, dimension, afficher, centres } = args as Record<string, unknown>;
+      let { donnees } = args as Record<string, unknown>;
 
       // Construire les données analytiques depuis la balance réelle si non fournies
       if ((!donnees || donnees.length === 0) && adapter && periode) {

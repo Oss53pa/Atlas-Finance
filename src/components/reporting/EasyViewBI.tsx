@@ -176,19 +176,19 @@ function ItemPreview({ item }: { item: CatalogItem }) {
   const sparkData = [3, 5, 4, 7, 6, 8, 7, 9, 8, 10, 9, 11];
   const barData = [5, 8, 4, 9, 7, 6];
   const donutData = [35, 25, 20, 20];
-  const colors = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444"];
+  const colors = ["#235A6E", "#15803D", "#E89A2E", "#C0322B"];
 
   if (item.type === "kpi") {
-    return <MiniSpark data={sparkData} color="#3b82f6" />;
+    return <MiniSpark data={sparkData} color="#235A6E" />;
   }
   if (item.type === "chart") {
     if (item.id.includes("donut") || item.id.includes("structure") || item.id.includes("repartition") || item.id.includes("categorie") || item.id.includes("nature") || item.id.includes("passif") || item.id.includes("dept") || item.id.includes("segment") || item.id.includes("flux-nature")) {
       return <MiniDonut segments={donutData} colors={colors} />;
     }
     if (item.id.includes("cascade") || item.id.includes("aging") || item.id.includes("top") || item.id.includes("encaiss") || item.id.includes("fix-var") || item.id.includes("masse") || item.id.includes("centre") || item.id.includes("marge-centre")) {
-      return <MiniBar data={barData} color="#3b82f6" />;
+      return <MiniBar data={barData} color="#235A6E" />;
     }
-    return <MiniSpark data={sparkData} color="#10b981" />;
+    return <MiniSpark data={sparkData} color="#15803D" />;
   }
   if (item.type === "table") {
     return <TableIcon />;

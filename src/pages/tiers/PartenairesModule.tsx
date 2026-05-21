@@ -377,7 +377,7 @@ const PartenairesModule: React.FC = () => {
     return icons[type as keyof typeof icons] || Building;
   };
 
-  const COLORS = ['#171717', '#525252', '#a3a3a3', '#3b82f6', '#22c55e', '#f59e0b'];
+  const COLORS = ['#235A6E', '#E89A2E', '#15803D', '#4E7E8D', '#C77E2C', '#7FA3AF'];
 
   return (
     <div className="p-6 bg-[var(--color-border)] min-h-screen ">
@@ -657,8 +657,8 @@ const PartenairesModule: React.FC = () => {
                 <YAxis yAxisId="right" orientation="right" />
                 <Tooltip />
                 <Legend />
-                <Area yAxisId="left" type="monotone" dataKey="ventes" stroke="#171717" fill="#171717" fillOpacity={0.3} name="Ventes (FCFA)" />
-                <Line yAxisId="right" type="monotone" dataKey="satisfaction" stroke="#525252" name="Satisfaction" />
+                <Area yAxisId="left" type="monotone" dataKey="ventes" stroke="#235A6E" fill="#235A6E" fillOpacity={0.3} name="Ventes (FCFA)" />
+                <Line yAxisId="right" type="monotone" dataKey="satisfaction" stroke="#4E7E8D" name="Satisfaction" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -679,7 +679,7 @@ const PartenairesModule: React.FC = () => {
                   cx="50%"
                   cy="50%"
                   outerRadius={100}
-                  fill="#737373"
+                  fill="#235A6E"
                   label={({ type, nombre }) => `${type}: ${nombre}`}
                 >
                   {analytics.repartitionParType.map((entry, index) => (
@@ -701,8 +701,8 @@ const PartenairesModule: React.FC = () => {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="partenaires" fill="#171717" name="Nombre de partenaires" />
-                <Bar dataKey="ca" fill="#525252" name="CA (en milliers)" />
+                <Bar dataKey="partenaires" fill="#235A6E" name="Nombre de partenaires" />
+                <Bar dataKey="ca" fill="#4E7E8D" name="CA (en milliers)" />
               </BarChart>
             </ResponsiveContainer>
           </div>

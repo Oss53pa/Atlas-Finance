@@ -9,27 +9,27 @@ export const designTokens = {
   colors: {
     primary: {
       50: '#faf8f3',
-      100: '#f0ece4',
-      200: '#e5e0d5',
-      300: '#D4B870',
-      400: '#C4A65C',
-      500: '#B8954A',
-      600: '#9A7D3E',
-      700: '#7A6332',
-      800: '#1F1F23',
-      900: '#16161A',
+      100: '#F0EBE0',
+      200: '#E8E3D6',
+      300: '#7FA3AF',
+      400: '#4E7E8D',
+      500: '#235A6E',
+      600: '#1E4F60',
+      700: '#1B4856',
+      800: '#163A46',
+      900: '#13323D',
     },
     neutral: {
-      50: '#faf8f3',
-      100: '#f0ece4',
-      200: '#e5e0d5',
-      300: '#c8c0b0',
-      400: '#A09880',
-      500: '#8C7A5A',
-      600: '#6B6B73',
-      700: '#3A3A3F',
-      800: '#1F1F23',
-      900: '#16161A',
+      50: '#F7F5EF',
+      100: '#F0EBE0',
+      200: '#E8E3D6',
+      300: '#D8CFBE',
+      400: '#B0A893',
+      500: '#8A8170',
+      600: '#5C5347',
+      700: '#3E382E',
+      800: '#2A251D',
+      900: '#261E15',
     },
     success: {
       50: '#f0fdf4',
@@ -37,8 +37,8 @@ export const designTokens = {
       200: '#bbf7d0',
       300: '#86efac',
       400: '#4ade80',
-      500: '#22c55e',
-      600: '#16a34a',
+      500: '#15803D',
+      600: '#15803D',
       700: '#15803d',
     },
     warning: {
@@ -47,7 +47,7 @@ export const designTokens = {
       200: '#fde68a',
       300: '#fcd34d',
       400: '#fbbf24',
-      500: '#f59e0b',
+      500: '#E89A2E',
       600: '#d97706',
       700: '#b45309',
     },
@@ -57,7 +57,7 @@ export const designTokens = {
       200: '#fecaca',
       300: '#fca5a5',
       400: '#f87171',
-      500: '#ef4444',
+      500: '#C0322B',
       600: '#dc2626',
       700: '#b91c1c',
     },
@@ -65,10 +65,10 @@ export const designTokens = {
       primary: '#B8954A',
       secondary: '#C4A65C',
       tertiary: '#D4B870',
-      success: '#22c55e',
-      warning: '#f59e0b',
-      error: '#ef4444',
-      info: '#3b82f6',
+      success: '#15803D',
+      warning: '#E89A2E',
+      error: '#C0322B',
+      info: '#235A6E',
       neutral: '#A09880',
     }
   },
@@ -183,11 +183,11 @@ export const KPICard: React.FC<KPICardProps> = ({
   withChart = false
 }) => {
   const TONE: Record<NonNullable<KPICardProps['color']>, { stroke: string; tileBg: string; tileColor: string; trendBg: string; trendColor: string }> = {
-    primary: { stroke: '#C9A961', tileBg: 'var(--color-accent-light)',  tileColor: 'var(--color-accent-deep)', trendBg: 'rgba(15,143,95,0.10)', trendColor: '#0F8F5F' },
-    success: { stroke: '#0F8F5F', tileBg: 'rgba(15,143,95,0.10)',       tileColor: '#0F8F5F',                  trendBg: 'rgba(15,143,95,0.10)', trendColor: '#0F8F5F' },
-    warning: { stroke: '#C9A961', tileBg: 'rgba(201,169,97,0.14)',      tileColor: '#A88845',                  trendBg: 'rgba(201,169,97,0.14)', trendColor: '#A88845' },
+    primary: { stroke: '#235A6E', tileBg: 'var(--color-accent-light)',  tileColor: 'var(--color-accent-deep)', trendBg: 'rgba(21,128,61,0.10)', trendColor: '#15803D' },
+    success: { stroke: '#15803D', tileBg: 'rgba(21,128,61,0.10)',       tileColor: '#15803D',                  trendBg: 'rgba(21,128,61,0.10)', trendColor: '#15803D' },
+    warning: { stroke: '#E89A2E', tileBg: 'rgba(232,154,46,0.14)',      tileColor: '#C77E2C',                  trendBg: 'rgba(232,154,46,0.14)', trendColor: '#C77E2C' },
     error:   { stroke: '#C0322B', tileBg: 'rgba(192,50,43,0.10)',       tileColor: '#C0322B',                  trendBg: 'rgba(192,50,43,0.10)', trendColor: '#C0322B' },
-    neutral: { stroke: '#6B6B73', tileBg: 'var(--color-surface-hover)', tileColor: 'var(--color-text-secondary)', trendBg: 'var(--color-surface-hover)', trendColor: 'var(--color-text-secondary)' },
+    neutral: { stroke: '#8A8170', tileBg: 'var(--color-surface-hover)', tileColor: 'var(--color-text-secondary)', trendBg: 'var(--color-surface-hover)', trendColor: 'var(--color-text-secondary)' },
   };
   const t = TONE[color];
 
@@ -236,7 +236,7 @@ export const KPICard: React.FC<KPICardProps> = ({
                 fontSize: 11,
                 fontWeight: 600,
                 background: trend.isPositive ? 'rgba(15,143,95,0.10)' : 'rgba(192,50,43,0.10)',
-                color: trend.isPositive ? '#0F8F5F' : '#C0322B',
+                color: trend.isPositive ? '#15803D' : '#C0322B',
               }}
             >
               {trend.value}
@@ -293,7 +293,7 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
             width: 36, height: 36, borderRadius: 10,
             background: 'var(--color-accent-light)',
             color: 'var(--color-accent-deep)',
-            border: '1px solid rgba(201,169,97,0.20)',
+            border: '1px solid rgba(35,90,110,0.20)',
           }}
         >
           <Icon size={16} strokeWidth={1.5} />
@@ -352,7 +352,7 @@ export const ElegantButton: React.FC<ElegantButtonProps> = ({
     secondary: {
       background: 'var(--color-accent)',
       color: 'var(--color-text-primary)',
-      boxShadow: '0 1px 2px rgba(201,169,97,0.18)',
+      boxShadow: '0 1px 2px rgba(35,90,110,0.18)',
       border: '1px solid var(--color-accent)',
     },
     outline: {

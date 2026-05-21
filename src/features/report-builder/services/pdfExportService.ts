@@ -201,11 +201,11 @@ export function resolveNamingPattern(
 ): string {
   const now = new Date();
   return pattern
-    .replace('{type}', document.title.replace(/[^a-zA-Z0-9_\-]/g, '_'))
+    .replace('{type}', document.title.replace(/[^a-zA-Z0-9_-]/g, '_'))
     .replace('{YYYY}', document.period.endDate.substring(0, 4))
     .replace('{MM}', document.period.endDate.substring(5, 7))
-    .replace('{period}', document.period.label.replace(/[^a-zA-Z0-9_\-]/g, '_'))
-    .replace('{societe}', (companyName || 'Atlas').replace(/[^a-zA-Z0-9_\-]/g, '_'))
+    .replace('{period}', document.period.label.replace(/[^a-zA-Z0-9_-]/g, '_'))
+    .replace('{societe}', (companyName || 'Atlas').replace(/[^a-zA-Z0-9_-]/g, '_'))
     .replace('{version}', `v${document.version}`)
     .replace('{statut}', document.status.toUpperCase())
     .replace('{date}', `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`);

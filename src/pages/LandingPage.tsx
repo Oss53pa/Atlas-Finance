@@ -109,37 +109,38 @@ const FAQ = [
    We use inline styles for text colors to beat specificity. */
 function t(mode: LandingThemeMode) {
   const d = mode === 'dark';
+  // Petrol Cream — accent pétrole (clair) / ambre (sombre).
   // All text colors as raw values for inline styles (beats globals.css !important)
-  const txt    = d ? '#ffffff' : '#1a1a1a';
-  const sec    = d ? 'rgba(255,255,255,0.55)' : '#4a4a4a';
-  const ter    = d ? 'rgba(255,255,255,0.35)' : '#777777';
-  const muted  = d ? 'rgba(255,255,255,0.20)' : '#aaaaaa';
-  const inv    = d ? '#0d0d0d' : '#ffffff';
-  const gold   = d ? '#c9a96e' : '#7d6430';
-  const chk    = d ? '#34d399' : '#16a34a';
+  const txt    = d ? '#F7F5EF' : '#261E15';
+  const sec    = d ? 'rgba(247,245,239,0.55)' : '#5C5347';
+  const ter    = d ? 'rgba(247,245,239,0.34)' : '#8A8170';
+  const muted  = d ? 'rgba(247,245,239,0.20)' : '#B0A893';
+  const inv    = d ? '#0C2530' : '#ffffff';
+  const gold   = d ? '#E89A2E' : '#235A6E';
+  const chk    = d ? '#34d399' : '#15803D';
 
   return {
     // Backgrounds (classes — these work fine, globals don't override bg)
-    bg: d ? 'bg-[#0d0d0d]' : 'bg-white',
-    bgAlt: d ? 'bg-[#141414]' : 'bg-[#f8f7f4]',
-    goldBg: d ? 'bg-[#c9a96e]' : 'bg-[#9a7d3e]',
-    goldBgLight: d ? 'bg-[#c9a96e]/10' : 'bg-[#9a7d3e]/8',
-    goldBorder: d ? 'border-[#c9a96e]/20' : 'border-[#9a7d3e]/20',
-    goldBorderSolid: d ? 'border-[#c9a96e]' : 'border-[#9a7d3e]',
-    border: d ? 'border-white/[0.06]' : 'border-[#e8e5de]',
-    gradFrom: d ? 'from-[#dbc396]' : 'from-[#b8944f]',
-    gradVia: d ? 'via-[#e0cc9e]' : 'via-[#c9a96e]',
-    gradTo: d ? 'to-[#dbc396]' : 'to-[#9a7d3e]',
-    btnPrimary: d ? 'bg-[#c9a96e] hover:bg-[#dbc396]' : 'bg-[#9a7d3e] hover:bg-[#b8944f]',
-    btnSecondary: d ? 'bg-white/5 border-white/10 hover:bg-white/10' : 'bg-white border-[#e8e5de] hover:bg-gray-50',
-    card: d ? 'bg-white/[0.03] border-white/[0.06]' : 'bg-white border-[#e8e5de] shadow-sm',
-    cardHover: d ? 'hover:bg-white/[0.06] hover:border-white/[0.12]' : 'hover:border-[#d4d0c8] hover:shadow-md',
-    navBg: d ? 'bg-[#0d0d0d]/90' : 'bg-white/92',
-    tableRowAlt: d ? 'bg-white/[0.01]' : 'bg-[#faf9f6]',
-    tableRowHover: d ? 'hover:bg-white/[0.04]' : 'hover:bg-[#f5f4f1]',
-    tableCatBg: d ? 'bg-white/[0.03]' : 'bg-[#f5f3ee]',
-    tableFootBg: d ? 'bg-[#c9a96e]/10' : 'bg-[#9a7d3e]/8',
-    footerBg: d ? 'bg-[#0a0a0a]' : 'bg-[#f0ede6]',
+    bg: d ? 'bg-[#0C2530]' : 'bg-[#F7F5EF]',
+    bgAlt: d ? 'bg-[#13323D]' : 'bg-white',
+    goldBg: d ? 'bg-[#E89A2E]' : 'bg-[#235A6E]',
+    goldBgLight: d ? 'bg-[#E89A2E]/10' : 'bg-[#235A6E]/8',
+    goldBorder: d ? 'border-[#E89A2E]/22' : 'border-[#235A6E]/20',
+    goldBorderSolid: d ? 'border-[#E89A2E]' : 'border-[#235A6E]',
+    border: d ? 'border-white/[0.07]' : 'border-[#E8E3D6]',
+    gradFrom: d ? 'from-[#F2A93B]' : 'from-[#235A6E]',
+    gradVia: d ? 'via-[#F2A93B]' : 'via-[#2C6E86]',
+    gradTo: d ? 'to-[#E89A2E]' : 'to-[#1B4856]',
+    btnPrimary: d ? 'bg-[#E89A2E] hover:bg-[#F2A93B]' : 'bg-[#235A6E] hover:bg-[#1B4856]',
+    btnSecondary: d ? 'bg-white/5 border-white/10 hover:bg-white/10' : 'bg-white border-[#E8E3D6] hover:bg-[#F7F5EF]',
+    card: d ? 'bg-white/[0.03] border-white/[0.07]' : 'bg-white border-[#E8E3D6] shadow-sm',
+    cardHover: d ? 'hover:bg-white/[0.06] hover:border-white/[0.12]' : 'hover:border-[#235A6E]/40 hover:shadow-md',
+    navBg: d ? 'bg-[#0C2530]/90' : 'bg-white/92',
+    tableRowAlt: d ? 'bg-white/[0.01]' : 'bg-[#FAF8F2]',
+    tableRowHover: d ? 'hover:bg-white/[0.04]' : 'hover:bg-[#F2EEE4]',
+    tableCatBg: d ? 'bg-white/[0.03]' : 'bg-[#F1ECE0]',
+    tableFootBg: d ? 'bg-[#E89A2E]/10' : 'bg-[#235A6E]/8',
+    footerBg: d ? 'bg-[#081C24]' : 'bg-[#F0EBE0]',
 
     // Inline styles for ALL text colors (beats !important)
     s:     { color: txt } as React.CSSProperties,
@@ -149,8 +150,8 @@ function t(mode: LandingThemeMode) {
     sInv:  { color: inv } as React.CSSProperties,
     sGold: { color: gold } as React.CSSProperties,
     sChk:  { color: chk } as React.CSSProperties,
-    sBtnP: { color: d ? '#0d0d0d' : '#ffffff' } as React.CSSProperties,
-    sBtnS: { color: d ? 'rgba(255,255,255,0.8)' : '#5c5c5c' } as React.CSSProperties,
+    sBtnP: { color: d ? '#261E15' : '#ffffff' } as React.CSSProperties,
+    sBtnS: { color: d ? 'rgba(247,245,239,0.8)' : '#5C5347' } as React.CSSProperties,
 
     // Raw values
     txt, sec, ter, muted, inv, gold, chk,
@@ -245,13 +246,13 @@ const LandingPage: React.FC = () => {
       <section className="relative pt-24 pb-20 px-6 overflow-hidden">
         {mode === 'dark' && (
           <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[600px] bg-[#c9a96e]/[0.05] rounded-full blur-[120px] anim-glow" />
+            <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[600px] bg-[#E89A2E]/[0.06] rounded-full blur-[120px] anim-glow" />
             <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: 'linear-gradient(white 1px, transparent 1px), linear-gradient(90deg, white 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
           </div>
         )}
         {mode === 'light' && (
           <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[600px] bg-[#9a7d3e]/[0.04] rounded-full blur-[120px] anim-glow" />
+            <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[600px] bg-[#235A6E]/[0.05] rounded-full blur-[120px] anim-glow" />
           </div>
         )}
 
@@ -287,7 +288,7 @@ const LandingPage: React.FC = () => {
           <div className="anim-hero-delay-3 flex items-center justify-center gap-3 text-sm" style={c.sTer}>
             <div className="flex -space-x-2">
               {['AD', 'MC', 'IK', 'FN'].map((init, i) => (
-                <div key={i} className={`w-9 h-9 rounded-full ${c.goldBg} border-2 ${mode === 'dark' ? 'border-[#0d0d0d]' : 'border-white'} flex items-center justify-center text-xs font-bold`} style={c.sInv}>
+                <div key={i} className={`w-9 h-9 rounded-full ${c.goldBg} border-2 ${mode === 'dark' ? 'border-[#0C2530]' : 'border-white'} flex items-center justify-center text-xs font-bold`} style={c.sInv}>
                   {init}
                 </div>
               ))}
@@ -364,7 +365,7 @@ const LandingPage: React.FC = () => {
       {/* ══════════ DEMO CTA ══════════ */}
       <section className="py-16 px-6">
         <div className="max-w-5xl mx-auto">
-          <div ref={demoCta.ref} className={`anim-scale ${demoCta.className} relative ${mode === 'dark' ? 'bg-gradient-to-br from-white/[0.04] to-white/[0.02] border-white/[0.08]' : 'bg-gradient-to-br from-[#f8f7f4] to-[#f0ede6] border-[#e8e5de]'} border rounded-3xl p-10 md:p-14 overflow-hidden`}>
+          <div ref={demoCta.ref} className={`anim-scale ${demoCta.className} relative ${mode === 'dark' ? 'bg-gradient-to-br from-white/[0.04] to-white/[0.02] border-white/[0.08]' : 'bg-gradient-to-br from-[#F7F5EF] to-[#F0EBE0] border-[#E8E3D6]'} border rounded-3xl p-10 md:p-14 overflow-hidden`}>
             <div className="relative flex flex-col md:flex-row items-center gap-10">
               <div className="flex-1">
                 <div className={`inline-flex items-center gap-2 px-3 py-1 ${c.goldBgLight} border ${c.goldBorder} rounded-full text-xs font-semibold mb-4`} style={c.sGold}>
@@ -587,23 +588,23 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* ══════════ FINAL CTA ══════════ */}
-      <section className="py-24 px-6 bg-[#1a1a1a]" style={{ color: '#ffffff' }}>
+      <section className="py-24 px-6 bg-[#13323D]" style={{ color: '#ffffff' }}>
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-4xl md:text-6xl font-bold mb-5" style={{ color: '#ffffff' }}>
             Prêt à simplifier votre
             <br />
-            <span className="bg-gradient-to-r from-[#dbc396] via-[#e0cc9e] to-[#dbc396] bg-clip-text text-transparent" style={{ color: 'transparent' }}>comptabilité ?</span>
+            <span className="bg-gradient-to-r from-[#F2A93B] via-[#F2A93B] to-[#E89A2E] bg-clip-text text-transparent" style={{ color: 'transparent' }}>comptabilité ?</span>
           </h2>
           <p className="text-lg max-w-lg mx-auto mb-10" style={{ color: 'rgba(255,255,255,0.4)' }}>
             Rejoignez 500+ entreprises qui font confiance à Atlas F&A. Souscrivez maintenant.
           </p>
           <div className="flex items-center justify-center gap-4 flex-wrap mb-8">
-            <button onClick={handleGetStarted} className="group px-10 py-4 bg-[#c9a96e] rounded-xl text-sm font-bold hover:bg-[#dbc396] transition-all shadow-lg hover:-translate-y-0.5 flex items-center gap-2" style={{ color: '#0d0d0d' }}>
+            <button onClick={handleGetStarted} className="group px-10 py-4 bg-[#E89A2E] rounded-xl text-sm font-bold hover:bg-[#F2A93B] transition-all shadow-lg hover:-translate-y-0.5 flex items-center gap-2" style={{ color: '#261E15' }}>
               <Zap className="w-4 h-4" /> Créer mon compte
               <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
             </button>
             <button onClick={() => navigate('/demo')} className="px-10 py-4 bg-white/5 border border-white/10 rounded-xl text-sm font-semibold hover:bg-white/10 transition-all flex items-center gap-2" style={{ color: 'rgba(255,255,255,0.8)' }}>
-              <Play className="w-4 h-4" style={{ color: '#c9a96e' }} /> Voir la démo
+              <Play className="w-4 h-4" style={{ color: '#E89A2E' }} /> Voir la démo
             </button>
           </div>
           <div className="flex items-center justify-center gap-6 text-xs" style={{ color: 'rgba(255,255,255,0.2)' }}>

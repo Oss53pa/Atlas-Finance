@@ -114,7 +114,7 @@ interface DepreciationData {
 
 // (mock data replaced by Dexie queries inside component)
 
-const COLORS = ['#171717', '#525252', '#a3a3a3', '#3b82f6', '#22c55e', '#f59e0b'];
+const COLORS = ['#235A6E', '#E89A2E', '#15803D', '#4E7E8D', '#C77E2C', '#7FA3AF'];
 
 // Tab type definition
 type TabType = 'overview' | 'categories' | 'financial' | 'geographic' | 'maintenance';
@@ -230,7 +230,7 @@ const AssetsSummary: React.FC = () => {
     }
     const totalVal = dbAssets.reduce((s, a) => s + a.acquisitionValue, 0) || 1;
     const icons: Record<string, React.ReactNode> = {};
-    const colors = ['#171717', '#22c55e', '#F59E0B', '#525252', '#EF4444'];
+    const colors = ['#171717', '#15803D', '#E89A2E', '#525252', '#C0322B'];
     return Object.entries(catMap).map(([name, data], index) => ({
       id: name,
       name,
@@ -557,7 +557,7 @@ const AssetsSummary: React.FC = () => {
                   labelLine={false}
                   label={({ name, percentage }) => `${name} (${percentage}%)`}
                   outerRadius={80}
-                  fill="#737373"
+                  fill="#235A6E"
                   dataKey="value"
                 >
                   {assetCategories.map((entry, index) => (
@@ -719,28 +719,28 @@ const AssetsSummary: React.FC = () => {
               <Line
                 type="monotone"
                 dataKey="acquisition"
-                stroke="#171717"
+                stroke="#235A6E"
                 strokeWidth={2}
                 name="Acquisitions"
               />
               <Line
                 type="monotone"
                 dataKey="depreciation"
-                stroke="#EF4444"
+                stroke="#C0322B"
                 strokeWidth={2}
                 name="Amortissements"
               />
               <Line
                 type="monotone"
                 dataKey="netValue"
-                stroke="#22c55e"
+                stroke="#15803D"
                 strokeWidth={2}
                 name="Valeur nette"
               />
               <Line
                 type="monotone"
                 dataKey="disposal"
-                stroke="#F59E0B"
+                stroke="#E89A2E"
                 strokeWidth={2}
                 name="Cessions"
               />
@@ -839,7 +839,7 @@ const AssetsSummary: React.FC = () => {
               <Tooltip
                 formatter={(value: number) => [`${formatCurrency(value)}`, 'Valeur']}
               />
-              <Bar dataKey="value" fill="#171717" />
+              <Bar dataKey="value" fill="#235A6E" />
             </BarChart>
           </ResponsiveContainer>
         </div>

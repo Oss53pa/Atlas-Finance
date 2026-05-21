@@ -39,6 +39,7 @@ const ClosuresPage: React.FC = () => {
       await closuresService.validerProvision(provision.id, 'VALIDER');
       refetchData();
     } catch (error) {
+      /* ignored */
     }
   };
 
@@ -47,6 +48,7 @@ const ClosuresPage: React.FC = () => {
       await closuresService.validerProvision(provision.id, 'REJETER');
       refetchData();
     } catch (error) {
+      /* ignored */
     }
   };
 

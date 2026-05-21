@@ -90,6 +90,7 @@ const CashFlowPage: React.FC = () => {
         const entries = await adapter.getAll<any>('journalEntries');
         setCfEntries(entries);
       } catch (err) {
+        /* ignored */
       } finally {
         setIsLoading(false);
       }

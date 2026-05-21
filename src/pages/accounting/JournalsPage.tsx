@@ -68,6 +68,7 @@ const JournalsPage: React.FC = () => {
         const entries = await adapter.getAll<any>('journalEntries');
         setDbEntries(entries);
       } catch (err) {
+        /* ignored */
       }
     };
     loadData();

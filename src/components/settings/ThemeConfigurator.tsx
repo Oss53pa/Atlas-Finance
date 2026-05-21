@@ -52,12 +52,12 @@ interface ThemeConfiguratorProps {
 const CUSTOM_STORAGE_KEY = 'atlas-fna-theme-custom';
 
 const defaultCustomColors: CustomColors = {
-  primary: '#1F1F23',
-  secondary: '#8C7A5A',
-  accent: '#B8954A',
-  background: '#faf8f3',
+  primary: '#235A6E',
+  secondary: '#E89A2E',
+  accent: '#235A6E',
+  background: '#F7F5EF',
   surface: '#FFFFFF',
-  text: '#16161A',
+  text: '#261E15',
 };
 
 function loadCustomColors(): CustomColors {

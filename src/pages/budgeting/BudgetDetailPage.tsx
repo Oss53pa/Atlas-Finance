@@ -76,6 +76,7 @@ const BudgetDetailPage: React.FC = () => {
 
         setDetailData(result);
       } catch (err) {
+        /* ignored */
       }
     };
     loadDetail();
@@ -345,6 +346,7 @@ const BudgetDetailPage: React.FC = () => {
                         <button
                           onClick={() => {
                             if (confirm('Êtes-vous sûr de vouloir supprimer cette ligne ?')) {
+                              /* ignored */
                             }
                           }}
                           className="p-1 hover:bg-red-100 rounded"
@@ -438,6 +440,7 @@ const BudgetDetailPage: React.FC = () => {
                                 <button
                                   onClick={() => {
                                     if (confirm('Êtes-vous sûr de vouloir supprimer cette sous-ligne ?')) {
+                                      /* ignored */
                                     }
                                   }}
                                   className="p-1 hover:bg-red-100 rounded"

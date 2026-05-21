@@ -118,7 +118,7 @@ export const CreateCustomerModal: React.FC<CreateCustomerModalProps> = ({
 
     if (!formData.telephone.trim()) {
       newErrors.telephone = 'Le téléphone est requis';
-    } else if (!/^[\d\s\+\-\(\)]+$/.test(formData.telephone)) {
+    } else if (!/^[\d\s+\-()]+$/.test(formData.telephone)) {
       newErrors.telephone = 'Numéro de téléphone invalide';
     }
 
@@ -708,7 +708,7 @@ export const EditCustomerModal: React.FC<EditCustomerModalProps> = ({
 
     if (!formData.telephone.trim()) {
       newErrors.telephone = 'Le téléphone est requis';
-    } else if (!/^[\d\s\+\-\(\)]+$/.test(formData.telephone)) {
+    } else if (!/^[\d\s+\-()]+$/.test(formData.telephone)) {
       newErrors.telephone = 'Numéro de téléphone invalide';
     }
 

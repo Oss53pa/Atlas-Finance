@@ -86,58 +86,59 @@ const sharedBorderRadius = {
 // Palette validée : #F7F4ED · #FFFFFF · #E5DFD0 · #C9A961 · #0E0E14
 // ============================================================================
 const atlasStudioTheme: Theme = {
-  name: 'Obsidian & Champagne',
-  description: 'Luxe institutionnel — Mercury · Brex · Cartier',
+  name: 'Petrol Cream',
+  description: 'Pétrole brand + ambre spark sur crème — premium institutionnel',
   colors: {
-    // Obsidien profond (primaire / texte)
-    primary: '#0E0E14',
-    primaryHover: '#1A1A22',
-    primaryLight: 'rgba(14, 14, 20, 0.06)',
-    // Champagne gold (accent unique)
-    secondary: '#C9A961',
-    accent: '#C9A961',
+    // Pétrole (primaire / accent interactif)
+    primary: '#235A6E',
+    primaryHover: '#1B4856',
+    primaryLight: 'rgba(35, 90, 110, 0.08)',
+    // Ambre (accent secondaire / spark) + pétrole (accent principal)
+    secondary: '#E89A2E',
+    accent: '#235A6E',
     // Crème chaude (fond) + blanc pur (surface) + beige doux (subtle)
-    background: '#F7F4ED',
+    background: '#F7F5EF',
     surface: '#FFFFFF',
-    surfaceHover: '#FBF8F0',
+    surfaceHover: '#FAF8F2',
     text: {
-      primary: '#0E0E14',
-      secondary: '#3A3A42',
-      tertiary: '#6B6B73',
-      inverse: '#F7F4ED'
+      primary: '#261E15',
+      secondary: '#5C5347',
+      tertiary: '#8A8170',
+      inverse: '#F7F5EF'
     },
     // Hairlines extra-fines
-    border: '#E5DFD0',
-    borderLight: '#EDE7D6',
-    success: '#0F8F5F',
-    successLight: 'rgba(15, 143, 95, 0.10)',
+    border: '#E8E3D6',
+    borderLight: '#F0EBE0',
+    success: '#15803D',
+    successLight: 'rgba(21, 128, 61, 0.10)',
     error: '#C0322B',
     errorLight: 'rgba(192, 50, 43, 0.10)',
-    warning: '#C9A961',
-    warningLight: 'rgba(201, 169, 97, 0.12)',
-    info: '#1F1F23',
-    infoLight: 'rgba(31, 31, 35, 0.08)',
+    warning: '#E89A2E',
+    warningLight: 'rgba(232, 154, 46, 0.12)',
+    info: '#235A6E',
+    infoLight: 'rgba(35, 90, 110, 0.08)',
     sidebar: {
-      bg: '#0E0E14',
-      bgHover: '#16161C',
-      text: '#8F8C82',
-      textHover: '#F7F4ED',
-      border: 'rgba(201, 169, 97, 0.10)',
-      active: '#C9A961',
-      activeBg: 'rgba(201, 169, 97, 0.10)'
+      // Sidebar pétrole profond — panneau sombre premium, accent ambre
+      bg: '#13323D',
+      bgHover: '#1B4856',
+      text: '#9DB0B8',
+      textHover: '#F7F5EF',
+      border: 'rgba(232, 154, 46, 0.12)',
+      active: '#E89A2E',
+      activeBg: 'rgba(232, 154, 46, 0.12)'
     },
     card: {
       bg: '#FFFFFF',
-      border: '#E5DFD0',
-      shadow: 'rgba(14, 14, 20, 0.04)'
+      border: '#E8E3D6',
+      shadow: 'rgba(38, 30, 21, 0.04)'
     }
   },
   shadows: {
-    // Shadows ultra-douces façon orfèvrerie : empilement de halos courts
-    sm: '0 1px 0 rgba(14, 14, 20, 0.02), 0 1px 2px rgba(14, 14, 20, 0.04)',
-    md: '0 2px 4px rgba(14, 14, 20, 0.04), 0 8px 24px -8px rgba(14, 14, 20, 0.08)',
-    lg: '0 4px 8px rgba(14, 14, 20, 0.05), 0 18px 40px -12px rgba(14, 14, 20, 0.10)',
-    xl: '0 12px 24px rgba(14, 14, 20, 0.06), 0 32px 64px -20px rgba(14, 14, 20, 0.14)'
+    // Shadows ultra-douces façon orfèvrerie : empilement de halos courts (chaud)
+    sm: '0 1px 0 rgba(38, 30, 21, 0.02), 0 1px 2px rgba(38, 30, 21, 0.04)',
+    md: '0 2px 4px rgba(38, 30, 21, 0.04), 0 8px 24px -8px rgba(38, 30, 21, 0.08)',
+    lg: '0 4px 8px rgba(38, 30, 21, 0.05), 0 18px 40px -12px rgba(38, 30, 21, 0.10)',
+    xl: '0 12px 24px rgba(38, 30, 21, 0.06), 0 32px 64px -20px rgba(38, 30, 21, 0.14)'
   },
   transitions: sharedTransitions,
   borderRadius: sharedBorderRadius,

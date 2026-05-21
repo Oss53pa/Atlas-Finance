@@ -10,9 +10,9 @@ import { Doughnut, Pie } from 'react-chartjs-2';
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 const DEFAULT_COLORS = [
-  '#1F1F23', '#B8954A', '#D4B870', '#3A3A3F', '#9A7D3E',
-  '#6B6B73', '#C4A65C', '#22c55e', '#3b82f6', '#ef4444',
-  '#8b5cf6', '#14b8a6',
+  '#235A6E', '#E89A2E', '#15803D', '#4E7E8D', '#C77E2C',
+  '#7FA3AF', '#9E6322', '#5C5347', '#1B4856', '#C0322B',
+  '#2C6E86', '#F2A93B',
 ];
 
 interface PieChartProps {

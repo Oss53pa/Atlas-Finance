@@ -67,6 +67,7 @@ export const LayoutDetailsFundCall: React.FC = () => {
       handleChangeFundCall(mockFundCall);
       setIsLoadingCancelable(false);
     } catch (error) {
+      /* ignored */
     }
   };
 
@@ -76,6 +77,7 @@ export const LayoutDetailsFundCall: React.FC = () => {
       const mockEnabledUsers = [1, 2, 3]; // IDs des utilisateurs autorisés
       handleChangeFundCallEnabledUser(mockEnabledUsers);
     } catch (error) {
+      /* ignored */
     }
   };
 
@@ -170,7 +172,7 @@ export const LayoutDetailsFundCall: React.FC = () => {
         .nav-tabs .nav-link.active {
           background-color: white;
           border-color: #e5e5e5 #e5e5e5 white;
-          color: #3b82f6;
+          color: #235A6E;
           font-weight: 600;
         }
 
@@ -182,8 +184,8 @@ export const LayoutDetailsFundCall: React.FC = () => {
         }
 
         .nav-tabs .nav-link:hover {
-          border-bottom-color: #3b82f6;
-          color: #3b82f6;
+          border-bottom-color: #235A6E;
+          color: #235A6E;
         }
 
         .cursor-pointer {

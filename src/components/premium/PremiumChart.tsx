@@ -13,12 +13,13 @@ export type PremiumSeries = {
   reference?: boolean;            // render as a horizontal target line
 };
 
+// Petrol Cream — 'gold' = pétrole (série principale), 'obsidian' = ambre (série spark)
 const TONE: Record<NonNullable<PremiumSeries['tone']>, { stroke: string; fill: string }> = {
-  gold:     { stroke: '#C9A961', fill: 'rgba(201,169,97,0.18)' },
-  obsidian: { stroke: '#0E0E14', fill: 'rgba(14,14,20,0.08)' },
-  success:  { stroke: '#0F8F5F', fill: 'rgba(15,143,95,0.14)' },
+  gold:     { stroke: '#235A6E', fill: 'rgba(35,90,110,0.16)' },
+  obsidian: { stroke: '#E89A2E', fill: 'rgba(232,154,46,0.16)' },
+  success:  { stroke: '#15803D', fill: 'rgba(21,128,61,0.14)' },
   danger:   { stroke: '#C0322B', fill: 'rgba(192,50,43,0.12)' },
-  muted:    { stroke: '#9A968A', fill: 'rgba(154,150,138,0.10)' },
+  muted:    { stroke: '#8A8170', fill: 'rgba(138,129,112,0.10)' },
 };
 
 export interface PremiumChartProps {
@@ -35,24 +36,24 @@ const CustomTooltip: React.FC<any> = ({ active, payload, label, yFormatter }) =>
   return (
     <div
       style={{
-        background: '#0E0E14',
-        color: '#F7F4ED',
+        background: '#13323D',
+        color: '#F7F5EF',
         borderRadius: 10,
         padding: '0.625rem 0.75rem',
         fontSize: 12,
-        boxShadow: '0 12px 24px -8px rgba(14,14,20,0.30)',
-        border: '1px solid rgba(201,169,97,0.20)',
+        boxShadow: '0 12px 24px -8px rgba(38,30,21,0.34)',
+        border: '1px solid rgba(232,154,46,0.22)',
         minWidth: 140,
       }}
     >
-      <div className="eyebrow-gold mb-1.5" style={{ fontSize: 9, color: '#C9A961' }}>{label}</div>
+      <div className="eyebrow-gold mb-1.5" style={{ fontSize: 9, color: '#E89A2E' }}>{label}</div>
       {payload.map((p: any, i: number) => (
         <div key={i} className="flex items-center justify-between gap-3" style={{ marginTop: 2 }}>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
             <span style={{ width: 8, height: 2, background: p.color, display: 'inline-block', borderRadius: 1 }} />
-            <span style={{ color: 'rgba(247,244,237,0.65)' }}>{p.name}</span>
+            <span style={{ color: 'rgba(247,245,239,0.65)' }}>{p.name}</span>
           </span>
-          <span className="num-tabular font-semibold" style={{ color: '#F7F4ED' }}>
+          <span className="num-tabular font-semibold" style={{ color: '#F7F5EF' }}>
             {yFormatter ? yFormatter(p.value) : p.value}
           </span>
         </div>

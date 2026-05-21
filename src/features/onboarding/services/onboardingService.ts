@@ -129,6 +129,7 @@ export async function sendInvitation(email: string, roleCode: string): Promise<I
       },
     });
   } catch (e) {
+    /* ignored */
   }
 
   return data;

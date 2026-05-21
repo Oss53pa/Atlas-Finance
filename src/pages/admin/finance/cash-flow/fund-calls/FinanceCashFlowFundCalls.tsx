@@ -144,6 +144,7 @@ export const FinanceCashFlowFundCalls: React.FC = () => {
             setFundsCall([]);
             setLoading(false);
         } catch (error) {
+          /* ignored */
         }
     };
 
@@ -368,6 +369,7 @@ const FundCallForm: React.FC<FundCallFormProps> = (props) => {
             setAccounts([]);
             setLoading(false);
         } catch (error) {
+          /* ignored */
         }
     };
 

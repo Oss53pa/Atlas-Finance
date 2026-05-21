@@ -254,7 +254,8 @@ export const devisesTools: Record<string, ToolDefinition> = {
       },
     },
     execute: async (args, adapter) => {
-      let { exercice, postes, cours_cloture } = args as Record<string, unknown>;
+      const { exercice, cours_cloture } = args as Record<string, unknown>;
+      let { postes } = args as Record<string, unknown>;
 
       // Lire les postes en devises depuis la balance réelle (comptes 4784, 4786, créances/dettes en devises)
       if ((!postes || postes.length === 0) && adapter) {

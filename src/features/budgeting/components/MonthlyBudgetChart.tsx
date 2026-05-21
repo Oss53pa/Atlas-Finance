@@ -75,11 +75,11 @@ export const MonthlyBudgetChart: React.FC<MonthlyBudgetChartProps> = ({
           <CartesianGrid strokeDasharray="3 3" stroke="#E5E5E5" />
           <XAxis
             dataKey="month"
-            stroke="#737373"
+            stroke="#235A6E"
             style={{ fontSize: '12px' }}
           />
           <YAxis
-            stroke="#737373"
+            stroke="#235A6E"
             style={{ fontSize: '12px' }}
             tickFormatter={(value) => {
               if (value >= 1000000000) return `${(value / 1000000000).toFixed(1)}Md`;
@@ -99,7 +99,7 @@ export const MonthlyBudgetChart: React.FC<MonthlyBudgetChartProps> = ({
               <Line
                 type="monotone"
                 dataKey="budget"
-                stroke="#171717"
+                stroke="#235A6E"
                 strokeWidth={2}
                 name="Budget"
                 dot={{ fill: '#171717', r: 4 }}
@@ -108,7 +108,7 @@ export const MonthlyBudgetChart: React.FC<MonthlyBudgetChartProps> = ({
               <Line
                 type="monotone"
                 dataKey="actual"
-                stroke="#525252"
+                stroke="#4E7E8D"
                 strokeWidth={2}
                 name="Réalisé"
                 dot={{ fill: '#525252', r: 4 }}
@@ -119,13 +119,13 @@ export const MonthlyBudgetChart: React.FC<MonthlyBudgetChartProps> = ({
             <>
               <Bar
                 dataKey="budget"
-                fill="#171717"
+                fill="#235A6E"
                 name="Budget"
                 radius={[4, 4, 0, 0]}
               />
               <Bar
                 dataKey="actual"
-                fill="#525252"
+                fill="#4E7E8D"
                 name="Réalisé"
                 radius={[4, 4, 0, 0]}
               />

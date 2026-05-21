@@ -110,6 +110,7 @@ const TreasuryPlanDetails: React.FC = () => {
           },
         });
       } catch (err) {
+        /* ignored */
       }
     };
     loadPlanData();

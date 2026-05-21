@@ -211,7 +211,8 @@ export const brexTools: Record<string, ToolDefinition> = {
       },
     },
     execute: async (args, adapter) => {
-      let { balance, resultats_3ans } = args as Record<string, unknown>;
+      const { resultats_3ans } = args as Record<string, unknown>;
+      let { balance } = args as Record<string, unknown>;
 
       // Lire la balance réelle si non fournie
       if ((!balance || balance.length === 0) && adapter) {

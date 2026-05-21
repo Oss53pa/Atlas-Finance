@@ -236,7 +236,7 @@ const FinancialStatements: React.FC = () => {
           return { mois, resultatNet: rn, dotations: dot, variationBFR: varBfr, acquisitions: mAcq, cessions: mCess, augCapital: mAugCap, emprunts: mNewEmp, rembEmprunts: mRembEmp, dividendes: mDiv, fluxOperationnels: fluxOp, fluxInvestissement: fluxInv, fluxFinancement: fluxFin, variationTresorerie: fluxOp + fluxInv + fluxFin };
         });
         setTftMonthlyData(monthly);
- } catch (err) { }
+ } catch (err) { /* ignored */ }
     };
     loadTFT();
   }, [adapter]);

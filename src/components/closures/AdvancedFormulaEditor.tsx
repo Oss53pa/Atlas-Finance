@@ -180,8 +180,8 @@ const AdvancedFormulaEditor: React.FC = () => {
 
       // Simulation d'évaluation (en production, utiliser un moteur d'évaluation sécurisé)
       let result: number | null = null;
-      let isValid = true;
-      let syscohadaCompliant = true;
+      const isValid = true;
+      const syscohadaCompliant = true;
 
       // Tests basiques selon la formule sélectionnée
       if (selectedTemplate === 'provision_clients') {

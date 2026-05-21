@@ -80,6 +80,7 @@ const BudgetingDashboard: React.FC = () => {
         setBudgetLines(bl as Record<string, unknown>[]);
         setJournalEntries(je as Record<string, unknown>[]);
       } catch (e) {
+        /* ignored */
       } finally {
         setIsLoading(false);
       }

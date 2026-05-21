@@ -23,7 +23,7 @@ const AdminImportExport: React.FC<Props> = ({ subTab, setSubTab }) => {
         {tabs.map((tab, i) => (
           <button key={i} onClick={() => { setSubTab(i); setUploadedFile(null); }}
             className={`whitespace-nowrap px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
-              subTab === i ? 'border-[#ef4444] text-[#ef4444]' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              subTab === i ? 'border-[#C0322B] text-[#C0322B]' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             }`}>{tab}</button>
         ))}
       </nav>
@@ -33,7 +33,7 @@ const AdminImportExport: React.FC<Props> = ({ subTab, setSubTab }) => {
   const UploadZone = ({ label, formats, templateCols }: { label: string; formats: string; templateCols: string[] }) => (
     <div className="space-y-4">
       <div
-        className="border-2 border-dashed border-gray-300 rounded-xl p-10 text-center hover:border-[#ef4444] transition-colors cursor-pointer"
+        className="border-2 border-dashed border-gray-300 rounded-xl p-10 text-center hover:border-[#C0322B] transition-colors cursor-pointer"
         onClick={() => fileRef.current?.click()}
       >
         <Upload className="w-12 h-12 mx-auto text-gray-300 mb-3" />
@@ -53,7 +53,7 @@ const AdminImportExport: React.FC<Props> = ({ subTab, setSubTab }) => {
             </div>
           </div>
           <div className="flex items-center space-x-2">
-            <button onClick={() => toast.info('Lancement de l\'import...')} className="px-4 py-2 bg-[#ef4444] text-white rounded-lg text-sm">Importer</button>
+            <button onClick={() => toast.info('Lancement de l\'import...')} className="px-4 py-2 bg-[#C0322B] text-white rounded-lg text-sm">Importer</button>
             <button onClick={() => setUploadedFile(null)} className="p-2 hover:bg-red-50 rounded"><Trash2 className="w-4 h-4 text-red-500" /></button>
           </div>
         </div>
@@ -66,7 +66,7 @@ const AdminImportExport: React.FC<Props> = ({ subTab, setSubTab }) => {
             <span key={col} className="px-3 py-1 bg-gray-100 rounded-full text-xs font-medium text-gray-700">{col}</span>
           ))}
         </div>
-        <button onClick={() => toast.info('Telechargement du template...')} className="mt-4 text-sm text-[#ef4444] hover:underline flex items-center space-x-1">
+        <button onClick={() => toast.info('Telechargement du template...')} className="mt-4 text-sm text-[#C0322B] hover:underline flex items-center space-x-1">
           <Download className="w-4 h-4" /><span>Telecharger le template CSV</span>
         </button>
       </div>
@@ -95,8 +95,8 @@ const AdminImportExport: React.FC<Props> = ({ subTab, setSubTab }) => {
             ? ['CSV point-virgule (;)', 'CSV tabulation', 'TXT']
             : ['CSV', 'Excel (.xlsx)', 'PDF']
           ).map((f, i) => (
-            <label key={i} className="flex items-center space-x-2 p-3 border rounded-lg cursor-pointer hover:border-[#ef4444] has-[:checked]:border-[#ef4444] has-[:checked]:bg-red-50">
-              <input type="radio" name={`fmt-${label}`} defaultChecked={i === 0} className="text-[#ef4444]" />
+            <label key={i} className="flex items-center space-x-2 p-3 border rounded-lg cursor-pointer hover:border-[#C0322B] has-[:checked]:border-[#C0322B] has-[:checked]:bg-red-50">
+              <input type="radio" name={`fmt-${label}`} defaultChecked={i === 0} className="text-[#C0322B]" />
               <span className="text-sm">{f}</span>
             </label>
           ))}
@@ -109,7 +109,7 @@ const AdminImportExport: React.FC<Props> = ({ subTab, setSubTab }) => {
         </div>
       )}
       <div className="flex justify-end">
-        <button onClick={() => toast.success(`Export ${label} genere avec succes`)} className="px-6 py-2.5 bg-[#ef4444] text-white rounded-lg text-sm font-medium flex items-center space-x-2">
+        <button onClick={() => toast.success(`Export ${label} genere avec succes`)} className="px-6 py-2.5 bg-[#C0322B] text-white rounded-lg text-sm font-medium flex items-center space-x-2">
           <Download className="w-4 h-4" /><span>Generer l'export {label}</span>
         </button>
       </div>

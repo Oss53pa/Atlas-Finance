@@ -51,7 +51,14 @@ interface Notification {
   read: boolean;
 }
 
+let __layoutMountCount = 0;
 const ModernDoubleSidebarLayout: React.FC = () => {
+  // DEBUG: track mount/unmount
+  React.useEffect(() => {
+    __layoutMountCount++;
+    console.log(`[DEBUG] ModernDoubleSidebarLayout MOUNTED (#${__layoutMountCount})`);
+    return () => console.log(`[DEBUG] ModernDoubleSidebarLayout UNMOUNTED (#${__layoutMountCount})`);
+  }, []);
   const { t } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
@@ -938,6 +945,17 @@ const ModernDoubleSidebarLayout: React.FC = () => {
           className="flex-1 overflow-y-auto bg-[var(--color-background)]"
           role="main"
         >
+          {/* DEBUG: Test input to diagnose focus loss */}
+          <div className="p-2 bg-yellow-100 border-b border-yellow-300 flex items-center gap-4">
+            <span className="text-xs font-bold text-yellow-800">DEBUG INPUT:</span>
+            <input
+              type="text"
+              placeholder="Tape ici pour tester..."
+              className="px-2 py-1 border border-yellow-400 rounded text-sm"
+              style={{ width: 300 }}
+            />
+            <span className="text-xs text-yellow-700">Si tu perds le focus ici aussi, le bug est dans le layout</span>
+          </div>
           <div className="p-3 lg:p-4">
             <Outlet key={location.pathname} />
           </div>

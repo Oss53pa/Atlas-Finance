@@ -97,6 +97,7 @@ export async function auditLog(event: AuditEvent): Promise<void> {
       timestamp,
     });
   } catch (err) {
+    /* ignored */
   }
 }
 

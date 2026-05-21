@@ -26,7 +26,7 @@ export const Checkbox: React.FC<CheckboxProps> = ({
             h-4 w-4 rounded border-[var(--color-border)]
             text-[var(--color-primary)] focus:ring-[var(--color-primary)]
             transition-colors
-            ${error ? 'border-[#ef4444]' : ''}
+            ${error ? 'border-[#C0322B]' : ''}
             ${className}
           `}
           {...props}
@@ -40,7 +40,7 @@ export const Checkbox: React.FC<CheckboxProps> = ({
             </label>
           )}
           {error && (
-            <p className="text-sm text-[#ef4444] mt-1">{error}</p>
+            <p className="text-sm text-[#C0322B] mt-1">{error}</p>
           )}
           {helperText && !error && (
             <p className="text-sm text-[var(--color-text-tertiary)] mt-1">{helperText}</p>

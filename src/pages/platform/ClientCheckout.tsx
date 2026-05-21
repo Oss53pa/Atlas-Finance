@@ -13,8 +13,8 @@ import { toast } from 'react-hot-toast';
 const OPERATORS = [
   { code: 'orange', name: 'Orange Money', color: '#f97316' },
   { code: 'mtn', name: 'MTN MoMo', color: '#eab308' },
-  { code: 'wave', name: 'Wave', color: '#06b6d4' },
-  { code: 'moov', name: 'Moov Money', color: '#3b82f6' },
+  { code: 'wave', name: 'Wave', color: '#4E7E8D' },
+  { code: 'moov', name: 'Moov Money', color: '#235A6E' },
 ];
 
 const ClientCheckout: React.FC = () => {

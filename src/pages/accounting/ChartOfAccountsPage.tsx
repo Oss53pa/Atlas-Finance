@@ -92,6 +92,7 @@ const ChartOfAccountsPage: React.FC = () => {
         setDbAccounts(accounts);
         setDbEntries(entries);
       } catch (err) {
+        /* ignored */
       } finally {
         setIsLoading(false);
       }

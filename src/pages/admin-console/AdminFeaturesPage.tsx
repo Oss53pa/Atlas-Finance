@@ -11,10 +11,10 @@ import { getLandingTheme, setLandingTheme, type LandingThemeMode } from '../../c
 const MODULES = [
   { code: 'atlas-fna', label: 'Atlas F&A', color: '#171717' },
   { code: 'liass-pilot', label: "Liass'Pilot", color: '#0891b2' },
-  { code: 'docjourney', label: 'DocJourney', color: '#7c3aed' },
+  { code: 'docjourney', label: 'DocJourney', color: '#C77E2C' },
   { code: 'tms-pro', label: 'TMS Pro Africa', color: '#dc2626' },
   { code: 'scrutix', label: 'Scrutix', color: '#059669' },
-  { code: 'atlas-hr', label: 'Atlas HR', color: '#2563eb' },
+  { code: 'atlas-hr', label: 'Atlas HR', color: '#235A6E' },
 ];
 
 const AdminFeaturesPage: React.FC = () => {

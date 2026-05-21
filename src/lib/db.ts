@@ -808,6 +808,7 @@ export async function migrateFromLocalStorage(): Promise<void> {
 
   localStorage.setItem(MIGRATION_KEY, new Date().toISOString());
   if (migrated > 0) {
+    /* ignored */
   }
 }
 

@@ -135,7 +135,7 @@ const ExternalAuthPage: React.FC = () => {
   return (
     <div
       className="min-h-screen flex items-center justify-center"
-      style={{ background: 'linear-gradient(180deg, #F7F4ED 0%, #FFFFFF 100%)', padding: '2rem' }}
+      style={{ background: 'linear-gradient(180deg, #F7F5EF 0%, #FFFFFF 100%)', padding: '2rem' }}
     >
       <div className="surface-card anim-rise" style={{ maxWidth: 440, width: '100%', padding: '2.25rem 2rem 1.75rem', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
         {/* Filet gold supérieur */}
@@ -155,7 +155,7 @@ const ExternalAuthPage: React.FC = () => {
             style={{
               width: 56, height: 56, borderRadius: 14,
               background: 'var(--gradient-champagne)',
-              boxShadow: '0 8px 20px -4px rgba(201,169,97,0.40), inset 0 1px 0 rgba(255,255,255,0.30)',
+              boxShadow: '0 8px 20px -4px rgba(232,154,46,0.40), inset 0 1px 0 rgba(255,255,255,0.30)',
             }}
           >
             <ShieldCheck className="w-7 h-7 text-white" strokeWidth={1.6} />

@@ -93,6 +93,7 @@ export class PerformanceMonitor {
       lcpObserver.observe({ type: 'largest-contentful-paint', buffered: true });
       this.observers.set('lcp', lcpObserver);
     } catch (e) {
+      /* ignored */
     }
 
     // FID Observer
@@ -108,6 +109,7 @@ export class PerformanceMonitor {
       fidObserver.observe({ type: 'first-input', buffered: true });
       this.observers.set('fid', fidObserver);
     } catch (e) {
+      /* ignored */
     }
 
     // CLS Observer
@@ -127,6 +129,7 @@ export class PerformanceMonitor {
       clsObserver.observe({ type: 'layout-shift', buffered: true });
       this.observers.set('cls', clsObserver);
     } catch (e) {
+      /* ignored */
     }
 
     // FCP Observer
@@ -143,6 +146,7 @@ export class PerformanceMonitor {
       fcpObserver.observe({ type: 'paint', buffered: true });
       this.observers.set('fcp', fcpObserver);
     } catch (e) {
+      /* ignored */
     }
   }
 
@@ -161,6 +165,7 @@ export class PerformanceMonitor {
       navigationObserver.observe({ type: 'navigation', buffered: true });
       this.observers.set('navigation', navigationObserver);
     } catch (e) {
+      /* ignored */
     }
   }
 
@@ -183,6 +188,7 @@ export class PerformanceMonitor {
       resourceObserver.observe({ type: 'resource', buffered: true });
       this.observers.set('resource', resourceObserver);
     } catch (e) {
+      /* ignored */
     }
   }
 

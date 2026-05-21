@@ -300,7 +300,7 @@ const Immobilisations: React.FC = () => {
   const genererPlanAmortissement = (immo: Immobilisation): PlanAmortissement => {
     const dateDebut = new Date(immo.dateMiseEnService);
     const tableauAmortissement: CalculAmortissement[] = [];
-    let valeurBrute = immo.valeurBrute;
+    const valeurBrute = immo.valeurBrute;
     let amortissementCumule = 0;
 
     for (let i = 0; i < immo.dureeAmortissement; i++) {

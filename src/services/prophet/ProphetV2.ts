@@ -224,6 +224,7 @@ export class ProphetV2Service {
           };
         }
       } catch (e) {
+        /* ignored */
       }
     }
 
@@ -244,6 +245,7 @@ export class ProphetV2Service {
 
         if (!error && data) return data;
       } catch (e) {
+        /* ignored */
       }
     }
 

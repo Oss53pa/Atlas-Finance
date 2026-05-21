@@ -62,7 +62,7 @@ const SOLUTIONS: SolutionDef[] = [
     desc: 'Gestion documentaire intelligente',
     longDesc: "Dématérialisez vos pièces comptables avec OCR intelligent. Classement automatique, archivage sécurisé et recherche instantanée.",
     icon: FolderOpen,
-    color: '#7c3aed',
+    color: '#C77E2C',
     status: 'available',
     highlights: [
       'OCR intelligent multi-langues',
@@ -108,7 +108,7 @@ const SOLUTIONS: SolutionDef[] = [
     desc: 'Ressources Humaines & Paie',
     longDesc: "Gestion complète des RH : fiches employés, contrats, paie conforme aux réglementations OHADA, congés et absences.",
     icon: Users,
-    color: '#2563eb',
+    color: '#235A6E',
     status: 'coming_soon',
     highlights: [
       'Paie conforme multi-pays OHADA',
