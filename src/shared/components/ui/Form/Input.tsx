@@ -47,7 +47,7 @@ export const Input: React.FC<InputProps> = ({
             transition-all duration-200
             focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent
             disabled:bg-[var(--color-border)] disabled:cursor-not-allowed
-            ${error ? 'border-[#ef4444] focus:ring-[#ef4444]' : ''}
+            ${error ? 'border-[#C0322B] focus:ring-[#C0322B]' : ''}
             ${Icon && iconPosition === 'left' ? 'pl-10' : ''}
             ${Icon && iconPosition === 'right' ? 'pr-10' : ''}
             ${className}
@@ -63,7 +63,7 @@ export const Input: React.FC<InputProps> = ({
       </div>
 
       {error && (
-        <p className="mt-1 text-sm text-[#ef4444]">{error}</p>
+        <p className="mt-1 text-sm text-[#C0322B]">{error}</p>
       )}
 
       {helperText && !error && (

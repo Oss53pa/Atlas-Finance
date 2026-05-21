@@ -47,7 +47,7 @@ class PeriodicClosuresService {
     for (const fy of fiscalYears) {
       const start = new Date(fy.startDate);
       const end = new Date(fy.endDate);
-      let current = new Date(start);
+      const current = new Date(start);
       let monthNum = 1;
 
       while (current < end && monthNum <= 12) {

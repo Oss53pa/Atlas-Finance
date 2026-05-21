@@ -63,6 +63,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           break;
       }
     } catch (error) {
+      /* ignored */
     } finally {
       setTimeout(() => setIsActionExecuting(null), 500);
     }
@@ -178,7 +179,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
 const WisebookAvatar: React.FC = () => (
   <div className="avatar avatar--assistant">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="24" height="24" rx="6" fill="#171717"/>
+      <rect width="24" height="24" rx="6" fill="#235A6E"/>
       <path
         d="M6 9H18V15C18 15.5523 17.5523 16 17 16H7C6.44772 16 6 15.5523 6 15V9Z"
         fill="white"
@@ -188,9 +189,9 @@ const WisebookAvatar: React.FC = () => (
         d="M7 7H17C17.5523 7 18 7.44772 18 8H6C6 7.44772 6.44772 7 7 7Z"
         fill="white"
       />
-      <circle cx="9" cy="12" r="0.75" fill="#171717"/>
-      <circle cx="12" cy="12" r="0.75" fill="#171717"/>
-      <circle cx="15" cy="12" r="0.75" fill="#171717"/>
+      <circle cx="9" cy="12" r="0.75" fill="#235A6E"/>
+      <circle cx="12" cy="12" r="0.75" fill="#235A6E"/>
+      <circle cx="15" cy="12" r="0.75" fill="#235A6E"/>
     </svg>
   </div>
 );
@@ -218,9 +219,9 @@ const LoadingSpinner: React.FC = () => (
 
 // Fonctions utilitaires
 function getConfidenceColor(confidence: number): string {
-  if (confidence > 0.8) return '#22c55e'; // Vert
-  if (confidence > 0.6) return '#F59E0B'; // Orange
-  return '#EF4444'; // Rouge
+  if (confidence > 0.8) return '#15803D'; // Vert
+  if (confidence > 0.6) return '#E89A2E'; // Orange
+  return '#C0322B'; // Rouge
 }
 
 function getSourceLabel(source: string): string {

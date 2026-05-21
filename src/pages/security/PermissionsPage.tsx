@@ -84,7 +84,7 @@ const PermissionsPage: React.FC = () => {
             </button>
             
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-[#ef4444] to-[#ef4444] flex items-center justify-center">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-[#C0322B] to-[#C0322B] flex items-center justify-center">
                 <Key className="w-5 h-5 text-white" />
               </div>
               <div>
@@ -103,7 +103,7 @@ const PermissionsPage: React.FC = () => {
               <span className="text-sm">Admin</span>
             </button>
             
-            <button className="px-4 py-2 bg-[#ef4444] text-white rounded-lg hover:bg-[#ef4444] transition-colors flex items-center space-x-2">
+            <button className="px-4 py-2 bg-[#C0322B] text-white rounded-lg hover:bg-[#C0322B] transition-colors flex items-center space-x-2">
               <Plus className="w-4 h-4" />
               <span className="text-sm">Nouveau rôle</span>
             </button>
@@ -124,7 +124,7 @@ const PermissionsPage: React.FC = () => {
                   className={`
                     flex items-center space-x-2 py-4 border-b-2 font-medium text-sm transition-colors
                     ${activeTab === tab.id 
-                      ? 'border-[#ef4444] text-[#ef4444]' 
+                      ? 'border-[#C0322B] text-[#C0322B]' 
                       : 'border-transparent text-[var(--color-text-tertiary)] hover:text-[#404040]'
                     }
                   `}
@@ -134,7 +134,7 @@ const PermissionsPage: React.FC = () => {
                   {tab.badge && (
                     <span className={`
                       px-2 py-0.5 text-xs font-medium rounded-full
-                      ${activeTab === tab.id ? 'bg-[#ef4444] text-white' : 'bg-blue-100 text-blue-600'}
+                      ${activeTab === tab.id ? 'bg-[#C0322B] text-white' : 'bg-blue-100 text-blue-600'}
                     `}>
                       {tab.badge}
                     </span>

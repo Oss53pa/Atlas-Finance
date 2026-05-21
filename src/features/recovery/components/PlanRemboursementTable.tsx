@@ -116,7 +116,7 @@ export const PlanRemboursementTable: React.FC<PlanRemboursementTableProps> = ({
 
           <div>
             <p className="text-sm text-[var(--color-text-tertiary)]">Montant Restant</p>
-            <p className="text-lg font-semibold text-[#ef4444]">
+            <p className="text-lg font-semibold text-[#C0322B]">
               {formatCurrency(totalRestant)}
             </p>
           </div>

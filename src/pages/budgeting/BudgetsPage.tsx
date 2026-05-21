@@ -900,6 +900,7 @@ const BudgetsPage: React.FC = () => {
                         setCreateStep(1);
                         setNewBudget({ name: '', code: '', type: 'operational', status: 'draft', period: '', currency: 'XAF', description: '', responsible: '', costCenterAllocations: [] });
                       } catch (err) {
+                        /* ignored */
                       }
                     }}
                     className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 font-semibold">

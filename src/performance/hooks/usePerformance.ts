@@ -136,6 +136,7 @@ export function usePerformance(): PerformanceState & PerformanceActions {
       try {
         await navigator.serviceWorker.register('/sw.js');
       } catch (error) {
+        /* ignored */
       }
     }
 
@@ -157,6 +158,7 @@ export function usePerformance(): PerformanceState & PerformanceActions {
       const memoryUsage = memory.usedJSHeapSize / memory.jsHeapSizeLimit;
 
       if (memoryUsage > 0.8) {
+        /* ignored */
       }
     }
   }, []);

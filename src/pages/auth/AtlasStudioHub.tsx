@@ -11,8 +11,8 @@ import {
 const APPS = [
   { code: 'atlas-fna', name: 'Atlas F&A',  desc: 'ERP Comptable & Financier SYSCOHADA', icon: Calculator, color: '#171717', active: true },
   { code: 'liass-pilot',   name: "Liass'Pilot",    desc: 'Liasse fiscale automatique',          icon: FileText,   color: '#0891b2', active: true },
-  { code: 'docjourney',    name: 'DocJourney',     desc: 'Gestion documentaire intelligente',   icon: FolderOpen, color: '#7c3aed', active: true },
-  { code: 'atlas-hr',      name: 'Atlas HR',       desc: 'Ressources Humaines & Paie',          icon: Users,      color: '#2563eb', active: false },
+  { code: 'docjourney',    name: 'DocJourney',     desc: 'Gestion documentaire intelligente',   icon: FolderOpen, color: '#C77E2C', active: true },
+  { code: 'atlas-hr',      name: 'Atlas HR',       desc: 'Ressources Humaines & Paie',          icon: Users,      color: '#235A6E', active: false },
   { code: 'atlas-crm',     name: 'Atlas CRM',      desc: 'Relation Client & Commercial',        icon: Handshake,  color: '#059669', active: false },
 ];
 

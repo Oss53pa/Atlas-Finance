@@ -344,6 +344,7 @@ const ClientDetailView: React.FC = () => {
           ]);
         }
       } catch (err) {
+        /* ignored */
       } finally {
         if (mounted) setLoading(false);
       }
@@ -437,7 +438,7 @@ const ClientDetailView: React.FC = () => {
     setShowEditModal(false);
   };
 
-  const COLORS = ['#171717', '#525252', '#a3a3a3', '#3b82f6', '#22c55e', '#f59e0b'];
+  const COLORS = ['#235A6E', '#E89A2E', '#15803D', '#4E7E8D', '#C77E2C', '#7FA3AF'];
 
   if (loading) {
     return (
@@ -615,8 +616,8 @@ const ClientDetailView: React.FC = () => {
                   <YAxis />
                   <Tooltip formatter={(value) => formatCurrency(value as number)} />
                   <Legend />
-                  <Area type="monotone" dataKey="ca" stackId="1" stroke="#171717" fill="#171717" fillOpacity={0.6} name="Chiffre d'Affaires" />
-                  <Area type="monotone" dataKey="marge" stackId="1" stroke="#525252" fill="#525252" fillOpacity={0.6} name="Marge" />
+                  <Area type="monotone" dataKey="ca" stackId="1" stroke="#235A6E" fill="#235A6E" fillOpacity={0.6} name="Chiffre d'Affaires" />
+                  <Area type="monotone" dataKey="marge" stackId="1" stroke="#4E7E8D" fill="#4E7E8D" fillOpacity={0.6} name="Marge" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -632,7 +633,7 @@ const ClientDetailView: React.FC = () => {
                     cx="50%"
                     cy="50%"
                     outerRadius={100}
-                    fill="#737373"
+                    fill="#235A6E"
                     label={({ tranche, pourcentage }) => `${tranche}: ${pourcentage}%`}
                   >
                     {balanceAgee.map((entry, index) => (
@@ -885,7 +886,7 @@ const ClientDetailView: React.FC = () => {
                 <div className="text-center">
                   <ResponsiveContainer width="100%" height={200}>
                     <RadialBarChart cx="50%" cy="50%" innerRadius="60%" outerRadius="90%" data={[{value: clientDetail.financier.scoreRisque}]}>
-                      <RadialBar dataKey="value" cornerRadius={10} fill="#171717" />
+                      <RadialBar dataKey="value" cornerRadius={10} fill="#235A6E" />
                       <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" className="text-lg font-bold fill-[var(--color-primary)]">
                         {clientDetail.financier.scoreRisque}/100
                       </text>
@@ -970,8 +971,8 @@ const ClientDetailView: React.FC = () => {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Line type="monotone" dataKey="dso" stroke="#171717" strokeWidth={2} name="DSO Réel" />
-                <Line type="monotone" dataKey="objectif" stroke="#525252" strokeDasharray="5 5" name="Objectif" />
+                <Line type="monotone" dataKey="dso" stroke="#235A6E" strokeWidth={2} name="DSO Réel" />
+                <Line type="monotone" dataKey="objectif" stroke="#4E7E8D" strokeDasharray="5 5" name="Objectif" />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -1180,8 +1181,8 @@ const ClientDetailView: React.FC = () => {
                   <YAxis />
                   <Tooltip formatter={(value, name) => name === 'ca' ? formatCurrency(value as number) : value} />
                   <Legend />
-                  <Bar dataKey="ca" fill="#171717" name="CA (FCFA)" />
-                  <Bar dataKey="commandes" fill="#525252" name="Nb Commandes" />
+                  <Bar dataKey="ca" fill="#235A6E" name="CA (FCFA)" />
+                  <Bar dataKey="commandes" fill="#4E7E8D" name="Nb Commandes" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -1203,8 +1204,8 @@ const ClientDetailView: React.FC = () => {
                   <YAxis yAxisId="right" orientation="right" />
                   <Tooltip />
                   <Legend />
-                  <Area yAxisId="right" type="monotone" dataKey="valeur" stroke="#171717" fill="#171717" fillOpacity={0.3} name="Valeur (FCFA)" />
-                  <Line yAxisId="left" type="monotone" dataKey="commandes" stroke="#525252" strokeWidth={2} name="Nb Commandes" />
+                  <Area yAxisId="right" type="monotone" dataKey="valeur" stroke="#235A6E" fill="#235A6E" fillOpacity={0.3} name="Valeur (FCFA)" />
+                  <Line yAxisId="left" type="monotone" dataKey="commandes" stroke="#4E7E8D" strokeWidth={2} name="Nb Commandes" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>

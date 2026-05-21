@@ -465,7 +465,7 @@ const FinancialAnalysisPage: React.FC = () => {
                   <XAxis dataKey="name" />
                   <YAxis />
                   <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                  <Bar dataKey="value" fill="#171717" />
+                  <Bar dataKey="value" fill="#235A6E" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -502,7 +502,7 @@ const FinancialAnalysisPage: React.FC = () => {
                   <PolarGrid />
                   <PolarAngleAxis dataKey="category" />
                   <PolarRadiusAxis angle={30} domain={[0, 100]} />
-                  <Radar name="Performance" dataKey="value" stroke="#171717" fill="#171717" fillOpacity={0.6} />
+                  <Radar name="Performance" dataKey="value" stroke="#235A6E" fill="#235A6E" fillOpacity={0.6} />
                 </RadarChart>
               </ResponsiveContainer>
               
@@ -562,7 +562,7 @@ const FinancialAnalysisPage: React.FC = () => {
                   <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
                   <YAxis />
                   <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                  <Bar dataKey="value" fill="#171717" />
+                  <Bar dataKey="value" fill="#235A6E" />
                 </ComposedChart>
               </ResponsiveContainer>
             </div>
@@ -636,9 +636,9 @@ const FinancialAnalysisPage: React.FC = () => {
                 <YAxis />
                 <Tooltip formatter={(value: number) => formatCurrency(value)} />
                 <Legend />
-                <Bar dataKey="inflows" fill="#171717" name="Encaissements" />
-                <Bar dataKey="outflows" fill="#ef4444" name="Décaissements" />
-                <Line type="monotone" dataKey="cumulativeCash" stroke="#737373" strokeWidth={3} name="Trésorerie cumulative" />
+                <Bar dataKey="inflows" fill="#235A6E" name="Encaissements" />
+                <Bar dataKey="outflows" fill="#C0322B" name="Décaissements" />
+                <Line type="monotone" dataKey="cumulativeCash" stroke="#235A6E" strokeWidth={3} name="Trésorerie cumulative" />
               </ComposedChart>
             </ResponsiveContainer>
           </div>

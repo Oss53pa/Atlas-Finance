@@ -698,9 +698,9 @@ export const DEFAULT_THEME: ReportTheme = {
   cardBackground: '#ffffff',
   textPrimary: '#0a0a0a',
   textSecondary: '#404040',
-  positive: '#22c55e',
-  negative: '#ef4444',
-  warning: '#f59e0b',
+  positive: '#15803D',
+  negative: '#C0322B',
+  warning: '#E89A2E',
   borderColor: '#e5e5e5',
 };
 

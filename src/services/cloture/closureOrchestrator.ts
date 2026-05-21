@@ -290,6 +290,7 @@ export const closureOrchestrator = {
         );
         const unreconciled = bankEntries.filter((e: any) => !e.reconciled && e.status !== 'draft');
         if (unreconciled.length > 0) {
+          /* ignored */
         }
         await ctx.adapter.logAudit({
           action: 'CLOSURE_STEP_RAPPROCHEMENTS',
@@ -337,6 +338,7 @@ export const closureOrchestrator = {
           previousHash: '',
         });
         if (unlettered.length > 0) {
+          /* ignored */
         }
         return unlettered.length === 0
           ? `${tiersLines.length} ligne(s) de tiers — toutes lettrées`

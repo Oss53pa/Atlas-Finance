@@ -11,7 +11,7 @@ const variantClasses = {
   primary: 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]',
   secondary: 'bg-[var(--color-text-secondary)]/10 text-[var(--color-text-secondary)]',
   success: 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]',
-  error: 'bg-[#ef4444]/10 text-[#ef4444]',
+  error: 'bg-[#C0322B]/10 text-[#C0322B]',
   warning: 'bg-[var(--color-text-secondary)]/10 text-[var(--color-text-secondary)]',
   info: 'bg-[var(--color-text-tertiary)]/10 text-[var(--color-text-tertiary)]',
   neutral: 'bg-[var(--color-border)] text-[#404040]',

@@ -126,6 +126,7 @@ function setupWebVitalsReporting() {
       getTTFB(reportMetric);
     });
   } catch (error) {
+    /* ignored */
   }
 }
 
@@ -160,6 +161,7 @@ function setupPerformanceBudget() {
     }
 
     if (violations.length > 0) {
+      /* ignored */
     }
   }, 10000);
 }
@@ -218,6 +220,7 @@ function setupDevelopmentHelpers() {
     try {
       longTaskObserver.observe({ type: 'longtask', buffered: true });
     } catch (error) {
+      /* ignored */
     }
   }
 }

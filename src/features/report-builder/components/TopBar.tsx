@@ -77,6 +77,7 @@ const TopBar: React.FC = () => {
       if (idx >= 0) { saved[idx] = record; } else { saved.push(record); }
       localStorage.setItem('atlas_reports', JSON.stringify(saved));
     } catch (err) {
+      /* ignored */
     } finally {
       setSaving(false);
     }

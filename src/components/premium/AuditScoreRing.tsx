@@ -17,10 +17,10 @@ export interface AuditScoreRingProps {
 }
 
 const TONE: Record<NonNullable<AuditAxis['tone']>, string> = {
-  success: '#0F8F5F',
-  warning: '#C9A961',
+  success: '#15803D',
+  warning: '#E89A2E',
   danger:  '#C0322B',
-  gold:    '#C9A961',
+  gold:    '#235A6E',
 };
 
 function scoreTone(score: number): NonNullable<AuditAxis['tone']> {

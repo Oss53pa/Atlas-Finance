@@ -117,7 +117,7 @@ export const CreateSupplierModal: React.FC<CreateSupplierModalProps> = ({
 
     if (!formData.telephone.trim()) {
       newErrors.telephone = 'Le téléphone est requis';
-    } else if (!/^[\d\s\+\-\(\)]+$/.test(formData.telephone)) {
+    } else if (!/^[\d\s+\-()]+$/.test(formData.telephone)) {
       newErrors.telephone = 'Numéro de téléphone invalide';
     }
 
@@ -741,7 +741,7 @@ export const EditSupplierModal: React.FC<EditSupplierModalProps> = ({
 
     if (!formData.telephone.trim()) {
       newErrors.telephone = 'Le téléphone est requis';
-    } else if (!/^[\d\s\+\-\(\)]+$/.test(formData.telephone)) {
+    } else if (!/^[\d\s+\-()]+$/.test(formData.telephone)) {
       newErrors.telephone = 'Numéro de téléphone invalide';
     }
 

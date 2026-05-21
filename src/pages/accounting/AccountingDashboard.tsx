@@ -59,6 +59,7 @@ const AccountingDashboard: React.FC = () => {
         setEntries(e);
         setAccounts(a);
       } catch (err) {
+        /* ignored */
       } finally {
         setLoading(false);
       }
@@ -73,7 +74,7 @@ const AccountingDashboard: React.FC = () => {
     const activeAccounts = accounts.filter((a: any) => a.isActive !== false);
 
     let totalMouvements = 0;
-    let classSoldes: Record<string, number> = {};
+    const classSoldes: Record<string, number> = {};
 
     for (const entry of posted) {
       if (!entry.lines) continue;

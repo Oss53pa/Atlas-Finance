@@ -16,7 +16,7 @@ const variantClasses = {
   secondary: 'bg-[var(--color-text-secondary)] text-white hover:bg-[#404040] focus:ring-[var(--color-text-secondary)]',
   outline: 'border-2 border-[var(--color-border)] text-[#404040] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/5',
   ghost: 'text-[var(--color-text-tertiary)] hover:text-[var(--color-primary)] hover:bg-[var(--color-border)]',
-  danger: 'bg-[#ef4444] text-white hover:bg-[#A64440] focus:ring-[#ef4444]',
+  danger: 'bg-[#C0322B] text-white hover:bg-[#A64440] focus:ring-[#C0322B]',
 };
 
 const sizeClasses = {

@@ -77,7 +77,7 @@ const AdminBillingPage: React.FC = () => {
         {[
           { label: 'Encaissé', value: `${fmt(stats?.totalPaid || 0)} FCFA`, icon: CheckCircle, color: '#059669' },
           { label: 'En attente', value: `${fmt(stats?.totalPending || 0)} FCFA`, icon: Clock, color: '#d97706' },
-          { label: 'Factures payées', value: stats?.countPaid || 0, icon: DollarSign, color: '#2563eb' },
+          { label: 'Factures payées', value: stats?.countPaid || 0, icon: DollarSign, color: '#235A6E' },
           { label: 'À valider', value: stats?.countPending || 0, icon: AlertTriangle, color: stats?.countPending ? '#dc2626' : '#059669' },
         ].map((k, i) => (
           <div key={i} className="bg-white rounded-xl border p-5">

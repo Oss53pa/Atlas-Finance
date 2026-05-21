@@ -47,7 +47,7 @@ const AiInsightCard: React.FC<AiInsightCardProps> = ({
           style={{
             width: 38, height: 38, borderRadius: 12,
             background: 'var(--gradient-champagne)',
-            boxShadow: '0 4px 12px -2px rgba(201,169,97,0.40), inset 0 1px 0 rgba(255,255,255,0.25)',
+            boxShadow: '0 4px 12px -2px rgba(232,154,46,0.40), inset 0 1px 0 rgba(255,255,255,0.25)',
           }}
         >
           <Sparkles className="w-[18px] h-[18px] text-white" strokeWidth={2.2} />

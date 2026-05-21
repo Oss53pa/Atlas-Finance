@@ -42,6 +42,7 @@ export const SimpleFundCallDetails: React.FC = () => {
           }
         }
       } catch (error) {
+        /* ignored */
       }
       setLoading(false);
     };

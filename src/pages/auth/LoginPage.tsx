@@ -97,7 +97,7 @@ const LoginPage: React.FC = () => {
           style={{
             position: 'absolute', top: '-10%', right: '-10%',
             width: 420, height: 420, borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(201,169,97,0.20) 0%, transparent 70%)',
+            background: 'radial-gradient(circle, rgba(232,154,46,0.20) 0%, transparent 70%)',
             filter: 'blur(40px)',
           }}
         />
@@ -106,7 +106,7 @@ const LoginPage: React.FC = () => {
           aria-hidden
           style={{
             position: 'absolute', top: 0, left: 0, right: 0, height: 1,
-            background: 'linear-gradient(90deg, transparent, rgba(201,169,97,0.50), transparent)',
+            background: 'linear-gradient(90deg, transparent, rgba(232,154,46,0.50), transparent)',
           }}
         />
 
@@ -117,7 +117,7 @@ const LoginPage: React.FC = () => {
               className="brand-script"
               style={{
                 fontSize: '2rem',
-                background: 'linear-gradient(135deg, #D4B574 0%, #C9A961 50%, #A88845 100%)',
+                background: 'linear-gradient(135deg, #F2A93B 0%, #E89A2E 50%, #C77E2C 100%)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text',
@@ -140,7 +140,7 @@ const LoginPage: React.FC = () => {
         <div className="anim-rise" style={{ position: 'relative', zIndex: 1, animationDelay: '120ms' }}>
           <div
             className="eyebrow"
-            style={{ color: 'rgba(201,169,97,0.80)', marginBottom: '1.25rem' }}
+            style={{ color: 'rgba(232,154,46,0.80)', marginBottom: '1.25rem' }}
           >
             <span className="gold-dot" style={{ width: 5, height: 5, marginRight: 8 }} />
             Plateforme institutionnelle · OHADA · SYSCOHADA
@@ -158,7 +158,7 @@ const LoginPage: React.FC = () => {
           >
             La comptabilité<br />
             <span className="serif-italic" style={{
-              background: 'linear-gradient(135deg, #D4B574 0%, #C9A961 60%, #A88845 100%)',
+              background: 'linear-gradient(135deg, #F2A93B 0%, #E89A2E 60%, #C77E2C 100%)',
               WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
               fontWeight: 400,
             }}>
@@ -175,7 +175,7 @@ const LoginPage: React.FC = () => {
               letterSpacing: '-0.005em',
             }}
           >
-            Pilotage intégral du cycle Order-to-Cash, conformité OHADA et IA <span className="brand-script" style={{ color: '#C9A961', fontSize: '1.15em' }}>Proph3t</span> intégrée — pour les cabinets et directions financières exigeants.
+            Pilotage intégral du cycle Order-to-Cash, conformité OHADA et IA <span className="brand-script" style={{ color: '#E89A2E', fontSize: '1.15em' }}>Proph3t</span> intégrée — pour les cabinets et directions financières exigeants.
           </p>
         </div>
 
@@ -188,17 +188,17 @@ const LoginPage: React.FC = () => {
                   className="inline-flex items-center justify-center"
                   style={{
                     width: 26, height: 26, borderRadius: 7,
-                    background: 'rgba(201,169,97,0.08)',
-                    border: '1px solid rgba(201,169,97,0.18)',
+                    background: 'rgba(232,154,46,0.08)',
+                    border: '1px solid rgba(232,154,46,0.18)',
                   }}
                 >
-                  <sig.icon className="w-3.5 h-3.5" style={{ color: '#C9A961' }} strokeWidth={1.5} />
+                  <sig.icon className="w-3.5 h-3.5" style={{ color: '#E89A2E' }} strokeWidth={1.5} />
                 </span>
                 <span style={{ letterSpacing: '-0.005em' }}>{sig.label}</span>
               </li>
             ))}
           </ul>
-          <div className="mt-8 pt-6" style={{ borderTop: '1px solid rgba(201,169,97,0.10)' }}>
+          <div className="mt-8 pt-6" style={{ borderTop: '1px solid rgba(232,154,46,0.10)' }}>
             <p style={{ color: 'rgba(247,244,237,0.30)', fontSize: '0.6875rem', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
               © {new Date().getFullYear()} Atlas Studio · 17 pays OHADA
             </p>
@@ -229,7 +229,7 @@ const LoginPage: React.FC = () => {
               Connectez-vous à votre espace <span className="brand-script" style={{ color: 'var(--color-accent-deep)', fontSize: '1.05em' }}>Atlas F&A</span> pour reprendre votre activité.
             </p>
             {selectedRole && (
-              <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full" style={{ background: 'var(--color-accent-light)', border: '1px solid rgba(201,169,97,0.25)' }}>
+              <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full" style={{ background: 'var(--color-accent-light)', border: '1px solid rgba(35,90,110,0.25)' }}>
                 <ShieldCheck className="w-3.5 h-3.5" style={{ color: 'var(--color-accent-deep)' }} strokeWidth={1.5} />
                 <span className="text-xs font-medium capitalize" style={{ color: 'var(--color-accent-deep)' }}>
                   Rôle : {selectedRole}

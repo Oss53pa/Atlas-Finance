@@ -46,6 +46,7 @@ async function loadAgingRules(adapter: DataAdapter): Promise<typeof DEFAULT_AGIN
       }
     }
   } catch (error) {
+    /* ignored */
   }
   return DEFAULT_AGING_RULES;
 }

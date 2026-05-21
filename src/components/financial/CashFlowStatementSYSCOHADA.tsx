@@ -119,7 +119,8 @@ const CashFlowStatementSYSCOHADA: React.FC = () => {
 
       // Helpers pour classer les mouvements de trésorerie par contrepartie
       let encClients = 0, autresEncExploit = 0, decFournisseurs = 0, decPersonnel = 0, interetsPayes = 0, impots = 0, autresDecExploit = 0;
-      let acqCorpo = 0, acqIncorpo = 0, acqFinanc = 0, cessCorpo = 0, cessFinanc = 0, intDivRecus = 0;
+      let acqCorpo = 0, acqFinanc = 0, cessCorpo = 0, cessFinanc = 0, intDivRecus = 0;
+      const acqIncorpo = 0;
       let augCapital = 0, subventions = 0, empruntsNouv = 0, rembEmprunts = 0, divVerses = 0;
 
       for (const entry of entries) {

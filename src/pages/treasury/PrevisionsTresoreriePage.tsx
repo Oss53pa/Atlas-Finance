@@ -131,6 +131,7 @@ const PrevisionsTresoreriePage: React.FC = () => {
       setForecastSettingRaw(fSetting);
       setTreasuryPlansSetting(pSetting);
     } catch (err) {
+      /* ignored */
     }
   }, [adapter]);
 
@@ -715,9 +716,9 @@ const PrevisionsTresoreriePage: React.FC = () => {
                   <YAxis tick={{ fontSize: 12 }} tickFormatter={v => `${(v / 1_000_000).toFixed(1)}M`} />
                   <Tooltip formatter={(value: number) => formatCurrency(value)} />
                   <Legend />
-                  <Bar dataKey="encaissements" fill="#22c55e" name="Encaissements" />
-                  <Bar dataKey="decaissements" fill="#ef4444" name="Décaissements" />
-                  <Line type="monotone" dataKey="soldeFin" stroke="#171717" strokeWidth={2} name="Solde fin" dot={{ r: 4 }} />
+                  <Bar dataKey="encaissements" fill="#15803D" name="Encaissements" />
+                  <Bar dataKey="decaissements" fill="#C0322B" name="Décaissements" />
+                  <Line type="monotone" dataKey="soldeFin" stroke="#235A6E" strokeWidth={2} name="Solde fin" dot={{ r: 4 }} />
                 </ComposedChart>
               </ResponsiveContainer>
             </div>

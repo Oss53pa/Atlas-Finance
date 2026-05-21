@@ -194,6 +194,6 @@ function tokenize(text: string): string[] {
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '') // strip accents for matching
-    .split(/[\s,;:.!?'"()\[\]{}]+/)
+    .split(/[\s,;:.!?'"()[\]{}]+/)
     .filter(t => t.length >= 2 && !STOP_WORDS.has(t));
 }

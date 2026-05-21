@@ -122,10 +122,10 @@ const GenerateReportModal: React.FC<GenerateReportModalProps> = ({
 
   // Mock data - Folders
   const dataFolders: DataFolder[] = [
-    { id: 'folder-1', name: 'Données Comptables', importCount: 12, color: '#10B981' },
-    { id: 'folder-2', name: 'Données Commerciales', importCount: 8, color: '#6366F1' },
-    { id: 'folder-3', name: 'Données RH', importCount: 5, color: '#F59E0B' },
-    { id: 'folder-4', name: 'Données Marketing', importCount: 15, color: '#EC4899' },
+    { id: 'folder-1', name: 'Données Comptables', importCount: 12, color: '#15803D' },
+    { id: 'folder-2', name: 'Données Commerciales', importCount: 8, color: '#235A6E' },
+    { id: 'folder-3', name: 'Données RH', importCount: 5, color: '#E89A2E' },
+    { id: 'folder-4', name: 'Données Marketing', importCount: 15, color: '#C77E2C' },
   ];
 
   const totalImportCount = useMemo(() => {

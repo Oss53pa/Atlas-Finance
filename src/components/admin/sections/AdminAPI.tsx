@@ -58,6 +58,7 @@ const AdminAPI: React.FC<Props> = ({ subTab, setSubTab }) => {
           if (payroll.compte) setPayrollCompte(payroll.compte);
         }
       } catch (err) {
+        /* ignored */
       } finally {
         setLoading(false);
       }

@@ -85,6 +85,7 @@ export const FundCallExpense: React.FC = () => {
         void enabledUsers;
       }
     } catch (error) {
+      /* ignored */
     }
   };
 

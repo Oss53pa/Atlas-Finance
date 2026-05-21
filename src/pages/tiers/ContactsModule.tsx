@@ -179,7 +179,7 @@ const ContactsModule: React.FC = () => {
     }))
   ).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-  const COLORS = ['#171717', '#525252', '#a3a3a3', '#3b82f6', '#22c55e', '#f59e0b'];
+  const COLORS = ['#235A6E', '#E89A2E', '#15803D', '#4E7E8D', '#C77E2C', '#7FA3AF'];
 
   return (
     <div className="p-6 bg-[var(--color-border)] min-h-screen ">
@@ -533,7 +533,7 @@ const ContactsModule: React.FC = () => {
                     cx="50%"
                     cy="50%"
                     outerRadius={100}
-                    fill="#737373"
+                    fill="#235A6E"
                     label={({ type, pourcentage }) => `${type} (${pourcentage}%)`}
                   >
                     {analyticsData.repartitionTiers.map((entry, index) => (
@@ -555,9 +555,9 @@ const ContactsModule: React.FC = () => {
                   <YAxis />
                   <Tooltip />
                   <Legend />
-                  <Area type="monotone" dataKey="emails" stackId="1" stroke="#737373" fill="#737373" />
-                  <Area type="monotone" dataKey="appels" stackId="1" stroke="#525252" fill="#525252" />
-                  <Area type="monotone" dataKey="rencontres" stackId="1" stroke="#525252" fill="#525252" />
+                  <Area type="monotone" dataKey="emails" stackId="1" stroke="#235A6E" fill="#235A6E" />
+                  <Area type="monotone" dataKey="appels" stackId="1" stroke="#4E7E8D" fill="#4E7E8D" />
+                  <Area type="monotone" dataKey="rencontres" stackId="1" stroke="#4E7E8D" fill="#4E7E8D" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -598,7 +598,7 @@ const ContactsModule: React.FC = () => {
                   <XAxis dataKey="fonction" />
                   <YAxis />
                   <Tooltip />
-                  <Bar dataKey="count" fill="#737373" />
+                  <Bar dataKey="count" fill="#235A6E" />
                 </BarChart>
               </ResponsiveContainer>
             </div>

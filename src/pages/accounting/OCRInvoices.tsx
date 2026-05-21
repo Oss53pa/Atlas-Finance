@@ -186,6 +186,7 @@ const OCRInvoices: React.FC = () => {
       if (file.type.startsWith('image/') || file.type === 'application/pdf') {
         processFile(file);
       } else {
+        /* ignored */
       }
     });
   };

@@ -471,7 +471,7 @@ export class PalomaLearningSystem {
     const contentFeatures = {
       length: interaction.response.length,
       hasEmojis: /[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]/u.test(interaction.response),
-      hasSteps: /\d+\.|\*|\-/.test(interaction.response),
+      hasSteps: /\d+\.|\*|-/.test(interaction.response),
       hasExamples: /exemple|par exemple|comme/i.test(interaction.response),
       hasTechnicalTerms: this.countTechnicalTerms(interaction.response)
     };
@@ -599,6 +599,7 @@ export class PalomaLearningSystem {
         }
       }
     } catch (error) {
+      /* ignored */
     }
   }
 
@@ -614,6 +615,7 @@ export class PalomaLearningSystem {
       };
       localStorage.setItem('paloma_learning_data', JSON.stringify(dataToSave));
     } catch (error) {
+      /* ignored */
     }
   }
 

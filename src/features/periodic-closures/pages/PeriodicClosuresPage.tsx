@@ -34,6 +34,7 @@ const PeriodicClosuresPage: React.FC = () => {
       await periodicClosuresService.executeStep(selectedPeriod.id, step.id);
       refetch();
     } catch (error) {
+      /* ignored */
     }
   };
 
@@ -44,6 +45,7 @@ const PeriodicClosuresPage: React.FC = () => {
       refetch();
       periodDetailModal.close();
     } catch (error) {
+      /* ignored */
     }
   };
 

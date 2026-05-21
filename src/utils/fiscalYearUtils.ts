@@ -28,7 +28,7 @@ export function getFiscalMonths(startDate: string, endDate: string): FiscalMonth
   const end = new Date(endDate);
   const months: FiscalMonth[] = [];
 
-  let current = new Date(start.getFullYear(), start.getMonth(), 1);
+  const current = new Date(start.getFullYear(), start.getMonth(), 1);
   const last = new Date(end.getFullYear(), end.getMonth(), 1);
 
   while (current <= last) {

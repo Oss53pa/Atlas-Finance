@@ -65,7 +65,7 @@ const ValuationComparison: React.FC<ValuationComparisonProps> = ({
     ];
   }, [totalValue, totalItems]);
 
-  const COLORS = ['#171717', '#525252', '#a3a3a3', '#3b82f6', '#22c55e', '#f59e0b'];
+  const COLORS = ['#235A6E', '#E89A2E', '#15803D', '#4E7E8D', '#C77E2C', '#7FA3AF'];
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -84,7 +84,7 @@ const ValuationComparison: React.FC<ValuationComparisonProps> = ({
               <Tooltip
                 formatter={(value: number) => [`$${formatCurrency(value)}`, 'Inventory Value']}
               />
-              <Bar dataKey="value" fill="#3B82F6" />
+              <Bar dataKey="value" fill="#235A6E" />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -444,7 +444,7 @@ const InventoryValuation: React.FC = () => {
     return acc;
   }, [] as Array<{ category: string; value: number; items: number; impairment: number }>);
 
-  const COLORS = ['#171717', '#525252', '#a3a3a3', '#3b82f6', '#22c55e', '#f59e0b'];
+  const COLORS = ['#235A6E', '#E89A2E', '#15803D', '#4E7E8D', '#C77E2C', '#7FA3AF'];
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -620,7 +620,7 @@ const InventoryValuation: React.FC = () => {
                     <XAxis dataKey="category" />
                     <YAxis />
                     <Tooltip formatter={(value: number) => [`$${formatCurrency(value)}`, 'Impairment']} />
-                    <Bar dataKey="impairment" fill="#EF4444" />
+                    <Bar dataKey="impairment" fill="#C0322B" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>

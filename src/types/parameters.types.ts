@@ -206,7 +206,7 @@ export interface CreateConfigurationSocieteDto {
   couleur_secondaire?: string;
 }
 
-export interface UpdateConfigurationSocieteDto extends Partial<CreateConfigurationSocieteDto> {}
+export interface UpdateConfigurationSocieteDto extends Partial<CreateConfigurationSocieteDto> { /* ignored */ }
 
 export interface CreateJournalParametresDto {
   societe: string;
@@ -222,7 +222,7 @@ export interface CreateJournalParametresDto {
   lettrage_auto?: boolean;
 }
 
-export interface UpdateJournalParametresDto extends Partial<CreateJournalParametresDto> {}
+export interface UpdateJournalParametresDto extends Partial<CreateJournalParametresDto> { /* ignored */ }
 
 export interface CreateNotificationParametresDto {
   societe: string;
@@ -235,7 +235,7 @@ export interface CreateNotificationParametresDto {
   frequence_max?: number;
 }
 
-export interface UpdateNotificationParametresDto extends Partial<CreateNotificationParametresDto> {}
+export interface UpdateNotificationParametresDto extends Partial<CreateNotificationParametresDto> { /* ignored */ }
 
 export interface BulkParameterUpdate {
   parametres: Record<string, string>;

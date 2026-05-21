@@ -78,7 +78,7 @@ const TasksModuleWithSidebar: React.FC = () => {
   const getProgressColor = (progress: number) => {
     if (progress >= 90) return 'bg-green-500';
     if (progress >= 60) return 'bg-[var(--color-primary)]';
-    if (progress >= 30) return 'bg-[#F59E0B]';
+    if (progress >= 30) return 'bg-[#E89A2E]';
     return 'bg-[var(--color-text-secondary)]';
   };
 
@@ -364,7 +364,7 @@ const TasksModuleWithSidebar: React.FC = () => {
             <div className="flex flex-col">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-[#F59E0B]"></div>
+                  <div className="w-3 h-3 rounded-full bg-[#E89A2E]"></div>
                   <h3 className="font-semibold text-gray-700">{t('status.inProgress')}</h3>
                 </div>
                 <button className="p-1 hover:bg-gray-100 rounded" aria-label="Ajouter">
@@ -400,7 +400,7 @@ const TasksModuleWithSidebar: React.FC = () => {
             <div className="flex flex-col">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-[#22c55e]"></div>
+                  <div className="w-3 h-3 rounded-full bg-[#15803D]"></div>
                   <h3 className="font-semibold text-gray-700">{t('status.completed')}</h3>
                 </div>
                 <button className="p-1 hover:bg-gray-100 rounded" aria-label="Ajouter">

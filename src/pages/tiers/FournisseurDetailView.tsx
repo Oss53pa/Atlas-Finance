@@ -373,6 +373,7 @@ const FournisseurDetailView: React.FC = () => {
           setRepartitionDepenses([]);
         }
       } catch (err) {
+        /* ignored */
       } finally {
         if (mounted) setLoading(false);
       }
@@ -415,7 +416,7 @@ const FournisseurDetailView: React.FC = () => {
     );
   };
 
-  const COLORS = ['#171717', '#525252', '#a3a3a3', '#3b82f6', '#22c55e', '#f59e0b'];
+  const COLORS = ['#235A6E', '#E89A2E', '#15803D', '#4E7E8D', '#C77E2C', '#7FA3AF'];
 
   // Render Synthese Tab
   const renderSyntheseTab = () => (
@@ -487,8 +488,8 @@ const FournisseurDetailView: React.FC = () => {
               <YAxis />
               <Tooltip formatter={(value) => formatCurrency(value as number)} />
               <Legend />
-              <Area type="monotone" dataKey="achats" stackId="1" stroke="#171717" fill="#171717" fillOpacity={0.6} name="Achats Réels" />
-              <Line type="monotone" dataKey="budget" stroke="#525252" strokeWidth={2} strokeDasharray="5 5" name="Budget" />
+              <Area type="monotone" dataKey="achats" stackId="1" stroke="#235A6E" fill="#235A6E" fillOpacity={0.6} name="Achats Réels" />
+              <Line type="monotone" dataKey="budget" stroke="#4E7E8D" strokeWidth={2} strokeDasharray="5 5" name="Budget" />
             </AreaChart>
           </ResponsiveContainer>
         </div>
@@ -504,7 +505,7 @@ const FournisseurDetailView: React.FC = () => {
                 cx="50%"
                 cy="50%"
                 outerRadius={100}
-                fill="#737373"
+                fill="#235A6E"
                 label={({ categorie, pourcentage }) => `${categorie}: ${pourcentage}%`}
               >
                 {repartitionDepenses.map((entry, index) => (
@@ -796,7 +797,7 @@ const FournisseurDetailView: React.FC = () => {
             <div className="text-center">
               <ResponsiveContainer width="100%" height={200}>
                 <RadialBarChart cx="50%" cy="50%" innerRadius="60%" outerRadius="90%" data={[{value: fournisseurDetail.financier.scoreRisque}]}>
-                  <RadialBar dataKey="value" cornerRadius={10} fill="#171717" />
+                  <RadialBar dataKey="value" cornerRadius={10} fill="#235A6E" />
                   <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" className="text-lg font-bold fill-[var(--color-primary)]">
                     {fournisseurDetail.financier.scoreRisque}/100
                   </text>
@@ -847,8 +848,8 @@ const FournisseurDetailView: React.FC = () => {
             <YAxis />
             <Tooltip />
             <Legend />
-            <Line type="monotone" dataKey="dpo" stroke="#171717" strokeWidth={2} name="DPO Réel" />
-            <Line type="monotone" dataKey="objectif" stroke="#525252" strokeDasharray="5 5" name="Objectif" />
+            <Line type="monotone" dataKey="dpo" stroke="#235A6E" strokeWidth={2} name="DPO Réel" />
+            <Line type="monotone" dataKey="objectif" stroke="#4E7E8D" strokeDasharray="5 5" name="Objectif" />
           </LineChart>
         </ResponsiveContainer>
       </div>
@@ -942,8 +943,8 @@ const FournisseurDetailView: React.FC = () => {
               <YAxis />
               <Tooltip formatter={(value, name) => name === 'montant' ? formatCurrency(value as number) : value} />
               <Legend />
-              <Bar dataKey="montant" fill="#171717" name="Montant (FCFA)" />
-              <Bar dataKey="commandes" fill="#525252" name="Nb Commandes" />
+              <Bar dataKey="montant" fill="#235A6E" name="Montant (FCFA)" />
+              <Bar dataKey="commandes" fill="#4E7E8D" name="Nb Commandes" />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -1123,7 +1124,7 @@ const FournisseurDetailView: React.FC = () => {
           <div className="text-center">
             <ResponsiveContainer width="100%" height={200}>
               <RadialBarChart cx="50%" cy="50%" innerRadius="60%" outerRadius="90%" data={[{value: fournisseurDetail.conformite.scoreConformite}]}>
-                <RadialBar dataKey="value" cornerRadius={10} fill="#171717" />
+                <RadialBar dataKey="value" cornerRadius={10} fill="#235A6E" />
                 <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" className="text-lg font-bold fill-[var(--color-primary)]">
                   {fournisseurDetail.conformite.scoreConformite}%
                 </text>

@@ -52,7 +52,7 @@ const UsersPage: React.FC = () => {
       description: 'Accès complet au système',
       permissions: ['all'],
       utilisateurs: 2,
-      couleur: '#ef4444'
+      couleur: '#C0322B'
     },
     {
       id: '2',

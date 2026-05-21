@@ -78,7 +78,7 @@ export function calculateIS(input: ISInput): ISResult {
   const deductions = money(input.deductions);
 
   // Résultat fiscal = Résultat comptable + Réintégrations - Déductions
-  let resultatFiscalRaw = resultatComptable.add(reintegrations).subtract(deductions);
+  const resultatFiscalRaw = resultatComptable.add(reintegrations).subtract(deductions);
 
   // Imputation des déficits antérieurs (ne peut pas rendre le résultat négatif)
   const deficitsDisponibles = money(input.deficitsAnterieurs);

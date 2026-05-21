@@ -21,7 +21,7 @@ const SolutionRouter: React.FC = () => {
   // Solutions connues mais pas encore développées
   const PLACEHOLDERS: Record<string, { name: string; icon: any; color: string }> = {
     'liass-pilot': { name: "Liass'Pilot", icon: FileText, color: '#0891b2' },
-    'docjourney':  { name: 'DocJourney',  icon: FolderOpen, color: '#7c3aed' },
+    'docjourney':  { name: 'DocJourney',  icon: FolderOpen, color: '#C77E2C' },
   };
 
   const sol = code ? PLACEHOLDERS[code] : null;

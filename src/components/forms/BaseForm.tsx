@@ -132,6 +132,7 @@ const BaseForm: React.FC<FormProps> = ({
     try {
       await onSubmit(formData);
     } catch (error) {
+      /* ignored */
     }
   };
 

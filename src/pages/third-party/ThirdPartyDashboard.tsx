@@ -46,6 +46,7 @@ const ThirdPartyDashboard: React.FC = () => {
         setThirdParties(tp as Record<string, unknown>[]);
         setJournalEntries(je as Record<string, unknown>[]);
       } catch (e) {
+        /* ignored */
       } finally {
         setLoading(false);
       }

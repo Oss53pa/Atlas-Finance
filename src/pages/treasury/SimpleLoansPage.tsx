@@ -46,6 +46,7 @@ const SimpleLoansPage: React.FC = () => {
           if (Array.isArray(parsed)) setLoans(parsed);
         }
       } catch (err) {
+        /* ignored */
       }
     };
     loadLoans();

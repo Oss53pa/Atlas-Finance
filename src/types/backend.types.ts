@@ -125,7 +125,7 @@ export interface SocieteCreateRequest {
   address?: string;
 }
 
-export interface SocieteUpdateRequest extends Partial<SocieteCreateRequest> {}
+export interface SocieteUpdateRequest extends Partial<SocieteCreateRequest> { /* ignored */ }
 
 // ==================== CORE - DEVISES ====================
 
@@ -145,7 +145,7 @@ export interface DeviseCreateRequest {
   is_active?: boolean;
 }
 
-export interface DeviseUpdateRequest extends Partial<DeviseCreateRequest> {}
+export interface DeviseUpdateRequest extends Partial<DeviseCreateRequest> { /* ignored */ }
 
 // ==================== ACCOUNTING - EXERCICES ====================
 
@@ -200,7 +200,7 @@ export interface JournalCreateRequest {
   default_credit_account?: string;
 }
 
-export interface JournalUpdateRequest extends Partial<JournalCreateRequest> {}
+export interface JournalUpdateRequest extends Partial<JournalCreateRequest> { /* ignored */ }
 
 // ==================== ACCOUNTING - PLAN COMPTABLE ====================
 
@@ -236,7 +236,7 @@ export interface ChartOfAccountsCreateRequest {
   parent_account?: string;
 }
 
-export interface ChartOfAccountsUpdateRequest extends Partial<ChartOfAccountsCreateRequest> {}
+export interface ChartOfAccountsUpdateRequest extends Partial<ChartOfAccountsCreateRequest> { /* ignored */ }
 
 export interface AccountByClassParams {
   account_class?: AccountClass;
@@ -290,7 +290,7 @@ export interface JournalEntryCreateRequest {
   lines: Omit<JournalEntryLine, 'id' | 'journal_entry' | 'account_name' | 'third_party_name'>[];
 }
 
-export interface JournalEntryUpdateRequest extends Partial<JournalEntryCreateRequest> {}
+export interface JournalEntryUpdateRequest extends Partial<JournalEntryCreateRequest> { /* ignored */ }
 
 export interface JournalEntryValidateResponse {
   success: boolean;
@@ -348,7 +348,7 @@ export interface TiersCreateRequest {
   remarques?: string;
 }
 
-export interface TiersUpdateRequest extends Partial<TiersCreateRequest> {}
+export interface TiersUpdateRequest extends Partial<TiersCreateRequest> { /* ignored */ }
 
 export interface TiersFilterParams {
   type_tiers?: TiersType;
@@ -385,7 +385,7 @@ export interface AdresseTiersCreateRequest {
   est_principale?: boolean;
 }
 
-export interface AdresseTiersUpdateRequest extends Partial<AdresseTiersCreateRequest> {}
+export interface AdresseTiersUpdateRequest extends Partial<AdresseTiersCreateRequest> { /* ignored */ }
 
 // ==================== THIRD PARTY - CONTACTS ====================
 
@@ -414,7 +414,7 @@ export interface ContactTiersCreateRequest {
   remarques?: string;
 }
 
-export interface ContactTiersUpdateRequest extends Partial<ContactTiersCreateRequest> {}
+export interface ContactTiersUpdateRequest extends Partial<ContactTiersCreateRequest> { /* ignored */ }
 
 // ==================== QUERY PARAMETERS ====================
 

@@ -235,7 +235,7 @@ export function ImportPlanComptable({ onClose, onSuccess }: Props) {
     const details: ImportReport['details'] = [];
     let created = 0;
     let aliasCreated = 0;
-    let aliasAttached = 0;
+    const aliasAttached = 0;
     let errors = 0;
 
     for (const row of validRows) {

@@ -59,7 +59,7 @@ const ClientHome: React.FC = () => {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { label: 'Solutions actives', value: activeSubs.length, icon: Zap, color: 'var(--color-primary)' },
-          { label: 'Membres', value: members.length, icon: Users, color: '#2563eb' },
+          { label: 'Membres', value: members.length, icon: Users, color: '#235A6E' },
           { label: 'Factures en attente', value: pendingInvoices.length, icon: CreditCard, color: pendingInvoices.length > 0 ? '#dc2626' : '#059669' },
           { label: 'Statut', value: tenant?.status === 'active' ? 'Actif' : tenant?.status === 'trial' ? 'Essai' : tenant?.status, icon: CheckCircle, color: '#059669' },
         ].map((kpi, i) => (

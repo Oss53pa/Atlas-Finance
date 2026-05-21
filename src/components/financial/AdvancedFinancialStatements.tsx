@@ -270,7 +270,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
     };
   }, [bilanData, compteResultatData, sigData]);
 
-  const COLORS = ['#171717', '#525252', '#a3a3a3', '#3b82f6', '#22c55e', '#f59e0b'];
+  const COLORS = ['#235A6E', '#E89A2E', '#15803D', '#4E7E8D', '#C77E2C', '#7FA3AF'];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -492,7 +492,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                     labelLine={false}
                     label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                     outerRadius={100}
-                    fill="#737373"
+                    fill="#235A6E"
                     dataKey="value"
                   >
                     {Array.from({length: 4}).map((_, index) => (
@@ -526,8 +526,8 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                   <YAxis tickFormatter={(value) => `${fmt(value)}`} />
                   <Tooltip formatter={(value) => [`${fmt(value as number)}`, '']} />
                   <Legend />
-                  <Area type="monotone" dataKey="va" stackId="1" stroke="#171717" fill="#171717" fillOpacity={0.6} name="Valeur Ajoutée" />
-                  <Area type="monotone" dataKey="ebe" stackId="2" stroke="#525252" fill="#525252" fillOpacity={0.6} name="EBE" />
+                  <Area type="monotone" dataKey="va" stackId="1" stroke="#235A6E" fill="#235A6E" fillOpacity={0.6} name="Valeur Ajoutée" />
+                  <Area type="monotone" dataKey="ebe" stackId="2" stroke="#4E7E8D" fill="#4E7E8D" fillOpacity={0.6} name="EBE" />
                   <Area type="monotone" dataKey="re" stackId="3" stroke="#E8B4B8" fill="#E8B4B8" fillOpacity={0.6} name="Rés. Exploitation" />
                   <Area type="monotone" dataKey="rn" stackId="4" stroke="#A8C8EC" fill="#A8C8EC" fillOpacity={0.6} name="Résultat Net" />
                 </AreaChart>
@@ -657,9 +657,9 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                 <YAxis yAxisId="right" orientation="right" tickFormatter={(value) => `${value.toFixed(1)}%`} />
                 <Tooltip />
                 <Legend />
-                <Bar yAxisId="left" dataKey="ca" fill="#171717" name="Chiffre d'Affaires (M XAF)" />
-                <Bar yAxisId="left" dataKey="rn" fill="#525252" name="Résultat Net (M XAF)" />
-                <Line yAxisId="right" type="monotone" dataKey="marge" stroke="#ef4444" strokeWidth={3} name="Marge Nette (%)" />
+                <Bar yAxisId="left" dataKey="ca" fill="#235A6E" name="Chiffre d'Affaires (M XAF)" />
+                <Bar yAxisId="left" dataKey="rn" fill="#4E7E8D" name="Résultat Net (M XAF)" />
+                <Line yAxisId="right" type="monotone" dataKey="marge" stroke="#C0322B" strokeWidth={3} name="Marge Nette (%)" />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -1391,8 +1391,8 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Line type="monotone" dataKey="roa" stroke="#171717" strokeWidth={2} name="ROA (%)" />
-                <Line type="monotone" dataKey="roe" stroke="#525252" strokeWidth={2} name="ROE (%)" />
+                <Line type="monotone" dataKey="roa" stroke="#235A6E" strokeWidth={2} name="ROA (%)" />
+                <Line type="monotone" dataKey="roe" stroke="#4E7E8D" strokeWidth={2} name="ROE (%)" />
                 <Line type="monotone" dataKey="liquidite" stroke="#E8B4B8" strokeWidth={2} name="Liquidité Générale" />
                 <Line type="monotone" dataKey="autonomie" stroke="#A8C8EC" strokeWidth={2} name="Autonomie Financière (%)" />
               </LineChart>

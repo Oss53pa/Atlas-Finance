@@ -28,8 +28,8 @@ const AdminDashboardPage: React.FC = () => {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { label: 'MRR', value: `${fmt(kpis.mrr)} FCFA`, icon: DollarSign, color: '#059669', sub: `${kpis.activeSubscriptions} abonnements` },
-          { label: 'Tenants actifs', value: fmt(kpis.activeTenants), icon: Users, color: '#2563eb', sub: `${kpis.trialTenants} en essai` },
-          { label: 'Nouveaux ce mois', value: fmt(kpis.newThisMonth), icon: TrendingUp, color: '#7c3aed', sub: growthPct >= 0 ? `+${growthPct}% vs M-1` : `${growthPct}% vs M-1` },
+          { label: 'Tenants actifs', value: fmt(kpis.activeTenants), icon: Users, color: '#235A6E', sub: `${kpis.trialTenants} en essai` },
+          { label: 'Nouveaux ce mois', value: fmt(kpis.newThisMonth), icon: TrendingUp, color: '#C77E2C', sub: growthPct >= 0 ? `+${growthPct}% vs M-1` : `${growthPct}% vs M-1` },
           { label: 'Paiements en attente', value: fmt(kpis.pendingPayments), icon: Clock, color: kpis.pendingPayments > 0 ? '#dc2626' : '#059669', sub: `${fmt(kpis.pendingAmount)} FCFA` },
         ].map((kpi, i) => (
           <div key={i} className="bg-white rounded-xl border p-5">

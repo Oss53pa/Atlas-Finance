@@ -60,7 +60,7 @@ export class InventoryCalculations {
         }
         break;
 
-      case 'LIFO':
+      case 'LIFO': {
         const reversedLayers = [...sortedLayers].reverse();
         for (const layer of reversedLayers) {
           if (remainingQuantity <= 0) {
@@ -89,8 +89,9 @@ export class InventoryCalculations {
           }
         }
         break;
+      }
 
-      case 'WEIGHTED_AVERAGE':
+      case 'WEIGHTED_AVERAGE': {
         const totalLayerQuantity = sortedLayers.reduce((sum, layer) => sum + layer.quantity, 0);
         const totalLayerCost = sortedLayers.reduce((sum, layer) => sum + layer.totalCost, 0);
 
@@ -110,6 +111,7 @@ export class InventoryCalculations {
           }
         }
         break;
+      }
 
       case 'SPECIFIC_IDENTIFICATION':
         // For specific identification, layers should have specific identifiers

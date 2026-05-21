@@ -17,9 +17,9 @@ const variantConfig = {
     icon: CheckCircle,
   },
   error: {
-    bg: 'bg-[#ef4444]/10',
-    border: 'border-[#ef4444]',
-    text: 'text-[#ef4444]',
+    bg: 'bg-[#C0322B]/10',
+    border: 'border-[#C0322B]',
+    text: 'text-[#C0322B]',
     icon: AlertCircle,
   },
   warning: {

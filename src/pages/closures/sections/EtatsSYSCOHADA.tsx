@@ -611,9 +611,9 @@ const EtatsSYSCOHADA: React.FC = () => {
             <CardContent>
               <div className="grid grid-cols-4 gap-6">
                 {[
-                  { label: 'Actif Immobilisé', value: totalImmo, total: totalGenActif, color: '#2563eb' },
-                  { label: 'Actif Circulant', value: totalCirculant, total: totalGenActif, color: '#16a34a' },
-                  { label: 'Capitaux Propres', value: capitauxPropres, total: totalGenPassif, color: '#7c3aed' },
+                  { label: 'Actif Immobilisé', value: totalImmo, total: totalGenActif, color: '#235A6E' },
+                  { label: 'Actif Circulant', value: totalCirculant, total: totalGenActif, color: '#15803D' },
+                  { label: 'Capitaux Propres', value: capitauxPropres, total: totalGenPassif, color: '#C77E2C' },
                   { label: 'Total Dettes', value: totalDettes, total: totalGenPassif, color: '#dc2626' },
                 ].map((item, idx) => {
                   const pct = item.total > 0 ? Math.round(item.value / item.total * 100) : 0;

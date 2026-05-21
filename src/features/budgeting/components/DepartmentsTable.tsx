@@ -87,7 +87,7 @@ export const DepartmentsTable: React.FC<DepartmentsTableProps> = ({
       render: (value, row) => {
         const isNegative = (value as number) < 0;
         return (
-          <span className={isNegative ? 'text-[#ef4444]' : 'text-[var(--color-primary)]'}>
+          <span className={isNegative ? 'text-[#C0322B]' : 'text-[var(--color-primary)]'}>
             {formatCurrency(Math.abs(value as number))}
           </span>
         );

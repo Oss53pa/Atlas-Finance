@@ -23,16 +23,16 @@ export const RatiosCard: React.FC<RatiosCardProps> = ({ ratios, loading }) => {
     if (type === 'structure') {
       if (value > 50) return { color: 'text-[var(--color-primary)]', bg: 'bg-[var(--color-primary)]/10', label: 'Excellent' };
       if (value > 30) return { color: 'text-[var(--color-text-secondary)]', bg: 'bg-[var(--color-text-secondary)]/10', label: 'Bon' };
-      return { color: 'text-[#ef4444]', bg: 'bg-[#ef4444]/10', label: 'Faible' };
+      return { color: 'text-[#C0322B]', bg: 'bg-[#C0322B]/10', label: 'Faible' };
     }
     if (type === 'liquidite') {
       if (value > 100) return { color: 'text-[var(--color-primary)]', bg: 'bg-[var(--color-primary)]/10', label: 'Excellent' };
       if (value > 50) return { color: 'text-[var(--color-text-secondary)]', bg: 'bg-[var(--color-text-secondary)]/10', label: 'Correct' };
-      return { color: 'text-[#ef4444]', bg: 'bg-[#ef4444]/10', label: 'Risque' };
+      return { color: 'text-[#C0322B]', bg: 'bg-[#C0322B]/10', label: 'Risque' };
     }
     if (value > 15) return { color: 'text-[var(--color-primary)]', bg: 'bg-[var(--color-primary)]/10', label: 'Excellent' };
     if (value > 5) return { color: 'text-[var(--color-text-secondary)]', bg: 'bg-[var(--color-text-secondary)]/10', label: 'Bon' };
-    return { color: 'text-[#ef4444]', bg: 'bg-[#ef4444]/10', label: 'Faible' };
+    return { color: 'text-[#C0322B]', bg: 'bg-[#C0322B]/10', label: 'Faible' };
   };
 
   const ratioCards = [

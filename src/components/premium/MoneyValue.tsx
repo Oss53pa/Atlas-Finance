@@ -29,7 +29,7 @@ const SIZE_CLASS: Record<NonNullable<MoneyValueProps['size']>, string> = {
 
 const TONE_COLOR: Record<NonNullable<MoneyValueProps['tone']>, string> = {
   default: 'var(--color-text-primary)',
-  success: '#0F8F5F',
+  success: '#15803D',
   danger:  '#C0322B',
   muted:   'var(--color-text-tertiary)',
 };

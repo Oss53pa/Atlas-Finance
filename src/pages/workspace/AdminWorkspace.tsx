@@ -103,6 +103,7 @@ const AdminWorkspace: React.FC = () => {
           setCompanyPhone(companies[0].phone || companies[0].telephone || '');
         }
       } catch (err) {
+        /* ignored */
       }
     };
     loadStats();

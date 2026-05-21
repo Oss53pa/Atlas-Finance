@@ -63,7 +63,7 @@ export const LedgerAccountsTable: React.FC<LedgerAccountsTableProps> = ({
       render: (value) => {
         const amount = value as number;
         return (
-          <span className={amount < 0 ? 'text-[#ef4444]' : amount > 0 ? 'text-[var(--color-primary)]' : ''}>
+          <span className={amount < 0 ? 'text-[#C0322B]' : amount > 0 ? 'text-[var(--color-primary)]' : ''}>
             {formatCurrency(Math.abs(amount))} {amount < 0 ? 'C' : amount > 0 ? 'D' : ''}
           </span>
         );
@@ -93,7 +93,7 @@ export const LedgerAccountsTable: React.FC<LedgerAccountsTableProps> = ({
         return (
           <span
             className={`font-semibold ${
-              amount < 0 ? 'text-[#ef4444]' : amount > 0 ? 'text-[var(--color-primary)]' : ''
+              amount < 0 ? 'text-[#C0322B]' : amount > 0 ? 'text-[var(--color-primary)]' : ''
             }`}
           >
             {formatCurrency(Math.abs(amount))} {amount < 0 ? 'C' : amount > 0 ? 'D' : ''}

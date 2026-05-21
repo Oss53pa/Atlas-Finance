@@ -50,7 +50,7 @@ function extraireFacture(texte: string, devise?: string) {
   const lignes = texte.split('\n').map(l => l.trim()).filter(Boolean);
 
   // Extraction fournisseur
-  let fournisseur = { nom: '', nif: '', adresse: '' };
+  const fournisseur = { nom: '', nif: '', adresse: '' };
   for (const pattern of PATTERNS_FOURNISSEURS) {
     if (pattern.regex.test(texte)) {
       fournisseur.nom = pattern.nom;
@@ -63,15 +63,15 @@ function extraireFacture(texte: string, devise?: string) {
   }
 
   // NIF
-  const nifMatch = texte.match(/(?:NIF|NCC|RCCM|RC|IFU)\s*[:\-]?\s*([A-Z0-9\-\/]+)/i);
+  const nifMatch = texte.match(/(?:NIF|NCC|RCCM|RC|IFU)\s*[:-]?\s*([A-Z0-9\-/]+)/i);
   if (nifMatch) fournisseur.nif = nifMatch[1];
 
   // Numéro facture
-  const numMatch = texte.match(/(?:facture|fact|invoice|n°|num[eé]ro)\s*[:\-]?\s*([A-Z0-9\-\/]+)/i);
+  const numMatch = texte.match(/(?:facture|fact|invoice|n°|num[eé]ro)\s*[:-]?\s*([A-Z0-9\-/]+)/i);
   const numeroFacture = numMatch ? numMatch[1] : '';
 
   // Date
-  const dateMatch = texte.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
+  const dateMatch = texte.match(/(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})/);
   const dateFacture = dateMatch ? `${dateMatch[3].length === 2 ? '20' + dateMatch[3] : dateMatch[3]}-${dateMatch[2].padStart(2, '0')}-${dateMatch[1].padStart(2, '0')}` : '';
 
   // Montants
@@ -90,11 +90,11 @@ function extraireFacture(texte: string, devise?: string) {
   let montantHT = 0;
   let tauxTVA = 0.18;
 
-  const tvaMatch = texte.match(/(?:TVA|tva)\s*[:\-]?\s*(\d+(?:[.,]\d+)?)\s*%/);
+  const tvaMatch = texte.match(/(?:TVA|tva)\s*[:-]?\s*(\d+(?:[.,]\d+)?)\s*%/);
   if (tvaMatch) tauxTVA = parseFloat(tvaMatch[1].replace(',', '.')) / 100;
 
-  const htMatch = texte.match(/(?:HT|hors\s*taxe|sous.?total)\s*[:\-]?\s*(\d[\d\s.,]*\d)/i);
-  const tvaValMatch = texte.match(/(?:TVA|montant\s*TVA)\s*[:\-]?\s*(\d[\d\s.,]*\d)/i);
+  const htMatch = texte.match(/(?:HT|hors\s*taxe|sous.?total)\s*[:-]?\s*(\d[\d\s.,]*\d)/i);
+  const tvaValMatch = texte.match(/(?:TVA|montant\s*TVA)\s*[:-]?\s*(\d[\d\s.,]*\d)/i);
 
   if (htMatch) {
     montantHT = parseFloat(htMatch[1].replace(/\s/g, '').replace(',', '.'));

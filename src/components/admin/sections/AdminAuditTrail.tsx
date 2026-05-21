@@ -69,6 +69,7 @@ const AdminAuditTrail: React.FC<Props> = ({ subTab, setSubTab }) => {
         });
         setAllLogs(logs);
       } catch (err) {
+        /* ignored */
       } finally {
         setLoading(false);
       }

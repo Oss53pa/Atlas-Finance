@@ -151,10 +151,10 @@ export const DossierDetailModal: React.FC<DossierDetailModalProps> = ({ dossier 
             </div>
 
             <div className="flex items-start gap-2">
-              <AlertCircle className="w-4 h-4 text-[#ef4444] mt-1" />
+              <AlertCircle className="w-4 h-4 text-[#C0322B] mt-1" />
               <div className="flex-1">
                 <p className="text-sm text-[var(--color-text-tertiary)]">Montant Restant</p>
-                <p className="text-lg font-semibold text-[#ef4444]">
+                <p className="text-lg font-semibold text-[#C0322B]">
                   {formatCurrency(montantRestant)}
                 </p>
               </div>

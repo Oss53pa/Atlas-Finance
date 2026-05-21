@@ -11,7 +11,7 @@ import { Loader2 } from 'lucide-react';
 import { useChartData } from '../../hooks/useBlockData';
 import type { ChartBlock } from '../../types';
 
-const COLORS = ['#171717', '#525252', '#737373', '#a3a3a3', '#22c55e', '#3b82f6', '#f59e0b', '#ef4444'];
+const COLORS = ['#171717', '#525252', '#737373', '#a3a3a3', '#15803D', '#235A6E', '#E89A2E', '#C0322B'];
 
 const ChartBlockRenderer: React.FC<{ block: ChartBlock }> = ({ block }) => {
   const { data: liveData, loading } = useChartData(block.source, block.periodOverride);

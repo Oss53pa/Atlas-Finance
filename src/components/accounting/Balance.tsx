@@ -213,6 +213,7 @@ const Balance: React.FC = () => {
         if (result.length > 0) result[0].isExpanded = true;
         setAccounts(result);
       } catch (err) {
+        /* ignored */
       }
     };
     loadBalance();
@@ -427,7 +428,7 @@ const Balance: React.FC = () => {
 
   // Calcul des totaux
   const calculateTotals = (accounts: BalanceAccount[]): { soldeDebiteurAN: number; soldeCrediteurAN: number; mouvementsDebit: number; mouvementsCredit: number; soldeDebiteur: number; soldeCrediteur: number } => {
-    let totals = {
+    const totals = {
       soldeDebiteurAN: 0,
       soldeCrediteurAN: 0,
       mouvementsDebit: 0,

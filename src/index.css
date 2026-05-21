@@ -13,55 +13,57 @@
 
 @layer base {
   :root {
-    /* === Obsidian & Champagne (shadcn HSL) === */
-    /* #F7F4ED · #FFFFFF · #E5DFD0 · #C9A961 · #0E0E14 */
-    --background: 42 39% 95%;          /* #F7F4ED */
-    --foreground: 240 18% 7%;          /* #0E0E14 */
+    /* === Petrol Cream (shadcn HSL) === */
+    /* #F7F5EF · #FFFFFF · #E8E3D6 · #235A6E · #E89A2E · #261E15 */
+    --background: 40 33% 95%;          /* #F7F5EF crème */
+    --foreground: 31 29% 12%;          /* #261E15 */
     --card: 0 0% 100%;                 /* #FFFFFF */
-    --card-foreground: 240 18% 7%;
+    --card-foreground: 31 29% 12%;
     --popover: 0 0% 100%;
-    --popover-foreground: 240 18% 7%;
-    --primary: 240 18% 7%;             /* obsidian */
-    --primary-foreground: 42 39% 95%;
-    --secondary: 41 39% 86%;           /* #E5DFD0 */
-    --secondary-foreground: 240 18% 7%;
-    --muted: 42 39% 90%;
-    --muted-foreground: 240 5% 43%;
-    --accent: 41 50% 59%;              /* #C9A961 champagne */
-    --accent-foreground: 240 18% 7%;
+    --popover-foreground: 31 29% 12%;
+    --primary: 196 52% 28%;            /* #235A6E pétrole */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 40 30% 90%;           /* neutre crème doux */
+    --secondary-foreground: 31 29% 12%;
+    --muted: 42 33% 93%;
+    --muted-foreground: 33 12% 40%;
+    --accent: 196 52% 28%;             /* #235A6E pétrole (= primary) */
+    --accent-foreground: 0 0% 100%;
     --destructive: 4 64% 46%;          /* #C0322B */
     --destructive-foreground: 0 0% 98%;
-    --success: 152 81% 31%;            /* #0F8F5F */
+    --success: 142 72% 29%;            /* #15803D */
     --success-foreground: 0 0% 100%;
-    --warning: 41 50% 59%;
-    --warning-foreground: 240 18% 7%;
-    --info: 240 5% 13%;
+    --warning: 34 80% 55%;             /* #E89A2E ambre */
+    --warning-foreground: 31 29% 12%;
+    --info: 196 52% 28%;               /* pétrole */
     --info-foreground: 0 0% 100%;
-    --border: 41 39% 86%;              /* hairline beige */
-    --input: 41 39% 86%;
-    --ring: 41 50% 59%;                /* gold focus ring */
+    --border: 40 27% 87%;              /* hairline #E8E3D6 */
+    --input: 40 27% 87%;
+    --ring: 196 52% 28%;               /* pétrole focus ring */
     --radius: 0.875rem;                /* 14px premium */
   }
 
   .dark {
-    /* Obsidian Night mode — fond obsidian, accent champagne */
-    --background: 240 18% 7%;
-    --foreground: 42 39% 95%;
-    --card: 240 14% 11%;
-    --card-foreground: 42 39% 95%;
-    --popover: 240 14% 11%;
-    --popover-foreground: 42 39% 95%;
-    --primary: 41 50% 59%;
-    --primary-foreground: 240 18% 7%;
-    --secondary: 240 10% 15%;
-    --secondary-foreground: 42 39% 95%;
-    --muted: 240 10% 15%;
-    --muted-foreground: 41 12% 64%;
-    --accent: 41 50% 59%;
-    --accent-foreground: 240 18% 7%;
-    --border: 41 30% 25%;
-    --input: 240 10% 15%;
-    --ring: 41 50% 59%;
+    /* Petrol Night mode — fond pétrole profond, accent ambre */
+    --background: 200 35% 8%;          /* #0C2530 */
+    --foreground: 40 33% 95%;
+    --card: 199 36% 12%;               /* #13323D */
+    --card-foreground: 40 33% 95%;
+    --popover: 199 36% 12%;
+    --popover-foreground: 40 33% 95%;
+    --primary: 34 80% 55%;             /* ambre — accent en sombre */
+    --primary-foreground: 31 29% 12%;
+    --secondary: 198 25% 18%;
+    --secondary-foreground: 40 33% 95%;
+    --muted: 198 25% 18%;
+    --muted-foreground: 40 14% 64%;
+    --accent: 34 80% 55%;              /* ambre */
+    --accent-foreground: 31 29% 12%;
+    --destructive: 4 64% 52%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 198 24% 22%;
+    --input: 198 25% 18%;
+    --ring: 34 80% 55%;
   }
 }
 
@@ -99,7 +101,7 @@
   *:focus-visible {
     @apply outline-none ring-2 ring-offset-2;
     --tw-ring-color: hsl(var(--ring));
-    box-shadow: 0 0 0 3px rgba(23, 23, 23, 0.1);
+    box-shadow: 0 0 0 3px rgba(35, 90, 110, 0.20);
   }
 
   /* Print styles */
@@ -131,21 +133,21 @@
     @apply bg-white border overflow-hidden relative;
     border-color: hsl(var(--border));
     border-radius: 14px;
-    box-shadow: 0 1px 0 rgba(14, 14, 20, 0.02), 0 1px 2px rgba(14, 14, 20, 0.04);
+    box-shadow: 0 1px 0 rgba(38, 30, 21, 0.02), 0 1px 2px rgba(38, 30, 21, 0.04);
     transition: box-shadow 280ms cubic-bezier(0.16, 1, 0.3, 1),
                 border-color 280ms cubic-bezier(0.16, 1, 0.3, 1),
                 transform 280ms cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .kpi-card-enhanced:hover {
-    box-shadow: 0 2px 4px rgba(14, 14, 20, 0.04), 0 12px 32px -10px rgba(14, 14, 20, 0.10);
-    border-color: #C9A961;
+    box-shadow: 0 2px 4px rgba(38, 30, 21, 0.04), 0 12px 32px -10px rgba(38, 30, 21, 0.10);
+    border-color: #235A6E;
     transform: translateY(-1px);
   }
 
   .kpi-gradient-top {
     @apply h-px;
-    background: linear-gradient(90deg, transparent 0%, #C9A961 50%, transparent 100%);
+    background: linear-gradient(90deg, transparent 0%, #235A6E 50%, transparent 100%);
   }
 
   /* Enhanced Table Hover Styles for better visibility */
@@ -181,13 +183,13 @@
     color: hsl(var(--card-foreground));
     border-color: hsl(var(--border));
     border-radius: 14px;
-    box-shadow: 0 1px 0 rgba(14, 14, 20, 0.02), 0 1px 2px rgba(14, 14, 20, 0.04);
+    box-shadow: 0 1px 0 rgba(38, 30, 21, 0.02), 0 1px 2px rgba(38, 30, 21, 0.04);
     transition-duration: 280ms;
     transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .af-card:hover {
-    box-shadow: 0 2px 4px rgba(14, 14, 20, 0.04), 0 12px 32px -10px rgba(14, 14, 20, 0.10);
+    box-shadow: 0 2px 4px rgba(38, 30, 21, 0.04), 0 12px 32px -10px rgba(38, 30, 21, 0.10);
     border-color: hsl(var(--accent));
   }
 
@@ -239,11 +241,11 @@
   .af-btn-primary {
     background-color: hsl(var(--primary));
     color: hsl(var(--primary-foreground));
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 1px 2px rgba(14, 14, 20, 0.10);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 1px 2px rgba(38, 30, 21, 0.10);
   }
   .af-btn-primary:hover {
-    background-color: hsl(240 14% 11%);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 4px 12px rgba(14, 14, 20, 0.16);
+    background-color: hsl(196 53% 22%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 4px 12px rgba(38, 30, 21, 0.16);
   }
 
   .af-btn-secondary {
@@ -285,7 +287,7 @@
   }
   .af-input:focus-visible {
     border-color: hsl(var(--accent));
-    box-shadow: 0 0 0 3px rgba(201, 169, 97, 0.28);
+    box-shadow: 0 0 0 3px rgba(35, 90, 110, 0.30);
   }
   .af-input::placeholder {
     color: hsl(var(--muted-foreground));
@@ -330,7 +332,7 @@
 
   .af-nav-item.active {
     @apply font-semibold relative;
-    background-color: rgba(201, 169, 97, 0.10);
+    background-color: rgba(35, 90, 110, 0.10);
     color: hsl(var(--foreground));
   }
   .af-nav-item.active::before {

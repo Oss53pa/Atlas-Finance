@@ -183,7 +183,7 @@ const AdvancedBalance: React.FC = () => {
     enabled: balanceData.length > 0,
   });
 
-  const COLORS = ['#171717', '#525252', '#a3a3a3', '#3b82f6', '#22c55e', '#f59e0b'];
+  const COLORS = ['#235A6E', '#E89A2E', '#15803D', '#4E7E8D', '#C77E2C', '#7FA3AF'];
 
   return (
     <div className="min-h-screen bg-[var(--color-surface-hover)]">
@@ -557,10 +557,10 @@ const AdvancedBalance: React.FC = () => {
                   <YAxis tickFormatter={(value) => fmt(value)} />
                   <Tooltip formatter={(value) => [fmt(value as number), '']} />
                   <Legend />
-                  <Bar dataKey="actif" fill="#171717" name="Actif" />
-                  <Bar dataKey="passif" fill="#525252" name="Passif" />
-                  <Line type="monotone" dataKey="charges" stroke="#ef4444" name="Charges" />
-                  <Line type="monotone" dataKey="produits" stroke="#22c55e" name="Produits" />
+                  <Bar dataKey="actif" fill="#235A6E" name="Actif" />
+                  <Bar dataKey="passif" fill="#4E7E8D" name="Passif" />
+                  <Line type="monotone" dataKey="charges" stroke="#C0322B" name="Charges" />
+                  <Line type="monotone" dataKey="produits" stroke="#15803D" name="Produits" />
                 </ComposedChart>
               </ResponsiveContainer>
             </div>
@@ -587,7 +587,7 @@ const AdvancedBalance: React.FC = () => {
                     labelLine={false}
                     label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                     outerRadius={80}
-                    fill="#737373"
+                    fill="#235A6E"
                     dataKey="value"
                   >
                     {chartData.map((_, index) => (
@@ -776,8 +776,8 @@ const AdvancedBalance: React.FC = () => {
                   <YAxis tickFormatter={(value) => fmt(value)} />
                   <Tooltip formatter={(value) => [fmt(value as number), '']} />
                   <Legend />
-                  <Bar dataKey="budget" fill="#525252" name={t('navigation.budget')} />
-                  <Bar dataKey="reel" fill="#171717" name="Réel" />
+                  <Bar dataKey="budget" fill="#4E7E8D" name={t('navigation.budget')} />
+                  <Bar dataKey="reel" fill="#235A6E" name="Réel" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -798,8 +798,8 @@ const AdvancedBalance: React.FC = () => {
                   <YAxis tickFormatter={(value) => fmt(value)} />
                   <Tooltip formatter={(value) => [fmt(value as number), '']} />
                   <Legend />
-                  <Line type="monotone" dataKey="commercial" stroke="#171717" name="Commercial" />
-                  <Line type="monotone" dataKey="production" stroke="#525252" name="Production" />
+                  <Line type="monotone" dataKey="commercial" stroke="#235A6E" name="Commercial" />
+                  <Line type="monotone" dataKey="production" stroke="#4E7E8D" name="Production" />
                   <Line type="monotone" dataKey="admin" stroke="#E8B4B8" name="Administration" />
                 </LineChart>
               </ResponsiveContainer>

@@ -179,11 +179,12 @@ const AssetsDisposals: React.FC = () => {
             matchesPeriod = disposalDate.getMonth() === now.getMonth() &&
                           disposalDate.getFullYear() === now.getFullYear();
             break;
-          case 'last_month':
+          case 'last_month': {
             const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1);
             matchesPeriod = disposalDate.getMonth() === lastMonth.getMonth() &&
                           disposalDate.getFullYear() === lastMonth.getFullYear();
             break;
+          }
           case 'current_year':
             matchesPeriod = disposalDate.getFullYear() === now.getFullYear();
             break;
@@ -251,7 +252,7 @@ const AssetsDisposals: React.FC = () => {
       case 'trade_in': return 'text-[var(--color-text-secondary)] bg-[var(--color-text-secondary)]/10';
       case 'destruction': return 'text-red-600 bg-red-50';
       case 'scrap': return 'text-[var(--color-border)] bg-[var(--color-border)]/20';
-      case 'transfer': return 'text-[#f59e0b] bg-[#f59e0b]/10';
+      case 'transfer': return 'text-[#E89A2E] bg-[#E89A2E]/10';
       default: return 'text-gray-600 bg-gray-100';
     }
   };
@@ -304,7 +305,7 @@ const AssetsDisposals: React.FC = () => {
            key === 'donation' ? 'bg-[var(--color-text-tertiary)]' :
            key === 'trade_in' ? 'bg-[var(--color-text-secondary)]' :
            key === 'destruction' ? 'bg-red-600' :
-           key === 'scrap' ? 'bg-[var(--color-border)]' : 'bg-[#f59e0b]'
+           key === 'scrap' ? 'bg-[var(--color-border)]' : 'bg-[#E89A2E]'
   }));
 
   return (

@@ -42,6 +42,7 @@ const AnalyticsDashboard: React.FC = () => {
         const je = await adapter.getAll('journalEntries');
         setJournalEntries(je as { date: string; lines: Array<{ accountCode: string; debit: number; credit: number; thirdPartyCode?: string; thirdPartyId?: string }> }[]);
       } catch (e) {
+        /* ignored */
       } finally {
         setIsLoading(false);
       }

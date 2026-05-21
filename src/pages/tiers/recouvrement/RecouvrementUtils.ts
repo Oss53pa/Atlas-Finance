@@ -75,4 +75,4 @@ export const formatDateFR = (dateString: string): string => {
 };
 
 /** Chart color palette */
-export const CHART_COLORS = ['#1F1F23', '#B8954A', '#D4B870', '#3A3A3F', '#22c55e', '#9A7D3E'];
+export const CHART_COLORS = ['#1F1F23', '#B8954A', '#D4B870', '#3A3A3F', '#15803D', '#9A7D3E'];

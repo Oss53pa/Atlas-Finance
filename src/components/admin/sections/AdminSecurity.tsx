@@ -143,6 +143,7 @@ const AdminSecurity: React.FC<Props> = ({ subTab, setSubTab }) => {
           // auditTrail may not be available
         }
       } catch (err) {
+        /* ignored */
       } finally {
         setLoading(false);
       }

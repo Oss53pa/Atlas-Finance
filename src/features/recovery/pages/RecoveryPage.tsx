@@ -82,6 +82,7 @@ const RecoveryPage: React.FC = () => {
       await refetch();
       editModal.close();
     } catch (error) {
+      /* ignored */
     }
   };
 
@@ -104,6 +105,7 @@ const RecoveryPage: React.FC = () => {
       await refetch();
       reminderModal.close();
     } catch (error) {
+      /* ignored */
     }
   };
 

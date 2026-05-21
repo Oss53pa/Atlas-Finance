@@ -68,7 +68,7 @@ export const CompteResultatTable: React.FC<CompteResultatTableProps> = ({
             </td>
             <td className={`py-3 px-4 text-right ${!isSection && 'border-b border-[var(--color-border)]'}`}>
               {variation && (
-                <span className={variation.variation >= 0 ? 'text-[var(--color-primary)]' : 'text-[#ef4444]'}>
+                <span className={variation.variation >= 0 ? 'text-[var(--color-primary)]' : 'text-[#C0322B]'}>
                   {variation.variation >= 0 ? '+' : ''}
                   {formatCurrency(variation.variation)}
                 </span>
@@ -76,7 +76,7 @@ export const CompteResultatTable: React.FC<CompteResultatTableProps> = ({
             </td>
             <td className={`py-3 px-4 text-right ${!isSection && 'border-b border-[var(--color-border)]'}`}>
               {variation && (
-                <span className={variation.variationPercent >= 0 ? 'text-[var(--color-primary)]' : 'text-[#ef4444]'}>
+                <span className={variation.variationPercent >= 0 ? 'text-[var(--color-primary)]' : 'text-[#C0322B]'}>
                   {variation.variationPercent >= 0 ? '+' : ''}
                   {variation.variationPercent.toFixed(1)}%
                 </span>

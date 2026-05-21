@@ -628,7 +628,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                   dataKey="amount"
                   nameKey="category"
                   height={300}
-                  colors={['#3B82F6', '#22c55e', '#F59E0B', '#EF4444']}
+                  colors={['#235A6E', '#15803D', '#E89A2E', '#C0322B']}
                 />
               </CardContent>
             </Card>

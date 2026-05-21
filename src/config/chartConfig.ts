@@ -40,7 +40,7 @@ export const defaultChartOptions: ChartOptions = {
     x: {
       grid: {
         display: true,
-        color: 'rgba(156, 163, 175, 0.1)',
+        color: 'rgba(38, 30, 21, 0.06)',
         drawBorder: false
       },
       ticks: {
@@ -53,7 +53,7 @@ export const defaultChartOptions: ChartOptions = {
     y: {
       grid: {
         display: true,
-        color: 'rgba(156, 163, 175, 0.1)',
+        color: 'rgba(38, 30, 21, 0.06)',
         drawBorder: false
       },
       ticks: {
@@ -130,10 +130,10 @@ export const radarChartOptions: ChartOptions<'radar'> = {
   scales: {
     r: {
       angleLines: {
-        color: 'rgba(156, 163, 175, 0.1)'
+        color: 'rgba(38, 30, 21, 0.06)'
       },
       grid: {
-        color: 'rgba(156, 163, 175, 0.1)'
+        color: 'rgba(38, 30, 21, 0.06)'
       },
       pointLabels: {
         color: 'var(--color-text-secondary)',
@@ -166,23 +166,35 @@ export const radarChartOptions: ChartOptions<'radar'> = {
   }
 };
 
-// Couleurs du thème pour les graphiques
+// Couleurs du thème pour les graphiques — Petrol Cream
 export const chartColors = {
-  primary: 'rgb(23, 23, 23)',
-  primaryLight: 'rgba(23, 23, 23, 0.1)',
-  secondary: 'rgb(82, 82, 82)',
-  secondaryLight: 'rgba(82, 82, 82, 0.1)',
-  success: 'rgb(34, 197, 94)',
-  successLight: 'rgba(34, 197, 94, 0.1)',
-  danger: 'rgb(239, 68, 68)',
-  dangerLight: 'rgba(239, 68, 68, 0.1)',
-  warning: 'rgb(245, 158, 11)',
-  warningLight: 'rgba(245, 158, 11, 0.1)',
-  info: 'rgb(59, 130, 246)',
-  infoLight: 'rgba(59, 130, 246, 0.1)',
-  gray: 'rgb(156, 163, 175)',
-  grayLight: 'rgba(156, 163, 175, 0.1)'
+  primary: 'rgb(35, 90, 110)',          // pétrole
+  primaryLight: 'rgba(35, 90, 110, 0.12)',
+  secondary: 'rgb(232, 154, 46)',       // ambre
+  secondaryLight: 'rgba(232, 154, 46, 0.12)',
+  success: 'rgb(21, 128, 61)',
+  successLight: 'rgba(21, 128, 61, 0.12)',
+  danger: 'rgb(192, 50, 43)',
+  dangerLight: 'rgba(192, 50, 43, 0.12)',
+  warning: 'rgb(232, 154, 46)',
+  warningLight: 'rgba(232, 154, 46, 0.12)',
+  info: 'rgb(35, 90, 110)',
+  infoLight: 'rgba(35, 90, 110, 0.12)',
+  gray: 'rgb(138, 129, 112)',
+  grayLight: 'rgba(138, 129, 112, 0.12)'
 };
+
+// Palette de séries multi-catégories (donut/pie/barres groupées) — ordre premium
+export const chartSeriesPalette = [
+  '#235A6E', // pétrole
+  '#E89A2E', // ambre
+  '#15803D', // vert
+  '#4E7E8D', // pétrole clair
+  '#C77E2C', // ambre profond
+  '#7FA3AF', // pétrole pâle
+  '#9E6322', // caramel
+  '#5C5347', // taupe
+];
 
 // Re-export from central formatters
 export { formatCurrency, formatPercent } from '../utils/formatters';

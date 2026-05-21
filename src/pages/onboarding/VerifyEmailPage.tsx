@@ -39,6 +39,7 @@ const VerifyEmailPage: React.FC = () => {
       setResent(true);
       setTimeout(() => setResent(false), 5000);
     } catch (e) {
+      /* ignored */
     } finally {
       setResending(false);
     }

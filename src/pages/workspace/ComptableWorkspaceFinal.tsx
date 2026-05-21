@@ -51,7 +51,7 @@ const ComptableWorkspaceFinal: React.FC = () => {
   const [activeSection, setActiveSection] = useState<'workspace' | 'tasks' | 'chat' | 'profile' | 'settings' | 'help'>('workspace');
 
   const workspaceOptions = user?.role === 'admin' ? [
-    { label: 'Espace Admin', path: '/workspace/admin', icon: Shield, color: '#ef4444', current: false },
+    { label: 'Espace Admin', path: '/workspace/admin', icon: Shield, color: '#C0322B', current: false },
     { label: 'Espace Manager', path: '/workspace/manager', icon: Briefcase, color: 'var(--color-secondary)', current: false },
     { label: 'Espace Comptable', path: '/workspace/comptable', icon: Calculator, color: 'var(--color-primary)', current: true },
   ] : user?.role === 'manager' ? [
@@ -101,6 +101,7 @@ const ComptableWorkspaceFinal: React.FC = () => {
           setCompanyPhone(companies[0].phone || companies[0].telephone || '');
         }
       } catch (err) {
+        /* ignored */
       }
     };
     loadStats();

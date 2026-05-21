@@ -218,6 +218,7 @@ const RecouvrementDashboard: React.FC = () => {
         // Radiations remain empty unless explicitly created by the user
         setRadiations([]);
       } catch (err) {
+        /* ignored */
       } finally {
         setLoading(false);
       }

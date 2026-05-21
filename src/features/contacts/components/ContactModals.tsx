@@ -142,11 +142,11 @@ export const CreateContactModal: React.FC<CreateContactModalProps> = ({
 
     if (!formData.telephone_fixe.trim()) {
       newErrors.telephone_fixe = 'Le téléphone est requis';
-    } else if (!/^[\d\s\+\-\(\)]+$/.test(formData.telephone_fixe)) {
+    } else if (!/^[\d\s+\-()]+$/.test(formData.telephone_fixe)) {
       newErrors.telephone_fixe = 'Numéro de téléphone invalide';
     }
 
-    if (formData.telephone_mobile && !/^[\d\s\+\-\(\)]+$/.test(formData.telephone_mobile)) {
+    if (formData.telephone_mobile && !/^[\d\s+\-()]+$/.test(formData.telephone_mobile)) {
       newErrors.telephone_mobile = 'Numéro de mobile invalide';
     }
 
@@ -650,7 +650,7 @@ export const EditContactModal: React.FC<EditContactModalProps> = ({
 
     if (!formData.telephone_fixe.trim()) {
       newErrors.telephone_fixe = 'Le téléphone est requis';
-    } else if (!/^[\d\s\+\-\(\)]+$/.test(formData.telephone_fixe)) {
+    } else if (!/^[\d\s+\-()]+$/.test(formData.telephone_fixe)) {
       newErrors.telephone_fixe = 'Numéro de téléphone invalide';
     }
 

@@ -689,7 +689,7 @@ const RapprochementBancaire: React.FC = () => {
                   </div>
                   <div>
                     <p className="text-xs text-[var(--color-text-tertiary)]">Commission Moyenne</p>
-                    <p className="text-lg font-bold text-[#f59e0b]">
+                    <p className="text-lg font-bold text-[#E89A2E]">
                       {(moyensPaiement
                         .filter(mp => mp.type === selectedTab)
                         .reduce((sum, mp, _, arr) => sum + (mp.tauxCommission || 0), 0) /

@@ -45,18 +45,20 @@ const PeriodSelectorModal: React.FC<PeriodSelectorModalProps> = ({
         start = new Date(today.getFullYear() - 1, 0, 1);
         end = new Date(today.getFullYear() - 1, 11, 31);
         break;
-      case 'thisQuarter':
+      case 'thisQuarter': {
         const currentQuarter = Math.floor(today.getMonth() / 3);
         start = new Date(today.getFullYear(), currentQuarter * 3, 1);
         end = new Date(today.getFullYear(), currentQuarter * 3 + 3, 0);
         break;
-      case 'lastQuarter':
+      }
+      case 'lastQuarter': {
         const lastQuarter = Math.floor(today.getMonth() / 3) - 1;
         const year = lastQuarter < 0 ? today.getFullYear() - 1 : today.getFullYear();
         const quarter = lastQuarter < 0 ? 3 : lastQuarter;
         start = new Date(year, quarter * 3, 1);
         end = new Date(year, quarter * 3 + 3, 0);
         break;
+      }
     }
 
     setDateRange({

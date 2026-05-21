@@ -174,8 +174,8 @@ const EnhancedCompanyConfiguration: React.FC = () => {
       multiEtablissements: false,
       typeEntreprise: 'PME',
       capital: 1000000,
-      couleurPrimaire: '#3b82f6',
-      couleurSecondaire: '#22c55e'
+      couleurPrimaire: '#235A6E',
+      couleurSecondaire: '#15803D'
     }
   });
 
@@ -1257,7 +1257,7 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                               <input
                                 {...field}
                                 type="text"
-                                placeholder="#3b82f6"
+                                placeholder="#235A6E"
                                 className="flex-1 px-3 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                               />
                             </>
@@ -1284,7 +1284,7 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                               <input
                                 {...field}
                                 type="text"
-                                placeholder="#22c55e"
+                                placeholder="#15803D"
                                 className="flex-1 px-3 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                               />
                             </>

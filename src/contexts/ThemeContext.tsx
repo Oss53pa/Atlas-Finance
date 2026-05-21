@@ -19,6 +19,20 @@ interface ThemeProviderProps {
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   // Récupérer le thème sauvegardé ou utiliser le thème par défaut
   const [themeType, setThemeType] = useState<ThemeType>(() => {
+    // Migration unique vers la refonte "Petrol Cream" : on réinitialise toute
+    // sélection de thème antérieure (ou valeur écrite par les systèmes de thème
+    // dashboard/custom qui partagent la même clé) pour que chaque navigateur
+    // bascule une fois sur le nouveau défaut. Le sélecteur de thème reste
+    // fonctionnel ensuite.
+    const REBRAND_FLAG = 'atlas-petrol-rebrand-v1';
+    try {
+      if (!safeStorage.get(REBRAND_FLAG)) {
+        safeStorage.set('atlas-fna-theme', 'atlasStudio');
+        safeStorage.set(REBRAND_FLAG, '1');
+        return 'atlasStudio';
+      }
+    } catch { /* storage indisponible — on retombe sur le défaut */ }
+
     const saved = safeStorage.get('atlas-fna-theme') as ThemeType | null;
     return saved && saved in themes ? saved : 'atlasStudio';
   });

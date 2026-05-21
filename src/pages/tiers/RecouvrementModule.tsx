@@ -1089,8 +1089,8 @@ Service Contentieux
                       <XAxis dataKey="mois" />
                       <YAxis tickFormatter={(value) => `${value / 1000}k`} />
                       <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                      <Area type="monotone" dataKey="creances" stackId="1" stroke="#ef4444" fill="#ef4444" fillOpacity={0.3} name="Créances" />
-                      <Area type="monotone" dataKey="recouvre" stackId="2" stroke="#22c55e" fill="#22c55e" fillOpacity={0.6} name="Recouvré" />
+                      <Area type="monotone" dataKey="creances" stackId="1" stroke="#C0322B" fill="#C0322B" fillOpacity={0.3} name="Créances" />
+                      <Area type="monotone" dataKey="recouvre" stackId="2" stroke="#15803D" fill="#15803D" fillOpacity={0.6} name="Recouvré" />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
@@ -1106,7 +1106,7 @@ Service Contentieux
                         cx="50%"
                         cy="50%"
                         outerRadius={100}
-                        fill="#737373"
+                        fill="#235A6E"
                         label={({ niveau, count }) => `${niveau} (${count})`}
                       >
                         {analyticsData.repartitionNiveaux.map((entry, index) => (
@@ -1250,9 +1250,9 @@ Service Contentieux
                       <XAxis dataKey="mois" />
                       <YAxis />
                       <Tooltip />
-                      <Line type="monotone" dataKey="marie" stroke="#22c55e" strokeWidth={2} name="Marie Diallo" />
-                      <Line type="monotone" dataKey="jean" stroke="#f59e0b" strokeWidth={2} name="Jean Kouassi" />
-                      <Line type="monotone" dataKey="equipe" stroke="#737373" strokeWidth={3} name="Moyenne équipe" />
+                      <Line type="monotone" dataKey="marie" stroke="#15803D" strokeWidth={2} name="Marie Diallo" />
+                      <Line type="monotone" dataKey="jean" stroke="#E89A2E" strokeWidth={2} name="Jean Kouassi" />
+                      <Line type="monotone" dataKey="equipe" stroke="#235A6E" strokeWidth={3} name="Moyenne équipe" />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
@@ -1264,7 +1264,7 @@ Service Contentieux
                       <Pie
                         dataKey="value"
                         data={[
-                          { name: 'Appels clients', value: 40, fill: '#737373' },
+                          { name: 'Appels clients', value: 40, fill: '#235A6E' },
                           { name: 'Relances email', value: 25, fill: '#525252' },
                           { name: 'Dossiers juridiques', value: 20, fill: '#525252' },
                           { name: 'Administration', value: 15, fill: '#404040' }
@@ -1302,8 +1302,8 @@ Service Contentieux
                       <XAxis dataKey="zone" />
                       <YAxis tickFormatter={(value) => `${value / 1000}k`} />
                       <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                      <Bar dataKey="creances" fill="#ef4444" name="Créances" />
-                      <Bar dataKey="recouvre" fill="#22c55e" name="Recouvré" />
+                      <Bar dataKey="creances" fill="#C0322B" name="Créances" />
+                      <Bar dataKey="recouvre" fill="#15803D" name="Recouvré" />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -1315,7 +1315,7 @@ Service Contentieux
                       <Pie
                         dataKey="montant"
                         data={[
-                          { secteur: 'Commerce', montant: 380000, fill: '#737373' },
+                          { secteur: 'Commerce', montant: 380000, fill: '#235A6E' },
                           { secteur: 'Services', montant: 280000, fill: '#525252' },
                           { secteur: 'Industrie', montant: 320000, fill: '#525252' },
                           { secteur: 'Agriculture', montant: 150000, fill: '#404040' },
@@ -1347,9 +1347,9 @@ Service Contentieux
                     <XAxis dataKey="periode" />
                     <YAxis tickFormatter={(value) => `${value / 1000}k`} />
                     <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                    <Bar dataKey="commerce" stackId="a" fill="#737373" name="Commerce" />
-                    <Bar dataKey="services" stackId="a" fill="#525252" name="Services" />
-                    <Bar dataKey="industrie" stackId="a" fill="#525252" name="Industrie" />
+                    <Bar dataKey="commerce" stackId="a" fill="#235A6E" name="Commerce" />
+                    <Bar dataKey="services" stackId="a" fill="#4E7E8D" name="Services" />
+                    <Bar dataKey="industrie" stackId="a" fill="#4E7E8D" name="Industrie" />
                     <Bar dataKey="agriculture" stackId="a" fill="#404040" name="Agriculture" />
                     <Bar dataKey="btp" stackId="a" fill="#404040" name="BTP" />
                   </BarChart>
@@ -1384,9 +1384,9 @@ Service Contentieux
                     <YAxis yAxisId="left" tickFormatter={(value) => `${value / 1000}k`} />
                     <YAxis yAxisId="right" orientation="right" domain={[75, 85]} />
                     <Tooltip />
-                    <Bar yAxisId="left" dataKey="creances" fill="#ef4444" fillOpacity={0.3} name="Créances" />
-                    <Bar yAxisId="left" dataKey="recouvre" fill="#22c55e" fillOpacity={0.6} name="Recouvré" />
-                    <Line yAxisId="right" type="monotone" dataKey="taux" stroke="#737373" strokeWidth={3} name="Taux %" />
+                    <Bar yAxisId="left" dataKey="creances" fill="#C0322B" fillOpacity={0.3} name="Créances" />
+                    <Bar yAxisId="left" dataKey="recouvre" fill="#15803D" fillOpacity={0.6} name="Recouvré" />
+                    <Line yAxisId="right" type="monotone" dataKey="taux" stroke="#235A6E" strokeWidth={3} name="Taux %" />
                   </ComposedChart>
                 </ResponsiveContainer>
               </div>
@@ -1552,7 +1552,7 @@ Service Contentieux
                     <XAxis dataKey="mois" />
                     <YAxis tickFormatter={(value) => `${value / 1000}k`} />
                     <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                    <Line type="monotone" dataKey="anneeActuelle" stroke="#737373" strokeWidth={3} name="2024" />
+                    <Line type="monotone" dataKey="anneeActuelle" stroke="#235A6E" strokeWidth={3} name="2024" />
                     <Line type="monotone" dataKey="anneePrecedente" stroke="#B0BEC5" strokeWidth={2} strokeDasharray="5 5" name="2023" />
                   </LineChart>
                 </ResponsiveContainer>
@@ -1616,9 +1616,9 @@ Service Contentieux
                     <XAxis dataKey="mois" />
                     <YAxis tickFormatter={(value) => `${value / 1000}k`} />
                     <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                    <Area type="monotone" dataKey="pessimiste" stackId="1" stroke="#ef4444" fill="#ef4444" fillOpacity={0.2} name="Scénario pessimiste" />
-                    <Area type="monotone" dataKey="prevision" stackId="2" stroke="#737373" fill="#737373" fillOpacity={0.4} name="Prévision réaliste" />
-                    <Area type="monotone" dataKey="optimiste" stackId="3" stroke="#22c55e" fill="#22c55e" fillOpacity={0.2} name="Scénario optimiste" />
+                    <Area type="monotone" dataKey="pessimiste" stackId="1" stroke="#C0322B" fill="#C0322B" fillOpacity={0.2} name="Scénario pessimiste" />
+                    <Area type="monotone" dataKey="prevision" stackId="2" stroke="#235A6E" fill="#235A6E" fillOpacity={0.4} name="Prévision réaliste" />
+                    <Area type="monotone" dataKey="optimiste" stackId="3" stroke="#15803D" fill="#15803D" fillOpacity={0.2} name="Scénario optimiste" />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
@@ -7093,8 +7093,8 @@ Service Contentieux
                     <YAxis />
                     <Tooltip />
                     <Legend />
-                    <Bar dataKey="taux_succes" fill="#737373" name="Taux succès %" />
-                    <Bar dataKey="delai_moyen" fill="#f59e0b" name="Délai (jours)" />
+                    <Bar dataKey="taux_succes" fill="#235A6E" name="Taux succès %" />
+                    <Bar dataKey="delai_moyen" fill="#E89A2E" name="Délai (jours)" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -7117,8 +7117,8 @@ Service Contentieux
                     <YAxis />
                     <Tooltip />
                     <Legend />
-                    <Line type="monotone" dataKey="transferts" stroke="#ef4444" name="Transferts vers contentieux" />
-                    <Line type="monotone" dataKey="retours" stroke="#22c55e" name="Retours en amiable" />
+                    <Line type="monotone" dataKey="transferts" stroke="#C0322B" name="Transferts vers contentieux" />
+                    <Line type="monotone" dataKey="retours" stroke="#15803D" name="Retours en amiable" />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -7426,7 +7426,7 @@ Service Contentieux
                         cx="50%"
                         cy="50%"
                         outerRadius={100}
-                        fill="#737373"
+                        fill="#235A6E"
                         label
                       >
                         {[0,1,2,3,4].map((index) => (
@@ -7686,9 +7686,9 @@ Service Contentieux
                   <YAxis yAxisId="right" orientation="right" />
                   <Tooltip />
                   <Legend />
-                  <Line yAxisId="left" type="monotone" dataKey="amiable" stroke="#22c55e" name="Taux succès amiable %" />
-                  <Line yAxisId="left" type="monotone" dataKey="contentieux" stroke="#ef4444" name="Taux succès contentieux %" />
-                  <Line yAxisId="right" type="monotone" dataKey="roi" stroke="#3b82f6" name="ROI (x)" strokeWidth={2} />
+                  <Line yAxisId="left" type="monotone" dataKey="amiable" stroke="#15803D" name="Taux succès amiable %" />
+                  <Line yAxisId="left" type="monotone" dataKey="contentieux" stroke="#C0322B" name="Taux succès contentieux %" />
+                  <Line yAxisId="right" type="monotone" dataKey="roi" stroke="#235A6E" name="ROI (x)" strokeWidth={2} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -8287,7 +8287,7 @@ Service Contentieux
 
   };
 
-  const COLORS = ['#171717', '#525252', '#a3a3a3', '#3b82f6', '#22c55e', '#f59e0b'];
+  const COLORS = ['#171717', '#525252', '#a3a3a3', '#235A6E', '#15803D', '#E89A2E'];
 
   return (
     <div className="p-6 bg-[var(--color-border)] min-h-screen ">
@@ -9531,7 +9531,7 @@ Service Contentieux
                             <div style={{ fontFamily: 'Arial, sans-serif', lineHeight: '1.6', height: '100%', overflowY: 'auto' }}>
                               {/* En-tête email */}
                               <div style={{ backgroundColor: 'var(--color-background)', padding: '20px' }}>
-                                <div style={{ backgroundColor: '#3b82f6', height: '4px', margin: '-20px -20px 20px -20px' }}></div>
+                                <div style={{ backgroundColor: '#235A6E', height: '4px', margin: '-20px -20px 20px -20px' }}></div>
                                 <img src="/logo.png" alt="Logo" style={{ height: '40px', marginBottom: '10px' }} />
                                 <h2 style={{ color: '#333', margin: '0', fontSize: '20px' }}>
                                   {selectedTemplateType === 'rappel_amical' && 'Rappel de paiement - Facture en attente'}
@@ -9547,8 +9547,8 @@ Service Contentieux
                                 <p style={{ fontSize: '14px', color: '#333' }}>Madame, Monsieur <strong>SARL CONGO BUSINESS</strong>,</p>
 
                                 {selectedTemplateType === 'mise_demeure' && (
-                                  <div style={{ backgroundColor: '#fee', padding: '15px', borderLeft: '4px solid #ef4444', margin: '20px 0' }}>
-                                    <strong style={{ color: '#ef4444', fontSize: '16px' }}>MISE EN DEMEURE</strong>
+                                  <div style={{ backgroundColor: '#fee', padding: '15px', borderLeft: '4px solid #C0322B', margin: '20px 0' }}>
+                                    <strong style={{ color: '#C0322B', fontSize: '16px' }}>MISE EN DEMEURE</strong>
                                     <p style={{ margin: '10px 0 0 0', color: '#721c24', fontSize: '13px' }}>
                                       Ce courrier vaut mise en demeure au sens des dispositions légales en vigueur
                                     </p>
@@ -9556,7 +9556,7 @@ Service Contentieux
                                 )}
 
                                 {selectedTemplateType === 'pre_contentieux' && (
-                                  <div style={{ backgroundColor: '#fff3cd', padding: '15px', borderLeft: '4px solid #f59e0b', margin: '20px 0' }}>
+                                  <div style={{ backgroundColor: '#fff3cd', padding: '15px', borderLeft: '4px solid #E89A2E', margin: '20px 0' }}>
                                     <strong style={{ color: '#856404', fontSize: '16px' }}>DOSSIER TRANSMIS AU CONTENTIEUX</strong>
                                   </div>
                                 )}
@@ -9579,21 +9579,21 @@ Service Contentieux
                                         <tbody>
                                           <tr>
                                             <td style={{ padding: '6px 0', fontSize: '12px', color: '#333' }}>FAC-2024-089</td>
-                                            <td style={{ padding: '6px 0', fontSize: '12px', color: '#ef4444', textAlign: 'right', fontWeight: 'bold' }}>185,000 FCFA</td>
+                                            <td style={{ padding: '6px 0', fontSize: '12px', color: '#C0322B', textAlign: 'right', fontWeight: 'bold' }}>185,000 FCFA</td>
                                             <td style={{ padding: '6px 0', fontSize: '12px', color: '#666', textAlign: 'center' }}>15/12/2024</td>
-                                            <td style={{ padding: '6px 0', fontSize: '12px', color: '#ef4444', textAlign: 'center' }}>37 jours</td>
+                                            <td style={{ padding: '6px 0', fontSize: '12px', color: '#C0322B', textAlign: 'center' }}>37 jours</td>
                                           </tr>
                                           <tr>
                                             <td style={{ padding: '6px 0', fontSize: '12px', color: '#333' }}>FAC-2024-095</td>
-                                            <td style={{ padding: '6px 0', fontSize: '12px', color: '#ef4444', textAlign: 'right', fontWeight: 'bold' }}>150,000 FCFA</td>
+                                            <td style={{ padding: '6px 0', fontSize: '12px', color: '#C0322B', textAlign: 'right', fontWeight: 'bold' }}>150,000 FCFA</td>
                                             <td style={{ padding: '6px 0', fontSize: '12px', color: '#666', textAlign: 'center' }}>20/12/2024</td>
-                                            <td style={{ padding: '6px 0', fontSize: '12px', color: '#ef4444', textAlign: 'center' }}>32 jours</td>
+                                            <td style={{ padding: '6px 0', fontSize: '12px', color: '#C0322B', textAlign: 'center' }}>32 jours</td>
                                           </tr>
                                           <tr>
                                             <td style={{ padding: '6px 0', fontSize: '12px', color: '#333' }}>FAC-2024-103</td>
-                                            <td style={{ padding: '6px 0', fontSize: '12px', color: '#ef4444', textAlign: 'right', fontWeight: 'bold' }}>150,000 FCFA</td>
+                                            <td style={{ padding: '6px 0', fontSize: '12px', color: '#C0322B', textAlign: 'right', fontWeight: 'bold' }}>150,000 FCFA</td>
                                             <td style={{ padding: '6px 0', fontSize: '12px', color: '#666', textAlign: 'center' }}>28/12/2024</td>
-                                            <td style={{ padding: '6px 0', fontSize: '12px', color: '#ef4444', textAlign: 'center' }}>24 jours</td>
+                                            <td style={{ padding: '6px 0', fontSize: '12px', color: '#C0322B', textAlign: 'center' }}>24 jours</td>
                                           </tr>
                                         </tbody>
                                       </table>
@@ -9606,11 +9606,11 @@ Service Contentieux
                                             </tr>
                                             <tr>
                                               <td style={{ padding: '4px 0', color: '#666', fontSize: '13px', fontWeight: 'bold' }}>Retard moyen:</td>
-                                              <td style={{ padding: '4px 0', color: '#ef4444', fontSize: '13px', textAlign: 'right', fontWeight: 'bold' }}>31 jours</td>
+                                              <td style={{ padding: '4px 0', color: '#C0322B', fontSize: '13px', textAlign: 'right', fontWeight: 'bold' }}>31 jours</td>
                                             </tr>
                                             <tr>
                                               <td style={{ padding: '4px 0', color: '#666', fontSize: '14px', fontWeight: 'bold' }}>MONTANT TOTAL:</td>
-                                              <td style={{ padding: '4px 0', color: '#ef4444', fontSize: '16px', textAlign: 'right', fontWeight: 'bold' }}>485,000 FCFA</td>
+                                              <td style={{ padding: '4px 0', color: '#C0322B', fontSize: '16px', textAlign: 'right', fontWeight: 'bold' }}>485,000 FCFA</td>
                                             </tr>
                                           </tbody>
                                         </table>
@@ -9625,7 +9625,7 @@ Service Contentieux
                                         </tr>
                                         <tr>
                                           <td style={{ padding: '8px 0', color: '#666', fontSize: '13px' }}>Montant TTC:</td>
-                                          <td style={{ padding: '8px 0', fontWeight: 'bold', color: '#ef4444', fontSize: '16px' }}>485,000 FCFA</td>
+                                          <td style={{ padding: '8px 0', fontWeight: 'bold', color: '#C0322B', fontSize: '16px' }}>485,000 FCFA</td>
                                         </tr>
                                         <tr>
                                           <td style={{ padding: '8px 0', color: '#666', fontSize: '13px' }}>Date d'émission:</td>
@@ -9637,7 +9637,7 @@ Service Contentieux
                                         </tr>
                                         <tr>
                                           <td style={{ padding: '8px 0', color: '#666', fontSize: '13px' }}>Retard de paiement:</td>
-                                          <td style={{ padding: '8px 0', color: '#ef4444', fontSize: '14px' }}><strong>37 jours</strong></td>
+                                          <td style={{ padding: '8px 0', color: '#C0322B', fontSize: '14px' }}><strong>37 jours</strong></td>
                                         </tr>
                                         {(selectedTemplateType === 'mise_demeure' || selectedTemplateType === 'pre_contentieux') && (
                                           <>
@@ -9651,7 +9651,7 @@ Service Contentieux
                                             </tr>
                                             <tr>
                                               <td style={{ padding: '8px 0', color: '#666', fontSize: '14px', fontWeight: 'bold' }}>TOTAL DÛ:</td>
-                                              <td style={{ padding: '8px 0', color: '#ef4444', fontSize: '18px', fontWeight: 'bold' }}>502,500 FCFA</td>
+                                              <td style={{ padding: '8px 0', color: '#C0322B', fontSize: '18px', fontWeight: 'bold' }}>502,500 FCFA</td>
                                             </tr>
                                           </>
                                         )}
@@ -9677,7 +9677,7 @@ Service Contentieux
                                   )}
                                   {selectedTemplateType === 'dernier_avis' && (
                                     <>
-                                      <p style={{ color: '#ef4444', fontWeight: 'bold' }}>Ceci constitue notre DERNIER AVIS AMIABLE.</p>
+                                      <p style={{ color: '#C0322B', fontWeight: 'bold' }}>Ceci constitue notre DERNIER AVIS AMIABLE.</p>
                                       <p>Malgré nos multiples relances (courriels, appels, courriers), la facture mentionnée ci-dessus demeure impayée.</p>
                                       <p><strong>Sans règlement intégral sous 72 heures, votre dossier sera automatiquement transmis à notre service contentieux</strong> qui engagera les procédures judiciaires appropriées.</p>
                                     </>
@@ -9697,7 +9697,7 @@ Service Contentieux
                                   )}
                                   {selectedTemplateType === 'pre_contentieux' && (
                                     <>
-                                      <p style={{ color: '#ef4444', fontWeight: 'bold' }}>Votre dossier a été transmis à notre service contentieux et à notre cabinet d'avocats.</p>
+                                      <p style={{ color: '#C0322B', fontWeight: 'bold' }}>Votre dossier a été transmis à notre service contentieux et à notre cabinet d'avocats.</p>
                                       <p>Une procédure judiciaire sera engagée sous 48 heures comprenant:</p>
                                       <ul style={{ marginLeft: '20px', color: '#333' }}>
                                         <li>Injonction de payer</li>
@@ -9717,8 +9717,8 @@ Service Contentieux
                                 {/* Call to action */}
                                 <div style={{ textAlign: 'center', margin: '30px 0' }}>
                                   <a href="#" style={{
-                                    backgroundColor: selectedTemplateType === 'mise_demeure' || selectedTemplateType === 'pre_contentieux' ? '#ef4444' :
-                                                     selectedTemplateType === 'dernier_avis' ? '#f59e0b' : '#3b82f6',
+                                    backgroundColor: selectedTemplateType === 'mise_demeure' || selectedTemplateType === 'pre_contentieux' ? '#C0322B' :
+                                                     selectedTemplateType === 'dernier_avis' ? '#E89A2E' : '#235A6E',
                                     color: 'white',
                                     padding: '12px 30px',
                                     textDecoration: 'none',
@@ -9779,10 +9779,10 @@ Service Contentieux
     body { font-family: Arial, sans-serif; line-height: 1.6; margin: 0; padding: 0; }
     .header { background: #fafafa; padding: 20px; border-radius: 8px 8px 0 0; }
     .content { padding: 20px; background: #fff; }
-    .alert { background: #fee; padding: 15px; border-left: 4px solid #ef4444; margin: 20px 0; }
+    .alert { background: #fee; padding: 15px; border-left: 4px solid #C0322B; margin: 20px 0; }
     .info-box { background: #fafafa; padding: 15px; border-radius: 5px; margin: 20px 0; }
     .cta { text-align: center; margin: 30px 0; }
-    .btn { background: ${selectedTemplateType === 'mise_demeure' ? '#ef4444' : '#3b82f6'}; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block; }
+    .btn { background: ${selectedTemplateType === 'mise_demeure' ? '#C0322B' : '#235A6E'}; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block; }
     .footer { background: #fafafa; padding: 20px; border-top: 1px solid #e5e5e5; font-size: 12px; color: #666; }
   </style>
 </head>
@@ -9797,7 +9797,7 @@ Service Contentieux
     <div class="info-box">
       <table>
         <tr><td>N° Facture:</td><td><strong>{invoice_number}</strong></td></tr>
-        <tr><td>Montant:</td><td><strong style="color: #ef4444;">{amount} FCFA</strong></td></tr>
+        <tr><td>Montant:</td><td><strong style="color: #C0322B;">{amount} FCFA</strong></td></tr>
         <tr><td>Échéance:</td><td>{due_date}</td></tr>
         <tr><td>Retard:</td><td><strong>{days_overdue} jours</strong></td></tr>
       </table>
@@ -10596,7 +10596,7 @@ Service Contentieux
                             <XAxis dataKey="name" />
                             <YAxis />
                             <Tooltip />
-                            <Bar dataKey="value" fill="#737373" />
+                            <Bar dataKey="value" fill="#235A6E" />
                           </BarChart>
                         </ResponsiveContainer>
                       </div>
@@ -10630,8 +10630,8 @@ Service Contentieux
                             <XAxis dataKey="name" />
                             <YAxis />
                             <Tooltip />
-                            <Line type="monotone" dataKey="receivables" stroke="#737373" name="Total receivables" />
-                            <Line type="monotone" dataKey="collection" stroke="#22c55e" name="Total collection" />
+                            <Line type="monotone" dataKey="receivables" stroke="#235A6E" name="Total receivables" />
+                            <Line type="monotone" dataKey="collection" stroke="#15803D" name="Total collection" />
                           </LineChart>
                         </ResponsiveContainer>
                       </div>
@@ -11600,7 +11600,7 @@ Service Contentieux
                           <XAxis dataKey="mois" />
                           <YAxis />
                           <Tooltip formatter={(value) => [`${formatCurrency(value)}`, 'Montant']} />
-                          <Area type="monotone" dataKey="montant" stroke="#22c55e" fill="#22c55e" fillOpacity={0.1} />
+                          <Area type="monotone" dataKey="montant" stroke="#15803D" fill="#15803D" fillOpacity={0.1} />
                         </AreaChart>
                       </ResponsiveContainer>
                     </div>
@@ -11615,10 +11615,10 @@ Service Contentieux
                           <RechartsPieChart>
                             <Pie
                               data={[
-                                { name: 'Virement bancaire', value: 5000, fill: '#3B82F6' },
-                                { name: 'Chèque', value: 8000, fill: '#22c55e' },
-                                { name: 'Espèces', value: 1500, fill: '#F59E0B' },
-                                { name: 'Carte bancaire', value: 0, fill: '#8B5CF6' }
+                                { name: 'Virement bancaire', value: 5000, fill: '#235A6E' },
+                                { name: 'Chèque', value: 8000, fill: '#15803D' },
+                                { name: 'Espèces', value: 1500, fill: '#E89A2E' },
+                                { name: 'Carte bancaire', value: 0, fill: '#C77E2C' }
                               ]}
                               cx="50%"
                               cy="50%"
@@ -12663,8 +12663,8 @@ Service Contentieux
                           <YAxis />
                           <Tooltip />
                           <Legend />
-                          <Line type="monotone" dataKey="actions" stroke="#3B82F6" name="Total Actions" strokeWidth={2} />
-                          <Line type="monotone" dataKey="reussites" stroke="#22c55e" name="Actions Réussies" strokeWidth={2} />
+                          <Line type="monotone" dataKey="actions" stroke="#235A6E" name="Total Actions" strokeWidth={2} />
+                          <Line type="monotone" dataKey="reussites" stroke="#15803D" name="Actions Réussies" strokeWidth={2} />
                         </LineChart>
                       </ResponsiveContainer>
                     </div>
@@ -13248,9 +13248,9 @@ Service Contentieux
                   <YAxis />
                   <Tooltip />
                   <Legend />
-                  <Line type="monotone" dataKey="total" stroke="#3B82F6" name="Total Plans" strokeWidth={2} />
-                  <Line type="monotone" dataKey="respectes" stroke="#22c55e" name="Respectés" strokeWidth={2} />
-                  <Line type="monotone" dataKey="enRetard" stroke="#EF4444" name="En Retard" strokeWidth={2} />
+                  <Line type="monotone" dataKey="total" stroke="#235A6E" name="Total Plans" strokeWidth={2} />
+                  <Line type="monotone" dataKey="respectes" stroke="#15803D" name="Respectés" strokeWidth={2} />
+                  <Line type="monotone" dataKey="enRetard" stroke="#C0322B" name="En Retard" strokeWidth={2} />
                 </LineChart>
               </ResponsiveContainer>
             </div>

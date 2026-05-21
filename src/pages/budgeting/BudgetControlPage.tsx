@@ -217,10 +217,10 @@ const BudgetControlPage: React.FC = () => {
     value: count,
     color: status === 'on_track' ? '#171717' :
            status === 'at_risk' ? '#525252' :
-           status === 'over_budget' ? '#ef4444' : '#737373'
+           status === 'over_budget' ? '#C0322B' : '#737373'
   }));
 
-  const COLORS = ['#171717', '#525252', '#a3a3a3', '#3b82f6', '#22c55e', '#f59e0b'];
+  const COLORS = ['#235A6E', '#E89A2E', '#15803D', '#4E7E8D', '#C77E2C', '#7FA3AF'];
 
   return (
     <div className="space-y-6">
@@ -394,8 +394,8 @@ const BudgetControlPage: React.FC = () => {
                   <YAxis tickFormatter={(value) => `${value / 1000}k`} />
                   <Tooltip formatter={(value: number) => formatCurrency(value)} />
                   <Legend />
-                  <Line type="monotone" dataKey="budgeted" stroke="#737373" name="Budgété" />
-                  <Line type="monotone" dataKey="actual" stroke="#171717" name="Réalisé" />
+                  <Line type="monotone" dataKey="budgeted" stroke="#235A6E" name="Budgété" />
+                  <Line type="monotone" dataKey="actual" stroke="#235A6E" name="Réalisé" />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -412,7 +412,7 @@ const BudgetControlPage: React.FC = () => {
                     labelLine={false}
                     label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                     outerRadius={80}
-                    fill="#737373"
+                    fill="#235A6E"
                     dataKey="value"
                   >
                     {pieData.map((entry, index) => (
@@ -442,8 +442,8 @@ const BudgetControlPage: React.FC = () => {
                 <YAxis tickFormatter={(value) => `${value / 1000000}M`} />
                 <Tooltip formatter={(value: number) => formatCurrency(value)} />
                 <Legend />
-                <Bar dataKey="budgeted" fill="#737373" name="Budgété" />
-                <Bar dataKey="actual" fill="#171717" name="Réalisé" />
+                <Bar dataKey="budgeted" fill="#235A6E" name="Budgété" />
+                <Bar dataKey="actual" fill="#235A6E" name="Réalisé" />
               </BarChart>
             </ResponsiveContainer>
           </div>

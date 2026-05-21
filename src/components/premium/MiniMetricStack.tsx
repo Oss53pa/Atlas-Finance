@@ -11,10 +11,10 @@ export interface MiniMetric {
 }
 
 const TONE_ICON: Record<NonNullable<MiniMetric['tone']>, { bg: string; color: string }> = {
-  gold:     { bg: 'rgba(201,169,97,0.14)',  color: '#A88845' },
-  obsidian: { bg: 'rgba(14,14,20,0.08)',    color: '#0E0E14' },
+  gold:     { bg: 'rgba(35,90,110,0.12)',  color: '#235A6E' },
+  obsidian: { bg: 'rgba(232,154,46,0.14)',    color: '#C77E2C' },
   neutral:  { bg: 'var(--color-surface-hover)', color: 'var(--color-text-secondary)' },
-  success:  { bg: 'rgba(15,143,95,0.12)',   color: '#0F8F5F' },
+  success:  { bg: 'rgba(21,128,61,0.12)',   color: '#15803D' },
   danger:   { bg: 'rgba(192,50,43,0.10)',   color: '#C0322B' },
 };
 

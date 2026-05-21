@@ -48,6 +48,7 @@ const AssetMasterDataPage: React.FC = () => {
       const qrCode = await assetMasterService.generateQRCode(asset.asset_number);
       qrModal.open();
     } catch (error) {
+      /* ignored */
     }
   };
 
@@ -57,6 +58,7 @@ const AssetMasterDataPage: React.FC = () => {
       await assetMasterService.updateAsset(asset.id, editedAsset);
       setEditMode(false);
     } catch (error) {
+      /* ignored */
     }
   };
 

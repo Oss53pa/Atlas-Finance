@@ -117,7 +117,7 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
       { name: 'Production', value: sigData.period_production, color: "var(--color-info)" },
       { name: 'Valeur Ajoutée', value: sigData.added_value, color: "var(--color-warning)" },
       { name: 'EBE', value: sigData.gross_operating_surplus, color: "var(--color-error)" },
-      { name: 'Résultat Exploitation', value: sigData.operating_result, color: '#06B6D4' },
+      { name: 'Résultat Exploitation', value: sigData.operating_result, color: '#4E7E8D' },
       { name: 'Résultat Net', value: sigData.final_net_result, color: '#84CC16' }
     ];
   }, [sigData]);

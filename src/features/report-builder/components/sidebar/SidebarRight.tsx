@@ -244,10 +244,10 @@ const TypographyPanel: React.FC = () => {
 const themePresets = [
   { name: 'Atlas Default', primary: '#171717', secondary: '#737373' },
   { name: 'Corporate Bleu', primary: '#1e40af', secondary: '#0284c7' },
-  { name: 'Émeraude', primary: '#059669', secondary: '#10b981' },
+  { name: 'Émeraude', primary: '#059669', secondary: '#15803D' },
   { name: 'Or & Ivoire', primary: '#b45309', secondary: '#d97706' },
   { name: 'Minimaliste', primary: '#475569', secondary: '#64748b' },
-  { name: 'Marine Premium', primary: '#1e3a5f', secondary: '#2563eb' },
+  { name: 'Marine Premium', primary: '#1e3a5f', secondary: '#235A6E' },
 ];
 
 const ThemePanel: React.FC = () => {

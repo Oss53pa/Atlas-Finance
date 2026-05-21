@@ -60,7 +60,7 @@ export const ProvisionsTable: React.FC<ProvisionsTableProps> = ({
         <span
           className={
             (value as number) > 365
-              ? 'text-[#ef4444] font-semibold'
+              ? 'text-[#C0322B] font-semibold'
               : (value as number) > 180
               ? 'text-[var(--color-text-secondary)]'
               : ''
@@ -83,7 +83,7 @@ export const ProvisionsTable: React.FC<ProvisionsTableProps> = ({
       header: 'Montant Provision',
       sortable: true,
       render: (value) => (
-        <span className="font-semibold text-[#ef4444]">{formatCurrency(value as number)}</span>
+        <span className="font-semibold text-[#C0322B]">{formatCurrency(value as number)}</span>
       ),
       align: 'right',
     },

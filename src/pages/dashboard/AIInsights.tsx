@@ -263,6 +263,7 @@ const AIInsights: React.FC = () => {
 
         setCorrelationData([]);
       } catch (err) {
+        /* ignored */
       }
     };
     analyzeData();
@@ -371,8 +372,8 @@ const AIInsights: React.FC = () => {
                 <div
                   className={cn(
                     "h-2 rounded-full",
-                    prediction.confidence >= 80 ? "bg-[#22c55e]" :
-                    prediction.confidence >= 60 ? "bg-[#F59E0B]" : "bg-[#EF4444]"
+                    prediction.confidence >= 80 ? "bg-[#15803D]" :
+                    prediction.confidence >= 60 ? "bg-[#E89A2E]" : "bg-[#C0322B]"
                   )}
                   style={{ width: `${prediction.confidence}%` }}
                 />
@@ -412,14 +413,14 @@ const AIInsights: React.FC = () => {
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" />
-            <XAxis dataKey="date" stroke="#737373" />
-            <YAxis stroke="#737373" />
+            <XAxis dataKey="date" stroke="#235A6E" />
+            <YAxis stroke="#235A6E" />
             <Tooltip />
             <Legend />
             <Area type="monotone" dataKey="upper" stroke="transparent" fill="#E0E7FF" name="Limite supérieure" />
             <Area type="monotone" dataKey="lower" stroke="transparent" fill="#FFFFFF" name="Limite inférieure" />
-            <Line type="monotone" dataKey="actual" stroke="#22c55e" strokeWidth={2} dot={false} name="Réel" />
-            <Line type="monotone" dataKey="predicted" stroke="#171717" strokeWidth={2} strokeDasharray="5 5" dot={false} name="Prédiction" />
+            <Line type="monotone" dataKey="actual" stroke="#15803D" strokeWidth={2} dot={false} name="Réel" />
+            <Line type="monotone" dataKey="predicted" stroke="#235A6E" strokeWidth={2} strokeDasharray="5 5" dot={false} name="Prédiction" />
           </AreaChart>
         </ResponsiveContainer>
       </div>
@@ -488,8 +489,8 @@ const AIInsights: React.FC = () => {
               >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    {insight.category === 'opportunity' && <TrendingUp className="w-5 h-5 text-[#22c55e]" />}
-                    {insight.category === 'risk' && <AlertTriangle className="w-5 h-5 text-[#EF4444]" />}
+                    {insight.category === 'opportunity' && <TrendingUp className="w-5 h-5 text-[#15803D]" />}
+                    {insight.category === 'risk' && <AlertTriangle className="w-5 h-5 text-[#C0322B]" />}
                     {insight.category === 'optimization' && <Zap className="w-5 h-5 text-[var(--color-text-primary)]" />}
                     {insight.category === 'trend' && <Activity className="w-5 h-5 text-[var(--color-text-secondary)]" />}
                     <h4 className="font-medium text-gray-900">{insight.title}</h4>
@@ -556,10 +557,10 @@ const AIInsights: React.FC = () => {
           <ResponsiveContainer width="100%" height={350}>
             <RadarChart data={scoringData}>
               <PolarGrid stroke="#e5e5e5" />
-              <PolarAngleAxis dataKey="metric" stroke="#737373" />
-              <PolarRadiusAxis angle={90} domain={[0, 100]} stroke="#737373" />
-              <Radar name="Votre Score" dataKey="score" stroke="#171717" fill="#171717" fillOpacity={0.6} />
-              <Radar name="Benchmark" dataKey="benchmark" stroke="#22c55e" fill="#22c55e" fillOpacity={0.3} />
+              <PolarAngleAxis dataKey="metric" stroke="#235A6E" />
+              <PolarRadiusAxis angle={90} domain={[0, 100]} stroke="#235A6E" />
+              <Radar name="Votre Score" dataKey="score" stroke="#235A6E" fill="#235A6E" fillOpacity={0.6} />
+              <Radar name="Benchmark" dataKey="benchmark" stroke="#15803D" fill="#15803D" fillOpacity={0.3} />
               <Legend />
               <Tooltip />
             </RadarChart>
@@ -571,13 +572,13 @@ const AIInsights: React.FC = () => {
           <ResponsiveContainer width="100%" height={350}>
             <ScatterChart>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" />
-              <XAxis dataKey="x" name="Ventes" unit="kâ‚¬" stroke="#737373" />
-              <YAxis dataKey="y" name="Marge" unit="%" stroke="#737373" />
+              <XAxis dataKey="x" name="Ventes" unit="kâ‚¬" stroke="#235A6E" />
+              <YAxis dataKey="y" name="Marge" unit="%" stroke="#235A6E" />
               <Tooltip cursor={{ strokeDasharray: '3 3' }} />
               <Legend />
-              <Scatter name="Produits A" data={correlationData.filter(d => d.category === 'A')} fill="#171717" />
-              <Scatter name="Produits B" data={correlationData.filter(d => d.category === 'B')} fill="#22c55e" />
-              <Scatter name="Produits C" data={correlationData.filter(d => d.category === 'C')} fill="#525252" />
+              <Scatter name="Produits A" data={correlationData.filter(d => d.category === 'A')} fill="#235A6E" />
+              <Scatter name="Produits B" data={correlationData.filter(d => d.category === 'B')} fill="#15803D" />
+              <Scatter name="Produits C" data={correlationData.filter(d => d.category === 'C')} fill="#4E7E8D" />
             </ScatterChart>
           </ResponsiveContainer>
         </div>

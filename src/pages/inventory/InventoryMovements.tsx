@@ -393,7 +393,7 @@ const InventoryMovements: React.FC = () => {
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .slice(-7); // Last 7 days
 
-  const COLORS = ['#171717', '#525252', '#a3a3a3', '#3b82f6', '#22c55e', '#f59e0b'];
+  const COLORS = ['#235A6E', '#E89A2E', '#15803D', '#4E7E8D', '#C77E2C', '#7FA3AF'];
 
   if (isLoading) {
     return (
@@ -522,15 +522,15 @@ const InventoryMovements: React.FC = () => {
               <Area
                 type="monotone"
                 dataKey="count"
-                stroke="#3B82F6"
-                fill="#3B82F6"
+                stroke="#235A6E"
+                fill="#235A6E"
                 fillOpacity={0.1}
               />
               <Area
                 type="monotone"
                 dataKey="value"
-                stroke="#22c55e"
-                fill="#22c55e"
+                stroke="#15803D"
+                fill="#15803D"
                 fillOpacity={0.1}
                 yAxisId="value"
               />

@@ -940,7 +940,7 @@ export async function fetchChartData(
           : [
               { key: 'produits', label: 'Produits', color: '#171717' },
               { key: 'charges', label: 'Charges', color: '#a3a3a3' },
-              { key: 'resultat', label: 'Résultat', color: '#22c55e' },
+              { key: 'resultat', label: 'Résultat', color: '#15803D' },
             ],
       };
     }
@@ -965,8 +965,8 @@ export async function fetchChartData(
         data,
         xAxisKey: 'month',
         series: [
-          { key: 'encaissements', label: 'Encaissements', color: '#22c55e' },
-          { key: 'decaissements', label: 'Décaissements', color: '#ef4444' },
+          { key: 'encaissements', label: 'Encaissements', color: '#15803D' },
+          { key: 'decaissements', label: 'Décaissements', color: '#C0322B' },
         ],
       };
     }
