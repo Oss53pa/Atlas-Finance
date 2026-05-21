@@ -47,27 +47,6 @@ export const WorkspaceProvider: React.FC<WorkspaceProviderProps> = ({ children }
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Charger le workspace depuis le localStorage au démarrage
-  useEffect(() => {
-    const savedWorkspace = safeStorage.get(WORKSPACE_STORAGE_KEY);
-    if (savedWorkspace && isAuthenticated) {
-      try {
-        const workspace = JSON.parse(savedWorkspace);
-        setCurrentWorkspaceState(workspace);
-      } catch (e) {
-        safeStorage.del(WORKSPACE_STORAGE_KEY);
-      }
-    }
-  }, [isAuthenticated]);
-
-  // Charger automatiquement le workspace basé sur le rôle de l'utilisateur
-  useEffect(() => {
-    if (isAuthenticated && user?.role && !currentWorkspace) {
-      const role = user.role as WorkspaceRole;
-      loadWorkspaceByRole(role).catch(() => {});
-    }
-  }, [isAuthenticated, user?.role, loadWorkspaceByRole]);
-
   // Sauvegarder le workspace dans le localStorage
   const setCurrentWorkspace = useCallback((workspace: Workspace | null) => {
     setCurrentWorkspaceState(workspace);
@@ -99,6 +78,27 @@ export const WorkspaceProvider: React.FC<WorkspaceProviderProps> = ({ children }
   const loadWorkspaceByRole = useCallback(async (role: WorkspaceRole) => {
     setCurrentWorkspace(buildDefaultWorkspace(role));
   }, [setCurrentWorkspace, buildDefaultWorkspace]);
+
+  // Charger le workspace depuis le localStorage au démarrage
+  useEffect(() => {
+    const savedWorkspace = safeStorage.get(WORKSPACE_STORAGE_KEY);
+    if (savedWorkspace && isAuthenticated) {
+      try {
+        const workspace = JSON.parse(savedWorkspace);
+        setCurrentWorkspaceState(workspace);
+      } catch (e) {
+        safeStorage.del(WORKSPACE_STORAGE_KEY);
+      }
+    }
+  }, [isAuthenticated]);
+
+  // Charger automatiquement le workspace basé sur le rôle de l'utilisateur
+  useEffect(() => {
+    if (isAuthenticated && user?.role && !currentWorkspace) {
+      const role = user.role as WorkspaceRole;
+      loadWorkspaceByRole(role).catch(() => {});
+    }
+  }, [isAuthenticated, user?.role, loadWorkspaceByRole]);
 
   // Charger le dashboard d'un workspace
   const loadWorkspaceDashboard = useCallback(async (_workspaceId: string) => {
