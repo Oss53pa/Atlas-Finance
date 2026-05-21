@@ -887,11 +887,11 @@ const FournisseursModule: React.FC = () => {
                       <YAxis type="category" dataKey="fournisseurCode" width={80} />
                       <Tooltip formatter={(value) => formatCurrency(value as number)} />
                       <Legend />
-                      <Bar radius={[6,6,0,0]} dataKey="nonEchu" stackId="a" fill="#15803D" name="Non Échu" />
-                      <Bar radius={[6,6,0,0]} dataKey="echu0_30" stackId="a" fill="#E89A2E" name="0-30j" />
-                      <Bar radius={[6,6,0,0]} dataKey="echu31_60" stackId="a" fill="#E89A2E" name="31-60j" />
-                      <Bar radius={[6,6,0,0]} dataKey="echu61_90" stackId="a" fill="#C0322B" name="61-90j" />
-                      <Bar radius={[6,6,0,0]} dataKey="echuPlus90" stackId="a" fill="#C0322B" name="+90j" />
+                      <Bar radius={[6,6,0,0]} dataKey="nonEchu" stackId="a" fill="url(#gradGreen)" name="Non Échu" />
+                      <Bar radius={[6,6,0,0]} dataKey="echu0_30" stackId="a" fill="url(#gradAmber)" name="0-30j" />
+                      <Bar radius={[6,6,0,0]} dataKey="echu31_60" stackId="a" fill="url(#gradAmber)" name="31-60j" />
+                      <Bar radius={[6,6,0,0]} dataKey="echu61_90" stackId="a" fill="url(#gradRed)" name="61-90j" />
+                      <Bar radius={[6,6,0,0]} dataKey="echuPlus90" stackId="a" fill="url(#gradRed)" name="+90j" />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>

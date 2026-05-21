@@ -129,6 +129,19 @@
   <body>
     <!-- Loader supprimé - React gère le chargement -->
 
+    <!-- Dégradés de marque pour les graphiques (recharts <Bar fill="url(#gradX)">). -->
+    <svg aria-hidden="true" focusable="false" width="0" height="0" style="position:absolute;pointer-events:none">
+      <defs>
+        <linearGradient id="gradPetrol" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#235A6E"/><stop offset="100%" stop-color="#235A6E" stop-opacity="0.5"/></linearGradient>
+        <linearGradient id="gradAmber" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#E89A2E"/><stop offset="100%" stop-color="#E89A2E" stop-opacity="0.5"/></linearGradient>
+        <linearGradient id="gradGreen" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#15803D"/><stop offset="100%" stop-color="#15803D" stop-opacity="0.5"/></linearGradient>
+        <linearGradient id="gradPetrolLight" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#4E7E8D"/><stop offset="100%" stop-color="#4E7E8D" stop-opacity="0.5"/></linearGradient>
+        <linearGradient id="gradCaramel" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#C77E2C"/><stop offset="100%" stop-color="#C77E2C" stop-opacity="0.5"/></linearGradient>
+        <linearGradient id="gradPetrolPale" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#7FA3AF"/><stop offset="100%" stop-color="#7FA3AF" stop-opacity="0.55"/></linearGradient>
+        <linearGradient id="gradRed" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#C0322B"/><stop offset="100%" stop-color="#C0322B" stop-opacity="0.5"/></linearGradient>
+      </defs>
+    </svg>
+
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

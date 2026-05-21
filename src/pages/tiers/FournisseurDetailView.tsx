@@ -943,8 +943,8 @@ const FournisseurDetailView: React.FC = () => {
               <YAxis />
               <Tooltip formatter={(value, name) => name === 'montant' ? formatCurrency(value as number) : value} />
               <Legend />
-              <Bar radius={[6,6,0,0]} dataKey="montant" fill="#235A6E" name="Montant (FCFA)" />
-              <Bar radius={[6,6,0,0]} dataKey="commandes" fill="#4E7E8D" name="Nb Commandes" />
+              <Bar radius={[6,6,0,0]} dataKey="montant" fill="url(#gradPetrol)" name="Montant (FCFA)" />
+              <Bar radius={[6,6,0,0]} dataKey="commandes" fill="url(#gradPetrolLight)" name="Nb Commandes" />
             </BarChart>
           </ResponsiveContainer>
         </div>

@@ -657,8 +657,8 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                 <YAxis yAxisId="right" orientation="right" tickFormatter={(value) => `${value.toFixed(1)}%`} />
                 <Tooltip />
                 <Legend />
-                <Bar radius={[6,6,0,0]} yAxisId="left" dataKey="ca" fill="#235A6E" name="Chiffre d'Affaires (M XAF)" />
-                <Bar radius={[6,6,0,0]} yAxisId="left" dataKey="rn" fill="#4E7E8D" name="Résultat Net (M XAF)" />
+                <Bar radius={[6,6,0,0]} yAxisId="left" dataKey="ca" fill="url(#gradPetrol)" name="Chiffre d'Affaires (M XAF)" />
+                <Bar radius={[6,6,0,0]} yAxisId="left" dataKey="rn" fill="url(#gradPetrolLight)" name="Résultat Net (M XAF)" />
                 <Line yAxisId="right" type="monotone" dataKey="marge" stroke="#C0322B" strokeWidth={3} name="Marge Nette (%)" />
               </LineChart>
             </ResponsiveContainer>

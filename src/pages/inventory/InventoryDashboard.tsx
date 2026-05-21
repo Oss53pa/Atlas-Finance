@@ -539,7 +539,7 @@ const InventoryDashboard: React.FC = () => {
                   name === 'turnover' ? 'Turnover Ratio' : 'Inventory Value'
                 ]}
               />
-              <Bar radius={[6,6,0,0]} dataKey="turnover" fill="#235A6E" />
+              <Bar radius={[6,6,0,0]} dataKey="turnover" fill="url(#gradPetrol)" />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -579,7 +579,7 @@ const InventoryDashboard: React.FC = () => {
               <XAxis type="number" tickFormatter={(value) => `$${(value / 1000).toFixed(0)}K`} />
               <YAxis type="category" dataKey="period" width={80} />
               <Tooltip formatter={(value: number) => [`$${formatCurrency(value)}`, 'Value']} />
-              <Bar radius={[6,6,0,0]} dataKey="value" fill="#E89A2E" />
+              <Bar radius={[6,6,0,0]} dataKey="value" fill="url(#gradAmber)" />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -595,7 +595,7 @@ const InventoryDashboard: React.FC = () => {
               <XAxis dataKey="method" />
               <YAxis tickFormatter={(value) => `$${(value / 1000000).toFixed(1)}M`} />
               <Tooltip formatter={(value: number) => [`$${formatCurrency(value)}`, 'Inventory Value']} />
-              <Bar radius={[6,6,0,0]} dataKey="value" fill="#4E7E8D" />
+              <Bar radius={[6,6,0,0]} dataKey="value" fill="url(#gradPetrolLight)" />
             </BarChart>
           </ResponsiveContainer>
 

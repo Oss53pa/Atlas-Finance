@@ -442,8 +442,8 @@ const BudgetControlPage: React.FC = () => {
                 <YAxis tickFormatter={(value) => `${value / 1000000}M`} />
                 <Tooltip formatter={(value: number) => formatCurrency(value)} />
                 <Legend />
-                <Bar radius={[6,6,0,0]} dataKey="budgeted" fill="#235A6E" name="Budgété" />
-                <Bar radius={[6,6,0,0]} dataKey="actual" fill="#235A6E" name="Réalisé" />
+                <Bar radius={[6,6,0,0]} dataKey="budgeted" fill="url(#gradPetrol)" name="Budgété" />
+                <Bar radius={[6,6,0,0]} dataKey="actual" fill="url(#gradPetrol)" name="Réalisé" />
               </BarChart>
             </ResponsiveContainer>
           </div>

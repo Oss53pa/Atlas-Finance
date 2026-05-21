@@ -536,8 +536,8 @@ const ProspectsModule: React.FC = () => {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Bar radius={[6,6,0,0]} dataKey="taux" fill="#235A6E" name="Taux de conversion %" />
-                <Bar radius={[6,6,0,0]} dataKey="nombre" fill="#4E7E8D" name="Nombre de prospects" />
+                <Bar radius={[6,6,0,0]} dataKey="taux" fill="url(#gradPetrol)" name="Taux de conversion %" />
+                <Bar radius={[6,6,0,0]} dataKey="nombre" fill="url(#gradPetrolLight)" name="Nombre de prospects" />
               </BarChart>
             </ResponsiveContainer>
           </div>

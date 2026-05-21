@@ -701,8 +701,8 @@ const PartenairesModule: React.FC = () => {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Bar radius={[6,6,0,0]} dataKey="partenaires" fill="#235A6E" name="Nombre de partenaires" />
-                <Bar radius={[6,6,0,0]} dataKey="ca" fill="#4E7E8D" name="CA (en milliers)" />
+                <Bar radius={[6,6,0,0]} dataKey="partenaires" fill="url(#gradPetrol)" name="Nombre de partenaires" />
+                <Bar radius={[6,6,0,0]} dataKey="ca" fill="url(#gradPetrolLight)" name="CA (en milliers)" />
               </BarChart>
             </ResponsiveContainer>
           </div>

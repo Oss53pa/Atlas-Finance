@@ -839,7 +839,7 @@ const AssetsSummary: React.FC = () => {
               <Tooltip
                 formatter={(value: number) => [`${formatCurrency(value)}`, 'Valeur']}
               />
-              <Bar radius={[6,6,0,0]} dataKey="value" fill="#235A6E" />
+              <Bar radius={[6,6,0,0]} dataKey="value" fill="url(#gradPetrol)" />
             </BarChart>
           </ResponsiveContainer>
         </div>

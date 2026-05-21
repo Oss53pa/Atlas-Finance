@@ -1181,8 +1181,8 @@ const ClientDetailView: React.FC = () => {
                   <YAxis />
                   <Tooltip formatter={(value, name) => name === 'ca' ? formatCurrency(value as number) : value} />
                   <Legend />
-                  <Bar radius={[6,6,0,0]} dataKey="ca" fill="#235A6E" name="CA (FCFA)" />
-                  <Bar radius={[6,6,0,0]} dataKey="commandes" fill="#4E7E8D" name="Nb Commandes" />
+                  <Bar radius={[6,6,0,0]} dataKey="ca" fill="url(#gradPetrol)" name="CA (FCFA)" />
+                  <Bar radius={[6,6,0,0]} dataKey="commandes" fill="url(#gradPetrolLight)" name="Nb Commandes" />
                 </BarChart>
               </ResponsiveContainer>
             </div>

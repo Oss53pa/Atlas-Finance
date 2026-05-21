@@ -119,13 +119,13 @@ export const MonthlyBudgetChart: React.FC<MonthlyBudgetChartProps> = ({
             <>
               <Bar
                 dataKey="budget"
-                fill="#235A6E"
+                fill="url(#gradPetrol)"
                 name="Budget"
                 radius={[4, 4, 0, 0]}
               />
               <Bar
                 dataKey="actual"
-                fill="#4E7E8D"
+                fill="url(#gradPetrolLight)"
                 name="Réalisé"
                 radius={[4, 4, 0, 0]}
               />

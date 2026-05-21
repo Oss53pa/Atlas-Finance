@@ -208,7 +208,7 @@ const TAFIREDashboard: React.FC = () => {
                 <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
                 <YAxis />
                 <Tooltip formatter={(value: number) => fmt(value)} />
-                <Bar radius={[6,6,0,0]} dataKey="value" fill="#235A6E" />
+                <Bar radius={[6,6,0,0]} dataKey="value" fill="url(#gradPetrol)" />
                 <Line type="monotone" dataKey="cumulative" stroke="#235A6E" strokeWidth={3} name="Trésorerie cumulative" />
               </ComposedChart>
             </ResponsiveContainer>
@@ -223,7 +223,7 @@ const TAFIREDashboard: React.FC = () => {
                 <XAxis dataKey="name" />
                 <YAxis />
                 <Tooltip formatter={(value: number) => fmt(value)} />
-                <Bar radius={[6,6,0,0]} dataKey="value" fill="#235A6E" />
+                <Bar radius={[6,6,0,0]} dataKey="value" fill="url(#gradPetrol)" />
               </BarChart>
             </ResponsiveContainer>
           </div>

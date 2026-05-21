@@ -465,7 +465,7 @@ const FinancialAnalysisPage: React.FC = () => {
                   <XAxis dataKey="name" />
                   <YAxis />
                   <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                  <Bar radius={[6,6,0,0]} dataKey="value" fill="#235A6E" />
+                  <Bar radius={[6,6,0,0]} dataKey="value" fill="url(#gradPetrol)" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -562,7 +562,7 @@ const FinancialAnalysisPage: React.FC = () => {
                   <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
                   <YAxis />
                   <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                  <Bar radius={[6,6,0,0]} dataKey="value" fill="#235A6E" />
+                  <Bar radius={[6,6,0,0]} dataKey="value" fill="url(#gradPetrol)" />
                 </ComposedChart>
               </ResponsiveContainer>
             </div>
@@ -636,8 +636,8 @@ const FinancialAnalysisPage: React.FC = () => {
                 <YAxis />
                 <Tooltip formatter={(value: number) => formatCurrency(value)} />
                 <Legend />
-                <Bar radius={[6,6,0,0]} dataKey="inflows" fill="#235A6E" name="Encaissements" />
-                <Bar radius={[6,6,0,0]} dataKey="outflows" fill="#C0322B" name="Décaissements" />
+                <Bar radius={[6,6,0,0]} dataKey="inflows" fill="url(#gradPetrol)" name="Encaissements" />
+                <Bar radius={[6,6,0,0]} dataKey="outflows" fill="url(#gradRed)" name="Décaissements" />
                 <Line type="monotone" dataKey="cumulativeCash" stroke="#235A6E" strokeWidth={3} name="Trésorerie cumulative" />
               </ComposedChart>
             </ResponsiveContainer>
