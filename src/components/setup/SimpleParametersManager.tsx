@@ -113,26 +113,26 @@ const SimpleParametersManager: React.FC = () => {
             <div className="space-y-3">
               {section.id === 'company' && (
                 <div className="space-y-2">
-                  <div className="text-sm text-gray-700">✅ Assistant de démarrage 4 étapes</div>
-                  <div className="text-sm text-gray-700">✅ Données légales (RCCM, NIF)</div>
-                  <div className="text-sm text-gray-700">✅ Multi-établissements</div>
-                  <div className="text-sm text-gray-700">✅ Configuration par pays</div>
+                  <div className="text-sm text-gray-700">Assistant de démarrage 4 étapes</div>
+                  <div className="text-sm text-gray-700">Données légales (RCCM, NIF)</div>
+                  <div className="text-sm text-gray-700">Multi-établissements</div>
+                  <div className="text-sm text-gray-700">Configuration par pays</div>
                 </div>
               )}
 
               {section.id === 'accounting' && (
                 <div className="space-y-2">
-                  <div className="text-sm text-gray-700">✅ Plan SYSCOHADA 9 classes</div>
-                  <div className="text-sm text-gray-700">✅ TVA CEMAC/UEMOA</div>
-                  <div className="text-sm text-gray-700">✅ Axes analytiques multi-dimensions</div>
-                  <div className="text-sm text-gray-700">✅ Codification automatique tiers</div>
+                  <div className="text-sm text-gray-700">Plan SYSCOHADA 9 classes</div>
+                  <div className="text-sm text-gray-700">TVA CEMAC/UEMOA</div>
+                  <div className="text-sm text-gray-700">Axes analytiques multi-dimensions</div>
+                  <div className="text-sm text-gray-700">Codification automatique tiers</div>
                 </div>
               )}
 
               {section.id === 'users' && (
                 <div className="space-y-2">
-                  <div className="text-sm text-gray-700">✅ 5 profils prédéfinis</div>
-                  <div className="text-sm text-gray-700">✅ Matrice CRUD complète</div>
+                  <div className="text-sm text-gray-700">5 profils prédéfinis</div>
+                  <div className="text-sm text-gray-700">Matrice CRUD complète</div>
                   <div className="text-sm text-gray-700">⏳ Authentification MFA</div>
                   <div className="text-sm text-gray-700">⏳ Audit trail avancé</div>
                 </div>
@@ -140,10 +140,10 @@ const SimpleParametersManager: React.FC = () => {
 
               {section.id === 'imports' && (
                 <div className="space-y-2">
-                  <div className="text-sm text-gray-700">✅ Templates SYSCOHADA</div>
-                  <div className="text-sm text-gray-700">✅ 5 formats supportés</div>
-                  <div className="text-sm text-gray-700">✅ FEC automatique</div>
-                  <div className="text-sm text-gray-700">✅ Mapping intelligent</div>
+                  <div className="text-sm text-gray-700">Templates SYSCOHADA</div>
+                  <div className="text-sm text-gray-700">5 formats supportés</div>
+                  <div className="text-sm text-gray-700">FEC automatique</div>
+                  <div className="text-sm text-gray-700">Mapping intelligent</div>
                 </div>
               )}
             </div>

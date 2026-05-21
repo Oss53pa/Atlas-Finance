@@ -88,7 +88,7 @@ export const SimpleFundCallDetails: React.FC = () => {
           <div className="d-flex justify-content-between align-items-center mb-4">
             <div>
               <h2 className="mb-1">
-                💰 Détails de l'Appel de Fonds
+                Détails de l'Appel de Fonds
               </h2>
               <nav aria-label="breadcrumb">
                 <ol className="breadcrumb">
@@ -107,7 +107,7 @@ export const SimpleFundCallDetails: React.FC = () => {
                 ← Retour
               </Link>
               <button className="btn btn-primary">
-                ✏️ Modifier
+                Modifier
               </button>
             </div>
           </div>
@@ -118,7 +118,7 @@ export const SimpleFundCallDetails: React.FC = () => {
               <div className="card mb-4">
                 <div className="card-header bg-primary text-white">
                   <h5 className="mb-0">
-                    📋 Informations Générales
+                    Informations Générales
                   </h5>
                 </div>
                 <div className="card-body">
@@ -149,11 +149,11 @@ export const SimpleFundCallDetails: React.FC = () => {
                             <td>
                               {fundCall.is_mark_as_pre_approved ? (
                                 <span className="badge bg-success fs-6">
-                                  🔒 Approuvé
+                                  Approuvé
                                 </span>
                               ) : (
                                 <span className="badge bg-warning fs-6">
-                                  🔓 En attente d'approbation
+                                  En attente d'approbation
                                 </span>
                               )}
                             </td>
@@ -193,7 +193,7 @@ export const SimpleFundCallDetails: React.FC = () => {
                     <div className="mt-3">
                       <h6 className="fw-bold">Commentaire:</h6>
                       <div className="alert alert-light">
-                        💬 {fundCall.comment}
+                        {fundCall.comment}
                       </div>
                     </div>
                   )}
@@ -206,28 +206,28 @@ export const SimpleFundCallDetails: React.FC = () => {
               <div className="card mb-4">
                 <div className="card-header bg-secondary text-white">
                   <h5 className="mb-0">
-                    ⚙️ Actions
+                    Actions
                   </h5>
                 </div>
                 <div className="card-body">
                   <div className="d-grid gap-2">
                     {!fundCall.is_mark_as_pre_approved ? (
                       <button className="btn btn-success">
-                        ✅ Approuver
+                        Approuver
                       </button>
                     ) : (
                       <button className="btn btn-warning">
-                        ❌ Rejeter
+                        Rejeter
                       </button>
                     )}
                     <button className="btn btn-primary">
-                      ✏️ Modifier
+                      Modifier
                     </button>
                     <button className="btn btn-info">
-                      🖨️ Imprimer
+                      Imprimer
                     </button>
                     <button className="btn btn-outline-danger">
-                      🗑️ Supprimer
+                      Supprimer
                     </button>
                   </div>
                 </div>
@@ -237,7 +237,7 @@ export const SimpleFundCallDetails: React.FC = () => {
               <div className="card">
                 <div className="card-header bg-info text-white">
                   <h5 className="mb-0">
-                    🔄 Transfert Bancaire
+                    Transfert Bancaire
                   </h5>
                 </div>
                 <div className="card-body">
@@ -294,7 +294,7 @@ export const SimpleFundCallDetails: React.FC = () => {
               <div className="card">
                 <div className="card-header bg-dark text-white">
                   <h5 className="mb-0">
-                    📅 Historique des Actions
+                    Historique des Actions
                   </h5>
                 </div>
                 <div className="card-body">

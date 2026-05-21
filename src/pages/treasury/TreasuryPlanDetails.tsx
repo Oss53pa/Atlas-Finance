@@ -118,9 +118,9 @@ const TreasuryPlanDetails: React.FC = () => {
 
   // Scénarios de prévision
   const forecastScenarios = [
-    { id: 'optimiste', name: '📈 Optimiste', multiplier: 1.3, color: 'text-green-600' },
-    { id: 'realiste', name: '📊 Réaliste', multiplier: 1.0, color: 'text-[var(--color-primary)]' },
-    { id: 'pessimiste', name: '📉 Pessimiste', multiplier: 0.7, color: 'text-red-600' }
+    { id: 'optimiste', name: 'Optimiste', multiplier: 1.3, color: 'text-green-600' },
+    { id: 'realiste', name: 'Réaliste', multiplier: 1.0, color: 'text-[var(--color-primary)]' },
+    { id: 'pessimiste', name: 'Pessimiste', multiplier: 0.7, color: 'text-red-600' }
   ];
 
   const getSelectedScenarioData = () => {
@@ -232,7 +232,7 @@ const TreasuryPlanDetails: React.FC = () => {
             >
               ← Retour aux Plans de Trésorerie
             </button>
-            <h1 className="text-lg font-bold text-[var(--color-text-primary)]">📋 {planData.name}</h1>
+            <h1 className="text-lg font-bold text-[var(--color-text-primary)]">{planData.name}</h1>
             <p className="text-sm text-[var(--color-text-secondary)]">
               Auteur: {planData.author} • Période: {planData.period}
             </p>
@@ -270,7 +270,7 @@ const TreasuryPlanDetails: React.FC = () => {
         <div className="space-y-6">
           <div className="bg-white border border-gray-200 rounded-lg">
             <div className="p-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">📅 Planification des Flux de trésorerie</h3>
+              <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Planification des Flux de trésorerie</h3>
               <p className="text-sm text-gray-600 mt-1">
                 Données des factures échues extraites du Grand Livre comptable
               </p>
@@ -280,7 +280,7 @@ const TreasuryPlanDetails: React.FC = () => {
               {/* Table 1: Prévision des Encaissements */}
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <h4 className="text-lg font-semibold text-[var(--color-text-primary)]">📈 Prévision des Encaissements (Factures échues)</h4>
+                  <h4 className="text-lg font-semibold text-[var(--color-text-primary)]">Prévision des Encaissements (Factures échues)</h4>
                   <button
                     onClick={() => openTransactionModal('encaissement')}
                     className="px-3 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-1"
@@ -351,7 +351,7 @@ const TreasuryPlanDetails: React.FC = () => {
               {/* Table 2: Prévision des Décaissements */}
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <h4 className="text-lg font-semibold text-[var(--color-text-primary)]">📉 Prévision des décaissements (Factures échues)</h4>
+                  <h4 className="text-lg font-semibold text-[var(--color-text-primary)]">Prévision des décaissements (Factures échues)</h4>
                   <button
                     onClick={() => openTransactionModal('decaissement')}
                     className="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-1"
@@ -429,7 +429,7 @@ const TreasuryPlanDetails: React.FC = () => {
           <div className="bg-white border border-gray-200 rounded-lg">
             <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-[var(--color-text-secondary)]/10 to-[var(--color-text-tertiary)]/10">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">📊 Prévision de Trésorerie Globale</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Prévision de Trésorerie Globale</h3>
                 <div>
                   <label className="block text-xs text-[#404040] mb-1">Scénario de prévision :</label>
                   <select
@@ -786,7 +786,7 @@ const TreasuryPlanDetails: React.FC = () => {
           <div className="bg-white border border-gray-200 rounded-lg">
             <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-[var(--color-text-secondary)]/10 to-[var(--color-text-tertiary)]/10">
               <div className="flex items-center justify-between flex-wrap gap-4">
-                <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">📊 Rapport Prévisions de Trésorerie - Tous Scénarios</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Rapport Prévisions de Trésorerie - Tous Scénarios</h3>
                 <div className="flex items-center space-x-4 flex-wrap">
                   {/* Filtre par type */}
                   <div>
@@ -824,7 +824,7 @@ const TreasuryPlanDetails: React.FC = () => {
 
                   <div className="flex items-end">
                     <button className="px-4 py-1 bg-[var(--color-primary)] text-white rounded text-sm hover:bg-[var(--color-primary)]/80 transition-colors">
-                      🔍 Filtrer
+                      Filtrer
                     </button>
                   </div>
                 </div>
@@ -834,15 +834,15 @@ const TreasuryPlanDetails: React.FC = () => {
             {/* Comparaison des scénarios */}
             <div className="p-6">
               <div className="mb-6">
-                <h4 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">📈 Comparaison des Scénarios</h4>
+                <h4 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Comparaison des Scénarios</h4>
                 <div className="border border-gray-200 rounded-lg overflow-hidden">
                   <table className="w-full">
                     <thead className="bg-gray-50">
                       <tr>
                         <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Métrique</th>
-                        <th className="px-4 py-3 text-center text-xs font-semibold text-green-700 uppercase">📈 Optimiste</th>
-                        <th className="px-4 py-3 text-center text-xs font-semibold text-[var(--color-primary)] uppercase">📊 Réaliste</th>
-                        <th className="px-4 py-3 text-center text-xs font-semibold text-red-700 uppercase">📉 Pessimiste</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-green-700 uppercase">Optimiste</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-[var(--color-primary)] uppercase">Réaliste</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-red-700 uppercase">Pessimiste</th>
                         <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase">Écart Max</th>
                       </tr>
                     </thead>
@@ -902,12 +902,12 @@ const TreasuryPlanDetails: React.FC = () => {
 
               {/* Tableaux détaillés par scénario */}
               <div className="mb-6">
-                <h4 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">💼 Rapport Détaillé par Scénario</h4>
+                <h4 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Rapport Détaillé par Scénario</h4>
 
                 {/* Scénario Optimiste - Tableau détaillé */}
                 <div className="mb-8">
                   <div className="bg-green-50 border-l-4 border-green-500 p-4 mb-4">
-                    <h5 className="text-lg font-semibold text-green-800 mb-2">📈 Scénario Optimiste (+30%)</h5>
+                    <h5 className="text-lg font-semibold text-green-800 mb-2">Scénario Optimiste (+30%)</h5>
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
                       <div><strong>Taux de réalisation:</strong> 130%</div>
                       <div><strong>Niveau de risque:</strong> Faible</div>
@@ -934,7 +934,7 @@ const TreasuryPlanDetails: React.FC = () => {
                         {/* Encaissements optimistes */}
                         <tr className="hover:bg-green-25">
                           <td className="px-3 py-2 text-sm font-mono">FAC-2025-001</td>
-                          <td className="px-3 py-2 text-sm">📈 Encaissement</td>
+                          <td className="px-3 py-2 text-sm">Encaissement</td>
                           <td className="px-3 py-2 text-sm">SUPERMARCHE CHAMPION</td>
                           <td className="px-3 py-2 text-sm">15/02/2025</td>
                           <td className="px-3 py-2 text-right text-sm">8,500,000</td>
@@ -944,7 +944,7 @@ const TreasuryPlanDetails: React.FC = () => {
                         </tr>
                         <tr className="hover:bg-green-25">
                           <td className="px-3 py-2 text-sm font-mono">FAC-2025-003</td>
-                          <td className="px-3 py-2 text-sm">📈 Encaissement</td>
+                          <td className="px-3 py-2 text-sm">Encaissement</td>
                           <td className="px-3 py-2 text-sm">DISTRIBUTEUR COSMOS</td>
                           <td className="px-3 py-2 text-sm">20/03/2025</td>
                           <td className="px-3 py-2 text-right text-sm">6,200,000</td>
@@ -954,7 +954,7 @@ const TreasuryPlanDetails: React.FC = () => {
                         </tr>
                         <tr className="hover:bg-green-25">
                           <td className="px-3 py-2 text-sm font-mono">FAC-2025-002</td>
-                          <td className="px-3 py-2 text-sm">📈 Encaissement</td>
+                          <td className="px-3 py-2 text-sm">Encaissement</td>
                           <td className="px-3 py-2 text-sm">IMPORT AFRICA</td>
                           <td className="px-3 py-2 text-sm">18/04/2025</td>
                           <td className="px-3 py-2 text-right text-sm">4,200,000</td>
@@ -964,7 +964,7 @@ const TreasuryPlanDetails: React.FC = () => {
                         </tr>
                         <tr className="hover:bg-red-25">
                           <td className="px-3 py-2 text-sm font-mono">FOUR-2025-001</td>
-                          <td className="px-3 py-2 text-sm">📉 Décaissement</td>
+                          <td className="px-3 py-2 text-sm">Décaissement</td>
                           <td className="px-3 py-2 text-sm">PLANTATION AFRICA</td>
                           <td className="px-3 py-2 text-sm">10/02/2025</td>
                           <td className="px-3 py-2 text-right text-sm">12,000,000</td>
@@ -974,7 +974,7 @@ const TreasuryPlanDetails: React.FC = () => {
                         </tr>
                         <tr className="hover:bg-red-25">
                           <td className="px-3 py-2 text-sm font-mono">SAL-2025-01</td>
-                          <td className="px-3 py-2 text-sm">📉 Décaissement</td>
+                          <td className="px-3 py-2 text-sm">Décaissement</td>
                           <td className="px-3 py-2 text-sm">PERSONNEL CADRES</td>
                           <td className="px-3 py-2 text-sm">05/02/2025</td>
                           <td className="px-3 py-2 text-right text-sm">4,500,000</td>
@@ -997,7 +997,7 @@ const TreasuryPlanDetails: React.FC = () => {
                 {/* Scénario Réaliste - Tableau détaillé */}
                 <div className="mb-8">
                   <div className="bg-[var(--color-primary)]/5 border-l-4 border-[var(--color-primary)] p-4 mb-4">
-                    <h5 className="text-lg font-semibold text-[var(--color-primary)] mb-2">📊 Scénario Réaliste (Base)</h5>
+                    <h5 className="text-lg font-semibold text-[var(--color-primary)] mb-2">Scénario Réaliste (Base)</h5>
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
                       <div><strong>Taux de réalisation:</strong> 100%</div>
                       <div><strong>Niveau de risque:</strong> Modéré</div>
@@ -1023,7 +1023,7 @@ const TreasuryPlanDetails: React.FC = () => {
                       <tbody className="divide-y divide-blue-200">
                         <tr className="hover:bg-[var(--color-primary)]/5">
                           <td className="px-3 py-2 text-sm font-mono">FAC-2025-001</td>
-                          <td className="px-3 py-2 text-sm">📈 Encaissement</td>
+                          <td className="px-3 py-2 text-sm">Encaissement</td>
                           <td className="px-3 py-2 text-sm">SUPERMARCHE CHAMPION</td>
                           <td className="px-3 py-2 text-sm">15/02/2025</td>
                           <td className="px-3 py-2 text-right text-sm">8,500,000</td>
@@ -1033,7 +1033,7 @@ const TreasuryPlanDetails: React.FC = () => {
                         </tr>
                         <tr className="hover:bg-[var(--color-primary)]/5">
                           <td className="px-3 py-2 text-sm font-mono">FAC-2025-003</td>
-                          <td className="px-3 py-2 text-sm">📈 Encaissement</td>
+                          <td className="px-3 py-2 text-sm">Encaissement</td>
                           <td className="px-3 py-2 text-sm">DISTRIBUTEUR COSMOS</td>
                           <td className="px-3 py-2 text-sm">20/03/2025</td>
                           <td className="px-3 py-2 text-right text-sm">6,200,000</td>
@@ -1043,7 +1043,7 @@ const TreasuryPlanDetails: React.FC = () => {
                         </tr>
                         <tr className="hover:bg-[var(--color-primary)]/5">
                           <td className="px-3 py-2 text-sm font-mono">FAC-2025-002</td>
-                          <td className="px-3 py-2 text-sm">📈 Encaissement</td>
+                          <td className="px-3 py-2 text-sm">Encaissement</td>
                           <td className="px-3 py-2 text-sm">IMPORT AFRICA</td>
                           <td className="px-3 py-2 text-sm">18/04/2025</td>
                           <td className="px-3 py-2 text-right text-sm">4,200,000</td>
@@ -1053,7 +1053,7 @@ const TreasuryPlanDetails: React.FC = () => {
                         </tr>
                         <tr className="hover:bg-[var(--color-primary)]/5">
                           <td className="px-3 py-2 text-sm font-mono">FOUR-2025-001</td>
-                          <td className="px-3 py-2 text-sm">📉 Décaissement</td>
+                          <td className="px-3 py-2 text-sm">Décaissement</td>
                           <td className="px-3 py-2 text-sm">PLANTATION AFRICA</td>
                           <td className="px-3 py-2 text-sm">10/02/2025</td>
                           <td className="px-3 py-2 text-right text-sm">12,000,000</td>
@@ -1063,7 +1063,7 @@ const TreasuryPlanDetails: React.FC = () => {
                         </tr>
                         <tr className="hover:bg-[var(--color-primary)]/5">
                           <td className="px-3 py-2 text-sm font-mono">SAL-2025-01</td>
-                          <td className="px-3 py-2 text-sm">📉 Décaissement</td>
+                          <td className="px-3 py-2 text-sm">Décaissement</td>
                           <td className="px-3 py-2 text-sm">PERSONNEL CADRES</td>
                           <td className="px-3 py-2 text-sm">05/02/2025</td>
                           <td className="px-3 py-2 text-right text-sm">4,500,000</td>
@@ -1086,7 +1086,7 @@ const TreasuryPlanDetails: React.FC = () => {
                 {/* Scénario Pessimiste - Tableau détaillé */}
                 <div className="mb-8">
                   <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
-                    <h5 className="text-lg font-semibold text-red-800 mb-2">📉 Scénario Pessimiste (-30%)</h5>
+                    <h5 className="text-lg font-semibold text-red-800 mb-2">Scénario Pessimiste (-30%)</h5>
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
                       <div><strong>Taux de réalisation:</strong> 70%</div>
                       <div><strong>Niveau de risque:</strong> Élevé</div>
@@ -1112,7 +1112,7 @@ const TreasuryPlanDetails: React.FC = () => {
                       <tbody className="divide-y divide-red-200">
                         <tr className="hover:bg-red-25">
                           <td className="px-3 py-2 text-sm font-mono">FAC-2025-001</td>
-                          <td className="px-3 py-2 text-sm">📈 Encaissement</td>
+                          <td className="px-3 py-2 text-sm">Encaissement</td>
                           <td className="px-3 py-2 text-sm">SUPERMARCHE CHAMPION</td>
                           <td className="px-3 py-2 text-sm">15/02/2025</td>
                           <td className="px-3 py-2 text-right text-sm">8,500,000</td>
@@ -1122,7 +1122,7 @@ const TreasuryPlanDetails: React.FC = () => {
                         </tr>
                         <tr className="hover:bg-red-25">
                           <td className="px-3 py-2 text-sm font-mono">FAC-2025-003</td>
-                          <td className="px-3 py-2 text-sm">📈 Encaissement</td>
+                          <td className="px-3 py-2 text-sm">Encaissement</td>
                           <td className="px-3 py-2 text-sm">DISTRIBUTEUR COSMOS</td>
                           <td className="px-3 py-2 text-sm">20/03/2025</td>
                           <td className="px-3 py-2 text-right text-sm">6,200,000</td>
@@ -1132,7 +1132,7 @@ const TreasuryPlanDetails: React.FC = () => {
                         </tr>
                         <tr className="hover:bg-red-25">
                           <td className="px-3 py-2 text-sm font-mono">FAC-2025-002</td>
-                          <td className="px-3 py-2 text-sm">📈 Encaissement</td>
+                          <td className="px-3 py-2 text-sm">Encaissement</td>
                           <td className="px-3 py-2 text-sm">IMPORT AFRICA</td>
                           <td className="px-3 py-2 text-sm">18/04/2025</td>
                           <td className="px-3 py-2 text-right text-sm">4,200,000</td>
@@ -1142,7 +1142,7 @@ const TreasuryPlanDetails: React.FC = () => {
                         </tr>
                         <tr className="hover:bg-green-25">
                           <td className="px-3 py-2 text-sm font-mono">FOUR-2025-001</td>
-                          <td className="px-3 py-2 text-sm">📉 Décaissement</td>
+                          <td className="px-3 py-2 text-sm">Décaissement</td>
                           <td className="px-3 py-2 text-sm">PLANTATION AFRICA</td>
                           <td className="px-3 py-2 text-sm">10/02/2025</td>
                           <td className="px-3 py-2 text-right text-sm">12,000,000</td>
@@ -1152,7 +1152,7 @@ const TreasuryPlanDetails: React.FC = () => {
                         </tr>
                         <tr className="hover:bg-green-25">
                           <td className="px-3 py-2 text-sm font-mono">SAL-2025-01</td>
-                          <td className="px-3 py-2 text-sm">📉 Décaissement</td>
+                          <td className="px-3 py-2 text-sm">Décaissement</td>
                           <td className="px-3 py-2 text-sm">PERSONNEL CADRES</td>
                           <td className="px-3 py-2 text-sm">05/02/2025</td>
                           <td className="px-3 py-2 text-right text-sm">4,500,000</td>
@@ -1176,7 +1176,7 @@ const TreasuryPlanDetails: React.FC = () => {
               {/* Analyse de sensibilité */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <h5 className="font-semibold text-green-800 mb-3">📈 Scénario Optimiste</h5>
+                  <h5 className="font-semibold text-green-800 mb-3">Scénario Optimiste</h5>
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Taux de réalisation :</span>
@@ -1196,7 +1196,7 @@ const TreasuryPlanDetails: React.FC = () => {
                 </div>
 
                 <div className="bg-[var(--color-primary)]/5 border border-[var(--color-primary)]/20 rounded-lg p-4">
-                  <h5 className="font-semibold text-[var(--color-primary)] mb-3">📊 Scénario Réaliste</h5>
+                  <h5 className="font-semibold text-[var(--color-primary)] mb-3">Scénario Réaliste</h5>
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Taux de réalisation :</span>
@@ -1216,7 +1216,7 @@ const TreasuryPlanDetails: React.FC = () => {
                 </div>
 
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                  <h5 className="font-semibold text-red-800 mb-3">📉 Scénario Pessimiste</h5>
+                  <h5 className="font-semibold text-red-800 mb-3">Scénario Pessimiste</h5>
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Taux de réalisation :</span>
@@ -1244,13 +1244,13 @@ const TreasuryPlanDetails: React.FC = () => {
                 </div>
                 <div className="flex space-x-3">
                   <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/80 transition-colors">
-                    📊 Export Excel
+                    Export Excel
                   </button>
                   <button className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
-                    📄 Export PDF
+                    Export PDF
                   </button>
                   <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/80 transition-colors">
-                    📧 Envoyer par email
+                    Envoyer par email
                   </button>
                 </div>
               </div>
@@ -1265,7 +1265,7 @@ const TreasuryPlanDetails: React.FC = () => {
           <div className="bg-white border border-gray-200 rounded-lg">
             <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-[var(--color-text-secondary)]/10 to-[var(--color-text-tertiary)]/10">
               <div className="flex items-center justify-between flex-wrap gap-4">
-                <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">📊 Analyse des Écarts</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Analyse des Écarts</h3>
                 <div className="flex items-center space-x-4 flex-wrap">
                   {/* Filtre par type */}
                   <div>
@@ -1303,7 +1303,7 @@ const TreasuryPlanDetails: React.FC = () => {
 
                   <div className="flex items-end">
                     <button className="px-4 py-1 bg-[var(--color-primary)] text-white rounded text-sm hover:bg-[var(--color-primary)]/80 transition-colors">
-                      🔍 Filtrer
+                      Filtrer
                     </button>
                   </div>
                 </div>
@@ -1331,7 +1331,7 @@ const TreasuryPlanDetails: React.FC = () => {
 
               {/* Analyse des Encaissements */}
               <div>
-                <h4 className="text-lg font-semibold text-green-800 mb-4">📈 Encaissements</h4>
+                <h4 className="text-lg font-semibold text-green-800 mb-4">Encaissements</h4>
 
                 {/* Tableau résumé encaissements */}
                 <div className="border border-gray-200 rounded-lg overflow-hidden mb-4">
@@ -1422,7 +1422,7 @@ const TreasuryPlanDetails: React.FC = () => {
 
               {/* Analyse des Décaissements */}
               <div>
-                <h4 className="text-lg font-semibold text-red-800 mb-4">📉 Décaissements</h4>
+                <h4 className="text-lg font-semibold text-red-800 mb-4">Décaissements</h4>
 
                 {/* Tableau résumé décaissements */}
                 <div className="border border-gray-200 rounded-lg overflow-hidden mb-4">
@@ -1518,7 +1518,7 @@ const TreasuryPlanDetails: React.FC = () => {
 
               {/* Synthèse des écarts */}
               <div className="mt-6 p-4 bg-[var(--color-primary)]/10 rounded-lg">
-                <h4 className="font-semibold text-[var(--color-text-primary)] mb-3">💰 Synthèse des Écarts</h4>
+                <h4 className="font-semibold text-[var(--color-text-primary)] mb-3">Synthèse des Écarts</h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="text-center p-3 bg-green-50 rounded border">
                     <div className="text-lg font-bold text-green-600">
@@ -1558,7 +1558,7 @@ const TreasuryPlanDetails: React.FC = () => {
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
-                📋 Transaction - {transactionType === 'encaissement' ? 'Encaissement' : 'Décaissement'}
+                Transaction - {transactionType === 'encaissement' ? 'Encaissement' : 'Décaissement'}
               </h3>
               <button
                 onClick={() => setShowTransactionModal(false)}
@@ -1707,7 +1707,7 @@ const TreasuryPlanDetails: React.FC = () => {
           <div className="bg-white rounded-lg p-6 w-full max-w-6xl mx-4 max-h-[80vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
-                📋 {detailModalData.title}
+                {detailModalData.title}
               </h3>
               <button
                 onClick={() => setShowDetailModal(false)}
@@ -1799,7 +1799,7 @@ const TreasuryPlanDetails: React.FC = () => {
                           }}
                           className="text-[var(--color-text-primary)] hover:text-[var(--color-text-primary)]/70 text-sm transition-colors hover:underline"
                         >
-                          📄 Voir
+                          Voir
                         </button>
                       </td>
                     </tr>
@@ -1821,7 +1821,7 @@ const TreasuryPlanDetails: React.FC = () => {
                   Fermer
                 </button>
                 <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/80 transition-colors">
-                  📊 Exporter Excel
+                  Exporter Excel
                 </button>
               </div>
             </div>

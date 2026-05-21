@@ -1314,7 +1314,7 @@ const ClientsModule: React.FC = () => {
                         <div className="p-3 bg-red-50 rounded-lg border-l-4 border-red-500">
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="font-medium text-red-800">🚨 Mises en demeure urgentes</p>
+                              <p className="font-medium text-red-800">Mises en demeure urgentes</p>
                               <p className="text-sm text-red-700">
                                 {balanceAgeeData.filter(i => i.echuPlus90 > 0).length} clients avec créances +90 jours
                               </p>
@@ -1329,7 +1329,7 @@ const ClientsModule: React.FC = () => {
                         <div className="p-3 bg-orange-50 rounded-lg border-l-4 border-orange-500">
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="font-medium text-orange-800">⚠️ Relances niveau 2</p>
+                              <p className="font-medium text-orange-800">Relances niveau 2</p>
                               <p className="text-sm text-orange-700">
                                 {balanceAgeeData.filter(i => i.echu61_90 > 0).length} clients avec créances 61-90 jours
                               </p>
@@ -1344,7 +1344,7 @@ const ClientsModule: React.FC = () => {
                         <div className="p-3 bg-yellow-50 rounded-lg border-l-4 border-yellow-500">
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="font-medium text-yellow-800">📧 Relances niveau 1</p>
+                              <p className="font-medium text-yellow-800">Relances niveau 1</p>
                               <p className="text-sm text-yellow-700">
                                 {balanceAgeeData.filter(i => i.echu31_60 > 0).length} clients avec créances 31-60 jours
                               </p>
@@ -1359,7 +1359,7 @@ const ClientsModule: React.FC = () => {
                         <div className="p-3 bg-primary-50 rounded-lg border-l-4 border-primary-500">
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="font-medium text-primary-800">📊 Provisions à comptabiliser</p>
+                              <p className="font-medium text-primary-800">Provisions à comptabiliser</p>
                               <p className="text-sm text-primary-700">
                                 {formatCurrency(totauxBalanceAgee.provision)} selon règles SYSCOHADA
                               </p>
@@ -1374,7 +1374,7 @@ const ClientsModule: React.FC = () => {
                         <div className="p-3 bg-gray-50 rounded-lg border-l-4 border-gray-500">
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="font-medium text-gray-800">🔒 Comptes à bloquer</p>
+                              <p className="font-medium text-gray-800">Comptes à bloquer</p>
                               <p className="text-sm text-gray-700">
                                 {balanceAgeeData.filter(i => i.echuPlus90 > 500000).length} clients dépassent le seuil de 500K XAF
                               </p>

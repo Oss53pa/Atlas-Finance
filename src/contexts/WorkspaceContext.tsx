@@ -5,7 +5,7 @@
  * Permet de persister le workspace actif et de le partager entre les composants
  */
 
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 import { safeStorage } from '../utils/safeStorage';
@@ -66,7 +66,7 @@ export const WorkspaceProvider: React.FC<WorkspaceProviderProps> = ({ children }
       const role = user.role as WorkspaceRole;
       loadWorkspaceByRole(role).catch(() => {});
     }
-  }, [isAuthenticated, user?.role]);
+  }, [isAuthenticated, user?.role, loadWorkspaceByRole]);
 
   // Sauvegarder le workspace dans le localStorage
   const setCurrentWorkspace = useCallback((workspace: Workspace | null) => {
@@ -125,7 +125,7 @@ export const WorkspaceProvider: React.FC<WorkspaceProviderProps> = ({ children }
     return `/workspace/${currentWorkspace.role}`;
   }, [currentWorkspace]);
 
-  const value: WorkspaceContextType = {
+  const value = useMemo<WorkspaceContextType>(() => ({
     currentWorkspace,
     workspaceDashboard,
     isLoading,
@@ -137,7 +137,7 @@ export const WorkspaceProvider: React.FC<WorkspaceProviderProps> = ({ children }
     clearWorkspace,
     getWorkspaceUrl,
     hasWorkspace: !!currentWorkspace,
-  };
+  }), [currentWorkspace, workspaceDashboard, isLoading, error, setCurrentWorkspace, loadWorkspaceByRole, loadWorkspaceDashboard, refreshDashboard, clearWorkspace, getWorkspaceUrl]);
 
   return (
     <WorkspaceContext.Provider value={value}>

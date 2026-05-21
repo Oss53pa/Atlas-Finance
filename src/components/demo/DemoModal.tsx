@@ -250,7 +250,7 @@ const DemoModal: React.FC<DemoModalProps> = ({ isOpen, onClose, initialSolution 
               {/* Pro tip */}
               {tutoStep < tutorials[tutoIndex].steps.length && (
                 <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
-                  <p className="text-xs text-blue-700"><strong>💡 Astuce Pro :</strong> {tutoStep === 0 ? 'Utilisez le raccourci Ctrl+N pour créer rapidement.' : tutoStep === 1 ? 'Tapez les premiers chiffres du compte pour le trouver instantanément.' : 'Vérifiez toujours l\'équilibre avant de valider.'}</p>
+                  <p className="text-xs text-blue-700"><strong>Astuce Pro :</strong> {tutoStep === 0 ? 'Utilisez le raccourci Ctrl+N pour créer rapidement.' : tutoStep === 1 ? 'Tapez les premiers chiffres du compte pour le trouver instantanément.' : 'Vérifiez toujours l\'équilibre avant de valider.'}</p>
                 </div>
               )}
 
@@ -266,7 +266,7 @@ const DemoModal: React.FC<DemoModalProps> = ({ isOpen, onClose, initialSolution 
                   </button>
                 ) : (
                   <button onClick={goBack} className="px-4 py-2 bg-green-600 text-white text-sm rounded-lg font-semibold hover:bg-green-700">
-                    ✓ Tutoriel terminé
+                    Tutoriel terminé
                   </button>
                 )}
               </div>

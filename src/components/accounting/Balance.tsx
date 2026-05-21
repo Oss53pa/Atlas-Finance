@@ -1873,7 +1873,7 @@ const Balance: React.FC = () => {
               <p className="text-sm">Crédit: <span className="font-bold">{formatAmount(totals.soldeCrediteurAN)}</span></p>
             </div>
             {totals.soldeDebiteurAN === totals.soldeCrediteurAN && (
-              <p className="text-green-600 text-sm mt-1">✓ Équilibrée</p>
+              <p className="text-green-600 text-sm mt-1">Équilibrée</p>
             )}
           </div>
           <div className="text-center p-3 bg-orange-50 rounded-lg">
@@ -1883,7 +1883,7 @@ const Balance: React.FC = () => {
               <p className="text-sm">Crédit: <span className="font-bold text-green-600">{formatAmount(totals.mouvementsCredit)}</span></p>
             </div>
             {totals.mouvementsDebit === totals.mouvementsCredit && (
-              <p className="text-green-600 text-sm mt-1">✓ Équilibrée</p>
+              <p className="text-green-600 text-sm mt-1">Équilibrée</p>
             )}
           </div>
           <div className="text-center p-3 bg-green-50 rounded-lg">
@@ -1893,7 +1893,7 @@ const Balance: React.FC = () => {
               <p className="text-sm">Créditeur: <span className="font-bold text-green-600">{formatAmount(totals.soldeCrediteur)}</span></p>
             </div>
             {totals.soldeDebiteur === totals.soldeCrediteur && (
-              <p className="text-green-600 text-sm mt-1">✓ Équilibrée</p>
+              <p className="text-green-600 text-sm mt-1">Équilibrée</p>
             )}
           </div>
         </div>

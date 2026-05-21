@@ -1032,7 +1032,7 @@ const AdvancedGeneralLedger: React.FC = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-white p-4 rounded-lg border border-primary-200">
-                  <h5 className="font-medium text-primary-900 mb-2">🔍 Détection d'Anomalies</h5>
+                  <h5 className="font-medium text-primary-900 mb-2">Détection d'Anomalies</h5>
                   <ul className="space-y-1 text-sm text-primary-800">
                     <li>• 1 montant inhabituel détecté</li>
                     <li>• Pattern temporel normal</li>
@@ -1041,7 +1041,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                 </div>
 
                 <div className="bg-white p-4 rounded-lg border border-primary-200">
-                  <h5 className="font-medium text-primary-900 mb-2">📊 Insights Automatiques</h5>
+                  <h5 className="font-medium text-primary-900 mb-2">Insights Automatiques</h5>
                   <ul className="space-y-1 text-sm text-primary-800">
                     <li>• Pic d'activité en janvier</li>
                     <li>• Corrélation banque-fournisseurs</li>
@@ -1050,7 +1050,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                 </div>
 
                 <div className="bg-white p-4 rounded-lg border border-primary-200">
-                  <h5 className="font-medium text-primary-900 mb-2">🎯 Recommandations</h5>
+                  <h5 className="font-medium text-primary-900 mb-2">Recommandations</h5>
                   <ul className="space-y-1 text-sm text-primary-800">
                     <li>• Vérifier écriture 607000</li>
                     <li>• Optimiser délais paiement</li>
@@ -1119,13 +1119,13 @@ const AdvancedGeneralLedger: React.FC = () => {
                   </h5>
                   <div className="space-y-2">
                     <button className="w-full text-left p-2 hover:bg-gray-50 rounded text-sm">
-                      📊 Virements importants plus de 500K
+                      Virements importants plus de 500K
                     </button>
                     <button className="w-full text-left p-2 hover:bg-gray-50 rounded text-sm">
-                      🏦 "Mouvements banque janvier"
+                      "Mouvements banque janvier"
                     </button>
                     <button className="w-full text-left p-2 hover:bg-gray-50 rounded text-sm">
-                      ⚠️ "Écritures nécessitant révision"
+                      "Écritures nécessitant révision"
                     </button>
                   </div>
                 </div>
@@ -1729,9 +1729,9 @@ const AdvancedGeneralLedger: React.FC = () => {
                                     <div className="text-sm text-white/80">{compte.classe}</div>
                                     {ledgerType !== 'general' && (
                                       <div className="text-xs text-white/60 mt-1">
-                                        {ledgerType === 'account' && '📋 Vue par compte spécifique'}
-                                        {ledgerType === 'journal' && '📚 Vue par journal'}
-                                        {ledgerType === 'auxiliary' && '👥 Vue auxiliaire des tiers'}
+                                        {ledgerType === 'account' && 'Vue par compte spécifique'}
+                                        {ledgerType === 'journal' && 'Vue par journal'}
+                                        {ledgerType === 'auxiliary' && 'Vue auxiliaire des tiers'}
                                       </div>
                                     )}
                                   </div>
@@ -2164,7 +2164,7 @@ const AdvancedGeneralLedger: React.FC = () => {
               </h3>
               <div className="flex items-center space-x-2">
                 <span className="px-3 py-1 bg-primary-200 text-primary-800 text-sm rounded-full font-medium">
-                  🤖 Modèles actifs: 5
+                  Modèles actifs: 5
                 </span>
                 <button
                   onClick={() => setShowAISettingsModal(true)}
@@ -2404,7 +2404,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                   </div>
 
                   <div className="mt-4 p-3 bg-primary-50 rounded border border-primary-200">
-                    <div className="text-xs text-primary-600 mb-1">🎯 Recommandation IA</div>
+                    <div className="text-xs text-primary-600 mb-1">Recommandation IA</div>
                     <div className="text-sm text-primary-900">
                       Optimiser délais fournisseurs pour améliorer score de 62% à 78%
                     </div>

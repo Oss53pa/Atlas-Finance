@@ -72,22 +72,22 @@ export const StepsTimeline: React.FC<StepsTimelineProps> = ({
                     <span>⏱️ {step.estimated_duration}</span>
                   )}
                   {step.created_entries !== undefined && step.created_entries > 0 && (
-                    <span>📝 {step.created_entries} écritures</span>
+                    <span>{step.created_entries} écritures</span>
                   )}
                   {step.syscohada_reference && (
-                    <span>📖 Réf: {step.syscohada_reference}</span>
+                    <span>Réf: {step.syscohada_reference}</span>
                   )}
                 </div>
 
                 {step.validated_by && (
                   <div className="text-xs text-[var(--color-success)] mt-2">
-                    ✓ Validé par {step.validated_by}
+                    Validé par {step.validated_by}
                   </div>
                 )}
 
                 {step.errorMessage && (
                   <div className="text-xs text-[var(--color-error)] mt-2 bg-[var(--color-error-lightest)] p-2 rounded">
-                    ⚠️ {step.errorMessage}
+                    {step.errorMessage}
                   </div>
                 )}
               </div>

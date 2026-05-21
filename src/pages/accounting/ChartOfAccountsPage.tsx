@@ -546,7 +546,7 @@ const ChartOfAccountsPage: React.FC = () => {
         >
           <UnifiedCard variant="glass" size="md">
             <div className="space-y-4">
-              <h3 className="text-lg font-bold text-neutral-800">🔍 Validation Plan Comptable SYSCOHADA</h3>
+              <h3 className="text-lg font-bold text-neutral-800">Validation Plan Comptable SYSCOHADA</h3>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="space-y-3">
@@ -555,21 +555,21 @@ const ChartOfAccountsPage: React.FC = () => {
                     <div className="flex items-center justify-between p-3 bg-white rounded-lg border">
                       <span className="text-sm">Codes 9 positions</span>
                       <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-bold">
-                        ✅ {syscohadaPlan.filter(c => validateSyscohadaCode(c.code)).length}/{syscohadaPlan.length}
+                        {syscohadaPlan.filter(c => validateSyscohadaCode(c.code)).length}/{syscohadaPlan.length}
                       </span>
                     </div>
                     
                     <div className="flex items-center justify-between p-3 bg-white rounded-lg border">
                       <span className="text-sm">Classes 1-9 présentes</span>
                       <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-bold">
-                        ✅ 9/9
+                        9/9
                       </span>
                     </div>
                     
                     <div className="flex items-center justify-between p-3 bg-white rounded-lg border">
                       <span className="text-sm">Hiérarchie respectée</span>
                       <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-bold">
-                        ✅ OK
+                        OK
                       </span>
                     </div>
                   </div>

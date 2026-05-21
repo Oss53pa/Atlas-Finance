@@ -52,13 +52,13 @@ export const SimpleFundCalls: React.FC = () => {
         <div className="card-header bg-primary text-white">
           <div className="d-flex justify-content-between align-items-center">
             <h4 className="mb-0">
-              💰 Appels de Fonds
+              Appels de Fonds
             </h4>
             <button
               className="btn btn-light btn-sm"
               onClick={() => setShowModal(true)}
             >
-              ➕ Nouveau
+              Nouveau
             </button>
           </div>
         </div>
@@ -95,9 +95,9 @@ export const SimpleFundCalls: React.FC = () => {
                       </td>
                       <td>
                         {fundCall.is_mark_as_pre_approved ? (
-                          <span className="badge bg-success">🔒 Approuvé</span>
+                          <span className="badge bg-success">Approuvé</span>
                         ) : (
-                          <span className="badge bg-warning">🔓 En attente</span>
+                          <span className="badge bg-warning">En attente</span>
                         )}
                       </td>
                       <td>{fundCall.leveling_account_from_info.french_description}</td>
@@ -123,15 +123,15 @@ export const SimpleFundCalls: React.FC = () => {
                                 className="dropdown-item"
                                 to={`/admin/finance/cash-flow/payment-management/fund-calls/details/${fundCall.id}/summary`}
                               >
-                                👁️ Détails
+                                Détails
                               </Link>
                             </li>
                             <li>
-                              <button className="dropdown-item">✏️ Modifier</button>
+                              <button className="dropdown-item">Modifier</button>
                             </li>
                             <li><hr className="dropdown-divider" /></li>
                             <li>
-                              <button className="dropdown-item text-danger">🗑️ Supprimer</button>
+                              <button className="dropdown-item text-danger">Supprimer</button>
                             </li>
                           </ul>
                         </div>

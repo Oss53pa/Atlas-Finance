@@ -208,7 +208,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
             {/* Error state */}
             {error && (
               <div className="px-4 py-4 bg-red-50 border-b border-red-200">
-                <p className="text-sm text-red-600">⚠️ {error}</p>
+                <p className="text-sm text-red-600">{error}</p>
               </div>
             )}
 

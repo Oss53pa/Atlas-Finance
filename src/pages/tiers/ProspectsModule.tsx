@@ -946,10 +946,10 @@ const ProspectsModule: React.FC = () => {
                   </label>
                   <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     <option value="">Évaluer</option>
-                    <option value="FAIBLE">⭐ Faible</option>
-                    <option value="MOYEN">⭐⭐ Moyen</option>
-                    <option value="ELEVE">⭐⭐⭐ Élevé</option>
-                    <option value="TRES_ELEVE">⭐⭐⭐⭐ Très élevé</option>
+                    <option value="FAIBLE">Faible</option>
+                    <option value="MOYEN">⭐Moyen</option>
+                    <option value="ELEVE">⭐⭐Élevé</option>
+                    <option value="TRES_ELEVE">⭐⭐⭐Très élevé</option>
                   </select>
                 </div>
 

@@ -83,8 +83,8 @@ export class Proph3tMLManager {
         tiers: params.tiers
       });
 
-      let response = "Super ! 💰 Proph3t a analysé votre transaction avec son IA Random Forest !\n\n";
-      response += "📊 **Recommandations de comptes:**\n\n";
+      let response = "Super ! Proph3t a analysé votre transaction avec son IA Random Forest !\n\n";
+      response += "**Recommandations de comptes:**\n\n";
 
       recommendations.forEach((rec, index) => {
         const emoji = index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉';
@@ -95,12 +95,12 @@ export class Proph3tMLManager {
         response += `   Confiance: ${confidence}% ${bar}\n\n`;
       });
 
-      response += "✨ Proph3t recommande d'utiliser le premier compte avec la plus haute confiance !\n";
-      response += "💡 Astuce: Plus vous validez, plus l'IA apprend et s'améliore !";
+      response += "Proph3t recommande d'utiliser le premier compte avec la plus haute confiance !\n";
+      response += "Astuce: Plus vous validez, plus l'IA apprend et s'améliore !";
 
       return response;
     } catch (error) {
-      return "Oops ! 😅 Proph3t a eu un petit souci avec l'IA... Le modèle Random Forest n'est peut-être pas encore entraîné. Voulez-vous que je lance l'entraînement ?";
+      return "Oops ! Proph3t a eu un petit souci avec l'IA... Le modèle Random Forest n'est peut-être pas encore entraîné. Voulez-vous que je lance l'entraînement ?";
     }
   }
 
@@ -118,8 +118,8 @@ export class Proph3tMLManager {
 
       const forecasts = await mlService.getTreasuryForecast(historical, periods);
 
-      let response = "Génial ! 📈 Proph3t a prédit votre trésorerie avec son réseau LSTM !\n\n";
-      response += `🔮 **Prévisions sur ${periods} jours:**\n\n`;
+      let response = "Génial ! Proph3t a prédit votre trésorerie avec son réseau LSTM !\n\n";
+      response += `**Prévisions sur ${periods} jours:**\n\n`;
 
       // Montre les 7 premiers jours
       forecasts.slice(0, 7).forEach((forecast, index) => {
@@ -135,7 +135,7 @@ export class Proph3tMLManager {
       const trendEmoji = avgForecast > historical[0].solde ? '🟢' : '🔴';
 
       response += `\n${trendEmoji} **Tendance ${trend}**: ${this.formatCurrency(avgForecast)} en moyenne\n`;
-      response += "\n💡 Proph3t conseille: ";
+      response += "\nProph3t conseille: ";
 
       if (avgForecast < historical[0].solde * 0.8) {
         response += "Attention, votre trésorerie va baisser ! Prévoyez des rentrées d'argent.";
@@ -147,7 +147,7 @@ export class Proph3tMLManager {
 
       return response;
     } catch (error) {
-      return "Oh là là ! 🔧 Le modèle LSTM de prédiction n'est pas encore prêt. Voulez-vous que Proph3t le prépare pour vous ?";
+      return "Oh là là ! Le modèle LSTM de prédiction n'est pas encore prêt. Voulez-vous que Proph3t le prépare pour vous ?";
     }
   }
 
@@ -170,8 +170,8 @@ export class Proph3tMLManager {
 
       const riskScore = await mlService.analyzeClientRisk(clientData);
 
-      let response = "Analyse terminée ! 🎯 Proph3t a évalué le risque avec XGBoost !\n\n";
-      response += `📊 **Client ${params.client_name || params.client_id}:**\n\n`;
+      let response = "Analyse terminée ! Proph3t a évalué le risque avec XGBoost !\n\n";
+      response += `**Client ${params.client_name || params.client_id}:**\n\n`;
 
       // Score visuel
       const scorePercent = Math.round(riskScore.risk_probability * 100);
@@ -191,30 +191,30 @@ export class Proph3tMLManager {
       response += `${categoryEmoji[riskScore.risk_category]} **Catégorie**: ${riskScore.risk_category}\n\n`;
 
       // Recommandations
-      response += "💡 **Recommandations Proph3t:**\n";
+      response += "**Recommandations Proph3t:**\n";
 
       switch (riskScore.risk_category) {
         case 'Faible':
-          response += "✅ Client fiable ! Vous pouvez accorder des facilités de paiement.\n";
-          response += "📝 Aucune action particulière nécessaire.";
+          response += "Client fiable ! Vous pouvez accorder des facilités de paiement.\n";
+          response += "Aucune action particulière nécessaire.";
           break;
         case 'Moyen':
-          response += "⚠️ Surveillez les paiements de ce client.\n";
-          response += "📧 Envoyez des rappels avant échéance.";
+          response += "Surveillez les paiements de ce client.\n";
+          response += "Envoyez des rappels avant échéance.";
           break;
         case 'Élevé':
-          response += "🚨 Risque important ! Demandez un acompte.\n";
-          response += "📞 Contactez le client pour vérifier sa situation.";
+          response += "Risque important ! Demandez un acompte.\n";
+          response += "Contactez le client pour vérifier sa situation.";
           break;
         case 'Critique':
-          response += "🛑 ATTENTION ! Ne pas accorder de crédit supplémentaire.\n";
-          response += "⚖️ Envisagez une procédure de recouvrement.";
+          response += "ATTENTION ! Ne pas accorder de crédit supplémentaire.\n";
+          response += "Envisagez une procédure de recouvrement.";
           break;
       }
 
       return response;
     } catch (error) {
-      return "Oups ! 🔍 Le modèle XGBoost d'analyse de risque n'est pas disponible. Voulez-vous l'activer ?";
+      return "Oups ! Le modèle XGBoost d'analyse de risque n'est pas disponible. Voulez-vous l'activer ?";
     }
   }
 
@@ -227,10 +227,10 @@ export class Proph3tMLManager {
       const anomalies = await mlService.getRecentAnomalies(days);
 
       if (anomalies.length === 0) {
-        return `Parfait ! ✅ Aucune anomalie détectée sur les ${days} derniers jours.\n\nProph3t veille sur vos données ! 🛡️`;
+        return `Parfait ! Aucune anomalie détectée sur les ${days} derniers jours.\n\nProph3t veille sur vos données ! 🛡️`;
       }
 
-      let response = `Attention ! 🚨 Proph3t a détecté ${anomalies.length} anomalie(s) :\n\n`;
+      let response = `Attention ! Proph3t a détecté ${anomalies.length} anomalie(s) :\n\n`;
 
       // Groupe par sévérité
       const critical = anomalies.filter(a => a.severite === 'CRITIQUE');
@@ -238,7 +238,7 @@ export class Proph3tMLManager {
       const medium = anomalies.filter(a => a.severite === 'MOYEN');
 
       if (critical.length > 0) {
-        response += `🔴 **CRITIQUE** (${critical.length}):\n`;
+        response += `**CRITIQUE** (${critical.length}):\n`;
         critical.slice(0, 3).forEach(a => {
           response += `   • ${a.titre} (Score: ${Math.round(a.score * 100)}%)\n`;
         });
@@ -246,7 +246,7 @@ export class Proph3tMLManager {
       }
 
       if (high.length > 0) {
-        response += `🟠 **ÉLEVÉ** (${high.length}):\n`;
+        response += `**ÉLEVÉ** (${high.length}):\n`;
         high.slice(0, 3).forEach(a => {
           response += `   • ${a.titre}\n`;
         });
@@ -254,14 +254,14 @@ export class Proph3tMLManager {
       }
 
       if (medium.length > 0) {
-        response += `🟡 **MOYEN** (${medium.length})\n\n`;
+        response += `**MOYEN** (${medium.length})\n\n`;
       }
 
-      response += "💡 Proph3t recommande de traiter d'abord les anomalies critiques !";
+      response += "Proph3t recommande de traiter d'abord les anomalies critiques !";
 
       return response;
     } catch (error) {
-      return "Hmm... 🤔 Proph3t ne peut pas accéder aux détections d'anomalies pour le moment.";
+      return "Hmm... Proph3t ne peut pas accéder aux détections d'anomalies pour le moment.";
     }
   }
 
@@ -273,16 +273,16 @@ export class Proph3tMLManager {
       const dashboard = await mlService.getDashboard();
 
       let response = "Voici le Dashboard IA de Atlas Studio ! 🤖✨\n\n";
-      response += "📊 **Vue d'ensemble:**\n";
+      response += "**Vue d'ensemble:**\n";
       response += `   • Modèles actifs: ${dashboard.summary.active_models}/${dashboard.summary.total_models}\n`;
       response += `   • Modèles prêts: ${dashboard.summary.ready_models}\n`;
       response += `   • En entraînement: ${dashboard.summary.training_models}\n`;
 
       if (dashboard.summary.needs_retraining > 0) {
-        response += `   ⚠️ À réentraîner: ${dashboard.summary.needs_retraining}\n`;
+        response += `   À réentraîner: ${dashboard.summary.needs_retraining}\n`;
       }
 
-      response += "\n🧠 **Modèles par type:**\n";
+      response += "\n**Modèles par type:**\n";
       Object.entries(dashboard.models_by_type).forEach(([type, count]) => {
         if (count > 0) {
           const emoji = this.getModelEmoji(type);
@@ -292,18 +292,18 @@ export class Proph3tMLManager {
 
       // Derniers entraînements
       if (dashboard.recent_trainings.length > 0) {
-        response += "\n🎓 **Derniers entraînements:**\n";
+        response += "\n**Derniers entraînements:**\n";
         dashboard.recent_trainings.slice(0, 3).forEach(training => {
           const improvement = training.improvement ? `+${Math.round(training.improvement * 100)}%` : 'N/A';
           response += `   • ${training.modele_nom}: ${Math.round(training.score * 100)}% (${improvement})\n`;
         });
       }
 
-      response += "\n✨ Tous les modèles de Proph3t sont opérationnels !";
+      response += "\nTous les modèles de Proph3t sont opérationnels !";
 
       return response;
     } catch (error) {
-      return "Oops ! 📊 Proph3t ne peut pas charger le dashboard ML pour le moment.";
+      return "Oops ! Proph3t ne peut pas charger le dashboard ML pour le moment.";
     }
   }
 
@@ -314,13 +314,13 @@ export class Proph3tMLManager {
     const capability = this.capabilities.get(capabilityName);
 
     if (!capability) {
-      return `Désolée ! 😅 Proph3t ne connaît pas cette capacité IA: "${capabilityName}"`;
+      return `Désolée ! Proph3t ne connaît pas cette capacité IA: "${capabilityName}"`;
     }
 
     try {
       return await capability.action(params);
     } catch (error) {
-      return `Oups ! 🔧 Proph3t a rencontré une erreur: ${error}`;
+      return `Oups ! Proph3t a rencontré une erreur: ${error}`;
     }
   }
 

@@ -4,7 +4,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
-// ✅ CHARGEMENT SYNCHRONE DES CSS - AVANT tout le reste
+// CHARGEMENT SYNCHRONE DES CSS - AVANT tout le reste
 import './styles/base.css'
 import './index.css'
 

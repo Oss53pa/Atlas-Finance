@@ -508,16 +508,16 @@ const ImportExportManager: React.FC = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-center text-sm">
                         <div className="space-y-1">
                           <div className="text-green-600 font-medium">
-                            ✓ {job.results.successRows}/{job.results.totalRows}
+                            {job.results.successRows}/{job.results.totalRows}
                           </div>
                           {job.results.errorRows > 0 && (
                             <div className="text-red-600 text-xs">
-                              ✗ {job.results.errorRows} erreurs
+                              {job.results.errorRows} erreurs
                             </div>
                           )}
                           {job.results.warnings > 0 && (
                             <div className="text-yellow-600 text-xs">
-                              ⚠ {job.results.warnings} alertes
+                              {job.results.warnings} alertes
                             </div>
                           )}
                         </div>
@@ -800,7 +800,7 @@ const ImportExportManager: React.FC = () => {
               </div>
 
               <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <h4 className="font-medium text-yellow-900 mb-2">⚠️ Contrôles Qualité</h4>
+                <h4 className="font-medium text-yellow-900 mb-2">Contrôles Qualité</h4>
                 <div className="text-sm text-yellow-800 space-y-1">
                   <div>• Équilibre global Débit = Crédit</div>
                   <div>• Cohérence dates (écriture ≤ validation)</div>

@@ -554,7 +554,7 @@ const ReportsANouveauModule: React.FC = () => {
 
               <div className="mt-8 p-4 bg-[var(--color-warning-lightest)] border border-yellow-200 rounded-lg">
                 <p className="text-sm text-yellow-800">
-                  ⚠️ La validation du report à nouveau est irréversible. Assurez-vous que tous les contrôles ont été effectués.
+                  La validation du report à nouveau est irréversible. Assurez-vous que tous les contrôles ont été effectués.
                 </p>
               </div>
 

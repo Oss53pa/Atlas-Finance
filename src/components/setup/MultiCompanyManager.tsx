@@ -369,9 +369,9 @@ const MultiCompanyManager: React.FC = () => {
               </span>
             </div>
             <div className="flex items-center space-x-4 text-sm text-gray-600 mt-1">
-              <span>👥 {company.stats.utilisateurs} utilisateurs</span>
-              <span>📝 {company.stats.ecritures.toLocaleString()} écritures</span>
-              <span>💰 {(company.stats.ca / 1000000).toFixed(0)}M XAF</span>
+              <span>{company.stats.utilisateurs} utilisateurs</span>
+              <span>{company.stats.ecritures.toLocaleString()} écritures</span>
+              <span>{(company.stats.ca / 1000000).toFixed(0)}M XAF</span>
             </div>
           </div>
 

@@ -1723,7 +1723,7 @@ const ContactsModule: React.FC = () => {
                 {contactToDelete.interactions.length > 0 && (
                   <div className="mt-3 p-2 bg-orange-50 border border-orange-200 rounded">
                     <p className="text-sm text-orange-800">
-                      ⚠️ Ce contact a {contactToDelete.interactions.length} interaction(s) enregistrée(s).
+                      Ce contact a {contactToDelete.interactions.length} interaction(s) enregistrée(s).
                     </p>
                   </div>
                 )}

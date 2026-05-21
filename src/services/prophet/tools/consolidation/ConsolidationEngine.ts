@@ -483,7 +483,7 @@ export function consoliderComptes(input: ConsolidationInput): ResultatConsolidat
     `BILAN CONSOLIDÉ : Actif = ${totalActif.toLocaleString('fr-FR')} / Passif = ${totalPassif.toLocaleString('fr-FR')} — ${ecart <= 1 ? 'ÉQUILIBRÉ' : 'NON ÉQUILIBRÉ (écart ' + ecart.toLocaleString('fr-FR') + ')'}`,
     `RÉSULTAT CONSOLIDÉ : ${resultatNet.toLocaleString('fr-FR')} FCFA`,
     resultatMinoritaires ? `  Part du groupe : ${(resultatNet - resultatMinoritaires).toLocaleString('fr-FR')} / Minoritaires : ${resultatMinoritaires.toLocaleString('fr-FR')}` : '',
-    alertes.length > 0 ? `\nALERTES :\n${alertes.map(a => '  ⚠ ' + a).join('\n')}` : '',
+    alertes.length > 0 ? `\nALERTES :\n${alertes.map(a => '  ' + a).join('\n')}` : '',
   ].filter(Boolean).join('\n');
 
   return {

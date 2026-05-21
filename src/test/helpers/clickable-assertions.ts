@@ -209,7 +209,7 @@ export const assertNoToastWhenModalExpected = async (options: { timeout?: number
       const toastContainers = document.querySelectorAll('[data-toast], [role="alert"], .toast, .notification');
       if (toastContainers.length > 0) {
         throw new Error(
-          `❌ MISMATCH UI: Un toast est apparu alors qu'une modale était attendue. ` +
+          `MISMATCH UI: Un toast est apparu alors qu'une modale était attendue. ` +
           `Ceci est un anti-pattern critique identifié dans l'audit.`
         );
       }
@@ -321,7 +321,7 @@ export const assertNoModalWhenToastExpected = async (options: { timeout?: number
       const dialogs = screen.queryAllByRole('dialog');
       if (dialogs.length > 0) {
         throw new Error(
-          `❌ MISMATCH UI: Une modale est apparue alors qu'un toast était attendu. ` +
+          `MISMATCH UI: Une modale est apparue alors qu'un toast était attendu. ` +
           `Vérifier la logique du handler.`
         );
       }

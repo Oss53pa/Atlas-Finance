@@ -45,7 +45,7 @@ import {
   SelectValue,
 } from '../../components/ui';
 
-// ✅ Import des hooks depuis notre nouvelle architecture
+// Import des hooks depuis notre nouvelle architecture
 import {
   useBankAccounts,
   useActiveBankAccounts,
@@ -119,10 +119,10 @@ const BankAccountsExamplePage: React.FC = () => {
     try {
       await createAccount.mutateAsync(formData);
       setShowCreateModal(false);
-      // ✅ Le cache est automatiquement invalidé par le hook !
-      // ✅ Toast de succès automatique via le service !
+      // Le cache est automatiquement invalidé par le hook !
+      // Toast de succès automatique via le service !
     } catch (error) {
-      // ✅ Toast d'erreur automatique via le service !
+      // Toast d'erreur automatique via le service !
     }
   };
 
@@ -130,7 +130,7 @@ const BankAccountsExamplePage: React.FC = () => {
     try {
       await updateAccount.mutateAsync({ id, data });
       setEditingAccount(null);
-      // ✅ Cache invalidé automatiquement !
+      // Cache invalidé automatiquement !
     } catch (error) {
       /* ignored */
     }
@@ -141,7 +141,7 @@ const BankAccountsExamplePage: React.FC = () => {
 
     try {
       await deleteAccount.mutateAsync(id);
-      // ✅ Cache invalidé automatiquement !
+      // Cache invalidé automatiquement !
     } catch (error) {
       /* ignored */
     }

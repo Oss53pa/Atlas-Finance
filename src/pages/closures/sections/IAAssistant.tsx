@@ -207,10 +207,10 @@ const IAAssistant: React.FC = () => {
         id: (Date.now() + 1).toString(),
         type: 'assistant',
         content: errors.length === 0
-          ? `**Clôture terminée avec succès !**\n\n${done.map(s => `✅ ${s.label}: ${s.message}`).join('\n')}`
+          ? `**Clôture terminée avec succès !**\n\n${done.map(s => `${s.label}: ${s.message}`).join('\n')}`
           : `**Clôture incomplète** — ${errors.length} erreur(s)\n\n${results.map(s =>
-              s.status === 'done' ? `✅ ${s.label}: ${s.message}` :
-              s.status === 'error' ? `❌ ${s.label}: ${s.message}` :
+              s.status === 'done' ? `${s.label}: ${s.message}` :
+              s.status === 'error' ? `${s.label}: ${s.message}` :
               `⏳ ${s.label}`
             ).join('\n')}`,
         timestamp: new Date().toISOString(),
@@ -455,7 +455,7 @@ const IAAssistant: React.FC = () => {
 
     if (lowerInput.includes('clôture') || lowerInput.includes('cloture') || lowerInput.includes('fermer')) {
       if (p) {
-        return `**Aperçu de la clôture en cours :**\n\n• ${p.totalEntries} écritures au total\n• ${p.entriesToLock} à verrouiller\n• Produits : ${formatCurrency(p.totalProduits)}\n• Charges : ${formatCurrency(p.totalCharges)}\n• **Résultat : ${formatCurrency(p.resultatNet)}** (${p.isBenefice ? 'Bénéfice' : 'Perte'})\n${p.warnings.length > 0 ? `\n⚠️ ${p.warnings.length} avertissement(s):\n${p.warnings.map(w => `  - ${w}`).join('\n')}` : '\n✅ Aucun avertissement'}\n\nVoulez-vous que Proph3t exécute la clôture automatiquement ?`;
+        return `**Aperçu de la clôture en cours :**\n\n• ${p.totalEntries} écritures au total\n• ${p.entriesToLock} à verrouiller\n• Produits : ${formatCurrency(p.totalProduits)}\n• Charges : ${formatCurrency(p.totalCharges)}\n• **Résultat : ${formatCurrency(p.resultatNet)}** (${p.isBenefice ? 'Bénéfice' : 'Perte'})\n${p.warnings.length > 0 ? `\n${p.warnings.length} avertissement(s):\n${p.warnings.map(w => `  - ${w}`).join('\n')}` : '\nAucun avertissement'}\n\nVoulez-vous que Proph3t exécute la clôture automatiquement ?`;
       }
       return 'Je n\'ai pas pu charger l\'aperçu de clôture. Vérifiez qu\'un exercice fiscal actif existe dans la base de données.';
     }

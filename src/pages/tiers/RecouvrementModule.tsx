@@ -8844,7 +8844,7 @@ Service Contentieux
                         {selectedCreance.commercialData.litigesActifs > 0 && (
                           <div className="bg-red-100 border border-red-200 rounded p-2">
                             <span className="text-sm font-medium text-red-800">
-                              ⚠️ {selectedCreance.commercialData.litigesActifs} litige{selectedCreance.commercialData.litigesActifs > 1 ? 's' : ''} actif{selectedCreance.commercialData.litigesActifs > 1 ? 's' : ''}
+                              {selectedCreance.commercialData.litigesActifs} litige{selectedCreance.commercialData.litigesActifs > 1 ? 's' : ''} actif{selectedCreance.commercialData.litigesActifs > 1 ? 's' : ''}
                             </span>
                           </div>
                         )}
@@ -9536,9 +9536,9 @@ Service Contentieux
                                 <h2 style={{ color: '#333', margin: '0', fontSize: '20px' }}>
                                   {selectedTemplateType === 'rappel_amical' && 'Rappel de paiement - Facture en attente'}
                                   {selectedTemplateType === 'relance_ferme' && '2ème Relance - Action requise'}
-                                  {selectedTemplateType === 'dernier_avis' && '⚠️ DERNIER AVIS avant procédure'}
-                                  {selectedTemplateType === 'mise_demeure' && '🔴 MISE EN DEMEURE'}
-                                  {selectedTemplateType === 'pre_contentieux' && '⚖️ TRANSMISSION AU SERVICE CONTENTIEUX'}
+                                  {selectedTemplateType === 'dernier_avis' && 'DERNIER AVIS avant procédure'}
+                                  {selectedTemplateType === 'mise_demeure' && 'MISE EN DEMEURE'}
+                                  {selectedTemplateType === 'pre_contentieux' && 'TRANSMISSION AU SERVICE CONTENTIEUX'}
                                 </h2>
                               </div>
 
@@ -9707,8 +9707,8 @@ Service Contentieux
                                       </ul>
                                       <p style={{ backgroundColor: '#fff3cd', padding: '10px', marginTop: '15px', borderRadius: '5px' }}>
                                         <strong>Pour éviter ces poursuites, contactez immédiatement notre service:</strong><br/>
-                                        ☎️ Tél: +242 06 XXX XX XX<br/>
-                                        ✉️ Email: contentieux@atlasfna.com
+                                        Tél: +242 06 XXX XX XX<br/>
+                                        Email: contentieux@atlasfna.com
                                       </p>
                                     </>
                                   )}
@@ -9727,7 +9727,7 @@ Service Contentieux
                                     fontSize: '14px',
                                     fontWeight: 'bold'
                                   }}>
-                                    💳 Régler maintenant en ligne
+                                    Régler maintenant en ligne
                                   </a>
                                   <p style={{ marginTop: '10px', fontSize: '12px', color: '#666' }}>
                                     Paiement sécurisé par carte bancaire ou virement
@@ -9759,8 +9759,8 @@ Service Contentieux
                               {/* Pied de page */}
                               <div style={{ backgroundColor: 'var(--color-background)', padding: '20px', borderTop: '1px solid #e5e5e5', fontSize: '11px', color: '#666' }}>
                                 <p style={{ margin: '5px 0', fontWeight: 'bold' }}><span className="atlas-brand">Atlas F&A</span> - Solutions de gestion d'entreprise</p>
-                                <p style={{ margin: '5px 0' }}>📍 123 Avenue de la République, Brazzaville, Congo</p>
-                                <p style={{ margin: '5px 0' }}>☎️ +242 06 XXX XX XX | ✉️ contact@atlasfna.com | 🌐 www.atlasfna.com</p>
+                                <p style={{ margin: '5px 0' }}>123 Avenue de la République, Brazzaville, Congo</p>
+                                <p style={{ margin: '5px 0' }}>+242 06 XXX XX XX | contact@atlasfna.com | www.atlasfna.com</p>
                                 <p style={{ margin: '10px 0 5px 0', fontSize: '10px', color: '#999' }}>
                                   Ce message et toutes les pièces jointes sont confidentiels et établis à l'intention exclusive de ses destinataires.
                                 </p>

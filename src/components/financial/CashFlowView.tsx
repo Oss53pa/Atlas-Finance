@@ -554,7 +554,7 @@ const CashFlowView: React.FC = () => {
       {/* Recommandations */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-          <h4 className="font-medium text-green-900 mb-3">✅ Points Forts</h4>
+          <h4 className="font-medium text-green-900 mb-3">Points Forts</h4>
           <ul className="space-y-2 text-sm text-green-800">
             <li>• CAF positive et en croissance (+15%)</li>
             <li>• Excellent cash conversion ratio (1.13)</li>
@@ -564,7 +564,7 @@ const CashFlowView: React.FC = () => {
         </div>
 
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-          <h4 className="font-medium text-yellow-900 mb-3">⚠️ Points d'Amélioration</h4>
+          <h4 className="font-medium text-yellow-900 mb-3">Points d'Amélioration</h4>
           <ul className="space-y-2 text-sm text-yellow-800">
             <li>• Réduire les délais de recouvrement (45 → 35 jours)</li>
             <li>• Optimiser la gestion des stocks</li>

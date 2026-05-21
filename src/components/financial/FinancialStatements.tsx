@@ -2302,11 +2302,11 @@ const FinancialStatements: React.FC = () => {
                     <p className="text-sm text-gray-700">Indique la capacité à se financer sans dettes.</p>
                     <div className="mt-3 text-xs">
                       {ratios.autonomieFinanciere > 50 ? (
-                        <span className="text-[var(--color-primary)] font-semibold">✓ Excellent</span>
+                        <span className="text-[var(--color-primary)] font-semibold">Excellent</span>
                       ) : ratios.autonomieFinanciere > 30 ? (
-                        <span className="text-orange-600 font-semibold">⚠ Acceptable</span>
+                        <span className="text-orange-600 font-semibold">Acceptable</span>
                       ) : (
-                        <span className="text-red-600 font-semibold">✗ Insuffisant</span>
+                        <span className="text-red-600 font-semibold">Insuffisant</span>
                       )}
                     </div>
                   </div>
@@ -2321,11 +2321,11 @@ const FinancialStatements: React.FC = () => {
                     <p className="text-sm text-gray-700">Mesure le poids de la dette par rapport aux fonds propres.</p>
                     <div className="mt-3 text-xs">
                       {ratios.endettement < 50 ? (
-                        <span className="text-[var(--color-primary)] font-semibold">✓ Faible</span>
+                        <span className="text-[var(--color-primary)] font-semibold">Faible</span>
                       ) : ratios.endettement < 100 ? (
-                        <span className="text-orange-600 font-semibold">⚠ Modéré</span>
+                        <span className="text-orange-600 font-semibold">Modéré</span>
                       ) : (
-                        <span className="text-red-600 font-semibold">✗ Élevé</span>
+                        <span className="text-red-600 font-semibold">Élevé</span>
                       )}
                     </div>
                   </div>
@@ -2340,9 +2340,9 @@ const FinancialStatements: React.FC = () => {
                     <p className="text-sm text-gray-700">Vérifie si les immobilisations sont financées par des capitaux permanents.</p>
                     <div className="mt-3 text-xs">
                       {ratios.couvertureEmplois > 100 ? (
-                        <span className="text-[var(--color-primary)] font-semibold">✓ Bon équilibre</span>
+                        <span className="text-[var(--color-primary)] font-semibold">Bon équilibre</span>
                       ) : (
-                        <span className="text-red-600 font-semibold">✗ Déséquilibre</span>
+                        <span className="text-red-600 font-semibold">Déséquilibre</span>
                       )}
                     </div>
                   </div>
@@ -2372,11 +2372,11 @@ const FinancialStatements: React.FC = () => {
                     <p className="text-sm text-gray-700 mb-3">Mesure la capacité à honorer les dettes à court terme avec l'actif circulant.</p>
                     <div className="mt-3 text-xs">
                       {ratios.liquiditeGenerale > 1.5 ? (
-                        <span className="text-[var(--color-primary)] font-semibold">✓ Très bonne</span>
+                        <span className="text-[var(--color-primary)] font-semibold">Très bonne</span>
                       ) : ratios.liquiditeGenerale > 1 ? (
-                        <span className="text-orange-600 font-semibold">⚠ Acceptable</span>
+                        <span className="text-orange-600 font-semibold">Acceptable</span>
                       ) : (
-                        <span className="text-red-600 font-semibold">✗ Insuffisante</span>
+                        <span className="text-red-600 font-semibold">Insuffisante</span>
                       )}
                     </div>
                   </div>
@@ -2392,11 +2392,11 @@ const FinancialStatements: React.FC = () => {
                     <p className="text-sm text-gray-700 mb-3">Mesure la liquidité en excluant les stocks (moins liquides).</p>
                     <div className="mt-3 text-xs">
                       {ratios.liquiditeReduite > 1 ? (
-                        <span className="text-[var(--color-primary)] font-semibold">✓ Satisfaisante</span>
+                        <span className="text-[var(--color-primary)] font-semibold">Satisfaisante</span>
                       ) : ratios.liquiditeReduite > 0.7 ? (
-                        <span className="text-orange-600 font-semibold">⚠ Limite</span>
+                        <span className="text-orange-600 font-semibold">Limite</span>
                       ) : (
-                        <span className="text-red-600 font-semibold">✗ Faible</span>
+                        <span className="text-red-600 font-semibold">Faible</span>
                       )}
                     </div>
                   </div>
@@ -2412,11 +2412,11 @@ const FinancialStatements: React.FC = () => {
                     <p className="text-sm text-gray-700 mb-3">Indique la liquidité immédiatement disponible.</p>
                     <div className="mt-3 text-xs">
                       {8000000 > 5000000 ? (
-                        <span className="text-[var(--color-primary)] font-semibold">✓ Trésorerie positive</span>
+                        <span className="text-[var(--color-primary)] font-semibold">Trésorerie positive</span>
                       ) : 8000000 > 0 ? (
-                        <span className="text-orange-600 font-semibold">⚠ Trésorerie faible</span>
+                        <span className="text-orange-600 font-semibold">Trésorerie faible</span>
                       ) : (
-                        <span className="text-red-600 font-semibold">✗ Trésorerie négative</span>
+                        <span className="text-red-600 font-semibold">Trésorerie négative</span>
                       )}
                     </div>
                   </div>
@@ -2432,11 +2432,11 @@ const FinancialStatements: React.FC = () => {
                     <p className="text-sm text-gray-700 mb-3">Mesure la capacité à rembourser toutes les dettes avec les actifs.</p>
                     <div className="mt-3 text-xs">
                       {((104500000 / 36000000)) > 2 ? (
-                        <span className="text-[var(--color-primary)] font-semibold">✓ Très solvable</span>
+                        <span className="text-[var(--color-primary)] font-semibold">Très solvable</span>
                       ) : ((104500000 / 36000000)) > 1.5 ? (
-                        <span className="text-orange-600 font-semibold">⚠ Solvable</span>
+                        <span className="text-orange-600 font-semibold">Solvable</span>
                       ) : (
-                        <span className="text-red-600 font-semibold">✗ Risque solvabilité</span>
+                        <span className="text-red-600 font-semibold">Risque solvabilité</span>
                       )}
                     </div>
                   </div>
@@ -2466,11 +2466,11 @@ const FinancialStatements: React.FC = () => {
                     <p className="text-sm text-gray-700 mb-3">Mesure l'efficacité de l'utilisation des actifs.</p>
                     <div className="mt-3 text-xs">
                       {ratios.roa > 10 ? (
-                        <span className="text-[var(--color-primary)] font-semibold">✓ Excellente</span>
+                        <span className="text-[var(--color-primary)] font-semibold">Excellente</span>
                       ) : ratios.roa > 5 ? (
-                        <span className="text-orange-600 font-semibold">⚠ Bonne</span>
+                        <span className="text-orange-600 font-semibold">Bonne</span>
                       ) : (
-                        <span className="text-red-600 font-semibold">✗ Faible</span>
+                        <span className="text-red-600 font-semibold">Faible</span>
                       )}
                     </div>
                   </div>
@@ -2486,11 +2486,11 @@ const FinancialStatements: React.FC = () => {
                     <p className="text-sm text-gray-700 mb-3">Évalue la rentabilité pour les actionnaires.</p>
                     <div className="mt-3 text-xs">
                       {ratios.roe > 15 ? (
-                        <span className="text-[var(--color-primary)] font-semibold">✓ Très attractive</span>
+                        <span className="text-[var(--color-primary)] font-semibold">Très attractive</span>
                       ) : ratios.roe > 10 ? (
-                        <span className="text-orange-600 font-semibold">⚠ Attractive</span>
+                        <span className="text-orange-600 font-semibold">Attractive</span>
                       ) : (
-                        <span className="text-red-600 font-semibold">✗ Peu attractive</span>
+                        <span className="text-red-600 font-semibold">Peu attractive</span>
                       )}
                     </div>
                   </div>
@@ -2506,11 +2506,11 @@ const FinancialStatements: React.FC = () => {
                     <p className="text-sm text-gray-700 mb-3">Indique la capacité à convertir les ventes en profit net.</p>
                     <div className="mt-3 text-xs">
                       {ratios.rentabiliteCommerciale > 10 ? (
-                        <span className="text-[var(--color-primary)] font-semibold">✓ Excellente marge</span>
+                        <span className="text-[var(--color-primary)] font-semibold">Excellente marge</span>
                       ) : ratios.rentabiliteCommerciale > 5 ? (
-                        <span className="text-orange-600 font-semibold">⚠ Marge correcte</span>
+                        <span className="text-orange-600 font-semibold">Marge correcte</span>
                       ) : (
-                        <span className="text-red-600 font-semibold">✗ Marge faible</span>
+                        <span className="text-red-600 font-semibold">Marge faible</span>
                       )}
                     </div>
                   </div>
@@ -2526,11 +2526,11 @@ const FinancialStatements: React.FC = () => {
                     <p className="text-sm text-gray-700 mb-3">Mesure la performance opérationnelle indépendamment du financement.</p>
                     <div className="mt-3 text-xs">
                       {ratios.rentabiliteEconomique > 12 ? (
-                        <span className="text-[var(--color-primary)] font-semibold">✓ Très performante</span>
+                        <span className="text-[var(--color-primary)] font-semibold">Très performante</span>
                       ) : ratios.rentabiliteEconomique > 8 ? (
-                        <span className="text-orange-600 font-semibold">⚠ Performante</span>
+                        <span className="text-orange-600 font-semibold">Performante</span>
                       ) : (
-                        <span className="text-red-600 font-semibold">✗ Performance limitée</span>
+                        <span className="text-red-600 font-semibold">Performance limitée</span>
                       )}
                     </div>
                   </div>
@@ -2560,11 +2560,11 @@ const FinancialStatements: React.FC = () => {
                     <p className="text-sm text-gray-700">Indique le nombre de fois où les stocks sont renouvelés dans l'année.</p>
                     <div className="mt-3 text-xs">
                       {ratios.rotationStocks > 8 ? (
-                        <span className="text-[var(--color-primary)] font-semibold">✓ Excellent</span>
+                        <span className="text-[var(--color-primary)] font-semibold">Excellent</span>
                       ) : ratios.rotationStocks > 4 ? (
-                        <span className="text-orange-600 font-semibold">⚠ Acceptable</span>
+                        <span className="text-orange-600 font-semibold">Acceptable</span>
                       ) : (
-                        <span className="text-red-600 font-semibold">✗ Insuffisant</span>
+                        <span className="text-red-600 font-semibold">Insuffisant</span>
                       )}
                     </div>
                   </div>
@@ -2580,11 +2580,11 @@ const FinancialStatements: React.FC = () => {
                     <p className="text-sm text-gray-700">Temps moyen de recouvrement des créances clients en jours.</p>
                     <div className="mt-3 text-xs">
                       {ratios.delaiReglementClients < 30 ? (
-                        <span className="text-[var(--color-primary)] font-semibold">✓ Excellent</span>
+                        <span className="text-[var(--color-primary)] font-semibold">Excellent</span>
                       ) : ratios.delaiReglementClients < 60 ? (
-                        <span className="text-orange-600 font-semibold">⚠ Acceptable</span>
+                        <span className="text-orange-600 font-semibold">Acceptable</span>
                       ) : (
-                        <span className="text-red-600 font-semibold">✗ Trop long</span>
+                        <span className="text-red-600 font-semibold">Trop long</span>
                       )}
                     </div>
                   </div>
@@ -2600,11 +2600,11 @@ const FinancialStatements: React.FC = () => {
                     <p className="text-sm text-gray-700">Délai moyen de paiement des fournisseurs en jours.</p>
                     <div className="mt-3 text-xs">
                       {ratios.delaiReglementFournisseurs > 60 ? (
-                        <span className="text-[var(--color-primary)] font-semibold">✓ Bon crédit</span>
+                        <span className="text-[var(--color-primary)] font-semibold">Bon crédit</span>
                       ) : ratios.delaiReglementFournisseurs > 30 ? (
-                        <span className="text-orange-600 font-semibold">⚠ Moyen</span>
+                        <span className="text-orange-600 font-semibold">Moyen</span>
                       ) : (
-                        <span className="text-red-600 font-semibold">✗ Crédit court</span>
+                        <span className="text-red-600 font-semibold">Crédit court</span>
                       )}
                     </div>
                   </div>
@@ -2620,11 +2620,11 @@ const FinancialStatements: React.FC = () => {
                     <p className="text-sm text-gray-700">Efficacité d'utilisation des actifs pour générer du CA.</p>
                     <div className="mt-3 text-xs">
                       {ratios.rotationActifs > 2 ? (
-                        <span className="text-[var(--color-primary)] font-semibold">✓ Très efficace</span>
+                        <span className="text-[var(--color-primary)] font-semibold">Très efficace</span>
                       ) : ratios.rotationActifs > 1 ? (
-                        <span className="text-orange-600 font-semibold">⚠ Acceptable</span>
+                        <span className="text-orange-600 font-semibold">Acceptable</span>
                       ) : (
-                        <span className="text-red-600 font-semibold">✗ Peu efficace</span>
+                        <span className="text-red-600 font-semibold">Peu efficace</span>
                       )}
                     </div>
                   </div>

@@ -700,9 +700,9 @@ const ControlePeriodes: React.FC = () => {
                       <Progress value={80} className="h-2" />
                     </div>
                     <div className="text-xs text-[var(--color-text-secondary)]">
-                      <p>✓ Saisie des écritures</p>
-                      <p>✓ Lettrage des comptes</p>
-                      <p>✓ Rapprochements bancaires</p>
+                      <p>Saisie des écritures</p>
+                      <p>Lettrage des comptes</p>
+                      <p>Rapprochements bancaires</p>
                       <p className="text-[var(--color-warning)]">⏳ Contrôles de cohérence (90%)</p>
                       <p className="text-[var(--color-warning)]">⏳ Validation des provisions (50%)</p>
                     </div>

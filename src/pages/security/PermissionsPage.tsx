@@ -150,7 +150,7 @@ const PermissionsPage: React.FC = () => {
           {activeTab === 'matrix' && (
             <div className="space-y-6">
               <div className="bg-white rounded-lg p-6 border border-[var(--color-border)]">
-                <h3 className="font-semibold text-[var(--color-primary)] mb-4">🔐 Matrice des Permissions</h3>
+                <h3 className="font-semibold text-[var(--color-primary)] mb-4">Matrice des Permissions</h3>
                 
                 <div className="overflow-x-auto">
                   <table className="w-full">

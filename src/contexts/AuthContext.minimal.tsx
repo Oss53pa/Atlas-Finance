@@ -19,7 +19,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// ✅ VERSION ULTRA-MINIMALISTE - PAS DE STATE, PAS D'EFFET, RIEN
+// VERSION ULTRA-MINIMALISTE - PAS DE STATE, PAS D'EFFET, RIEN
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Valeurs par défaut statiques - AUCUN state
   const value: AuthContextType = {

@@ -46,7 +46,7 @@ export const ClientHeader: React.FC<ClientHeaderProps> = ({
               </span>
               {client.classification.clientStrategique && (
                 <span className="px-3 py-1 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
-                  ⭐ Stratégique
+                  Stratégique
                 </span>
               )}
             </div>

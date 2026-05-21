@@ -880,14 +880,14 @@ const IAConfigPage: React.FC = () => {
 
                 <div className="space-y-3 text-sm">
                   <div>
-                    <p className="font-medium text-[var(--color-text-primary)] mb-1">🎯 Score de Risque: 87/100</p>
+                    <p className="font-medium text-[var(--color-text-primary)] mb-1">Score de Risque: 87/100</p>
                     <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
                       <div className="bg-[var(--color-warning)] h-2 rounded-full" style={{width: '87%'}}></div>
                     </div>
                   </div>
 
                   <div>
-                    <p className="font-medium text-[var(--color-text-primary)] mb-1">📋 Règles Violées (40 points):</p>
+                    <p className="font-medium text-[var(--color-text-primary)] mb-1">Règles Violées (40 points):</p>
                     <ul className="list-disc list-inside text-[var(--color-text-secondary)] space-y-1 ml-2">
                       <li>Montant &gt; 3σ du profil client (+25 pts)</li>
                       <li>Transaction hors heures ouvrées 23h (+15 pts)</li>
@@ -895,7 +895,7 @@ const IAConfigPage: React.FC = () => {
                   </div>
 
                   <div>
-                    <p className="font-medium text-[var(--color-text-primary)] mb-1">🤖 Détection ML (47 points):</p>
+                    <p className="font-medium text-[var(--color-text-primary)] mb-1">Détection ML (47 points):</p>
                     <ul className="list-disc list-inside text-[var(--color-text-secondary)] space-y-1 ml-2">
                       <li>Isolation Forest: anomalie score 0.92 (+30 pts)</li>
                       <li>Graph Analysis: flux circulaire détecté (+17 pts)</li>
@@ -903,7 +903,7 @@ const IAConfigPage: React.FC = () => {
                   </div>
 
                   <div className="pt-2 border-t border-[var(--color-border)]">
-                    <p className="font-medium text-[var(--color-text-primary)] mb-1">💡 Actions Recommandées:</p>
+                    <p className="font-medium text-[var(--color-text-primary)] mb-1">Actions Recommandées:</p>
                     <ul className="list-disc list-inside text-[var(--color-text-secondary)] space-y-1 ml-2">
                       <li>Demander justificatif au client</li>
                       <li>Vérifier l'identité du bénéficiaire</li>

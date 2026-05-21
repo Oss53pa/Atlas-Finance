@@ -149,13 +149,13 @@ const TasksModuleWithSidebar: React.FC = () => {
           {/* Attachments */}
           {task.attachments ? (
             <span className="text-xs text-gray-700 flex items-center gap-1">
-              📎 {task.attachments}
+              {task.attachments}
             </span>
           ) : null}
 
           {/* Comments */}
           <span className="text-xs text-gray-700 flex items-center gap-1">
-            💬 {task.comments || 0}
+            {task.comments || 0}
           </span>
         </div>
 
