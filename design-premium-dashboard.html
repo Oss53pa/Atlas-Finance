@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Atlas F&A — Dashboard premium (cible)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dosis:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --bg:#F7F5EF; --card:#FFFFFF; --border:#E8E3D6; --border-soft:#F0EBE0;
+    --petrol:#235A6E; --petrol-deep:#13323D; --petrol-soft:rgba(35,90,110,.10);
+    --amber:#E89A2E; --amber-soft:rgba(232,154,46,.14);
+    --green:#15803D; --green-soft:rgba(21,128,61,.12);
+    --text:#261E15; --muted:#8A8170; --muted-2:#B0A893;
+    --shadow-sm:0 1px 2px rgba(38,30,21,.04);
+    --shadow:0 1px 2px rgba(38,30,21,.04), 0 12px 30px -14px rgba(38,30,21,.16);
+    --shadow-lg:0 2px 6px rgba(38,30,21,.05), 0 26px 50px -20px rgba(38,30,21,.22);
+    --r:18px;
+  }
+  body{font-family:"Inter",system-ui,sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+  .app{display:grid;grid-template-columns:248px 1fr;min-height:100vh}
+
+  /* ---------- Sidebar (pétrole profond) ---------- */
+  .side{background:linear-gradient(180deg,#13323D 0%,#0C2530 100%);color:#CFE0E6;padding:22px 16px;display:flex;flex-direction:column;gap:6px;position:sticky;top:0;height:100vh}
+  .brand{display:flex;align-items:center;gap:10px;padding:6px 8px 20px}
+  .brand .logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#2C6E86,#235A6E);display:grid;place-items:center;color:#fff;font-weight:700;box-shadow:0 6px 14px -4px rgba(0,0,0,.5)}
+  .brand .name{font-family:"Dosis";font-weight:700;font-size:18px;color:#F7F5EF;letter-spacing:.3px;line-height:1}
+  .brand .sub{font-size:10px;color:rgba(247,245,239,.45);letter-spacing:.12em;text-transform:uppercase}
+  .nav-label{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(247,245,239,.35);padding:14px 10px 6px;font-weight:600}
+  .nav a{display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:11px;color:rgba(247,245,239,.72);font-size:13.5px;font-weight:500;text-decoration:none;transition:.15s}
+  .nav a .ic{width:17px;height:17px;opacity:.85}
+  .nav a:hover{background:rgba(255,255,255,.06);color:#F7F5EF}
+  .nav a.active{background:rgba(232,154,46,.14);color:#F7F5EF}
+  .nav a.active .ic{color:var(--amber);opacity:1}
+  .nav a.active{box-shadow:inset 2px 0 0 var(--amber)}
+  .side-foot{margin-top:auto;display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;background:rgba(255,255,255,.04)}
+  .side-foot .av{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#E89A2E,#C77E2C);display:grid;place-items:center;color:#fff;font-weight:700;font-size:12px}
+  .side-foot .who{font-size:12px;color:#F7F5EF;font-weight:600;line-height:1.2}
+  .side-foot .role{font-size:10px;color:rgba(247,245,239,.45)}
+
+  /* ---------- Main ---------- */
+  .main{padding:22px 28px 40px;max-width:1320px}
+  .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}
+  .hello h1{font-family:"Dosis";font-weight:700;font-size:24px;letter-spacing:.2px}
+  .hello p{font-size:13px;color:var(--muted);margin-top:2px}
+  .top-actions{display:flex;align-items:center;gap:12px}
+  .search{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:9px 13px;width:280px;box-shadow:var(--shadow-sm)}
+  .search input{border:0;outline:0;background:transparent;font-family:inherit;font-size:13px;color:var(--text);width:100%}
+  .search input::placeholder{color:var(--muted-2)}
+  .btn{font-family:"Dosis";font-weight:600;font-size:13.5px;border:0;border-radius:11px;padding:10px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px}
+  .btn-primary{background:var(--petrol);color:#fff;box-shadow:0 8px 18px -8px rgba(35,90,110,.6)}
+  .seg{display:flex;background:var(--card);border:1px solid var(--border);border-radius:11px;padding:3px;box-shadow:var(--shadow-sm)}
+  .seg button{border:0;background:transparent;font-family:inherit;font-size:12.5px;font-weight:600;color:var(--muted);padding:6px 13px;border-radius:8px;cursor:pointer}
+  .seg button.on{background:var(--petrol);color:#fff}
+
+  .grid-kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:18px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);transition:.2s}
+  .card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);border-color:var(--border-soft)}
+  .kpi{padding:18px 18px 0}
+  .kpi .row1{display:flex;align-items:flex-start;justify-content:space-between}
+  .kpi .eye{font-family:"Dosis";font-weight:600;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+  .kpi .tile{width:34px;height:34px;border-radius:10px;display:grid;place-items:center}
+  .kpi .num{font-size:30px;font-weight:700;letter-spacing:-.5px;margin-top:9px;font-variant-numeric:tabular-nums}
+  .kpi .num small{font-size:13px;font-weight:500;color:var(--muted);margin-left:4px}
+  .kpi .meta{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--muted);margin-top:5px}
+  .delta{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px}
+  .delta.up{color:var(--green);background:var(--green-soft)}
+  .spark{display:block;width:100%;height:42px;margin-top:12px}
+
+  .grid-2{display:grid;grid-template-columns:1.15fr 1.55fr;gap:18px;margin-bottom:18px}
+  .grid-2b{display:grid;grid-template-columns:1.55fr 1.15fr;gap:18px}
+  .ch-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--border-soft)}
+  .ch-head .t{font-family:"Dosis";font-weight:600;font-size:15px}
+  .ch-head .s{font-size:11.5px;color:var(--muted);margin-top:2px}
+  .ch-head .ic{width:32px;height:32px;border-radius:9px;background:var(--petrol-soft);color:var(--petrol);display:grid;place-items:center}
+  .ch-body{padding:18px}
+
+  /* donut */
+  .donut-wrap{display:flex;align-items:center;gap:22px}
+  .donut{width:150px;height:150px;flex:none;position:relative}
+  .donut .center{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
+  .donut .center b{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}
+  .donut .center span{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+  .legend{flex:1;display:flex;flex-direction:column;gap:9px}
+  .legend .li{display:flex;align-items:center;justify-content:space-between;font-size:12.5px}
+  .legend .li .lab{display:flex;align-items:center;gap:9px;color:var(--text)}
+  .legend .dot{width:9px;height:9px;border-radius:3px}
+  .legend .val{font-weight:600;font-variant-numeric:tabular-nums;color:var(--text)}
+
+  /* bars */
+  .bars{display:flex;align-items:flex-end;gap:14px;height:200px;padding-top:8px}
+  .bars .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;height:100%}
+  .bars .bar{width:70%;border-radius:8px 8px 4px 4px;align-self:center}
+  .bars .lab{font-size:11px;color:var(--muted);font-weight:500}
+  .bars .colwrap{flex:1;width:100%;display:flex;align-items:flex-end;justify-content:center}
+
+  /* table */
+  .tbl{width:100%;border-collapse:collapse}
+  .tbl th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600;padding:8px 10px;border-bottom:1px solid var(--border)}
+  .tbl td{padding:11px 10px;font-size:13px;border-bottom:1px solid var(--border-soft)}
+  .tbl tr:last-child td{border-bottom:0}
+  .tbl tr:hover td{background:#FAF8F2}
+  .jrnl{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:8px;background:var(--petrol-soft);color:var(--petrol);font-size:11px;font-weight:700}
+  .amt{font-variant-numeric:tabular-nums;font-weight:600;text-align:right}
+  .pill{font-size:10.5px;font-weight:600;padding:3px 9px;border-radius:999px}
+  .pill.ok{color:var(--green);background:var(--green-soft)}
+  .pill.draft{color:var(--amber);background:var(--amber-soft)}
+
+  .note{max-width:1320px;margin:0 auto;color:#9a9488;font-size:12px;padding:18px 28px 0;text-align:center}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- Sidebar -->
+  <aside class="side">
+    <div class="brand">
+      <div class="logo">A</div>
+      <div><div class="name">Atlas F&amp;A</div><div class="sub">SYSCOHADA</div></div>
+    </div>
+    <div class="nav-label">Pilotage</div>
+    <nav class="nav">
+      <a class="active" href="#"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg> Comptabilité</a>
+      <a href="#"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h8M8 17h5"/></svg> Journaux &amp; Écritures</a>
+      <a href="#"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 17l5-5 4 4 8-8"/><path d="M16 8h5v5"/></svg> Balance &amp; États</a>
+      <a href="#"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> Trésorerie</a>
+      <a href="#"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M16 21v-2a4 4 0 0 0-8 0v2"/><circle cx="12" cy="7" r="4"/></svg> Tiers</a>
+    </nav>
+    <div class="nav-label">Configuration</div>
+    <nav class="nav">
+      <a href="#"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.6-2-3.4-2.4 1a7 7 0 0 0-1.7-1L14.5 2h-5l-.3 2.6a7 7 0 0 0-1.7 1l-2.4-1-2 3.4L2.6 11a7 7 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 1.7 1l.3 2.4h5l.3-2.6a7 7 0 0 0 1.7-1l2.4 1 2-3.4-2-1.6c.1-.3.1-.6.1-1z"/></svg> Paramètres</a>
+    </nav>
+    <div class="side-foot">
+      <div class="av">AL</div>
+      <div><div class="who">Alain L.</div><div class="role">Expert-comptable</div></div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <div class="topbar">
+      <div class="hello">
+        <h1>Bonjour, Alain</h1>
+        <p>Exercice 2026 · Cabinet Diallo &amp; Associés · 10 dossiers</p>
+      </div>
+      <div class="top-actions">
+        <div class="search">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#B0A893" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+          <input placeholder="Rechercher un compte SYSCOHADA…">
+        </div>
+        <div class="seg"><button class="on">Année</button><button>Trimestre</button><button>Mois</button></div>
+        <button class="btn btn-primary"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Nouvelle écriture</button>
+      </div>
+    </div>
+
+    <!-- KPI row -->
+    <div class="grid-kpi">
+      <div class="card kpi">
+        <div class="row1"><span class="eye">Plan comptable</span><span class="tile" style="background:var(--petrol-soft);color:var(--petrol)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5v14a2 2 0 0 0 2 2h13V3H6a2 2 0 0 0-2 2z"/><path d="M19 3v18"/></svg></span></div>
+        <div class="num">229</div>
+        <div class="meta">comptes actifs · 9 classes</div>
+        <svg class="spark" viewBox="0 0 200 42" preserveAspectRatio="none"><defs><linearGradient id="g1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#235A6E" stop-opacity=".30"/><stop offset="1" stop-color="#235A6E" stop-opacity="0"/></linearGradient></defs><path d="M0 32 C30 30 44 22 66 24 S110 14 134 18 S176 8 200 6 L200 42 L0 42Z" fill="url(#g1)"/><path d="M0 32 C30 30 44 22 66 24 S110 14 134 18 S176 8 200 6" fill="none" stroke="#235A6E" stroke-width="2" stroke-linecap="round"/></svg>
+      </div>
+      <div class="card kpi">
+        <div class="row1"><span class="eye">Écritures</span><span class="tile" style="background:var(--petrol-soft);color:var(--petrol)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h8M8 17h5"/></svg></span></div>
+        <div class="num">1 284</div>
+        <div class="meta"><span class="delta up">↑ +8,2%</span> 1 240 validées</div>
+        <svg class="spark" viewBox="0 0 200 42" preserveAspectRatio="none"><defs><linearGradient id="g2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#235A6E" stop-opacity=".30"/><stop offset="1" stop-color="#235A6E" stop-opacity="0"/></linearGradient></defs><path d="M0 34 C26 32 40 20 64 22 S104 30 130 16 S172 10 200 8 L200 42 L0 42Z" fill="url(#g2)"/><path d="M0 34 C26 32 40 20 64 22 S104 30 130 16 S172 10 200 8" fill="none" stroke="#235A6E" stroke-width="2" stroke-linecap="round"/></svg>
+      </div>
+      <div class="card kpi">
+        <div class="row1"><span class="eye">Mouvements (FCFA)</span><span class="tile" style="background:var(--green-soft);color:var(--green)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span></div>
+        <div class="num">187 432 891<small>FCFA</small></div>
+        <div class="meta"><span class="delta up">↑ +12,4%</span> vs. exercice N-1</div>
+        <svg class="spark" viewBox="0 0 200 42" preserveAspectRatio="none"><defs><linearGradient id="g3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#15803D" stop-opacity=".30"/><stop offset="1" stop-color="#15803D" stop-opacity="0"/></linearGradient></defs><path d="M0 36 C30 34 48 30 70 26 S112 14 138 14 S178 6 200 4 L200 42 L0 42Z" fill="url(#g3)"/><path d="M0 36 C30 34 48 30 70 26 S112 14 138 14 S178 6 200 4" fill="none" stroke="#15803D" stroke-width="2" stroke-linecap="round"/></svg>
+      </div>
+      <div class="card kpi">
+        <div class="row1"><span class="eye">Brouillons à valider</span><span class="tile" style="background:var(--amber-soft);color:var(--amber)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span></div>
+        <div class="num">44</div>
+        <div class="meta">en attente de validation</div>
+        <svg class="spark" viewBox="0 0 200 42" preserveAspectRatio="none"><defs><linearGradient id="g4" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E89A2E" stop-opacity=".32"/><stop offset="1" stop-color="#E89A2E" stop-opacity="0"/></linearGradient></defs><path d="M0 16 C30 18 46 26 68 22 S110 30 134 26 S176 30 200 28 L200 42 L0 42Z" fill="url(#g4)"/><path d="M0 16 C30 18 46 26 68 22 S110 30 134 26 S176 30 200 28" fill="none" stroke="#E89A2E" stroke-width="2" stroke-linecap="round"/></svg>
+      </div>
+    </div>
+
+    <!-- Donut + Area -->
+    <div class="grid-2">
+      <div class="card">
+        <div class="ch-head"><div><div class="t">Soldes par classes SYSCOHADA</div><div class="s">Répartition des montants (en milliers FCFA)</div></div><span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 2v10l8.5 5"/></svg></span></div>
+        <div class="ch-body">
+          <div class="donut-wrap">
+            <div class="donut">
+              <svg viewBox="0 0 36 36" width="150" height="150">
+                <circle cx="18" cy="18" r="15.915" fill="none" stroke="var(--border-soft)" stroke-width="4"/>
+                <circle cx="18" cy="18" r="15.915" fill="none" stroke="#235A6E" stroke-width="4" pathLength="100" stroke-dasharray="32 68" stroke-dashoffset="25" stroke-linecap="round" transform="rotate(-90 18 18)"/>
+                <circle cx="18" cy="18" r="15.915" fill="none" stroke="#E89A2E" stroke-width="4" pathLength="100" stroke-dasharray="26 74" stroke-dashoffset="-7" stroke-linecap="round" transform="rotate(-90 18 18)"/>
+                <circle cx="18" cy="18" r="15.915" fill="none" stroke="#15803D" stroke-width="4" pathLength="100" stroke-dasharray="18 82" stroke-dashoffset="-33" stroke-linecap="round" transform="rotate(-90 18 18)"/>
+                <circle cx="18" cy="18" r="15.915" fill="none" stroke="#4E7E8D" stroke-width="4" pathLength="100" stroke-dasharray="14 86" stroke-dashoffset="-51" stroke-linecap="round" transform="rotate(-90 18 18)"/>
+                <circle cx="18" cy="18" r="15.915" fill="none" stroke="#C77E2C" stroke-width="4" pathLength="100" stroke-dasharray="10 90" stroke-dashoffset="-65" stroke-linecap="round" transform="rotate(-90 18 18)"/>
+              </svg>
+              <div class="center"><div><b>187M</b><br><span>Total</span></div></div>
+            </div>
+            <div class="legend">
+              <div class="li"><span class="lab"><span class="dot" style="background:#235A6E"></span>Classe 2 · Immobilisations</span><span class="val">59 980</span></div>
+              <div class="li"><span class="lab"><span class="dot" style="background:#E89A2E"></span>Classe 4 · Tiers</span><span class="val">48 730</span></div>
+              <div class="li"><span class="lab"><span class="dot" style="background:#15803D"></span>Classe 5 · Trésorerie</span><span class="val">33 740</span></div>
+              <div class="li"><span class="lab"><span class="dot" style="background:#4E7E8D"></span>Classe 6 · Charges</span><span class="val">26 240</span></div>
+              <div class="li"><span class="lab"><span class="dot" style="background:#C77E2C"></span>Classe 7 · Produits</span><span class="val">18 740</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch-head"><div><div class="t">Évolution des mouvements</div><div class="s">12 derniers mois · encaissements vs décaissements</div></div><span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg></span></div>
+        <div class="ch-body">
+          <svg viewBox="0 0 560 210" width="100%" height="210" preserveAspectRatio="none" font-family="Inter">
+            <defs>
+              <linearGradient id="area" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#235A6E" stop-opacity=".22"/><stop offset="1" stop-color="#235A6E" stop-opacity="0"/></linearGradient>
+            </defs>
+            <!-- grid -->
+            <g stroke="#F0EBE0" stroke-width="1"><line x1="0" y1="40" x2="560" y2="40"/><line x1="0" y1="90" x2="560" y2="90"/><line x1="0" y1="140" x2="560" y2="140"/><line x1="0" y1="180" x2="560" y2="180"/></g>
+            <!-- area (encaissements) -->
+            <path d="M0 150 C50 140 80 120 120 124 S200 100 250 96 S330 70 380 78 S470 48 520 40 L560 36 L560 180 L0 180 Z" fill="url(#area)"/>
+            <path d="M0 150 C50 140 80 120 120 124 S200 100 250 96 S330 70 380 78 S470 48 520 40 L560 36" fill="none" stroke="#235A6E" stroke-width="2.5" stroke-linecap="round"/>
+            <!-- décaissements (amber dashed) -->
+            <path d="M0 162 C50 158 90 150 130 152 S210 140 260 138 S340 122 390 126 S470 110 520 104 L560 100" fill="none" stroke="#E89A2E" stroke-width="2.2" stroke-dasharray="6 5" stroke-linecap="round"/>
+            <circle cx="560" cy="36" r="3.5" fill="#235A6E"/>
+          </svg>
+          <div style="display:flex;gap:18px;margin-top:6px;font-size:11.5px;color:var(--muted)">
+            <span style="display:inline-flex;align-items:center;gap:6px"><span style="width:14px;height:3px;border-radius:2px;background:#235A6E;display:inline-block"></span>Encaissements</span>
+            <span style="display:inline-flex;align-items:center;gap:6px"><span style="width:14px;height:0;border-top:2px dashed #E89A2E;display:inline-block"></span>Décaissements</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bars + Table -->
+    <div class="grid-2b">
+      <div class="card">
+        <div class="ch-head"><div><div class="t">Écritures par journal</div><div class="s">Volume mensuel par type</div></div><span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><rect x="7" y="10" width="3" height="8"/><rect x="12" y="6" width="3" height="12"/><rect x="17" y="13" width="3" height="5"/></svg></span></div>
+        <div class="ch-body">
+          <div class="bars">
+            <div class="col"><div class="colwrap"><div class="bar" style="height:62%;background:linear-gradient(180deg,#235A6E,#235A6ECC)"></div></div><span class="lab">VE</span></div>
+            <div class="col"><div class="colwrap"><div class="bar" style="height:88%;background:linear-gradient(180deg,#E89A2E,#E89A2ECC)"></div></div><span class="lab">AC</span></div>
+            <div class="col"><div class="colwrap"><div class="bar" style="height:48%;background:linear-gradient(180deg,#15803D,#15803DCC)"></div></div><span class="lab">BQ</span></div>
+            <div class="col"><div class="colwrap"><div class="bar" style="height:100%;background:linear-gradient(180deg,#4E7E8D,#4E7E8DCC)"></div></div><span class="lab">CA</span></div>
+            <div class="col"><div class="colwrap"><div class="bar" style="height:70%;background:linear-gradient(180deg,#C77E2C,#C77E2CCC)"></div></div><span class="lab">OD</span></div>
+            <div class="col"><div class="colwrap"><div class="bar" style="height:38%;background:linear-gradient(180deg,#7FA3AF,#7FA3AFCC)"></div></div><span class="lab">AN</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch-head"><div><div class="t">Écritures récentes</div><div class="s">5 dernières comptabilisées</div></div><span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h6"/></svg></span></div>
+        <div class="ch-body" style="padding-top:6px">
+          <table class="tbl">
+            <thead><tr><th>Pièce</th><th>Libellé</th><th style="text-align:right">Montant</th><th style="text-align:right">Statut</th></tr></thead>
+            <tbody>
+              <tr><td><span class="jrnl">VE</span></td><td>Facture client SONATEL<br><span style="color:var(--muted);font-size:11px">VE · 14 mai 2026</span></td><td class="amt">4 250 000</td><td style="text-align:right"><span class="pill ok">Comptabilisée</span></td></tr>
+              <tr><td><span class="jrnl">AC</span></td><td>Achat fournitures bureau<br><span style="color:var(--muted);font-size:11px">AC · 13 mai 2026</span></td><td class="amt">385 000</td><td style="text-align:right"><span class="pill ok">Comptabilisée</span></td></tr>
+              <tr><td><span class="jrnl">BQ</span></td><td>Virement salaires<br><span style="color:var(--muted);font-size:11px">BQ · 12 mai 2026</span></td><td class="amt">12 800 000</td><td style="text-align:right"><span class="pill ok">Comptabilisée</span></td></tr>
+              <tr><td><span class="jrnl">OD</span></td><td>Dotation amortissements<br><span style="color:var(--muted);font-size:11px">OD · 11 mai 2026</span></td><td class="amt">1 920 000</td><td style="text-align:right"><span class="pill draft">Brouillon</span></td></tr>
+              <tr><td><span class="jrnl">CA</span></td><td>Encaissement espèces<br><span style="color:var(--muted);font-size:11px">CA · 10 mai 2026</span></td><td class="amt">640 000</td><td style="text-align:right"><span class="pill ok">Comptabilisée</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<div class="note">Maquette cible · Petrol Cream premium · Dashboard Comptabilité SYSCOHADA — direction visuelle à valider avant implémentation dans l'app</div>
+</body>
+</html>

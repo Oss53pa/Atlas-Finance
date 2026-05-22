@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Atlas F&A — Effets premium (Petrol Cream)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dosis:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    /* Petrol Cream — INCHANGÉ */
+    --petrol:#235A6E; --petrol-l:#2C6E86; --petrol-d:#1B4856;
+    --amber:#E89A2E; --green:#15803D; --text:#261E15; --muted:#8A8170;
+    /* base néomorphique : la "plaque" est crème, les éléments en relief sortent d'elle */
+    --plate:#EDE7DB;            /* fond plaque (légèrement + foncé que #F7F5EF) */
+    --raise:#F4EFE6;            /* surface en relief */
+    /* OMBRES — c'est ÇA les effets : couple lumière(haut-gauche) + ombre chaude(bas-droite) */
+    --lo:rgba(255,255,255,.85);     /* lumière */
+    --sh:rgba(38,30,21,.16);        /* ombre chaude */
+    --sh-soft:rgba(38,30,21,.10);
+    /* niveaux d'élévation */
+    --elev-1: 4px 4px 10px var(--sh-soft), -4px -4px 9px var(--lo);
+    --elev-2: 7px 7px 18px var(--sh), -6px -6px 14px var(--lo);
+    --elev-3: 12px 12px 28px var(--sh), -9px -9px 20px var(--lo);
+    --inset:  inset 4px 4px 9px var(--sh-soft), inset -4px -4px 9px var(--lo);
+    --inset-deep: inset 5px 5px 12px var(--sh), inset -5px -5px 11px var(--lo);
+    --ring: 0 0 0 3px rgba(35,90,110,.22);
+    --glow-petrol: 0 8px 22px -6px rgba(35,90,110,.55);
+    --glow-amber: 0 8px 22px -6px rgba(232,154,46,.55);
+  }
+  body{font-family:"Inter",system-ui,sans-serif;background:var(--plate);color:var(--text);-webkit-font-smoothing:antialiased;padding:30px}
+  .wrap{max-width:1180px;margin:0 auto}
+  .head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:26px}
+  .head h1{font-family:"Dosis";font-weight:700;font-size:26px}
+  .head h1 b{color:var(--petrol)}
+  .head .tag{font-size:12px;color:var(--muted)}
+  .layout{display:grid;grid-template-columns:1fr 250px;gap:24px}
+  .col{display:flex;flex-direction:column;gap:24px}
+
+  .sec{background:transparent}
+  .sec > h2{font-family:"Dosis";font-weight:700;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+  .anno{font-size:11px;color:var(--muted);font-style:italic;margin-top:8px}
+
+  /* ---------- CARDS : élévation par ombres inner+outer ---------- */
+  .cards{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  .ncard{background:var(--raise);border-radius:20px;padding:20px;box-shadow:var(--elev-2);transition:.25s}
+  .ncard:hover{box-shadow:var(--elev-3);transform:translateY(-2px)}
+  .ncard .ic{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;color:var(--petrol);background:var(--raise);box-shadow:var(--inset);margin-bottom:12px}
+  .ncard.flat{box-shadow:var(--elev-1)}
+  .ncard h3{font-family:"Dosis";font-weight:600;font-size:16px}
+  .ncard p{font-size:12.5px;color:var(--muted);margin-top:4px;line-height:1.5}
+
+  /* ---------- BUTTONS : raised + glow / pressed inset / disabled flat ---------- */
+  .btns{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+  .nbtn{font-family:"Dosis";font-weight:600;font-size:14px;border:0;border-radius:13px;padding:12px 22px;cursor:pointer;color:#fff;background:linear-gradient(180deg,var(--petrol-l),var(--petrol));box-shadow:var(--glow-petrol), inset 0 1px 0 rgba(255,255,255,.18);transition:.18s}
+  .nbtn:hover{box-shadow:0 12px 28px -6px rgba(35,90,110,.6), inset 0 1px 0 rgba(255,255,255,.22);transform:translateY(-1px)}
+  .nbtn.pressed{background:linear-gradient(180deg,var(--petrol-d),var(--petrol));box-shadow:inset 3px 3px 8px rgba(0,0,0,.28), inset -2px -2px 6px rgba(255,255,255,.08);transform:translateY(1px)}
+  .nbtn.amber{background:linear-gradient(180deg,#F2A93B,var(--amber));box-shadow:var(--glow-amber), inset 0 1px 0 rgba(255,255,255,.25);color:#2A2114}
+  .nbtn.disabled{background:#E3DDD0;color:#B0A893;box-shadow:none;cursor:not-allowed}
+  .nbtn.ghost{background:var(--raise);color:var(--petrol);box-shadow:var(--elev-1)}
+  .spin{width:15px;height:15px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;display:inline-block;vertical-align:-2px;margin-right:6px;animation:sp 1s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+
+  /* ---------- INPUTS : inset + focus ring doux ---------- */
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.04em;margin-bottom:7px;text-transform:uppercase}
+  .ninput{width:100%;border:0;border-radius:12px;padding:12px 14px;font-family:inherit;font-size:13.5px;color:var(--text);background:var(--raise);box-shadow:var(--inset);outline:0}
+  .ninput::placeholder{color:var(--muted)}
+  .ninput.focus{box-shadow:var(--inset), var(--ring)}
+  .nselect{border-radius:12px;background:var(--raise);box-shadow:var(--inset);padding:6px}
+  .nselect .opt{padding:9px 12px;border-radius:9px;font-size:13px}
+  .nselect .opt.sel{background:var(--amber);color:#2A2114;font-weight:600;box-shadow:0 4px 12px -4px rgba(232,154,46,.5)}
+
+  /* ---------- TOGGLE / SLIDER / PROGRESS ---------- */
+  .ctrl-row{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+  .ctrl-row .lab{font-size:12.5px;color:var(--muted);min-width:62px}
+  .tog{width:50px;height:28px;border-radius:999px;background:var(--raise);box-shadow:var(--inset);position:relative;cursor:pointer}
+  .tog .kn{position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:var(--raise);box-shadow:var(--elev-1);transition:.2s}
+  .tog.on{background:linear-gradient(180deg,var(--petrol-l),var(--petrol))}
+  .tog.on .kn{left:25px;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.3), 0 0 0 4px rgba(35,90,110,.18)}
+  .track{flex:1;height:10px;border-radius:999px;background:var(--raise);box-shadow:var(--inset);position:relative}
+  .track .fill{position:absolute;left:0;top:0;bottom:0;width:62%;border-radius:999px;background:linear-gradient(90deg,var(--petrol),var(--petrol-l))}
+  .track .thumb{position:absolute;top:50%;left:62%;transform:translate(-50%,-50%);width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:var(--elev-1), 0 0 0 4px rgba(35,90,110,.16)}
+  .prog{height:10px;border-radius:999px;background:var(--raise);box-shadow:var(--inset);overflow:hidden}
+  .prog .v{height:100%;width:74%;border-radius:999px;background:linear-gradient(90deg,var(--petrol),var(--amber))}
+
+  /* ---------- TOAST / MODAL ---------- */
+  .toast{display:inline-flex;align-items:center;gap:10px;background:var(--raise);border-radius:13px;padding:12px 16px;box-shadow:var(--elev-2);font-size:13px;font-weight:500}
+  .toast .ck{width:22px;height:22px;border-radius:50%;background:var(--green);color:#fff;display:grid;place-items:center;box-shadow:0 0 0 4px rgba(21,128,61,.18)}
+  .modal{background:var(--raise);border-radius:18px;padding:18px;box-shadow:var(--elev-3);max-width:280px}
+  .modal .mt{font-family:"Dosis";font-weight:600;font-size:15px;margin-bottom:6px}
+  .modal p{font-size:12px;color:var(--muted);margin-bottom:14px}
+  .modal .mb{display:flex;gap:10px;justify-content:flex-end}
+  .modal .mb .nbtn{padding:8px 16px;font-size:13px}
+
+  /* ---------- EMPTY STATE / TABLE ROWS ---------- */
+  .empty{border-radius:16px;background:var(--raise);box-shadow:var(--inset-deep);padding:26px;text-align:center}
+  .empty .ic{width:44px;height:44px;border-radius:12px;margin:0 auto 10px;display:grid;place-items:center;color:var(--muted);background:var(--raise);box-shadow:var(--inset)}
+  .empty p{font-size:12.5px;color:var(--muted)}
+  .rows{display:flex;flex-direction:column;gap:10px}
+  .nrow{padding:13px 16px;border-radius:12px;font-size:13px;background:var(--raise);box-shadow:var(--elev-1)}
+  .nrow.hover{box-shadow:var(--elev-2);transform:translateY(-1px)}
+  .nrow.sel{box-shadow:var(--inset), inset 3px 0 0 var(--petrol);color:var(--petrol);font-weight:600}
+
+  /* ---------- TOKENS SIDEBAR ---------- */
+  .tokens{background:var(--raise);border-radius:18px;padding:18px;box-shadow:var(--elev-2);align-self:start;position:sticky;top:30px}
+  .tokens h3{font-family:"Dosis";font-weight:700;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--petrol);margin:14px 0 9px}
+  .tokens h3:first-child{margin-top:0}
+  .tokens .t{font-size:11.5px;color:var(--text);display:flex;align-items:center;gap:9px;margin-bottom:7px}
+  .tokens .t .sw{width:34px;height:18px;border-radius:6px;background:var(--raise);flex:none}
+  .sw.e1{box-shadow:var(--elev-1)} .sw.e2{box-shadow:var(--elev-2)} .sw.e3{box-shadow:var(--elev-3)}
+  .tokens .chip{display:inline-block;font-size:10px;color:var(--muted);background:var(--plate);box-shadow:var(--inset);border-radius:7px;padding:3px 8px;margin:0 5px 5px 0}
+
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:30px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head">
+    <h1><b>Atlas&nbsp;F&amp;A</b> · Effets premium</h1>
+    <span class="tag">Petrol Cream (couleurs inchangées) · profondeur néomorphique : ombres inner + outer, glow, raised / inset / pressed</span>
+  </div>
+
+  <div class="layout">
+    <div class="col">
+
+      <!-- CARDS -->
+      <div class="sec">
+        <h2>Cartes — élévation</h2>
+        <div class="cards">
+          <div class="ncard">
+            <div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg></div>
+            <h3>Surface en relief</h3>
+            <p>Élévation par double ombre : lumière en haut-gauche + ombre chaude en bas-droite. Survol = elle “monte”.</p>
+            <div class="anno">→ varied elevation via inner & outer shadows</div>
+          </div>
+          <div class="ncard flat">
+            <div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg></div>
+            <h3>Surface posée</h3>
+            <p>Élévation faible (niveau 1) pour les éléments secondaires. Hiérarchie par la profondeur, pas par la couleur.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <!-- BUTTONS -->
+        <div class="sec">
+          <h2>Boutons — états</h2>
+          <div class="btns">
+            <button class="nbtn">Default</button>
+            <button class="nbtn" style="box-shadow:0 12px 28px -6px rgba(35,90,110,.6), inset 0 1px 0 rgba(255,255,255,.22);transform:translateY(-1px)">Hover</button>
+            <button class="nbtn pressed">Pressed</button>
+          </div>
+          <div class="btns" style="margin-top:14px">
+            <button class="nbtn disabled">Disabled</button>
+            <button class="nbtn"><span class="spin"></span>Loading</button>
+            <button class="nbtn amber">Spark ambre</button>
+          </div>
+          <div class="anno">→ tactile click feel with gentle glow · disabled = pas d'ombre, contraste réduit</div>
+        </div>
+
+        <!-- INPUTS -->
+        <div class="sec">
+          <h2>Champs — inset + focus doux</h2>
+          <div class="field"><label>Compte</label><input class="ninput" placeholder="411000 — Clients"></div>
+          <div class="field"><label>Focus (anneau doux)</label><input class="ninput focus" value="521000 — Banque"></div>
+          <div class="nselect">
+            <div class="opt sel">Journal VE — Ventes</div>
+            <div class="opt">Journal AC — Achats</div>
+            <div class="opt">Journal BQ — Banque</div>
+          </div>
+          <div class="anno">→ focus ring always visible & soft · champs en creux (inset)</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <!-- CONTROLS -->
+        <div class="sec">
+          <h2>Contrôles tactiles</h2>
+          <div class="ctrl-row"><span class="lab">Toggle</span><div class="tog on"><div class="kn"></div></div><div class="tog"><div class="kn"></div></div></div>
+          <div class="ctrl-row"><span class="lab">Slider</span><div class="track"><div class="fill"></div><div class="thumb"></div></div></div>
+          <div class="ctrl-row"><span class="lab">Progress</span><div class="prog"><div class="v"></div></div></div>
+        </div>
+
+        <!-- FEEDBACK -->
+        <div class="sec">
+          <h2>Feedback — profondeur</h2>
+          <div class="toast"><span class="ck"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span>Écriture validée avec succès</div>
+          <div class="modal" style="margin-top:16px">
+            <div class="mt">Valider la clôture ?</div>
+            <p>Floating panel avec ombre diffuse pour la profondeur.</p>
+            <div class="mb"><button class="nbtn ghost">Annuler</button><button class="nbtn">Confirmer</button></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <!-- EMPTY STATE -->
+        <div class="sec">
+          <h2>État vide — creux</h2>
+          <div class="empty">
+            <div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 14h8"/></svg></div>
+            <p>Aucune écriture — la tuile est en creux (inner shadow)</p>
+          </div>
+        </div>
+
+        <!-- TABLE ROWS -->
+        <div class="sec">
+          <h2>Lignes — états</h2>
+          <div class="rows">
+            <div class="nrow">VE · Facture client SONATEL</div>
+            <div class="nrow hover">AC · Achat fournitures (hover)</div>
+            <div class="nrow sel">BQ · Virement salaires (sélectionnée)</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- TOKENS -->
+    <aside class="tokens">
+      <h3>Niveaux d'ombre</h3>
+      <div class="t"><span class="sw e1"></span>Niveau 1 — soft</div>
+      <div class="t"><span class="sw e2"></span>Niveau 2 — medium</div>
+      <div class="t"><span class="sw e3"></span>Niveau 3 — deep</div>
+
+      <h3>Radius</h3>
+      <div><span class="chip">8px</span><span class="chip">12px</span><span class="chip">16px</span><span class="chip">20px</span></div>
+
+      <h3>Border thickness</h3>
+      <div><span class="chip">0.5</span><span class="chip">1</span><span class="chip">1.5px</span></div>
+
+      <h3>Icon sizes</h3>
+      <div><span class="chip">14</span><span class="chip">18</span><span class="chip">22px</span></div>
+
+      <h3>Spacing</h3>
+      <div><span class="chip">4</span><span class="chip">8</span><span class="chip">12</span><span class="chip">16</span><span class="chip">24</span><span class="chip">32</span></div>
+
+      <h3>Couleurs (inchangées)</h3>
+      <div><span class="chip" style="color:#fff;background:#235A6E;box-shadow:none">pétrole</span><span class="chip" style="color:#2A2114;background:#E89A2E;box-shadow:none">ambre</span><span class="chip" style="color:#fff;background:#15803D;box-shadow:none">vert</span></div>
+    </aside>
+  </div>
+</div>
+</body>
+</html>
