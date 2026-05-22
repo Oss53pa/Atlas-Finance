@@ -51,14 +51,7 @@ interface Notification {
   read: boolean;
 }
 
-let __layoutMountCount = 0;
 const ModernDoubleSidebarLayout: React.FC = () => {
-  // DEBUG: track mount/unmount
-  React.useEffect(() => {
-    __layoutMountCount++;
-    console.log(`[DEBUG] ModernDoubleSidebarLayout MOUNTED (#${__layoutMountCount})`);
-    return () => console.log(`[DEBUG] ModernDoubleSidebarLayout UNMOUNTED (#${__layoutMountCount})`);
-  }, []);
   const { t } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
@@ -946,7 +939,11 @@ const ModernDoubleSidebarLayout: React.FC = () => {
           role="main"
         >
           <div className="p-3 lg:p-4">
-            <Outlet key={location.pathname} />
+            {/* Pas de `key={location.pathname}` : il remontait tout le sous-arbre
+                (guard + page) à chaque navigation, ce qui re-déclenchait la sonde
+                d'auth du RBACGuard et provoquait une page blanche jusqu'au refresh.
+                React Router met à jour l'Outlet sans remontage forcé. */}
+            <Outlet />
           </div>
         </main>
       </div>

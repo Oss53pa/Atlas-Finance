@@ -391,7 +391,8 @@ export interface ResultatEntryResult {
  * et génère une écriture de clôture qui :
  * - Débite chaque compte de classe 7 (crédit naturel) pour le ramener à zéro
  * - Crédite chaque compte de classe 6 (débit naturel) pour le ramener à zéro
- * - La contrepartie va au compte 1200 (bénéfice) ou 1290 (perte)
+ * - La contrepartie va au compte 131 (bénéfice, crédit) ou 139 (perte, débit)
+ *   de la classe 13 « Résultat net de l'exercice » (SYSCOHADA révisé)
  *
  * L'écriture est équilibrée par construction (total débits = total crédits).
  */
@@ -488,18 +489,23 @@ export async function generateResultatEntry(
     }
   }
 
-  // 4. Counterpart line: bénéfice (1200) or perte (1290)
+  // 4. Counterpart line: bénéfice (131) or perte (139) — classe 13
   const resultatNet = money(totalResultatDebits).subtract(money(totalResultatCredits)).toNumber();
   // totalResultatDebits = produits zeroed out; totalResultatCredits = charges zeroed out
-  // If debits > credits → produits > charges → bénéfice → credit 1200
-  // If credits > debits → charges > produits → perte → debit 1290
+  // If debits > credits → produits > charges → bénéfice → credit 131
+  // If credits > debits → charges > produits → perte → debit 139
 
   if (Math.abs(resultatNet) >= 0.01) {
     const isBenefice = resultatNet > 0;
+    // P0-3 : la contrepartie va sur la classe 13 (Résultat net de l'exercice) —
+    // 131 bénéfice (crédit), 139 perte (débit) — et NON sur la classe 12 (Report
+    // à nouveau, 1200/1290). Sinon le résultat n'apparaît pas au bilan (qui lit
+    // 131/139), n'est jamais affecté, et laisse un solde fantôme permanent sur la
+    // classe 12. Conforme au SYSCOHADA révisé.
     lines.push({
       id: crypto.randomUUID(),
-      accountCode: isBenefice ? '1200' : '1290',
-      accountName: isBenefice ? 'Résultat de l\'exercice (bénéfice)' : 'Résultat de l\'exercice (perte)',
+      accountCode: isBenefice ? '131' : '139',
+      accountName: isBenefice ? 'Résultat net : bénéfice' : 'Résultat net : perte',
       label: isBenefice
         ? `Bénéfice de l'exercice ${fiscalYear.name}`
         : `Perte de l'exercice ${fiscalYear.name}`,
@@ -525,7 +531,7 @@ export async function generateResultatEntry(
     lines,
     createdAt: new Date().toISOString(),
     createdBy: initiateur,
-  }, { skipSyncValidation: true });
+  });
 
   return {
     entryId,

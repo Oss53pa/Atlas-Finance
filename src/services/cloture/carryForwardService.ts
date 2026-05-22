@@ -10,6 +10,7 @@ import { Money, money } from '../../utils/money';
 import { logAudit } from '../../lib/db';
 import type { DBJournalLine } from '../../lib/db';
 import { safeAddEntry } from '../entryGuard';
+import { reverseEntry } from '../../utils/reversalService';
 
 // ============================================================================
 // TYPES
@@ -220,7 +221,11 @@ export async function hasCarryForward(adapter: DataAdapter, openingExerciceId: s
 }
 
 /**
- * Delete existing carry-forward for regeneration.
+ * Annule les à-nouveaux existants pour régénération.
+ *
+ * P0-4 / F4-2 : on ne SUPPRIME PLUS physiquement une écriture déjà validée ou
+ * comptabilisée (violation de l'intangibilité SYSCOHADA Art.19) — on la
+ * CONTREPASSE. Seuls les brouillons (jamais validés) peuvent être supprimés.
  */
 export async function supprimerCarryForward(adapter: DataAdapter, openingExerciceId: string): Promise<void> {
   const fy = await adapter.getById('fiscalYears', openingExerciceId);
@@ -231,16 +236,35 @@ export async function supprimerCarryForward(adapter: DataAdapter, openingExercic
     (e: any) => e.date >= fy.startDate && e.date <= fy.endDate
   );
 
-  for (const entry of existing) {
-    await adapter.delete('journalEntries', entry.id);
+  const today = new Date().toISOString().split('T')[0];
+  let reversed = 0;
+  let deleted = 0;
+
+  for (const entry of existing as any[]) {
+    if (entry.status === 'draft') {
+      // Brouillon jamais validé : suppression physique autorisée.
+      await adapter.delete('journalEntries', entry.id);
+      deleted++;
+    } else if (!entry.reversed) {
+      // Validée / comptabilisée : contrepassation (jamais de suppression).
+      const result = await reverseEntry(adapter, {
+        originalEntryId: entry.id,
+        reversalDate: today,
+        reason: `Régénération des à-nouveaux — exercice ${fy.code || fy.name || openingExerciceId}`,
+      });
+      if (!result.success) {
+        throw new Error(`Contrepassation de l'à-nouveau ${entry.entryNumber} impossible : ${result.error}`);
+      }
+      reversed++;
+    }
   }
 
-  if (existing.length > 0) {
+  if (reversed > 0 || deleted > 0) {
     await logAudit(
-      'CARRY_FORWARD_DELETE',
+      'CARRY_FORWARD_RESET',
       'journalEntry',
       openingExerciceId,
-      `Suppression de ${existing.length} ecritures AN`
+      `Régénération des à-nouveaux : ${reversed} contrepassée(s), ${deleted} brouillon(s) supprimé(s)`
     );
   }
 }

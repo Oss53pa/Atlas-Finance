@@ -135,7 +135,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           id: authUser.id,
           name: (meta.full_name as string) || (meta.name as string) || authUser.email || 'Utilisateur',
           email: authUser.email || '',
-          role: ((meta.role as string) || 'user') as User['role'],
+          // SECURITE (P0-6 / T-06) : role de moindre privilege en fallback.
+          // `user_metadata` est modifiable par l'utilisateur -> ne jamais s'en
+          // servir pour le role. Le role reel vient de la table profiles/roles.
+          role: 'user' as User['role'],
           first_name: (meta.first_name as string) || undefined,
           last_name: (meta.last_name as string) || undefined,
           company: (meta.company_name as string) || undefined,
@@ -155,7 +158,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             id: authUser.id,
             name: (meta.full_name as string) || authUser.email || 'Utilisateur',
             email: authUser.email || '',
-            role: ((meta.role as string) || 'user') as User['role'],
+            // SECURITE (P0-6 / T-06) : role de moindre privilege en fallback.
+          // `user_metadata` est modifiable par l'utilisateur -> ne jamais s'en
+          // servir pour le role. Le role reel vient de la table profiles/roles.
+          role: 'user' as User['role'],
             permissions: [],
           }));
         }
@@ -262,7 +268,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             id: data.user!.id,
             name: (meta.full_name as string) || (meta.name as string) || data.user!.email || 'Utilisateur',
             email: data.user!.email || '',
-            role: ((meta.role as string) || 'user') as User['role'],
+            // SECURITE (P0-6 / T-06) : role de moindre privilege en fallback.
+          // `user_metadata` est modifiable par l'utilisateur -> ne jamais s'en
+          // servir pour le role. Le role reel vient de la table profiles/roles.
+          role: 'user' as User['role'],
             first_name: (meta.first_name as string) || undefined,
             last_name: (meta.last_name as string) || undefined,
             company: (meta.company_name as string) || undefined,

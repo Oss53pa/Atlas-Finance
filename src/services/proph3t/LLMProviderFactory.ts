@@ -11,6 +11,7 @@
 import type { ILLMProvider } from './providers/ILLMProvider';
 import { OllamaProvider } from './providers/OllamaProvider';
 import { AnthropicProvider } from './providers/AnthropicProvider';
+import { isSupabaseConfigured } from '../../lib/supabase';
 
 export interface LLMProviderConfig {
   ollama?: {
@@ -59,7 +60,19 @@ export class LLMProviderFactory {
   static createFromEnv(): ILLMProvider | null {
     const ollamaUrl = import.meta.env.VITE_OLLAMA_BASE_URL;
     const ollamaModel = import.meta.env.VITE_OLLAMA_MODEL;
-    const anthropicEnabled = import.meta.env.VITE_ANTHROPIC_ENABLED === 'true';
+    const anthropicFlag = import.meta.env.VITE_ANTHROPIC_ENABLED;
+    const anthropicModel = import.meta.env.VITE_ANTHROPIC_MODEL;
+
+    // Bascule automatique selon l'environnement :
+    //  - Dev local : Ollama prioritaire dès que VITE_OLLAMA_BASE_URL est défini.
+    //  - SaaS / prod : Anthropic Claude (via l'edge function ai-proxy) activé par
+    //    DÉFAUT dès que Supabase est configuré — plus besoin d'un flag manuel.
+    //    Surcharge possible : VITE_ANTHROPIC_ENABLED='false' désactive, ='true'
+    //    force l'activation même hors Supabase.
+    const anthropicEnabled =
+      anthropicFlag === 'false' ? false
+      : anthropicFlag === 'true' ? true
+      : isSupabaseConfigured;
 
     try {
       return LLMProviderFactory.create({
@@ -70,6 +83,7 @@ export class LLMProviderFactory {
         } : undefined,
         anthropic: anthropicEnabled ? {
           enabled: true,
+          model: anthropicModel || undefined,
         } : undefined,
       });
     } catch (err) { /* silent */

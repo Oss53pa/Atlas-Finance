@@ -254,13 +254,24 @@ export async function downloadFile(
 export { supabase };
 
 /**
- * Axios-style compatibility layer for legacy services.
- * Old services call apiService.get('/api/v1/...'), apiService.post(), etc.
- * This shim wraps responses in { data } format to match Axios conventions.
- * Legacy services will gradually be replaced by Supabase-native *-complete.service.ts files.
+ * Couche de compatibilité « façon Axios » pour les services legacy.
+ *
+ * P0-2 — Auparavant ces méthodes renvoyaient SILENCIEUSEMENT un résultat vide
+ * (`{ results: [], count: 0 }`) sans aucun appel réseau : ~29 services (dont les
+ * états financiers SYSCOHADA) affichaient donc des données vides/fausses sans
+ * jamais signaler d'erreur. C'est inacceptable pour un logiciel comptable.
+ *
+ * Désormais ces méthodes ÉCHOUENT BRUYAMMENT (fail-fast) : tout écran encore
+ * branché sur ce backend HTTP inexistant remontera une erreur visible (état
+ * d'erreur / Error Boundary) au lieu de mentir. Le correctif définitif consiste
+ * à rebrancher chaque service sur le DataAdapter / Supabase (helpers ci-dessus :
+ * queryTable, insertRecord, callRpc…).
  */
-function wrapResponse<T = unknown>(data: unknown): { data: T } {
-  return { data: (data ?? { results: [], count: 0 }) as T };
+function unimplemented(method: string, url: string): never {
+  throw new Error(
+    `apiService.${method}('${url}') n'est pas implémenté : ce service legacy doit être ` +
+    `rebranché sur le DataAdapter/Supabase. Aucune donnée n'est disponible par ce canal.`,
+  );
 }
 
 export const apiService = {
@@ -276,25 +287,25 @@ export const apiService = {
   downloadFile,
   supabase,
 
-  // Axios-style HTTP methods (compat shim for legacy services)
-  async get<T = unknown>(url: string, config?: { params?: Record<string, unknown> }): Promise<{ data: T }> {
-    return wrapResponse<T>({ results: [], count: 0 });
+  // Axios-style HTTP methods — backend HTTP inexistant : échec explicite.
+  async get<T = unknown>(url: string, _config?: { params?: Record<string, unknown> }): Promise<{ data: T }> {
+    return unimplemented('get', url);
   },
 
-  async post<T = unknown>(url: string, data?: unknown, config?: Record<string, unknown>): Promise<{ data: T }> {
-    return wrapResponse<T>(data ?? {});
+  async post<T = unknown>(url: string, _data?: unknown, _config?: Record<string, unknown>): Promise<{ data: T }> {
+    return unimplemented('post', url);
   },
 
-  async put<T = unknown>(url: string, data?: unknown, config?: Record<string, unknown>): Promise<{ data: T }> {
-    return wrapResponse<T>(data ?? {});
+  async put<T = unknown>(url: string, _data?: unknown, _config?: Record<string, unknown>): Promise<{ data: T }> {
+    return unimplemented('put', url);
   },
 
-  async patch<T = unknown>(url: string, data?: unknown, config?: Record<string, unknown>): Promise<{ data: T }> {
-    return wrapResponse<T>(data ?? {});
+  async patch<T = unknown>(url: string, _data?: unknown, _config?: Record<string, unknown>): Promise<{ data: T }> {
+    return unimplemented('patch', url);
   },
 
-  async delete<T = unknown>(url: string, config?: Record<string, unknown>): Promise<{ data: T }> {
-    return wrapResponse<T>(null);
+  async delete<T = unknown>(url: string, _config?: Record<string, unknown>): Promise<{ data: T }> {
+    return unimplemented('delete', url);
   },
 };
 

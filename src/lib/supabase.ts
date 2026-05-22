@@ -83,7 +83,11 @@ export async function getUserProfile() {
     first_name: (meta.first_name as string) || undefined,
     last_name: (meta.last_name as string) || undefined,
     is_active: true,
-    role: { code: (meta.role as string) || 'user' },
+    // SECURITE (P0-6 / T-06) : ne JAMAIS deriver le role de `user_metadata`,
+    // modifiable par l'utilisateur (escalade via updateUser({data:{role:'admin'}})).
+    // En fallback (profil DB indisponible) on applique le role de moindre
+    // privilege. Le role reel provient de la table profiles/roles (RLS serveur).
+    role: { code: 'user' },
     company: undefined,
     company_id: (meta.company_id as string) || undefined,
     photo_url: (meta.photo_url as string) || (meta.avatar_url as string) || undefined,
@@ -133,7 +137,7 @@ export async function getUserProfile() {
 
   return {
     ...baseProfile,
-    role: roleData || { code: baseProfile.role || (meta.role as string) || 'user' },
+    role: roleData || { code: baseProfile.role || 'user' },
     company: companyData,
   };
 }

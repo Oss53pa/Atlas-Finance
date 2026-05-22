@@ -65,11 +65,15 @@ const RBACGuard: React.FC<RBACGuardProps> = ({
   const { user, isAuthenticated, loading } = useAuth();
   const [supabaseSession, setSupabaseSession] = useState<boolean | null>(null);
 
-  // Demo mode : laisser passer sans auth (sessionStorage flag)
-  const isDemoMode = typeof sessionStorage !== 'undefined' && sessionStorage.getItem('atlas-demo-mode') === '1';
-
   // Dev local : laisser passer (pas de Supabase auth)
   const isDevMode = import.meta.env.DEV;
+
+  // Demo mode : laisser passer sans auth (sessionStorage flag).
+  // SECURITE (P0-6) : strictement reserve au mode developpement. En build de
+  // production ce flag est inerte, sinon n'importe quel visiteur pourrait faire
+  // `sessionStorage.setItem('atlas-demo-mode','1')` et acceder a toutes les vues
+  // gardees par role (admin inclus).
+  const isDemoMode = isDevMode && typeof sessionStorage !== 'undefined' && sessionStorage.getItem('atlas-demo-mode') === '1';
 
   // Détecter un user dev persisté (localStorage ou sessionStorage)
   const hasPersistedDevUser = typeof window !== 'undefined' &&
@@ -97,20 +101,30 @@ const RBACGuard: React.FC<RBACGuardProps> = ({
     return () => { cancelled = true; };
   }, [hasPersistedSupabaseSession]);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[200px]">
-        <div className="w-6 h-6 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+  // Signal d'authentification disponible SYNCHRONEMENT (sans attendre la sonde
+  // async Supabase). S'il existe, on rend immédiatement les enfants — c'est ce
+  // qui élimine l'écran blanc au changement de page : le layout remonte ce guard
+  // à chaque navigation (Outlet), or l'ancienne logique renvoyait `null` le temps
+  // de re-sonder la session, d'où "il faut rafraîchir pour afficher la page".
+  const hasAuthSignal =
+    isAuthenticated || !!user || isDemoMode || isDevMode || hasPersistedDevUser || supabaseSession === true;
+
+  const Spinner = (
+    <div className="flex items-center justify-center min-h-[200px]">
+      <div className="w-6 h-6 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+
+  if (loading) return Spinner;
+
+  // On n'ATTEND la vérification Supabase QUE si aucun signal d'auth n'est encore
+  // disponible (hydratation initiale avec session persistée). Et on affiche un
+  // spinner — JAMAIS un écran blanc (plus de `return null`).
+  if (!hasAuthSignal && hasPersistedSupabaseSession && supabaseSession === null) {
+    return Spinner;
   }
 
-  // Si on attend la vérif Supabase et qu'on a une session persistée, attendre
-  if (hasPersistedSupabaseSession && supabaseSession === null) {
-    return null;
-  }
-
-  if (!isAuthenticated && !user && !isDemoMode && !isDevMode && !hasPersistedDevUser && !supabaseSession) {
+  if (!hasAuthSignal) {
     return <Navigate to="/login" replace />;
   }
 

@@ -1,6 +1,7 @@
 // @ts-nocheck
 
 import { useState, useEffect } from 'react';
+import { useData } from '../../../contexts/DataContext';
 import { financialStatementsService } from '../services/financialStatementsService';
 import {
   Bilan,
@@ -11,7 +12,13 @@ import {
   FinancialComparison,
 } from '../types/financialStatements.types';
 
+// P0-2 : le service feature attend (adapter, exercice). Auparavant le hook
+// appelait getFinancialStatements(exercice) — la chaîne `exercice` était passée
+// à la place de l'adapter (masqué par @ts-nocheck) → états financiers cassés.
+// On récupère désormais l'adapter via DataContext et on le transmet.
+
 export const useFinancialStatements = (exercice: string) => {
+  const { adapter } = useData();
   const [data, setData] = useState<FinancialStatementsData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -20,7 +27,7 @@ export const useFinancialStatements = (exercice: string) => {
     setLoading(true);
     setError(null);
     try {
-      const result = await financialStatementsService.getFinancialStatements(exercice);
+      const result = await financialStatementsService.getFinancialStatements(adapter, exercice);
       setData(result);
     } catch (err) {
       setError(err as Error);
@@ -33,7 +40,7 @@ export const useFinancialStatements = (exercice: string) => {
     if (exercice) {
       fetchData();
     }
-  }, [exercice]);
+  }, [exercice, adapter]);
 
   return {
     data,
@@ -44,6 +51,7 @@ export const useFinancialStatements = (exercice: string) => {
 };
 
 export const useBilan = (exercice: string) => {
+  const { adapter } = useData();
   const [bilan, setBilan] = useState<Bilan | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -55,7 +63,7 @@ export const useBilan = (exercice: string) => {
       setLoading(true);
       setError(null);
       try {
-        const result = await financialStatementsService.getBilan(exercice);
+        const result = await financialStatementsService.getBilan(adapter, exercice);
         setBilan(result);
       } catch (err) {
         setError(err as Error);
@@ -65,12 +73,13 @@ export const useBilan = (exercice: string) => {
     };
 
     fetchBilan();
-  }, [exercice]);
+  }, [exercice, adapter]);
 
   return { bilan, loading, error };
 };
 
 export const useCompteResultat = (exercice: string) => {
+  const { adapter } = useData();
   const [compteResultat, setCompteResultat] = useState<CompteResultat | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -82,7 +91,7 @@ export const useCompteResultat = (exercice: string) => {
       setLoading(true);
       setError(null);
       try {
-        const result = await financialStatementsService.getCompteResultat(exercice);
+        const result = await financialStatementsService.getCompteResultat(adapter, exercice);
         setCompteResultat(result);
       } catch (err) {
         setError(err as Error);
@@ -92,12 +101,13 @@ export const useCompteResultat = (exercice: string) => {
     };
 
     fetchCR();
-  }, [exercice]);
+  }, [exercice, adapter]);
 
   return { compteResultat, loading, error };
 };
 
 export const useFinancialComparison = (currentExercice: string, previousExercice?: string) => {
+  const { adapter } = useData();
   const [comparison, setComparison] = useState<FinancialComparison | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -110,6 +120,7 @@ export const useFinancialComparison = (currentExercice: string, previousExercice
       setError(null);
       try {
         const result = await financialStatementsService.compareExercices(
+          adapter,
           currentExercice,
           previousExercice
         );
@@ -122,7 +133,7 @@ export const useFinancialComparison = (currentExercice: string, previousExercice
     };
 
     fetchComparison();
-  }, [currentExercice, previousExercice]);
+  }, [currentExercice, previousExercice, adapter]);
 
   return { comparison, loading, error };
 };

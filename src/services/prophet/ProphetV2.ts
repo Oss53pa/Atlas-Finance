@@ -70,6 +70,8 @@ export class ProphetV2Service {
   private llmProvider: ILLMProvider | null = null;
   private contextBuilder = new ContextBuilder();
   private adapter: DataAdapter | null = null;
+  /** Conversation persistée côté serveur (edge function proph3t-ask). */
+  private remoteConversationId: string | null = null;
 
   constructor(config: ProphetConfig = {}, adapter?: DataAdapter) {
     this.sessionId = crypto.randomUUID();
@@ -90,12 +92,73 @@ export class ProphetV2Service {
   }
 
   /**
+   * Détermine si l'on route vers l'orchestrateur serveur déployé `proph3t-ask`.
+   *  - VITE_PROPH3T_REMOTE='false' -> désactivé (toujours client-side)
+   *  - VITE_PROPH3T_REMOTE='true'  -> forcé
+   *  - sinon : activé dès que Supabase est configuré ET qu'aucun Ollama local
+   *    n'est défini (en dev local on préfère le provider client).
+   */
+  private useRemoteOrchestrator(): boolean {
+    const flag = import.meta.env.VITE_PROPH3T_REMOTE;
+    if (flag === 'false') return false;
+    if (flag === 'true') return true;
+    const hasLocalOllama = !!import.meta.env.VITE_OLLAMA_BASE_URL;
+    return isSupabaseConfigured && !hasLocalOllama;
+  }
+
+  /**
+   * Appelle l'edge function déployée `proph3t-ask` (Groq Llama 3.3 + RAG OHADA,
+   * conversations persistées côté serveur). Renvoie null en cas d'échec (pas de
+   * session, erreur réseau/serveur) afin de laisser le chemin client prendre le
+   * relais.
+   */
+  private async callProph3tAsk(userMessage: string): Promise<ProphetResponse | null> {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) return null; // non authentifié → fallback client
+
+      const { data, error } = await supabase.functions.invoke('proph3t-ask', {
+        body: {
+          message: userMessage,
+          conversation_id: this.remoteConversationId ?? undefined,
+          product: 'atlas-finance',
+        },
+      });
+      if (error || !data || data.error || !data.answer) return null;
+
+      if (data.conversation_id) this.remoteConversationId = data.conversation_id;
+
+      return {
+        content: data.answer as string,
+        toolsUsed: [],
+        ragChunksUsed: typeof data.rag_chunks_used === 'number' ? data.rag_chunks_used : 0,
+        model: (data.model_used as string) || 'proph3t-ask',
+        sessionId: this.sessionId,
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  /**
    * Send a message and get a response.
    * Handles tool calls automatically (up to maxToolRounds).
    */
   async send(userMessage: string): Promise<ProphetResponse> {
     // Add user message to history
     this.conversationHistory.push({ role: 'user', content: userMessage });
+
+    // ── Chemin 1 (prod Atlas Studio) : orchestrateur serveur `proph3t-ask`
+    // (Groq Llama 3.3 + RAG OHADA, conversations persistées). C'est le core IA
+    // réellement déployé. Utilisé par défaut en SaaS, sauf override env.
+    if (this.useRemoteOrchestrator()) {
+      const remote = await this.callProph3tAsk(userMessage);
+      if (remote) {
+        this.conversationHistory.push({ role: 'assistant', content: remote.content });
+        return remote;
+      }
+      // Échec serveur → on bascule sur le chemin client ci-dessous (résilience).
+    }
 
     const toolsUsed: string[] = [];
     let ragChunksUsed = 0;
@@ -186,10 +249,15 @@ export class ProphetV2Service {
 
   /**
    * Call the LLM provider (Ollama local or Anthropic cloud).
-   * Falls back to Supabase Edge Function if configured, then to offline mode.
+   *
+   * Stratégie 1 : provider IA réel (Ollama local OU Anthropic Claude via l'edge
+   *   function ai-proxy — c'est le core IA d'Atlas Studio). Sélectionné par
+   *   LLMProviderFactory.createFromEnv() selon l'environnement.
+   * Stratégie 2 : repli hors-ligne (pattern-matching + tools) si aucun provider
+   *   n'est disponible.
    */
   private async callLLMProxy(userQuery?: string): Promise<{ message: { content: string; tool_calls?: Array<{ id: string; function: { name: string; arguments: string } }> }; model: string; ragChunksUsed: number }> {
-    // Strategy 1: Use LLM provider (Ollama or Anthropic)
+    // Strategy 1: Use LLM provider (Ollama or Anthropic via ai-proxy)
     if (this.llmProvider) {
       try {
         const isAvail = await this.llmProvider.isAvailable();
@@ -228,28 +296,11 @@ export class ProphetV2Service {
       }
     }
 
-    // Strategy 2: Supabase Edge Function (legacy)
-    if (isSupabaseConfigured) {
-      try {
-        const { data, error } = await supabase.functions.invoke('llm-proxy', {
-          body: {
-            messages: this.conversationHistory.map(m => ({
-              role: m.role,
-              content: m.content,
-            })),
-            countryCode: this.config.countryCode,
-            sessionId: this.sessionId,
-            stream: this.config.stream,
-          },
-        });
+    // NB : on ne tente PLUS d'edge function `llm-proxy` (elle n'existe pas — le
+    // vrai proxy est `ai-proxy`, déjà appelé par AnthropicProvider en stratégie 1).
+    // Ce code mort masquait l'absence de connexion IA derrière un échec silencieux.
 
-        if (!error && data) return data;
-      } catch (e) {
-        /* ignored */
-      }
-    }
-
-    // Strategy 3: Offline fallback (pattern matching + direct tool execution)
+    // Strategy 2: Offline fallback (pattern matching + direct tool execution)
     return this.offlineFallback();
   }
 
@@ -644,6 +695,7 @@ Posez-moi votre question !`,
   reset(): void {
     this.conversationHistory = [];
     this.sessionId = crypto.randomUUID();
+    this.remoteConversationId = null;
   }
 
   /** Get conversation history */

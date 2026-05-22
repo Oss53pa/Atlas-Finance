@@ -151,7 +151,10 @@ export class SupabaseAdapter implements DataAdapter {
   async create<T>(table: TableName, data: any, initiatedBy?: string): Promise<T> {
     const record = {
       ...data,
-      id: crypto.randomUUID(),
+      // P0-4 / F2-4 : respecter l'id fourni par l'appelant (cohérent avec
+      // createMany et avec le DexieAdapter), sinon les liens pré-calculés
+      // (reversedBy, hash) pointent dans le vide.
+      id: data?.id ?? crypto.randomUUID(),
       tenant_id: this.tenantId,
       created_at: new Date().toISOString(),
     }
@@ -268,17 +271,22 @@ export class SupabaseAdapter implements DataAdapter {
   }
 
   async saveJournalEntry(entry: Omit<JournalEntry, 'id' | 'createdAt'>): Promise<JournalEntry> {
-    const record = {
-      ...entry,
-      id: crypto.randomUUID(),
-      tenant_id: this.tenantId,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    }
-    const { data, error } = await this.client
-      .from('journal_entries').insert(record).select().single()
+    // P0-4 : l'ancienne version insérait l'entête en y embarquant `entry.lines`,
+    // alors que les lignes vivent dans la table séparée `journal_lines`. Résultat :
+    // écriture SANS lignes (le trigger d'équilibre ne se déclenchait jamais),
+    // balance et grand livre vides. On passe désormais par une RPC qui insère
+    // ATOMIQUEMENT l'entête + ses lignes dans une seule transaction Postgres
+    // (le trigger DEFERRABLE valide l'équilibre au commit), et qui dérive le
+    // tenant côté serveur via get_user_company_id() (cf. migration de sécurité).
+    const { lines, ...header } = entry as any
+    const { data, error } = await this.client.rpc('save_journal_entry', {
+      p_entry: header,
+      p_lines: lines ?? [],
+    })
     if (error) throw new Error(error.message)
-    return data as JournalEntry
+    // La RPC renvoie la ligne journal_entries créée (snake_case). On ré-attache
+    // les lignes côté objet retourné pour rester cohérent avec l'appelant.
+    return { ...(data as any), id: (data as any)?.id, lines: lines ?? [] } as JournalEntry
   }
 
   async transaction<T>(_tables: TableName[], fn: (adapter: DataAdapter) => Promise<T>): Promise<T> {

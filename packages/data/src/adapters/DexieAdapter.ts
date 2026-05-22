@@ -242,7 +242,17 @@ export class DexieAdapter implements DataAdapter {
   }
 
   async create<T>(table: TableName, data: any, initiatedBy?: string): Promise<T> {
-    const id = crypto.randomUUID()
+    // P0-4 : toute écriture comptable doit être équilibrée et tomber dans une
+    // période ouverte, quel que soit le chemin d'insertion (et plus seulement
+    // saveJournalEntry). Ferme le contournement par create() générique.
+    if (table === 'journalEntries') {
+      await this.assertJournalEntryWritable(data)
+    }
+    // P0-4 / F2-4 : respecter l'id fourni par l'appelant (safeAddEntry calcule le
+    // hash puis renvoie cet id ; reverseEntry pose reversedBy = cet id). L'écraser
+    // systématiquement cassait les liens (reversedBy pointait dans le vide) et
+    // masquait la divergence test/prod.
+    const id = data?.id ?? crypto.randomUUID()
     const record = { ...data, id }
     await this.getTable(table).add(record)
 
@@ -262,6 +272,15 @@ export class DexieAdapter implements DataAdapter {
   }
 
   async update<T>(table: TableName, id: string, data: any, initiatedBy?: string): Promise<T> {
+    // P0-4 : une écriture comptabilisée (posted) est immuable (SYSCOHADA Art.19).
+    // Seules les métadonnées (lettrage, rapprochement, marquage de
+    // contrepassation) peuvent évoluer ; comptes/montants/entête sont figés.
+    if (table === 'journalEntries') {
+      const existing: any = await this.getTable(table).get(id)
+      if (existing && existing.status === 'posted') {
+        this.assertPostedEntryImmutable(existing, data)
+      }
+    }
     await this.getTable(table).update(id, data)
     const updated = await this.getTable(table).get(id)
 
@@ -281,6 +300,16 @@ export class DexieAdapter implements DataAdapter {
   }
 
   async delete(table: TableName, id: string, initiatedBy?: string): Promise<void> {
+    // P0-4 : interdiction de supprimer physiquement une écriture comptabilisée
+    // (SYSCOHADA Art.19). La correction passe par une contrepassation.
+    if (table === 'journalEntries') {
+      const existing: any = await this.getTable(table).get(id)
+      if (existing && existing.status === 'posted') {
+        throw new Error(
+          'Écriture comptabilisée immuable (SYSCOHADA Art. 19) : suppression interdite. Utilisez une contrepassation.',
+        )
+      }
+    }
     await this.getTable(table).delete(id)
 
     if (initiatedBy) {
@@ -428,6 +457,55 @@ export class DexieAdapter implements DataAdapter {
       debit: totalDebit,
       credit: totalCredit,
       ecart,
+    }
+  }
+
+  /**
+   * P0-4 : garde-fou d'écriture comptable — équilibre D=C + période ouverte.
+   * Appliqué à toute insertion d'écriture, y compris via create() générique.
+   */
+  private async assertJournalEntryWritable(data: any): Promise<void> {
+    const lines = Array.isArray(data?.lines) ? data.lines : []
+    if (lines.length > 0) {
+      const check = this.validateJournalBalance(lines)
+      if (!check.valid) {
+        throw new Error(
+          `Écriture déséquilibrée : Débit=${check.debit} Crédit=${check.credit} (écart ${check.ecart}).`,
+        )
+      }
+    }
+    if (data?.date) {
+      await this.assertPeriodOpen(data.date)
+    }
+  }
+
+  /**
+   * P0-4 : une écriture comptabilisée (posted) est immuable (SYSCOHADA Art.19).
+   * Seules les métadonnées (lettrage, rapprochement, marquage de contrepassation :
+   * reversed/reversedBy/reversedAt) peuvent changer. Toute modification d'un champ
+   * d'entête ou des comptes/montants des lignes est refusée — la correction se
+   * fait par contrepassation.
+   */
+  private assertPostedEntryImmutable(existing: any, patch: any): void {
+    const FROZEN = ['journal', 'date', 'entryNumber', 'label', 'reference', 'status', 'totalDebit', 'totalCredit']
+    for (const field of FROZEN) {
+      if (field in patch && JSON.stringify(patch[field]) !== JSON.stringify(existing[field])) {
+        throw new Error(
+          `Écriture comptabilisée immuable (SYSCOHADA Art. 19) : le champ "${field}" ne peut pas être modifié. Utilisez une contrepassation.`,
+        )
+      }
+    }
+    if ('lines' in patch && Array.isArray(patch.lines)) {
+      const signature = (l: any) =>
+        `${l.accountCode}|${money(l.debit || 0).toNumber()}|${money(l.credit || 0).toNumber()}`
+      const before = (existing.lines || []).map(signature).sort()
+      const after = patch.lines.map(signature).sort()
+      const changed = before.length !== after.length || before.some((s: string, i: number) => s !== after[i])
+      if (changed) {
+        throw new Error(
+          'Écriture comptabilisée immuable (SYSCOHADA Art. 19) : les comptes et montants ne peuvent pas être modifiés. Utilisez une contrepassation.',
+        )
+      }
     }
   }
 

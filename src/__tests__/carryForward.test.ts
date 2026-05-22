@@ -193,7 +193,7 @@ describe('CarryForward (Report A-Nouveau)', () => {
   });
 
   describe('supprimerCarryForward', () => {
-    it('should delete AN entries', async () => {
+    it('should reverse (contrepasser) validated AN entries instead of deleting them', async () => {
       const result = await executerCarryForward(adapter, {
         closingExerciceId: 'FY2024',
         openingExerciceId: 'FY2025',
@@ -201,9 +201,20 @@ describe('CarryForward (Report A-Nouveau)', () => {
       });
       expect(result.success).toBe(true);
       expect(await hasCarryForward(adapter, 'FY2025')).toBe(true);
+      const anId = result.entryId!;
 
       await supprimerCarryForward(adapter, 'FY2025');
-      expect(await hasCarryForward(adapter, 'FY2025')).toBe(false);
+
+      // P0-4 / F4-2 : un à-nouveau validé n'est PAS supprimé physiquement
+      // (intangibilité SYSCOHADA Art. 19) — il est contrepassé.
+      const original = await adapter.getById('journalEntries', anId) as any;
+      expect(original).toBeTruthy();
+      expect(original.reversed).toBe(true);
+
+      // Une écriture de contrepassation (lignes inversées) a été créée.
+      const all = await adapter.getAll('journalEntries') as any[];
+      const reversal = all.find((e) => e.reversalOf === anId);
+      expect(reversal).toBeTruthy();
     });
   });
 });

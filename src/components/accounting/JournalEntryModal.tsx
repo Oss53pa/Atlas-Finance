@@ -106,28 +106,38 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
   // État pour les erreurs de validation
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
-  // Plan comptable SYSCOHADA simplifié
-  const planComptable = [
-    { code: '101000', libelle: 'Capital social' },
+  // Plan comptable SYSCOHADA — chargé depuis le référentiel réel via le
+  // DataAdapter (P0-5). Auparavant figé à ~20 comptes en dur, ce qui rendait la
+  // saisie inutilisable en comptabilité réelle. Fallback minimal uniquement si
+  // aucun compte n'est encore paramétré (base vierge).
+  const PLAN_COMPTABLE_FALLBACK = [
     { code: '401000', libelle: 'Fournisseurs' },
-    { code: '401001', libelle: 'Fournisseur auxiliaire' },
     { code: '411000', libelle: 'Clients' },
-    { code: '411001', libelle: 'Client auxiliaire' },
     { code: '445200', libelle: 'TVA déductible' },
     { code: '445710', libelle: 'TVA collectée' },
-    { code: '512100', libelle: 'BNP Paribas' },
-    { code: '512200', libelle: 'Société Générale' },
     { code: '531000', libelle: 'Caisse' },
     { code: '601000', libelle: 'Achats de marchandises' },
-    { code: '607000', libelle: 'Achats marchandises' },
-    { code: '624100', libelle: 'Transport sur achats' },
-    { code: '625100', libelle: 'Voyages et déplacements' },
-    { code: '626100', libelle: 'Frais postaux' },
-    { code: '627100', libelle: 'Publicité' },
     { code: '701000', libelle: 'Ventes de marchandises' },
-    { code: '706000', libelle: 'Prestations de services' },
-    { code: '707000', libelle: 'Ventes marchandises' },
   ];
+  const [planComptable, setPlanComptable] = useState<Array<{ code: string; libelle: string }>>(PLAN_COMPTABLE_FALLBACK);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const accounts = await adapter.getAll('accounts');
+        if (cancelled) return;
+        const mapped = (accounts as Array<{ code?: string; name?: string; libelle?: string; isActive?: boolean; actif?: boolean }>)
+          .filter((a) => a && a.code && a.isActive !== false && a.actif !== false)
+          .map((a) => ({ code: String(a.code), libelle: String(a.name ?? a.libelle ?? a.code) }))
+          .sort((x, y) => x.code.localeCompare(y.code));
+        if (mapped.length > 0) setPlanComptable(mapped);
+      } catch (_e) {
+        /* conserve le fallback minimal */
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [adapter]);
 
   // Codes analytiques
   const codesAnalytiques = [
@@ -188,25 +198,25 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
     approuvePar: ''
   });
 
-  // État pour la ventilation
+  // État pour la ventilation — lignes vierges (P0-5/UX-20 : plus de fausse
+  // écriture pré-remplie, qui induisait des erreurs de saisie réelles).
   const [lignesEcriture, setLignesEcriture] = useState<LigneEcriture[]>([
-    { compte: '607000', libelle: 'Achats marchand', debit: 100000, credit: 0, codeAnalytique: 'CC001 - Commercial' },
-    { compte: '445200', libelle: 'TVA déductible', debit: 19250, credit: 0, codeAnalytique: '' },
-    { compte: '401001', libelle: 'Fournisseur auxiliaire', debit: 0, credit: 119250, codeAnalytique: '' }
+    { compte: '', libelle: '', debit: 0, credit: 0, codeAnalytique: '' },
+    { compte: '', libelle: '', debit: 0, credit: 0, codeAnalytique: '' }
   ]);
 
   // État pour les factures (ventilation)
   const [factureInfo, setFactureInfo] = useState({
     fournisseur: '',
     dateFacture: '',
-    numeroFacture: 'FA-2025-001'
+    numeroFacture: ''
   });
 
   // État pour les ventes
   const [venteInfo, setVenteInfo] = useState({
     client: '',
     dateFacture: '',
-    numeroFacture: 'FV-2025-001'
+    numeroFacture: ''
   });
 
   // État pour les règlements
@@ -216,7 +226,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
     modeReglement: 'virement',
     reference: '',
     dateEcheance: '',
-    montant: 119250,
+    montant: 0,
     compteBank: '512100',
     document: ''
   });
@@ -232,16 +242,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
   const [sousJournalOD, setSousJournalOD] = useState('');
 
   // État pour les attachements
-  const [attachements, setAttachements] = useState<Array<{ nom: string; type: string; taille: string; reference: string; ligneAssociee: string; commentaire: string }>>([
-    {
-      nom: 'facture_FA2025001.pdf',
-      type: 'Facture',
-      taille: '2.3 MB',
-      reference: 'FA-2025-001',
-      ligneAssociee: '',
-      commentaire: 'Facture originale'
-    }
-  ]);
+  const [attachements, setAttachements] = useState<Array<{ nom: string; type: string; taille: string; reference: string; ligneAssociee: string; commentaire: string }>>([]);
 
   // État pour les notes
   const [notes, setNotes] = useState({

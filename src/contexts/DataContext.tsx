@@ -61,7 +61,7 @@ export function DataProvider({ children, forceMode, forceAdapter }: DataProvider
         // dans sessionStorage cle 'atlas-fna-auth'). Sinon l'adapter cree son
         // propre client sans session -> toutes les operations tournent en anon
         // et echouent avec 'permission denied' sur INSERT/UPDATE/DELETE.
-        return new SupabaseAdapter(url, key, tenantId, globalSupabaseClient as unknown as Parameters<typeof SupabaseAdapter>[3])
+        return new SupabaseAdapter(url, key, tenantId, globalSupabaseClient as unknown as ConstructorParameters<typeof SupabaseAdapter>[3])
       }
       case 'hybrid': {
         return new DexieAdapter()
