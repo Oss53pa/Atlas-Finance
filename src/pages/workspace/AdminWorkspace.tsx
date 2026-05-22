@@ -35,6 +35,7 @@ import AdminBackup from '../../components/admin/sections/AdminBackup';
 import AdminImportExport from '../../components/admin/sections/AdminImportExport';
 import AdminAuditTrail from '../../components/admin/sections/AdminAuditTrail';
 import AdminAPI from '../../components/admin/sections/AdminAPI';
+import AdminOCR from '../../components/admin/sections/AdminOCR';
 import AdminTaxRegistry from '../admin/sections/AdminTaxRegistry';
 import {
   Shield, FileText, BarChart3, Users, Upload,
@@ -42,7 +43,7 @@ import {
   ArrowLeft, Bell, HelpCircle, User, Search, Menu, X, Settings, LogOut, ChevronDown,
   Mail, BookMarked, MessageCircle, FileQuestion, Video, Headphones,
   Activity, FolderOpen, ListTodo, MessageSquare, LayoutDashboard,
-  Server, Database, Lock, AlertTriangle, Cog, Briefcase
+  Server, Database, Lock, AlertTriangle, Cog, Briefcase, ScanLine
 } from 'lucide-react';
 
 const AdminWorkspace: React.FC = () => {
@@ -76,6 +77,7 @@ const AdminWorkspace: React.FC = () => {
     { id: 'migration', label: 'Migration donnees', icon: Upload },
     { id: 'audit-trail', label: 'Piste d\'Audit', icon: FileText },
     { id: 'api', label: 'API & Integrations', icon: Server },
+    { id: 'ocr', label: 'Configuration OCR', icon: ScanLine },
     { id: 'tax-registry', label: 'Registre Fiscal', icon: Cog },
   ];
 
@@ -363,6 +365,7 @@ const AdminWorkspace: React.FC = () => {
           {activeSection === 'import-export' && <AdminImportExport subTab={adminSubTab} setSubTab={setAdminSubTab} />}
           {activeSection === 'audit-trail' && <AdminAuditTrail subTab={adminSubTab} setSubTab={setAdminSubTab} />}
           {activeSection === 'api' && <AdminAPI subTab={adminSubTab} setSubTab={setAdminSubTab} />}
+          {activeSection === 'ocr' && <AdminOCR />}
           {activeSection === 'tax-registry' && <AdminTaxRegistry />}
           {activeSection === 'migration' && <DataMigrationImport onBack={() => changeSection('workspace')} />}
         </main>

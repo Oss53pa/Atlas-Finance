@@ -1,6 +1,23 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useData } from '../../contexts/DataContext';
+import { useAuth } from '../../contexts/AuthContext';
+import {
+  getOCRConfig,
+  saveOCRConfig,
+  listScannedDocuments,
+  saveScannedDocument,
+  extractInvoice,
+  createEntryFromInvoice,
+  fileToBase64,
+  isOCRConfigured,
+  type OCRConfig,
+  type ScannedInvoice,
+  type ExtractedData,
+} from '../../services/ocr';
 import {
   ScanLine, Upload, FileText, Check, X, AlertTriangle,
   Download, Eye, Edit, Trash2, Filter, Search, Calendar,
@@ -11,102 +28,6 @@ import {
   Activity, TrendingUp, BarChart3, FileX, AlertCircle,
   Loader2, ArrowRight, Copy, Share2, Archive, Tag
 } from 'lucide-react';
-
-interface InvoiceItem {
-  id: string;
-  description: string;
-  quantity: number;
-  unitPrice: number;
-  taxRate: number;
-  discount: number;
-  total: number;
-  accountCode?: string;
-  analyticalCode?: string;
-}
-
-interface ExtractedData {
-  // Document Information
-  documentType: 'invoice' | 'credit_note' | 'receipt' | 'purchase_order';
-  documentNumber: string;
-  documentDate: string;
-  dueDate: string;
-
-  // Supplier Information
-  supplierName: string;
-  supplierAddress: string;
-  supplierCountry: string;
-  supplierTaxId: string;
-  supplierEmail?: string;
-  supplierPhone?: string;
-  supplierIBAN?: string;
-
-  // Customer Information
-  customerName?: string;
-  customerAddress?: string;
-  customerTaxId?: string;
-
-  // Financial Information
-  subtotal: number;
-  taxAmount: number;
-  discountAmount: number;
-  shippingAmount: number;
-  totalAmount: number;
-  currency: string;
-  exchangeRate?: number;
-
-  // Payment Information
-  paymentTerms?: string;
-  paymentMethod?: string;
-  bankDetails?: string;
-
-  // Line Items
-  items: InvoiceItem[];
-
-  // References
-  purchaseOrderRef?: string;
-  deliveryNoteRef?: string;
-  contractRef?: string;
-
-  // Compliance
-  taxBreakdown?: {
-    rate: number;
-    base: number;
-    amount: number;
-  }[];
-}
-
-interface ScannedInvoice {
-  id: string;
-  fileName: string;
-  fileSize: number;
-  fileType: string;
-  uploadDate: Date;
-  processedDate?: Date;
-  status: 'uploading' | 'processing' | 'review' | 'validated' | 'rejected' | 'error' | 'archived';
-  confidence: number;
-  extractedData: ExtractedData;
-  originalFileUrl: string;
-  ocrText?: string;
-  validationErrors?: {
-    field: string;
-    message: string;
-    severity: 'error' | 'warning' | 'info';
-  }[];
-  validatedBy?: string;
-  validatedAt?: Date;
-  rejectedBy?: string;
-  rejectedAt?: Date;
-  rejectionReason?: string;
-  accountingEntryId?: string;
-  tags?: string[];
-  notes?: string;
-  auditLog?: {
-    action: string;
-    user: string;
-    timestamp: Date;
-    details?: string;
-  }[];
-}
 
 interface OCRSettings {
   autoValidate: boolean;
@@ -121,6 +42,12 @@ interface OCRSettings {
 
 const OCRInvoices: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [ocrConfig, setOcrConfig] = useState<OCRConfig | null>(null);
+  // Ref pour éviter les closures périmées dans les handlers drag-drop (useCallback []).
+  const ocrConfigRef = useRef<OCRConfig | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [dragActive, setDragActive] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<ScannedInvoice | null>(null);
@@ -144,6 +71,44 @@ const OCRInvoices: React.FC = () => {
   });
 
   const [scannedInvoices, setScannedInvoices] = useState<ScannedInvoice[]>([]);
+
+  // Charge la config OCR + les factures déjà scannées (persistées dans settings).
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const cfg = await getOCRConfig(adapter);
+      if (cancelled) return;
+      ocrConfigRef.current = cfg;
+      setOcrConfig(cfg);
+      setSettings(s => ({
+        ...s,
+        autoValidate: cfg.autoValidate,
+        confidenceThreshold: cfg.confidenceThreshold,
+        defaultCurrency: cfg.defaultCurrency,
+        defaultTaxRate: cfg.defaultTaxRate,
+        duplicateCheck: cfg.duplicateCheck,
+        extractLineItems: cfg.extractLineItems,
+        language: cfg.language,
+        enhanceImage: cfg.enhanceImage,
+      }));
+      try {
+        const docs = await listScannedDocuments(adapter);
+        if (!cancelled) setScannedInvoices(docs);
+      } catch { /* table vide ou indisponible */ }
+    })();
+    return () => { cancelled = true; };
+  }, [adapter]);
+
+  const configured = isOCRConfigured(ocrConfig);
+
+  const blankExtracted = (): ExtractedData => ({
+    documentType: 'invoice',
+    documentNumber: '', documentDate: '', dueDate: '',
+    supplierName: '', supplierAddress: '', supplierCountry: '', supplierTaxId: '',
+    subtotal: 0, taxAmount: 0, discountAmount: 0, shippingAmount: 0, totalAmount: 0,
+    currency: ocrConfigRef.current?.defaultCurrency || 'XAF',
+    items: [],
+  });
 
   const stats = {
     total: scannedInvoices.length,
@@ -186,87 +151,132 @@ const OCRInvoices: React.FC = () => {
       if (file.type.startsWith('image/') || file.type === 'application/pdf') {
         processFile(file);
       } else {
-        /* ignored */
+        toast.error(`Format non supporté : ${file.name} (PDF, JPG ou PNG attendu)`);
       }
     });
   };
 
   const processFile = async (file: File) => {
     const fileId = `file-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    setProcessingFiles(prev => [...prev, fileId]);
+    const cfg = ocrConfigRef.current;
+    const userName = user?.name || 'Utilisateur';
 
-    // File is registered but not extracted - OCR service not connected
-    setTimeout(() => {
-      const newInvoice: ScannedInvoice = {
-        id: fileId,
-        fileName: file.name,
-        fileSize: file.size,
-        fileType: file.type,
-        uploadDate: new Date(),
-        processedDate: undefined as unknown as Date,
-        status: 'error',
-        confidence: 0,
-        extractedData: {
-          documentType: 'invoice',
-          documentNumber: '',
-          documentDate: '',
-          dueDate: '',
-          supplierName: '',
-          supplierAddress: '',
-          supplierCountry: '',
-          supplierTaxId: '',
-          subtotal: 0,
-          taxAmount: 0,
-          discountAmount: 0,
-          shippingAmount: 0,
-          totalAmount: 0,
-          currency: settings.defaultCurrency,
-          items: []
-        },
-        originalFileUrl: URL.createObjectURL(file),
+    let dataUrl = '';
+    try {
+      dataUrl = (await fileToBase64(file)).dataUrl;
+    } catch { /* aperçu indisponible */ }
+
+    // Aucun moteur configuré : on enregistre le fichier sans extraction.
+    if (!isOCRConfigured(cfg)) {
+      const doc: ScannedInvoice = {
+        id: fileId, fileName: file.name, fileSize: file.size, fileType: file.type,
+        uploadDate: new Date(), status: 'error', confidence: 0,
+        extractedData: blankExtracted(), originalFileUrl: dataUrl, tags: [],
+        notes: 'Service OCR non configuré — extraction impossible.',
+        auditLog: [{ action: 'uploaded', user: userName, timestamp: new Date() }],
+      };
+      setScannedInvoices(prev => [doc, ...prev]);
+      await saveScannedDocument(adapter, doc).catch(() => {});
+      toast.error('Aucun service OCR configuré. Demandez à l\'admin de le configurer.');
+      return;
+    }
+
+    setProcessingFiles(prev => [...prev, fileId]);
+    try {
+      const result = await extractInvoice(file, cfg!);
+      const doc: ScannedInvoice = {
+        id: fileId, fileName: file.name, fileSize: file.size, fileType: file.type,
+        uploadDate: new Date(), processedDate: new Date(),
+        status: result.success ? 'review' : 'error',
+        confidence: result.confidence,
+        extractedData: result.data ?? blankExtracted(),
+        originalFileUrl: dataUrl,
+        ocrText: result.rawText,
+        provider: result.provider,
+        notes: result.success ? undefined : result.error,
         tags: [],
-        notes: 'Service OCR non connecte - extraction impossible',
-        auditLog: [
-          {
-            action: 'uploaded',
-            user: 'Current User',
-            timestamp: new Date()
-          }
-        ]
+        auditLog: [{ action: result.success ? 'extracted' : 'extraction_failed', user: userName, timestamp: new Date(), details: result.error }],
       };
 
-      setScannedInvoices(prev => [newInvoice, ...prev]);
+      // Validation automatique si activée et confiance suffisante.
+      if (result.success && cfg!.autoValidate && result.confidence >= cfg!.confidenceThreshold) {
+        try {
+          const entryId = await createEntryFromInvoice(adapter, doc.extractedData, cfg!, { createdBy: `ocr:${user?.id || ''}` });
+          doc.status = 'validated';
+          doc.validatedBy = `${userName} (auto)`;
+          doc.validatedAt = new Date();
+          doc.accountingEntryId = entryId;
+        } catch { /* on laisse en review si la compta échoue */ }
+      }
+
+      setScannedInvoices(prev => [doc, ...prev]);
+      await saveScannedDocument(adapter, doc).catch(() => {});
+
+      if (result.success) {
+        toast.success(`Facture extraite — confiance ${result.confidence}%${doc.status === 'validated' ? ' (validée & comptabilisée)' : ''}`);
+      } else {
+        toast.error(`Extraction échouée : ${result.error}`);
+      }
+    } finally {
       setProcessingFiles(prev => prev.filter(id => id !== fileId));
-    }, 1000);
+    }
   };
 
-  const validateInvoice = (invoice: ScannedInvoice) => {
-    const updatedInvoice = {
+  const validateInvoice = async (invoice: ScannedInvoice) => {
+    const cfg = ocrConfig;
+    if (!cfg) { toast.error('Configuration OCR introuvable'); return; }
+    let entryId = invoice.accountingEntryId;
+    try {
+      if (!entryId) {
+        entryId = await createEntryFromInvoice(adapter, invoice.extractedData, cfg, { createdBy: `ocr:${user?.id || ''}` });
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Comptabilisation échouée');
+      return;
+    }
+    const updated: ScannedInvoice = {
       ...invoice,
-      status: 'validated' as const,
-      validatedBy: 'Current User',
-      validatedAt: new Date()
+      status: 'validated',
+      validatedBy: user?.name || 'Utilisateur',
+      validatedAt: new Date(),
+      accountingEntryId: entryId,
     };
-
-    setScannedInvoices(prev =>
-      prev.map(i => i.id === invoice.id ? updatedInvoice : i)
-    );
-
-    // Create accounting entry
+    setScannedInvoices(prev => prev.map(i => i.id === invoice.id ? updated : i));
+    await saveScannedDocument(adapter, updated).catch(() => {});
+    toast.success('Facture validée et comptabilisée');
   };
 
-  const rejectInvoice = (invoice: ScannedInvoice, reason: string) => {
-    const updatedInvoice = {
+  const rejectInvoice = async (invoice: ScannedInvoice, reason: string) => {
+    const updated: ScannedInvoice = {
       ...invoice,
-      status: 'rejected' as const,
-      rejectedBy: 'Current User',
+      status: 'rejected',
+      rejectedBy: user?.name || 'Utilisateur',
       rejectedAt: new Date(),
-      rejectionReason: reason
+      rejectionReason: reason,
     };
+    setScannedInvoices(prev => prev.map(i => i.id === invoice.id ? updated : i));
+    await saveScannedDocument(adapter, updated).catch(() => {});
+    toast('Facture rejetée');
+  };
 
-    setScannedInvoices(prev =>
-      prev.map(i => i.id === invoice.id ? updatedInvoice : i)
-    );
+  const bulkValidate = async () => {
+    const targets = scannedInvoices.filter(i => selectedInvoices.includes(i.id) && i.status === 'review');
+    if (targets.length === 0) { toast('Aucune facture à réviser dans la sélection'); return; }
+    let ok = 0;
+    for (const inv of targets) {
+      try { await validateInvoice(inv); ok++; } catch { /* ignorée */ }
+    }
+    setSelectedInvoices([]);
+    toast.success(`${ok}/${targets.length} facture(s) validée(s) et comptabilisée(s)`);
+  };
+
+  const bulkReject = async () => {
+    const targets = scannedInvoices.filter(i => selectedInvoices.includes(i.id) && i.status === 'review');
+    for (const inv of targets) {
+      await rejectInvoice(inv, 'Rejet en lot');
+    }
+    setSelectedInvoices([]);
+    toast(`${targets.length} facture(s) rejetée(s)`);
   };
 
   const getStatusColor = (status: string) => {
@@ -302,14 +312,25 @@ const OCRInvoices: React.FC = () => {
     <div className="flex h-full bg-[var(--color-background)]">
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
-        {/* OCR Service Notice */}
-        <div className="mx-6 mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-center space-x-3">
-          <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0" />
-          <div>
-            <p className="text-sm font-medium text-amber-800">Module OCR en cours de deploiement — connectez un service OCR pour activer l'extraction automatique</p>
-            <p className="text-xs text-amber-600">Les fichiers deposes seront enregistres mais non extraits tant qu'un service OCR (Mindee, Google Vision, etc.) n'est pas configure.</p>
+        {/* OCR Service Notice — affiché uniquement si aucun moteur n'est configuré */}
+        {ocrConfig && !configured && (
+          <div className="mx-6 mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-center justify-between gap-3">
+            <div className="flex items-center space-x-3">
+              <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-medium text-amber-800">Aucun service OCR configuré — l'extraction automatique est désactivée</p>
+                <p className="text-xs text-amber-600">Les fichiers déposés seront enregistrés mais non extraits tant qu'un moteur OCR (IA Vision ou Mindee) n'est pas configuré dans l'espace Admin.</p>
+              </div>
+            </div>
+            <button
+              onClick={() => navigate('/workspace/admin')}
+              className="px-3 py-1.5 bg-amber-500 text-white rounded-lg text-sm font-medium hover:bg-amber-600 transition-colors whitespace-nowrap flex items-center gap-2"
+            >
+              <Settings className="w-4 h-4" />
+              Configurer
+            </button>
           </div>
-        </div>
+        )}
         {/* Header */}
         <div className="bg-[var(--color-surface)] border-b border-[var(--color-border)] px-6 py-4">
           <div className="flex items-center justify-between">
@@ -341,7 +362,10 @@ const OCRInvoices: React.FC = () => {
                 <Copy className="w-4 h-4" />
                 Mode Batch
               </button>
-              <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] transition-colors flex items-center gap-2">
+              <button
+                onClick={() => { setActiveTab('scan'); fileInputRef.current?.click(); }}
+                className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] transition-colors flex items-center gap-2"
+              >
                 <Camera className="w-4 h-4" />
                 Scanner
               </button>
@@ -563,10 +587,10 @@ const OCRInvoices: React.FC = () => {
                     <span className="text-sm text-[var(--color-text-secondary)]">
                       {selectedInvoices.length} sélectionnées
                     </span>
-                    <button className="px-3 py-1.5 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-dark)] transition-colors text-sm">
+                    <button onClick={bulkValidate} className="px-3 py-1.5 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-dark)] transition-colors text-sm">
                       Valider la sélection
                     </button>
-                    <button className="px-3 py-1.5 bg-[var(--color-error)] text-white rounded-lg hover:bg-[var(--color-error-dark)] transition-colors text-sm">
+                    <button onClick={bulkReject} className="px-3 py-1.5 bg-[var(--color-error)] text-white rounded-lg hover:bg-[var(--color-error-dark)] transition-colors text-sm">
                       Rejeter
                     </button>
                   </div>
@@ -1206,7 +1230,33 @@ const OCRInvoices: React.FC = () => {
             </div>
           </div>
           <div className="px-6 py-4 border-t border-[var(--color-border)]">
-            <button className="w-full px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] transition-colors">
+            <button
+              onClick={async () => {
+                const base = ocrConfigRef.current;
+                if (!base) { toast.error('Configuration OCR introuvable'); return; }
+                const merged: OCRConfig = {
+                  ...base,
+                  autoValidate: settings.autoValidate,
+                  confidenceThreshold: settings.confidenceThreshold,
+                  defaultCurrency: settings.defaultCurrency,
+                  defaultTaxRate: settings.defaultTaxRate,
+                  extractLineItems: settings.extractLineItems,
+                  duplicateCheck: settings.duplicateCheck,
+                  enhanceImage: settings.enhanceImage,
+                  language: settings.language,
+                };
+                ocrConfigRef.current = merged;
+                setOcrConfig(merged);
+                try {
+                  await saveOCRConfig(adapter, merged);
+                  toast.success('Paramètres OCR enregistrés');
+                  setShowSettings(false);
+                } catch {
+                  toast.error('Échec de l\'enregistrement');
+                }
+              }}
+              className="w-full px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] transition-colors"
+            >
               Enregistrer les paramètres
             </button>
           </div>
