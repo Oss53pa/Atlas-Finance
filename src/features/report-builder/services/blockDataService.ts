@@ -94,7 +94,7 @@ export async function fetchKPIValue(
   source: string,
   period: PeriodSelection
 ): Promise<KPIResult> {
-  const entries = (await adapter.getAll('journalEntries')) as JournalEntry[];
+  const entries = ((await adapter.getAll('journalEntries')) as JournalEntry[]).filter((e) => e.status !== 'draft');
   const prev = previousPeriod(period);
 
   const calcValue = (p: PeriodSelection): number | null => {
@@ -628,7 +628,7 @@ export async function fetchTableData(
   source: string,
   period: PeriodSelection
 ): Promise<TableResult> {
-  const entries = (await adapter.getAll('journalEntries')) as JournalEntry[];
+  const entries = ((await adapter.getAll('journalEntries')) as JournalEntry[]).filter((e) => e.status !== 'draft');
 
   switch (source) {
     case 'accounting.balance_generale': {
@@ -914,7 +914,7 @@ export async function fetchChartData(
   source: string,
   period: PeriodSelection
 ): Promise<ChartResult> {
-  const entries = (await adapter.getAll('journalEntries')) as JournalEntry[];
+  const entries = ((await adapter.getAll('journalEntries')) as JournalEntry[]).filter((e) => e.status !== 'draft');
 
   switch (source) {
     case 'chart.ca_evolution':

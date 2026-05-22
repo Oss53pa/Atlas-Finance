@@ -3,6 +3,7 @@ import { Routes, Route, Outlet, Navigate, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { ThemeProvider } from './contexts/ThemeContext';
+import { AccessibilityProvider } from './accessibility';
 import { LoadingSpinner } from './components/ui/LoadingSpinner';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { AuthProvider } from './contexts/AuthContext';
@@ -267,6 +268,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <DataProvider>
       <ThemeProvider>
+        <AccessibilityProvider>
         <LanguageProvider>
           <AuthProvider>
             <WorkspaceProvider>
@@ -560,6 +562,7 @@ function App() {
             </WorkspaceProvider>
           </AuthProvider>
         </LanguageProvider>
+        </AccessibilityProvider>
       </ThemeProvider>
       </DataProvider>
     </QueryClientProvider>

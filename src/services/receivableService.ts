@@ -131,7 +131,7 @@ const TAUX_PROVISION_PAR_ANCIENNETE: Record<number, number> = {
  */
 export async function getThirdPartyBalances(adapter: DataAdapter): Promise<ThirdPartyBalance[]> {
   const thirdParties = await adapter.getAll('thirdParties');
-  const entries = await adapter.getAll('journalEntries');
+  const entries = (await adapter.getAll('journalEntries')).filter((e: any) => e.status !== 'draft');
 
   const balances: ThirdPartyBalance[] = [];
 
@@ -173,7 +173,7 @@ export async function getThirdPartyBalance(adapter: DataAdapter, thirdPartyCode:
   const tp = allTp[0];
   if (!tp) return null;
 
-  const entries = await adapter.getAll('journalEntries');
+  const entries = (await adapter.getAll('journalEntries')).filter((e: any) => e.status !== 'draft');
   let totalDebit = 0;
   let totalCredit = 0;
 
@@ -217,7 +217,7 @@ export async function getAgingAnalysis(
   const validTypes = type === 'customer' ? ['customer', 'both'] : ['supplier', 'both'];
   const thirdParties = allThirdParties.filter(tp => validTypes.includes(tp.type));
 
-  const entries = await adapter.getAll('journalEntries');
+  const entries = (await adapter.getAll('journalEntries')).filter((e: any) => e.status !== 'draft');
   const analyses: AgingAnalysis[] = [];
 
   for (const tp of thirdParties) {

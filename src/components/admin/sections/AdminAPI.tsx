@@ -486,7 +486,7 @@ const AdminAPI: React.FC<Props> = ({ subTab, setSubTab }) => {
                 <label className="text-sm font-medium text-gray-700">Mapping automatique</label>
                 <button onClick={() => setPayrollAutoMapping(!payrollAutoMapping)}
                   className={`relative w-14 h-7 rounded-full transition-colors ${payrollAutoMapping ? 'bg-blue-600' : 'bg-gray-300'}`}>
-                  <span className={`absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full transition-transform ${payrollAutoMapping ? 'tranprimary-x-7' : ''}`} />
+                  <span className={`absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full transition-transform ${payrollAutoMapping ? 'translate-x-7' : ''}`} />
                 </button>
               </div>
             </div>

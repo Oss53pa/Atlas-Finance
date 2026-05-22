@@ -71,7 +71,8 @@ export const useBalanceData = (filters: BalanceFilters) => {
       setLoading(true);
       setError(null);
       try {
-        const entries = await adapter.getAll<any>('journalEntries');
+        const entries = (await adapter.getAll<any>('journalEntries'))
+          .filter((e: any) => e.status !== 'draft');
         const accounts = await adapter.getAll<any>('accounts');
 
         // Build account name map

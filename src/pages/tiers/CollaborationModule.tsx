@@ -244,7 +244,7 @@ const CollaborationModule: React.FC = () => {
             <div className="bg-white rounded-lg border border-[var(--color-border)] shadow-sm h-full flex flex-col">
               <div className="p-4 border-b border-gray-200">
                 <div className="relative">
-                  <Search className="w-4 h-4 absolute left-3 top-1/2 transform -tranprimary-y-1/2 text-gray-700" />
+                  <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-700" />
                   <input
                     type="text"
                     placeholder="Rechercher..."

@@ -434,7 +434,7 @@ const IAConfigPage: React.FC = () => {
             <span
               className={cn(
                 "inline-block h-4 w-4 transform rounded-full bg-white transition-transform",
-                isActive ? "tranprimary-x-6" : "tranprimary-x-1"
+                isActive ? "translate-x-6" : "translate-x-1"
               )}
             />
           </button>
@@ -550,7 +550,7 @@ const IAConfigPage: React.FC = () => {
                     <span
                       className={cn(
                         "inline-block h-4 w-4 transform rounded-full bg-white transition-transform",
-                        isActive ? "tranprimary-x-6" : "tranprimary-x-1"
+                        isActive ? "translate-x-6" : "translate-x-1"
                       )}
                     />
                   </button>

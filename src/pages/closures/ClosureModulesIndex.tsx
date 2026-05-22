@@ -108,7 +108,7 @@ const ClosureModulesIndex: React.FC = () => {
               <Link
                 key={module.id}
                 to={module.path}
-                className="group bg-white rounded-xl border border-[var(--color-border)] p-6 hover:border-blue-300 hover:shadow-lg transition-all duration-200 transform hover:-tranprimary-y-1"
+                className="group bg-white rounded-xl border border-[var(--color-border)] p-6 hover:border-blue-300 hover:shadow-lg transition-all duration-200 transform hover:-translate-y-1"
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className={`${module.color} p-3 rounded-lg group-hover:scale-110 transition-transform`}>
@@ -135,7 +135,7 @@ const ClosureModulesIndex: React.FC = () => {
 
                 <div className="flex items-center text-[var(--color-primary)] font-medium text-sm group-hover:text-[var(--color-primary-dark)]">
                   <span>Accéder au module</span>
-                  <ArrowRight className="ml-2 h-4 w-4 group-hover:tranprimary-x-1 transition-transform" />
+                  <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </div>
               </Link>
             );

@@ -262,7 +262,7 @@ const DataImportModal: React.FC<DataImportModalProps> = ({
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Date d'import</label>
             <div className="relative">
-              <Calendar className="absolute left-4 top-1/2 -tranprimary-y-1/2 w-4 h-4 text-gray-400" />
+              <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input type="date" value={importDate} onChange={(e) => setImportDate(e.target.value)}
                 className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
@@ -322,7 +322,7 @@ const DataImportModal: React.FC<DataImportModalProps> = ({
             ) : (
               <div className="flex gap-2">
                 <div className="flex-1 relative">
-                  <FolderPlus className="absolute left-4 top-1/2 -tranprimary-y-1/2 w-4 h-4 text-gray-400" />
+                  <FolderPlus className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input type="text" value={newFolderName} onChange={(e) => setNewFolderName(e.target.value)} placeholder="Nom du nouveau dossier..."
                     className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" autoFocus />
                 </div>

@@ -175,7 +175,7 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
             </div>
             <button onClick={() => { setAutoEnabled(!autoEnabled); toast.success(autoEnabled ? 'Sauvegarde auto desactivee' : 'Sauvegarde auto activee'); }}
               className={`relative w-14 h-7 rounded-full transition-colors ${autoEnabled ? 'bg-blue-600' : 'bg-gray-300'}`}>
-              <span className={`absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full transition-transform ${autoEnabled ? 'tranprimary-x-7' : ''}`} />
+              <span className={`absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full transition-transform ${autoEnabled ? 'translate-x-7' : ''}`} />
             </button>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

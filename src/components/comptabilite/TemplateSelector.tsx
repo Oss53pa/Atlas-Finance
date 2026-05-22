@@ -140,7 +140,7 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({ isOpen, onClose, on
             {/* Search + Category filter */}
             <div className="px-6 py-3 border-b border-gray-100 space-y-3">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -tranprimary-y-1/2 w-4 h-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
                   placeholder="Rechercher un modele..."

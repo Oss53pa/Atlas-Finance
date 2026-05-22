@@ -511,7 +511,7 @@ const ReportManagementModal: React.FC<ReportManagementModalProps> = ({
               Date d'émission
             </label>
             <div className="relative">
-              <Calendar className="absolute left-4 top-1/2 -tranprimary-y-1/2 w-4 h-4 text-primary-400" />
+              <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary-400" />
               <input
                 type="date"
                 value={emissionDate}
@@ -662,7 +662,7 @@ const ReportManagementModal: React.FC<ReportManagementModalProps> = ({
             ) : (
               <div className="flex gap-2">
                 <div className="flex-1 relative">
-                  <FolderPlus className="absolute left-4 top-1/2 -tranprimary-y-1/2 w-4 h-4 text-primary-400" />
+                  <FolderPlus className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary-400" />
                   <input
                     type="text"
                     value={newFolderName}
@@ -731,7 +731,7 @@ const ReportManagementModal: React.FC<ReportManagementModalProps> = ({
               >
                 <span className={cn(
                   'absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform',
-                  isCritical ? 'tranprimary-x-7' : 'tranprimary-x-1'
+                  isCritical ? 'translate-x-7' : 'translate-x-1'
                 )} />
               </button>
             </div>
@@ -757,7 +757,7 @@ const ReportManagementModal: React.FC<ReportManagementModalProps> = ({
                   >
                     <span className={cn(
                       'absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform',
-                      requiresReview ? 'tranprimary-x-7' : 'tranprimary-x-1'
+                      requiresReview ? 'translate-x-7' : 'translate-x-1'
                     )} />
                   </button>
                 </div>

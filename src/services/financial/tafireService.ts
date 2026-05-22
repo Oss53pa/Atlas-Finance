@@ -65,8 +65,9 @@ export interface TAFIREAnalysis {
 export async function calculateTAFIRE(adapter: DataAdapter, fiscalYear?: string): Promise<TAFIREData> {
   const startTime = performance.now();
 
-  // Fetch journal entries
-  let entries = await adapter.getAll<any>('journalEntries');
+  // Fetch journal entries — TAFIRE est un état financier : brouillons exclus.
+  let entries = (await adapter.getAll<any>('journalEntries'))
+    .filter((e: any) => e.status === 'validated' || e.status === 'posted');
 
   // Filter by fiscal year if provided
   if (fiscalYear) {
@@ -277,7 +278,9 @@ export async function verifierBouclageTFT(
 export async function calculateTAFIREDirect(adapter: DataAdapter, fiscalYear?: string): Promise<TAFIREData> {
   const startTime = performance.now();
 
-  let entries = await adapter.getAll<any>('journalEntries');
+  // TAFIRE est un état financier : brouillons exclus.
+  let entries = (await adapter.getAll<any>('journalEntries'))
+    .filter((e: any) => e.status === 'validated' || e.status === 'posted');
   if (fiscalYear) {
     entries = entries.filter((e: any) => e.date.startsWith(fiscalYear));
   }

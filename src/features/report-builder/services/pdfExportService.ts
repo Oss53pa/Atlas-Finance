@@ -93,7 +93,7 @@ export async function exportToPDF(
       position: fixed;
       top: 50%;
       left: 50%;
-      transform: tranprimary(-50%, -50%) rotate(-45deg);
+      transform: translate(-50%, -50%) rotate(-45deg);
       font-size: 80px;
       font-weight: 700;
       color: rgba(0, 0, 0, ${document.pageSettings.watermarkOpacity || 0.05});

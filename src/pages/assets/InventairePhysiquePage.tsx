@@ -693,7 +693,7 @@ const InventairePhysiquePage: React.FC = () => {
                 <div className="flex flex-wrap gap-2 items-center mb-2">
                   <div className="flex-1 min-w-[200px]">
                     <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -tranprimary-y-1/2 text-gray-700 h-4 w-4" />
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-700 h-4 w-4" />
                       <Input
                         placeholder="Rechercher par N° inventaire, nom..."
                         className="pl-10 h-8"

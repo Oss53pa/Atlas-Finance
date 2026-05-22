@@ -545,7 +545,7 @@ const InventoryMovements: React.FC = () => {
           {/* Search */}
           <div className="lg:col-span-2">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -tranprimary-y-1/2 text-gray-700 w-4 h-4" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-700 w-4 h-4" />
               <input
                 type="text"
                 placeholder="Search movements..."

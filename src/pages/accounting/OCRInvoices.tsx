@@ -562,7 +562,7 @@ const OCRInvoices: React.FC = () => {
               {/* Search and Filter Bar */}
               <div className="flex items-center gap-4 mb-6">
                 <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 transform -tranprimary-y-1/2 text-[var(--color-text-tertiary)] w-5 h-5" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--color-text-tertiary)] w-5 h-5" />
                   <input
                     type="text"
                     placeholder="Rechercher par nom de fichier ou fournisseur..."

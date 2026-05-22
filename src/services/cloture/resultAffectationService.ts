@@ -50,9 +50,10 @@ async function computeNetResult(adapter: DataAdapter, fiscalYearId: string): Pro
   const fiscalYear = await adapter.getById('fiscalYears', fiscalYearId) as unknown as { startDate: string; endDate: string } | null;
   if (!fiscalYear) throw new Error(`Exercice ${fiscalYearId} introuvable`);
 
-  const allEntries = await adapter.getAll<{ date: string; lines: DBJournalLine[] }>('journalEntries');
+  const allEntries = await adapter.getAll<{ date: string; status: string; lines: DBJournalLine[] }>('journalEntries');
+  // Le résultat à affecter ne porte que sur les écritures validées/comptabilisées.
   const entries = allEntries.filter(
-    (e) => e.date >= fiscalYear.startDate && e.date <= fiscalYear.endDate
+    (e) => e.status !== 'draft' && e.date >= fiscalYear.startDate && e.date <= fiscalYear.endDate
   );
 
   let totalClass7Credit = money(0);
@@ -83,7 +84,8 @@ async function getCapitalSocial(adapter: DataAdapter): Promise<number> {
 
   if (capitalAccounts.length === 0) return 0;
 
-  const allEntries = await adapter.getAll<{ lines: DBJournalLine[] }>('journalEntries');
+  const allEntries = (await adapter.getAll<{ status: string; lines: DBJournalLine[] }>('journalEntries'))
+    .filter((e) => e.status !== 'draft');
   let total = money(0);
 
   for (const entry of allEntries) {
@@ -102,7 +104,8 @@ async function getCapitalSocial(adapter: DataAdapter): Promise<number> {
  * Get the current legal reserve balance (account '111').
  */
 async function getReserveLegaleActuelle(adapter: DataAdapter): Promise<number> {
-  const allEntries = await adapter.getAll<{ lines: DBJournalLine[] }>('journalEntries');
+  const allEntries = (await adapter.getAll<{ status: string; lines: DBJournalLine[] }>('journalEntries'))
+    .filter((e) => e.status !== 'draft');
   let total = money(0);
 
   for (const entry of allEntries) {

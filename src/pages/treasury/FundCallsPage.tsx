@@ -363,7 +363,7 @@ const FundCallsPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -tranprimary-y-1/2 h-4 w-4 text-gray-700" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-700" />
                 <Input
                   placeholder="Rechercher fournisseur ou facture..."
                   className="pl-10 w-80"

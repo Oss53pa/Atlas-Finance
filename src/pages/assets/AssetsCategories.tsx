@@ -218,7 +218,7 @@ const AssetsCategories: React.FC = () => {
       <ModernCard>
         <CardBody>
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -tranprimary-y-1/2 w-4 h-4 text-[var(--color-text-secondary)]" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[var(--color-text-secondary)]" />
             <input
               type="text"
               placeholder="Rechercher une catégorie..."
@@ -609,7 +609,7 @@ const AssetsCategories: React.FC = () => {
                   >
                     <span
                       className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
-                        settingsForm.autoDepreciation ? 'tranprimary-x-5' : ''
+                        settingsForm.autoDepreciation ? 'translate-x-5' : ''
                       }`}
                     />
                   </button>
@@ -632,7 +632,7 @@ const AssetsCategories: React.FC = () => {
                   >
                     <span
                       className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
-                        settingsForm.syscohadaCompliance ? 'tranprimary-x-5' : ''
+                        settingsForm.syscohadaCompliance ? 'translate-x-5' : ''
                       }`}
                     />
                   </button>

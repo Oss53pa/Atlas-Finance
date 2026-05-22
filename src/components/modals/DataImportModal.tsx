@@ -369,7 +369,7 @@ const DataImportModal: React.FC<DataImportModalProps> = ({
               Date d'import
             </label>
             <div className="relative">
-              <Calendar className="absolute left-4 top-1/2 -tranprimary-y-1/2 w-4 h-4 text-primary-400" />
+              <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary-400" />
               <input
                 type="date"
                 value={importDate}
@@ -522,7 +522,7 @@ const DataImportModal: React.FC<DataImportModalProps> = ({
             ) : (
               <div className="flex gap-2">
                 <div className="flex-1 relative">
-                  <FolderPlus className="absolute left-4 top-1/2 -tranprimary-y-1/2 w-4 h-4 text-primary-400" />
+                  <FolderPlus className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary-400" />
                   <input
                     type="text"
                     value={newFolderName}

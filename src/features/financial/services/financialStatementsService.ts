@@ -172,8 +172,15 @@ function creditByPrefix(entries: DBJournalEntry[], ...prefixes: string[]): numbe
 
 /**
  * Load entries for a fiscal year (by exercice ID or date range).
+ *
+ * Les brouillons (status === 'draft') sont exclus : seules les écritures
+ * validées/comptabilisées entrent dans les états financiers. Inclure un
+ * brouillon fausserait bilan, compte de résultat et SIG.
  */
 async function loadEntriesForExercice(adapter: DataAdapter, exercice: string): Promise<DBJournalEntry[]> {
+  const allEntries = (await adapter.getAll('journalEntries') as DBJournalEntry[])
+    .filter((e) => e.status !== 'draft');
+
   // Try to find fiscal year by ID or code
   let fy = await adapter.getById('fiscalYears', exercice) as DBFiscalYear | undefined;
   if (!fy) {
@@ -182,18 +189,16 @@ async function loadEntriesForExercice(adapter: DataAdapter, exercice: string): P
   }
 
   if (fy) {
-    const allEntries = await adapter.getAll('journalEntries') as DBJournalEntry[];
     return allEntries.filter((e) => e.date >= fy!.startDate && e.date <= fy!.endDate);
   }
 
   // Fallback: treat as year string (e.g. "2025") → Jan 1 to Dec 31
   if (/^\d{4}$/.test(exercice)) {
-    const allEntries = await adapter.getAll('journalEntries') as DBJournalEntry[];
     return allEntries.filter((e) => e.date >= `${exercice}-01-01` && e.date <= `${exercice}-12-31`);
   }
 
-  // Last resort: all entries
-  return adapter.getAll('journalEntries');
+  // Last resort: all (non-draft) entries
+  return allEntries;
 }
 
 /** Safe division (avoid NaN/Infinity) */

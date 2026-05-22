@@ -697,7 +697,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
 
             {/* Search */}
             <div className="relative max-w-md flex-1 hidden lg:block">
-              <Search className="absolute left-3 top-1/2 -tranprimary-y-1/2 text-[var(--color-text-tertiary)] w-5 h-5" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-tertiary)] w-5 h-5" />
               <input
                 id="global-search"
                 type="text"

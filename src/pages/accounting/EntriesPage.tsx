@@ -1,9 +1,11 @@
 // @ts-nocheck
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
+import { useData } from '../../contexts/DataContext';
+import { validerEcriture } from '../../services/entryWorkflow';
 import {
   FileText, Plus, BarChart3, CheckCircle, Clock, ArrowLeft, Home,
   Calendar, DollarSign, Edit, Eye, Search, Filter, Download, FileType, ChevronDown, X, Printer
@@ -40,8 +42,44 @@ const EntriesPage: React.FC = () => {
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [showTemplateDropdown, setShowTemplateDropdown] = useState(false);
 
-  // TODO: wire to Dexie journalEntries query
-  const ecrituresData: EcritureBrouillard[] = [];
+  // P1-E : données réelles depuis le DataAdapter (plus de tableau vide en dur).
+  const { adapter } = useData();
+  const [ecrituresData, setEcrituresData] = useState<EcritureBrouillard[]>([]);
+
+  const loadEntries = useCallback(async () => {
+    try {
+      const entries = await adapter.getAll<any>('journalEntries');
+      const mapped: EcritureBrouillard[] = (entries as any[])
+        .slice()
+        .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')))
+        .map((e: any) => {
+          const debit = Number(e.totalDebit) || 0;
+          const credit = Number(e.totalCredit) || 0;
+          return {
+            id: e.id,
+            numero: e.entryNumber || '',
+            journal: e.journal || '',
+            date: e.date || '',
+            source: (e.createdBy === 'system' || e.nature) ? 'API' : 'Manuel',
+            libelle: e.label || '',
+            debit,
+            credit,
+            equilibre: Math.abs(debit - credit) < 0.01,
+            statut: e.status || 'draft',
+            type: e.nature || 'manuelle',
+            lines: Array.isArray(e.lines) ? e.lines : [],
+          } as EcritureBrouillard;
+        });
+      setEcrituresData(mapped);
+    } catch (_e) {
+      setEcrituresData([]);
+    }
+  }, [adapter]);
+
+  useEffect(() => { loadEntries(); }, [loadEntries]);
+
+  // Nombre d'écritures en attente (brouillons) — compteur réel.
+  const draftCount = ecrituresData.filter(e => e.statut === 'draft').length;
 
   // Configuration des colonnes pour DataTable
   const ecrituresColumns: Column<EcritureBrouillard>[] = [
@@ -192,7 +230,7 @@ const EntriesPage: React.FC = () => {
 
   // Onglet unique Brouillard
   const tabs = [
-    { id: 'brouillard', label: t('accounting.draft'), icon: FileText, badge: '8' },
+    { id: 'brouillard', label: t('accounting.draft'), icon: FileText, badge: draftCount > 0 ? String(draftCount) : undefined },
   ];
 
   // Modèles de saisie
@@ -214,10 +252,15 @@ const EntriesPage: React.FC = () => {
     setShowDetailsModal(true);
   };
 
-  // Fonction pour valider une écriture
-  const handleValidateEntry = (entryId: string) => {
-    toast.success(`Écriture ${entryId} validée avec succès`);
-    // Ici on ajouterait l'appel API pour valider
+  // Fonction pour valider une écriture — transition réelle via le workflow.
+  const handleValidateEntry = async (entryId: string) => {
+    const result = await validerEcriture(adapter, entryId);
+    if (result.success) {
+      toast.success('Écriture validée avec succès');
+      loadEntries();
+    } else {
+      toast.error(result.error || 'Validation impossible');
+    }
   };
 
   // Fonction pour sélectionner/désélectionner une écriture
@@ -274,7 +317,7 @@ const EntriesPage: React.FC = () => {
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2 bg-[var(--color-warning-light)] text-[var(--color-warning)] px-3 py-1 rounded-full text-sm">
               <Clock className="w-4 h-4" />
-              <span>8 en attente</span>
+              <span>{draftCount} en attente</span>
             </div>
 
             <button
@@ -421,7 +464,7 @@ const EntriesPage: React.FC = () => {
       {/* Bouton flottant - Nouvelle Écriture */}
       <button
         onClick={() => setShowEntryModal(true)}
-        className="fixed top-1/2 right-8 transform -tranprimary-y-1/2
+        className="fixed top-1/2 right-8 transform -translate-y-1/2
         w-14 h-14 bg-[var(--color-text-secondary)] text-white rounded-full shadow-lg hover:bg-[#404040] hover:shadow-xl transition-all duration-300 flex items-center
         justify-center z-40 group"
       >
@@ -542,18 +585,19 @@ const EntriesPage: React.FC = () => {
                           </tr>
                         </thead>
                         <tbody className="divide-y">
-                          <tr>
-                            <td className="px-4 py-2 text-sm">411000</td>
-                            <td className="px-4 py-2 text-sm">{t('navigation.clients')}</td>
-                            <td className="px-4 py-2 text-sm text-right text-[var(--color-error)]">150,000</td>
-                            <td className="px-4 py-2 text-sm text-right">-</td>
-                          </tr>
-                          <tr>
-                            <td className="px-4 py-2 text-sm">707000</td>
-                            <td className="px-4 py-2 text-sm">Ventes de marchandises</td>
-                            <td className="px-4 py-2 text-sm text-right">-</td>
-                            <td className="px-4 py-2 text-sm text-right text-[var(--color-success)]">150,000</td>
-                          </tr>
+                          {((selectedEntry?.lines as any[]) || []).map((l: any, i: number) => (
+                            <tr key={l.id || i}>
+                              <td className="px-4 py-2 text-sm">{l.accountCode}</td>
+                              <td className="px-4 py-2 text-sm">{l.accountName || l.label || ''}</td>
+                              <td className="px-4 py-2 text-sm text-right text-[var(--color-error)]">{l.debit ? formatCurrency(l.debit) : '-'}</td>
+                              <td className="px-4 py-2 text-sm text-right text-[var(--color-success)]">{l.credit ? formatCurrency(l.credit) : '-'}</td>
+                            </tr>
+                          ))}
+                          {(!selectedEntry?.lines || (selectedEntry.lines as any[]).length === 0) && (
+                            <tr>
+                              <td colSpan={4} className="px-4 py-3 text-sm text-center text-[var(--color-text-tertiary)]">Aucune ligne</td>
+                            </tr>
+                          )}
                         </tbody>
                       </table>
                     </div>

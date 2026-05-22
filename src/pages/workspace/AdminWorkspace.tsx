@@ -176,7 +176,7 @@ const AdminWorkspace: React.FC = () => {
       </div>
       <div className="bg-[var(--color-primary)] rounded-xl p-8 text-white">
         <h3 className="text-lg font-bold mb-4">Documentation Administrateur</h3>
-        <div className="relative"><Search className="w-5 h-5 absolute left-4 top-1/2 -tranprimary-y-1/2 text-gray-400" /><input placeholder="Rechercher..." className="w-full pl-12 pr-4 py-3 rounded-lg text-black" /></div>
+        <div className="relative"><Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" /><input placeholder="Rechercher..." className="w-full pl-12 pr-4 py-3 rounded-lg text-black" /></div>
       </div>
       <div className="grid grid-cols-3 gap-4">
         {[{icon: BookMarked, title: 'Documentation', color: 'var(--color-accent)'}, {icon: Video, title: 'Tutoriels', color: 'var(--color-primary)'}, {icon: FileQuestion, title: 'FAQ', color: 'var(--color-text-tertiary)'}].map((c, i) => (
@@ -289,7 +289,7 @@ const AdminWorkspace: React.FC = () => {
               )}
             </div>
           </div>
-          <div className="flex-1 max-w-md mx-6 hidden md:block"><div className="relative"><Search className="w-4 h-4 absolute left-3 top-1/2 -tranprimary-y-1/2 text-gray-400" /><input placeholder="Recherche..." className="w-full pl-10 pr-4 py-2 border rounded-lg text-sm" /></div></div>
+          <div className="flex-1 max-w-md mx-6 hidden md:block"><div className="relative"><Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" /><input placeholder="Recherche..." className="w-full pl-10 pr-4 py-2 border rounded-lg text-sm" /></div></div>
           <div className="flex items-center space-x-3">
             <button onClick={() => navigate('/dashboard')} className="press group px-4 py-2 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] rounded-lg text-white font-medium flex items-center gap-2 transition-all shadow-sm hover:shadow-md text-sm">
               <LayoutDashboard className="w-4 h-4" strokeWidth={1.6} />

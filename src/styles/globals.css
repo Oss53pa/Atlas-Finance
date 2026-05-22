@@ -47,8 +47,10 @@
   /* Texte */
   --color-text-primary: #261E15;
   --color-text-secondary: #5C5347;
-  --color-text-tertiary: #8A8170;
-  --color-text-quaternary: #B0A893;
+  /* P1-G : assombris pour passer WCAG 2.1 AA (≥ 4.5:1) sur fond crème/blanc.
+     Avant : tertiary #8A8170 (~3.4:1) et quaternary #B0A893 (~2.2:1) échouaient. */
+  --color-text-tertiary: #6E665A;
+  --color-text-quaternary: #7A7261;
   --color-text-inverse: #F7F5EF;
 
   /* Bordures — hairlines */

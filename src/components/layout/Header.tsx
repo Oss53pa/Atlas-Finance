@@ -129,7 +129,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
           {/* Search bar */}
           <div className="hidden w-96 md:block">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -tranprimary-y-1/2 text-[var(--color-border-light)]/70" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-border-light)]/70" />
               <input
                 type="text"
                 placeholder="Rechercher dans Atlas F&A..."
@@ -294,7 +294,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
       {/* Mobile search */}
       <div className="border-t px-6 py-3 md:hidden">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -tranprimary-y-1/2 text-[var(--color-border-light)]/70" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-border-light)]/70" />
           <input
             type="text"
             placeholder="Rechercher..."

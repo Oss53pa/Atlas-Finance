@@ -287,7 +287,7 @@ const ChartOfAccountsPage: React.FC = () => {
           <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
             <div className="flex gap-4 flex-1">
               <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-3 top-1/2 transform -tranprimary-y-1/2 h-5 w-5 text-neutral-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-neutral-400" />
                 <input
                   type="text"
                   placeholder="Rechercher un compte (code ou libellé)..."

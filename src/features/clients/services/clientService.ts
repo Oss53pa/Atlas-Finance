@@ -33,7 +33,8 @@ class ClientService {
    * Get invoices for a client by scanning journal entries with account 411xxx.
    */
   async getFactures(adapter: DataAdapter, clientId: string): Promise<Facture[]> {
-    const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
+    const entries = (await adapter.getAll<DBJournalEntry>('journalEntries'))
+      .filter(e => e.status !== 'draft');
     const factures: Facture[] = [];
 
     const tp = await adapter.getById<DBThirdParty>('thirdParties', clientId);
@@ -72,7 +73,8 @@ class ClientService {
    * Get payments for a client by scanning treasury entries.
    */
   async getPaiements(adapter: DataAdapter, clientId: string): Promise<Paiement[]> {
-    const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
+    const entries = (await adapter.getAll<DBJournalEntry>('journalEntries'))
+      .filter(e => e.status !== 'draft');
     const paiements: Paiement[] = [];
 
     const tp = await adapter.getById<DBThirdParty>('thirdParties', clientId);
@@ -114,7 +116,8 @@ class ClientService {
 
   private async buildClientDetail(adapter: DataAdapter, tp: DBThirdParty): Promise<ClientDetail> {
     // Compute financial data from entries
-    const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
+    const entries = (await adapter.getAll<DBJournalEntry>('journalEntries'))
+      .filter(e => e.status !== 'draft');
     let totalDebit = 0;
     let totalCredit = 0;
     let invoiceCount = 0;

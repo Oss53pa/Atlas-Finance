@@ -23,8 +23,10 @@ class GeneralLedgerService {
     // AF-055: Compute cumulative opening balances from ALL entries before dateDebut
     const openingBalances = new Map<string, number>();
     if (filters.dateDebut) {
-      // Fetch all entries (unfiltered) to find pre-period movements
-      const allEntries = await adapter.getAll<DBJournalEntry>('journalEntries');
+      // Fetch all non-draft entries to find pre-period movements.
+      // Drafts must never weigh on opening balances (they are excluded from the period too).
+      const allEntries = (await adapter.getAll<DBJournalEntry>('journalEntries'))
+        .filter(e => e.status !== 'draft');
       for (const entry of allEntries) {
         if (entry.date >= filters.dateDebut) continue; // only entries BEFORE the period
         for (const line of entry.lines) {

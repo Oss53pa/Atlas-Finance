@@ -336,7 +336,7 @@ const AdvancedBalance: React.FC = () => {
             <div>
               <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Recherche libellé</label>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -tranprimary-y-1/2 w-4 h-4 text-[var(--color-primary)]/50" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[var(--color-primary)]/50" />
                 <input
                   type="text"
                   placeholder="Compte ou libellé..."

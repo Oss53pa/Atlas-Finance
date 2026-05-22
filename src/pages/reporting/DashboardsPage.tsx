@@ -411,7 +411,7 @@ const DashboardsPage: React.FC = () => {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
           <div className="flex items-center space-x-4">
             <div className="relative">
-              <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-1/2 transform -tranprimary-y-1/2 text-[var(--color-text-secondary)]" />
+              <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--color-text-secondary)]" />
               <input
                 type="text"
                 placeholder="Rechercher un tableau de bord..."

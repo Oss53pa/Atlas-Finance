@@ -7,6 +7,13 @@ import * as Sentry from '@sentry/react'
 
 // ── Sentry Error Monitoring ──────────────────────────────────
 const SENTRY_DSN = import.meta.env.VITE_SENTRY_DSN;
+if (!SENTRY_DSN && import.meta.env.PROD) {
+  // Sans DSN en prod, on est aveugle aux incidents : on le signale fort
+  // plutôt que de désactiver silencieusement. Définir VITE_SENTRY_DSN au build.
+  console.warn(
+    '[Sentry] VITE_SENTRY_DSN absent en production — monitoring d\'erreurs DÉSACTIVÉ.',
+  );
+}
 if (SENTRY_DSN) {
   Sentry.init({
     dsn: SENTRY_DSN,

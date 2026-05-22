@@ -248,7 +248,7 @@ const ContactsModule: React.FC = () => {
           <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
             <div className="flex items-center space-x-4">
               <div className="flex-1 relative">
-                <Search className="w-5 h-5 absolute left-3 top-1/2 transform -tranprimary-y-1/2 text-gray-700" />
+                <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-700" />
                 <input
                   type="text"
                   placeholder="Rechercher par nom, prénom, email ou entreprise..."
@@ -952,7 +952,7 @@ const ContactsModule: React.FC = () => {
                               className="relative bg-gray-50 rounded-xl p-4 border border-gray-200 hover:border-[var(--color-primary)] hover:shadow-md transition-all"
                             >
                               {/* Ligne de connexion vers le haut */}
-                              <div className="absolute -top-4 left-1/2 transform -tranprimary-x-1/2 w-0.5 h-4 bg-gray-300"></div>
+                              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 w-0.5 h-4 bg-gray-300"></div>
 
                               <div className="flex items-start space-x-3">
                                 <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">

@@ -340,6 +340,11 @@ export class DexieAdapter implements DataAdapter {
   async getAccountBalance(prefixes: string[], dateRange?: { start: string; end: string }): Promise<AccountBalance> {
     let entries = await this.db.journalEntries.toArray()
 
+    // P1-A : n'agréger que les écritures validées/comptabilisées (jamais les
+    // brouillons) — cohérent avec la balance de vérification. Sinon les états
+    // financiers et soldes incluent des draft non validés.
+    entries = entries.filter((e: any) => e.status === 'validated' || e.status === 'posted')
+
     if (dateRange) {
       entries = entries.filter((e: any) => e.date >= dateRange.start && e.date <= dateRange.end)
     }
@@ -388,6 +393,9 @@ export class DexieAdapter implements DataAdapter {
 
   async getBalanceByAccount(dateRange?: { start: string; end: string }): Promise<Map<string, AccountBalance>> {
     let entries = await this.db.journalEntries.toArray()
+
+    // P1-A : exclure les brouillons (draft) des soldes par compte (bilan/CR).
+    entries = entries.filter((e: any) => e.status === 'validated' || e.status === 'posted')
 
     if (dateRange) {
       entries = entries.filter((e: any) => e.date >= dateRange.start && e.date <= dateRange.end)

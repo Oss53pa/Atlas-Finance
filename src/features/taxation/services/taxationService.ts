@@ -54,33 +54,39 @@ export interface ISDeclarationResult {
 // HELPERS
 // ============================================================================
 
+// P1-C : agrégation en Money (Decimal.js), jamais en float natif.
 function sumByPrefix(entries: DBJournalEntry[], prefix: string, side: 'debit' | 'credit'): number {
-  let total = 0;
+  let total = money(0);
   for (const entry of entries) {
     for (const line of entry.lines) {
       if (line.accountCode.startsWith(prefix)) {
-        total += side === 'debit' ? line.debit : line.credit;
+        total = total.add(money(side === 'debit' ? line.debit : line.credit));
       }
     }
   }
-  return total;
+  return total.toNumber();
 }
 
 function netByPrefix(entries: DBJournalEntry[], ...prefixes: string[]): number {
-  let total = 0;
+  let total = money(0);
   for (const entry of entries) {
     for (const line of entry.lines) {
       if (prefixes.some(p => line.accountCode.startsWith(p))) {
-        total += line.debit - line.credit;
+        total = total.add(money(line.debit)).subtract(money(line.credit));
       }
     }
   }
-  return total;
+  return total.toNumber();
 }
 
 async function getEntriesForPeriod(adapter: DataAdapter, start: string, end: string): Promise<DBJournalEntry[]> {
   const all = await adapter.getAll<DBJournalEntry>('journalEntries');
-  return all.filter(e => e.date >= start && e.date <= end);
+  // P1-C : les déclarations fiscales ne portent que sur les écritures
+  // validées/comptabilisées — jamais sur les brouillons (draft).
+  return all.filter(e =>
+    e.date >= start && e.date <= end &&
+    (e.status === 'validated' || e.status === 'posted'),
+  );
 }
 
 // ============================================================================
@@ -169,8 +175,11 @@ export async function calculerDeclarationIS(
       acomptesVerses: 0,
     };
     isResult = calculateIS(input);
-  } catch (err) { /* silent */
-    // If calculateIS is not available for this country, do a simple calculation
+  } catch (err) {
+    // P1-C : ne plus masquer silencieusement. On journalise (pays non couvert,
+    // données invalides…) puis on retombe sur un calcul par défaut explicite
+    // (taux 25 %, minimum 1 % du CA) — signalé via `details: null` au retour.
+    console.warn(`[taxation] calculateIS a échoué pour ${countryCode} — calcul par défaut appliqué.`, err);
   }
 
   const resultatFiscal = money(resultatComptable).add(reintegrations).subtract(deductions).toNumber();

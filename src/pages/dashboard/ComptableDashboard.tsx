@@ -275,7 +275,7 @@ const ComptableDashboard: React.FC = () => {
                 <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Écritures récentes</h2>
                 <div className="flex items-center space-x-3">
                   <div className="relative">
-                    <Search className="w-4 h-4 absolute left-3 top-1/2 transform -tranprimary-y-1/2 text-[var(--color-text-secondary)]" />
+                    <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--color-text-secondary)]" />
                     <input
                       type="text"
                       placeholder="Rechercher..."

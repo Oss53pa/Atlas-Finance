@@ -1194,7 +1194,7 @@ const AccountingSettingsPage: React.FC = () => {
       {/* Search and Tools Bar */}
       <div className="mb-6 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
         <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -tranprimary-y-1/2 text-[var(--color-text-secondary)] w-4 h-4" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--color-text-secondary)] w-4 h-4" />
           <input
             type="text"
             placeholder="Rechercher un paramètre..."
@@ -1205,7 +1205,7 @@ const AccountingSettingsPage: React.FC = () => {
           {searchTerm && (
             <button
               onClick={() => setSearchTerm('')}
-              className="absolute right-3 top-1/2 transform -tranprimary-y-1/2 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             >
               <X className="w-4 h-4" />
             </button>

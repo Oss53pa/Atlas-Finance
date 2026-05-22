@@ -313,7 +313,7 @@ const ReportManagementModal: React.FC<ReportManagementModalProps> = ({
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Date d'émission</label>
             <div className="relative">
-              <Calendar className="absolute left-4 top-1/2 -tranprimary-y-1/2 w-4 h-4 text-gray-400" />
+              <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input type="date" value={emissionDate} onChange={(e) => setEmissionDate(e.target.value)}
                 className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
@@ -346,7 +346,7 @@ const ReportManagementModal: React.FC<ReportManagementModalProps> = ({
               </div>
               <button type="button" onClick={() => { setIsCritical(!isCritical); if (!isCritical) setRequiresReview(true); }} disabled={isCategoryCritical}
                 className={cn('relative w-12 h-6 rounded-full transition-colors', isCritical ? 'bg-amber-500' : 'bg-gray-300', isCategoryCritical && 'opacity-70 cursor-not-allowed')}>
-                <span className={cn('absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform', isCritical ? 'tranprimary-x-7' : 'tranprimary-x-1')} />
+                <span className={cn('absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform', isCritical ? 'translate-x-7' : 'translate-x-1')} />
               </button>
             </div>
 
@@ -359,7 +359,7 @@ const ReportManagementModal: React.FC<ReportManagementModalProps> = ({
                   </div>
                   <button type="button" onClick={() => setRequiresReview(!requiresReview)}
                     className={cn('relative w-12 h-6 rounded-full transition-colors', requiresReview ? 'bg-amber-500' : 'bg-gray-300')}>
-                    <span className={cn('absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform', requiresReview ? 'tranprimary-x-7' : 'tranprimary-x-1')} />
+                    <span className={cn('absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform', requiresReview ? 'translate-x-7' : 'translate-x-1')} />
                   </button>
                 </div>
 
