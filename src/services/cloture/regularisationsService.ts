@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * Service de regularisations comptables CCA/FNP/FAE/PCA.
  * Conforme SYSCOHADA revise — comptes 408, 418, 476/486, 477/487.
@@ -230,7 +228,7 @@ export async function genererEcrituresRegularisation(
   }
 
   const now = new Date().toISOString();
-  const ecritures: Array<{ id: string; entryNumber: string; journal: string; date: string; reference: string; label: string; status: string; lines: DBJournalLine[]; createdAt: string; createdBy?: string }> = [];
+  const ecritures: any[] = [];
 
   for (let i = 0; i < regularisations.length; i++) {
     const regul = regularisations[i];
@@ -258,13 +256,13 @@ export async function genererEcrituresRegularisation(
   }
 
   // Save all entries via entryGuard (handles totalDebit/totalCredit + hash)
-  await safeBulkAddEntries(ecritures as unknown as Parameters<typeof safeBulkAddEntries>[0], { skipSyncValidation: true });
+  await safeBulkAddEntries(adapter, ecritures, { skipSyncValidation: true });
 
   // Audit
   await logAudit('REGULARISATION', 'fiscal_year', config.exerciceId, JSON.stringify({
     count: ecritures.length,
     types: regularisations.map(r => r.type),
-    total: ecritures.reduce((s, e) => e.lines.reduce((ls, l) => ls + l.debit, 0) + s, 0),
+    total: ecritures.reduce((s: number, e: any) => e.lines.reduce((ls: number, l: any) => ls + l.debit, 0) + s, 0),
   }));
 
   return { success: true, ecritures };

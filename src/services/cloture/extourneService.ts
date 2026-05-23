@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * Extourne automatique — contrepassation des regularisations
  * au premier jour du nouvel exercice.
@@ -7,7 +5,7 @@
  */
 import type { DataAdapter } from '@atlas/data';
 import { logAudit } from '../../lib/db';
-import type { DBJournalLine } from '../../lib/db';
+import type { DBJournalLine, DBJournalEntry, DBFiscalYear } from '../../lib/db';
 import { safeBulkAddEntries } from '../entryGuard';
 
 // ============================================================================
@@ -72,7 +70,7 @@ export async function findRegularisations(
   startDate: string,
   endDate: string
 ): Promise<RegularisationEntry[]> {
-  const allEntries = await adapter.getAll('journalEntries');
+  const allEntries = await adapter.getAll<DBJournalEntry>('journalEntries');
   const entries = allEntries.filter(
     (e: any) => e.date >= startDate && e.date <= endDate &&
       (e.status === 'validated' || e.status === 'posted') && !e.reversed
@@ -96,7 +94,7 @@ export async function genererExtournes(adapter: DataAdapter, request: ExtourneRe
   const journalCode = journal || 'OD';
 
   // Find the fiscal year to get dates
-  const fiscalYear = await adapter.getById('fiscalYears', exerciceClotureId);
+  const fiscalYear = await adapter.getById<DBFiscalYear>('fiscalYears', exerciceClotureId);
   if (!fiscalYear) {
     return { success: false, error: `Exercice ${exerciceClotureId} introuvable.` };
   }
@@ -108,13 +106,13 @@ export async function genererExtournes(adapter: DataAdapter, request: ExtourneRe
   }
 
   const now = new Date().toISOString();
-  const ecrituresExtourne: Array<Record<string, unknown>> = [];
+  const ecrituresExtourne: any[] = [];
 
   for (let i = 0; i < regularisations.length; i++) {
     const { entry: original, type } = regularisations[i];
 
     // Build reversed lines (swap debit/credit)
-    const reversedLines: DBJournalLine[] = original.lines.map(line => ({
+    const reversedLines: DBJournalLine[] = original.lines.map((line: DBJournalLine) => ({
       id: crypto.randomUUID(),
       accountCode: line.accountCode,
       accountName: line.accountName,
@@ -147,7 +145,7 @@ export async function genererExtournes(adapter: DataAdapter, request: ExtourneRe
   }
 
   // Persist via entryGuard (handles totalDebit/totalCredit + hash)
-  await safeBulkAddEntries(ecrituresExtourne, { skipSyncValidation: true });
+  await safeBulkAddEntries(adapter, ecrituresExtourne, { skipSyncValidation: true });
 
   // Mark originals as reversed
   for (const { entry: original } of regularisations) {
@@ -182,7 +180,7 @@ export async function previewExtournes(
   adapter: DataAdapter,
   exerciceClotureId: string
 ): Promise<{ regularisations: RegularisationEntry[]; count: number }> {
-  const fiscalYear = await adapter.getById('fiscalYears', exerciceClotureId);
+  const fiscalYear = await adapter.getById<DBFiscalYear>('fiscalYears', exerciceClotureId);
   if (!fiscalYear) return { regularisations: [], count: 0 };
 
   const regularisations = await findRegularisations(adapter, fiscalYear.startDate, fiscalYear.endDate);

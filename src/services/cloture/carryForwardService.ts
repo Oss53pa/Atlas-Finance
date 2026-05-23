@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * Carry-Forward (Report a Nouveau) Service.
  * Generates opening entries for a new fiscal year from closing balances.
@@ -8,7 +6,7 @@
 import type { DataAdapter } from '@atlas/data';
 import { Money, money } from '../../utils/money';
 import { logAudit } from '../../lib/db';
-import type { DBJournalLine } from '../../lib/db';
+import type { DBJournalLine, DBJournalEntry, DBFiscalYear } from '../../lib/db';
 import { safeAddEntry } from '../entryGuard';
 import { reverseEntry } from '../../utils/reversalService';
 
@@ -68,10 +66,10 @@ export async function calculerSoldesCloture(
   exerciceId: string,
   accountClasses: string[] = BILAN_CLASSES
 ): Promise<CarryForwardLine[]> {
-  const fiscalYear = await adapter.getById('fiscalYears', exerciceId);
+  const fiscalYear = await adapter.getById<DBFiscalYear>('fiscalYears', exerciceId);
   if (!fiscalYear) throw new Error(`Exercice ${exerciceId} introuvable`);
 
-  const allEntries = await adapter.getAll('journalEntries');
+  const allEntries = await adapter.getAll<DBJournalEntry>('journalEntries');
   const entries = allEntries.filter(
     (e: any) => e.date >= fiscalYear.startDate && e.date <= fiscalYear.endDate
   );
@@ -145,8 +143,8 @@ export async function executerCarryForward(adapter: DataAdapter, config: CarryFo
   const errors: string[] = [];
 
   // Validate fiscal years exist
-  const closingFY = await adapter.getById('fiscalYears', config.closingExerciceId);
-  const openingFY = await adapter.getById('fiscalYears', config.openingExerciceId);
+  const closingFY = await adapter.getById<DBFiscalYear>('fiscalYears', config.closingExerciceId);
+  const openingFY = await adapter.getById<DBFiscalYear>('fiscalYears', config.openingExerciceId);
 
   if (!closingFY) errors.push(`Exercice de cloture ${config.closingExerciceId} introuvable`);
   if (!openingFY) errors.push(`Exercice d'ouverture ${config.openingExerciceId} introuvable`);
@@ -209,10 +207,10 @@ export async function executerCarryForward(adapter: DataAdapter, config: CarryFo
  * Check if carry-forward already exists for a fiscal year.
  */
 export async function hasCarryForward(adapter: DataAdapter, openingExerciceId: string): Promise<boolean> {
-  const fy = await adapter.getById('fiscalYears', openingExerciceId);
+  const fy = await adapter.getById<DBFiscalYear>('fiscalYears', openingExerciceId);
   if (!fy) return false;
 
-  const allAN = await adapter.getAll('journalEntries', { where: { journal: 'AN' } });
+  const allAN = await adapter.getAll<DBJournalEntry>('journalEntries', { where: { journal: 'AN' } });
   const existing = allAN.find(
     (e: any) => e.date >= fy.startDate && e.date <= fy.endDate
   );
@@ -228,10 +226,10 @@ export async function hasCarryForward(adapter: DataAdapter, openingExerciceId: s
  * CONTREPASSE. Seuls les brouillons (jamais validés) peuvent être supprimés.
  */
 export async function supprimerCarryForward(adapter: DataAdapter, openingExerciceId: string): Promise<void> {
-  const fy = await adapter.getById('fiscalYears', openingExerciceId);
+  const fy = await adapter.getById<DBFiscalYear>('fiscalYears', openingExerciceId);
   if (!fy) return;
 
-  const allAN = await adapter.getAll('journalEntries', { where: { journal: 'AN' } });
+  const allAN = await adapter.getAll<DBJournalEntry>('journalEntries', { where: { journal: 'AN' } });
   const existing = allAN.filter(
     (e: any) => e.date >= fy.startDate && e.date <= fy.endDate
   );

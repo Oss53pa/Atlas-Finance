@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * Affectation du resultat de l'exercice.
  * Conforme SYSCOHADA revise — repartition du benefice ou traitement de la perte.
@@ -299,5 +297,6 @@ export async function genererEcrituresAffectation(adapter: DataAdapter, config: 
   detail.totalAffecte = totalDebit;
   detail.ecart = Math.abs(resultatNet - totalDebit);
 
-  return { success: true, ecritures: [{ id: entryId, entryNumber, lines }], detail };
+  // Écho léger de l'écriture déjà persistée (id/numéro/lignes) — cast volontaire.
+  return { success: true, ecritures: [{ id: entryId, entryNumber, lines }] as any, detail };
 }
