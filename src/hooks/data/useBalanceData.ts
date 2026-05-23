@@ -1,12 +1,11 @@
-// @ts-nocheck
-
 /**
  * Hook pour les données de balance — connecté à Dexie via balanceService.
  * Remplace toutes les constantes mockBalanceData dans les composants.
  */
 import { useQuery } from '@tanstack/react-query';
 import { balanceService } from '../../features/balance/services/balanceService';
-import type { BalanceAccount, BalanceTotals } from '../../features/balance/types/balance.types';
+import type { BalanceTotals } from '../../features/balance/types/balance.types';
+import { useData } from '../../contexts/DataContext';
 
 export interface UseBalanceDataOptions {
   dateDebut: string;
@@ -17,12 +16,13 @@ export interface UseBalanceDataOptions {
 }
 
 export function useBalanceData(options: UseBalanceDataOptions) {
+  const { adapter } = useData();
   const { dateDebut, dateFin, searchAccount, showZeroBalance = false, displayLevel = 3 } = options;
 
   const query = useQuery({
     queryKey: ['balance', dateDebut, dateFin, searchAccount, showZeroBalance, displayLevel],
     queryFn: () =>
-      balanceService.getBalance({
+      balanceService.getBalance(adapter, {
         period: { from: dateDebut, to: dateFin },
         searchAccount: searchAccount || '',
         showZeroBalance,

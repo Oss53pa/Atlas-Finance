@@ -5,9 +5,13 @@ module.exports = {
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
     'plugin:react-hooks/recommended',
+    // Accessibilité (WCAG) — rendue mesurable. Non bloquant en CI tant que la
+    // dette n'est pas résorbée (lint déjà en continue-on-error).
+    'plugin:jsx-a11y/recommended',
   ],
   ignorePatterns: ['dist', '.eslintrc.cjs'],
   parser: '@typescript-eslint/parser',
+  plugins: ['jsx-a11y'],
   rules: {
     // Prevent console.log in production (allow warn/error)
     'no-console': ['warn', { allow: ['warn', 'error'] }],

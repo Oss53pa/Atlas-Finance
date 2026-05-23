@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import { useState, useEffect } from 'react';
 import {
   Report,
@@ -7,11 +5,12 @@ import {
   ReportFilters,
   ReportTemplate,
   Dashboard,
-  ScheduledReport,
 } from '../types/reporting.types';
 import { reportingService } from '../services/reportingService';
+import { useData } from '../../../contexts/DataContext';
 
 export const useReports = (filters?: ReportFilters) => {
+  const { adapter } = useData();
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -20,7 +19,7 @@ export const useReports = (filters?: ReportFilters) => {
     setLoading(true);
     setError(null);
     try {
-      const data = await reportingService.getReports(filters);
+      const data = await reportingService.getReports(adapter, filters);
       setReports(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur chargement rapports');
@@ -31,12 +30,13 @@ export const useReports = (filters?: ReportFilters) => {
 
   useEffect(() => {
     fetchReports();
-  }, [filters]);
+  }, [adapter, filters]);
 
   return { reports, loading, error, refetch: fetchReports };
 };
 
 export const useReportStats = () => {
+  const { adapter } = useData();
   const [stats, setStats] = useState<ReportStats | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -46,7 +46,7 @@ export const useReportStats = () => {
       setLoading(true);
       setError(null);
       try {
-        const data = await reportingService.getReportStats();
+        const data = await reportingService.getReportStats(adapter);
         setStats(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Erreur chargement statistiques');
@@ -56,7 +56,7 @@ export const useReportStats = () => {
     };
 
     fetchStats();
-  }, []);
+  }, [adapter]);
 
   return { stats, loading, error };
 };

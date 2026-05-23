@@ -1,7 +1,6 @@
-// @ts-nocheck
-
 import { useState, useEffect } from 'react';
 import { generalLedgerService } from '../services/generalLedgerService';
+import { useData } from '../../../contexts/DataContext';
 import {
   AccountLedger,
   LedgerStats,
@@ -10,6 +9,7 @@ import {
 } from '../types/generalLedger.types';
 
 export const useGeneralLedger = (filters: GeneralLedgerFilters) => {
+  const { adapter } = useData();
   const [accounts, setAccounts] = useState<AccountLedger[]>([]);
   const [stats, setStats] = useState<LedgerStats | null>(null);
   const [loading, setLoading] = useState(false);
@@ -20,8 +20,8 @@ export const useGeneralLedger = (filters: GeneralLedgerFilters) => {
     setError(null);
     try {
       const [accountsData, statsData] = await Promise.all([
-        generalLedgerService.getLedgerAccounts(filters),
-        generalLedgerService.getStats(filters),
+        generalLedgerService.getLedgerAccounts(adapter, filters),
+        generalLedgerService.getStats(adapter, filters),
       ]);
       setAccounts(accountsData);
       setStats(statsData);
@@ -35,6 +35,7 @@ export const useGeneralLedger = (filters: GeneralLedgerFilters) => {
   useEffect(() => {
     fetchData();
   }, [
+    adapter,
     filters.dateDebut,
     filters.dateFin,
     filters.compteDebut,
@@ -52,6 +53,7 @@ export const useGeneralLedger = (filters: GeneralLedgerFilters) => {
 };
 
 export const useAccountLedger = (accountNumber: string, filters: Partial<GeneralLedgerFilters>) => {
+  const { adapter } = useData();
   const [account, setAccount] = useState<AccountLedger | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -63,7 +65,7 @@ export const useAccountLedger = (accountNumber: string, filters: Partial<General
       setLoading(true);
       setError(null);
       try {
-        const data = await generalLedgerService.getAccountLedger(accountNumber, filters);
+        const data = await generalLedgerService.getAccountLedger(adapter, accountNumber, filters);
         setAccount(data);
       } catch (err) {
         setError(err as Error);
@@ -73,12 +75,13 @@ export const useAccountLedger = (accountNumber: string, filters: Partial<General
     };
 
     fetchAccount();
-  }, [accountNumber, filters.dateDebut, filters.dateFin]);
+  }, [adapter, accountNumber, filters.dateDebut, filters.dateFin]);
 
   return { account, loading, error };
 };
 
 export const useLedgerSearch = () => {
+  const { adapter } = useData();
   const [results, setResults] = useState<LedgerSearchResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -92,7 +95,7 @@ export const useLedgerSearch = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await generalLedgerService.search(query, filters);
+      const data = await generalLedgerService.search(adapter, query, filters);
       setResults(data);
     } catch (err) {
       setError(err as Error);

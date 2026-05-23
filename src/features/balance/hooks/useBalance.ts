@@ -1,10 +1,10 @@
-// @ts-nocheck
-
 import { useState, useEffect, useCallback } from 'react';
 import { BalanceAccount, BalanceFilters, BalanceTotals } from '../types/balance.types';
 import { balanceService } from '../services/balanceService';
+import { useData } from '../../../contexts/DataContext';
 
 export const useBalance = (filters: BalanceFilters) => {
+  const { adapter } = useData();
   const [accounts, setAccounts] = useState<BalanceAccount[]>([]);
   const [totals, setTotals] = useState<BalanceTotals | null>(null);
   const [loading, setLoading] = useState(false);
@@ -14,7 +14,7 @@ export const useBalance = (filters: BalanceFilters) => {
     setLoading(true);
     setError(null);
     try {
-      const data = await balanceService.getBalance(filters);
+      const data = await balanceService.getBalance(adapter, filters);
       setAccounts(data);
       const calculatedTotals = balanceService.calculateTotals(data);
       setTotals(calculatedTotals);
@@ -23,7 +23,7 @@ export const useBalance = (filters: BalanceFilters) => {
     } finally {
       setLoading(false);
     }
-  }, [filters]);
+  }, [adapter, filters]);
 
   useEffect(() => {
     fetchBalance();

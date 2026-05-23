@@ -32,6 +32,11 @@ jobs:
       - name: Type check
         run: npx tsc --noEmit
 
+      # Garde-fou BLOQUANT : interdit tout NOUVEAU @ts-nocheck (baseline gelée).
+      # La dette de typage ne peut que diminuer, jamais croître.
+      - name: No new @ts-nocheck
+        run: npm run check:ts-nocheck
+
   test:
     runs-on: ubuntu-latest
     steps:

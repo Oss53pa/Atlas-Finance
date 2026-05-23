@@ -1,11 +1,9 @@
-// @ts-nocheck
-
 /**
  * Plan Comptable (Chart of Accounts) Service — Connected to Dexie IndexedDB.
  * Manages SYSCOHADA chart of accounts with CRUD, validation, and hierarchy.
  */
 import { logAudit } from '../../lib/db';
-import type { DBAccount } from '../../lib/db';
+import type { DBAccount, DBJournalEntry } from '../../lib/db';
 import type { DataAdapter } from '@atlas/data';
 
 // ============================================================================
@@ -102,7 +100,7 @@ class PlanComptableService {
    * Get a single account by code.
    */
   async getAccountByCode(adapter: DataAdapter, code: string): Promise<AccountEntry | null> {
-    const accounts = await adapter.getAll('accounts', { where: { code } });
+    const accounts = await adapter.getAll<DBAccount>('accounts', { where: { code } });
     return accounts[0] || null;
   }
 
@@ -151,7 +149,7 @@ class PlanComptableService {
    * Update an existing account.
    */
   async updateAccount(adapter: DataAdapter, id: string, updates: Partial<Pick<AccountEntry, 'name' | 'isActive' | 'isReconcilable' | 'accountType'>>): Promise<AccountEntry> {
-    const account = await adapter.getById('accounts', id);
+    const account = await adapter.getById<DBAccount>('accounts', id);
     if (!account) throw new Error(`Compte ${id} introuvable`);
 
     await adapter.update('accounts', id, updates);
@@ -170,11 +168,11 @@ class PlanComptableService {
    * Deactivate an account (soft delete). Checks for existing entries first.
    */
   async deactivateAccount(adapter: DataAdapter, id: string): Promise<void> {
-    const account = await adapter.getById('accounts', id);
+    const account = await adapter.getById<DBAccount>('accounts', id);
     if (!account) throw new Error(`Compte ${id} introuvable`);
 
     // Check if account has journal entries — warn but still allow deactivation
-    const entries = await adapter.getAll('journalEntries');
+    const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
     const hasEntries = entries.some(e => e.lines.some(l => l.accountCode === account.code));
     // If has entries: allow deactivation (soft delete), just can't hard-delete
 
@@ -192,7 +190,7 @@ class PlanComptableService {
    * Get hierarchical view of accounts grouped by SYSCOHADA class.
    */
   async getHierarchy(adapter: DataAdapter): Promise<AccountHierarchy[]> {
-    const accounts = await adapter.getAll('accounts');
+    const accounts = await adapter.getAll<DBAccount>('accounts');
     const hierarchy: AccountHierarchy[] = [];
 
     for (const [classCode, classDef] of Object.entries(SYSCOHADA_CLASSES)) {
@@ -252,7 +250,7 @@ class PlanComptableService {
    * Get plan comptable statistics.
    */
   async getStats(adapter: DataAdapter): Promise<PlanComptableStats> {
-    const accounts = await adapter.getAll('accounts');
+    const accounts = await adapter.getAll<DBAccount>('accounts');
     const active = accounts.filter(a => a.isActive);
     const reconcilable = accounts.filter(a => a.isReconcilable);
 
@@ -392,7 +390,7 @@ class PlanComptableService {
    * Export plan comptable as CSV.
    */
   async exportPlanComptable(adapter: DataAdapter): Promise<Blob> {
-    const accounts = await adapter.getAll('accounts');
+    const accounts = await adapter.getAll<DBAccount>('accounts');
     const header = 'Code;Libellé;Classe;Type;Solde normal;Lettrable;Actif';
     const rows = accounts
       .sort((a, b) => a.code.localeCompare(b.code))

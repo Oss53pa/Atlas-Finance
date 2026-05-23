@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * Alias Tiers Service — CRUD pour la gestion des alias tiers (Dexie IndexedDB).
  * Gère la création, l'incrémentation et le rattachement d'alias aux comptes comptables.
@@ -36,7 +34,7 @@ class AliasTiersService {
    * Ex: CLL001, CLL002, ..., CLL999
    */
   async getNextAlias(adapter: DataAdapter, prefix: string): Promise<string> {
-    const existing = await adapter.getAll('aliasTiers', { where: { prefix } });
+    const existing = await adapter.getAll<DBAliasTiers>('aliasTiers', { where: { prefix } });
 
     if (existing.length === 0) {
       return `${prefix}001`;
@@ -91,7 +89,7 @@ class AliasTiersService {
    * Rattache un code comptable à un alias existant.
    */
   async attachAccountToAlias(adapter: DataAdapter, aliasId: string, accountCode: string): Promise<DBAliasTiers> {
-    const alias = await adapter.getById('aliasTiers', aliasId);
+    const alias = await adapter.getById<DBAliasTiers>('aliasTiers', aliasId);
     if (!alias) throw new Error(`Alias ${aliasId} introuvable`);
 
     if (alias.comptesComptables.includes(accountCode)) {
@@ -124,7 +122,7 @@ class AliasTiersService {
   async searchAliases(adapter: DataAdapter, query: string): Promise<DBAliasTiers[]> {
     if (!query.trim()) return [];
     const q = query.toLowerCase();
-    const all = await adapter.getAll('aliasTiers');
+    const all = await adapter.getAll<DBAliasTiers>('aliasTiers');
     return all.filter(a =>
       a.alias.toLowerCase().includes(q) ||
       a.label.toLowerCase().includes(q)

@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import { useState, useEffect } from 'react';
 import {
   DashboardStats,
@@ -9,8 +7,10 @@ import {
   AlerteFiscale,
 } from '../types/taxation.types';
 import { taxationService } from '../services/taxationService';
+import { useData } from '../../../contexts/DataContext';
 
 export const useTaxationStats = (period?: string) => {
+  const { adapter } = useData();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -20,7 +20,7 @@ export const useTaxationStats = (period?: string) => {
       setLoading(true);
       setError(null);
       try {
-        const data = await taxationService.getDashboardStats({ period });
+        const data = await taxationService.getDashboardStats(adapter, { period });
         setStats(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Erreur chargement statistiques');
@@ -30,7 +30,7 @@ export const useTaxationStats = (period?: string) => {
     };
 
     fetchStats();
-  }, [period]);
+  }, [adapter, period]);
 
   return { stats, loading, error };
 };
@@ -44,7 +44,11 @@ export const useDeclarations = (filters?: DeclarationFilters) => {
     setLoading(true);
     setError(null);
     try {
-      const data = await taxationService.getDeclarations(filters);
+      // TODO(produit): taxationService.getDeclarations n'existe pas encore.
+      // La persistance/lecture des déclarations fiscales doit être spécifiée
+      // (table dédiée + statuts). En attendant, on renvoie une liste vide pour
+      // ne pas crasher l'écran (au lieu de "x is not a function").
+      const data: DeclarationFiscale[] = [];
       setDeclarations(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur chargement déclarations');
@@ -61,6 +65,7 @@ export const useDeclarations = (filters?: DeclarationFilters) => {
 };
 
 export const useUpcomingDeadlines = () => {
+  const { adapter } = useData();
   const [deadlines, setDeadlines] = useState<Echeance[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -70,7 +75,7 @@ export const useUpcomingDeadlines = () => {
       setLoading(true);
       setError(null);
       try {
-        const data = await taxationService.getUpcomingDeadlines();
+        const data = await taxationService.getUpcomingDeadlines(adapter);
         setDeadlines(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Erreur chargement échéances');
@@ -80,7 +85,7 @@ export const useUpcomingDeadlines = () => {
     };
 
     fetchDeadlines();
-  }, []);
+  }, [adapter]);
 
   return { deadlines, loading, error };
 };
@@ -95,7 +100,10 @@ export const useAlertes = () => {
       setLoading(true);
       setError(null);
       try {
-        const data = await taxationService.getAlertes();
+        // TODO(produit): taxationService.getAlertes n'existe pas encore.
+        // Les alertes fiscales devraient dériver de useFiscalAlerts (déjà
+        // adapter-based). En attendant, liste vide pour ne pas crasher.
+        const data: AlerteFiscale[] = [];
         setAlertes(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Erreur chargement alertes');

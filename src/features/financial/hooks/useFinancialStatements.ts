@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import { useState, useEffect } from 'react';
 import { useData } from '../../../contexts/DataContext';
 import { financialStatementsService } from '../services/financialStatementsService';

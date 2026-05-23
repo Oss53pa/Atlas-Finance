@@ -1,7 +1,6 @@
-// @ts-nocheck
-
 import { useState, useEffect } from 'react';
 import { budgetingService } from '../services/budgetingService';
+import { useData } from '../../../contexts/DataContext';
 import {
   BudgetSession,
   DepartmentBudget,
@@ -12,6 +11,7 @@ import {
 } from '../types/budgeting.types';
 
 export const useBudgetingData = (year?: string, period?: string) => {
+  const { adapter } = useData();
   const [sessions, setSessions] = useState<BudgetSession[]>([]);
   const [departments, setDepartments] = useState<DepartmentBudget[]>([]);
   const [stats, setStats] = useState<BudgetStats | null>(null);
@@ -23,9 +23,9 @@ export const useBudgetingData = (year?: string, period?: string) => {
     setError(null);
     try {
       const [sessionsData, departmentsData, statsData] = await Promise.all([
-        budgetingService.getSessions(),
-        budgetingService.getDepartmentBudgets(year, period),
-        budgetingService.getStats(year, period),
+        budgetingService.getSessions(adapter),
+        budgetingService.getDepartmentBudgets(adapter, year, period),
+        budgetingService.getStats(adapter, year, period),
       ]);
       setSessions(sessionsData);
       setDepartments(departmentsData);
@@ -39,7 +39,7 @@ export const useBudgetingData = (year?: string, period?: string) => {
 
   useEffect(() => {
     fetchData();
-  }, [year, period]);
+  }, [adapter, year, period]);
 
   return {
     sessions,
@@ -52,6 +52,7 @@ export const useBudgetingData = (year?: string, period?: string) => {
 };
 
 export const useMonthlyBudgets = (year: string, department?: string) => {
+  const { adapter } = useData();
   const [data, setData] = useState<MonthlyBudget[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -61,7 +62,7 @@ export const useMonthlyBudgets = (year: string, department?: string) => {
       setLoading(true);
       setError(null);
       try {
-        const result = await budgetingService.getMonthlyBudgets(year, department);
+        const result = await budgetingService.getMonthlyBudgets(adapter, year, department);
         setData(result);
       } catch (err) {
         setError(err as Error);
@@ -71,12 +72,13 @@ export const useMonthlyBudgets = (year: string, department?: string) => {
     };
 
     fetchData();
-  }, [year, department]);
+  }, [adapter, year, department]);
 
   return { data, loading, error };
 };
 
 export const useBudgetAlerts = () => {
+  const { adapter } = useData();
   const [alerts, setAlerts] = useState<BudgetAlert[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -85,7 +87,7 @@ export const useBudgetAlerts = () => {
     setLoading(true);
     setError(null);
     try {
-      const result = await budgetingService.getAlerts();
+      const result = await budgetingService.getAlerts(adapter);
       setAlerts(result);
     } catch (err) {
       setError(err as Error);
@@ -96,12 +98,13 @@ export const useBudgetAlerts = () => {
 
   useEffect(() => {
     fetchAlerts();
-  }, []);
+  }, [adapter]);
 
   return { alerts, loading, error, refetch: fetchAlerts };
 };
 
 export const useBudgetForecasts = (year: string, department?: string) => {
+  const { adapter } = useData();
   const [forecasts, setForecasts] = useState<BudgetForecast[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -111,7 +114,7 @@ export const useBudgetForecasts = (year: string, department?: string) => {
       setLoading(true);
       setError(null);
       try {
-        const result = await budgetingService.getForecasts(year, department);
+        const result = await budgetingService.getForecasts(adapter, year, department);
         setForecasts(result);
       } catch (err) {
         setError(err as Error);
@@ -121,7 +124,7 @@ export const useBudgetForecasts = (year: string, department?: string) => {
     };
 
     fetchData();
-  }, [year, department]);
+  }, [adapter, year, department]);
 
   return { forecasts, loading, error };
 };

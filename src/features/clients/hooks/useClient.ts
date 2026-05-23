@@ -1,10 +1,10 @@
-// @ts-nocheck
-
 import { useState, useEffect } from 'react';
 import { ClientDetail, Facture, Paiement } from '../types/client.types';
 import { clientService } from '../services/clientService';
+import { useData } from '../../../contexts/DataContext';
 
 export const useClientDetail = (clientId: string) => {
+  const { adapter } = useData();
   const [client, setClient] = useState<ClientDetail | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -14,7 +14,7 @@ export const useClientDetail = (clientId: string) => {
       setLoading(true);
       setError(null);
       try {
-        const data = await clientService.getClient(clientId);
+        const data = await clientService.getClient(adapter, clientId);
         setClient(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Erreur chargement client');
@@ -26,12 +26,13 @@ export const useClientDetail = (clientId: string) => {
     if (clientId) {
       fetchClient();
     }
-  }, [clientId]);
+  }, [adapter, clientId]);
 
   return { client, loading, error };
 };
 
 export const useClientFactures = (clientId: string) => {
+  const { adapter } = useData();
   const [factures, setFactures] = useState<Facture[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -41,7 +42,7 @@ export const useClientFactures = (clientId: string) => {
       setLoading(true);
       setError(null);
       try {
-        const data = await clientService.getFactures(clientId);
+        const data = await clientService.getFactures(adapter, clientId);
         setFactures(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Erreur chargement factures');
@@ -53,12 +54,13 @@ export const useClientFactures = (clientId: string) => {
     if (clientId) {
       fetchFactures();
     }
-  }, [clientId]);
+  }, [adapter, clientId]);
 
   return { factures, loading, error };
 };
 
 export const useClientPaiements = (clientId: string) => {
+  const { adapter } = useData();
   const [paiements, setPaiements] = useState<Paiement[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -68,7 +70,7 @@ export const useClientPaiements = (clientId: string) => {
       setLoading(true);
       setError(null);
       try {
-        const data = await clientService.getPaiements(clientId);
+        const data = await clientService.getPaiements(adapter, clientId);
         setPaiements(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Erreur chargement paiements');
@@ -80,7 +82,7 @@ export const useClientPaiements = (clientId: string) => {
     if (clientId) {
       fetchPaiements();
     }
-  }, [clientId]);
+  }, [adapter, clientId]);
 
   return { paiements, loading, error };
 };

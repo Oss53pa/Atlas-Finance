@@ -1,11 +1,10 @@
-// @ts-nocheck
-
 /**
  * Hook pour les données du Grand Livre — connecté à Dexie via generalLedgerService.
  * Remplace toutes les constantes mockAccountsData dans les composants.
  */
 import { useQuery } from '@tanstack/react-query';
 import { generalLedgerService } from '../../features/accounting/services/generalLedgerService';
+import { useData } from '../../contexts/DataContext';
 
 export interface UseGeneralLedgerOptions {
   dateDebut: string;
@@ -16,12 +15,13 @@ export interface UseGeneralLedgerOptions {
 }
 
 export function useGeneralLedgerData(options: UseGeneralLedgerOptions) {
+  const { adapter } = useData();
   const { dateDebut, dateFin, compteDebut, compteFin, journal } = options;
 
   const query = useQuery({
     queryKey: ['grand-livre', dateDebut, dateFin, compteDebut, compteFin, journal],
     queryFn: () =>
-      generalLedgerService.getLedgerAccounts({
+      generalLedgerService.getLedgerAccounts(adapter, {
         dateDebut,
         dateFin,
         compteDebut: compteDebut || '',
@@ -33,7 +33,7 @@ export function useGeneralLedgerData(options: UseGeneralLedgerOptions) {
   const stats = useQuery({
     queryKey: ['grand-livre-stats', dateDebut, dateFin],
     queryFn: () =>
-      generalLedgerService.getStats({ dateDebut, dateFin }),
+      generalLedgerService.getStats(adapter, { dateDebut, dateFin }),
   });
 
   return {
@@ -46,10 +46,11 @@ export function useGeneralLedgerData(options: UseGeneralLedgerOptions) {
 }
 
 export function useAccountLedger(accountCode: string, dateDebut: string, dateFin: string) {
+  const { adapter } = useData();
   return useQuery({
     queryKey: ['account-ledger', accountCode, dateDebut, dateFin],
     queryFn: () =>
-      generalLedgerService.getAccountLedger(accountCode, { dateDebut, dateFin }),
+      generalLedgerService.getAccountLedger(adapter, accountCode, { dateDebut, dateFin }),
     enabled: !!accountCode,
   });
 }

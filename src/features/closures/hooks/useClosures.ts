@@ -1,7 +1,6 @@
-// @ts-nocheck
-
 import { useState, useEffect } from 'react';
 import { closuresService } from '../services/closuresService';
+import { useData } from '../../../contexts/DataContext';
 import {
   ClotureSession,
   BalanceAccount,
@@ -12,6 +11,7 @@ import {
 } from '../types/closures.types';
 
 export const useClosureSessions = () => {
+  const { adapter } = useData();
   const [sessions, setSessions] = useState<ClotureSession[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -20,7 +20,7 @@ export const useClosureSessions = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await closuresService.getSessions();
+      const data = await closuresService.getSessions(adapter);
       setSessions(data);
     } catch (err) {
       setError(err as Error);
@@ -31,12 +31,13 @@ export const useClosureSessions = () => {
 
   useEffect(() => {
     fetchSessions();
-  }, []);
+  }, [adapter]);
 
   return { sessions, loading, error, refetch: fetchSessions };
 };
 
 export const useClosureData = (sessionId: string | number) => {
+  const { adapter } = useData();
   const [balance, setBalance] = useState<BalanceAccount[]>([]);
   const [provisions, setProvisions] = useState<Provision[]>([]);
   const [amortissements, setAmortissements] = useState<Amortissement[]>([]);
@@ -53,11 +54,11 @@ export const useClosureData = (sessionId: string | number) => {
     try {
       const [balanceData, provisionsData, amortissementsData, ecrituresData, statsData] =
         await Promise.all([
-          closuresService.getBalance(sessionId),
-          closuresService.getProvisions(sessionId),
-          closuresService.getAmortissements(sessionId),
-          closuresService.getEcritures(sessionId),
-          closuresService.getStats(sessionId),
+          closuresService.getBalance(adapter, sessionId),
+          closuresService.getProvisions(adapter, sessionId),
+          closuresService.getAmortissements(adapter, sessionId),
+          closuresService.getEcritures(adapter, sessionId),
+          closuresService.getStats(adapter, sessionId),
         ]);
 
       setBalance(balanceData);
@@ -74,7 +75,7 @@ export const useClosureData = (sessionId: string | number) => {
 
   useEffect(() => {
     fetchData();
-  }, [sessionId]);
+  }, [adapter, sessionId]);
 
   return {
     balance,
