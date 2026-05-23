@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * Service de comptabilisation automatique.
  * Pont entre les calculs métier (amortissements, provisions, etc.)
@@ -9,7 +7,7 @@
  */
 import type { DataAdapter } from '@atlas/data';
 import { logAudit } from '../lib/db';
-import type { DBJournalLine, DBAsset } from '../lib/db';
+import type { DBJournalLine, DBAsset, DBJournalEntry, DBFiscalYear } from '../lib/db';
 import { money } from '../utils/money';
 import { safeAddEntry } from './entryGuard';
 import { DepreciationService } from '../utils/depreciationService';
@@ -81,7 +79,7 @@ function assetToImmobilisation(asset: DBAsset): Immobilisation {
  * Calculate cumulated depreciation for an asset from existing journal entries.
  */
 async function getCumulatedDepreciation(adapter: DataAdapter, assetId: string): Promise<number> {
-  const allEntries = await adapter.getAll('journalEntries', { where: { journal: 'OD' } });
+  const allEntries = await adapter.getAll<DBJournalEntry>('journalEntries', { where: { journal: 'OD' } });
   const entries = allEntries.filter(e => e.reference?.startsWith(`AMORT-`) && e.label.includes(assetId));
 
   let total = 0;
@@ -100,7 +98,7 @@ async function getCumulatedDepreciation(adapter: DataAdapter, assetId: string): 
  */
 async function hasDepreciationEntry(adapter: DataAdapter, assetCode: string, periode: string): Promise<boolean> {
   const ref = `AMORT-${periode}-${assetCode}`;
-  const allEntries = await adapter.getAll('journalEntries');
+  const allEntries = await adapter.getAll<DBJournalEntry>('journalEntries');
   const existing = allEntries.find(e => e.reference === ref);
   return !!existing;
 }
@@ -122,7 +120,7 @@ export async function posterAmortissements(
   let assetsProcessed = 0;
 
   // Load active assets
-  const assets = await adapter.getAll('assets', { where: { status: 'active' } });
+  const assets = await adapter.getAll<DBAsset>('assets', { where: { status: 'active' } });
 
   if (assets.length === 0) {
     return { success: true, entries: [], totalAmount: 0, assetsProcessed: 0, errors: ['Aucune immobilisation active'] };
@@ -217,7 +215,7 @@ export async function posterAmortissementsAnnuels(
   adapter: DataAdapter,
   exerciceId: string
 ): Promise<DepreciationPostingResult> {
-  const fiscalYear = await adapter.getById('fiscalYears', exerciceId);
+  const fiscalYear = await adapter.getById<DBFiscalYear>('fiscalYears', exerciceId);
   if (!fiscalYear) {
     return { success: false, entries: [], totalAmount: 0, assetsProcessed: 0, errors: [`Exercice ${exerciceId} introuvable`] };
   }

@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * Service de lettrage automatique.
  *
@@ -81,7 +79,7 @@ const DEFAULT_CONFIG: LettrageConfig = {
  * Generate the next available lettrage code (AA, AB, ..., ZZ).
  */
 async function getNextLettrageCode(adapter: DataAdapter): Promise<string> {
-  const entries = await adapter.getAll('journalEntries');
+  const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
   const existing = new Set<string>();
   for (const e of entries) {
     for (const l of e.lines) {
@@ -226,7 +224,7 @@ export async function autoLettrage(
   config: Partial<LettrageConfig> = {},
 ): Promise<LettrageResult> {
   const cfg = { ...DEFAULT_CONFIG, ...config };
-  const allEntries = await adapter.getAll('journalEntries');
+  const allEntries = await adapter.getAll<DBJournalEntry>('journalEntries');
   const entries = allEntries.filter(e => e.status !== 'draft');
   const allLines = flattenEntries(entries);
 
@@ -336,7 +334,7 @@ export async function applyLettrage(adapter: DataAdapter, matches: LettrageMatch
     ]);
 
     for (const entryId of entryIds) {
-      const entry = await adapter.getById('journalEntries', entryId);
+      const entry = await adapter.getById<DBJournalEntry>('journalEntries', entryId);
       if (!entry) continue;
 
       let modified = false;
@@ -379,7 +377,7 @@ export async function applyManualLettrage(
   let totalDebit = money(0);
   let totalCredit = money(0);
   for (const s of selections) {
-    const entry = await adapter.getById('journalEntries', s.entryId);
+    const entry = await adapter.getById<DBJournalEntry>('journalEntries', s.entryId);
     if (!entry) continue;
     const line = entry.lines.find((l: DBJournalLine) => l.id === s.lineId);
     if (line) {
@@ -404,7 +402,7 @@ export async function applyManualLettrage(
   }
 
   for (const [entryId, lineIds] of byEntry) {
-    const entry = await adapter.getById('journalEntries', entryId);
+    const entry = await adapter.getById<DBJournalEntry>('journalEntries', entryId);
     if (!entry) continue;
 
     const lineIdSet = new Set(lineIds);
@@ -434,7 +432,7 @@ export async function applyManualLettrage(
  * Remove lettrage code from all lines with a given code.
  */
 export async function delettrage(adapter: DataAdapter, code: string): Promise<number> {
-  const entries = await adapter.getAll('journalEntries');
+  const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
   let count = 0;
 
   for (const entry of entries) {
@@ -466,7 +464,7 @@ export async function getLettrageStats(adapter: DataAdapter, accountPrefix?: str
   montantNonLettre: number;
   codes: number;
 }> {
-  const entries = await adapter.getAll('journalEntries');
+  const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
   let totalLines = 0;
   let letteredLines = 0;
   let montantNonLettre = money(0);

@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * State machine for journal entry status transitions.
  *
@@ -62,7 +60,7 @@ export function transitionLabel(to: EntryStatus): string {
  * Runs full async validation (D=C, accounts, fiscal year).
  */
 export async function validerEcriture(adapter: DataAdapter, entryId: string): Promise<TransitionResult> {
-  const entry = await adapter.getById('journalEntries', entryId);
+  const entry = await adapter.getById<DBJournalEntry>('journalEntries', entryId);
   if (!entry) return { success: false, error: 'Écriture introuvable.' };
 
   if (!canTransition(entry.status as EntryStatus, 'validated')) {
@@ -102,7 +100,7 @@ export async function validerEcriture(adapter: DataAdapter, entryId: string): Pr
  * Makes entry definitive (SYSCOHADA immutability begins).
  */
 export async function comptabiliserEcriture(adapter: DataAdapter, entryId: string): Promise<TransitionResult> {
-  const entry = await adapter.getById('journalEntries', entryId);
+  const entry = await adapter.getById<DBJournalEntry>('journalEntries', entryId);
   if (!entry) return { success: false, error: 'Écriture introuvable.' };
 
   if (!canTransition(entry.status as EntryStatus, 'posted')) {
@@ -130,7 +128,7 @@ export async function comptabiliserEcriture(adapter: DataAdapter, entryId: strin
  * Only possible before comptabilisation.
  */
 export async function retourBrouillon(adapter: DataAdapter, entryId: string): Promise<TransitionResult> {
-  const entry = await adapter.getById('journalEntries', entryId);
+  const entry = await adapter.getById<DBJournalEntry>('journalEntries', entryId);
   if (!entry) return { success: false, error: 'Écriture introuvable.' };
 
   if (!canTransition(entry.status as EntryStatus, 'draft')) {

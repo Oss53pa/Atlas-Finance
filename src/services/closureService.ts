@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * Service d'orchestration de clôture d'exercice.
  * Coordonne le flux complet: Verrouillage → Résultat → Affectation → Reports à Nouveau.
@@ -152,7 +150,7 @@ export async function previewClosure(adapter: DataAdapter, exerciceId: string): 
   // Preview carry forward
   let carryForward: CarryForwardPreview | null = null;
   try {
-    carryForward = await previewCarryForward({
+    carryForward = await previewCarryForward(adapter, {
       closingExerciceId: exerciceId,
       openingExerciceId: exerciceId, // Just for preview, doesn't matter
       openingDate: '',
@@ -250,8 +248,9 @@ export async function executerCloture(
     report('VERROUILLAGE', 35, 'Génération des écritures de régularisation...');
     try {
       // Charger les régularisations saisies pour cet exercice
-      const allRegularisations = await adapter.getAll('regularisations');
-      const exerciceRegs = (allRegularisations as Record<string, unknown>[]).filter(
+      // Table 'regularisations' hors du schéma typé (optionnelle) — accès toléré.
+      const allRegularisations: any[] = await (adapter as any).getAll('regularisations');
+      const exerciceRegs = allRegularisations.filter(
         (r: any) => r.exerciceId === config.exerciceId && r.status !== 'comptabilisee'
       );
       if (exerciceRegs.length > 0) {
@@ -328,7 +327,7 @@ export async function executerCloture(
 
     // 5. REPORTS A NOUVEAU
     report('REPORTS_A_NOUVEAU', 80, 'Génération des à-nouveaux...');
-    const carryResult = await executerCarryForward({
+    const carryResult = await executerCarryForward(adapter, {
       closingExerciceId: config.exerciceId,
       openingExerciceId: config.openingExerciceId,
       openingDate: config.openingDate,
