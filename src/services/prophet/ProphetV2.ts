@@ -12,6 +12,7 @@
  * 7. Fallback: pattern-matching offline si aucun LLM
  */
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
+import { askProph3t, isProph3tCoreConfigured, DEFAULT_SENSITIVITY, type Sensitivity } from '../../lib/proph3t';
 import { LLMProviderFactory } from '../proph3t/LLMProviderFactory';
 import { ContextBuilder } from '../proph3t/ContextBuilder';
 import type { ILLMProvider } from '../proph3t/providers/ILLMProvider';
@@ -57,6 +58,12 @@ export interface ProphetConfig {
   countryCode?: string;
   stream?: boolean;
   maxToolRounds?: number;
+  /**
+   * Sensibilité des données pour la fédération au core Atlas Studio (chemin 0).
+   * Défaut : 'confidential' (ERP : paie/fisc/banque). Gouverne le routage des
+   * providers côté core (confidential → Ollama/Claude uniquement).
+   */
+  sensitivity?: Sensitivity;
 }
 
 // ---------------------------------------------------------------------------
@@ -72,6 +79,8 @@ export class ProphetV2Service {
   private adapter: DataAdapter | null = null;
   /** Conversation persistée côté serveur (edge function proph3t-ask). */
   private remoteConversationId: string | null = null;
+  /** Conversation persistée côté core mutualisé Atlas Studio (fédération, chemin 0). */
+  private coreConversationId: string | null = null;
 
   constructor(config: ProphetConfig = {}, adapter?: DataAdapter) {
     this.sessionId = crypto.randomUUID();
@@ -141,12 +150,53 @@ export class ProphetV2Service {
   }
 
   /**
+   * Délègue le tour au core mutualisé Atlas Studio (`proph3t-ask` du projet
+   * core), avec gouvernance par sensibilité. Renvoie null en cas d'échec ou si
+   * le core n'est pas configuré, pour laisser les chemins existants prendre le
+   * relais (résilience, additif).
+   */
+  private async callCore(userMessage: string): Promise<ProphetResponse | null> {
+    if (!isProph3tCoreConfigured()) return null;
+    try {
+      const r = await askProph3t({
+        message: userMessage,
+        sensitivity: this.config.sensitivity ?? DEFAULT_SENSITIVITY,
+        conversationId: this.coreConversationId ?? undefined,
+      });
+      if (!r?.answer) return null;
+      if (r.conversation_id) this.coreConversationId = r.conversation_id;
+      return {
+        content: r.answer,
+        toolsUsed: [],
+        ragChunksUsed: 0,
+        model: 'proph3t-core',
+        sessionId: this.sessionId,
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  /**
    * Send a message and get a response.
    * Handles tool calls automatically (up to maxToolRounds).
    */
   async send(userMessage: string): Promise<ProphetResponse> {
     // Add user message to history
     this.conversationHistory.push({ role: 'user', content: userMessage });
+
+    // ── Chemin 0 (fédération Atlas Studio) : si le core mutualisé est configuré
+    // (VITE_ATLAS_SUPABASE_URL/ANON_KEY) et que l'orchestrateur distant n'est pas
+    // désactivé, on lui délègue le tour avec gouvernance par sensibilité. Échec
+    // ou core absent → bascule sur les chemins existants ci-dessous (additif :
+    // aucun changement de comportement si le core n'est pas configuré).
+    if (this.useRemoteOrchestrator() && isProph3tCoreConfigured()) {
+      const core = await this.callCore(userMessage);
+      if (core) {
+        this.conversationHistory.push({ role: 'assistant', content: core.content });
+        return core;
+      }
+    }
 
     // ── Chemin 1 (prod Atlas Studio) : orchestrateur serveur `proph3t-ask`
     // (Groq Llama 3.3 + RAG OHADA, conversations persistées). C'est le core IA
