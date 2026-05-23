@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * Reevaluation des immobilisations — SYSCOHADA revise.
  * Reevaluation libre et legale avec ecart de reevaluation (compte 105).
@@ -227,5 +225,5 @@ export async function executerReevaluation(
     ecritureId: entryId,
   }));
 
-  return { success: true, ecriture: entry, impact };
+  return { success: true, ecriture: entry as any, impact };
 }

@@ -1,11 +1,10 @@
-// @ts-nocheck
-
 /**
  * SERVICE EXERCICE - Mode local (Dexie/IndexedDB)
  * Fournit les données d'exercices comptables localement
  */
 
 import type { DataAdapter } from '@atlas/data';
+import type { DBFiscalYear } from '../lib/db';
 
 interface FrontendExercice {
   id: string;
@@ -48,7 +47,7 @@ const calculateRemainingDays = (endDate: string): number => {
 export const exerciceService = {
   getExercices: async (adapter: DataAdapter): Promise<FrontendExercice[]> => {
     try {
-      const fiscalYears = await adapter.getAll('fiscalYears');
+      const fiscalYears = await adapter.getAll<DBFiscalYear>('fiscalYears');
       return fiscalYears.map(fy => ({
         id: fy.id,
         name: fy.name,
@@ -74,7 +73,7 @@ export const exerciceService = {
 
   getCurrentExercice: async (adapter: DataAdapter): Promise<FrontendExercice | null> => {
     try {
-      const fiscalYears = await adapter.getAll('fiscalYears');
+      const fiscalYears = await adapter.getAll<DBFiscalYear>('fiscalYears');
       const current = fiscalYears.find(fy => !fy.isClosed);
       if (!current) return null;
       return {

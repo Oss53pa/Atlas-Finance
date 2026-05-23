@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * FEC (Fichier des Ecritures Comptables) export service.
  * Conforme a l'article A.47 A-1 du Livre des Procedures Fiscales.
@@ -135,7 +133,7 @@ export async function generateFEC(adapter: DataAdapter, options: FECExportOption
   const { startDate, endDate, siren, separator, devise } = options;
 
   // Fetch validated/posted entries for the period
-  const allEntries = await adapter.getAll('journalEntries');
+  const allEntries = await adapter.getAll<DBJournalEntry>('journalEntries');
   const entries = allEntries
     .filter((e: any) => e.date >= startDate && e.date <= endDate &&
       (e.status === 'validated' || e.status === 'posted'))
@@ -214,7 +212,7 @@ export async function validateFEC(adapter: DataAdapter, options: FECExportOption
   const errors: string[] = [];
   const warnings: string[] = [];
 
-  const allEntriesInPeriod = await adapter.getAll('journalEntries');
+  const allEntriesInPeriod = await adapter.getAll<DBJournalEntry>('journalEntries');
   const allEntries = allEntriesInPeriod.filter(
     (e: any) => e.date >= options.startDate && e.date <= options.endDate
   );
