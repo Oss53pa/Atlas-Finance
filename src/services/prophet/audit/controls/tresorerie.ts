@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * Contrôles trésorerie — C58 à C67
  * Banques, caisse, rapprochement, virements internes
@@ -29,7 +27,7 @@ export const tresorerieControls: AuditControl[] = [
       const balance = await adapter.getTrialBalance();
       const banques = balance.filter(r => (r.accountCode || '').startsWith('52'));
       if (banques.length === 0) return skip('C58', 'Rapprochement bancaire', 'MAJEUR', 'Aucun compte bancaire (52x)', 'ISA 500 — Confirmations externes');
-      const totalBanques = banques.reduce((s, r) => s + (r.totalDebit || 0) - (r.totalCredit || 0), 0);
+      const totalBanques = banques.reduce((s, r) => s + (r.debitMouvement || 0) - (r.creditMouvement || 0), 0);
       return alerte('C58', 'Rapprochement bancaire', 'MAJEUR', `${banques.length} compte(s) bancaire(s), solde total = ${Math.round(totalBanques)} FCFA — vérifier rapprochement avec relevés`, 'ISA 500 — Confirmations externes', { nbComptes: banques.length, soldeTotal: Math.round(totalBanques) });
     },
   },
@@ -42,7 +40,7 @@ export const tresorerieControls: AuditControl[] = [
       const caisses = balance.filter(r => (r.accountCode || '').startsWith('57'));
       const anomalies: string[] = [];
       for (const r of caisses) {
-        const solde = (r.totalDebit || 0) - (r.totalCredit || 0);
+        const solde = (r.debitMouvement || 0) - (r.creditMouvement || 0);
         if (solde < -1) anomalies.push(`${r.accountCode}: solde négatif ${Math.round(solde)}`);
       }
       if (caisses.length === 0) return ok('C59', 'Caisse positive', 'Pas de compte caisse (57x).', 'AUDCIF Art. 45');
@@ -78,7 +76,7 @@ export const tresorerieControls: AuditControl[] = [
       const balance = await adapter.getTrialBalance();
       const virements = balance
         .filter(r => (r.accountCode || '').startsWith('58'))
-        .reduce((s, r) => s + Math.abs((r.totalDebit || 0) - (r.totalCredit || 0)), 0);
+        .reduce((s, r) => s + Math.abs((r.debitMouvement || 0) - (r.creditMouvement || 0)), 0);
       if (virements < 1) return ok('C61', 'Virements internes soldés', 'Comptes de virements internes (58x) soldés.', 'SYSCOHADA révisé');
       return alerte('C61', 'Virements internes soldés', 'MINEUR', `Comptes 58x non soldés: solde absolu = ${Math.round(virements)} FCFA`, 'SYSCOHADA révisé');
     },
@@ -91,7 +89,7 @@ export const tresorerieControls: AuditControl[] = [
       const balance = await adapter.getTrialBalance();
       const effets = balance
         .filter(r => (r.accountCode || '').startsWith('51'))
-        .reduce((s, r) => s + (r.totalDebit || 0) - (r.totalCredit || 0), 0);
+        .reduce((s, r) => s + (r.debitMouvement || 0) - (r.creditMouvement || 0), 0);
       if (effets <= 0) return ok('C62', 'Chèques/effets', 'Pas de chèques ou effets en portefeuille (51x).', 'Bonne pratique audit');
       return alerte('C62', 'Chèques/effets', 'MINEUR', `Effets en portefeuille (51x) = ${Math.round(effets)} FCFA — vérifier ancienneté`, 'Bonne pratique audit');
     },
@@ -106,7 +104,7 @@ export const tresorerieControls: AuditControl[] = [
       if (banques.length === 0) return skip('C63', 'Cohérence relevés', 'INFO', 'Aucun compte bancaire', 'ISA 500');
       const details = banques.map(r => ({
         compte: r.accountCode,
-        solde: Math.round((r.totalDebit || 0) - (r.totalCredit || 0)),
+        solde: Math.round((r.debitMouvement || 0) - (r.creditMouvement || 0)),
       }));
       return alerte('C63', 'Cohérence relevés', 'INFO', `${banques.length} compte(s) bancaire(s) — rapprochement manuel requis`, 'ISA 500', { details });
     },
@@ -119,7 +117,7 @@ export const tresorerieControls: AuditControl[] = [
       const balance = await adapter.getTrialBalance();
       const tresoPassive = balance
         .filter(r => (r.accountCode || '').startsWith('56'))
-        .reduce((s, r) => s + (r.totalCredit || 0) - (r.totalDebit || 0), 0);
+        .reduce((s, r) => s + (r.creditMouvement || 0) - (r.debitMouvement || 0), 0);
       if (tresoPassive <= 0) return ok('C64', 'Trésorerie passive', 'Pas de trésorerie passive (56x).', 'SYSCOHADA révisé');
       return alerte('C64', 'Trésorerie passive', 'INFO', `Trésorerie passive (56x) = ${Math.round(tresoPassive)} FCFA — concours bancaires courants`, 'SYSCOHADA révisé');
     },
@@ -168,10 +166,10 @@ export const tresorerieControls: AuditControl[] = [
           const code = r.accountCode || '';
           return code.startsWith('5') && !code.startsWith('56') && !code.startsWith('58') && !code.startsWith('59');
         })
-        .reduce((s, r) => s + (r.totalDebit || 0) - (r.totalCredit || 0), 0);
+        .reduce((s, r) => s + (r.debitMouvement || 0) - (r.creditMouvement || 0), 0);
       const tresoPassive = balance
         .filter(r => (r.accountCode || '').startsWith('56'))
-        .reduce((s, r) => s + (r.totalCredit || 0) - (r.totalDebit || 0), 0);
+        .reduce((s, r) => s + (r.creditMouvement || 0) - (r.debitMouvement || 0), 0);
       const tresoNette = tresoActive - tresoPassive;
       return ok('C67', 'Trésorerie nette', `Trésorerie active = ${Math.round(tresoActive)}, passive = ${Math.round(tresoPassive)}, nette = ${Math.round(tresoNette)}`, 'SYSCOHADA révisé', { tresoActive: Math.round(tresoActive), tresoPassive: Math.round(tresoPassive), tresoNette: Math.round(tresoNette) });
     },

@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * Contrôles tiers — C43 à C57
  * Clients, fournisseurs, TVA, dettes sociales/fiscales, lettrage
@@ -28,7 +26,7 @@ export const tiersControls: AuditControl[] = [
     execute: async (adapter) => {
       const balance = await adapter.getTrialBalance();
       const clients = balance.filter(r => (r.accountCode || '').startsWith('411'));
-      const crediteurs = clients.filter(r => (r.totalCredit || 0) - (r.totalDebit || 0) > 100);
+      const crediteurs = clients.filter(r => (r.creditMouvement || 0) - (r.debitMouvement || 0) > 100);
       if (crediteurs.length === 0) return ok('C43', 'Clients débiteurs', 'Tous les comptes clients ont un solde débiteur normal.', 'SYSCOHADA révisé');
       return alerte('C43', 'Clients débiteurs', 'MINEUR', `${crediteurs.length} compte(s) client(s) avec solde créditeur — reclassement en 419 nécessaire`, 'SYSCOHADA révisé', { comptes: crediteurs.map(r => r.accountCode).slice(0, 10) });
     },
@@ -40,7 +38,7 @@ export const tiersControls: AuditControl[] = [
     execute: async (adapter) => {
       const balance = await adapter.getTrialBalance();
       const fournisseurs = balance.filter(r => (r.accountCode || '').startsWith('401'));
-      const debiteurs = fournisseurs.filter(r => (r.totalDebit || 0) - (r.totalCredit || 0) > 100);
+      const debiteurs = fournisseurs.filter(r => (r.debitMouvement || 0) - (r.creditMouvement || 0) > 100);
       if (debiteurs.length === 0) return ok('C44', 'Fournisseurs créditeurs', 'Tous les comptes fournisseurs ont un solde créditeur normal.', 'SYSCOHADA révisé');
       return alerte('C44', 'Fournisseurs créditeurs', 'MINEUR', `${debiteurs.length} compte(s) fournisseur(s) avec solde débiteur — reclassement en 409 nécessaire`, 'SYSCOHADA révisé', { comptes: debiteurs.map(r => r.accountCode).slice(0, 10) });
     },
@@ -53,10 +51,10 @@ export const tiersControls: AuditControl[] = [
       const balance = await adapter.getTrialBalance();
       const clientsCrediteurs = balance
         .filter(r => (r.accountCode || '').startsWith('411'))
-        .filter(r => (r.totalCredit || 0) - (r.totalDebit || 0) > 100);
+        .filter(r => (r.creditMouvement || 0) - (r.debitMouvement || 0) > 100);
       const avancesClients = balance
         .filter(r => (r.accountCode || '').startsWith('419'))
-        .reduce((s, r) => s + (r.totalCredit || 0) - (r.totalDebit || 0), 0);
+        .reduce((s, r) => s + (r.creditMouvement || 0) - (r.debitMouvement || 0), 0);
       if (clientsCrediteurs.length === 0) return ok('C45', 'Reclassement clients', 'Pas de clients créditeurs à reclasser.', 'SYSCOHADA révisé Art. 66');
       if (avancesClients > 0) return ok('C45', 'Reclassement clients', `${clientsCrediteurs.length} client(s) créditeur(s), avances reçues (419) = ${Math.round(avancesClients)}`, 'SYSCOHADA révisé Art. 66');
       return alerte('C45', 'Reclassement clients', 'MINEUR', `${clientsCrediteurs.length} client(s) créditeur(s) non reclassés en 419`, 'SYSCOHADA révisé Art. 66');
@@ -70,10 +68,10 @@ export const tiersControls: AuditControl[] = [
       const balance = await adapter.getTrialBalance();
       const fournisseursDebiteurs = balance
         .filter(r => (r.accountCode || '').startsWith('401'))
-        .filter(r => (r.totalDebit || 0) - (r.totalCredit || 0) > 100);
+        .filter(r => (r.debitMouvement || 0) - (r.creditMouvement || 0) > 100);
       const avancesFourn = balance
         .filter(r => (r.accountCode || '').startsWith('409'))
-        .reduce((s, r) => s + (r.totalDebit || 0) - (r.totalCredit || 0), 0);
+        .reduce((s, r) => s + (r.debitMouvement || 0) - (r.creditMouvement || 0), 0);
       if (fournisseursDebiteurs.length === 0) return ok('C46', 'Reclassement fournisseurs', 'Pas de fournisseurs débiteurs à reclasser.', 'SYSCOHADA révisé Art. 66');
       if (avancesFourn > 0) return ok('C46', 'Reclassement fournisseurs', `${fournisseursDebiteurs.length} fournisseur(s) débiteur(s), avances versées (409) = ${Math.round(avancesFourn)}`, 'SYSCOHADA révisé Art. 66');
       return alerte('C46', 'Reclassement fournisseurs', 'MINEUR', `${fournisseursDebiteurs.length} fournisseur(s) débiteur(s) non reclassés en 409`, 'SYSCOHADA révisé Art. 66');
@@ -87,10 +85,10 @@ export const tiersControls: AuditControl[] = [
       const balance = await adapter.getTrialBalance();
       const clientsDouteux = balance
         .filter(r => (r.accountCode || '').startsWith('416'))
-        .reduce((s, r) => s + (r.totalDebit || 0) - (r.totalCredit || 0), 0);
+        .reduce((s, r) => s + (r.debitMouvement || 0) - (r.creditMouvement || 0), 0);
       const provision491 = balance
         .filter(r => (r.accountCode || '').startsWith('491'))
-        .reduce((s, r) => s + (r.totalCredit || 0) - (r.totalDebit || 0), 0);
+        .reduce((s, r) => s + (r.creditMouvement || 0) - (r.debitMouvement || 0), 0);
       if (clientsDouteux <= 0) return ok('C47', 'Provision créances douteuses', 'Pas de créances douteuses (416).', 'SYSCOHADA révisé Art. 48');
       if (provision491 > 0) return ok('C47', 'Provision créances douteuses', `Créances douteuses (416) = ${Math.round(clientsDouteux)}, provision (491) = ${Math.round(provision491)}`, 'SYSCOHADA révisé Art. 48');
       return err('C47', 'Provision créances douteuses', 'MAJEUR', `Créances douteuses (416) = ${Math.round(clientsDouteux)} sans provision (491)`, 'SYSCOHADA révisé Art. 48');
@@ -104,10 +102,10 @@ export const tiersControls: AuditControl[] = [
       const balance = await adapter.getTrialBalance();
       const clientsDouteux = balance
         .filter(r => (r.accountCode || '').startsWith('416'))
-        .reduce((s, r) => s + (r.totalDebit || 0) - (r.totalCredit || 0), 0);
+        .reduce((s, r) => s + (r.debitMouvement || 0) - (r.creditMouvement || 0), 0);
       const provision491 = balance
         .filter(r => (r.accountCode || '').startsWith('491'))
-        .reduce((s, r) => s + (r.totalCredit || 0) - (r.totalDebit || 0), 0);
+        .reduce((s, r) => s + (r.creditMouvement || 0) - (r.debitMouvement || 0), 0);
       if (clientsDouteux <= 0) return skip('C48', 'Taux provision', 'MINEUR', 'Pas de créances douteuses', 'SYSCOHADA révisé Art. 48');
       const taux = provision491 / clientsDouteux;
       if (taux >= 0.25 && taux <= 1) return ok('C48', 'Taux provision', `Taux provision = ${Math.round(taux * 100)}% (raisonnable)`, 'SYSCOHADA révisé Art. 48');
@@ -151,11 +149,11 @@ export const tiersControls: AuditControl[] = [
       const balance = await adapter.getTrialBalance();
       const ca = balance
         .filter(r => (r.accountCode || '').startsWith('70'))
-        .reduce((s, r) => s + (r.totalCredit || 0) - (r.totalDebit || 0), 0);
+        .reduce((s, r) => s + (r.creditMouvement || 0) - (r.debitMouvement || 0), 0);
       if (ca <= 0) return skip('C51', 'Concentration client', 'MAJEUR', 'CA nul', 'ISA 550 — Parties liées');
       const clients = balance.filter(r => (r.accountCode || '').startsWith('411'));
       const concentres = clients.filter(r => {
-        const solde = (r.totalDebit || 0) - (r.totalCredit || 0);
+        const solde = (r.debitMouvement || 0) - (r.creditMouvement || 0);
         return solde > ca * 0.5;
       });
       if (concentres.length === 0) return ok('C51', 'Concentration client', `Aucun client ne dépasse 50% du CA (${Math.round(ca)})`, 'ISA 550 — Parties liées');
@@ -170,10 +168,10 @@ export const tiersControls: AuditControl[] = [
       const balance = await adapter.getTrialBalance();
       const ca = balance
         .filter(r => (r.accountCode || '').startsWith('70'))
-        .reduce((s, r) => s + (r.totalCredit || 0) - (r.totalDebit || 0), 0);
+        .reduce((s, r) => s + (r.creditMouvement || 0) - (r.debitMouvement || 0), 0);
       const tvaCollectee = balance
         .filter(r => (r.accountCode || '').startsWith('4431'))
-        .reduce((s, r) => s + (r.totalCredit || 0) - (r.totalDebit || 0), 0);
+        .reduce((s, r) => s + (r.creditMouvement || 0) - (r.debitMouvement || 0), 0);
       if (ca <= 0) return skip('C52', 'TVA collectée vs CA', 'MAJEUR', 'CA nul', 'CGI UEMOA');
       const tauxImplicite = tvaCollectee / ca;
       if (tauxImplicite >= 0.10 && tauxImplicite <= 0.25) return ok('C52', 'TVA collectée vs CA', `Taux TVA implicite = ${Math.round(tauxImplicite * 100)}% (cohérent)`, 'CGI UEMOA');
@@ -189,10 +187,10 @@ export const tiersControls: AuditControl[] = [
       const balance = await adapter.getTrialBalance();
       const achats = balance
         .filter(r => (r.accountCode || '').startsWith('60'))
-        .reduce((s, r) => s + (r.totalDebit || 0) - (r.totalCredit || 0), 0);
+        .reduce((s, r) => s + (r.debitMouvement || 0) - (r.creditMouvement || 0), 0);
       const tvaDeductible = balance
         .filter(r => (r.accountCode || '').startsWith('4452'))
-        .reduce((s, r) => s + (r.totalDebit || 0) - (r.totalCredit || 0), 0);
+        .reduce((s, r) => s + (r.debitMouvement || 0) - (r.creditMouvement || 0), 0);
       if (achats <= 0) return skip('C53', 'TVA déductible vs achats', 'MAJEUR', 'Achats nuls', 'CGI UEMOA');
       const tauxImplicite = tvaDeductible / achats;
       if (tauxImplicite >= 0.05 && tauxImplicite <= 0.25) return ok('C53', 'TVA déductible vs achats', `Taux TVA déductible implicite = ${Math.round(tauxImplicite * 100)}%`, 'CGI UEMOA');
@@ -208,10 +206,10 @@ export const tiersControls: AuditControl[] = [
       const balance = await adapter.getTrialBalance();
       const chargesPersonnel = balance
         .filter(r => (r.accountCode || '').startsWith('66'))
-        .reduce((s, r) => s + (r.totalDebit || 0) - (r.totalCredit || 0), 0);
+        .reduce((s, r) => s + (r.debitMouvement || 0) - (r.creditMouvement || 0), 0);
       const dettesSociales = balance
         .filter(r => (r.accountCode || '').startsWith('43'))
-        .reduce((s, r) => s + (r.totalCredit || 0) - (r.totalDebit || 0), 0);
+        .reduce((s, r) => s + (r.creditMouvement || 0) - (r.debitMouvement || 0), 0);
       if (chargesPersonnel <= 0) return ok('C54', 'Dettes sociales', 'Pas de charges de personnel.', 'SYSCOHADA révisé');
       if (dettesSociales > 0) return ok('C54', 'Dettes sociales', `Charges personnel = ${Math.round(chargesPersonnel)}, dettes sociales (43x) = ${Math.round(dettesSociales)}`, 'SYSCOHADA révisé');
       return err('C54', 'Dettes sociales', 'MAJEUR', `Charges personnel = ${Math.round(chargesPersonnel)} mais aucune dette sociale (43x) — omission probable`, 'SYSCOHADA révisé');
@@ -225,10 +223,10 @@ export const tiersControls: AuditControl[] = [
       const balance = await adapter.getTrialBalance();
       const ca = balance
         .filter(r => (r.accountCode || '').startsWith('70'))
-        .reduce((s, r) => s + (r.totalCredit || 0) - (r.totalDebit || 0), 0);
+        .reduce((s, r) => s + (r.creditMouvement || 0) - (r.debitMouvement || 0), 0);
       const dettesFiscales = balance
         .filter(r => (r.accountCode || '').startsWith('44'))
-        .reduce((s, r) => s + (r.totalCredit || 0) - (r.totalDebit || 0), 0);
+        .reduce((s, r) => s + (r.creditMouvement || 0) - (r.debitMouvement || 0), 0);
       if (ca <= 0) return skip('C55', 'Dettes fiscales', 'MAJEUR', 'CA nul', 'CGI UEMOA');
       if (dettesFiscales > 0) return ok('C55', 'Dettes fiscales', `CA = ${Math.round(ca)}, dettes fiscales (44x) = ${Math.round(dettesFiscales)}`, 'CGI UEMOA');
       return err('C55', 'Dettes fiscales', 'MAJEUR', `CA = ${Math.round(ca)} mais aucune dette fiscale (44x) — TVA, IS non provisionnés ?`, 'CGI UEMOA');
@@ -242,10 +240,10 @@ export const tiersControls: AuditControl[] = [
       const balance = await adapter.getTrialBalance();
       const chargesPersonnel = balance
         .filter(r => (r.accountCode || '').startsWith('66'))
-        .reduce((s, r) => s + (r.totalDebit || 0) - (r.totalCredit || 0), 0);
+        .reduce((s, r) => s + (r.debitMouvement || 0) - (r.creditMouvement || 0), 0);
       const dettePersonnel = balance
         .filter(r => (r.accountCode || '').startsWith('42'))
-        .reduce((s, r) => s + (r.totalCredit || 0) - (r.totalDebit || 0), 0);
+        .reduce((s, r) => s + (r.creditMouvement || 0) - (r.debitMouvement || 0), 0);
       if (chargesPersonnel <= 0) return ok('C56', 'Personnel vs charges', 'Pas de charges de personnel.', 'SYSCOHADA révisé');
       if (dettePersonnel >= 0) return ok('C56', 'Personnel vs charges', `Charges personnel = ${Math.round(chargesPersonnel)}, dette personnel (42x) = ${Math.round(dettePersonnel)}`, 'SYSCOHADA révisé');
       return alerte('C56', 'Personnel vs charges', 'MINEUR', `Compte personnel (42x) débiteur = ${Math.round(dettePersonnel)} alors que charges 66x = ${Math.round(chargesPersonnel)}`, 'SYSCOHADA révisé');
@@ -259,7 +257,7 @@ export const tiersControls: AuditControl[] = [
       const balance = await adapter.getTrialBalance();
       const attente = balance
         .filter(r => (r.accountCode || '').startsWith('47'))
-        .reduce((s, r) => s + Math.abs((r.totalDebit || 0) - (r.totalCredit || 0)), 0);
+        .reduce((s, r) => s + Math.abs((r.debitMouvement || 0) - (r.creditMouvement || 0)), 0);
       if (attente < 1) return ok('C57', 'Comptes attente', 'Comptes d\'attente (47x) soldés.', 'SYSCOHADA révisé Art. 67');
       return alerte('C57', 'Comptes attente', 'MINEUR', `Comptes d'attente (47x) non soldés: solde absolu = ${Math.round(attente)} FCFA`, 'SYSCOHADA révisé Art. 67');
     },

@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * Contrôles fondamentaux — C01 à C15
  * D=C, Actif=Passif, résultat cohérent, comptes vides, sens normal des soldes
@@ -24,8 +22,8 @@ export const fondamentauxControls: AuditControl[] = [
     severite: 'BLOQUANT', reference: 'AUDCIF Art. 17',
     execute: async (adapter) => {
       const balance = await adapter.getTrialBalance();
-      const totalD = balance.reduce((s, r) => s + (r.totalDebit || 0), 0);
-      const totalC = balance.reduce((s, r) => s + (r.totalCredit || 0), 0);
+      const totalD = balance.reduce((s, r) => s + (r.debitMouvement || 0), 0);
+      const totalC = balance.reduce((s, r) => s + (r.creditMouvement || 0), 0);
       const ecart = Math.abs(totalD - totalC);
       if (ecart < 1) return ok('C01', 'Équilibre D=C', `Total D=${totalD}, C=${totalC}. Équilibré.`, 'AUDCIF Art. 17');
       return err('C01', 'Équilibre D=C', 'BLOQUANT', `DÉSÉQUILIBRE: D=${totalD}, C=${totalC}, écart=${ecart}`, 'AUDCIF Art. 17', { totalD, totalC, ecart });
@@ -40,7 +38,7 @@ export const fondamentauxControls: AuditControl[] = [
       let actif = 0, passif = 0;
       for (const r of balance) {
         const code = r.accountCode || '';
-        const solde = (r.totalDebit || 0) - (r.totalCredit || 0);
+        const solde = (r.debitMouvement || 0) - (r.creditMouvement || 0);
         if (code.startsWith('2') || code.startsWith('3') || code.startsWith('5')) {
           actif += solde; // classes actif: solde débiteur
         } else if (code.startsWith('1') || code.startsWith('4')) {
@@ -65,16 +63,16 @@ export const fondamentauxControls: AuditControl[] = [
       let produits = 0, charges = 0;
       for (const r of balance) {
         const code = r.accountCode || '';
-        const solde = (r.totalCredit || 0) - (r.totalDebit || 0); // produits = solde créditeur
+        const solde = (r.creditMouvement || 0) - (r.debitMouvement || 0); // produits = solde créditeur
         if (code.startsWith('7')) produits += solde;
-        if (code.startsWith('6')) charges += (r.totalDebit || 0) - (r.totalCredit || 0);
+        if (code.startsWith('6')) charges += (r.debitMouvement || 0) - (r.creditMouvement || 0);
       }
       const resultatCR = produits - charges;
       // Résultat bilan = compte 13x
       let resultatBilan = 0;
       for (const r of balance) {
         if ((r.accountCode || '').startsWith('13')) {
-          resultatBilan += (r.totalCredit || 0) - (r.totalDebit || 0);
+          resultatBilan += (r.creditMouvement || 0) - (r.debitMouvement || 0);
         }
       }
       const ecart = Math.abs(resultatCR - resultatBilan);
@@ -108,7 +106,7 @@ export const fondamentauxControls: AuditControl[] = [
     execute: async (adapter) => {
       const balance = await adapter.getTrialBalance();
       const comptesVides = balance.filter(r =>
-        (r.totalDebit || 0) === 0 && (r.totalCredit || 0) === 0
+        (r.debitMouvement || 0) === 0 && (r.creditMouvement || 0) === 0
       );
       if (comptesVides.length === 0) return ok('C05', 'Comptes vides', 'Aucun compte à solde nul.', 'SYSCOHADA révisé');
       return alerte('C05', 'Comptes vides', 'INFO', `${comptesVides.length} compte(s) sans mouvement`, 'SYSCOHADA révisé', { comptes: comptesVides.slice(0, 10).map(c => c.accountCode) });
@@ -124,7 +122,7 @@ export const fondamentauxControls: AuditControl[] = [
       for (const r of balance) {
         const code = r.accountCode || '';
         if (!code.startsWith('1')) continue;
-        const solde = (r.totalDebit || 0) - (r.totalCredit || 0);
+        const solde = (r.debitMouvement || 0) - (r.creditMouvement || 0);
         // Classe 1 doit être créditeur (solde < 0 en D-C), sauf 129 (RAN débiteur)
         if (solde > 100 && !code.startsWith('129')) {
           anomalies.push(`${code}: solde débiteur ${Math.round(solde)}`);
@@ -145,7 +143,7 @@ export const fondamentauxControls: AuditControl[] = [
         const code = r.accountCode || '';
         if (!code.startsWith('2')) continue;
         if (code.startsWith('28') || code.startsWith('29')) continue; // amort/dépréc = créditeurs
-        const solde = (r.totalDebit || 0) - (r.totalCredit || 0);
+        const solde = (r.debitMouvement || 0) - (r.creditMouvement || 0);
         if (solde < -100) anomalies.push(`${code}: solde créditeur ${Math.round(solde)}`);
       }
       if (anomalies.length === 0) return ok('C07', 'Sens classe 2', 'Comptes immobilisations OK.', 'SYSCOHADA révisé');
@@ -162,7 +160,7 @@ export const fondamentauxControls: AuditControl[] = [
       for (const r of balance) {
         const code = r.accountCode || '';
         if (!code.startsWith('28')) continue;
-        const solde = (r.totalDebit || 0) - (r.totalCredit || 0);
+        const solde = (r.debitMouvement || 0) - (r.creditMouvement || 0);
         if (solde > 100) anomalies.push(`${code}: solde débiteur ${Math.round(solde)}`);
       }
       if (anomalies.length === 0) return ok('C08', 'Amortissements sens', 'Comptes 28x correctement créditeurs.', 'AUDCIF Art. 28-30');
@@ -178,7 +176,7 @@ export const fondamentauxControls: AuditControl[] = [
       const anomalies: string[] = [];
       for (const r of balance) {
         const code = r.accountCode || '';
-        const solde = (r.totalDebit || 0) - (r.totalCredit || 0);
+        const solde = (r.debitMouvement || 0) - (r.creditMouvement || 0);
         // 401/408 fournisseurs = créditeurs normalement
         if (code.startsWith('401') && solde > 100) anomalies.push(`${code} Fournisseur débiteur: ${Math.round(solde)}`);
         // 411 clients = débiteurs normalement
@@ -198,7 +196,7 @@ export const fondamentauxControls: AuditControl[] = [
       for (const r of balance) {
         const code = r.accountCode || '';
         if (!code.startsWith('5') || code.startsWith('56')) continue; // 56 = trésorerie passif
-        const solde = (r.totalDebit || 0) - (r.totalCredit || 0);
+        const solde = (r.debitMouvement || 0) - (r.creditMouvement || 0);
         if (solde < -1000) anomalies.push(`${code}: solde créditeur ${Math.round(solde)}`);
       }
       if (anomalies.length === 0) return ok('C10', 'Sens trésorerie', 'Comptes trésorerie actif OK.', 'AUDCIF Art. 45-47');
@@ -215,7 +213,7 @@ export const fondamentauxControls: AuditControl[] = [
       for (const r of balance) {
         const code = r.accountCode || '';
         if (!code.startsWith('6')) continue;
-        const solde = (r.totalDebit || 0) - (r.totalCredit || 0);
+        const solde = (r.debitMouvement || 0) - (r.creditMouvement || 0);
         if (solde < -1000) anomalies.push(`${code}: solde créditeur ${Math.round(solde)}`);
       }
       if (anomalies.length === 0) return ok('C11', 'Sens charges', 'Comptes de charges OK.', 'SYSCOHADA révisé');
@@ -232,7 +230,7 @@ export const fondamentauxControls: AuditControl[] = [
       for (const r of balance) {
         const code = r.accountCode || '';
         if (!code.startsWith('7')) continue;
-        const solde = (r.totalDebit || 0) - (r.totalCredit || 0);
+        const solde = (r.debitMouvement || 0) - (r.creditMouvement || 0);
         if (solde > 1000) anomalies.push(`${code}: solde débiteur ${Math.round(solde)}`);
       }
       if (anomalies.length === 0) return ok('C12', 'Sens produits', 'Comptes de produits OK.', 'SYSCOHADA révisé');

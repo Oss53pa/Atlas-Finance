@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * Contrôles capitaux propres — C16 à C27
  * Capital social, réserves, résultat, provisions, emprunts
@@ -23,13 +21,13 @@ function skip(ref: string, libelle: string, severite: 'BLOQUANT' | 'MAJEUR' | 'M
 function soldeCompte(balance: any[], prefix: string): number {
   return balance
     .filter(r => (r.accountCode || '').startsWith(prefix))
-    .reduce((s, r) => s + (r.totalCredit || 0) - (r.totalDebit || 0), 0);
+    .reduce((s, r) => s + (r.creditMouvement || 0) - (r.debitMouvement || 0), 0);
 }
 
 function soldeDebiteur(balance: any[], prefix: string): number {
   return balance
     .filter(r => (r.accountCode || '').startsWith(prefix))
-    .reduce((s, r) => s + (r.totalDebit || 0) - (r.totalCredit || 0), 0);
+    .reduce((s, r) => s + (r.debitMouvement || 0) - (r.creditMouvement || 0), 0);
 }
 
 export const capitauxPropresControls: AuditControl[] = [
@@ -108,7 +106,7 @@ export const capitauxPropresControls: AuditControl[] = [
       const emprunts = balance.filter(r => (r.accountCode || '').startsWith('16'));
       const anomalies: string[] = [];
       for (const r of emprunts) {
-        const solde = (r.totalDebit || 0) - (r.totalCredit || 0);
+        const solde = (r.debitMouvement || 0) - (r.creditMouvement || 0);
         if (solde > 100) anomalies.push(`${r.accountCode}: solde débiteur ${Math.round(solde)}`);
       }
       if (anomalies.length === 0) return ok('C21', 'Emprunts créditeurs', 'Tous les emprunts (16x) ont un solde créditeur normal.', 'SYSCOHADA révisé');
@@ -150,8 +148,8 @@ export const capitauxPropresControls: AuditControl[] = [
       let produits = 0, charges = 0;
       for (const r of balance) {
         const code = r.accountCode || '';
-        if (code.startsWith('7')) produits += (r.totalCredit || 0) - (r.totalDebit || 0);
-        if (code.startsWith('6')) charges += (r.totalDebit || 0) - (r.totalCredit || 0);
+        if (code.startsWith('7')) produits += (r.creditMouvement || 0) - (r.debitMouvement || 0);
+        if (code.startsWith('6')) charges += (r.debitMouvement || 0) - (r.creditMouvement || 0);
       }
       const resultatCR = produits - charges;
       const resultatBilan = soldeCompte(balance, '13');
@@ -170,7 +168,7 @@ export const capitauxPropresControls: AuditControl[] = [
       const provisions = balance.filter(r => (r.accountCode || '').startsWith('19'));
       const anomalies: string[] = [];
       for (const r of provisions) {
-        const solde = (r.totalDebit || 0) - (r.totalCredit || 0);
+        const solde = (r.debitMouvement || 0) - (r.creditMouvement || 0);
         if (solde > 1) anomalies.push(`${r.accountCode}: solde débiteur ${Math.round(solde)}`);
       }
       if (anomalies.length === 0) return ok('C25', 'Provisions risques', 'Comptes 19x correctement créditeurs.', 'SYSCOHADA révisé Art. 48');

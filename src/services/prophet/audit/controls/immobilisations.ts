@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * Contrôles immobilisations — C28 à C42
  * Brut, amortissements, dépréciations, cessions, cohérence tableaux
@@ -31,7 +29,7 @@ export const immobilisationsControls: AuditControl[] = [
       for (const r of balance) {
         const code = r.accountCode || '';
         if (!code.startsWith('2') || code.startsWith('28') || code.startsWith('29')) continue;
-        const solde = (r.totalDebit || 0) - (r.totalCredit || 0);
+        const solde = (r.debitMouvement || 0) - (r.creditMouvement || 0);
         if (solde < -100) anomalies.push(`${code}: solde créditeur ${Math.round(solde)}`);
       }
       if (anomalies.length === 0) return ok('C28', 'Immo brutes débitrices', 'Toutes les immobilisations brutes ont un solde débiteur.', 'SYSCOHADA révisé Art. 35');
@@ -50,11 +48,11 @@ export const immobilisationsControls: AuditControl[] = [
         const code = r.accountCode || '';
         if (code.startsWith('2') && !code.startsWith('28') && !code.startsWith('29')) {
           const key = code.slice(0, 3);
-          bruts[key] = (bruts[key] || 0) + (r.totalDebit || 0) - (r.totalCredit || 0);
+          bruts[key] = (bruts[key] || 0) + (r.debitMouvement || 0) - (r.creditMouvement || 0);
         }
         if (code.startsWith('28')) {
           const key = '2' + code.slice(2, 4);
-          amorts[key] = (amorts[key] || 0) + (r.totalCredit || 0) - (r.totalDebit || 0);
+          amorts[key] = (amorts[key] || 0) + (r.creditMouvement || 0) - (r.debitMouvement || 0);
         }
       }
       const anomalies: string[] = [];
@@ -74,10 +72,10 @@ export const immobilisationsControls: AuditControl[] = [
       const balance = await adapter.getTrialBalance();
       const dotation681 = balance
         .filter(r => (r.accountCode || '').startsWith('681'))
-        .reduce((s, r) => s + (r.totalDebit || 0) - (r.totalCredit || 0), 0);
+        .reduce((s, r) => s + (r.debitMouvement || 0) - (r.creditMouvement || 0), 0);
       const totalAmort = balance
         .filter(r => (r.accountCode || '').startsWith('28'))
-        .reduce((s, r) => s + (r.totalCredit || 0) - (r.totalDebit || 0), 0);
+        .reduce((s, r) => s + (r.creditMouvement || 0) - (r.debitMouvement || 0), 0);
       if (dotation681 === 0 && totalAmort === 0) return ok('C30', 'Dotations/Amort', 'Pas de dotation ni d\'amortissement.', 'SYSCOHADA révisé Art. 46');
       if (dotation681 === 0 && totalAmort > 0) return alerte('C30', 'Dotations/Amort', 'MAJEUR', `Amortissements cumulés = ${Math.round(totalAmort)} mais dotation 681 nulle`, 'SYSCOHADA révisé Art. 46');
       return ok('C30', 'Dotations/Amort', `Dotation 681 = ${Math.round(dotation681)}, amort cumulés (28x) = ${Math.round(totalAmort)}`, 'SYSCOHADA révisé Art. 46');
@@ -95,11 +93,11 @@ export const immobilisationsControls: AuditControl[] = [
         const code = r.accountCode || '';
         if (code.startsWith('2') && !code.startsWith('22') && !code.startsWith('25') && !code.startsWith('26') && !code.startsWith('27') && !code.startsWith('28') && !code.startsWith('29')) {
           const key = code.slice(0, 3);
-          bruts[key] = (bruts[key] || 0) + (r.totalDebit || 0) - (r.totalCredit || 0);
+          bruts[key] = (bruts[key] || 0) + (r.debitMouvement || 0) - (r.creditMouvement || 0);
         }
         if (code.startsWith('28')) {
           const key = '2' + code.slice(2, 4);
-          amorts[key] = (amorts[key] || 0) + (r.totalCredit || 0) - (r.totalDebit || 0);
+          amorts[key] = (amorts[key] || 0) + (r.creditMouvement || 0) - (r.debitMouvement || 0);
         }
       }
       const sansAmort: string[] = [];
@@ -118,11 +116,11 @@ export const immobilisationsControls: AuditControl[] = [
       const balance = await adapter.getTrialBalance();
       const brut201 = balance
         .filter(r => (r.accountCode || '').startsWith('201'))
-        .reduce((s, r) => s + (r.totalDebit || 0) - (r.totalCredit || 0), 0);
+        .reduce((s, r) => s + (r.debitMouvement || 0) - (r.creditMouvement || 0), 0);
       if (brut201 <= 0) return ok('C32', 'Frais établissement', 'Pas de frais d\'établissement.', 'SYSCOHADA révisé Art. 39');
       const amort281 = balance
         .filter(r => (r.accountCode || '').startsWith('2801'))
-        .reduce((s, r) => s + (r.totalCredit || 0) - (r.totalDebit || 0), 0);
+        .reduce((s, r) => s + (r.creditMouvement || 0) - (r.debitMouvement || 0), 0);
       const tauxAmort = brut201 > 0 ? amort281 / brut201 : 0;
       if (tauxAmort >= 0.20) return ok('C32', 'Frais établissement', `Frais étab. brut = ${Math.round(brut201)}, amort = ${Math.round(amort281)} (${Math.round(tauxAmort * 100)}%)`, 'SYSCOHADA révisé Art. 39');
       return alerte('C32', 'Frais établissement', 'MINEUR', `Taux amortissement frais établissement = ${Math.round(tauxAmort * 100)}% — vérifier durée <= 5 ans`, 'SYSCOHADA révisé Art. 39');
@@ -136,7 +134,7 @@ export const immobilisationsControls: AuditControl[] = [
       const balance = await adapter.getTrialBalance();
       const enCours = balance
         .filter(r => (r.accountCode || '').startsWith('25'))
-        .reduce((s, r) => s + (r.totalDebit || 0) - (r.totalCredit || 0), 0);
+        .reduce((s, r) => s + (r.debitMouvement || 0) - (r.creditMouvement || 0), 0);
       if (enCours <= 0) return ok('C33', 'Immo en cours', 'Pas d\'immobilisations en cours.', 'SYSCOHADA révisé');
       return alerte('C33', 'Immo en cours', 'INFO', `Immobilisations en cours (25x) = ${Math.round(enCours)} FCFA — vérifier absence d'immobilisations anciennes non mises en service`, 'SYSCOHADA révisé');
     },
@@ -149,10 +147,10 @@ export const immobilisationsControls: AuditControl[] = [
       const balance = await adapter.getTrialBalance();
       const vncCession = balance
         .filter(r => (r.accountCode || '').startsWith('691'))
-        .reduce((s, r) => s + (r.totalDebit || 0) - (r.totalCredit || 0), 0);
+        .reduce((s, r) => s + (r.debitMouvement || 0) - (r.creditMouvement || 0), 0);
       const prixCession = balance
         .filter(r => (r.accountCode || '').startsWith('791'))
-        .reduce((s, r) => s + (r.totalCredit || 0) - (r.totalDebit || 0), 0);
+        .reduce((s, r) => s + (r.creditMouvement || 0) - (r.debitMouvement || 0), 0);
       if (vncCession === 0 && prixCession === 0) return ok('C34', 'Cessions immo', 'Aucune cession d\'immobilisation.', 'SYSCOHADA révisé Art. 42');
       if ((vncCession > 0 && prixCession === 0) || (prixCession > 0 && vncCession === 0)) {
         return alerte('C34', 'Cessions immo', 'MINEUR', `VNC cession (691) = ${Math.round(vncCession)}, Prix cession (791) = ${Math.round(prixCession)} — écritures incomplètes`, 'SYSCOHADA révisé Art. 42');
@@ -168,7 +166,7 @@ export const immobilisationsControls: AuditControl[] = [
       const balance = await adapter.getTrialBalance();
       const vncCession = balance
         .filter(r => (r.accountCode || '').startsWith('691'))
-        .reduce((s, r) => s + (r.totalDebit || 0) - (r.totalCredit || 0), 0);
+        .reduce((s, r) => s + (r.debitMouvement || 0) - (r.creditMouvement || 0), 0);
       if (vncCession === 0) return skip('C35', 'VNC cession', 'MAJEUR', 'Pas de cession d\'immobilisation', 'SYSCOHADA révisé Art. 42');
       return ok('C35', 'VNC cession', `VNC cession (691) = ${Math.round(vncCession)} — vérification détaillée requiert le tableau des cessions`, 'SYSCOHADA révisé Art. 42');
     },
@@ -184,7 +182,7 @@ export const immobilisationsControls: AuditControl[] = [
           const code = r.accountCode || '';
           return code.startsWith('26') || code.startsWith('27');
         })
-        .reduce((s, r) => s + (r.totalDebit || 0) - (r.totalCredit || 0), 0);
+        .reduce((s, r) => s + (r.debitMouvement || 0) - (r.creditMouvement || 0), 0);
       if (immoFin === 0) return ok('C36', 'Immo financières', 'Pas d\'immobilisations financières.', 'SYSCOHADA révisé Art. 49');
       return alerte('C36', 'Immo financières', 'INFO', `Immobilisations financières (26-27) = ${Math.round(immoFin)} FCFA — vérifier valorisation`, 'SYSCOHADA révisé Art. 49');
     },
@@ -202,15 +200,15 @@ export const immobilisationsControls: AuditControl[] = [
         const code = r.accountCode || '';
         if (code.startsWith('2') && !code.startsWith('28') && !code.startsWith('29')) {
           const key = code.slice(0, 3);
-          bruts[key] = (bruts[key] || 0) + (r.totalDebit || 0) - (r.totalCredit || 0);
+          bruts[key] = (bruts[key] || 0) + (r.debitMouvement || 0) - (r.creditMouvement || 0);
         }
         if (code.startsWith('28')) {
           const key = '2' + code.slice(2, 4);
-          amorts[key] = (amorts[key] || 0) + (r.totalCredit || 0) - (r.totalDebit || 0);
+          amorts[key] = (amorts[key] || 0) + (r.creditMouvement || 0) - (r.debitMouvement || 0);
         }
         if (code.startsWith('29')) {
           const key = '2' + code.slice(2, 4);
-          deprec[key] = (deprec[key] || 0) + (r.totalCredit || 0) - (r.totalDebit || 0);
+          deprec[key] = (deprec[key] || 0) + (r.creditMouvement || 0) - (r.debitMouvement || 0);
         }
       }
       const anomalies: string[] = [];
@@ -234,11 +232,11 @@ export const immobilisationsControls: AuditControl[] = [
         const code = r.accountCode || '';
         if (code.startsWith('2') && !code.startsWith('28') && !code.startsWith('29')) {
           const key = code.slice(0, 3);
-          bruts[key] = (bruts[key] || 0) + (r.totalDebit || 0) - (r.totalCredit || 0);
+          bruts[key] = (bruts[key] || 0) + (r.debitMouvement || 0) - (r.creditMouvement || 0);
         }
         if (code.startsWith('28')) {
           const key = '2' + code.slice(2, 4);
-          amorts[key] = (amorts[key] || 0) + (r.totalCredit || 0) - (r.totalDebit || 0);
+          amorts[key] = (amorts[key] || 0) + (r.creditMouvement || 0) - (r.debitMouvement || 0);
         }
       }
       const vncNeg: string[] = [];
@@ -261,10 +259,10 @@ export const immobilisationsControls: AuditControl[] = [
           const code = r.accountCode || '';
           return code.startsWith('2') && !code.startsWith('22') && !code.startsWith('28') && !code.startsWith('29') && !code.startsWith('25') && !code.startsWith('26') && !code.startsWith('27');
         })
-        .reduce((s, r) => s + (r.totalDebit || 0) - (r.totalCredit || 0), 0);
+        .reduce((s, r) => s + (r.debitMouvement || 0) - (r.creditMouvement || 0), 0);
       const amort = balance
         .filter(r => (r.accountCode || '').startsWith('28'))
-        .reduce((s, r) => s + (r.totalCredit || 0) - (r.totalDebit || 0), 0);
+        .reduce((s, r) => s + (r.creditMouvement || 0) - (r.debitMouvement || 0), 0);
       if (brut <= 0) return skip('C39', 'Durée amortissement', 'MINEUR', 'Pas d\'immobilisations amortissables', 'SYSCOHADA révisé Art. 44');
       const tauxGlobal = amort / brut;
       if (tauxGlobal > 1) return alerte('C39', 'Durée amortissement', 'MINEUR', `Taux amortissement global ${Math.round(tauxGlobal * 100)}% > 100% — anomalie`, 'SYSCOHADA révisé Art. 44');
@@ -283,11 +281,11 @@ export const immobilisationsControls: AuditControl[] = [
         const code = r.accountCode || '';
         if (code.startsWith('2') && !code.startsWith('28') && !code.startsWith('29')) {
           const key = code.slice(0, 3);
-          bruts[key] = (bruts[key] || 0) + (r.totalDebit || 0) - (r.totalCredit || 0);
+          bruts[key] = (bruts[key] || 0) + (r.debitMouvement || 0) - (r.creditMouvement || 0);
         }
         if (code.startsWith('28')) {
           const key = '2' + code.slice(2, 4);
-          amorts[key] = (amorts[key] || 0) + (r.totalCredit || 0) - (r.totalDebit || 0);
+          amorts[key] = (amorts[key] || 0) + (r.creditMouvement || 0) - (r.debitMouvement || 0);
         }
       }
       const totalAmort: string[] = [];
@@ -308,7 +306,7 @@ export const immobilisationsControls: AuditControl[] = [
       const balance = await adapter.getTrialBalance();
       const avances = balance
         .filter(r => (r.accountCode || '').startsWith('252'))
-        .reduce((s, r) => s + (r.totalDebit || 0) - (r.totalCredit || 0), 0);
+        .reduce((s, r) => s + (r.debitMouvement || 0) - (r.creditMouvement || 0), 0);
       if (avances <= 0) return ok('C41', 'Avances immo', 'Pas d\'avances sur immobilisations.', 'SYSCOHADA révisé');
       return alerte('C41', 'Avances immo', 'MINEUR', `Avances fournisseurs immo (252) = ${Math.round(avances)} FCFA — vérifier justification`, 'SYSCOHADA révisé');
     },
@@ -324,13 +322,13 @@ export const immobilisationsControls: AuditControl[] = [
           const code = r.accountCode || '';
           return code.startsWith('2') && !code.startsWith('28') && !code.startsWith('29');
         })
-        .reduce((s, r) => s + (r.totalDebit || 0) - (r.totalCredit || 0), 0);
+        .reduce((s, r) => s + (r.debitMouvement || 0) - (r.creditMouvement || 0), 0);
       const totalAmort = balance
         .filter(r => (r.accountCode || '').startsWith('28'))
-        .reduce((s, r) => s + (r.totalCredit || 0) - (r.totalDebit || 0), 0);
+        .reduce((s, r) => s + (r.creditMouvement || 0) - (r.debitMouvement || 0), 0);
       const totalDeprec = balance
         .filter(r => (r.accountCode || '').startsWith('29'))
-        .reduce((s, r) => s + (r.totalCredit || 0) - (r.totalDebit || 0), 0);
+        .reduce((s, r) => s + (r.creditMouvement || 0) - (r.debitMouvement || 0), 0);
       const vncTotal = totalBrut - totalAmort - totalDeprec;
       return ok('C42', 'Tableau immo', `Brut = ${Math.round(totalBrut)}, Amort = ${Math.round(totalAmort)}, Déprec = ${Math.round(totalDeprec)}, VNC = ${Math.round(vncTotal)}`, 'SYSCOHADA révisé Note 3', { totalBrut: Math.round(totalBrut), totalAmort: Math.round(totalAmort), totalDeprec: Math.round(totalDeprec), vncTotal: Math.round(vncTotal) });
     },
