@@ -1211,9 +1211,11 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
               getEcrVal(line, 'libelle') ||
               getEcrVal(line, 'EcritureLib') || entryLabel
             );
+            // camelCase — requis par save_journal_entry (RPC Supabase) ET par Dexie
             return {
-              account_code: accountCode,
-              account_name: accountName,
+              id: crypto.randomUUID(),
+              accountCode,
+              accountName,
               label: lineLabel,
               debit: parseNumber(getEcrVal(line, 'debit') || getEcrVal(line, 'Debit')),
               credit: parseNumber(getEcrVal(line, 'credit') || getEcrVal(line, 'Credit')),
@@ -1221,37 +1223,43 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
           });
 
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const adapterAny = adapter as unknown as { rpc?: (name: string, p: any) => Promise<any> };
-          if (adapterAny.rpc) {
-            await adapterAny.rpc('import_journal_batch', {
-              p_entry: {
-                entry_number: piece,
-                journal: journalCode,
-                date: entryDate,
-                label: entryLabel,
-                reference: piece,
-                status: params.entryStatus === 'validated' ? 'validated' : 'draft',
-                total_debit: totalDebit,
-                total_credit: totalCredit,
-              },
-              p_lines: lineRecords,
-            });
-            report.entries++;
-            report.lines += lineRecords.length;
-          } else {
-            // Fallback (cas DexieAdapter) : create direct sans bypass
-            const created = await adapter.create<{ id: string }>('journalEntries', {
-              entry_number: piece, journal: journalCode, date: entryDate,
-              label: entryLabel, reference: piece,
+          const adapterExt = adapter as any;
+          if (typeof adapterExt.saveJournalEntry === 'function') {
+            // SupabaseAdapter : insertion atomique entry + lignes via save_journal_entry RPC
+            // (camelCase attendu par la fonction PL/pgSQL — cf. migration 18)
+            await adapterExt.saveJournalEntry({
+              entryNumber: piece,
+              journal: journalCode,
+              date: entryDate,
+              label: entryLabel,
+              reference: piece,
               status: params.entryStatus === 'validated' ? 'validated' : 'draft',
-              total_debit: totalDebit, total_credit: totalCredit,
+              totalDebit,
+              totalCredit,
+              lines: lineRecords,
+            });
+          } else {
+            // DexieAdapter : écriture avec lignes embarquées (camelCase)
+            const now = new Date().toISOString();
+            await adapter.create('journalEntries', {
+              id: crypto.randomUUID(),
+              entryNumber: piece,
+              journal: journalCode,
+              date: entryDate,
+              label: entryLabel,
+              reference: piece,
+              status: params.entryStatus === 'validated' ? 'validated' : 'draft',
+              totalDebit,
+              totalCredit,
+              lines: lineRecords,
+              createdAt: now,
+              updatedAt: now,
+              hash: '',
+              previousHash: '',
             } as Record<string, unknown>);
-            for (const ln of lineRecords) {
-              await adapter.create('journalLines', { entry_id: created.id, ...ln } as Record<string, unknown>);
-              report.lines++;
-            }
-            report.entries++;
           }
+          report.entries++;
+          report.lines += lineRecords.length;
         } catch (err) {
           const msg = err instanceof Error ? err.message : 'erreur inconnue';
           if (msg.includes('duplicate key') || msg.includes('unique constraint')) {
@@ -1280,14 +1288,17 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       if (anData.length > 0) {
         setImportLabel('Import des reports a nouveau...');
         const anMapping = mappings.reportAN || [];
+        // camelCase requis par save_journal_entry (Supabase) et Dexie
         const anLinesData = anData.map((row: Record<string, unknown>) => {
           const numCol = anMapping.find(m => m.target === 'numeroCompte')?.source;
           const libCol = anMapping.find(m => m.target === 'libelle')?.source;
           const dCol = anMapping.find(m => m.target === 'debit')?.source;
           const cCol = anMapping.find(m => m.target === 'credit')?.source;
+          const accountCode = String(numCol ? row[numCol] : '');
           return {
-            account_code: String(numCol ? row[numCol] : ''),
-            account_name: String(libCol ? row[libCol] : '') || String(numCol ? row[numCol] : ''),
+            id: crypto.randomUUID(),
+            accountCode,
+            accountName: String(libCol ? row[libCol] : '') || accountCode,
             label: String(libCol ? row[libCol] : 'Report AN'),
             debit: parseNumber(dCol ? row[dCol] : 0),
             credit: parseNumber(cCol ? row[cCol] : 0),
@@ -1298,30 +1309,44 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
           try {
             const anTotalDebit = anLinesData.reduce((s, l) => s + l.debit, 0);
             const anTotalCredit = anLinesData.reduce((s, l) => s + l.credit, 0);
-            const anEntry = await adapter.create<{ id: string }>('journalEntries', {
-              entry_number: 'AN-MIGRATION',
-              journal: 'AN',
-              date: params.exerciceStart || params.dateBascule || new Date().toISOString().slice(0, 10),
-              label: 'Reports a nouveau — Migration',
-              reference: 'AN-MIGRATION',
-              status: 'validated',
-              total_debit: anTotalDebit,
-              total_credit: anTotalCredit,
-            } as Record<string, unknown>);
+            const anDate = params.exerciceStart || params.dateBascule || new Date().toISOString().slice(0, 10);
 
-            // Bulk insert AN lines (meme raison que pour les entries du GL)
-            const anLineRecords = anLinesData.map(ln => ({ entry_id: anEntry.id, ...ln }));
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const adapterAnyAN = adapter as unknown as { createMany?: (t: string, items: any[]) => Promise<any[]> };
-            if (adapterAnyAN.createMany) {
-              await adapterAnyAN.createMany('journalLines', anLineRecords);
-              report.lines += anLineRecords.length;
+            const adapterExtAN = adapter as any;
+            if (typeof adapterExtAN.saveJournalEntry === 'function') {
+              // SupabaseAdapter : atomique via save_journal_entry
+              await adapterExtAN.saveJournalEntry({
+                entryNumber: 'AN-MIGRATION',
+                journal: 'AN',
+                date: anDate,
+                label: 'Reports a nouveau — Migration',
+                reference: 'AN-MIGRATION',
+                status: 'validated',
+                totalDebit: anTotalDebit,
+                totalCredit: anTotalCredit,
+                lines: anLinesData,
+              });
             } else {
-              for (const ln of anLineRecords) {
-                await adapter.create('journalLines', ln as Record<string, unknown>);
-                report.lines++;
-              }
+              // DexieAdapter : écriture avec lignes embarquées
+              const now = new Date().toISOString();
+              await adapter.create('journalEntries', {
+                id: crypto.randomUUID(),
+                entryNumber: 'AN-MIGRATION',
+                journal: 'AN',
+                date: anDate,
+                label: 'Reports a nouveau — Migration',
+                reference: 'AN-MIGRATION',
+                status: 'validated',
+                totalDebit: anTotalDebit,
+                totalCredit: anTotalCredit,
+                lines: anLinesData,
+                createdAt: now,
+                updatedAt: now,
+                hash: '',
+                previousHash: '',
+              } as Record<string, unknown>);
             }
+            report.lines += anLinesData.length;
             report.entries++;
             journals.add('AN');
           } catch (err) {
@@ -1341,15 +1366,13 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       report.vncOk = true;
       setImportProgress(100);
 
-      // Audit log
-      await logAudit({
-        action: 'DATA_MIGRATION_IMPORT',
-        entity: 'migration',
-        entityId: sessionId,
-        details: `Migration ${sourceSystem}: ${report.accounts} comptes, ${report.entries} ecritures, ${report.tiers} tiers, ${report.assets} immobilisations`,
-        userId: 'system',
-        timestamp: new Date().toISOString(),
-      });
+      // Audit log — signature : logAudit(action, entityType, entityId, details)
+      await logAudit(
+        'DATA_MIGRATION_IMPORT',
+        'migration',
+        sessionId,
+        `Migration ${sourceSystem || 'inconnu'}: ${report.accounts} comptes, ${report.entries} ecritures, ${report.tiers} tiers, ${report.assets} immobilisations`
+      );
 
       setImportReport(report);
       toast.success('Migration terminee avec succes');
@@ -1366,7 +1389,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
 
   const canNext = useMemo(() => {
     switch (currentStep) {
-      case 'mode': return !!sourceSystem;
+      case 'mode': return migrationMode !== null && migrationMode !== undefined; // sourceSystem est facultatif
       case 'upload': {
         // Tous les fichiers obligatoires du mode courant doivent être uploadés
         const requiredKeys = Object.entries(FILE_CONFIGS)

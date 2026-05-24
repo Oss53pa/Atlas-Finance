@@ -121,7 +121,7 @@ export const tiersControls: AuditControl[] = [
       const entries = await adapter.getJournalEntries({});
       const lignesClients = entries.flatMap(e => (e.lines || []).filter(l => (l.accountCode || '').startsWith('411')));
       if (lignesClients.length === 0) return skip('C49', 'Lettrage clients', 'MINEUR', 'Aucune ligne client', 'Bonne pratique audit');
-      const lettrees = lignesClients.filter(l => l.lettrage || l.reconciled);
+      const lettrees = lignesClients.filter(l => !!l.lettrageCode);
       const taux = lettrees.length / lignesClients.length;
       if (taux >= 0.8) return ok('C49', 'Lettrage clients', `Taux lettrage clients = ${Math.round(taux * 100)}%`, 'Bonne pratique audit');
       return alerte('C49', 'Lettrage clients', 'MINEUR', `Taux lettrage clients = ${Math.round(taux * 100)}% (< 80%)`, 'Bonne pratique audit', { total: lignesClients.length, lettrees: lettrees.length });
@@ -135,7 +135,7 @@ export const tiersControls: AuditControl[] = [
       const entries = await adapter.getJournalEntries({});
       const lignesFourn = entries.flatMap(e => (e.lines || []).filter(l => (l.accountCode || '').startsWith('401')));
       if (lignesFourn.length === 0) return skip('C50', 'Lettrage fournisseurs', 'MINEUR', 'Aucune ligne fournisseur', 'Bonne pratique audit');
-      const lettrees = lignesFourn.filter(l => l.lettrage || l.reconciled);
+      const lettrees = lignesFourn.filter(l => !!l.lettrageCode);
       const taux = lettrees.length / lignesFourn.length;
       if (taux >= 0.8) return ok('C50', 'Lettrage fournisseurs', `Taux lettrage fournisseurs = ${Math.round(taux * 100)}%`, 'Bonne pratique audit');
       return alerte('C50', 'Lettrage fournisseurs', 'MINEUR', `Taux lettrage fournisseurs = ${Math.round(taux * 100)}% (< 80%)`, 'Bonne pratique audit', { total: lignesFourn.length, lettrees: lettrees.length });

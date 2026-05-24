@@ -152,10 +152,11 @@ export const transversauxControls: AuditControl[] = [
       const entries = await adapter.getJournalEntries({});
       const antidatees: string[] = [];
       for (const e of entries) {
-        if (!e.date || !e.validatedAt) continue;
-        if (new Date(e.date) < new Date(e.validatedAt)) {
-          const diff = Math.round((new Date(e.validatedAt).getTime() - new Date(e.date).getTime()) / 86400000);
-          if (diff > 30) antidatees.push(`${e.reference || e.id || 'N/A'}: date ${e.date}, validé ${e.validatedAt} (${diff}j)`);
+        const validatedAt: string | undefined = (e as any).validatedAt;
+        if (!e.date || !validatedAt) continue;
+        if (new Date(e.date) < new Date(validatedAt)) {
+          const diff = Math.round((new Date(validatedAt).getTime() - new Date(e.date).getTime()) / 86400000);
+          if (diff > 30) antidatees.push(`${e.reference || e.id || 'N/A'}: date ${e.date}, validé ${validatedAt} (${diff}j)`);
         }
       }
       if (antidatees.length === 0) return ok('C89', 'Antidatage', 'Aucune écriture antidatée de plus de 30 jours.', 'AUDCIF Art. 16');
@@ -250,7 +251,7 @@ export const transversauxControls: AuditControl[] = [
     severite: 'MINEUR', reference: 'AUDCIF Art. 16',
     execute: async (adapter) => {
       const entries = await adapter.getJournalEntries({});
-      const sansLibelle = entries.filter(e => !e.description && !e.label && !e.libelle);
+      const sansLibelle = entries.filter(e => !e.label);
       if (sansLibelle.length === 0) return ok('C94', 'Libellé obligatoire', `${entries.length} écritures, toutes avec libellé.`, 'AUDCIF Art. 16');
       return alerte('C94', 'Libellé obligatoire', 'MINEUR', `${sansLibelle.length} écriture(s) sans libellé`, 'AUDCIF Art. 16');
     },
@@ -261,7 +262,7 @@ export const transversauxControls: AuditControl[] = [
     severite: 'MINEUR', reference: 'AUDCIF Art. 16',
     execute: async (adapter) => {
       const entries = await adapter.getJournalEntries({});
-      const sansPiece = entries.filter(e => !e.reference && !e.pieceRef && !e.documentRef);
+      const sansPiece = entries.filter(e => !e.reference);
       if (sansPiece.length === 0) return ok('C95', 'Pièce justificative', `${entries.length} écritures, toutes avec référence pièce.`, 'AUDCIF Art. 16');
       return alerte('C95', 'Pièce justificative', 'MINEUR', `${sansPiece.length} écriture(s) sans référence de pièce justificative`, 'AUDCIF Art. 16');
     },
@@ -273,7 +274,7 @@ export const transversauxControls: AuditControl[] = [
     execute: async (adapter) => {
       const entries = await adapter.getJournalEntries({});
       if (entries.length === 0) return skip('C96', 'Manuel vs auto', 'INFO', 'Aucune écriture', 'Bonne pratique audit');
-      const manuelles = entries.filter(e => e.source === 'manual' || e.origin === 'manual' || !e.source);
+      const manuelles = entries.filter(e => e.createdBy?.startsWith('manual:') || !e.createdBy);
       const ratio = manuelles.length / entries.length;
       return ok('C96', 'Manuel vs auto', `${manuelles.length}/${entries.length} écritures manuelles (${Math.round(ratio * 100)}%)`, 'Bonne pratique audit', { manuelles: manuelles.length, total: entries.length, ratio: Math.round(ratio * 100) });
     },
