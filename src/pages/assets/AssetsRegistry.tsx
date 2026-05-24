@@ -291,17 +291,8 @@ const AssetsRegistry: React.FC = () => {
         }));
       }
     } catch (error) {
-      // Données mock pour développement
-      const mockCapitationData = {
-        capital_appropriation_number: 'CAR-2024-AUTO-001',
-        asset_class: '24 - matériel, mobilier',
-        employee: 'Fatima Ndiaye'
-      };
-      setCapitationData(mockCapitationData);
-      setNewAssetForm(prev => ({
-        ...prev,
-        ...mockCapitationData
-      }));
+      // Intégration Capitation non disponible — ne pas injecter de données fictives
+      toast.error('Service Capitation non disponible. Renseignez les champs manuellement.');
     }
   };
 
@@ -334,23 +325,13 @@ const AssetsRegistry: React.FC = () => {
         }));
       }
     } catch (error) {
-      // Données mock pour développement
-      const mockWiseFMData = {
-        technician: 'Amadou Diallo',
-        department: 'Maintenance',
-        maintenance_contract: 'WFM-2024-001'
-      };
-      setWiseFMData(mockWiseFMData);
-      setNewAssetForm(prev => ({
-        ...prev,
-        technician: mockWiseFMData.technician,
-        department: mockWiseFMData.department
-      }));
+      // Intégration WiseFM non disponible — ne pas injecter de données fictives
+      toast.error('Service WiseFM non disponible. Renseignez les champs manuellement.');
     }
   };
 
   // Charger les immobilisations depuis Dexie
-  const { data: mockAssets = [] } = useQuery<Asset[]>({
+  const { data: assets = [] } = useQuery<Asset[]>({
     queryKey: ['assets-registry'],
     queryFn: async () => {
       const dbAssets = await adapter.getAll('assets');
@@ -574,7 +555,7 @@ const AssetsRegistry: React.FC = () => {
   const handleSaveAsset = () => {
     if (assetToEdit) {
       // Mode édition
-      const updatedAssets = mockAssets.map(asset =>
+      const updatedAssets = assets.map(asset =>
         asset.id === assetToEdit.id
           ? {
               ...asset,
@@ -593,7 +574,7 @@ const AssetsRegistry: React.FC = () => {
     } else {
       // Mode création
       const newAsset: Asset = {
-        id: (mockAssets.length + 1).toString(),
+        id: (assets.length + 1).toString(),
         ...newAssetForm,
         current_value: newAssetForm.acquisition_value * 0.8,
         net_value: newAssetForm.acquisition_value * 0.8,
@@ -608,10 +589,10 @@ const AssetsRegistry: React.FC = () => {
   };
 
   // Calculer les catégories dynamiquement depuis les immobilisations chargées
-  const mockCategories: AssetCategory[] = useMemo(() => {
+  const assetCategories: AssetCategory[] = useMemo(() => {
     const catMap: Record<string, { count: number; totalValue: number; totalAge: number; totalRate: number }> = {};
     const now = new Date();
-    for (const asset of mockAssets) {
+    for (const asset of assets) {
       const cat = asset.category || 'Autre';
       if (!catMap[cat]) catMap[cat] = { count: 0, totalValue: 0, totalAge: 0, totalRate: 0 };
       catMap[cat].count++;
@@ -628,11 +609,11 @@ const AssetsRegistry: React.FC = () => {
       averageAge: data.count > 0 ? new Money(data.totalAge).divide(data.count).round(1).toNumber() : 0,
       depreciationRate: data.count > 0 ? new Money(data.totalRate).divide(data.count).divide(100).round(4).toNumber() : 0,
     }));
-  }, [mockAssets]);
+  }, [assets]);
 
   // Filter assets based on search and filters
   const filteredAssets = useMemo(() => {
-    return mockAssets.filter(asset => {
+    return assets.filter(asset => {
       const matchesSearch = asset.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           asset.asset_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           asset.serial_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -644,7 +625,7 @@ const AssetsRegistry: React.FC = () => {
 
       return matchesSearch && matchesCategory && matchesStatus && matchesLocation;
     });
-  }, [searchTerm, filterCategory, filterStatus, filterLocation, mockAssets]);
+  }, [searchTerm, filterCategory, filterStatus, filterLocation, assets]);
 
   // Calculate aggregated metrics
   const aggregatedData = useMemo(() => {
@@ -728,9 +709,9 @@ const AssetsRegistry: React.FC = () => {
     poor: 'Mauvais'
   };
 
-  const uniqueLocations = [...new Set(mockAssets.map(a => a.location.split(' - ')[0]))];
+  const uniqueLocations = [...new Set(assets.map(a => a.location.split(' - ')[0]))];
 
-  const chartData = mockCategories.map(cat => ({
+  const chartData = assetCategories.map(cat => ({
     label: cat.name.replace(' ', '\n'),
     value: cat.totalValue / 1000,
     color: cat.code === 'materiel_informatique' ? 'bg-[var(--color-primary)]' :
@@ -846,7 +827,7 @@ const AssetsRegistry: React.FC = () => {
               <Target className="h-5 w-5 text-neutral-400" />
             </div>
             <div className="space-y-3">
-              {mockCategories.slice(0, 5).map((category, index) => (
+              {assetCategories.slice(0, 5).map((category, index) => (
                 <div key={category.code} className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <div className="w-3 h-3 rounded-full bg-[var(--color-primary)]"></div>
@@ -1602,97 +1583,15 @@ const AssetsRegistry: React.FC = () => {
             </ElegantButton>
           </div>
 
-          <div className="space-y-4">
-            {/* Mock history entries */}
-            {[
-              {
-                id: 1,
-                action: 'Création',
-                description: 'Création de l\'actif Serveur Dell PowerEdge R750',
-                user: 'Mohamed Kane',
-                date: '2024-01-15 10:30',
-                asset: 'Serveur Dell PowerEdge R750 (#235378)',
-                icon: Plus,
-                color: 'bg-green-500'
-              },
-              {
-                id: 2,
-                action: 'Modification',
-                description: 'Mise à jour de l\'emplacement: Salle serveur - Dakar',
-                user: 'Fatima Ndiaye',
-                date: '2024-01-14 15:45',
-                asset: 'Serveur Dell PowerEdge R750 (#235378)',
-                icon: Edit,
-                color: 'bg-[var(--color-primary)]'
-              },
-              {
-                id: 3,
-                action: 'Transfert',
-                description: 'Transfert de Amadou Diallo vers Mohamed Kane',
-                user: 'Admin System',
-                date: '2024-01-13 09:15',
-                asset: 'ARIC TRAVAUX D\'ASSAINISSEMENT (#235377)',
-                icon: User,
-                color: 'bg-[var(--color-text-secondary)]'
-              },
-              {
-                id: 4,
-                action: 'Maintenance',
-                description: 'Maintenance préventive programmée',
-                user: 'Cheikh Diop',
-                date: '2024-01-12 14:20',
-                asset: 'Véhicule Mercedes Sprinter (#235379)',
-                icon: Wrench,
-                color: 'bg-orange-500'
-              },
-              {
-                id: 5,
-                action: 'Inventaire',
-                description: 'Vérification d\'inventaire annuel complétée',
-                user: 'Aminata Fall',
-                date: '2024-01-10 11:00',
-                asset: 'Multiple actifs (15 éléments)',
-                icon: CheckCircle,
-                color: 'bg-primary-500'
-              }
-            ].map((entry, index) => {
-              const IconComponent = entry.icon;
-              return (
-                <motion.div
-                  key={entry.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="flex items-start space-x-4 p-4 bg-neutral-50 rounded-lg"
-                >
-                  <div className={`p-2 rounded-full ${entry.color}`}>
-                    <IconComponent className="h-4 w-4 text-white" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <h4 className="text-sm font-semibold text-neutral-800">{entry.action}</h4>
-                      <span className="text-xs text-neutral-500">{entry.date}</span>
-                    </div>
-                    <p className="text-sm text-neutral-700 mb-1">{entry.description}</p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-neutral-600">Actif: {entry.asset}</span>
-                      <span className="text-xs text-neutral-500">Par: {entry.user}</span>
-                    </div>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
-
-          <div className="flex justify-center">
-            <ElegantButton variant="outline">
-              Charger plus d'entrées
-            </ElegantButton>
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+              <Clock className="h-10 w-10 mb-3 text-neutral-300" />
+              <p className="text-sm font-medium text-neutral-500">Aucun historique disponible</p>
+              <p className="text-xs mt-1 text-neutral-400">Les actions sur les actifs apparaîtront ici une fois enregistrées.</p>
           </div>
         </div>
       </UnifiedCard>
 
-      {/* History Statistics */}
+      {/* History Statistics — données réelles uniquement */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <UnifiedCard variant="elevated" size="md">
           <div className="space-y-4">
@@ -1700,19 +1599,9 @@ const AssetsRegistry: React.FC = () => {
               <h3 className="text-lg font-semibold text-neutral-800">Activités Récentes</h3>
               <Activity className="h-5 w-5 text-neutral-400" />
             </div>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-sm text-neutral-600">{t('common.today')}</span>
-                <span className="text-sm font-semibold text-neutral-800">12 actions</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-neutral-600">Cette semaine</span>
-                <span className="text-sm font-semibold text-neutral-800">45 actions</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-neutral-600">Ce mois</span>
-                <span className="text-sm font-semibold text-neutral-800">189 actions</span>
-              </div>
+            <div className="flex flex-col items-center justify-center py-6 text-neutral-400">
+              <Activity className="h-8 w-8 mb-2 opacity-30" />
+              <p className="text-xs text-neutral-400">Aucune donnée disponible</p>
             </div>
           </div>
         </UnifiedCard>
@@ -1723,23 +1612,9 @@ const AssetsRegistry: React.FC = () => {
               <h3 className="text-lg font-semibold text-neutral-800">Actions les Plus Fréquentes</h3>
               <BarChart3 className="h-5 w-5 text-neutral-400" />
             </div>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-sm text-neutral-600">Modifications</span>
-                <span className="text-sm font-semibold text-[var(--color-primary)]">45%</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-neutral-600">Transferts</span>
-                <span className="text-sm font-semibold text-primary-600">28%</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-neutral-600">Maintenances</span>
-                <span className="text-sm font-semibold text-orange-600">18%</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-neutral-600">Créations</span>
-                <span className="text-sm font-semibold text-green-600">9%</span>
-              </div>
+            <div className="flex flex-col items-center justify-center py-6 text-neutral-400">
+              <BarChart3 className="h-8 w-8 mb-2 opacity-30" />
+              <p className="text-xs text-neutral-400">Aucune donnée disponible</p>
             </div>
           </div>
         </UnifiedCard>
@@ -1750,34 +1625,9 @@ const AssetsRegistry: React.FC = () => {
               <h3 className="text-lg font-semibold text-neutral-800">Utilisateurs Actifs</h3>
               <Users className="h-5 w-5 text-neutral-400" />
             </div>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <div className="w-6 h-6 bg-[var(--color-primary)] rounded-full flex items-center justify-center">
-                    <span className="text-xs text-white font-semibold">MK</span>
-                  </div>
-                  <span className="text-sm text-neutral-700">Mohamed Kane</span>
-                </div>
-                <span className="text-sm font-semibold text-neutral-800">23</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                    <span className="text-xs text-white font-semibold">FN</span>
-                  </div>
-                  <span className="text-sm text-neutral-700">Fatima Ndiaye</span>
-                </div>
-                <span className="text-sm font-semibold text-neutral-800">18</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <div className="w-6 h-6 bg-[var(--color-text-secondary)] rounded-full flex items-center justify-center">
-                    <span className="text-xs text-white font-semibold">CD</span>
-                  </div>
-                  <span className="text-sm text-neutral-700">Cheikh Diop</span>
-                </div>
-                <span className="text-sm font-semibold text-neutral-800">12</span>
-              </div>
+            <div className="flex flex-col items-center justify-center py-6 text-neutral-400">
+              <Users className="h-8 w-8 mb-2 opacity-30" />
+              <p className="text-xs text-neutral-400">Aucune donnée disponible</p>
             </div>
           </div>
         </UnifiedCard>

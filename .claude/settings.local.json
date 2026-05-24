@@ -90,7 +90,18 @@
       "Bash(grep -rl 'from.*__TRACKED_VAR__\\\\|import.*__TRACKED_VAR__' C:/devs/WiseBook/src --include=*.ts --include=*.tsx)",
       "Bash(grep -v \"useTreasury.ts$\")",
       "Bash(git branch *)",
-      "Bash(echo \"EXIT_LOCAL:$?\")"
+      "Bash(echo \"EXIT_LOCAL:$?\")",
+      "Bash(git stash *)",
+      "Bash(git status *)",
+      "Bash(xargs grep -l -i \"immobilisation\\\\|asset\")",
+      "Bash(git cherry-pick *)",
+      "Bash(xargs grep -l -i \"immobil\\\\|asset\")",
+      "Bash(grep -v \"//.*mock\")",
+      "Bash(grep -v \"\\\\.tsx:[0-9]*:.*//.*\")",
+      "Bash(npx vite *)",
+      "Bash(git reset *)",
+      "mcp__Claude_in_Chrome__tabs_context_mcp",
+      "Bash(gh run *)"
     ],
     "deny": [],
     "ask": []

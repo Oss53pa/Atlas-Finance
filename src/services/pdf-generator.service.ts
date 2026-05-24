@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * SERVICE GÉNÉRATION DE PDF
  *

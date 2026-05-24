@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * closureTools — Assistance clôture, régularisations, affectation résultat.
  */

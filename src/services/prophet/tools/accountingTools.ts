@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * accountingTools — Tools connectés aux données comptables réelles via DataAdapter.
  *

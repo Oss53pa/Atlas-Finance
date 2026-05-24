@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * Service d'analyse budgétaire — Budget vs Réalisé vs Écarts.
  * Connecte les budgetLines (Dexie) aux journalEntries pour calculer

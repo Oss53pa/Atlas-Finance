@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * HOOKS REACT QUERY - COMPTABILITE
  *
@@ -29,11 +27,11 @@ import type {
 } from '../services/accounting-complete.service';
 
 // Cast services to access extended API methods
-const coaApi = chartOfAccountsService as Record<string, (...args: unknown[]) => Promise<unknown>>;
-const journalsApi = journalsService as Record<string, (...args: unknown[]) => Promise<unknown>>;
-const entriesApi = accountingEntriesService as Record<string, (...args: unknown[]) => Promise<unknown>>;
-const linesApi = entryLinesService as Record<string, (...args: unknown[]) => Promise<unknown>>;
-const reportsApi = accountingReportsService as Record<string, (...args: unknown[]) => Promise<unknown>>;
+const coaApi = chartOfAccountsService as unknown as Record<string, (...args: unknown[]) => Promise<unknown>>;
+const journalsApi = journalsService as unknown as Record<string, (...args: unknown[]) => Promise<unknown>>;
+const entriesApi = accountingEntriesService as unknown as Record<string, (...args: unknown[]) => Promise<unknown>>;
+const linesApi = entryLinesService as unknown as Record<string, (...args: unknown[]) => Promise<unknown>>;
+const reportsApi = accountingReportsService as unknown as Record<string, (...args: unknown[]) => Promise<unknown>>;
 
 interface QueryParams {
   page?: number;
@@ -114,7 +112,7 @@ export const useUpdateAccount = () => {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<ChartOfAccount> }) =>
       chartOfAccountsService.update(id, data),
-    onSuccess: (_: unknown, { id }: { id: string }) => {
+    onSuccess: (_: unknown, { id }: { id: string; data: Partial<ChartOfAccount> }) => {
       invalidateQueries.chartOfAccounts();
       queryClient.invalidateQueries({ queryKey: queryKeys.accounting.chartOfAccounts.detail(id) });
     },
@@ -190,7 +188,7 @@ export const useUpdateJournal = () => {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<Journal> }) =>
       journalsService.update(id, data),
-    onSuccess: (_: unknown, { id }: { id: string }) => {
+    onSuccess: (_: unknown, { id }: { id: string; data: Partial<Journal> }) => {
       invalidateQueries.journals();
       queryClient.invalidateQueries({ queryKey: queryKeys.accounting.journals.detail(id) });
     },
@@ -214,7 +212,7 @@ export const useDeleteJournal = () => {
 
 export const useAccountingEntries = (params?: AccountingQueryParams) => {
   return useQuery({
-    queryKey: queryKeys.accounting.entries.list(params),
+    queryKey: queryKeys.accounting.entries.list(params as Record<string, unknown>),
     queryFn: () => accountingEntriesService.getAll(params as ServiceAccountingQueryParams),
   });
 };
@@ -266,7 +264,7 @@ export const useUpdateAccountingEntry = () => {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: AccountingEntryCreateData }) =>
       accountingEntriesService.update(id, data),
-    onSuccess: (_: unknown, { id }: { id: string }) => {
+    onSuccess: (_: unknown, { id }: { id: string; data: AccountingEntryCreateData }) => {
       invalidateQueries.accountingEntries();
       queryClient.invalidateQueries({ queryKey: queryKeys.accounting.entries.detail(id) });
     },
@@ -399,7 +397,7 @@ export const useLinesByThirdParty = (tiersId: string, params?: QueryParams) => {
 
 export const useBalance = (params: AccountingQueryParams) => {
   return useQuery({
-    queryKey: queryKeys.accounting.reports.balance(params),
+    queryKey: queryKeys.accounting.reports.balance(params as Record<string, unknown>),
     queryFn: () => accountingReportsService.getBalance(params as unknown as BalanceQueryParams),
     enabled: !!(params.exercice || (params.date_debut && params.date_fin)),
   });
@@ -407,7 +405,7 @@ export const useBalance = (params: AccountingQueryParams) => {
 
 export const useGeneralLedger = (params: AccountingQueryParams) => {
   return useQuery({
-    queryKey: queryKeys.accounting.reports.generalLedger(params),
+    queryKey: queryKeys.accounting.reports.generalLedger(params as Record<string, unknown>),
     queryFn: () => accountingReportsService.getGeneralLedger(params as unknown as BalanceQueryParams & { account_id?: string }),
     enabled: !!(params.exercice || (params.date_debut && params.date_fin)),
   });
@@ -415,7 +413,7 @@ export const useGeneralLedger = (params: AccountingQueryParams) => {
 
 export const useJournalReport = (journalCode: string, params: AccountingQueryParams) => {
   return useQuery({
-    queryKey: queryKeys.accounting.reports.journal(journalCode, params),
+    queryKey: queryKeys.accounting.reports.journal(journalCode, params as Record<string, unknown>),
     queryFn: () => reportsApi.generateJournal(journalCode, params) as Promise<unknown>,
     enabled: !!(journalCode && (params.exercice || (params.date_debut && params.date_fin))),
   });

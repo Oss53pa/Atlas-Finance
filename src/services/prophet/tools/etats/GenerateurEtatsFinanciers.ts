@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * GenerateurEtatsFinanciers — Bilan + CR + TAFIRE + Notes SYSCOHADA
  * Réf: SYSCOHADA art. 11, 28; AUDCIF art. 32-33

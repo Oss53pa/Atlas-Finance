@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * HOOKS REACT QUERY - PARAMETRES
  *

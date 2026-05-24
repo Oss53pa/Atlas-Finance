@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * treasuryTools — Tools trésorerie, budget et créances.
  */

@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * useFiscalAlerts — Hook partagé pour les alertes fiscales.
  *

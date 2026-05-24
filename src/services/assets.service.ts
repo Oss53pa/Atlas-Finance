@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * Service Assets Atlas F&A
  * Gestion des immobilisations et amortissements

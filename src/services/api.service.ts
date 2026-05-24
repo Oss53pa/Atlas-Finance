@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * API Service - Atlas F&A
  * Unified service layer using Supabase client

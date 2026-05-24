@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * predictionTools — Prévisions trésorerie et détection d'anomalies.
  */

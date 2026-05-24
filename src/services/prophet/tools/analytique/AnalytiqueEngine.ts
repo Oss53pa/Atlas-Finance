@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * AnalytiqueEngine — Comptabilité analytique SYSCOHADA (Classe 9)
  * 3 outils : creer_centre_cout, imputer_analytique, rapport_analytique

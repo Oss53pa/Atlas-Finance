@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * Service Navigation Atlas F&A
  * Gestion de la navigation dynamique et des menus

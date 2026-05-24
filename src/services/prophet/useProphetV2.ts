@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * useProphetV2 — React Hook for ProphetV2 AI Service
  *

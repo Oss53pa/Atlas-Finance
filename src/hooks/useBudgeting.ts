@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * HOOKS REACT QUERY - BUDGET, ANALYTIQUE, FISCALITE
  *
@@ -23,11 +21,11 @@ import type {
 } from '../services/analytics-budgeting-taxation.service';
 
 // Cast services to access extended API methods
-const axisApi = analyticalAxisService as Record<string, (...args: unknown[]) => Promise<unknown>>;
-const centersApi = analyticalCentersService as Record<string, (...args: unknown[]) => Promise<unknown>>;
-const budgetsApi = budgetsService as Record<string, (...args: unknown[]) => Promise<unknown>>;
-const budgetControlApi = budgetControlService as Record<string, (...args: unknown[]) => Promise<unknown>>;
-const taxApi = taxDeclarationsService as Record<string, (...args: unknown[]) => Promise<unknown>>;
+const axisApi = analyticalAxisService as unknown as Record<string, (...args: unknown[]) => Promise<unknown>>;
+const centersApi = analyticalCentersService as unknown as Record<string, (...args: unknown[]) => Promise<unknown>>;
+const budgetsApi = budgetsService as unknown as Record<string, (...args: unknown[]) => Promise<unknown>>;
+const budgetControlApi = budgetControlService as unknown as Record<string, (...args: unknown[]) => Promise<unknown>>;
+const taxApi = taxDeclarationsService as unknown as Record<string, (...args: unknown[]) => Promise<unknown>>;
 
 interface QueryParams {
   page?: number;
@@ -93,7 +91,7 @@ export const useUpdateAnalyticalAxis = () => {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<AnalyticalAxis> }) =>
       analyticalAxisService.update(id, data),
-    onSuccess: (_: unknown, { id }: { id: string }) => {
+    onSuccess: (_: unknown, { id }: { id: string; data: Partial<AnalyticalAxis> }) => {
       invalidateQueries.analyticalAxes();
       queryClient.invalidateQueries({ queryKey: queryKeys.analytics.axes.detail(id) });
     },

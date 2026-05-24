@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * Knowledge Base — Agrégateur et moteur de recherche
  * Expose searchKnowledge(query, topK) pour le RAG dans le system prompt.

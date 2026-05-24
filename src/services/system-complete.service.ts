@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * System Complete Service
  */

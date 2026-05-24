@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * ImmobilisationsComplet — Composants, crédit-bail, subventions, cessions
  * Réf: SYSCOHADA art. 52, IFRS 16, OHADA
