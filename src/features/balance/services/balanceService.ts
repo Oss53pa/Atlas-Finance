@@ -50,6 +50,8 @@ class BalanceService {
 
     for (const entry of entries) {
       if (entry.date < filters.period.from || entry.date > filters.period.to) continue;
+      // AN/RAN entries are already captured in openingBalances — exclude here to avoid double-count.
+      if (entry.journal === 'AN' || entry.journal === 'RAN') continue;
 
       // P1-4: Filtrage par nature (avant/après inventaire)
       if (filters.natureFilter === 'avant_inventaire') {
@@ -70,6 +72,16 @@ class BalanceService {
         existing.credit = money(existing.credit).add(money(line.credit)).toNumber();
         if (!existing.name && line.accountName) existing.name = line.accountName;
         movements.set(line.accountCode, existing);
+      }
+    }
+
+    // Ensure accounts with ONLY opening balances (AN/RAN, no other movements)
+    // still appear in the balance output. Without this, they would be invisible
+    // after excluding AN/RAN entries from movements.
+    for (const [code] of openingBalances) {
+      if (!movements.has(code)) {
+        const meta = accountMeta.get(code);
+        movements.set(code, { debit: 0, credit: 0, name: meta?.name || code });
       }
     }
 
