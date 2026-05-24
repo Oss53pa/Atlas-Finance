@@ -177,6 +177,22 @@ export class SupabaseAdapter implements DataAdapter {
   }
 
   async update<T>(table: TableName, id: string, data: any, initiatedBy?: string): Promise<T> {
+    // A-02 : immuabilité SYSCOHADA Art.19 — une écriture `posted` est intangible.
+    // On lit le statut actuel avant d'autoriser la mise à jour.
+    if (table === 'journalEntries') {
+      const { data: existing } = await this.client
+        .from(this.pgTable(table)).select('status').eq('id', id).eq('tenant_id', this.tenantId).single()
+      if (existing?.status === 'posted') {
+        const ALLOWED_META = ['notes', 'tags', 'attachments']
+        const changedKeys = Object.keys(data)
+        const hasNonMeta = changedKeys.some(k => !ALLOWED_META.includes(k))
+        if (hasNonMeta) {
+          throw new Error(
+            `SYSCOHADA Art.19 : écriture ${id} est validée (posted) — seuls notes/tags/attachments sont modifiables.`
+          )
+        }
+      }
+    }
     const { data: updated, error } = await this.client
       .from(this.pgTable(table)).update(data).eq('id', id).eq('tenant_id', this.tenantId).select().single()
     if (error) throw new Error(`Update failed: ${error.message}`)
@@ -196,6 +212,16 @@ export class SupabaseAdapter implements DataAdapter {
   }
 
   async delete(table: TableName, id: string, initiatedBy?: string): Promise<void> {
+    // A-03 : SYSCOHADA Art.19 — interdire la suppression physique d'une écriture validée/postée.
+    if (table === 'journalEntries') {
+      const { data: existing } = await this.client
+        .from(this.pgTable(table)).select('status').eq('id', id).eq('tenant_id', this.tenantId).single()
+      if (existing?.status === 'validated' || existing?.status === 'posted') {
+        throw new Error(
+          `SYSCOHADA Art.19 : écriture ${id} est ${existing.status} — suppression physique interdite. Utiliser la contrepassation.`
+        )
+      }
+    }
     const { error } = await this.client
       .from(this.pgTable(table)).delete().eq('id', id).eq('tenant_id', this.tenantId)
     if (error) throw new Error(`Delete failed: ${error.message}`)

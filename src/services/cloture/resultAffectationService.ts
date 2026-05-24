@@ -142,10 +142,12 @@ export async function simulerAffectation(
 
   // 2. OHADA legal reserve rules
   const reserveLegalePlafond = money(capitalSocial).multiply(0.20).round(2).toNumber();
-  const reserveLegalePourcentage = 5; // 5% minimum per OHADA
+  // F-02 : OHADA AUSCGIE art. 546 — réserve légale = 1/10e (10 %) du bénéfice net,
+  // jusqu'au plafond de 20 % du capital social. La valeur 5 % est non conforme.
+  const reserveLegalePourcentage = 10; // 10% OHADA (1/10e du bénéfice)
   const reserveLegaleMinimale = montantResultat > 0
     ? Math.min(
-        money(montantResultat).multiply(0.05).round(2).toNumber(),
+        money(montantResultat).multiply(0.10).round(2).toNumber(),
         Math.max(0, money(reserveLegalePlafond).subtract(money(reserveLegaleActuelle)).round(2).toNumber())
       )
     : 0;
@@ -293,10 +295,10 @@ export async function posterAffectation(
   }
 
   if (affectation.reportANouveau > 0) {
-    // Credit carry-forward (account 120)
+    // F-03 : SYSCOHADA — 121 Report à nouveau créditeur (120 = compte de regroupement, non mouvementé)
     lines.push({
       id: crypto.randomUUID(),
-      accountCode: '120',
+      accountCode: '121',
       accountName: 'Report a nouveau crediteur',
       label: 'Report a nouveau',
       debit: 0,

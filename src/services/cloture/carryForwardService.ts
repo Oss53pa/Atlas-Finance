@@ -71,7 +71,10 @@ export async function calculerSoldesCloture(
 
   const allEntries = await adapter.getAll<DBJournalEntry>('journalEntries');
   const entries = allEntries.filter(
-    (e: any) => e.date >= fiscalYear.startDate && e.date <= fiscalYear.endDate
+    (e: any) =>
+      e.date >= fiscalYear.startDate &&
+      e.date <= fiscalYear.endDate &&
+      (e.status === 'validated' || e.status === 'posted') // A-04 : exclure les brouillons
   );
 
   // Accumulate balances per account

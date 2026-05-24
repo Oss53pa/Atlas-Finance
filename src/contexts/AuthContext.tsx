@@ -169,7 +169,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const isDev = import.meta.env.VITE_APP_ENV === 'development';
+  // A-05 : utiliser le flag compile-time Vite (toujours false en prod build),
+  // et non VITE_APP_ENV qui peut être défini à 'development' en prod.
+  const isDev = import.meta.env.DEV;
 
   // Initialize auth state
   useEffect(() => {

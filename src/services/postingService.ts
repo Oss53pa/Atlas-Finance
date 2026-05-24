@@ -12,6 +12,7 @@ import { money } from '../utils/money';
 import { safeAddEntry } from './entryGuard';
 import { DepreciationService } from '../utils/depreciationService';
 import type { Immobilisation } from '../utils/depreciationService';
+import { getCoeffDegressif } from '@atlas/core';
 
 // ============================================================================
 // TYPES
@@ -63,7 +64,8 @@ function assetToImmobilisation(asset: DBAsset): Immobilisation {
     valeurAcquisition: asset.acquisitionValue,
     dureeAmortissement: asset.usefulLifeYears,
     tauxAmortissement: asset.depreciationMethod === 'declining'
-      ? (100 / asset.usefulLifeYears) * 2  // Taux dégressif = linéaire × 2
+      // F-19 : coefficients SYSCOHADA par tranche de durée (≤3→1.5, 4-5→2.0, 6-10→2.5, >10→3.0)
+      ? (100 / asset.usefulLifeYears) * getCoeffDegressif(asset.usefulLifeYears)
       : 100 / asset.usefulLifeYears,
     modeAmortissement: asset.depreciationMethod === 'declining' ? 'degressif' : 'lineaire',
     valeurResiduelle: asset.residualValue,

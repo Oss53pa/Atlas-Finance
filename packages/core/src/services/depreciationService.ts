@@ -6,6 +6,19 @@ import { money } from '../Money'
 import type { Asset, JournalEntryLine } from '@atlas/shared'
 
 // ============================================================================
+// COEFFICIENTS DÉGRESSIFS SYSCOHADA (F-19)
+// Fiscalité OHADA : coefficient varie selon la durée d'utilisation.
+// ============================================================================
+
+/** Retourne le coefficient dégressif SYSCOHADA selon la durée de vie utile. */
+export function getCoeffDegressif(dureeVie: number): number {
+  if (dureeVie <= 3) return 1.5
+  if (dureeVie <= 5) return 2.0
+  if (dureeVie <= 10) return 2.5
+  return 3.0
+}
+
+// ============================================================================
 // TYPES
 // ============================================================================
 
@@ -57,8 +70,10 @@ export function calculerAmortissements(input: DepreciationInput): DepreciationRe
     if (asset.depreciationMethod === 'linear') {
       dotation = baseAmortissable.divide(asset.usefulLifeYears).round(0).toNumber()
     } else {
-      // Degressif: taux = 2 / duree (methode double-declining)
-      const tauxDegressif = 2 / asset.usefulLifeYears
+      // F-19 : SYSCOHADA — coefficients dégressifs par tranche de durée (fiscalité OHADA)
+      // ≤3 ans → ×1.5 ; 4-5 ans → ×2.0 ; 6-10 ans → ×2.5 ; >10 ans → ×3.0
+      const coeffDegressif = getCoeffDegressif(asset.usefulLifeYears)
+      const tauxDegressif = coeffDegressif / asset.usefulLifeYears
       const vnc = coutAcquisition.subtract(money(asset.cumulDepreciation || 0))
       dotation = vnc.multiply(tauxDegressif).round(0).toNumber()
     }
