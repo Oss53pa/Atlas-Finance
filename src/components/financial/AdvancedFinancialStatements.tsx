@@ -1,6 +1,5 @@
-// @ts-nocheck
-
 import React, { useState, useMemo } from 'react';
+import type { DBJournalEntry } from '../../lib/db';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
 import { useData } from '../../contexts/DataContext';
@@ -143,8 +142,8 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
   const { data: entries = [] } = useQuery({
     queryKey: ['financial-statements-entries'],
     queryFn: async () => {
-      const all = await adapter.getAll('journalEntries');
-      return all.filter((e: any) => e.status === 'validated' || e.status === 'posted');
+      const all = await adapter.getAll<DBJournalEntry>('journalEntries');
+      return all.filter((e) => e.status === 'validated' || e.status === 'posted');
     },
   });
 
@@ -322,7 +321,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
             
             <select 
               value={dateRange.startDate || '2025'}
-              onChange={(e) => setSelectedPeriod(e.target.value)}
+              onChange={(e) => setDateRange({ startDate: e.target.value, endDate: dateRange.endDate })}
               className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
             >
               <option value="2025">Exercice 2025</option>
@@ -1563,8 +1562,8 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
       <PeriodSelectorModal
         isOpen={showPeriodModal}
         onClose={() => setShowPeriodModal(false)}
-        onPeriodSelect={(period) => {
-          setDateRange(period);
+        onApply={(period: { start: string; end: string }) => {
+          setDateRange({ startDate: period.start, endDate: period.end });
           setShowPeriodModal(false);
         }}
       />

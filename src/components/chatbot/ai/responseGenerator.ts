@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * Advanced Response Generator - IA Dynamique et Adaptative
  * Génère des réponses intelligentes, contextuelles et personnalisées pour Proph3t
@@ -436,15 +434,10 @@ export class AdvancedResponseGenerator {
     return {
       message: finalMessage,
       confidence: this.calculateDynamicConfidence(intent, knowledgeResults, adaptiveResponse),
-      source: this.determineResponseSource(knowledgeResults, adaptiveResponse),
+      source: this.determineResponseSource(knowledgeResults, adaptiveResponse) as 'knowledge-base' | 'ai' | 'fallback',
       actions: smartActions,
       quickReplies: personalizedQuickReplies,
-      suggestedArticles: knowledgeResults.slice(0, 3),
-      metadata: {
-        personalityUsed: personality,
-        adaptationReasons: adaptiveResponse.adaptationReasons,
-        responseGeneration: 'dynamic'
-      }
+      suggestedArticles: knowledgeResults.slice(0, 3) as unknown as KnowledgeBaseEntry[]
     };
   }
 
@@ -1068,7 +1061,7 @@ export class AdvancedResponseGenerator {
     return {
       message: adaptedFallback,
       confidence: 0.4, // Un peu plus élevé que l'ancien système
-      source: 'adaptive-fallback',
+      source: 'fallback' as const,
       quickReplies: this.generatePersonalizedQuickReplies(intent, context, dynamicContext)
     };
   }

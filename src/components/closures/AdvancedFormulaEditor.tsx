@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React, { useState, useRef } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import {
@@ -36,10 +34,20 @@ interface FormulaTemplate {
   syscohadaCompliant: boolean;
 }
 
+interface TestResult {
+  success: boolean;
+  result?: number | string;
+  syscohadaCompliant?: boolean;
+  executionTime?: string;
+  error?: string;
+  details?: string;
+  testData?: Record<string, number>;
+}
+
 const AdvancedFormulaEditor: React.FC = () => {
   const { t } = useLanguage();
   const [formula, setFormula] = useState('');
-  const [testResult, setTestResult] = useState<Record<string, unknown> | null>(null);
+  const [testResult, setTestResult] = useState<TestResult | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<string>('');
   const [showVariables, setShowVariables] = useState(true);
   const [showValidation, setShowValidation] = useState(false);
@@ -179,7 +187,7 @@ const AdvancedFormulaEditor: React.FC = () => {
       };
 
       // Simulation d'évaluation (en production, utiliser un moteur d'évaluation sécurisé)
-      let result: number | null = null;
+      let result: number | string | null = null;
       const isValid = true;
       const syscohadaCompliant = true;
 

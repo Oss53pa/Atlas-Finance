@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';

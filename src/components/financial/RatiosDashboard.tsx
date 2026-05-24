@@ -1,6 +1,5 @@
-// @ts-nocheck
-
 import React, { useState } from 'react';
+import type { DBJournalEntry } from '../../lib/db';
 import { useQuery } from '@tanstack/react-query';
 import { useData } from '../../contexts/DataContext';
 import {
@@ -10,7 +9,8 @@ import {
   ArrowUpIcon,
   ArrowDownIcon,
   InformationCircleIcon,
-  FunnelIcon
+  FunnelIcon,
+  DocumentTextIcon
 } from '@heroicons/react/24/outline';
 import {
   RadarChart,
@@ -69,7 +69,7 @@ const RatiosDashboard: React.FC = () => {
   const { data: ratiosData, isLoading } = useQuery({
     queryKey: ['financial-ratios', selectedCategory],
     queryFn: async (): Promise<RatioData[]> => {
-      const entries = await adapter.getAll('journalEntries');
+      const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
       const net = (...pfx: string[]) => {
         let t = 0;
         for (const e of entries) for (const l of e.lines)
@@ -130,7 +130,7 @@ const RatiosDashboard: React.FC = () => {
   const { data: ratiosSummary } = useQuery({
     queryKey: ['ratios-summary', ratiosData?.length],
     queryFn: async (): Promise<RatiosSummary> => {
-      if (!ratiosData) return null;
+      if (!ratiosData) return null as unknown as RatiosSummary;
       
       const alertRatios = ratiosData.filter(r => r.alerte).length;
       const globalScore = ratiosData.reduce((sum, ratio) => {
@@ -138,15 +138,16 @@ const RatiosDashboard: React.FC = () => {
         return sum + Math.min(performance, 100);
       }, 0) / ratiosData.length;
 
-      const categoriesScores = ratiosData.reduce((acc, ratio) => {
+      const categoriesScoresRaw = ratiosData.reduce((acc, ratio) => {
         if (!acc[ratio.category]) acc[ratio.category] = [];
         const performance = ratio.valeur >= ratio.valeurReference ? 100 : (ratio.valeur / ratio.valeurReference) * 100;
         acc[ratio.category].push(Math.min(performance, 100));
         return acc;
       }, {} as Record<string, number[]>);
 
-      Object.keys(categoriesScores).forEach(category => {
-        const scores = categoriesScores[category];
+      const categoriesScores: Record<string, number> = {};
+      Object.keys(categoriesScoresRaw).forEach(category => {
+        const scores = categoriesScoresRaw[category];
         categoriesScores[category] = scores.reduce((sum, score) => sum + score, 0) / scores.length;
       });
 
@@ -154,7 +155,7 @@ const RatiosDashboard: React.FC = () => {
         totalRatios: ratiosData.length,
         alertRatios,
         globalScore: Math.round(globalScore),
-        categoriesScores: categoriesScores as Record<string, number>,
+        categoriesScores: categoriesScores,
         evolutionTrend: 'IMPROVING'
       };
     },

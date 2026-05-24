@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React from 'react';
 
 interface CustomCardDrawerProps {
@@ -75,7 +73,7 @@ export const CustomSideBarDrawer: React.FC<CustomSideBarDrawerProps> = ({
           <button
             key={item.id}
             className="btn btn-outline-secondary w-100 mb-1"
-            onClick={() => setContentDrawerActive(item)}
+            onClick={() => setContentDrawerActive(item as unknown as Record<string, unknown>)}
           >
             {item.title}
           </button>

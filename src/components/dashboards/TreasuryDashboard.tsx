@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * Dashboard Trésorerie Temps Réel
  * Position multi-banques, appels de fonds et prévisions selon EXF-TR-003
@@ -249,7 +247,7 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {treasuryPosition.alerts.map((alert, index) => (
+              {treasuryPosition.alerts.map((alert: any, index: number) => (
                 <div key={index} className={`p-3 rounded border ${getAlertSeverityColor(alert.severity)}`}>
                   <div className="flex items-center justify-between">
                     <div>
@@ -359,7 +357,7 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {treasuryPosition?.accounts_detail?.map((account, index) => (
+                    {treasuryPosition?.accounts_detail?.map((account: any, index: number) => (
                       <TableRow key={index} className="hover:bg-[var(--color-background-secondary)]">
                         <TableCell>
                           <div>
@@ -569,7 +567,7 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
                 <LoadingSpinner text="Chargement appels de fonds..." />
               ) : (
                 <div className="space-y-4">
-                  {fundCallsDashboard?.calls_detail?.map((call, index) => (
+                  {fundCallsDashboard?.calls_detail?.map((call: any, index: number) => (
                     <div key={index} className="border rounded-lg p-4 hover:bg-[var(--color-background-secondary)]">
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center space-x-3">
@@ -600,7 +598,7 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
 
                       {/* Détail contributeurs */}
                       <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
-                        {call.contributors.map((contributor, idx) => (
+                        {(call.contributors as any[]).map((contributor: any, idx: number) => (
                           <div key={idx} className="p-2 border rounded bg-white">
                             <div className="flex items-center justify-between">
                               <div>
@@ -666,7 +664,7 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {performanceMetrics?.metrics_detail && Object.entries(performanceMetrics.metrics_detail).map(([key, metric]) => (
+                {performanceMetrics?.metrics_detail && (Object.entries(performanceMetrics.metrics_detail as Record<string, any>) as [string, any][]).map(([key, metric]) => (
                   <div key={key} className="p-4 border rounded-lg">
                     <h4 className="font-medium text-[var(--color-text-primary)] mb-2">
                       {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
@@ -730,7 +728,7 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 md:grid-cols-2">
-                {bankConnections?.connections?.map((connection, index) => (
+                {bankConnections?.connections?.map((connection: any, index: number) => (
                   <div key={index} className="p-4 border rounded-lg">
                     <div className="flex items-center justify-between mb-2">
                       <h4 className="font-medium">{connection.bank_name}</h4>

@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React, { useState, useRef, useCallback } from 'react';
 import { Upload, RefreshCw } from 'lucide-react';
 import { Button } from '../ui';
@@ -170,8 +168,8 @@ export const ImportButton: React.FC<ImportButtonProps> = ({
                 <label className="flex items-center space-x-2 cursor-pointer">
                   <Checkbox
                     checked={options.ignoreDuplicates}
-                    onCheckedChange={(checked) =>
-                      setOptions({ ...options, ignoreDuplicates: !!checked })
+                    onChange={(e) =>
+                      setOptions({ ...options, ignoreDuplicates: e.target.checked })
                     }
                   />
                   <Label className="cursor-pointer">Ignorer les doublons</Label>
@@ -179,8 +177,8 @@ export const ImportButton: React.FC<ImportButtonProps> = ({
                 <label className="flex items-center space-x-2 cursor-pointer">
                   <Checkbox
                     checked={options.validateData}
-                    onCheckedChange={(checked) =>
-                      setOptions({ ...options, validateData: !!checked })
+                    onChange={(e) =>
+                      setOptions({ ...options, validateData: e.target.checked })
                     }
                   />
                   <Label className="cursor-pointer">Valider les données avant import</Label>
@@ -188,8 +186,8 @@ export const ImportButton: React.FC<ImportButtonProps> = ({
                 <label className="flex items-center space-x-2 cursor-pointer">
                   <Checkbox
                     checked={options.testMode}
-                    onCheckedChange={(checked) =>
-                      setOptions({ ...options, testMode: !!checked })
+                    onChange={(e) =>
+                      setOptions({ ...options, testMode: e.target.checked })
                     }
                   />
                   <Label className="cursor-pointer">Mode test (simuler l'import)</Label>

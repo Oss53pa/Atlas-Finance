@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * MessageBubble Component
  * Bulle de message individuelle avec actions et animations
@@ -25,18 +23,19 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
 
   const handleActionClick = async (action: ChatAction) => {
     setIsActionExecuting(action.type);
+    const payload = typeof action.payload === 'string' ? {} : (action.payload as Record<string, unknown>);
 
     try {
       switch (action.type) {
         case 'navigate':
-          if (action.payload.route) {
-            window.location.href = action.payload.route;
+          if (payload.route) {
+            window.location.href = String(payload.route);
           }
           break;
 
         case 'copy-text':
-          if (navigator.clipboard && action.payload.text) {
-            await navigator.clipboard.writeText(action.payload.text);
+          if (navigator.clipboard && payload.text) {
+            await navigator.clipboard.writeText(String(payload.text));
             // Notification visuelle de succès
             setTimeout(() => setIsActionExecuting(null), 1000);
           }
@@ -47,17 +46,17 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           break;
 
         case 'external-link':
-          if (action.payload.url) {
-            window.open(action.payload.url, '_blank');
+          if (payload.url) {
+            window.open(String(payload.url), '_blank');
           }
           break;
 
         case 'download':
-          if (action.payload.file) {
+          if (payload.file) {
             // Télécharger le fichier
             const link = document.createElement('a');
-            link.href = action.payload.file;
-            link.download = action.payload.filename || 'download';
+            link.href = String(payload.file);
+            link.download = payload.filename ? String(payload.filename) : 'download';
             link.click();
           }
           break;

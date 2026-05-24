@@ -1,16 +1,9 @@
-// @ts-nocheck
-
 /**
  * Intégration ML Backend pour Proph3t
  * Connecte Proph3t aux modèles d'apprentissage automatique
  */
 
-import mlService, {
-  AccountRecommendation,
-  TreasuryForecast,
-  RiskScore,
-  AnomalyDetection
-} from '../../../services/mlService';
+import mlService from '../../../services/mlService';
 
 export interface MLCapability {
   name: string;
@@ -71,17 +64,14 @@ export class Proph3tMLManager {
   /**
    * Recommande un compte comptable pour une transaction
    */
-  private async recommendAccount(params: {
-    libelle: string;
-    montant: number;
-    tiers?: string;
-  }): Promise<string> {
+  private async recommendAccount(params: Record<string, unknown>): Promise<string> {
     try {
-      const recommendations = await mlService.getAccountRecommendations({
-        libelle: params.libelle,
-        montant: params.montant,
-        tiers: params.tiers
-      });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const recommendations = (await (mlService as any).getAccountRecommendations({
+        libelle: String(params.libelle ?? 'Transaction'),
+        montant: Number(params.montant ?? 0),
+        tiers: params.tiers != null ? String(params.tiers) : undefined
+      })) as Array<{ account: string; confidence: number }>;
 
       let response = "Super ! Proph3t a analysé votre transaction avec son IA Random Forest !\n\n";
       response += "**Recommandations de comptes:**\n\n";
@@ -107,16 +97,14 @@ export class Proph3tMLManager {
   /**
    * Prévoit les flux de trésorerie
    */
-  private async forecastTreasury(params: {
-    historicalData?: Array<{ date: string; solde: number; entrees: number; sorties: number }>;
-    periods?: number;
-  }): Promise<string> {
+  private async forecastTreasury(params: Record<string, unknown>): Promise<string> {
     try {
       // Données historiques simulées si non fournies
-      const historical = params.historicalData || this.generateMockHistorical();
-      const periods = params.periods || 30;
+      const historical = (params.historicalData as Array<{ date: string; solde: number; entrees: number; sorties: number }> | undefined) || this.generateMockHistorical();
+      const periods = Number(params.periods ?? 30);
 
-      const forecasts = await mlService.getTreasuryForecast(historical, periods);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const forecasts = (await (mlService as any).getTreasuryForecast(historical, periods)) as Array<{ date: string; predicted_amount: number }>;
 
       let response = "Génial ! Proph3t a prédit votre trésorerie avec son réseau LSTM !\n\n";
       response += `**Prévisions sur ${periods} jours:**\n\n`;
@@ -154,24 +142,24 @@ export class Proph3tMLManager {
   /**
    * Analyse le risque d'un client
    */
-  private async analyzeRisk(params: {
-    client_id: number;
-    client_name?: string;
-  }): Promise<string> {
+  private async analyzeRisk(params: Record<string, unknown>): Promise<string> {
     try {
+      const client_id = Number(params.client_id ?? 0);
+      const client_name = params.client_name != null ? String(params.client_name) : undefined;
       // Données simulées pour la démo
       const clientData = {
-        client_id: params.client_id,
+        client_id,
         historique_paiements: 0,
         montant_creances: 0,
         retards: 0,
         anciennete: 0
       };
 
-      const riskScore = await mlService.analyzeClientRisk(clientData);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const riskScore = (await (mlService as any).analyzeClientRisk(clientData)) as unknown as { risk_probability: number; risk_category: 'Faible' | 'Moyen' | 'Élevé' | 'Critique' };
 
       let response = "Analyse terminée ! Proph3t a évalué le risque avec XGBoost !\n\n";
-      response += `**Client ${params.client_name || params.client_id}:**\n\n`;
+      response += `**Client ${client_name || client_id}:**\n\n`;
 
       // Score visuel
       const scorePercent = Math.round(riskScore.risk_probability * 100);
@@ -221,10 +209,11 @@ export class Proph3tMLManager {
   /**
    * Détecte et affiche les anomalies récentes
    */
-  private async detectAnomalies(params: { days?: number }): Promise<string> {
+  private async detectAnomalies(params: Record<string, unknown>): Promise<string> {
     try {
-      const days = params.days || 7;
-      const anomalies = await mlService.getRecentAnomalies(days);
+      const days = Number(params.days ?? 7);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const anomalies = (await (mlService as any).getRecentAnomalies(days)) as Array<{ severite: string; titre: string; score: number }>;
 
       if (anomalies.length === 0) {
         return `Parfait ! Aucune anomalie détectée sur les ${days} derniers jours.\n\nProph3t veille sur vos données ! 🛡️`;
@@ -270,7 +259,11 @@ export class Proph3tMLManager {
    */
   private async showMLDashboard(_params: Record<string, unknown>): Promise<string> {
     try {
-      const dashboard = await mlService.getDashboard();
+      const dashboard = (await mlService.getDashboard()) as {
+        summary: { active_models: number; total_models: number; ready_models: number; training_models: number; needs_retraining: number };
+        models_by_type: Record<string, number>;
+        recent_trainings: Array<{ modele_nom: string; score: number; improvement?: number }>;
+      };
 
       let response = "Voici le Dashboard IA de Atlas Studio ! 🤖✨\n\n";
       response += "**Vue d'ensemble:**\n";

@@ -1,18 +1,16 @@
-// @ts-nocheck
-
 import React, { useState } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  ArrowRightIcon,
-  CheckCircleIcon,
-  ExclamationTriangleIcon,
-  PlayIcon,
-  DownloadIcon,
-  RefreshCwIcon,
-  ClockIcon,
-  BarChart3Icon,
-  TrendingDownIcon
+  ArrowRight,
+  CheckCircle,
+  AlertTriangle,
+  Play,
+  Download,
+  RefreshCw,
+  Clock,
+  BarChart3,
+  TrendingDown
 } from 'lucide-react';
 import {
   Card,
@@ -32,8 +30,7 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogTitle,
-  DialogTrigger
+  DialogTitle
 } from '../ui';
 
 interface CarryForwardBalance {
@@ -253,7 +250,7 @@ const CarryForwardManager: React.FC = () => {
           <p className="text-gray-600">Gestion du passage d'exercice et continuité</p>
         </div>
         <div className="flex space-x-4">
-          <Select value={selectedView} onValueChange={setSelectedView}>
+          <Select value={selectedView} onValueChange={(v) => setSelectedView(v as 'balances' | 'allocation' | 'controls')}>
             <SelectTrigger className="w-48">
               <SelectValue />
             </SelectTrigger>
@@ -289,7 +286,7 @@ const CarryForwardManager: React.FC = () => {
                     disabled={generateCarryForwardMutation.isPending}
                     className="bg-primary hover:bg-primary-700"
                   >
-                    <RefreshCwIcon className="h-4 w-4 mr-2" />
+                    <RefreshCw className="h-4 w-4 mr-2" />
                     Générer RAN
                   </Button>
                   <Button
@@ -297,7 +294,7 @@ const CarryForwardManager: React.FC = () => {
                     disabled={validateAllMutation.isPending}
                     className="bg-green-600 hover:bg-green-700"
                   >
-                    <CheckCircleIcon className="h-4 w-4 mr-2" />
+                    <CheckCircle className="h-4 w-4 mr-2" />
                     Valider Tout
                   </Button>
                 </div>
@@ -389,10 +386,10 @@ const CarryForwardManager: React.FC = () => {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
                           <div className="flex items-center justify-end space-x-1">
                             {carryForward.balanceSide === 'DEBIT' && (
-                              <BarChart3Icon className="h-4 w-4 text-green-500" />
+                              <BarChart3 className="h-4 w-4 text-green-500" />
                             )}
                             {carryForward.balanceSide === 'CREDIT' && (
-                              <TrendingDownIcon className="h-4 w-4 text-blue-500" />
+                              <TrendingDown className="h-4 w-4 text-blue-500" />
                             )}
                             <span className={`font-medium ${
                               carryForward.balanceSide === 'DEBIT' ? 'text-green-700' : 'text-blue-700'
@@ -404,17 +401,17 @@ const CarryForwardManager: React.FC = () => {
                         <td className="px-6 py-4 whitespace-nowrap text-center">
                           {carryForward.isValidated ? (
                             <Badge className="bg-green-100 text-green-800">
-                              <CheckCircleIcon className="h-3 w-3 mr-1" />
+                              <CheckCircle className="h-3 w-3 mr-1" />
                               Validé
                             </Badge>
                           ) : carryForward.validationErrors.length > 0 ? (
                             <Badge className="bg-red-100 text-red-800">
-                              <ExclamationTriangleIcon className="h-3 w-3 mr-1" />
+                              <AlertTriangle className="h-3 w-3 mr-1" />
                               Erreur
                             </Badge>
                           ) : (
                             <Badge className="bg-yellow-100 text-yellow-800">
-                              <ClockIcon className="h-3 w-3 mr-1" />
+                              <Clock className="h-3 w-3 mr-1" />
                               En attente
                             </Badge>
                           )}
@@ -454,11 +451,11 @@ const CarryForwardManager: React.FC = () => {
                     disabled={processAllocationMutation.isPending}
                     className="bg-primary hover:bg-primary-700"
                   >
-                    <PlayIcon className="h-4 w-4 mr-2" />
+                    <Play className="h-4 w-4 mr-2" />
                     Comptabiliser
                   </Button>
                   <Button variant="outline">
-                    <DownloadIcon className="h-4 w-4 mr-2" />
+                    <Download className="h-4 w-4 mr-2" />
                     Export
                   </Button>
                 </div>
@@ -597,12 +594,12 @@ const CarryForwardManager: React.FC = () => {
                         }`}>
                           {control.isCompliant ? (
                             <div className="flex items-center justify-center">
-                              <CheckCircleIcon className="h-4 w-4 mr-2" />
+                              <CheckCircle className="h-4 w-4 mr-2" />
                               Conforme
                             </div>
                           ) : (
                             <div className="flex items-center justify-center">
-                              <ExclamationTriangleIcon className="h-4 w-4 mr-2" />
+                              <AlertTriangle className="h-4 w-4 mr-2" />
                               Non conforme
                             </div>
                           )}

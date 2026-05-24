@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * Système d'Apprentissage et d'Adaptation pour Proph3t
  * Apprentissage automatique et amélioration continue basée sur les interactions utilisateur
@@ -171,10 +169,10 @@ export class PalomaLearningSystem {
     // Analyse des signaux implicites
     if (implicitSignals) {
       // Temps de réponse utilisateur (plus court = plus satisfait généralement)
-      if (implicitSignals.userResponseTime < 5000) satisfaction += 0.1;
+      if ((implicitSignals.userResponseTime ?? Infinity) < 5000) satisfaction += 0.1;
 
       // Actions de suivi (clic sur liens, navigation) = satisfaction
-      if (implicitSignals.followUpActions?.length > 0) satisfaction += 0.2;
+      if ((implicitSignals.followUpActions?.length ?? 0) > 0) satisfaction += 0.2;
 
       // Reformulation de la question = insatisfaction
       if (this.isReformulatedQuestion(userQuery)) satisfaction -= 0.2;
@@ -205,7 +203,8 @@ export class PalomaLearningSystem {
   }
 
   learnFromSuccess(interaction: UserInteraction): void {
-    if (interaction.userSatisfaction < 0.7) return;
+    const satisfaction = interaction.userSatisfaction ?? 0;
+    if (satisfaction < 0.7) return;
 
     // Identifier les éléments qui ont contribué au succès
     const successPattern: LearningPattern = {
@@ -217,17 +216,17 @@ export class PalomaLearningSystem {
         contextFactors: this.extractContextFactors(interaction.contextAtTime),
         timing: interaction.responseTime
       },
-      confidence: interaction.userSatisfaction,
+      confidence: satisfaction,
       occurrences: 1,
       lastSeen: new Date(),
-      effectiveness: interaction.userSatisfaction
+      effectiveness: satisfaction
     };
 
     this.addOrUpdatePattern(successPattern);
   }
 
   learnFromFailure(interaction: UserInteraction): void {
-    if (interaction.userSatisfaction > 0.4) return;
+    if ((interaction.userSatisfaction ?? 0) > 0.4) return;
 
     // Analyser les causes d'échec
     const failureFactors = this.analyzeFailureFactors(interaction);
@@ -429,7 +428,7 @@ export class PalomaLearningSystem {
     profile.expertiseLevel = this.inferExpertiseLevel(profile, interaction);
 
     // Mettre à jour les préférences basées sur les interactions réussies
-    if (interaction.userSatisfaction > 0.7) {
+    if ((interaction.userSatisfaction ?? 0) > 0.7) {
       this.updatePreferencesFromSuccess(profile, interaction);
     }
   }
@@ -685,6 +684,50 @@ export class PalomaLearningSystem {
 
     return suggestions;
   }
+
+  // === MÉTHODES PRIVÉES SUPPLÉMENTAIRES (stubs) ===
+
+  private isReformulatedQuestion(_query: string): boolean { return false; }
+  private analyzeLinguisticSatisfaction(_query: string): number { return 0; }
+  private getDefaultPersonality(): AdaptedPersonality {
+    return { tone: 'friendly', responseLength: 'medium', style: 'detailed', complexity: 'intermediate', focusAreas: [] };
+  }
+  private mapExpertiseToComplexity(level: string): string {
+    const map: Record<string, string> = { beginner: 'basic', intermediate: 'intermediate', expert: 'advanced' };
+    return map[level] || 'intermediate';
+  }
+  private recordAdaptation(_userId: string, _type: string, _before: unknown, _after: unknown, _reason: string): void {}
+  private analyzeResponseStructure(_response: string): Record<string, unknown> { return {}; }
+  private extractContextFactors(_context: unknown): Record<string, unknown> { return {}; }
+  private analyzeFailureFactors(_interaction: UserInteraction): Array<{ type: string }> { return []; }
+  private createAdaptationRule(_factor: { type: string }, _interaction: UserInteraction): AdaptationRuleFn {
+    return (response: string) => response;
+  }
+  private findRelevantPatterns(_context: InteractionContext, _history: Partial<UserInteraction>[]): LearningPattern[] { return []; }
+  private applyPattern(response: string, _pattern: LearningPattern): string { return response; }
+  private shouldApplyRule(_ruleName: string, _context: InteractionContext): boolean { return false; }
+  private hasActionableContent(_response: string): boolean { return true; }
+  private hasEmotionalSupport(_response: string): boolean { return false; }
+  private generatePersonalizedWelcome(_profile: UserProfile): string { return 'Bonjour !'; }
+  private generatePersonalizedSuggestions(_profile: UserProfile): string[] { return []; }
+  private generateInterfacePreferences(_profile: UserProfile): Record<string, unknown> { return {}; }
+  private generatePersonalizedShortcuts(_profile: UserProfile): string[] { return []; }
+  private calculateImprovementTrend(): number { return 0; }
+  private getMostEffectivePatterns(): LearningPattern[] { return this.globalPatterns.slice(0, 5); }
+  private identifyAreasForImprovement(): string[] { return []; }
+  private generateAdaptationSuggestions(): string[] { return []; }
+  private getTopIntents(): string[] {
+    const counts: Record<string, number> = {};
+    this.interactions.forEach(i => { counts[i.intent] = (counts[i.intent] || 0) + 1; });
+    return Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([k]) => k);
+  }
+  private getAllAdaptationHistory(): AdaptationEvent[] {
+    return Array.from(this.userProfiles.values()).flatMap(p => p.adaptationHistory);
+  }
+  private inferExpertiseLevel(_profile: UserProfile, _interaction: UserInteraction): 'beginner' | 'intermediate' | 'expert' {
+    return 'intermediate';
+  }
+  private updatePreferencesFromSuccess(_profile: UserProfile, _interaction: UserInteraction): void {}
 }
 
 // Instance globale

@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * Gestionnaire de Réconciliation et Rapprochement
  * Fonctionnalités transverses Clients/Fournisseurs - Section 4.1
@@ -46,7 +44,7 @@ import {
   Checkbox,
   Progress
 } from '../ui';
-import { reconciliationService } from '../../services';
+import { reconciliationService } from '../../services/reconciliation.service';
 import { formatCurrency, formatDate } from '../../lib/utils';
 import { toast } from 'react-hot-toast';
 

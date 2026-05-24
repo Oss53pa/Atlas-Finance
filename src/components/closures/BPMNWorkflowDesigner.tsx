@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React, { useState, useRef, useEffect } from 'react';
 import {
   GitBranch,
@@ -233,15 +231,15 @@ const BPMNWorkflowDesigner: React.FC = () => {
 
         {/* Badges pour propriétés */}
         <div className="flex flex-wrap gap-1 mt-1">
-          {node.properties.automatic && (
+          {(node.properties.automatic as boolean | undefined) && (
             <span className="px-1 py-0.5 bg-green-100 text-green-700 text-xs rounded">Auto</span>
           )}
-          {node.properties.syscohada && (
+          {(node.properties.syscohada as boolean | undefined) && (
             <span className="px-1 py-0.5 bg-blue-100 text-blue-700 text-xs rounded">SYSCOHADA</span>
           )}
-          {node.properties.duration && (
+          {(node.properties.duration as number | undefined) && (
             <span className="px-1 py-0.5 bg-gray-100 text-gray-700 text-xs rounded">
-              {node.properties.duration}min
+              {node.properties.duration as number}min
             </span>
           )}
         </div>
@@ -500,7 +498,7 @@ const BPMNWorkflowDesigner: React.FC = () => {
                         <label className="flex items-center space-x-2">
                           <input
                             type="checkbox"
-                            checked={node.properties.automatic || false}
+                            checked={(node.properties.automatic as boolean) || false}
                             onChange={(e) => {
                               setNodes(nodes.map(n =>
                                 n.id === selectedNode
@@ -516,7 +514,7 @@ const BPMNWorkflowDesigner: React.FC = () => {
                         <label className="flex items-center space-x-2">
                           <input
                             type="checkbox"
-                            checked={node.properties.syscohada || false}
+                            checked={(node.properties.syscohada as boolean) || false}
                             onChange={(e) => {
                               setNodes(nodes.map(n =>
                                 n.id === selectedNode
@@ -535,7 +533,7 @@ const BPMNWorkflowDesigner: React.FC = () => {
                           </label>
                           <input
                             type="number"
-                            value={node.properties.duration || ''}
+                            value={(node.properties.duration as number | string) || ''}
                             onChange={(e) => {
                               setNodes(nodes.map(n =>
                                 n.id === selectedNode
@@ -554,7 +552,7 @@ const BPMNWorkflowDesigner: React.FC = () => {
                           </label>
                           <input
                             type="text"
-                            value={node.properties.reference || ''}
+                            value={(node.properties.reference as string) || ''}
                             onChange={(e) => {
                               setNodes(nodes.map(n =>
                                 n.id === selectedNode
@@ -577,7 +575,7 @@ const BPMNWorkflowDesigner: React.FC = () => {
                           Script d'automatisation
                         </label>
                         <textarea
-                          value={node.properties.script || ''}
+                          value={(node.properties.script as string) || ''}
                           onChange={(e) => {
                             setNodes(nodes.map(n =>
                               n.id === selectedNode
@@ -603,7 +601,7 @@ const BPMNWorkflowDesigner: React.FC = () => {
                         Condition métier
                       </label>
                       <select
-                        value={node.properties.condition || ''}
+                        value={(node.properties.condition as string) || ''}
                         onChange={(e) => {
                           setNodes(nodes.map(n =>
                             n.id === selectedNode

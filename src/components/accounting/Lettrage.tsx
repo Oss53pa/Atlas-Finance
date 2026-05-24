@@ -1,6 +1,5 @@
-// @ts-nocheck
-
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import type { DBJournalEntry } from '../../lib/db';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useData } from '../../contexts/DataContext';
@@ -102,7 +101,7 @@ const Lettrage: React.FC = () => {
   const { data: lettrageEntries = [], refetch: refetchEntries } = useQuery({
     queryKey: ['lettrage-entries', dateRange.start, dateRange.end],
     queryFn: async () => {
-      const entries = await adapter.getAll('journalEntries');
+      const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
       const result: LettrageEntry[] = [];
       const soldesByCompte: Record<string, number> = {};
 
@@ -143,6 +142,14 @@ const Lettrage: React.FC = () => {
       return true;
     });
 
+    type GroupedAccount = {
+      compte: string;
+      entries: LettrageEntry[];
+      totalDebit: number;
+      totalCredit: number;
+      solde: number;
+      nonLettres: number;
+    };
     const grouped = filtered.reduce((acc, entry) => {
       if (!acc[entry.compte]) {
         acc[entry.compte] = {
@@ -160,7 +167,7 @@ const Lettrage: React.FC = () => {
       acc[entry.compte].solde = money(acc[entry.compte].totalDebit).subtract(money(acc[entry.compte].totalCredit)).toNumber();
       if (!entry.lettrage) acc[entry.compte].nonLettres++;
       return acc;
-    }, {} as Record<string, any>);
+    }, {} as Record<string, GroupedAccount>);
 
     return Object.values(grouped);
   }, [lettrageEntries, showOnlyNonLettrage, searchTerm]);
@@ -194,7 +201,7 @@ const Lettrage: React.FC = () => {
       if (selectedData.length < 2) return;
 
       // Find original entry/line IDs from db
-      const allEntries = await adapter.getAll('journalEntries');
+      const allEntries = await adapter.getAll<DBJournalEntry>('journalEntries');
       const selections: Array<{ entryId: string; lineId: string }> = [];
 
       for (const sel of selectedData) {
@@ -214,7 +221,7 @@ const Lettrage: React.FC = () => {
         return;
       }
 
-      const code = await applyManualLettrage(selections);
+      const code = await applyManualLettrage(adapter, selections);
 
       const newHistory: LettrageHistory = {
         id: Date.now().toString(),
@@ -236,7 +243,7 @@ const Lettrage: React.FC = () => {
   }, [selectedEntries, lettrageEntries, queryClient, refetchEntries, isSaving]);
 
   const handleDelettrage = useCallback(async (code: string) => {
-    const count = await delettrage(code);
+    const count = await delettrage(adapter, code);
 
     const newHistory: LettrageHistory = {
       id: Date.now().toString(),
@@ -254,7 +261,7 @@ const Lettrage: React.FC = () => {
   }, [queryClient, refetchEntries]);
 
   const runAutoLettrage = useCallback(async () => {
-    const result = await autoLettrage({
+    const result = await autoLettrage(adapter, {
       parMontant: autoLettrageConfig.parMontant,
       parReference: autoLettrageConfig.parReference,
       parDate: autoLettrageConfig.parDate,
@@ -268,7 +275,7 @@ const Lettrage: React.FC = () => {
       return;
     }
 
-    const applied = await applyLettrage(result.matches);
+    const applied = await applyLettrage(adapter, result.matches);
     toast.success(`Lettrage automatique : ${result.matches.length} rapprochements (${result.totalMatched} lignes)`);
     queryClient.invalidateQueries({ queryKey: ['lettrage-entries'] });
     refetchEntries();

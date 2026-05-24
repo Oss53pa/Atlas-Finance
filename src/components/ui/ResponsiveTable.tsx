@@ -1,7 +1,5 @@
-// @ts-nocheck
-
 import React, { useState, useRef, useEffect } from 'react';
-import { useLanguage } from '../../contexts/LanguageContext';
+
 import { motion } from 'framer-motion';
 import { ChevronDown, ChevronRight, Filter, Search, Download } from 'lucide-react';
 
@@ -89,11 +87,11 @@ export function ResponsiveTable<T extends Record<string, unknown>>({
     if (!sortConfig) return data;
     
     return [...data].sort((a, b) => {
-      const aValue = a[sortConfig.key];
-      const bValue = b[sortConfig.key];
-      
-      if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
-      if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+      const aValue = a[sortConfig.key] as string | number | null | undefined;
+      const bValue = b[sortConfig.key] as string | number | null | undefined;
+
+      if ((aValue ?? '') < (bValue ?? '')) return sortConfig.direction === 'asc' ? -1 : 1;
+      if ((aValue ?? '') > (bValue ?? '')) return sortConfig.direction === 'asc' ? 1 : -1;
       return 0;
     });
   }, [data, sortConfig]);
@@ -181,9 +179,9 @@ export function ResponsiveTable<T extends Record<string, unknown>>({
                   .filter(col => !col.responsive?.hideOn || col.responsive?.showInCard !== false)
                   .map((column) => {
                     const value = row[column.key as keyof T];
-                    const displayValue = column.render 
-                      ? column.render(value, row, index)
-                      : value;
+                    const displayValue: React.ReactNode = column.render
+                      ? column.render(value as unknown, row, index)
+                      : (value as React.ReactNode);
                     
                     return (
                       <div key={column.key as string} className="flex justify-between items-start">
@@ -295,7 +293,7 @@ export function ResponsiveTable<T extends Record<string, unknown>>({
                 <td colSpan={columns.length + (expandable ? 1 : 0)} className="px-4 py-8 text-center">
                   <div className="flex justify-center items-center space-x-2">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                    <span>{t('common.loading')}</span>
+                    <span>Chargement...</span>
                   </div>
                 </td>
               </tr>
@@ -330,10 +328,10 @@ export function ResponsiveTable<T extends Record<string, unknown>>({
                     )}
                     {columns.map((column) => {
                       const value = row[column.key as keyof T];
-                      const displayValue = column.render 
-                        ? column.render(value, row, index)
-                        : value;
-                      
+                      const displayValue: React.ReactNode = column.render
+                        ? column.render(value as unknown, row, index)
+                        : (value as React.ReactNode);
+
                       return (
                         <td
                           key={column.key as string}
