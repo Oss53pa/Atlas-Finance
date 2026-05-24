@@ -513,8 +513,10 @@ describe('Oracle S6 — Affectation résultat : réserve légale OHADA', () => {
     expect(sim.capitalSocial).toBe(10000000);
     expect(sim.reserveLegaleActuelle).toBe(0);
     expect(sim.reserveLegalePlafond).toBe(2000000);
-    expect(sim.reserveLegaleMinimale).toBe(100000);
-    expect(sim.reserveLegalePourcentage).toBe(5);
+    // OHADA AUSCGIE art.546 : taux = 10% (fixé F-02 — était 5% avant, incorrect)
+    // résultat 2 000 000 × 10% = 200 000
+    expect(sim.reserveLegaleMinimale).toBe(200000);
+    expect(sim.reserveLegalePourcentage).toBe(10);
   });
 
   it('affectation conforme (réserve 100 000 + RAN 1 900 000) → valide, sans warning d écart', async () => {
