@@ -20,6 +20,8 @@ export default defineConfig({
       '**/workspace/**',
       'src/components/layout/__tests__/**',
       'e2e/**',
+      '.claude/**',           // worktrees de développement Claude
+      '**/.claude/**',
     ],
     coverage: {
       provider: 'v8',

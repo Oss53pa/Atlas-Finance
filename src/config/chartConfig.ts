@@ -1,6 +1,4 @@
-// @ts-nocheck
-
-import { ChartOptions } from 'chart.js';
+import type { ChartOptions } from 'chart.js';
 
 // Configuration globale pour tous les graphiques
 export const defaultChartOptions: ChartOptions = {
@@ -13,11 +11,11 @@ export const defaultChartOptions: ChartOptions = {
         padding: 15,
         font: {
           size: 12,
-          family: 'inherit'
+          family: 'inherit',
         },
         usePointStyle: true,
-        color: 'var(--color-text-secondary)'
-      }
+        color: 'var(--color-text-secondary)',
+      },
     },
     tooltip: {
       backgroundColor: 'var(--color-card-bg)',
@@ -30,40 +28,41 @@ export const defaultChartOptions: ChartOptions = {
       displayColors: true,
       usePointStyle: true,
       callbacks: {
-        labelTextColor: function() {
+        labelTextColor: function () {
           return 'var(--color-text-primary)';
-        }
-      }
-    }
+        },
+      },
+    },
   },
   scales: {
     x: {
       grid: {
         display: true,
         color: 'rgba(38, 30, 21, 0.06)',
-        drawBorder: false
+        // Note: drawBorder supprimé en Chart.js v4 → utiliser border.display
       },
+      border: { display: false },
       ticks: {
         color: 'var(--color-text-secondary)',
         font: {
-          size: 11
-        }
-      }
+          size: 11,
+        },
+      },
     },
     y: {
       grid: {
         display: true,
         color: 'rgba(38, 30, 21, 0.06)',
-        drawBorder: false
       },
+      border: { display: false },
       ticks: {
         color: 'var(--color-text-secondary)',
         font: {
-          size: 11
-        }
-      }
-    }
-  }
+          size: 11,
+        },
+      },
+    },
+  },
 };
 
 // Options spécifiques pour les graphiques en ligne
@@ -72,15 +71,15 @@ export const lineChartOptions: ChartOptions<'line'> = {
   elements: {
     line: {
       tension: 0.4,
-      borderWidth: 2
+      borderWidth: 2,
     },
     point: {
       radius: 4,
       hoverRadius: 6,
       borderWidth: 2,
-      backgroundColor: '#fff'
-    }
-  }
+      backgroundColor: '#fff',
+    },
+  },
 };
 
 // Options spécifiques pour les graphiques en barres
@@ -89,19 +88,19 @@ export const barChartOptions: ChartOptions<'bar'> = {
   plugins: {
     ...defaultChartOptions.plugins,
     legend: {
-      ...defaultChartOptions.plugins?.legend,
-      display: true
-    }
+      ...(defaultChartOptions.plugins?.legend as object),
+      display: true,
+    },
   },
   scales: {
-    ...defaultChartOptions.scales,
+    ...(defaultChartOptions.scales as object),
     x: {
-      ...defaultChartOptions.scales?.x,
+      ...(defaultChartOptions.scales?.x as object),
       grid: {
-        display: false
-      }
-    }
-  }
+        display: false,
+      },
+    },
+  },
 };
 
 // Options spécifiques pour les graphiques en donut/pie
@@ -114,14 +113,14 @@ export const doughnutChartOptions: ChartOptions<'doughnut'> = {
       labels: {
         padding: 15,
         font: {
-          size: 12
+          size: 12,
         },
         usePointStyle: true,
-        color: 'var(--color-text-secondary)'
-      }
-    }
+        color: 'var(--color-text-secondary)',
+      },
+    },
   },
-  scales: undefined // Pas d'axes pour les graphiques circulaires
+  scales: undefined, // Pas d'axes pour les graphiques circulaires
 };
 
 // Options spécifiques pour les graphiques radar
@@ -130,25 +129,25 @@ export const radarChartOptions: ChartOptions<'radar'> = {
   scales: {
     r: {
       angleLines: {
-        color: 'rgba(38, 30, 21, 0.06)'
+        color: 'rgba(38, 30, 21, 0.06)',
       },
       grid: {
-        color: 'rgba(38, 30, 21, 0.06)'
+        color: 'rgba(38, 30, 21, 0.06)',
       },
       pointLabels: {
         color: 'var(--color-text-secondary)',
         font: {
-          size: 11
-        }
+          size: 11,
+        },
       },
       ticks: {
         color: 'var(--color-text-secondary)',
         backdropColor: 'transparent',
         font: {
-          size: 10
-        }
-      }
-    }
+          size: 10,
+        },
+      },
+    },
   },
   plugins: {
     ...defaultChartOptions.plugins,
@@ -157,13 +156,13 @@ export const radarChartOptions: ChartOptions<'radar'> = {
       labels: {
         padding: 15,
         font: {
-          size: 12
+          size: 12,
         },
         usePointStyle: true,
-        color: 'var(--color-text-secondary)'
-      }
-    }
-  }
+        color: 'var(--color-text-secondary)',
+      },
+    },
+  },
 };
 
 // Couleurs du thème pour les graphiques — Petrol Cream
@@ -181,7 +180,7 @@ export const chartColors = {
   info: 'rgb(35, 90, 110)',
   infoLight: 'rgba(35, 90, 110, 0.12)',
   gray: 'rgb(138, 129, 112)',
-  grayLight: 'rgba(138, 129, 112, 0.12)'
+  grayLight: 'rgba(138, 129, 112, 0.12)',
 };
 
 // Palette de séries multi-catégories (donut/pie/barres groupées) — ordre premium
