@@ -36,6 +36,8 @@ async function tryRPC(adapter: DataAdapter, rpcName: string, params: Record<stri
     }
     return null;
   } catch (err) {
+    // I3 : logguer l'échec RPC pour faciliter le diagnostic (non bloquant en mode local)
+    console.warn(`[financialStatementsService] tryRPC(${rpcName}) failed:`, err);
     return null;
   }
 }

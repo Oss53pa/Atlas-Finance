@@ -5,7 +5,7 @@
  * accounts per SYSCOHADA / OHADA Uniform Act rules.
  *
  * OHADA rules applied:
- * - Legal reserve: minimum 5% of net profit
+ * - Legal reserve: minimum 10% of net profit (AUSCGIE art. 546 — 1/10e du bénéfice)
  * - Legal reserve cap: 20% of share capital (capital social)
  * - Full result must be allocated (ecart = 0)
  */
@@ -177,7 +177,7 @@ export async function simulerAffectation(
     if (reserveLegale < reserveLegaleMinimale) {
       warnings.push(
         `La dotation a la reserve legale (${reserveLegale}) est inferieure au minimum obligatoire (${reserveLegaleMinimale}). ` +
-        `OHADA impose au moins 5% du resultat net.`
+        `OHADA (AUSCGIE art. 546) impose au moins 10% du resultat net jusqu'au plafond de 20% du capital.`
       );
     }
   }

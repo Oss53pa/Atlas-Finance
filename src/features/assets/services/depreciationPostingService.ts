@@ -29,7 +29,6 @@ export function computeDepreciations(assets: DBAsset[], date: string): Depreciat
     if (asset.acquisitionDate > date) continue;
 
     const base = asset.acquisitionValue - asset.residualValue;
-    const annualAmount = base / asset.usefulLifeYears;
 
     // Check if fully depreciated
     const acqDate = new Date(asset.acquisitionDate);
@@ -43,6 +42,23 @@ export function computeDepreciations(assets: DBAsset[], date: string): Depreciat
     const yearsElapsed = Math.max(0, totalJours) / 360;
 
     if (yearsElapsed >= asset.usefulLifeYears) continue;
+
+    // I1 fix — distinguer méthode linéaire et dégressive (SYSCOHADA)
+    let annualAmount: number;
+    if (asset.depreciationMethod === 'declining') {
+      // Amortissement dégressif : taux = (1/N) × coefficient SYSCOHADA
+      // Coefficient : ≤4 ans → 1.5 | 5-6 ans → 2.0 | ≥7 ans → 2.5
+      const coefficient = asset.usefulLifeYears <= 4 ? 1.5 : asset.usefulLifeYears <= 6 ? 2.0 : 2.5;
+      const rate = (1 / asset.usefulLifeYears) * coefficient;
+      // VNC courante = acquisitionValue − cumulDepreciation
+      const vnc = asset.acquisitionValue - (asset.cumulDepreciation ?? 0);
+      annualAmount = vnc * rate;
+      // Plafonner à VNC − valeur résiduelle pour ne pas descendre sous la valeur résiduelle
+      annualAmount = Math.min(annualAmount, Math.max(0, vnc - asset.residualValue));
+    } else {
+      // Amortissement linéaire (par défaut)
+      annualAmount = base / asset.usefulLifeYears;
+    }
 
     entries.push({
       assetId: asset.id,

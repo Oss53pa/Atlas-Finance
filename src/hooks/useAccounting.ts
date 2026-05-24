@@ -8,6 +8,8 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { queryKeys, invalidateQueries } from '../lib/react-query';
+import { useData } from '../contexts/DataContext';
+import { reverseEntry } from '../utils/reversalService';
 import {
   chartOfAccountsService,
   journalsService,
@@ -293,9 +295,10 @@ export const useValidateEntry = () => {
 };
 
 export const useReverseEntry = () => {
+  const { adapter } = useData();
   return useMutation({
-    mutationFn: ({ id, date, pieceNumber }: { id: string; date: string; pieceNumber?: string }) =>
-      entriesApi.reverse(id, date, pieceNumber) as Promise<AccountingEntry>,
+    mutationFn: ({ id, date, reason }: { id: string; date: string; pieceNumber?: string; reason?: string }) =>
+      reverseEntry(adapter, { originalEntryId: id, reversalDate: date, reason: reason ?? 'Contrepassation manuelle' }),
     onSuccess: () => {
       invalidateQueries.accountingEntries();
     },

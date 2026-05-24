@@ -1,5 +1,19 @@
-import { useState, useEffect } from 'react';
-import { assetsService } from '../services/assetsService';
+import { useState, useEffect, useMemo } from 'react';
+import { useData } from '../../../contexts/DataContext';
+import {
+  getAssets,
+  getAsset,
+  getStats,
+  getCategories,
+  getClasses,
+  getMaintenances,
+  createMaintenance,
+  updateMaintenance,
+  getTransactions,
+  getDisposals,
+  disposeAsset,
+  assetsService,
+} from '../services/assetsService';
 import {
   Asset,
   AssetStats,
@@ -10,12 +24,26 @@ import {
   AssetDisposal,
 } from '../types/assets.types';
 
+/**
+ * Injecte l'adapter dans le shim de compatibilité assetsService dès que
+ * le DataContext est disponible. Cela permet aux composants qui utilisent
+ * encore l'ancien singleton d'accéder aux vraies données.
+ */
+function useInjectAdapter() {
+  const { adapter } = useData();
+  useMemo(() => {
+    assetsService.setAdapter(adapter);
+  }, [adapter]);
+  return adapter;
+}
+
 export const useAssetsData = (filters?: {
   status?: string;
   class?: string;
   category?: string;
   location?: string;
 }) => {
+  const adapter = useInjectAdapter();
   const [assets, setAssets] = useState<Asset[]>([]);
   const [stats, setStats] = useState<AssetStats | null>(null);
   const [loading, setLoading] = useState(false);
@@ -26,8 +54,8 @@ export const useAssetsData = (filters?: {
     setError(null);
     try {
       const [assetsData, statsData] = await Promise.all([
-        assetsService.getAssets(filters),
-        assetsService.getStats(),
+        getAssets(adapter, filters),
+        getStats(adapter),
       ]);
       setAssets(assetsData);
       setStats(statsData);
@@ -40,6 +68,7 @@ export const useAssetsData = (filters?: {
 
   useEffect(() => {
     fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters?.status, filters?.class, filters?.category, filters?.location]);
 
   return {
@@ -52,6 +81,7 @@ export const useAssetsData = (filters?: {
 };
 
 export const useAsset = (id: string | number) => {
+  const adapter = useInjectAdapter();
   const [asset, setAsset] = useState<Asset | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -61,7 +91,7 @@ export const useAsset = (id: string | number) => {
       setLoading(true);
       setError(null);
       try {
-        const data = await assetsService.getAsset(id);
+        const data = await getAsset(adapter, id);
         setAsset(data);
       } catch (err) {
         setError(err as Error);
@@ -73,12 +103,14 @@ export const useAsset = (id: string | number) => {
     if (id) {
       fetchAsset();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   return { asset, loading, error };
 };
 
 export const useAssetCategories = () => {
+  const adapter = useInjectAdapter();
   const [categories, setCategories] = useState<AssetCategory[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -88,7 +120,7 @@ export const useAssetCategories = () => {
       setLoading(true);
       setError(null);
       try {
-        const data = await assetsService.getCategories();
+        const data = await getCategories(adapter);
         setCategories(data);
       } catch (err) {
         setError(err as Error);
@@ -98,12 +130,14 @@ export const useAssetCategories = () => {
     };
 
     fetchCategories();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return { categories, loading, error };
 };
 
 export const useAssetClasses = () => {
+  const adapter = useInjectAdapter();
   const [classes, setClasses] = useState<AssetClass[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -113,7 +147,7 @@ export const useAssetClasses = () => {
       setLoading(true);
       setError(null);
       try {
-        const data = await assetsService.getClasses();
+        const data = await getClasses(adapter);
         setClasses(data);
       } catch (err) {
         setError(err as Error);
@@ -123,12 +157,14 @@ export const useAssetClasses = () => {
     };
 
     fetchClasses();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return { classes, loading, error };
 };
 
 export const useAssetMaintenances = (assetId?: string | number) => {
+  const adapter = useInjectAdapter();
   const [maintenances, setMaintenances] = useState<AssetMaintenance[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -137,7 +173,7 @@ export const useAssetMaintenances = (assetId?: string | number) => {
     setLoading(true);
     setError(null);
     try {
-      const data = await assetsService.getMaintenances(assetId);
+      const data = await getMaintenances(adapter, assetId);
       setMaintenances(data);
     } catch (err) {
       setError(err as Error);
@@ -148,12 +184,14 @@ export const useAssetMaintenances = (assetId?: string | number) => {
 
   useEffect(() => {
     fetchMaintenances();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assetId]);
 
   return { maintenances, loading, error, refetch: fetchMaintenances };
 };
 
 export const useAssetTransactions = (assetId?: string | number) => {
+  const adapter = useInjectAdapter();
   const [transactions, setTransactions] = useState<AssetTransaction[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -163,7 +201,7 @@ export const useAssetTransactions = (assetId?: string | number) => {
       setLoading(true);
       setError(null);
       try {
-        const data = await assetsService.getTransactions(assetId);
+        const data = await getTransactions(adapter, assetId);
         setTransactions(data);
       } catch (err) {
         setError(err as Error);
@@ -173,12 +211,14 @@ export const useAssetTransactions = (assetId?: string | number) => {
     };
 
     fetchTransactions();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assetId]);
 
   return { transactions, loading, error };
 };
 
 export const useAssetDisposals = () => {
+  const adapter = useInjectAdapter();
   const [disposals, setDisposals] = useState<AssetDisposal[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -187,7 +227,7 @@ export const useAssetDisposals = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await assetsService.getDisposals();
+      const data = await getDisposals(adapter);
       setDisposals(data);
     } catch (err) {
       setError(err as Error);
@@ -198,6 +238,7 @@ export const useAssetDisposals = () => {
 
   useEffect(() => {
     fetchDisposals();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return { disposals, loading, error, refetch: fetchDisposals };

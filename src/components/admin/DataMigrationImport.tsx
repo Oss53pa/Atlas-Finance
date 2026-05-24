@@ -23,6 +23,7 @@ import {
   toXlsxRows,
   type GenerationResult,
 } from '../../services/import';
+import { safeAddEntry } from '../../services/entryGuard';
 
 // ─── Types ───────────────────────────────────────────────
 
@@ -1239,9 +1240,9 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
               lines: lineRecords,
             });
           } else {
-            // DexieAdapter : écriture avec lignes embarquées (camelCase)
+            // DexieAdapter : écriture via safeAddEntry (hash chain + validation)
             const now = new Date().toISOString();
-            await adapter.create('journalEntries', {
+            await safeAddEntry(adapter, {
               id: crypto.randomUUID(),
               entryNumber: piece,
               journal: journalCode,
@@ -1249,14 +1250,9 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
               label: entryLabel,
               reference: piece,
               status: params.entryStatus === 'validated' ? 'validated' : 'draft',
-              totalDebit,
-              totalCredit,
               lines: lineRecords,
               createdAt: now,
-              updatedAt: now,
-              hash: '',
-              previousHash: '',
-            } as Record<string, unknown>);
+            }, { skipSyncValidation: false });
           }
           report.entries++;
           report.lines += lineRecords.length;
@@ -1327,9 +1323,9 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
                 lines: anLinesData,
               });
             } else {
-              // DexieAdapter : écriture avec lignes embarquées
+              // DexieAdapter : écriture AN via safeAddEntry (hash chain)
               const now = new Date().toISOString();
-              await adapter.create('journalEntries', {
+              await safeAddEntry(adapter, {
                 id: crypto.randomUUID(),
                 entryNumber: 'AN-MIGRATION',
                 journal: 'AN',
@@ -1337,14 +1333,9 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
                 label: 'Reports a nouveau — Migration',
                 reference: 'AN-MIGRATION',
                 status: 'validated',
-                totalDebit: anTotalDebit,
-                totalCredit: anTotalCredit,
                 lines: anLinesData,
                 createdAt: now,
-                updatedAt: now,
-                hash: '',
-                previousHash: '',
-              } as Record<string, unknown>);
+              }, { skipSyncValidation: true }); // skipSyncValidation : écriture d'ouverture système, équilibre garanti
             }
             report.lines += anLinesData.length;
             report.entries++;
