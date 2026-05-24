@@ -128,9 +128,11 @@ export async function validateJournalEntry(
   }
 
   // --- Règle 7 : Comptes existants ---
+  // B5 : whereIn non implémenté dans DexieAdapter/SupabaseAdapter → charger tous les
+  // comptes et filtrer en mémoire (acceptable : le plan comptable est rarement > 500 lignes)
   const accountCodes = [...new Set(lines.map(l => l.accountCode))];
-  const existingAccounts = await adapter.getAll<DBAccount>('accounts', { whereIn: { field: 'code', values: accountCodes } });
-  const existingCodes = new Set(existingAccounts.map(a => a.code));
+  const allAccounts = await adapter.getAll<DBAccount>('accounts');
+  const existingCodes = new Set(allAccounts.map(a => a.code));
 
   for (const code of accountCodes) {
     if (!existingCodes.has(code)) {

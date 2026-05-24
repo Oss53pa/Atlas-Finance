@@ -183,12 +183,16 @@ export class SupabaseAdapter implements DataAdapter {
       const { data: existing } = await this.client
         .from(this.pgTable(table)).select('status').eq('id', id).eq('tenant_id', this.tenantId).single()
       if (existing?.status === 'posted') {
-        const ALLOWED_META = ['notes', 'tags', 'attachments']
+        // ALLOWED_META : champs autorisés sur une écriture posted (immuabilité SYSCOHADA Art.19).
+        // - notes / tags / attachments : annotations non comptables
+        // - lines / lettrageCode : le lettrage est une opération post-validation autorisée
+        //   (SYSCOHADA permet le lettrage des comptes auxiliaires sans modifier les montants)
+        const ALLOWED_META = ['notes', 'tags', 'attachments', 'lines', 'lettrageCode']
         const changedKeys = Object.keys(data)
         const hasNonMeta = changedKeys.some(k => !ALLOWED_META.includes(k))
         if (hasNonMeta) {
           throw new Error(
-            `SYSCOHADA Art.19 : écriture ${id} est validée (posted) — seuls notes/tags/attachments sont modifiables.`
+            `SYSCOHADA Art.19 : écriture ${id} est validée (posted) — seuls notes/tags/attachments/lettrage sont modifiables.`
           )
         }
       }
@@ -279,7 +283,18 @@ export class SupabaseAdapter implements DataAdapter {
       p_end_date: dateRange?.end || null,
     })
     if (error) throw new Error(error.message)
-    return data as TrialBalanceRow[]
+    // B1 : la RPC renvoie du snake_case PostgreSQL ; TrialBalanceRow attend du camelCase.
+    // Sans ce mapping, toutes les colonnes sont undefined → balance vide en mode SaaS.
+    return ((data as any[]) || []).map(row => ({
+      accountCode:      row.account_code   ?? row.accountCode   ?? '',
+      accountName:      row.account_name   ?? row.accountName   ?? '',
+      debitOuverture:   row.debit_ouverture  ?? row.debitOuverture  ?? 0,
+      creditOuverture:  row.credit_ouverture ?? row.creditOuverture ?? 0,
+      debitMouvement:   row.total_debit    ?? row.debitMouvement   ?? 0,
+      creditMouvement:  row.total_credit   ?? row.creditMouvement  ?? 0,
+      debitSolde:       row.solde_debiteur ?? row.debitSolde        ?? 0,
+      creditSolde:      row.solde_crediteur ?? row.creditSolde      ?? 0,
+    })) as TrialBalanceRow[]
   }
 
   async getBalanceByAccount(dateRange?: { start: string; end: string }): Promise<Map<string, AccountBalance>> {

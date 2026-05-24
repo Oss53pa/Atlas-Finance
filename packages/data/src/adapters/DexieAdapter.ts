@@ -39,6 +39,18 @@ class AtlasFnADexie extends Dexie {
   aliasTiers!: Table<any, string>
   aliasPrefixConfig!: Table<any, string>
   fiscalPeriods!: Table<any, string>
+  // B2 : tables v8+v9 absentes — fiscal / trésorerie / caisse plantaient en mode local
+  taxRegistry!: Table<any, string>
+  taxDeclarations!: Table<any, string>
+  taxBrackets!: Table<any, string>
+  paymentOrders!: Table<any, string>
+  cashRegisterSessions!: Table<any, string>
+  cashMovements!: Table<any, string>
+  loanSchedules!: Table<any, string>
+  checks!: Table<any, string>
+  purchaseOrders!: Table<any, string>
+  goodsReceipts!: Table<any, string>
+  offBalanceCommitments!: Table<any, string>
 
   constructor(dbName: string = 'AtlasFnADB') {
     super(dbName)
@@ -162,6 +174,63 @@ class AtlasFnADexie extends Dexie {
       aliasPrefixConfig: 'id, sousCompteCode, prefix',
       fiscalPeriods: 'id, fiscalYearId, code, type, status, startDate',
       recoveryCases: 'id, numeroRef, clientId, statut, dateOuverture',
+    })
+    // B2 : versions 8+9 manquantes — modules fiscal/trésorerie/caisse plantaient
+    this.version(8).stores({
+      journalEntries: 'id, entryNumber, journal, date, status, [journal+date], reversalOf',
+      accounts: 'id, code, accountClass, parentCode',
+      thirdParties: 'id, code, type, name',
+      assets: 'id, code, category, status',
+      fiscalYears: 'id, startDate, endDate, isActive',
+      budgetLines: 'id, accountCode, fiscalYear, period',
+      auditLogs: 'id, timestamp, action, entityType, entityId',
+      settings: 'key',
+      closureSessions: 'id, type, exercice, statut, dateDebut, dateFin',
+      provisions: 'id, sessionId, compteClient, statut',
+      exchangeRates: 'id, fromCurrency, toCurrency, date, [fromCurrency+toCurrency+date]',
+      hedgingPositions: 'id, currency, type, status, maturityDate',
+      revisionItems: 'id, sessionId, accountCode, status, isaAssertion',
+      inventoryItems: 'id, code, name, category, location, status',
+      stockMovements: 'id, itemId, date, type, reference, [itemId+date]',
+      aliasTiers: 'id, alias, prefix',
+      aliasPrefixConfig: 'id, sousCompteCode, prefix',
+      fiscalPeriods: 'id, fiscalYearId, code, type, status, startDate',
+      recoveryCases: 'id, numeroRef, clientId, statut, dateOuverture',
+      taxRegistry: 'id, countryCode, taxCode, taxCategory, isActive, [countryCode+taxCode]',
+      taxDeclarations: 'id, taxRegistryId, taxCode, periodStart, status, fiscalYear, [taxCode+periodStart]',
+      taxBrackets: 'id, taxRegistryId, countryCode, fiscalYear',
+    })
+    this.version(9).stores({
+      journalEntries: 'id, entryNumber, journal, date, status, [journal+date], reversalOf',
+      accounts: 'id, code, accountClass, parentCode',
+      thirdParties: 'id, code, type, name',
+      assets: 'id, code, category, status',
+      fiscalYears: 'id, startDate, endDate, isActive',
+      budgetLines: 'id, accountCode, fiscalYear, period',
+      auditLogs: 'id, timestamp, action, entityType, entityId',
+      settings: 'key',
+      closureSessions: 'id, type, exercice, statut, dateDebut, dateFin',
+      provisions: 'id, sessionId, compteClient, statut',
+      exchangeRates: 'id, fromCurrency, toCurrency, date, [fromCurrency+toCurrency+date]',
+      hedgingPositions: 'id, currency, type, status, maturityDate',
+      revisionItems: 'id, sessionId, accountCode, status, isaAssertion',
+      inventoryItems: 'id, code, name, category, location, status',
+      stockMovements: 'id, itemId, date, type, reference, [itemId+date]',
+      aliasTiers: 'id, alias, prefix',
+      aliasPrefixConfig: 'id, sousCompteCode, prefix',
+      fiscalPeriods: 'id, fiscalYearId, code, type, status, startDate',
+      recoveryCases: 'id, numeroRef, clientId, statut, dateOuverture',
+      taxRegistry: 'id, countryCode, taxCode, taxCategory, isActive, [countryCode+taxCode]',
+      taxDeclarations: 'id, taxRegistryId, taxCode, periodStart, status, fiscalYear, [taxCode+periodStart]',
+      taxBrackets: 'id, taxRegistryId, countryCode, fiscalYear',
+      paymentOrders: 'id, companyId, orderNumber, status, beneficiaryType, [companyId+status]',
+      cashRegisterSessions: 'id, companyId, cashAccountId, status, openedAt',
+      cashMovements: 'id, companyId, sessionId, type, createdAt',
+      loanSchedules: 'id, companyId, loanId, installmentNumber, status, dueDate',
+      checks: 'id, companyId, direction, status, checkNumber, [companyId+direction+status]',
+      purchaseOrders: 'id, companyId, supplierId, orderNumber, status, [companyId+status]',
+      goodsReceipts: 'id, companyId, purchaseOrderId, receiptNumber',
+      offBalanceCommitments: 'id, companyId, type, status, [companyId+status]',
     })
   }
 }
