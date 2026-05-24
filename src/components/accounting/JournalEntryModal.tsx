@@ -1458,7 +1458,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                   </div>
                 )}
 
-                <div className="overflow-x-auto">
+                <div className="overflow-visible">
                   <table className="w-full">
                     <thead>
                       <tr className="bg-gray-50 border-y border-gray-200">
@@ -1491,7 +1491,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                               <Search className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-700" />
                             </div>
                             {showCompteDropdown === index && (
-                              <div className="absolute z-20 mt-1 w-full max-h-48 overflow-y-auto bg-white border border-gray-300 rounded-lg shadow-lg">
+                              <div className="absolute z-[100] mt-1 w-full max-h-48 overflow-y-auto bg-white border border-gray-300 rounded-lg shadow-lg">
                                 {getFilteredComptes(index).map((compte) => (
                                   <button
                                     key={compte.code}
@@ -1547,7 +1547,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                               <Search className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-700" />
                             </div>
                             {showAnalytiqueDropdown === index && (
-                              <div className="absolute z-20 mt-1 w-full max-h-48 overflow-y-auto bg-white border border-gray-300 rounded-lg shadow-lg">
+                              <div className="absolute z-[100] mt-1 w-full max-h-48 overflow-y-auto bg-white border border-gray-300 rounded-lg shadow-lg">
                                 <button
                                   onClick={() => {
                                     modifierLigne(index, 'codeAnalytique', '');
