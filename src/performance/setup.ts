@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * Performance Setup
  * Global performance optimization configuration

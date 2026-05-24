@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React from 'react';
 import { StatCard } from '@/shared/components/data-display/StatCard';
 import { Calendar, Clock, CheckCircle, TrendingUp } from 'lucide-react';

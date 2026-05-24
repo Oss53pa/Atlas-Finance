@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React from 'react';
 import { DataTable } from '@/shared/components/data-display/DataTable';
 import { DeclarationFiscale } from '../types/taxation.types';

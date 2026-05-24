@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React from 'react';
 import { DataTable, Column } from '@/shared/components/data-display/DataTable';
 import { Button } from '@/shared/components/ui/Button';
@@ -35,7 +33,7 @@ export const LedgerEntriesTable: React.FC<LedgerEntriesTableProps> = ({
       header: 'Pièce',
       sortable: true,
       width: '120px',
-      render: (value) => <span className="font-mono text-sm">{value}</span>,
+      render: (value) => <span className="font-mono text-sm">{value as string}</span>,
     },
     {
       key: 'libelle',
@@ -96,13 +94,13 @@ export const LedgerEntriesTable: React.FC<LedgerEntriesTableProps> = ({
     {
       key: 'centreCout',
       header: 'Centre de Coût',
-      render: (value) => value || '-',
+      render: (value) => (value as string) || '-',
       width: '120px',
     },
     {
       key: 'tiers',
       header: 'Tiers',
-      render: (value) => value || '-',
+      render: (value) => (value as string) || '-',
     }
   );
 

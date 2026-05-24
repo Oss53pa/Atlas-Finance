@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * Periodic Closures Service — Connected to DataAdapter (Dexie/Supabase).
  * Replaces previous mock implementation with real data from fiscalPeriods table.

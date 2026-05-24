@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * Admin Service — Console interne Atlas Studio.
  * Toutes les requêtes nécessitent le claim JWT atlas_role = 'atlas_superadmin'.

@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * Atlas F&A Design System - Theme Configuration
  * Unified design tokens for consistent UI across the application
@@ -185,7 +183,8 @@ export type ColorValue = keyof typeof theme.colors.primary;
 
 // Helper functions
 export const getColor = (scheme: ColorScheme, value: ColorValue = 500): string => {
-  return theme.colors[scheme]?.[value] || theme.colors.neutral[500];
+  const colorGroup = theme.colors[scheme] as Record<string | number, string> | undefined;
+  return colorGroup?.[value] || theme.colors.neutral[500];
 };
 
 export const getSpacing = (value: keyof typeof theme.spacing): string => {

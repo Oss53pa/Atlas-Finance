@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React from 'react';
 import { StatCard } from '@/shared/components/data-display/StatCard';
 import { DollarSign, TrendingUp, AlertTriangle, Clock } from 'lucide-react';
@@ -24,7 +22,7 @@ export const ClientFinancialStats: React.FC<ClientFinancialStatsProps> = ({
         icon={DollarSign}
         color="primary"
         loading={loading}
-        trend={financier.evolution > 0 ? 'up' : 'down'}
+        trend={{ value: `${financier.evolution.toFixed(1)}%`, isPositive: financier.evolution > 0 }}
       />
 
       <StatCard
@@ -41,7 +39,7 @@ export const ClientFinancialStats: React.FC<ClientFinancialStatsProps> = ({
         value={`${formatNumber(financier.impayesEnCours)} €`}
         subtitle={`Taux retard: ${financier.tauxRetard}%`}
         icon={AlertTriangle}
-        color={financier.impayesEnCours > 0 ? 'danger' : 'success'}
+        color={financier.impayesEnCours > 0 ? 'error' : 'success'}
         loading={loading}
       />
 

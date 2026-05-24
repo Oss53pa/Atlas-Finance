@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * Service Tenant — gestion des tenants, profils, feature flags.
  * Utilisé par le dashboard client et la console admin.

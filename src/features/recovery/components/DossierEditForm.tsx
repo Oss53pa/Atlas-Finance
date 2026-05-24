@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React, { useState } from 'react';
 import { Input, Select, Textarea } from '@/shared/components/ui/Form';
 import { DossierRecouvrement } from '../types/recovery.types';

@@ -1,8 +1,6 @@
-// @ts-nocheck
-
 import React from 'react';
 import { useLanguage } from '../../../contexts/LanguageContext';
-import { DataTable } from '@/shared/components/data-display/DataTable';
+import { DataTable, Column } from '@/shared/components/data-display/DataTable';
 import { Facture } from '../types/client.types';
 import { formatNumber, formatDate } from '@/shared/utils/formatters';
 
@@ -26,35 +24,35 @@ export const ClientFacturesTable: React.FC<ClientFacturesTableProps> = ({
     return styles[statut as keyof typeof styles] || styles.EN_ATTENTE;
   };
 
-  const columns = [
+  const columns: Column<Facture>[] = [
     {
       key: 'numero',
-      label: 'N° Facture',
+      header: 'N° Facture',
       sortable: true
     },
     {
       key: 'date',
-      label: t('common.date'),
+      header: t('common.date'),
       sortable: true,
-      render: (row: Facture) => formatDate(row.date)
+      render: (_value, row) => formatDate(row.date)
     },
     {
       key: 'echeance',
-      label: 'Échéance',
+      header: 'Échéance',
       sortable: true,
-      render: (row: Facture) => formatDate(row.echeance)
+      render: (_value, row) => formatDate(row.echeance)
     },
     {
       key: 'montantTTC',
-      label: 'Montant TTC',
+      header: 'Montant TTC',
       sortable: true,
-      render: (row: Facture) => `${formatNumber(row.montantTTC)} €`
+      render: (_value, row) => `${formatNumber(row.montantTTC)} €`
     },
     {
       key: 'solde',
-      label: t('accounting.balance'),
+      header: t('accounting.balance'),
       sortable: true,
-      render: (row: Facture) => (
+      render: (_value, row) => (
         <span className={row.solde > 0 ? 'text-red-600 font-semibold' : 'text-green-600'}>
           {formatNumber(row.solde)} €
         </span>
@@ -62,18 +60,18 @@ export const ClientFacturesTable: React.FC<ClientFacturesTableProps> = ({
     },
     {
       key: 'statut',
-      label: 'Statut',
+      header: 'Statut',
       sortable: true,
-      render: (row: Facture) => (
+      render: (_value, row) => (
         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatutBadge(row.statut)}`}>
           {row.statut.replace('_', ' ')}
         </span>
       )
     },
     {
-      key: 'retard',
-      label: 'Retard',
-      render: (row: Facture) => row.retardJours ? `${row.retardJours} jours` : '-'
+      key: 'retardJours',
+      header: 'Retard',
+      render: (_value, row) => row.retardJours ? `${row.retardJours} jours` : '-'
     }
   ];
 
@@ -82,8 +80,6 @@ export const ClientFacturesTable: React.FC<ClientFacturesTableProps> = ({
       data={factures}
       columns={columns}
       loading={loading}
-      searchable
-      searchPlaceholder="Rechercher une facture..."
     />
   );
 };

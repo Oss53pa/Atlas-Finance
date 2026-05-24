@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React from 'react';
 import { Action } from '../types/recovery.types';
 import { formatDate } from '@/shared/utils/formatters';

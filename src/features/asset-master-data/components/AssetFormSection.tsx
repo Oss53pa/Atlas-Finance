@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React from 'react';
 import { Input, Select, Textarea } from '@/shared/components/ui/Form';
 import { AssetMasterData } from '../types/asset-master.types';
@@ -7,7 +5,7 @@ import { AssetMasterData } from '../types/asset-master.types';
 interface AssetFormSectionProps {
   section: 'general' | 'acquisition' | 'immobilisation' | 'maintenance';
   asset: Partial<AssetMasterData>;
-  onChange: (section: string, field: string, value: string | number | boolean) => void;
+  onChange: (section: string, field: string, value: string | number | boolean | Date) => void;
 }
 
 export const AssetFormSection: React.FC<AssetFormSectionProps> = ({

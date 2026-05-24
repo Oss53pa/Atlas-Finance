@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * Feature Flag Service — contrôle l'accès aux modules par tenant.
  * Toutes les fonctions sont tolérantes : si la table feature_flags

@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React from 'react';
 import { Alert } from '@/shared/components/ui/Alert';
 import { BudgetAlert } from '../types/budgeting.types';
@@ -60,16 +58,12 @@ export const BudgetAlerts: React.FC<BudgetAlertsProps> = ({
           <Alert
             key={alert.id}
             variant={alert.type === 'danger' ? 'error' : alert.type === 'warning' ? 'warning' : 'info'}
-            title={
-              <div className="flex items-center justify-between">
-                <span>{alert.title}</span>
-                <span className="text-xs font-normal text-[var(--color-text-tertiary)]">
-                  {formatDate(alert.date, 'short')}
-                </span>
-              </div>
-            }
+            title={alert.title}
           >
             <div className="space-y-2">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs text-[var(--color-text-tertiary)]">{formatDate(alert.date, 'short')}</span>
+              </div>
               <p className="text-sm">{alert.message}</p>
 
               <div className="flex items-center gap-4 text-xs text-[var(--color-text-tertiary)] pt-2 border-t border-[var(--color-border)]">

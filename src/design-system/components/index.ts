@@ -1,9 +1,20 @@
-// @ts-nocheck
-
 /**
  * Atlas F&A Design System - Component Index
  * Central export file for all design system components
  */
+
+// Imports for Components object (must be imported, not just re-exported, to be usable as values)
+import { Button } from './Button';
+import { Modal, ModalHeader, ModalBody, ModalFooter } from './Modal';
+import { Input } from './Input';
+import { Select, NativeSelect, CustomSelect } from './Select';
+import { Checkbox, CheckboxGroup } from './Checkbox';
+import { Radio, RadioGroup } from './Radio';
+import { Card, CardHeader, CardBody, CardFooter, CardTitle, CardDescription } from './Card';
+import { Panel, PanelHeader, PanelBody, PanelFooter, PanelTitle, CollapsiblePanel } from './Panel';
+import { Alert, AlertTitle, AlertDescription, AlertActions } from './Alert';
+import { Notification, NotificationContainer } from './Notification';
+import { Table } from './Table';
 
 // Button Components
 export {

@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * Atlas F&A Design System - Panel Component
  * Flexible panel component for layout sections and content areas
@@ -433,7 +431,7 @@ export const PanelTitle = forwardRef<HTMLHeadingElement, PanelTitleProps>(
 PanelTitle.displayName = 'PanelTitle';
 
 // Collapsible Panel wrapper
-export interface CollapsiblePanelProps extends Omit<PanelProps, 'collapsible'> {
+export interface CollapsiblePanelProps extends Omit<PanelProps, 'collapsible' | 'title'> {
   /** Panel title */
   title?: React.ReactNode;
   /** Title size */

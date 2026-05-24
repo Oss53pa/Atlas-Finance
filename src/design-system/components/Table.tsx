@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * Atlas F&A Design System - Table Component
  * Comprehensive table component with sorting, filtering, and pagination
@@ -280,7 +278,7 @@ export interface TableProps<T = Record<string, unknown>>
  * />
  * ```
  */
-export const Table = forwardRef<HTMLDivElement, TableProps>(
+export const Table = forwardRef<HTMLDivElement, TableProps<Record<string, unknown>>>(
   (
     {
       data,
@@ -345,18 +343,18 @@ export const Table = forwardRef<HTMLDivElement, TableProps>(
     };
 
     // Handle row selection
-    const handleRowSelection = (row: T, checked: boolean) => {
+    const handleRowSelection = (row: Record<string, unknown>, checked: boolean) => {
       if (!selectionConfig) return;
 
       const { selectedRows, onSelectionChange, getRowId } = selectionConfig;
-      const rowId = getRowId ? getRowId(row) : row.id;
+      const rowId = getRowId ? getRowId(row) : (row.id as string);
 
       let newSelectedRows;
       if (checked) {
         newSelectedRows = [...selectedRows, row];
       } else {
         newSelectedRows = selectedRows.filter(selectedRow => {
-          const selectedRowId = getRowId ? getRowId(selectedRow) : selectedRow.id;
+          const selectedRowId = getRowId ? getRowId(selectedRow) : (selectedRow.id as string);
           return selectedRowId !== rowId;
         });
       }
@@ -373,14 +371,14 @@ export const Table = forwardRef<HTMLDivElement, TableProps>(
     };
 
     // Check if row is selected
-    const isRowSelected = (row: T) => {
+    const isRowSelected = (row: Record<string, unknown>) => {
       if (!selectionConfig) return false;
 
       const { selectedRows, getRowId } = selectionConfig;
-      const rowId = getRowId ? getRowId(row) : row.id;
+      const rowId = getRowId ? getRowId(row) : (row.id as string);
 
       return selectedRows.some(selectedRow => {
-        const selectedRowId = getRowId ? getRowId(selectedRow) : selectedRow.id;
+        const selectedRowId = getRowId ? getRowId(selectedRow) : (selectedRow.id as string);
         return selectedRowId === rowId;
       });
     };
@@ -401,7 +399,7 @@ export const Table = forwardRef<HTMLDivElement, TableProps>(
     const visibleColumns = columns.filter(column => !column.hidden);
 
     // Get cell value
-    const getCellValue = (row: T, column: TableColumn<T>) => {
+    const getCellValue = (row: Record<string, unknown>, column: TableColumn<Record<string, unknown>>) => {
       if (column.accessor) {
         if (typeof column.accessor === 'function') {
           return column.accessor(row);
@@ -585,7 +583,7 @@ export const Table = forwardRef<HTMLDivElement, TableProps>(
               {paginationConfig.onPageSizeChange && paginationConfig.pageSizeOptions && (
                 <Select
                   value={paginationConfig.pageSize}
-                  onChange={(value) => paginationConfig.onPageSizeChange!(Number(value))}
+                  onChange={(value: string | number) => paginationConfig.onPageSizeChange!(Number(value))}
                   options={paginationConfig.pageSizeOptions.map(size => ({
                     value: size,
                     label: `${size} per page`,

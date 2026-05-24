@@ -1,10 +1,7 @@
-// @ts-nocheck
-
 import React from 'react';
-import { DataTable } from '@/shared/components/data-display/DataTable';
+import { DataTable, Column } from '@/shared/components/data-display/DataTable';
 import { AssetData } from '../types/assets-list.types';
 import { formatNumber, formatDate } from '@/shared/utils/formatters';
-import { ColumnDef } from '@tanstack/react-table';
 
 interface AssetsTableProps {
   assets: AssetData[];
@@ -13,61 +10,61 @@ interface AssetsTableProps {
 }
 
 export const AssetsTable: React.FC<AssetsTableProps> = ({ assets, loading, onRowClick }) => {
-  const columns: ColumnDef<AssetData>[] = [
+  const columns: Column<AssetData>[] = [
     {
-      accessorKey: 'numeroActif',
+      key: 'numeroActif',
       header: 'N° Actif',
-      cell: ({ row }) => <span className="font-medium">{row.original.numeroActif}</span>,
+      render: (_value, row) => <span className="font-medium">{row.numeroActif}</span>,
     },
     {
-      accessorKey: 'identifiantActif',
+      key: 'identifiantActif',
       header: 'Identifiant',
     },
     {
-      accessorKey: 'description',
+      key: 'description',
       header: 'Description',
-      cell: ({ row }) => (
-        <span className="max-w-xs truncate block" title={row.original.description}>
-          {row.original.description}
+      render: (_value, row) => (
+        <span className="max-w-xs truncate block" title={row.description}>
+          {row.description}
         </span>
       ),
     },
     {
-      accessorKey: 'typeActif',
+      key: 'typeActif',
       header: 'Type',
     },
     {
-      accessorKey: 'categorie',
+      key: 'categorie',
       header: 'Catégorie',
     },
     {
-      accessorKey: 'classe',
+      key: 'classe',
       header: 'Classe',
     },
     {
-      accessorKey: 'dateAcquisition',
+      key: 'dateAcquisition',
       header: 'Date Acquisition',
-      cell: ({ row }) => formatDate(row.original.dateAcquisition),
+      render: (_value, row) => formatDate(row.dateAcquisition),
     },
     {
-      accessorKey: 'coutHistorique',
+      key: 'coutHistorique',
       header: 'Coût Historique',
-      cell: ({ row }) => `${formatNumber(row.original.coutHistorique)} FCFA`,
+      render: (_value, row) => `${formatNumber(row.coutHistorique)} FCFA`,
     },
     {
-      accessorKey: 'valeurNetteComptableCloture',
+      key: 'valeurNetteComptableCloture',
       header: 'VNC',
-      cell: ({ row }) => `${formatNumber(row.original.valeurNetteComptableCloture)} FCFA`,
+      render: (_value, row) => `${formatNumber(row.valeurNetteComptableCloture)} FCFA`,
     },
     {
-      accessorKey: 'amortissementTotal',
+      key: 'amortissementTotal',
       header: 'Amortissement',
-      cell: ({ row }) => `${formatNumber(row.original.amortissementTotal)} FCFA`,
+      render: (_value, row) => `${formatNumber(row.amortissementTotal)} FCFA`,
     },
     {
-      accessorKey: 'dureeVieActif',
+      key: 'dureeVieActif',
       header: 'Durée Vie',
-      cell: ({ row }) => `${row.original.dureeVieActif} ans`,
+      render: (_value, row) => `${row.dureeVieActif} ans`,
     },
   ];
 

@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * Report Journal Page — Page indépendante listant tous les rapports
  * Avec filtres, statuts, actions, et bouton "Nouveau Rapport" vers le Builder

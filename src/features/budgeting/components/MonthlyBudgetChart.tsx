@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React from 'react';
 import {
   LineChart,
@@ -56,7 +54,7 @@ export const MonthlyBudgetChart: React.FC<MonthlyBudgetChartProps> = ({
         ))}
         {payload[0].payload.variance !== undefined && (
           <p className="text-sm text-[var(--color-text-tertiary)] mt-1 pt-1 border-t border-[var(--color-border)]">
-            Écart: {formatCurrency(Math.abs(payload[0].payload.variance))}
+            Écart: {formatCurrency(Math.abs(payload[0].payload.variance as number))}
           </p>
         )}
       </div>

@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * Atlas F&A Design System - Select Component
  * Fully accessible select with validation and custom styling
@@ -372,6 +370,10 @@ export const CustomSelect = forwardRef<HTMLButtonElement, CustomSelectProps>(
       disabled = false,
       id,
       'aria-describedby': ariaDescribedBy,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      onClick: _onClick,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      onKeyDown: _onKeyDown,
       ...props
     },
     ref

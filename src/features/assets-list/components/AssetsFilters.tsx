@@ -1,8 +1,6 @@
-// @ts-nocheck
-
-import React, { useState } from 'react';
-import { Input } from '@/shared/components/form/Input';
-import { Select } from '@/shared/components/form/Select';
+import React, { useState, ChangeEvent } from 'react';
+import { Input } from '@/shared/components/ui/Form/Input';
+import { Select } from '@/shared/components/ui/Form/Select';
 import { Button } from '@/shared/components/ui/Button';
 import { Search, Filter, X } from 'lucide-react';
 import { AssetsFilters as Filters } from '../types/assets-list.types';
@@ -49,7 +47,7 @@ export const AssetsFilters: React.FC<AssetsFiltersProps> = ({
             icon={Search}
             placeholder="Rechercher par numéro, identifiant ou description..."
             value={filters.search || ''}
-            onChange={(e) => onFiltersChange({ ...filters, search: e.target.value })}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => onFiltersChange({ ...filters, search: e.target.value })}
           />
         </div>
         <Button
@@ -75,22 +73,22 @@ export const AssetsFilters: React.FC<AssetsFiltersProps> = ({
           <Select
             label="Type d'actif"
             multiple
-            value={filters.typeActif || []}
-            onChange={(value) => onFiltersChange({ ...filters, typeActif: value as string[] })}
+            value={filters.typeActif?.[0] || ''}
+            onChange={(e: ChangeEvent<HTMLSelectElement>) => onFiltersChange({ ...filters, typeActif: [e.target.value] })}
             options={typeOptions}
           />
           <Select
             label="Catégorie"
             multiple
-            value={filters.categorie || []}
-            onChange={(value) => onFiltersChange({ ...filters, categorie: value as string[] })}
+            value={filters.categorie?.[0] || ''}
+            onChange={(e: ChangeEvent<HTMLSelectElement>) => onFiltersChange({ ...filters, categorie: [e.target.value] })}
             options={categorieOptions}
           />
           <Select
             label="Classe"
             multiple
-            value={filters.classe || []}
-            onChange={(value) => onFiltersChange({ ...filters, classe: value as string[] })}
+            value={filters.classe?.[0] || ''}
+            onChange={(e: ChangeEvent<HTMLSelectElement>) => onFiltersChange({ ...filters, classe: [e.target.value] })}
             options={classeOptions}
           />
         </div>

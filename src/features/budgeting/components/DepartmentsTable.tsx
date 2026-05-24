@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React from 'react';
 import { DataTable, Column } from '@/shared/components/data-display/DataTable';
 import { Badge } from '@/shared/components/ui/Badge';
@@ -62,7 +60,7 @@ export const DepartmentsTable: React.FC<DepartmentsTableProps> = ({
               )}
             </button>
           )}
-          <span className="font-medium">{value}</span>
+          <span className="font-medium">{value as string}</span>
         </div>
       ),
     },

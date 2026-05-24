@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React from 'react';
 import { DataTable, Column } from '@/shared/components/data-display/DataTable';
 import { Button } from '@/shared/components/ui/Button';
@@ -47,7 +45,7 @@ export const LedgerAccountsTable: React.FC<LedgerAccountsTableProps> = ({
               )}
             </button>
           )}
-          <span className="font-mono font-semibold">{value}</span>
+          <span className="font-mono font-semibold">{value as string}</span>
         </div>
       ),
     },

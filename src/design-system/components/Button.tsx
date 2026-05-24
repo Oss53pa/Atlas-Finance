@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * Atlas F&A Design System - Button Component
  * Fully accessible button with all states and responsive design
@@ -262,7 +260,7 @@ export const buttonTailwindConfig = {
     extend: {
       colors: {
         primary: theme.colors.primary,
-        secondary: theme.colors.secondary,
+        secondary: theme.colors.neutral,
       },
       animation: {
         'spin': 'spin 1s linear infinite',
