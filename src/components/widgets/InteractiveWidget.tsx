@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * Widget Interactif Configurable Atlas F&A
  * Widgets drag & drop avec personnalisation selon cahier des charges
@@ -31,13 +29,9 @@ import {
   Button,
   LoadingSpinner,
   Progress,
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger
 } from '../ui';
 import { LineChart, BarChart, PieChart } from '../charts';
-import { formatCurrency, formatDate, formatPercent } from '../../lib/utils';
+import { formatCurrency } from '../../lib/utils';
 
 interface WidgetConfig {
   refreshInterval?: number;
@@ -193,30 +187,31 @@ const InteractiveWidget: React.FC<WidgetProps> = ({
 
   const renderKPIWidget = () => {
     if (!widgetData) return null;
+    const kpiData = widgetData as { trend?: string; value?: number; change?: number; submetrics?: Record<string, number> };
 
-    const TrendIcon = widgetData.trend === 'up' ? TrendingUp : TrendingDown;
-    const trendColor = widgetData.trend === 'up' ? 'text-green-600' : 'text-red-600';
+    const TrendIcon = kpiData.trend === 'up' ? TrendingUp : TrendingDown;
+    const trendColor = kpiData.trend === 'up' ? 'text-green-600' : 'text-red-600';
 
     return (
       <div className="p-4">
         <div className="flex items-center justify-between">
           <div className="flex-1">
             <div className="text-lg font-bold text-gray-900">
-              {dataSource.includes('treasury') || dataSource.includes('customer') || dataSource.includes('supplier') 
-                ? formatCurrency(widgetData.value)
-                : widgetData.value}
+              {dataSource.includes('treasury') || dataSource.includes('customer') || dataSource.includes('supplier')
+                ? formatCurrency(kpiData.value ?? 0)
+                : kpiData.value}
             </div>
             <div className={`flex items-center mt-1 ${trendColor}`}>
               <TrendIcon className="h-4 w-4 mr-1" />
               <span className="text-sm font-medium">
-                {widgetData.change > 0 ? '+' : ''}{widgetData.change}%
+                {(kpiData.change ?? 0) > 0 ? '+' : ''}{kpiData.change ?? 0}%
               </span>
             </div>
           </div>
           
-          {config.showSubMetrics && widgetData.submetrics && (
+          {config.showSubMetrics && kpiData.submetrics && (
             <div className="text-right text-sm text-gray-600">
-              {Object.entries(widgetData.submetrics).map(([key, value]) => (
+              {Object.entries(kpiData.submetrics).map(([key, value]) => (
                 <div key={key} className="flex justify-between">
                   <span>{key}:</span>
                   <span className="font-mono ml-2">{formatCurrency(value as number)}</span>
@@ -231,15 +226,17 @@ const InteractiveWidget: React.FC<WidgetProps> = ({
 
   const renderChartWidget = () => {
     if (!widgetData) return null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const chartData = widgetData as any;
 
     // Chart selon configuration
     if (config.chartType === 'line') {
       return (
         <div className="p-2">
           <LineChart
-            data={widgetData.chartData || []}
+            data={chartData.chartData || []}
             xAxisKey={config.xAxisKey || 'date'}
-            lines={config.lines || []}
+            lines={(config.lines || []) as unknown as { key: string; name: string; color: string }[]}
             height={size === 'large' ? 200 : size === 'medium' ? 150 : 100}
           />
         </div>
@@ -250,7 +247,7 @@ const InteractiveWidget: React.FC<WidgetProps> = ({
       return (
         <div className="p-2">
           <PieChart
-            data={widgetData.breakdown ? Object.entries(widgetData.breakdown).map(([key, value]) => ({
+            data={chartData.breakdown ? Object.entries(chartData.breakdown as Record<string, unknown>).map(([key, value]) => ({
               name: key,
               value: value
             })) : []}
@@ -265,9 +262,9 @@ const InteractiveWidget: React.FC<WidgetProps> = ({
     return (
       <div className="p-2">
         <BarChart
-          data={widgetData.chartData || []}
+          data={chartData.chartData || []}
           xAxisKey={config.xAxisKey || 'category'}
-          bars={config.bars || []}
+          bars={(config.bars || []) as unknown as { key: string; name: string; color: string }[]}
           height={size === 'large' ? 200 : 150}
         />
       </div>
@@ -275,12 +272,15 @@ const InteractiveWidget: React.FC<WidgetProps> = ({
   };
 
   const renderTableWidget = () => {
-    if (!widgetData?.ratios) return null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const tableData = widgetData as any;
+    if (!tableData?.ratios) return null;
+    const ratios = tableData.ratios as Array<{ name: string; value: number; benchmark: number; status: string }>;
 
     return (
       <div className="p-3">
         <div className="space-y-2">
-          {widgetData.ratios.slice(0, size === 'large' ? 6 : 3).map((ratio, index) => (
+          {ratios.slice(0, size === 'large' ? 6 : 3).map((ratio, index) => (
             <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
               <span className="text-sm font-medium">{ratio.name}</span>
               <div className="text-right">
@@ -340,36 +340,36 @@ const InteractiveWidget: React.FC<WidgetProps> = ({
             </Badge>
             
             {/* Menu actions */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
+            <details className="relative">
+              <summary className="list-none">
                 <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
                   <MoreVertical className="h-3 w-3" />
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => refetch()}>
+              </summary>
+              <div className="absolute right-0 mt-1 w-40 bg-white border border-gray-200 rounded shadow-lg z-50 text-sm">
+                <button onClick={() => refetch()} className="flex items-center w-full px-3 py-2 hover:bg-gray-50">
                   <RefreshCw className="h-3 w-3 mr-2" />
                   Actualiser
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setIsExpanded(!isExpanded)}>
+                </button>
+                <button onClick={() => setIsExpanded(!isExpanded)} className="flex items-center w-full px-3 py-2 hover:bg-gray-50">
                   {isExpanded ? <Minimize2 className="h-3 w-3 mr-2" /> : <Maximize2 className="h-3 w-3 mr-2" />}
                   {isExpanded ? 'Réduire' : 'Agrandir'}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onConfigure?.(id)}>
+                </button>
+                <button onClick={() => onConfigure?.(id)} className="flex items-center w-full px-3 py-2 hover:bg-gray-50">
                   <Settings className="h-3 w-3 mr-2" />
                   Configurer
-                </DropdownMenuItem>
-                <DropdownMenuItem>
+                </button>
+                <button className="flex items-center w-full px-3 py-2 hover:bg-gray-50">
                   <Download className="h-3 w-3 mr-2" />
                   Exporter
-                </DropdownMenuItem>
+                </button>
                 {onRemove && (
-                  <DropdownMenuItem onClick={() => onRemove(id)} className="text-red-600">
+                  <button onClick={() => onRemove(id)} className="flex items-center w-full px-3 py-2 hover:bg-gray-50 text-red-600">
                     Supprimer
-                  </DropdownMenuItem>
+                  </button>
                 )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+              </div>
+            </details>
           </div>
         </div>
       </CardHeader>
@@ -382,7 +382,7 @@ const InteractiveWidget: React.FC<WidgetProps> = ({
         {/* Footer avec métadonnées */}
         <div className="px-3 py-1 border-t bg-gray-50 text-xs text-gray-700 flex items-center justify-between">
           <span>
-            Maj: {formatDate(new Date(), 'HH:mm')}
+            Maj: {new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
           </span>
           <div className="flex items-center space-x-2">
             {config.realtime && (

@@ -1,6 +1,5 @@
-// @ts-nocheck
-
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import type { DBJournalEntry, DBAccount } from '../../lib/db';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
 import { useData } from '../../contexts/DataContext';
@@ -121,8 +120,8 @@ const AdvancedGeneralLedger: React.FC = () => {
   const { data: accountsData = [] } = useQuery<AccountData[]>({
     queryKey: ['advanced-general-ledger', dateRange.start, dateRange.end],
     queryFn: async () => {
-      const entries = await adapter.getAll('journalEntries');
-      const accounts = await adapter.getAll('accounts');
+      const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
+      const accounts = await adapter.getAll<DBAccount>('accounts');
       const accountNames = new Map(accounts.map(a => [a.code, a.name]));
 
       const accountMap = new Map<string, AccountData>();

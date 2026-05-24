@@ -1,12 +1,10 @@
-// @ts-nocheck
-
 import React, { useState } from 'react';
 import { useMoneyFormat } from '../../hooks/useMoneyFormat';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
 import { useData } from '../../contexts/DataContext';
+import type { DBJournalEntry } from '../../lib/db';
 import {
-  ChartBarIcon,
   ChartBarIcon,
   ArrowUpIcon,
   ArrowDownIcon,
@@ -100,7 +98,7 @@ const SIGDashboard: React.FC = () => {
   const { data: sigData, isLoading } = useQuery({
     queryKey: ['sig-data', selectedPeriod],
     queryFn: async (): Promise<SIGData> => {
-      const entries = await adapter.getAll('journalEntries');
+      const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
       const net = (...pfx: string[]) => {
         let t = 0;
         for (const e of entries) for (const l of e.lines)
@@ -297,7 +295,7 @@ const SIGDashboard: React.FC = () => {
                 <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
                 <YAxis />
                 <Tooltip formatter={(value: number) => fmt(value)} />
-                <Bar radius={[6,6,0,0]} dataKey="value" fill={(entry, index) => entry > 0 ? '#171717' : '#C0322B'} />
+                <Bar radius={[6,6,0,0] as [number, number, number, number]} dataKey="value" fill="#171717" />
                 <Line type="monotone" dataKey="cumulative" stroke="#235A6E" strokeWidth={3} name="Cumul" />
               </ComposedChart>
             </ResponsiveContainer>

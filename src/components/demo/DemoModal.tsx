@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * DemoModal — Modal principal de découverte des solutions Atlas Studio
  * Orchestre les 4 modes : Démos interactives, Visite guidée, Tutoriels, Démo live
@@ -65,8 +63,8 @@ const DemoModal: React.FC<DemoModalProps> = ({ isOpen, onClose, initialSolution 
 
   if (!isOpen) return null;
 
-  const demos = INTERACTIVE_DEMOS[solution] || INTERACTIVE_DEMOS['atlas-fna'];
-  const tutorials = TUTORIALS[solution] || TUTORIALS['atlas-fna'];
+  const demos = (INTERACTIVE_DEMOS as Record<string, typeof INTERACTIVE_DEMOS['atlas-fna']>)[solution] || INTERACTIVE_DEMOS['atlas-fna'];
+  const tutorials = (TUTORIALS as Record<string, typeof TUTORIALS['atlas-fna']>)[solution] || TUTORIALS['atlas-fna'];
   const solutionLabel = solution === 'atlas-fna' ? 'Atlas F&A' : solution === 'liass-pilot' ? "Liass'Pilot" : 'DocJourney';
 
   const goBack = () => { setView('menu'); setTutoStep(0); };

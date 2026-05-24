@@ -1,6 +1,5 @@
-// @ts-nocheck
-
 import React, { useState } from 'react';
+import type { DBJournalEntry } from '../../lib/db';
 import { useQuery } from '@tanstack/react-query';
 import { useData } from '../../contexts/DataContext';
 import { formatCurrency } from '../../utils/formatters';
@@ -38,7 +37,7 @@ const JournalDashboard: React.FC = () => {
     queryKey: ['journal-today-summary'],
     queryFn: async () => {
       const today = new Date().toISOString().split('T')[0];
-      const entries = await adapter.getAll('journalEntries');
+      const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
       const todayEntries = entries.filter(e => e.date === today);
       const totalDebit = todayEntries.reduce((s, e) => money(s).add(money(e.totalDebit)).toNumber(), 0);
       const totalCredit = todayEntries.reduce((s, e) => money(s).add(money(e.totalCredit)).toNumber(), 0);
@@ -56,7 +55,7 @@ const JournalDashboard: React.FC = () => {
   const { data: operationsByType = [] } = useQuery({
     queryKey: ['journal-operations-by-type', dateRange],
     queryFn: async () => {
-      const entries = await adapter.getAll('journalEntries');
+      const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
       const filtered = entries.filter(e => e.date >= dateRange.start && e.date <= dateRange.end);
       const byJournal: Record<string, number> = {};
       for (const e of filtered) byJournal[e.journal] = (byJournal[e.journal] || 0) + 1;
@@ -72,7 +71,7 @@ const JournalDashboard: React.FC = () => {
   const { data: volumeByDay = [] } = useQuery({
     queryKey: ['journal-volume-by-day'],
     queryFn: async () => {
-      const entries = await adapter.getAll('journalEntries');
+      const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
       const days = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
       const result: { day: string; entries: number; validated: number; pending: number }[] = [];
       for (let i = 6; i >= 0; i--) {
@@ -94,7 +93,7 @@ const JournalDashboard: React.FC = () => {
   const { data: alerts = [] } = useQuery({
     queryKey: ['journal-alerts'],
     queryFn: async () => {
-      const entries = await adapter.getAll('journalEntries');
+      const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
       const drafts = entries.filter(e => e.status === 'draft').length;
       const unbalanced = entries.filter(e => money(e.totalDebit).subtract(money(e.totalCredit)).abs().toNumber() > 1).length;
       const result: { type: string; message: string; icon: typeof AlertTriangle }[] = [];
@@ -109,7 +108,7 @@ const JournalDashboard: React.FC = () => {
   const { data: treasuryData = { cashBalance: 0, bankBalance: 0, totalBalance: 0, dailyIn: 0, dailyOut: 0, netFlow: 0 } } = useQuery({
     queryKey: ['journal-treasury'],
     queryFn: async () => {
-      const entries = await adapter.getAll('journalEntries');
+      const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
       let bankBalance = 0, cashBalance = 0;
       for (const e of entries) {
         for (const l of e.lines) {
@@ -125,7 +124,7 @@ const JournalDashboard: React.FC = () => {
   const { data: treasuryEvolution = [] } = useQuery({
     queryKey: ['journal-treasury-evolution'],
     queryFn: async () => {
-      const entries = await adapter.getAll('journalEntries');
+      const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
       const days = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
       const result: { day: string; encaissements: number; decaissements: number; solde: number }[] = [];
       let runningBalance = 0;
@@ -152,7 +151,7 @@ const JournalDashboard: React.FC = () => {
   const { data: kpis = { avgValidationTime: '0', complianceRate: 100, errorRate: 0, automationRate: 0 } } = useQuery({
     queryKey: ['journal-kpis'],
     queryFn: async () => {
-      const entries = await adapter.getAll('journalEntries');
+      const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
       const total = entries.length || 1;
       const validated = entries.filter(e => e.status !== 'draft').length;
       const errors = entries.filter(e => money(e.totalDebit).subtract(money(e.totalCredit)).abs().toNumber() > 1).length;

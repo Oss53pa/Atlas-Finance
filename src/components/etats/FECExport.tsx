@@ -1,10 +1,9 @@
-// @ts-nocheck
-
 /**
  * FEC Export component — Interface pour generer le Fichier des Ecritures Comptables.
  * Conforme article A.47 A-1 du LPF — 18 colonnes obligatoires.
  */
 import React, { useState, useCallback } from 'react';
+import type { DBFiscalYear } from '../../lib/db';
 import { FileText, Download, CheckCircle, AlertTriangle, Loader2, Eye, Settings } from 'lucide-react';
 import { formatCurrency } from '@/utils/formatters';
 import { generateFEC, validateFEC, downloadFEC, type FECExportOptions, type FECValidationResult } from '../../services/export/fecExportService';
@@ -30,7 +29,7 @@ const FECExport: React.FC = () => {
   // Load fiscal years on mount
   React.useEffect(() => {
     let mounted = true;
-    adapter.getAll('fiscalYears').then(years => {
+    adapter.getAll<DBFiscalYear>('fiscalYears').then(years => {
       if (!mounted) return;
       setFiscalYears(years.map(y => ({ id: y.id, name: y.name, startDate: y.startDate, endDate: y.endDate })));
       if (years.length > 0) {
@@ -66,7 +65,7 @@ const FECExport: React.FC = () => {
     setIsValidating(true);
     setValidation(null);
     try {
-      const result = await validateFEC(getOptions());
+      const result = await validateFEC(adapter, getOptions());
       setValidation(result);
     } catch (e: unknown) {
       setValidation({ valid: false, errors: [(e instanceof Error ? e.message : 'Erreur de validation')], warnings: [], lineCount: 0, totalDebit: 0, totalCredit: 0 });
@@ -78,7 +77,7 @@ const FECExport: React.FC = () => {
     setIsExporting(true);
     setExportResult(null);
     try {
-      const result = await generateFEC(getOptions());
+      const result = await generateFEC(adapter, getOptions());
       if (result.success && result.data && result.filename) {
         downloadFEC(result.data, result.filename, encoding);
         setExportResult({ filename: result.filename, lines: result.lineCount || 0 });

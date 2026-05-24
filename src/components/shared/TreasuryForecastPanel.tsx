@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * Panneau de Prévisions de Trésorerie Unifié
  * Consolidation créances/dettes selon section 4.2
@@ -42,7 +40,7 @@ import {
   TabsTrigger
 } from '../ui';
 import { LineChart, BarChart } from '../charts';
-import { reconciliationService } from '../../services';
+import { reconciliationService } from '../../services/reconciliation.service';
 import { formatCurrency, formatDate, formatPercent } from '../../lib/utils';
 
 interface TreasuryForecastPanelProps {

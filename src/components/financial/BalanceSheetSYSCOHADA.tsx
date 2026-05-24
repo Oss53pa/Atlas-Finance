@@ -1,8 +1,7 @@
-// @ts-nocheck
-
 import React, { useState } from 'react';
 import { useMoneyFormat } from '../../hooks/useMoneyFormat';
 import { useLanguage } from '../../contexts/LanguageContext';
+import type { DBJournalEntry } from '../../lib/db';
 import { useQuery } from '@tanstack/react-query';
 import { useData } from '../../contexts/DataContext';
 import {
@@ -10,7 +9,7 @@ import {
   CheckCircleIcon,
   ExclamationTriangleIcon,
   CalendarIcon,
-  BuildingIcon,
+  BuildingOfficeIcon,
   ScaleIcon,
   EyeIcon,
   ArrowDownTrayIcon
@@ -115,8 +114,8 @@ const BalanceSheetSYSCOHADA: React.FC = () => {
   const { data: balanceData, isLoading } = useQuery({
     queryKey: ['balance-sheet-syscohada', selectedPeriod],
     queryFn: async (): Promise<BalanceSheetData> => {
-      const entries = await adapter.getAll('journalEntries');
-      const settings = await adapter.getById('settings', 'company_name');
+      const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
+      const settings = await adapter.getById<{ value: string }>('settings', 'company_name');
 
       // Helper: net balance (debit - credit)
       const net = (...pfx: string[]) => {

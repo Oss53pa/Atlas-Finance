@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { useForm, Controller, useFieldArray } from 'react-hook-form';

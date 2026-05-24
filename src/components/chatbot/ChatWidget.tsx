@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * ChatWidget Component
  * Widget de chat flottant pour l'assistance utilisateur
@@ -82,7 +80,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
   if (!isOpen) {
     return (
       <button
-        ref={dragRef}
+        ref={dragRef as unknown as React.RefObject<HTMLButtonElement>}
         className={`chat-widget-toggle ${className} ${isDragging ? 'dragging' : ''}`}
         onClick={onToggle}
         aria-label="Ouvrir Proph3t, votre assistante Atlas Studio"

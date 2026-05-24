@@ -1,6 +1,5 @@
-// @ts-nocheck
-
 import React, { useState, useMemo } from 'react';
+import type { DBJournalEntry, DBAccount } from '../../lib/db';
 import { useQuery } from '@tanstack/react-query';
 import { useData } from '../../contexts/DataContext';
 import { verifyTrialBalance } from '../../services/trialBalanceService';
@@ -102,8 +101,8 @@ const AdvancedBalance: React.FC = () => {
   const { data: balanceData = [] } = useQuery<BalanceData[]>({
     queryKey: ['advanced-balance', dateRange.start, dateRange.end],
     queryFn: async () => {
-      const entries = await adapter.getAll('journalEntries');
-      const accounts = await adapter.getAll('accounts');
+      const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
+      const accounts = await adapter.getAll<DBAccount>('accounts');
       const accountNames = new Map(accounts.map(a => [a.code, a.name]));
 
       const movements = new Map<string, { debit: number; credit: number; name: string; centreCout?: string }>();
@@ -179,7 +178,7 @@ const AdvancedBalance: React.FC = () => {
   // Trial balance verification
   const { data: trialBalance } = useQuery({
     queryKey: ['trial-balance-check', dateRange],
-    queryFn: () => verifyTrialBalance(dateRange.start?.substring(0, 4)),
+    queryFn: () => verifyTrialBalance(adapter, dateRange.start?.substring(0, 4)),
     enabled: balanceData.length > 0,
   });
 

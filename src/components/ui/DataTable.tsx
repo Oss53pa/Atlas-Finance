@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import {
@@ -119,15 +117,15 @@ function DataTable<T extends Record<string, unknown>>({
     // Tri local si pas de callback onSort
     if (sortKey && !onSort) {
       filtered.sort((a, b) => {
-        const aVal = a[sortKey];
-        const bVal = b[sortKey];
-        
+        const aVal = a[sortKey] as string | number | boolean | null | undefined;
+        const bVal = b[sortKey] as string | number | boolean | null | undefined;
+
         if (aVal === bVal) return 0;
-        
+
         if (sortDirection === 'asc') {
-          return aVal > bVal ? 1 : -1;
+          return (aVal ?? '') > (bVal ?? '') ? 1 : -1;
         } else {
-          return aVal < bVal ? 1 : -1;
+          return (aVal ?? '') < (bVal ?? '') ? 1 : -1;
         }
       });
     }
@@ -224,7 +222,7 @@ function DataTable<T extends Record<string, unknown>>({
         return (
           <SearchableDropdown
             options={column.filterOptions || []}
-            value={filters[column.key as string] || ''}
+            value={(filters[column.key as string] as string) || ''}
             onChange={(value) => handleFilterChange(column.key as string, value)}
             placeholder="Sélectionner"
             clearable
@@ -235,7 +233,7 @@ function DataTable<T extends Record<string, unknown>>({
         return (
           <input
             type="date"
-            value={filters[column.key as string] || ''}
+            value={(filters[column.key as string] as string) || ''}
             onChange={(e) => handleFilterChange(column.key as string, e.target.value)}
             className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
           />
@@ -244,7 +242,7 @@ function DataTable<T extends Record<string, unknown>>({
         return (
           <input
             type="number"
-            value={filters[column.key as string] || ''}
+            value={(filters[column.key as string] as string) || ''}
             onChange={(e) => handleFilterChange(column.key as string, e.target.value)}
             placeholder="Valeur"
             className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
@@ -254,7 +252,7 @@ function DataTable<T extends Record<string, unknown>>({
         return (
           <input
             type="text"
-            value={filters[column.key as string] || ''}
+            value={(filters[column.key as string] as string) || ''}
             onChange={(e) => handleFilterChange(column.key as string, e.target.value)}
             placeholder="Filtrer..."
             className="w-full px-2 py-1 border border-gray-300 rounded text-sm"

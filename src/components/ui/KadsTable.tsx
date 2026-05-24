@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React, { ReactNode } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { Search, Filter, Download, Eye, Edit, Trash2 } from 'lucide-react';
@@ -127,9 +125,9 @@ const KadsTable: React.FC<KadsTableProps> = ({
                         column.align === 'right' ? 'text-right' : 'text-left'}
                     `}
                   >
-                    {column.render 
+                    {column.render
                       ? column.render(row[column.key], row)
-                      : row[column.key]
+                      : (row[column.key] as React.ReactNode)
                     }
                   </td>
                 ))}

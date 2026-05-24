@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React, { useState } from 'react';
 import { Calendar, Clock } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../ui/Dialog';
@@ -98,7 +96,7 @@ export const ScheduleModal: React.FC<ScheduleModalProps> = ({
             <Label>Fréquence</Label>
             <Select
               value={config.frequency}
-              onValueChange={(value: string) => setConfig({ ...config, frequency: value })}
+              onValueChange={(value: string) => setConfig({ ...config, frequency: value as ScheduleConfig['frequency'] })}
             >
               <SelectTrigger className="mt-2">
                 <SelectValue />
@@ -187,14 +185,14 @@ export const ScheduleModal: React.FC<ScheduleModalProps> = ({
             <label className="flex items-center space-x-2 cursor-pointer">
               <Checkbox
                 checked={config.active}
-                onCheckedChange={(checked) => setConfig({ ...config, active: !!checked })}
+                onChange={(e) => setConfig({ ...config, active: e.target.checked })}
               />
               <Label className="cursor-pointer">Planification active</Label>
             </label>
             <label className="flex items-center space-x-2 cursor-pointer">
               <Checkbox
                 checked={config.notification}
-                onCheckedChange={(checked) => setConfig({ ...config, notification: !!checked })}
+                onChange={(e) => setConfig({ ...config, notification: e.target.checked })}
               />
               <Label className="cursor-pointer">Recevoir une notification</Label>
             </label>

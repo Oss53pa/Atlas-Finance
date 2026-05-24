@@ -1,7 +1,4 @@
-// @ts-nocheck
-
 import React from 'react';
-import { useLanguage } from '../../contexts/LanguageContext';
 
 interface Header {
   name: string;
@@ -18,13 +15,12 @@ export const CashFlowCashAccountManagement_content_funCalls: React.FC<ContentFun
   listFilter,
   headerList
 }) => {
-  const { t } = useLanguage();
   return (
     <div className="finance-drawer-content">
       <h6>Gestion des Appels de Fonds</h6>
       <div className="row">
         <div className="col-md-6">
-          <h7>Filtres Disponibles:</h7>
+          <p className="fw-bold">Filtres Disponibles:</p>
           <ul className="list-group">
             <li className="list-group-item">Filtrer par date</li>
             <li className="list-group-item">Filtrer par statut</li>
@@ -32,7 +28,7 @@ export const CashFlowCashAccountManagement_content_funCalls: React.FC<ContentFun
           </ul>
         </div>
         <div className="col-md-6">
-          <h7>Colonnes:</h7>
+          <p className="fw-bold">Colonnes:</p>
           <ul className="list-group">
             {headerList.map((header, index) => (
               <li key={index} className="list-group-item">{header.name}</li>
@@ -59,7 +55,7 @@ export const cashFlowCashAccountManagement_items_funCalls = [
   },
   {
     id: 'refresh',
-    title: t('common.refresh'),
+    title: 'Actualiser',
     icon: 'refresh',
     action: 'refresh'
   }
@@ -82,7 +78,7 @@ export const Finance_Content_Prevision_Tresorerie: React.FC<ContentPrevisionTres
       <h6>Outils de Prévision Trésorerie</h6>
       <div className="row">
         <div className="col-md-6">
-          <h7>Analyses Disponibles:</h7>
+          <p className="fw-bold">Analyses Disponibles:</p>
           <ul className="list-group">
             <li className="list-group-item">
               <i className="fas fa-chart-line me-2"></i>Évolution des flux
@@ -96,7 +92,7 @@ export const Finance_Content_Prevision_Tresorerie: React.FC<ContentPrevisionTres
           </ul>
         </div>
         <div className="col-md-6">
-          <h7>Périodes:</h7>
+          <p className="fw-bold">Périodes:</p>
           <ul className="list-group">
             {headerList.slice(0, 6).map((header, index) => (
               <li key={index} className="list-group-item">

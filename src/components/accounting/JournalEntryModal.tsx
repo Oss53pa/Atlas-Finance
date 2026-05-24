@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { formatCurrency } from '@/utils/formatters';
@@ -125,9 +123,9 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
     let cancelled = false;
     (async () => {
       try {
-        const accounts = await adapter.getAll('accounts');
+        const accounts = await adapter.getAll<{ code?: string; name?: string; libelle?: string; isActive?: boolean; actif?: boolean }>('accounts');
         if (cancelled) return;
-        const mapped = (accounts as Array<{ code?: string; name?: string; libelle?: string; isActive?: boolean; actif?: boolean }>)
+        const mapped = accounts
           .filter((a) => a && a.code && a.isActive !== false && a.actif !== false)
           .map((a) => ({ code: String(a.code), libelle: String(a.name ?? a.libelle ?? a.code) }))
           .sort((x, y) => x.code.localeCompare(y.code));
@@ -582,7 +580,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
       }
 
       // Générer le numéro de pièce séquentiel
-      const entryNumber = await getNextPieceNumber(journalCode);
+      const entryNumber = await getNextPieceNumber(adapter, journalCode);
 
       await safeAddEntry(adapter, {
         id: crypto.randomUUID(),
@@ -840,7 +838,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                       const fn = target === 'validated' ? validerEcriture
                         : target === 'posted' ? comptabiliserEcriture
                         : retourBrouillon;
-                      const res = await fn(String(initialData.id));
+                      const res = await fn(adapter, String(initialData.id));
                       if (res.success) {
                         onClose();
                       } else {

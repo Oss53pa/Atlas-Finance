@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * Dashboard Comptabilité Fournisseur Avancé
  * Optimisation des paiements et gestion des dettes selon spécifications 3.0
@@ -119,13 +117,13 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
 
   const { data: paymentOptimization, isLoading: paymentLoading } = useQuery<any>({
     queryKey: ['payment-optimization', companyId, filters, dateRange],
-    queryFn: () => supplierService.getPaymentOptimization({ companyId, filters: filters as Record<string, unknown> }) as Promise<unknown>,
+    queryFn: () => supplierService.getPaymentOptimization({ companyId, filters: filters as unknown as Record<string, unknown> }) as Promise<unknown>,
     refetchInterval: autoRefresh ? 300000 : false,
   });
 
   const { data: supplierAnalytics, isLoading: analyticsLoading } = useQuery<any>({
     queryKey: ['supplier-analytics', companyId, filters, dateRange],
-    queryFn: () => supplierService.getAnalytics({ companyId, filters: filters as Record<string, unknown> }) as Promise<unknown>,
+    queryFn: () => supplierService.getAnalytics({ companyId, filters: filters as unknown as Record<string, unknown> }) as Promise<unknown>,
   });
 
   const { data: performanceData, isLoading: performanceLoading } = useQuery<any>({
@@ -378,7 +376,7 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
                   <LoadingSpinner text="Chargement échéances..." />
                 ) : (
                   <div className="space-y-3">
-                    {paymentOptimization?.upcomingPayments?.map((payment, index) => (
+                    {paymentOptimization?.upcomingPayments?.map((payment: any, index: number) => (
                       <div key={index} className="flex items-center justify-between p-3 border rounded-lg hover:bg-[var(--color-background-secondary)]">
                         <div className="flex items-center space-x-3">
                           <Badge className={`
@@ -492,7 +490,7 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
 
                   {/* Liste des propositions */}
                   <div className="space-y-3">
-                    {paymentOptimization?.smartProposals?.map((proposal, index) => (
+                    {paymentOptimization?.smartProposals?.map((proposal: any, index: number) => (
                       <div key={index} className={`
                         p-4 border rounded-lg 
                         ${proposal.priority === 'HIGH' ? 'border-green-300 bg-[var(--color-success-lightest)]' :
@@ -603,7 +601,7 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
                       Top Performers
                     </h4>
                     <div className="space-y-2">
-                      {performanceData?.topPerformers?.map((supplier, index) => (
+                      {performanceData?.topPerformers?.map((supplier: any, index: number) => (
                         <div key={supplier.code} className="flex items-center justify-between p-2 bg-[var(--color-success-lightest)] rounded">
                           <span className="font-medium">{supplier.name}</span>
                           <div className="flex items-center space-x-2">
@@ -624,7 +622,7 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
                       Attention Requise
                     </h4>
                     <div className="space-y-2">
-                      {performanceData?.requiresAttention?.map((supplier, index) => (
+                      {performanceData?.requiresAttention?.map((supplier: any, index: number) => (
                         <div key={supplier.code} className="flex items-center justify-between p-2 bg-[var(--color-error-lightest)] rounded">
                           <span className="font-medium">{supplier.name}</span>
                           <div className="flex items-center space-x-2">
@@ -723,7 +721,7 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {paymentOptimization?.discountOpportunities?.map((opportunity, index) => (
+                    {paymentOptimization?.discountOpportunities?.map((opportunity: any, index: number) => (
                       <TableRow key={index}>
                         <TableCell className="font-medium">
                           {opportunity.supplierName}
@@ -817,7 +815,7 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
                   <div className="p-4 bg-[var(--color-primary-lightest)] border border-[var(--color-primary-light)] rounded-lg">
                     <h4 className="font-medium text-[var(--color-primary-darker)] mb-2">Recommandations</h4>
                     <ul className="text-sm text-[var(--color-primary-dark)] space-y-1">
-                      {supplierAnalytics?.recommendations?.map((rec, index) => (
+                      {supplierAnalytics?.recommendations?.map((rec: any, index: number) => (
                         <li key={index}>• {rec}</li>
                       ))}
                     </ul>

@@ -1,12 +1,10 @@
-// @ts-nocheck
-
 /**
  * Advanced Intent Recognition System
  * Système avancé de reconnaissance d'intention avec IA sémantique pour Paloma
  */
 
 import { UserIntent, ChatContext } from '../types';
-import { atlasFinanceKnowledge } from '../knowledge/atlasFinanceKnowledge';
+import { atlasFinanceKnowledge, type KnowledgeEntry } from '../knowledge/atlasFinanceKnowledge';
 
 interface IntentPattern {
   intent: string;
@@ -609,7 +607,7 @@ export class AdvancedIntentRecognizer {
     return Math.min(compatibilityScore, 1.0);
   }
 
-  private calculateKnowledgeRelevance(message: string, entry: { title: string; keywords?: string[]; content?: string; category?: string }): number {
+  private calculateKnowledgeRelevance(message: string, entry: KnowledgeEntry): number {
     const messageWords = this.extractWords(this.normalizeMessage(message));
     let relevanceScore = 0;
 
@@ -659,7 +657,7 @@ export class AdvancedIntentRecognizer {
       ['Facturation', 'invoice_creation']
     ]);
 
-    return subcategory ? subCategoryMap.get(subcategory) : categoryMap.get(category);
+    return (subcategory ? subCategoryMap.get(subcategory) : categoryMap.get(category)) ?? null;
   }
 
   private fusionResults(results: Array<{ result: { intent: string; confidence: number }, weight: number }>): { intent: string; confidence: number } {

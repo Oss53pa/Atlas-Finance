@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * Visite guidée — affiche les vraies pages dans un iframe intégré au modal
  */
@@ -30,7 +28,7 @@ const TOUR_STEPS = {
 };
 
 const GuidedTour: React.FC<{ solution: string; onClose: () => void }> = ({ solution, onClose }) => {
-  const steps = TOUR_STEPS[solution] || TOUR_STEPS['atlas-fna'];
+  const steps = (TOUR_STEPS as Record<string, typeof TOUR_STEPS['atlas-fna']>)[solution] || TOUR_STEPS['atlas-fna'];
   const [current, setCurrent] = useState(0);
   const [started, setStarted] = useState(false);
 

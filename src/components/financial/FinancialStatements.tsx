@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
@@ -107,7 +105,7 @@ const FinancialStatements: React.FC = () => {
   const { t } = useLanguage();
   const fmt = useMoneyFormat();
   const { adapter } = useData();
-  const [activeView, setActiveView] = useState<'etats-principaux' | 'analyses' | 'outils-pilotage'>('etats-principaux');
+  const [activeView, setActiveView] = useState<'etats-principaux' | 'analyses' | 'outils-pilotage' | 'sig' | 'caf'>('etats-principaux');
   const [activeSubView, setActiveSubView] = useState<string>('bilan');
   const [tftMethod, setTftMethod] = useState<'indirect' | 'direct'>('indirect');
   const [tftData, setTftData] = useState<any>(null);
@@ -368,7 +366,7 @@ const FinancialStatements: React.FC = () => {
           <div className="flex items-center space-x-3">
             <select
               value={dateRange.startDate || '2024'}
-              onChange={(e) => setSelectedPeriod(e.target.value)}
+              onChange={(e) => setDateRange({ startDate: e.target.value, endDate: dateRange.endDate })}
               className="px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg"
             >
               <option value="2024">2024</option>
@@ -3319,8 +3317,8 @@ const FinancialStatements: React.FC = () => {
       <PeriodSelectorModal
         isOpen={showPeriodModal}
         onClose={() => setShowPeriodModal(false)}
-        onPeriodSelect={(period) => {
-          setDateRange(period);
+        onApply={(period: { start: string; end: string }) => {
+          setDateRange({ startDate: period.start, endDate: period.end });
           setShowPeriodModal(false);
         }}
       />

@@ -1,8 +1,7 @@
-// @ts-nocheck
-
 import React, { useState } from 'react';
 import { useMoneyFormat } from '../../hooks/useMoneyFormat';
 import { useQuery } from '@tanstack/react-query';
+import type { DBJournalEntry } from '../../lib/db';
 import { useData } from '../../contexts/DataContext';
 import {
   CurrencyDollarIcon,
@@ -85,7 +84,7 @@ const CashFlowStatementSYSCOHADA: React.FC = () => {
   const { data: indirectData, isLoading: loadingIndirect } = useQuery({
     queryKey: ['tft-indirect'],
     queryFn: async (): Promise<CashFlowIndirectData> => {
-      const entries = await adapter.getAll('journalEntries');
+      const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
       const net = (...pfx: string[]) => { let t = 0; for (const e of entries) for (const l of e.lines) if (pfx.some(p => l.accountCode.startsWith(p))) t += l.debit - l.credit; return t; };
       const creditN = (...pfx: string[]) => { let t = 0; for (const e of entries) for (const l of e.lines) if (pfx.some(p => l.accountCode.startsWith(p))) t += l.credit - l.debit; return t; };
 
@@ -115,7 +114,7 @@ const CashFlowStatementSYSCOHADA: React.FC = () => {
   const { data: directData, isLoading: loadingDirect } = useQuery({
     queryKey: ['tft-direct'],
     queryFn: async (): Promise<CashFlowDirectData> => {
-      const entries = await adapter.getAll('journalEntries');
+      const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
 
       // Helpers pour classer les mouvements de trésorerie par contrepartie
       let encClients = 0, autresEncExploit = 0, decFournisseurs = 0, decPersonnel = 0, interetsPayes = 0, impots = 0, autresDecExploit = 0;

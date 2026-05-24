@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React, { useState } from 'react';
 import { cn } from '../../lib/utils';
 
@@ -54,11 +52,6 @@ export const SimpleTabsTrigger: React.FC<{ value: string; children: React.ReactN
   const handleClick = () => {
     const tabsElement = document.querySelector('[data-value]');
     if (tabsElement) {
-      const currentValue = tabsElement.getAttribute('data-value');
-      const onchange = (tabsElement as HTMLElement).dataset.onchange;
-      if (typeof onchange === 'function') {
-        onchange(value);
-      }
       // Force re-render by dispatching custom event
       tabsElement.dispatchEvent(new CustomEvent('tabchange', { detail: value }));
     }
