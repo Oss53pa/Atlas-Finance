@@ -23,14 +23,17 @@ import './styles/globals.css';
 // Retry wrapper for lazy imports — handles chunk loading errors after Vercel deploys
 function lazyRetry(importFn: () => Promise<any>) {
   return React.lazy(() =>
-    importFn().catch(() => {
-      // Chunk not found (new deploy) — reload the page once
+    importFn().catch((err: unknown) => {
+      // Stale chunk after new deploy — hard-reload the page once
       const reloaded = sessionStorage.getItem('chunk-reload');
       if (!reloaded) {
         sessionStorage.setItem('chunk-reload', '1');
         window.location.reload();
+        // Suspend forever while the reload is in flight
+        return new Promise<any>(() => {});
       }
-      return importFn();
+      // Already reloaded and still failing — propagate so ErrorBoundary catches it
+      throw err;
     })
   );
 }
