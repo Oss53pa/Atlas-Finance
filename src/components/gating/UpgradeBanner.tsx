@@ -30,7 +30,7 @@ const FEATURE_LABELS: Record<string, { title: string; description: string }> = {
     description: 'Identifiez les créances en retard et automatisez les relances par tranches d\'âge.',
   },
   proph3t_ia: {
-    title: 'PROPH3T IA avancé',
+    title: 'Proph3t IA avancé',
     description:
       'Assistant IA expert-comptable SYSCOHADA avec suggestions proactives, alertes et corrections automatiques.',
   },

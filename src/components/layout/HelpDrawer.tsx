@@ -176,7 +176,7 @@ export const HelpDrawer: React.FC = () => {
             className="flex items-center justify-center gap-2 w-full py-2 px-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
           >
             <MessageCircle className="w-4 h-4" />
-            PROPH3T Assistant
+            Proph3t Assistant
           </Link>
           <p className="text-xs text-center text-gray-500 pt-1">
             Astuce : appuyez sur <kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded text-xs">F1</kbd> pour ouvrir/fermer ce panneau.

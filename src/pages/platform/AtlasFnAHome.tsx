@@ -603,9 +603,9 @@ const AtlasFnAHome: React.FC = () => {
                   <Brain className="w-4 h-4 text-white" strokeWidth={1.6} />
                 </span>
                 <div>
-                  <h6 className="eyebrow" style={{ fontSize: 10, color: 'var(--color-text-tertiary)' }}>
+                  <h6 className="eyebrow" style={{ fontSize: 10, color: 'var(--color-text-tertiary)', textTransform: 'none' }}>
                     <span className="brand-script" style={{ fontSize: '1.2em', color: 'var(--color-accent-deep)', letterSpacing: 'normal' }}>Proph3t</span>
-                    {' · ASSISTANT IA'}
+                    {' · Assistant IA'}
                   </h6>
                 </div>
               </div>

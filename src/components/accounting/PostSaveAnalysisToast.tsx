@@ -56,7 +56,7 @@ export const PostSaveAnalysisToast: React.FC<Props> = ({
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-1">
             <h4 className="text-sm font-semibold text-neutral-900">
-              Analyse PROPH3T SYSCOHADA
+              Analyse Proph3t SYSCOHADA
             </h4>
             <button
               onClick={onClose}
