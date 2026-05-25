@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Atlas F&A Performance Optimization System
  * Comprehensive performance monitoring and optimization

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Service d'onboarding Atlas Studio.
  * Gère : création org, solutions, subscriptions, invitations.

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Main Performance Hook
  * Provides comprehensive performance monitoring and optimization
