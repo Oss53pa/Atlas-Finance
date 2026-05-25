@@ -8,6 +8,7 @@ import {
 import { ModernCard, CardHeader, CardBody } from '../../components/ui/ModernCard';
 import ModernButton from '../../components/ui/ModernButton';
 import { useData } from '../../contexts/DataContext';
+import { formatCompactCurrency } from '../../utils/formatters';
 
 // SYSCOHADA class definitions (reference structure — values come from data)
 const CLASS_DEFS = [
@@ -266,7 +267,7 @@ const AssetsClasses: React.FC = () => {
                       <div>
                         <p className="text-xs text-[var(--color-text-secondary)]">Valeur totale</p>
                         <p className="font-semibold text-[var(--color-text-primary)]">
-                          €{(assetClass.totalValue / 1000000).toFixed(2)}M
+                          {formatCompactCurrency(assetClass.totalValue)}
                         </p>
                       </div>
                       <div>
@@ -302,7 +303,7 @@ const AssetsClasses: React.FC = () => {
                                 {account.code} - {account.name}
                               </span>
                               <span className="font-medium text-[var(--color-text-primary)]">
-                                €{(account.balance / 1000).toFixed(0)}K
+                                {formatCompactCurrency(account.balance)}
                               </span>
                             </div>
                           ))}
@@ -363,7 +364,7 @@ const AssetsClasses: React.FC = () => {
                         <td className="py-3 px-4 text-sm text-center">{assetClass.accounts.length}</td>
                         <td className="py-3 px-4 text-sm text-center">{assetClass.count}</td>
                         <td className="py-3 px-4 text-sm text-right font-medium">
-                          €{(assetClass.totalValue / 1000000).toFixed(2)}M
+                          {formatCompactCurrency(assetClass.totalValue)}
                         </td>
                         <td className="py-3 px-4 text-sm text-center">
                           <span className={`px-2 py-1 rounded-full text-xs ${colors.bg} ${colors.text}`}>

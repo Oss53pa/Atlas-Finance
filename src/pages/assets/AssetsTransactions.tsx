@@ -362,7 +362,7 @@ const AssetsTransactions: React.FC = () => {
               <div>
                 <p className="text-xs text-[var(--color-text-secondary)]">Acquisitions</p>
                 <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">12</p>
-                <p className="text-xs text-green-500 mt-1">+€450K</p>
+                <p className="text-xs text-green-500 mt-1">Acquisitions</p>
               </div>
               <Plus className="w-8 h-8 text-green-500 opacity-20" />
             </div>
@@ -375,7 +375,7 @@ const AssetsTransactions: React.FC = () => {
               <div>
                 <p className="text-xs text-[var(--color-text-secondary)]">Cessions</p>
                 <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">5</p>
-                <p className="text-xs text-red-500 mt-1">-€125K</p>
+                <p className="text-xs text-red-500 mt-1">Cessions</p>
               </div>
               <TrendingDown className="w-8 h-8 text-red-500 opacity-20" />
             </div>
@@ -388,7 +388,7 @@ const AssetsTransactions: React.FC = () => {
               <div>
                 <p className="text-xs text-[var(--color-text-secondary)]">Réévaluations</p>
                 <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">3</p>
-                <p className="text-xs text-primary-500 mt-1">+€280K</p>
+                <p className="text-xs text-primary-500 mt-1">Réévaluations</p>
               </div>
               <TrendingUp className="w-8 h-8 text-primary-500 opacity-20" />
             </div>
@@ -400,8 +400,8 @@ const AssetsTransactions: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-[var(--color-text-secondary)]">VNC totale</p>
-                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">€4.2M</p>
-                <p className="text-xs text-blue-500 mt-1">82% valeur</p>
+                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">—</p>
+                <p className="text-xs text-blue-500 mt-1">VNC calculée</p>
               </div>
               <DollarSign className="w-8 h-8 text-blue-500 opacity-20" />
             </div>
@@ -413,8 +413,8 @@ const AssetsTransactions: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-[var(--color-text-secondary)]">Amort. cumulé</p>
-                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">€920K</p>
-                <p className="text-xs text-orange-500 mt-1">18% total</p>
+                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">—</p>
+                <p className="text-xs text-orange-500 mt-1">Calculé dynamiquement</p>
               </div>
               <Clock className="w-8 h-8 text-orange-500 opacity-20" />
             </div>

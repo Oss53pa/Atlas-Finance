@@ -1,5 +1,5 @@
 
-import { formatCurrency } from '@/utils/formatters';
+import { formatCurrency, formatCompactCurrency } from '@/utils/formatters';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -426,7 +426,7 @@ const AssetsJournal: React.FC = () => {
                     <div className="flex items-center gap-3">
                       <div className="text-right">
                         <p className="text-sm font-medium text-[var(--color-text-primary)]">
-                          €{(entry.totalDebit / 1000).toFixed(1)}K
+                          {formatCompactCurrency(entry.totalDebit)}
                         </p>
                         <p className="text-xs text-[var(--color-text-secondary)]">
                           {entry.entries.length} lignes

@@ -790,7 +790,7 @@ const AssetsRegistry: React.FC = () => {
         >
           <ModernChartCard
             title="Valeur par Catégorie"
-            subtitle="Répartition de la valeur actuelle (k€)"
+            subtitle="Répartition de la valeur actuelle"
             icon={PieChart}
           >
             <ColorfulBarChart
