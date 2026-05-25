@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React, { useState } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -16,7 +16,7 @@ import {
   ArrowPathIcon,
   Cog6ToothIcon,
   FlagIcon,
-  PercentIcon
+  ReceiptPercentIcon as PercentIcon
 } from '@heroicons/react/24/outline';
 
 interface VATRate {

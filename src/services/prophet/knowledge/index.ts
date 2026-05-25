@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * Knowledge Base — Agrégateur et moteur de recherche
  * Expose searchKnowledge(query, topK) pour le RAG dans le system prompt.
@@ -75,12 +75,14 @@ async function searchKnowledgeSemantic(
 
   try {
     const { supabase } = await import('../../../lib/supabase');
-    const { data, error } = await supabase.rpc('search_knowledge' as any, {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const rpc = supabase.rpc as any;
+    const { data, error } = await rpc('search_knowledge', {
       query_embedding: embedding,
       match_threshold: 0.7,
       match_count: topK,
       filter_category: category ?? null,
-    }) as any;
+    });
 
     if (error || !data || data.length === 0) return [];
 

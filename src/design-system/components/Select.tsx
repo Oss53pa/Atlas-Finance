@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * Atlas F&A Design System - Select Component
  * Fully accessible select with validation and custom styling
@@ -375,6 +375,12 @@ export const CustomSelect = forwardRef<HTMLButtonElement, CustomSelectProps>(
       onClick: _onClick,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       onKeyDown: _onKeyDown,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      options: _options2,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      multiple: _multiple,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      custom: _custom,
       ...props
     },
     ref
@@ -539,7 +545,7 @@ export const CustomSelect = forwardRef<HTMLButtonElement, CustomSelectProps>(
           aria-invalid={currentState === 'error'}
           aria-required={required}
           aria-owns={isOpen ? listboxId : undefined}
-          {...props}
+          {...(props as React.ButtonHTMLAttributes<HTMLButtonElement>)}
         >
           <span className={clsx(
             'flex-1 text-left truncate',

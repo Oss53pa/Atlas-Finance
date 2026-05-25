@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React, { useState, useEffect } from 'react';
 import {
   X,
@@ -161,7 +161,7 @@ export const CreateSupplierModal: React.FC<CreateSupplierModalProps> = ({
     try {
       await createSupplier.mutateAsync({
         ...formData,
-        type_tiers: 'fournisseur'
+        type: 'FOURNISSEUR'
       });
 
       toast.success('Fournisseur créé avec succès');

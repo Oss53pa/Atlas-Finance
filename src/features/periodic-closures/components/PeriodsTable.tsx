@@ -1,6 +1,7 @@
-// @ts-nocheck
+
 import React from 'react';
 import { DataTable } from '@/shared/components/data-display/DataTable';
+import { Column } from '@/shared/components/data-display/DataTable/DataTable.types';
 import { ClosurePeriod, ClosurePeriodStatus, ClosurePeriodType } from '../types/periodic-closures.types';
 import { formatDate } from '@/shared/utils/formatters';
 
@@ -40,12 +41,12 @@ export const PeriodsTable: React.FC<PeriodsTableProps> = ({
     return { style: styles[type], label: labels[type] };
   };
 
-  const columns = [
+  const columns: Column<ClosurePeriod>[] = [
     {
       key: 'period',
-      label: 'Période',
+      header: 'Période',
       sortable: true,
-      render: (row: ClosurePeriod) => (
+      render: (_value, row) => (
         <div>
           <div className="font-medium text-[var(--color-primary)]">{row.period}</div>
           <div className="text-sm text-[var(--color-text-tertiary)]">Exercice {row.fiscal_year}</div>
@@ -54,9 +55,9 @@ export const PeriodsTable: React.FC<PeriodsTableProps> = ({
     },
     {
       key: 'type',
-      label: 'Type',
+      header: 'Type',
       sortable: true,
-      render: (row: ClosurePeriod) => {
+      render: (_value, row) => {
         const { style, label } = getTypeBadge(row.type);
         return (
           <span className={`px-2 py-1 rounded-full text-xs font-medium ${style}`}>
@@ -67,9 +68,9 @@ export const PeriodsTable: React.FC<PeriodsTableProps> = ({
     },
     {
       key: 'status',
-      label: 'Statut',
+      header: 'Statut',
       sortable: true,
-      render: (row: ClosurePeriod) => (
+      render: (_value, row) => (
         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadge(row.status)}`}>
           {row.status.replace('_', ' ').toUpperCase()}
         </span>
@@ -77,9 +78,9 @@ export const PeriodsTable: React.FC<PeriodsTableProps> = ({
     },
     {
       key: 'compliance',
-      label: 'Conformité',
+      header: 'Conformité',
       sortable: true,
-      render: (row: ClosurePeriod) => (
+      render: (_value, row) => (
         <div className="flex items-center gap-2">
           <div className="w-20 h-2 bg-[var(--color-border)] rounded-full overflow-hidden">
             <div
@@ -96,9 +97,9 @@ export const PeriodsTable: React.FC<PeriodsTableProps> = ({
     },
     {
       key: 'deadline',
-      label: 'Échéance',
+      header: 'Échéance',
       sortable: true,
-      render: (row: ClosurePeriod) => {
+      render: (_value, row) => {
         if (!row.closure_deadline) return '-';
         const isOverdue = row.status !== 'closed' && new Date(row.closure_deadline) < new Date();
         return (
@@ -110,8 +111,8 @@ export const PeriodsTable: React.FC<PeriodsTableProps> = ({
     },
     {
       key: 'approvals',
-      label: 'Validations',
-      render: (row: ClosurePeriod) => (
+      header: 'Validations',
+      render: (_value, row) => (
         <span className="text-sm">
           {row.approvals_received.length} / {row.approvals_required.length}
         </span>
@@ -119,8 +120,8 @@ export const PeriodsTable: React.FC<PeriodsTableProps> = ({
     },
     {
       key: 'duration',
-      label: 'Durée',
-      render: (row: ClosurePeriod) => row.total_duration || '-'
+      header: 'Durée',
+      render: (_value, row) => row.total_duration || '-'
     }
   ];
 
@@ -130,8 +131,6 @@ export const PeriodsTable: React.FC<PeriodsTableProps> = ({
       columns={columns}
       loading={loading}
       onRowClick={onPeriodClick}
-      searchable
-      searchPlaceholder="Rechercher une période..."
     />
   );
 };

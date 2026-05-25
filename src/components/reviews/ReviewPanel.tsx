@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * ReviewPanel - Side panel showing review details and actions
  */
@@ -6,7 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/utils/cn';
-import type { ReportReview } from '@/types/review';
+import type { ReportReview, ReviewDecisionRequest, SubmitForReviewRequest } from '@/types/review';
 import { useReviewStore } from '@/stores/reviewStore';
 import { ReviewStatusBadge, ReviewPriorityBadge, OverdueBadge } from './ReviewBadge';
 import ReviewChecklist from './ReviewChecklist';
@@ -113,17 +113,18 @@ export const ReviewPanel: React.FC<ReviewPanelProps> = ({
     await startReview(review.id);
   };
 
-  const handleDecision = async (data: { comment?: string }) => {
+  const handleDecision = async (data: SubmitForReviewRequest | { reviewer_id: string } | { comment?: string }) => {
     if (!dialogMode) return;
+    const decisionData: ReviewDecisionRequest = { comment: (data as { comment?: string }).comment };
     switch (dialogMode) {
       case 'approve':
-        await approveReview(review.id, data);
+        await approveReview(review.id, decisionData);
         break;
       case 'reject':
-        await rejectReview(review.id, data);
+        await rejectReview(review.id, decisionData);
         break;
       case 'request_changes':
-        await requestChanges(review.id, data);
+        await requestChanges(review.id, decisionData);
         break;
     }
     setDialogMode(null);

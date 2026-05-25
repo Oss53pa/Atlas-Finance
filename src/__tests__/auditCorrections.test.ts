@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * Tests for audit corrections P0-P2 — Clôtures & États/Reporting
  * Covers: TFT bouclage, checklist 7/7, periodicClosuresService real data,
@@ -23,7 +23,7 @@ function makeEntry(
   date: string,
   journal: string,
   lines: Array<{ accountCode: string; debit: number; credit: number }>,
-  status: string = 'posted'
+  status: 'draft' | 'validated' | 'posted' = 'posted'
 ) {
   return {
     id,
@@ -44,6 +44,7 @@ function makeEntry(
     totalDebit: lines.reduce((s, l) => s + l.debit, 0),
     totalCredit: lines.reduce((s, l) => s + l.credit, 0),
     createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   };
 }
 

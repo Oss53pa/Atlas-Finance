@@ -1,9 +1,9 @@
-// @ts-nocheck
+
 import React from 'react';
 import { DataTable } from '@/shared/components/data-display/DataTable';
 import { DeclarationFiscale } from '../types/taxation.types';
 import { formatNumber, formatDate } from '@/shared/utils/formatters';
-import { ColumnDef } from '@tanstack/react-table';
+import { Column } from '@/shared/components/data-display/DataTable/DataTable.types';
 
 interface DeclarationsTableProps {
   declarations: DeclarationFiscale[];
@@ -36,63 +36,63 @@ export const DeclarationsTable: React.FC<DeclarationsTableProps> = ({
   loading,
   onRowClick,
 }) => {
-  const columns: ColumnDef<DeclarationFiscale>[] = [
+  const columns: Column<DeclarationFiscale>[] = [
     {
-      accessorKey: 'numero_declaration',
+      key: 'numero_declaration',
       header: 'N° Déclaration',
-      cell: ({ row }) => (
-        <span className="font-medium">{row.original.numero_declaration}</span>
+      render: (_value, row) => (
+        <span className="font-medium">{row.numero_declaration}</span>
       ),
     },
     {
-      accessorKey: 'type_declaration_detail.libelle',
+      key: 'type_declaration_detail',
       header: 'Type',
-      cell: ({ row }) => row.original.type_declaration_detail.libelle,
+      render: (_value, row) => row.type_declaration_detail.libelle,
     },
     {
-      accessorKey: 'periode',
+      key: 'periode',
       header: 'Période',
-      cell: ({ row }) => (
+      render: (_value, row) => (
         <span>
-          {formatDate(row.original.periode_debut)} - {formatDate(row.original.periode_fin)}
+          {formatDate(row.periode_debut)} - {formatDate(row.periode_fin)}
         </span>
       ),
     },
     {
-      accessorKey: 'date_limite_depot',
+      key: 'date_limite_depot',
       header: 'Date Limite',
-      cell: ({ row }) => formatDate(row.original.date_limite_depot),
+      render: (_value, row) => formatDate(row.date_limite_depot),
     },
     {
-      accessorKey: 'montant_impot',
+      key: 'montant_impot',
       header: 'Montant Impôt',
-      cell: ({ row }) => `${formatNumber(row.original.montant_impot)} FCFA`,
+      render: (_value, row) => `${formatNumber(row.montant_impot)} FCFA`,
     },
     {
-      accessorKey: 'montant_du',
+      key: 'montant_du',
       header: 'Montant Dû',
-      cell: ({ row }) => `${formatNumber(row.original.montant_du)} FCFA`,
+      render: (_value, row) => `${formatNumber(row.montant_du)} FCFA`,
     },
     {
-      accessorKey: 'statut',
+      key: 'statut',
       header: 'Statut',
-      cell: ({ row }) => (
+      render: (_value, row) => (
         <span
           className={`px-2 py-1 rounded-full text-xs font-medium ${
-            statusColors[row.original.statut]
+            statusColors[row.statut]
           }`}
         >
-          {statusLabels[row.original.statut]}
+          {statusLabels[row.statut]}
         </span>
       ),
     },
     {
-      accessorKey: 'is_en_retard',
+      key: 'is_en_retard',
       header: 'Retard',
-      cell: ({ row }) =>
-        row.original.is_en_retard ? (
+      render: (_value, row) =>
+        row.is_en_retard ? (
           <span className="text-red-600 font-medium">
-            {row.original.jours_retard} jours
+            {row.jours_retard} jours
           </span>
         ) : (
           <span className="text-green-600">-</span>
@@ -106,7 +106,6 @@ export const DeclarationsTable: React.FC<DeclarationsTableProps> = ({
       columns={columns}
       loading={loading}
       onRowClick={onRowClick}
-      searchPlaceholder="Rechercher une déclaration..."
       emptyMessage="Aucune déclaration trouvée"
     />
   );

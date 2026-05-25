@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * closureTools — Assistance clôture, régularisations, affectation résultat.
  */
@@ -57,13 +57,14 @@ export const closureTools: Record<string, ToolDefinition> = Object.fromEntries([
     },
     ['type', 'montant'],
     async (args, adapter) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await genererEcrituresRegularisation(adapter, {
         type: args.type as string,
         compteCharge: args.compteCharge as string,
         montant: args.montant as number,
         libelle: args.libelle as string,
         dateComptable: args.dateComptable as string,
-      });
+      } as any);
       return JSON.stringify(result);
     }),
 

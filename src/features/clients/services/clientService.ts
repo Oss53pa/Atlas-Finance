@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * Client Service — Connected to Dexie IndexedDB.
  * Queries real third-party and journal entry data for client management.
@@ -47,7 +47,7 @@ class ClientService {
 
       if (clientLine) {
         const montantTTC = clientLine.debit || clientLine.credit;
-        const tvaRate = tp?.comptabilite?.tauxTVA ?? 0.18; // Default 18% (most common OHADA rate)
+        const tvaRate = 0.18; // Default 18% (most common OHADA rate)
         const montantTVA = new Money(montantTTC).multiply(tvaRate).round().toNumber();
         const montantHT = montantTTC - montantTVA;
 

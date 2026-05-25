@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * Service de réconciliation et rapprochement
  * Fonctionnalités transverses selon section 4.0
@@ -23,7 +23,7 @@ class ReconciliationService {
    * Données principales pour la réconciliation
    */
   async getReconciliationData(params: ReconciliationParams) {
-    const response = await apiService.get<unknown>('/reconciliation/data', { params: params as Record<string, unknown> });
+    const response = await apiService.get<unknown>('/reconciliation/data', { params: params as unknown as Record<string, unknown> });
     return response.data;
   }
 

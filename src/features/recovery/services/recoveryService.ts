@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * Service de recouvrement — connecté aux données réelles via DataAdapter.
  *
@@ -163,7 +163,7 @@ async function addAction(
 async function getActions(adapter: DataAdapter, dossierId: string): Promise<Action[]> {
   const dossier = await adapter.getById<DBRecoveryCase>('recoveryCases', dossierId);
   if (!dossier) return [];
-  return dossier.actions;
+  return dossier.actions as Action[];
 }
 
 // ============================================================================

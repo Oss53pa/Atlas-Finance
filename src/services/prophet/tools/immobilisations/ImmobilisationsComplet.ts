@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * ImmobilisationsComplet — Composants, crédit-bail, subventions, cessions
  * Réf: SYSCOHADA art. 52, IFRS 16, OHADA
@@ -205,7 +205,8 @@ export const immobilisationsCompletTools: Record<string, ToolDefinition> = {
         } catch (_) { /* fallback aux paramètres */ }
       }
 
-      return JSON.stringify(enregistrerCession(data));
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return JSON.stringify(enregistrerCession(data as any));
     },
   },
 };

@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * GenerateReportModal - Modal for generating reports from data imports
  * Supports two entry points:
@@ -114,7 +114,7 @@ const GenerateReportModal: React.FC<GenerateReportModalProps> = ({
   const [templateSearchQuery, setTemplateSearchQuery] = useState('');
 
   // Period state
-  const [periodValue, setPeriodValue] = useState({
+  const [periodValue, setPeriodValue] = useState<import('@/components/common/PeriodSelector').PeriodValue>({
     preset: 'last_month',
     label: 'Mois dernier',
   });

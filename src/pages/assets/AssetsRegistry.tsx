@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React, { useState, useMemo } from 'react'; // Palette Atlas F&A appliquée
 import type { DBAsset } from '../../lib/db';
 import { toast } from 'sonner';
@@ -1897,7 +1897,7 @@ const AssetsRegistry: React.FC = () => {
           }}
           onSubmit={handleSaveAsset}
           mode={modalMode}
-          initialData={assetToEdit || undefined}
+          initialData={assetToEdit ? (assetToEdit as unknown as Record<string, string>) : undefined}
         />
       </div>
     </PageContainer>

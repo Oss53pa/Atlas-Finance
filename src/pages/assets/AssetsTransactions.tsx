@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import {
@@ -463,7 +463,7 @@ const AssetsTransactions: React.FC = () => {
                           displayValue = formatCurrency(value as number);
                           if (col.key === 'profitPerteCession' && value !== 0) {
                             displayValue = (
-                              <span className={value > 0 ? 'text-green-500' : 'text-red-500'}>
+                              <span className={(value as number) > 0 ? 'text-green-500' : 'text-red-500'}>
                                 {displayValue}
                               </span>
                             );

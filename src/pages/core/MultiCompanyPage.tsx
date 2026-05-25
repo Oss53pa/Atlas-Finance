@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * Gestion Multi-Sociétés Atlas F&A
  * Configuration selon EXP-PAR-002
@@ -50,7 +50,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   Checkbox,
   Tabs,
   TabsContent,

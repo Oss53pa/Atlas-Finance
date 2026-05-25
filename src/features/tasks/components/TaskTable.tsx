@@ -1,6 +1,7 @@
-// @ts-nocheck
+
 import React from 'react';
 import { DataTable } from '@/shared/components/data-display/DataTable';
+import { Column } from '@/shared/components/data-display/DataTable/DataTable.types';
 import { Task, TaskStatus, TaskPriority } from '../types/task.types';
 import { formatDate } from '@/shared/utils/formatters';
 import { CheckCircle2, Clock, AlertCircle, Circle, Ban, Pause } from 'lucide-react';
@@ -50,12 +51,12 @@ export const TaskTable: React.FC<TaskTableProps> = ({
     return styles[priority];
   };
 
-  const columns = [
+  const columns: Column<Task>[] = [
     {
       key: 'title',
-      label: 'Tâche',
+      header: 'Tâche',
       sortable: true,
-      render: (row: Task) => (
+      render: (_value, row) => (
         <div>
           <div className="font-medium text-[var(--color-primary)]">{row.title}</div>
           {row.description && (
@@ -68,9 +69,9 @@ export const TaskTable: React.FC<TaskTableProps> = ({
     },
     {
       key: 'status',
-      label: 'Statut',
+      header: 'Statut',
       sortable: true,
-      render: (row: Task) => (
+      render: (_value, row) => (
         <div className="flex items-center gap-2">
           {getStatusIcon(row.status)}
           <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadge(row.status)}`}>
@@ -81,9 +82,9 @@ export const TaskTable: React.FC<TaskTableProps> = ({
     },
     {
       key: 'priority',
-      label: 'Priorité',
+      header: 'Priorité',
       sortable: true,
-      render: (row: Task) => (
+      render: (_value, row) => (
         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityBadge(row.priority)}`}>
           {row.priority.toUpperCase()}
         </span>
@@ -91,15 +92,15 @@ export const TaskTable: React.FC<TaskTableProps> = ({
     },
     {
       key: 'assignee',
-      label: 'Assigné à',
+      header: 'Assigné à',
       sortable: true,
-      render: (row: Task) => row.assignee || '-'
+      render: (_value, row) => row.assignee || '-'
     },
     {
       key: 'dueDate',
-      label: 'Échéance',
+      header: 'Échéance',
       sortable: true,
-      render: (row: Task) => {
+      render: (_value, row) => {
         if (!row.dueDate) return '-';
         const isOverdue = row.status !== 'done' && new Date(row.dueDate) < new Date();
         return (
@@ -111,8 +112,8 @@ export const TaskTable: React.FC<TaskTableProps> = ({
     },
     {
       key: 'progress',
-      label: 'Progression',
-      render: (row: Task) => (
+      header: 'Progression',
+      render: (_value, row) => (
         <div className="flex items-center gap-2">
           <div className="w-20 h-2 bg-[var(--color-border)] rounded-full overflow-hidden">
             <div
@@ -132,8 +133,6 @@ export const TaskTable: React.FC<TaskTableProps> = ({
       columns={columns}
       loading={loading}
       onRowClick={onTaskClick}
-      searchable
-      searchPlaceholder="Rechercher une tâche..."
     />
   );
 };

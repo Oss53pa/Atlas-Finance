@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React, { useState, useRef, useEffect } from 'react';
 import { toast } from 'sonner';
 import {
@@ -113,8 +113,10 @@ const IntelligentSearchBar: React.FC<IntelligentSearchBarProps> = ({
       setIsVoiceRecording(true);
 
       // Configuration de la reconnaissance vocale
-      const SpeechRecognition = (window as unknown as Record<string, unknown>).webkitSpeechRecognition || (window as unknown as Record<string, unknown>).SpeechRecognition;
-      const recognition = new SpeechRecognition();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const recognition = new SpeechRecognition() as any;
 
       recognition.lang = 'fr-FR';
       recognition.interimResults = false;

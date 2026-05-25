@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * Atlas F&A Design System - Table Component
  * Comprehensive table component with sorting, filtering, and pagination
@@ -551,7 +551,9 @@ export const Table = forwardRef<HTMLDivElement, TableProps<Record<string, unknow
                       {/* Data cells */}
                       {visibleColumns.map(column => {
                         const value = getCellValue(row, column);
-                        const cellContent = column.cell ? column.cell(value, row, rowIndex) : value;
+                        const cellContent: React.ReactNode = column.cell
+                          ? column.cell(value, row, rowIndex)
+                          : (value as React.ReactNode);
 
                         return (
                           <td

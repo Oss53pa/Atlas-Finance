@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
@@ -2030,7 +2030,7 @@ const FinancialStatements: React.FC = () => {
       )}
 
       {/* Vue SIG */}
-      {activeView === 'sig' && (
+      {(activeView as string) === 'sig' && (
         <div className="flex-1 p-6 space-y-6 overflow-y-auto">
           <div className="bg-[var(--color-surface-hover)] rounded-lg border border-[var(--color-border)] p-6">
             <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-6">Soldes Intermédiaires de Gestion (SIG)</h3>

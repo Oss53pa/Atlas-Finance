@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * SERVICE FRONTEND PARAMETERS - Atlas F&A v4.1.0
  * BASE PATH: /api/v1/parameters/
@@ -461,7 +461,8 @@ class ParametersService {
    */
   async getJournalTypes(): Promise<TypeOption[]> {
     const response = await apiService.get(`${BASE_PATH}/journaux-parametres/types/`);
-    return (response.data.types || response.data) as TypeOption[];
+    const data = response.data as Record<string, unknown>;
+    return ((data.types ?? response.data) as TypeOption[]);
   }
 
   /**

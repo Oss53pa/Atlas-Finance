@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React from 'react';
 import { DataTable, Column } from '@/shared/components/data-display/DataTable';
 import { AssetData } from '../types/assets-list.types';
@@ -75,7 +75,6 @@ export const AssetsTable: React.FC<AssetsTableProps> = ({ assets, loading, onRow
       columns={columns}
       loading={loading}
       onRowClick={onRowClick}
-      searchPlaceholder="Rechercher un actif..."
       emptyMessage="Aucune immobilisation trouvée"
     />
   );

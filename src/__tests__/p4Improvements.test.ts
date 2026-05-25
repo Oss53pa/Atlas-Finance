@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * P4 Improvements Tests
  * P4-2: Cash control (caisse >= 0)
@@ -225,6 +225,8 @@ describe('P4-3: Abnormal balance alerts', () => {
       period: { from: '2026-01-01', to: '2026-12-31' },
       displayLevel: 3,
       showZeroBalance: false,
+      searchAccount: '',
+      balanceType: 'generale',
     });
 
     const clientAlert = alerts.find(a => a.type === 'client_crediteur');
@@ -256,6 +258,8 @@ describe('P4-3: Abnormal balance alerts', () => {
       period: { from: '2026-01-01', to: '2026-12-31' },
       displayLevel: 3,
       showZeroBalance: false,
+      searchAccount: '',
+      balanceType: 'generale',
     });
 
     const fournAlert = alerts.find(a => a.type === 'fournisseur_debiteur');
@@ -287,6 +291,8 @@ describe('P4-3: Abnormal balance alerts', () => {
       period: { from: '2026-01-01', to: '2026-12-31' },
       displayLevel: 3,
       showZeroBalance: false,
+      searchAccount: '',
+      balanceType: 'generale',
     });
 
     expect(alerts).toHaveLength(0);

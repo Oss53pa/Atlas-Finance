@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 
 import { formatCurrency } from '@/utils/formatters';
 import React, { useState } from 'react';
@@ -33,7 +33,7 @@ const AssetMasterDataPage: React.FC = () => {
     { id: 'maintenance', label: 'Maintenance', icon: Wrench }
   ];
 
-  const handleFieldChange = (section: string, field: string, value: string | number | boolean) => {
+  const handleFieldChange = (section: string, field: string, value: string | number | boolean | Date) => {
     setEditedAsset(prev => ({
       ...prev,
       [section]: {

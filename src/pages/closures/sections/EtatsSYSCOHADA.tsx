@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React, { useState, useMemo } from 'react';
 import { useLanguage } from '../../../contexts/LanguageContext';
 import { toast } from 'react-hot-toast';
@@ -180,9 +180,10 @@ const EtatsSYSCOHADA: React.FC = () => {
   const handleInputChange = (field: string, value: string | number | boolean) => {
     if (field === 'etats_selectionnes') {
       const currentArray = Array.isArray(formData.etats_selectionnes) ? formData.etats_selectionnes : [];
-      const newArray = currentArray.includes(value as string)
-        ? currentArray.filter(item => item !== value)
-        : [...currentArray, value];
+      const strValue = String(value);
+      const newArray = currentArray.includes(strValue)
+        ? currentArray.filter(item => item !== strValue)
+        : [...currentArray, strValue];
       setFormData(prev => ({ ...prev, etats_selectionnes: newArray }));
     } else {
       setFormData(prev => ({ ...prev, [field]: value }));

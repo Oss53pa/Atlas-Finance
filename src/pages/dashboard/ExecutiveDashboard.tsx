@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React, { useState, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { formatCurrency } from '../../utils/formatters';
@@ -164,7 +164,9 @@ const ExecutiveDashboard: React.FC = () => {
               className="p-3 rounded-xl"
               style={{ backgroundColor: `color-mix(in srgb, ${ACTIVITY_COLORS[activityType]} 15%, transparent)` }}
             >
-              <ActivityIcon className="w-7 h-7" style={{ color: ACTIVITY_COLORS[activityType] }} />
+              <span style={{ color: ACTIVITY_COLORS[activityType] }}>
+                <ActivityIcon className="w-7 h-7" />
+              </span>
             </div>
             <div>
               <h1 className="text-lg font-bold text-[var(--color-text-primary)]">

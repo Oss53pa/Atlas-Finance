@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 // Inventory Calculation Utilities
 // Compliant with IFRS IAS 2, US GAAP ASC 330, and SYSCOHADA
 
@@ -211,7 +211,7 @@ export class InventoryCalculations {
     costOfGoodsSold: number,
     beginningInventory: number,
     endingInventory: number
-  ): InventoryTurnover['turnoverRatio'] & { daysInInventory: number } {
+  ): { turnoverRatio: number; daysInInventory: number } {
 
     const averageInventory = (beginningInventory + endingInventory) / 2;
     const turnoverRatio = averageInventory > 0 ? costOfGoodsSold / averageInventory : 0;

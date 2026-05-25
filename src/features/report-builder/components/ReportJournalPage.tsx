@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * Report Journal Page — Page indépendante listant tous les rapports
  * Avec filtres, statuts, actions, et bouton "Nouveau Rapport" vers le Builder
@@ -177,7 +177,8 @@ const ReportJournalPage: React.FC<JournalPageProps> = ({ onOpenBuilder, onGoToTe
   // Load reports from DataAdapter on mount
   useEffect(() => {
     if (!adapter) return;
-    adapter.getAll('reports')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (adapter as any).getAll('reports')
       .then((data: any[]) => {
         const entries: ReportEntry[] = (data || []).map((r: any) => ({
           id: r.id || crypto.randomUUID(),

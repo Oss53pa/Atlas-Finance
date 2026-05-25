@@ -1,9 +1,9 @@
-// @ts-nocheck
+
 import React from 'react';
 import { DataTable } from '@/shared/components/data-display/DataTable';
 import { Report } from '../types/reporting.types';
 import { formatDate } from '@/shared/utils/formatters';
-import { ColumnDef } from '@tanstack/react-table';
+import { Column } from '@/shared/components/data-display/DataTable/DataTable.types';
 
 interface ReportsTableProps {
   reports: Report[];
@@ -35,50 +35,52 @@ export const ReportsTable: React.FC<ReportsTableProps> = ({
   loading,
   onRowClick,
 }) => {
-  const columns: ColumnDef<Report>[] = [
+  const columns: Column<Report>[] = [
     {
-      accessorKey: 'name',
+      key: 'name',
       header: 'Nom',
-      cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
+      render: (_value, row) => <span className="font-medium">{row.name}</span>,
     },
     {
-      accessorKey: 'type',
+      key: 'type',
       header: 'Type',
-      cell: ({ row }) => typeLabels[row.original.type],
+      render: (_value, row) => typeLabels[row.type],
     },
     {
-      accessorKey: 'category',
+      key: 'category',
       header: 'Catégorie',
+      accessor: 'category',
     },
     {
-      accessorKey: 'lastGenerated',
+      key: 'lastGenerated',
       header: 'Dernière Génération',
-      cell: ({ row }) => formatDate(row.original.lastGenerated),
+      render: (_value, row) => formatDate(row.lastGenerated),
     },
     {
-      accessorKey: 'generatedBy',
+      key: 'generatedBy',
       header: 'Généré Par',
+      accessor: 'generatedBy',
     },
     {
-      accessorKey: 'views',
+      key: 'views',
       header: 'Vues',
-      cell: ({ row }) => row.original.views.toString(),
+      render: (_value, row) => row.views.toString(),
     },
     {
-      accessorKey: 'format',
+      key: 'format',
       header: 'Format',
-      cell: ({ row }) => row.original.format.toUpperCase(),
+      render: (_value, row) => row.format.toUpperCase(),
     },
     {
-      accessorKey: 'status',
+      key: 'status',
       header: 'Statut',
-      cell: ({ row }) => (
+      render: (_value, row) => (
         <span
           className={`px-2 py-1 rounded-full text-xs font-medium ${
-            statusColors[row.original.status]
+            statusColors[row.status]
           }`}
         >
-          {statusLabels[row.original.status]}
+          {statusLabels[row.status]}
         </span>
       ),
     },
@@ -90,7 +92,6 @@ export const ReportsTable: React.FC<ReportsTableProps> = ({
       columns={columns}
       loading={loading}
       onRowClick={onRowClick}
-      searchPlaceholder="Rechercher un rapport..."
       emptyMessage="Aucun rapport trouvé"
     />
   );

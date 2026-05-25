@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React, { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
@@ -123,7 +123,7 @@ const AxesAnalytiquesPage: React.FC = () => {
     code: '',
     libelle: '',
     description: '',
-    type: 'centre_cout' as const,
+    type: 'centre_cout' as AnalyticalAxis['type'],
     niveau: 1,
     parent_id: '',
     is_mandatory: false,

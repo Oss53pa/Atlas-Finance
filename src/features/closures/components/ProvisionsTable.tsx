@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React from 'react';
 import { DataTable, Column } from '@/shared/components/data-display/DataTable';
 import { Badge } from '@/shared/components/ui/Badge';
@@ -65,7 +65,7 @@ export const ProvisionsTable: React.FC<ProvisionsTableProps> = ({
               : ''
           }
         >
-          {value} jours
+          {value as number} jours
         </span>
       ),
       align: 'center',

@@ -27,7 +27,7 @@ import { balanceService } from '../../features/balance/services/balanceService';
 import { generalLedgerService } from '../../features/accounting/services/generalLedgerService';
 import { financialStatementsService } from '../../features/financial/services/financialStatementsService';
 import { verifyTrialBalance } from '../../services/trialBalanceService';
-import { hashEntry, verifyChain } from '../../utils/integrity';
+import { hashEntry, verifyChain, type HashableEntry } from '../../utils/integrity';
 
 // ============================================================================
 // HELPERS PARTAGÉS
@@ -70,19 +70,19 @@ const FY_2026 = {
 
 /** Comptes de base nécessaires à la validation (safeAddEntry exige leur présence) */
 const BASE_ACCOUNTS = [
-  { id: 'a-101', code: '101000', name: 'Capital social',    accountClass: '1', accountType: 'equity',     level: 3, normalBalance: 'credit', isReconcilable: false, isActive: true },
-  { id: 'a-160', code: '160000', name: 'Emprunts',          accountClass: '1', accountType: 'liability',  level: 3, normalBalance: 'credit', isReconcilable: false, isActive: true },
-  { id: 'a-231', code: '231000', name: 'Bâtiments',         accountClass: '2', accountType: 'asset',      level: 3, normalBalance: 'debit',  isReconcilable: false, isActive: true },
-  { id: 'a-310', code: '310000', name: 'Stocks',            accountClass: '3', accountType: 'asset',      level: 3, normalBalance: 'debit',  isReconcilable: false, isActive: true },
-  { id: 'a-401', code: '401000', name: 'Fournisseurs',      accountClass: '4', accountType: 'payable',    level: 3, normalBalance: 'credit', isReconcilable: true,  isActive: true },
-  { id: 'a-411', code: '411000', name: 'Clients',           accountClass: '4', accountType: 'receivable', level: 3, normalBalance: 'debit',  isReconcilable: true,  isActive: true },
-  { id: 'a-443', code: '443100', name: 'TVA collectée',     accountClass: '4', accountType: 'liability',  level: 3, normalBalance: 'credit', isReconcilable: false, isActive: true },
-  { id: 'a-445', code: '445200', name: 'TVA récupérable',   accountClass: '4', accountType: 'asset',      level: 3, normalBalance: 'debit',  isReconcilable: false, isActive: true },
-  { id: 'a-512', code: '512000', name: 'Banque',            accountClass: '5', accountType: 'bank',       level: 3, normalBalance: 'debit',  isReconcilable: true,  isActive: true },
-  { id: 'a-601', code: '601000', name: 'Achats matières',   accountClass: '6', accountType: 'expense',    level: 3, normalBalance: 'debit',  isReconcilable: false, isActive: true },
-  { id: 'a-661', code: '661000', name: 'Personnel',         accountClass: '6', accountType: 'expense',    level: 3, normalBalance: 'debit',  isReconcilable: false, isActive: true },
-  { id: 'a-681', code: '681000', name: 'Amortissements',    accountClass: '6', accountType: 'expense',    level: 3, normalBalance: 'debit',  isReconcilable: false, isActive: true },
-  { id: 'a-701', code: '701000', name: 'Ventes',            accountClass: '7', accountType: 'revenue',    level: 3, normalBalance: 'credit', isReconcilable: false, isActive: true },
+  { id: 'a-101', code: '101000', name: 'Capital social',    accountClass: '1', accountType: 'equity',     level: 3, normalBalance: 'credit' as const, isReconcilable: false, isActive: true },
+  { id: 'a-160', code: '160000', name: 'Emprunts',          accountClass: '1', accountType: 'liability',  level: 3, normalBalance: 'credit' as const, isReconcilable: false, isActive: true },
+  { id: 'a-231', code: '231000', name: 'Bâtiments',         accountClass: '2', accountType: 'asset',      level: 3, normalBalance: 'debit'  as const, isReconcilable: false, isActive: true },
+  { id: 'a-310', code: '310000', name: 'Stocks',            accountClass: '3', accountType: 'asset',      level: 3, normalBalance: 'debit'  as const, isReconcilable: false, isActive: true },
+  { id: 'a-401', code: '401000', name: 'Fournisseurs',      accountClass: '4', accountType: 'payable',    level: 3, normalBalance: 'credit' as const, isReconcilable: true,  isActive: true },
+  { id: 'a-411', code: '411000', name: 'Clients',           accountClass: '4', accountType: 'receivable', level: 3, normalBalance: 'debit'  as const, isReconcilable: true,  isActive: true },
+  { id: 'a-443', code: '443100', name: 'TVA collectée',     accountClass: '4', accountType: 'liability',  level: 3, normalBalance: 'credit' as const, isReconcilable: false, isActive: true },
+  { id: 'a-445', code: '445200', name: 'TVA récupérable',   accountClass: '4', accountType: 'asset',      level: 3, normalBalance: 'debit'  as const, isReconcilable: false, isActive: true },
+  { id: 'a-512', code: '512000', name: 'Banque',            accountClass: '5', accountType: 'bank',       level: 3, normalBalance: 'debit'  as const, isReconcilable: true,  isActive: true },
+  { id: 'a-601', code: '601000', name: 'Achats matières',   accountClass: '6', accountType: 'expense',    level: 3, normalBalance: 'debit'  as const, isReconcilable: false, isActive: true },
+  { id: 'a-661', code: '661000', name: 'Personnel',         accountClass: '6', accountType: 'expense',    level: 3, normalBalance: 'debit'  as const, isReconcilable: false, isActive: true },
+  { id: 'a-681', code: '681000', name: 'Amortissements',    accountClass: '6', accountType: 'expense',    level: 3, normalBalance: 'debit'  as const, isReconcilable: false, isActive: true },
+  { id: 'a-701', code: '701000', name: 'Ventes',            accountClass: '7', accountType: 'revenue',    level: 3, normalBalance: 'credit' as const, isReconcilable: false, isActive: true },
 ];
 
 async function seedBase() {
@@ -500,7 +500,8 @@ describe('Flux 3 — Grand Livre par compte', () => {
     expect(account.nombreEcritures).toBe(3);
 
     // Les entrées doivent être triées par date et montrer le running balance cumulatif
-    const entries = account.ecritures ?? account.entries ?? [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const entries = (account as any).ecritures ?? account.entries ?? [];
     if (entries.length === 3) {
       // Après l'entrée 1 (débit 500 000) : solde = 500 000
       // Après l'entrée 2 (débit 200 000) : solde = 700 000
@@ -855,7 +856,7 @@ describe('Flux 6 — Intégrité SHA-256', () => {
   });
 
   it('verifyChain valide une chaîne correcte de 3 écritures', async () => {
-    const e1 = {
+    const e1: HashableEntry = {
       entryNumber: 'AC-000001', journal: 'AC', date: '2026-05-01',
       lines: [{ accountCode: '601000', debit: 50_000, credit: 0, label: 'Achat 1' }, { accountCode: '401000', debit: 0, credit: 50_000, label: 'Fournisseur' }],
       totalDebit: 50_000, totalCredit: 50_000,
@@ -882,7 +883,7 @@ describe('Flux 6 — Intégrité SHA-256', () => {
   });
 
   it('verifyChain détecte une falsification de montant', async () => {
-    const e1 = {
+    const e1: HashableEntry = {
       entryNumber: 'AC-000001', journal: 'AC', date: '2026-05-01',
       lines: [{ accountCode: '601000', debit: 50_000, credit: 0, label: 'Achat' }, { accountCode: '401000', debit: 0, credit: 50_000, label: 'Fournisseur' }],
       totalDebit: 50_000, totalCredit: 50_000,
