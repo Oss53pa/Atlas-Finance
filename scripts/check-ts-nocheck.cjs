@@ -17,7 +17,7 @@ const path = require('path');
 
 // Baseline = nombre de fichiers @ts-nocheck au moment du gel.
 // NE PAS augmenter. À diminuer au fur et à mesure que les fichiers sont typés.
-const BASELINE = 77;
+const BASELINE = 0;
 
 const ROOT = path.join(__dirname, '..', 'src');
 const DIRECTIVE = /(^|\n)\s*\/\/\s*@ts-nocheck\b/;

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';

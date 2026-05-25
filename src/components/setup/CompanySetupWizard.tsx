@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useState, useRef } from 'react';
 import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';

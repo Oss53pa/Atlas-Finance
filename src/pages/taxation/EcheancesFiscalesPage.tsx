@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useState, useMemo } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { useQuery } from '@tanstack/react-query';

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * ImportPlanComptable — Modal multi-étapes pour l'import CSV/Excel du plan comptable
  * Upload → Mapping colonnes → Prévisualisation → Import → Rapport
