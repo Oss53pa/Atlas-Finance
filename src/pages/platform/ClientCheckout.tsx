@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React, { useState } from 'react';
 import { useNavigate, useParams, useOutletContext } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -29,11 +27,14 @@ const ClientCheckout: React.FC = () => {
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly');
   const [processing, setProcessing] = useState(false);
 
+  type SolutionRow = { id: string; code: string; name: string; price_monthly_xof: number; price_yearly_xof: number; price_monthly_eur: number; price_yearly_eur: number; [key: string]: unknown };
+  const anyClient = supabase as unknown as { from: (t: string) => any };
+
   const { data: solution } = useQuery({
     queryKey: ['solution', solutionCode],
     queryFn: async () => {
-      const { data } = await supabase.from('solutions').select('*').eq('code', solutionCode).maybeSingle();
-      return data;
+      const { data } = await anyClient.from('solutions').select('*').eq('code', solutionCode).maybeSingle();
+      return data as SolutionRow | null;
     },
     enabled: !!solutionCode,
   });
@@ -51,7 +52,7 @@ const ClientCheckout: React.FC = () => {
 
     try {
       // 1. Créer la subscription
-      const { data: sub, error: subError } = await supabase
+      const { data: sub, error: subError } = await anyClient
         .from('subscriptions')
         .upsert({
           organization_id: tenant.id,
@@ -64,12 +65,12 @@ const ClientCheckout: React.FC = () => {
         .select()
         .single();
 
-      if (subError) throw new Error(subError.message);
+      if (subError) throw new Error((subError as { message: string }).message);
 
       // 2. Créer la facture
-      await supabase.from('invoices').insert({
+      await anyClient.from('invoices').insert({
         tenant_id: tenant.id,
-        subscription_id: sub.id,
+        subscription_id: (sub as { id: string }).id,
         amount: price,
         currency: tenant.currency || 'XOF',
         status: paymentMethod === 'mobile_money' ? 'pending' : 'pending',
@@ -79,18 +80,18 @@ const ClientCheckout: React.FC = () => {
       });
 
       // 3. Sync feature flags
-      await supabase.from('feature_flags').upsert({
+      await anyClient.from('feature_flags').upsert({
         tenant_id: tenant.id,
         module: solution.code,
         enabled: true,
       }, { onConflict: 'tenant_id,module' });
 
       // 4. Log audit
-      await supabase.from('audit_logs').insert({
+      await anyClient.from('audit_logs').insert({
         tenant_id: tenant.id,
         action: 'SUBSCRIPTION_CREATED',
         resource_type: 'subscription',
-        resource_id: sub.id,
+        resource_id: (sub as { id: string }).id,
         metadata: { solution: solution.code, payment_method: paymentMethod, amount: price },
       });
 

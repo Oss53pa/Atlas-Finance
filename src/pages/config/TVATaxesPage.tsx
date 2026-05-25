@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
@@ -215,7 +213,7 @@ const TVATaxesPage: React.FC = () => {
   };
 
   const handleEditTaxRate = (rateId: string) => {
-    toast.info(`Édition du taux de taxe ${rateId}`);
+    toast(`Édition du taux de taxe ${rateId}`);
   };
 
   const handleDeleteTaxRate = (rateId: string) => {

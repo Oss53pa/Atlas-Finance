@@ -8,14 +8,15 @@ const AdminMonitoringPage: React.FC = () => {
   const { data: stats } = useQuery({
     queryKey: ['admin-monitoring'],
     queryFn: async () => {
+      const anyClient = supabase as unknown as { from: (t: string) => any };
       const [tenantsRes, logsRes, ticketsRes] = await Promise.all([
-        supabase.from('tenants').select('id', { count: 'exact', head: true }),
-        supabase.from('audit_logs').select('id, action, created_at').order('created_at', { ascending: false }).limit(20),
-        supabase.from('support_tickets').select('id', { count: 'exact', head: true }).eq('status', 'open'),
+        anyClient.from('tenants').select('id', { count: 'exact', head: true }),
+        anyClient.from('audit_logs').select('id, action, created_at').order('created_at', { ascending: false }).limit(20),
+        anyClient.from('support_tickets').select('id', { count: 'exact', head: true }).eq('status', 'open'),
       ]);
       return {
         totalTenants: tenantsRes.count || 0,
-        recentLogs: logsRes.data || [],
+        recentLogs: (logsRes.data || []) as Array<{ id: string; action: string; created_at: string }>,
         openTickets: ticketsRes.count || 0,
       };
     },

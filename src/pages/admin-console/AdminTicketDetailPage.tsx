@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -20,11 +18,20 @@ const AdminTicketDetailPage: React.FC = () => {
   const [reply, setReply] = useState('');
   const [internalNote, setInternalNote] = useState('');
 
+  type SupportTicket = {
+    id: string; subject: string; description?: string; status: string; priority: string;
+    created_at: string; updated_at?: string; tenant_id?: string; internal_notes?: string;
+    tenant?: { name: string };
+    [key: string]: unknown;
+  };
+  type AuditLog = { id: string; created_at: string; action: string; metadata?: Record<string, unknown>; [key: string]: unknown };
+
   const { data: ticket } = useQuery({
     queryKey: ['admin-ticket', ticketId],
     queryFn: async () => {
-      const { data } = await supabase.from('support_tickets').select('*, tenant:tenants(name)').eq('id', ticketId).maybeSingle();
-      return data;
+      const client = supabase as unknown as { from: (t: string) => any };
+      const { data } = await client.from('support_tickets').select('*, tenant:tenants(name)').eq('id', ticketId!).maybeSingle();
+      return data as SupportTicket | null;
     },
     enabled: !!ticketId,
   });
@@ -32,20 +39,23 @@ const AdminTicketDetailPage: React.FC = () => {
   const { data: exchanges = [] } = useQuery({
     queryKey: ['ticket-exchanges', ticketId],
     queryFn: async () => {
-      const { data } = await supabase.from('audit_logs')
+      const client = supabase as unknown as { from: (t: string) => any };
+      const { data } = await client.from('audit_logs')
         .select('*')
         .eq('resource_type', 'ticket')
         .eq('resource_id', ticketId)
         .order('created_at');
-      return data || [];
+      return (data || []) as AuditLog[];
     },
     enabled: !!ticketId,
   });
 
+  const anyClient = supabase as unknown as { from: (t: string) => any };
+
   const replyMut = useMutation({
     mutationFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      await supabase.from('audit_logs').insert({
+      await anyClient.from('audit_logs').insert({
         tenant_id: ticket?.tenant_id,
         user_id: user?.id,
         action: 'TICKET_REPLY',
@@ -59,7 +69,7 @@ const AdminTicketDetailPage: React.FC = () => {
 
   const notesMut = useMutation({
     mutationFn: async () => {
-      await supabase.from('support_tickets').update({ internal_notes: internalNote, updated_at: new Date().toISOString() }).eq('id', ticketId);
+      await anyClient.from('support_tickets').update({ internal_notes: internalNote, updated_at: new Date().toISOString() }).eq('id', ticketId);
     },
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin-ticket'] }); toast.success('Notes enregistrées'); },
   });

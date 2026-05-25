@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -35,9 +33,9 @@ const EntriesPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('brouillard');
   const [showEntryModal, setShowEntryModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [editingEntry, setEditingEntry] = useState<Record<string, unknown> | null>(null);
+  const [editingEntry, setEditingEntry] = useState<EcritureBrouillard | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const [selectedEntry, setSelectedEntry] = useState<Record<string, unknown> | null>(null);
+  const [selectedEntry, setSelectedEntry] = useState<EcritureBrouillard | null>(null);
   const [selectedEntries, setSelectedEntries] = useState<string[]>([]);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [showTemplateDropdown, setShowTemplateDropdown] = useState(false);
@@ -241,13 +239,13 @@ const EntriesPage: React.FC = () => {
   ];
 
   // Fonction pour ouvrir le modal d'édition
-  const handleEditEntry = (entry: Record<string, unknown>) => {
+  const handleEditEntry = (entry: EcritureBrouillard) => {
     setEditingEntry(entry);
     setShowEditModal(true);
   };
 
   // Fonction pour voir les détails d'une écriture
-  const handleViewEntry = (entry: Record<string, unknown>) => {
+  const handleViewEntry = (entry: EcritureBrouillard) => {
     setSelectedEntry(entry);
     setShowDetailsModal(true);
   };
@@ -405,54 +403,39 @@ const EntriesPage: React.FC = () => {
             <div className="w-full h-full">
                 {/* Liste des écritures avec DataTable - Pleine largeur */}
                 <DataTable
-                  columns={ecrituresColumns}
-                  data={ecrituresData}
+                  columns={ecrituresColumns as unknown as import('../../components/ui/DataTable').Column<Record<string, unknown>>[]}
+                  data={ecrituresData as unknown as Record<string, unknown>[]}
                   pageSize={15}
                   searchable={true}
                   exportable={true}
                   refreshable={true}
                   printable={false}
                   selectable={false}
-                  actions={(item) => (
+                  actions={(item) => {
+                    const entry = item as unknown as EcritureBrouillard;
+                    return (
                     <div className="flex items-center space-x-1">
                       <button
-                        onClick={() => handleViewEntry({
-                          id: item.id,
-                          numero: item.numero,
-                          journal: item.journal,
-                          date: item.date,
-                          libelle: item.libelle,
-                          debit: item.debit,
-                          credit: item.credit,
-                          type: item.type
-                        })}
+                        onClick={() => handleViewEntry(entry)}
                         className="p-1 hover:bg-[var(--color-info-light)] rounded transition-colors"
                         title="Voir les détails"
                       >
                         <Eye className="w-4 h-4 text-[var(--color-info)]" />
                       </button>
-                      {item.statut === t('accounting.draft') && (
+                      {entry.statut === t('accounting.draft') && (
                       <button
-                        onClick={() => handleEditEntry({
-                          id: item.id,
-                          numero: item.numero,
-                          journal: item.journal,
-                          date: item.date,
-                          libelle: item.libelle,
-                          debit: item.debit,
-                          credit: item.credit,
-                          type: item.type
-                        })}
+                        onClick={() => handleEditEntry(entry)}
                         className={`p-1 hover:bg-[var(--color-warning-light)] rounded transition-colors ${
-                          item.equilibre ? 'text-[var(--color-text-secondary)]' : 'text-[var(--color-warning)]'
+                          entry.equilibre ? 'text-[var(--color-text-secondary)]' : 'text-[var(--color-warning)]'
                         }`}
-                        title={item.equilibre ? "Modifier l'écriture" : "Corriger l'écriture"}
+                        title={entry.equilibre ? "Modifier l'écriture" : "Corriger l'écriture"}
                       >
                         <Edit className="w-4 h-4" />
                       </button>
                       )}
                     </div>
-                  )}
+                    );
+                  }}
                   emptyMessage="Aucune écriture en brouillard"
                   className="bg-white border-0 data-table w-full rounded-none shadow-none"
                 />
@@ -585,7 +568,7 @@ const EntriesPage: React.FC = () => {
                           </tr>
                         </thead>
                         <tbody className="divide-y">
-                          {((selectedEntry?.lines as any[]) || []).map((l: any, i: number) => (
+                          {(((selectedEntry as any)?.lines as any[]) || []).map((l: any, i: number) => (
                             <tr key={l.id || i}>
                               <td className="px-4 py-2 text-sm">{l.accountCode}</td>
                               <td className="px-4 py-2 text-sm">{l.accountName || l.label || ''}</td>
@@ -593,7 +576,7 @@ const EntriesPage: React.FC = () => {
                               <td className="px-4 py-2 text-sm text-right text-[var(--color-success)]">{l.credit ? formatCurrency(l.credit) : '-'}</td>
                             </tr>
                           ))}
-                          {(!selectedEntry?.lines || (selectedEntry.lines as any[]).length === 0) && (
+                          {(!(selectedEntry as any)?.lines || ((selectedEntry as any).lines as any[]).length === 0) && (
                             <tr>
                               <td colSpan={4} className="px-4 py-3 text-sm text-center text-[var(--color-text-tertiary)]">Aucune ligne</td>
                             </tr>
@@ -609,7 +592,7 @@ const EntriesPage: React.FC = () => {
                   <button
                     onClick={() => {
                       setShowDetailsModal(false);
-                      handleEditEntry(selectedEntry);
+                      if (selectedEntry) handleEditEntry(selectedEntry);
                     }}
                     className="px-4 py-2 border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-surface-hover)] flex items-center space-x-2"
                   >
@@ -625,7 +608,7 @@ const EntriesPage: React.FC = () => {
                     </button>
                     <button
                       onClick={() => {
-                        handleValidateEntry(selectedEntry.id);
+                        if (selectedEntry) handleValidateEntry(selectedEntry.id);
                         setShowDetailsModal(false);
                       }}
                       className="px-6 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success)] flex items-center space-x-2"

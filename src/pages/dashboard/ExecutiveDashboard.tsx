@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React, { useState, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { formatCurrency } from '../../utils/formatters';
@@ -323,7 +321,7 @@ const ExecutiveDashboard: React.FC = () => {
               {dashboardConfig.chartLabels.marginLabel}
             </h3>
             <div style={{ position: 'relative', height: '300px', width: '100%' }}>
-              <Bar radius={[6,6,0,0]} data={marginChartData} options={chartOptions} />
+              <Bar data={marginChartData} options={chartOptions} />
             </div>
           </div>
         </div>

@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useData } from '../../contexts/DataContext';
@@ -46,7 +44,7 @@ const AssetsDashboard: React.FC = () => {
   // Fetch dashboard data
   const { data: dashboardData, isLoading } = useQuery({
     queryKey: ['assets', 'dashboard', period],
-    queryFn: () => assetsService.getDashboardData({ period }),
+    queryFn: () => (assetsService as unknown as { getDashboardData: (p: Record<string, unknown>) => Promise<Record<string, unknown>> }).getDashboardData({ period }),
   });
 
   // Build chart data from real assets
@@ -257,7 +255,7 @@ const AssetsDashboard: React.FC = () => {
               </div>
             </div>
             <div className="space-y-6">
-              {dashboardData?.repartition_categories?.map((category, index) => (
+              {(dashboardData as any)?.repartition_categories?.map((category: any, index: number) => (
                 <motion.div
                   key={index}
                   initial={{ opacity: 0, x: -20 }}
@@ -299,7 +297,7 @@ const AssetsDashboard: React.FC = () => {
               </div>
             </div>
             <div className="space-y-6">
-              {dashboardData?.derniers_amortissements?.map((amortissement, index) => (
+              {(dashboardData as any)?.derniers_amortissements?.map((amortissement: any, index: number) => (
                 <motion.div
                   key={index}
                   initial={{ opacity: 0, x: 20 }}
@@ -368,7 +366,7 @@ const AssetsDashboard: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {dashboardData?.actifs_principaux?.map((actif, index) => (
+                {(dashboardData as any)?.actifs_principaux?.map((actif: any, index: number) => (
                   <motion.tr
                     key={actif.id}
                     initial={{ opacity: 0, y: 10 }}

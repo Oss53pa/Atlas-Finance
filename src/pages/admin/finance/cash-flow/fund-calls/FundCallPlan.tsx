@@ -1,17 +1,16 @@
-// @ts-nocheck
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { useData } from '../../../../../contexts/DataContext';
 import SweetAlertComponent from '../../../../../components/common/SweetAlert';
 import { useCenter } from '../../../../../components/common/Footer';
-import { DICTIONNARY, useLanguage } from '../../../../../globals/dictionnary';
+import { DICTIONNARY } from '../../../../../globals/dictionnary';
+import { useLanguage } from '../../../../../contexts/LanguageContext';
 import { useFinanceContext } from '../../../../../contexts/FinanceContext';
 import { BsPlusSquareFill, TbSquareMinusFilled } from '../../../../../components/ui/Icons';
 import { useAuth } from '../../../../../contexts/AuthContext';
 
-interface RouteParams {
-  id_fund_call: string;
+interface RouteParams extends Record<string, string | undefined> {
+  id_fund_call?: string;
 }
 
 interface Invoice {
@@ -49,9 +48,9 @@ const useLoading = () => ({
 });
 
 export const FundCallPlan: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, language: _langPlan } = useLanguage();
+  const language = (_langPlan === 'en' ? 'en' : 'fr') as 'fr' | 'en';
   const { center, financialYear } = useCenter();
-  const { language } = useLanguage();
   const { id_fund_call } = useParams<RouteParams>();
   const { loggedUser } = useSession();
   const { fundCallG, handleChangeFundCall, handleChangeFundCallEnabledUser, enabledId } = useFinanceContext();
@@ -62,7 +61,7 @@ export const FundCallPlan: React.FC = () => {
   const [showContent1, setShowContent1] = useState<ShowContentState>({});
   const [optionsInitiales, setOptionsInitiales] = useState<VendorGroup[]>([]);
   const [options, setOptions] = useState<VendorGroup[]>([]);
-  const [selectedInvoices, setSelectedInvoices] = useState<Invoice[]>(fundCallG?.details ?? []);
+  const [selectedInvoices, setSelectedInvoices] = useState<Invoice[]>((fundCallG?.details ?? []) as Invoice[]);
   const { setIsLoadingCancelable } = useLoading();
   const [year, setYear] = useState<number>(financialYear);
   const [canEdit, setCanEdit] = useState<boolean>(false);
@@ -92,7 +91,7 @@ export const FundCallPlan: React.FC = () => {
   useEffect(() => {
     const userId = loggedUser?.id ?? null;
     if (userId) {
-      setCanEdit(enabledId.includes(userId) || fundCallG.approval_status === 0);
+      setCanEdit(enabledId.includes(Number(userId)) || fundCallG.approval_status === 0);
     } else {
       setCanEdit(false);
     }

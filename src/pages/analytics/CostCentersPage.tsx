@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React, { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -45,7 +43,8 @@ import {
   SelectTrigger,
   SelectValue
 } from '../../components/ui';
-import { analyticsService, createCentreSchema } from '../../services/modules/analytics.service';
+import { analyticsService as _analyticsService, createCentreSchema } from '../../services/modules/analytics.service';
+const analyticsService = _analyticsService as unknown as Record<string, (...args: any[]) => any>;
 import { z } from 'zod';
 import { formatCurrency, formatDate, formatPercentage } from '../../lib/utils';
 import { toast } from 'react-hot-toast';
@@ -394,7 +393,8 @@ const CostCentersPage: React.FC = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">Tous les axes</SelectItem>
-                {axes?.results?.map((axe) => (
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                {axes?.results?.map((axe: any) => (
                   <SelectItem key={axe.id} value={axe.code}>
                     {axe.libelle}
                   </SelectItem>
@@ -483,7 +483,8 @@ const CostCentersPage: React.FC = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {centersData?.results?.map((center) => (
+                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                    {centersData?.results?.map((center: any) => (
                       <TableRow key={center.id} className="hover:bg-gray-50">
                         <TableCell>
                           <div className="flex items-center space-x-3">
@@ -783,7 +784,8 @@ const CostCentersPage: React.FC = () => {
                       disabled={isSubmitting}
                     >
                       <option value="">Sélectionner un axe</option>
-                      {axes?.results?.map((axe) => (
+                      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                      {axes?.results?.map((axe: any) => (
                         <option key={axe.id} value={axe.id}>
                           {axe.libelle}
                         </option>

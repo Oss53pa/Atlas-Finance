@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React, { useState } from 'react';
 import {
   Wifi,
@@ -35,8 +33,7 @@ import {
   PieChart,
   LineChart
 } from 'lucide-react';
-import { ModernCard } from '../../components/ui/ModernCard';
-import { StatCard } from '../../components/ui/ModernCard';
+import { ModernCard as ModernCardBase, StatCard as StatCardBase } from '../../components/ui/ModernCard';
 import ModernButton from '../../components/ui/ModernButton';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import { Line, Bar, Doughnut, Pie } from 'react-chartjs-2';
@@ -52,6 +49,11 @@ import {
   Legend,
   ArcElement,
 } from 'chart.js';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const StatCard = StatCardBase as React.ComponentType<any>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const ModernCard = ModernCardBase as React.ComponentType<any>;
 
 ChartJS.register(
   CategoryScale,
@@ -516,7 +518,7 @@ export const AssetsModules6to9: React.FC<AssetsModules6to9Props> = ({ activeModu
           <div>
             <h4 className="font-medium text-gray-900 mb-3">Analyses Prédictives</h4>
             <div className="h-64 mb-4">
-              <Bar radius={[6,6,0,0]}
+              <Bar
                 data={{
                   labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun'],
                   datasets: [
@@ -1031,7 +1033,7 @@ export const AssetsModules6to9: React.FC<AssetsModules6to9Props> = ({ activeModu
           <div>
             <h4 className="font-medium text-gray-900 mb-3">Évolution Mensuelle</h4>
             <div className="h-64">
-              <Bar radius={[6,6,0,0]}
+              <Bar
                 data={{
                   labels: ['Oct', 'Nov', 'Déc', 'Jan'],
                   datasets: [

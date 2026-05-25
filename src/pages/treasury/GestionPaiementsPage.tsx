@@ -1,13 +1,13 @@
-// @ts-nocheck
-
 import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
-import { bankTransactionsService } from '../../services/treasury-complete.service';
-import treasuryAdvancedService from '../../services/treasury-advanced.service';
+// TODO: rewire — treasury-complete.service uses dead Supabase direct calls
+// import { bankTransactionsService } from '../../services/treasury-complete.service';
+// TODO: rewire — treasury-advanced.service.forecastOutflows/Inflows not yet implemented
+// import treasuryAdvancedService from '../../services/treasury-advanced.service';
 import treasuryMLService from '../../services/treasury-ml.service';
 import { toast } from 'react-hot-toast';
 import {
@@ -76,33 +76,22 @@ const GestionPaiementsPage: React.FC = () => {
 
   const companyId = localStorage.getItem('company_id') || '';
 
-  // Real API: Load outgoing payments (forecasted outflows)
+  // TODO: rewire to real data — forecastOutflows not yet implemented
   const { data: outflowsData, isLoading: loadingOutflows } = useQuery({
     queryKey: ['treasury-outflows', dateRange],
     queryFn: async () => {
-      return await treasuryAdvancedService.forecastOutflows({
-        company_id: companyId,
-        forecast_days: 30,
-        include_bills: true,
-        include_payroll: true,
-        include_taxes: true,
-        include_recurring: true
-      });
+      // Stub: return empty forecasts until treasury advanced service is wired
+      return { forecasts: [] as Array<{ date: string; obligations: Array<{ type: string; amount: number; supplier_name?: string; bill_id?: string; is_mandatory?: boolean; priority?: string }> }> };
     },
     enabled: !!companyId,
   });
 
-  // Real API: Load incoming payments (forecasted inflows)
+  // TODO: rewire to real data — forecastInflows not yet implemented
   const { data: inflowsData, isLoading: loadingInflows } = useQuery({
     queryKey: ['treasury-inflows', dateRange],
     queryFn: async () => {
-      return await treasuryAdvancedService.forecastInflows({
-        company_id: companyId,
-        forecast_days: 30,
-        include_invoices: true,
-        include_recurring: true,
-        confidence_level: 0.9
-      });
+      // Stub: return empty forecasts until treasury advanced service is wired
+      return { forecasts: [] as Array<{ date: string; sources: Array<{ type: string; amount: number; customer_name?: string; invoice_id?: string; probability: number }> }> };
     },
     enabled: !!companyId,
   });

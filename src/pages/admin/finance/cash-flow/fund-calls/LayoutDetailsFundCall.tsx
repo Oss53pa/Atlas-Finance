@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React, { useEffect, useState } from 'react';
 import { useLocation, Link, Outlet, useParams } from 'react-router-dom';
 
@@ -7,8 +5,8 @@ import { useCenter } from '../../../../../components/common/Footer';
 import { IoCloseCircleSharp } from '../../../../../components/ui/Icons';
 import { useFinanceContext } from '../../../../../contexts/FinanceContext';
 
-interface RouteParams {
-  id_fund_call: string;
+interface RouteParams extends Record<string, string | undefined> {
+  id_fund_call?: string;
 }
 
 interface MenuItem {
@@ -64,7 +62,7 @@ export const LayoutDetailsFundCall: React.FC = () => {
         ]
       };
 
-      handleChangeFundCall(mockFundCall);
+      handleChangeFundCall(mockFundCall as Parameters<typeof handleChangeFundCall>[0]);
       setIsLoadingCancelable(false);
     } catch (error) {
       /* ignored */

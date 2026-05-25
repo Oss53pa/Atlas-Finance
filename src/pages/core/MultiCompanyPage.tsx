@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * Gestion Multi-Sociétés Atlas F&A
  * Configuration selon EXP-PAR-002

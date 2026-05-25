@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React, { useState, useEffect, useRef, FormEvent, ChangeEvent } from 'react';
 import Modal from '../../../../../components/common/BootstrapModal';
 import { ModalGlobalTemplateBtn } from '../../../../../components/common/ModalGlobalTemplate';
@@ -10,7 +8,8 @@ import SweetAlertComponent from '../../../../../components/common/SweetAlert';
 import { useCenter } from '../../../../../components/common/Footer';
 import { CustomCardDrawer, CustomSideBarDrawer } from '../../../../../components/ui/CustomDrawer';
 import { CashFlowCashAccountManagement_content_funCalls, cashFlowCashAccountManagement_items_funCalls } from '../../../../../components/ui/FinanceDrawer';
-import { DICTIONNARY, useLanguage } from '../../../../../globals/dictionnary';
+import { DICTIONNARY } from '../../../../../globals/dictionnary';
+import { useLanguage } from '../../../../../contexts/LanguageContext';
 import { CustomSelector } from '../../../../../components/ui/CustomSelector';
 import {
   IoCloseCircleSharp,
@@ -100,10 +99,10 @@ interface CustomSelectorOption {
 const TOTAL_ROWS = 21;
 
 export const FinanceCashFlowFundCalls: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, language: _lang } = useLanguage();
+  const language = (_lang === 'en' ? 'en' : 'fr') as 'fr' | 'en';
     const [afficherDeuxiemeTableau, setAfficherDeuxiemeTableau] = useState<boolean>(false);
     const sweetAlertRef = useRef<SweetAlertRef>(null);
-    const { language } = useLanguage() as UseLanguageReturn;
 
     const handleClick = (): void => {
         setAfficherDeuxiemeTableau(!afficherDeuxiemeTableau);
@@ -198,7 +197,7 @@ export const FinanceCashFlowFundCalls: React.FC = () => {
         { name: "Statut" },
     ];
 
-    const [contentDrawerActive, setContentDrawerActive] = useState<Record<string, unknown>>();
+    const [contentDrawerActive, setContentDrawerActive] = useState<Record<string, unknown> | null>(null);
     const [drawer, setDrawer] = useState<boolean>(false);
     const serviceCodeList: Array<{ id: string; name: string }> = [''].map(item => ({ id: (item as unknown as Record<string, string>).id, name: (item as unknown as Record<string, string>).service_code }));
 
@@ -254,8 +253,8 @@ export const FinanceCashFlowFundCalls: React.FC = () => {
                                                                                 <td className='text-center'>
                                                                                     {fundCall.id && (
                                                                                         fundCall.is_mark_as_pre_approved ?
-                                                                                        <FaLock color='green' title="Approuvé" /> :
-                                                                                        <FaLockOpen color='primary' title={t('status.pending')} />
+                                                                                        <span title="Approuvé"><FaLock color='green' /></span> :
+                                                                                        <span title={t('status.pending')}><FaLockOpen color='primary' /></span>
                                                                                     )}
                                                                                 </td>
                                                                                 <td className='text-center'>
@@ -355,7 +354,8 @@ export const FinanceCashFlowFundCalls: React.FC = () => {
 
 const FundCallForm: React.FC<FundCallFormProps> = (props) => {
     const { center, financialYear } = useCenter() as UseCenterReturn;
-    const { language } = useLanguage() as UseLanguageReturn;
+    const { language: _langForm } = useLanguage();
+    const language = (_langForm === 'en' ? 'en' : 'fr') as 'fr' | 'en';
     const sweetAlertRef = useRef<SweetAlertRef>(null);
 
     // get accounts
@@ -461,7 +461,7 @@ const FundCallForm: React.FC<FundCallFormProps> = (props) => {
                 <div className='card-global-green card'>
                     <div className={`card-header change-background-color-header-red`}>
                         <h4 className='title general-title mb-0 mx-auto'>Demande d'Appel de Fonds</h4>
-                        <IoCloseCircleSharp className='close-icon' onClick={CloseModal} />
+                        <span onClick={CloseModal} style={{ cursor: 'pointer' }}><IoCloseCircleSharp className='close-icon' /></span>
                     </div>
                     <div className='card-body d-flex justify-content-center align-items-center'>
                         <div className={`w-100 h-100`}>

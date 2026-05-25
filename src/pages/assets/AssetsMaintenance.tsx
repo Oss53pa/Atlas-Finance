@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 import { useData } from '../../contexts/DataContext';
@@ -865,7 +863,7 @@ const AssetsMaintenance: React.FC = () => {
                 {(() => {
                   const totalAssets = dbAssets.length;
                   const activeAssets = dbAssets.filter((a: DBAsset) => a.status === 'active').length;
-                  const withDepreciation = dbAssets.filter((a: DBAsset) => a.depreciationMethod && a.usefulLife > 0).length;
+                  const withDepreciation = dbAssets.filter((a: DBAsset) => a.depreciationMethod && a.usefulLifeYears > 0).length;
                   const preventiveRate = totalAssets > 0 ? Math.round((activeAssets / totalAssets) * 100) : 0;
                   const complianceRate = totalAssets > 0 ? Math.round((withDepreciation / totalAssets) * 100) : 0;
                   const budgetRate = totalAssets > 0 ? Math.min(100, Math.round((activeAssets / Math.max(totalAssets, 1)) * 100 * 1.1)) : 0;

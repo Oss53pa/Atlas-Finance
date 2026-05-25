@@ -1,19 +1,19 @@
-// @ts-nocheck
-
 import React, { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useData } from '../../../../../contexts/DataContext';
 import SweetAlertComponent from '../../../../../components/common/SweetAlert';
 import { useCenter } from '../../../../../components/common/Footer';
-import { DICTIONNARY, useLanguage } from '../../../../../globals/dictionnary';
+import { DICTIONNARY } from '../../../../../globals/dictionnary';
+import { useLanguage } from '../../../../../contexts/LanguageContext';
 import { useFinanceContext } from '../../../../../contexts/FinanceContext';
+import type { FundCallDetail } from '../../../../../hooks/useFundCall';
 import { FaEdit } from '../../../../../components/ui/Icons';
 import { TbSquareMinusFilled, BsPlusSquareFill } from '../../../../../components/ui/Icons';
 
 const PROCESS_ID = 52;
 
-interface RouteParams {
-  id_fund_call: string;
+interface RouteParams extends Record<string, string | undefined> {
+  id_fund_call?: string;
 }
 
 interface ShowContentState {
@@ -51,9 +51,9 @@ const useLoading = () => ({
 });
 
 export const FundCallExpense: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, language: _langExpense } = useLanguage();
+  const language = (_langExpense === 'en' ? 'en' : 'fr') as 'fr' | 'en';
   const { center, financialYear } = useCenter();
-  const { language } = useLanguage();
   const { loggedUser } = useSession();
   const { id_fund_call } = useParams<RouteParams>();
   const { setIsLoadingCancelable } = useLoading();
@@ -73,7 +73,8 @@ export const FundCallExpense: React.FC = () => {
   const [detailsFundCall, setDetailsFundCall] = useState(fundCallG.details ?? []);
   const [amountPreApproved, setAmountPreApproved] = useState<number>(0);
 
-  const sweetAlertRef = useRef<{ show: (options: Record<string, unknown>) => void } | null>(null);
+  interface SweetAlertRef { afficherConfirmation: (msg: string, yes: string, no: string) => Promise<boolean>; afficherAlerte: (type: 'success' | 'error', msg: string) => void; }
+  const sweetAlertRef = useRef<SweetAlertRef | null>(null);
 
   const getFundCallApprovalInfo = async (): Promise<void> => {
     try {
@@ -217,9 +218,9 @@ export const FundCallExpense: React.FC = () => {
     }
   }, [id_fund_call]);
 
-  const groupInvoicesByVendor = (invoices: Record<string, unknown>[]): Record<string, Record<string, unknown>[]> => {
-    return invoices.reduce((acc: Record<string, Record<string, unknown>[]>, invoice) => {
-      const vendor = invoice.vendor as string;
+  const groupInvoicesByVendor = (invoices: FundCallDetail[]): Record<string, FundCallDetail[]> => {
+    return invoices.reduce((acc: Record<string, FundCallDetail[]>, invoice) => {
+      const vendor = invoice.vendor;
       if (!acc[vendor]) {
         acc[vendor] = [];
       }
@@ -228,7 +229,7 @@ export const FundCallExpense: React.FC = () => {
     }, {});
   };
 
-  const groupedSelectedInvoices = groupInvoicesByVendor(detailsFundCall);
+  const groupedSelectedInvoices = groupInvoicesByVendor(detailsFundCall as FundCallDetail[]);
 
   const invoiceStatus = (value: string): string => {
     const statusMap: Record<string, string> = {
@@ -467,33 +468,6 @@ export const FundCallExpense: React.FC = () => {
       <SweetAlertComponent ref={sweetAlertRef} />
     </div>
   );
-
-  function handleSelectInvoice(rowId: number): void {
-    const updatedRows = detailsFundCall.map((row) =>
-      row.id === rowId ? { ...row, is_pre_approved: !row.is_pre_approved } : row
-    );
-    setDetailsFundCall(updatedRows);
-  }
-
-  function invoiceStatus(invoice_status: string): string {
-    const statusMap: Record<string, string> = {
-      'PA': 'Arriérés Précédents',
-      'CE': 'Dépenses Critiques',
-      'CA': 'Arriérés Actuels',
-      'OE': 'Dépenses en Cours'
-    };
-    return statusMap[invoice_status] || '-';
-  }
-
-  function recommandation(value: string): string {
-    const recommendationMap: Record<string, string> = {
-      'TBP': 'À Payer',
-      'CFB': 'Critique pour l\'Entreprise',
-      'CW': 'Peut Attendre',
-      'P': 'Payé'
-    };
-    return recommendationMap[value] || '-';
-  }
 };
 
 export default FundCallExpense;

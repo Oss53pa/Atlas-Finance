@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React, { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import {
@@ -264,7 +262,7 @@ const ImportExportPage: React.FC = () => {
   };
 
   const handleConfigureTemplate = (templateId: string) => {
-    toast.info(`Configuration du modèle ${templateId}`);
+    toast(`Configuration du modèle ${templateId}`);
   };
 
   const handleDownloadHistory = () => {
@@ -731,7 +729,7 @@ const ImportExportPage: React.FC = () => {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle>Modèles d'Export</CardTitle>
-                <Button onClick={() => toast.info('Création d\'un nouveau modèle...')} type="button">
+                <Button onClick={() => toast('Création d\'un nouveau modèle...')} type="button">
                   <Plus className="mr-2 h-4 w-4" />
                   Nouveau modèle
                 </Button>
