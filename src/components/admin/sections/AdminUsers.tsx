@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useData } from '../../../contexts/DataContext';
+import { supabase } from '../../../lib/supabase';
 
 interface Props {
   subTab: number;
@@ -136,13 +137,50 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
           toast.error('Les mots de passe ne correspondent pas');
           return;
         }
+
+        // ── Appel edge function create-user (Supabase Auth + email HTML) ─────
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.access_token) {
+          toast.error('Session expirée — veuillez vous reconnecter');
+          return;
+        }
+
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const res = await fetch(`${supabaseUrl}/functions/v1/create-user`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
+            prenom: form.prenom,
+            nom: form.nom,
+            email: form.email,
+            password: form.password,
+            role: form.role,
+            telephone: form.telephone,
+            departement: form.departement,
+          }),
+        });
+
+        const result = await res.json();
+        if (!res.ok) {
+          toast.error(result.error || 'Erreur lors de la création du compte');
+          return;
+        }
+
+        // Ajouter à la liste locale (affichage UI)
         const newUser = {
-          id: Date.now(),
+          id: result.userId || Date.now(),
           prenom: form.prenom, nom: form.nom, email: form.email, telephone: form.telephone,
           departement: form.departement, role: form.role, status: form.status, derniereConnexion: '-',
         };
         updatedUsers = [...users, newUser];
-        toast.success(`Utilisateur ${form.prenom} ${form.nom} cree avec succes`);
+        const emailMsg = result.emailSent
+          ? `Un email de bienvenue a été envoyé à ${form.email}`
+          : `Compte créé (email non envoyé — clé RESEND absente)`;
+        toast.success(`✅ ${form.prenom} ${form.nom} ajouté — ${emailMsg}`);
+
       } else {
         updatedUsers = users.map((u: any) => u.id === editingUser?.id
           ? { ...u, prenom: form.prenom, nom: form.nom, email: form.email, telephone: form.telephone, departement: form.departement, role: form.role, status: form.status }
@@ -209,28 +247,28 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
           <form onSubmit={handleSubmit} className="p-6 space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Prenom <span className="text-red-500">*</span></label>
-                <input type="text" value={form.prenom} onChange={e => updateField('prenom', e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-[#C0322B] focus:border-transparent" required />
+                <label htmlFor="user-prenom" className="block text-sm font-medium text-gray-700 mb-1">Prenom <span className="text-red-500">*</span></label>
+                <input id="user-prenom" type="text" value={form.prenom} onChange={e => updateField('prenom', e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-[#C0322B] focus:border-transparent" required />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nom <span className="text-red-500">*</span></label>
-                <input type="text" value={form.nom} onChange={e => updateField('nom', e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-[#C0322B] focus:border-transparent" required />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email <span className="text-red-500">*</span></label>
-                <input type="email" value={form.email} onChange={e => updateField('email', e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-[#C0322B] focus:border-transparent" required />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Telephone</label>
-                <input type="text" value={form.telephone} onChange={e => updateField('telephone', e.target.value)} placeholder="+225 07 00 00 00" className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-[#C0322B] focus:border-transparent" />
+                <label htmlFor="user-nom" className="block text-sm font-medium text-gray-700 mb-1">Nom <span className="text-red-500">*</span></label>
+                <input id="user-nom" type="text" value={form.nom} onChange={e => updateField('nom', e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-[#C0322B] focus:border-transparent" required />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Role <span className="text-red-500">*</span></label>
-                <select value={form.role} onChange={e => updateField('role', e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-[#C0322B] focus:border-transparent" required>
+                <label htmlFor="user-email" className="block text-sm font-medium text-gray-700 mb-1">Email <span className="text-red-500">*</span></label>
+                <input id="user-email" type="email" value={form.email} onChange={e => updateField('email', e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-[#C0322B] focus:border-transparent" required />
+              </div>
+              <div>
+                <label htmlFor="user-tel" className="block text-sm font-medium text-gray-700 mb-1">Telephone</label>
+                <input id="user-tel" type="text" value={form.telephone} onChange={e => updateField('telephone', e.target.value)} placeholder="+225 07 00 00 00" className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-[#C0322B] focus:border-transparent" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="user-role" className="block text-sm font-medium text-gray-700 mb-1">Role <span className="text-red-500">*</span></label>
+                <select id="user-role" value={form.role} onChange={e => updateField('role', e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-[#C0322B] focus:border-transparent" required>
                   <option value="Administrateur">Administrateur</option>
                   <option value="Manager">Manager</option>
                   <option value="Comptable">Comptable</option>
@@ -238,8 +276,8 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Departement</label>
-                <select value={form.departement} onChange={e => updateField('departement', e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-[#C0322B] focus:border-transparent">
+                <label htmlFor="user-dept" className="block text-sm font-medium text-gray-700 mb-1">Departement</label>
+                <select id="user-dept" value={form.departement} onChange={e => updateField('departement', e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-[#C0322B] focus:border-transparent">
                   <option value="Direction">Direction</option>
                   <option value="Comptabilite">Comptabilite</option>
                   <option value="Tresorerie">Tresorerie</option>
@@ -250,8 +288,8 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
-                <select value={form.status} onChange={e => updateField('status', e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-[#C0322B] focus:border-transparent">
+                <label htmlFor="user-status" className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+                <select id="user-status" value={form.status} onChange={e => updateField('status', e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-[#C0322B] focus:border-transparent">
                   <option value="Actif">Actif</option>
                   <option value="Inactif">Inactif</option>
                 </select>
@@ -261,13 +299,13 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
             {modalMode === 'create' && (
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Mot de passe <span className="text-red-500">*</span></label>
-                  <input type="password" value={form.password} onChange={e => updateField('password', e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-[#C0322B] focus:border-transparent" required minLength={8} />
+                  <label htmlFor="user-pwd" className="block text-sm font-medium text-gray-700 mb-1">Mot de passe <span className="text-red-500">*</span></label>
+                  <input id="user-pwd" type="password" value={form.password} onChange={e => updateField('password', e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-[#C0322B] focus:border-transparent" required minLength={8} />
                   <p className="text-xs text-gray-400 mt-1">Minimum 8 caracteres</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Confirmer mot de passe <span className="text-red-500">*</span></label>
-                  <input type="password" value={form.confirmPassword} onChange={e => updateField('confirmPassword', e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-[#C0322B] focus:border-transparent" required />
+                  <label htmlFor="user-pwd-confirm" className="block text-sm font-medium text-gray-700 mb-1">Confirmer mot de passe <span className="text-red-500">*</span></label>
+                  <input id="user-pwd-confirm" type="password" value={form.confirmPassword} onChange={e => updateField('confirmPassword', e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-[#C0322B] focus:border-transparent" required />
                 </div>
               </div>
             )}
@@ -366,8 +404,9 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
       {subTab === 2 && (
         <div className="space-y-4">
           <div className="flex items-center space-x-4">
-            <label className="text-sm font-medium text-gray-700">Role :</label>
+            <label htmlFor="perm-role" className="text-sm font-medium text-gray-700">Role :</label>
             <select
+              id="perm-role"
               value={selectedRole}
               onChange={e => { setSelectedRole(e.target.value); setPermMatrix(defaultPermissions[e.target.value]); }}
               className="px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-[#C0322B] focus:border-transparent"
