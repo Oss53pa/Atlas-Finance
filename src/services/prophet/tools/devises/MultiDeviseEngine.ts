@@ -277,7 +277,7 @@ export const devisesTools: Record<string, ToolDefinition> = {
         } catch (_) { /* fallback */ }
       }
 
-      return JSON.stringify(reevaluerPostesBilan(postes || [], cours_cloture, exercice));
+      return JSON.stringify(reevaluerPostesBilan((postes as PosteDevise[]) || [], cours_cloture as Record<CodeDevise, number>, exercice as string));
     },
   },
 
@@ -302,7 +302,9 @@ export const devisesTools: Record<string, ToolDefinition> = {
     },
     execute: async (args, _adapter) => {
       const { entites, cours_cloture, cours_moyen, cours_historique_cp, devise_consolidation } = args as Record<string, unknown>;
-      return JSON.stringify(ecartConversionConsolidation(entites, cours_cloture, cours_moyen || cours_cloture, cours_historique_cp || cours_cloture, devise_consolidation));
+      type EntiteConsolid = { nom: string; devise: CodeDevise; capitaux_propres: number; resultat: number; total_bilan: number };
+      type CoursMap = Record<CodeDevise, number>;
+      return JSON.stringify(ecartConversionConsolidation(entites as EntiteConsolid[], cours_cloture as CoursMap, (cours_moyen || cours_cloture) as CoursMap, (cours_historique_cp || cours_cloture) as CoursMap, devise_consolidation as CodeDevise));
     },
   },
 };
