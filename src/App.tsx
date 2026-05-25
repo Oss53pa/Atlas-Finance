@@ -24,15 +24,19 @@ import './styles/globals.css';
 function lazyRetry(importFn: () => Promise<any>) {
   return React.lazy(() =>
     importFn().catch((err: unknown) => {
-      // Stale chunk after new deploy — hard-reload the page once
-      const reloaded = sessionStorage.getItem('chunk-reload');
-      if (!reloaded) {
-        sessionStorage.setItem('chunk-reload', '1');
+      // Stale chunk after new deploy — hard-reload once per 30s window.
+      // Using a timestamp key prevents stale booleans from previous deployments
+      // blocking the reload indefinitely.
+      const TS_KEY = 'chunk-reload-ts';
+      const last = Number(sessionStorage.getItem(TS_KEY) ?? 0);
+      const canReload = Date.now() - last > 30_000;
+      if (canReload) {
+        sessionStorage.setItem(TS_KEY, String(Date.now()));
         window.location.reload();
-        // Suspend forever while the reload is in flight
+        // Suspend forever while the reload is in flight — never resolve/reject
         return new Promise<any>(() => {});
       }
-      // Already reloaded and still failing — propagate so ErrorBoundary catches it
+      // Reloaded recently and still failing → let ErrorBoundary handle it
       throw err;
     })
   );

@@ -99,3 +99,21 @@ function killLegacyServiceWorker() {
   });
 }
 killLegacyServiceWorker();
+
+// ── Stale-chunk safety net ───────────────────────────────────
+// Catches "Failed to fetch dynamically imported module" errors that escape
+// lazyRetry (e.g. direct import() calls or errors before lazyRetry loads).
+// Same 30-second window to avoid reload loops.
+window.addEventListener('unhandledrejection', (event) => {
+  const msg = String(event?.reason?.message ?? event?.reason ?? '');
+  if (msg.includes('Failed to fetch dynamically imported module') ||
+      msg.includes('Importing a module script failed') ||
+      msg.includes('error loading dynamically imported module')) {
+    const TS_KEY = 'chunk-reload-ts';
+    const last = Number(sessionStorage.getItem(TS_KEY) ?? 0);
+    if (Date.now() - last > 30_000) {
+      sessionStorage.setItem(TS_KEY, String(Date.now()));
+      window.location.reload();
+    }
+  }
+});
