@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * PAGE EXEMPLE - GESTION DES COMPTES BANCAIRES
  *

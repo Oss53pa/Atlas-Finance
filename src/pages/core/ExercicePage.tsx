@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React, { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -197,7 +195,7 @@ const ExercicePage: React.FC = () => {
       toast.success('Export Excel réussi !');
     } else if (format === 'pdf') {
       // Pour PDF, on pourrait utiliser une librairie comme jsPDF
-      toast.info('Export PDF en cours de développement');
+      toast('Export PDF en cours de développement');
     }
 
     setShowExportMenu(false);

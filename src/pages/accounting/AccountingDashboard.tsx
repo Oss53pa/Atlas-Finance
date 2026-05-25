@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
@@ -153,7 +151,7 @@ const AccountingDashboard: React.FC = () => {
     ];
   }, [stats.classSoldes]);
 
-  const tabs: { key: TabKey; label: string; icon: React.FC<{ className?: string; size?: number }> }[] = [
+  const tabs: { key: TabKey; label: string; icon: React.ElementType }[] = [
     { key: 'overview', label: 'Vue d\'ensemble', icon: LayoutGrid },
     { key: 'entries', label: 'Écritures', icon: FileText },
     { key: 'balance', label: 'Balance', icon: BarChart3 },

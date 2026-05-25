@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React, { useState, useMemo, useCallback } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { toast } from 'react-hot-toast';

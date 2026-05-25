@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
@@ -428,7 +426,7 @@ const ProfilsSecuritePage: React.FC = () => {
   };
 
   const handleEditProfile = (profileId: string) => {
-    toast.info(`Édition du profil ${profileId}`);
+    toast(`Édition du profil ${profileId}`);
   };
 
   const handleDeleteProfile = (profileId: string) => {
@@ -440,7 +438,7 @@ const ProfilsSecuritePage: React.FC = () => {
   };
 
   const handleToggleProfile = (profileId: string) => {
-    toast.info(`Activation/Désactivation du profil ${profileId}`);
+    toast(`Activation/Désactivation du profil ${profileId}`);
   };
 
   const activeProfiles = profiles.filter(p => p.is_active).length;

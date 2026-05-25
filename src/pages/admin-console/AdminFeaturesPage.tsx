@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ToggleLeft, Search, CheckCircle, XCircle, Building, Zap, Sun, Moon, Monitor } from 'lucide-react';
@@ -19,18 +17,22 @@ const MODULES = [
 
 const AdminFeaturesPage: React.FC = () => {
   const queryClient = useQueryClient();
+  const anyClient = supabase as unknown as { from: (t: string) => any };
   const [search, setSearch] = useState('');
 
   // Charger tous les tenants avec leurs flags
   const { data: tenants = [], isLoading } = useQuery({
     queryKey: ['admin-features', search],
     queryFn: async () => {
-      const { data: allTenants } = await supabase.from('tenants').select('id, name, status').order('name');
-      const { data: allFlags } = await supabase.from('feature_flags').select('*');
+      const { data: allTenants } = await anyClient.from('tenants').select('id, name, status').order('name');
+      const { data: allFlags } = await anyClient.from('feature_flags').select('*');
 
-      let result = (allTenants || []).map(t => ({
+      const tenantsData = (allTenants || []) as Array<{ id: string; name: string; status: string }>;
+      const flagsData = (allFlags || []) as Array<{ tenant_id: string; module: string; enabled: boolean; [key: string]: unknown }>;
+
+      let result = tenantsData.map(t => ({
         ...t,
-        flags: (allFlags || []).filter(f => f.tenant_id === t.id),
+        flags: flagsData.filter(f => f.tenant_id === t.id),
       }));
 
       if (search) {

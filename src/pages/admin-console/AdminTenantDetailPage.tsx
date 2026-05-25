@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -30,9 +28,13 @@ const AdminTenantDetailPage: React.FC = () => {
 
   const { user } = useAuth();
 
+  type TenantDetailResult = { tenant: Record<string, unknown> | null; members: any[]; subscriptions: any[]; invoices: any[]; auditLogs: any[] };
   const { data, isLoading } = useQuery({
     queryKey: ['admin-tenant', tenantId],
-    queryFn: () => getTenantDetail(tenantId!),
+    queryFn: async () => {
+      const result = await getTenantDetail(tenantId!);
+      return result as unknown as TenantDetailResult;
+    },
     enabled: !!tenantId,
   });
 
@@ -47,7 +49,8 @@ const AdminTenantDetailPage: React.FC = () => {
   });
 
   if (isLoading || !data) return <div className="text-center py-20 text-gray-400">Chargement...</div>;
-  const { tenant, members, subscriptions, invoices, auditLogs } = data;
+  const { tenant: tenantRaw, members, subscriptions, invoices, auditLogs } = data;
+  const tenant = tenantRaw as any;
   if (!tenant) return <div className="text-center py-20 text-gray-400">Tenant non trouvé</div>;
 
   const fmt = (n: number) => (n || 0).toLocaleString('fr-FR');
@@ -234,21 +237,23 @@ const NotesTab: React.FC<{ tenantId: string }> = ({ tenantId }) => {
   const { data: notes = [] } = useQuery({
     queryKey: ['tenant-notes', tenantId],
     queryFn: async () => {
-      const { data } = await import('../../lib/supabase').then(m => m.supabase)
-        .from('audit_logs')
+      const { supabase: sb } = await import('../../lib/supabase');
+      const anyClient = sb as unknown as { from: (t: string) => any };
+      const { data } = await anyClient.from('audit_logs')
         .select('*')
         .eq('tenant_id', tenantId)
         .eq('action', 'INTERNAL_NOTE')
         .order('created_at', { ascending: false });
-      return data || [];
+      return (data || []) as Array<{ id: string; created_at: string; metadata?: Record<string, unknown>; [key: string]: unknown }>;
     },
   });
 
   const saveMut = useMutation({
     mutationFn: async () => {
-      const { supabase } = await import('../../lib/supabase');
-      const { data: { user } } = await supabase.auth.getUser();
-      await supabase.from('audit_logs').insert({
+      const { supabase: sb } = await import('../../lib/supabase');
+      const { data: { user } } = await sb.auth.getUser();
+      const anyClient = sb as unknown as { from: (t: string) => any };
+      await anyClient.from('audit_logs').insert({
         tenant_id: tenantId,
         user_id: user?.id,
         action: 'INTERNAL_NOTE',

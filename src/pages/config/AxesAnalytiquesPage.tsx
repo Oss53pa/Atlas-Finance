@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React, { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
@@ -603,7 +601,7 @@ const AxesAnalytiquesPage: React.FC = () => {
   };
 
   const handleEditAxis = (axisId: string) => {
-    toast.info(`Édition de l'axe ${axisId}`);
+    toast(`Édition de l'axe ${axisId}`);
   };
 
   const handleDeleteAxis = (axisId: string) => {
@@ -775,14 +773,16 @@ const AxesAnalytiquesPage: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <DataTable
-                  columns={axesColumns}
-                  data={filteredAxes}
+                  columns={axesColumns as unknown as import('../../components/ui/DataTable').Column<Record<string, unknown>>[]}
+                  data={filteredAxes as unknown as Record<string, unknown>[]}
                   loading={isLoading}
                   pageSize={10}
                   searchable={true}
                   exportable={true}
                   refreshable={true}
-                  actions={(item) => (
+                  actions={(item) => {
+                    const axis = item as unknown as AnalyticalAxis;
+                    return (
                     <div className="flex items-center space-x-1">
                       <button
                         className="p-1 hover:bg-gray-100 rounded transition-colors"
@@ -790,7 +790,7 @@ const AxesAnalytiquesPage: React.FC = () => {
                         <Eye className="w-4 h-4 text-gray-600" />
                       </button>
                       <button
-                        onClick={() => handleEditAxis(item.id)}
+                        onClick={() => handleEditAxis(axis.id)}
                         className="p-1 hover:bg-blue-100 rounded transition-colors"
                         title="Modifier l'axe"
                       >
@@ -802,14 +802,15 @@ const AxesAnalytiquesPage: React.FC = () => {
                         <Copy className="w-4 h-4 text-green-600" />
                       </button>
                       <button
-                        onClick={() => handleDeleteAxis(item.id)}
+                        onClick={() => handleDeleteAxis(axis.id)}
                         className="p-1 hover:bg-red-100 rounded transition-colors"
                         title="Supprimer l'axe"
                       >
                         <Trash2 className="w-4 h-4 text-red-600" />
                       </button>
                     </div>
-                  )}
+                    );
+                  }}
                   emptyMessage="Aucun axe analytique trouvé"
                 />
               </CardContent>

@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DollarSign, Save, ToggleLeft } from 'lucide-react';
@@ -13,20 +11,22 @@ const AdminPricingPage: React.FC = () => {
 
   const { data: solutions = [], isLoading } = useQuery({
     queryKey: ['admin-solutions'],
-    queryFn: async () => { const { data } = await supabase.from('solutions').select('*').order('display_order'); return data || []; },
+    queryFn: async () => { const anyClient = supabase as unknown as { from: (t: string) => any }; const { data } = await anyClient.from('solutions').select('*').order('display_order'); return (data || []) as Array<Record<string, unknown>>; },
   });
 
   const saveMut = useMutation({
     mutationFn: async ({ id, ...updates }: any) => {
-      const { error } = await supabase.from('solutions').update(updates).eq('id', id);
-      if (error) throw new Error(error.message);
+      const anyClient = supabase as unknown as { from: (t: string) => any };
+      const { error } = await anyClient.from('solutions').update(updates).eq('id', id);
+      if (error) throw new Error((error as { message: string }).message);
     },
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin-solutions'] }); setEditing(null); toast.success('Tarif mis à jour'); },
     onError: (err: Error) => toast.error(err.message),
   });
 
   const toggleActive = async (id: string, current: boolean) => {
-    await supabase.from('solutions').update({ is_active: !current }).eq('id', id);
+    const anyClient = supabase as unknown as { from: (t: string) => any };
+    await anyClient.from('solutions').update({ is_active: !current }).eq('id', id);
     queryClient.invalidateQueries({ queryKey: ['admin-solutions'] });
     toast.success(!current ? 'Solution activée' : 'Solution désactivée');
   };

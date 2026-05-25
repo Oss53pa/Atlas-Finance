@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -251,7 +249,7 @@ const AnalyticalAxesPage: React.FC = () => {
       const validatedData = createAxeSchema.parse(formData);
 
       // Submit to backend
-      await createMutation.mutateAsync(validatedData);
+      await createMutation.mutateAsync(validatedData as unknown as AxeData);
     } catch (error) {
       if (error instanceof z.ZodError) {
         // Map Zod errors to form fields
@@ -681,7 +679,7 @@ const AnalyticalAxesPage: React.FC = () => {
                   {axesData.type_distribution?.map((item, index) => (
                     <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
                       <div className="flex items-center space-x-2">
-                        <Badge className={getTypeColor(item.type)} size="sm">
+                        <Badge className={getTypeColor(item.type)}>
                           {getTypeLabel(item.type)}
                         </Badge>
                       </div>
@@ -923,7 +921,7 @@ const AnalyticalAxesPage: React.FC = () => {
                       <input
                         type="checkbox"
                         id="budget"
-                        defaultChecked={selectedAxe?.budget}
+                        defaultChecked={selectedAxe?.budget as boolean | undefined}
                         className="w-4 h-4 text-[var(--color-primary)] border-gray-300 rounded focus:ring-[var(--color-primary)]"
                       />
                       <label htmlFor="budget" className="ml-2 text-sm text-gray-700">
@@ -935,7 +933,7 @@ const AnalyticalAxesPage: React.FC = () => {
                       <input
                         type="checkbox"
                         id="reporting"
-                        defaultChecked={selectedAxe?.reporting}
+                        defaultChecked={selectedAxe?.reporting as boolean | undefined}
                         className="w-4 h-4 text-[var(--color-primary)] border-gray-300 rounded focus:ring-[var(--color-primary)]"
                       />
                       <label htmlFor="reporting" className="ml-2 text-sm text-gray-700">

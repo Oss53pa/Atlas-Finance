@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React, { useState, useEffect } from 'react';
 import { useData } from '../../../../../contexts/DataContext';
 import { formatDate } from '../../../../../utils/formatters';
@@ -264,7 +262,7 @@ const CreatePlanTresorerieForms: React.FC<CreatePlanTresorerieForms> = (props) =
                         <i className="fas fa-plus-circle me-2"></i>
                         Création de Plan de Trésorerie
                     </h4>
-                    <IoCloseCircleSharp className='close-icon' onClick={props.hide} />
+                    <span onClick={props.hide}><IoCloseCircleSharp className='close-icon' /></span>
                 </div>
                 <div className='card-body'>
                     <form onSubmit={handleSubmit}>

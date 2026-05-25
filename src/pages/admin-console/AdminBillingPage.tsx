@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { CreditCard, CheckCircle, Clock, AlertTriangle, DollarSign, Filter, Search } from 'lucide-react';
@@ -9,13 +7,14 @@ import { toast } from 'react-hot-toast';
 
 const AdminBillingPage: React.FC = () => {
   const queryClient = useQueryClient();
+  const anyClient = supabase as unknown as { from: (t: string) => any };
   const [statusFilter, setStatusFilter] = useState('pending');
   const [search, setSearch] = useState('');
 
   const { data: invoices = [], isLoading } = useQuery({
     queryKey: ['admin-invoices', statusFilter, search],
     queryFn: async () => {
-      let q = supabase
+      let q = anyClient
         .from('invoices')
         .select('*, tenant:tenants(name, billing_email)')
         .order('created_at', { ascending: false })
@@ -35,8 +34,8 @@ const AdminBillingPage: React.FC = () => {
   const { data: stats } = useQuery({
     queryKey: ['admin-billing-stats'],
     queryFn: async () => {
-      const { data } = await supabase.from('invoices').select('amount, status');
-      const all = data || [];
+      const { data } = await anyClient.from('invoices').select('amount, status');
+      const all = (data || []) as Array<{ amount: number; status: string }>;
       return {
         totalPaid: all.filter(i => i.status === 'paid').reduce((s, i) => s + (i.amount || 0), 0),
         totalPending: all.filter(i => i.status === 'pending').reduce((s, i) => s + (i.amount || 0), 0),
@@ -58,7 +57,7 @@ const AdminBillingPage: React.FC = () => {
 
   const rejectMut = useMutation({
     mutationFn: async (id: string) => {
-      await supabase.from('invoices').update({ status: 'failed' }).eq('id', id);
+      await anyClient.from('invoices').update({ status: 'failed' }).eq('id', id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-invoices'] });

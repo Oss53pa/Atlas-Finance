@@ -1,6 +1,5 @@
-// @ts-nocheck
-
 import React, { useState, useMemo } from 'react'; // Palette Atlas F&A appliquée
+import type { DBAsset } from '../../lib/db';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { useQuery } from '@tanstack/react-query';
@@ -353,7 +352,7 @@ const AssetsRegistry: React.FC = () => {
   const { data: mockAssets = [] } = useQuery<Asset[]>({
     queryKey: ['assets-registry'],
     queryFn: async () => {
-      const dbAssets = await adapter.getAll('assets');
+      const dbAssets = await adapter.getAll<DBAsset>('assets');
       return dbAssets.map((a): Asset => ({
         id: a.id,
         asset_number: a.code,

@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React, { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -704,7 +702,7 @@ const APIIntegrationsPage: React.FC = () => {
 
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => toast.info('Test du webhook en cours...')}
+                        onClick={() => toast('Test du webhook en cours...')}
                         className="p-2 hover:bg-[var(--color-border-light)] rounded-lg transition-colors">
                         <Activity className="w-4 h-4" />
                       </button>

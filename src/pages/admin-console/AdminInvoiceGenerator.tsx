@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -14,7 +12,7 @@ const AdminInvoiceGenerator: React.FC = () => {
 
   const { data: tenants = [] } = useQuery({
     queryKey: ['admin-tenants-list'],
-    queryFn: async () => { const { data } = await supabase.from('tenants').select('id, name').order('name'); return data || []; },
+    queryFn: async () => { const anyClient = supabase as unknown as { from: (t: string) => any }; const { data } = await anyClient.from('tenants').select('id, name').order('name'); return (data || []) as Array<{ id: string; name: string }>; },
   });
 
   const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }));
@@ -26,7 +24,8 @@ const AdminInvoiceGenerator: React.FC = () => {
     setLoading(true);
     try {
       const num = `AS-${new Date().getFullYear()}-${Date.now().toString(36).toUpperCase()}`;
-      const { error } = await supabase.from('invoices').insert({
+      const anyClient = supabase as unknown as { from: (t: string) => any };
+      const { error } = await anyClient.from('invoices').insert({
         tenant_id: form.tenantId,
         invoice_number: num,
         amount,
@@ -36,7 +35,7 @@ const AdminInvoiceGenerator: React.FC = () => {
         period_start: form.periodStart || null,
         period_end: form.periodEnd || null,
       });
-      if (error) throw new Error(error.message);
+      if (error) throw new Error((error as { message: string }).message);
       toast.success(`Facture ${num} générée`);
       navigate('/admin-console/billing');
     } catch (err) {

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * AtlasFnAHome — Cockpit R&C-grade dashboard d'accueil Atlas F&A.
  * Composition strict du référent : top bar contexte, hero wordmark centré,

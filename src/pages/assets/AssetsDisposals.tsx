@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { useData } from '../../contexts/DataContext';
 import type { DBAsset } from '../../lib/db';
@@ -285,7 +283,7 @@ const AssetsDisposals: React.FC = () => {
     transfer: 'Transfert'
   };
 
-  const categoryLabels = {
+  const categoryLabels: Record<string, string> = {
     materiel_informatique: 'Matériel IT',
     vehicules: 'Véhicules',
     mobilier: 'Mobilier',
@@ -328,7 +326,7 @@ const AssetsDisposals: React.FC = () => {
                 Rapport
               </ElegantButton>
               <ExportMenu
-                data={filteredDisposals}
+                data={filteredDisposals as unknown as Record<string, unknown>[]}
                 filename="sorties_actifs"
                 columns={{
                   assetName: 'Nom Actif',
@@ -456,8 +454,6 @@ const AssetsDisposals: React.FC = () => {
                   <ColorfulBarChart
                     data={statusChartData}
                     height={160}
-                    showValues={true}
-                    valueFormatter={(value) => `${value} sortie${value !== 1 ? 's' : ''}`}
                   />
                 </ModernChartCard>
               </motion.div>
@@ -475,8 +471,6 @@ const AssetsDisposals: React.FC = () => {
                   <ColorfulBarChart
                     data={typeChartData}
                     height={160}
-                    showValues={true}
-                    valueFormatter={(value) => `${value} sortie${value !== 1 ? 's' : ''}`}
                   />
                 </ModernChartCard>
               </motion.div>
@@ -548,7 +542,7 @@ const AssetsDisposals: React.FC = () => {
                         variant="outline"
                         size="sm"
                         onClick={() => {
-                          toast.info(`Actions groupées pour ${selectedDisposals.length} éléments`);
+                          toast(`Actions groupées pour ${selectedDisposals.length} éléments`);
                         }}
                       >
                         Actions groupées ({selectedDisposals.length})

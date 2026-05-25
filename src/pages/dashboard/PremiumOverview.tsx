@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * PremiumOverview — Vitrine ultra-premium pour /executive d'Atlas F&A.
  * ERP comptable SYSCOHADA — pas un cockpit recouvrement.

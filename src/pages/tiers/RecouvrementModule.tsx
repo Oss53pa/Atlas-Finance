@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { formatCurrency, formatDate } from '../../utils/formatters';
@@ -713,19 +711,19 @@ Service Contentieux
 
     switch (action) {
       case 'details':
-        toast.info(`Affichage des détails pour ${dossier.numeroRef}`);
+        toast(`Affichage des détails pour ${dossier.numeroRef}`);
         break;
       case 'relance':
         toast.success(`Relance envoyée pour ${dossier.client}`);
         break;
       case 'plan':
-        toast.info(`Plan de règlement proposé pour ${dossier.client}`);
+        toast(`Plan de règlement proposé pour ${dossier.client}`);
         break;
       case 'regle':
         toast.success(`Dossier ${dossier.numeroRef} marqué comme réglé`);
         break;
       case 'contentieux':
-        toast.warning(`Dossier ${dossier.client} envoyé en pré-contentieux`);
+        toast(`Dossier ${dossier.client} envoyé en pré-contentieux`);
         break;
       case 'transfert':
         setSelectedTransferDossier(dossier);

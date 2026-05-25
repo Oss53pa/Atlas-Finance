@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React, { useState, useEffect } from 'react';
 import { useData } from '../../../../../contexts/DataContext';
 import { useFinanceContext } from '../../../../../contexts/FinanceContext';
@@ -265,7 +263,7 @@ export const FundCallSummary: React.FC = () => {
             </div>
             <div className="card-body">
               <div className="row">
-                {Object.entries(mockFundCall.aging_invoices).map(([key, value]) => {
+                {(Object.entries(mockFundCall.aging_invoices) as [string, { count: number; amount: number; percentage: number }][]).map(([key, value]) => {
                   const labels: Record<string, string> = {
                     'between_0_30_days': '0-30 jours',
                     'between_31_60_days': '31-60 jours',

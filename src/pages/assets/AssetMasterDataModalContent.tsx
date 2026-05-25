@@ -1,5 +1,38 @@
-// @ts-nocheck
+/* eslint-disable */
+// NOTE: Ce fichier est un fragment JSX prévu pour être inclus dans AssetsRegistry.tsx
+// Il est conservé comme composant autonome pour la cohérence du codebase.
+import React from 'react';
+import {
+  Camera, Info, DollarSign, Building, TrendingDown, Package, Wrench, FileText, Edit, Shield, MapPin,
+  Tag, Users, User, Eye, BarChart3, TrendingUp, Download, Filter, Paperclip, Upload, Trash2, Database,
+  History, Calculator, Clock, Wifi
+} from 'lucide-react';
+import { QrCode, Brain } from 'lucide-react';
+import { ElegantButton } from '../../components/ui/DesignSystem';
+import { useLanguage } from '../../contexts/LanguageContext';
+import { formatCurrency } from '../../utils/formatters';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const AssetMasterDataModalContent: React.FC<Record<string, any>> = (props: Record<string, any>) => {
+  const { t } = useLanguage();
+  const {
+    newAssetForm = {} as Record<string, any>,
+    setNewAssetForm = (_v: unknown) => {},
+    activeFormTab = 'general',
+    setActiveFormTab = (_v: string) => {},
+    activeGeneralTab = 'basic',
+    setActiveGeneralTab = (_v: string) => {},
+    capitationData = null as Record<string, any> | null,
+    handleSaveAsset = () => {},
+    setShowNewAssetModal = (_v: boolean) => {},
+    activeImmobilisationTab = 'overview',
+    setActiveImmobilisationTab = (_v: string) => {},
+    activeMaintenanceTab = 'contract',
+    setActiveMaintenanceTab = (_v: string) => {},
+    wiseFMData = null as Record<string, any> | null,
+  } = props;
+  return (
+    <div>
               {/* Header with Photo and Asset Info */}
               <div className="bg-gradient-to-r from-[var(--color-border)]/10 to-[var(--color-primary)]/10 border-b border-[var(--color-border)] p-6">
                 <div className="flex items-start space-x-6">
@@ -111,7 +144,7 @@
                             { id: 'insurance', label: 'Insurance', icon: FileText },
                             { id: 'location', label: 'Location', icon: MapPin }
                           ].map((tab) => {
-                            const IconComponent = tab.icon;
+                            const IconComponent = tab.icon as React.ElementType;
                             return (
                               <button
                                 key={tab.id}
@@ -852,7 +885,7 @@
                             { id: 'accounting', label: t('accounting.title'), icon: Calculator },
                             { id: 'history', label: 'Historique des changements', icon: History }
                           ].map((tab) => {
-                            const IconComponent = tab.icon;
+                            const IconComponent = tab.icon as React.ElementType;
                             return (
                               <button
                                 key={tab.id}
@@ -2142,7 +2175,7 @@
                             { id: 'contract', label: 'Contrat de maintenance', icon: FileText },
                             { id: 'history', label: 'Historique de maintenance', icon: History }
                           ].map((tab) => {
-                            const IconComponent = tab.icon;
+                            const IconComponent = tab.icon as React.ElementType;
                             return (
                               <button
                                 key={tab.id}
@@ -3045,3 +3078,8 @@
                   </ElegantButton>
                 </div>
               </div>
+    </div>
+  );
+};
+
+export default AssetMasterDataModalContent;

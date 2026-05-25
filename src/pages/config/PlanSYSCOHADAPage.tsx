@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React, { useState, useMemo, useCallback } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
@@ -11,7 +9,8 @@ import {
   CheckCircle, Info, Menu, FileSpreadsheet, Printer, RefreshCw,
   ChevronLeft
 } from 'lucide-react';
-import DataTable from '../../components/ui/DataTable';
+import DataTableRaw from '../../components/ui/DataTable';
+const DataTable = DataTableRaw as unknown as React.ComponentType<Record<string, unknown>>;
 import { useDataTable } from '../../hooks/useDataTable';
 import { accountService } from '../../services/api.service';
 import { accountingService, createJournalSchema } from '../../services/modules/accounting.service';

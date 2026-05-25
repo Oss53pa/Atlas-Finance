@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 // Modules 3-5: Amortissements IA, Cycle de Vie, Inventaire Auto
 import React, { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -11,7 +9,7 @@ import {
   Clock, Users, Building, Package, Award, Star, Layers,
   BarChart3
 } from 'lucide-react';
-import { ModernCard, CardHeader, CardBody, StatCard } from '../../components/ui/ModernCard';
+import { ModernCard, CardHeader, CardBody, StatCard as StatCardBase } from '../../components/ui/ModernCard';
 import ModernButton from '../../components/ui/ModernButton';
 import { Line, Bar, Doughnut } from 'react-chartjs-2';
 import {
@@ -38,6 +36,9 @@ ChartJS.register(
   Legend,
   ArcElement
 );
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const StatCard = StatCardBase as React.ComponentType<any>;
 
 // MODULE 3: AMORTISSEMENTS IA DÉTAILLÉ
 export const renderAmortissementsIA = () => (
@@ -964,7 +965,7 @@ export const RenderInventaireAuto = () => {
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    <span className="text-sm text-green-600">{t('status.inProgress')}</span>
+                    <span className="text-sm text-green-600">En cours</span>
                   </div>
                   <ModernButton variant="outline" size="sm">
                     <Settings className="w-4 h-4 mr-1" />
@@ -1460,7 +1461,7 @@ export const RenderInventaireAuto = () => {
               <div>
                 <h4 className="text-lg font-semibold mb-4">Performance des Sessions</h4>
                 <div className="h-64">
-                  <Bar radius={[6,6,0,0]}
+                  <Bar
                     data={{
                       labels: ['Déc 2023', 'Jan 2024', 'Fév 2024', 'Mar 2024'],
                       datasets: [

@@ -1,9 +1,7 @@
-// @ts-nocheck
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
-import { DBAsset } from '../../lib/db';
+import type { DBAsset } from '../../lib/db';
 import { motion } from 'framer-motion';
 import {
   Package,

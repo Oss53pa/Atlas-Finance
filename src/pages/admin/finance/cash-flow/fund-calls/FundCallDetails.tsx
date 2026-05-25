@@ -1,14 +1,13 @@
-// @ts-nocheck
-
 import React, { useState, useEffect } from 'react';
 import { formatDate } from '../../../../../utils/formatters';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useData } from '../../../../../contexts/DataContext';
 import Spinner from '../../../../../components/common/Spinner';
-import { DICTIONNARY, useLanguage } from '../../../../../globals/dictionnary';
+import { DICTIONNARY } from '../../../../../globals/dictionnary';
+import { useLanguage } from '../../../../../contexts/LanguageContext';
 import { FaLock, FaLockOpen, BsThreeDotsVertical } from '../../../../../components/ui/Icons';
 
-interface FundCallDetails {
+interface FundCallDetailsData {
   id: number;
   request_date: string;
   reference: string;
@@ -34,13 +33,13 @@ interface FundCallDetails {
 }
 
 export const FundCallDetails: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, language: _langDetails } = useLanguage();
+  const language = (_langDetails === 'en' ? 'en' : 'fr') as 'fr' | 'en';
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { language } = useLanguage();
   const { adapter } = useData();
   const [loading, setLoading] = useState<boolean>(true);
-  const [fundCall, setFundCall] = useState<FundCallDetails | null>(null);
+  const [fundCall, setFundCall] = useState<FundCallDetailsData | null>(null);
   const [error, setError] = useState<string>('');
 
   useEffect(() => {
@@ -52,7 +51,7 @@ export const FundCallDetails: React.FC = () => {
         const setting = await adapter.getById<{ value: string }>('settings', 'fund_calls');
         if (setting) {
           const parsed = JSON.parse(setting.value);
-          const allCalls: FundCallDetails[] = Array.isArray(parsed) ? parsed : [];
+          const allCalls: FundCallDetailsData[] = Array.isArray(parsed) ? parsed : [];
           const found = allCalls.find(
             (fc) => String(fc.id) === String(id)
           );

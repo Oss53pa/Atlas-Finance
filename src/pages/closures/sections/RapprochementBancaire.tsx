@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../../contexts/LanguageContext';

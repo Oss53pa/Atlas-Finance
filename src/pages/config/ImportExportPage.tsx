@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React, { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
@@ -462,7 +460,7 @@ const ImportExportPage: React.FC = () => {
 
   const handleStopExecution = (executionId: string) => {
     if (confirm('Êtes-vous sûr de vouloir arrêter cette exécution ?')) {
-      toast.warning('Exécution arrêtée');
+      toast('Exécution arrêtée');
     }
   };
 

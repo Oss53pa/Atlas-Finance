@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -32,6 +30,7 @@ interface Journal {
 }
 
 interface EcritureJournal {
+  id?: string;
   mvt: string;
   jnl: string;
   date: string;
@@ -42,6 +41,8 @@ interface EcritureJournal {
   libelle: string;
   debit: string;
   credit: string;
+  tiers?: string;
+  status?: string;
 }
 
 const JournalsPage: React.FC = () => {
@@ -53,11 +54,11 @@ const JournalsPage: React.FC = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showRecapTable, setShowRecapTable] = useState(false);
   const [showEditEntryModal, setShowEditEntryModal] = useState(false);
-  const [selectedEntry, setSelectedEntry] = useState<Record<string, unknown> | null>(null);
-  const [selectedEntryLines, setSelectedEntryLines] = useState<Record<string, unknown>[]>([]);
+  const [selectedEntry, setSelectedEntry] = useState<EcritureJournal | null>(null);
+  const [selectedEntryLines, setSelectedEntryLines] = useState<EcritureJournal[]>([]);
   const [showSubJournals, setShowSubJournals] = useState<{[key: string]: boolean}>({});
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
-  const [savedEntry, setSavedEntry] = useState<Record<string, unknown> | null>(null);
+  const [savedEntry, setSavedEntry] = useState<(EcritureJournal & { lines?: EcritureJournal[]; totalDebit?: number; totalCredit?: number }) | null>(null);
 
   const { adapter } = useData();
   const [dbEntries, setDbEntries] = useState<any[]>([]);
@@ -360,11 +361,11 @@ const JournalsPage: React.FC = () => {
       return;
     }
 
-    setSelectedEntry(entry);
+    setSelectedEntry(entry as unknown as EcritureJournal);
 
     // Récupérer toutes les lignes de l'écriture (même numéro de mouvement)
-    const allEntries = getEcrituresJournal(entry.jnl);
-    const entryLines = allEntries.filter(e => e.mvt === entry.mvt);
+    const allEntries = getEcrituresJournal(String(entry.jnl ?? ''));
+    const entryLines = allEntries.filter(e => e.mvt === String(entry.mvt ?? ''));
 
     setSelectedEntryLines(entryLines);
     setShowEditEntryModal(true);
@@ -379,11 +380,11 @@ const JournalsPage: React.FC = () => {
 
     // Vérifier l'équilibre
     const totalDebit = selectedEntryLines.reduce((sum, line) => {
-      const debit = parseFloat(line.debit?.replace(/\s/g, '').replace('-', '') || '0');
+      const debit = parseFloat(String(line.debit ?? '0').replace(/\s/g, '').replace('-', '') || '0');
       return sum + debit;
     }, 0);
     const totalCredit = selectedEntryLines.reduce((sum, line) => {
-      const credit = parseFloat(line.credit?.replace(/\s/g, '').replace('-', '') || '0');
+      const credit = parseFloat(String(line.credit ?? '0').replace(/\s/g, '').replace('-', '') || '0');
       return sum + credit;
     }, 0);
 
@@ -994,8 +995,8 @@ const JournalsPage: React.FC = () => {
 
                   {/* Table des écritures avec DataTable */}
                   <DataTable
-                    columns={ecrituresColumns}
-                    data={getEcrituresJournal(selectedJournal?.code || 'TOUS')}
+                    columns={ecrituresColumns as unknown as import('../../components/ui/DataTable').Column<Record<string, unknown>>[]}
+                    data={getEcrituresJournal(selectedJournal?.code || 'TOUS') as unknown as Record<string, unknown>[]}
                     pageSize={15}
                     searchable={true}
                     exportable={true}
@@ -1432,9 +1433,9 @@ const JournalsPage: React.FC = () => {
                 <button
                   onClick={async () => {
                     if (!selectedEntry?.id) return;
-                    const res = await validerEcriture(selectedEntry.id);
+                    const res = await validerEcriture(adapter, String(selectedEntry.id));
                     if (res.success) {
-                      toast.success(`Écriture ${selectedEntry.piece} validée`);
+                      toast.success(`Écriture ${String(selectedEntry.piece ?? '')} validée`);
                       setShowEditEntryModal(false);
                     } else {
                       toast.error(res.error || 'Validation impossible');
