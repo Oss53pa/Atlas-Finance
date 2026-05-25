@@ -9,7 +9,7 @@ import type { DBTaxRegistry, DBTaxBracket } from '../../lib/db';
 // SEED: Registre des taxes CI
 // ============================================================================
 
-const CI_TAX_REGISTRY: Partial<DBTaxRegistry>[] = [
+const CI_TAX_REGISTRY: Record<string, unknown>[] = [
   {
     id: 'ci-tva',
     taxCode: 'TVA',
@@ -226,15 +226,15 @@ const CI_TAX_REGISTRY: Partial<DBTaxRegistry>[] = [
 // SEED: Barèmes IRPP progressifs CI
 // ============================================================================
 
-const CI_IRPP_BRACKETS: Omit<DBTaxBracket, 'id'>[] = [
-  { taxRegistryId: 'ci-irpp-salaires', bracketOrder: 1, fromAmount: 0,        toAmount: 300000,    ratePct: 0  },
-  { taxRegistryId: 'ci-irpp-salaires', bracketOrder: 2, fromAmount: 300001,   toAmount: 547000,    ratePct: 10 },
-  { taxRegistryId: 'ci-irpp-salaires', bracketOrder: 3, fromAmount: 547001,   toAmount: 979000,    ratePct: 15 },
-  { taxRegistryId: 'ci-irpp-salaires', bracketOrder: 4, fromAmount: 979001,   toAmount: 1519000,   ratePct: 20 },
-  { taxRegistryId: 'ci-irpp-salaires', bracketOrder: 5, fromAmount: 1519001,  toAmount: 2644000,   ratePct: 25 },
-  { taxRegistryId: 'ci-irpp-salaires', bracketOrder: 6, fromAmount: 2644001,  toAmount: 4669000,   ratePct: 35 },
-  { taxRegistryId: 'ci-irpp-salaires', bracketOrder: 7, fromAmount: 4669001,  toAmount: 10106000,  ratePct: 45 },
-  { taxRegistryId: 'ci-irpp-salaires', bracketOrder: 8, fromAmount: 10106001, toAmount: null,      ratePct: 60 },
+const CI_IRPP_BRACKETS: Record<string, unknown>[] = [
+  { taxRegistryId: 'ci-irpp-salaires', bracketOrder: 1, fromAmount: 0,        toAmount: 300000,    ratePct: 0,  fiscalYear: '', countryCode: 'CI' },
+  { taxRegistryId: 'ci-irpp-salaires', bracketOrder: 2, fromAmount: 300001,   toAmount: 547000,    ratePct: 10, fiscalYear: '', countryCode: 'CI' },
+  { taxRegistryId: 'ci-irpp-salaires', bracketOrder: 3, fromAmount: 547001,   toAmount: 979000,    ratePct: 15, fiscalYear: '', countryCode: 'CI' },
+  { taxRegistryId: 'ci-irpp-salaires', bracketOrder: 4, fromAmount: 979001,   toAmount: 1519000,   ratePct: 20, fiscalYear: '', countryCode: 'CI' },
+  { taxRegistryId: 'ci-irpp-salaires', bracketOrder: 5, fromAmount: 1519001,  toAmount: 2644000,   ratePct: 25, fiscalYear: '', countryCode: 'CI' },
+  { taxRegistryId: 'ci-irpp-salaires', bracketOrder: 6, fromAmount: 2644001,  toAmount: 4669000,   ratePct: 35, fiscalYear: '', countryCode: 'CI' },
+  { taxRegistryId: 'ci-irpp-salaires', bracketOrder: 7, fromAmount: 4669001,  toAmount: 10106000,  ratePct: 45, fiscalYear: '', countryCode: 'CI' },
+  { taxRegistryId: 'ci-irpp-salaires', bracketOrder: 8, fromAmount: 10106001, toAmount: undefined, ratePct: 60, fiscalYear: '', countryCode: 'CI' },
 ];
 
 // ============================================================================
@@ -256,7 +256,7 @@ export async function seedTaxRegistryCI(adapter: DataAdapter): Promise<void> {
       ...tax,
       createdAt: now,
       updatedAt: now,
-    } as DBTaxRegistry);
+    } as unknown as DBTaxRegistry);
   }
 }
 
@@ -272,6 +272,6 @@ export async function seedIRPPBracketsCI(adapter: DataAdapter): Promise<void> {
     await adapter.create('taxBrackets', {
       ...bracket,
       id: crypto.randomUUID(),
-    } as DBTaxBracket);
+    } as unknown as DBTaxBracket);
   }
 }

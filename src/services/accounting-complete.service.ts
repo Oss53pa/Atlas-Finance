@@ -328,15 +328,16 @@ class AccountingEntriesService {
       if (error) throw error;
 
       // Map account info to flat fields on lines
-      if (data?.lines) {
-        data.lines = data.lines.map((line: EntryLineWithAccount) => ({
+      const entry = data as unknown as (AccountingEntry & { lines?: EntryLineWithAccount[] });
+      if (entry?.lines) {
+        entry.lines = entry.lines.map((line: EntryLineWithAccount) => ({
           ...line,
           account_code: line.account?.code,
           account_name: line.account?.name,
-        }));
+        })) as EntryLineWithAccount[];
       }
 
-      return data as AccountingEntry;
+      return entry as AccountingEntry;
     } catch (err) { /* silent */
       return null;
     }
@@ -359,7 +360,7 @@ class AccountingEntriesService {
 
       const { error } = await supabase
         .from('journal_entry_lines')
-        .insert(linesWithEntryId);
+        .insert(linesWithEntryId as never);
 
       if (error) throw error;
     }
@@ -391,7 +392,7 @@ class AccountingEntriesService {
 
         const { error } = await supabase
           .from('journal_entry_lines')
-          .insert(linesWithEntryId);
+          .insert(linesWithEntryId as never);
 
         if (error) throw error;
       }

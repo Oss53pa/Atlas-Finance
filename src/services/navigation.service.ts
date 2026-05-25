@@ -228,16 +228,16 @@ class NavigationService {
     workspace_id?: string;
     include_disabled?: boolean;
   }): Promise<NavigationMenu> {
-    const response = await apiService.get(`${BASE_PATH}/api/navigation/menu/`, { params });
-    return response.data;
+    const response = await apiService.get<NavigationMenu>(`${BASE_PATH}/api/navigation/menu/`, { params: params as Record<string, unknown> });
+    return response.data as NavigationMenu;
   }
 
   /**
    * Rafraîchit le menu (force reload)
    */
   async refreshMenu(): Promise<NavigationMenu> {
-    const response = await apiService.post(`${BASE_PATH}/api/navigation/menu/refresh/`);
-    return response.data;
+    const response = await apiService.post<NavigationMenu>(`${BASE_PATH}/api/navigation/menu/refresh/`);
+    return response.data as NavigationMenu;
   }
 
   // ==========================================================================
@@ -248,10 +248,10 @@ class NavigationService {
    * Récupère le breadcrumb pour un chemin
    */
   async getBreadcrumb(path: string): Promise<Breadcrumb> {
-    const response = await apiService.get(`${BASE_PATH}/api/navigation/breadcrumb/`, {
+    const response = await apiService.get<Breadcrumb>(`${BASE_PATH}/api/navigation/breadcrumb/`, {
       params: { path },
     });
-    return response.data;
+    return response.data as Breadcrumb;
   }
 
   // ==========================================================================
@@ -262,8 +262,8 @@ class NavigationService {
    * Récupère les accès rapides de l'utilisateur
    */
   async getQuickAccess(): Promise<QuickAccess[]> {
-    const response = await apiService.get(`${BASE_PATH}/api/navigation/quick-access/`);
-    return response.data;
+    const response = await apiService.get<QuickAccess[]>(`${BASE_PATH}/api/navigation/quick-access/`);
+    return response.data as QuickAccess[];
   }
 
   /**
@@ -275,16 +275,16 @@ class NavigationService {
     icon?: string;
     description?: string;
   }): Promise<QuickAccess> {
-    const response = await apiService.post(`${BASE_PATH}/api/navigation/quick-access/`, data);
-    return response.data;
+    const response = await apiService.post<QuickAccess>(`${BASE_PATH}/api/navigation/quick-access/`, data);
+    return response.data as QuickAccess;
   }
 
   /**
    * Met à jour un accès rapide
    */
   async updateQuickAccess(id: string, data: Partial<QuickAccess>): Promise<QuickAccess> {
-    const response = await apiService.patch(`${BASE_PATH}/api/navigation/quick-access/${id}/`, data);
-    return response.data;
+    const response = await apiService.patch<QuickAccess>(`${BASE_PATH}/api/navigation/quick-access/${id}/`, data);
+    return response.data as QuickAccess;
   }
 
   /**
@@ -298,26 +298,26 @@ class NavigationService {
    * Épingle/désépingle un accès rapide
    */
   async togglePin(id: string): Promise<QuickAccess> {
-    const response = await apiService.post(`${BASE_PATH}/api/navigation/quick-access/${id}/toggle-pin/`);
-    return response.data;
+    const response = await apiService.post<QuickAccess>(`${BASE_PATH}/api/navigation/quick-access/${id}/toggle-pin/`);
+    return response.data as QuickAccess;
   }
 
   /**
    * Ajoute aux favoris
    */
   async toggleFavorite(id: string): Promise<QuickAccess> {
-    const response = await apiService.post(`${BASE_PATH}/api/navigation/quick-access/${id}/toggle-favorite/`);
-    return response.data;
+    const response = await apiService.post<QuickAccess>(`${BASE_PATH}/api/navigation/quick-access/${id}/toggle-favorite/`);
+    return response.data as QuickAccess;
   }
 
   /**
    * Réorganise les accès rapides
    */
   async reorderQuickAccess(orderedIds: string[]): Promise<QuickAccess[]> {
-    const response = await apiService.post(`${BASE_PATH}/api/navigation/quick-access/reorder/`, {
+    const response = await apiService.post<QuickAccess[]>(`${BASE_PATH}/api/navigation/quick-access/reorder/`, {
       ordered_ids: orderedIds,
     });
-    return response.data;
+    return response.data as QuickAccess[];
   }
 
   // ==========================================================================
@@ -333,18 +333,18 @@ class NavigationService {
     modules?: string[];
     limit?: number;
   }): Promise<GlobalSearchResult> {
-    const response = await apiService.get(`${BASE_PATH}/api/navigation/search/`, { params });
-    return response.data;
+    const response = await apiService.get<GlobalSearchResult>(`${BASE_PATH}/api/navigation/search/`, { params: params as Record<string, unknown> });
+    return response.data as GlobalSearchResult;
   }
 
   /**
    * Suggestions de recherche (autocomplétion)
    */
   async searchSuggestions(query: string): Promise<string[]> {
-    const response = await apiService.get(`${BASE_PATH}/api/navigation/search/suggestions/`, {
+    const response = await apiService.get<string[]>(`${BASE_PATH}/api/navigation/search/suggestions/`, {
       params: { query },
     });
-    return response.data;
+    return response.data as string[];
   }
 
   // ==========================================================================
@@ -358,8 +358,8 @@ class NavigationService {
     module: string;
     current_path: string;
   }): Promise<ContextualNavigation> {
-    const response = await apiService.get(`${BASE_PATH}/api/navigation/contextual/`, { params });
-    return response.data;
+    const response = await apiService.get<ContextualNavigation>(`${BASE_PATH}/api/navigation/contextual/`, { params: params as Record<string, unknown> });
+    return response.data as ContextualNavigation;
   }
 
   // ==========================================================================
@@ -384,8 +384,8 @@ class NavigationService {
     date_debut?: string;
     date_fin?: string;
   }): Promise<NavigationHistory> {
-    const response = await apiService.get(`${BASE_PATH}/api/navigation/history/`, { params });
-    return response.data;
+    const response = await apiService.get<NavigationHistory>(`${BASE_PATH}/api/navigation/history/`, { params: params as Record<string, unknown> });
+    return response.data as NavigationHistory;
   }
 
   /**
@@ -401,8 +401,8 @@ class NavigationService {
   async getStats(params?: {
     periode?: 'week' | 'month' | 'year';
   }): Promise<NavigationStats> {
-    const response = await apiService.get(`${BASE_PATH}/api/navigation/stats/`, { params });
-    return response.data;
+    const response = await apiService.get<NavigationStats>(`${BASE_PATH}/api/navigation/stats/`, { params: params as Record<string, unknown> });
+    return response.data as NavigationStats;
   }
 
   // ==========================================================================

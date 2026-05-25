@@ -39,16 +39,16 @@ export const accountingTools: Record<string, ToolDefinition> = Object.fromEntrie
         filtered = balanceRows.filter(r => r.accountCode?.startsWith(prefix));
       }
 
-      const totalDebit = filtered.reduce((s, r) => s + (r.totalDebit || 0), 0);
-      const totalCredit = filtered.reduce((s, r) => s + (r.totalCredit || 0), 0);
+      const totalDebit = filtered.reduce((s, r) => s + (r.debitMouvement || 0), 0);
+      const totalCredit = filtered.reduce((s, r) => s + (r.creditMouvement || 0), 0);
 
       // Limit to 50 rows for LLM context
       const rows = filtered.slice(0, 50).map(r => ({
         compte: r.accountCode,
         libelle: r.accountName,
-        debit: r.totalDebit || 0,
-        credit: r.totalCredit || 0,
-        solde: (r.totalDebit || 0) - (r.totalCredit || 0),
+        debit: r.debitMouvement || 0,
+        credit: r.creditMouvement || 0,
+        solde: (r.debitMouvement || 0) - (r.creditMouvement || 0),
       }));
 
       return JSON.stringify({
@@ -90,7 +90,7 @@ export const accountingTools: Record<string, ToolDefinition> = Object.fromEntrie
           if (args.compteFin && code > String(args.compteFin)) continue;
           lines.push({
             compte: code,
-            libelle: line.label || entry.description || '',
+            libelle: line.label || entry.label || '',
             debit: line.debit || 0,
             credit: line.credit || 0,
           });

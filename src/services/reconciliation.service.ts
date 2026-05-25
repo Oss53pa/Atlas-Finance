@@ -22,7 +22,7 @@ class ReconciliationService {
    * Données principales pour la réconciliation
    */
   async getReconciliationData(params: ReconciliationParams) {
-    const response = await apiService.get('/reconciliation/data', { params });
+    const response = await apiService.get<unknown>('/reconciliation/data', { params: params as Record<string, unknown> });
     return response.data;
   }
 
@@ -47,7 +47,7 @@ class ReconciliationService {
     accountId?: string;
     maxSuggestions?: number;
   }) {
-    const response = await apiService.get('/reconciliation/suggestions', { params });
+    const response = await apiService.get<unknown>('/reconciliation/suggestions', { params: params as Record<string, unknown> });
     return response.data;
   }
 
@@ -83,7 +83,7 @@ class ReconciliationService {
     accountId?: string;
     toleranceAmount?: number;
   }) {
-    const response = await apiService.get('/reconciliation/discrepancies', { params });
+    const response = await apiService.get<unknown>('/reconciliation/discrepancies', { params: params as Record<string, unknown> });
     return response.data;
   }
 
@@ -109,7 +109,7 @@ class ReconciliationService {
     accountId?: string;
     reportType?: 'summary' | 'detailed' | 'performance';
   }) {
-    const response = await apiService.get('/reconciliation/report', { params });
+    const response = await apiService.get<unknown>('/reconciliation/report', { params: params as Record<string, unknown> });
     return response.data;
   }
 
@@ -120,7 +120,7 @@ class ReconciliationService {
     companyId: string;
     fiscalYearId?: string;
   }) {
-    const response = await apiService.get('/reconciliation/stats', { params });
+    const response = await apiService.get<unknown>('/reconciliation/stats', { params: params as Record<string, unknown> });
     return response.data;
   }
 
@@ -133,7 +133,7 @@ class ReconciliationService {
     forecastDays?: number;
     includeScenarios?: boolean;
   }) {
-    const response = await apiService.get('/treasury/cash-flow-forecast', { params });
+    const response = await apiService.get<unknown>('/treasury/cash-flow-forecast', { params: params as Record<string, unknown> });
     return response.data;
   }
 
@@ -157,7 +157,7 @@ class ReconciliationService {
    * Alertes tensions de trésorerie
    */
   async getTreasuryAlerts(params: { companyId: string }) {
-    const response = await apiService.get('/treasury/alerts', { params });
+    const response = await apiService.get<unknown>('/treasury/alerts', { params: params as Record<string, unknown> });
     return response.data;
   }
 
@@ -166,7 +166,7 @@ class ReconciliationService {
    * Rapports standards prédéfinis
    */
   async getStandardReports(params: { companyId: string }) {
-    const response = await apiService.get('/reporting/standard-reports', { params });
+    const response = await apiService.get<unknown>('/reporting/standard-reports', { params: params as Record<string, unknown> });
     return response.data;
   }
 
@@ -197,13 +197,12 @@ class ReconciliationService {
     format: 'pdf' | 'excel' | 'json' | 'csv';
     filters?: Record<string, unknown>;
   }) {
-    const response = await apiService.get('/export/data', {
-      params,
-      responseType: 'blob'
+    const response = await apiService.get<unknown>('/export/data', {
+      params: params as Record<string, unknown>,
     });
 
     // Téléchargement automatique
-    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const url = window.URL.createObjectURL(new Blob([response.data as BlobPart]));
     const link = document.createElement('a');
     link.href = url;
     link.setAttribute('download', `export-${params.dataType}-${Date.now()}.${params.format}`);
@@ -245,7 +244,7 @@ class ReconciliationService {
     fiscalYearId?: string;
     modules: string[];
   }) {
-    const response = await apiService.get('/dashboard/unified', { params });
+    const response = await apiService.get<unknown>('/dashboard/unified', { params: params as Record<string, unknown> });
     return response.data;
   }
 
@@ -256,7 +255,7 @@ class ReconciliationService {
     companyId: string;
     metrics: string[];
   }) {
-    const response = await apiService.get('/metrics/realtime', { params });
+    const response = await apiService.get<unknown>('/metrics/realtime', { params: params as Record<string, unknown> });
     return response.data;
   }
 
@@ -284,7 +283,7 @@ class ReconciliationService {
     companyId: string;
     sampleSize?: number;
   }) {
-    const response = await apiService.post('/reconciliation/performance-test', params);
+    const response = await apiService.post<unknown>('/reconciliation/performance-test', params);
     return response.data;
   }
 
@@ -298,7 +297,7 @@ class ReconciliationService {
       feedbackData: Array<Record<string, unknown>>;
     };
   }) {
-    const response = await apiService.post('/reconciliation/calibrate-ml', data);
+    const response = await apiService.post<unknown>('/reconciliation/calibrate-ml', data);
     return response.data;
   }
 
@@ -306,7 +305,7 @@ class ReconciliationService {
    * Analyse de performance vs objectifs cahier des charges
    */
   async getBenchmarkAnalysis(params: { companyId: string }) {
-    const response = await apiService.get('/analytics/benchmark', { params });
+    const response = await apiService.get<unknown>('/analytics/benchmark', { params: params as Record<string, unknown> });
     return response.data;
   }
 }

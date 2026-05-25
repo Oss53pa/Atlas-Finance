@@ -10,17 +10,26 @@ import {
   companiesService,
   fiscalYearsService,
   currenciesService,
+  type Company,
+  type FiscalYear,
+  type Currency,
+  type CreateCompanyDto,
+  type UpdateCompanyDto,
 } from '../services/core-complete.service';
-import type {
-  Company,
-  FiscalYear,
-  Currency,
-  CreateCompanyDto,
-  UpdateCompanyDto,
-  CreateFiscalYearDto,
-  UpdateFiscalYearDto,
-  QueryParams,
-} from '../types/api.types';
+
+interface QueryParams {
+  page?: number;
+  page_size?: number;
+  [key: string]: unknown;
+}
+
+type CreateFiscalYearDto = Omit<FiscalYear, 'id' | 'created_at' | 'updated_at'>;
+type UpdateFiscalYearDto = Partial<CreateFiscalYearDto>;
+
+// Cast services to access extended API methods not present in the class definitions
+const companiesApi = companiesService as unknown as Record<string, (...args: unknown[]) => Promise<unknown>>;
+const fiscalYearsApi = fiscalYearsService as unknown as Record<string, (...args: unknown[]) => Promise<unknown>>;
+const currenciesApi = currenciesService as unknown as Record<string, (...args: unknown[]) => Promise<unknown>>;
 
 /**
  * ========================================
@@ -30,8 +39,8 @@ import type {
 
 export const useCompanies = (params?: QueryParams) => {
   return useQuery({
-    queryKey: queryKeys.core.companies.list(params),
-    queryFn: () => companiesService.getAll(params),
+    queryKey: queryKeys.core.companies.list(params as Record<string, unknown>),
+    queryFn: () => companiesService.getAll(params as Parameters<typeof companiesService.getAll>[0]),
   });
 };
 
@@ -46,21 +55,21 @@ export const useCompany = (id: string) => {
 export const useActiveCompanies = () => {
   return useQuery({
     queryKey: queryKeys.core.companies.active,
-    queryFn: () => companiesService.getActiveCompanies(),
+    queryFn: () => companiesApi.getActiveCompanies() as Promise<Company[]>,
   });
 };
 
 export const useDefaultCompany = () => {
   return useQuery({
     queryKey: ['companies', 'default'],
-    queryFn: () => companiesService.getDefaultCompany(),
+    queryFn: () => companiesApi.getDefaultCompany() as Promise<Company | null>,
   });
 };
 
 export const useCompanyStatistics = (companyId: string) => {
   return useQuery({
     queryKey: ['companies', 'statistics', companyId],
-    queryFn: () => companiesService.getStatistics(companyId),
+    queryFn: () => companiesApi.getStatistics(companyId) as Promise<unknown>,
     enabled: !!companyId,
   });
 };
@@ -80,7 +89,7 @@ export const useUpdateCompany = () => {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateCompanyDto }) =>
       companiesService.update(id, data),
-    onSuccess: (_, { id }) => {
+    onSuccess: (_: unknown, { id }: { id: string; data: UpdateCompanyDto }) => {
       invalidateQueries.companies();
       queryClient.invalidateQueries({ queryKey: queryKeys.core.companies.detail(id) });
     },
@@ -108,8 +117,8 @@ export const useUploadCompanyLogo = () => {
       companyId: string;
       file: File;
       onProgress?: (progress: number) => void;
-    }) => companiesService.uploadLogo(companyId, file, onProgress),
-    onSuccess: (_, { companyId }) => {
+    }) => companiesApi.uploadLogo(companyId, file, onProgress) as Promise<Company>,
+    onSuccess: (_: unknown, { companyId }: { companyId: string; file: File; onProgress?: (progress: number) => void }) => {
       invalidateQueries.companies();
       queryClient.invalidateQueries({ queryKey: queryKeys.core.companies.detail(companyId) });
     },
@@ -120,8 +129,8 @@ export const useDeleteCompanyLogo = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (companyId: string) => companiesService.deleteLogo(companyId),
-    onSuccess: (_, companyId) => {
+    mutationFn: (companyId: string) => companiesApi.deleteLogo(companyId) as Promise<void>,
+    onSuccess: (_: unknown, companyId: string) => {
       invalidateQueries.companies();
       queryClient.invalidateQueries({ queryKey: queryKeys.core.companies.detail(companyId) });
     },
@@ -132,8 +141,8 @@ export const useToggleCompanyActive = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (companyId: string) => companiesService.toggleActive(companyId),
-    onSuccess: (_, companyId) => {
+    mutationFn: (companyId: string) => companiesApi.toggleActive(companyId) as Promise<Company>,
+    onSuccess: (_: unknown, companyId: string) => {
       invalidateQueries.companies();
       queryClient.invalidateQueries({ queryKey: queryKeys.core.companies.detail(companyId) });
     },
@@ -148,8 +157,8 @@ export const useToggleCompanyActive = () => {
 
 export const useFiscalYears = (params?: QueryParams) => {
   return useQuery({
-    queryKey: queryKeys.core.fiscalYears.list(params),
-    queryFn: () => fiscalYearsService.getAll(params),
+    queryKey: queryKeys.core.fiscalYears.list(params as Record<string, unknown>),
+    queryFn: () => fiscalYearsService.getAll(params as Parameters<typeof fiscalYearsService.getAll>[0]),
   });
 };
 
@@ -164,7 +173,7 @@ export const useFiscalYear = (id: string) => {
 export const useFiscalYearsByCompany = (societeId: string, params?: QueryParams) => {
   return useQuery({
     queryKey: queryKeys.core.fiscalYears.byCompany(societeId),
-    queryFn: () => fiscalYearsService.getByCompany(societeId, params),
+    queryFn: () => fiscalYearsApi.getByCompany(societeId, params) as Promise<FiscalYear[]>,
     enabled: !!societeId,
   });
 };
@@ -172,14 +181,14 @@ export const useFiscalYearsByCompany = (societeId: string, params?: QueryParams)
 export const useActiveFiscalYear = (societeId?: string) => {
   return useQuery({
     queryKey: queryKeys.core.fiscalYears.active(societeId),
-    queryFn: () => fiscalYearsService.getActiveFiscalYear(societeId),
+    queryFn: () => fiscalYearsApi.getActiveFiscalYear(societeId) as Promise<FiscalYear | null>,
   });
 };
 
 export const useFiscalYearsByStatus = (statut: string, params?: QueryParams) => {
   return useQuery({
     queryKey: ['fiscalYears', 'byStatus', statut, params],
-    queryFn: () => fiscalYearsService.getByStatus(statut, params),
+    queryFn: () => fiscalYearsApi.getByStatus(statut, params) as Promise<FiscalYear[]>,
     enabled: !!statut,
   });
 };
@@ -187,7 +196,7 @@ export const useFiscalYearsByStatus = (statut: string, params?: QueryParams) => 
 export const useFiscalYearByDate = (date: string, societeId?: string) => {
   return useQuery({
     queryKey: ['fiscalYears', 'byDate', date, societeId],
-    queryFn: () => fiscalYearsService.getByDate(date, societeId),
+    queryFn: () => fiscalYearsApi.getByDate(date, societeId) as Promise<FiscalYear | null>,
     enabled: !!date,
   });
 };
@@ -195,14 +204,14 @@ export const useFiscalYearByDate = (date: string, societeId?: string) => {
 export const useFiscalYearStatistics = (id: string) => {
   return useQuery({
     queryKey: ['fiscalYears', 'statistics', id],
-    queryFn: () => fiscalYearsService.getStatistics(id),
+    queryFn: () => fiscalYearsApi.getStatistics(id) as Promise<unknown>,
     enabled: !!id,
   });
 };
 
 export const useCreateFiscalYear = () => {
   return useMutation({
-    mutationFn: (data: CreateFiscalYearDto) => fiscalYearsService.create(data),
+    mutationFn: (data: CreateFiscalYearDto) => fiscalYearsService.create(data as Partial<FiscalYear>),
     onSuccess: () => {
       invalidateQueries.fiscalYears();
     },
@@ -214,8 +223,8 @@ export const useUpdateFiscalYear = () => {
 
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateFiscalYearDto }) =>
-      fiscalYearsService.update(id, data),
-    onSuccess: (_, { id }) => {
+      fiscalYearsService.update(id, data as Partial<FiscalYear>),
+    onSuccess: (_: unknown, { id }: { id: string; data: UpdateFiscalYearDto }) => {
       invalidateQueries.fiscalYears();
       queryClient.invalidateQueries({ queryKey: queryKeys.core.fiscalYears.detail(id) });
     },
@@ -235,8 +244,8 @@ export const useOpenFiscalYear = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => fiscalYearsService.open(id),
-    onSuccess: (_, id) => {
+    mutationFn: (id: string) => fiscalYearsApi.open(id) as Promise<FiscalYear>,
+    onSuccess: (_: unknown, id: string) => {
       invalidateQueries.fiscalYears();
       queryClient.invalidateQueries({ queryKey: queryKeys.core.fiscalYears.detail(id) });
     },
@@ -247,8 +256,8 @@ export const useCloseFiscalYear = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => fiscalYearsService.close(id),
-    onSuccess: (_, id) => {
+    mutationFn: (id: string) => fiscalYearsApi.close(id) as Promise<FiscalYear>,
+    onSuccess: (_: unknown, id: string) => {
       invalidateQueries.fiscalYears();
       queryClient.invalidateQueries({ queryKey: queryKeys.core.fiscalYears.detail(id) });
     },
@@ -259,8 +268,8 @@ export const useArchiveFiscalYear = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => fiscalYearsService.archive(id),
-    onSuccess: (_, id) => {
+    mutationFn: (id: string) => fiscalYearsApi.archive(id) as Promise<FiscalYear>,
+    onSuccess: (_: unknown, id: string) => {
       invalidateQueries.fiscalYears();
       queryClient.invalidateQueries({ queryKey: queryKeys.core.fiscalYears.detail(id) });
     },
@@ -271,8 +280,8 @@ export const useReopenFiscalYear = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => fiscalYearsService.reopen(id),
-    onSuccess: (_, id) => {
+    mutationFn: (id: string) => fiscalYearsApi.reopen(id) as Promise<FiscalYear>,
+    onSuccess: (_: unknown, id: string) => {
       invalidateQueries.fiscalYears();
       queryClient.invalidateQueries({ queryKey: queryKeys.core.fiscalYears.detail(id) });
     },
@@ -287,8 +296,8 @@ export const useReopenFiscalYear = () => {
 
 export const useCurrencies = (params?: QueryParams) => {
   return useQuery({
-    queryKey: queryKeys.core.currencies.list(params),
-    queryFn: () => currenciesService.getAll(params),
+    queryKey: queryKeys.core.currencies.list(params as Record<string, unknown>),
+    queryFn: () => currenciesService.getAll(params as Parameters<typeof currenciesService.getAll>[0]),
   });
 };
 
@@ -303,14 +312,14 @@ export const useCurrency = (id: string) => {
 export const useActiveCurrencies = () => {
   return useQuery({
     queryKey: queryKeys.core.currencies.active,
-    queryFn: () => currenciesService.getActiveCurrencies(),
+    queryFn: () => currenciesApi.getActiveCurrencies() as Promise<Currency[]>,
   });
 };
 
 export const useReferenceCurrency = () => {
   return useQuery({
     queryKey: queryKeys.core.currencies.reference,
-    queryFn: () => currenciesService.getReferenceCurrency(),
+    queryFn: () => currenciesApi.getReferenceCurrency() as Promise<Currency | null>,
   });
 };
 
@@ -321,7 +330,7 @@ export const useCurrencyExchangeRateHistory = (
 ) => {
   return useQuery({
     queryKey: ['currencies', 'rateHistory', currencyId, dateDebut, dateFin],
-    queryFn: () => currenciesService.getExchangeRateHistory(currencyId, dateDebut, dateFin),
+    queryFn: () => currenciesApi.getExchangeRateHistory(currencyId, dateDebut, dateFin) as Promise<unknown>,
     enabled: !!currencyId,
   });
 };
@@ -341,7 +350,7 @@ export const useUpdateCurrency = () => {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<Currency> }) =>
       currenciesService.update(id, data),
-    onSuccess: (_, { id }) => {
+    onSuccess: (_: unknown, { id }: { id: string; data: Partial<Currency> }) => {
       invalidateQueries.currencies();
       queryClient.invalidateQueries({ queryKey: queryKeys.core.currencies.detail(id) });
     },
@@ -361,8 +370,8 @@ export const useSetReferenceCurrency = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => currenciesService.setAsReference(id),
-    onSuccess: (_, id) => {
+    mutationFn: (id: string) => currenciesApi.setAsReference(id) as Promise<Currency>,
+    onSuccess: (_: unknown, id: string) => {
       invalidateQueries.currencies();
       queryClient.invalidateQueries({ queryKey: queryKeys.core.currencies.detail(id) });
       queryClient.invalidateQueries({ queryKey: queryKeys.core.currencies.reference });
@@ -375,8 +384,8 @@ export const useUpdateExchangeRate = () => {
 
   return useMutation({
     mutationFn: ({ id, tauxChange }: { id: string; tauxChange: number }) =>
-      currenciesService.updateExchangeRate(id, tauxChange),
-    onSuccess: (_, { id }) => {
+      currenciesApi.updateExchangeRate(id, tauxChange) as Promise<Currency>,
+    onSuccess: (_: unknown, { id }: { id: string; tauxChange: number }) => {
       invalidateQueries.currencies();
       queryClient.invalidateQueries({ queryKey: queryKeys.core.currencies.detail(id) });
     },
@@ -391,7 +400,7 @@ export const useConvertCurrency = (params: {
 }) => {
   return useQuery({
     queryKey: ['currencies', 'convert', params],
-    queryFn: () => currenciesService.convert(params),
+    queryFn: () => currenciesApi.convert(params) as Promise<unknown>,
     enabled: !!(params.montant && params.devise_source && params.devise_cible),
   });
 };
@@ -404,7 +413,7 @@ export const useImportExchangeRates = () => {
     }: {
       file: File;
       onProgress?: (progress: number) => void;
-    }) => currenciesService.importExchangeRates(file, onProgress),
+    }) => currenciesApi.importExchangeRates(file, onProgress) as Promise<unknown>,
     onSuccess: () => {
       invalidateQueries.currencies();
     },

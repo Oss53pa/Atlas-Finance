@@ -10,7 +10,7 @@
 import type { DataAdapter } from '@atlas/data';
 import { money } from '../utils/money';
 import { logAudit } from '../lib/db';
-import type { DBJournalLine, DBThirdParty, DBProvision } from '../lib/db';
+import type { DBJournalLine, DBJournalEntry, DBThirdParty, DBProvision, DBSetting } from '../lib/db';
 import { safeAddEntry } from './entryGuard';
 
 // ============================================================================
@@ -84,9 +84,9 @@ async function getProvisionComptes(adapter: DataAdapter): Promise<{
   CREANCES_DOUTEUSES: string;
 }> {
   try {
-    const settings = await adapter.getAll('settings');
+    const settings = await adapter.getAll<DBSetting>('settings');
     const getSetting = (key: string, defaultVal: string) => {
-      const s = settings.find((s: any) => s.key === key);
+      const s = settings.find((s) => s.key === key);
       return s?.value || defaultVal;
     };
     return {
@@ -128,8 +128,8 @@ const TAUX_PROVISION_PAR_ANCIENNETE: Record<number, number> = {
  * Calculate real-time balance for all third parties from journal entries.
  */
 export async function getThirdPartyBalances(adapter: DataAdapter): Promise<ThirdPartyBalance[]> {
-  const thirdParties = await adapter.getAll('thirdParties');
-  const entries = (await adapter.getAll('journalEntries')).filter((e: any) => e.status !== 'draft');
+  const thirdParties = await adapter.getAll<DBThirdParty>('thirdParties');
+  const entries = (await adapter.getAll<DBJournalEntry>('journalEntries')).filter((e) => e.status !== 'draft');
 
   const balances: ThirdPartyBalance[] = [];
 
@@ -167,11 +167,11 @@ export async function getThirdPartyBalances(adapter: DataAdapter): Promise<Third
  * Get balance for a single third party.
  */
 export async function getThirdPartyBalance(adapter: DataAdapter, thirdPartyCode: string): Promise<ThirdPartyBalance | null> {
-  const allTp = await adapter.getAll('thirdParties', { where: { code: thirdPartyCode } });
+  const allTp = await adapter.getAll<DBThirdParty>('thirdParties', { where: { code: thirdPartyCode } });
   const tp = allTp[0];
   if (!tp) return null;
 
-  const entries = (await adapter.getAll('journalEntries')).filter((e: any) => e.status !== 'draft');
+  const entries = (await adapter.getAll<DBJournalEntry>('journalEntries')).filter((e) => e.status !== 'draft');
   let totalDebit = 0;
   let totalCredit = 0;
 
@@ -211,11 +211,11 @@ export async function getAgingAnalysis(
   asOfDate?: string
 ): Promise<AgingAnalysis[]> {
   const refDate = asOfDate ? new Date(asOfDate) : new Date();
-  const allThirdParties = await adapter.getAll('thirdParties');
+  const allThirdParties = await adapter.getAll<DBThirdParty>('thirdParties');
   const validTypes = type === 'customer' ? ['customer', 'both'] : ['supplier', 'both'];
   const thirdParties = allThirdParties.filter(tp => validTypes.includes(tp.type));
 
-  const entries = (await adapter.getAll('journalEntries')).filter((e: any) => e.status !== 'draft');
+  const entries = (await adapter.getAll<DBJournalEntry>('journalEntries')).filter((e) => e.status !== 'draft');
   const analyses: AgingAnalysis[] = [];
 
   for (const tp of thirdParties) {
@@ -293,7 +293,7 @@ export async function calculerProvisions(
   const provisions: ProvisionCreanceDouteuse[] = [];
 
   for (const analysis of agingData) {
-    const tp = await adapter.getById('thirdParties', analysis.thirdPartyId);
+    const tp = await adapter.getById<DBThirdParty>('thirdParties', analysis.thirdPartyId);
     if (!tp) continue;
 
     // Determine aging in days from oldest entry
@@ -366,8 +366,8 @@ export async function posterProvisions(
   // Check for existing provisions for this period to prevent duplicates
   const now0 = new Date().toISOString();
   const datePart0 = now0.split('T')[0].replace(/-/g, '');
-  const allEntries = await adapter.getAll('journalEntries');
-  const existingEntries = allEntries.filter((e: any) =>
+  const allEntries = await adapter.getAll<DBJournalEntry>('journalEntries');
+  const existingEntries = allEntries.filter((e) =>
     e.entryNumber && e.entryNumber.startsWith('PROV-' + datePart0)
   );
   if (existingEntries.length > 0) {

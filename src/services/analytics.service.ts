@@ -274,7 +274,7 @@ class AnalyticsService {
     next?: string;
     previous?: string;
   }> {
-    const response = await apiService.get(`${BASE_PATH}/axes/`, { params });
+    const response = await apiService.get<{ results: AxeAnalytique[]; count: number; next?: string; previous?: string }>(`${BASE_PATH}/axes/`, { params: params as Record<string, unknown> });
     return response.data;
   }
 
@@ -282,7 +282,7 @@ class AnalyticsService {
    * Récupère un axe par ID
    */
   async getAxe(id: string): Promise<AxeAnalytique> {
-    const response = await apiService.get(`${BASE_PATH}/axes/${id}/`);
+    const response = await apiService.get<AxeAnalytique>(`${BASE_PATH}/axes/${id}/`);
     return response.data;
   }
 
@@ -290,7 +290,7 @@ class AnalyticsService {
    * Crée un nouvel axe analytique
    */
   async createAxe(data: Partial<AxeAnalytique>): Promise<AxeAnalytique> {
-    const response = await apiService.post(`${BASE_PATH}/axes/`, data);
+    const response = await apiService.post<AxeAnalytique>(`${BASE_PATH}/axes/`, data);
     return response.data;
   }
 
@@ -298,7 +298,7 @@ class AnalyticsService {
    * Met à jour un axe
    */
   async updateAxe(id: string, data: Partial<AxeAnalytique>): Promise<AxeAnalytique> {
-    const response = await apiService.patch(`${BASE_PATH}/axes/${id}/`, data);
+    const response = await apiService.patch<AxeAnalytique>(`${BASE_PATH}/axes/${id}/`, data);
     return response.data;
   }
 
@@ -328,7 +328,7 @@ class AnalyticsService {
     next?: string;
     previous?: string;
   }> {
-    const response = await apiService.get(`${BASE_PATH}/sections/`, { params });
+    const response = await apiService.get<{ results: SectionAnalytique[]; count: number; next?: string; previous?: string }>(`${BASE_PATH}/sections/`, { params: params as Record<string, unknown> });
     return response.data;
   }
 
@@ -336,7 +336,7 @@ class AnalyticsService {
    * Récupère une section par ID
    */
   async getSection(id: string): Promise<SectionAnalytique> {
-    const response = await apiService.get(`${BASE_PATH}/sections/${id}/`);
+    const response = await apiService.get<SectionAnalytique>(`${BASE_PATH}/sections/${id}/`);
     return response.data;
   }
 
@@ -344,7 +344,7 @@ class AnalyticsService {
    * Crée une nouvelle section
    */
   async createSection(data: Partial<SectionAnalytique>): Promise<SectionAnalytique> {
-    const response = await apiService.post(`${BASE_PATH}/sections/`, data);
+    const response = await apiService.post<SectionAnalytique>(`${BASE_PATH}/sections/`, data);
     return response.data;
   }
 
@@ -352,7 +352,7 @@ class AnalyticsService {
    * Met à jour une section
    */
   async updateSection(id: string, data: Partial<SectionAnalytique>): Promise<SectionAnalytique> {
-    const response = await apiService.patch(`${BASE_PATH}/sections/${id}/`, data);
+    const response = await apiService.patch<SectionAnalytique>(`${BASE_PATH}/sections/${id}/`, data);
     return response.data;
   }
 
@@ -367,7 +367,7 @@ class AnalyticsService {
    * Récupère l'arbre hiérarchique d'un axe
    */
   async getSectionsTree(axeId: string): Promise<SectionAnalytique[]> {
-    const response = await apiService.get(`${BASE_PATH}/sections/tree/`, {
+    const response = await apiService.get<SectionAnalytique[]>(`${BASE_PATH}/sections/tree/`, {
       params: { axe: axeId },
     });
     return response.data;
@@ -392,7 +392,7 @@ class AnalyticsService {
     next?: string;
     previous?: string;
   }> {
-    const response = await apiService.get(`${BASE_PATH}/ventilations/`, { params });
+    const response = await apiService.get<{ results: VentilationAnalytique[]; count: number; next?: string; previous?: string }>(`${BASE_PATH}/ventilations/`, { params: params as Record<string, unknown> });
     return response.data;
   }
 
@@ -400,7 +400,7 @@ class AnalyticsService {
    * Crée une ventilation analytique
    */
   async createVentilation(data: Partial<VentilationAnalytique>): Promise<VentilationAnalytique> {
-    const response = await apiService.post(`${BASE_PATH}/ventilations/`, data);
+    const response = await apiService.post<VentilationAnalytique>(`${BASE_PATH}/ventilations/`, data);
     return response.data;
   }
 
@@ -408,7 +408,7 @@ class AnalyticsService {
    * Met à jour une ventilation
    */
   async updateVentilation(id: string, data: Partial<VentilationAnalytique>): Promise<VentilationAnalytique> {
-    const response = await apiService.patch(`${BASE_PATH}/ventilations/${id}/`, data);
+    const response = await apiService.patch<VentilationAnalytique>(`${BASE_PATH}/ventilations/${id}/`, data);
     return response.data;
   }
 
@@ -433,7 +433,7 @@ class AnalyticsService {
     success: boolean;
     ventilations: VentilationAnalytique[];
   }> {
-    const response = await apiService.post(`${BASE_PATH}/ventilations/ventiler-ligne/`, data);
+    const response = await apiService.post<{ success: boolean; ventilations: VentilationAnalytique[] }>(`${BASE_PATH}/ventilations/ventiler-ligne/`, data);
     return response.data;
   }
 
@@ -453,7 +453,7 @@ class AnalyticsService {
     results: AffectationMultiAxes[];
     count: number;
   }> {
-    const response = await apiService.get(`${BASE_PATH}/affectations/`, { params });
+    const response = await apiService.get<{ results: AffectationMultiAxes[]; count: number }>(`${BASE_PATH}/affectations/`, { params: params as Record<string, unknown> });
     return response.data;
   }
 
@@ -461,7 +461,7 @@ class AnalyticsService {
    * Crée une affectation multi-axes
    */
   async createAffectation(data: Partial<AffectationMultiAxes>): Promise<AffectationMultiAxes> {
-    const response = await apiService.post(`${BASE_PATH}/affectations/`, data);
+    const response = await apiService.post<AffectationMultiAxes>(`${BASE_PATH}/affectations/`, data);
     return response.data;
   }
 
@@ -472,7 +472,7 @@ class AnalyticsService {
     is_valid: boolean;
     errors: string[];
   }> {
-    const response = await apiService.post(`${BASE_PATH}/affectations/${id}/validate/`);
+    const response = await apiService.post<{ is_valid: boolean; errors: string[] }>(`${BASE_PATH}/affectations/${id}/validate/`);
     return response.data;
   }
 
@@ -490,7 +490,7 @@ class AnalyticsService {
     periode_fin?: string;
     sections?: string[];
   }): Promise<RapportAnalytique> {
-    const response = await apiService.post(`${BASE_PATH}/rapports/generer/`, params);
+    const response = await apiService.post<RapportAnalytique>(`${BASE_PATH}/rapports/generer/`, params);
     return response.data;
   }
 
@@ -504,7 +504,7 @@ class AnalyticsService {
     periode_debut?: string;
     periode_fin?: string;
   }): Promise<AnalyseCroisee> {
-    const response = await apiService.post(`${BASE_PATH}/rapports/analyse-croisee/`, params);
+    const response = await apiService.post<AnalyseCroisee>(`${BASE_PATH}/rapports/analyse-croisee/`, params);
     return response.data;
   }
 
@@ -517,10 +517,9 @@ class AnalyticsService {
     format: 'excel' | 'pdf' | 'csv';
   }): Promise<Blob> {
     const response = await apiService.get(`${BASE_PATH}/rapports/export/`, {
-      params,
-      responseType: 'blob',
+      params: params as Record<string, unknown>,
     });
-    return response.data;
+    return response.data as unknown as Blob;
   }
 
   // ==========================================================================
@@ -534,7 +533,7 @@ class AnalyticsService {
     exercice?: string;
     societe?: string;
   }): Promise<AnalyticsStats> {
-    const response = await apiService.get(`${BASE_PATH}/stats/`, { params });
+    const response = await apiService.get<AnalyticsStats>(`${BASE_PATH}/stats/`, { params: params as Record<string, unknown> });
     return response.data;
   }
 
@@ -549,7 +548,7 @@ class AnalyticsService {
     totalPages: number;
     totalCount: number;
   }> {
-    const response = await apiService.get(`${BASE_PATH}/cost-centers/`, { params });
+    const response = await apiService.get<{ costCenters: CentreCouts[]; totalPages: number; totalCount: number }>(`${BASE_PATH}/cost-centers/`, { params: params as Record<string, unknown> });
     return response.data;
   }
 
@@ -564,7 +563,7 @@ class AnalyticsService {
     totalAllocations: number;
     pendingAllocations: number;
   }> {
-    const response = await apiService.get(`${BASE_PATH}/dashboard/stats/`, { params });
+    const response = await apiService.get<{ totalAxes: number; activeCostCenters: number; totalAllocations: number; pendingAllocations: number }>(`${BASE_PATH}/dashboard/stats/`, { params: params as Record<string, unknown> });
     return response.data;
   }
 

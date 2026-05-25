@@ -385,7 +385,7 @@ class BudgetService {
     next?: string;
     previous?: string;
   }> {
-    const response = await apiService.get(`${BASE_PATH}/plans/`, { params });
+    const response = await apiService.get<{ results: BudgetPlan[]; count: number; next?: string; previous?: string }>(`${BASE_PATH}/plans/`, { params: params as Record<string, unknown> });
     return response.data as { results: BudgetPlan[]; count: number; next?: string; previous?: string; };
   }
 
@@ -441,7 +441,7 @@ class BudgetService {
     next?: string;
     previous?: string;
   }> {
-    const response = await apiService.get(`${BASE_PATH}/lines/`, { params });
+    const response = await apiService.get<{ results: BudgetLine[]; count: number; next?: string; previous?: string }>(`${BASE_PATH}/lines/`, { params: params as Record<string, unknown> });
     return response.data as { results: BudgetLine[]; count: number; next?: string; previous?: string; };
   }
 
@@ -489,7 +489,7 @@ class BudgetService {
     department?: string;
     category?: string;
   }): Promise<BudgetMatrixGrid> {
-    const response = await apiService.get(`${BASE_PATH}/lines/grille-saisie/`, { params });
+    const response = await apiService.get<BudgetMatrixGrid>(`${BASE_PATH}/lines/grille-saisie/`, { params: params as Record<string, unknown> });
     return response.data as BudgetMatrixGrid;
   }
 
@@ -580,7 +580,7 @@ class BudgetService {
     period_start?: string;
     period_end?: string;
   }): Promise<BudgetDashboardStats> {
-    const response = await apiService.get(`${BASE_PATH}/dashboard/stats/`, { params });
+    const response = await apiService.get<BudgetDashboardStats>(`${BASE_PATH}/dashboard/stats/`, { params: params as Record<string, unknown> });
     return response.data as BudgetDashboardStats;
   }
 
@@ -592,7 +592,7 @@ class BudgetService {
     comparison_year?: string;
     department?: string;
   }): Promise<BudgetYTDComparison> {
-    const response = await apiService.get(`${BASE_PATH}/dashboard/ytd/`, { params });
+    const response = await apiService.get<BudgetYTDComparison>(`${BASE_PATH}/dashboard/ytd/`, { params: params as Record<string, unknown> });
     return response.data as BudgetYTDComparison;
   }
 
@@ -619,15 +619,16 @@ class BudgetService {
       }>;
     }>;
   }> {
-    const response = await apiService.get(`${BASE_PATH}/dashboard/departements/`, { params });
-    return response.data as { departments: Array<{ id: string; name: string; total_budget: number; total_consumed: number; consumption_rate: number; variance: number; alerts_count: number; top_accounts: Array<{ account: string; label: string; consumed: number; }>; }>; };
+    type DeptResult = { departments: Array<{ id: string; name: string; total_budget: number; total_consumed: number; consumption_rate: number; variance: number; alerts_count: number; top_accounts: Array<{ account: string; label: string; consumed: number }>; }>; };
+    const response = await apiService.get<DeptResult>(`${BASE_PATH}/dashboard/departements/`, { params: params as Record<string, unknown> });
+    return response.data as DeptResult;
   }
 
   /**
    * Liste des départements budgétaires
    */
   async getDepartments(): Promise<BudgetDepartment[]> {
-    const response = await apiService.get(`${BASE_PATH}/departments/`);
+    const response = await apiService.get<BudgetDepartment[]>(`${BASE_PATH}/departments/`);
     return response.data as BudgetDepartment[];
   }
 
@@ -638,7 +639,7 @@ class BudgetService {
     account_type?: string;
     is_budgetable?: boolean;
   }): Promise<BudgetAccount[]> {
-    const response = await apiService.get(`${BASE_PATH}/accounts/budgetaires/`, { params });
+    const response = await apiService.get<BudgetAccount[]>(`${BASE_PATH}/accounts/budgetaires/`, { params: params as Record<string, unknown> });
     return response.data as BudgetAccount[];
   }
 
@@ -655,7 +656,7 @@ class BudgetService {
     next?: string;
     previous?: string;
   }> {
-    const response = await apiService.get(`${BASE_PATH}/alerts/`, { params });
+    const response = await apiService.get<{ results: BudgetAlert[]; count: number; next?: string; previous?: string }>(`${BASE_PATH}/alerts/`, { params: params as Record<string, unknown> });
     return response.data as { results: BudgetAlert[]; count: number; next?: string; previous?: string; };
   }
 
@@ -785,10 +786,8 @@ class BudgetService {
     format?: 'detailed' | 'summary' | 'comparison';
     include_actuals?: boolean;
   }): Promise<Blob> {
-    const response = await apiService.post(`${BASE_PATH}/export/excel/`, params, {
-      responseType: 'blob',
-    });
-    return response.data as Blob;
+    const response = await apiService.post<unknown>(`${BASE_PATH}/export/excel/`, params);
+    return response.data as unknown as Blob;
   }
 
   /**
@@ -827,7 +826,7 @@ class BudgetService {
     budget_plan?: string;
     status?: string;
   }): Promise<BudgetReport[]> {
-    const response = await apiService.get(`${BASE_PATH}/reports/programmed/`, { params });
+    const response = await apiService.get<BudgetReport[]>(`${BASE_PATH}/reports/programmed/`, { params: params as Record<string, unknown> });
     return response.data as BudgetReport[];
   }
 
@@ -895,8 +894,9 @@ class BudgetService {
     category_c: Array<{ id: string; name: string; value: number; percent: number }>;
     insights: string[];
   }> {
-    const response = await apiService.get(`${BASE_PATH}/analytics/abc-analysis/`, { params });
-    return response.data as { category_a: Array<{ id: string; name: string; value: number; percent: number }>; category_b: Array<{ id: string; name: string; value: number; percent: number }>; category_c: Array<{ id: string; name: string; value: number; percent: number }>; insights: string[]; };
+    type ABCResult = { category_a: Array<{ id: string; name: string; value: number; percent: number }>; category_b: Array<{ id: string; name: string; value: number; percent: number }>; category_c: Array<{ id: string; name: string; value: number; percent: number }>; insights: string[] };
+    const response = await apiService.get<ABCResult>(`${BASE_PATH}/analytics/abc-analysis/`, { params: params as Record<string, unknown> });
+    return response.data as ABCResult;
   }
 
   /**
@@ -1013,7 +1013,7 @@ export default budgetService;
 /**
  * @deprecated Use budgetService instead
  */
-export const getBudgets = (filters?: Record<string, unknown>) => budgetService.getBudgetPlans(filters);
+export const getBudgets = (filters?: Record<string, unknown>) => budgetService.getBudgetPlans(filters as BudgetPlanQueryParams | undefined);
 
 /**
  * @deprecated Use budgetService.getDashboardStats() instead

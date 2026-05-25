@@ -122,7 +122,7 @@ export async function getAsset(adapter: DataAdapter, id: string | number): Promi
 
 export async function createAsset(adapter: DataAdapter, asset: Omit<Asset, 'id'>): Promise<Asset> {
   const dbData = assetToDbAsset(asset);
-  const created = await adapter.create<DBAsset>('assets', dbData as Omit<DBAsset, 'id'>);
+  const created = await adapter.create<DBAsset>('assets', dbData as unknown as Omit<DBAsset, 'id'>);
   return dbAssetToAsset(created);
 }
 

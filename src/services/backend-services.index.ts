@@ -154,23 +154,23 @@ interface TiersStatistics {
 
 class TiersService {
   async getAll(params?: QueryParams): Promise<PaginatedResult<BackendTiersRecord>> {
-    const response = await apiService.get(`${BASE_PATH}/tiers/`, { params: params as Record<string, string> });
-    return response.data;
+    const response = await apiService.get<PaginatedResult<BackendTiersRecord>>(`${BASE_PATH}/tiers/`, { params: params as Record<string, unknown> });
+    return response.data as PaginatedResult<BackendTiersRecord>;
   }
 
   async getById(id: string): Promise<BackendTiersRecord> {
-    const response = await apiService.get(`${BASE_PATH}/tiers/${id}/`);
-    return response.data;
+    const response = await apiService.get<BackendTiersRecord>(`${BASE_PATH}/tiers/${id}/`);
+    return response.data as BackendTiersRecord;
   }
 
   async create(data: BackendTiersWriteData): Promise<BackendTiersRecord> {
-    const response = await apiService.post(`${BASE_PATH}/tiers/`, data);
-    return response.data;
+    const response = await apiService.post<BackendTiersRecord>(`${BASE_PATH}/tiers/`, data);
+    return response.data as BackendTiersRecord;
   }
 
   async update(id: string, data: BackendTiersWriteData): Promise<BackendTiersRecord> {
-    const response = await apiService.patch(`${BASE_PATH}/tiers/${id}/`, data);
-    return response.data;
+    const response = await apiService.patch<BackendTiersRecord>(`${BASE_PATH}/tiers/${id}/`, data);
+    return response.data as BackendTiersRecord;
   }
 
   async delete(id: string): Promise<void> {
@@ -187,64 +187,64 @@ class TiersService {
   }
 
   async listClients(params?: QueryParams): Promise<BackendTiersRecord[]> {
-    const response = await apiService.get(`${BASE_PATH}/tiers/`, {
-      params: { ...params, type: 'CLIENT' } as Record<string, string>,
+    const response = await apiService.get<PaginatedResult<BackendTiersRecord>>(`${BASE_PATH}/tiers/`, {
+      params: { ...params, type: 'CLIENT' } as Record<string, unknown>,
     });
     const data = response.data as PaginatedResult<BackendTiersRecord>;
     return data.results || [];
   }
 
   async listFournisseurs(params?: QueryParams): Promise<BackendTiersRecord[]> {
-    const response = await apiService.get(`${BASE_PATH}/tiers/`, {
-      params: { ...params, type: 'FOURNISSEUR' } as Record<string, string>,
+    const response = await apiService.get<PaginatedResult<BackendTiersRecord>>(`${BASE_PATH}/tiers/`, {
+      params: { ...params, type: 'FOURNISSEUR' } as Record<string, unknown>,
     });
     const data = response.data as PaginatedResult<BackendTiersRecord>;
     return data.results || [];
   }
 
   async listEmployes(params?: QueryParams): Promise<BackendTiersRecord[]> {
-    const response = await apiService.get(`${BASE_PATH}/tiers/`, {
-      params: { ...params, type: 'EMPLOYE' } as Record<string, string>,
+    const response = await apiService.get<PaginatedResult<BackendTiersRecord>>(`${BASE_PATH}/tiers/`, {
+      params: { ...params, type: 'EMPLOYE' } as Record<string, unknown>,
     });
     const data = response.data as PaginatedResult<BackendTiersRecord>;
     return data.results || [];
   }
 
   async listActive(params?: QueryParams): Promise<BackendTiersRecord[]> {
-    const response = await apiService.get(`${BASE_PATH}/tiers/`, {
-      params: { ...params, statut: 'ACTIF' } as Record<string, string>,
+    const response = await apiService.get<PaginatedResult<BackendTiersRecord>>(`${BASE_PATH}/tiers/`, {
+      params: { ...params, statut: 'ACTIF' } as Record<string, unknown>,
     });
     const data = response.data as PaginatedResult<BackendTiersRecord>;
     return data.results || [];
   }
 
   async listBlocked(params?: QueryParams): Promise<BackendTiersRecord[]> {
-    const response = await apiService.get(`${BASE_PATH}/tiers/`, {
-      params: { ...params, statut: 'BLOQUE' } as Record<string, string>,
+    const response = await apiService.get<PaginatedResult<BackendTiersRecord>>(`${BASE_PATH}/tiers/`, {
+      params: { ...params, statut: 'BLOQUE' } as Record<string, unknown>,
     });
     const data = response.data as PaginatedResult<BackendTiersRecord>;
     return data.results || [];
   }
 
   async listByType(type: string, params?: QueryParams): Promise<BackendTiersRecord[]> {
-    const response = await apiService.get(`${BASE_PATH}/tiers/`, {
-      params: { ...params, type } as Record<string, string>,
+    const response = await apiService.get<PaginatedResult<BackendTiersRecord>>(`${BASE_PATH}/tiers/`, {
+      params: { ...params, type } as Record<string, unknown>,
     });
     const data = response.data as PaginatedResult<BackendTiersRecord>;
     return data.results || [];
   }
 
   async search(query: string, params?: QueryParams): Promise<BackendTiersRecord[]> {
-    const response = await apiService.get(`${BASE_PATH}/tiers/`, {
-      params: { ...params, search: query } as Record<string, string>,
+    const response = await apiService.get<PaginatedResult<BackendTiersRecord>>(`${BASE_PATH}/tiers/`, {
+      params: { ...params, search: query } as Record<string, unknown>,
     });
     const data = response.data as PaginatedResult<BackendTiersRecord>;
     return data.results || [];
   }
 
   async getByCode(code: string): Promise<BackendTiersRecord> {
-    const response = await apiService.get(`${BASE_PATH}/tiers/`, {
-      params: { code } as Record<string, string>,
+    const response = await apiService.get<PaginatedResult<BackendTiersRecord>>(`${BASE_PATH}/tiers/`, {
+      params: { code } as Record<string, unknown>,
     });
     const data = response.data as PaginatedResult<BackendTiersRecord>;
     return data.results[0];
@@ -259,8 +259,8 @@ class TiersService {
   }
 
   async getStatistics(): Promise<TiersStatistics> {
-    const response = await apiService.get(`${BASE_PATH}/tiers/statistics/`);
-    return response.data;
+    const response = await apiService.get<TiersStatistics>(`${BASE_PATH}/tiers/statistics/`);
+    return response.data as TiersStatistics;
   }
 }
 
@@ -271,23 +271,23 @@ class TiersService {
 class AdresseTiersService {
   // Flat CRUD methods (used by third-party.service.ts)
   async list(params?: QueryParams): Promise<PaginatedResult<BackendAdresseRecord>> {
-    const response = await apiService.get(`${BASE_PATH}/adresses/`, { params: params as Record<string, string> });
-    return response.data;
+    const response = await apiService.get<PaginatedResult<BackendAdresseRecord>>(`${BASE_PATH}/adresses/`, { params: params as Record<string, unknown> });
+    return response.data as PaginatedResult<BackendAdresseRecord>;
   }
 
   async get(id: string): Promise<BackendAdresseRecord> {
-    const response = await apiService.get(`${BASE_PATH}/adresses/${id}/`);
-    return response.data;
+    const response = await apiService.get<BackendAdresseRecord>(`${BASE_PATH}/adresses/${id}/`);
+    return response.data as BackendAdresseRecord;
   }
 
   async create(data: BackendAdresseWriteData): Promise<BackendAdresseRecord> {
-    const response = await apiService.post(`${BASE_PATH}/adresses/`, data);
-    return response.data;
+    const response = await apiService.post<BackendAdresseRecord>(`${BASE_PATH}/adresses/`, data);
+    return response.data as BackendAdresseRecord;
   }
 
   async update(id: string, data: BackendAdresseWriteData): Promise<BackendAdresseRecord> {
-    const response = await apiService.patch(`${BASE_PATH}/adresses/${id}/`, data);
-    return response.data;
+    const response = await apiService.patch<BackendAdresseRecord>(`${BASE_PATH}/adresses/${id}/`, data);
+    return response.data as BackendAdresseRecord;
   }
 
   async delete(id: string): Promise<void> {
@@ -296,18 +296,18 @@ class AdresseTiersService {
 
   // Nested-route methods (for tiers-scoped access)
   async getByTiersId(tiersId: string): Promise<BackendAdresseRecord[]> {
-    const response = await apiService.get(`${BASE_PATH}/tiers/${tiersId}/adresses/`);
-    return response.data;
+    const response = await apiService.get<BackendAdresseRecord[]>(`${BASE_PATH}/tiers/${tiersId}/adresses/`);
+    return response.data as BackendAdresseRecord[];
   }
 
   async createForTiers(tiersId: string, data: BackendAdresseWriteData): Promise<BackendAdresseRecord> {
-    const response = await apiService.post(`${BASE_PATH}/tiers/${tiersId}/adresses/`, data);
-    return response.data;
+    const response = await apiService.post<BackendAdresseRecord>(`${BASE_PATH}/tiers/${tiersId}/adresses/`, data);
+    return response.data as BackendAdresseRecord;
   }
 
   async updateForTiers(tiersId: string, adresseId: string, data: BackendAdresseWriteData): Promise<BackendAdresseRecord> {
-    const response = await apiService.patch(`${BASE_PATH}/tiers/${tiersId}/adresses/${adresseId}/`, data);
-    return response.data;
+    const response = await apiService.patch<BackendAdresseRecord>(`${BASE_PATH}/tiers/${tiersId}/adresses/${adresseId}/`, data);
+    return response.data as BackendAdresseRecord;
   }
 
   async deleteForTiers(tiersId: string, adresseId: string): Promise<void> {
@@ -316,27 +316,27 @@ class AdresseTiersService {
 
   // Query methods
   async listByTiers(tiersId: string, params?: QueryParams): Promise<BackendAdresseRecord[]> {
-    const response = await apiService.get(`${BASE_PATH}/tiers/${tiersId}/adresses/`, {
-      params: params as Record<string, string>,
+    const response = await apiService.get<PaginatedResult<BackendAdresseRecord> | BackendAdresseRecord[]>(`${BASE_PATH}/tiers/${tiersId}/adresses/`, {
+      params: params as Record<string, unknown>,
     });
     const data = response.data;
-    return Array.isArray(data) ? data : (data as PaginatedResult<BackendAdresseRecord>).results || [];
+    return Array.isArray(data) ? data as BackendAdresseRecord[] : (data as PaginatedResult<BackendAdresseRecord>).results || [];
   }
 
   async listByType(type: string, params?: QueryParams): Promise<BackendAdresseRecord[]> {
-    const response = await apiService.get(`${BASE_PATH}/adresses/`, {
-      params: { ...params, type } as Record<string, string>,
+    const response = await apiService.get<PaginatedResult<BackendAdresseRecord>>(`${BASE_PATH}/adresses/`, {
+      params: { ...params, type } as Record<string, unknown>,
     });
     const data = response.data as PaginatedResult<BackendAdresseRecord>;
     return data.results || [];
   }
 
   async getPrimary(tiersId: string): Promise<BackendAdresseRecord | null> {
-    const response = await apiService.get(`${BASE_PATH}/tiers/${tiersId}/adresses/`, {
-      params: { est_principale: 'true' } as Record<string, string>,
+    const response = await apiService.get<PaginatedResult<BackendAdresseRecord> | BackendAdresseRecord[]>(`${BASE_PATH}/tiers/${tiersId}/adresses/`, {
+      params: { est_principale: 'true' } as Record<string, unknown>,
     });
     const data = response.data;
-    const results = Array.isArray(data) ? data : (data as PaginatedResult<BackendAdresseRecord>).results || [];
+    const results = Array.isArray(data) ? data as BackendAdresseRecord[] : (data as PaginatedResult<BackendAdresseRecord>).results || [];
     return results[0] || null;
   }
 }
@@ -348,23 +348,23 @@ class AdresseTiersService {
 class ContactTiersService {
   // Flat CRUD methods (used by third-party.service.ts)
   async list(params?: QueryParams): Promise<PaginatedResult<BackendContactRecord>> {
-    const response = await apiService.get(`${BASE_PATH}/contacts/`, { params: params as Record<string, string> });
-    return response.data;
+    const response = await apiService.get<PaginatedResult<BackendContactRecord>>(`${BASE_PATH}/contacts/`, { params: params as Record<string, unknown> });
+    return response.data as PaginatedResult<BackendContactRecord>;
   }
 
   async get(id: string): Promise<BackendContactRecord> {
-    const response = await apiService.get(`${BASE_PATH}/contacts/${id}/`);
-    return response.data;
+    const response = await apiService.get<BackendContactRecord>(`${BASE_PATH}/contacts/${id}/`);
+    return response.data as BackendContactRecord;
   }
 
   async create(data: BackendContactWriteData): Promise<BackendContactRecord> {
-    const response = await apiService.post(`${BASE_PATH}/contacts/`, data);
-    return response.data;
+    const response = await apiService.post<BackendContactRecord>(`${BASE_PATH}/contacts/`, data);
+    return response.data as BackendContactRecord;
   }
 
   async update(id: string, data: BackendContactWriteData): Promise<BackendContactRecord> {
-    const response = await apiService.patch(`${BASE_PATH}/contacts/${id}/`, data);
-    return response.data;
+    const response = await apiService.patch<BackendContactRecord>(`${BASE_PATH}/contacts/${id}/`, data);
+    return response.data as BackendContactRecord;
   }
 
   async delete(id: string): Promise<void> {
@@ -373,18 +373,18 @@ class ContactTiersService {
 
   // Nested-route methods (for tiers-scoped access)
   async getByTiersId(tiersId: string): Promise<BackendContactRecord[]> {
-    const response = await apiService.get(`${BASE_PATH}/tiers/${tiersId}/contacts/`);
-    return response.data;
+    const response = await apiService.get<BackendContactRecord[]>(`${BASE_PATH}/tiers/${tiersId}/contacts/`);
+    return response.data as BackendContactRecord[];
   }
 
   async createForTiers(tiersId: string, data: BackendContactWriteData): Promise<BackendContactRecord> {
-    const response = await apiService.post(`${BASE_PATH}/tiers/${tiersId}/contacts/`, data);
-    return response.data;
+    const response = await apiService.post<BackendContactRecord>(`${BASE_PATH}/tiers/${tiersId}/contacts/`, data);
+    return response.data as BackendContactRecord;
   }
 
   async updateForTiers(tiersId: string, contactId: string, data: BackendContactWriteData): Promise<BackendContactRecord> {
-    const response = await apiService.patch(`${BASE_PATH}/tiers/${tiersId}/contacts/${contactId}/`, data);
-    return response.data;
+    const response = await apiService.patch<BackendContactRecord>(`${BASE_PATH}/tiers/${tiersId}/contacts/${contactId}/`, data);
+    return response.data as BackendContactRecord;
   }
 
   async deleteForTiers(tiersId: string, contactId: string): Promise<void> {
@@ -393,19 +393,19 @@ class ContactTiersService {
 
   // Query methods
   async listByTiers(tiersId: string, params?: QueryParams): Promise<BackendContactRecord[]> {
-    const response = await apiService.get(`${BASE_PATH}/tiers/${tiersId}/contacts/`, {
-      params: params as Record<string, string>,
+    const response = await apiService.get<PaginatedResult<BackendContactRecord> | BackendContactRecord[]>(`${BASE_PATH}/tiers/${tiersId}/contacts/`, {
+      params: params as Record<string, unknown>,
     });
     const data = response.data;
-    return Array.isArray(data) ? data : (data as PaginatedResult<BackendContactRecord>).results || [];
+    return Array.isArray(data) ? data as BackendContactRecord[] : (data as PaginatedResult<BackendContactRecord>).results || [];
   }
 
   async getPrimary(tiersId: string): Promise<BackendContactRecord | null> {
-    const response = await apiService.get(`${BASE_PATH}/tiers/${tiersId}/contacts/`, {
-      params: { est_principal: 'true' } as Record<string, string>,
+    const response = await apiService.get<PaginatedResult<BackendContactRecord> | BackendContactRecord[]>(`${BASE_PATH}/tiers/${tiersId}/contacts/`, {
+      params: { est_principal: 'true' } as Record<string, unknown>,
     });
     const data = response.data;
-    const results = Array.isArray(data) ? data : (data as PaginatedResult<BackendContactRecord>).results || [];
+    const results = Array.isArray(data) ? data as BackendContactRecord[] : (data as PaginatedResult<BackendContactRecord>).results || [];
     return results[0] || null;
   }
 }
@@ -416,23 +416,23 @@ class ContactTiersService {
 
 class SocieteService {
   async list(params?: QueryParams): Promise<PaginatedResult<BackendSocieteRecord>> {
-    const response = await apiService.get(`${BASE_PATH}/societes/`, { params: params as Record<string, string> });
-    return response.data;
+    const response = await apiService.get<PaginatedResult<BackendSocieteRecord>>(`${BASE_PATH}/societes/`, { params: params as Record<string, unknown> });
+    return response.data as PaginatedResult<BackendSocieteRecord>;
   }
 
   async getById(id: string): Promise<BackendSocieteRecord> {
-    const response = await apiService.get(`${BASE_PATH}/societes/${id}/`);
-    return response.data;
+    const response = await apiService.get<BackendSocieteRecord>(`${BASE_PATH}/societes/${id}/`);
+    return response.data as BackendSocieteRecord;
   }
 
   async create(data: BackendSocieteWriteData): Promise<BackendSocieteRecord> {
-    const response = await apiService.post(`${BASE_PATH}/societes/`, data);
-    return response.data;
+    const response = await apiService.post<BackendSocieteRecord>(`${BASE_PATH}/societes/`, data);
+    return response.data as BackendSocieteRecord;
   }
 
   async patch(id: string, data: Partial<BackendSocieteRecord>): Promise<BackendSocieteRecord> {
-    const response = await apiService.patch(`${BASE_PATH}/societes/${id}/`, data);
-    return response.data;
+    const response = await apiService.patch<BackendSocieteRecord>(`${BASE_PATH}/societes/${id}/`, data);
+    return response.data as BackendSocieteRecord;
   }
 
   async delete(id: string): Promise<void> {

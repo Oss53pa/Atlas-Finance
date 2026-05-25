@@ -25,7 +25,8 @@
 
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 import { logAudit } from '../../lib/db';
-import type { DataAdapter } from '@atlas/data';
+import type { DataAdapter, TableName } from '@atlas/data';
+import type { DBSetting } from '../../lib/db';
 
 // ============================================================================
 // TYPES
@@ -69,10 +70,10 @@ const QUEUE_KEY = 'sync_queue';
 const LAST_SYNC_KEY = 'sync_last_timestamp';
 
 async function getQueue(adapter: DataAdapter): Promise<SyncQueueItem[]> {
-  const setting = await adapter.getById('settings', QUEUE_KEY);
+  const setting = await adapter.getById<DBSetting>('settings', QUEUE_KEY);
   if (!setting?.value) return [];
   try {
-    return JSON.parse(setting.value);
+    return JSON.parse(setting.value) as SyncQueueItem[];
   } catch (err) { /* silent */
     return [];
   }
@@ -83,11 +84,11 @@ async function saveQueue(adapter: DataAdapter, queue: SyncQueueItem[]): Promise<
     key: QUEUE_KEY,
     value: JSON.stringify(queue),
     updatedAt: new Date().toISOString(),
-  });
+  } as unknown as Omit<DBSetting, 'id'>);
 }
 
 async function getLastSyncTimestamp(adapter: DataAdapter): Promise<string | null> {
-  const setting = await adapter.getById('settings', LAST_SYNC_KEY);
+  const setting = await adapter.getById<DBSetting>('settings', LAST_SYNC_KEY);
   return setting?.value || null;
 }
 
@@ -96,7 +97,7 @@ async function setLastSyncTimestamp(adapter: DataAdapter, ts: string): Promise<v
     key: LAST_SYNC_KEY,
     value: ts,
     updatedAt: new Date().toISOString(),
-  });
+  } as unknown as Omit<DBSetting, 'id'>);
 }
 
 // ============================================================================
@@ -451,7 +452,7 @@ async function pullChanges(adapter: DataAdapter, since: string | null): Promise<
 
       const mapped = data.map(r => mapping.mapFromSupabase(r as Record<string, unknown>));
       for (const record of mapped) {
-        await adapter.create(mapping.dexieTable, record);
+        await adapter.create(mapping.dexieTable as TableName, record as never);
       }
       pulled += mapped.length;
     } catch (err) {

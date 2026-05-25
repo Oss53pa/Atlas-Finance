@@ -10,6 +10,29 @@
 import { useQuery } from '@tanstack/react-query';
 import { useData } from '../contexts/DataContext';
 
+interface TaxDeclarationRecord {
+  id: string;
+  taxRegistryId?: string;
+  taxCode?: string;
+  declarationDeadline?: string;
+  periodEnd?: string;
+  periodLabel?: string;
+  status?: string;
+  netTax?: number;
+  balanceDue?: number;
+}
+
+interface TaxRegistryRecord {
+  id: string;
+  taxCode: string;
+  taxName?: string;
+  taxShortName?: string;
+  taxCategory?: string;
+  periodicity?: string;
+  declarationDeadlineDays?: number;
+  isActive?: boolean;
+}
+
 export interface FiscalAlert {
   id: string;
   taxCode: string;
@@ -38,8 +61,8 @@ export function useFiscalAlerts(year?: number) {
     queryKey: ['fiscal-alerts', currentYear],
     queryFn: async (): Promise<FiscalAlert[]> => {
       const [declarations, registries] = await Promise.all([
-        adapter.getAll<Record<string, unknown>>('taxDeclarations'),
-        adapter.getAll<Record<string, unknown>>('taxRegistry'),
+        adapter.getAll<TaxDeclarationRecord>('taxDeclarations'),
+        adapter.getAll<TaxRegistryRecord>('taxRegistry'),
       ]);
 
       const todayStr = new Date().toISOString().split('T')[0];
@@ -97,8 +120,8 @@ export function useFiscalAlerts(year?: number) {
             alerts.push({
               id: `${reg.taxCode}-${currentYear}-${String(periodMonth).padStart(2, '0')}`,
               taxCode: reg.taxCode,
-              taxName: reg.taxName || reg.taxShortName,
-              taxCategory: reg.taxCategory,
+              taxName: reg.taxName || reg.taxShortName || reg.taxCode,
+              taxCategory: reg.taxCategory || 'AUTRE',
               periodLabel: reg.periodicity === 'ANNUAL' ? `${currentYear}`
                 : reg.periodicity === 'QUARTERLY' ? `T${i + 1} ${currentYear}`
                 : `${MONTH_NAMES[i]} ${currentYear}`,
@@ -107,7 +130,7 @@ export function useFiscalAlerts(year?: number) {
               daysUntil,
               isOverdue: deadlineStr < todayStr,
               isUrgent: daysUntil >= 0 && daysUntil <= 7,
-              periodicite: reg.periodicity,
+              periodicite: reg.periodicity || 'MONTHLY',
             });
           }
         }

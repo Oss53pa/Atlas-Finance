@@ -203,7 +203,7 @@ class ParametersService {
     results: ParametreSysteme[];
     count: number;
   }> {
-    const response = await apiService.get(`${BASE_PATH}/parametres-systeme/`, { params });
+    const response = await apiService.get<{ results: ParametreSysteme[]; count: number }>(`${BASE_PATH}/parametres-systeme/`, { params: params as Record<string, unknown> });
     return response.data as { results: ParametreSysteme[]; count: number; };
   }
 
@@ -229,34 +229,38 @@ class ParametersService {
    * Récupère les paramètres d'une catégorie
    */
   async getParametresByCategory(categorie: ParameterCategory): Promise<ParametreSysteme[]> {
-    const response = await apiService.get(
+    const response = await apiService.get<{ results?: ParametreSysteme[] } | ParametreSysteme[]>(
       `${BASE_PATH}/parametres-systeme/by-category/${categorie}/`
     );
-    return (response.data.results || response.data) as ParametreSysteme[];
+    const d = response.data as { results?: ParametreSysteme[] };
+    return (d.results || response.data) as ParametreSysteme[];
   }
 
   /**
    * Récupère les paramètres d'un groupe
    */
   async getParametresByGroup(groupe: string): Promise<ParametreSysteme[]> {
-    const response = await apiService.get(`${BASE_PATH}/parametres-systeme/by-group/${groupe}/`);
-    return (response.data.results || response.data) as ParametreSysteme[];
+    const response = await apiService.get<{ results?: ParametreSysteme[] } | ParametreSysteme[]>(`${BASE_PATH}/parametres-systeme/by-group/${groupe}/`);
+    const d = response.data as { results?: ParametreSysteme[] };
+    return (d.results || response.data) as ParametreSysteme[];
   }
 
   /**
    * Récupère uniquement les paramètres visibles
    */
   async getParametresVisiblesOnly(): Promise<ParametreSysteme[]> {
-    const response = await apiService.get(`${BASE_PATH}/parametres-systeme/visible-only/`);
-    return (response.data.results || response.data) as ParametreSysteme[];
+    const response = await apiService.get<{ results?: ParametreSysteme[] } | ParametreSysteme[]>(`${BASE_PATH}/parametres-systeme/visible-only/`);
+    const d = response.data as { results?: ParametreSysteme[] };
+    return (d.results || response.data) as ParametreSysteme[];
   }
 
   /**
    * Récupère la liste des catégories disponibles
    */
   async getCategories(): Promise<CategoryOption[]> {
-    const response = await apiService.get(`${BASE_PATH}/parametres-systeme/categories/`);
-    return (response.data.categories || response.data) as CategoryOption[];
+    const response = await apiService.get<{ categories?: CategoryOption[] } | CategoryOption[]>(`${BASE_PATH}/parametres-systeme/categories/`);
+    const d = response.data as { categories?: CategoryOption[] };
+    return (d.categories || response.data) as CategoryOption[];
   }
 
   /**
@@ -318,7 +322,7 @@ class ParametersService {
     results: ConfigurationSociete[];
     count: number;
   }> {
-    const response = await apiService.get(`${BASE_PATH}/configurations-societe/`, { params });
+    const response = await apiService.get<{ results: ConfigurationSociete[]; count: number }>(`${BASE_PATH}/configurations-societe/`, { params: params as Record<string, unknown> });
     return response.data as { results: ConfigurationSociete[]; count: number; };
   }
 
@@ -417,7 +421,7 @@ class ParametersService {
     results: JournalParametres[];
     count: number;
   }> {
-    const response = await apiService.get(`${BASE_PATH}/journaux-parametres/`, { params });
+    const response = await apiService.get<{ results: JournalParametres[]; count: number }>(`${BASE_PATH}/journaux-parametres/`, { params: params as Record<string, unknown> });
     return response.data as { results: JournalParametres[]; count: number; };
   }
 
@@ -433,20 +437,22 @@ class ParametersService {
    * Récupère les journaux d'une société
    */
   async getJournauxByCompany(societeId: string): Promise<JournalParametres[]> {
-    const response = await apiService.get(
+    const response = await apiService.get<{ results?: JournalParametres[] } | JournalParametres[]>(
       `${BASE_PATH}/journaux-parametres/by-company/${societeId}/`
     );
-    return (response.data.results || response.data) as JournalParametres[];
+    const d = response.data as { results?: JournalParametres[] };
+    return (d.results || response.data) as JournalParametres[];
   }
 
   /**
    * Récupère les journaux d'un type spécifique
    */
   async getJournauxByType(typeJournal: string): Promise<JournalParametres[]> {
-    const response = await apiService.get(
+    const response = await apiService.get<{ results?: JournalParametres[] } | JournalParametres[]>(
       `${BASE_PATH}/journaux-parametres/by-type/${typeJournal}/`
     );
-    return (response.data.results || response.data) as JournalParametres[];
+    const d = response.data as { results?: JournalParametres[] };
+    return (d.results || response.data) as JournalParametres[];
   }
 
   /**
@@ -502,7 +508,7 @@ class ParametersService {
     results: NotificationParametres[];
     count: number;
   }> {
-    const response = await apiService.get(`${BASE_PATH}/notifications-parametres/`, { params });
+    const response = await apiService.get<{ results: NotificationParametres[]; count: number }>(`${BASE_PATH}/notifications-parametres/`, { params: params as Record<string, unknown> });
     return response.data as { results: NotificationParametres[]; count: number; };
   }
 
@@ -518,34 +524,38 @@ class ParametersService {
    * Récupère les notifications d'une société
    */
   async getNotificationsByCompany(societeId: string): Promise<NotificationParametres[]> {
-    const response = await apiService.get(
+    const response = await apiService.get<{ results?: NotificationParametres[] } | NotificationParametres[]>(
       `${BASE_PATH}/notifications-parametres/by-company/${societeId}/`
     );
-    return (response.data.results || response.data) as NotificationParametres[];
+    const d = response.data as { results?: NotificationParametres[] };
+    return (d.results || response.data) as NotificationParametres[];
   }
 
   /**
    * Récupère uniquement les notifications actives
    */
   async getNotificationsActive(): Promise<NotificationParametres[]> {
-    const response = await apiService.get(`${BASE_PATH}/notifications-parametres/active/`);
-    return (response.data.results || response.data) as NotificationParametres[];
+    const response = await apiService.get<{ results?: NotificationParametres[] } | NotificationParametres[]>(`${BASE_PATH}/notifications-parametres/active/`);
+    const d = response.data as { results?: NotificationParametres[] };
+    return (d.results || response.data) as NotificationParametres[];
   }
 
   /**
    * Récupère la liste des événements disponibles
    */
   async getNotificationEvents(): Promise<TypeOption[]> {
-    const response = await apiService.get(`${BASE_PATH}/notifications-parametres/events/`);
-    return (response.data.events || response.data) as TypeOption[];
+    const response = await apiService.get<{ events?: TypeOption[] } | TypeOption[]>(`${BASE_PATH}/notifications-parametres/events/`);
+    const d = response.data as { events?: TypeOption[] };
+    return (d.events || response.data) as TypeOption[];
   }
 
   /**
    * Récupère la liste des types de notifications
    */
   async getNotificationTypes(): Promise<TypeOption[]> {
-    const response = await apiService.get(`${BASE_PATH}/notifications-parametres/notification-types/`);
-    return (response.data.types || response.data) as TypeOption[];
+    const response = await apiService.get<{ types?: TypeOption[] } | TypeOption[]>(`${BASE_PATH}/notifications-parametres/notification-types/`);
+    const d = response.data as { types?: TypeOption[] };
+    return (d.types || response.data) as TypeOption[];
   }
 
   /**

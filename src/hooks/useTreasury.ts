@@ -14,9 +14,9 @@ import {
 import type { BankAccount, CashMovement } from '../services/treasury-complete.service';
 
 // Cast services to access extended API methods
-const bankApi = bankAccountsService as Record<string, (...args: unknown[]) => Promise<unknown>>;
-const txApi = bankTransactionsService as Record<string, (...args: unknown[]) => Promise<unknown>>;
-const reportsApi = treasuryReportsService as Record<string, (...args: unknown[]) => Promise<unknown>>;
+const bankApi = bankAccountsService as unknown as Record<string, (...args: unknown[]) => Promise<unknown>>;
+const txApi = bankTransactionsService as unknown as Record<string, (...args: unknown[]) => Promise<unknown>>;
+const reportsApi = treasuryReportsService as unknown as Record<string, (...args: unknown[]) => Promise<unknown>>;
 
 interface QueryParams {
   page?: number;
@@ -60,7 +60,7 @@ interface BankTransaction {
 
 export const useBankAccounts = (params?: QueryParams) => {
   return useQuery({
-    queryKey: queryKeys.treasury.bankAccounts.list(params),
+    queryKey: queryKeys.treasury.bankAccounts.list(params as Record<string, unknown>),
     queryFn: () => bankAccountsService.getAll(params as Parameters<typeof bankAccountsService.getAll>[0]),
   });
 };
@@ -106,7 +106,7 @@ export const useBankAccountBalanceHistory = (accountId: string, dateDebut: strin
 
 export const useBankAccountTransactions = (accountId: string, params?: TreasuryQueryParams) => {
   return useQuery({
-    queryKey: queryKeys.treasury.bankAccounts.transactions(accountId, params),
+    queryKey: queryKeys.treasury.bankAccounts.transactions(accountId, params as Record<string, unknown>),
     queryFn: () => bankApi.getTransactions(accountId, params) as Promise<unknown>,
     enabled: !!accountId,
   });
@@ -127,7 +127,7 @@ export const useUpdateBankAccount = () => {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<BankAccount> }) =>
       bankAccountsService.update(id, data),
-    onSuccess: (_: unknown, { id }: { id: string }) => {
+    onSuccess: (_: unknown, { id }: { id: string; data: Partial<BankAccount> }) => {
       invalidateQueries.bankAccounts();
       queryClient.invalidateQueries({ queryKey: queryKeys.treasury.bankAccounts.detail(id) });
     },
@@ -149,7 +149,7 @@ export const useCloseBankAccount = () => {
   return useMutation({
     mutationFn: ({ id, dateCloture }: { id: string; dateCloture: string }) =>
       bankApi.closeAccount(id, dateCloture) as Promise<BankAccount>,
-    onSuccess: (_: unknown, { id }: { id: string }) => {
+    onSuccess: (_: unknown, { id }: { id: string; dateCloture: string }) => {
       invalidateQueries.bankAccounts();
       queryClient.invalidateQueries({ queryKey: queryKeys.treasury.bankAccounts.detail(id) });
     },
@@ -176,7 +176,7 @@ export const useReopenBankAccount = () => {
 
 export const useBankTransactions = (params?: TreasuryQueryParams) => {
   return useQuery({
-    queryKey: queryKeys.treasury.bankTransactions.list(params),
+    queryKey: queryKeys.treasury.bankTransactions.list(params as Record<string, unknown>),
     queryFn: () => txApi.getAll(params) as Promise<unknown>,
   });
 };
@@ -236,7 +236,7 @@ export const useUpdateBankTransaction = () => {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<BankTransaction> }) =>
       txApi.update(id, data) as Promise<BankTransaction>,
-    onSuccess: (_: unknown, { id }: { id: string }) => {
+    onSuccess: (_: unknown, { id }: { id: string; data: Partial<BankTransaction> }) => {
       invalidateQueries.bankTransactions();
       invalidateQueries.bankAccounts();
       queryClient.invalidateQueries({ queryKey: queryKeys.treasury.bankTransactions.detail(id) });
@@ -260,7 +260,7 @@ export const useReconcileTransaction = () => {
   return useMutation({
     mutationFn: ({ id, ecritureId }: { id: string; ecritureId: string }) =>
       txApi.reconcile(id, ecritureId) as Promise<BankTransaction>,
-    onSuccess: (_: unknown, { id }: { id: string }) => {
+    onSuccess: (_: unknown, { id }: { id: string; ecritureId: string }) => {
       invalidateQueries.bankTransactions();
       queryClient.invalidateQueries({ queryKey: queryKeys.treasury.bankTransactions.detail(id) });
     },
@@ -331,7 +331,7 @@ export const useCreateTransactionWithAccounting = () => {
 
 export const useTreasuryPosition = (params?: { date?: string; devise?: string }) => {
   return useQuery({
-    queryKey: queryKeys.treasury.reports.position(params),
+    queryKey: queryKeys.treasury.reports.position(params as Record<string, unknown>),
     queryFn: () => reportsApi.generateTreasuryPosition(params) as Promise<unknown>,
   });
 };
@@ -342,7 +342,7 @@ export const useCashFlowForecast = (params: {
   compte_bancaire?: string;
 }) => {
   return useQuery({
-    queryKey: queryKeys.treasury.reports.forecast(params),
+    queryKey: queryKeys.treasury.reports.forecast(params as Record<string, unknown>),
     queryFn: () => reportsApi.generateCashFlowForecast(params) as Promise<unknown>,
     enabled: !!(params.date_debut && params.date_fin),
   });
@@ -354,7 +354,7 @@ export const useCashFlow = (params: {
   compte_bancaire?: string;
 }) => {
   return useQuery({
-    queryKey: queryKeys.treasury.reports.cashFlow(params),
+    queryKey: queryKeys.treasury.reports.cashFlow(params as Record<string, unknown>),
     queryFn: () => reportsApi.generateCashFlow(params) as Promise<unknown>,
     enabled: !!(params.date_debut && params.date_fin),
   });

@@ -95,7 +95,7 @@ export const useUpdateParametreSysteme = () => {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<ParametreSysteme> }) =>
       parametersService.updateParametreSysteme(id, data),
-    onSuccess: (_: unknown, { id }: { id: string }) => {
+    onSuccess: (_: unknown, { id }: { id: string; data: Partial<ParametreSysteme> }) => {
       queryClient.invalidateQueries({ queryKey: ['parametres-systeme'] });
       queryClient.invalidateQueries({ queryKey: ['parametres-systeme', id] });
     },
@@ -184,7 +184,7 @@ export const useUpdateConfigurationSociete = () => {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<ConfigurationSociete> }) =>
       parametersService.updateConfigurationSociete(id, data),
-    onSuccess: (_: unknown, { id }: { id: string }) => {
+    onSuccess: (_: unknown, { id }: { id: string; data: Partial<ConfigurationSociete> }) => {
       queryClient.invalidateQueries({ queryKey: ['configurations-societe'] });
       queryClient.invalidateQueries({ queryKey: ['configurations-societe', id] });
     },
@@ -294,7 +294,7 @@ export const useUpdateJournalParametres = () => {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<JournalParametres> }) =>
       parametersService.updateJournalParametres(id, data),
-    onSuccess: (_: unknown, { id }: { id: string }) => {
+    onSuccess: (_: unknown, { id }: { id: string; data: Partial<JournalParametres> }) => {
       queryClient.invalidateQueries({ queryKey: ['journaux-parametres'] });
       queryClient.invalidateQueries({ queryKey: ['journaux-parametres', id] });
     },
@@ -394,7 +394,7 @@ export const useUpdateNotificationParametres = () => {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<NotificationParametres> }) =>
       parametersService.updateNotificationParametres(id, data),
-    onSuccess: (_: unknown, { id }: { id: string }) => {
+    onSuccess: (_: unknown, { id }: { id: string; data: Partial<NotificationParametres> }) => {
       queryClient.invalidateQueries({ queryKey: ['notifications-parametres'] });
       queryClient.invalidateQueries({ queryKey: ['notifications-parametres', id] });
     },

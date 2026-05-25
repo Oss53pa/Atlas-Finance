@@ -45,7 +45,7 @@ export interface AuditIntegrityResult {
  * Verify the audit trail hash chain integrity.
  */
 export async function verifyAuditIntegrity(adapter: DataAdapter, logs?: DBAuditLog[]): Promise<AuditIntegrityResult> {
-  const allLogs = logs || await adapter.getAll('auditLogs', { orderBy: { field: 'timestamp', direction: 'asc' } });
+  const allLogs = logs || await adapter.getAll<DBAuditLog>('auditLogs', { orderBy: { field: 'timestamp', direction: 'asc' } });
 
   const result: AuditIntegrityResult = {
     totalLogs: allLogs.length,
@@ -81,7 +81,7 @@ export async function verifyAuditIntegrity(adapter: DataAdapter, logs?: DBAuditL
  */
 export async function generateAuditTrailPdf(adapter: DataAdapter, options: AuditTrailReportOptions = {}): Promise<Blob> {
   // Fetch and filter logs
-  let logs = await adapter.getAll('auditLogs', { orderBy: { field: 'timestamp', direction: 'asc' } });
+  let logs = await adapter.getAll<DBAuditLog>('auditLogs', { orderBy: { field: 'timestamp', direction: 'asc' } });
 
   if (options.startDate) {
     logs = logs.filter(l => l.timestamp >= options.startDate!);
