@@ -8,7 +8,8 @@
  */
 
 import type { ILLMProvider, LLMRequest, LLMResponse, LLMTool, LLMToolCall } from './ILLMProvider';
-import { supabase } from '../../../lib/supabase';
+// NOTE: supabase importé dynamiquement dans complete() pour éviter l'initialisation
+// du client au chargement du module (provoque _acquireLock en jsdom/tests).
 
 export interface AnthropicConfig {
   model?: string;
@@ -36,6 +37,9 @@ export class AnthropicProvider implements ILLMProvider {
 
   async complete(request: LLMRequest, tools?: LLMTool[]): Promise<LLMResponse> {
     const start = Date.now();
+
+    // Import dynamique : évite l'initialisation de supabase au chargement du module
+    const { supabase } = await import('../../../lib/supabase');
 
     // Get current Supabase auth session
     const { data: { session } } = await supabase.auth.getSession();

@@ -108,9 +108,9 @@ describe('accountingTools', () => {
   it('consulter_balance returns balance data with mock adapter', async () => {
     const mockAdapter = {
       getTrialBalance: vi.fn().mockResolvedValue([
-        { accountCode: '601000', accountName: 'Achats de marchandises', totalDebit: 500000, totalCredit: 0 },
-        { accountCode: '401000', accountName: 'Fournisseurs', totalDebit: 0, totalCredit: 500000 },
-        { accountCode: '701000', accountName: 'Ventes de marchandises', totalDebit: 0, totalCredit: 1200000 },
+        { accountCode: '601000', accountName: 'Achats de marchandises', debitMouvement: 500000, creditMouvement: 0 },
+        { accountCode: '401000', accountName: 'Fournisseurs', debitMouvement: 0, creditMouvement: 500000 },
+        { accountCode: '701000', accountName: 'Ventes de marchandises', debitMouvement: 0, creditMouvement: 1200000 },
       ]),
     } as any;
 
@@ -128,9 +128,9 @@ describe('accountingTools', () => {
   it('consulter_balance filters by classeCompte prefix', async () => {
     const mockAdapter = {
       getTrialBalance: vi.fn().mockResolvedValue([
-        { accountCode: '601000', accountName: 'Achats', totalDebit: 500000, totalCredit: 0 },
-        { accountCode: '401000', accountName: 'Fournisseurs', totalDebit: 0, totalCredit: 500000 },
-        { accountCode: '701000', accountName: 'Ventes', totalDebit: 0, totalCredit: 1200000 },
+        { accountCode: '601000', accountName: 'Achats', debitMouvement: 500000, creditMouvement: 0 },
+        { accountCode: '401000', accountName: 'Fournisseurs', debitMouvement: 0, creditMouvement: 500000 },
+        { accountCode: '701000', accountName: 'Ventes', debitMouvement: 0, creditMouvement: 1200000 },
       ]),
     } as any;
 
@@ -268,7 +268,7 @@ describe('ProphetV2 orchestration (mocked)', () => {
 
     const mockAdapter = {
       getTrialBalance: vi.fn().mockResolvedValue([
-        { accountCode: '521000', accountName: 'Banque', totalDebit: 5000000, totalCredit: 3000000 },
+        { accountCode: '521000', accountName: 'Banque', debitMouvement: 5000000, creditMouvement: 3000000 },
       ]),
     } as any;
 
@@ -306,7 +306,7 @@ describe('ProphetV2 orchestration (mocked)', () => {
 
     const mockAdapter = {
       getTrialBalance: vi.fn().mockResolvedValue([
-        { accountCode: '601000', accountName: 'Achats', totalDebit: 1000000, totalCredit: 0 },
+        { accountCode: '601000', accountName: 'Achats', debitMouvement: 1000000, creditMouvement: 0 },
       ]),
       getJournalEntries: vi.fn().mockResolvedValue([
         {

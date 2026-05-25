@@ -11,7 +11,13 @@
 import type { ILLMProvider } from './providers/ILLMProvider';
 import { OllamaProvider } from './providers/OllamaProvider';
 import { AnthropicProvider } from './providers/AnthropicProvider';
-import { isSupabaseConfigured } from '../../lib/supabase';
+
+// Calculé localement pour éviter d'importer lib/supabase au niveau module
+// (évite l'initialisation du client Supabase au chargement — dont _acquireLock en jsdom).
+const isSupabaseConfigured = !!(
+  import.meta.env.VITE_SUPABASE_URL &&
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
 
 export interface LLMProviderConfig {
   ollama?: {

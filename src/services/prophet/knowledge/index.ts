@@ -6,8 +6,15 @@
  * Strategy: pgvector semantic search first, keyword TF fallback.
  */
 import type { SyscohadaKnowledgeChunk } from '../../proph3t/types/knowledge';
-import { supabase, isSupabaseConfigured } from '../../../lib/supabase';
+// NOTE: supabase importé dynamiquement dans searchKnowledgeSemantic() pour éviter
+// l'initialisation du client au chargement du module (provoque _acquireLock en jsdom).
 import { syscohadaKnowledge } from './syscohada';
+
+// Calculé localement pour éviter d'importer lib/supabase au niveau module
+const isSupabaseConfigured = !!(
+  import.meta.env.VITE_SUPABASE_URL &&
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
 import { fiscaliteKnowledge } from './fiscalite';
 import { auditKnowledge } from './audit';
 import { clotureKnowledge } from './cloture';
@@ -67,6 +74,7 @@ async function searchKnowledgeSemantic(
   if (!embedding) return [];
 
   try {
+    const { supabase } = await import('../../../lib/supabase');
     const { data, error } = await supabase.rpc('search_knowledge' as any, {
       query_embedding: embedding,
       match_threshold: 0.7,
