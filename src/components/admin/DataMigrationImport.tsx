@@ -4,7 +4,7 @@
  */
 import React, { useState, useCallback, useRef, useMemo } from 'react';
 import {
-  Upload, FileSpreadsheet, CheckCircle, AlertTriangle, XCircle,
+  Upload, FileSpreadsheet, CheckCircle, AlertTriangle, XCircle, AlertCircle,
   ChevronRight, ArrowLeft, Download, Trash2, Settings, Play,
   FileText, Users, Package, Calculator, BookOpen, BarChart3, Loader2,
 } from 'lucide-react';
@@ -1742,8 +1742,38 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       {/* ─── Step 2: Upload ─── */}
       {currentStep === 'upload' && (
         <div className="space-y-4">
+          {/* Bandeau téléchargement des modèles Excel */}
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+            <div className="flex items-start gap-3">
+              <Download className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <p className="font-semibold text-amber-800 mb-1">Téléchargez les modèles Excel Atlas F&amp;A avant de préparer vos fichiers</p>
+                <p className="text-xs text-amber-700 mb-3">Chaque modèle contient les colonnes exactes attendues + des exemples de données. Respectez le format pour éviter les erreurs de mapping.</p>
+                <div className="flex flex-wrap gap-2">
+                  {availableFileKeys.map(key => {
+                    const config = FILE_CONFIGS[key];
+                    if (!config.templateKey) return null;
+                    const tpl = getTemplate(config.templateKey as TemplateKey);
+                    if (!tpl) return null;
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => downloadTemplate(tpl, { societeName: 'Atlas', year: new Date().getFullYear() })}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-amber-300 hover:bg-amber-100 rounded-lg text-xs font-medium text-amber-800 transition-colors"
+                      >
+                        <FileSpreadsheet className="w-3.5 h-3.5" />
+                        {config.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="bg-white border rounded-xl p-6">
-            <h2 className="text-lg font-semibold mb-4">Fichiers a importer — Mode {migrationMode} ({sourceSystem})</h2>
+            <h2 className="text-lg font-semibold mb-4">Fichiers à importer — Mode {migrationMode} ({sourceSystem})</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {availableFileKeys.map(key => {
                 const config = FILE_CONFIGS[key];
@@ -2215,17 +2245,50 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
               ))}
             </div>
 
-            <div className="flex items-center justify-between bg-gray-50 rounded-lg p-4">
+            <div className={`flex items-center justify-between rounded-lg p-4 ${simulation.balanced ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
               <div className="flex items-center gap-2">
                 {simulation.balanced ?
                   <CheckCircle className="w-5 h-5 text-green-600" /> :
                   <XCircle className="w-5 h-5 text-red-600" />}
                 <span className={`font-medium ${simulation.balanced ? 'text-green-700' : 'text-red-700'}`}>
-                  {simulation.balanced ? 'Equilibre verifie — pret pour l\'import' : 'DESEQUILIBRE DETECTE — import bloque'}
+                  {simulation.balanced ? 'Équilibre vérifié — prêt pour l\'import' : 'DÉSÉQUILIBRE DÉTECTÉ — import bloqué'}
                 </span>
               </div>
-              <span className="text-sm text-gray-500">Duree estimee : ~{simulation.estimatedTime}s</span>
+              <span className="text-sm text-gray-500">Durée estimée : ~{simulation.estimatedTime}s</span>
             </div>
+
+            {!simulation.balanced && (
+              <div className="mt-3 bg-red-50 border border-red-200 rounded-lg p-4 space-y-3">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                  <div className="flex-1">
+                    <p className="font-semibold text-red-800 mb-1">Détail du déséquilibre</p>
+                    <div className="grid grid-cols-3 gap-3 text-sm mb-3">
+                      <div className="bg-white rounded p-2 border border-red-100 text-center">
+                        <p className="text-xs text-gray-500 mb-0.5">Total débits</p>
+                        <p className="font-mono font-semibold text-gray-900">{simulation.totalDebit.toLocaleString('fr-FR', { minimumFractionDigits: 2 })}</p>
+                      </div>
+                      <div className="bg-white rounded p-2 border border-red-100 text-center">
+                        <p className="text-xs text-gray-500 mb-0.5">Total crédits</p>
+                        <p className="font-mono font-semibold text-gray-900">{simulation.totalCredit.toLocaleString('fr-FR', { minimumFractionDigits: 2 })}</p>
+                      </div>
+                      <div className="bg-red-100 rounded p-2 border border-red-300 text-center">
+                        <p className="text-xs text-red-700 mb-0.5">Écart</p>
+                        <p className="font-mono font-bold text-red-800">{Math.abs(simulation.totalDebit - simulation.totalCredit).toLocaleString('fr-FR', { minimumFractionDigits: 2 })}</p>
+                        <p className="text-[10px] text-red-600">{simulation.totalDebit > simulation.totalCredit ? 'Débits excédentaires' : 'Crédits excédentaires'}</p>
+                      </div>
+                    </div>
+                    <p className="text-sm font-medium text-red-700 mb-2">Comment corriger :</p>
+                    <ul className="text-sm text-red-700 space-y-1.5 list-none">
+                      <li className="flex items-start gap-2"><span className="text-red-500 font-bold mt-0.5">1.</span><span>Dans votre fichier Grand Livre, vérifiez que <strong>chaque écriture</strong> a bien Σ débit = Σ crédit. Filtrez sur le journal concerné.</span></li>
+                      <li className="flex items-start gap-2"><span className="text-red-500 font-bold mt-0.5">2.</span><span>L'écart de <strong>{Math.abs(simulation.totalDebit - simulation.totalCredit).toLocaleString('fr-FR', { minimumFractionDigits: 2 })} FCFA</strong> peut provenir d'une ligne manquante ou d'une valeur mal saisie.</span></li>
+                      <li className="flex items-start gap-2"><span className="text-red-500 font-bold mt-0.5">3.</span><span>Téléchargez le modèle Excel ci-dessous, corrigez les données sources, puis re-uploadez le fichier corrigé.</span></li>
+                      <li className="flex items-start gap-2"><span className="text-red-500 font-bold mt-0.5">4.</span><span>Si votre logiciel source (Sage, Ciel…) exporte le FEC, utilisez plutôt le mode import <strong>FEC</strong> — il garantit l'équilibre.</span></li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {simulation.assetVNC > 0 && (
               <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm">
