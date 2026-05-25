@@ -517,7 +517,7 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
         <TabsContent value="ratios" className="space-y-6">
           {/* Tableau de bord ratios avec jauges */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {ratiosData?.structure_ratios?.map((ratio, index) => (
+            {ratiosData?.structure_ratios?.map((ratio: any, index: number) => (
               <Card key={index}>
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between mb-3">
@@ -591,7 +591,7 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {ratiosData?.alerts?.map((alert, index) => (
+                  {ratiosData?.alerts?.map((alert: any, index: number) => (
                     <div key={index} className={`p-3 rounded border ${
                       alert.severity === 'CRITICAL' ? 'bg-[var(--color-error-lightest)] border-[var(--color-error-light)]' :
                       alert.severity === 'WARNING' ? 'bg-[var(--color-warning-lightest)] border-[var(--color-warning-light)]' :
@@ -636,7 +636,7 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {benchmarkData?.comparisons?.map((benchmark, index) => (
+                    {benchmarkData?.comparisons?.map((benchmark: any, index: number) => (
                       <TableRow key={index}>
                         <TableCell className="font-medium">{benchmark.metric_name}</TableCell>
                         <TableCell className="text-right font-bold">

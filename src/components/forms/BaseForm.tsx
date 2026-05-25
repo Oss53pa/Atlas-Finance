@@ -50,13 +50,13 @@ const BaseForm: React.FC<FormProps> = ({
     }
 
     // Email validation
-    if (field.type === 'email' && value && !/\S+@\S+\.\S+/.test(value)) {
+    if (field.type === 'email' && value && !/\S+@\S+\.\S+/.test(value as string)) {
       return 'Format d\'email invalide';
     }
 
     // Number validation
     if (field.type === 'number' && value) {
-      const numValue = parseFloat(value);
+      const numValue = parseFloat(value as string);
       if (isNaN(numValue)) {
         return 'Veuillez saisir un nombre valide';
       }
@@ -135,7 +135,7 @@ const BaseForm: React.FC<FormProps> = ({
   };
 
   const renderField = (field: FormField) => {
-    const value = formData[field.name] || '';
+    const value = (formData[field.name] ?? '') as string;
     const error = errors[field.name];
     const hasError = touched[field.name] && error;
 
