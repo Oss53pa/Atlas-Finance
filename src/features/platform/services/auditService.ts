@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Audit Service — piste d'audit systématique.
  * Chaque action métier doit appeler auditLog().

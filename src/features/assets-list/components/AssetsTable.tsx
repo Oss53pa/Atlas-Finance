@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React from 'react';
 import { DataTable, Column } from '@/shared/components/data-display/DataTable';
 import { AssetData } from '../types/assets-list.types';

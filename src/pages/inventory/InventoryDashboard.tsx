@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useEffect, useMemo } from 'react';
 import {

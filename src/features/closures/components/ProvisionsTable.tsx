@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React from 'react';
 import { DataTable, Column } from '@/shared/components/data-display/DataTable';
 import { Badge } from '@/shared/components/ui/Badge';

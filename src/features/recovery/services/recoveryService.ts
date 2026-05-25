@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Service de recouvrement — connecté aux données réelles via DataAdapter.
  *

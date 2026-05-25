@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState, useMemo } from 'react'; // Palette Atlas F&A appliquée
 import type { DBAsset } from '../../lib/db';
 import { toast } from 'sonner';

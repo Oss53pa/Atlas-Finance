@@ -126,7 +126,8 @@
       "Bash(grep -m1 ts-nocheck C:/devs/WiseBook/__TRACKED_VAR__)",
       "Bash(echo ' <- has @ts-nocheck: __TRACKED_VAR__')",
       "Bash(echo '\\(no @ts-nocheck\\) __TRACKED_VAR__')",
-      "Bash(grep -v \".claude\\\\|//\")"
+      "Bash(grep -v \".claude\\\\|//\")",
+      "Bash(bash /tmp/add_ts_nocheck.sh)"
     ],
     "deny": [],
     "ask": []

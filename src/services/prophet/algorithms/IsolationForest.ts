@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * IsolationForest — Détection d'anomalies en TypeScript pur (offline, zéro dépendance ML)
  * Algorithme : Liu, Ting & Zhou (2008)

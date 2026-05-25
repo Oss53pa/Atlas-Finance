@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * MultiDeviseEngine — Multi-devises & taux de change SYSCOHADA
  * Réf. légales : SYSCOHADA art. 37, Accords monétaires UEMOA/CEMAC

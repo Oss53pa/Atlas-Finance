@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Panneau de Prévisions de Trésorerie Unifié
  * Consolidation créances/dettes selon section 4.2

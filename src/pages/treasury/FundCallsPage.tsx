@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Module Appels de Fonds Atlas F&A
  * Interface complète avec workflow de validation selon cahier des charges

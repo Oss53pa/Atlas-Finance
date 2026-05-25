@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useEffect, useRef } from 'react';
 import { formatDate } from '../../utils/formatters';

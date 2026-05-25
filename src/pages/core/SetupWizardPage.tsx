@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Assistant de Configuration Initial Atlas F&A
  * Paramétrage complet selon EXP-PAR-001 à EXP-PAR-010

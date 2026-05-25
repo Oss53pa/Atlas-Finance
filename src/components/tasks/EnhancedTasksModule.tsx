@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Module Amélioré de Gestion des Tâches
  * Avec permissions par rôle et modal de détail

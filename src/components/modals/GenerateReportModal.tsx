@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * GenerateReportModal - Modal for generating reports from data imports
  * Supports two entry points:

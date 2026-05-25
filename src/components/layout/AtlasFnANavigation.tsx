@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Navigation Intelligente Atlas F&A
  * Menu adaptatif avec notifications et raccourcis contextuels

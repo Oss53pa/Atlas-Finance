@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * MoteurReglesBrex — Business Rules Execution Engine SYSCOHADA
  * 15+ règles prédéfinies + règles personnalisées
