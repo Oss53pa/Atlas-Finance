@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * HOOKS REACT QUERY - TIERS
  *
@@ -20,9 +18,9 @@ import type {
 } from '../services/thirdparty-complete.service';
 
 // Cast services to access extended API methods
-const tpApi = thirdPartyService as Record<string, (...args: unknown[]) => Promise<unknown>>;
-const contactsApi = contactsService as Record<string, (...args: unknown[]) => Promise<unknown>>;
-const reportsApi = thirdPartyReportsService as Record<string, (...args: unknown[]) => Promise<unknown>>;
+const tpApi = thirdPartyService as unknown as Record<string, (...args: unknown[]) => Promise<unknown>>;
+const contactsApi = contactsService as unknown as Record<string, (...args: unknown[]) => Promise<unknown>>;
+const reportsApi = thirdPartyReportsService as unknown as Record<string, (...args: unknown[]) => Promise<unknown>>;
 
 interface QueryParams {
   page?: number;
@@ -38,7 +36,7 @@ interface QueryParams {
 
 export const useThirdParties = (params?: QueryParams) => {
   return useQuery({
-    queryKey: queryKeys.thirdParty.thirdParties.list(params),
+    queryKey: queryKeys.thirdParty.thirdParties.list(params as Record<string, unknown>),
     queryFn: () => thirdPartyService.getAll(params as ThirdPartyQueryParams),
   });
 };
@@ -53,14 +51,14 @@ export const useThirdParty = (id: string) => {
 
 export const useClients = (params?: QueryParams) => {
   return useQuery({
-    queryKey: queryKeys.thirdParty.thirdParties.clients(params),
+    queryKey: queryKeys.thirdParty.thirdParties.clients(params as Record<string, unknown>),
     queryFn: () => thirdPartyService.getCustomers(params as Omit<ThirdPartyQueryParams, 'type'>),
   });
 };
 
 export const useSuppliers = (params?: QueryParams) => {
   return useQuery({
-    queryKey: queryKeys.thirdParty.thirdParties.suppliers(params),
+    queryKey: queryKeys.thirdParty.thirdParties.suppliers(params as Record<string, unknown>),
     queryFn: () => thirdPartyService.getSuppliers(params as Omit<ThirdPartyQueryParams, 'type'>),
   });
 };
@@ -157,7 +155,7 @@ export const useUpdateThirdParty = () => {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<ThirdParty> }) =>
       thirdPartyService.update(id, data),
-    onSuccess: (_: unknown, { id }: { id: string }) => {
+    onSuccess: (_: unknown, { id }: { id: string; data: Partial<ThirdParty> }) => {
       invalidateQueries.thirdParties();
       queryClient.invalidateQueries({ queryKey: queryKeys.thirdParty.thirdParties.detail(id) });
     },
@@ -230,7 +228,7 @@ export const useImportThirdParties = () => {
 
 export const useContacts = (params?: QueryParams) => {
   return useQuery({
-    queryKey: queryKeys.thirdParty.contacts.list(params),
+    queryKey: queryKeys.thirdParty.contacts.list(params as Record<string, unknown>),
     queryFn: () => contactsApi.getAll(params) as Promise<Contact[]>,
   });
 };
@@ -281,7 +279,7 @@ export const useUpdateContact = () => {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<Contact> }) =>
       contactsApi.update(id, data) as Promise<Contact>,
-    onSuccess: (_: unknown, { id }: { id: string }) => {
+    onSuccess: (_: unknown, { id }: { id: string; data: Partial<Contact> }) => {
       invalidateQueries.contacts();
       queryClient.invalidateQueries({ queryKey: queryKeys.thirdParty.contacts.detail(id) });
     },

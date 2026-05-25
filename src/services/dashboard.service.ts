@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * Service Dashboard Atlas F&A
  * Tableau de bord exécutif et KPIs consolidés
@@ -199,8 +197,8 @@ class DashboardService {
     period?: string;
     date?: string;
   }): Promise<ConsolidatedKPIs> {
-    const response = await apiService.get(`${BASE_PATH}/consolidated-kpis/`, { params });
-    return response.data;
+    const response = await apiService.get<ConsolidatedKPIs>(`${BASE_PATH}/consolidated-kpis/`, { params: params as Record<string, unknown> });
+    return response.data as ConsolidatedKPIs;
   }
 
   // ==========================================================================
@@ -214,8 +212,8 @@ class DashboardService {
     company_id?: string;
     period?: string;
   }): Promise<OperationalMetrics> {
-    const response = await apiService.get(`${BASE_PATH}/operational-metrics/`, { params });
-    return response.data;
+    const response = await apiService.get<OperationalMetrics>(`${BASE_PATH}/operational-metrics/`, { params: params as Record<string, unknown> });
+    return response.data as OperationalMetrics;
   }
 
   // ==========================================================================
@@ -231,8 +229,8 @@ class DashboardService {
     months?: number;
     fiscal_year_id?: string;
   }): Promise<FinancialTrends> {
-    const response = await apiService.get(`${BASE_PATH}/financial-trends/`, { params });
-    return response.data;
+    const response = await apiService.get<FinancialTrends>(`${BASE_PATH}/financial-trends/`, { params: params as Record<string, unknown> });
+    return response.data as FinancialTrends;
   }
 
   // ==========================================================================
@@ -248,16 +246,16 @@ class DashboardService {
     type?: string;
     is_acknowledged?: boolean;
   }): Promise<CriticalAlert[]> {
-    const response = await apiService.get(`${BASE_PATH}/critical-alerts/`, { params });
-    return response.data;
+    const response = await apiService.get<CriticalAlert[]>(`${BASE_PATH}/critical-alerts/`, { params: params as Record<string, unknown> });
+    return response.data as CriticalAlert[];
   }
 
   /**
    * Accuse réception d'une alerte
    */
   async acknowledgeAlert(alertId: string): Promise<CriticalAlert> {
-    const response = await apiService.post(`${BASE_PATH}/critical-alerts/${alertId}/acknowledge/`);
-    return response.data;
+    const response = await apiService.post<CriticalAlert>(`${BASE_PATH}/critical-alerts/${alertId}/acknowledge/`);
+    return response.data as CriticalAlert;
   }
 
   // ==========================================================================
@@ -272,8 +270,8 @@ class DashboardService {
     industry?: string;
     fiscal_year_id?: string;
   }): Promise<PerformanceBenchmark> {
-    const response = await apiService.get(`${BASE_PATH}/performance-benchmark/`, { params });
-    return response.data;
+    const response = await apiService.get<PerformanceBenchmark>(`${BASE_PATH}/performance-benchmark/`, { params: params as Record<string, unknown> });
+    return response.data as PerformanceBenchmark;
   }
 
   // ==========================================================================
@@ -290,11 +288,8 @@ class DashboardService {
     include_charts?: boolean;
     sections?: ('kpis' | 'metrics' | 'trends' | 'alerts' | 'benchmark')[];
   }): Promise<Blob> {
-    const response = await apiService.get(`${BASE_PATH}/export/`, {
-      params,
-      responseType: 'blob',
-    });
-    return response.data;
+    const response = await apiService.get<Blob>(`${BASE_PATH}/export/`, { params: params as Record<string, unknown> });
+    return response.data as unknown as Blob;
   }
 
   /**
@@ -306,8 +301,8 @@ class DashboardService {
     period?: string;
     email_to?: string;
   }): Promise<DashboardExport> {
-    const response = await apiService.post(`${BASE_PATH}/export/request/`, params);
-    return response.data;
+    const response = await apiService.post<DashboardExport>(`${BASE_PATH}/export/request/`, params);
+    return response.data as DashboardExport;
   }
 
   // ==========================================================================

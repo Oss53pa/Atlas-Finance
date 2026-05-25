@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * API Service - Atlas F&A
  * Unified service layer using Supabase client
@@ -131,7 +129,7 @@ export async function insertRecord<T = unknown>(
 ): Promise<T> {
   const { data, error } = await supabase
     .from(table)
-    .insert(record)
+    .insert(record as never)
     .select()
     .single();
 
@@ -149,7 +147,7 @@ export async function updateRecord<T = unknown>(
 ): Promise<T> {
   const { data, error } = await supabase
     .from(table)
-    .update(updates)
+    .update(updates as never)
     .eq('id', id)
     .select()
     .single();
@@ -195,7 +193,7 @@ export async function callRpc<T = unknown>(
   functionName: string,
   params?: Record<string, unknown>
 ): Promise<T> {
-  const { data, error } = await supabase.rpc(functionName, params);
+  const { data, error } = await supabase.rpc(functionName, params as undefined);
 
   if (error) throw error;
   return data as T;

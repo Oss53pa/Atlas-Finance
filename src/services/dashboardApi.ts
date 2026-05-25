@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * SERVICE API - DASHBOARD EXPORTS
  *
@@ -54,8 +52,8 @@ export const ExportService = {
    */
   async getExports(filters?: ExportFilters): Promise<DashboardExport[]> {
     try {
-      const response = await apiService.get<DashboardExport[]>('/api/dashboard/exports/', filters);
-      return response || [];
+      const response = await apiService.get<DashboardExport[]>('/api/dashboard/exports/', { params: filters as Record<string, unknown> });
+      return response.data || [];
     } catch (error) {
       return [];
     }
@@ -67,7 +65,7 @@ export const ExportService = {
   async getExport(id: string): Promise<DashboardExport | null> {
     try {
       const response = await apiService.get<DashboardExport>(`/api/dashboard/exports/${id}/`);
-      return response;
+      return response.data;
     } catch (error) {
       return null;
     }
@@ -78,7 +76,7 @@ export const ExportService = {
    */
   async createExport(data: ExportCreateData): Promise<DashboardExport> {
     const response = await apiService.post<DashboardExport>('/api/dashboard/exports/', data);
-    return response;
+    return response.data;
   },
 
   /**

@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
@@ -22,7 +20,7 @@ export const useAuth = () => {
       setLoading(true);
     },
     onSuccess: (data) => {
-      login(data);
+      login(data.user as unknown as Parameters<typeof login>[0]);
       toast.success(`Welcome back, ${data.user.firstName}!`);
       // Don't navigate here - let the calling component handle navigation
     },
@@ -41,7 +39,7 @@ export const useAuth = () => {
       setLoading(true);
     },
     onSuccess: (data) => {
-      login(data);
+      login(data.user as unknown as Parameters<typeof login>[0]);
       toast.success(`Welcome to BookWise, ${data.user.firstName}!`);
       navigate('/dashboard');
     },
@@ -85,7 +83,7 @@ export const useAuth = () => {
   const updateProfileMutation = useMutation({
     mutationFn: AuthService.updateProfile,
     onSuccess: (updatedUser: User) => {
-      updateUser(updatedUser);
+      updateUser(updatedUser as unknown as Parameters<typeof updateUser>[0]);
       queryClient.setQueryData(['user', 'profile'], updatedUser);
       toast.success('Profile updated successfully');
     },

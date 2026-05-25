@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * INDEX CENTRAL DES SERVICES API
  *
@@ -12,7 +10,13 @@ import treasuryServices from './treasury-complete.service';
 import assetsServices from './assets-complete.service';
 import thirdPartyServices from './thirdparty-complete.service';
 import coreServices from './core-complete.service';
-import analyticsServices from './analytics-budgeting-taxation.service';
+import {
+  analyticalAxisService,
+  analyticalCentersService,
+  budgetsService,
+  budgetControlService,
+  taxDeclarationsService,
+} from './analytics-budgeting-taxation.service';
 
 export * from './accounting-complete.service';
 export * from './treasury-complete.service';
@@ -39,11 +43,11 @@ export const services = {
   treasury: treasuryServices,
   assets: assetsServices,
   thirdParty: thirdPartyServices,
-  analytics: analyticsServices.analyticalAxis,
-  analyticalCenters: analyticsServices.analyticalCenters,
-  budgets: analyticsServices.budgets,
-  budgetControl: analyticsServices.budgetControl,
-  taxDeclarations: analyticsServices.taxDeclarations,
+  analytics: analyticalAxisService,
+  analyticalCenters: analyticalCentersService,
+  budgets: budgetsService,
+  budgetControl: budgetControlService,
+  taxDeclarations: taxDeclarationsService,
 };
 
 export default services;

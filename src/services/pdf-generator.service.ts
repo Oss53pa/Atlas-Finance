@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * SERVICE GÉNÉRATION DE PDF
  *
@@ -9,6 +7,7 @@
 
 import jsPDF from 'jspdf';
 import type { DataAdapter } from '@atlas/data';
+import type { DBSetting } from '../lib/db';
 
 export interface CompanyInfo {
   name: string;
@@ -56,14 +55,14 @@ class PDFGeneratorService {
   private async getCompanyInfo(adapter: DataAdapter): Promise<CompanyInfo> {
     try {
       const [name, address, city, postalCode, country, phone, email, taxId] = await Promise.all([
-        adapter.getById('settings', 'company_name'),
-        adapter.getById('settings', 'company_address'),
-        adapter.getById('settings', 'company_city'),
-        adapter.getById('settings', 'company_postal_code'),
-        adapter.getById('settings', 'company_country'),
-        adapter.getById('settings', 'company_phone'),
-        adapter.getById('settings', 'company_email'),
-        adapter.getById('settings', 'company_tax_id'),
+        adapter.getById<DBSetting>('settings', 'company_name'),
+        adapter.getById<DBSetting>('settings', 'company_address'),
+        adapter.getById<DBSetting>('settings', 'company_city'),
+        adapter.getById<DBSetting>('settings', 'company_postal_code'),
+        adapter.getById<DBSetting>('settings', 'company_country'),
+        adapter.getById<DBSetting>('settings', 'company_phone'),
+        adapter.getById<DBSetting>('settings', 'company_email'),
+        adapter.getById<DBSetting>('settings', 'company_tax_id'),
       ]);
       return {
         name: name?.value || this.defaultCompany.name,
@@ -92,10 +91,10 @@ class PDFGeneratorService {
     const doc = new jsPDF();
 
     // Configuration des couleurs du thème
-    const primaryColor = [23, 23, 23]; // #171717
-    const secondaryColor = [82, 82, 82]; // #525252
-    const textColor = [23, 23, 23]; // #171717
-    const grayColor = [115, 115, 115]; // #737373
+    const primaryColor: [number, number, number] = [23, 23, 23]; // #171717
+    const secondaryColor: [number, number, number] = [82, 82, 82]; // #525252
+    const textColor: [number, number, number] = [23, 23, 23]; // #171717
+    const grayColor: [number, number, number] = [115, 115, 115]; // #737373
 
     let yPosition = 20;
 

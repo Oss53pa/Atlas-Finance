@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * Service Assets Atlas F&A
  * Gestion des immobilisations et amortissements
@@ -542,7 +540,7 @@ class AssetsService {
     next?: string;
     previous?: string;
   }> {
-    const response = await apiService.get(`${BASE_PATH}/immobilisations/`, { params });
+    const response = await apiService.get(`${BASE_PATH}/immobilisations/`, { params: params as Record<string, unknown> });
     return response.data as { results: Immobilisation[]; count: number; next?: string; previous?: string; };
   }
 
@@ -598,7 +596,7 @@ class AssetsService {
     next?: string;
     previous?: string;
   }> {
-    const response = await apiService.get(`${BASE_PATH}/plans-amortissement/`, { params });
+    const response = await apiService.get(`${BASE_PATH}/plans-amortissement/`, { params: params as Record<string, unknown> });
     return response.data as { results: PlanAmortissement[]; count: number; next?: string; previous?: string; };
   }
 
@@ -870,7 +868,7 @@ class AssetsService {
     next?: string;
     previous?: string;
   }> {
-    const response = await apiService.get(`${BASE_PATH}/reparations/`, { params });
+    const response = await apiService.get(`${BASE_PATH}/reparations/`, { params: params as Record<string, unknown> });
     return response.data as { results: Reparation[]; count: number; next?: string; previous?: string; };
   }
 
@@ -924,7 +922,7 @@ class AssetsService {
     next?: string;
     previous?: string;
   }> {
-    const response = await apiService.get(`${BASE_PATH}/reevaluations/`, { params });
+    const response = await apiService.get(`${BASE_PATH}/reevaluations/`, { params: params as Record<string, unknown> });
     return response.data as { results: ReevaluationImmobilisation[]; count: number; next?: string; previous?: string; };
   }
 
@@ -971,7 +969,7 @@ class AssetsService {
     date_debut?: string;
     date_fin?: string;
   }): Promise<AssetsStatistics> {
-    const response = await apiService.get(`${BASE_PATH}/statistiques/`, { params });
+    const response = await apiService.get(`${BASE_PATH}/statistiques/`, { params: params as Record<string, unknown> });
     return response.data as AssetsStatistics;
   }
 
@@ -984,10 +982,9 @@ class AssetsService {
     statut?: string;
   }): Promise<Blob> {
     const response = await apiService.get(`${BASE_PATH}/export/`, {
-      params,
-      responseType: 'blob',
+      params: params as Record<string, unknown>,
     });
-    return response.data as Blob;
+    return response.data as unknown as Blob;
   }
 
   // ==========================================================================

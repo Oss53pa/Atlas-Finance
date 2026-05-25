@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * HOOKS REACT QUERY - BUDGET, ANALYTIQUE, FISCALITE
  *
@@ -23,11 +21,11 @@ import type {
 } from '../services/analytics-budgeting-taxation.service';
 
 // Cast services to access extended API methods
-const axisApi = analyticalAxisService as Record<string, (...args: unknown[]) => Promise<unknown>>;
-const centersApi = analyticalCentersService as Record<string, (...args: unknown[]) => Promise<unknown>>;
-const budgetsApi = budgetsService as Record<string, (...args: unknown[]) => Promise<unknown>>;
-const budgetControlApi = budgetControlService as Record<string, (...args: unknown[]) => Promise<unknown>>;
-const taxApi = taxDeclarationsService as Record<string, (...args: unknown[]) => Promise<unknown>>;
+const axisApi = analyticalAxisService as unknown as Record<string, (...args: unknown[]) => Promise<unknown>>;
+const centersApi = analyticalCentersService as unknown as Record<string, (...args: unknown[]) => Promise<unknown>>;
+const budgetsApi = budgetsService as unknown as Record<string, (...args: unknown[]) => Promise<unknown>>;
+const budgetControlApi = budgetControlService as unknown as Record<string, (...args: unknown[]) => Promise<unknown>>;
+const taxApi = taxDeclarationsService as unknown as Record<string, (...args: unknown[]) => Promise<unknown>>;
 
 interface QueryParams {
   page?: number;
@@ -93,7 +91,7 @@ export const useUpdateAnalyticalAxis = () => {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<AnalyticalAxis> }) =>
       analyticalAxisService.update(id, data),
-    onSuccess: (_: unknown, { id }: { id: string }) => {
+    onSuccess: (_: unknown, { id }: { id: string; data: Partial<AnalyticalAxis> }) => {
       invalidateQueries.analyticalAxes();
       queryClient.invalidateQueries({ queryKey: queryKeys.analytics.axes.detail(id) });
     },
@@ -185,7 +183,7 @@ export const useUpdateAnalyticalCenter = () => {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<AnalyticalCenter> }) =>
       analyticalCentersService.update(id, data),
-    onSuccess: (_: unknown, { id }: { id: string }) => {
+    onSuccess: (_: unknown, { id }: { id: string; data: Partial<AnalyticalCenter> }) => {
       invalidateQueries.analyticalCenters();
       queryClient.invalidateQueries({ queryKey: queryKeys.analytics.centers.detail(id) });
     },
@@ -268,7 +266,7 @@ export const useUpdateBudget = () => {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<Budget> }) =>
       budgetsService.update(id, data),
-    onSuccess: (_: unknown, { id }: { id: string }) => {
+    onSuccess: (_: unknown, { id }: { id: string; data: Partial<Budget> }) => {
       invalidateQueries.budgets();
       queryClient.invalidateQueries({ queryKey: queryKeys.budgets.budgets.detail(id) });
     },
@@ -433,7 +431,7 @@ export const useUpdateTaxDeclaration = () => {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<TaxDeclaration> }) =>
       taxDeclarationsService.update(id, data),
-    onSuccess: (_: unknown, { id }: { id: string }) => {
+    onSuccess: (_: unknown, { id }: { id: string; data: Partial<TaxDeclaration> }) => {
       invalidateQueries.taxDeclarations();
       queryClient.invalidateQueries({ queryKey: queryKeys.taxation.declarations.detail(id) });
     },
@@ -467,7 +465,7 @@ export const useMarkTaxDeclarationAsSubmitted = () => {
   return useMutation({
     mutationFn: ({ id, dateDeclaration }: { id: string; dateDeclaration: string }) =>
       taxApi.markAsSubmitted(id, dateDeclaration) as Promise<TaxDeclaration>,
-    onSuccess: (_: unknown, { id }: { id: string }) => {
+    onSuccess: (_: unknown, { id }: { id: string; dateDeclaration: string }) => {
       invalidateQueries.taxDeclarations();
       queryClient.invalidateQueries({ queryKey: queryKeys.taxation.declarations.detail(id) });
     },
@@ -487,7 +485,7 @@ export const useMarkTaxDeclarationAsPaid = () => {
       montantPaye: number;
       datePaiement: string;
     }) => taxApi.markAsPaid(id, montantPaye, datePaiement) as Promise<TaxDeclaration>,
-    onSuccess: (_: unknown, { id }: { id: string }) => {
+    onSuccess: (_: unknown, { id }: { id: string; montantPaye: number; datePaiement: string }) => {
       invalidateQueries.taxDeclarations();
       queryClient.invalidateQueries({ queryKey: queryKeys.taxation.declarations.detail(id) });
     },

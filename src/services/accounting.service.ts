@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * SERVICE FRONTEND ACCOUNTING - Atlas F&A v4.1.0
  * BASE PATH: /api/v1/accounting/
@@ -654,7 +652,7 @@ class AccountingService {
     period_end: string;
     period_type?: 'monthly' | 'quarterly' | 'annual';
   }): Promise<TrialBalance> {
-    const response = await apiService.post(`${BASE_PATH}/trial-balance/generate/`, params);
+    const response = await apiService.post<TrialBalance>(`${BASE_PATH}/trial-balance/generate/`, params);
     return response.data;
   }
 
@@ -668,7 +666,7 @@ class AccountingService {
     page?: number;
     page_size?: number;
   }): Promise<{ results: TrialBalance[]; count: number }> {
-    const response = await apiService.get(`${BASE_PATH}/trial-balance/`, { params });
+    const response = await apiService.get<{ results: TrialBalance[]; count: number }>(`${BASE_PATH}/trial-balance/`, { params: params as Record<string, unknown> });
     return response.data;
   }
 
@@ -683,8 +681,8 @@ class AccountingService {
       date_to?: string;
     }
   ): Promise<AccountBalance> {
-    const response = await apiService.get(`${BASE_PATH}/chart-of-accounts/${accountId}/balance/`, {
-      params,
+    const response = await apiService.get<AccountBalance>(`${BASE_PATH}/chart-of-accounts/${accountId}/balance/`, {
+      params: params as Record<string, unknown>,
     });
     return response.data;
   }
@@ -709,8 +707,9 @@ class AccountingService {
     total_debit: number;
     total_credit: number;
   }> {
-    const response = await apiService.get(`${BASE_PATH}/chart-of-accounts/${accountId}/ledger/`, {
-      params,
+    type LedgerResult = { account: ChartOfAccount; entries: JournalEntry[]; opening_balance: number; closing_balance: number; total_debit: number; total_credit: number };
+    const response = await apiService.get<LedgerResult>(`${BASE_PATH}/chart-of-accounts/${accountId}/ledger/`, {
+      params: params as Record<string, unknown>,
     });
     return response.data;
   }

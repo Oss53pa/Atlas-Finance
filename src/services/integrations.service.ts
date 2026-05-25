@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * Service Integrations Atlas F&A
  * Intégrations bancaires et fiscales
@@ -143,7 +141,7 @@ export interface FiscalDeclarationSubmission {
   declaration_id: string;
   type_declaration: string;
   periode: string;
-  data: Record<string, any>;
+  data: Record<string, unknown>;
 }
 
 /**
@@ -200,7 +198,7 @@ export interface IntegrationLog {
   action: 'connect' | 'sync' | 'submit' | 'disconnect';
   status: 'success' | 'error' | 'warning';
   message: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
   created_at: string;
 }
 
@@ -234,8 +232,8 @@ class IntegrationsService {
     next?: string;
     previous?: string;
   }> {
-    const response = await apiService.get(`${BASE_PATH}/connections/`, { params });
-    return response.data;
+    const response = await apiService.get<{ results: BankConnection[]; count: number; next?: string; previous?: string }>(`${BASE_PATH}/connections/`, { params: params as Record<string, unknown> });
+    return response.data as { results: BankConnection[]; count: number; next?: string; previous?: string };
   }
 
   /**
@@ -243,8 +241,8 @@ class IntegrationsService {
    * POST /api/v1/integrations/banking/connect/
    */
   async connectBank(data: BankConnectionRequest): Promise<BankConnectionResult> {
-    const response = await apiService.post(`${BASE_PATH}/banking/connect/`, data);
-    return response.data;
+    const response = await apiService.post<BankConnectionResult>(`${BASE_PATH}/banking/connect/`, data);
+    return response.data as BankConnectionResult;
   }
 
   /**
@@ -255,11 +253,11 @@ class IntegrationsService {
     connectionId: string,
     params?: SyncParams
   ): Promise<SyncResult> {
-    const response = await apiService.post(
+    const response = await apiService.post<SyncResult>(
       `${BASE_PATH}/banking/sync/${connectionId}/`,
       params
     );
-    return response.data;
+    return response.data as SyncResult;
   }
 
   /**
@@ -329,8 +327,8 @@ class IntegrationsService {
     results: FiscalIntegration[];
     count: number;
   }> {
-    const response = await apiService.get(`${BASE_PATH}/fiscal/`, { params });
-    return response.data;
+    const response = await apiService.get<{ results: FiscalIntegration[]; count: number }>(`${BASE_PATH}/fiscal/`, { params: params as Record<string, unknown> });
+    return response.data as { results: FiscalIntegration[]; count: number };
   }
 
   /**
@@ -340,8 +338,8 @@ class IntegrationsService {
   async submitFiscalDeclaration(
     data: FiscalDeclarationSubmission
   ): Promise<FiscalSubmissionResult> {
-    const response = await apiService.post(`${BASE_PATH}/fiscal/submit/`, data);
-    return response.data;
+    const response = await apiService.post<FiscalSubmissionResult>(`${BASE_PATH}/fiscal/submit/`, data);
+    return response.data as FiscalSubmissionResult;
   }
 
   /**
@@ -349,8 +347,8 @@ class IntegrationsService {
    * POST /api/v1/integrations/fiscal/
    */
   async configureFiscalIntegration(data: Partial<FiscalIntegration>): Promise<FiscalIntegration> {
-    const response = await apiService.post(`${BASE_PATH}/fiscal/`, data);
-    return response.data;
+    const response = await apiService.post<FiscalIntegration>(`${BASE_PATH}/fiscal/`, data);
+    return response.data as FiscalIntegration;
   }
 
   /**
@@ -361,8 +359,8 @@ class IntegrationsService {
     id: string,
     data: Partial<FiscalIntegration>
   ): Promise<FiscalIntegration> {
-    const response = await apiService.patch(`${BASE_PATH}/fiscal/${id}/`, data);
-    return response.data;
+    const response = await apiService.patch<FiscalIntegration>(`${BASE_PATH}/fiscal/${id}/`, data);
+    return response.data as FiscalIntegration;
   }
 
   /**
@@ -372,10 +370,10 @@ class IntegrationsService {
   async testFiscalConnection(id: string): Promise<{
     success: boolean;
     message: string;
-    details?: Record<string, any>;
+    details?: Record<string, unknown>;
   }> {
-    const response = await apiService.post(`${BASE_PATH}/fiscal/${id}/test/`);
-    return response.data;
+    const response = await apiService.post<{ success: boolean; message: string; details?: Record<string, unknown> }>(`${BASE_PATH}/fiscal/${id}/test/`);
+    return response.data as { success: boolean; message: string; details?: Record<string, unknown> };
   }
 
   // ==========================================================================
@@ -387,8 +385,8 @@ class IntegrationsService {
    * GET /api/v1/integrations/stats/
    */
   async getIntegrationStats(): Promise<IntegrationStats> {
-    const response = await apiService.get(`${BASE_PATH}/stats/`);
-    return response.data;
+    const response = await apiService.get<IntegrationStats>(`${BASE_PATH}/stats/`);
+    return response.data as IntegrationStats;
   }
 
   /**
@@ -406,8 +404,8 @@ class IntegrationsService {
     results: IntegrationLog[];
     count: number;
   }> {
-    const response = await apiService.get(`${BASE_PATH}/logs/`, { params });
-    return response.data;
+    const response = await apiService.get<{ results: IntegrationLog[]; count: number }>(`${BASE_PATH}/logs/`, { params: params as Record<string, unknown> });
+    return response.data as { results: IntegrationLog[]; count: number };
   }
 
   /**
@@ -429,8 +427,13 @@ class IntegrationsService {
       last_successful_submission?: string;
     };
   }> {
-    const response = await apiService.get(`${BASE_PATH}/health/`);
-    return response.data;
+    type HealthResult = {
+      overall_status: 'healthy' | 'degraded' | 'down';
+      banking: { status: 'healthy' | 'degraded' | 'down'; active_connections: number; error_count: number; last_successful_sync?: string };
+      fiscal: { status: 'healthy' | 'degraded' | 'down'; active_integrations: number; error_count: number; last_successful_submission?: string };
+    };
+    const response = await apiService.get<HealthResult>(`${BASE_PATH}/health/`);
+    return response.data as HealthResult;
   }
 
   // ==========================================================================
@@ -445,8 +448,8 @@ class IntegrationsService {
     country?: string;
     connector_type?: 'PSD2' | 'AFRICAN' | 'CUSTOM';
   }): Promise<SupportedBank[]> {
-    const response = await apiService.get(`${BASE_PATH}/banking/supported-banks/`, { params });
-    return response.data;
+    const response = await apiService.get<SupportedBank[]>(`${BASE_PATH}/banking/supported-banks/`, { params: params as Record<string, unknown> });
+    return response.data as SupportedBank[];
   }
 
   // ==========================================================================
@@ -467,8 +470,8 @@ class IntegrationsService {
     events: string[];
     secret: string;
   }> {
-    const response = await apiService.post(`${BASE_PATH}/webhooks/`, data);
-    return response.data;
+    const response = await apiService.post<{ id: string; url: string; events: string[]; secret: string }>(`${BASE_PATH}/webhooks/`, data);
+    return response.data as { id: string; url: string; events: string[]; secret: string };
   }
 
   // ==========================================================================

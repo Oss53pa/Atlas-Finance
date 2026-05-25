@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * Service Financial Statements Atlas F&A
  * Génération automatique des états financiers SYSCOHADA
@@ -541,8 +539,8 @@ class FinancialStatementsService {
     date_cloture?: string;
     inclure_comparatif?: boolean;
   }): Promise<EtatsFinanciersComplets> {
-    const response = await apiService.post(`${BASE_PATH}/api/generer-etats-complets/`, params);
-    return response.data;
+    const response = await apiService.post<EtatsFinanciersComplets>(`${BASE_PATH}/api/generer-etats-complets/`, params);
+    return response.data as EtatsFinanciersComplets;
   }
 
   /**
@@ -553,8 +551,8 @@ class FinancialStatementsService {
     date?: string;
     format?: 'complet' | 'synthetique';
   }): Promise<BilanComptable> {
-    const response = await apiService.get(`${BASE_PATH}/api/bilan-comptable/`, { params });
-    return response.data;
+    const response = await apiService.get<BilanComptable>(`${BASE_PATH}/api/bilan-comptable/`, { params: params as Record<string, unknown> });
+    return response.data as BilanComptable;
   }
 
   /**
@@ -566,8 +564,8 @@ class FinancialStatementsService {
     periode_fin?: string;
     format?: 'complet' | 'synthetique';
   }): Promise<CompteResultat> {
-    const response = await apiService.get(`${BASE_PATH}/api/compte-resultat/`, { params });
-    return response.data;
+    const response = await apiService.get<CompteResultat>(`${BASE_PATH}/api/compte-resultat/`, { params: params as Record<string, unknown> });
+    return response.data as CompteResultat;
   }
 
   // ==========================================================================
@@ -582,8 +580,8 @@ class FinancialStatementsService {
     periode_debut?: string;
     periode_fin?: string;
   }): Promise<SoldesIntermediaires> {
-    const response = await apiService.get(`${BASE_PATH}/api/soldes-intermediaires/`, { params });
-    return response.data;
+    const response = await apiService.get<SoldesIntermediaires>(`${BASE_PATH}/api/soldes-intermediaires/`, { params: params as Record<string, unknown> });
+    return response.data as SoldesIntermediaires;
   }
 
   // ==========================================================================
@@ -597,8 +595,8 @@ class FinancialStatementsService {
     exercice: string;
     date?: string;
   }): Promise<RatiosFinanciers> {
-    const response = await apiService.get(`${BASE_PATH}/api/ratios-financiers/`, { params });
-    return response.data;
+    const response = await apiService.get<RatiosFinanciers>(`${BASE_PATH}/api/ratios-financiers/`, { params: params as Record<string, unknown> });
+    return response.data as RatiosFinanciers;
   }
 
   // ==========================================================================
@@ -612,8 +610,8 @@ class FinancialStatementsService {
     exercice: string;
     methode?: 'indirecte' | 'directe';
   }): Promise<TableauFluxTresorerie> {
-    const response = await apiService.get(`${BASE_PATH}/api/tableau-flux-tresorerie/`, { params });
-    return response.data;
+    const response = await apiService.get<TableauFluxTresorerie>(`${BASE_PATH}/api/tableau-flux-tresorerie/`, { params: params as Record<string, unknown> });
+    return response.data as TableauFluxTresorerie;
   }
 
   // ==========================================================================
@@ -627,8 +625,8 @@ class FinancialStatementsService {
     exercice: string;
     profondeur?: 'rapide' | 'standard' | 'approfondie';
   }): Promise<SanteFinanciere> {
-    const response = await apiService.post(`${BASE_PATH}/api/analyser-sante-financiere/`, params);
-    return response.data;
+    const response = await apiService.post<SanteFinanciere>(`${BASE_PATH}/api/analyser-sante-financiere/`, params);
+    return response.data as SanteFinanciere;
   }
 
   /**
@@ -638,8 +636,8 @@ class FinancialStatementsService {
     exercice: string;
     periode?: string;
   }): Promise<DashboardFinancier> {
-    const response = await apiService.get(`${BASE_PATH}/api/dashboard-financier/`, { params });
-    return response.data;
+    const response = await apiService.get<DashboardFinancier>(`${BASE_PATH}/api/dashboard-financier/`, { params: params as Record<string, unknown> });
+    return response.data as DashboardFinancier;
   }
 
   /**
@@ -650,8 +648,8 @@ class FinancialStatementsService {
     exercice_precedent: string;
     inclure_analyse?: boolean;
   }): Promise<ComparaisonExercices> {
-    const response = await apiService.post(`${BASE_PATH}/api/comparaisons-exercices/`, params);
-    return response.data;
+    const response = await apiService.post<ComparaisonExercices>(`${BASE_PATH}/api/comparaisons-exercices/`, params);
+    return response.data as ComparaisonExercices;
   }
 
   // ==========================================================================
@@ -665,8 +663,8 @@ class FinancialStatementsService {
     exercice: string;
     regles?: string[];
   }): Promise<ConformiteSYSCOHADA> {
-    const response = await apiService.post(`${BASE_PATH}/api/verifier-conformite/`, params);
-    return response.data;
+    const response = await apiService.post<ConformiteSYSCOHADA>(`${BASE_PATH}/api/verifier-conformite/`, params);
+    return response.data as ConformiteSYSCOHADA;
   }
 
   // ==========================================================================
@@ -682,10 +680,8 @@ class FinancialStatementsService {
     inclure_graphiques?: boolean;
     inclure_comparatif?: boolean;
   }): Promise<Blob> {
-    const response = await apiService.post(`${BASE_PATH}/api/export-excel/`, params, {
-      responseType: 'blob',
-    });
-    return response.data;
+    const response = await apiService.post<Blob>(`${BASE_PATH}/api/export-excel/`, params, { responseType: 'blob' });
+    return response.data as unknown as Blob;
   }
 
   /**
@@ -698,10 +694,8 @@ class FinancialStatementsService {
     inclure_logo?: boolean;
     inclure_signature?: boolean;
   }): Promise<Blob> {
-    const response = await apiService.post(`${BASE_PATH}/api/export-pdf/`, params, {
-      responseType: 'blob',
-    });
-    return response.data;
+    const response = await apiService.post<Blob>(`${BASE_PATH}/api/export-pdf/`, params, { responseType: 'blob' });
+    return response.data as unknown as Blob;
   }
 
   // ==========================================================================
@@ -718,8 +712,8 @@ class FinancialStatementsService {
     type?: string;
     utilisateur?: string;
   }): Promise<AuditTrail> {
-    const response = await apiService.get(`${BASE_PATH}/api/audit-trail/`, { params });
-    return response.data;
+    const response = await apiService.get<AuditTrail>(`${BASE_PATH}/api/audit-trail/`, { params: params as Record<string, unknown> });
+    return response.data as AuditTrail;
   }
 
   // ==========================================================================
@@ -730,8 +724,8 @@ class FinancialStatementsService {
    * Récupère les statistiques de performance
    */
   async getPerformanceStats(): Promise<PerformanceGeneration> {
-    const response = await apiService.get(`${BASE_PATH}/api/performance-stats/`);
-    return response.data;
+    const response = await apiService.get<PerformanceGeneration>(`${BASE_PATH}/api/performance-stats/`);
+    return response.data as PerformanceGeneration;
   }
 
   // ==========================================================================

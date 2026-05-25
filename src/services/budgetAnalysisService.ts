@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * Service d'analyse budgétaire — Budget vs Réalisé vs Écarts.
  * Connecte les budgetLines (Dexie) aux journalEntries pour calculer
@@ -9,7 +7,7 @@
  */
 import type { DataAdapter } from '@atlas/data';
 import { money } from '../utils/money';
-import type { DBBudgetLine, DBJournalEntry } from '../lib/db';
+import type { DBBudgetLine, DBJournalEntry, DBSetting, DBAccount } from '../lib/db';
 
 // ============================================================================
 // TYPES
@@ -72,13 +70,14 @@ const DEFAULT_SEUILS = {
  */
 async function loadSeuils(adapter: DataAdapter): Promise<typeof DEFAULT_SEUILS> {
   try {
-    const settings = await adapter.getAll<any>('settings');
-    const seuilsSetting = settings.find((s: any) => s.key === 'budget_seuils');
+    const settings = await adapter.getAll<DBSetting>('settings');
+    const seuilsSetting = settings.find((s) => s.key === 'budget_seuils');
     if (seuilsSetting?.value) {
+      const parsed = JSON.parse(seuilsSetting.value) as Partial<typeof DEFAULT_SEUILS>;
       return {
-        DEPASSEMENT_WARNING: seuilsSetting.value.DEPASSEMENT_WARNING ?? DEFAULT_SEUILS.DEPASSEMENT_WARNING,
-        DEPASSEMENT_CRITICAL: seuilsSetting.value.DEPASSEMENT_CRITICAL ?? DEFAULT_SEUILS.DEPASSEMENT_CRITICAL,
-        SOUS_CONSOMMATION: seuilsSetting.value.SOUS_CONSOMMATION ?? DEFAULT_SEUILS.SOUS_CONSOMMATION,
+        DEPASSEMENT_WARNING: parsed.DEPASSEMENT_WARNING ?? DEFAULT_SEUILS.DEPASSEMENT_WARNING,
+        DEPASSEMENT_CRITICAL: parsed.DEPASSEMENT_CRITICAL ?? DEFAULT_SEUILS.DEPASSEMENT_CRITICAL,
+        SOUS_CONSOMMATION: parsed.SOUS_CONSOMMATION ?? DEFAULT_SEUILS.SOUS_CONSOMMATION,
       };
     }
   } catch (err) { /* silent */
@@ -105,7 +104,7 @@ async function getActualForPeriod(
   const lastDay = new Date(year, month, 0).getDate();
   const endDate = `${year}-${String(month).padStart(2, '0')}-${lastDay}`;
 
-  const allEntries = await adapter.getAll('journalEntries');
+  const allEntries = await adapter.getAll<DBJournalEntry>('journalEntries');
   const entries = allEntries.filter(
     e => e.date >= startDate && e.date <= endDate
       && (e.status === 'validated' || e.status === 'posted')
@@ -170,7 +169,7 @@ function determineStatus(
  * Get budget vs actual analysis for a fiscal year.
  */
 export async function getBudgetAnalysis(adapter: DataAdapter, fiscalYear: string): Promise<BudgetSummary> {
-  const budgetLines = await adapter.getAll('budgetLines', { where: { fiscalYear } });
+  const budgetLines = await adapter.getAll<DBBudgetLine>('budgetLines', { where: { fiscalYear } });
 
   if (budgetLines.length === 0) {
     return {
@@ -188,7 +187,7 @@ export async function getBudgetAnalysis(adapter: DataAdapter, fiscalYear: string
   const periodMap = new Map<string, { budgeted: number; actual: number }>();
 
   // Get account names
-  const accounts = await adapter.getAll('accounts');
+  const accounts = await adapter.getAll<DBAccount>('accounts');
   const accountNames = new Map(accounts.map(a => [a.code, a.name]));
 
   for (const bl of budgetLines) {
