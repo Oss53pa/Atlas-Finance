@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * MoteurReglesBrex — Business Rules Execution Engine SYSCOHADA
  * 15+ règles prédéfinies + règles personnalisées
@@ -210,8 +209,8 @@ export const brexTools: Record<string, ToolDefinition> = {
       },
     },
     execute: async (args, adapter) => {
-      const { resultats_3ans } = args as Record<string, unknown>;
-      let { balance } = args as Record<string, unknown>;
+      const { resultats_3ans } = args as Record<string, any>;
+      let balance = (args as Record<string, any>).balance as any[] | undefined;
 
       // Lire la balance réelle si non fournie
       if ((!balance || balance.length === 0) && adapter) {

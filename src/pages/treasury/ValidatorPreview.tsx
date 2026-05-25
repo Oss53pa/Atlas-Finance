@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 
@@ -13,7 +12,7 @@ const ValidatorPreview: React.FC = () => {
   const [expandedVendors, setExpandedVendors] = useState<Set<string>>(new Set());
   const [expandedProposalVendors, setExpandedProposalVendors] = useState<Set<string>>(new Set());
   const [selectedInvoices, setSelectedInvoices] = useState<Set<string>>(new Set());
-  const [accountPayableData, setAccountPayableData] = useState(null);
+  const [accountPayableData, setAccountPayableData] = useState<{ vendors: Record<string, { invoices: Array<{ id: string; date_piece: string; numero_piece: string; [key: string]: unknown }> }> } | null>(null);
   const [loading, setLoading] = useState(true);
   const [expandedAggregateRows, setExpandedAggregateRows] = useState<Set<string>>(new Set());
   const [expandedPaymentDetails, setExpandedPaymentDetails] = useState<Set<string>>(new Set());
@@ -134,9 +133,9 @@ const ValidatorPreview: React.FC = () => {
     const invoices = vendorInvoices[vendor] || [];
     return {
       count: invoices.length,
-      totalDue: invoices.reduce((sum, inv) => sum + inv.dueAmount, 0),
-      totalOutstanding: invoices.reduce((sum, inv) => sum + inv.outstanding, 0),
-      avgDays: Math.round(invoices.reduce((sum, inv) => sum + inv.days, 0) / invoices.length)
+      totalDue: invoices.reduce((sum, inv) => sum + (inv.dueAmount as number || 0), 0),
+      totalOutstanding: invoices.reduce((sum, inv) => sum + (inv.outstanding as number || 0), 0),
+      avgDays: Math.round(invoices.reduce((sum, inv) => sum + (inv.days as number || 0), 0) / invoices.length)
     };
   };
 
@@ -153,7 +152,7 @@ const ValidatorPreview: React.FC = () => {
   };
 
   const getTotalSelectedAmount = () => {
-    return getSelectedInvoicesDetails().reduce((sum, inv) => sum + inv.outstanding, 0);
+    return getSelectedInvoicesDetails().reduce((sum, inv) => sum + (inv.outstanding as number || 0), 0);
   };
 
   const removeFromPaymentProposal = (invoiceId: string) => {

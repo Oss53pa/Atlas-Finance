@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * useProphetV2 — React Hook for ProphetV2 AI Service
  *
@@ -154,20 +153,21 @@ export function useProphetV2(defaultCountryCode: string = 'CI') {
   }, []);
 
   const executeAction = useCallback((action: ChatAction) => {
+    const p = action.payload as Record<string, any>;
     switch (action.type) {
       case 'navigate':
-        if (action.payload?.route) {
-          window.location.href = action.payload.route;
+        if (p?.route) {
+          window.location.href = p.route;
         }
         break;
       case 'copy-text':
-        if (navigator.clipboard && action.payload?.text) {
-          navigator.clipboard.writeText(action.payload.text);
+        if (navigator.clipboard && p?.text) {
+          navigator.clipboard.writeText(p.text);
         }
         break;
       case 'external-link':
-        if (action.payload?.url) {
-          window.open(action.payload.url, '_blank');
+        if (p?.url) {
+          window.open(p.url, '_blank');
         }
         break;
     }

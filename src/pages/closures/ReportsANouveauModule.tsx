@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { toast } from 'react-hot-toast';
@@ -81,8 +81,8 @@ const ReportsANouveauModule: React.FC = () => {
     if (!selectedExercice) return;
     setLoadingData(true);
     Promise.all([
-      calculerSoldesCloture(selectedExercice),
-      hasCarryForward(selectedExercice),
+      calculerSoldesCloture(adapter, selectedExercice),
+      hasCarryForward(adapter, selectedExercice),
     ]).then(([lines, exists]) => {
       setCarryForwardLines(lines);
       setAlreadyExists(exists);
@@ -128,7 +128,7 @@ const ReportsANouveauModule: React.FC = () => {
 
     setGenerating(true);
     try {
-      const result = await executerCarryForward({
+      const result = await executerCarryForward(adapter, {
         closingExerciceId: currentFY.id,
         openingExerciceId: nextFY.id,
         openingDate: nextFY.startDate,
@@ -137,7 +137,7 @@ const ReportsANouveauModule: React.FC = () => {
         toast.success(`Report à nouveau généré: ${result.lineCount} comptes, Débit=${formatCurrency(result.totalDebit)}, Crédit=${formatCurrency(result.totalCredit)}`);
         setAlreadyExists(true);
         // Refresh data
-        const lines = await calculerSoldesCloture(selectedExercice);
+        const lines = await calculerSoldesCloture(adapter, selectedExercice);
         setCarryForwardLines(lines);
       } else {
         toast.error(`Erreur: ${result.errors.join(', ')}`);

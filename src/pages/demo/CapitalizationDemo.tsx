@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { formatCurrency } from '@/utils/formatters';
@@ -30,7 +29,7 @@ const CapitalizationDemo: React.FC = () => {
       setLoading(true);
       try {
         // Try to load journal entries with asset-related accounts (class 2)
-        const entries = await adapter.getAll('journalEntries').catch(() => [] as Record<string, unknown>[]);
+        const entries = (await adapter.getAll('journalEntries').catch(() => [])) as Record<string, unknown>[];
 
         const invoices: SampleInvoice[] = [];
         for (const entry of entries) {
@@ -74,7 +73,8 @@ const CapitalizationDemo: React.FC = () => {
     setShowModal(true);
   };
 
-  const handleSubmitCapitalization = (data: Record<string, unknown>) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleSubmitCapitalization = (_data: any) => {
     toast.success('Demande de capitalisation soumise avec succes !');
   };
 

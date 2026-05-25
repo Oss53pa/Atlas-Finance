@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -159,7 +159,7 @@ const IAAssistant: React.FC = () => {
       setFiscalYears(fys);
       const active = fys.find(f => f.isActive) || fys[0];
       if (active) {
-        previewClosure(active.id).then(setClosurePreview).catch(() => {});
+        previewClosure(adapter, active.id).then(setClosurePreview).catch(() => {});
       }
     });
   }, [adapter]);
@@ -190,6 +190,7 @@ const IAAssistant: React.FC = () => {
 
     try {
       const results = await closureOrchestrator.executeAll({
+        adapter,
         exerciceId: activeFY.id,
         mode: 'proph3t',
         userId: 'proph3t-ia',
@@ -1146,7 +1147,7 @@ const IAAssistant: React.FC = () => {
                       )}
 
                       <p className="text-xs text-[var(--color-text-secondary)] mt-3">
-                        Dernière mise à jour: {formatCurrency(new Date(metrique.derniereMiseAJour))}
+                        Dernière mise à jour: {new Date(metrique.derniereMiseAJour).toLocaleDateString()}
                       </p>
                     </div>
                   ))}

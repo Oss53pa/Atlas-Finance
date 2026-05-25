@@ -3,6 +3,7 @@
  * Global performance optimization configuration
  */
 
+import React from 'react';
 import { performanceMonitor } from './utils/performanceMonitor';
 import { bundleAnalyzer } from './utils/bundleAnalyzer';
 import { memoryOptimizer } from './utils/memoryOptimizer';
@@ -112,6 +113,7 @@ declare const window: WindowWithPerformance;
 function setupWebVitalsReporting() {
   // Import and setup web-vitals library if available
   try {
+    // @ts-ignore — web-vitals not installed
     import('web-vitals').then(({ getCLS, getFID, getFCP, getLCP, getTTFB }) => {
       const reportMetric = (_metric: WebVitalMetric) => {
         // Web vitals are collected; add a reporting backend here if needed.
@@ -252,6 +254,7 @@ export function withPerformanceTracking<P extends object>(
 
     renderStartTime.current = performance.now();
 
+    // @ts-ignore — complex HOC ref forwarding
     return React.createElement(WrappedComponent, { ...props, ref });
   });
 

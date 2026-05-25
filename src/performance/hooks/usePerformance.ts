@@ -7,10 +7,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { performanceMonitor } from '../utils/performanceMonitor';
 
 interface PerformanceMetrics {
-  fps?: number;
-  loadTime?: number;
-  memoryUsage?: number;
-  domNodes?: number;
+  fps?: number | null;
+  loadTime?: number | null;
+  memoryUsage?: number | null;
+  domNodes?: number | null;
   [key: string]: unknown;
 }
 
@@ -67,8 +67,8 @@ export function usePerformance(): PerformanceState & PerformanceActions {
         setState(prev => ({
           ...prev,
           score: report.score,
-          metrics: report.metrics,
-          issues: report.issues,
+          metrics: report.metrics as unknown as PerformanceMetrics,
+          issues: report.issues as unknown as PerformanceIssue[],
           recommendations: report.recommendations,
           isMonitoring: true,
           loading: false,
@@ -80,8 +80,8 @@ export function usePerformance(): PerformanceState & PerformanceActions {
           setState(prev => ({
             ...prev,
             score: updatedReport.score,
-            metrics: updatedReport.metrics,
-            issues: updatedReport.issues,
+            metrics: updatedReport.metrics as unknown as PerformanceMetrics,
+            issues: updatedReport.issues as unknown as PerformanceIssue[],
             recommendations: updatedReport.recommendations,
           }));
         }, 5000);
@@ -113,8 +113,8 @@ export function usePerformance(): PerformanceState & PerformanceActions {
     setState(prev => ({
       ...prev,
       score: report.score,
-      metrics: report.metrics,
-      issues: report.issues,
+      metrics: report.metrics as unknown as PerformanceMetrics,
+      issues: report.issues as unknown as PerformanceIssue[],
       recommendations: report.recommendations,
     }));
   }, []);

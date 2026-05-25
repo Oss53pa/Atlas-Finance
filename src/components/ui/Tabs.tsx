@@ -34,20 +34,20 @@ export const TabsList: React.FC<{ children: React.ReactNode; className?: string 
   );
 };
 
-export const TabsTrigger: React.FC<{ value: string; children: React.ReactNode }> = ({ value, children }) => {
+export const TabsTrigger: React.FC<{ value: string; children: React.ReactNode; className?: string; disabled?: boolean }> = ({ value, children, className: _className }) => {
   const context = useContext(TabsContext);
   if (!context) {
     return <button className="px-4 py-2 text-sm font-medium">{children}</button>;
   }
-  
+
   const isActive = context.value === value;
-  
+
   return (
     <button
       onClick={() => context.onValueChange && context.onValueChange(value)}
       className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-        isActive 
-          ? 'border-blue-500 text-blue-600' 
+        isActive
+          ? 'border-blue-500 text-blue-600'
           : 'border-transparent text-gray-700 hover:text-gray-700'
       }`}
     >

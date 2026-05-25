@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Periodic Closures Service — Connected to DataAdapter (Dexie/Supabase).
  * Replaces previous mock implementation with real data from fiscalPeriods table.
@@ -22,13 +21,13 @@ class PeriodicClosuresService {
 
     // Apply filters
     if (filters?.status) {
-      mapped = mapped.filter(m => m.status === filters.status);
+      mapped = mapped.filter(m => (filters.status as string[]).includes(m.status));
     }
     if (filters?.type) {
-      mapped = mapped.filter(m => m.type === filters.type);
+      mapped = mapped.filter(m => (filters.type as string[]).includes(m.type));
     }
-    if (filters?.fiscal_year) {
-      mapped = mapped.filter(m => m.fiscal_year === filters.fiscal_year);
+    if (filters?.fiscalYear) {
+      mapped = mapped.filter(m => m.fiscal_year === filters.fiscalYear);
     }
 
     return mapped.sort((a, b) =>
@@ -83,7 +82,7 @@ class PeriodicClosuresService {
   }
 
   private mapToClosure(p: any): ClosurePeriod {
-    const statusMap: Record<string, string> = {
+    const statusMap: Record<string, import('../types/periodic-closures.types').ClosurePeriodStatus> = {
       open: 'open',
       closed: 'closed',
       locked: 'locked',
@@ -94,7 +93,7 @@ class PeriodicClosuresService {
       id: p.id,
       type: p.type || 'monthly',
       period: p.label || p.code || '',
-      status: statusMap[p.status] || 'open',
+      status: statusMap[p.status] ?? 'open',
       startDate: new Date(p.startDate || p.start_date),
       endDate: p.endDate ? new Date(p.endDate || p.end_date) : undefined,
       closure_deadline: p.closure_deadline ? new Date(p.closure_deadline) : undefined,

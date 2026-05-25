@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../../contexts/LanguageContext';
@@ -109,7 +109,7 @@ const RapprochementBancaire: React.FC = () => {
               statut: line.lettrageCode ? 'rapproche' : 'en_attente',
               typeOperation: (line.debit || 0) > 0 ? 'debit' : 'credit',
               compteBancaire: line.accountCode,
-              compteContrepartie: entry.lines.find(l => l.accountCode !== line.accountCode)?.accountCode,
+              compteContrepartie: entry.lines.find((l: any) => l.accountCode !== line.accountCode)?.accountCode,
               pieceComptable: entry.entryNumber,
               journalCode: entry.journal,
               dateComptabilisation: entry.date,
@@ -1086,7 +1086,7 @@ const RapprochementBancaire: React.FC = () => {
                           type="file"
                           className="sr-only"
                           accept=".csv,.xls,.xlsx,.qif,.ofx,.mt940"
-                          onChange={(e) => handleInputChange('fichier', e.target.files)}
+                          onChange={(e) => e.target.files && handleInputChange('fichier', e.target.files)}
                           disabled={isSubmitting}
                         />
                       {formData.fichier && (

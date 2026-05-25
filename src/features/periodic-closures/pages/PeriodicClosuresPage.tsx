@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useState } from 'react';
 import { Plus, Lock, Download, Settings } from 'lucide-react';
 import { Button } from '@/shared/components/ui/Button';
@@ -10,8 +9,10 @@ import { PeriodsTable } from '../components/PeriodsTable';
 import { StepsTimeline } from '../components/StepsTimeline';
 import { ClosurePeriod, ClosureFilters, ClosureStep } from '../types/periodic-closures.types';
 import { periodicClosuresService } from '../services/periodicClosuresService';
+import { useData } from '../../../contexts/DataContext';
 
 const PeriodicClosuresPage: React.FC = () => {
+  const { adapter } = useData();
   const [filters] = useState<ClosureFilters>({});
   const [selectedPeriod, setSelectedPeriod] = useState<ClosurePeriod | null>(null);
 
@@ -30,7 +31,7 @@ const PeriodicClosuresPage: React.FC = () => {
   const handleExecuteStep = async (step: ClosureStep) => {
     if (!selectedPeriod) return;
     try {
-      await periodicClosuresService.executeStep(selectedPeriod.id, step.id);
+      await periodicClosuresService.executeStep(adapter, selectedPeriod.id, step.id);
       refetch();
     } catch (error) {
       /* ignored */
@@ -40,7 +41,7 @@ const PeriodicClosuresPage: React.FC = () => {
   const handleValidatePeriod = async () => {
     if (!selectedPeriod) return;
     try {
-      await periodicClosuresService.validatePeriod(selectedPeriod.id);
+      await periodicClosuresService.validatePeriod(adapter, selectedPeriod.id);
       refetch();
       periodDetailModal.close();
     } catch (error) {

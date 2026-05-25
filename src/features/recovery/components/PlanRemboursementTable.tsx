@@ -54,6 +54,8 @@ export const PlanRemboursementTable: React.FC<PlanRemboursementTableProps> = ({
   plan,
   loading,
 }) => {
+  // Cast to any to support echeances array not in base PlanRemboursement type
+  const planAny = plan as any;
   const columns: Column[] = [
     {
       key: 'numeroEcheance',
@@ -83,13 +85,13 @@ export const PlanRemboursementTable: React.FC<PlanRemboursementTableProps> = ({
       key: 'statut',
       header: 'Statut',
       sortable: true,
-      render: (value, row) => getStatutBadge(value as string, row.dateEcheance),
+      render: (value, row) => getStatutBadge(value as string, (row as any).dateEcheance),
     },
   ];
 
-  const totalPaye = plan.echeances
-    .filter((e) => e.statut === 'paye')
-    .reduce((sum, e) => sum + e.montant, 0);
+  const totalPaye = (planAny.echeances as any[] || [])
+    .filter((e: any) => e.statut === 'paye')
+    .reduce((sum: number, e: any) => sum + e.montant, 0);
 
   const totalRestant = plan.montantTotal - totalPaye;
   const pourcentagePaye = (totalPaye / plan.montantTotal) * 100;
@@ -158,7 +160,7 @@ export const PlanRemboursementTable: React.FC<PlanRemboursementTableProps> = ({
       </div>
 
       <DataTable
-        data={plan.echeances}
+        data={planAny.echeances || []}
         columns={columns}
         loading={loading}
         striped

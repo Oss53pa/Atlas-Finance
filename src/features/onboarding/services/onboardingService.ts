@@ -5,17 +5,20 @@
 import { supabase } from '../../../lib/supabase';
 import type { Organization, Solution, Subscription, Invitation, TeamMember } from '../types';
 
+// Cast to any to bypass Supabase generated types for tables not in schema
+const db = supabase as any;
+
 // ============================================================================
 // SOLUTIONS
 // ============================================================================
 
 export async function getSolutions(): Promise<Solution[]> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('solutions')
     .select('*')
     .order('display_order');
   if (error) throw new Error(error.message);
-  return (data || []).map(s => ({ ...s, features: s.features || [] }));
+  return (data || []).map((s: any) => ({ ...s, features: s.features || [] }));
 }
 
 // ============================================================================
@@ -26,7 +29,7 @@ export async function getMyOrganization(): Promise<Organization | null> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const { data: profile } = await supabase
+  const { data: profile } = await db
     .from('profiles')
     .select('organization_id')
     .eq('id', user.id)
@@ -34,7 +37,7 @@ export async function getMyOrganization(): Promise<Organization | null> {
 
   if (!profile?.organization_id) return null;
 
-  const { data: org } = await supabase
+  const { data: org } = await db
     .from('organizations')
     .select('*')
     .eq('id', profile.organization_id)
@@ -51,7 +54,7 @@ export async function getMySubscriptions(): Promise<Subscription[]> {
   const org = await getMyOrganization();
   if (!org) return [];
 
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('subscriptions')
     .select('*, solution:solutions(*)')
     .eq('organization_id', org.id);
@@ -67,7 +70,7 @@ export async function createSubscription(
   const org = await getMyOrganization();
   if (!org) throw new Error('Aucune organisation trouvée');
 
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('subscriptions')
     .insert({
       organization_id: org.id,
@@ -102,7 +105,7 @@ export async function sendInvitation(email: string, roleCode: string): Promise<I
 
   const { data: { user } } = await supabase.auth.getUser();
 
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('invitations')
     .insert({
       organization_id: org.id,
@@ -134,7 +137,7 @@ export async function sendInvitation(email: string, roleCode: string): Promise<I
 }
 
 export async function getInvitationByToken(token: string): Promise<Invitation | null> {
-  const { data } = await supabase
+  const { data } = await db
     .from('invitations')
     .select('*')
     .eq('token', token)
@@ -152,13 +155,13 @@ export async function acceptInvitation(token: string): Promise<void> {
   if (!invitation) throw new Error('Invitation invalide ou expirée');
 
   // Update profile with org + role
-  const { data: role } = await supabase
+  const { data: role } = await db
     .from('roles')
     .select('id')
     .eq('code', invitation.role_code)
     .single();
 
-  await supabase
+  await db
     .from('profiles')
     .update({
       organization_id: invitation.organization_id,
@@ -167,7 +170,7 @@ export async function acceptInvitation(token: string): Promise<void> {
     .eq('id', user.id);
 
   // Mark invitation as accepted
-  await supabase
+  await db
     .from('invitations')
     .update({ accepted_at: new Date().toISOString() })
     .eq('token', token);
@@ -185,7 +188,7 @@ export async function getTeamMembers(): Promise<TeamMember[]> {
   // On lit profiles + roles separement, jointure cote JS.
   let profiles: Array<Record<string, any>> = [];
   try {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('profiles')
       .select('id, email, full_name, is_active, created_at, role_id')
       .eq('organization_id', org.id);
@@ -199,7 +202,7 @@ export async function getTeamMembers(): Promise<TeamMember[]> {
   const roleMap = new Map<string, string>();
   if (roleIds.length > 0) {
     try {
-      const { data: roles } = await supabase
+      const { data: roles } = await db
         .from('roles')
         .select('id, code')
         .in('id', roleIds);
@@ -223,7 +226,7 @@ export async function getPendingInvitations(): Promise<Invitation[]> {
   const org = await getMyOrganization();
   if (!org) return [];
 
-  const { data } = await supabase
+  const { data } = await db
     .from('invitations')
     .select('*')
     .eq('organization_id', org.id)

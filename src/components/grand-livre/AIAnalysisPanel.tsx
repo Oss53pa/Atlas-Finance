@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React from 'react';
 import { SparklesIcon } from '@heroicons/react/24/outline';
 
@@ -74,13 +73,13 @@ const AIAnalysisPanel: React.FC<AIAnalysisPanelProps> = ({ searchResults }) => {
             <div className="flex justify-between">
               <span className="text-gray-600">Débits:</span>
               <span className="font-medium text-green-600">
-                {formatAmount(searchResults.aggregations.total_debit || 0)}
+                {formatAmount((searchResults.aggregations.total_debit as number) || 0)}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Crédits:</span>
               <span className="font-medium text-red-600">
-                {formatAmount(searchResults.aggregations.total_credit || 0)}
+                {formatAmount((searchResults.aggregations.total_credit as number) || 0)}
               </span>
             </div>
           </div>

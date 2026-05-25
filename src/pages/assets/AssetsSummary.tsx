@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useData } from '../../contexts/DataContext';
@@ -346,7 +346,7 @@ const AssetsSummary: React.FC = () => {
     XLSX.utils.book_append_sheet(wb, geoSheet, 'Répartition Géographique');
 
     // Maintenance Sheet
-    const maintenanceData = maintenanceData.map(item => ({
+    const maintenanceExportData = maintenanceData.map((item: any) => ({
       'Actif': item.assetName,
       'Type': item.type,
       'Statut': item.status,
@@ -354,7 +354,7 @@ const AssetsSummary: React.FC = () => {
       'Coût': `${item.cost} €`,
       'Priorité': item.priority
     }));
-    const maintenanceSheet = XLSX.utils.json_to_sheet(maintenanceData);
+    const maintenanceSheet = XLSX.utils.json_to_sheet(maintenanceExportData);
     XLSX.utils.book_append_sheet(wb, maintenanceSheet, 'Maintenance');
 
     XLSX.writeFile(wb, `Assets_Summary_${new Date().toISOString().split('T')[0]}.xlsx`);
@@ -503,7 +503,7 @@ const AssetsSummary: React.FC = () => {
                 <p className="text-sm text-neutral-500">Conformité</p>
                 <p className="font-semibold text-neutral-900">
                   {dbAssets.length > 0
-                    ? `${((activeAssets.filter(a => a.depreciationMethod && a.usefulLife > 0).length / Math.max(activeAssets.length, 1)) * 100).toFixed(1)}% conforme`
+                    ? `${((activeAssets.filter(a => a.depreciationMethod && a.usefulLifeYears > 0).length / Math.max(activeAssets.length, 1)) * 100).toFixed(1)}% conforme`
                     : '— aucun actif'}
                 </p>
               </div>

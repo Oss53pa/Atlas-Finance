@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useState, useEffect } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { useToast } from '../../hooks/useToast';
@@ -38,7 +37,8 @@ const ReevaluationPage: React.FC = () => {
         assetId: selectedAssetId,
         nouvelleValeur: parseFloat(nouvelleValeur),
         dateReevaluation,
-        justification,
+        motif: justification,
+        typeReevaluation: 'libre',
       });
       if (result.success) {
         setPreview(result.impact);
@@ -59,7 +59,8 @@ const ReevaluationPage: React.FC = () => {
         assetId: selectedAssetId,
         nouvelleValeur: parseFloat(nouvelleValeur),
         dateReevaluation,
-        justification,
+        motif: justification,
+        typeReevaluation: 'libre',
       });
       toast.success('Réévaluation validée — écritures SYSCOHADA générées');
       setPreview(null);

@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../../contexts/LanguageContext';
 import { toast } from 'react-hot-toast';
@@ -229,7 +229,7 @@ const DocumentsArchives: React.FC = () => {
       const file = (value as FileList)?.[0] || null;
       setFormData(prev => ({ ...prev, fichier: file }));
     } else if (field === 'tags') {
-      const tagsArray = typeof value === 'string' ? value.split(',').map(tag => tag.trim()).filter(tag => tag) : value;
+      const tagsArray: string[] = typeof value === 'string' ? value.split(',').map(tag => tag.trim()).filter(tag => tag) : [];
       setFormData(prev => ({ ...prev, [field]: tagsArray }));
     } else {
       setFormData(prev => ({ ...prev, [field]: value }));
@@ -717,7 +717,7 @@ const DocumentsArchives: React.FC = () => {
                           type="file"
                           className="sr-only"
                           accept=".pdf,.xlsx,.xls,.docx,.doc,.jpg,.jpeg,.png,.zip"
-                          onChange={(e) => handleInputChange('fichier', e.target.files)}
+                          onChange={(e) => e.target.files && handleInputChange('fichier', e.target.files)}
                           disabled={isSubmitting}
                         />
                       </label>

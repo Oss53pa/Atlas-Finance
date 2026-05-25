@@ -20,7 +20,7 @@ export const SettingCard: React.FC<SettingCardProps> = ({
       case 'text':
         return (
           <Input
-            value={setting.value || ''}
+            value={(setting.value as string | number) || ''}
             onChange={(e) => onUpdate(e.target.value)}
             error={error}
             fullWidth
@@ -31,7 +31,7 @@ export const SettingCard: React.FC<SettingCardProps> = ({
         return (
           <Input
             type="number"
-            value={setting.value || ''}
+            value={(setting.value as string | number) || ''}
             onChange={(e) => onUpdate(Number(e.target.value))}
             min={setting.min}
             max={setting.max}
@@ -43,7 +43,7 @@ export const SettingCard: React.FC<SettingCardProps> = ({
       case 'select':
         return (
           <Select
-            value={setting.value || ''}
+            value={(setting.value as string | number) || ''}
             onChange={(e) => onUpdate(e.target.value)}
             options={setting.options || []}
             error={error}
@@ -54,7 +54,7 @@ export const SettingCard: React.FC<SettingCardProps> = ({
       case 'boolean':
         return (
           <Checkbox
-            checked={setting.value || false}
+            checked={Boolean(setting.value)}
             onChange={(e) => onUpdate(e.target.checked)}
             label=""
           />
@@ -64,7 +64,7 @@ export const SettingCard: React.FC<SettingCardProps> = ({
         return (
           <Input
             type="date"
-            value={setting.value || ''}
+            value={(setting.value as string | number) || ''}
             onChange={(e) => onUpdate(e.target.value)}
             error={error}
             fullWidth

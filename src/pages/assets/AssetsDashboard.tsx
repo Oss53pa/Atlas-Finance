@@ -174,7 +174,7 @@ const AssetsDashboard: React.FC = () => {
                 <div>
                   <p className="text-sm font-medium text-neutral-600">Nombre d'Actifs</p>
                   <p className="text-lg font-bold text-neutral-900">
-                    {dashboardData?.nombre_actifs || 0}
+                    {(dashboardData?.nombre_actifs as number) || 0}
                   </p>
                 </div>
                 <div className="p-3 bg-[var(--color-primary-lighter)] rounded-2xl">
@@ -214,7 +214,7 @@ const AssetsDashboard: React.FC = () => {
                 <div>
                   <p className="text-sm font-medium text-neutral-600">Âge Moyen</p>
                   <p className="text-lg font-bold text-neutral-900">
-                    {dashboardData?.age_moyen || 0} ans
+                    {(dashboardData?.age_moyen as number) || 0} ans
                   </p>
                 </div>
                 <div className="p-3 bg-[var(--color-info-lighter)] rounded-2xl">

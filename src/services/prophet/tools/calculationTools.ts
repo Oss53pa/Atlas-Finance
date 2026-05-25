@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * calculationTools — Les 8 tools de calcul fiscal/comptable existants,
  * extraits du switch-case ProphetV2 dans le format ToolRegistry.
@@ -13,7 +12,7 @@ import { analyserBenford, genererRapportBenford } from '../../../utils/benfordAn
 import { calculerRetenue } from '../../../utils/retenueSourceCalc';
 import { calculerSIG } from '../../../utils/ratiosFinanciers';
 
-function tool(name: string, description: string, parameters: Record<string, unknown>, required: string[], execute: (args: Record<string, unknown>) => Promise<string>): [string, ToolDefinition] {
+function tool(name: string, description: string, parameters: Record<string, unknown>, required: string[], execute: (args: any) => Promise<string>): [string, ToolDefinition] {
   return [name, {
     schema: { type: 'function', function: { name, description, parameters: { type: 'object', properties: parameters, required } } },
     execute,

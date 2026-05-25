@@ -89,6 +89,9 @@ interface ReportBuilderState {
 
   // Reset
   reset: () => void;
+
+  // Internal — history management
+  _pushHistory: () => void;
 }
 
 // ============================================================================

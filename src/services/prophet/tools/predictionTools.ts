@@ -1,11 +1,10 @@
-// @ts-nocheck
 /**
  * predictionTools — Prévisions trésorerie et détection d'anomalies.
  */
 import type { ToolDefinition } from './ToolRegistry';
 import type { DataAdapter } from '@atlas/data';
 
-function dataTool(name: string, description: string, parameters: Record<string, unknown>, required: string[], execute: (args: Record<string, unknown>, adapter: DataAdapter) => Promise<string>): [string, ToolDefinition] {
+function dataTool(name: string, description: string, parameters: Record<string, unknown>, required: string[], execute: (args: any, adapter: DataAdapter) => Promise<string>): [string, ToolDefinition] {
   return [name, {
     schema: { type: 'function', function: { name, description, parameters: { type: 'object', properties: parameters, required } } },
     execute: async (args, adapter) => {
@@ -29,8 +28,10 @@ export const predictionTools: Record<string, ToolDefinition> = Object.fromEntrie
       const now = new Date();
       const past90 = new Date(now.getTime() - 90 * 24 * 3600_000);
       const entries = await adapter.getJournalEntries({
-        dateFrom: past90.toISOString().slice(0, 10),
-        dateTo: now.toISOString().slice(0, 10),
+        where: {
+          dateFrom: past90.toISOString().slice(0, 10),
+          dateTo: now.toISOString().slice(0, 10),
+        },
       });
 
       // Aggregate monthly cash flows (class 5 = trésorerie)
@@ -55,7 +56,7 @@ export const predictionTools: Record<string, ToolDefinition> = Object.fromEntrie
       let soldeTresorerie = 0;
       for (const [code, bal] of balanceMap) {
         if (code.startsWith('5')) {
-          soldeTresorerie += (bal.totalDebit || 0) - (bal.totalCredit || 0);
+          soldeTresorerie += (bal.debit || 0) - (bal.credit || 0);
         }
       }
 
@@ -142,8 +143,8 @@ export const predictionTools: Record<string, ToolDefinition> = Object.fromEntrie
           if (amount > seuilAnomal) {
             anomalies.push({
               date: entry.date || '',
-              journal: entry.journalCode || '',
-              libelle: line.label || entry.description || '',
+              journal: entry.journal || '',
+              libelle: line.label || entry.label || '',
               montant: amount,
               ecartType: Math.round(((amount - mean) / stdDev) * 10) / 10,
             });
@@ -157,7 +158,7 @@ export const predictionTools: Record<string, ToolDefinition> = Object.fromEntrie
         if (!entry.date) continue;
         const d = new Date(entry.date);
         if (d.getDay() === 0 || d.getDay() === 6) {
-          ecrituresWeekend.push({ date: entry.date, libelle: entry.description || '' });
+          ecrituresWeekend.push({ date: entry.date, libelle: entry.label || '' });
         }
       }
 

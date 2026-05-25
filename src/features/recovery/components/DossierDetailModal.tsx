@@ -17,6 +17,13 @@ interface DossierDetailModalProps {
   dossier: DossierRecouvrement;
 }
 
+// Extended type for fields used in UI but not in base DossierRecouvrement
+type DossierExtended = DossierRecouvrement & {
+  dateDerniereRelance?: string;
+  niveauRisque?: string;
+  notes?: string;
+};
+
 const getStatusBadge = (statut: string) => {
   const variants: Record<string, 'success' | 'warning' | 'error' | 'neutral'> = {
     actif: 'success',
@@ -61,7 +68,8 @@ const getRiskBadge = (niveau: string) => {
   );
 };
 
-export const DossierDetailModal: React.FC<DossierDetailModalProps> = ({ dossier }) => {
+export const DossierDetailModal: React.FC<DossierDetailModalProps> = ({ dossier: dossierRaw }) => {
+  const dossier = dossierRaw as DossierExtended;
   const montantRestant = dossier.montantTotal - dossier.montantPaye;
   const tauxRecouvrement = (dossier.montantPaye / dossier.montantTotal) * 100;
 
@@ -184,7 +192,7 @@ export const DossierDetailModal: React.FC<DossierDetailModalProps> = ({ dossier 
 
         <div>
           <p className="text-sm text-[var(--color-text-tertiary)] mb-1">Niveau de Risque</p>
-          {getRiskBadge(dossier.niveauRisque)}
+          {getRiskBadge(dossier.niveauRisque ?? '')}
         </div>
 
         <div>

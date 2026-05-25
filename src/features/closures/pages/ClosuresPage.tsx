@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useState } from 'react';
 import { Plus, Calendar, CheckCircle } from 'lucide-react';
 import { Button } from '@/shared/components/ui/Button';
@@ -11,8 +10,10 @@ import { ProvisionsTable } from '../components/ProvisionsTable';
 import { ClotureStats } from '../components/ClotureStats';
 import { ClotureSession, Provision, ClotureType } from '../types/closures.types';
 import { closuresService } from '../services/closuresService';
+import { useData } from '../../../contexts/DataContext';
 
 const ClosuresPage: React.FC = () => {
+  const { adapter } = useData();
   const [activeTab, setActiveTab] = useState<'sessions' | 'provisions' | 'amortissements'>('sessions');
   const [selectedSession, setSelectedSession] = useState<ClotureSession | null>(null);
 
@@ -35,7 +36,7 @@ const ClosuresPage: React.FC = () => {
 
   const handleValiderProvision = async (provision: Provision) => {
     try {
-      await closuresService.validerProvision(provision.id, 'VALIDER');
+      await closuresService.validerProvision(adapter, provision.id, 'VALIDER');
       refetchData();
     } catch (error) {
       /* ignored */
@@ -44,7 +45,7 @@ const ClosuresPage: React.FC = () => {
 
   const handleRejeterProvision = async (provision: Provision) => {
     try {
-      await closuresService.validerProvision(provision.id, 'REJETER');
+      await closuresService.validerProvision(adapter, provision.id, 'REJETER');
       refetchData();
     } catch (error) {
       /* ignored */

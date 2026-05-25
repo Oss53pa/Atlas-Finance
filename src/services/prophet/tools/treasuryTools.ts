@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * treasuryTools — Tools trésorerie, budget et créances.
  */
@@ -66,8 +65,8 @@ export const treasuryTools: Record<string, ToolDefinition> = Object.fromEntries(
       const type = (args.type as string) === 'supplier' ? 'supplier' : 'customer';
       const aging = await getAgingAnalysis(adapter, type, args.dateReference as string);
 
-      const totalCreances = aging.reduce((s, a) => s + (a.total || 0), 0);
-      const totalEchu = aging.reduce((s, a) => s + (a.overdue || 0), 0);
+      const totalCreances = aging.reduce((s, a) => s + (a.totalDue || 0), 0);
+      const totalEchu = aging.reduce((s, a) => s + (a.buckets?.filter(b => b.min > 0).reduce((bs, b) => bs + b.amount, 0) || 0), 0);
 
       return JSON.stringify({
         type,
@@ -76,13 +75,13 @@ export const treasuryTools: Record<string, ToolDefinition> = Object.fromEntries(
         totalEchu,
         tauxEchu: totalCreances > 0 ? `${((totalEchu / totalCreances) * 100).toFixed(1)}%` : '0%',
         detail: aging.slice(0, 20).map(a => ({
-          tiers: a.thirdPartyName || a.thirdPartyCode,
-          total: a.total,
-          courant: a.current || 0,
-          echu30: a.days30 || 0,
-          echu60: a.days60 || 0,
-          echu90: a.days90 || 0,
-          echuPlus: a.days90Plus || 0,
+          tiers: a.thirdPartyName,
+          total: a.totalDue,
+          courant: a.buckets?.find(b => b.min === 0)?.amount || 0,
+          echu30: a.buckets?.find(b => b.min === 1 && b.max <= 30)?.amount || 0,
+          echu60: a.buckets?.find(b => b.min === 31)?.amount || 0,
+          echu90: a.buckets?.find(b => b.min === 61)?.amount || 0,
+          echuPlus: a.buckets?.find(b => b.min === 91)?.amount || 0,
         })),
         tronque: aging.length > 20,
       });

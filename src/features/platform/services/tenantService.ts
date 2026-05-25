@@ -4,6 +4,10 @@
  */
 import { supabase, isSupabaseConfigured } from '../../../lib/supabase';
 
+// Cast to any to bypass Supabase generated types for tenant-scoped tables
+// not in the generated database.types.ts schema
+const db = supabase as any;
+
 const isDev = typeof import.meta !== 'undefined' && (import.meta.env?.VITE_APP_ENV === 'development' || import.meta.env?.VITE_DATA_MODE === 'local');
 
 // ════════════════════════════════════════════════════════
@@ -88,7 +92,7 @@ export async function getMyTenant(): Promise<Record<string, any> | null> {
 }
 
 export async function updateTenant(tenantId: string, data: Record<string, unknown>) {
-  const { error } = await supabase.from('tenants').update({ ...data, updated_at: new Date().toISOString() }).eq('id', tenantId);
+  const { error } = await db.from('tenants').update({ ...data, updated_at: new Date().toISOString() }).eq('id', tenantId);
   if (error) throw new Error(error.message);
 }
 
@@ -102,7 +106,7 @@ export async function getMySubscriptions() {
 
   let profile: { tenant_id?: string } | null = null;
   try {
-    const { data } = await supabase.from('user_profiles').select('tenant_id').eq('id', user.id).maybeSingle();
+    const { data } = await db.from('user_profiles').select('tenant_id').eq('id', user.id).maybeSingle();
     profile = data as { tenant_id?: string } | null;
   } catch (_e) { /* ignore */ }
   if (!profile?.tenant_id) return [];
@@ -128,13 +132,13 @@ const isValidTenantId = (id: string | undefined | null): id is string =>
 export async function getEnabledModules(tenantId: string): Promise<string[]> {
   if (!isValidTenantId(tenantId)) return [];
   try {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('feature_flags')
       .select('module')
       .eq('tenant_id', tenantId)
       .eq('enabled', true);
     if (error || !data) return [];
-    return data.map(f => f.module);
+    return (data as any[]).map((f: any) => f.module);
   } catch (_e) {
     return [];
   }
@@ -143,14 +147,14 @@ export async function getEnabledModules(tenantId: string): Promise<string[]> {
 export async function isModuleEnabled(tenantId: string, module: string): Promise<boolean> {
   if (!isValidTenantId(tenantId)) return true; // permissif si pas de tenant valide
   try {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('feature_flags')
       .select('enabled')
       .eq('tenant_id', tenantId)
       .eq('module', module)
       .maybeSingle();
     if (error || !data) return true; // module activé par défaut si pas de flag
-    return data.enabled ?? true;
+    return (data as any).enabled ?? true;
   } catch (_e) {
     return true;
   }
@@ -162,7 +166,7 @@ export async function isModuleEnabled(tenantId: string, module: string): Promise
 
 export async function getTeamMembers(tenantId: string) {
   if (isDev) return DEMO_TEAM;
-  const { data } = await supabase
+  const { data } = await db
     .from('user_profiles')
     .select('id, first_name, last_name, full_name, email:id, phone, role, status, last_login_at, created_at')
     .eq('tenant_id', tenantId)
@@ -170,21 +174,21 @@ export async function getTeamMembers(tenantId: string) {
 
   // Fetch emails from auth (user_profiles doesn't store email directly)
   if (data) {
-    for (const member of data) {
+    for (const member of (data as any[])) {
       // The id is the auth user id, we can use it to display
       member.email = member.full_name || member.first_name || 'Utilisateur';
     }
   }
-  return data || [];
+  return (data as any[]) || [];
 }
 
 export async function updateMemberRole(userId: string, role: string) {
-  const { error } = await supabase.from('user_profiles').update({ role }).eq('id', userId);
+  const { error } = await db.from('user_profiles').update({ role }).eq('id', userId);
   if (error) throw new Error(error.message);
 }
 
 export async function suspendMember(userId: string) {
-  const { error } = await supabase.from('user_profiles').update({ status: 'suspended' }).eq('id', userId);
+  const { error } = await db.from('user_profiles').update({ status: 'suspended' }).eq('id', userId);
   if (error) throw new Error(error.message);
 }
 
@@ -195,7 +199,7 @@ export async function suspendMember(userId: string) {
 export async function sendInvitation(tenantId: string, email: string, role: string, modules: string[] = []) {
   const { data: { user } } = await supabase.auth.getUser();
 
-  const { data, error } = await supabase.from('invitations').insert({
+  const { data, error } = await db.from('invitations').insert({
     tenant_id: tenantId,
     email,
     role,
@@ -249,7 +253,7 @@ export async function getInvoices(tenantId: string) {
 
 export async function logAuditEvent(tenantId: string, action: string, resourceType?: string, resourceId?: string, metadata?: Record<string, unknown>) {
   const { data: { user } } = await supabase.auth.getUser();
-  await supabase.from('audit_logs').insert({
+  await db.from('audit_logs').insert({
     tenant_id: tenantId,
     user_id: user?.id,
     action,

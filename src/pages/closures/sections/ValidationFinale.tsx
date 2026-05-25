@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useLanguage } from '../../../contexts/LanguageContext';
 import { previewClosure, canClose } from '../../../services/closureService';
@@ -146,8 +146,8 @@ const ValidationFinale: React.FC = () => {
       setFiscalYears(fys);
       const active = fys.find(fy => fy.isActive) || fys[0];
       if (active) {
-        previewClosure(active.id).then(setPreview).catch(() => {});
-        canClose(active.id).then(setCanCloseResult).catch(() => {});
+        previewClosure(adapter, active.id).then(setPreview).catch(() => {});
+        canClose(adapter, active.id).then(setCanCloseResult).catch(() => {});
       }
     });
   }, [adapter]);
@@ -196,6 +196,7 @@ const ValidationFinale: React.FC = () => {
       const nextFY = fiscalYears.find(fy => fy.startDate > activeFY.endDate);
 
       const results = await closureOrchestrator.executeAll({
+        adapter,
         exerciceId: activeFY.id,
         mode: clotureMode,
         userId: 'current-user',
@@ -242,6 +243,7 @@ const ValidationFinale: React.FC = () => {
       const nextFY = fiscalYears.find(fy => fy.startDate > activeFY.endDate);
 
       const result = await closureOrchestrator.executeStep(stepId, {
+        adapter,
         exerciceId: activeFY.id,
         mode: 'manual',
         userId: 'current-user',
@@ -253,8 +255,8 @@ const ValidationFinale: React.FC = () => {
       if (result.status === 'done') {
         toast.success(`${result.label} : ${result.message}`);
         // Refresh preview after each step
-        previewClosure(activeFY.id).then(setPreview).catch(() => {});
-        canClose(activeFY.id).then(setCanCloseResult).catch(() => {});
+        previewClosure(adapter, activeFY.id).then(setPreview).catch(() => {});
+        canClose(adapter, activeFY.id).then(setCanCloseResult).catch(() => {});
       } else {
         toast.error(`${result.label} : ${result.message}`);
       }

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useState, useEffect } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { useToast } from '../../hooks/useToast';
@@ -53,7 +52,7 @@ const EffetsCommercePage: React.FC = () => {
   const loadEffets = async () => {
     setLoading(true);
     try {
-      const all = await adapter.getAll('effetsCommerce') as EffetCommerce[];
+      const all = await (adapter as any).getAll('effetsCommerce') as EffetCommerce[];
       setEffets(all.filter(e => e.type === activeTab));
     } catch (err) { /* silent */
       setEffets([]);
@@ -84,7 +83,7 @@ const EffetsCommercePage: React.FC = () => {
         beneficiaire: formData.beneficiaire,
         lieuPaiement: formData.lieuPaiement,
       });
-      await adapter.create('effetsCommerce', effet);
+      await (adapter as any).create('effetsCommerce', effet);
       toast.success('Effet créé avec succès');
       setShowModal(false);
       loadEffets();

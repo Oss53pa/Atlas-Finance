@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * GenerateurEtatsFinanciers — Bilan + CR + TAFIRE + Notes SYSCOHADA
  * Réf: SYSCOHADA art. 11, 28; AUDCIF art. 32-33
@@ -199,13 +198,14 @@ export const etatsFinanciersTools: Record<string, ToolDefinition> = {
       },
     },
     execute: async (args, adapter) => {
-      const { exercice, systeme, inclure } = args as Record<string, unknown>;
-      const sys = systeme || 'normal';
-      const inc = inclure || ['bilan', 'compte_resultat', 'tafire', 'notes'];
+      const typedArgs = args as Record<string, any>;
+      const { exercice, systeme, inclure } = typedArgs;
+      const sys = (systeme as string) || 'normal';
+      const inc = (inclure as string[]) || ['bilan', 'compte_resultat', 'tafire', 'notes'];
       const result: any = { exercice, systeme: sys };
 
       // Lire les données réelles via DataAdapter si disponible
-      let balance = args.balance as Record<string, unknown>[];
+      let balance = (typedArgs.balance as any[]) || [];
       if ((!balance || balance.length === 0) && adapter) {
         const rows = await adapter.getTrialBalance({ start: `${exercice}-01-01`, end: `${exercice}-12-31` });
         balance = rows.map((r: any) => ({
@@ -221,17 +221,17 @@ export const etatsFinanciersTools: Record<string, ToolDefinition> = {
       }
 
       if (inc.includes('bilan')) {
-        result.bilan = genererBilan(balance);
+        result.bilan = genererBilan(balance as any);
       }
       if (inc.includes('compte_resultat')) {
-        result.compte_resultat = genererCompteResultat(balance);
+        result.compte_resultat = genererCompteResultat(balance as any);
       }
       if (inc.includes('tafire') && sys === 'normal') {
-        const resNet = result.compte_resultat?.resultat_net ?? genererCompteResultat(balance).resultat_net;
-        result.tafire = genererTAFIRE(balance, resNet);
+        const resNet = result.compte_resultat?.resultat_net ?? genererCompteResultat(balance as any).resultat_net;
+        result.tafire = genererTAFIRE(balance as any, resNet);
       }
       if (inc.includes('notes')) {
-        result.notes_annexes = genererNotes(sys, exercice);
+        result.notes_annexes = genererNotes(sys as any, exercice);
       }
 
       result.verification = {
