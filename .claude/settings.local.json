@@ -113,7 +113,20 @@
       "Bash(node_modules/.bin/tsc --noEmit)",
       "Bash(echo \"exit:$?\")",
       "Bash(git -C ../wb-chartfix status --short)",
-      "Bash(git -C ../wb-chartfix --no-pager diff -- src/config/chartConfig.ts)"
+      "Bash(git -C ../wb-chartfix --no-pager diff -- src/config/chartConfig.ts)",
+      "Bash(git merge worktree-agent-a73c347c0d1bf9de1 --no-ff -m ' *)",
+      "Bash(git -C ../wb-chartfix add src/config/chartConfig.ts)",
+      "Bash(git -C ../wb-chartfix commit -m ' *)",
+      "Bash(git -C ../wb-chartfix push -u origin fix/chartconfig-line-typing)",
+      "Bash(git merge worktree-agent-af55c4b6425593c0c --no-ff -m ' *)",
+      "Bash(git worktree *)",
+      "Bash(head -1 C:/devs/WiseBook/__TRACKED_VAR__)",
+      "Bash(echo ' <- __TRACKED_VAR__')",
+      "Bash(echo \"---WATCH EXIT:$?---\")",
+      "Bash(grep -m1 ts-nocheck C:/devs/WiseBook/__TRACKED_VAR__)",
+      "Bash(echo ' <- has @ts-nocheck: __TRACKED_VAR__')",
+      "Bash(echo '\\(no @ts-nocheck\\) __TRACKED_VAR__')",
+      "Bash(grep -v \".claude\\\\|//\")"
     ],
     "deny": [],
     "ask": []

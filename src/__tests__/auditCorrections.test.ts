@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Tests for audit corrections P0-P2 — Clôtures & États/Reporting
  * Covers: TFT bouclage, checklist 7/7, periodicClosuresService real data,
