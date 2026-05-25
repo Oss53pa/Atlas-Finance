@@ -118,3 +118,4 @@ SOURCE_DUMP_PARTS/
 # Batch/Shell scripts (local)
 *.bat
 *.sh
+.claude/worktrees/
