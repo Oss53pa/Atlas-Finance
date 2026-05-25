@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React, { useState } from 'react';
 import { Input, Select, Textarea } from '@/shared/components/ui/Form';
 import { DossierRecouvrement } from '../types/recovery.types';
@@ -16,10 +16,10 @@ export const DossierEditForm: React.FC<DossierEditFormProps> = ({
 }) => {
   const [formData, setFormData] = useState({
     statut: dossier.statut,
-    niveauRisque: dossier.niveauRisque,
+    niveauRisque: (dossier as unknown as { niveauRisque?: string }).niveauRisque ?? '',
     responsable: dossier.responsable,
     montantPaye: dossier.montantPaye,
-    notes: dossier.notes || '',
+    notes: (dossier as unknown as { notes?: string }).notes ?? '',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});

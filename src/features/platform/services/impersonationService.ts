@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * Impersonation Service — permet à un atlas_superadmin de se connecter
  * en tant que super admin d'un tenant (30 min max).
@@ -28,7 +28,7 @@ export function startImpersonation(tenantId: string, tenantName: string, adminUs
   sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 
   // Audit log (non-blocking)
-  supabase.from('audit_logs').insert({
+  (supabase as any).from('audit_logs').insert({
     tenant_id: tenantId,
     user_id: adminUserId,
     action: 'IMPERSONATION_START',
@@ -40,7 +40,7 @@ export function startImpersonation(tenantId: string, tenantName: string, adminUs
 export function stopImpersonation(): void {
   const state = getImpersonationInfo();
   if (state) {
-    supabase.from('audit_logs').insert({
+    (supabase as any).from('audit_logs').insert({
       tenant_id: state.tenantId,
       user_id: state.adminUserId,
       action: 'IMPERSONATION_END',

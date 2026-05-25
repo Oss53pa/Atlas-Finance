@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * Feature Flag Service — contrôle l'accès aux modules par tenant.
  * Toutes les fonctions sont tolérantes : si la table feature_flags
@@ -30,12 +30,12 @@ let featureFlagsTableBroken = false;
 export async function getFeatureFlags(tenantId: string): Promise<FeatureFlag[]> {
   if (!isValidTenantId(tenantId) || featureFlagsTableBroken) return [];
   try {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('feature_flags')
       .select('*')
       .eq('tenant_id', tenantId);
     if (error) { featureFlagsTableBroken = true; return []; }
-    return data || [];
+    return (data as FeatureFlag[]) || [];
   } catch (_e) {
     featureFlagsTableBroken = true;
     return [];
@@ -47,14 +47,14 @@ export async function isModuleEnabled(tenantId: string, module: string): Promise
   // Si pas de tenant valide ou table cassee : activer le module par defaut
   if (!isValidTenantId(tenantId) || featureFlagsTableBroken) return true;
   try {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('feature_flags')
       .select('enabled')
       .eq('tenant_id', tenantId)
       .eq('module', module)
       .maybeSingle();
     if (error) { featureFlagsTableBroken = true; return true; }
-    return data?.enabled ?? true; // par defaut active si pas de flag
+    return (data as { enabled?: boolean } | null)?.enabled ?? true; // par defaut active si pas de flag
   } catch (_e) {
     featureFlagsTableBroken = true;
     return true;
@@ -65,13 +65,13 @@ export async function isModuleEnabled(tenantId: string, module: string): Promise
 export async function getEnabledModules(tenantId: string): Promise<string[]> {
   if (!isValidTenantId(tenantId) || featureFlagsTableBroken) return [];
   try {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('feature_flags')
       .select('module')
       .eq('tenant_id', tenantId)
       .eq('enabled', true);
     if (error) { featureFlagsTableBroken = true; return []; }
-    return (data || []).map(f => f.module);
+    return ((data as { module: string }[]) || []).map(f => f.module);
   } catch (_e) {
     featureFlagsTableBroken = true;
     return [];
@@ -83,7 +83,7 @@ export async function toggleModule(tenantId: string, module: string, enabled: bo
   if (!isValidTenantId(tenantId)) throw new Error('tenant_id invalide (UUID requis)');
   const { data: { user } } = await supabase.auth.getUser();
 
-  const { error } = await supabase
+  const { error } = await (supabase as any)
     .from('feature_flags')
     .upsert({
       tenant_id: tenantId,
@@ -128,7 +128,7 @@ export async function syncFlagsFromSubscriptions(tenantId: string): Promise<void
   // Upsert les flags
   for (const code of allCodes) {
     try {
-      await supabase
+      await (supabase as any)
         .from('feature_flags')
         .upsert({
           tenant_id: tenantId,

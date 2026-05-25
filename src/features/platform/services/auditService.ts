@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * Audit Service — piste d'audit systématique.
  * Chaque action métier doit appeler auditLog().
@@ -45,14 +45,14 @@ async function computeHash(data: string): Promise<string> {
  * Fetch the hash of the last audit log entry for a given tenant.
  */
 async function getLastAuditHash(tenantId: string): Promise<string | null> {
-  const { data } = await supabase
+  const { data } = await (supabase as any)
     .from('audit_logs')
     .select('hash')
     .eq('tenant_id', tenantId)
     .order('timestamp', { ascending: false })
     .limit(1)
     .single();
-  return data?.hash ?? null;
+  return (data as { hash?: string } | null)?.hash ?? null;
 }
 
 /**
@@ -83,7 +83,7 @@ export async function auditLog(event: AuditEvent): Promise<void> {
 
     const hash = await computeHash(hashPayload);
 
-    await supabase.from('audit_logs').insert({
+    await (supabase as any).from('audit_logs').insert({
       id,
       tenant_id: event.tenantId,
       user_id: user?.id,
@@ -114,7 +114,7 @@ export async function getAuditLogs(
     offset?: number;
   }
 ): Promise<{ logs: AuditLogEntry[]; total: number }> {
-  let query = supabase
+  let query = (supabase as any)
     .from('audit_logs')
     .select('*', { count: 'exact' })
     .eq('tenant_id', tenantId)

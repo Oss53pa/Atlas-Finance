@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useData } from '../../contexts/DataContext';
@@ -126,7 +126,7 @@ const AssetsDashboard: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <KPICard
             title="Valeur Brute"
-            value={formatCurrency(dashboardData?.valeur_brute_totale || 0)}
+            value={formatCurrency((dashboardData?.valeur_brute_totale as number) || 0)}
             subtitle="Valeur d'acquisition"
             icon={Building}
             color="primary"
@@ -135,7 +135,7 @@ const AssetsDashboard: React.FC = () => {
           />
           <KPICard
             title="Amortissements"
-            value={formatCurrency(dashboardData?.amortissements_cumules || 0)}
+            value={formatCurrency((dashboardData?.amortissements_cumules as number) || 0)}
             subtitle="Cumul des dotations"
             icon={TrendingDown}
             color="warning"
@@ -144,7 +144,7 @@ const AssetsDashboard: React.FC = () => {
           />
           <KPICard
             title="Valeur Nette"
-            value={formatCurrency(dashboardData?.valeur_nette_totale || 0)}
+            value={formatCurrency((dashboardData?.valeur_nette_totale as number) || 0)}
             subtitle="Valeur comptable actuelle"
             icon={DollarSign}
             color="success"
@@ -153,7 +153,7 @@ const AssetsDashboard: React.FC = () => {
           />
           <KPICard
             title="Dotations Annuelles"
-            value={formatCurrency(dashboardData?.dotations_annuelles || 0)}
+            value={formatCurrency((dashboardData?.dotations_annuelles as number) || 0)}
             subtitle="Amortissements annuels"
             icon={TrendingUp}
             color="neutral"
@@ -194,7 +194,7 @@ const AssetsDashboard: React.FC = () => {
                 <div>
                   <p className="text-sm font-medium text-neutral-600">Taux d'Amortissement</p>
                   <p className="text-lg font-bold text-neutral-900">
-                    {formatPercentage(dashboardData?.taux_amortissement_moyen || 0)}
+                    {formatPercentage((dashboardData?.taux_amortissement_moyen as number) || 0)}
                   </p>
                 </div>
                 <div className="p-3 bg-primary-100 rounded-2xl">

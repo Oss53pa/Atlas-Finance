@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React, { useState, useEffect } from 'react';
 import {
   X,
@@ -103,12 +103,12 @@ export const CreateContactModal: React.FC<CreateContactModalProps> = ({
 
   const { data: companiesData } = useQuery({
     queryKey: ['companies', 'list'],
-    queryFn: () => thirdPartyService.getCompanies({ page: 1, limit: 1000 }),
+    queryFn: () => (thirdPartyService as any).getCompanies({ page: 1, limit: 1000 }),
     enabled: isOpen
   });
 
   const createContact = useMutation({
-    mutationFn: thirdPartyService.createContact,
+    mutationFn: (data: ContactFormData) => (thirdPartyService as any).createContact(data),
     onSuccess: () => {
       toast.success('Contact créé avec succès');
       queryClient.invalidateQueries({ queryKey: ['contacts'] });
@@ -592,13 +592,13 @@ export const EditContactModal: React.FC<EditContactModalProps> = ({
 
   const { data: companiesData } = useQuery({
     queryKey: ['companies', 'list'],
-    queryFn: () => thirdPartyService.getCompanies({ page: 1, limit: 1000 }),
+    queryFn: () => (thirdPartyService as any).getCompanies({ page: 1, limit: 1000 }),
     enabled: isOpen
   });
 
   const updateContact = useMutation({
     mutationFn: ({ id, data }: { id: string; data: ContactFormData }) =>
-      thirdPartyService.updateContact(id, data),
+      (thirdPartyService as any).updateContact(id, data),
     onSuccess: () => {
       toast.success('Contact modifié avec succès');
       queryClient.invalidateQueries({ queryKey: ['contacts'] });
@@ -671,6 +671,7 @@ export const EditContactModal: React.FC<EditContactModalProps> = ({
       return;
     }
 
+    if (!contact) return;
     updateContact.mutate({ id: contact.id, data: formData });
   };
 

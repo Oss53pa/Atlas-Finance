@@ -1,8 +1,8 @@
-// @ts-nocheck
+
 import React, { useState } from 'react';
 import { useLanguage } from '../../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Download } from 'lucide-react';
+import { Plus, Download, Send } from 'lucide-react';
 import { Button } from '@/shared/components/ui/Button';
 import { Modal, ModalBody, ModalFooter } from '@/shared/components/ui/Modal';
 import { useFilters, usePagination, useDebounce, useModal } from '@/shared/hooks';
@@ -53,7 +53,7 @@ const RecoveryPage: React.FC = () => {
   }, [statusFilter]);
 
   // Pagination
-  const pagination = usePagination({
+  const pagination = usePagination<DossierRecouvrement>({
     initialPageSize: 10,
     totalItems: filteredData.length,
   });

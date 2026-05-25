@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * ISA Revisions Service — Connected to Dexie IndexedDB.
  * Implements ISA 315/320/500 audit revision workflow.
@@ -124,7 +124,7 @@ class RevisionsService {
       sessionId: item.sessionId,
       accountCode: item.accountCode,
       accountName: item.accountName,
-      isaAssertion: item.isaAssertion,
+      isaAssertion: item.isaAssertion as ISAAssertion,
       riskLevel: item.riskLevel,
       testType: item.testType,
       status: item.status || 'en_attente',
@@ -144,7 +144,7 @@ class RevisionsService {
       `Révision ${item.accountCode} — ${item.isaAssertion} (${item.riskLevel})`
     );
 
-    return { ...record };
+    return { ...record } as RevisionItem;
   }
 
   /**
@@ -174,7 +174,7 @@ class RevisionsService {
       );
     }
 
-    return { ...item, ...updatedFields };
+    return { ...item, ...updatedFields } as RevisionItem;
   }
 
   /**

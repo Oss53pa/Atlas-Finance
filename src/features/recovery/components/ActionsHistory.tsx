@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import React from 'react';
 import { Action } from '../types/recovery.types';
 import { formatDate } from '@/shared/utils/formatters';
@@ -106,7 +106,7 @@ export const ActionsHistory: React.FC<ActionsHistoryProps> = ({ actions, loading
                   <div className="flex items-center gap-2 mb-1">
                     <Badge variant="neutral">{getActionLabel(action.type)}</Badge>
                     <span className="text-sm font-medium text-[var(--color-primary)]">
-                      {action.auteur}
+                      {action.responsable}
                     </span>
                   </div>
                   <p className="text-xs text-[var(--color-text-tertiary)]">
@@ -115,10 +115,10 @@ export const ActionsHistory: React.FC<ActionsHistoryProps> = ({ actions, loading
                 </div>
               </div>
 
-              {action.description && (
+              {action.notes && (
                 <div className="bg-[var(--color-surface-hover)] border border-[var(--color-border)] rounded-lg p-3 mt-2">
                   <p className="text-sm text-[var(--color-primary)] whitespace-pre-wrap">
-                    {action.description}
+                    {action.notes}
                   </p>
                 </div>
               )}
