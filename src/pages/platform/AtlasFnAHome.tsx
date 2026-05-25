@@ -310,7 +310,7 @@ const AtlasFnAHome: React.FC = () => {
                 letterSpacing: '-0.005em',
               }}
             >
-              Tableau de bord
+              Mon espace
               <ArrowRight className="w-3 h-3" strokeWidth={1.75} />
             </button>
           </div>

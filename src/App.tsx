@@ -333,7 +333,11 @@ function App() {
                       <Route element={<ChatbotProvider><RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant', 'user', 'viewer']}><Outlet /></RBACGuard></ChatbotProvider>}>
                         <Route path="/workspace" element={<WorkspaceDashboard />} />
                         <Route path="/workspace/comptable" element={<ComptableWorkspace />} />
+                      </Route>
+                      <Route element={<ChatbotProvider><RBACGuard allowedRoles={['admin', 'manager']}><Outlet /></RBACGuard></ChatbotProvider>}>
                         <Route path="/workspace/manager" element={<ManagerWorkspace />} />
+                      </Route>
+                      <Route element={<ChatbotProvider><RBACGuard allowedRoles={['admin']}><Outlet /></RBACGuard></ChatbotProvider>}>
                         <Route path="/workspace/admin" element={<AdminWorkspace />} />
                       </Route>
 

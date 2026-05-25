@@ -61,10 +61,12 @@ const AdminWorkspace: React.FC = () => {
 
   const changeSection = (section: string) => { setActiveSection(section); setAdminSubTab(0); };
 
-  const workspaceOptions = [
+  const workspaceOptions = user?.role === 'admin' ? [
     { label: 'Espace Admin', path: '/workspace/admin', icon: Shield, color: 'var(--color-accent)', current: true },
     { label: 'Espace Manager', path: '/workspace/manager', icon: Briefcase, color: 'var(--color-primary)', current: false },
     { label: 'Espace Comptable', path: '/workspace/comptable', icon: BarChart3, color: 'var(--color-secondary)', current: false },
+  ] : [
+    { label: 'Espace Admin', path: '/workspace/admin', icon: Shield, color: 'var(--color-accent)', current: true },
   ];
 
   const sidebarAdminLinks = [
@@ -292,7 +294,7 @@ const AdminWorkspace: React.FC = () => {
           <div className="flex items-center space-x-3">
             <button onClick={() => navigate('/dashboard')} className="press group px-4 py-2 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] rounded-lg text-white font-medium flex items-center gap-2 transition-all shadow-sm hover:shadow-md text-sm">
               <LayoutDashboard className="w-4 h-4" strokeWidth={1.6} />
-              <span>Tableau de bord</span>
+              <span>Atlas Fna</span>
               <ArrowLeft className="w-3 h-3 opacity-60 group-hover:opacity-100 transition-all" style={{ transform: 'rotate(180deg)' }} />
             </button>
             <button className="relative p-2 rounded-lg hover:bg-gray-100"><Bell className="w-5 h-5 text-gray-500" />{adminStats.drafts > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 text-xs font-bold text-white bg-[var(--color-accent)] rounded-full flex items-center justify-center">{adminStats.drafts}</span>}</button>
@@ -323,7 +325,7 @@ const AdminWorkspace: React.FC = () => {
             <div className="border-b mb-4 pb-4"><div className="text-xs font-semibold text-gray-500 uppercase mb-3">Mon espace</div>
               <div className="space-y-1">
                 {[
-                  {id:'workspace',label:'Tableau de bord',icon:LayoutDashboard},
+                  {id:'workspace',label:'Accueil',icon:LayoutDashboard},
                   {id:'tasks',label:'Taches admin',icon:ListTodo},
                   {id:'chat',label:'Support',icon:MessageSquare},
                   {id:'profile',label:'Mon profil',icon:User},

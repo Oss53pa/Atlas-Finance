@@ -270,7 +270,7 @@ const ComptableWorkspaceFinal: React.FC = () => {
           </div>
           <div className="flex-1 max-w-md mx-6 hidden md:block"><div className="relative"><Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" /><input placeholder="Recherche..." className="w-full pl-10 pr-4 py-2 border rounded-lg text-sm" /></div></div>
           <div className="flex items-center space-x-3">
-            <button onClick={() => navigate('/dashboard')} className="group px-6 py-2.5 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] rounded-lg text-white font-semibold flex items-center space-x-2 transition-all shadow-sm hover:shadow-md"><LayoutDashboard className="w-5 h-5" /><span><span className="atlas-brand">Atlas F&A</span></span><ExternalLink className="w-4 h-4 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" /></button>
+            <button onClick={() => navigate('/dashboard')} className="group px-6 py-2.5 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] rounded-lg text-white font-semibold flex items-center space-x-2 transition-all shadow-sm hover:shadow-md"><LayoutDashboard className="w-5 h-5" /><span>Atlas Fna</span><ExternalLink className="w-4 h-4 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" /></button>
             <button className="relative p-2 rounded-lg hover:bg-gray-100"><Bell className="w-5 h-5 text-gray-500" />{comptaStats.drafts > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 text-xs font-bold text-white bg-[var(--color-primary)] rounded-full flex items-center justify-center">{comptaStats.drafts}</span>}</button>
             <button onClick={() => setActiveSection('help')} className="p-2 rounded-lg hover:bg-gray-100"><HelpCircle className="w-5 h-5 text-gray-500" /></button>
             <div className="relative">
@@ -300,7 +300,7 @@ const ComptableWorkspaceFinal: React.FC = () => {
             <div className="border-b mb-4 pb-4"><div className="text-xs font-semibold text-gray-500 uppercase mb-3">Mon espace</div>
               <div className="space-y-1">
                 {[
-                  {id:'workspace',label:'Tableau de bord',icon:LayoutDashboard},
+                  {id:'workspace',label:'Accueil',icon:LayoutDashboard},
                   {id:'tasks',label:'Mes taches',icon:ListTodo},
                   {id:'chat',label:'Chat equipe',icon:MessageSquare},
                   {id:'profile',label:'Mon profil',icon:User},
