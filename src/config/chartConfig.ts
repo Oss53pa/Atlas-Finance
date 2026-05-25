@@ -1,7 +1,12 @@
 import type { ChartOptions } from 'chart.js';
 
-// Configuration globale pour tous les graphiques
-export const defaultChartOptions: ChartOptions = {
+// Configuration globale pour tous les graphiques.
+// `satisfies` (et non une annotation `: ChartOptions`) : conserve la
+// vérification de type tout en gardant le type littéral inféré (sans clé
+// `datasets` propre à tous les types de graphes), ce qui permet de l'étaler
+// (`...defaultChartOptions`) proprement dans un `ChartOptions<'line'>`,
+// `ChartOptions<'bar'>`, etc. (Chart.js v4).
+export const defaultChartOptions = {
   responsive: true,
   maintainAspectRatio: false,
   plugins: {
@@ -63,7 +68,7 @@ export const defaultChartOptions: ChartOptions = {
       },
     },
   },
-};
+} satisfies ChartOptions;
 
 // Options spécifiques pour les graphiques en ligne
 export const lineChartOptions: ChartOptions<'line'> = {
