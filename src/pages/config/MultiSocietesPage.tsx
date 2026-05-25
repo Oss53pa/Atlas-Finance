@@ -626,9 +626,9 @@ const MultiSocietesPage: React.FC = () => {
 
                         <div className="space-y-4">
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <p className="block text-sm font-medium text-gray-700 mb-1">
                               Progression Consolidation
-                            </label>
+                            </p>
                             <Progress value={85} className="mb-2" />
                             <p className="text-xs text-gray-700">
                               Dernière consolidation: {formatDate(group.last_consolidation)}

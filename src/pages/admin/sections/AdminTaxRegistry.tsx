@@ -92,8 +92,15 @@ interface ConfirmDialogProps {
 const ConfirmDialog: React.FC<ConfirmDialogProps> = ({ open, title, message, onConfirm, onCancel }) => {
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onCancel}>
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      onClick={(e) => { if (e.target === e.currentTarget) onCancel(); }}
+      onKeyDown={(e) => { if (e.key === 'Escape') onCancel(); }}
+      role="button"
+      tabIndex={-1}
+      aria-label="Fermer"
+    >
+      <div role="dialog" aria-modal="true" className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
         <div className="flex items-center gap-3 px-6 py-4 border-b">
           <AlertTriangle className="w-5 h-5 text-amber-500" />
           <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
@@ -345,7 +352,7 @@ const AdminTaxRegistry: React.FC = () => {
 
       {/* Country selector */}
       <div className="bg-white border border-gray-200 rounded-lg p-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">Pays OHADA</label>
+        <p className="block text-sm font-medium text-gray-700 mb-2">Pays OHADA</p>
         <div className="flex flex-wrap gap-2">
           {OHADA_COUNTRIES.map(c => (
             <button
@@ -369,64 +376,64 @@ const AdminTaxRegistry: React.FC = () => {
           <h3 className="font-semibold text-gray-900">Nouvelle taxe — {OHADA_COUNTRIES.find(c => c.code === selectedCountry)?.name}</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">Code taxe *</label>
-              <input type="text" value={newTax.taxCode} onChange={e => setNewTax(p => ({ ...p, taxCode: e.target.value.toUpperCase() }))}
+              <label htmlFor="new-tax-code" className="block text-xs font-medium text-gray-500 mb-1">Code taxe *</label>
+              <input id="new-tax-code" type="text" value={newTax.taxCode} onChange={e => setNewTax(p => ({ ...p, taxCode: e.target.value.toUpperCase() }))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="TVA, IS, CNPS..." />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">Nom complet *</label>
-              <input type="text" value={newTax.taxName} onChange={e => setNewTax(p => ({ ...p, taxName: e.target.value }))}
+              <label htmlFor="new-tax-name" className="block text-xs font-medium text-gray-500 mb-1">Nom complet *</label>
+              <input id="new-tax-name" type="text" value={newTax.taxName} onChange={e => setNewTax(p => ({ ...p, taxName: e.target.value }))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="Taxe sur la Valeur Ajoutée" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">Nom court *</label>
-              <input type="text" value={newTax.taxShortName} onChange={e => setNewTax(p => ({ ...p, taxShortName: e.target.value }))}
+              <label htmlFor="new-tax-shortname" className="block text-xs font-medium text-gray-500 mb-1">Nom court *</label>
+              <input id="new-tax-shortname" type="text" value={newTax.taxShortName} onChange={e => setNewTax(p => ({ ...p, taxShortName: e.target.value }))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="TVA" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">Catégorie *</label>
-              <select value={newTax.taxCategory} onChange={e => setNewTax(p => ({ ...p, taxCategory: e.target.value as TaxCategory }))}
+              <label htmlFor="new-tax-category" className="block text-xs font-medium text-gray-500 mb-1">Catégorie *</label>
+              <select id="new-tax-category" value={newTax.taxCategory} onChange={e => setNewTax(p => ({ ...p, taxCategory: e.target.value as TaxCategory }))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white">
                 {(Object.keys(CATEGORY_META) as TaxCategory[]).map(c => <option key={c} value={c}>{CATEGORY_META[c].label}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">Taux (%)</label>
-              <input type="number" step="0.01" value={newTax.ratePct} onChange={e => setNewTax(p => ({ ...p, ratePct: e.target.value }))}
+              <label htmlFor="new-tax-rate" className="block text-xs font-medium text-gray-500 mb-1">Taux (%)</label>
+              <input id="new-tax-rate" type="number" step="0.01" value={newTax.ratePct} onChange={e => setNewTax(p => ({ ...p, ratePct: e.target.value }))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="18" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">Formule de calcul</label>
-              <select value={newTax.formula} onChange={e => setNewTax(p => ({ ...p, formula: e.target.value }))}
+              <label htmlFor="new-tax-formula" className="block text-xs font-medium text-gray-500 mb-1">Formule de calcul</label>
+              <select id="new-tax-formula" value={newTax.formula} onChange={e => setNewTax(p => ({ ...p, formula: e.target.value }))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white">
                 {FORMULA_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">Périodicité</label>
-              <select value={newTax.periodicity} onChange={e => setNewTax(p => ({ ...p, periodicity: e.target.value }))}
+              <label htmlFor="new-tax-periodicity" className="block text-xs font-medium text-gray-500 mb-1">Périodicité</label>
+              <select id="new-tax-periodicity" value={newTax.periodicity} onChange={e => setNewTax(p => ({ ...p, periodicity: e.target.value }))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white">
                 {PERIODICITY_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">Échéance (jours)</label>
-              <input type="number" value={newTax.declarationDeadlineDays} onChange={e => setNewTax(p => ({ ...p, declarationDeadlineDays: e.target.value }))}
+              <label htmlFor="new-tax-deadline" className="block text-xs font-medium text-gray-500 mb-1">Échéance (jours)</label>
+              <input id="new-tax-deadline" type="number" value={newTax.declarationDeadlineDays} onChange={e => setNewTax(p => ({ ...p, declarationDeadlineDays: e.target.value }))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="15" />
             </div>
             <div className="sm:col-span-2">
-              <label className="block text-xs font-medium text-gray-500 mb-1">Comptes déclencheurs (séparés par virgules)</label>
-              <input type="text" value={newTax.triggerAccounts} onChange={e => setNewTax(p => ({ ...p, triggerAccounts: e.target.value }))}
+              <label htmlFor="new-tax-triggers" className="block text-xs font-medium text-gray-500 mb-1">Comptes déclencheurs (séparés par virgules)</label>
+              <input id="new-tax-triggers" type="text" value={newTax.triggerAccounts} onChange={e => setNewTax(p => ({ ...p, triggerAccounts: e.target.value }))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="4431, 4432, 4433" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">Autorité fiscale</label>
-              <input type="text" value={newTax.fiscalAuthority} onChange={e => setNewTax(p => ({ ...p, fiscalAuthority: e.target.value }))}
+              <label htmlFor="new-tax-authority" className="block text-xs font-medium text-gray-500 mb-1">Autorité fiscale</label>
+              <input id="new-tax-authority" type="text" value={newTax.fiscalAuthority} onChange={e => setNewTax(p => ({ ...p, fiscalAuthority: e.target.value }))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="DGI, CNPS..." />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">Référence légale</label>
-              <input type="text" value={newTax.legalReference} onChange={e => setNewTax(p => ({ ...p, legalReference: e.target.value }))}
+              <label htmlFor="new-tax-legal-ref" className="block text-xs font-medium text-gray-500 mb-1">Référence légale</label>
+              <input id="new-tax-legal-ref" type="text" value={newTax.legalReference} onChange={e => setNewTax(p => ({ ...p, legalReference: e.target.value }))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="CGI Art. XX" />
             </div>
           </div>
@@ -605,8 +612,9 @@ const AdminTaxRegistry: React.FC = () => {
                         <div className="mt-3 pt-3 border-t border-gray-100 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                           {/* Rate */}
                           <div>
-                            <label className="block text-xs font-medium text-gray-500 mb-1">Taux (%)</label>
+                            <label htmlFor={`edit-rate-${tax.id}`} className="block text-xs font-medium text-gray-500 mb-1">Taux (%)</label>
                             <input
+                              id={`edit-rate-${tax.id}`}
                               type="number"
                               step="0.01"
                               value={editForm.ratePct}
@@ -618,8 +626,9 @@ const AdminTaxRegistry: React.FC = () => {
 
                           {/* Periodicity */}
                           <div>
-                            <label className="block text-xs font-medium text-gray-500 mb-1">Periodicite</label>
+                            <label htmlFor={`edit-periodicity-${tax.id}`} className="block text-xs font-medium text-gray-500 mb-1">Periodicite</label>
                             <select
+                              id={`edit-periodicity-${tax.id}`}
                               value={editForm.periodicity}
                               onChange={(e) => setEditForm((prev) => ({ ...prev, periodicity: e.target.value }))}
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none bg-white"
@@ -632,8 +641,9 @@ const AdminTaxRegistry: React.FC = () => {
 
                           {/* Deadline days */}
                           <div>
-                            <label className="block text-xs font-medium text-gray-500 mb-1">Echeance (jours)</label>
+                            <label htmlFor={`edit-deadline-${tax.id}`} className="block text-xs font-medium text-gray-500 mb-1">Echeance (jours)</label>
                             <input
+                              id={`edit-deadline-${tax.id}`}
                               type="number"
                               value={editForm.declarationDeadlineDays}
                               onChange={(e) => setEditForm((prev) => ({ ...prev, declarationDeadlineDays: e.target.value }))}
@@ -644,8 +654,9 @@ const AdminTaxRegistry: React.FC = () => {
 
                           {/* Legal reference */}
                           <div>
-                            <label className="block text-xs font-medium text-gray-500 mb-1">Reference legale</label>
+                            <label htmlFor={`edit-legal-${tax.id}`} className="block text-xs font-medium text-gray-500 mb-1">Reference legale</label>
                             <input
+                              id={`edit-legal-${tax.id}`}
                               type="text"
                               value={editForm.legalReference}
                               onChange={(e) => setEditForm((prev) => ({ ...prev, legalReference: e.target.value }))}
