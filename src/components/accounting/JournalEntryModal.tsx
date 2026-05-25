@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { formatCurrency } from '@/utils/formatters';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -118,6 +119,30 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
     { code: '701000', libelle: 'Ventes de marchandises' },
   ];
   const [planComptable, setPlanComptable] = useState<Array<{ code: string; libelle: string }>>(PLAN_COMPTABLE_FALLBACK);
+
+  /** Fournisseur options (comptes 401xxx) derived from the loaded plan comptable */
+  const fournisseurOptions = useMemo(() =>
+    planComptable
+      .filter(a => a.code.startsWith('401'))
+      .map(a => ({ value: a.code, label: `${a.code} – ${a.libelle}` })),
+    [planComptable]
+  );
+
+  /** Client options (comptes 411xxx) derived from the loaded plan comptable */
+  const clientOptions = useMemo(() =>
+    planComptable
+      .filter(a => a.code.startsWith('411'))
+      .map(a => ({ value: a.code, label: `${a.code} – ${a.libelle}` })),
+    [planComptable]
+  );
+
+  // Portal position for the inline compte/analytique dropdowns in the ventilation table
+  const [compteDropdownPos, setCompteDropdownPos] = useState<{ top: number; left: number; width: number } | null>(null);
+  const [analytiqueDropdownPos, setAnalytiqueDropdownPos] = useState<{ top: number; left: number; width: number } | null>(null);
+  const compteInputRefs = useRef<Map<number, HTMLDivElement>>(new Map());
+  const analytiqueInputRefs = useRef<Map<number, HTMLDivElement>>(new Map());
+  const comptePortalRef = useRef<HTMLDivElement | null>(null);
+  const analytiquePortalRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -314,18 +339,35 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
     );
   }, []);
 
-  // Fermer les dropdowns quand on clique à l'extérieur
+  // Fermer les dropdowns quand on clique à l'extérieur (gère aussi les portals)
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      if (!target.closest('.relative')) {
-        setShowCompteDropdown(null);
-        setShowAnalytiqueDropdown(null);
-      }
+      const target = event.target as Node;
+      const inComptePortal = comptePortalRef.current?.contains(target) ?? false;
+      const inAnalytiquePortal = analytiquePortalRef.current?.contains(target) ?? false;
+      const inCompteTrigger = !!(event.target as HTMLElement).closest?.('.compte-search-trigger');
+      const inAnalytiqueTrigger = !!(event.target as HTMLElement).closest?.('.analytique-search-trigger');
+      if (!inCompteTrigger && !inComptePortal) setShowCompteDropdown(null);
+      if (!inAnalytiqueTrigger && !inAnalytiquePortal) setShowAnalytiqueDropdown(null);
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Fermer les portals sur scroll (le dropdown ne suivrait pas le défilement)
+  useEffect(() => {
+    if (showCompteDropdown === null) return;
+    const close = () => setShowCompteDropdown(null);
+    window.addEventListener('scroll', close, true);
+    return () => window.removeEventListener('scroll', close, true);
+  }, [showCompteDropdown]);
+
+  useEffect(() => {
+    if (showAnalytiqueDropdown === null) return;
+    const close = () => setShowAnalytiqueDropdown(null);
+    window.addEventListener('scroll', close, true);
+    return () => window.removeEventListener('scroll', close, true);
+  }, [showAnalytiqueDropdown]);
 
   // Fonction pour réinitialiser le formulaire
   const resetForm = useCallback(() => {
@@ -1066,6 +1108,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                           placeholder="Sélectionner un sous-journal"
                           searchPlaceholder="Rechercher un sous-journal..."
                           clearable
+                          usePortal
                         />
                       </div>
                     )}
@@ -1144,15 +1187,13 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Fournisseur *</label>
                         <SearchableDropdown
-                          options={[
-                            { value: 'fournisseur1', label: 'Fournisseur 1' },
-                            { value: 'fournisseur2', label: 'Fournisseur 2' }
-                          ]}
+                          options={fournisseurOptions}
                           value={factureInfo.fournisseur}
                           onChange={(value) => setFactureInfo({...factureInfo, fournisseur: value})}
                           placeholder="-- Sélectionner fournisseur --"
                           searchPlaceholder="Rechercher un fournisseur..."
                           clearable
+                          usePortal
                         />
                       </div>
                       <div>
@@ -1188,15 +1229,13 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Client *</label>
                         <SearchableDropdown
-                          options={[
-                            { value: 'client1', label: 'Client 1' },
-                            { value: 'client2', label: 'Client 2' }
-                          ]}
+                          options={clientOptions}
                           value={venteInfo.client}
                           onChange={(value) => setVenteInfo({...venteInfo, client: value})}
                           placeholder="-- Sélectionner client --"
                           searchPlaceholder="Rechercher un client..."
                           clearable
+                          usePortal
                         />
                       </div>
                       <div>
@@ -1280,20 +1319,22 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                             onChange={(value) => setReglementInfo({...reglementInfo, modeReglement: value})}
                             placeholder="Sélectionner un mode"
                             showSearch={false}
+                            usePortal
                           />
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">Banque/Compte *</label>
                           <SearchableDropdown
-                            options={[
-                              { value: '512100', label: '512100 - BNP Paribas' },
-                              { value: '512200', label: '512200 - Société Générale' },
-                              { value: '531000', label: '531000 - Caisse' }
-                            ]}
+                            options={
+                              planComptable
+                                .filter(a => a.code.startsWith('51') || a.code.startsWith('52') || a.code.startsWith('53'))
+                                .map(a => ({ value: a.code, label: `${a.code} – ${a.libelle}` }))
+                            }
                             value={reglementInfo.compteBank}
                             onChange={(value) => setReglementInfo({...reglementInfo, compteBank: value})}
                             placeholder="Sélectionner un compte"
                             searchPlaceholder="Rechercher un compte..."
+                            usePortal
                           />
                         </div>
                         <div>
@@ -1331,41 +1372,25 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                             Tiers {reglementInfo.typeReglement === 'encaissement' ? 'débiteur' : 'créditeur'} *
                           </label>
                           <SearchableDropdown
-                            options={
-                              reglementInfo.typeReglement === 'encaissement' ? [
-                                { value: 'client1', label: 'Client A' },
-                                { value: 'client2', label: 'Client B' }
-                              ] : [
-                                { value: 'fournisseur1', label: 'Fournisseur 1' },
-                                { value: 'fournisseur2', label: 'Fournisseur 2' }
-                              ]
-                            }
+                            options={reglementInfo.typeReglement === 'encaissement' ? clientOptions : fournisseurOptions}
                             value={reglementInfo.tiers}
                             onChange={(value) => setReglementInfo({...reglementInfo, tiers: value})}
                             placeholder="-- Sélectionner --"
                             searchPlaceholder={`Rechercher un ${reglementInfo.typeReglement === 'encaissement' ? 'client' : 'fournisseur'}...`}
                             clearable
+                            usePortal
                           />
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
                             Document à {reglementInfo.typeReglement === 'encaissement' ? 'encaisser' : 'décaisser'} *
                           </label>
-                          <SearchableDropdown
-                            options={
-                              reglementInfo.typeReglement === 'encaissement' ? [
-                                { value: 'VE-2025-00234', label: 'VE-2025-00234' },
-                                { value: 'VE-2025-00235', label: 'VE-2025-00235' }
-                              ] : [
-                                { value: 'FA-2025-001', label: 'FA-2025-001' },
-                                { value: 'FA-2025-002', label: 'FA-2025-002' }
-                              ]
-                            }
+                          <input
+                            type="text"
                             value={reglementInfo.document}
-                            onChange={(value) => setReglementInfo({...reglementInfo, document: value})}
-                            placeholder="-- Sélectionner document --"
-                            searchPlaceholder="Rechercher un document..."
-                            clearable
+                            onChange={(e) => setReglementInfo({...reglementInfo, document: e.target.value})}
+                            placeholder={reglementInfo.typeReglement === 'encaissement' ? 'VE-2025-00001' : 'FA-2025-001'}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           />
                         </div>
                       </div>
@@ -1472,8 +1497,11 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                     <tbody>
                       {lignesEcriture.map((ligne, index) => (
                         <tr key={index} className="border-b border-gray-200">
-                          <td className="px-3 py-2 relative">
-                            <div className="relative">
+                          <td className="px-3 py-2">
+                            <div
+                              className="relative compte-search-trigger"
+                              ref={(el) => { if (el) compteInputRefs.current.set(index, el); else compteInputRefs.current.delete(index); }}
+                            >
                               <input
                                 type="text"
                                 value={ligne.compte}
@@ -1482,25 +1510,37 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                                   setSearchCompte({ ...searchCompte, [index]: e.target.value });
                                   setShowCompteDropdown(index);
                                 }}
-                                onFocus={() => setShowCompteDropdown(index)}
+                                onFocus={() => {
+                                  const el = compteInputRefs.current.get(index);
+                                  if (el) {
+                                    const rect = el.getBoundingClientRect();
+                                    setCompteDropdownPos({ top: rect.bottom + 2, left: rect.left, width: Math.max(rect.width, 300) });
+                                  }
+                                  setShowCompteDropdown(index);
+                                }}
                                 placeholder="Rechercher..."
                                 className="w-full px-2 py-1 pr-8 border border-gray-300 rounded"
                               />
                               <Search className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-700" />
                             </div>
-                            {showCompteDropdown === index && (
-                              <div className="absolute z-[100] mt-1 w-full max-h-48 overflow-y-auto bg-white border border-gray-300 rounded-lg shadow-lg">
+                            {showCompteDropdown === index && compteDropdownPos && createPortal(
+                              <div
+                                ref={comptePortalRef}
+                                className="bg-white border border-gray-300 rounded-lg shadow-xl overflow-y-auto"
+                                style={{ position: 'fixed', top: compteDropdownPos.top, left: compteDropdownPos.left, width: compteDropdownPos.width, maxHeight: 192, zIndex: 9999 }}
+                              >
                                 {getFilteredComptes(index).map((compte) => (
                                   <button
                                     key={compte.code}
-                                    onClick={() => selectCompte(index, compte)}
+                                    onMouseDown={(e) => { e.preventDefault(); selectCompte(index, compte); }}
                                     className="w-full px-3 py-2 text-left hover:bg-blue-50 flex justify-between items-center"
                                   >
                                     <span className="font-mono text-sm">{compte.code}</span>
                                     <span className="text-sm text-gray-600 truncate ml-2">{compte.libelle}</span>
                                   </button>
                                 ))}
-                              </div>
+                              </div>,
+                              document.body
                             )}
                           </td>
                           <td className="px-3 py-2">
@@ -1528,8 +1568,11 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                               className="w-full px-2 py-1 border border-gray-300 rounded text-right"
                             />
                           </td>
-                          <td className="px-3 py-2 relative">
-                            <div className="relative">
+                          <td className="px-3 py-2">
+                            <div
+                              className="relative analytique-search-trigger"
+                              ref={(el) => { if (el) analytiqueInputRefs.current.set(index, el); else analytiqueInputRefs.current.delete(index); }}
+                            >
                               <input
                                 type="text"
                                 value={ligne.codeAnalytique || ''}
@@ -1538,19 +1581,27 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                                   setSearchAnalytique({ ...searchAnalytique, [index]: e.target.value });
                                   setShowAnalytiqueDropdown(index);
                                 }}
-                                onFocus={() => setShowAnalytiqueDropdown(index)}
+                                onFocus={() => {
+                                  const el = analytiqueInputRefs.current.get(index);
+                                  if (el) {
+                                    const rect = el.getBoundingClientRect();
+                                    setAnalytiqueDropdownPos({ top: rect.bottom + 2, left: rect.left, width: Math.max(rect.width, 240) });
+                                  }
+                                  setShowAnalytiqueDropdown(index);
+                                }}
                                 placeholder="Optionnel..."
                                 className="w-full px-2 py-1 pr-8 border border-gray-300 rounded"
                               />
                               <Search className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-700" />
                             </div>
-                            {showAnalytiqueDropdown === index && (
-                              <div className="absolute z-[100] mt-1 w-full max-h-48 overflow-y-auto bg-white border border-gray-300 rounded-lg shadow-lg">
+                            {showAnalytiqueDropdown === index && analytiqueDropdownPos && createPortal(
+                              <div
+                                ref={analytiquePortalRef}
+                                className="bg-white border border-gray-300 rounded-lg shadow-xl overflow-y-auto"
+                                style={{ position: 'fixed', top: analytiqueDropdownPos.top, left: analytiqueDropdownPos.left, width: analytiqueDropdownPos.width, maxHeight: 192, zIndex: 9999 }}
+                              >
                                 <button
-                                  onClick={() => {
-                                    modifierLigne(index, 'codeAnalytique', '');
-                                    setShowAnalytiqueDropdown(null);
-                                  }}
+                                  onMouseDown={(e) => { e.preventDefault(); modifierLigne(index, 'codeAnalytique', ''); setShowAnalytiqueDropdown(null); }}
                                   className="w-full px-3 py-2 text-left hover:bg-gray-50 text-gray-700 italic"
                                 >
                                   -- Aucun --
@@ -1558,7 +1609,8 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                                 {getFilteredAnalytiques(index).map((code) => (
                                   <button
                                     key={code.code}
-                                    onClick={() => {
+                                    onMouseDown={(e) => {
+                                      e.preventDefault();
                                       modifierLigne(index, 'codeAnalytique', code.libelle);
                                       setShowAnalytiqueDropdown(null);
                                       setSearchAnalytique({ ...searchAnalytique, [index]: '' });
@@ -1568,7 +1620,8 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                                     <span className="text-sm">{code.libelle}</span>
                                   </button>
                                 ))}
-                              </div>
+                              </div>,
+                              document.body
                             )}
                           </td>
                           <td className="px-3 py-2 text-center">

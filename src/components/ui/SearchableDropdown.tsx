@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { Search, ChevronDown, X } from 'lucide-react';
 
 interface Option {
@@ -37,6 +38,9 @@ interface SearchableDropdownProps {
   closeOnSelect?: boolean;
   showSearch?: boolean;
   minSearchLength?: number;
+  /** Render the dropdown via a portal anchored to the viewport.
+   *  Use inside overflow-hidden/auto containers to prevent clipping. */
+  usePortal?: boolean;
 }
 
 const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
@@ -65,82 +69,97 @@ const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
   onMultiChange,
   closeOnSelect = true,
   showSearch = true,
-  minSearchLength = 0
+  minSearchLength = 0,
+  usePortal = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [highlightedIndex, setHighlightedIndex] = useState(0);
+  const [portalStyle, setPortalStyle] = useState<React.CSSProperties>({});
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const portalDropdownRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Gestion de la fermeture du dropdown en cliquant à l'extérieur
+  /** Compute viewport-relative position for portal mode. */
+  const computePortalPosition = useCallback(() => {
+    if (!inputRef.current) return;
+    const rect = inputRef.current.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+    const estimatedHeight = Math.min(maxHeight + 50, 350);
+    const spaceBelow = viewportHeight - rect.bottom;
+    const showAbove = spaceBelow < estimatedHeight && rect.top > spaceBelow;
+    setPortalStyle({
+      position: 'fixed',
+      top: showAbove ? undefined : rect.bottom + 2,
+      bottom: showAbove ? viewportHeight - rect.top + 2 : undefined,
+      left: rect.left,
+      width: rect.width,
+      zIndex: 9999,
+    });
+  }, [maxHeight]);
+
+  // Close portal dropdown when the viewport scrolls (dropdown would be misaligned)
+  useEffect(() => {
+    if (!isOpen || !usePortal) return;
+    const close = () => setIsOpen(false);
+    window.addEventListener('scroll', close, true);
+    window.addEventListener('resize', close);
+    return () => {
+      window.removeEventListener('scroll', close, true);
+      window.removeEventListener('resize', close);
+    };
+  }, [isOpen, usePortal]);
+
+  // Close on click outside (handles both inline and portal modes)
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      const inTrigger = dropdownRef.current?.contains(target) ?? false;
+      const inPortal = portalDropdownRef.current?.contains(target) ?? false;
+      if (!inTrigger && !inPortal) {
         setIsOpen(false);
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Focus sur le champ de recherche quand le dropdown s'ouvre
+  // Focus search input when dropdown opens
   useEffect(() => {
     if (isOpen && showSearch && searchInputRef.current) {
       searchInputRef.current.focus();
     }
   }, [isOpen, showSearch]);
 
-  // Fonction de filtrage par défaut
   const defaultFilter = (option: Option, term: string): boolean => {
     if (!term || term.length < minSearchLength) return true;
-    
     const searchLower = term.toLowerCase();
     const labelLower = option.label.toLowerCase();
     const valueLower = option.value.toLowerCase();
     const descLower = option.description?.toLowerCase() || '';
-    
-    // Recherche par début de mot
-    if (labelLower.startsWith(searchLower) || valueLower.startsWith(searchLower)) {
-      return true;
-    }
-    
-    // Recherche par inclusion
-    if (labelLower.includes(searchLower) || valueLower.includes(searchLower) || descLower.includes(searchLower)) {
-      return true;
-    }
-    
-    // Recherche multi-mots clés
+    if (labelLower.startsWith(searchLower) || valueLower.startsWith(searchLower)) return true;
+    if (labelLower.includes(searchLower) || valueLower.includes(searchLower) || descLower.includes(searchLower)) return true;
     const keywords = searchLower.split(' ').filter(k => k.length > 0);
-    return keywords.every(keyword => 
-      labelLower.includes(keyword) || valueLower.includes(keyword) || descLower.includes(keyword)
-    );
+    return keywords.every(k => labelLower.includes(k) || valueLower.includes(k) || descLower.includes(k));
   };
 
   const filter = filterFunction || defaultFilter;
-
-  // Filtrage des options
   const filteredOptions = options.filter(option => filter(option, searchTerm));
 
-  // Groupage des options si nécessaire
-  const groupedOptions = groupBy ? filteredOptions.reduce((groups, option) => {
-    const group = option.group || 'Sans groupe';
-    if (!groups[group]) groups[group] = [];
-    groups[group].push(option);
-    return groups;
-  }, {} as Record<string, Option[]>) : { '': filteredOptions };
+  const groupedOptions = groupBy
+    ? filteredOptions.reduce((groups, option) => {
+        const group = option.group || 'Sans groupe';
+        if (!groups[group]) groups[group] = [];
+        groups[group].push(option);
+        return groups;
+      }, {} as Record<string, Option[]>)
+    : { '': filteredOptions };
 
-  // Obtenir l'option sélectionnée
   const selectedOption = options.find(opt => opt.value === value);
 
-  // Gestion de la sélection
   const handleSelect = (option: Option) => {
     if (option.disabled) return;
-
     if (multiple) {
       const newValues = selectedValues.includes(option.value)
         ? selectedValues.filter(v => v !== option.value)
@@ -150,29 +169,25 @@ const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
     } else {
       onChange(option.value, option);
     }
-
     if (closeOnSelect) {
       setIsOpen(false);
       setSearchTerm('');
     }
   };
 
-  // Gestion du clavier
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!isOpen) {
       if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
         e.preventDefault();
+        if (usePortal) computePortalPosition();
         setIsOpen(true);
       }
       return;
     }
-
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
-        setHighlightedIndex(prev => 
-          prev < filteredOptions.length - 1 ? prev + 1 : prev
-        );
+        setHighlightedIndex(prev => prev < filteredOptions.length - 1 ? prev + 1 : prev);
         break;
       case 'ArrowUp':
         e.preventDefault();
@@ -180,9 +195,7 @@ const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
         break;
       case 'Enter':
         e.preventDefault();
-        if (filteredOptions[highlightedIndex]) {
-          handleSelect(filteredOptions[highlightedIndex]);
-        }
+        if (filteredOptions[highlightedIndex]) handleSelect(filteredOptions[highlightedIndex]);
         break;
       case 'Escape':
         e.preventDefault();
@@ -191,35 +204,79 @@ const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
     }
   };
 
-  // Effacer la sélection
   const handleClear = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (multiple) {
-      onMultiChange?.([]);
-    } else {
-      onChange('', undefined);
-    }
+    if (multiple) onMultiChange?.([]);
+    else onChange('', undefined);
   };
 
-  // Rendu de l'option par défaut
   const defaultRenderOption = (option: Option) => (
     <div className="flex items-center justify-between">
       <div className="flex items-center space-x-2">
         {option.icon && <span>{option.icon}</span>}
         <div>
           <div className="font-medium">{option.label}</div>
-          {option.description && (
-            <div className="text-xs text-gray-700">{option.description}</div>
-          )}
+          {option.description && <div className="text-xs text-gray-700">{option.description}</div>}
         </div>
       </div>
-      {multiple && selectedValues.includes(option.value) && (
-        <span className="text-blue-600">✓</span>
-      )}
+      {multiple && selectedValues.includes(option.value) && <span className="text-blue-600">✓</span>}
     </div>
   );
 
   const render = renderOption || defaultRenderOption;
+
+  const dropdownInner = (
+    <>
+      {showSearch && (
+        <div className="p-2 border-b border-gray-200">
+          <div className="relative">
+            <input
+              ref={searchInputRef}
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder={searchPlaceholder}
+              className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
+              onClick={(e) => e.stopPropagation()}
+            />
+            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-700" />
+          </div>
+        </div>
+      )}
+      <div className="py-1">
+        {filteredOptions.length === 0 ? (
+          <div className="px-3 py-2 text-gray-700 text-center">{emptyMessage}</div>
+        ) : (
+          Object.entries(groupedOptions).map(([group, groupOptions]) => (
+            <div key={group}>
+              {group && groupBy && (
+                <div className="px-3 py-2 text-xs font-semibold text-gray-700 uppercase tracking-wider">{group}</div>
+              )}
+              {groupOptions.map((option) => {
+                const globalIndex = filteredOptions.indexOf(option);
+                return (
+                  <div
+                    key={option.value}
+                    className={`
+                      px-3 py-2 cursor-pointer
+                      ${option.disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}
+                      ${globalIndex === highlightedIndex ? 'bg-blue-50' : ''}
+                      ${(multiple ? selectedValues.includes(option.value) : value === option.value) ? 'bg-blue-50' : ''}
+                      ${optionClassName}
+                    `}
+                    onClick={(e) => { e.stopPropagation(); handleSelect(option); }}
+                    onMouseEnter={() => setHighlightedIndex(globalIndex)}
+                  >
+                    {render(option)}
+                  </div>
+                );
+              })}
+            </div>
+          ))
+        )}
+      </div>
+    </>
+  );
 
   return (
     <div className={`relative ${className}`} ref={dropdownRef}>
@@ -238,102 +295,55 @@ const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
           ${error ? 'border-red-500' : 'border-gray-300'}
           ${isOpen ? 'border-blue-500 ring-1 ring-blue-500' : ''}
         `}
-        onClick={() => !disabled && setIsOpen(!isOpen)}
+        onClick={() => {
+          if (disabled) return;
+          if (!isOpen && usePortal) computePortalPosition();
+          setIsOpen(!isOpen);
+        }}
         onKeyDown={handleKeyDown}
         tabIndex={disabled ? -1 : 0}
         ref={inputRef}
       >
         <div className="flex-1 truncate">
-          {multiple ? (
-            selectedValues.length > 0 ? `${selectedValues.length} sélectionné(s)` : placeholder
-          ) : (
-            selectedOption ? selectedOption.label : placeholder
-          )}
+          {multiple
+            ? (selectedValues.length > 0 ? `${selectedValues.length} sélectionné(s)` : placeholder)
+            : (selectedOption ? selectedOption.label : placeholder)}
         </div>
-        
         <div className="flex items-center space-x-1">
           {clearable && (value || (multiple && selectedValues.length > 0)) && !disabled && (
-            <button
-              onClick={handleClear}
-              className="p-1 hover:bg-gray-100 rounded"
-              tabIndex={-1} aria-label="Fermer">
+            <button onClick={handleClear} className="p-1 hover:bg-gray-100 rounded" tabIndex={-1} aria-label="Fermer">
               <X className="w-4 h-4 text-gray-700" />
             </button>
           )}
-          {loading ? (
-            <div className="animate-spin w-4 h-4 border-2 border-gray-300 border-t-blue-600 rounded-full" />
-          ) : (
-            <ChevronDown className={`w-4 h-4 text-gray-700 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-          )}
+          {loading
+            ? <div className="animate-spin w-4 h-4 border-2 border-gray-300 border-t-blue-600 rounded-full" />
+            : <ChevronDown className={`w-4 h-4 text-gray-700 transition-transform ${isOpen ? 'rotate-180' : ''}`} />}
         </div>
       </div>
 
       {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
       {helperText && !error && <p className="mt-1 text-sm text-gray-700">{helperText}</p>}
 
-      {isOpen && (
+      {/* Inline dropdown (default) */}
+      {!usePortal && isOpen && (
         <div
-          className={`
-            absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg
-            ${dropdownClassName}
-          `}
+          className={`absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg ${dropdownClassName}`}
           style={{ maxHeight: `${maxHeight}px`, overflowY: 'auto' }}
         >
-          {showSearch && (
-            <div className="p-2 border-b border-gray-200">
-              <div className="relative">
-                <input
-                  ref={searchInputRef}
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder={searchPlaceholder}
-                  className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  onClick={(e) => e.stopPropagation()}
-                />
-                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-700" />
-              </div>
-            </div>
-          )}
-
-          <div className="py-1">
-            {filteredOptions.length === 0 ? (
-              <div className="px-3 py-2 text-gray-700 text-center">{emptyMessage}</div>
-            ) : (
-              Object.entries(groupedOptions).map(([group, groupOptions]) => (
-                <div key={group}>
-                  {group && groupBy && (
-                    <div className="px-3 py-2 text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      {group}
-                    </div>
-                  )}
-                  {groupOptions.map((option, index) => {
-                    const globalIndex = filteredOptions.indexOf(option);
-                    return (
-                      <div
-                        key={option.value}
-                        className={`
-                          px-3 py-2 cursor-pointer
-                          ${option.disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}
-                          ${globalIndex === highlightedIndex ? 'bg-blue-50' : ''}
-                          ${(multiple ? selectedValues.includes(option.value) : value === option.value) ? 'bg-blue-50' : ''}
-                          ${optionClassName}
-                        `}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleSelect(option);
-                        }}
-                        onMouseEnter={() => setHighlightedIndex(globalIndex)}
-                      >
-                        {render(option)}
-                      </div>
-                    );
-                  })}
-                </div>
-              ))
-            )}
-          </div>
+          {dropdownInner}
         </div>
+      )}
+
+      {/* Portal dropdown — escapes overflow containers */}
+      {usePortal && isOpen && createPortal(
+        <div
+          ref={portalDropdownRef}
+          className={`bg-white border border-gray-200 rounded-lg shadow-xl ${dropdownClassName}`}
+          style={{ ...portalStyle, maxHeight: `${maxHeight}px`, overflowY: 'auto' }}
+        >
+          {dropdownInner}
+        </div>,
+        document.body
       )}
     </div>
   );

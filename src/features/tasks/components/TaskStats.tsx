@@ -42,7 +42,7 @@ export const TaskStats: React.FC<TaskStatsProps> = ({ stats, loading }) => {
         value={stats.overdue.toString()}
         subtitle="Nécessitent attention"
         icon={AlertCircle}
-        color={stats.overdue > 0 ? 'danger' : 'success'}
+        color={stats.overdue > 0 ? 'error' : 'success'}
       />
 
       <StatCard
@@ -51,7 +51,11 @@ export const TaskStats: React.FC<TaskStatsProps> = ({ stats, loading }) => {
         subtitle={`Temps moyen: ${stats.avgCompletionTime}j`}
         icon={TrendingUp}
         color="success"
-        trend={stats.completionRate > 75 ? 'up' : 'down'}
+        trend={{
+          value: `${stats.completionRate.toFixed(0)}%`,
+          isPositive: stats.completionRate > 75,
+          label: stats.completionRate > 75 ? 'objectif atteint' : 'en dessous',
+        }}
       />
     </div>
   );

@@ -101,7 +101,19 @@
       "Bash(npx vite *)",
       "Bash(git reset *)",
       "mcp__Claude_in_Chrome__tabs_context_mcp",
-      "Bash(gh run *)"
+      "Bash(gh run *)",
+      "Bash(tee /tmp/tsc_full.txt)",
+      "Bash(Get-Content \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--devs-WiseBook\\\\86bafd4e-1d2a-41ec-ad07-12dd9cf92c37\\\\tasks\\\\bo9t4lyon.output\" -Wait)",
+      "Bash(Select-Object -First 30)",
+      "Bash(Get-Content \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--devs-WiseBook\\\\86bafd4e-1d2a-41ec-ad07-12dd9cf92c37\\\\tasks\\\\bt2hme4yv.output\" -Wait)",
+      "Bash(Select-String \".\")",
+      "Bash(Select-Object -First 1 -ExpandProperty Line)",
+      "Bash(echo \"TSC_EXIT:$?\")",
+      "Bash(echo \"EXIT_CODE:$?\")",
+      "Bash(node_modules/.bin/tsc --noEmit)",
+      "Bash(echo \"exit:$?\")",
+      "Bash(git -C ../wb-chartfix status --short)",
+      "Bash(git -C ../wb-chartfix --no-pager diff -- src/config/chartConfig.ts)"
     ],
     "deny": [],
     "ask": []

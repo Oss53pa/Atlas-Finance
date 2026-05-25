@@ -857,7 +857,7 @@ const RevisionsModule: React.FC = () => {
               <Activity className="w-5 h-5 text-primary-600" />
             </div>
             <p className="text-lg font-bold text-primary-900">{stats.tauxCompletion}%</p>
-            <Progress value={stats.tauxCompletion} className="h-1 mt-2" />
+            <Progress value={stats.tauxCompletion} className="h-2 mt-2" />
           </div>
         </div>
 

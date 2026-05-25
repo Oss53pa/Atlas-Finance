@@ -51,7 +51,11 @@ export const ClosureStats: React.FC<ClosureStatsProps> = ({ stats, loading }) =>
         subtitle={`Temps moyen: ${stats.avgCompletionTime}j`}
         icon={TrendingUp}
         color={stats.complianceRate >= 90 ? 'success' : 'warning'}
-        trend={stats.complianceRate >= 90 ? 'up' : 'down'}
+        trend={{
+          value: `${stats.complianceRate}%`,
+          isPositive: stats.complianceRate >= 90,
+          label: stats.complianceRate >= 90 ? 'conforme' : 'non conforme',
+        }}
       />
     </div>
   );

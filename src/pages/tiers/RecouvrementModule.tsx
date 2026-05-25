@@ -7371,6 +7371,62 @@ Service Contentieux
 
       // Vue Coûts & Budget
       if (contentieuxView === 'couts') {
+        // Derive cost categories from real journal entries (class 6 accounts or AC journal)
+        const coutsByCategory: Record<string, number> = {};
+        let totalDepensesEngagees = 0;
+        let totalMontantsRecouVres = 0;
+        for (const entry of allJournalEntries) {
+          const isAchat = (entry.journalCode || '').toUpperCase().includes('AC');
+          for (const line of (entry.lines || [])) {
+            const acc: string = line.accountCode || '';
+            if (isAchat || acc.startsWith('6')) {
+              const debit = line.debit || 0;
+              if (debit > 0) {
+                // Group by first 3 chars of account code for a meaningful category label
+                const prefix = acc.slice(0, 3);
+                coutsByCategory[prefix] = (coutsByCategory[prefix] || 0) + debit;
+                totalDepensesEngagees += debit;
+              }
+            }
+            // Sum credits on 411xxx as recovered amounts
+            if (acc.startsWith('411') && (line.credit || 0) > 0) {
+              totalMontantsRecouVres += line.credit;
+            }
+          }
+        }
+
+        // Map account prefixes to human-readable labels
+        const accountPrefixLabels: Record<string, string> = {
+          '601': 'Achats marchandises', '602': 'Achats mat. premières', '603': 'Variation stocks',
+          '604': 'Achats fournitures', '605': 'Achats matériel', '606': 'Achats emballages',
+          '607': 'Achats matières', '608': 'Frais accessoires', '609': 'Remises fournisseurs',
+          '611': 'Transport sur achats', '612': 'Services extérieurs', '613': 'Locations',
+          '614': 'Charges locatives', '615': 'Entretien réparations', '616': 'Primes assurances',
+          '617': 'Documentation', '618': 'Divers services', '621': 'Rémunérations',
+          '622': 'Honoraires', '623': 'Publicité', '624': 'Transport livraisons',
+          '625': 'Déplacements', '626': 'Communications', '627': 'Services bancaires',
+          '628': 'Cotisations', '629': 'Divers charges', '631': 'Impôts taxes',
+          '632': 'Taxes apprentissage', '633': 'Taxes formation', '641': 'Rémunérations personnel',
+          '645': 'Charges sociales', '651': 'Pertes créances', '661': 'Charges intérêts',
+          '671': 'Dotations amortissements', '681': 'Dotations provisions',
+        };
+
+        const costChartData = Object.entries(coutsByCategory)
+          .map(([prefix, montant]) => ({
+            name: accountPrefixLabels[prefix] || `Compte ${prefix}xx`,
+            montant,
+          }))
+          .sort((a, b) => b.montant - a.montant)
+          .slice(0, 7); // top 7 categories
+
+        const totalCouts = costChartData.reduce((s, c) => s + c.montant, 0);
+        const roiLabel = totalDepensesEngagees > 0
+          ? `ROI: ${(totalMontantsRecouVres / totalDepensesEngagees).toFixed(1)}x`
+          : '—';
+        const budgetPct = totalDepensesEngagees > 0 && totalMontantsRecouVres > 0
+          ? `${Math.round((totalDepensesEngagees / (totalMontantsRecouVres || 1)) * 100)}% du récupéré`
+          : '—';
+
         return (
           <div className="space-y-6">
             {/* Budget global */}
@@ -7379,8 +7435,10 @@ Service Contentieux
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[var(--color-text-secondary)]">Budget Total Contentieux</p>
-                    <p className="text-lg font-bold text-[var(--color-primary)]">15M FCFA</p>
-                    <p className="text-xs text-gray-600">Année 2024</p>
+                    <p className="text-lg font-bold text-[var(--color-primary)]">
+                      {totalMontantsRecouVres > 0 ? formatCurrency(totalMontantsRecouVres) : '—'}
+                    </p>
+                    <p className="text-xs text-gray-600">Créances recouvrées</p>
                   </div>
                   <Wallet className="w-8 h-8 text-blue-600" />
                 </div>
@@ -7389,8 +7447,10 @@ Service Contentieux
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[var(--color-text-secondary)]">Dépenses Engagées</p>
-                    <p className="text-lg font-bold text-orange-600">8.7M FCFA</p>
-                    <p className="text-xs text-gray-600">58% du budget</p>
+                    <p className="text-lg font-bold text-orange-600">
+                      {totalDepensesEngagees > 0 ? formatCurrency(totalDepensesEngagees) : '—'}
+                    </p>
+                    <p className="text-xs text-gray-600">{budgetPct}</p>
                   </div>
                   <CreditCard className="w-8 h-8 text-orange-600" />
                 </div>
@@ -7399,8 +7459,10 @@ Service Contentieux
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[var(--color-text-secondary)]">Montants Recouvrés</p>
-                    <p className="text-lg font-bold text-green-600">27.8M FCFA</p>
-                    <p className="text-xs text-green-600">ROI: 3.2x</p>
+                    <p className="text-lg font-bold text-green-600">
+                      {totalMontantsRecouVres > 0 ? formatCurrency(totalMontantsRecouVres) : '—'}
+                    </p>
+                    <p className="text-xs text-green-600">{roiLabel}</p>
                   </div>
                   <TrendingUp className="w-8 h-8 text-green-600" />
                 </div>
@@ -7410,63 +7472,55 @@ Service Contentieux
             {/* Détail des coûts par type */}
             <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
               <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Répartition des Coûts</h3>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <RechartsPieChart>
-                      <Pie
-                        dataKey="montant"
-                        data={[
-                          { name: 'Honoraires Avocats', montant: 4500000 },
-                          { name: 'Frais Huissiers', montant: 2800000 },
-                          { name: 'Frais de Justice', montant: 1200000 },
-                          { name: 'Expertises', montant: 800000 },
-                          { name: 'Autres frais', montant: 400000 }
-                        ]}
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={100}
-                        fill="#235A6E"
-                        label
-                      >
-                        {[0,1,2,3,4].map((index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                    </RechartsPieChart>
-                  </ResponsiveContainer>
+              {costChartData.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-gray-400">
+                  <PieChart className="w-12 h-12 mb-3 opacity-30" />
+                  <p className="text-sm">Aucune charge enregistrée (comptes classe 6)</p>
                 </div>
-                <div className="space-y-3">
-                  <div className="p-3 bg-gray-50 rounded-lg">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium">Honoraires Avocats</span>
-                      <span className="text-sm font-bold">{formatCurrency(4500000)}</span>
-                    </div>
-                    <div className="mt-2 bg-gray-200 rounded-full h-2">
-                      <div className="bg-blue-600 h-2 rounded-full" style={{width: '52%'}}></div>
-                    </div>
+              ) : (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <RechartsPieChart>
+                        <Pie
+                          dataKey="montant"
+                          data={costChartData}
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={100}
+                          fill="#235A6E"
+                          label
+                        >
+                          {costChartData.map((_entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip formatter={(value) => formatCurrency(value as number)} />
+                        <Legend />
+                      </RechartsPieChart>
+                    </ResponsiveContainer>
                   </div>
-                  <div className="p-3 bg-gray-50 rounded-lg">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium">Frais Huissiers</span>
-                      <span className="text-sm font-bold">{formatCurrency(2800000)}</span>
-                    </div>
-                    <div className="mt-2 bg-gray-200 rounded-full h-2">
-                      <div className="bg-orange-600 h-2 rounded-full" style={{width: '32%'}}></div>
-                    </div>
-                  </div>
-                  <div className="p-3 bg-gray-50 rounded-lg">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium">Frais de Justice</span>
-                      <span className="text-sm font-bold">{formatCurrency(1200000)}</span>
-                    </div>
-                    <div className="mt-2 bg-gray-200 rounded-full h-2">
-                      <div className="bg-green-600 h-2 rounded-full" style={{width: '14%'}}></div>
-                    </div>
+                  <div className="space-y-3">
+                    {costChartData.map((cat, index) => {
+                      const pct = totalCouts > 0 ? Math.round((cat.montant / totalCouts) * 100) : 0;
+                      return (
+                        <div key={cat.name} className="p-3 bg-gray-50 rounded-lg">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm font-medium">{cat.name}</span>
+                            <span className="text-sm font-bold">{formatCurrency(cat.montant)}</span>
+                          </div>
+                          <div className="mt-2 bg-gray-200 rounded-full h-2">
+                            <div
+                              className="h-2 rounded-full"
+                              style={{ width: `${pct}%`, backgroundColor: COLORS[index % COLORS.length] }}
+                            ></div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Analyse coût/bénéfice par dossier */}
@@ -8287,7 +8341,7 @@ Service Contentieux
 
   };
 
-  const COLORS = ['#171717', '#525252', '#a3a3a3', '#235A6E', '#15803D', '#E89A2E'];
+  const COLORS = ['#235A6E', '#E89A2E', '#15803D', '#2D7D9A', '#F4A228', '#6B9E6E', '#8BBCCC'];
 
   return (
     <div className="p-6 bg-[var(--color-border)] min-h-screen ">
