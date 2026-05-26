@@ -57,6 +57,7 @@ const VerifyEmailPage = lazyRetry(() => import('./pages/onboarding/VerifyEmailPa
 const SolutionCatalogPage = lazyRetry(() => import('./pages/onboarding/SolutionCatalogPage'));
 const TeamSettingsPage = lazyRetry(() => import('./pages/settings/TeamSettingsPage'));
 const AcceptInvitePage = lazyRetry(() => import('./pages/onboarding/AcceptInvitePage'));
+const PremierConnexionPage = lazyRetry(() => import('./pages/onboarding/PremierConnexionPage'));
 
 // Admin Console
 const AdminConsoleLayout = lazyRetry(() => import('./pages/admin-console/AdminConsoleLayout'));
@@ -299,6 +300,7 @@ function App() {
                       <Route path="/register" element={<RegisterPage />} />
                       <Route path="/verify-email" element={<VerifyEmailPage />} />
                       <Route path="/accept-invite/:token" element={<AcceptInvitePage />} />
+                      <Route path="/premier-connexion" element={<PremierConnexionPage />} />
                       <Route path="/admin-login" element={<AdminLoginPage />} />
 
                       {/* Hub — sélecteur d'applications */}

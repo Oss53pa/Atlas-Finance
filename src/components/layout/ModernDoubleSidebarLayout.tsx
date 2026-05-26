@@ -896,17 +896,19 @@ const ModernDoubleSidebarLayout: React.FC = () => {
                       <User className="w-4 h-4" />
                       <span className="text-sm">Mon profil</span>
                     </button>
-                    <button
-                      onClick={() => {
-                        navigate('/workspace/admin');
-                        setShowUserMenu(false);
-                      }}
-                      className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[var(--color-surface-hover)] transition-colors"
-                      role="menuitem"
-                    >
-                      <Settings className="w-4 h-4" />
-                      <span className="text-sm">Administration</span>
-                    </button>
+                    {user?.role === 'admin' && (
+                      <button
+                        onClick={() => {
+                          navigate('/workspace/admin');
+                          setShowUserMenu(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[var(--color-surface-hover)] transition-colors"
+                        role="menuitem"
+                      >
+                        <Settings className="w-4 h-4" />
+                        <span className="text-sm">Paramètres &amp; Administration</span>
+                      </button>
+                    )}
                     <button
                       type="button"
                       className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[var(--color-surface-hover)] transition-colors"

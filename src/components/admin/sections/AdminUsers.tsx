@@ -44,7 +44,7 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
   const [editingUser, setEditingUser] = useState<any | null>(null);
   const [form, setForm] = useState({
-    prenom: '', nom: '', email: '', role: 'Comptable', password: '', confirmPassword: '',
+    prenom: '', nom: '', email: '', role: 'Comptable',
     telephone: '', departement: 'Comptabilite', status: 'Actif',
   });
   const [selectedRole, setSelectedRole] = useState('Administrateur');
@@ -103,14 +103,14 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
   }, [adapter]);
 
   const openCreateModal = () => {
-    setForm({ prenom: '', nom: '', email: '', role: 'Comptable', password: '', confirmPassword: '', telephone: '', departement: 'Comptabilite', status: 'Actif' });
+    setForm({ prenom: '', nom: '', email: '', role: 'Comptable', telephone: '', departement: 'Comptabilite', status: 'Actif' });
     setEditingUser(null);
     setModalMode('create');
     setShowModal(true);
   };
 
   const openEditModal = (user: any) => {
-    setForm({ prenom: user.prenom, nom: user.nom, email: user.email, role: user.role, password: '', confirmPassword: '', telephone: user.telephone, departement: user.departement, status: user.status });
+    setForm({ prenom: user.prenom, nom: user.nom, email: user.email, role: user.role, telephone: user.telephone, departement: user.departement, status: user.status });
     setEditingUser(user);
     setModalMode('edit');
     setShowModal(true);
@@ -129,16 +129,7 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
     try {
       let updatedUsers;
       if (modalMode === 'create') {
-        if (!form.password || form.password.length < 8) {
-          toast.error('Le mot de passe doit contenir au moins 8 caracteres');
-          return;
-        }
-        if (form.password !== form.confirmPassword) {
-          toast.error('Les mots de passe ne correspondent pas');
-          return;
-        }
-
-        // ── Appel edge function create-user (Supabase Auth + email HTML) ─────
+        // ── Invitation via edge function (Supabase Auth + email HTML) ─────────
         const { data: { session } } = await supabase.auth.getSession();
         if (!session?.access_token) {
           toast.error('Session expirée — veuillez vous reconnecter');
@@ -156,7 +147,6 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
             prenom: form.prenom,
             nom: form.nom,
             email: form.email,
-            password: form.password,
             role: form.role,
             telephone: form.telephone,
             departement: form.departement,
@@ -177,8 +167,8 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
         };
         updatedUsers = [...users, newUser];
         const emailMsg = result.emailSent
-          ? `Un email de bienvenue a été envoyé à ${form.email}`
-          : `Compte créé (email non envoyé — clé RESEND absente)`;
+          ? `Lien d'invitation envoyé à ${form.email}`
+          : `Invitation créée (email non envoyé — clé RESEND absente)`;
         toast.success(`✅ ${form.prenom} ${form.nom} ajouté — ${emailMsg}`);
 
       } else {
@@ -297,16 +287,8 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
               <div />
             </div>
             {modalMode === 'create' && (
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="user-pwd" className="block text-sm font-medium text-gray-700 mb-1">Mot de passe <span className="text-red-500">*</span></label>
-                  <input id="user-pwd" type="password" value={form.password} onChange={e => updateField('password', e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-[#C0322B] focus:border-transparent" required minLength={8} />
-                  <p className="text-xs text-gray-400 mt-1">Minimum 8 caracteres</p>
-                </div>
-                <div>
-                  <label htmlFor="user-pwd-confirm" className="block text-sm font-medium text-gray-700 mb-1">Confirmer mot de passe <span className="text-red-500">*</span></label>
-                  <input id="user-pwd-confirm" type="password" value={form.confirmPassword} onChange={e => updateField('confirmPassword', e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-[#C0322B] focus:border-transparent" required />
-                </div>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 text-sm text-blue-800">
+                📧 Un lien d'invitation sera envoyé à cet email. Le collaborateur définira lui-même son mot de passe lors de sa première connexion.
               </div>
             )}
             <div className="flex justify-end space-x-3 pt-4 border-t">

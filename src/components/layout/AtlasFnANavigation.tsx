@@ -657,9 +657,11 @@ const AtlasFnANavigation: React.FC<NavigationProps> = ({
               <DropdownMenuItem onClick={() => navigate('/profile')}>
                 Profil
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate('/settings')}>
-                Paramètres
-              </DropdownMenuItem>
+              {currentUser?.role === 'admin' && (
+                <DropdownMenuItem onClick={() => navigate('/settings')}>
+                  Paramètres
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => navigate('/logout')}>
                 Déconnexion

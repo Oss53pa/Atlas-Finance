@@ -1,10 +1,14 @@
 /**
  * Edge Function: create-user
- * Crée un utilisateur Supabase Auth + profil + envoie un email HTML de bienvenue.
+ * Flow invitation :
+ *   1. Admin crée un collaborateur (sans mot de passe)
+ *   2. generateLink({ type: 'invite' }) → lien Supabase
+ *   3. Email HTML de bienvenue avec le lien → /premier-connexion
+ *   4. Collaborateur clique → confirme email + définit son mot de passe
  *
  * Deploy: supabase functions deploy create-user
- * Secrets nécessaires: RESEND_API_KEY, SITE_URL
- * Secrets automatiques: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
+ * Secrets: RESEND_API_KEY, SITE_URL
+ * Auto:    SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
  */
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { getCorsHeaders } from '../_shared/cors.ts';
@@ -21,13 +25,12 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: corsHeaders });
   }
-
   if (req.method !== 'POST') {
     return new Response('Method not allowed', { status: 405, headers: corsHeaders });
   }
 
   try {
-    // ── 1. Valider le JWT de l'appelant (doit être admin/superadmin) ──────────
+    // ── 1. Vérifier JWT de l'appelant ─────────────────────────────────────────
     const authHeader = req.headers.get('authorization') || '';
     const callerToken = authHeader.replace('Bearer ', '');
     if (!callerToken) {
@@ -36,12 +39,10 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Client admin (service role) pour créer des users
     const adminClient = createClient(supabaseUrl, serviceRoleKey, {
       auth: { autoRefreshToken: false, persistSession: false },
     });
 
-    // Vérifier que l'appelant est authentifié
     const { data: { user: caller }, error: callerError } = await adminClient.auth.getUser(callerToken);
     if (callerError || !caller) {
       return new Response(JSON.stringify({ error: 'Token invalide' }), {
@@ -49,40 +50,46 @@ Deno.serve(async (req) => {
       });
     }
 
-    // ── 2. Lire le body ────────────────────────────────────────────────────────
-    const { prenom, nom, email, password, role, telephone, departement, companyName } = await req.json();
+    // ── 2. Body ────────────────────────────────────────────────────────────────
+    const { prenom, nom, email, role, telephone, departement, companyName } = await req.json();
 
-    if (!email || !password || !prenom || !nom) {
-      return new Response(JSON.stringify({ error: 'Champs requis: email, password, prenom, nom' }), {
+    if (!email || !prenom || !nom) {
+      return new Response(JSON.stringify({ error: 'Champs requis: email, prenom, nom' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-    if (password.length < 8) {
-      return new Response(JSON.stringify({ error: 'Mot de passe trop court (minimum 8 caractères)' }), {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return new Response(JSON.stringify({ error: 'Format email invalide' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // ── 3. Créer le compte Supabase Auth ──────────────────────────────────────
-    const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
+    // ── 3. Générer le lien d'invitation Supabase ──────────────────────────────
+    // generateLink type 'invite' : crée le user si inexistant, génère un magic link
+    // qui, une fois cliqué, établit une session → l'user peut définir son mot de passe.
+    const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
+      type: 'invite',
       email,
-      password,
-      email_confirm: true,          // compte confirmé d'emblée
-      user_metadata: { first_name: prenom, last_name: nom, role },
+      options: {
+        redirectTo: `${siteUrl}/premier-connexion`,
+        data: { first_name: prenom, last_name: nom, role },
+      },
     });
 
-    if (createError) {
-      const msg = createError.message.includes('already registered')
+    if (linkError) {
+      const msg = linkError.message.includes('already registered')
         ? 'Un compte avec cet email existe déjà'
-        : createError.message;
+        : linkError.message;
       return new Response(JSON.stringify({ error: msg }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // ── 4. Créer le profil dans public.profiles ───────────────────────────────
-    if (newUser?.user) {
-      // Récupérer le company_id du caller depuis son profil
+    const userId = linkData?.user?.id;
+    const inviteUrl = linkData?.properties?.action_link ?? `${siteUrl}/premier-connexion`;
+
+    // ── 4. Créer/mettre à jour le profil ──────────────────────────────────────
+    if (userId) {
       const { data: callerProfile } = await adminClient
         .from('profiles')
         .select('company_id')
@@ -90,19 +97,17 @@ Deno.serve(async (req) => {
         .single();
 
       await adminClient.from('profiles').upsert({
-        id: newUser.user.id,
+        id: userId,
         email,
         first_name: prenom,
         last_name: nom,
         company_id: callerProfile?.company_id ?? null,
         is_active: true,
-        created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       }, { onConflict: 'id' });
     }
 
-    // ── 5. Envoyer l'email HTML de bienvenue ──────────────────────────────────
-    const loginUrl = `${siteUrl}/login`;
+    // ── 5. Email HTML de bienvenue ─────────────────────────────────────────────
     const roleLabelMap: Record<string, string> = {
       Administrateur: 'Administrateur',
       Manager: 'Manager',
@@ -112,7 +117,8 @@ Deno.serve(async (req) => {
     };
     const roleLabel = roleLabelMap[role] || role || 'Collaborateur';
     const orgName = companyName || 'votre organisation';
-    const callerName = `${caller.user_metadata?.first_name ?? ''} ${caller.user_metadata?.last_name ?? ''}`.trim() || caller.email;
+    const callerDisplay = `${caller.user_metadata?.first_name ?? ''} ${caller.user_metadata?.last_name ?? ''}`.trim()
+      || caller.email || 'Votre administrateur';
 
     const html = `
 <!DOCTYPE html>
@@ -120,7 +126,7 @@ Deno.serve(async (req) => {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bienvenue sur Atlas Finance &amp; Accounting</title>
+  <title>Votre invitation Atlas Finance &amp; Accounting</title>
 </head>
 <body style="margin:0;padding:0;background:#f5f5f0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f0;padding:40px 16px;">
@@ -130,17 +136,17 @@ Deno.serve(async (req) => {
         <!-- Header -->
         <tr><td style="text-align:center;padding-bottom:28px;">
           <div style="display:inline-block;background:#1a1a1a;padding:14px 24px;border-radius:14px;">
-            <span style="font-size:22px;color:#ffffff;letter-spacing:0.5px;">Atlas Finance &amp; Accounting</span>
+            <span style="font-size:20px;color:#ffffff;font-weight:600;letter-spacing:0.5px;">Atlas Finance &amp; Accounting</span>
           </div>
         </td></tr>
 
-        <!-- Card principale -->
+        <!-- Card -->
         <tr><td style="background:#ffffff;border-radius:20px;padding:40px;box-shadow:0 2px 16px rgba(0,0,0,0.07);border:1px solid #e8e8e0;">
 
-          <!-- Icône bienvenue -->
+          <!-- Icon -->
           <div style="text-align:center;margin-bottom:28px;">
-            <div style="display:inline-block;background:#fff8f0;border:2px solid #f0d8b0;border-radius:50%;width:64px;height:64px;line-height:64px;font-size:30px;">
-              🎉
+            <div style="display:inline-block;background:#f0fdf4;border:2px solid #bbf7d0;border-radius:50%;width:64px;height:64px;line-height:64px;font-size:28px;">
+              📨
             </div>
           </div>
 
@@ -148,7 +154,8 @@ Deno.serve(async (req) => {
             Bienvenue, ${prenom} !
           </h1>
           <p style="margin:0 0 28px;font-size:15px;color:#737373;text-align:center;line-height:1.6;">
-            ${callerName} vient de créer votre compte sur <strong>${orgName}</strong>.
+            <strong>${callerDisplay}</strong> vous invite à rejoindre
+            <strong>${orgName}</strong> sur Atlas Finance &amp; Accounting.
           </p>
 
           <!-- Infos compte -->
@@ -156,41 +163,47 @@ Deno.serve(async (req) => {
             <table width="100%" cellpadding="0" cellspacing="0">
               <tr>
                 <td style="padding:8px 0;border-bottom:1px solid #f0f0e8;">
-                  <span style="font-size:12px;color:#a3a3a3;text-transform:uppercase;letter-spacing:0.8px;display:block;margin-bottom:2px;">Email</span>
-                  <span style="font-size:15px;color:#171717;font-weight:500;">${email}</span>
+                  <span style="font-size:11px;color:#a3a3a3;text-transform:uppercase;letter-spacing:0.8px;display:block;margin-bottom:3px;">Email</span>
+                  <span style="font-size:15px;color:#171717;font-weight:600;">${email}</span>
                 </td>
               </tr>
               <tr>
-                <td style="padding:8px 0;border-bottom:1px solid #f0f0e8;">
-                  <span style="font-size:12px;color:#a3a3a3;text-transform:uppercase;letter-spacing:0.8px;display:block;margin-bottom:2px;">Rôle</span>
-                  <span style="display:inline-block;background:#fff3e0;color:#e65100;font-size:13px;font-weight:600;padding:4px 12px;border-radius:20px;">${roleLabel}</span>
+                <td style="padding:8px 0;${departement ? 'border-bottom:1px solid #f0f0e8;' : ''}">
+                  <span style="font-size:11px;color:#a3a3a3;text-transform:uppercase;letter-spacing:0.8px;display:block;margin-bottom:3px;">Rôle</span>
+                  <span style="display:inline-block;background:#fff3e0;color:#c2410c;font-size:13px;font-weight:600;padding:4px 12px;border-radius:20px;">${roleLabel}</span>
                 </td>
               </tr>
               ${departement ? `
               <tr>
                 <td style="padding:8px 0;">
-                  <span style="font-size:12px;color:#a3a3a3;text-transform:uppercase;letter-spacing:0.8px;display:block;margin-bottom:2px;">Département</span>
+                  <span style="font-size:11px;color:#a3a3a3;text-transform:uppercase;letter-spacing:0.8px;display:block;margin-bottom:3px;">Département</span>
                   <span style="font-size:15px;color:#171717;font-weight:500;">${departement}</span>
                 </td>
               </tr>` : ''}
             </table>
           </div>
 
-          <!-- Bouton CTA -->
-          <div style="text-align:center;margin-bottom:24px;">
-            <a href="${loginUrl}"
-               style="display:inline-block;background:#1a1a1a;color:#ffffff;text-decoration:none;padding:16px 36px;border-radius:12px;font-size:16px;font-weight:600;letter-spacing:0.3px;">
-              Se connecter →
+          <!-- CTA principal -->
+          <div style="text-align:center;margin-bottom:20px;">
+            <a href="${inviteUrl}"
+               style="display:inline-block;background:#1a1a1a;color:#ffffff;text-decoration:none;padding:16px 40px;border-radius:14px;font-size:16px;font-weight:700;letter-spacing:0.3px;">
+              Accéder à mon compte →
             </a>
           </div>
 
-          <!-- Mot de passe info -->
-          <div style="background:#fffbf0;border:1px solid #fde68a;border-radius:12px;padding:16px;margin-bottom:8px;">
-            <p style="margin:0;font-size:13px;color:#92400e;line-height:1.6;">
-              <strong>🔒 Mot de passe temporaire</strong> — Le mot de passe a été défini par votre administrateur.
-              Nous vous recommandons de le changer dès votre première connexion depuis votre profil.
-            </p>
+          <!-- Info steps -->
+          <div style="background:#f8faff;border:1px solid #dbeafe;border-radius:12px;padding:16px;margin-bottom:8px;">
+            <p style="margin:0 0 8px;font-size:13px;font-weight:600;color:#1e40af;">En cliquant sur le bouton :</p>
+            <ol style="margin:0;padding-left:18px;font-size:13px;color:#1e40af;line-height:1.8;">
+              <li>Votre adresse email est confirmée automatiquement</li>
+              <li>Vous définissez votre mot de passe personnel</li>
+              <li>Vous accédez directement à votre tableau de bord</li>
+            </ol>
           </div>
+
+          <p style="margin:16px 0 0;font-size:12px;color:#a3a3a3;text-align:center;">
+            ⏳ Ce lien est valide <strong>72 heures</strong>. Après expiration, contactez votre administrateur.
+          </p>
 
         </td></tr>
 
@@ -200,6 +213,8 @@ Deno.serve(async (req) => {
           <a href="${siteUrl}" style="color:#737373;text-decoration:none;">atlasstudio.org</a>
           &nbsp;·&nbsp;
           <a href="${siteUrl}/support" style="color:#737373;text-decoration:none;">Support</a>
+          <br><br>
+          Si vous n'attendiez pas cette invitation, ignorez simplement cet email.
         </td></tr>
 
       </table>
@@ -219,7 +234,7 @@ Deno.serve(async (req) => {
         body: JSON.stringify({
           from: 'Atlas Finance <noreply@atlasstudio.org>',
           to: [email],
-          subject: `Votre compte Atlas Finance & Accounting est prêt`,
+          subject: `${callerDisplay} vous invite sur Atlas Finance & Accounting`,
           html,
         }),
       });
@@ -229,14 +244,14 @@ Deno.serve(async (req) => {
         console.error('[create-user] Resend error:', err);
       }
     } else {
-      // Mode dry-run : log seulement
-      console.log(`[create-user] Email to: ${email} (dry-run — RESEND_API_KEY absent)`);
-      emailSent = true; // ne pas bloquer la création
+      // Dry-run
+      console.log(`[create-user] Invite URL (dry-run): ${inviteUrl}`);
+      emailSent = true;
     }
 
     return new Response(JSON.stringify({
       success: true,
-      userId: newUser?.user?.id,
+      userId,
       emailSent,
     }), {
       status: 201,
