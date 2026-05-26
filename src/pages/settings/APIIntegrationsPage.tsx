@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useData } from '../../contexts/DataContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FeatureGate, UpgradeBanner } from '../../components/gating';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/Dialog';
@@ -74,6 +75,7 @@ type DeletableItem = APIKeyData | WebhookData | IntegrationData;
 
 const APIIntegrationsPage: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedAPI, setSelectedAPI] = useState<APIKeyData | null>(null);
   const [showAPIKey, setShowAPIKey] = useState<{ [key: string]: boolean }>({});
@@ -103,193 +105,41 @@ const APIIntegrationsPage: React.FC = () => {
     { id: 'logs', label: t('navigation.journals'), icon: Activity }
   ];
 
-  // Mock data for API keys
-  const apiKeys = [
-    {
-      id: 1,
-      name: 'Production API',
-      key: 'pk_live_51KxG8vH3rE9xN2mP7qR4sT6u',
-      environment: 'Production',
-      status: 'active',
-      created: '2024-01-15',
-      lastUsed: '2024-03-20 14:30',
-      permissions: ['read', 'write', 'delete'],
-      rateLimit: '10000 req/hour'
-    },
-    {
-      id: 2,
-      name: 'Test API',
-      key: 'pk_test_92LyI9kL4nO8pQ3rS5tU7vW',
-      environment: 'Test',
-      status: 'active',
-      created: '2024-02-01',
-      lastUsed: '2024-03-19 09:15',
-      permissions: ['read', 'write'],
-      rateLimit: '5000 req/hour'
-    },
-    {
-      id: 3,
-      name: 'Mobile App API',
-      key: 'pk_mobile_73MzJ0lM5oP9qR4sT6uV8wX',
-      environment: 'Production',
-      status: 'inactive',
-      created: '2023-12-10',
-      lastUsed: '2024-02-28 16:45',
-      permissions: ['read'],
-      rateLimit: '2000 req/hour'
-    }
+  // Clés API — créées par l'utilisateur (départ vide)
+  const [apiKeys, setApiKeys] = useState<APIKeyData[]>([]);
+
+  // Webhooks — créés par l'utilisateur (départ vide)
+  const [webhooks, setWebhooks] = useState<WebhookData[]>([]);
+
+  // Catalogue d'intégrations disponibles (toutes déconnectées par défaut)
+  const integrations: IntegrationData[] = [
+    { id: 1, name: 'Salesforce', category: 'CRM', status: 'disconnected', icon: '🔗', description: 'Synchronisation bidirectionnelle des données clients', lastSync: null, dataPoints: 0 },
+    { id: 2, name: 'Stripe', category: 'Paiements', status: 'disconnected', icon: '💳', description: 'Traitement des paiements en ligne', lastSync: null, dataPoints: 0 },
+    { id: 3, name: 'Google Workspace', category: 'Productivité', status: 'disconnected', icon: '📧', description: 'Intégration email et calendrier', lastSync: null, dataPoints: 0 },
+    { id: 4, name: 'Slack', category: 'Communication', status: 'disconnected', icon: '💬', description: 'Notifications et alertes en temps réel', lastSync: null, dataPoints: 0 },
+    { id: 5, name: 'QuickBooks', category: 'Comptabilité', status: 'disconnected', icon: '📊', description: 'Synchronisation des données comptables', lastSync: null, dataPoints: 0 },
+    { id: 6, name: 'Microsoft Teams', category: 'Communication', status: 'disconnected', icon: '👥', description: 'Collaboration et messagerie d\'équipe', lastSync: null, dataPoints: 0 },
   ];
 
-  // Mock webhooks
-  const webhooks = [
-    {
-      id: 1,
-      url: 'https://app.atlasfna.com/webhooks/invoices',
-      events: ['invoice.created', 'invoice.paid', 'invoice.overdue'],
-      status: 'active',
-      created: '2024-01-10',
-      lastTriggered: '2024-03-20 11:20',
-      successRate: 98.5
-    },
-    {
-      id: 2,
-      url: 'https://slack.com/api/atlasfna-notifications',
-      events: ['payment.received', 'payment.failed'],
-      status: 'active',
-      created: '2024-02-05',
-      lastTriggered: '2024-03-19 15:30',
-      successRate: 99.8
-    },
-    {
-      id: 3,
-      url: 'https://zapier.com/hooks/atlasfna/accounting',
-      events: ['account.created', 'account.updated'],
-      status: 'inactive',
-      created: '2023-11-20',
-      lastTriggered: '2024-01-15 08:45',
-      successRate: 95.2
-    }
-  ];
+  // Logs API — depuis la table auditLogs de l'adaptateur
+  const [apiLogs, setApiLogs] = useState<Array<{ id: number; timestamp: string; method: string; endpoint: string; status: number; duration: string; ip: string; userAgent: string; error?: string }>>([]);
 
-  // Mock integrations
-  const integrations = [
-    {
-      id: 1,
-      name: 'Salesforce',
-      category: 'CRM',
-      status: 'connected',
-      icon: '🔗',
-      description: 'Synchronisation bidirectionnelle des données clients',
-      lastSync: '2024-03-20 10:00',
-      dataPoints: 15420
-    },
-    {
-      id: 2,
-      name: 'Stripe',
-      category: 'Paiements',
-      status: 'connected',
-      icon: '💳',
-      description: 'Traitement des paiements en ligne',
-      lastSync: '2024-03-20 14:30',
-      dataPoints: 3256
-    },
-    {
-      id: 3,
-      name: 'Google Workspace',
-      category: 'Productivité',
-      status: 'connected',
-      icon: '📧',
-      description: 'Intégration email et calendrier',
-      lastSync: '2024-03-20 09:15',
-      dataPoints: 8745
-    },
-    {
-      id: 4,
-      name: 'Slack',
-      category: 'Communication',
-      status: 'connected',
-      icon: '💬',
-      description: 'Notifications et alertes en temps réel',
-      lastSync: '2024-03-20 15:00',
-      dataPoints: 1250
-    },
-    {
-      id: 5,
-      name: 'QuickBooks',
-      category: 'Comptabilité',
-      status: 'disconnected',
-      icon: '📊',
-      description: 'Synchronisation des données comptables',
-      lastSync: '2024-02-15 11:30',
-      dataPoints: 0
-    },
-    {
-      id: 6,
-      name: 'Microsoft Teams',
-      category: 'Communication',
-      status: 'pending',
-      icon: '👥',
-      description: 'Collaboration et messagerie d\'équipe',
-      lastSync: null,
-      dataPoints: 0
-    }
-  ];
-
-  // Mock API logs
-  const apiLogs = [
-    {
-      id: 1,
-      timestamp: '2024-03-20 15:45:32',
-      method: 'POST',
-      endpoint: '/api/v1/invoices',
-      status: 200,
-      duration: '245ms',
-      ip: '192.168.1.45',
-      userAgent: 'Atlas F&A Mobile/2.1.0'
-    },
-    {
-      id: 2,
-      timestamp: '2024-03-20 15:42:18',
-      method: 'GET',
-      endpoint: '/api/v1/customers/123',
-      status: 200,
-      duration: '87ms',
-      ip: '192.168.1.45',
-      userAgent: 'Mozilla/5.0'
-    },
-    {
-      id: 3,
-      timestamp: '2024-03-20 15:40:05',
-      method: 'PUT',
-      endpoint: '/api/v1/payments/456',
-      status: 400,
-      duration: '125ms',
-      ip: '192.168.1.78',
-      userAgent: 'Postman/9.0.5',
-      error: 'Invalid payment amount'
-    },
-    {
-      id: 4,
-      timestamp: '2024-03-20 15:38:22',
-      method: 'DELETE',
-      endpoint: '/api/v1/documents/789',
-      status: 401,
-      duration: '45ms',
-      ip: '192.168.1.92',
-      userAgent: 'curl/7.68.0',
-      error: 'Unauthorized'
-    },
-    {
-      id: 5,
-      timestamp: '2024-03-20 15:35:14',
-      method: 'GET',
-      endpoint: '/api/v1/reports/monthly',
-      status: 200,
-      duration: '1.2s',
-      ip: '192.168.1.45',
-      userAgent: 'Atlas F&A Desktop/3.0.1'
-    }
-  ];
+  useEffect(() => {
+    adapter.getAll<any>('auditLogs').then(logs => {
+      const mapped = logs.slice(0, 50).map((log: any, i: number) => ({
+        id: i + 1,
+        timestamp: log.timestamp || log.createdAt || new Date().toISOString(),
+        method: log.method || 'GET',
+        endpoint: log.endpoint || log.action || '/api/v1/unknown',
+        status: log.statusCode || 200,
+        duration: log.duration ? `${log.duration}ms` : '-',
+        ip: log.ip || '-',
+        userAgent: log.userAgent || log.source || 'Atlas F&A',
+        error: log.error || undefined,
+      }));
+      setApiLogs(mapped);
+    }).catch(() => { /* afficher liste vide */ });
+  }, [adapter]);
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -307,10 +157,20 @@ const APIIntegrationsPage: React.FC = () => {
       return;
     }
 
-    // Generate mock API key
     const prefix = newAPIForm.environment === 'Production' ? 'pk_live' : 'pk_test';
     const randomKey = `${prefix}_${Date.now().toString(36)}`;
-
+    const now = new Date().toISOString().slice(0, 10);
+    setApiKeys(prev => [...prev, {
+      id: Date.now(),
+      name: newAPIForm.name,
+      key: randomKey,
+      environment: newAPIForm.environment,
+      status: 'active',
+      created: now,
+      lastUsed: '-',
+      permissions: newAPIForm.permissions,
+      rateLimit: `${newAPIForm.rateLimit} req/hour`,
+    }]);
     toast.success(`Clé API "${newAPIForm.name}" créée avec succès !`);
     setShowNewAPIModal(false);
     setNewAPIForm({ name: '', environment: 'Test', permissions: [], rateLimit: '5000' });
@@ -322,6 +182,15 @@ const APIIntegrationsPage: React.FC = () => {
       return;
     }
 
+    setWebhooks(prev => [...prev, {
+      id: Date.now(),
+      url: newWebhookForm.url,
+      events: newWebhookForm.events,
+      status: 'active',
+      created: new Date().toISOString().slice(0, 10),
+      lastTriggered: '-',
+      successRate: 100,
+    }]);
     toast.success('Webhook créé avec succès !');
     setShowNewWebhookModal(false);
     setNewWebhookForm({ url: '', events: [] });
@@ -406,8 +275,8 @@ const APIIntegrationsPage: React.FC = () => {
                   <Zap className="w-8 h-8 text-[var(--color-primary)]" />
                   <span className="text-xs text-green-500 font-medium">+12%</span>
                 </div>
-                <div className="text-lg font-bold">45,230</div>
-                <div className="text-xs text-[var(--color-text-tertiary)]">Requêtes API / jour</div>
+                <div className="text-lg font-bold">{apiLogs.length}</div>
+                <div className="text-xs text-[var(--color-text-tertiary)]">Logs API enregistrés</div>
               </motion.div>
 
               <motion.div
@@ -420,7 +289,7 @@ const APIIntegrationsPage: React.FC = () => {
                   <Activity className="w-8 h-8 text-[var(--color-success)]" />
                   <span className="text-xs text-green-500 font-medium">99.9%</span>
                 </div>
-                <div className="text-lg font-bold">245ms</div>
+                <div className="text-lg font-bold">{apiLogs.length > 0 ? `${Math.round(apiLogs.reduce((s, l) => s + (parseInt(l.duration) || 0), 0) / apiLogs.length)}ms` : '—'}</div>
                 <div className="text-xs text-[var(--color-text-tertiary)]">Temps de réponse moyen</div>
               </motion.div>
 
@@ -434,7 +303,7 @@ const APIIntegrationsPage: React.FC = () => {
                   <Link className="w-8 h-8 text-[var(--color-secondary)]" />
                   <span className="text-xs text-green-500 font-medium">Active</span>
                 </div>
-                <div className="text-lg font-bold">12</div>
+                <div className="text-lg font-bold">{integrations.filter(i => i.status === 'connected').length}</div>
                 <div className="text-xs text-[var(--color-text-tertiary)]">Intégrations actives</div>
               </motion.div>
 
@@ -448,7 +317,7 @@ const APIIntegrationsPage: React.FC = () => {
                   <Shield className="w-8 h-8 text-[var(--color-warning)]" />
                   <span className="text-xs text-green-500 font-medium">Sécurisé</span>
                 </div>
-                <div className="text-lg font-bold">3</div>
+                <div className="text-lg font-bold">{apiKeys.filter(k => k.status === 'active').length}</div>
                 <div className="text-xs text-[var(--color-text-tertiary)]">Clés API actives</div>
               </motion.div>
             </div>
@@ -557,6 +426,12 @@ const APIIntegrationsPage: React.FC = () => {
             </div>
 
             <div className="space-y-4">
+              {apiKeys.length === 0 && (
+                <div className="text-center py-12 text-gray-400">
+                  <p className="text-sm">Aucune clé API configurée.</p>
+                  <p className="text-xs mt-1">Cliquez sur "Nouvelle Clé API" pour en créer une.</p>
+                </div>
+              )}
               {apiKeys.map((apiKey) => (
                 <motion.div
                   key={apiKey.id}
@@ -660,6 +535,12 @@ const APIIntegrationsPage: React.FC = () => {
             </div>
 
             <div className="space-y-4">
+              {webhooks.length === 0 && (
+                <div className="text-center py-12 text-gray-400">
+                  <p className="text-sm">Aucun webhook configuré.</p>
+                  <p className="text-xs mt-1">Cliquez sur "Nouveau Webhook" pour en créer un.</p>
+                </div>
+              )}
               {webhooks.map((webhook) => (
                 <motion.div
                   key={webhook.id}
@@ -955,6 +836,9 @@ const APIIntegrationsPage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[var(--color-border-light)]">
+                  {apiLogs.length === 0 && (
+                    <tr><td colSpan={6} className="px-4 py-8 text-center text-sm text-gray-400">Aucun log disponible</td></tr>
+                  )}
                   {apiLogs.map((log) => (
                     <tr key={log.id} className="hover:bg-gray-50">
                       <td className="px-4 py-3 text-sm text-[var(--color-text-secondary)]">{log.timestamp}</td>
@@ -985,7 +869,7 @@ const APIIntegrationsPage: React.FC = () => {
 
             <div className="flex items-center justify-between">
               <div className="text-sm text-[var(--color-text-tertiary)]">
-                Affichage de 1-{apiLogs.length} sur {apiLogs.length} entrées
+                {apiLogs.length === 0 ? 'Aucune entrée' : `Affichage de 1-${apiLogs.length} sur ${apiLogs.length} entrées`}
               </div>
               <div className="flex items-center gap-2">
                 <button className="px-3 py-1 border border-[var(--color-border)] rounded text-sm hover:bg-[var(--color-surface-hover)]">

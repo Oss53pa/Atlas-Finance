@@ -34,6 +34,8 @@ const FinancialStatementsView: React.FC = () => {
   const [statements, setStatements] = useState<FinancialStatement[]>([]);
   const [selectedStatement, setSelectedStatement] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'list' | 'create' | 'analysis'>('list');
+  const _fsYear = new Date().getFullYear();
+  const [fsDateArrete, setFsDateArrete] = useState(`${_fsYear}-12-31`);
 
   // Données réelles depuis les écritures comptables
   useEffect(() => {
@@ -229,7 +231,8 @@ const FinancialStatementsView: React.FC = () => {
             <input
               type="date"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              defaultValue="2024-12-31"
+              value={fsDateArrete}
+              onChange={e => setFsDateArrete(e.target.value)}
             />
           </div>
 

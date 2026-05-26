@@ -175,6 +175,39 @@ const AdvancedBalance: React.FC = () => {
     return { totalDebit, totalCredit, equilibre, tauxEquilibre, actif, passif, charges, produits };
   }, [balanceData]);
 
+  // Top 3 comptes par mouvement (variations importantes) — calculés
+  const topVariations = useMemo(() => {
+    return [...balanceData]
+      .sort((a, b) => (b.debitMouvement + b.creditMouvement) - (a.debitMouvement + a.creditMouvement))
+      .slice(0, 3)
+      .map(item => ({
+        compte: item.compte,
+        libelle: item.libelle,
+        total: item.debitMouvement + item.creditMouvement,
+        solde: item.debitSolde - item.creditSolde,
+      }));
+  }, [balanceData]);
+
+  // Données analytiques — groupées par centre de coût (champ centreCout)
+  const analyticsData = useMemo(() => {
+    const centreMap = new Map<string, { reel: number; debit: number; credit: number }>();
+    for (const item of balanceData) {
+      const centre = item.centreCout || '';
+      if (!centre) continue;
+      const existing = centreMap.get(centre) || { reel: 0, debit: 0, credit: 0 };
+      existing.reel += item.debitMouvement + item.creditMouvement;
+      existing.debit += item.debitMouvement;
+      existing.credit += item.creditMouvement;
+      centreMap.set(centre, existing);
+    }
+    return Array.from(centreMap.entries()).map(([centre, data]) => ({
+      centre,
+      budget: 0,
+      reel: data.reel,
+      ecart: 0,
+    }));
+  }, [balanceData]);
+
   // Trial balance verification
   const { data: trialBalance } = useQuery({
     queryKey: ['trial-balance-check', dateRange],
@@ -705,45 +738,50 @@ const AdvancedBalance: React.FC = () => {
             {/* Variations significatives */}
             <div className="bg-[var(--color-surface-hover)] p-6 rounded-lg shadow-sm border border-[var(--color-border)]">
               <div className="flex items-center justify-between mb-4">
-                <h4 className="text-md font-semibold text-[var(--color-primary)]">Variations Importantes</h4>
+                <h4 className="text-md font-semibold text-[var(--color-primary)]">Top Mouvements</h4>
                 <TrendingUp className="w-5 h-5 text-blue-500" />
               </div>
               <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <span className="text-sm font-medium text-[var(--color-primary)]">607000</span>
-                    <p className="text-xs text-[var(--color-primary)]/50">Achats marchandises</p>
+                {topVariations.length === 0 ? (
+                  <p className="text-xs text-[var(--color-primary)]/50 text-center py-2">Aucune donnée disponible</p>
+                ) : topVariations.map((item, i) => (
+                  <div key={i} className="flex justify-between items-center">
+                    <div>
+                      <span className="text-sm font-medium text-[var(--color-primary)]">{item.compte}</span>
+                      <p className="text-xs text-[var(--color-primary)]/50 truncate max-w-[160px]">{item.libelle}</p>
+                    </div>
+                    <span className={`text-sm font-medium ${item.solde >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {fmt(item.total)}
+                    </span>
                   </div>
-                  <span className="text-sm font-medium text-red-600">+56%</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <div>
-                    <span className="text-sm font-medium text-[var(--color-primary)]">241000</span>
-                    <p className="text-xs text-[var(--color-primary)]/50">Matériel industriel</p>
-                  </div>
-                  <span className="text-sm font-medium text-green-600">+16%</span>
-                </div>
+                ))}
               </div>
             </div>
 
             {/* Taux de rapprochement */}
             <div className="bg-[var(--color-surface-hover)] p-6 rounded-lg shadow-sm border border-[var(--color-border)]">
               <div className="flex items-center justify-between mb-4">
-                <h4 className="text-md font-semibold text-[var(--color-primary)]">Taux de Rapprochement</h4>
+                <h4 className="text-md font-semibold text-[var(--color-primary)]">Équilibre Balance</h4>
                 <CheckCircle className="w-5 h-5 text-green-500" />
               </div>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-[var(--color-primary)]/70">Rappr. bancaire</span>
-                  <span className="text-sm font-medium text-green-600">98%</span>
+                  <span className="text-sm text-[var(--color-primary)]/70">Taux équilibre</span>
+                  <span className={`text-sm font-medium ${indicators.tauxEquilibre >= 99 ? 'text-green-600' : indicators.tauxEquilibre >= 95 ? 'text-orange-600' : 'text-red-600'}`}>
+                    {indicators.tauxEquilibre > 0 ? `${Math.min(100, indicators.tauxEquilibre).toFixed(1)}%` : '—'}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-[var(--color-primary)]/70">Lettrage clients</span>
-                  <span className="text-sm font-medium text-orange-600">87%</span>
+                  <span className="text-sm text-[var(--color-primary)]/70">Écart débit/crédit</span>
+                  <span className={`text-sm font-medium ${indicators.equilibre < 0.01 ? 'text-green-600' : 'text-red-600'}`}>
+                    {fmt(indicators.equilibre)}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-[var(--color-primary)]/70">Lettrage fournisseurs</span>
-                  <span className="text-sm font-medium text-green-600">94%</span>
+                  <span className="text-sm text-[var(--color-primary)]/70">Comptes mouvementés</span>
+                  <span className="text-sm font-medium text-[var(--color-primary)]">
+                    {balanceData.length}
+                  </span>
                 </div>
               </div>
             </div>
@@ -764,44 +802,43 @@ const AdvancedBalance: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="bg-[var(--color-surface-hover)] p-6 rounded-lg shadow-sm border border-[var(--color-border)]">
               <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-6">Répartition par Centre de Coût</h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={[
-                  { centre: 'CC001 - Commercial', budget: 15000000, reel: 16200000, ecart: 1200000 },
-                  { centre: 'CC002 - Production', budget: 25000000, reel: 23800000, ecart: -1200000 },
-                  { centre: 'CC003 - Administration', budget: 8000000, reel: 8500000, ecart: 500000 }
-                ]}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="centre" />
-                  <YAxis tickFormatter={(value) => fmt(value)} />
-                  <Tooltip formatter={(value) => [fmt(value as number), '']} />
-                  <Legend />
-                  <Bar radius={[6,6,0,0]} dataKey="budget" fill="url(#gradPetrolLight)" name={t('navigation.budget')} />
-                  <Bar radius={[6,6,0,0]} dataKey="reel" fill="url(#gradPetrol)" name="Réel" />
-                </BarChart>
-              </ResponsiveContainer>
+              {analyticsData.length === 0 ? (
+                <div className="flex items-center justify-center h-[300px] text-sm text-[var(--color-primary)]/50">
+                  Aucun axe analytique configuré.
+                  <br />Assignez des centres de coût lors de la saisie.
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={analyticsData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="centre" />
+                    <YAxis tickFormatter={(value) => fmt(value)} />
+                    <Tooltip formatter={(value) => [fmt(value as number), '']} />
+                    <Legend />
+                    <Bar radius={[6,6,0,0]} dataKey="reel" fill="url(#gradPetrol)" name="Réel" />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
             </div>
 
             <div className="bg-[var(--color-surface-hover)] p-6 rounded-lg shadow-sm border border-[var(--color-border)]">
               <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-6">Évolution des Écarts</h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={[
-                  { mois: 'Jan', commercial: 200000, production: -500000, admin: 100000 },
-                  { mois: 'Fév', commercial: 450000, production: -200000, admin: 150000 },
-                  { mois: 'Mar', commercial: 300000, production: 100000, admin: 200000 },
-                  { mois: 'Avr', commercial: 600000, production: -300000, admin: 250000 },
-                  { mois: 'Mai', commercial: 800000, production: -800000, admin: 300000 },
-                  { mois: 'Jun', commercial: 1200000, production: -1200000, admin: 500000 }
-                ]}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="mois" />
-                  <YAxis tickFormatter={(value) => fmt(value)} />
-                  <Tooltip formatter={(value) => [fmt(value as number), '']} />
-                  <Legend />
-                  <Line type="monotone" dataKey="commercial" stroke="#235A6E" name="Commercial" />
-                  <Line type="monotone" dataKey="production" stroke="#4E7E8D" name="Production" />
-                  <Line type="monotone" dataKey="admin" stroke="#E8B4B8" name="Administration" />
-                </LineChart>
-              </ResponsiveContainer>
+              {analyticsData.length === 0 ? (
+                <div className="flex items-center justify-center h-[300px] text-sm text-[var(--color-primary)]/50">
+                  Données insuffisantes pour l'analyse d'évolution.
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={analyticsData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="centre" />
+                    <YAxis tickFormatter={(value) => fmt(value)} />
+                    <Tooltip formatter={(value) => [fmt(value as number), '']} />
+                    <Legend />
+                    <Line type="monotone" dataKey="reel" stroke="#235A6E" name="Réel" />
+                  </LineChart>
+                </ResponsiveContainer>
+              )}
             </div>
           </div>
 
@@ -825,39 +862,25 @@ const AdvancedBalance: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {[
-                    { centre: 'CC001', projet: 'Projet Alpha', budget: 5000000, realise: 5200000, ecart: 200000, ecartPct: 4, statut: 'warning' },
-                    { centre: 'CC001', projet: 'Projet Beta', budget: 3000000, realise: 2800000, ecart: -200000, ecartPct: -6.7, statut: 'success' },
-                    { centre: 'CC002', projet: 'Production Line 1', budget: 12000000, realise: 11500000, ecart: -500000, ecartPct: -4.2, statut: 'success' },
-                    { centre: 'CC003', projet: 'Infrastructure IT', budget: 2500000, realise: 2700000, ecart: 200000, ecartPct: 8, statut: 'danger' }
-                  ].map((item, index) => (
+                  {analyticsData.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="px-6 py-8 text-center text-sm text-gray-500">
+                        Aucun axe analytique — assignez des centres de coût lors de la saisie d'écritures.
+                      </td>
+                    </tr>
+                  ) : analyticsData.map((item, index) => (
                     <tr key={index} className="hover:bg-gray-50">
                       <td className="px-6 py-4 text-sm font-mono font-medium text-gray-900">{item.centre}</td>
-                      <td className="px-6 py-4 text-sm text-gray-900">{item.projet}</td>
-                      <td className="px-6 py-4 text-sm font-mono text-right text-gray-600">
-                        {fmt(item.budget)}
-                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-500">—</td>
+                      <td className="px-6 py-4 text-sm font-mono text-right text-gray-400">—</td>
                       <td className="px-6 py-4 text-sm font-mono text-right text-gray-900">
-                        {fmt(item.realise)}
+                        {fmt(item.reel)}
                       </td>
-                      <td className={`px-6 py-4 text-sm font-mono text-right font-medium ${
-                        item.ecart >= 0 ? 'text-red-600' : 'text-green-600'
-                      }`}>
-                        {item.ecart >= 0 ? '+' : ''}{fmt(item.ecart)}
-                      </td>
-                      <td className={`px-6 py-4 text-sm font-mono text-right font-medium ${
-                        item.ecart >= 0 ? 'text-red-600' : 'text-green-600'
-                      }`}>
-                        {item.ecartPct >= 0 ? '+' : ''}{item.ecartPct.toFixed(1)}%
-                      </td>
+                      <td className="px-6 py-4 text-sm font-mono text-right text-gray-400">—</td>
+                      <td className="px-6 py-4 text-sm font-mono text-right text-gray-400">—</td>
                       <td className="px-6 py-4 text-center">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          item.statut === 'success' ? 'bg-green-100 text-green-800' :
-                          item.statut === 'warning' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-red-100 text-red-800'
-                        }`}>
-                          {item.statut === 'success' ? 'Conforme' :
-                           item.statut === 'warning' ? 'Attention' : 'Dépassement'}
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          Réel seul
                         </span>
                       </td>
                     </tr>

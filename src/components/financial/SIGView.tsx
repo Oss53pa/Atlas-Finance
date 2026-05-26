@@ -57,6 +57,8 @@ const SIGView: React.FC = () => {
   const [selectedSIG, setSelectedSIG] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'current' | 'evolution' | 'calculate'>('current');
   const [compareMode, setCompareMode] = useState(false);
+  const _sigYear = new Date().getFullYear();
+  const [sigDateFin, setSigDateFin] = useState(`${_sigYear}-12-31`);
 
   // Données réelles depuis les écritures comptables
   useEffect(() => {
@@ -446,7 +448,8 @@ const SIGView: React.FC = () => {
             <input
               type="date"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              defaultValue="2024-12-31"
+              value={sigDateFin}
+              onChange={e => setSigDateFin(e.target.value)}
             />
           </div>
 

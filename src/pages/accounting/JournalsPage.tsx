@@ -81,12 +81,12 @@ const JournalsPage: React.FC = () => {
     loadData();
   }, [adapter]);
 
-  // Devise : lue depuis la table societes (champ devisePrincipale.code ou currency)
+  // Devise : lue depuis la table companies (champ currency ou devise)
   useEffect(() => {
-    adapter.getAll<any>('societes').then(societes => {
-      const s = societes[0];
+    adapter.getAll<any>('companies').then(companies => {
+      const s = companies[0];
       if (s) {
-        const code = s.devisePrincipale?.code || s.currency || s.devise || null;
+        const code = s.currency || s.devise || s.devisePrincipale?.code || null;
         if (code) setCompanyCurrency(code);
       }
     }).catch(() => {/* garder FCFA par défaut */});

@@ -772,12 +772,14 @@ const Lettrage: React.FC = () => {
                 <div className="flex space-x-4">
                   <input
                     type="date"
-                    defaultValue="2024-01-01"
+                    value={dateRange.start}
+                    onChange={e => setDateRange(prev => ({ ...prev, start: e.target.value }))}
                     className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
                   />
                   <input
                     type="date"
-                    defaultValue="2024-12-31"
+                    value={dateRange.end}
+                    onChange={e => setDateRange(prev => ({ ...prev, end: e.target.value }))}
                     className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
                   />
                 </div>

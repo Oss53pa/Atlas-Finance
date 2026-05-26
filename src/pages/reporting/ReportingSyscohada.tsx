@@ -171,7 +171,7 @@ const ReportingSyscohada: React.FC = () => {
   // Load companies to determine entities per country
   const { data: companies = [] } = useQuery({
     queryKey: ['syscohada-companies'],
-    queryFn: () => adapter.getAll<any>('societes').catch(() => []),
+    queryFn: () => adapter.getAll<any>('companies').catch(() => []),
   });
 
   // OHADA zone countries — revenue and entities computed from real data

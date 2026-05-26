@@ -73,18 +73,22 @@ const AdminImportExport: React.FC<Props> = ({ subTab, setSubTab }) => {
     </div>
   );
 
-  const ExportForm = ({ label }: { label: string }) => (
+  const ExportForm = ({ label }: { label: string }) => {
+    const cy = new Date().getFullYear();
+    const [exportFrom, setExportFrom] = useState(`${cy}-01-01`);
+    const [exportTo, setExportTo] = useState(`${cy}-12-31`);
+    return (
     <div className="bg-white rounded-xl p-6 border space-y-5">
       <div className="grid grid-cols-2 gap-5">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Exercice</label>
-          <select className="w-full px-3 py-2 border rounded-lg"><option>2026</option><option>2025</option><option>2024</option></select>
+          <select className="w-full px-3 py-2 border rounded-lg"><option>{cy}</option><option>{cy - 1}</option><option>{cy - 2}</option></select>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Periode</label>
           <div className="flex space-x-2">
-            <input type="date" defaultValue="2026-01-01" className="flex-1 px-3 py-2 border rounded-lg text-sm" />
-            <input type="date" defaultValue="2026-12-31" className="flex-1 px-3 py-2 border rounded-lg text-sm" />
+            <input type="date" value={exportFrom} onChange={e => setExportFrom(e.target.value)} className="flex-1 px-3 py-2 border rounded-lg text-sm" />
+            <input type="date" value={exportTo} onChange={e => setExportTo(e.target.value)} className="flex-1 px-3 py-2 border rounded-lg text-sm" />
           </div>
         </div>
       </div>
@@ -114,7 +118,8 @@ const AdminImportExport: React.FC<Props> = ({ subTab, setSubTab }) => {
         </button>
       </div>
     </div>
-  );
+    );
+  };
 
   return (
     <div className="p-6">

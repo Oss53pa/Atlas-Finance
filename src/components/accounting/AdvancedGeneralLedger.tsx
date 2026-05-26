@@ -200,6 +200,60 @@ const AdvancedGeneralLedger: React.FC = () => {
     ).sort((a, b) => b.date.localeCompare(a.date));
   }, [accountsData]);
 
+  // Vue chronologique — entrées groupées par date
+  const timelineData = useMemo(() => {
+    const byDate = new Map<string, { total: number; items: typeof flatEntries }>();
+    for (const entry of flatEntries) {
+      const existing = byDate.get(entry.date) || { total: 0, items: [] };
+      existing.total += entry.debit + entry.credit;
+      existing.items.push(entry);
+      byDate.set(entry.date, existing);
+    }
+    return Array.from(byDate.entries())
+      .sort(([a], [b]) => b.localeCompare(a))
+      .slice(0, 10)
+      .map(([date, data]) => ({
+        date: (() => { try { return new Date(date + 'T00:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }); } catch { return date; } })(),
+        entries: data.items.length,
+        total: data.total,
+        items: data.items.slice(0, 3),
+      }));
+  }, [flatEntries]);
+
+  // Vue hiérarchique — comptes groupés par classe
+  const CLASS_META: Record<string, { label: string; color: string }> = {
+    '1': { label: 'Classe 1 — Capitaux Propres et Assimilés', color: 'gray' },
+    '2': { label: 'Classe 2 — Actif Immobilisé', color: 'green' },
+    '3': { label: 'Classe 3 — Stocks', color: 'yellow' },
+    '4': { label: 'Classe 4 — Comptes de Tiers', color: 'primary' },
+    '5': { label: 'Classe 5 — Comptes Financiers', color: 'blue' },
+    '6': { label: 'Classe 6 — Comptes de Charges', color: 'red' },
+    '7': { label: 'Classe 7 — Comptes de Produits', color: 'green' },
+    '8': { label: 'Classe 8 — Comptes Spéciaux', color: 'gray' },
+    '9': { label: 'Classe 9 — Analytique', color: 'gray' },
+  };
+  const hierarchyData = useMemo(() => {
+    const classMap = new Map<string, AccountData[]>();
+    for (const acc of accountsData) {
+      const key = acc.compte.charAt(0);
+      const existing = classMap.get(key) || [];
+      existing.push(acc);
+      classMap.set(key, existing);
+    }
+    return Array.from(classMap.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([key, comptes]) => ({
+        classe: CLASS_META[key]?.label ?? `Classe ${key}`,
+        color: CLASS_META[key]?.color ?? 'gray',
+        comptes: comptes.map(acc => ({
+          numero: acc.compte,
+          libelle: acc.libelle,
+          solde: acc.soldeFermeture,
+          sousComptes: [] as { numero: string; libelle: string; solde: number }[],
+        })),
+      }));
+  }, [accountsData]);
+
   const COLORS = ['#235A6E', '#E89A2E', '#15803D', '#4E7E8D', '#C77E2C', '#7FA3AF'];
 
   return (
@@ -796,11 +850,12 @@ const AdvancedGeneralLedger: React.FC = () => {
 
                 {/* Timeline par jour */}
                 <div className="space-y-6">
-                  {[
-                    { date: '15 Janvier 2025', entries: 3, total: 1375000 },
-                    { date: '14 Janvier 2025', entries: 2, total: 750000 },
-                    { date: '13 Janvier 2025', entries: 5, total: 2100000 }
-                  ].map((day, dayIndex) => (
+                  {timelineData.length === 0 && (
+                    <div className="text-center py-10 text-sm text-gray-500">
+                      Aucune écriture pour la période sélectionnée.
+                    </div>
+                  )}
+                  {timelineData.map((day, dayIndex) => (
                     <div key={dayIndex} className="border-l-4 border-blue-500 pl-6 relative">
                       <div className="absolute -left-3 top-0 w-6 h-6 bg-blue-500 rounded-full border-4 border-white"></div>
 
@@ -814,25 +869,21 @@ const AdvancedGeneralLedger: React.FC = () => {
                         </div>
 
                         <div className="space-y-2">
-                          {[
-                            { time: '14:30', compte: '512000', libelle: 'Virement fournisseur', montant: 500000, type: 'debit' },
-                            { time: '10:15', compte: '401100', libelle: 'Facture fournisseur', montant: 125000, type: 'credit' }
-                          ].slice(0, day.entries > 2 ? 2 : day.entries).map((entry, entryIndex) => (
+                          {day.items.slice(0, 2).map((entry, entryIndex) => (
                             <div key={entryIndex} className="flex items-center justify-between p-3 bg-gray-50 rounded">
                               <div className="flex items-center space-x-3">
-                                <span className="text-xs text-gray-700 font-mono">{entry.time}</span>
                                 <span className="text-sm font-mono text-gray-700">{entry.compte}</span>
-                                <span className="text-sm text-gray-600">{entry.libelle}</span>
+                                <span className="text-sm text-gray-600">{entry.description || entry.libelle}</span>
                               </div>
-                              <span className={`text-sm font-semibold ${entry.type === 'debit' ? 'text-green-600' : 'text-red-600'}`}>
-                                {fmt(entry.montant)}
+                              <span className={`text-sm font-semibold ${entry.debit > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                {fmt(entry.debit > 0 ? entry.debit : entry.credit)}
                               </span>
                             </div>
                           ))}
                           {day.entries > 2 && (
-                            <button className="text-sm text-blue-600 hover:underline">
-                              Voir les {day.entries - 2} autres écritures
-                            </button>
+                            <p className="text-sm text-blue-600">
+                              + {day.entries - 2} autre(s) écriture(s)
+                            </p>
                           )}
                         </div>
                       </div>
@@ -866,45 +917,14 @@ const AdvancedGeneralLedger: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Arborescence des comptes */}
+                {/* Arborescence des comptes — données réelles */}
                 <div className="space-y-2">
-                  {[
-                    {
-                      classe: 'Classe 4 - Comptes de Tiers',
-                      color: 'primary',
-                      comptes: [
-                        { numero: '401', libelle: t('navigation.suppliers'), solde: -2500000, sousComptes: [
-                          { numero: '401100', libelle: 'Fournisseurs - Factures non parvenues', solde: -125000 },
-                          { numero: '401200', libelle: 'Fournisseurs - Factures à recevoir', solde: -875000 }
-                        ]},
-                        { numero: '411', libelle: t('navigation.clients'), solde: 1800000, sousComptes: [
-                          { numero: '411100', libelle: 'Clients - Ordinaires', solde: 1500000 },
-                          { numero: '411200', libelle: 'Clients - Créances douteuses', solde: 300000 }
-                        ]}
-                      ]
-                    },
-                    {
-                      classe: 'Classe 5 - Comptes Financiers',
-                      color: 'blue',
-                      comptes: [
-                        { numero: '512', libelle: 'Banques', solde: 5500000, sousComptes: [
-                          { numero: '512000', libelle: 'Banque Principale BCEAO', solde: 4000000 },
-                          { numero: '512100', libelle: 'Banque Secondaire', solde: 1500000 }
-                        ]},
-                        { numero: '531', libelle: 'Caisse', solde: 450000, sousComptes: [] }
-                      ]
-                    },
-                    {
-                      classe: 'Classe 6 - Comptes de Charges',
-                      color: 'red',
-                      comptes: [
-                        { numero: '607', libelle: 'Achats de marchandises', solde: 750000, sousComptes: [
-                          { numero: '607000', libelle: 'Achats de marchandises', solde: 750000 }
-                        ]},
-                        { numero: '641', libelle: 'Rémunérations du personnel', solde: 3200000, sousComptes: [] }
-                      ]
-                    }
-                  ].map((classe, classeIndex) => (
+                  {hierarchyData.length === 0 && (
+                    <div className="text-center py-10 text-sm text-gray-500">
+                      Aucun compte avec mouvement pour la période sélectionnée.
+                    </div>
+                  )}
+                  {hierarchyData.map((classe, classeIndex) => (
                     <div key={classeIndex} className="border border-gray-200 rounded-lg">
                       <div
                         className={`bg-${classe.color}-50 border-l-4 border-${classe.color}-500 p-3 cursor-pointer hover:bg-${classe.color}-100`}
