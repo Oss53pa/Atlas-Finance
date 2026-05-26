@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Users, Plus, Edit2, UserX, Shield, Eye, Key, Clock,
-  LogOut, Globe, Monitor, X, Search, ChevronDown, Filter
+  LogOut, Globe, Monitor, X, Search, ChevronDown, Filter, Send
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useData } from '../../../contexts/DataContext';
@@ -193,6 +193,59 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
     toast.success(`Utilisateur ${u.prenom} ${u.nom} ${u.status === 'Actif' ? 'desactive' : 'reactive'}`);
   };
 
+  const handleResendInvitation = async (u: any) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        toast.error('Session expirée — veuillez vous reconnecter');
+        return;
+      }
+
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const loadingToast = toast.loading(`Renvoi de l'invitation à ${u.email}…`);
+
+      const res = await fetch(`${supabaseUrl}/functions/v1/create-user`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          prenom: u.prenom,
+          nom: u.nom,
+          email: u.email,
+          role: u.role,
+          telephone: u.telephone,
+          departement: u.departement,
+          forceRecovery: true,
+        }),
+      });
+
+      toast.dismiss(loadingToast);
+      const result = await res.json();
+
+      if (!res.ok || !result.success) {
+        // Clipboard fallback si le lien est disponible mais email KO
+        if (result.magicLink) {
+          const confirmed = window.confirm(
+            `Email non envoyé (${result.error || 'erreur inconnue'})\n\nCopier le lien d'invitation dans le presse-papier pour le partager manuellement ?`
+          );
+          if (confirmed) {
+            await navigator.clipboard.writeText(result.magicLink);
+            toast.success('Lien copié dans le presse-papier');
+          }
+        } else {
+          toast.error(result.error || "Erreur lors du renvoi de l'invitation");
+        }
+        return;
+      }
+
+      toast.success(`✅ Invitation renvoyée à ${u.email}`);
+    } catch (err) {
+      toast.error("Erreur lors du renvoi de l'invitation");
+    }
+  };
+
   const savePermissions = async () => {
     try {
       const allSettings = await adapter.getAll<any>('settings');
@@ -349,6 +402,7 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
                     <td className="px-4 py-3">
                       <div className="flex items-center space-x-2">
                         <button onClick={() => openEditModal(u)} className="p-1.5 hover:bg-blue-50 rounded-lg text-blue-600" title="Modifier"><Edit2 className="w-4 h-4" /></button>
+                        <button onClick={() => handleResendInvitation(u)} className="p-1.5 hover:bg-amber-50 rounded-lg text-amber-600" title="Renvoyer invitation"><Send className="w-4 h-4" /></button>
                         <button onClick={() => toggleUserStatus(u)} className="p-1.5 hover:bg-red-50 rounded-lg text-red-500" title="Desactiver"><UserX className="w-4 h-4" /></button>
                       </div>
                     </td>

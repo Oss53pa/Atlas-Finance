@@ -1,11 +1,16 @@
 /**
  * PremierConnexionPage — Première authentification après invitation.
  *
- * Flow :
- *  1. Admin invite un collaborateur → edge function generate un lien Supabase
- *  2. Collaborateur clique → Supabase redirige ici avec access_token dans le hash
- *  3. Cette page : email confirmé ✓ → formulaire nouveau mot de passe
- *  4. Succès → redirect /dashboard
+ * Flow 1 — Anti-prefetch (lien envoyé par l'edge function v2) :
+ *  1. Admin invite → edge function génère /premier-connexion?token_hash=xxx&type=invite
+ *  2. Collaborateur clique → cette page lit token_hash dans les query params
+ *  3. supabase.auth.verifyOtp({ token_hash, type }) → échange côté client (JS requis)
+ *     Les scanners email ne peuvent PAS exécuter JS → token intact jusqu'au vrai clic.
+ *  4. Session ouverte → formulaire nouveau mot de passe → redirect /dashboard
+ *
+ * Flow 2 — Hash fragment (fallback action_link direct) :
+ *  1. Supabase redirige avec #access_token=... dans l'URL
+ *  2. onAuthStateChange émet SIGNED_IN → même formulaire
  */
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -25,33 +30,55 @@ const PremierConnexionPage: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  // Supabase JS client décode automatiquement le hash de l'URL (#access_token=...)
-  // et émet SIGNED_IN lors du premier chargement.
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session?.user) {
-        setUserEmail(session.user.email ?? '');
-        setStep('set-password');
-      } else if (event === 'TOKEN_REFRESHED' && session?.user) {
-        setUserEmail(session.user.email ?? '');
-        setStep('set-password');
-      }
-    });
+    let cleanupFn: (() => void) | undefined;
 
-    // Vérifier si déjà authentifié (rechargement de page)
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        setUserEmail(session.user.email ?? '');
-        setStep('set-password');
-      } else {
-        // Pas encore de session — attendre l'event (hash non encore traité)
-        setTimeout(() => {
-          setStep(s => s === 'loading' ? 'error' : s);
-        }, 5000);
-      }
-    });
+    const applySession = (user: { email?: string | null }) => {
+      setUserEmail(user.email ?? '');
+      setStep('set-password');
+    };
 
-    return () => subscription.unsubscribe();
+    const searchParams = new URLSearchParams(window.location.search);
+    const token_hash = searchParams.get('token_hash');
+    const type = searchParams.get('type') ?? 'invite';
+
+    if (token_hash) {
+      // ── Flow 1 : token_hash anti-prefetch ─────────────────────────────────
+      // verifyOtp échange le token côté client (JS requis, scanners ≠ peuvent pas)
+      supabase.auth.verifyOtp({ token_hash, type: type as Parameters<typeof supabase.auth.verifyOtp>[0]['type'] })
+        .then(({ data, error: verifyErr }) => {
+          if (verifyErr || !data.session?.user) {
+            console.error('[PremierConnexion] verifyOtp error:', verifyErr?.message);
+            setStep('error');
+          } else {
+            applySession(data.session.user);
+          }
+        });
+
+    } else {
+      // ── Flow 2 : hash fragment (#access_token) ─────────────────────────────
+      // Supabase JS client décode automatiquement le hash et émet SIGNED_IN
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session?.user) {
+          applySession(session.user);
+        }
+      });
+      cleanupFn = () => subscription.unsubscribe();
+
+      // Vérifier si déjà authentifié (rechargement de page)
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session?.user) {
+          applySession(session.user);
+        } else {
+          // Attendre l'event SIGNED_IN — timeout fallback si aucun token dans l'URL
+          setTimeout(() => {
+            setStep(s => s === 'loading' ? 'error' : s);
+          }, 5000);
+        }
+      });
+    }
+
+    return () => cleanupFn?.();
   }, []);
 
   const handleSetPassword = async (e: React.FormEvent) => {
