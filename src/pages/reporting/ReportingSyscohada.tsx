@@ -103,7 +103,7 @@ const ReportingSyscohada: React.FC = () => {
   // Load fiscal years from Dexie to generate SYSCOHADA reports
   const { data: fiscalYears = [] } = useQuery({
     queryKey: ['syscohada-fiscal-years'],
-    queryFn: () => adapter.getAll('fiscalYears'),
+    queryFn: () => adapter.getAll<any>('fiscalYears'),
   });
 
   // Load journal entries to compute real revenue
@@ -445,8 +445,6 @@ const ReportingSyscohada: React.FC = () => {
                 <ColorfulBarChart
                   data={chartData}
                   height={160}
-                  showValues={true}
-                  valueFormatter={(value) => `${value} rapport${value !== 1 ? 's' : ''}`}
                 />
               </ModernChartCard>
             </motion.div>
@@ -703,8 +701,6 @@ const ReportingSyscohada: React.FC = () => {
                 <ColorfulBarChart
                   data={countryChartData}
                   height={160}
-                  showValues={true}
-                  valueFormatter={(value) => `${value.toFixed(0)}M`}
                 />
               </ModernChartCard>
             </motion.div>

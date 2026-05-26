@@ -114,7 +114,7 @@ const FinancialStatements: React.FC = () => {
   // Load fiscal years from Dexie to build statement list
   const { data: fiscalYears = [] } = useQuery({
     queryKey: ['financial-statements-fiscal-years'],
-    queryFn: () => adapter.getAll('fiscalYears'),
+    queryFn: () => adapter.getAll<any>('fiscalYears'),
   });
 
   const statements: FinancialStatement[] = useMemo(() => {
@@ -445,8 +445,6 @@ const FinancialStatements: React.FC = () => {
                 <ColorfulBarChart
                   data={chartData}
                   height={160}
-                  showValues={true}
-                  valueFormatter={(value) => `${value} état${value !== 1 ? 's' : ''}`}
                 />
               </ModernChartCard>
             </motion.div>
@@ -637,8 +635,6 @@ const FinancialStatements: React.FC = () => {
                 <ColorfulBarChart
                   data={metricsChartData}
                   height={160}
-                  showValues={true}
-                  valueFormatter={(value) => `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`}
                 />
               </ModernChartCard>
             </motion.div>

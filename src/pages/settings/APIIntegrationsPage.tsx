@@ -222,7 +222,7 @@ const APIIntegrationsPage: React.FC = () => {
 
   const confirmDelete = () => {
     if (showDeleteConfirm) {
-      toast.success(`${showDeleteConfirm.name || 'Élément'} supprimé avec succès`);
+      toast.success(`${(showDeleteConfirm as any).name || (showDeleteConfirm as any).url || 'Élément'} supprimé avec succès`);
       setShowDeleteConfirm(null);
     }
   };
@@ -239,7 +239,7 @@ const APIIntegrationsPage: React.FC = () => {
     setShowCodeExamples(language);
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string | number) => {
     switch (status) {
       case 'active':
       case 'connected':
@@ -1156,7 +1156,7 @@ const APIIntegrationsPage: React.FC = () => {
           </DialogHeader>
           <div className="space-y-4">
             <p className="text-gray-600">
-              Êtes-vous sûr de vouloir supprimer <strong>{showDeleteConfirm?.name || 'cet élément'}</strong> ?
+              Êtes-vous sûr de vouloir supprimer <strong>{(showDeleteConfirm as any)?.name || (showDeleteConfirm as any)?.url || 'cet élément'}</strong> ?
             </p>
             <p className="text-sm text-gray-700">
               Cette action est irréversible et toutes les données associées seront perdues.
