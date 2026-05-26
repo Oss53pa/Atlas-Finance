@@ -124,19 +124,21 @@ CREATE POLICY company_members_admin_all ON company_members
 --    Synchronise les utilisateurs déjà présents dans profiles vers les nouvelles
 --    tables (idempotent via ON CONFLICT DO NOTHING).
 
--- user_companies depuis profiles + roles
+-- user_companies depuis profiles
+-- profiles.role contient le libellé WiseBook directement ('Administrateur', 'manager', etc.)
 INSERT INTO user_companies (user_id, company_id, role)
 SELECT
   p.id AS user_id,
   p.company_id,
-  CASE r.code
-    WHEN 'admin'      THEN 'Administrateur'
-    WHEN 'manager'    THEN 'Manager'
-    WHEN 'accountant' THEN 'Comptable'
+  CASE lower(p.role)
+    WHEN 'administrateur' THEN 'Administrateur'
+    WHEN 'admin'          THEN 'Administrateur'
+    WHEN 'manager'        THEN 'Manager'
+    WHEN 'comptable'      THEN 'Comptable'
+    WHEN 'accountant'     THEN 'Comptable'
     ELSE 'Lecteur'
   END AS role
 FROM profiles p
-LEFT JOIN roles r ON r.id = p.role_id
 WHERE p.company_id IS NOT NULL
   AND p.id IS NOT NULL
 ON CONFLICT (user_id, company_id) DO NOTHING;
@@ -148,16 +150,17 @@ SELECT
   p.email,
   p.first_name,
   p.last_name,
-  CASE r.code
-    WHEN 'admin'      THEN 'Administrateur'
-    WHEN 'manager'    THEN 'Manager'
-    WHEN 'accountant' THEN 'Comptable'
+  CASE lower(p.role)
+    WHEN 'administrateur' THEN 'Administrateur'
+    WHEN 'admin'          THEN 'Administrateur'
+    WHEN 'manager'        THEN 'Manager'
+    WHEN 'comptable'      THEN 'Comptable'
+    WHEN 'accountant'     THEN 'Comptable'
     ELSE 'Lecteur'
   END AS role,
   p.id AS user_id,
-  p.is_active AS active
+  COALESCE(p.is_active, true) AS active
 FROM profiles p
-LEFT JOIN roles r ON r.id = p.role_id
 WHERE p.company_id IS NOT NULL
   AND p.email IS NOT NULL
 ON CONFLICT (company_id, email) DO NOTHING;
