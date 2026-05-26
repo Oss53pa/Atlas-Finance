@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../../contexts/DataContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { validerEcriture } from '../../services/entryWorkflow';
 import {
   FileText, Plus, BarChart3, CheckCircle, Clock, ArrowLeft, Home,
@@ -30,6 +31,7 @@ interface EcritureBrouillard {
 const EntriesPage: React.FC = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('brouillard');
   const [showEntryModal, setShowEntryModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -373,7 +375,12 @@ const EntriesPage: React.FC = () => {
             </div>
 
             <button
-              onClick={() => navigate('/dashboard/comptable')}
+              onClick={() => {
+                const role = user?.role;
+                if (role === 'admin') navigate('/workspace/admin');
+                else if (role === 'manager') navigate('/workspace/manager');
+                else navigate('/workspace/comptable');
+              }}
               className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] transition-colors flex items-center space-x-2"
             >
               <Home className="w-4 h-4" />

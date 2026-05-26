@@ -180,6 +180,26 @@ const AdvancedGeneralLedger: React.FC = () => {
     return { totalComptes, comptesActifs, totalEcritures, moyenneEcritures, comptesPlusActifs };
   }, [accountsData]);
 
+  // Toutes les lignes d'écritures aplaties — pour la vue "Recherche Intelligente"
+  const flatEntries = useMemo(() => {
+    return accountsData.flatMap(acc =>
+      acc.entries.map(entry => ({
+        id: entry.id,
+        date: entry.date,
+        compte: acc.compte,
+        libelle: acc.libelle,
+        description: entry.libelle,
+        debit: entry.debit,
+        credit: entry.credit,
+        piece: entry.piece,
+        tags: [] as string[],
+        annotations: 0,
+        aiFlags: [] as string[],
+        confidence: 100,
+      }))
+    ).sort((a, b) => b.date.localeCompare(a.date));
+  }, [accountsData]);
+
   const COLORS = ['#235A6E', '#E89A2E', '#15803D', '#4E7E8D', '#C77E2C', '#7FA3AF'];
 
   return (
@@ -432,8 +452,8 @@ const AdvancedGeneralLedger: React.FC = () => {
               <div className="bg-blue-50 p-3 rounded-lg">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs text-blue-600">Base d'écritures</p>
-                    <p className="text-lg font-bold text-blue-900">2.5M+</p>
+                    <p className="text-xs text-blue-600">Écritures totales</p>
+                    <p className="text-lg font-bold text-blue-900">{indicators.totalEcritures.toLocaleString('fr-FR')}</p>
                   </div>
                   <Database className="h-6 w-6 text-blue-500" />
                 </div>
@@ -442,8 +462,8 @@ const AdvancedGeneralLedger: React.FC = () => {
               <div className="bg-primary-50 p-3 rounded-lg">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs text-primary-600">IA Confidence</p>
-                    <p className="text-lg font-bold text-primary-900">92%</p>
+                    <p className="text-xs text-primary-600">Comptes actifs</p>
+                    <p className="text-lg font-bold text-primary-900">{indicators.comptesActifs}</p>
                   </div>
                   <Brain className="h-6 w-6 text-primary-500" />
                 </div>
@@ -452,8 +472,8 @@ const AdvancedGeneralLedger: React.FC = () => {
               <div className="bg-orange-50 p-3 rounded-lg">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs text-orange-600">Recherches/jour</p>
-                    <p className="text-lg font-bold text-orange-900">247</p>
+                    <p className="text-xs text-orange-600">Comptes total</p>
+                    <p className="text-lg font-bold text-orange-900">{indicators.totalComptes}</p>
                   </div>
                   <Activity className="h-6 w-6 text-orange-500" />
                 </div>
@@ -547,15 +567,15 @@ const AdvancedGeneralLedger: React.FC = () => {
               <div className="grid grid-cols-3 gap-4 mt-4">
                 <div className="bg-blue-50 p-3 rounded">
                   <div className="text-xs text-blue-600">Écritures trouvées</div>
-                  <div className="font-semibold text-blue-900">1,247</div>
+                  <div className="font-semibold text-blue-900">{indicators.totalEcritures.toLocaleString('fr-FR')}</div>
                 </div>
                 <div className="bg-green-50 p-3 rounded">
                   <div className="text-xs text-green-600">Comptes concernés</div>
-                  <div className="font-semibold text-green-900">28</div>
+                  <div className="font-semibold text-green-900">{indicators.totalComptes.toLocaleString('fr-FR')}</div>
                 </div>
                 <div className="bg-primary-50 p-3 rounded">
-                  <div className="text-xs text-primary-600">Score IA</div>
-                  <div className="font-semibold text-primary-900">92%</div>
+                  <div className="text-xs text-primary-600">Comptes actifs</div>
+                  <div className="font-semibold text-primary-900">{indicators.comptesActifs.toLocaleString('fr-FR')}</div>
                 </div>
               </div>
             </div>
@@ -587,54 +607,14 @@ const AdvancedGeneralLedger: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {/* Exemples d'écritures avec fonctionnalités intelligentes */}
-                  {[
-                    {
-                      id: '1',
-                      date: '2024-01-15',
-                      compte: '512000',
-                      libelle: 'Banque Principale BCEAO',
-                      description: 'Virement fournisseur prestation services',
-                      debit: 500000,
-                      credit: 0,
-                      journal: 'BQ',
-                      piece: 'VIR-2024-001',
-                      confidence: 98,
-                      tags: ['virement', 'banque'],
-                      annotations: 0,
-                      aiFlags: ['pattern_normal']
-                    },
-                    {
-                      id: '2',
-                      date: '2024-01-15',
-                      compte: '401100',
-                      libelle: 'Fournisseurs - Factures non parvenues',
-                      description: 'Facture fournisseur prestation maintenance',
-                      debit: 0,
-                      credit: 125000,
-                      journal: 'AC',
-                      piece: 'FACT-2024-045',
-                      confidence: 95,
-                      tags: ['facture', 'fournisseur'],
-                      annotations: 2,
-                      aiFlags: ['reviewed']
-                    },
-                    {
-                      id: '3',
-                      date: '2024-01-14',
-                      compte: '607000',
-                      libelle: 'Achats de marchandises',
-                      description: 'Achat équipement bureau - montant inhabituel',
-                      debit: 750000,
-                      credit: 0,
-                      journal: 'AC',
-                      piece: 'FACT-2024-044',
-                      confidence: 87,
-                      tags: ['achat', 'équipement'],
-                      annotations: 1,
-                      aiFlags: ['anomaly_detected', 'high_amount']
-                    }
-                  ].map((entry, index) => (
+                  {flatEntries.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} className="px-6 py-10 text-center text-sm text-gray-500">
+                        Aucune écriture pour la période sélectionnée.
+                      </td>
+                    </tr>
+                  ) : null}
+                  {flatEntries.slice(0, 50).map((entry, index) => (
                     <tr key={entry.id} className="hover:bg-gray-50 group">
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {new Date(entry.date).toLocaleDateString('fr-FR')}
@@ -672,7 +652,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs font-medium">
-                          {entry.journal}
+                          {entry.piece || '-'}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
@@ -702,7 +682,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                                 id: entry.id,
                                 date: entry.date,
                                 piece: entry.piece,
-                                libelle: entry.description,
+                                libelle: entry.description || entry.libelle,
                                 debit: entry.debit,
                                 credit: entry.credit,
                                 solde: money(entry.debit).subtract(money(entry.credit)).toNumber()
@@ -720,7 +700,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                                 id: entry.id,
                                 date: entry.date,
                                 piece: entry.piece,
-                                libelle: entry.description,
+                                libelle: entry.description || entry.libelle,
                                 debit: entry.debit,
                                 credit: entry.credit,
                                 solde: money(entry.debit).subtract(money(entry.credit)).toNumber()
@@ -768,8 +748,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                 <div className="px-6 py-4 border-t bg-gray-50">
                   <div className="flex justify-between items-center">
                     <div className="text-sm text-gray-700">
-                      Affichage de 1 à 50 sur 1,247 résultats
-                      <span className="ml-2 text-primary-600 font-medium">• Recherche optimisée IA</span>
+                      Affichage de 1 à {Math.min(50, flatEntries.length)} sur {flatEntries.length.toLocaleString('fr-FR')} résultats
                     </div>
                     <div className="flex items-center space-x-2">
                       <button

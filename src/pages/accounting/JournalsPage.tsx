@@ -62,6 +62,12 @@ const JournalsPage: React.FC = () => {
 
   const { adapter } = useData();
   const [dbEntries, setDbEntries] = useState<any[]>([]);
+  const [companyCurrency, setCompanyCurrency] = useState('FCFA');
+
+  // Filtres de date — année courante par défaut (contrôlés)
+  const currentYear = new Date().getFullYear();
+  const [dateFrom, setDateFrom] = useState(`${currentYear}-01-01`);
+  const [dateTo, setDateTo] = useState(`${currentYear}-12-31`);
 
   useEffect(() => {
     const loadData = async () => {
@@ -73,6 +79,17 @@ const JournalsPage: React.FC = () => {
       }
     };
     loadData();
+  }, [adapter]);
+
+  // Devise : lue depuis la table societes (champ devisePrincipale.code ou currency)
+  useEffect(() => {
+    adapter.getAll<any>('societes').then(societes => {
+      const s = societes[0];
+      if (s) {
+        const code = s.devisePrincipale?.code || s.currency || s.devise || null;
+        if (code) setCompanyCurrency(code);
+      }
+    }).catch(() => {/* garder FCFA par défaut */});
   }, [adapter]);
 
   // Hook d'impression pour les rapports
@@ -888,7 +905,7 @@ const JournalsPage: React.FC = () => {
                         {selectedJournal?.code === 'TOUS' ? 'Journal tous mouvements' : `Journal ${selectedJournal?.code} - ${selectedJournal?.libelle}`}
                       </h3>
                       <div className="px-3 py-1 bg-[var(--color-primary)] text-[var(--color-text-inverse)] rounded-lg text-sm font-medium">
-                        Devise: EUR
+                        Devise: {companyCurrency}
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -913,7 +930,8 @@ const JournalsPage: React.FC = () => {
                         <label className="text-sm font-medium text-[var(--color-text-secondary)]">Du</label>
                         <input
                           type="date"
-                          defaultValue="2019-01-01"
+                          value={dateFrom}
+                          onChange={e => setDateFrom(e.target.value)}
                           className="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
                         />
                       </div>
@@ -921,7 +939,8 @@ const JournalsPage: React.FC = () => {
                         <label className="text-sm font-medium text-[var(--color-text-secondary)]">au</label>
                         <input
                           type="date"
-                          defaultValue="2019-12-31"
+                          value={dateTo}
+                          onChange={e => setDateTo(e.target.value)}
                           className="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
                         />
                       </div>
@@ -945,15 +964,17 @@ const JournalsPage: React.FC = () => {
                     <div className="flex items-center space-x-6">
                       <div className="flex items-center space-x-2 bg-[var(--color-error-light)] px-3 py-2 rounded-lg">
                         <span className="text-sm font-medium text-gray-700">Débit:</span>
-                        <span className="text-lg font-bold text-[var(--color-error)]">944,00</span>
+                        <span className="text-lg font-bold text-[var(--color-error)]">{selectedJournalTotals.totalDebit.toFixed(2).replace('.', ',')}</span>
                       </div>
                       <div className="flex items-center space-x-2 bg-[var(--color-success-light)] px-3 py-2 rounded-lg">
                         <span className="text-sm font-medium text-gray-700">Crédit:</span>
-                        <span className="text-lg font-bold text-[var(--color-success)]">944,00</span>
+                        <span className="text-lg font-bold text-[var(--color-success)]">{selectedJournalTotals.totalCredit.toFixed(2).replace('.', ',')}</span>
                       </div>
                       <div className="flex items-center space-x-2 bg-[var(--color-info-light)] px-3 py-2 rounded-lg">
                         <span className="text-sm font-medium text-gray-700">Équilibre:</span>
-                        <span className="text-lg font-bold text-[var(--color-info)]">✓</span>
+                        <span className={`text-lg font-bold ${selectedJournalTotals.balanced ? 'text-[var(--color-info)]' : 'text-[var(--color-error)]'}`}>
+                          {selectedJournalTotals.balanced ? '✓' : '⚠'}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -981,15 +1002,17 @@ const JournalsPage: React.FC = () => {
                   <div className="print-only mb-4 flex justify-center space-x-6">
                     <div className="text-center">
                       <span className="text-sm font-medium">Total Débit:</span>
-                      <span className="ml-2 font-bold">944,00</span>
+                      <span className="ml-2 font-bold">{selectedJournalTotals.totalDebit.toFixed(2).replace('.', ',')}</span>
                     </div>
                     <div className="text-center">
                       <span className="text-sm font-medium">Total Crédit:</span>
-                      <span className="ml-2 font-bold">944,00</span>
+                      <span className="ml-2 font-bold">{selectedJournalTotals.totalCredit.toFixed(2).replace('.', ',')}</span>
                     </div>
                     <div className="text-center">
                       <span className="text-sm font-medium">Équilibre:</span>
-                      <span className="ml-2 font-bold text-[var(--color-success)]">✓</span>
+                      <span className={`ml-2 font-bold ${selectedJournalTotals.balanced ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'}`}>
+                        {selectedJournalTotals.balanced ? '✓' : '⚠'}
+                      </span>
                     </div>
                   </div>
 
@@ -1050,15 +1073,13 @@ const JournalsPage: React.FC = () => {
                             </tr>
                           </thead>
                           <tbody>
-                            {[
-                              { compte: '401', libelle: t('navigation.suppliers'), debit: '160,00', credit: '304,00', soldeDebit: '', soldeCredit: '144,00' },
-                              { compte: '411', libelle: t('navigation.clients'), debit: '120,00', credit: '360,00', soldeDebit: '', soldeCredit: '240,00' },
-                              { compte: '44566', libelle: 'TVA déductible sur achats de biens et services', debit: '50,67', credit: '', soldeDebit: '50,67', soldeCredit: '' },
-                              { compte: '4457', libelle: 'TVA collectée', debit: '', credit: '20,00', soldeDebit: '', soldeCredit: '20,00' },
-                              { compte: '512', libelle: 'Banques', debit: '360,00', credit: '160,00', soldeDebit: '200,00', soldeCredit: '' },
-                              { compte: '601', libelle: 'Achats stockés - Matières premières (et fournitures)', debit: '253,33', credit: '', soldeDebit: '253,33', soldeCredit: '' },
-                              { compte: '701', libelle: 'Ventes de produits finis', debit: '', credit: '100,00', soldeDebit: '', soldeCredit: '100,00' }
-                            ].map((compte, index) => (
+                            {recapParCompte.length === 0 ? (
+                              <tr>
+                                <td colSpan={6} className="px-4 py-6 text-center text-sm text-[var(--color-text-secondary)]">
+                                  Aucune écriture pour ce journal
+                                </td>
+                              </tr>
+                            ) : recapParCompte.map((compte, index) => (
                               <tr key={index} className="hover:bg-[var(--color-surface-hover)] border-b border-[var(--color-border)]">
                                 <td className="px-2 py-1 text-xs font-mono text-[var(--color-primary)] font-bold border-r border-[var(--color-border)]">{compte.compte}</td>
                                 <td className="px-2 py-1 text-xs border-r border-[var(--color-border)]">{compte.libelle}</td>
@@ -1068,13 +1089,23 @@ const JournalsPage: React.FC = () => {
                                 <td className="px-2 py-1 text-xs text-right font-medium text-[var(--color-success)]">{compte.soldeCredit}</td>
                               </tr>
                             ))}
-                            <tr className="bg-[var(--color-surface-hover)] font-bold border-t-2 border-[var(--color-border)]">
-                              <td colSpan={2} className="px-2 py-2 text-sm font-bold text-[var(--color-text-secondary)] border-r border-[var(--color-border)]">TOTAL</td>
-                              <td className="px-2 py-2 text-right text-sm font-bold text-[var(--color-error)] border-r border-[var(--color-border)]">944,00</td>
-                              <td className="px-2 py-2 text-right text-sm font-bold text-[var(--color-success)] border-r border-[var(--color-border)]">944,00</td>
-                              <td className="px-2 py-2 text-right text-sm font-bold text-[var(--color-error)] border-r border-[var(--color-border)]">504,00</td>
-                              <td className="px-2 py-2 text-right text-sm font-bold text-[var(--color-success)]">504,00</td>
-                            </tr>
+                            {recapParCompte.length > 0 && (
+                              <tr className="bg-[var(--color-surface-hover)] font-bold border-t-2 border-[var(--color-border)]">
+                                <td colSpan={2} className="px-2 py-2 text-sm font-bold text-[var(--color-text-secondary)] border-r border-[var(--color-border)]">TOTAL</td>
+                                <td className="px-2 py-2 text-right text-sm font-bold text-[var(--color-error)] border-r border-[var(--color-border)]">{selectedJournalTotals.totalDebit.toFixed(2).replace('.', ',')}</td>
+                                <td className="px-2 py-2 text-right text-sm font-bold text-[var(--color-success)] border-r border-[var(--color-border)]">{selectedJournalTotals.totalCredit.toFixed(2).replace('.', ',')}</td>
+                                <td className="px-2 py-2 text-right text-sm font-bold text-[var(--color-error)] border-r border-[var(--color-border)]">
+                                  {selectedJournalTotals.totalDebit > selectedJournalTotals.totalCredit
+                                    ? (selectedJournalTotals.totalDebit - selectedJournalTotals.totalCredit).toFixed(2).replace('.', ',')
+                                    : ''}
+                                </td>
+                                <td className="px-2 py-2 text-right text-sm font-bold text-[var(--color-success)]">
+                                  {selectedJournalTotals.totalCredit > selectedJournalTotals.totalDebit
+                                    ? (selectedJournalTotals.totalCredit - selectedJournalTotals.totalDebit).toFixed(2).replace('.', ',')
+                                    : ''}
+                                </td>
+                              </tr>
+                            )}
                           </tbody>
                         </table>
                       </div>
