@@ -49,6 +49,8 @@ interface JournalEntryModalProps {
   onClose: () => void;
   initialData?: Record<string, unknown>;
   mode?: 'create' | 'edit';
+  /** Ouvre directement TemplateSelector pré-sélectionné sur ce template. */
+  initialTemplateId?: string;
 }
 
 interface LigneEcriture {
@@ -66,7 +68,8 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
   isOpen,
   onClose,
   initialData,
-  mode = 'create'
+  mode = 'create',
+  initialTemplateId,
 }) => {
   // Lock guard: validated/posted entries are read-only (SYSCOHADA intangibility)
   const entryStatus = String(initialData?.status || 'draft');
@@ -74,6 +77,15 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
   const canReverse = isEntryReversible({ status: entryStatus, reversed: initialData?.reversed === true });
 
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
+
+  // Si un template est pré-demandé (depuis le raccourci du dropdown), ouvrir
+  // TemplateSelector dès que le modal lui-même s'ouvre.
+  useEffect(() => {
+    if (isOpen && initialTemplateId && mode === 'create') {
+      setShowTemplateSelector(true);
+    }
+  }, [isOpen, initialTemplateId, mode]);
+
   const [showPeriodModal, setShowPeriodModal] = useState(false);
   const [showReversalDialog, setShowReversalDialog] = useState(false);
   const [reversalReason, setReversalReason] = useState('');
@@ -2221,6 +2233,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
       isOpen={showTemplateSelector}
       onClose={() => setShowTemplateSelector(false)}
       onApply={handleApplyTemplate}
+      initialTemplateId={initialTemplateId}
     />
     </>
     )}

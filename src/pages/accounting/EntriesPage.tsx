@@ -39,6 +39,7 @@ const EntriesPage: React.FC = () => {
   const [selectedEntries, setSelectedEntries] = useState<string[]>([]);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [showTemplateDropdown, setShowTemplateDropdown] = useState(false);
+  const [entryModalTemplateId, setEntryModalTemplateId] = useState<string | undefined>();
 
   // P1-E : données réelles depuis le DataAdapter (plus de tableau vide en dur).
   const { adapter } = useData();
@@ -231,11 +232,11 @@ const EntriesPage: React.FC = () => {
     { id: 'brouillard', label: t('accounting.draft'), icon: FileText, badge: draftCount > 0 ? String(draftCount) : undefined },
   ];
 
-  // Modèles de saisie
+  // Raccourcis modèles — mappés sur les IDs réels de journalTemplates.ts
   const modelesSaisie = [
-    { id: 1, nom: 'Facture vente standard', journal: 'VE' },
-    { id: 2, nom: 'Achat avec TVA', journal: 'AC' },
-    { id: 3, nom: 'Paiement fournisseur', journal: 'BQ' },
+    { id: 'TPL-VTE-001', nom: 'Facture vente standard', journal: 'VE' },
+    { id: 'TPL-ACH-001', nom: 'Achat avec TVA',         journal: 'AC' },
+    { id: 'TPL-TRE-002', nom: 'Paiement fournisseur',   journal: 'BQ' },
   ];
 
   // Fonction pour ouvrir le modal d'édition
@@ -342,7 +343,25 @@ const EntriesPage: React.FC = () => {
                     <h4 className="font-medium text-[var(--color-text-primary)]">Modèles disponibles</h4>
                   </div>
                   {modelesSaisie.map((modele) => (
-                    <div key={modele.id} className="p-3 hover:bg-[var(--color-surface-hover)] border-b border-[var(--color-border-light)]">
+                    <div
+                      key={modele.id}
+                      role="button"
+                      tabIndex={0}
+                      className="p-3 hover:bg-[var(--color-surface-hover)] border-b border-[var(--color-border-light)] cursor-pointer"
+                      onClick={() => {
+                        setShowTemplateDropdown(false);
+                        setEntryModalTemplateId(modele.id);
+                        setShowEntryModal(true);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          setShowTemplateDropdown(false);
+                          setEntryModalTemplateId(modele.id);
+                          setShowEntryModal(true);
+                        }
+                      }}
+                    >
                       <div className="flex items-center justify-between">
                         <span className="text-sm">{modele.nom}</span>
                         <span className="px-2 py-1 bg-[var(--color-info-light)] text-[var(--color-info)] text-xs rounded">{modele.journal}</span>
@@ -454,10 +473,14 @@ const EntriesPage: React.FC = () => {
         <Plus className="w-6 h-6" />
       </button>
 
-      {/* Modal de nouvelle écriture */}
+      {/* Modal de nouvelle écriture (+ TemplateSelector si raccourci activé) */}
       <JournalEntryModal
         isOpen={showEntryModal}
-        onClose={() => setShowEntryModal(false)}
+        onClose={() => {
+          setShowEntryModal(false);
+          setEntryModalTemplateId(undefined);
+        }}
+        initialTemplateId={entryModalTemplateId}
       />
 
       {/* Modal d'édition d'écriture */}

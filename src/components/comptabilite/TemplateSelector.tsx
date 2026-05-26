@@ -2,7 +2,7 @@
  * TemplateSelector — Selection de modeles d'ecritures predefinies SYSCOHADA.
  * Affiche les 22 templates par categorie et pre-remplit les champs variables.
  */
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { X, FileText, ChevronRight, Search, Check, AlertCircle } from 'lucide-react';
 import {
   JOURNAL_TEMPLATES,
@@ -33,6 +33,8 @@ interface TemplateSelectorProps {
     journal: string;
     label: string;
   }) => void;
+  /** Pré-sélectionne un template à l'ouverture (ex: depuis le raccourci du dropdown). */
+  initialTemplateId?: string;
 }
 
 // ============================================================================
@@ -52,7 +54,7 @@ const CATEGORY_COLORS: Record<TemplateCategorie, string> = {
 // COMPONENT
 // ============================================================================
 
-const TemplateSelector: React.FC<TemplateSelectorProps> = ({ isOpen, onClose, onApply }) => {
+const TemplateSelector: React.FC<TemplateSelectorProps> = ({ isOpen, onClose, onApply, initialTemplateId }) => {
   const [selectedCategory, setSelectedCategory] = useState<TemplateCategorie | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<JournalEntryTemplate | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -60,6 +62,23 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({ isOpen, onClose, on
   const [applyError, setApplyError] = useState<string | null>(null);
 
   const categories = useMemo(() => getTemplateCategories(), []);
+
+  // Pré-sélection automatique quand on ouvre avec un template spécifique
+  const prevIsOpen = useRef(false);
+  useEffect(() => {
+    const justOpened = isOpen && !prevIsOpen.current;
+    prevIsOpen.current = isOpen;
+    if (!justOpened || !initialTemplateId) return;
+    const tpl = JOURNAL_TEMPLATES.find(t => t.id === initialTemplateId);
+    if (!tpl) return;
+    setSelectedTemplate(tpl);
+    setApplyError(null);
+    const defaults: Record<string, string | number> = {};
+    for (const champ of tpl.champsVariables) {
+      if (champ.defaut !== undefined) defaults[champ.cle] = champ.defaut;
+    }
+    setFieldValues(defaults);
+  }, [isOpen, initialTemplateId]);
 
   const filteredTemplates = useMemo(() => {
     let templates = selectedCategory
