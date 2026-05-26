@@ -66,19 +66,48 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
     }
   };
 
+  // Charge les membres depuis Supabase (company_members), avec fallback localStorage
+  const loadUsers = async () => {
+    try {
+      const { data: members, error } = await supabase
+        .from('company_members')
+        .select('*')
+        .order('invited_at', { ascending: false });
+
+      if (!error && members) {
+        const mapped = members.map((m: any) => ({
+          id: m.id,
+          prenom: m.first_name ?? '',
+          nom: m.last_name ?? '',
+          email: m.email,
+          telephone: m.telephone ?? '',
+          departement: m.departement ?? '',
+          role: m.role,
+          status: m.active ? 'Actif' : 'Inactif',
+          derniereConnexion: m.last_login_at
+            ? new Date(m.last_login_at).toLocaleString('fr-FR')
+            : '-',
+        }));
+        setUsers(mapped);
+        return;
+      }
+    } catch (_) { /* Supabase non configuré → fallback */ }
+
+    // Fallback : localStorage via DataAdapter
+    try {
+      const allSettings = await adapter.getAll<any>('settings');
+      const usersSetting = allSettings.find((s: any) => s.key === 'admin_users');
+      if (usersSetting?.value) setUsers(JSON.parse(usersSetting.value));
+    } catch (_) { /* ignoré */ }
+  };
+
   useEffect(() => {
     const load = async () => {
       try {
-        const [allSettings, auditLogs] = await Promise.all([
-          adapter.getAll<any>('settings'),
-          adapter.getAll<any>('auditLogs'),
-        ]);
+        await loadUsers();
 
-        const usersSetting = allSettings.find((s: any) => s.key === 'admin_users');
-        if (usersSetting?.value) {
-          setUsers(JSON.parse(usersSetting.value));
-        }
-
+        // Historique connexions (audit local)
+        const auditLogs = await adapter.getAll<any>('auditLogs');
         const connectionLogs = auditLogs
           .sort((a: any, b: any) => b.timestamp.localeCompare(a.timestamp))
           .slice(0, 50)
@@ -87,19 +116,18 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
             date: new Date(l.timestamp).toLocaleString('fr-FR'),
             utilisateur: l.userId || 'Systeme',
             evenement: l.action || 'Action',
-            ip: '-',
-            navigateur: '-',
-            localisation: '-',
+            ip: '-', navigateur: '-', localisation: '-',
             details: l.details || '',
           }));
         setHistorique(connectionLogs);
-      } catch (err) {
-        /* ignored */
+      } catch (_) {
+        /* ignoré */
       } finally {
         setLoading(false);
       }
     };
     load();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [adapter]);
 
   const openCreateModal = () => {
@@ -127,7 +155,6 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
       return;
     }
     try {
-      let updatedUsers;
       if (modalMode === 'create') {
         // ── Invitation via edge function (Supabase Auth + email HTML) ─────────
         const { data: { session } } = await supabase.auth.getSession();
@@ -159,38 +186,71 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
           return;
         }
 
-        // Ajouter à la liste locale (affichage UI)
-        const newUser = {
-          id: result.userId || Date.now(),
-          prenom: form.prenom, nom: form.nom, email: form.email, telephone: form.telephone,
-          departement: form.departement, role: form.role, status: form.status, derniereConnexion: '-',
-        };
-        updatedUsers = [...users, newUser];
         const emailMsg = result.emailSent
           ? `Lien d'invitation envoyé à ${form.email}`
           : `Invitation créée (email non envoyé — clé RESEND absente)`;
         toast.success(`✅ ${form.prenom} ${form.nom} ajouté — ${emailMsg}`);
 
+        // Recharger depuis company_members (l'edge function y a upsert)
+        await loadUsers();
+        setShowModal(false);
+        return;
+
       } else {
-        updatedUsers = users.map((u: any) => u.id === editingUser?.id
-          ? { ...u, prenom: form.prenom, nom: form.nom, email: form.email, telephone: form.telephone, departement: form.departement, role: form.role, status: form.status }
-          : u
-        );
-        toast.success(`Utilisateur ${form.prenom} ${form.nom} mis a jour`);
+        // Mise à jour dans company_members (Supabase)
+        const { error: updateErr } = await supabase
+          .from('company_members')
+          .update({
+            first_name: form.prenom,
+            last_name: form.nom,
+            role: form.role,
+            telephone: form.telephone,
+            departement: form.departement,
+            active: form.status === 'Actif',
+          })
+          .eq('email', editingUser?.email);
+
+        if (updateErr) {
+          // Fallback local si Supabase non configuré
+          const fallback = users.map((u: any) => u.id === editingUser?.id
+            ? { ...u, prenom: form.prenom, nom: form.nom, email: form.email, telephone: form.telephone, departement: form.departement, role: form.role, status: form.status }
+            : u
+          );
+          setUsers(fallback);
+          await saveSetting('admin_users', fallback);
+        } else {
+          await loadUsers();
+        }
+        toast.success(`Utilisateur ${form.prenom} ${form.nom} mis à jour`);
+        setShowModal(false);
+        return;
       }
-      setUsers(updatedUsers);
-      await saveSetting('admin_users', updatedUsers);
-      setShowModal(false);
     } catch (err) {
       toast.error('Erreur lors de la sauvegarde');
     }
   };
 
   const toggleUserStatus = async (u: any) => {
-    const updatedUsers = users.map((u2: any) => u2.id === u.id ? { ...u2, status: u.status === 'Actif' ? 'Inactif' : 'Actif' } : u2);
-    setUsers(updatedUsers);
-    await saveSetting('admin_users', updatedUsers);
-    toast.success(`Utilisateur ${u.prenom} ${u.nom} ${u.status === 'Actif' ? 'desactive' : 'reactive'}`);
+    const newActive = u.status !== 'Actif';
+    // Mise à jour optimiste locale
+    setUsers(prev => prev.map((u2: any) => u2.id === u.id
+      ? { ...u2, status: newActive ? 'Actif' : 'Inactif' }
+      : u2
+    ));
+    // Persistance Supabase
+    const { error } = await supabase
+      .from('company_members')
+      .update({ active: newActive })
+      .eq('email', u.email);
+    if (error) {
+      // Fallback local
+      const fallback = users.map((u2: any) => u2.id === u.id
+        ? { ...u2, status: newActive ? 'Actif' : 'Inactif' }
+        : u2
+      );
+      await saveSetting('admin_users', fallback);
+    }
+    toast.success(`Utilisateur ${u.prenom} ${u.nom} ${newActive ? 'réactivé' : 'désactivé'}`);
   };
 
   const handleResendInvitation = async (u: any) => {
@@ -241,6 +301,7 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
       }
 
       toast.success(`✅ Invitation renvoyée à ${u.email}`);
+      await loadUsers(); // rafraîchir la liste (invited_at mis à jour)
     } catch (err) {
       toast.error("Erreur lors du renvoi de l'invitation");
     }

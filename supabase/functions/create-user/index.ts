@@ -178,23 +178,54 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  // ── Créer/mettre à jour le profil ─────────────────────────────────────────
-  if (userId) {
-    const { data: callerProfile } = await supabase
-      .from('profiles')
-      .select('company_id')
-      .eq('id', caller.id)
-      .single();
+  // ── Créer/mettre à jour les tables d'appartenance ────────────────────────
+  const { data: callerProfile } = await supabase
+    .from('profiles')
+    .select('company_id')
+    .eq('id', caller.id)
+    .single();
 
+  const companyId = callerProfile?.company_id ?? null;
+
+  if (userId) {
+    // profiles — données de base utilisateur
     await supabase.from('profiles').upsert({
       id: userId,
       email,
       first_name: prenom,
       last_name: nom,
-      company_id: callerProfile?.company_id ?? null,
+      company_id: companyId,
       is_active: true,
       updated_at: new Date().toISOString(),
     }, { onConflict: 'id' });
+
+    // user_companies — appartenance AUTHORITATIVE (anti-escalade)
+    // Écrite uniquement ici (service-role) ou via RPC SECURITY DEFINER
+    if (companyId) {
+      await supabase.from('user_companies').upsert({
+        user_id: userId,
+        company_id: companyId,
+        role,
+        added_at: new Date().toISOString(),
+      }, { onConflict: 'user_id,company_id' });
+    }
+  }
+
+  // company_members — roster d'affichage (email-keyed, pre-acceptance)
+  // Upsert même si userId est null (invité en attente sans compte Auth)
+  if (companyId) {
+    await supabase.from('company_members').upsert({
+      company_id: companyId,
+      email,
+      first_name: prenom,
+      last_name: nom,
+      role,
+      departement: departement ?? null,
+      telephone: telephone ?? null,
+      user_id: userId,
+      active: true,
+      invited_at: new Date().toISOString(),
+    }, { onConflict: 'company_id,email' });
   }
 
   // ── Email HTML ─────────────────────────────────────────────────────────────
