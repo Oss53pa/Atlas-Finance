@@ -182,6 +182,17 @@ const RevisionsModule: React.FC = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showAjustementModal, setShowAjustementModal] = useState(false);
+  const [showNewRiskModal, setShowNewRiskModal] = useState(false);
+  const [newRiskForm, setNewRiskForm] = useState({
+    cycle: '',
+    risque: '',
+    assertion: 'existence' as AssertionAudit,
+    probabilite: 'modere' as NiveauRisque,
+    impact: 'eleve' as NiveauRisque,
+    controleExistant: '',
+    efficaciteControle: 'efficace' as 'efficace' | 'partiellement_efficace' | 'inefficace',
+    recommandation: '',
+  });
   const [selectedLeadSchedule, setSelectedLeadSchedule] = useState<LeadSchedule | null>(null);
   const [showLeadScheduleModal, setShowLeadScheduleModal] = useState(false);
   const [expandedSections, setExpandedSections] = useState<string[]>(['general', 'assertions', 'comptable']);
@@ -272,66 +283,41 @@ const RevisionsModule: React.FC = () => {
   }, [adapter]);
 
   // Matrice des risques
-  const [risquesControles] = useState<RisqueControle[]>([
-    {
-      id: 'RC-001',
-      cycle: 'Ventes / Clients',
-      risque: 'Factures fictives ou erronées',
-      assertion: 'existence',
-      probabilite: 'modere',
-      impact: 'eleve',
-      controleExistant: 'Validation hiérarchique des factures > 5M FCFA',
-      efficaciteControle: 'efficace',
-      testControle: 'Échantillon de 25 factures testées',
-      recommandation: 'Étendre le contrôle aux factures > 2M FCFA'
-    },
-    {
-      id: 'RC-002',
-      cycle: 'Ventes / Clients',
-      risque: 'Cut-off incorrect des ventes',
-      assertion: 'cut_off',
-      probabilite: 'eleve',
-      impact: 'tres_eleve',
-      controleExistant: 'Contrôle mensuel des BL non facturés',
-      efficaciteControle: 'partiellement_efficace',
-      testControle: 'Analyse des factures de janvier N+1',
-      recommandation: 'Automatiser le contrôle cut-off en fin de mois'
-    },
-    {
-      id: 'RC-003',
-      cycle: 'Achats / Fournisseurs',
-      risque: 'Factures non comptabilisées',
-      assertion: 'exhaustivite',
-      probabilite: 'modere',
-      impact: 'eleve',
-      controleExistant: 'Rapprochement mensuel avec relevés fournisseurs',
-      efficaciteControle: 'efficace',
-      testControle: 'Circularisation fournisseurs principaux'
-    },
-    {
-      id: 'RC-004',
-      cycle: 'Stocks',
-      risque: 'Écarts d\'inventaire non détectés',
-      assertion: 'existence',
-      probabilite: 'eleve',
-      impact: 'eleve',
-      controleExistant: 'Inventaire physique annuel',
-      efficaciteControle: 'partiellement_efficace',
-      testControle: 'Participation à l\'inventaire physique',
-      recommandation: 'Mettre en place des inventaires tournants mensuels'
-    },
-    {
-      id: 'RC-005',
-      cycle: 'Trésorerie',
-      risque: 'Détournement de fonds',
-      assertion: 'existence',
-      probabilite: 'faible',
-      impact: 'tres_eleve',
-      controleExistant: 'Séparation des fonctions + double signature > 10M',
-      efficaciteControle: 'efficace',
-      testControle: 'Test des rapprochements bancaires'
+  const [risquesControles, setRisquesControles] = useState<RisqueControle[]>([]);
+
+  // Charge la matrice depuis l'adapter (table auditRisks si disponible)
+  useEffect(() => {
+    adapter.getAll<any>('auditRisks').then(data => {
+      if (Array.isArray(data) && data.length > 0) setRisquesControles(data);
+    }).catch(() => {/* table non encore créée */});
+  }, [adapter]);
+
+  const handleSaveNewRisk = async () => {
+    if (!newRiskForm.cycle.trim() || !newRiskForm.risque.trim() || !newRiskForm.controleExistant.trim()) {
+      toast.error('Veuillez remplir les champs obligatoires (Cycle, Risque, Contrôle existant)');
+      return;
     }
-  ]);
+    const newRisk: RisqueControle = {
+      id: `RC-${Date.now()}`,
+      cycle: newRiskForm.cycle,
+      risque: newRiskForm.risque,
+      assertion: newRiskForm.assertion,
+      probabilite: newRiskForm.probabilite,
+      impact: newRiskForm.impact,
+      controleExistant: newRiskForm.controleExistant,
+      efficaciteControle: newRiskForm.efficaciteControle,
+      recommandation: newRiskForm.recommandation || undefined,
+    };
+    setRisquesControles(prev => [...prev, newRisk]);
+    try {
+      await adapter.add<RisqueControle>('auditRisks' as any, newRisk);
+    } catch {
+      // persiste en mémoire uniquement si la table n'existe pas encore
+    }
+    setShowNewRiskModal(false);
+    setNewRiskForm({ cycle: '', risque: '', assertion: 'existence', probabilite: 'modere', impact: 'eleve', controleExistant: '', efficaciteControle: 'efficace', recommandation: '' });
+    toast.success('Risque ajouté à la matrice');
+  };
 
   // ==================== STATISTIQUES ====================
 
@@ -1044,7 +1030,10 @@ const RevisionsModule: React.FC = () => {
                   Évaluation selon ISA 315 - Identification et évaluation des risques
                 </p>
               </div>
-              <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] flex items-center space-x-2">
+              <button
+                onClick={() => setShowNewRiskModal(true)}
+                className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] flex items-center space-x-2"
+              >
                 <Plus className="w-4 h-4" />
                 <span>Nouveau risque</span>
               </button>
@@ -1066,6 +1055,15 @@ const RevisionsModule: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
+                {risquesControles.length === 0 && (
+                  <tr>
+                    <td colSpan={8} className="py-12 text-center text-sm text-[var(--color-text-tertiary)]">
+                      <Shield className="w-10 h-10 mx-auto mb-3 text-gray-300" />
+                      <p className="font-medium">Aucun risque identifié</p>
+                      <p className="text-xs mt-1">Cliquez sur « + Nouveau risque » pour commencer à documenter la matrice des risques</p>
+                    </td>
+                  </tr>
+                )}
                 {risquesControles.map((rc) => (
                   <tr key={rc.id} className="border-b border-gray-100 hover:bg-gray-50">
                     <td className="p-4 font-medium text-[var(--color-primary)]">{rc.cycle}</td>
@@ -2486,6 +2484,146 @@ const RevisionsModule: React.FC = () => {
                   </button>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ==================== MODAL NOUVEAU RISQUE ==================== */}
+      {showNewRiskModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-[var(--color-primary)]/10 rounded-lg">
+                  <Shield className="w-5 h-5 text-[var(--color-primary)]" />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-[var(--color-primary)]">Nouveau Risque</h2>
+                  <p className="text-xs text-[var(--color-text-tertiary)]">Matrice des risques — ISA 315</p>
+                </div>
+              </div>
+              <button onClick={() => setShowNewRiskModal(false)} className="p-2 text-gray-400 hover:text-gray-600 rounded-lg">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Cycle <span className="text-red-500">*</span></label>
+                  <input
+                    type="text"
+                    value={newRiskForm.cycle}
+                    onChange={e => setNewRiskForm(f => ({ ...f, cycle: e.target.value }))}
+                    placeholder="ex: Ventes / Clients"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Risque identifié <span className="text-red-500">*</span></label>
+                  <input
+                    type="text"
+                    value={newRiskForm.risque}
+                    onChange={e => setNewRiskForm(f => ({ ...f, risque: e.target.value }))}
+                    placeholder="Description du risque"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Assertion</label>
+                  <select
+                    value={newRiskForm.assertion}
+                    onChange={e => setNewRiskForm(f => ({ ...f, assertion: e.target.value as AssertionAudit }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                  >
+                    <option value="existence">Existence / Réalité</option>
+                    <option value="exhaustivite">Exhaustivité</option>
+                    <option value="valorisation">Valorisation</option>
+                    <option value="cut_off">Séparation des exercices (Cut-off)</option>
+                    <option value="exactitude">Exactitude</option>
+                    <option value="classification">Classification</option>
+                    <option value="droits_obligations">Droits & Obligations</option>
+                    <option value="presentation">Présentation</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Probabilité</label>
+                  <select
+                    value={newRiskForm.probabilite}
+                    onChange={e => setNewRiskForm(f => ({ ...f, probabilite: e.target.value as NiveauRisque }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                  >
+                    <option value="faible">Faible</option>
+                    <option value="modere">Modéré</option>
+                    <option value="eleve">Élevé</option>
+                    <option value="tres_eleve">Très élevé</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Impact</label>
+                  <select
+                    value={newRiskForm.impact}
+                    onChange={e => setNewRiskForm(f => ({ ...f, impact: e.target.value as NiveauRisque }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                  >
+                    <option value="faible">Faible</option>
+                    <option value="modere">Modéré</option>
+                    <option value="eleve">Élevé</option>
+                    <option value="tres_eleve">Très élevé</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Contrôle existant <span className="text-red-500">*</span></label>
+                <input
+                  type="text"
+                  value={newRiskForm.controleExistant}
+                  onChange={e => setNewRiskForm(f => ({ ...f, controleExistant: e.target.value }))}
+                  placeholder="Description du contrôle en place"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Efficacité du contrôle</label>
+                  <select
+                    value={newRiskForm.efficaciteControle}
+                    onChange={e => setNewRiskForm(f => ({ ...f, efficaciteControle: e.target.value as 'efficace' | 'partiellement_efficace' | 'inefficace' }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                  >
+                    <option value="efficace">Efficace</option>
+                    <option value="partiellement_efficace">Partiellement efficace</option>
+                    <option value="inefficace">Inefficace</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Recommandation</label>
+                  <input
+                    type="text"
+                    value={newRiskForm.recommandation}
+                    onChange={e => setNewRiskForm(f => ({ ...f, recommandation: e.target.value }))}
+                    placeholder="Amélioration suggérée (optionnel)"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200">
+              <button
+                onClick={() => setShowNewRiskModal(false)}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleSaveNewRisk}
+                className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm hover:bg-[var(--color-primary-hover)] flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Ajouter le risque
+              </button>
             </div>
           </div>
         </div>
