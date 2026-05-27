@@ -2,16 +2,32 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import {
   Download, Upload, Clock, Calendar, RotateCcw, FileDown,
-  HardDrive, Shield, AlertTriangle, CheckCircle, XCircle, Settings
+  HardDrive, Shield, AlertTriangle, CheckCircle, XCircle, Settings,
+  Trash2, RefreshCw
 } from 'lucide-react';
 import { useData } from '../../../contexts/DataContext';
+import { db } from '../../../lib/db';
 
 interface Props {
   subTab: number;
   setSubTab: (n: number) => void;
 }
 
-const tabs = ['Sauvegarde manuelle', 'Automatique', 'Historique', 'Restauration', 'Export'];
+const tabs = ['Sauvegarde manuelle', 'Automatique', 'Historique', 'Restauration', 'Export', 'Réinitialisation'];
+
+const RESET_GROUPS = [
+  { key: 'thirdParties', label: '👥 Clients & Fournisseurs', desc: 'Supprime tous les tiers (clients, fournisseurs)', tables: ['thirdParties'] },
+  { key: 'journalEntries', label: '📒 Écritures comptables', desc: 'Supprime toutes les écritures du journal', tables: ['journalEntries'] },
+  { key: 'assets', label: '🏭 Immobilisations', desc: 'Supprime le registre des biens', tables: ['assets'] },
+  { key: 'budgetLines', label: '📊 Budgets', desc: 'Supprime les lignes budgétaires', tables: ['budgetLines'] },
+  { key: 'treasury', label: '💵 Trésorerie', desc: 'Couvertures, ordres de paiement, prêts, chèques', tables: ['hedgingPositions', 'paymentOrders', 'loanSchedules', 'checks'] },
+  { key: 'all', label: '🔴 TOUT réinitialiser', desc: 'Efface TOUTES les données locales. IRRÉVERSIBLE.', tables: [
+    'journalEntries', 'thirdParties', 'assets', 'budgetLines', 'hedgingPositions', 'paymentOrders',
+    'loanSchedules', 'checks', 'recoveryCases', 'taxDeclarations', 'taxRegistry', 'provisions',
+    'inventoryItems', 'stockMovements', 'revisionItems', 'closureSessions', 'exchangeRates',
+    'fiscalPeriods', 'cashMovements', 'cashRegisterSessions',
+  ]},
+];
 
 const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
   const { adapter } = useData();
@@ -30,6 +46,10 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
   const [exportExercice, setExportExercice] = useState('2026');
   const [exportStart, setExportStart] = useState('2026-01-01');
   const [exportEnd, setExportEnd] = useState('2026-12-31');
+  const [resetTarget, setResetTarget] = useState<string | null>(null);
+  const [resetInput, setResetInput] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetSuccess, setResetSuccess] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -114,6 +134,29 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
     toast.success('Restauration lancee. Veuillez patienter...');
     setShowRestoreConfirm(false);
     setRestoreAcknowledged(false);
+  };
+
+  const handleReset = async () => {
+    if (resetInput !== 'CONFIRMER') {
+      toast.error('Tapez exactement "CONFIRMER" pour valider.');
+      return;
+    }
+    const group = RESET_GROUPS.find(g => g.key === resetTarget);
+    if (!group) return;
+    setResetLoading(true);
+    try {
+      for (const table of group.tables) {
+        await (db as any)[table]?.clear();
+      }
+      setResetSuccess(true);
+      setResetTarget(null);
+      setResetInput('');
+      toast.success('Réinitialisation effectuée. Rechargez la page.');
+    } catch (err) {
+      toast.error('Erreur lors de la réinitialisation.');
+    } finally {
+      setResetLoading(false);
+    }
   };
 
   return (
@@ -286,6 +329,94 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
                 <div className="flex gap-3 justify-end">
                   <button onClick={() => setShowRestoreConfirm(false)} className="px-4 py-2 border rounded-lg hover:bg-gray-50">Annuler</button>
                   <button onClick={handleRestore} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">Confirmer</button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {subTab === 5 && (
+        <div className="space-y-4">
+          {/* Warning */}
+          <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
+            <AlertTriangle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <h4 className="font-semibold text-red-800">Zone de réinitialisation — données supprimées définitivement</h4>
+              <p className="text-sm text-red-700 mt-1">Ces actions effacent les données de l'IndexedDB local du navigateur. Elles sont irréversibles. Faites une sauvegarde d'abord.</p>
+            </div>
+          </div>
+
+          {/* Success */}
+          {resetSuccess && (
+            <div className="p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-3">
+              <CheckCircle className="w-5 h-5 text-green-600" />
+              <span className="text-sm text-green-800 font-medium">Réinitialisation effectuée avec succès.</span>
+              <button onClick={() => window.location.reload()} className="ml-auto px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700 flex items-center gap-1">
+                <RefreshCw className="w-4 h-4" /> Recharger la page
+              </button>
+            </div>
+          )}
+
+          {/* Reset cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {RESET_GROUPS.filter(g => g.key !== 'all').map(group => (
+              <div key={group.key} className="bg-white border rounded-lg p-4 flex items-center justify-between gap-3">
+                <div>
+                  <p className="font-medium text-gray-800 text-sm">{group.label}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{group.desc}</p>
+                </div>
+                <button onClick={() => { setResetTarget(group.key); setResetInput(''); setResetSuccess(false); }}
+                  className="px-3 py-1.5 text-sm border border-red-300 text-red-600 rounded hover:bg-red-50 flex items-center gap-1 whitespace-nowrap flex-shrink-0">
+                  <Trash2 className="w-4 h-4" /> Vider
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {/* Full reset */}
+          <div className="bg-red-50 border-2 border-red-400 rounded-lg p-5 flex items-center justify-between gap-4">
+            <div>
+              <p className="font-bold text-red-800">🔴 TOUT réinitialiser</p>
+              <p className="text-sm text-red-700 mt-1">Efface toutes les données locales — écritures, tiers, budgets, immobilisations, trésorerie, taxes, stock… L'application repart à zéro.</p>
+            </div>
+            <button onClick={() => { setResetTarget('all'); setResetInput(''); setResetSuccess(false); }}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center gap-2 whitespace-nowrap flex-shrink-0">
+              <AlertTriangle className="w-4 h-4" /> Tout effacer
+            </button>
+          </div>
+
+          {/* Confirmation modal */}
+          {resetTarget && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+              <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 space-y-4 shadow-xl">
+                <h3 className="text-lg font-semibold text-red-800 flex items-center gap-2">
+                  <AlertTriangle className="w-5 h-5" />
+                  {RESET_GROUPS.find(g => g.key === resetTarget)?.label}
+                </h3>
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-sm text-red-800 font-medium">⚠️ Action irréversible</p>
+                  <p className="text-sm text-red-700 mt-1">{RESET_GROUPS.find(g => g.key === resetTarget)?.desc}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 mb-2">Tapez <strong>CONFIRMER</strong> pour valider :</p>
+                  <input
+                    type="text"
+                    value={resetInput}
+                    onChange={e => setResetInput(e.target.value)}
+                    placeholder="CONFIRMER"
+                    autoFocus
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-400"
+                  />
+                </div>
+                <div className="flex gap-3 justify-end">
+                  <button onClick={() => { setResetTarget(null); setResetInput(''); }} className="px-4 py-2 border rounded-lg hover:bg-gray-50 text-sm">
+                    Annuler
+                  </button>
+                  <button onClick={handleReset} disabled={resetLoading || resetInput !== 'CONFIRMER'}
+                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm">
+                    {resetLoading ? <><RefreshCw className="w-4 h-4 animate-spin" /> En cours...</> : <><Trash2 className="w-4 h-4" /> Confirmer la suppression</>}
+                  </button>
                 </div>
               </div>
             </div>
