@@ -137,7 +137,7 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
   };
 
   const handleReset = async () => {
-    if (resetInput !== 'CONFIRMER') {
+    if (resetInput.trim() !== 'CONFIRMER') {
       toast.error('Tapez exactement "CONFIRMER" pour valider.');
       return;
     }
@@ -413,9 +413,16 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
                   <button onClick={() => { setResetTarget(null); setResetInput(''); }} className="px-4 py-2 border rounded-lg hover:bg-gray-50 text-sm">
                     Annuler
                   </button>
-                  <button onClick={handleReset} disabled={resetLoading || resetInput !== 'CONFIRMER'}
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm">
-                    {resetLoading ? <><RefreshCw className="w-4 h-4 animate-spin" /> En cours...</> : <><Trash2 className="w-4 h-4" /> Confirmer la suppression</>}
+                  <button
+                    type="button"
+                    onClick={handleReset}
+                    disabled={resetLoading}
+                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm"
+                  >
+                    {resetLoading
+                      ? <><RefreshCw className="w-4 h-4 animate-spin" /> En cours...</>
+                      : <><Trash2 className="w-4 h-4" /> Confirmer la suppression</>
+                    }
                   </button>
                 </div>
               </div>
