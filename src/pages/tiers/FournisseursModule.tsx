@@ -3,6 +3,7 @@ import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../../contexts/DataContext';
+import { generateNextCode, loadMappings } from '../../services/auxiliaryCode/auxiliaryCodeService';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import ExportMenu from '../../components/shared/ExportMenu';
 import {
@@ -112,7 +113,7 @@ const FournisseursModule: React.FC = () => {
     adresse: '', codePostal: '', ville: '', region: '',
     contactPrincipal: '', fonction: '',
     email: '', telephone: '', telephoneSecondaire: '',
-    compteComptable: '401', compteAuxiliaire: '', journalAchats: 'AC',
+    compteComptable: '401', compteAuxiliaire: '', codeCommercial: '', typeFournisseur: 'local' as 'local' | 'etranger', journalAchats: 'AC',
     delaiPaiement: 30, limiteCredit: 500000,
     modeReglement: 'VIREMENT' as Fournisseur['modeReglement'],
     devise: 'XAF', escompte: 0, tauxTVA: 19.25,
@@ -450,7 +451,18 @@ const FournisseursModule: React.FC = () => {
           </select>
 
           <button
-            onClick={() => setShowNewFournisseurModal(true)}
+            onClick={async () => {
+              setShowNewFournisseurModal(true);
+              setFormStep(1);
+              try {
+                const mappings = await loadMappings(adapter);
+                const compteCollectif = newFournisseur.typeFournisseur === 'etranger' ? '404' : '401';
+                const { compteAuxiliaire, codeCommercial } = await generateNextCode(adapter, compteCollectif, mappings);
+                setNewFournisseur(prev => ({ ...prev, compteAuxiliaire, codeCommercial, compteComptable: compteCollectif }));
+              } catch {
+                // ignore — user can fill manually
+              }
+            }}
             className="flex items-center space-x-2 px-4 py-3 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90"
           >
             <Plus className="w-5 h-5" />
@@ -1596,6 +1608,26 @@ const FournisseursModule: React.FC = () => {
                     </h4>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Type de fournisseur *</label>
+                        <select
+                          value={newFournisseur.typeFournisseur}
+                          onChange={async (e) => {
+                            const typeFournisseur = e.target.value as 'local' | 'etranger';
+                            const compteCollectif = typeFournisseur === 'etranger' ? '404' : '401';
+                            setNewFournisseur(prev => ({ ...prev, typeFournisseur, compteComptable: compteCollectif }));
+                            try {
+                              const mappings = await loadMappings(adapter);
+                              const { compteAuxiliaire, codeCommercial } = await generateNextCode(adapter, compteCollectif, mappings);
+                              setNewFournisseur(prev => ({ ...prev, typeFournisseur, compteComptable: compteCollectif, compteAuxiliaire, codeCommercial }));
+                            } catch { /* ignore */ }
+                          }}
+                          className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
+                        >
+                          <option value="local">Local (compte 401 — FL)</option>
+                          <option value="etranger">Étranger (compte 404 — FE)</option>
+                        </select>
+                      </div>
+                      <div>
                         <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Compte comptable fournisseur *</label>
                         <div className="flex space-x-2">
                           <input type="text" value={newFournisseur.compteComptable}
@@ -1603,9 +1635,17 @@ const FournisseursModule: React.FC = () => {
                             className="w-24 px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] font-mono" placeholder="401" />
                           <input type="text" value={newFournisseur.compteAuxiliaire}
                             onChange={(e) => setNewFournisseur({ ...newFournisseur, compteAuxiliaire: e.target.value })}
-                            className="flex-1 px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] font-mono" placeholder="Code auxiliaire" />
+                            className="flex-1 px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] font-mono" placeholder="Compte auxiliaire (ex: 401043)" />
                         </div>
-                        <p className="text-xs text-[var(--color-text-tertiary)] mt-1">Compte 401 - Fournisseurs (SYSCOHADA)</p>
+                        <p className="text-xs text-[var(--color-text-tertiary)] mt-1">Compte 401/404 - Fournisseurs (SYSCOHADA)</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Code commercial</label>
+                        <input type="text" value={newFournisseur.codeCommercial}
+                          onChange={(e) => setNewFournisseur({ ...newFournisseur, codeCommercial: e.target.value })}
+                          className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] font-mono"
+                          placeholder="Code commercial (ex: FL043 ou FE043)" />
+                        <p className="text-xs text-[var(--color-text-tertiary)] mt-1">Dérivé du compte auxiliaire (FL = local, FE = étranger)</p>
                       </div>
                       <div>
                         <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Journal d'achats *</label>

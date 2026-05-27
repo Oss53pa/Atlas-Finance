@@ -3,6 +3,7 @@ import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../../contexts/DataContext';
+import { generateNextCode, loadMappings } from '../../services/auxiliaryCode/auxiliaryCodeService';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import ExportMenu from '../../components/shared/ExportMenu';
 import {
@@ -125,6 +126,7 @@ interface NewClientForm {
   // Données comptables
   compteComptable: string;
   compteAuxiliaire: string;
+  codeCommercial: string;
   journalVentes: string;
 
   // Conditions commerciales
@@ -204,6 +206,7 @@ const ClientsModule: React.FC = () => {
     fax: '',
     compteComptable: '411',
     compteAuxiliaire: '',
+    codeCommercial: '',
     journalVentes: 'VE',
     delaiPaiement: 30,
     limiteCredit: 500000,
@@ -393,9 +396,20 @@ const ClientsModule: React.FC = () => {
     }
   };
 
-  const handleOpenNewClientModal = () => {
+  const handleOpenNewClientModal = async () => {
     setShowNewClientModal(true);
     setFormStep(1);
+    try {
+      const mappings = await loadMappings(adapter);
+      const { compteAuxiliaire, codeCommercial } = await generateNextCode(adapter, '411', mappings);
+      setNewClient(prev => ({
+        ...prev,
+        compteAuxiliaire,
+        codeCommercial,
+      }));
+    } catch {
+      // ignore code generation errors — user can fill manually
+    }
   };
 
   const handleCloseNewClientModal = () => {
@@ -423,6 +437,7 @@ const ClientsModule: React.FC = () => {
       fax: '',
       compteComptable: '411',
       compteAuxiliaire: '',
+      codeCommercial: '',
       journalVentes: 'VE',
       delaiPaiement: 30,
       limiteCredit: 500000,
@@ -1956,10 +1971,21 @@ const ClientsModule: React.FC = () => {
                             value={newClient.compteAuxiliaire}
                             onChange={(e) => setNewClient({ ...newClient, compteAuxiliaire: e.target.value })}
                             className="flex-1 px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] font-mono"
-                            placeholder="Code auxiliaire"
+                            placeholder="Compte auxiliaire (ex: 411043)"
                           />
                         </div>
                         <p className="text-xs text-[var(--color-text-tertiary)] mt-1">Compte 411 - Clients (SYSCOHADA)</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Code commercial</label>
+                        <input
+                          type="text"
+                          value={newClient.codeCommercial}
+                          onChange={(e) => setNewClient({ ...newClient, codeCommercial: e.target.value })}
+                          className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] font-mono"
+                          placeholder="Code commercial (ex: CL043)"
+                        />
+                        <p className="text-xs text-[var(--color-text-tertiary)] mt-1">Dérivé du compte auxiliaire (préfixe CL / CLI / etc.)</p>
                       </div>
                       <div>
                         <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Journal de ventes *</label>

@@ -38,8 +38,17 @@ import {
   Filter,
   X,
   HelpCircle,
-  ExternalLink
+  ExternalLink,
+  Pencil,
+  Trash2,
+  Plus
 } from 'lucide-react';
+import {
+  AuxiliaryCodeMapping,
+  DEFAULT_MAPPINGS,
+  loadMappings,
+  saveMappings,
+} from '../../services/auxiliaryCode/auxiliaryCodeService';
 import { useNavigate } from 'react-router-dom';
 import { ModernCard, CardHeader, CardBody } from '../../components/ui/ModernCard';
 import ModernButton from '../../components/ui/ModernButton';
@@ -927,6 +936,82 @@ const AccountingSettingsPage: React.FC = () => {
   };
 
   const [resetConfirm, setResetConfirm] = useState(false);
+
+  // --- Codification des Tiers ---
+  const [auxMappings, setAuxMappings] = useState<AuxiliaryCodeMapping[]>(DEFAULT_MAPPINGS);
+  const [auxMappingsLoading, setAuxMappingsLoading] = useState(true);
+  const [auxSaving, setAuxSaving] = useState(false);
+  const [auxEditingId, setAuxEditingId] = useState<string | null>(null);
+  const [auxEditRow, setAuxEditRow] = useState<AuxiliaryCodeMapping | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const mappings = await loadMappings(adapter);
+        if (mounted) setAuxMappings(mappings);
+      } catch {
+        /* ignore */
+      } finally {
+        if (mounted) setAuxMappingsLoading(false);
+      }
+    })();
+    return () => { mounted = false; };
+  }, [adapter]);
+
+  const handleAuxSave = async () => {
+    setAuxSaving(true);
+    try {
+      await saveMappings(adapter, auxMappings);
+      toast.success('Codification des tiers enregistrée');
+    } catch {
+      toast.error('Erreur lors de la sauvegarde');
+    } finally {
+      setAuxSaving(false);
+    }
+  };
+
+  const handleAuxReset = () => {
+    setAuxMappings(DEFAULT_MAPPINGS);
+    setAuxEditingId(null);
+    setAuxEditRow(null);
+  };
+
+  const handleAuxEditStart = (mapping: AuxiliaryCodeMapping) => {
+    setAuxEditingId(mapping.id);
+    setAuxEditRow({ ...mapping });
+  };
+
+  const handleAuxEditSave = () => {
+    if (!auxEditRow) return;
+    setAuxMappings(prev => prev.map(m => (m.id === auxEditRow.id ? { ...auxEditRow } : m)));
+    setAuxEditingId(null);
+    setAuxEditRow(null);
+  };
+
+  const handleAuxEditCancel = () => {
+    setAuxEditingId(null);
+    setAuxEditRow(null);
+  };
+
+  const handleAuxDelete = (id: string) => {
+    setAuxMappings(prev => prev.filter(m => m.id !== id));
+    if (auxEditingId === id) { setAuxEditingId(null); setAuxEditRow(null); }
+  };
+
+  const handleAuxAddRow = () => {
+    const newId = crypto.randomUUID();
+    const newRow: AuxiliaryCodeMapping = {
+      id: newId,
+      compteCollectif: '',
+      prefixeCommercial: '',
+      description: '',
+      longueurSequence: 3,
+    };
+    setAuxMappings(prev => [...prev, newRow]);
+    setAuxEditingId(newId);
+    setAuxEditRow({ ...newRow });
+  };
 
   const handleResetClick = () => {
     setResetConfirm(true);
@@ -1900,6 +1985,175 @@ const AccountingSettingsPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Codification des Tiers */}
+      <ModernCard className="mt-6">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Hash className="w-5 h-5 text-[var(--color-primary)]" />
+              <div>
+                <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
+                  Codification des Tiers
+                </h2>
+                <p className="text-sm text-[var(--color-text-secondary)]">
+                  Configurez les préfixes commerciaux associés aux comptes collectifs
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleAuxReset}
+                className="flex items-center gap-2 px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] transition-colors"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Réinitialiser les valeurs par défaut
+              </button>
+              <button
+                onClick={handleAuxSave}
+                disabled={auxSaving}
+                className="flex items-center gap-2 px-3 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm hover:bg-[var(--color-primary)]/90 transition-colors disabled:opacity-60"
+              >
+                <Save className="w-4 h-4" />
+                {auxSaving ? 'Enregistrement...' : 'Enregistrer'}
+              </button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardBody>
+          {auxMappingsLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--color-primary)]" />
+            </div>
+          ) : (
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-[var(--color-border)]">
+                      <th className="text-left py-2 px-3 font-medium text-[var(--color-text-secondary)]">Compte collectif</th>
+                      <th className="text-left py-2 px-3 font-medium text-[var(--color-text-secondary)]">Préfixe commercial</th>
+                      <th className="text-left py-2 px-3 font-medium text-[var(--color-text-secondary)]">Description</th>
+                      <th className="text-center py-2 px-3 font-medium text-[var(--color-text-secondary)]">Longueur séquence</th>
+                      <th className="text-center py-2 px-3 font-medium text-[var(--color-text-secondary)]">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {auxMappings.map(mapping => {
+                      const isEditing = auxEditingId === mapping.id;
+                      return (
+                        <tr key={mapping.id} className="border-b border-[var(--color-border)] hover:bg-[var(--color-surface-hover)]">
+                          <td className="py-2 px-3">
+                            {isEditing ? (
+                              <input
+                                type="text"
+                                value={auxEditRow!.compteCollectif}
+                                onChange={e => setAuxEditRow(r => r ? { ...r, compteCollectif: e.target.value } : r)}
+                                className="w-full px-2 py-1 border border-[var(--color-border)] rounded font-mono focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
+                                placeholder="411"
+                              />
+                            ) : (
+                              <span className="font-mono text-[var(--color-primary)]">{mapping.compteCollectif}</span>
+                            )}
+                          </td>
+                          <td className="py-2 px-3">
+                            {isEditing ? (
+                              <input
+                                type="text"
+                                value={auxEditRow!.prefixeCommercial}
+                                onChange={e => setAuxEditRow(r => r ? { ...r, prefixeCommercial: e.target.value } : r)}
+                                className="w-full px-2 py-1 border border-[var(--color-border)] rounded font-mono focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
+                                placeholder="CL"
+                              />
+                            ) : (
+                              <span className="font-mono font-semibold">{mapping.prefixeCommercial}</span>
+                            )}
+                          </td>
+                          <td className="py-2 px-3">
+                            {isEditing ? (
+                              <input
+                                type="text"
+                                value={auxEditRow!.description}
+                                onChange={e => setAuxEditRow(r => r ? { ...r, description: e.target.value } : r)}
+                                className="w-full px-2 py-1 border border-[var(--color-border)] rounded focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
+                                placeholder="Description"
+                              />
+                            ) : (
+                              <span className="text-[var(--color-text-secondary)]">{mapping.description}</span>
+                            )}
+                          </td>
+                          <td className="py-2 px-3 text-center">
+                            {isEditing ? (
+                              <input
+                                type="number"
+                                min={1}
+                                max={6}
+                                value={auxEditRow!.longueurSequence}
+                                onChange={e => setAuxEditRow(r => r ? { ...r, longueurSequence: parseInt(e.target.value) || 3 } : r)}
+                                className="w-16 px-2 py-1 border border-[var(--color-border)] rounded text-center focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
+                              />
+                            ) : (
+                              <span className="text-[var(--color-text-secondary)]">{mapping.longueurSequence}</span>
+                            )}
+                          </td>
+                          <td className="py-2 px-3">
+                            <div className="flex items-center justify-center gap-2">
+                              {isEditing ? (
+                                <>
+                                  <button
+                                    onClick={handleAuxEditSave}
+                                    className="p-1 text-green-600 hover:bg-green-50 rounded"
+                                    title="Valider"
+                                  >
+                                    <Check className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    onClick={handleAuxEditCancel}
+                                    className="p-1 text-[var(--color-text-secondary)] hover:bg-gray-100 rounded"
+                                    title="Annuler"
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </button>
+                                </>
+                              ) : (
+                                <>
+                                  <button
+                                    onClick={() => handleAuxEditStart(mapping)}
+                                    className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                                    title="Modifier"
+                                  >
+                                    <Pencil className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleAuxDelete(mapping.id)}
+                                    className="p-1 text-red-600 hover:bg-red-50 rounded"
+                                    title="Supprimer"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              <div className="mt-4">
+                <button
+                  onClick={handleAuxAddRow}
+                  className="flex items-center gap-2 px-3 py-2 border border-dashed border-[var(--color-border)] rounded-lg text-sm text-[var(--color-text-secondary)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] transition-colors"
+                >
+                  <Plus className="w-4 h-4" />
+                  Ajouter une ligne
+                </button>
+              </div>
+            </>
+          )}
+        </CardBody>
+      </ModernCard>
 
       {/* Confirmation Dialog */}
       <ConfirmDialog
