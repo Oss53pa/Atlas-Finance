@@ -17,6 +17,9 @@ import { FileText, BookOpen, Palette } from 'lucide-react';
 import { useReportBuilderStore } from '../store/useReportBuilderStore';
 import type { ReportBlock } from '../types';
 import { catalogItems } from '../data/catalogItems';
+import { getMasterTemplateBlocks } from '../data/masterTemplates';
+import type { MasterTemplateId } from '../data/masterTemplates';
+import { useData } from '../../../contexts/DataContext';
 import TopBar from './TopBar';
 import Canvas from './Canvas';
 import StatusBar from './StatusBar';
@@ -29,6 +32,15 @@ type ActiveTab = 'journal' | 'templates' | 'builder';
 
 const ReportBuilderApp: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('journal');
+  const [companyName, setCompanyName] = useState('');
+  const { adapter } = useData();
+
+  // Load real company name from adapter (used in cover blocks of templates)
+  useEffect(() => {
+    adapter.getAll<any>('companies').then(cos => {
+      if (cos.length > 0) setCompanyName(cos[0].name || cos[0].raisonSociale || '');
+    }).catch(() => {});
+  }, [adapter]);
 
   const {
     document: doc,
@@ -48,20 +60,41 @@ const ReportBuilderApp: React.FC = () => {
   );
 
   // Open a report in the builder (called from Journal or Templates)
-  const handleOpenInBuilder = useCallback((title?: string) => {
+  const handleOpenInBuilder = useCallback((title?: string, masterTemplateId?: string) => {
     // Always create a new document (reset if one exists)
     const store = useReportBuilderStore.getState();
     if (store.document) {
       store.reset();
     }
+
+    // Compute current-month period dynamically — never hardcode dates
+    const now = new Date();
+    const periodStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const periodEnd   = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    const periodLabel = periodStart.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+    const capitalize  = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
     createDocument(title || 'Nouveau Rapport', {
       type: 'monthly',
-      startDate: '2025-12-01',
-      endDate: '2025-12-31',
-      label: 'Décembre 2025',
+      startDate: periodStart.toISOString().split('T')[0],
+      endDate:   periodEnd.toISOString().split('T')[0],
+      label:     capitalize(periodLabel),
     });
+
+    // If a master template was requested, inject its pre-wired blocks into page 0
+    if (masterTemplateId) {
+      const templateBlocks = getMasterTemplateBlocks(
+        masterTemplateId as MasterTemplateId,
+        { companyName: companyName || undefined },
+      );
+      const freshStore = useReportBuilderStore.getState();
+      templateBlocks.forEach(block => {
+        freshStore.addBlock(0, { ...block, id: crypto.randomUUID() } as ReportBlock);
+      });
+    }
+
     setActiveTab('builder');
-  }, [createDocument]);
+  }, [createDocument, companyName]);
 
   // Keyboard shortcuts (only in builder mode)
   useEffect(() => {
@@ -171,7 +204,7 @@ const ReportBuilderApp: React.FC = () => {
 
       {activeTab === 'templates' && (
         <div className="flex-1 overflow-auto bg-neutral-50">
-          <TemplateGalleryPage onUseTemplate={(title) => handleOpenInBuilder(title)} />
+          <TemplateGalleryPage onUseTemplate={(title, masterTemplateId) => handleOpenInBuilder(title, masterTemplateId)} />
         </div>
       )}
 

@@ -343,7 +343,7 @@ const ReportingIFRS: React.FC = () => {
 
           <KPICard
             title="CA Consolidé"
-            value={`${(aggregatedData.totalRevenue / 1000000).toFixed(0)}M €`}
+            value={`${(aggregatedData.totalRevenue / 1000000).toFixed(0)}M XAF`}
             subtitle="Chiffre d'affaires groupe"
             icon={TrendingUp}
             color="warning"

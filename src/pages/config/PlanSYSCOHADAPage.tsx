@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
+import { useAdapterQuery } from '../../contexts/DataContext';
 import {
   Calculator, Search, Filter, Download, ArrowLeft, Home, Plus,
   Edit, Eye, Check, X, BarChart3, Building2, Package, Users,
@@ -67,12 +68,12 @@ const PlanSYSCOHADAPage: React.FC = () => {
         {
           code: '10',
           libelle: 'CAPITAL',
-          solde: 5000000,
+          solde: 0,
           type: 'capital',
           status: 'active',
           sousComptes: [
-            { code: '101', libelle: 'Capital social', solde: 3000000 },
-            { code: '102', libelle: 'Capital par dotation', solde: 2000000 },
+            { code: '101', libelle: 'Capital social', solde: 0 },
+            { code: '102', libelle: 'Capital par dotation', solde: 0 },
             { code: '103', libelle: 'Capital personnel', solde: 0 },
             { code: '104', libelle: 'Compte de l\'exploitant', solde: 0 },
             { code: '105', libelle: 'Primes liées au capital social', solde: 0 }
@@ -81,24 +82,24 @@ const PlanSYSCOHADAPage: React.FC = () => {
         {
           code: '11',
           libelle: 'RÉSERVES',
-          solde: 500000,
+          solde: 0,
           type: 'reserve',
           status: 'active',
           sousComptes: [
-            { code: '111', libelle: 'Réserve légale', solde: 300000 },
-            { code: '112', libelle: 'Réserves statutaires', solde: 100000 },
-            { code: '113', libelle: 'Réserves réglementées', solde: 50000 },
-            { code: '118', libelle: 'Autres réserves', solde: 50000 }
+            { code: '111', libelle: 'Réserve légale', solde: 0 },
+            { code: '112', libelle: 'Réserves statutaires', solde: 0 },
+            { code: '113', libelle: 'Réserves réglementées', solde: 0 },
+            { code: '118', libelle: 'Autres réserves', solde: 0 }
           ]
         },
         {
           code: '12',
           libelle: 'REPORT À NOUVEAU',
-          solde: 325000,
+          solde: 0,
           type: 'reporte',
           status: 'active',
           sousComptes: [
-            { code: '121', libelle: 'Report à nouveau créditeur', solde: 325000 },
+            { code: '121', libelle: 'Report à nouveau créditeur', solde: 0 },
             { code: '129', libelle: 'Report à nouveau débiteur', solde: 0 }
           ]
         },
@@ -164,47 +165,47 @@ const PlanSYSCOHADAPage: React.FC = () => {
         {
           code: '21',
           libelle: 'IMMOBILISATIONS INCORPORELLES',
-          solde: 450000,
+          solde: 0,
           type: 'incorporel',
           status: 'active',
           sousComptes: [
-            { code: '211', libelle: 'Frais de recherche et développement', solde: 150000 },
-            { code: '212', libelle: 'Brevets, licences, concessions', solde: 100000 },
-            { code: '213', libelle: 'Logiciels', solde: 200000 },
+            { code: '211', libelle: 'Frais de recherche et développement', solde: 0 },
+            { code: '212', libelle: 'Brevets, licences, concessions', solde: 0 },
+            { code: '213', libelle: 'Logiciels', solde: 0 },
             { code: '214', libelle: 'Marques', solde: 0 }
           ]
         },
         {
           code: '22',
           libelle: 'TERRAINS',
-          solde: 1200000,
+          solde: 0,
           type: 'terrain',
           status: 'active',
           sousComptes: [
-            { code: '221', libelle: 'Terrains agricoles', solde: 400000 },
-            { code: '222', libelle: 'Terrains nus', solde: 800000 }
+            { code: '221', libelle: 'Terrains agricoles', solde: 0 },
+            { code: '222', libelle: 'Terrains nus', solde: 0 }
           ]
         },
         {
           code: '23',
           libelle: 'BÂTIMENTS',
-          solde: 2100000,
+          solde: 0,
           type: 'batiment',
           status: 'active',
           sousComptes: [
-            { code: '231', libelle: 'Bâtiments industriels', solde: 1500000 },
-            { code: '232', libelle: 'Bâtiments administratifs et commerciaux', solde: 600000 }
+            { code: '231', libelle: 'Bâtiments industriels', solde: 0 },
+            { code: '232', libelle: 'Bâtiments administratifs et commerciaux', solde: 0 }
           ]
         },
         {
           code: '24',
           libelle: 'MATÉRIEL',
-          solde: 890000,
+          solde: 0,
           type: 'materiel',
           status: 'active',
           sousComptes: [
-            { code: '241', libelle: 'Matériel et outillage industriel', solde: 500000 },
-            { code: '244', libelle: 'Matériel de transport', solde: 390000 }
+            { code: '241', libelle: 'Matériel et outillage industriel', solde: 0 },
+            { code: '244', libelle: 'Matériel de transport', solde: 0 }
           ]
         }
       ]
@@ -219,25 +220,25 @@ const PlanSYSCOHADAPage: React.FC = () => {
         {
           code: '31',
           libelle: 'MARCHANDISES',
-          solde: 234000,
+          solde: 0,
           type: 'stock',
           status: 'active',
           sousComptes: [
-            { code: '311', libelle: 'Marchandises A', solde: 134000 },
-            { code: '312', libelle: 'Marchandises B', solde: 100000 }
+            { code: '311', libelle: 'Marchandises A', solde: 0 },
+            { code: '312', libelle: 'Marchandises B', solde: 0 }
           ]
         },
         {
           code: '32',
           libelle: 'MATIÈRES PREMIÈRES ET FOURNITURES LIÉES',
-          solde: 156000,
+          solde: 0,
           type: 'matiere',
           status: 'active'
         },
         {
           code: '33',
           libelle: 'AUTRES APPROVISIONNEMENTS',
-          solde: 89000,
+          solde: 0,
           type: 'appro',
           status: 'active'
         },
@@ -274,36 +275,36 @@ const PlanSYSCOHADAPage: React.FC = () => {
         {
           code: '40',
           libelle: 'FOURNISSEURS ET COMPTES RATTACHÉS',
-          solde: -450000,
+          solde: 0,
           type: 'fournisseur',
           status: 'active',
           sousComptes: [
-            { code: '401', libelle: 'Fournisseurs, dettes en compte', solde: -400000 },
-            { code: '402', libelle: 'Fournisseurs, effets à payer', solde: -50000 }
+            { code: '401', libelle: 'Fournisseurs, dettes en compte', solde: 0 },
+            { code: '402', libelle: 'Fournisseurs, effets à payer', solde: 0 }
           ]
         },
         {
           code: '41',
           libelle: 'CLIENTS ET COMPTES RATTACHÉS',
-          solde: 680000,
+          solde: 0,
           type: 'client',
           status: 'active',
           sousComptes: [
-            { code: '411', libelle: 'Clients', solde: 600000 },
-            { code: '412', libelle: 'Clients, effets à recevoir', solde: 80000 }
+            { code: '411', libelle: 'Clients', solde: 0 },
+            { code: '412', libelle: 'Clients, effets à recevoir', solde: 0 }
           ]
         },
         {
           code: '42',
           libelle: 'PERSONNEL',
-          solde: -125000,
+          solde: 0,
           type: 'personnel',
           status: 'active'
         },
         {
           code: '43',
           libelle: 'ORGANISMES SOCIAUX',
-          solde: -67000,
+          solde: 0,
           type: 'social',
           status: 'active'
         },
@@ -333,28 +334,28 @@ const PlanSYSCOHADAPage: React.FC = () => {
         {
           code: '52',
           libelle: 'BANQUES',
-          solde: 890000,
+          solde: 0,
           type: 'banque',
           status: 'active',
           sousComptes: [
-            { code: '521', libelle: 'Banques locales', solde: 890000 }
+            { code: '521', libelle: 'Banques locales', solde: 0 }
           ]
         },
         {
           code: '53',
           libelle: 'ÉTABLISSEMENTS FINANCIERS ET ASSIMILÉS',
-          solde: 45000,
+          solde: 0,
           type: 'postal',
           status: 'active'
         },
         {
           code: '57',
           libelle: 'CAISSE',
-          solde: 75000,
+          solde: 0,
           type: 'caisse',
           status: 'active',
           sousComptes: [
-            { code: '571', libelle: 'Caisse siège social', solde: 75000 }
+            { code: '571', libelle: 'Caisse siège social', solde: 0 }
           ]
         }
       ]
@@ -369,24 +370,24 @@ const PlanSYSCOHADAPage: React.FC = () => {
         {
           code: '60',
           libelle: 'ACHATS ET VARIATIONS DE STOCKS',
-          solde: 780000,
+          solde: 0,
           type: 'achat',
           status: 'active',
           sousComptes: [
-            { code: '601', libelle: 'Achats de marchandises', solde: 780000 }
+            { code: '601', libelle: 'Achats de marchandises', solde: 0 }
           ]
         },
         {
           code: '61',
           libelle: 'TRANSPORTS',
-          solde: 125000,
+          solde: 0,
           type: 'transport',
           status: 'active'
         },
         {
           code: '62',
           libelle: 'SERVICES EXTÉRIEURS A',
-          solde: 89000,
+          solde: 0,
           type: 'service',
           status: 'active'
         },
@@ -451,12 +452,12 @@ const PlanSYSCOHADAPage: React.FC = () => {
         {
           code: '70',
           libelle: 'VENTES',
-          solde: 2450000,
+          solde: 0,
           type: 'vente',
           status: 'active',
           sousComptes: [
-            { code: '701', libelle: 'Ventes de marchandises', solde: 1250000 },
-            { code: '702', libelle: 'Ventes de produits finis', solde: 1200000 }
+            { code: '701', libelle: 'Ventes de marchandises', solde: 0 },
+            { code: '702', libelle: 'Ventes de produits finis', solde: 0 }
           ]
         },
         {
@@ -469,7 +470,7 @@ const PlanSYSCOHADAPage: React.FC = () => {
         {
           code: '72',
           libelle: 'PRODUCTION IMMOBILISÉE',
-          solde: 890000,
+          solde: 0,
           type: 'production',
           status: 'active'
         },
@@ -483,7 +484,7 @@ const PlanSYSCOHADAPage: React.FC = () => {
         {
           code: '75',
           libelle: 'AUTRES PRODUITS',
-          solde: 310000,
+          solde: 0,
           type: 'autre',
           status: 'active'
         },
@@ -649,6 +650,34 @@ const PlanSYSCOHADAPage: React.FC = () => {
     }
   };
 
+  // Load real journal entries to compute account balances
+  const { data: journalEntries } = useAdapterQuery(
+    (a) => a.getAll<any>('journalEntries'),
+    [],
+    []
+  );
+
+  // Compute balance per account-code prefix from real journal entries
+  // Balance = sum of (debit - credit) for all lines whose accountCode starts with the prefix
+  const computedBalances = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const entry of journalEntries) {
+      if (entry.status === 'draft') continue;
+      for (const line of entry.lines || []) {
+        const code: string = line.accountCode || '';
+        // Accumulate for every prefix length (2, 3, etc.)
+        for (let len = 1; len <= code.length; len++) {
+          const prefix = code.slice(0, len);
+          map[prefix] = (map[prefix] || 0) + ((line.debit || 0) - (line.credit || 0));
+        }
+      }
+    }
+    return map;
+  }, [journalEntries]);
+
+  // Helper: get balance for a given code prefix
+  const getSolde = useCallback((code: string) => computedBalances[code] ?? 0, [computedBalances]);
+
   const fetchData = useCallback(async (params: { search?: string; page?: number; pageSize?: number }) => {
     const currentClass = planComptable[selectedClasse as keyof typeof planComptable];
     if (!currentClass) return { data: [], total: 0, page: 1, pageSize: 10 };
@@ -656,7 +685,9 @@ const PlanSYSCOHADAPage: React.FC = () => {
     const allComptes = currentClass.comptes.map(c => ({
       ...c,
       id: c.code,
-      classe: selectedClasse
+      classe: selectedClasse,
+      solde: getSolde(c.code),
+      sousComptes: c.sousComptes?.map(sc => ({ ...sc, solde: getSolde(sc.code) }))
     }));
 
       // Filtrer par recherche
@@ -696,7 +727,7 @@ const PlanSYSCOHADAPage: React.FC = () => {
       page: params.page || 1,
       pageSize: params.pageSize || 10
     };
-  }, [selectedClasse]);
+  }, [selectedClasse, getSolde]);
 
   // Create mutation
   const createMutation = useMutation({

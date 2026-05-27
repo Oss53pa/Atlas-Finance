@@ -156,7 +156,7 @@ const AssetsSummary: React.FC = () => {
       title: 'Valeur Totale des Actifs',
       value: `${formatCurrency(totalAcquisitionValue)} \u20AC`,
       change: 0,
-      changeLabel: 'depuis Dexie',
+      changeLabel: 'cette année',
       icon: <DollarSign className="w-6 h-6" />,
       color: '[var(--color-primary)]',
       trend: 'up' as const,
@@ -167,7 +167,7 @@ const AssetsSummary: React.FC = () => {
       title: 'Valeur Nette Comptable',
       value: `${formatCurrency(totalResidualValue)} \u20AC`,
       change: 0,
-      changeLabel: 'depuis Dexie',
+      changeLabel: 'cette année',
       icon: <Building2 className="w-6 h-6" />,
       color: 'green',
       trend: 'up' as const,
@@ -198,9 +198,9 @@ const AssetsSummary: React.FC = () => {
     {
       id: 'asset_count',
       title: 'Nombre d\'Actifs',
-      value: formatCurrency(dbAssets.length),
+      value: String(dbAssets.length),
       change: 0,
-      changeLabel: 'depuis Dexie',
+      changeLabel: 'cette année',
       icon: <Package className="w-6 h-6" />,
       color: '[var(--color-primary)]',
       trend: 'up' as const,
@@ -254,18 +254,15 @@ const AssetsSummary: React.FC = () => {
     }));
   }, [dbAssets, assetCategories]);
 
-  // Maintenance data from active assets
-  const maintenanceData: MaintenanceItem[] = useMemo(() => {
-    return activeAssets.slice(0, 5).map((asset, index) => ({
-      id: asset.id,
-      assetName: asset.name,
-      type: 'preventive' as const,
-      status: 'upcoming' as const,
-      dueDate: asset.acquisitionDate,
-      cost: Math.round(asset.acquisitionValue * 0.02),
-      priority: 'medium' as const
-    }));
-  }, [activeAssets]);
+  // Maintenance data — loaded from adapter if table exists, otherwise empty
+  const [maintenanceData, setMaintenanceData] = useState<MaintenanceItem[]>([]);
+
+  useEffect(() => {
+    adapter.getAll<any>('assets').then((_assets) => {
+      // 'maintenances' table does not exist in the current schema — keep empty
+      setMaintenanceData([]);
+    }).catch(() => setMaintenanceData([]));
+  }, [adapter]);
 
   // Depreciation data computed per month (simplified)
   const depreciationChartData: DepreciationData[] = useMemo(() => {
@@ -406,9 +403,12 @@ const AssetsSummary: React.FC = () => {
   // Fonction de rafraîchissement
   const handleRefresh = async () => {
     setRefreshing(true);
-    // Simulation d'un appel API
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setRefreshing(false);
+    try {
+      const assets = await adapter.getAll('assets') as DBAsset[];
+      setDbAssets(assets);
+    } catch { /* silent */ } finally {
+      setRefreshing(false);
+    }
   };
 
   // Render functions for each tab
@@ -883,6 +883,9 @@ const AssetsSummary: React.FC = () => {
         {/* Liste des maintenances prioritaires */}
         <div className="space-y-3">
           <h3 className="font-medium text-primary-900 mb-3">Maintenances Prioritaires</h3>
+          {maintenanceData.length === 0 && (
+            <p className="text-sm text-primary-400 italic py-2">Aucune maintenance enregistrée.</p>
+          )}
           {maintenanceData
             .filter(item => item.priority === 'critical' || item.status === 'overdue')
             .slice(0, 4)
@@ -935,6 +938,9 @@ const AssetsSummary: React.FC = () => {
         </div>
 
         <div className="space-y-3">
+          {maintenanceData.length === 0 && (
+            <p className="text-sm text-primary-400 italic py-4 text-center">Aucune maintenance enregistrée.</p>
+          )}
           {maintenanceData.map((item) => (
             <motion.div
               key={item.id}

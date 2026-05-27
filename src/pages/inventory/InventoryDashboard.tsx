@@ -146,17 +146,20 @@ const InventoryDashboard: React.FC = () => {
       totalInventoryValue,
       totalItems,
       totalLocations: locations.length,
-      averageTurnoverRatio: totalItems > 0 ? 8.5 : 0,
-      averageDaysInInventory: totalItems > 0 ? 43 : 0,
+      // Turnover, days-in-inventory, accuracy, fill rate and shrinkage require
+      // sales/consumption history — not available without stockMovements cost-of-goods data.
+      // Displaying 0 / N/D rather than hardcoded magic numbers.
+      averageTurnoverRatio: 0,
+      averageDaysInInventory: 0,
       stockoutItems,
       overstockItems,
       obsoleteItems: items.filter(i => i.status === 'discontinued').length,
       deadStockValue: items
         .filter(i => i.status === 'inactive' || i.status === 'discontinued')
         .reduce((sum, i) => sum + i.quantity * i.unitCost, 0),
-      shrinkageRate: 0.8,
-      accuracyRate: 97.5,
-      fillRate: totalItems > 0 ? 95.2 : 0,
+      shrinkageRate: 0,
+      accuracyRate: 0,
+      fillRate: 0,
       carryingCostRate: 0.15,
       reorderSuggestions: lowStockItems,
     };
@@ -265,16 +268,39 @@ const InventoryDashboard: React.FC = () => {
     };
   }, [inventoryItems]);
 
+  const [stockMovementsData, setStockMovementsData] = useState<any[]>([]);
+
+  useEffect(() => {
+    const loadMovements = async () => {
+      const movements = await adapter.getAll('stockMovements');
+      setStockMovementsData(movements as Record<string, unknown>[]);
+    };
+    loadMovements();
+  }, [adapter]);
+
   const inventoryValueTrend = useMemo(() => {
-    // Build a simple trend from live data by total value (single point for now)
-    const totalValue = inventoryItems.reduce((sum, i) => sum + i.quantity * i.unitCost, 0);
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
-    return months.map((month, idx) => ({
-      month,
-      value: Math.round(totalValue * (0.85 + idx * 0.03)),
-      forecast: Math.round(totalValue * (0.86 + idx * 0.03)),
+    // Build trend from real stockMovements valueAfter data grouped by month
+    if (stockMovementsData.length === 0) {
+      // No historical data — return empty array so chart shows "no data" state
+      return [];
+    }
+    const monthMap = new Map<string, number>();
+    for (const movement of stockMovementsData) {
+      if (!movement.date) continue;
+      const d = new Date(movement.date);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      // Keep the latest valueAfter snapshot per month
+      if (!monthMap.has(key) || movement.valueAfter > (monthMap.get(key) ?? 0)) {
+        monthMap.set(key, movement.valueAfter ?? 0);
+      }
+    }
+    const sorted = Array.from(monthMap.entries()).sort((a, b) => a[0].localeCompare(b[0])).slice(-6);
+    return sorted.map(([key, value]) => ({
+      month: key.slice(5), // "MM"
+      value: Math.round(value),
+      forecast: null as number | null,
     }));
-  }, [inventoryItems]);
+  }, [stockMovementsData]);
 
   const valuationComparison = useMemo(() => {
     const totalValue = inventoryItems.reduce((sum, i) => sum + i.quantity * i.unitCost, 0);
@@ -296,24 +322,7 @@ const InventoryDashboard: React.FC = () => {
     setIsLoading(false);
   };
 
-  const getKPITrend = (current: number, previous: number): { change: number; trend: 'up' | 'down' | 'neutral' } => {
-    if (previous === 0) return { change: 0, trend: 'neutral' };
-    const change = ((current - previous) / previous) * 100;
-    return {
-      change: Number(change.toFixed(1)),
-      trend: change > 0 ? 'up' : change < 0 ? 'down' : 'neutral'
-    };
-  };
-
-  // Previous period data for trend calculation (static baseline)
-  const previousKpis = {
-    totalInventoryValue: kpis.totalInventoryValue * 0.95,
-    averageTurnoverRatio: 8.2,
-    averageDaysInInventory: 45,
-    accuracyRate: 96.8,
-    fillRate: 94.5,
-    shrinkageRate: 0.9
-  };
+  // No prior-period data available — trend comparison not shown
 
   return (
     <div className="p-6 bg-[var(--color-background-secondary)] min-h-screen">
@@ -398,35 +407,27 @@ const InventoryDashboard: React.FC = () => {
         <KPICard
           title="Total Inventory Value"
           value={kpis.totalInventoryValue}
-          change={getKPITrend(kpis.totalInventoryValue, previousKpis.totalInventoryValue).change}
           icon={Package}
           color="bg-[var(--color-primary)]"
-          trend={getKPITrend(kpis.totalInventoryValue, previousKpis.totalInventoryValue).trend}
           format="currency"
         />
         <KPICard
           title="Average Turnover Ratio"
-          value={kpis.averageTurnoverRatio}
-          change={getKPITrend(kpis.averageTurnoverRatio, previousKpis.averageTurnoverRatio).change}
+          value={kpis.averageTurnoverRatio === 0 ? 'N/D' : kpis.averageTurnoverRatio}
           icon={TrendingUp}
           color="bg-[var(--color-success)]"
-          trend={getKPITrend(kpis.averageTurnoverRatio, previousKpis.averageTurnoverRatio).trend}
         />
         <KPICard
           title="Days in Inventory"
-          value={kpis.averageDaysInInventory}
-          change={getKPITrend(kpis.averageDaysInInventory, previousKpis.averageDaysInInventory).change}
+          value={kpis.averageDaysInInventory === 0 ? 'N/D' : kpis.averageDaysInInventory}
           icon={Calendar}
           color="bg-[var(--color-warning)]"
-          trend={getKPITrend(kpis.averageDaysInInventory, previousKpis.averageDaysInInventory).trend}
         />
         <KPICard
           title="Inventory Accuracy"
-          value={kpis.accuracyRate}
-          change={getKPITrend(kpis.accuracyRate, previousKpis.accuracyRate).change}
+          value={kpis.accuracyRate === 0 ? 'N/D' : kpis.accuracyRate}
           icon={Activity}
           color="bg-[var(--color-text-secondary)]"
-          trend={getKPITrend(kpis.accuracyRate, previousKpis.accuracyRate).trend}
           format="percentage"
         />
       </div>
@@ -477,11 +478,15 @@ const InventoryDashboard: React.FC = () => {
           <div className="space-y-2">
             <div className="flex justify-between">
               <span className="text-sm text-[var(--color-primary)]/80">Fill Rate</span>
-              <span className="text-sm font-medium text-[var(--color-primary)]">{kpis.fillRate}%</span>
+              <span className="text-sm font-medium text-[var(--color-primary)]">
+                {kpis.fillRate === 0 ? 'N/D' : `${kpis.fillRate}%`}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-[var(--color-primary)]/80">Shrinkage Rate</span>
-              <span className="text-sm font-medium text-[var(--color-primary)]">{kpis.shrinkageRate}%</span>
+              <span className="text-sm font-medium text-[var(--color-primary)]">
+                {kpis.shrinkageRate === 0 ? 'N/D' : `${kpis.shrinkageRate}%`}
+              </span>
             </div>
           </div>
         </div>
@@ -495,32 +500,34 @@ const InventoryDashboard: React.FC = () => {
             <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Inventory Value Trend</h3>
             <ValuationMethodBadge method={selectedValuationMethod} />
           </div>
-          <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={inventoryValueTrend}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis tickFormatter={(value) => `$${(value / 1000000).toFixed(1)}M`} />
-              <Tooltip
-                formatter={(value: number) => [`$${formatCurrency(value)}`, 'Value']}
-                labelFormatter={(label) => `Month: ${label}`}
-              />
-              <Area
-                type="monotone"
-                dataKey="value"
-                stroke="#235A6E"
-                fill="#235A6E"
-                fillOpacity={0.1}
-                strokeWidth={2}
-              />
-              <Line
-                type="monotone"
-                dataKey="forecast"
-                stroke="#15803D"
-                strokeDasharray="5 5"
-                strokeWidth={2}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+          {inventoryValueTrend.length === 0 ? (
+            <div className="flex items-center justify-center h-[300px] text-gray-400">
+              <div className="text-center">
+                <BarChart3 className="w-10 h-10 mx-auto mb-2 opacity-30" />
+                <p className="text-sm">Données historiques non disponibles</p>
+              </div>
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height={300}>
+              <AreaChart data={inventoryValueTrend}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" />
+                <YAxis tickFormatter={(value) => `$${(value / 1000000).toFixed(1)}M`} />
+                <Tooltip
+                  formatter={(value: number) => [`$${formatCurrency(value)}`, 'Value']}
+                  labelFormatter={(label) => `Month: ${label}`}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="value"
+                  stroke="#235A6E"
+                  fill="#235A6E"
+                  fillOpacity={0.1}
+                  strokeWidth={2}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          )}
         </div>
 
         {/* Turnover by Category */}

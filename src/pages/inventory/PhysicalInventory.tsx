@@ -44,7 +44,7 @@ import {
   Cell
 } from 'recharts';
 import { PhysicalCount, PhysicalCountForm, InventoryItem, Location } from './types';
-import { mockPhysicalCounts, mockInventoryItems, mockLocations } from './utils/mockData';
+import { mockInventoryItems, mockLocations } from './utils/mockData';
 import { InventoryCalculations } from './utils/calculations';
 import CurrencyDisplay from './components/CurrencyDisplay';
 import LoadingSpinner from './components/LoadingSpinner';
@@ -460,62 +460,8 @@ const PhysicalInventory: React.FC = () => {
 
   // Initialize data
   useEffect(() => {
-    const loadData = async () => {
-      setIsLoading(true);
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Generate additional mock data
-      const additionalCounts: PhysicalCount[] = [
-        {
-          id: 'PC002',
-          countNumber: 'PC-2024-002',
-          type: 'full',
-          status: 'in_progress',
-          locationId: 'LOC002',
-          scheduledDate: '2024-02-01T08:00:00Z',
-          startDate: '2024-02-01T08:30:00Z',
-          items: [
-            {
-              itemId: 'ITEM001',
-              sku: 'LAP-DEL-5520',
-              name: 'Dell Latitude 5520 Laptop',
-              bookQuantity: 30,
-              countedQuantity: 28,
-              variance: -2,
-              varianceValue: -2440.00,
-              countedBy: 'counter3',
-              countDate: '2024-02-01T10:00:00Z'
-            }
-          ],
-          totalBookValue: 85000.00,
-          totalCountValue: 82560.00,
-          totalVariance: -2440.00,
-          counters: [{ userId: 'counter3', name: 'Mike Auditor', assignedItems: ['ITEM001'] }],
-          createdBy: 'inventory.manager',
-          createdAt: '2024-01-30T16:00:00Z'
-        },
-        {
-          id: 'PC003',
-          countNumber: 'PC-2024-003',
-          type: 'spot',
-          status: 'planned',
-          locationId: 'LOC003',
-          scheduledDate: '2024-02-05T08:00:00Z',
-          items: [],
-          totalBookValue: 0,
-          totalCountValue: 0,
-          totalVariance: 0,
-          counters: [{ userId: 'counter4', name: 'Sarah Inspector', assignedItems: [] }],
-          createdBy: 'inventory.manager',
-          createdAt: '2024-02-01T09:00:00Z'
-        }
-      ];
-
-      setCounts([...mockPhysicalCounts, ...additionalCounts]);
-      setIsLoading(false);
-    };
-
-    loadData();
+    setCounts([]);
+    setIsLoading(false);
   }, []);
 
   // Filter and paginate data
@@ -735,25 +681,31 @@ const PhysicalInventory: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
-                      {paginatedData.slice(0, 5).map((count, index) => (
-                        <tr key={count.id} className="hover:bg-gray-50">
-                          <td className="py-2 px-3 text-xs font-mono">{count.countNumber}</td>
-                          <td className="py-2 px-3 text-xs">Article de test {index + 1}</td>
-                          <td className="py-2 px-3 text-xs">Entrepôt A</td>
-                          <td className="py-2 px-3 text-xs text-right font-mono">150</td>
-                          <td className="py-2 px-3 text-xs text-right font-mono">148</td>
-                          <td className="py-2 px-3 text-center">
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
-                              Compté
-                            </span>
-                          </td>
-                          <td className="py-2 px-3 text-center">
-                            <button className="p-1 text-gray-700 hover:text-[var(--color-primary)] rounded">
-                              <QrCode className="w-3 h-3" />
-                            </button>
-                          </td>
+                      {paginatedData.length === 0 ? (
+                        <tr>
+                          <td colSpan={7} className="py-6 text-center text-xs text-gray-500">Aucun article</td>
                         </tr>
-                      ))}
+                      ) : paginatedData.flatMap((count) =>
+                        (count.items && count.items.length > 0) ? count.items.map((item) => (
+                          <tr key={`${count.id}-${item.itemId}`} className="hover:bg-gray-50">
+                            <td className="py-2 px-3 text-xs font-mono">{item.sku || item.itemId}</td>
+                            <td className="py-2 px-3 text-xs">{item.name}</td>
+                            <td className="py-2 px-3 text-xs">{count.locationId}</td>
+                            <td className="py-2 px-3 text-xs text-right font-mono">{item.bookQuantity}</td>
+                            <td className="py-2 px-3 text-xs text-right font-mono">{item.countedQuantity ?? '—'}</td>
+                            <td className="py-2 px-3 text-center">
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
+                                Compté
+                              </span>
+                            </td>
+                            <td className="py-2 px-3 text-center">
+                              <button className="p-1 text-gray-700 hover:text-[var(--color-primary)] rounded">
+                                <QrCode className="w-3 h-3" />
+                              </button>
+                            </td>
+                          </tr>
+                        )) : []
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -789,23 +741,29 @@ const PhysicalInventory: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
-                      {counts.filter(c => c.totalVariance !== 0).slice(0, 5).map((count, index) => (
-                        <tr key={count.id} className="hover:bg-gray-50">
-                          <td className="py-2 px-3 text-xs font-mono">{count.countNumber}</td>
-                          <td className="py-2 px-3 text-xs">Article écart {index + 1}</td>
-                          <td className="py-2 px-3 text-xs text-right font-mono">100</td>
-                          <td className="py-2 px-3 text-xs text-right font-mono">98</td>
-                          <td className="py-2 px-3 text-xs text-right font-mono text-red-600">-2</td>
-                          <td className="py-2 px-3 text-xs text-right text-red-600">
-                            <CurrencyDisplay amount={count.totalVariance} currency="USD" size="sm" />
-                          </td>
-                          <td className="py-2 px-3 text-center">
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-50 text-orange-700 border border-orange-200">
-                              Manquant
-                            </span>
-                          </td>
+                      {counts.filter(c => c.totalVariance !== 0).length === 0 ? (
+                        <tr>
+                          <td colSpan={7} className="py-6 text-center text-xs text-gray-500">Aucun article</td>
                         </tr>
-                      ))}
+                      ) : counts.filter(c => c.totalVariance !== 0).slice(0, 5).flatMap((count) =>
+                        (count.items && count.items.length > 0) ? count.items.filter(item => item.variance !== 0).map((item) => (
+                          <tr key={`${count.id}-${item.itemId}`} className="hover:bg-gray-50">
+                            <td className="py-2 px-3 text-xs font-mono">{item.sku || item.itemId}</td>
+                            <td className="py-2 px-3 text-xs">{item.name}</td>
+                            <td className="py-2 px-3 text-xs text-right font-mono">{item.bookQuantity}</td>
+                            <td className="py-2 px-3 text-xs text-right font-mono">{item.countedQuantity ?? '—'}</td>
+                            <td className={`py-2 px-3 text-xs text-right font-mono ${item.variance < 0 ? 'text-red-600' : 'text-green-600'}`}>{item.variance}</td>
+                            <td className="py-2 px-3 text-xs text-right text-red-600">
+                              <CurrencyDisplay amount={item.varianceValue} currency="USD" size="sm" />
+                            </td>
+                            <td className="py-2 px-3 text-center">
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-50 text-orange-700 border border-orange-200">
+                                {item.variance < 0 ? 'Manquant' : 'Surplus'}
+                              </span>
+                            </td>
+                          </tr>
+                        )) : []
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -873,19 +831,31 @@ const PhysicalInventory: React.FC = () => {
                     <h4 className="text-xs font-medium text-gray-700">Résumé de l'inventaire</h4>
                     <div className="grid grid-cols-2 gap-2">
                       <div className="bg-blue-50 p-2 rounded border">
-                        <div className="text-lg font-bold text-blue-700">1,247</div>
+                        <div className="text-lg font-bold text-blue-700">
+                          {counts.reduce((acc, c) => acc + (c.items?.length || 0), 0) || '—'}
+                        </div>
                         <div className="text-xs text-blue-600">Articles comptés</div>
                       </div>
                       <div className="bg-green-50 p-2 rounded border">
-                        <div className="text-lg font-bold text-green-700">89%</div>
+                        <div className="text-lg font-bold text-green-700">
+                          {counts.length > 0
+                            ? `${Math.round(counts.filter(c => c.totalVariance === 0).length / counts.length * 100)}%`
+                            : '—'}
+                        </div>
                         <div className="text-xs text-green-600">Précision</div>
                       </div>
                       <div className="bg-red-50 p-2 rounded border">
-                        <div className="text-lg font-bold text-red-700">23</div>
+                        <div className="text-lg font-bold text-red-700">
+                          {counts.filter(c => c.totalVariance !== 0).length || '—'}
+                        </div>
                         <div className="text-xs text-red-600">Écarts majeurs</div>
                       </div>
                       <div className="bg-yellow-50 p-2 rounded border">
-                        <div className="text-lg font-bold text-yellow-700">5.2%</div>
+                        <div className="text-lg font-bold text-yellow-700">
+                          {counts.length > 0
+                            ? `${(counts.filter(c => c.totalVariance !== 0).length / counts.length * 100).toFixed(1)}%`
+                            : '—'}
+                        </div>
                         <div className="text-xs text-yellow-600">Taux d'écart</div>
                       </div>
                     </div>

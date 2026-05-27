@@ -41,6 +41,7 @@ const MobileAppPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedDevice, setSelectedDevice] = useState<any>(null);
   const [showQRModal, setShowQRModal] = useState(false);
+  const [pairingToken, setPairingToken] = useState('');
   const [isSyncing, setIsSyncing] = useState<{ [key: number]: boolean }>({});
   const [showDisconnectConfirm, setShowDisconnectConfirm] = useState<{ id: number; name: string } | null>(null);
   const [settings, setSettings] = useState({
@@ -120,6 +121,7 @@ const MobileAppPage: React.FC = () => {
 
   // Handler functions
   const handleAssociateDevice = () => {
+    setPairingToken(`WB-${new Date().getFullYear()}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`);
     setShowQRModal(true);
   };
 
@@ -833,7 +835,7 @@ const MobileAppPage: React.FC = () => {
                 <QrCode className="w-48 h-48 text-gray-800" />
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="bg-white p-2">
-                    <span className="text-xs font-mono">WB-2024-XYZ</span>
+                    <span className="text-xs font-mono">{pairingToken}</span>
                   </div>
                 </div>
               </div>
@@ -843,14 +845,14 @@ const MobileAppPage: React.FC = () => {
                 Scannez ce QR code avec l'application mobile Atlas F&A
               </p>
               <p className="text-xs text-gray-700">
-                Code d'association : <span className="font-mono font-bold">WB-2024-XYZ-123</span>
+                Code d'association : <span className="font-mono font-bold">{pairingToken}</span>
               </p>
             </div>
             <div className="flex justify-center gap-2">
               <button
                 onClick={() => {
                   toast.success('Code copié dans le presse-papier !');
-                  navigator.clipboard.writeText('WB-2024-XYZ-123');
+                  navigator.clipboard.writeText(pairingToken);
                 }}
                 className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] transition-colors"
               >

@@ -62,6 +62,16 @@ const KPIsRealTime: React.FC = () => {
     { subject: 'Trésorerie', A: 0, fullMark: 100 }
   ]);
 
+  // Ref to the KPI computation function (allows polling without re-creating the effect)
+  const computeKPIsRef = React.useRef<(() => void) | null>(null);
+
+  // Auto-refresh polling
+  useEffect(() => {
+    if (!autoRefresh) return;
+    const id = setInterval(() => { computeKPIsRef.current?.(); }, refreshInterval);
+    return () => clearInterval(id);
+  }, [autoRefresh, refreshInterval]);
+
   // Load KPIs from real journal data
   useEffect(() => {
     const computeKPIs = async () => {
@@ -130,9 +140,35 @@ const KPIsRealTime: React.FC = () => {
           }
         }
 
+        // Compute monthly revenue and charges for trend & history
+        const monthlyCA: Record<string, number> = {};
+        const monthlyCharges: Record<string, number> = {};
+        const monthlyTresorerie: Record<string, number> = {};
+        for (const entry of posted) {
+          if (!entry.lines) continue;
+          const month = entry.date ? entry.date.substring(0, 7) : 'inconnu';
+          for (const line of entry.lines) {
+            const code = line.accountCode || '';
+            if (code.startsWith('7')) monthlyCA[month] = (monthlyCA[month] || 0) + (line.credit || 0) - (line.debit || 0);
+            if (code.startsWith('6')) monthlyCharges[month] = (monthlyCharges[month] || 0) + (line.debit || 0) - (line.credit || 0);
+            if (code.startsWith('5')) monthlyTresorerie[month] = (monthlyTresorerie[month] || 0) + (line.debit || 0) - (line.credit || 0);
+          }
+        }
+        const sortedMonths = Object.keys(monthlyCA).sort();
+        const currentMonth = sortedMonths[sortedMonths.length - 1] || '';
+        const prevMonth = sortedMonths[sortedMonths.length - 2] || '';
+        const computeTrend = (curr: number, prev: number) =>
+          prev !== 0 ? Math.round(((curr - prev) / Math.abs(prev)) * 100 * 10) / 10 : 0;
+        const buildHistory = (monthMap: Record<string, number>) =>
+          sortedMonths.slice(-6).map(m => ({ time: m, value: Math.round(monthMap[m] || 0) }));
+
         const marge = totalCA > 0 ? ((totalCA - totalCharges) / totalCA) * 100 : 0;
         const resultatNet = totalCA - totalCharges;
         const margeCommerciale = venteMarchandises - achatsMarchandises;
+
+        const caHistory = buildHistory(monthlyCA);
+        const chargesHistory = buildHistory(monthlyCharges);
+        const tresoHistory = buildHistory(monthlyTresorerie);
 
         const computedKPIs: KPIMetric[] = [
           {
@@ -142,9 +178,9 @@ const KPIsRealTime: React.FC = () => {
             unit: '',
             target: totalCA > 0 ? Math.round(totalCA * 0.9) : 1,
             status: totalCA > 0 ? 'success' : 'warning',
-            trend: 0,
+            trend: computeTrend(monthlyCA[currentMonth] || 0, monthlyCA[prevMonth] || 0),
             lastUpdate: new Date(),
-            history: [],
+            history: caHistory,
             category: 'financier'
           },
           {
@@ -154,9 +190,17 @@ const KPIsRealTime: React.FC = () => {
             unit: '%',
             target: 30,
             status: marge >= 30 ? 'success' : marge >= 20 ? 'warning' : 'danger',
-            trend: 0,
+            trend: computeTrend(
+              (monthlyCA[currentMonth] || 0) - (monthlyCharges[currentMonth] || 0),
+              (monthlyCA[prevMonth] || 0) - (monthlyCharges[prevMonth] || 0)
+            ),
             lastUpdate: new Date(),
-            history: [],
+            history: sortedMonths.slice(-6).map(m => ({
+              time: m,
+              value: (monthlyCA[m] || 0) > 0
+                ? Math.round((((monthlyCA[m] || 0) - (monthlyCharges[m] || 0)) / (monthlyCA[m] || 1)) * 100 * 10) / 10
+                : 0
+            })),
             category: 'financier'
           },
           {
@@ -166,9 +210,9 @@ const KPIsRealTime: React.FC = () => {
             unit: '',
             target: totalTresorerie > 0 ? Math.round(totalTresorerie * 0.8) : 1,
             status: totalTresorerie > 0 ? 'success' : 'danger',
-            trend: 0,
+            trend: computeTrend(monthlyTresorerie[currentMonth] || 0, monthlyTresorerie[prevMonth] || 0),
             lastUpdate: new Date(),
-            history: [],
+            history: tresoHistory,
             category: 'financier'
           },
           // Additional KPIs for ALL activity types
@@ -179,9 +223,9 @@ const KPIsRealTime: React.FC = () => {
             unit: '',
             target: totalCA > 0 ? Math.round(totalCA * 0.7) : 1,
             status: totalCA > 0 && totalCharges <= totalCA * 0.7 ? 'success' : totalCA > 0 && totalCharges <= totalCA * 0.85 ? 'warning' : 'danger',
-            trend: 0,
+            trend: computeTrend(monthlyCharges[currentMonth] || 0, monthlyCharges[prevMonth] || 0),
             lastUpdate: new Date(),
-            history: [],
+            history: chargesHistory,
             category: 'financier'
           },
           {
@@ -191,9 +235,15 @@ const KPIsRealTime: React.FC = () => {
             unit: '',
             target: resultatNet > 0 ? Math.round(resultatNet * 0.9) : 1,
             status: resultatNet > 0 ? 'success' : 'danger',
-            trend: 0,
+            trend: computeTrend(
+              (monthlyCA[currentMonth] || 0) - (monthlyCharges[currentMonth] || 0),
+              (monthlyCA[prevMonth] || 0) - (monthlyCharges[prevMonth] || 0)
+            ),
             lastUpdate: new Date(),
-            history: [],
+            history: sortedMonths.slice(-6).map(m => ({
+              time: m,
+              value: Math.round((monthlyCA[m] || 0) - (monthlyCharges[m] || 0))
+            })),
             category: 'financier'
           },
           {
@@ -232,9 +282,9 @@ const KPIsRealTime: React.FC = () => {
               unit: '',
               target: totalCA > 0 ? Math.round(totalCA * 0.6) : 1,
               status: totalCA > 0 && coutProduction <= totalCA * 0.6 ? 'success' : totalCA > 0 && coutProduction <= totalCA * 0.75 ? 'warning' : 'danger',
-              trend: 0,
+              trend: computeTrend(monthlyCharges[currentMonth] || 0, monthlyCharges[prevMonth] || 0),
               lastUpdate: new Date(),
-              history: [],
+              history: chargesHistory,
               category: 'production'
             },
             {
@@ -261,9 +311,9 @@ const KPIsRealTime: React.FC = () => {
               unit: '',
               target: totalCA > 0 ? Math.round(totalCA * 0.65) : 1,
               status: totalCA > 0 && achatsMarchandises <= totalCA * 0.65 ? 'success' : totalCA > 0 && achatsMarchandises <= totalCA * 0.8 ? 'warning' : 'danger',
-              trend: 0,
+              trend: computeTrend(monthlyCharges[currentMonth] || 0, monthlyCharges[prevMonth] || 0),
               lastUpdate: new Date(),
-              history: [],
+              history: chargesHistory,
               category: 'commercial'
             },
             {
@@ -273,9 +323,15 @@ const KPIsRealTime: React.FC = () => {
               unit: '',
               target: margeCommerciale > 0 ? Math.round(margeCommerciale * 0.9) : 1,
               status: margeCommerciale > 0 ? 'success' : 'danger',
-              trend: 0,
+              trend: computeTrend(
+                (monthlyCA[currentMonth] || 0) - (monthlyCharges[currentMonth] || 0),
+                (monthlyCA[prevMonth] || 0) - (monthlyCharges[prevMonth] || 0)
+              ),
               lastUpdate: new Date(),
-              history: [],
+              history: sortedMonths.slice(-6).map(m => ({
+                time: m,
+                value: Math.round((monthlyCA[m] || 0) - (monthlyCharges[m] || 0))
+              })),
               category: 'commercial'
             }
           );
@@ -290,9 +346,9 @@ const KPIsRealTime: React.FC = () => {
               unit: '',
               target: caPrestations > 0 ? Math.round(caPrestations * 0.9) : 1,
               status: caPrestations > 0 ? 'success' : 'warning',
-              trend: 0,
+              trend: computeTrend(monthlyCA[currentMonth] || 0, monthlyCA[prevMonth] || 0),
               lastUpdate: new Date(),
-              history: [],
+              history: caHistory,
               category: 'services'
             },
             {
@@ -302,9 +358,9 @@ const KPIsRealTime: React.FC = () => {
               unit: '',
               target: totalCA > 0 ? Math.round(totalCA * 0.5) : 1,
               status: totalCA > 0 && chargesPersonnel <= totalCA * 0.5 ? 'success' : totalCA > 0 && chargesPersonnel <= totalCA * 0.65 ? 'warning' : 'danger',
-              trend: 0,
+              trend: computeTrend(monthlyCharges[currentMonth] || 0, monthlyCharges[prevMonth] || 0),
               lastUpdate: new Date(),
-              history: [],
+              history: chargesHistory,
               category: 'rh'
             }
           );
@@ -315,7 +371,9 @@ const KPIsRealTime: React.FC = () => {
         // Compute radar from meaningful metrics
         const costRatio = totalCA > 0 ? (totalCharges / totalCA) * 100 : 0;
         const receivablesRatio = totalCA > 0 ? (creancesClients / totalCA) * 100 : 0;
-        const treasuryScore = totalTresorerie > 0 ? Math.min(100, 85) : 20;
+        const treasuryScore = totalTresorerie > 0
+          ? Math.min(100, Math.round((totalTresorerie / (totalCharges > 0 ? totalCharges : 1)) * 100))
+          : 20;
 
         setRadarData([
           { subject: 'Ventes', A: totalCA > 0 ? Math.min(100, 75) : 0, fullMark: 100 },
@@ -329,6 +387,7 @@ const KPIsRealTime: React.FC = () => {
         setKpis([]);
       }
     };
+    computeKPIsRef.current = computeKPIs;
     computeKPIs();
   }, [adapter, activityType]);
 

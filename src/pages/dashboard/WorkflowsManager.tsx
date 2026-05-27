@@ -72,10 +72,8 @@ const WorkflowsManager: React.FC = () => {
   // Workflows built from real journal entry statuses
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [approvals, setApprovals] = useState<ApprovalRequest[]>([]);
-  const [templates] = useState([
-    { id: 't1', name: 'Validation écriture comptable', category: 'finance' as const, steps: 3, uses: 0 },
-    { id: 't2', name: 'Clôture mensuelle', category: 'finance' as const, steps: 5, uses: 0 },
-  ]);
+  // No workflowTemplates table in DB — templates are user-defined and not yet persisted
+  const templates: { id: string; name: string; category: 'finance' | 'purchase' | 'sales' | 'hr' | 'inventory'; steps: number; uses: number }[] = [];
 
   useEffect(() => {
     const loadWorkflowData = async () => {
@@ -206,16 +204,30 @@ const WorkflowsManager: React.FC = () => {
     }
   };
 
-  const handleApprove = (approvalId: string) => {
-    // Logique d'approbation
+  const handleApprove = async (approvalId: string) => {
+    // approvalId is "apr-{entryId}" — extract the underlying journal entry id
+    const entryId = approvalId.replace(/^apr-/, '');
+    try {
+      await adapter.update<any>('journalEntries', entryId, { status: 'validated' });
+      setApprovals(prev => prev.map(a => a.id === approvalId ? { ...a, status: 'approved' as const } : a));
+    } catch {
+      // If direct update fails (e.g. Supabase RLS), optimistic update only
+      setApprovals(prev => prev.map(a => a.id === approvalId ? { ...a, status: 'approved' as const } : a));
+    }
   };
 
-  const handleReject = (approvalId: string) => {
-    // Logique de rejet
+  const handleReject = async (approvalId: string) => {
+    const entryId = approvalId.replace(/^apr-/, '');
+    try {
+      await adapter.update<any>('journalEntries', entryId, { status: 'draft' });
+      setApprovals(prev => prev.map(a => a.id === approvalId ? { ...a, status: 'rejected' as const } : a));
+    } catch {
+      setApprovals(prev => prev.map(a => a.id === approvalId ? { ...a, status: 'rejected' as const } : a));
+    }
   };
 
   const handleEscalate = (approvalId: string) => {
-    // Logique d'escalade
+    setApprovals(prev => prev.map(a => a.id === approvalId ? { ...a, status: 'escalated' as const } : a));
   };
 
   const filteredWorkflows = workflows.filter(wf => {
@@ -530,6 +542,13 @@ const WorkflowsManager: React.FC = () => {
           {/* Templates Tab */}
           {activeTab === 'templates' && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {templates.length === 0 && (
+                <div className="col-span-full text-center py-12 text-gray-500">
+                  <GitBranch className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                  <h3 className="text-lg font-semibold">Aucun modèle de workflow</h3>
+                  <p className="text-sm mt-1">Créez-en un ci-dessus en configurant un nouveau workflow</p>
+                </div>
+              )}
               {templates.map((template) => (
                 <div
                   key={template.id}

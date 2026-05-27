@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { toast } from 'sonner';
+import { useData } from '../../contexts/DataContext';
 import { useForm, Controller, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -88,9 +89,12 @@ const zoneConfigurations = {
 };
 
 const TaxConfiguration: React.FC = () => {
+  const { adapter } = useData();
   const [activeTab, setActiveTab] = useState('taxes');
   const [selectedZone, setSelectedZone] = useState('CEMAC');
   const [showPreview, setShowPreview] = useState(false);
+  const [simulateurBase, setSimulateurBase] = useState(100000);
+  const [simulateurTaux, setSimulateurTaux] = useState(19.25);
 
   const { control, handleSubmit, watch, formState: { errors }, setValue } = useForm<TaxFormData>({
     resolver: zodResolver(taxSchema),
@@ -163,8 +167,18 @@ const TaxConfiguration: React.FC = () => {
     }
   };
 
-  const onSubmit = (data: TaxFormData) => {
-    toast.success('Configuration enregistrée avec succès !');
+  const onSubmit = async (data: TaxFormData) => {
+    try {
+      const existing = await adapter.getById<any>('settings', 'tax_config');
+      if (existing) {
+        await adapter.update('settings', 'tax_config', { value: JSON.stringify(data) });
+      } else {
+        await adapter.create('settings', { id: 'tax_config', value: JSON.stringify(data) } as any);
+      }
+      toast.success('Configuration enregistrée avec succès !');
+    } catch (err) {
+      toast.error('Erreur lors de l\'enregistrement de la configuration.');
+    }
   };
 
   return (
@@ -706,7 +720,8 @@ const TaxConfiguration: React.FC = () => {
                     </label>
                     <input
                       type="number"
-                      defaultValue={100000}
+                      value={simulateurBase}
+                      onChange={(e) => setSimulateurBase(parseFloat(e.target.value) || 0)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md"
                     />
                   </div>
@@ -716,8 +731,9 @@ const TaxConfiguration: React.FC = () => {
                     </label>
                     <input
                       type="number"
-                      defaultValue={19.25}
+                      value={simulateurTaux}
                       step="0.01"
+                      onChange={(e) => setSimulateurTaux(parseFloat(e.target.value) || 0)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md"
                     />
                   </div>
@@ -726,9 +742,9 @@ const TaxConfiguration: React.FC = () => {
                       Résultat
                     </label>
                     <div className="bg-white border border-gray-300 rounded-md px-3 py-2">
-                      <div className="text-sm text-gray-600">HT: 100,000 XAF</div>
-                      <div className="text-sm text-gray-600">TVA: 19,250 XAF</div>
-                      <div className="text-sm font-medium">TTC: 119,250 XAF</div>
+                      <div className="text-sm text-gray-600">HT: {simulateurBase.toLocaleString('fr-FR')} XAF</div>
+                      <div className="text-sm text-gray-600">TVA: {Math.round(simulateurBase * simulateurTaux / 100).toLocaleString('fr-FR')} XAF</div>
+                      <div className="text-sm font-medium">TTC: {Math.round(simulateurBase * (1 + simulateurTaux / 100)).toLocaleString('fr-FR')} XAF</div>
                     </div>
                   </div>
                 </div>
@@ -1013,7 +1029,7 @@ const TaxConfiguration: React.FC = () => {
                     icon: ReceiptPercentIcon,
                     color: 'blue',
                     declarations: [
-                      { type: 'Mensuelle', echeance: 'Avant le 15 du mois suivant', montant: '2,450,000 XAF' },
+                      { type: 'Mensuelle', echeance: 'Avant le 15 du mois suivant', montant: 'Voir les déclarations' },
                       { type: 'Trimestrielle', echeance: 'Avant le 15 du trimestre suivant', montant: '-' }
                     ]
                   },
@@ -1022,16 +1038,16 @@ const TaxConfiguration: React.FC = () => {
                     icon: BuildingOfficeIcon,
                     color: 'green',
                     declarations: [
-                      { type: 'Acomptes', echeance: '15 mars, 15 juin, 15 septembre', montant: '1,500,000 XAF' },
-                      { type: 'Solde', echeance: '15 mars N+1', montant: '500,000 XAF' }
+                      { type: 'Acomptes', echeance: '15 mars, 15 juin, 15 septembre', montant: 'Voir les déclarations' },
+                      { type: 'Solde', echeance: '15 mars N+1', montant: 'Voir les déclarations' }
                     ]
                   },
                   {
                     title: 'IRPP/Salaires',
-                    icon: UserGroupIcon,
+                    icon: BanknotesIcon,
                     color: 'primary',
                     declarations: [
-                      { type: 'Mensuelle', echeance: 'Avant le 15 du mois suivant', montant: '350,000 XAF' },
+                      { type: 'Mensuelle', echeance: 'Avant le 15 du mois suivant', montant: 'Voir les déclarations' },
                       { type: 'DADS', echeance: '31 janvier N+1', montant: '-' }
                     ]
                   },
@@ -1040,8 +1056,8 @@ const TaxConfiguration: React.FC = () => {
                     icon: BanknotesIcon,
                     color: 'orange',
                     declarations: [
-                      { type: 'CSS', echeance: 'Avec la TVA', montant: '125,000 XAF' },
-                      { type: 'CAC', echeance: 'Avec l\'IS', montant: '150,000 XAF' }
+                      { type: 'CSS', echeance: 'Avec la TVA', montant: 'Voir les déclarations' },
+                      { type: 'CAC', echeance: "Avec l'IS", montant: 'Voir les déclarations' }
                     ]
                   }
                 ].map((taxCategory) => (
@@ -1069,32 +1085,9 @@ const TaxConfiguration: React.FC = () => {
                 <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">
                   Prochaines échéances
                 </h3>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 bg-white rounded-lg">
-                    <div className="flex items-center">
-                      <CalendarDaysIcon className="h-5 w-5 text-primary-600 mr-3" />
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">TVA Novembre 2024</div>
-                        <div className="text-xs text-gray-700">Échéance: 15 décembre 2024</div>
-                      </div>
-                    </div>
-                    <span className="px-3 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full">
-                      Dans 5 jours
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-white rounded-lg">
-                    <div className="flex items-center">
-                      <CalendarDaysIcon className="h-5 w-5 text-green-600 mr-3" />
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">Acompte IS 4e trimestre</div>
-                        <div className="text-xs text-gray-700">Échéance: 15 décembre 2024</div>
-                      </div>
-                    </div>
-                    <span className="px-3 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full">
-                      Dans 5 jours
-                    </span>
-                  </div>
-                </div>
+                <p className="text-sm text-gray-600">
+                  Consultez la page <strong>Déclarations fiscales</strong> pour voir vos prochaines échéances en temps réel.
+                </p>
               </div>
             </div>
           )}

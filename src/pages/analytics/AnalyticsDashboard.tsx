@@ -40,7 +40,7 @@ const AnalyticsDashboard: React.FC = () => {
       setIsLoading(true);
       try {
         const je = await adapter.getAll('journalEntries');
-        setJournalEntries(je as { date: string; lines: Array<{ accountCode: string; debit: number; credit: number; thirdPartyCode?: string; thirdPartyId?: string }> }[]);
+        setJournalEntries(je as { date: string; lines: Array<{ accountCode: string; debit: number; credit: number; thirdPartyCode?: string; thirdPartyId?: string; analyticalCode?: string }> }[]);
       } catch (e) {
         /* ignored */
       } finally {
@@ -50,14 +50,40 @@ const AnalyticsDashboard: React.FC = () => {
     load();
   }, [adapter]);
 
+  // Apply period date filter
+  const filteredEntries = useMemo(() => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    let startDate: Date | null = null;
+    if (period === 'month') {
+      startDate = new Date(year, month, 1);
+    } else if (period === 'quarter') {
+      const quarterStart = Math.floor(month / 3) * 3;
+      startDate = new Date(year, quarterStart, 1);
+    } else {
+      startDate = new Date(year, 0, 1);
+    }
+    return journalEntries.filter(e => {
+      const d = new Date(e.date);
+      return d >= startDate! && d <= now;
+    });
+  }, [journalEntries, period]);
+
   const dashboardData = useMemo(() => {
     let chiffre_affaires = 0;
     let couts_directs = 0;
     const costByPrefix: Record<string, number> = {};
+    const analyticalCodes = new Set<string>();
+    let ecritures_ventilees = 0;
 
-    for (const entry of journalEntries) {
+    for (const entry of filteredEntries) {
       if (!entry.lines) continue;
       for (const line of entry.lines) {
+        if (line.analyticalCode) {
+          analyticalCodes.add(line.analyticalCode);
+          ecritures_ventilees += 1;
+        }
         if (line.accountCode?.startsWith('7')) {
           chiffre_affaires += (line.credit || 0) - (line.debit || 0);
         }
@@ -73,6 +99,9 @@ const AnalyticsDashboard: React.FC = () => {
     const marge_brute = chiffre_affaires - couts_directs;
     const taux_marge = chiffre_affaires > 0 ? (marge_brute / chiffre_affaires) * 100 : 0;
     const rentabilite_globale = taux_marge;
+    // taux_efficacite: ratio of ventilated lines vs total lines
+    const totalLines = filteredEntries.reduce((s, e) => s + (e.lines?.length || 0), 0);
+    const taux_efficacite = totalLines > 0 ? (ecritures_ventilees / totalLines) * 100 : 0;
 
     const costCenterColors = ['bg-green-400', 'bg-[var(--color-text-secondary)]', 'bg-gray-400', 'bg-orange-400', 'bg-yellow-400', 'bg-red-400', 'bg-primary-400'];
     const accountLabels: Record<string, string> = {
@@ -94,19 +123,19 @@ const AnalyticsDashboard: React.FC = () => {
       couts_directs,
       marge_brute,
       taux_marge,
-      nombre_axes: 0,
-      nombre_centres: 0,
-      ecritures_ventilees: 0,
+      nombre_axes: analyticalCodes.size,
+      nombre_centres: analyticalCodes.size,
+      ecritures_ventilees,
       rentabilite_globale,
       evolution_rentabilite: 0,
       indice_productivite: chiffre_affaires > 0 && couts_directs > 0 ? +(chiffre_affaires / couts_directs).toFixed(2) : 0,
-      taux_efficacite: 0,
+      taux_efficacite: +taux_efficacite.toFixed(1),
       top_centres: [] as { label: string; value: number }[],
       repartition_couts: [] as { label: string; value: number }[],
       dernieres_ventilations: [] as { label: string; value: number }[],
       costCenterChart: costCenterChart.length > 0 ? costCenterChart : [{ label: '\u2014', value: 0, color: 'bg-neutral-300' }],
     };
-  }, [journalEntries]);
+  }, [filteredEntries]);
 
   if (isLoading) {
     return (

@@ -1308,50 +1308,14 @@ Service Contentieux
 
                 <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
                   <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Répartition par Secteur</h3>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <RechartsPieChart>
-                      <Pie
-                        dataKey="montant"
-                        data={[
-                          { secteur: 'Commerce', montant: 380000, fill: '#235A6E' },
-                          { secteur: 'Services', montant: 280000, fill: '#525252' },
-                          { secteur: 'Industrie', montant: 320000, fill: '#525252' },
-                          { secteur: 'Agriculture', montant: 150000, fill: '#404040' },
-                          { secteur: 'BTP', montant: 120000, fill: '#404040' }
-                        ]}
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={100}
-                        label={({ secteur, percent }) => `${secteur} ${(percent * 100).toFixed(0)}%`}
-                      >
-                      </Pie>
-                      <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                    </RechartsPieChart>
-                  </ResponsiveContainer>
+                  <div className="flex items-center justify-center h-[300px] text-sm text-gray-500">Données insuffisantes pour l'affichage</div>
                 </div>
               </div>
 
               {/* Ancienneté détaillée */}
               <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
                 <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Ancienneté des Créances par Secteur</h3>
-                <ResponsiveContainer width="100%" height={400}>
-                  <BarChart data={[
-                    { periode: '0-30j', commerce: 120000, services: 80000, industrie: 95000, agriculture: 45000, btp: 35000 },
-                    { periode: '31-60j', commerce: 95000, services: 65000, industrie: 85000, agriculture: 35000, btp: 28000 },
-                    { periode: '61-90j', commerce: 85000, services: 70000, industrie: 75000, agriculture: 40000, btp: 32000 },
-                    { periode: '+90j', commerce: 80000, services: 65000, industrie: 65000, agriculture: 30000, btp: 25000 }
-                  ]}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="periode" />
-                    <YAxis tickFormatter={(value) => `${value / 1000}k`} />
-                    <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                    <Bar radius={[6,6,0,0]} dataKey="commerce" stackId="a" fill="url(#gradPetrol)" name="Commerce" />
-                    <Bar radius={[6,6,0,0]} dataKey="services" stackId="a" fill="url(#gradPetrolLight)" name="Services" />
-                    <Bar radius={[6,6,0,0]} dataKey="industrie" stackId="a" fill="url(#gradPetrolLight)" name="Industrie" />
-                    <Bar radius={[6,6,0,0]} dataKey="agriculture" stackId="a" fill="#404040" name="Agriculture" />
-                    <Bar radius={[6,6,0,0]} dataKey="btp" stackId="a" fill="#404040" name="BTP" />
-                  </BarChart>
-                </ResponsiveContainer>
+                <div className="flex items-center justify-center h-[400px] text-sm text-gray-500">Données insuffisantes pour l'affichage</div>
               </div>
             </div>
           );
@@ -1362,31 +1326,7 @@ Service Contentieux
               {/* Tendances temporelles */}
               <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
                 <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Tendances sur 12 mois</h3>
-                <ResponsiveContainer width="100%" height={400}>
-                  <ComposedChart data={[
-                    { mois: 'Jan 2023', creances: 180000, recouvre: 145000, taux: 80.5 },
-                    { mois: 'Fév 2023', creances: 195000, recouvre: 158000, taux: 81.0 },
-                    { mois: 'Mar 2023', creances: 210000, recouvre: 168000, taux: 80.0 },
-                    { mois: 'Avr 2023', creances: 225000, recouvre: 180000, taux: 80.0 },
-                    { mois: 'Mai 2023', creances: 240000, recouvre: 192000, taux: 80.0 },
-                    { mois: 'Juin 2023', creances: 220000, recouvre: 176000, taux: 80.0 },
-                    { mois: 'Juil 2023', creances: 235000, recouvre: 188000, taux: 80.0 },
-                    { mois: 'Août 2023', creances: 250000, recouvre: 200000, taux: 80.0 },
-                    { mois: 'Sep 2023', creances: 245000, recouvre: 196000, taux: 80.0 },
-                    { mois: 'Oct 2023', creances: 260000, recouvre: 208000, taux: 80.0 },
-                    { mois: 'Nov 2023', creances: 255000, recouvre: 204000, taux: 80.0 },
-                    { mois: 'Déc 2023', creances: 270000, recouvre: 216000, taux: 80.0 }
-                  ]}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="mois" />
-                    <YAxis yAxisId="left" tickFormatter={(value) => `${value / 1000}k`} />
-                    <YAxis yAxisId="right" orientation="right" domain={[75, 85]} />
-                    <Tooltip />
-                    <Bar radius={[6,6,0,0]} yAxisId="left" dataKey="creances" fill="url(#gradRed)" fillOpacity={0.3} name="Créances" />
-                    <Bar radius={[6,6,0,0]} yAxisId="left" dataKey="recouvre" fill="url(#gradGreen)" fillOpacity={0.6} name="Recouvré" />
-                    <Line yAxisId="right" type="monotone" dataKey="taux" stroke="#235A6E" strokeWidth={3} name="Taux %" />
-                  </ComposedChart>
-                </ResponsiveContainer>
+                <div className="flex items-center justify-center h-[400px] text-sm text-gray-500">Données insuffisantes pour l'affichage</div>
               </div>
 
               {/* Analyse des cycles */}
@@ -2250,77 +2190,13 @@ Service Contentieux
       }
     ];
 
-    // Données mock des dossiers contentieux
-    const dossiersContentieux = [
-      {
-        id: '1',
-        numeroRef: 'CTX-2024-001',
-        client: 'SOCIETE ABIDJAN TRANSPORT',
-        montantPrincipal: 4500000,
-        interetsRetard: 225000,
-        fraisProcedure: 150000,
-        montantTotal: 4875000,
-        dateTransfert: '2024-01-15',
-        statutJuridique: 'mise_demeure',
-        typeProcedure: 'injonction_payer',
-        avocat: 'Maître KONE',
-        prochaineEcheance: '2024-02-01',
-        joursRestants: 8,
-        origineAmiable: 'REC-2023-458',
-        motifTransfert: 'Échec recouvrement amiable après 6 relances'
-      },
-      {
-        id: '2',
-        numeroRef: 'CTX-2024-002',
-        client: 'GROUPE IVOIRIEN BATIMENT',
-        montantPrincipal: 12000000,
-        interetsRetard: 600000,
-        fraisProcedure: 450000,
-        montantTotal: 13050000,
-        dateTransfert: '2024-01-10',
-        statutJuridique: 'assignation',
-        typeProcedure: 'refere_provision',
-        avocat: 'Maître DIALLO',
-        prochaineEcheance: '2024-01-28',
-        joursRestants: 5,
-        origineAmiable: 'REC-2023-412',
-        motifTransfert: 'Montant important - Action judiciaire requise'
-      },
-      {
-        id: '3',
-        numeroRef: 'CTX-2024-003',
-        client: 'COMMERCE GENERAL KOUASSI',
-        montantPrincipal: 2800000,
-        interetsRetard: 140000,
-        fraisProcedure: 200000,
-        montantTotal: 3140000,
-        dateTransfert: '2024-01-05',
-        statutJuridique: 'jugement',
-        typeProcedure: 'procedure_fond',
-        avocat: 'Maître YAO',
-        prochaineEcheance: '2024-02-15',
-        joursRestants: 22,
-        origineAmiable: 'REC-2023-389',
-        motifTransfert: 'Client insolvable - Saisie nécessaire'
-      },
-      {
-        id: '4',
-        numeroRef: 'CTX-2024-004',
-        client: 'ENTREPRISE BAMBA SARL',
-        montantPrincipal: 6700000,
-        interetsRetard: 335000,
-        fraisProcedure: 280000,
-        montantTotal: 7315000,
-        dateTransfert: '2023-12-20',
-        statutJuridique: 'execution',
-        typeProcedure: 'saisie_attribution',
-        avocat: 'Maître KOFFI',
-        prochaineEcheance: '2024-01-25',
-        joursRestants: 2,
-        origineAmiable: 'REC-2023-342',
-        motifTransfert: 'Jugement obtenu - En cours d\'exécution'
-      }
-    ];
+    // Dossiers contentieux — chargés depuis l'adaptateur
+    const [dossiersContentieux, setDossiersContentieux] = useState<any[]>([]);
+    useEffect(() => {
+      adapter.getAll<any>('recoveryCases', { where: { statut: 'juridique' } })
+        .then(setDossiersContentieux)
+        .catch(() => setDossiersContentieux([]));
+    }, []);
 
     // Workflow de contentieux avec les étapes correctes
     const statutsContentieux = [
@@ -11491,64 +11367,11 @@ Service Contentieux
                           </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                          {/* Données mock pour l'historique des paiements */}
-                          {[
-                            {
-                              datePaiement: '2024-03-20',
-                              numTransaction: 'TXN-2024-001',
-                              facturesConcernees: 'FAC003',
-                              montant: 2000,
-                              methodePaiement: 'Virement bancaire',
-                              reference: 'VIR-240320-001',
-                              statut: 'Validé',
-                              dateComptabilisation: '2024-03-21',
-                              commentaires: 'Paiement partiel sur facture FAC003'
-                            },
-                            {
-                              datePaiement: '2024-02-15',
-                              numTransaction: 'TXN-2024-002',
-                              facturesConcernees: 'FAC001, FAC002',
-                              montant: 8000,
-                              methodePaiement: 'Chèque',
-                              reference: 'CHQ-240215-789456',
-                              statut: 'Validé',
-                              dateComptabilisation: '2024-02-16',
-                              commentaires: 'Paiement groupé pour 2 factures'
-                            },
-                            {
-                              datePaiement: '2024-01-30',
-                              numTransaction: 'TXN-2024-003',
-                              facturesConcernees: 'FAC001',
-                              montant: 1500,
-                              methodePaiement: 'Espèces',
-                              reference: 'ESP-240130-001',
-                              statut: 'Validé',
-                              dateComptabilisation: '2024-01-30',
-                              commentaires: 'Acompte sur facture en cours'
-                            },
-                            {
-                              datePaiement: '2024-01-10',
-                              numTransaction: 'TXN-2024-004',
-                              facturesConcernees: 'FAC002',
-                              montant: 3000,
-                              methodePaiement: 'Virement bancaire',
-                              reference: 'VIR-240110-002',
-                              statut: 'En attente',
-                              dateComptabilisation: null,
-                              commentaires: 'Virement en cours de vérification'
-                            },
-                            {
-                              datePaiement: '2023-12-20',
-                              numTransaction: 'TXN-2023-125',
-                              facturesConcernees: 'FAC-PREV-001',
-                              montant: 4500,
-                              methodePaiement: 'Carte bancaire',
-                              reference: 'CB-231220-456789',
-                              statut: 'Annulé',
-                              dateComptabilisation: null,
-                              commentaires: 'Paiement annulé suite à contestation client'
-                            }
-                          ].map((paiement, index) => (
+                          {([] as Array<{datePaiement: string; numTransaction: string; facturesConcernees: string; montant: number; methodePaiement: string; reference: string; statut: string; dateComptabilisation: string | null; commentaires: string}>).length === 0 ? (
+                            <tr>
+                              <td colSpan={9} className="px-6 py-8 text-center text-sm text-gray-500">Aucun paiement enregistré</td>
+                            </tr>
+                          ) : ([] as Array<{datePaiement: string; numTransaction: string; facturesConcernees: string; montant: number; methodePaiement: string; reference: string; statut: string; dateComptabilisation: string | null; commentaires: string}>).map((paiement, index) => (
                             <tr key={index} className="hover:bg-gray-50">
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="text-sm font-medium text-gray-900">

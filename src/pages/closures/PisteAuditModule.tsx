@@ -50,6 +50,7 @@ const PisteAuditModule: React.FC = () => {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState<AuditEntry | null>(null);
   const [activeTab, setActiveTab] = useState<'journal' | 'statistiques' | 'configuration'>('journal');
+  const [retentionPeriod, setRetentionPeriod] = useState('1 an');
 
   // Real data from Dexie audit logs
   const [auditEntries, setAuditEntries] = useState<AuditEntry[]>([]);
@@ -100,6 +101,12 @@ const PisteAuditModule: React.FC = () => {
   }, [adapter]);
 
   useEffect(() => { loadAuditLogs(); }, [loadAuditLogs]);
+
+  useEffect(() => {
+    adapter.getById<{ key: string; value: string }>('settings', 'audit_retention')
+      .then(setting => { if (setting?.value) setRetentionPeriod(setting.value); })
+      .catch(() => { /* silent */ });
+  }, [adapter]);
 
   // Statistiques
   const stats: AuditStats = {
@@ -468,43 +475,81 @@ const PisteAuditModule: React.FC = () => {
               {/* Timeline d'activité */}
               <div className="border border-[var(--color-border)] rounded-lg p-4">
                 <h3 className="font-semibold text-[var(--color-primary)] mb-4">Activité récente</h3>
-                <div className="space-y-2">
-                  {['Dernière heure', 'Aujourd\'hui', 'Cette semaine', 'Ce mois'].map((period) => (
-                    <div key={period} className="flex justify-between items-center">
-                      <span className="text-sm text-[var(--color-text-tertiary)]">{period}</span>
-                      <div className="flex items-center space-x-2">
-                        <div className="w-24 bg-[var(--color-border)] rounded-full h-2">
-                          <div
-                            className="h-2 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-text-secondary)] rounded-full"
-                            style={{width: '0%'}}
-                          ></div>
+                {(() => {
+                  const now = new Date();
+                  const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+                  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                  const startOfWeek = new Date(startOfDay);
+                  startOfWeek.setDate(startOfDay.getDate() - startOfDay.getDay());
+                  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+                  const countInRange = (from: Date) =>
+                    auditEntries.filter(e => new Date(e.timestamp) >= from).length;
+                  const counts = [
+                    { label: 'Dernière heure', count: countInRange(oneHourAgo) },
+                    { label: 'Aujourd\'hui', count: countInRange(startOfDay) },
+                    { label: 'Cette semaine', count: countInRange(startOfWeek) },
+                    { label: 'Ce mois', count: countInRange(startOfMonth) },
+                  ];
+                  const maxCount = Math.max(...counts.map(c => c.count), 1);
+                  return (
+                    <div className="space-y-2">
+                      {counts.map(({ label, count }) => (
+                        <div key={label} className="flex justify-between items-center">
+                          <span className="text-sm text-[var(--color-text-tertiary)]">{label}</span>
+                          <div className="flex items-center space-x-2">
+                            <div className="w-24 bg-[var(--color-border)] rounded-full h-2">
+                              <div
+                                className="h-2 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-text-secondary)] rounded-full"
+                                style={{ width: `${Math.round((count / maxCount) * 100)}%` }}
+                              ></div>
+                            </div>
+                            <span className="text-xs font-semibold">{count}</span>
+                          </div>
                         </div>
-                        <span className="text-xs font-semibold">0</span>
-                      </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  );
+                })()}
               </div>
 
               {/* Alertes et anomalies */}
               <div className="border border-[var(--color-border)] rounded-lg p-4">
                 <h3 className="font-semibold text-[var(--color-primary)] mb-4">Alertes récentes</h3>
-                <div className="space-y-3">
-                  <div className="flex items-start space-x-2 p-2 bg-[var(--color-error-lightest)] rounded-lg">
-                    <AlertCircle className="w-4 h-4 text-[var(--color-error)] mt-0.5" />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-red-900">Suppression détectée</p>
-                      <p className="text-xs text-[var(--color-error-dark)]">3 écritures supprimées aujourd'hui</p>
+                {(() => {
+                  const today = new Date();
+                  const deletedToday = auditEntries.filter(e => {
+                    const d = new Date(e.timestamp);
+                    return e.action === 'suppression' && d.toDateString() === today.toDateString();
+                  }).length;
+                  const hasRoleChange = auditEntries.some(e => e.entite === 'utilisateur');
+                  if (deletedToday === 0 && !hasRoleChange) {
+                    return (
+                      <p className="text-sm text-[var(--color-text-tertiary)]">Aucune alerte récente.</p>
+                    );
+                  }
+                  return (
+                    <div className="space-y-3">
+                      {deletedToday > 0 && (
+                        <div className="flex items-start space-x-2 p-2 bg-[var(--color-error-lightest)] rounded-lg">
+                          <AlertCircle className="w-4 h-4 text-[var(--color-error)] mt-0.5" />
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-red-900">Suppression détectée</p>
+                            <p className="text-xs text-[var(--color-error-dark)]">{deletedToday} {deletedToday === 1 ? 'écriture supprimée' : 'écritures supprimées'} aujourd'hui</p>
+                          </div>
+                        </div>
+                      )}
+                      {hasRoleChange && (
+                        <div className="flex items-start space-x-2 p-2 bg-[var(--color-warning-lightest)] rounded-lg">
+                          <AlertTriangle className="w-4 h-4 text-[var(--color-warning)] mt-0.5" />
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-yellow-900">Modification critique</p>
+                            <p className="text-xs text-[var(--color-warning-dark)]">Changement utilisateur détecté dans la piste d'audit</p>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                  <div className="flex items-start space-x-2 p-2 bg-[var(--color-warning-lightest)] rounded-lg">
-                    <AlertTriangle className="w-4 h-4 text-[var(--color-warning)] mt-0.5" />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-yellow-900">Modification critique</p>
-                      <p className="text-xs text-[var(--color-warning-dark)]">Changement de rôle détecté</p>
-                    </div>
-                  </div>
-                </div>
+                  );
+                })()}
               </div>
             </div>
           </div>
@@ -523,7 +568,22 @@ const PisteAuditModule: React.FC = () => {
                       <p className="font-medium text-[var(--color-primary)]">Durée de conservation</p>
                       <p className="text-sm text-[var(--color-text-tertiary)]">Période de rétention des logs d'audit</p>
                     </div>
-                    <select className="px-3 py-2 border border-[var(--color-border)] rounded-lg" defaultValue="1 an">
+                    <select
+                      className="px-3 py-2 border border-[var(--color-border)] rounded-lg"
+                      value={retentionPeriod}
+                      onChange={async (e) => {
+                        const val = e.target.value;
+                        setRetentionPeriod(val);
+                        try {
+                          const existing = await adapter.getById<any>('settings', 'audit_retention');
+                          if (existing) {
+                            await adapter.update('settings', 'audit_retention', { value: val, updatedAt: new Date().toISOString() });
+                          } else {
+                            await adapter.create('settings', { key: 'audit_retention', value: val, updatedAt: new Date().toISOString() } as any);
+                          }
+                        } catch { /* silent */ }
+                      }}
+                    >
                       <option value="3 mois">3 mois</option>
                       <option value="6 mois">6 mois</option>
                       <option value="1 an">1 an</option>

@@ -2,7 +2,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { toast } from 'react-hot-toast';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useData } from '../../contexts/DataContext';
+import { useData, useAdapterQuery } from '../../contexts/DataContext';
 import { TaxDetectionEngine } from '../../services/fiscal/TaxDetectionEngine';
 import type { TaxDetectionResult } from '../../services/fiscal/TaxDetectionEngine';
 import { seedTaxRegistryCI, seedIRPPBracketsCI } from '../../services/fiscal/taxRegistrySeeds';
@@ -1133,41 +1133,12 @@ const TaxReportingPage: React.FC = () => {
 
   const repartitionTotal = useMemo(() => repartitionData.reduce((s, d) => s + d.amount, 0), [repartitionData]);
 
-  // Données pour les rapports disponibles
-  const availableReports = [
-    {
-      id: '1',
-      name: 'État de TVA Mensuel',
-      type: 'TVA',
-      format: 'PDF',
-      size: '245 KB',
-      lastGenerated: '2024-02-10'
-    },
-    {
-      id: '2',
-      name: 'Synthèse Fiscale Annuelle',
-      type: 'Global',
-      format: 'Excel',
-      size: '1.2 MB',
-      lastGenerated: '2024-01-31'
-    },
-    {
-      id: '3',
-      name: 'Déclaration IRPP',
-      type: 'IRPP',
-      format: 'PDF',
-      size: '180 KB',
-      lastGenerated: '2024-02-05'
-    },
-    {
-      id: '4',
-      name: 'Liasse Fiscale',
-      type: 'IS',
-      format: 'PDF',
-      size: '3.5 MB',
-      lastGenerated: '2024-01-15'
-    }
-  ];
+  // Données pour les rapports disponibles — chargées depuis la base
+  const { data: availableReports } = useAdapterQuery<any[]>(
+    (adp) => adp.getAll<any>('taxDeclarations'),
+    [],
+    []
+  );
 
   // ─── Handlers ──────────────────────────────────────────────────────────────
 
@@ -1598,27 +1569,37 @@ const TaxReportingPage: React.FC = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm text-var(--color-text-secondary)">TVA Collectée</span>
-                        <span className="text-sm font-medium">{formatCurrency(taxStats.tvaCollectee)}</span>
-                      </div>
-                      <Progress value={75} className="h-2" />
-                    </div>
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm text-var(--color-text-secondary)">TVA Déductible</span>
-                        <span className="text-sm font-medium">{formatCurrency(taxStats.tvaDeductible)}</span>
-                      </div>
-                      <Progress value={55} className="h-2" />
-                    </div>
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium">TVA à Payer</span>
-                        <span className="text-sm font-bold text-var(--color-blue-primary)">{formatCurrency(taxStats.tvaAPayer)}</span>
-                      </div>
-                      <Progress value={30} className="h-2 bg-var(--color-blue-light)" />
-                    </div>
+                    {(() => {
+                      const tvaMax = Math.max(taxStats.tvaCollectee, taxStats.tvaDeductible, taxStats.tvaAPayer, 1);
+                      const pctCollectee = Math.round((taxStats.tvaCollectee / tvaMax) * 100);
+                      const pctDeductible = Math.round((taxStats.tvaDeductible / tvaMax) * 100);
+                      const pctAPayer = Math.round((taxStats.tvaAPayer / tvaMax) * 100);
+                      return (
+                        <>
+                          <div>
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-sm text-var(--color-text-secondary)">TVA Collectée</span>
+                              <span className="text-sm font-medium">{formatCurrency(taxStats.tvaCollectee)}</span>
+                            </div>
+                            <Progress value={pctCollectee} className="h-2" />
+                          </div>
+                          <div>
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-sm text-var(--color-text-secondary)">TVA Déductible</span>
+                              <span className="text-sm font-medium">{formatCurrency(taxStats.tvaDeductible)}</span>
+                            </div>
+                            <Progress value={pctDeductible} className="h-2" />
+                          </div>
+                          <div>
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-sm font-medium">TVA à Payer</span>
+                              <span className="text-sm font-bold text-var(--color-blue-primary)">{formatCurrency(taxStats.tvaAPayer)}</span>
+                            </div>
+                            <Progress value={pctAPayer} className="h-2 bg-var(--color-blue-light)" />
+                          </div>
+                        </>
+                      );
+                    })()}
                   </div>
                 </CardContent>
               </Card>
@@ -1857,34 +1838,38 @@ const TaxReportingPage: React.FC = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="grid gap-4 md:grid-cols-2">
-                  {availableReports.map((report) => (
-                    <div key={report.id} className="border rounded-lg p-4 hover:bg-gray-50">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center">
-                          <FileText className="h-5 w-5 text-var(--color-text-muted) mr-3" />
-                          <div>
-                            <h4 className="font-medium">{report.name}</h4>
-                            <p className="text-sm text-var(--color-text-secondary)">
-                              {report.type} • {report.format} • {report.size}
-                            </p>
+                {availableReports.length === 0 ? (
+                  <p className="text-sm text-center text-gray-400 py-6">Aucun rapport disponible</p>
+                ) : (
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {availableReports.map((report) => (
+                      <div key={report.id} className="border rounded-lg p-4 hover:bg-gray-50">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center">
+                            <FileText className="h-5 w-5 text-var(--color-text-muted) mr-3" />
+                            <div>
+                              <h4 className="font-medium">{report.taxCode || report.name}</h4>
+                              <p className="text-sm text-var(--color-text-secondary)">
+                                {report.periodLabel || report.type} • {report.status || report.format}
+                              </p>
+                            </div>
                           </div>
+                          <Badge variant="outline">{report.declaredAt || report.lastGenerated || report.periodStart}</Badge>
                         </div>
-                        <Badge variant="outline">{report.lastGenerated}</Badge>
+                        <div className="flex justify-end space-x-2">
+                          <Button variant="outline" size="sm" onClick={() => handlePreviewReport(report)}>
+                            <Eye className="mr-1 h-3 w-3" />
+                            Aperçu
+                          </Button>
+                          <Button size="sm" onClick={() => handleDownloadReport(report)}>
+                            <Download className="mr-1 h-3 w-3" />
+                            Télécharger
+                          </Button>
+                        </div>
                       </div>
-                      <div className="flex justify-end space-x-2">
-                        <Button variant="outline" size="sm" onClick={() => handlePreviewReport(report)}>
-                          <Eye className="mr-1 h-3 w-3" />
-                          Aperçu
-                        </Button>
-                        <Button size="sm" onClick={() => handleDownloadReport(report)}>
-                          <Download className="mr-1 h-3 w-3" />
-                          Télécharger
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

@@ -48,6 +48,13 @@ interface Insight {
   priority: 'urgent' | 'high' | 'medium' | 'low';
 }
 
+const DEFAULT_SCORING_BENCHMARKS = {
+  equilibreDebitCredit: 100,
+  couverture: 80,
+  validation: 90,
+  exhaustivite: 85,
+};
+
 const AIInsights: React.FC = () => {
   const { adapter } = useData();
   const [activeTab, setActiveTab] = useState('predictions');
@@ -62,7 +69,7 @@ const AIInsights: React.FC = () => {
   const [forecastData, setForecastData] = useState<any[]>([]);
   const [scoringData, setScoringData] = useState<any[]>([]);
   const [correlationData, setCorrelationData] = useState<any[]>([]);
-  const [aiServiceAvailable] = useState(false);
+  const [aiServiceAvailable] = useState(Boolean(import.meta.env.VITE_AI_SERVICE_URL));
   const [totalEntries, setTotalEntries] = useState(0);
 
   // Load and compute insights from real journal data
@@ -255,10 +262,10 @@ const AIInsights: React.FC = () => {
             }).length / posted.length) * 100)
           : 0;
         setScoringData([
-          { metric: 'Équilibre D/C', score: balancedPct, benchmark: 100 },
-          { metric: 'Couverture', score: entries.length > 0 ? Math.min(100, entries.length * 2) : 0, benchmark: 80 },
-          { metric: 'Validation', score: posted.length > 0 ? Math.round((posted.length / entries.length) * 100) : 0, benchmark: 90 },
-          { metric: 'Exhaustivité', score: totalCA > 0 && totalCharges > 0 ? 80 : 20, benchmark: 85 },
+          { metric: 'Équilibre D/C', score: balancedPct, benchmark: DEFAULT_SCORING_BENCHMARKS.equilibreDebitCredit },
+          { metric: 'Couverture', score: entries.length > 0 ? Math.min(100, entries.length * 2) : 0, benchmark: DEFAULT_SCORING_BENCHMARKS.couverture },
+          { metric: 'Validation', score: posted.length > 0 ? Math.round((posted.length / entries.length) * 100) : 0, benchmark: DEFAULT_SCORING_BENCHMARKS.validation },
+          { metric: 'Exhaustivité', score: totalCA > 0 && totalCharges > 0 ? 80 : 20, benchmark: DEFAULT_SCORING_BENCHMARKS.exhaustivite },
         ]);
 
         setCorrelationData([]);

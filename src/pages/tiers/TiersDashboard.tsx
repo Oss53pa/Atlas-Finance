@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
@@ -27,32 +27,89 @@ const TiersDashboard: React.FC = () => {
   const [dateRange, setDateRange] = useState('30d');
 
   // KPIs from DataContext
-  const [liveTiers, setLiveTiers] = useState({ totalClients: 0, totalFournisseurs: 0, totalContacts: 0, chiffreAffairesTotal: 0, encoursClients: 0 });
+  const [liveTiers, setLiveTiers] = useState({
+    totalClients: 0, totalFournisseurs: 0, totalContacts: 0,
+    chiffreAffairesTotal: 0, encoursClients: 0,
+    impayesTotal: 0, dsoMoyen: 0, nouveauxClientsMois: 0,
+    croissanceCA: 0, tauxRecouvrement: 0,
+    totalProspects: 0, totalPartenaires: 0,
+  });
 
-  useEffect(() => {
-    const load = async () => {
-      const tps = (await adapter.getAll('thirdParties')) as Record<string, unknown>[];
-      const clients = tps.filter(tp => tp.type === 'client');
-      const fournisseurs = tps.filter(tp => tp.type === 'supplier');
-      const entries = (await adapter.getAll('journalEntries')) as { lines: Array<{ accountCode: string; debit: number; credit: number; thirdPartyCode?: string }> }[];
-      // Compute revenue from class 7
-      let ca = 0, encours = 0;
-      for (const e of entries) {
-        for (const l of e.lines) {
-          if (l.accountCode.startsWith('7')) ca += l.credit - l.debit;
-          if (l.accountCode.startsWith('411')) encours += l.debit - l.credit;
+  const loadData = useCallback(async () => {
+    const tps = (await adapter.getAll('thirdParties')) as Record<string, any>[];
+    const clients = tps.filter(tp => tp.type === 'customer' || tp.type === 'both');
+    const fournisseurs = tps.filter(tp => tp.type === 'supplier' || tp.type === 'both');
+    const prospects = tps.filter(tp => tp.type === 'prospect');
+    const partenaires = tps.filter(tp => tp.type === 'partner');
+
+    const now = new Date();
+    const currentMonthStr = now.toISOString().substring(0, 7);
+    const prevMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const prevMonthStr = prevMonthDate.toISOString().substring(0, 7);
+
+    // Nouveaux clients ce mois (via createdAt or id prefix heuristic — use balance field unavailable, count tiers with no date as fallback)
+    const nouveauxClientsMois = clients.filter(tp => {
+      const created = tp.createdAt as string | undefined;
+      return created ? created.startsWith(currentMonthStr) : false;
+    }).length;
+
+    const entries = (await adapter.getAll('journalEntries')) as {
+      date?: string;
+      status?: string;
+      lines: Array<{ accountCode: string; debit: number; credit: number; lettrageCode?: string }>;
+    }[];
+
+    const postedEntries = entries.filter(e => e.status === 'posted');
+
+    let ca = 0, encours = 0, impayes = 0;
+    let caCurrentMonth = 0, caPrevMonth = 0;
+    let totalLettre = 0, totalBrut = 0;
+
+    for (const e of postedEntries) {
+      if (!e.lines) continue;
+      const month = e.date ? e.date.substring(0, 7) : '';
+      for (const l of e.lines) {
+        const code = l.accountCode || '';
+        if (code.startsWith('7')) {
+          const val = (l.credit || 0) - (l.debit || 0);
+          ca += val;
+          if (month === currentMonthStr) caCurrentMonth += val;
+          if (month === prevMonthStr) caPrevMonth += val;
+        }
+        if (code.startsWith('411')) {
+          const val = (l.debit || 0) - (l.credit || 0);
+          encours += val;
+          totalBrut += l.debit || 0;
+          if (l.lettrageCode) totalLettre += l.debit || 0;
+          // Impayes: unlettred 411 debit
+          if (!l.lettrageCode) impayes += Math.max(0, val);
         }
       }
-      setLiveTiers({
-        totalClients: clients.length,
-        totalFournisseurs: fournisseurs.length,
-        totalContacts: tps.length,
-        chiffreAffairesTotal: ca,
-        encoursClients: encours > 0 ? encours : 0,
-      });
-    };
-    load();
+    }
+
+    const dsoMoyen = ca > 0 ? Math.round((encours / ca) * 365) : 0;
+    const croissanceCA = caPrevMonth > 0
+      ? Math.round(((caCurrentMonth - caPrevMonth) / caPrevMonth) * 100 * 10) / 10
+      : 0;
+    const tauxRecouvrement = totalBrut > 0 ? Math.round((totalLettre / totalBrut) * 100) : 0;
+
+    setLiveTiers({
+      totalClients: clients.length,
+      totalFournisseurs: fournisseurs.length,
+      totalContacts: tps.length,
+      chiffreAffairesTotal: ca,
+      encoursClients: encours > 0 ? encours : 0,
+      impayesTotal: impayes > 0 ? impayes : 0,
+      dsoMoyen,
+      nouveauxClientsMois,
+      croissanceCA,
+      tauxRecouvrement,
+      totalProspects: prospects.length,
+      totalPartenaires: partenaires.length,
+    });
   }, [adapter]);
+
+  useEffect(() => { loadData(); }, [loadData]);
 
   const kpis: TiersKPI = {
     totalClients: liveTiers.totalClients,
@@ -60,11 +117,11 @@ const TiersDashboard: React.FC = () => {
     totalContacts: liveTiers.totalContacts,
     chiffreAffairesTotal: liveTiers.chiffreAffairesTotal,
     encoursClients: liveTiers.encoursClients,
-    impayesTotal: 0,
-    dsoMoyen: 0,
-    nouveauxClientsMois: 0,
-    croissanceCA: 0,
-    tauxRecouvrement: 0
+    impayesTotal: liveTiers.impayesTotal,
+    dsoMoyen: liveTiers.dsoMoyen,
+    nouveauxClientsMois: liveTiers.nouveauxClientsMois,
+    croissanceCA: liveTiers.croissanceCA,
+    tauxRecouvrement: liveTiers.tauxRecouvrement,
   };
 
   // Empty analytics — no mock data
@@ -94,8 +151,8 @@ const TiersDashboard: React.FC = () => {
     { id: 'clients', label: t('navigation.clients'), icon: Users, badge: kpis.totalClients.toString() },
     { id: 'fournisseurs', label: t('navigation.suppliers'), icon: Building2, badge: kpis.totalFournisseurs.toString() },
     { id: 'contacts', label: 'Contacts', icon: UserCheck, badge: kpis.totalContacts.toString() },
-    { id: 'prospects', label: 'Prospects', icon: Target, badge: '0' },
-    { id: 'partenaires', label: 'Partenaires', icon: Handshake, badge: '0' },
+    { id: 'prospects', label: 'Prospects', icon: Target, badge: liveTiers.totalProspects > 0 ? liveTiers.totalProspects.toString() : undefined },
+    { id: 'partenaires', label: 'Partenaires', icon: Handshake, badge: liveTiers.totalPartenaires > 0 ? liveTiers.totalPartenaires.toString() : undefined },
     { id: 'recouvrement', label: t('thirdParty.collection'), icon: DollarSign },
     { id: 'lettrage', label: t('thirdParty.reconciliation'), icon: FileText },
     { id: 'collaboration', label: 'Collaboration', icon: MessageSquare }
@@ -103,7 +160,7 @@ const TiersDashboard: React.FC = () => {
 
   const handleRefresh = () => {
     setLoading(true);
-    setTimeout(() => setLoading(false), 1000);
+    loadData().finally(() => setLoading(false));
   };
 
   const handleExport = () => {

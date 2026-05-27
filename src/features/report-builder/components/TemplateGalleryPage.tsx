@@ -91,12 +91,25 @@ const categoryLabels: Record<string, { label: string; color: string; bg: string 
   custom: { label: 'Personnalisé', color: 'text-neutral-600', bg: 'bg-neutral-50' },
 };
 
+// Mapping gallery template IDs → master template IDs from masterTemplates.ts
+const MASTER_TEMPLATE_MAP: Record<string, string | undefined> = {
+  'tpl-mensuel-dg':  'rapport_mensuel_direction',
+  'tpl-exco':        'rapport_mensuel_direction',
+  'tpl-annuel':      'bilan_syscohada',
+  'tpl-tresorerie':  'tafire',
+  'tpl-analytique':  undefined,                    // no exact master template yet
+  'tpl-fiscal':      'rapport_fiscal_trimestriel',
+  'tpl-banquier':    'bilan_syscohada',
+  'tpl-auditeur':    'rapport_audit_syscohada',
+  'tpl-vierge':      undefined,                    // blank document
+};
+
 // ============================================================================
 // MAIN PAGE
 // ============================================================================
 
 interface Props {
-  onUseTemplate: (title: string) => void;
+  onUseTemplate: (title: string, masterTemplateId?: string) => void;
 }
 
 const TemplateGalleryPage: React.FC<Props> = ({ onUseTemplate }) => {
@@ -199,7 +212,7 @@ const TemplateGalleryPage: React.FC<Props> = ({ onUseTemplate }) => {
                 )}
 
                 <button
-                  onClick={() => onUseTemplate(template.name)}
+                  onClick={() => onUseTemplate(template.name, MASTER_TEMPLATE_MAP[template.id])}
                   className="w-full flex items-center justify-center gap-2 py-2.5 text-xs font-medium text-white bg-neutral-900 hover:bg-neutral-800 rounded-xl transition-colors"
                 >
                   Utiliser ce modèle <ArrowRight className="w-3.5 h-3.5" />

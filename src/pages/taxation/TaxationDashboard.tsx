@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useData } from '../../contexts/DataContext';
+import { useData, useAdapterQuery } from '../../contexts/DataContext';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -25,9 +25,15 @@ import { formatCurrency, formatDate } from '../../lib/utils';
 
 const TaxationDashboard: React.FC = () => {
   const { adapter } = useData();
-  const [selectedPeriod, setSelectedPeriod] = useState('2024');
+  const [selectedPeriod, setSelectedPeriod] = useState(new Date().getFullYear().toString());
   const [loading, setLoading] = useState(true);
   const [journalEntries, setJournalEntries] = useState<any[]>([]);
+
+  const { data: taxDeclarations = [] } = useAdapterQuery(
+    (a) => a.getAll<any>('taxDeclarations'),
+    [],
+    []
+  );
 
   useEffect(() => {
     const load = async () => {
@@ -72,6 +78,39 @@ const TaxationDashboard: React.FC = () => {
       chartData: chartData.length > 0 ? chartData : [{ label: '\u2014', value: 0, color: 'bg-neutral-300' }],
     };
   }, [journalEntries]);
+
+  const declarationKPIs = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayStr = today.toISOString().split('T')[0];
+    const in30Days = new Date(today);
+    in30Days.setDate(in30Days.getDate() + 30);
+    const in30DaysStr = in30Days.toISOString().split('T')[0];
+
+    const enCours = taxDeclarations.filter((d: any) => d.status !== 'paid');
+    const enRetard = enCours.filter((d: any) => d.deadline && d.deadline < todayStr);
+    const upcoming = taxDeclarations
+      .filter((d: any) => d.status !== 'paid' && d.deadline && d.deadline >= todayStr && d.deadline <= in30DaysStr)
+      .sort((a: any, b: any) => (a.deadline || '').localeCompare(b.deadline || ''));
+
+    const total = taxDeclarations.length;
+    const paid = taxDeclarations.filter((d: any) => d.status === 'paid').length;
+    const conformite = total > 0 ? Math.round((paid / total) * 100) : 100;
+
+    let prochaine = 'Aucune';
+    if (upcoming.length > 0) {
+      const nextDate = new Date(upcoming[0].deadline);
+      prochaine = nextDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+
+    return {
+      enCours: enCours.length,
+      enRetard: enRetard.length,
+      prochaine,
+      upcomingCount: upcoming.length,
+      conformite,
+    };
+  }, [taxDeclarations]);
 
   if (loading) {
     return (
@@ -118,8 +157,8 @@ const TaxationDashboard: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <KPICard
             title="Declarations en Cours"
-            value="0"
-            subtitle="0 en retard"
+            value={declarationKPIs.enCours.toString()}
+            subtitle={`${declarationKPIs.enRetard} en retard`}
             icon={FileText}
             color="warning"
             delay={0.1}
@@ -138,8 +177,8 @@ const TaxationDashboard: React.FC = () => {
 
           <KPICard
             title="Prochaines Echeances"
-            value="N/A"
-            subtitle="Donnees non disponibles"
+            value={declarationKPIs.prochaine}
+            subtitle={`${declarationKPIs.upcomingCount} echeance(s) dans 30 jours`}
             icon={Calendar}
             color="warning"
             delay={0.3}
@@ -148,8 +187,8 @@ const TaxationDashboard: React.FC = () => {
 
           <KPICard
             title="Conformite"
-            value="N/A"
-            subtitle="Donnees non disponibles"
+            value={`${declarationKPIs.conformite}%`}
+            subtitle="Declarations payees a temps"
             icon={CheckCircle}
             color="success"
             delay={0.4}

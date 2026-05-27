@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useData } from '../../contexts/DataContext';
+import { toast } from 'react-hot-toast';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import {
   Calculator,
@@ -59,6 +61,7 @@ interface AccountingSetting {
 const AccountingSettingsPage: React.FC = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const { adapter } = useData();
   const [hasChanges, setHasChanges] = useState(false);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -803,13 +806,31 @@ const AccountingSettingsPage: React.FC = () => {
     setHasChanges(true);
   };
 
-  // Load settings from API
+  // Load settings from adapter on mount
   useEffect(() => {
     const loadSettings = async () => {
       setLoading(true);
       try {
-        // Simulated API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        const saved = await adapter.getById<{ key: string; value: string; updatedAt: string }>(
+          'settings',
+          'accounting_settings'
+        );
+        if (saved?.value) {
+          const parsed = JSON.parse(saved.value) as Record<string, AccountingSetting[]>;
+          // Merge with current defaults to handle new settings added since last save
+          setSettings(prev => {
+            const merged = { ...prev };
+            for (const [category, savedItems] of Object.entries(parsed)) {
+              if (merged[category]) {
+                merged[category] = merged[category].map(defaultItem => {
+                  const savedItem = savedItems.find(s => s.id === defaultItem.id);
+                  return savedItem ? { ...defaultItem, value: savedItem.value } : defaultItem;
+                });
+              }
+            }
+            return merged;
+          });
+        }
         setLoading(false);
       } catch (error) {
         setNotification({
@@ -820,7 +841,7 @@ const AccountingSettingsPage: React.FC = () => {
       }
     };
     loadSettings();
-  }, []);
+  }, [adapter]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -863,18 +884,40 @@ const AccountingSettingsPage: React.FC = () => {
 
     setSaving(true);
     try {
-      // Simulated API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const serialized = JSON.stringify(settings);
+      const now = new Date().toISOString();
 
-      // Simulated success
+      // Check if a record already exists
+      const existing = await adapter.getById<{ key: string; value: string; updatedAt: string }>(
+        'settings',
+        'accounting_settings'
+      );
+
+      if (existing) {
+        await adapter.update<{ key: string; value: string; updatedAt: string }>(
+          'settings',
+          'accounting_settings',
+          { value: serialized, updatedAt: now }
+        );
+      } else {
+        // create() adds an `id` field but settings table uses `key` as PK —
+        // Dexie will still use the `key` keyPath to store the record correctly.
+        await adapter.create<{ key: string; value: string; updatedAt: string }>(
+          'settings',
+          { key: 'accounting_settings', value: serialized, updatedAt: now } as any
+        );
+      }
+
       setSaving(false);
       setHasChanges(false);
+      toast.success('Les paramètres de comptabilité ont été enregistrés avec succès');
       setNotification({
         type: 'success',
         message: 'Les paramètres de comptabilité ont été enregistrés avec succès'
       });
     } catch (error) {
       setSaving(false);
+      toast.error('Erreur lors de la sauvegarde des paramètres');
       setNotification({
         type: 'error',
         message: 'Erreur lors de la sauvegarde des paramètres'

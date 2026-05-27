@@ -240,195 +240,6 @@ const RevisionsModule: React.FC = () => {
 
   // Données de révision — initialement vides, créées via le bouton "Nouvelle Révision"
   const [revisions] = useState<RevisionItem[]>([]);
-  const [_legacyRevisions] = useState<RevisionItem[]>([
-    {
-      id: 'REV-2025-001',
-      compte: '401100',
-      libelleCompte: 'Fournisseurs - Achats de biens',
-      classeCompte: '4',
-      type: 'anomalie',
-      statut: 'en_cours',
-      priorite: 'haute',
-      montant: 4500000,
-      montantDebit: 0,
-      montantCredit: 4500000,
-      impact: 'Impact sur le résultat net et la trésorerie',
-      description: 'Écart de rapprochement fournisseur non justifié - Facture n°FA-2025-0145 du fournisseur SODECI non comptabilisée',
-      dateDetection: '2025-01-15',
-      dateEcheance: '2025-01-25',
-      responsable: '',
-      reviseur: 'Diallo Amadou',
-      assertions: ['exhaustivite', 'exactitude', 'cut_off'],
-      niveauRisque: 'eleve',
-      typeTest: 'circularisation',
-      referentiel: 'SYSCOHADA',
-      pieceJustificative: 'Relevé fournisseur + Facture FA-2025-0145',
-      commentaires: [
-        { id: '1', auteur: '', date: '2025-01-15', contenu: 'Facture en attente de réception du service achats', type: 'note' },
-        { id: '2', auteur: 'Diallo Amadou', date: '2025-01-16', contenu: 'Confirmer avec le fournisseur le montant exact', type: 'question' }
-      ],
-      documents: [
-        { id: '1', nom: 'Releve_SODECI_012025.pdf', type: 'PDF', taille: '245 KB', dateAjout: '2025-01-15' },
-        { id: '2', nom: 'Facture_FA-2025-0145.pdf', type: 'PDF', taille: '156 KB', dateAjout: '2025-01-16' }
-      ],
-      ecritureProposee: {
-        id: 'PAJE-001',
-        type: 'PAJE',
-        lignes: [
-          { compte: '601100', libelle: 'Achats de marchandises', debit: 4500000, credit: 0 },
-          { compte: '401100', libelle: 'Fournisseurs', debit: 0, credit: 4500000 }
-        ],
-        montantTotal: 4500000,
-        statut: 'propose',
-        justification: 'Régularisation facture fournisseur SODECI - Période janvier 2025'
-      }
-    },
-    {
-      id: 'REV-2025-002',
-      compte: '521100',
-      libelleCompte: 'Banque SGBCI - Compte courant',
-      classeCompte: '5',
-      type: 'correction',
-      statut: 'valide',
-      priorite: 'moyenne',
-      montant: 1250000,
-      montantDebit: 1250000,
-      montantCredit: 0,
-      impact: 'Trésorerie',
-      description: 'Correction des frais bancaires mal comptabilisés - Double enregistrement commission virement',
-      dateDetection: '2025-01-10',
-      responsable: 'Koné Jean',
-      assertions: ['exactitude', 'existence'],
-      niveauRisque: 'modere',
-      typeTest: 'substantif',
-      referentiel: 'SYSCOHADA',
-      commentaires: [
-        { id: '1', auteur: 'Koné Jean', date: '2025-01-10', contenu: 'Correction effectuée et validée', type: 'validation' }
-      ],
-      documents: [
-        { id: '1', nom: 'Releve_bancaire_SGBCI_01.pdf', type: 'PDF', taille: '890 KB', dateAjout: '2025-01-10' }
-      ]
-    },
-    {
-      id: 'REV-2025-003',
-      compte: '311000',
-      libelleCompte: 'Stocks de marchandises',
-      classeCompte: '3',
-      type: 'ajustement',
-      statut: 'en_attente',
-      priorite: 'critique',
-      montant: 12500000,
-      montantDebit: 0,
-      montantCredit: 12500000,
-      impact: 'Marge commerciale et résultat d\'exploitation',
-      description: 'Ajustement suite à inventaire physique - Écart de 2.5% sur le stock de marchandises diverses',
-      dateDetection: '2025-01-18',
-      dateEcheance: '2025-01-20',
-      responsable: 'Bamba Sophie',
-      assertions: ['existence', 'valorisation', 'exhaustivite'],
-      niveauRisque: 'tres_eleve',
-      typeTest: 'inspection',
-      referentiel: 'SYSCOHADA',
-      documents: [
-        { id: '1', nom: 'PV_inventaire_physique.pdf', type: 'PDF', taille: '1.2 MB', dateAjout: '2025-01-18' },
-        { id: '2', nom: 'Ecart_stock_detail.xlsx', type: 'Excel', taille: '345 KB', dateAjout: '2025-01-18' }
-      ],
-      ecritureProposee: {
-        id: 'PAJE-002',
-        type: 'PAJE',
-        lignes: [
-          { compte: '603100', libelle: 'Variation de stocks de marchandises', debit: 12500000, credit: 0 },
-          { compte: '311000', libelle: 'Stocks de marchandises', debit: 0, credit: 12500000 }
-        ],
-        montantTotal: 12500000,
-        statut: 'propose',
-        justification: 'Ajustement stock suite inventaire physique du 15/01/2025'
-      }
-    },
-    {
-      id: 'REV-2025-004',
-      compte: '411100',
-      libelleCompte: 'Clients - Ventes de biens',
-      classeCompte: '4',
-      type: 'regularisation',
-      statut: 'en_cours',
-      priorite: 'haute',
-      montant: 6780000,
-      montantDebit: 0,
-      montantCredit: 6780000,
-      impact: 'Créances clients et provision pour dépréciation',
-      description: 'Régularisation provision créance douteuse - Client SODEPAL en redressement judiciaire',
-      dateDetection: '2025-01-12',
-      dateEcheance: '2025-01-28',
-      responsable: 'Touré Pierre',
-      assertions: ['valorisation', 'droits_obligations'],
-      niveauRisque: 'eleve',
-      typeTest: 'circularisation',
-      referentiel: 'SYSCOHADA',
-      commentaires: [
-        { id: '1', auteur: 'Touré Pierre', date: '2025-01-12', contenu: 'Client en procédure de redressement judiciaire depuis le 05/01/2025', type: 'note' }
-      ],
-      documents: [
-        { id: '1', nom: 'Balance_agee_clients.pdf', type: 'PDF', taille: '567 KB', dateAjout: '2025-01-12' },
-        { id: '2', nom: 'Jugement_RJ_SODEPAL.pdf', type: 'PDF', taille: '234 KB', dateAjout: '2025-01-13' }
-      ]
-    },
-    {
-      id: 'REV-2025-005',
-      compte: '281100',
-      libelleCompte: 'Amortissements des immobilisations corporelles',
-      classeCompte: '2',
-      type: 'correction',
-      statut: 'rejete',
-      priorite: 'basse',
-      montant: 540000,
-      montantDebit: 540000,
-      montantCredit: 0,
-      impact: 'Dotations aux amortissements',
-      description: 'Correction calcul amortissement dégressif - Matériel informatique acquis en N-1',
-      dateDetection: '2025-01-05',
-      responsable: '',
-      assertions: ['valorisation', 'exactitude'],
-      niveauRisque: 'faible',
-      typeTest: 'recalcul',
-      referentiel: 'SYSCOHADA',
-      commentaires: [
-        { id: '1', auteur: 'Diallo Amadou', date: '2025-01-06', contenu: 'Calcul initial correct - Révision non nécessaire', type: 'validation' }
-      ]
-    },
-    {
-      id: 'REV-2025-006',
-      compte: '701100',
-      libelleCompte: 'Ventes de marchandises - Zone UEMOA',
-      classeCompte: '7',
-      type: 'anomalie',
-      statut: 'en_cours',
-      priorite: 'critique',
-      montant: 25000000,
-      montantDebit: 25000000,
-      montantCredit: 0,
-      impact: 'Chiffre d\'affaires et TVA collectée',
-      description: 'Factures de décembre 2024 comptabilisées en janvier 2025 - Problème de cut-off',
-      dateDetection: '2025-01-20',
-      dateEcheance: '2025-01-22',
-      responsable: 'Bamba Sophie',
-      assertions: ['cut_off', 'exhaustivite', 'exactitude'],
-      niveauRisque: 'tres_eleve',
-      typeTest: 'substantif',
-      referentiel: 'SYSCOHADA',
-      ecritureProposee: {
-        id: 'PAJE-003',
-        type: 'PAJE',
-        lignes: [
-          { compte: '701100', libelle: 'Ventes de marchandises', debit: 25000000, credit: 0 },
-          { compte: '411100', libelle: 'Clients', debit: 0, credit: 25000000 }
-        ],
-        montantTotal: 25000000,
-        statut: 'propose',
-        justification: 'Extourne ventes décembre comptabilisées à tort en janvier'
-      }
-    }
-  ]);
 
   // Lead Schedules par cycle — calculés depuis les écritures réelles
   const [leadSchedules, setLeadSchedules] = useState<LeadSchedule[]>([]);
@@ -1477,26 +1288,23 @@ const RevisionsModule: React.FC = () => {
             </h3>
             <div className="grid grid-cols-4 gap-4">
               {[
-                { nom: 'Ratio de liquidité générale', valeur: '1.45', norme: '> 1', statut: 'ok' },
-                { nom: 'Ratio d\'endettement', valeur: '42%', norme: '< 50%', statut: 'ok' },
-                { nom: 'Rotation des stocks (jours)', valeur: '85', norme: '< 60', statut: 'attention' },
-                { nom: 'Délai clients (jours)', valeur: '72', norme: '< 45', statut: 'alerte' },
-                { nom: 'Délai fournisseurs (jours)', valeur: '58', norme: '> 30', statut: 'ok' },
-                { nom: 'Marge brute', valeur: '28.5%', norme: '> 25%', statut: 'ok' },
-                { nom: 'Rentabilité des capitaux', valeur: '12.3%', norme: '> 10%', statut: 'ok' },
-                { nom: 'Capacité d\'autofinancement', valeur: '15.2M', norme: '> 0', statut: 'ok' }
+                { nom: 'Ratio de liquidité générale', valeur: '—', norme: '> 1', statut: 'unknown' },
+                { nom: 'Ratio d\'endettement', valeur: '—', norme: '< 50%', statut: 'unknown' },
+                { nom: 'Rotation des stocks (jours)', valeur: '—', norme: '< 60', statut: 'unknown' },
+                { nom: 'Délai clients (jours)', valeur: '—', norme: '< 45', statut: 'unknown' },
+                { nom: 'Délai fournisseurs (jours)', valeur: '—', norme: '> 30', statut: 'unknown' },
+                { nom: 'Marge brute', valeur: '—', norme: '> 25%', statut: 'unknown' },
+                { nom: 'Rentabilité des capitaux', valeur: '—', norme: '> 10%', statut: 'unknown' },
+                { nom: 'Capacité d\'autofinancement', valeur: '—', norme: '> 0', statut: 'unknown' }
               ].map((ratio, index) => (
                 <div
                   key={index}
-                  className={`p-4 rounded-lg border ${
-                    ratio.statut === 'ok' ? 'bg-green-50 border-green-200' :
-                    ratio.statut === 'attention' ? 'bg-yellow-50 border-yellow-200' :
-                    'bg-red-50 border-red-200'
-                  }`}
+                  className="p-4 rounded-lg border bg-gray-50 border-gray-200"
                 >
                   <p className="text-xs text-[var(--color-text-tertiary)] mb-1">{ratio.nom}</p>
-                  <p className="text-lg font-bold text-[var(--color-primary)]">{ratio.valeur}</p>
+                  <p className="text-lg font-bold text-[var(--color-text-secondary)]">{ratio.valeur}</p>
                   <p className="text-xs text-[var(--color-text-tertiary)]">Norme: {ratio.norme}</p>
+                  <p className="text-xs text-[var(--color-text-tertiary)] italic mt-1">Calcul en cours...</p>
                 </div>
               ))}
             </div>

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
+import { toast } from 'react-hot-toast';
 import { formatCurrency } from '@/utils/formatters';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Download, Filter, ChevronLeft, ChevronRight, ChevronDown, Printer, FileText, Eye, Plus, X, Trash2 } from 'lucide-react';
@@ -344,9 +345,21 @@ const BudgetDetailPage: React.FC = () => {
                           <Eye className="w-4 h-4 text-[var(--color-text-secondary)]" />
                         </button>
                         <button
-                          onClick={() => {
+                          onClick={async () => {
                             if (confirm('Êtes-vous sûr de vouloir supprimer cette ligne ?')) {
-                              /* ignored */
+                              try {
+                                const allLines = await adapter.getAll<any>('budgetLines');
+                                const toDelete = allLines.filter(
+                                  (bl: any) => bl.accountCode === row.compte && (bl.fiscalYear === selectedYear || !selectedYear)
+                                );
+                                for (const bl of toDelete) {
+                                  await adapter.delete('budgetLines', bl.id);
+                                }
+                                setDetailData(prev => prev.filter(r => r.compte !== row.compte));
+                                toast.success('Ligne supprimée');
+                              } catch {
+                                toast.error('Erreur lors de la suppression');
+                              }
                             }
                           }}
                           className="p-1 hover:bg-red-100 rounded"
@@ -438,9 +451,21 @@ const BudgetDetailPage: React.FC = () => {
                                   <Eye className="w-3 h-3 text-[var(--color-text-tertiary)]" />
                                 </button>
                                 <button
-                                  onClick={() => {
+                                  onClick={async () => {
                                     if (confirm('Êtes-vous sûr de vouloir supprimer cette sous-ligne ?')) {
-                                      /* ignored */
+                                      try {
+                                        if (subItem.id) {
+                                          await adapter.delete('budgetLines', subItem.id);
+                                        }
+                                        setDetailData(prev => prev.map(r =>
+                                          r.compte === row.compte
+                                            ? { ...r, subItems: r.subItems.filter((_: any, i: number) => i !== subIndex) }
+                                            : r
+                                        ));
+                                        toast.success('Sous-ligne supprimée');
+                                      } catch {
+                                        toast.error('Erreur lors de la suppression');
+                                      }
                                     }
                                   }}
                                   className="p-1 hover:bg-red-100 rounded"
@@ -488,13 +513,28 @@ const BudgetDetailPage: React.FC = () => {
       </div>
 
       {/* Graphique ou statistiques supplémentaires */}
+      {(() => {
+        const quarters = [
+          { label: 'Q1', months: [0, 1, 2], name: 'Janvier - Mars' },
+          { label: 'Q2', months: [3, 4, 5], name: 'Avril - Juin' },
+          { label: 'Q3', months: [6, 7, 8], name: 'Juillet - Septembre' },
+          { label: 'Q4', months: [9, 10, 11], name: 'Octobre - Décembre' },
+        ];
+        const bestQ = quarters.reduce<{ label: string; months: number[]; name: string; total: number }>(
+          (best, q) => {
+            const total = q.months.reduce((s, m) => s + (monthlyTotals[m] || 0), 0);
+            return total > best.total ? { ...q, total } : best;
+          },
+          { label: 'Q1', months: [0, 1, 2], name: 'Janvier - Mars', total: -Infinity }
+        );
+        return (
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
         <div className="bg-white rounded-lg p-4 border border-[var(--color-border)]">
           <p className="text-xs text-[var(--color-text-tertiary)] mb-2">Trimestre le plus fort</p>
           <p className="text-lg font-bold text-green-600">
-            Q3 - {formatAmount(monthlyTotals[6] + monthlyTotals[7] + monthlyTotals[8])}
+            {bestQ.label} - {formatAmount(bestQ.total)}
           </p>
-          <p className="text-xs text-[var(--color-text-tertiary)] mt-1">Juillet - Septembre</p>
+          <p className="text-xs text-[var(--color-text-tertiary)] mt-1">{bestQ.name}</p>
         </div>
 
         <div className="bg-white rounded-lg p-4 border border-[var(--color-border)]">
@@ -513,6 +553,8 @@ const BudgetDetailPage: React.FC = () => {
           <p className="text-xs text-[var(--color-text-tertiary)] mt-1">Comptes actifs</p>
         </div>
       </div>
+        );
+      })()}
 
       {/* Modal d'ajout de ligne budgétaire */}
       {showAddModal && (
@@ -902,11 +944,46 @@ const BudgetDetailPage: React.FC = () => {
                 Annuler
               </button>
               <button
-                onClick={() => {
-                  setShowEditModal(false);
-                  setEditingItem(null);
-                  setEditValues({});
-                  setActiveTab('informations');
+                onClick={async () => {
+                  try {
+                    if (editingItem) {
+                      const monthKeys = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+                      const allLines = await adapter.getAll<any>('budgetLines');
+                      for (const month of monthKeys) {
+                        const existing = allLines.find(
+                          (bl: any) =>
+                            bl.accountCode === editingItem.compte &&
+                            bl.period === month &&
+                            (bl.fiscalYear === selectedYear || !selectedYear)
+                        );
+                        if (existing) {
+                          await adapter.update<any>('budgetLines', existing.id, { budgeted: editValues[month] || 0 });
+                        } else if ((editValues[month] || 0) !== 0) {
+                          await adapter.create<any>('budgetLines', {
+                            accountCode: editingItem.compte,
+                            fiscalYear: selectedYear,
+                            period: month,
+                            budgeted: editValues[month] || 0,
+                            actual: 0,
+                          });
+                        }
+                      }
+                      // Update local state
+                      setDetailData(prev => prev.map(r =>
+                        r.compte === editingItem.compte
+                          ? { ...r, ...editValues, total: monthKeys.reduce((s, m) => s + (editValues[m] || 0), 0) }
+                          : r
+                      ));
+                      toast.success('Modifications enregistrées');
+                    }
+                  } catch {
+                    toast.error('Erreur lors de la sauvegarde');
+                  } finally {
+                    setShowEditModal(false);
+                    setEditingItem(null);
+                    setEditValues({});
+                    setActiveTab('informations');
+                  }
                 }}
                 className="px-4 py-2 bg-[var(--color-text-secondary)] text-white rounded-lg hover:bg-[#404040]"
               >

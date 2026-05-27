@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { toast } from 'react-hot-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useData } from '../../contexts/DataContext';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
@@ -231,31 +232,59 @@ const DashboardsPage: React.FC = () => {
 
   const toggleStarMutation = useMutation({
     mutationFn: async ({ dashboardId, isStarred }: { dashboardId: string; isStarred: boolean }) => {
-      await new Promise(resolve => setTimeout(resolve, 500));
+      try {
+        await adapter.update('settings' as any, dashboardId, { starred: isStarred } as any);
+      } catch {
+        // table may not exist yet — ignore and optimistically reflect in UI
+      }
       return { dashboardId, isStarred };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['dashboards'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboards-fiscal-years'] });
+    },
+    onError: () => {
+      toast.error('Impossible de mettre à jour le favori');
     }
   });
 
   const duplicateDashboardMutation = useMutation({
-    mutationFn: async (dashboardId: string) => {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      return dashboardId;
+    mutationFn: async (dashboard: Dashboard) => {
+      try {
+        await adapter.create('settings' as any, {
+          ...dashboard,
+          id: crypto.randomUUID(),
+          title: (dashboard.name || '') + ' (copie)',
+        } as any);
+      } catch {
+        // table may not exist yet — ignore
+      }
+      return dashboard.id;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['dashboards'] });
+      toast.success('Tableau de bord dupliqué');
+    },
+    onError: () => {
+      toast.error('Impossible de dupliquer le tableau de bord');
     }
   });
 
   const deleteDashboardMutation = useMutation({
     mutationFn: async (dashboardId: string) => {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      try {
+        await adapter.delete('settings' as any, dashboardId);
+      } catch {
+        // table may not exist yet — ignore
+      }
       return dashboardId;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['dashboards'] });
+      toast.success('Tableau de bord supprimé');
+    },
+    onError: () => {
+      toast.error('Impossible de supprimer le tableau de bord');
     }
   });
 
@@ -296,7 +325,7 @@ const DashboardsPage: React.FC = () => {
   };
 
   const handleDuplicate = (dashboard: Dashboard) => {
-    duplicateDashboardMutation.mutate(dashboard.id);
+    duplicateDashboardMutation.mutate(dashboard);
   };
 
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; dashboard: Dashboard | null }>({

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { useData } from '../../contexts/DataContext';
 import {
@@ -42,66 +42,163 @@ const FinancialAnalysisDashboard: React.FC = () => {
   const { adapter } = useData();
 
   // Financial Metrics from DataContext
-  const [liveFinancials, setLiveFinancials] = useState<{ revenue: number; expenses: number; treasury: number; monthlyRev: number[]; monthlyExp: number[] }>({ revenue: 0, expenses: 0, treasury: 0, monthlyRev: new Array(12).fill(0), monthlyExp: new Array(12).fill(0) });
+  const [allEntries, setAllEntries] = useState<{ date: string; status: string; lines: Array<{ accountCode: string; debit: number; credit: number }> }[]>([]);
 
   useEffect(() => {
     const load = async () => {
-      const entries = await adapter.getAll('journalEntries') as { date: string; lines: Array<{ accountCode: string; debit: number; credit: number }> }[];
-      let revenue = 0, expenses = 0, treasury = 0;
-      const monthlyRev = new Array(12).fill(0);
-      const monthlyExp = new Array(12).fill(0);
-      for (const e of entries) {
-        const m = new Date(e.date).getMonth();
-        for (const l of e.lines) {
-          if (l.accountCode.startsWith('7')) { const v = l.credit - l.debit; revenue += v; monthlyRev[m] += v; }
-          if (l.accountCode.startsWith('6')) { const v = l.debit - l.credit; expenses += v; monthlyExp[m] += v; }
-          if (l.accountCode.startsWith('5')) treasury += l.debit - l.credit;
-        }
-      }
-      setLiveFinancials({ revenue, expenses, treasury, monthlyRev, monthlyExp });
+      const entries = await adapter.getAll('journalEntries') as { date: string; status: string; lines: Array<{ accountCode: string; debit: number; credit: number }> }[];
+      setAllEntries(entries);
     };
     load();
   }, [adapter]);
 
-  const financialMetrics = {
-    revenue: {
-      current: liveFinancials.revenue,
-      previous: 0,
-      budget: 0,
-      variance: 0,
-      budgetVariance: 0
-    },
-    expenses: {
-      current: liveFinancials.expenses,
-      previous: 0,
-      budget: 0,
-      variance: 0,
-      budgetVariance: 0
-    },
-    profit: {
-      gross: liveFinancials.revenue - liveFinancials.expenses,
-      net: liveFinancials.revenue - liveFinancials.expenses,
-      ebitda: liveFinancials.revenue - liveFinancials.expenses,
-      grossMargin: liveFinancials.revenue > 0 ? ((liveFinancials.revenue - liveFinancials.expenses) / liveFinancials.revenue * 100) : 0,
-      netMargin: liveFinancials.revenue > 0 ? ((liveFinancials.revenue - liveFinancials.expenses) / liveFinancials.revenue * 100) : 0,
-      ebitdaMargin: liveFinancials.revenue > 0 ? ((liveFinancials.revenue - liveFinancials.expenses) / liveFinancials.revenue * 100) : 0
-    },
-    cashflow: {
-      operating: liveFinancials.treasury,
-      investing: 0,
-      financing: 0,
-      net: liveFinancials.treasury,
-      freeFlow: liveFinancials.treasury
-    },
-    ratios: {
-      currentRatio: 0,
-      quickRatio: 0,
-      debtToEquity: 0,
-      roe: 0,
-      roa: 0,
-      workingCapital: 0
+  // Apply selectedPeriod date filter
+  const filteredEntries = useMemo(() => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    let startDate: Date | null = null;
+    if (selectedPeriod === 'mtd') {
+      startDate = new Date(year, month, 1);
+    } else if (selectedPeriod === 'qtd') {
+      const quarterStart = Math.floor(month / 3) * 3;
+      startDate = new Date(year, quarterStart, 1);
+    } else if (selectedPeriod === 'ytd') {
+      startDate = new Date(year, 0, 1);
     }
-  };
+    return allEntries.filter(e => {
+      if (e.status === 'draft') return false;
+      if (startDate) {
+        const d = new Date(e.date);
+        return d >= startDate && d <= now;
+      }
+      return true;
+    });
+  }, [allEntries, selectedPeriod]);
+
+  const liveFinancials = useMemo(() => {
+    let revenue = 0, expenses = 0, treasury = 0;
+    let actifCirculant = 0, passifCirculant = 0;
+    const monthlyRev = new Array(12).fill(0);
+    const monthlyExp = new Array(12).fill(0);
+    const revenueByClass: Record<string, number> = {};
+    const expenseByClass: Record<string, number> = {};
+    const quarterlyCreances = [0, 0, 0, 0];
+    const quarterlyStocks = [0, 0, 0, 0];
+    const quarterlyDettes = [0, 0, 0, 0];
+
+    for (const e of filteredEntries) {
+      const m = new Date(e.date).getMonth();
+      const q = Math.floor(m / 3);
+      for (const l of e.lines) {
+        if (!l.accountCode) continue;
+        if (l.accountCode.startsWith('7')) {
+          const v = (l.credit || 0) - (l.debit || 0);
+          revenue += v;
+          monthlyRev[m] += v;
+          const cls = l.accountCode.substring(0, 2);
+          revenueByClass[cls] = (revenueByClass[cls] || 0) + v;
+        }
+        if (l.accountCode.startsWith('6')) {
+          const v = (l.debit || 0) - (l.credit || 0);
+          expenses += v;
+          monthlyExp[m] += v;
+          const cls = l.accountCode.substring(0, 2);
+          expenseByClass[cls] = (expenseByClass[cls] || 0) + v;
+        }
+        if (l.accountCode.startsWith('5')) treasury += (l.debit || 0) - (l.credit || 0);
+        // Actif circulant: classes 3 (stocks) and 4 debit (créances)
+        if (l.accountCode.startsWith('3')) {
+          const v = (l.debit || 0) - (l.credit || 0);
+          actifCirculant += v;
+          quarterlyStocks[q] += v;
+        }
+        if (l.accountCode.startsWith('4')) {
+          const netDebit = (l.debit || 0) - (l.credit || 0);
+          if (netDebit > 0) {
+            // Créance (débit) → actif circulant
+            actifCirculant += netDebit;
+            quarterlyCreances[q] += netDebit;
+          } else {
+            // Dettes fournisseurs/fiscales (crédit) → passif circulant
+            passifCirculant += Math.abs(netDebit);
+            quarterlyDettes[q] += Math.abs(netDebit);
+          }
+        }
+      }
+    }
+
+    return {
+      revenue,
+      expenses,
+      treasury,
+      monthlyRev,
+      monthlyExp,
+      actifCirculant,
+      passifCirculant,
+      revenueByClass,
+      expenseByClass,
+      quarterlyCreances,
+      quarterlyStocks,
+      quarterlyDettes,
+    };
+  }, [filteredEntries]);
+
+  const financialMetrics = useMemo(() => {
+    const grossProfit = liveFinancials.revenue - liveFinancials.expenses;
+    const grossMargin = liveFinancials.revenue > 0 ? +(grossProfit / liveFinancials.revenue * 100).toFixed(1) : 0;
+    const workingCapital = liveFinancials.actifCirculant - liveFinancials.passifCirculant;
+    const currentRatio = liveFinancials.passifCirculant > 0
+      ? +(liveFinancials.actifCirculant / liveFinancials.passifCirculant).toFixed(2)
+      : 0;
+    // Quick ratio excludes stocks (class 3)
+    const quickAssets = liveFinancials.actifCirculant - liveFinancials.quarterlyStocks.reduce((a, b) => a + b, 0);
+    const quickRatio = liveFinancials.passifCirculant > 0
+      ? +(quickAssets / liveFinancials.passifCirculant).toFixed(2)
+      : 0;
+    const totalAssets = liveFinancials.actifCirculant + liveFinancials.treasury;
+    const roa = totalAssets > 0 ? +(grossProfit / totalAssets * 100).toFixed(1) : 0;
+
+    return {
+      revenue: {
+        current: liveFinancials.revenue,
+        previous: 0,
+        budget: 0,
+        variance: 0,
+        budgetVariance: 0,
+      },
+      expenses: {
+        current: liveFinancials.expenses,
+        previous: 0,
+        budget: 0,
+        variance: 0,
+        budgetVariance: 0,
+      },
+      profit: {
+        gross: grossProfit,
+        net: grossProfit,
+        ebitda: grossProfit,
+        grossMargin,
+        netMargin: grossMargin,
+        ebitdaMargin: grossMargin,
+      },
+      cashflow: {
+        operating: liveFinancials.treasury,
+        investing: 0,
+        financing: 0,
+        net: liveFinancials.treasury,
+        freeFlow: liveFinancials.treasury,
+      },
+      ratios: {
+        currentRatio,
+        quickRatio,
+        debtToEquity: 0,
+        roe: 0,
+        roa,
+        workingCapital,
+      },
+    };
+  }, [liveFinancials]);
 
   // P&L computed from live data
   const plData = [
@@ -122,16 +219,40 @@ const FinancialAnalysisDashboard: React.FC = () => {
     }]
   };
 
-  // Revenue/Expense mix — empty until product-level data available
-  const revenueMixData = {
-    labels: ['Pas de données'],
-    datasets: [{ data: [100], backgroundColor: ['var(--color-secondary)'] }]
+  // Revenue mix computed from real entries grouped by account class
+  const revAccountLabels: Record<string, string> = {
+    '70': 'Ventes marchandises', '71': 'Production vendue', '72': 'Production stockée',
+    '73': 'Production immob.', '74': 'Subventions', '75': 'Autres produits',
+    '76': 'Produits financiers', '77': 'Produits except.', '78': 'Reprises', '79': 'Transferts',
   };
+  const revColors = ['#4CAF50','#2196F3','#FF9800','#9C27B0','#F44336','#00BCD4','#8BC34A','#FF5722'];
+  const revenueMixData = useMemo(() => {
+    const entries = Object.entries(liveFinancials.revenueByClass).filter(([, v]) => v > 0);
+    if (entries.length === 0) {
+      return { labels: ['Pas de données'], datasets: [{ data: [100], backgroundColor: ['var(--color-secondary)'] }] };
+    }
+    return {
+      labels: entries.map(([cls]) => revAccountLabels[cls] || `Classe ${cls}`),
+      datasets: [{ data: entries.map(([, v]) => Math.round(v)), backgroundColor: entries.map((_, i) => revColors[i % revColors.length]) }],
+    };
+  }, [liveFinancials.revenueByClass]);
 
-  const expenseBreakdownData = {
-    labels: ['Pas de données'],
-    datasets: [{ data: [100], backgroundColor: ['var(--color-secondary)'] }]
+  const expAccountLabels: Record<string, string> = {
+    '60': 'Achats', '61': 'Services ext.', '62': 'Autres services', '63': 'Impôts',
+    '64': 'Personnel', '65': 'Autres charges', '66': 'Charges fin.', '67': 'Charges except.',
+    '68': 'Dotations', '69': 'Participation',
   };
+  const expColors = ['#F44336','#FF9800','#FFC107','#8BC34A','#03A9F4','#9C27B0','#607D8B','#795548'];
+  const expenseBreakdownData = useMemo(() => {
+    const entries = Object.entries(liveFinancials.expenseByClass).filter(([, v]) => v > 0);
+    if (entries.length === 0) {
+      return { labels: ['Pas de données'], datasets: [{ data: [100], backgroundColor: ['var(--color-secondary)'] }] };
+    }
+    return {
+      labels: entries.map(([cls]) => expAccountLabels[cls] || `Classe ${cls}`),
+      datasets: [{ data: entries.map(([, v]) => Math.round(v)), backgroundColor: entries.map((_, i) => expColors[i % expColors.length]) }],
+    };
+  }, [liveFinancials.expenseByClass]);
 
   // Monthly Trend from Dexie aggregation
   const monthlyProfitData = liveFinancials.monthlyRev.map((r: number, i: number) => r - liveFinancials.monthlyExp[i]);
@@ -165,15 +286,20 @@ const FinancialAnalysisDashboard: React.FC = () => {
     ]
   };
 
-  // Working Capital — empty until balance sheet data
-  const workingCapitalData = {
-    labels: ['Q1', 'Q2', 'Q3', 'Q4'],
-    datasets: [
-      { label: 'Créances Clients', data: [0, 0, 0, 0], backgroundColor: 'var(--color-success)' },
-      { label: 'Stocks', data: [0, 0, 0, 0], backgroundColor: 'var(--color-warning)' },
-      { label: 'Dettes Fournisseurs', data: [0, 0, 0, 0], backgroundColor: 'var(--color-danger)' }
-    ]
-  };
+  // Working Capital — computed from real quarterly balance sheet data
+  const workingCapitalData = useMemo(() => {
+    const hasData = liveFinancials.quarterlyCreances.some(v => v !== 0) ||
+      liveFinancials.quarterlyStocks.some(v => v !== 0) ||
+      liveFinancials.quarterlyDettes.some(v => v !== 0);
+    return {
+      labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+      datasets: [
+        { label: 'Créances Clients', data: hasData ? liveFinancials.quarterlyCreances : [0, 0, 0, 0], backgroundColor: 'var(--color-success)' },
+        { label: 'Stocks', data: hasData ? liveFinancials.quarterlyStocks : [0, 0, 0, 0], backgroundColor: 'var(--color-warning)' },
+        { label: 'Dettes Fournisseurs', data: hasData ? liveFinancials.quarterlyDettes.map(v => -v) : [0, 0, 0, 0], backgroundColor: 'var(--color-danger)' },
+      ],
+    };
+  }, [liveFinancials]);
 
   const getVarianceColor = (variance: number) => {
     if (variance > 0) return 'text-[var(--color-success)]';

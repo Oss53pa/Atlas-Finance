@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import {
   WifiOff,
@@ -129,196 +129,22 @@ const OfflineModePage: React.FC = () => {
   const [showEditModal, setShowEditModal] = useState<ConflictItem | null>(null);
   const [editValue, setEditValue] = useState<string>('');
 
-  // Mock data
-  const storageMetrics: StorageMetrics = {
-    total: 10 * 1024, // 10 GB in MB
-    used: 2.5 * 1024, // 2.5 GB in MB
-    available: 7.5 * 1024, // 7.5 GB in MB
-    modules: {
-      'Comptabilité': 1024,
-      'CRM': 512,
-      'Stock': 768,
-      'RH': 256
-    }
-  };
+  const [storageMetrics, setStorageMetrics] = useState<StorageMetrics>({ total: 0, used: 0, available: 0, modules: {} });
+  const [offlineData] = useState<OfflineData[]>([]);
+  const [syncOperations] = useState<RefreshCwOperation[]>([]);
+  const [conflicts] = useState<ConflictItem[]>([]);
+  const [recentActivity] = useState<{ id: string; action: string; module: string; timestamp: Date; status: string }[]>([]);
 
-  const offlineData: OfflineData[] = [
-    {
-      id: '1',
-      module: 'Comptabilité',
-      type: 'table',
-      size: '1.2 GB',
-      lastRefreshCw: new Date('2024-02-10T15:30:00'),
-      priority: 'high',
-      enabled: true,
-      records: 15420
-    },
-    {
-      id: '2',
-      module: 'CRM - Clients',
-      type: 'table',
-      size: '350 MB',
-      lastRefreshCw: new Date('2024-02-10T16:00:00'),
-      priority: 'high',
-      enabled: true,
-      records: 2847
-    },
-    {
-      id: '3',
-      module: 'Stock - Articles',
-      type: 'table',
-      size: '120 MB',
-      lastRefreshCw: new Date('2024-02-10T14:15:00'),
-      priority: 'medium',
-      enabled: true,
-      records: 1205
-    },
-    {
-      id: '4',
-      module: 'RH - Employés',
-      type: 'table',
-      size: '45 MB',
-      lastRefreshCw: new Date('2024-02-10T13:45:00'),
-      priority: 'low',
-      enabled: false,
-      records: 156
-    },
-    {
-      id: '5',
-      module: 'Documents',
-      type: 'file',
-      size: '800 MB',
-      lastRefreshCw: new Date('2024-02-10T12:00:00'),
-      priority: 'medium',
-      enabled: true,
-      records: 324
-    }
-  ];
-
-  const syncOperations: RefreshCwOperation[] = [
-    {
-      id: '1',
-      type: 'upload',
-      module: 'Comptabilité',
-      operation: 'RefreshCwhronisation des écritures',
-      status: 'pending',
-      createdAt: new Date('2024-02-10T17:00:00'),
-      updatedAt: new Date('2024-02-10T17:00:00'),
-      progress: 0
-    },
-    {
-      id: '2',
-      type: 'download',
-      module: 'CRM',
-      operation: 'Mise à jour des contacts',
-      status: 'in_progress',
-      createdAt: new Date('2024-02-10T16:45:00'),
-      updatedAt: new Date('2024-02-10T16:50:00'),
-      progress: 65
-    },
-    {
-      id: '3',
-      type: 'sync',
-      module: 'Stock',
-      operation: 'RefreshCwhronisation des mouvements',
-      status: 'conflict',
-      createdAt: new Date('2024-02-10T16:30:00'),
-      updatedAt: new Date('2024-02-10T16:35:00'),
-      progress: 80,
-      conflictCount: 3
-    },
-    {
-      id: '4',
-      type: 'upload',
-      module: 'CRM',
-      operation: 'Nouveaux prospects',
-      status: 'completed',
-      createdAt: new Date('2024-02-10T16:00:00'),
-      updatedAt: new Date('2024-02-10T16:15:00'),
-      progress: 100
-    },
-    {
-      id: '5',
-      type: 'download',
-      module: 'RH',
-      operation: 'Données des employés',
-      status: 'failed',
-      createdAt: new Date('2024-02-10T15:30:00'),
-      updatedAt: new Date('2024-02-10T15:35:00'),
-      progress: 25,
-      errorMessage: 'Erreur de connexion au serveur'
-    }
-  ];
-
-  const conflicts: ConflictItem[] = [
-    {
-      id: '1',
-      module: 'Comptabilité',
-      recordId: 'ECR-2024-001',
-      recordType: 'Écriture comptable',
-      field: 'montant',
-      localValue: 1250.00,
-      serverValue: 1275.00,
-      lastModifiedLocal: new Date('2024-02-10T14:30:00'),
-      lastModifiedServer: new Date('2024-02-10T15:00:00'),
-      status: 'pending'
-    },
-    {
-      id: '2',
-      module: 'CRM',
-      recordId: 'CLI-2024-045',
-      recordType: 'Client',
-      field: 'telephone',
-      localValue: '01 23 45 67 89',
-      serverValue: '01 23 45 67 90',
-      lastModifiedLocal: new Date('2024-02-10T13:15:00'),
-      lastModifiedServer: new Date('2024-02-10T16:00:00'),
-      status: 'pending'
-    },
-    {
-      id: '3',
-      module: 'Stock',
-      recordId: 'ART-2024-112',
-      recordType: 'Article',
-      field: 'quantite',
-      localValue: 150,
-      serverValue: 142,
-      lastModifiedLocal: new Date('2024-02-10T16:45:00'),
-      lastModifiedServer: new Date('2024-02-10T16:30:00'),
-      status: 'pending'
-    }
-  ];
-
-  const recentActivity = [
-    {
-      id: '1',
-      action: 'RefreshCwhronisation automatique terminée',
-      module: 'CRM',
-      timestamp: new Date('2024-02-10T16:15:00'),
-      status: 'success'
-    },
-    {
-      id: '2',
-      action: 'Mode hors-ligne activé',
-      module: 'Système',
-      timestamp: new Date('2024-02-10T15:45:00'),
-      status: 'info'
-    },
-    {
-      id: '3',
-      action: 'Conflit résolu automatiquement',
-      module: 'Stock',
-      timestamp: new Date('2024-02-10T15:30:00'),
-      status: 'warning'
-    },
-    {
-      id: '4',
-      action: 'Données sauvegardées localement',
-      module: 'Comptabilité',
-      timestamp: new Date('2024-02-10T15:00:00'),
-      status: 'success'
-    }
-  ];
+  useEffect(() => {
+    navigator.storage?.estimate?.().then(est => {
+      setStorageMetrics({
+        total: Math.round((est.quota || 0) / 1024),
+        used: Math.round((est.usage || 0) / 1024),
+        available: Math.round(((est.quota || 0) - (est.usage || 0)) / 1024),
+        modules: {}
+      });
+    });
+  }, []);
 
   const handleRefreshCwOperation = (operationId: string, action: 'retry' | 'cancel') => {
     if (action === 'retry') {
@@ -482,11 +308,11 @@ const OfflineModePage: React.FC = () => {
                 </div>
                 <div className="mt-4">
                   <Progress
-                    value={(storageMetrics.used / storageMetrics.total) * 100}
+                    value={storageMetrics.total > 0 ? (storageMetrics.used / storageMetrics.total) * 100 : 0}
                     className="h-2"
                   />
                   <p className="text-xs text-[var(--color-text-tertiary)] mt-1">
-                    {((storageMetrics.used / storageMetrics.total) * 100).toFixed(1)}% utilisé
+                    {storageMetrics.total > 0 ? `${((storageMetrics.used / storageMetrics.total) * 100).toFixed(1)}%` : '0%'} utilisé
                   </p>
                 </div>
               </CardContent>
@@ -555,7 +381,9 @@ const OfflineModePage: React.FC = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {recentActivity.map((activity) => (
+                {recentActivity.length === 0 ? (
+                  <p className="text-sm text-[var(--color-text-secondary)] text-center py-4">Aucune activité récente</p>
+                ) : recentActivity.map((activity) => (
                   <div key={activity.id} className="flex items-start space-x-3 p-3 bg-[var(--color-surface-hover)] rounded-lg">
                     <div className={`p-1 rounded-full ${
                       activity.status === 'success' ? 'bg-[var(--color-success-light)]' :
@@ -737,7 +565,9 @@ const OfflineModePage: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {syncOperations.map((operation) => (
+                {syncOperations.length === 0 ? (
+                  <p className="text-sm text-[var(--color-text-secondary)] text-center py-4">Aucune synchronisation en cours</p>
+                ) : syncOperations.map((operation) => (
                   <div key={operation.id} className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="flex items-center space-x-4">
                       <div className="flex items-center space-x-2">
@@ -1033,7 +863,9 @@ const OfflineModePage: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {conflicts.map((conflict) => (
+                  {conflicts.length === 0 ? (
+                    <p className="text-sm text-[var(--color-text-secondary)] text-center py-4">Aucun conflit détecté</p>
+                  ) : conflicts.map((conflict) => (
                     <div key={conflict.id} className="border rounded-lg">
                       <div className="flex items-center justify-between p-4">
                         <div className="flex items-center space-x-4">

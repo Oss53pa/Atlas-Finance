@@ -590,9 +590,19 @@ const BudgetingDashboard: React.FC = () => {
               </div>
 
               {(() => {
-                const revPct = dashboardData.totalBudgeted > 0 ? Math.round((dashboardData.revenueActual / (dashboardData.totalBudgeted * 0.5)) * 100) : 0;
-                const chgPct = dashboardData.totalBudgeted > 0 ? Math.round((dashboardData.chargesActual / (dashboardData.totalBudgeted * 0.4)) * 100) : 0;
-                const invPct = dashboardData.totalBudgeted > 0 ? Math.round((dashboardData.investActual / (dashboardData.totalBudgeted * 0.1)) * 100) : 0;
+                // Compute per-category budget totals from account code prefix
+                const revenueBudget = budgetLines
+                  .filter(l => l.accountCode?.startsWith('7'))
+                  .reduce((s: number, l: any) => s + (l.amount || l.budgeted || 0), 0);
+                const chargesBudget = budgetLines
+                  .filter(l => l.accountCode?.startsWith('6'))
+                  .reduce((s: number, l: any) => s + (l.amount || l.budgeted || 0), 0);
+                const investBudget = budgetLines
+                  .filter(l => l.accountCode?.startsWith('2'))
+                  .reduce((s: number, l: any) => s + (l.amount || l.budgeted || 0), 0);
+                const revPct = Math.round((dashboardData.revenueActual / (revenueBudget || dashboardData.totalBudgeted || 1)) * 100);
+                const chgPct = Math.round((dashboardData.chargesActual / (chargesBudget || dashboardData.totalBudgeted || 1)) * 100);
+                const invPct = Math.round((dashboardData.investActual / (investBudget || dashboardData.totalBudgeted || 1)) * 100);
                 return (
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 <div className="bg-white rounded-2xl p-6 border border-[var(--color-border)] shadow-sm">

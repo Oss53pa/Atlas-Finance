@@ -543,6 +543,13 @@ const AlertsSystem: React.FC = () => {
       <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Règles d'Alertes Actives</h2>
         <div className="space-y-3">
+          {alertRules.length === 0 && (
+            <div className="text-center py-8 text-gray-500">
+              <Shield className="w-10 h-10 mx-auto mb-3 opacity-30" />
+              <p className="text-sm font-medium">Aucune règle d'alerte configurée</p>
+              <p className="text-xs mt-1">Cliquez sur "Configurer Règles" pour créer vos premières règles</p>
+            </div>
+          )}
           {alertRules.map((rule) => (
             <div key={rule.id} className="flex items-center justify-between p-3 border rounded-lg">
               <div className="flex items-center gap-3">

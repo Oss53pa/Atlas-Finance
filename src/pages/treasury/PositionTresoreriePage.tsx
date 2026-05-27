@@ -51,49 +51,89 @@ const PositionTresoreriePage: React.FC = () => {
   const { adapter } = useData();
   const [autoRefresh, setAutoRefresh] = useState(true);
 
-  const [exchangeRatesData, setExchangeRatesData] = useState<any[]>([]);
-  const [hedgingPositionsData, setHedgingPositionsData] = useState<any[]>([]);
+  const [journalEntriesData, setJournalEntriesData] = useState<any[]>([]);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const loadData = async () => {
+    const entries = await adapter.getAll('journalEntries');
+    setJournalEntriesData(entries as Record<string, unknown>[]);
+  };
 
   useEffect(() => {
-    const load = async () => {
-      const [er, hp] = await Promise.all([
-        adapter.getAll('exchangeRates'),
-        adapter.getAll('hedgingPositions'),
-      ]);
-      setExchangeRatesData(er as Record<string, unknown>[]);
-      setHedgingPositionsData(hp as Record<string, unknown>[]);
-    };
-    load();
-  }, [adapter]);
+    loadData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [adapter, refreshKey]);
 
-  // Build the treasury position from Dexie data
+  // Build the treasury position from journal entries (class 5 accounts = trésorerie)
   const position: TreasuryPosition = useMemo(() => {
-    // Build bank accounts from hedging positions (using them as position proxies)
-    const accounts: BankAccount[] = hedgingPositionsData.map((hp, index) => ({
-      id: hp.id,
-      bankName: hp.type.charAt(0).toUpperCase() + hp.type.slice(1) + ' - ' + hp.currency,
-      accountNumber: '****-' + hp.id.slice(-4),
-      balance: hp.amount,
-      currency: hp.currency,
-      lastUpdate: new Date(hp.createdAt),
-      status: hp.status === 'active' ? 'active' as const : 'inactive' as const
-    }));
+    // No bankAccounts table in DB — show empty accounts list
+    const accounts: BankAccount[] = [];
 
-    const totalCash = accounts.reduce((sum, a) => sum + a.balance, 0);
+    // Compute real cash balance from posted journal entries (class 5)
+    let totalCash = 0;
+    const today = new Date().toDateString();
+    let dailyVariation = 0;
+    const todayMovements: CashFlowItem[] = [];
+
+    const postedEntries = journalEntriesData.filter((e: any) => e.status === 'posted');
+
+    for (const entry of postedEntries) {
+      if (!entry.lines) continue;
+      for (const line of entry.lines) {
+        if (line.accountCode?.startsWith('5')) {
+          const net = (line.debit || 0) - (line.credit || 0);
+          totalCash += net;
+          if (new Date(entry.date).toDateString() === today) {
+            dailyVariation += net;
+            if (Math.abs(net) > 0) {
+              todayMovements.push({
+                id: `${entry.id}-${line.id}`,
+                type: net > 0 ? 'inflow' : 'outflow',
+                description: entry.label || line.label || '-',
+                amount: Math.abs(net),
+                date: new Date(entry.date),
+                category: line.accountCode || '5',
+                status: 'confirmed',
+              });
+            }
+          }
+        }
+      }
+    }
+
+    // Compute basic 7-day and 30-day forecasts from average daily cash movements
+    const last30Days = postedEntries.filter((e: any) => {
+      const d = new Date(e.date);
+      const ago30 = new Date(Date.now() - 30 * 86400000);
+      return d >= ago30;
+    });
+    let dailyAvg = 0;
+    if (last30Days.length > 0) {
+      let sum30 = 0;
+      for (const entry of last30Days) {
+        if (!entry.lines) continue;
+        for (const line of entry.lines) {
+          if (line.accountCode?.startsWith('5')) {
+            sum30 += (line.debit || 0) - (line.credit || 0);
+          }
+        }
+      }
+      dailyAvg = sum30 / 30;
+    }
 
     return {
       totalCash,
-      dailyVariation: hedgingPositionsData.reduce((sum, hp) => sum + hp.unrealizedPnL, 0),
-      weeklyForecast: 0,
-      monthlyForecast: 0,
+      dailyVariation,
+      weeklyForecast: Math.round(dailyAvg * 7),
+      monthlyForecast: Math.round(dailyAvg * 30),
       accounts,
-      todayMovements: []
+      todayMovements,
     };
-  }, [hedgingPositionsData]);
+  }, [journalEntriesData]);
 
-  // Dummy refresh function for the button
+  // Actualiser button reloads data from adapter
   const loadTreasuryPosition = () => {
-    // Data is loaded via useEffect; no manual fetch needed
+    setRefreshKey(k => k + 1);
   };
 
   return (
@@ -190,6 +230,13 @@ const PositionTresoreriePage: React.FC = () => {
             </div>
             
             <div className="p-6 space-y-4">
+              {position.accounts.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  <Building2 className="h-10 w-10 mx-auto mb-3 opacity-30" />
+                  <p className="text-sm font-medium">Aucun compte bancaire configuré</p>
+                  <p className="text-xs mt-1 text-gray-400">Les comptes seront affichés ici une fois enregistrés</p>
+                </div>
+              )}
               {position.accounts.map((account, index) => (
                 <motion.div
                   key={account.id}

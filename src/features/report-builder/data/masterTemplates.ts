@@ -406,8 +406,22 @@ export const masterTemplates: Record<MasterTemplateId, () => BlockFactory[]> = {
   rapport_audit_syscohada: rapportAuditSyscohada,
 };
 
-/** Get blocks for a given template ID. */
-export function getMasterTemplateBlocks(id: MasterTemplateId): BlockFactory[] {
+export interface TemplateInstantiationOptions {
+  /** Real company name to inject into cover/back-page blocks (replaces 'Atlas F&A') */
+  companyName?: string;
+}
+
+/** Get blocks for a given template ID, optionally injecting real company name. */
+export function getMasterTemplateBlocks(id: MasterTemplateId, options?: TemplateInstantiationOptions): BlockFactory[] {
   const factory = masterTemplates[id];
-  return factory ? factory() : [];
+  if (!factory) return [];
+  const blocks = factory();
+  if (options?.companyName) {
+    return blocks.map(block =>
+      ('companyName' in block)
+        ? { ...block, companyName: options.companyName }
+        : block
+    );
+  }
+  return blocks;
 }
