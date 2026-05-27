@@ -66,8 +66,8 @@ const PositionTresoreriePage: React.FC = () => {
 
   // Build the treasury position from journal entries (class 5 accounts = trésorerie)
   const position: TreasuryPosition = useMemo(() => {
-    // No bankAccounts table in DB — show empty accounts list
-    const accounts: BankAccount[] = [];
+    // Build per-account balances for class 5 accounts from journal entries
+    const accountBalances: Record<string, { balance: number; name: string }> = {};
 
     // Compute real cash balance from posted journal entries (class 5)
     let totalCash = 0;
@@ -83,6 +83,11 @@ const PositionTresoreriePage: React.FC = () => {
         if (line.accountCode?.startsWith('5')) {
           const net = (line.debit || 0) - (line.credit || 0);
           totalCash += net;
+          // Accumulate per-account balance
+          if (!accountBalances[line.accountCode]) {
+            accountBalances[line.accountCode] = { balance: 0, name: line.accountName || line.accountCode };
+          }
+          accountBalances[line.accountCode].balance += net;
           if (new Date(entry.date).toDateString() === today) {
             dailyVariation += net;
             if (Math.abs(net) > 0) {
@@ -120,6 +125,19 @@ const PositionTresoreriePage: React.FC = () => {
       }
       dailyAvg = sum30 / 30;
     }
+
+    // Build sorted BankAccount list from accumulated balances
+    const accounts: BankAccount[] = Object.entries(accountBalances)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([code, { balance, name }]) => ({
+        id: code,
+        bankName: name,
+        accountNumber: code,
+        balance,
+        currency: 'XAF',
+        lastUpdate: new Date(),
+        status: 'active' as const,
+      }));
 
     return {
       totalCash,

@@ -846,7 +846,7 @@ const FundCallsPage: React.FC = () => {
               <Plus className="h-4 w-4 mr-2" />
               Nouveau
             </Button>
-            <Button variant="outline" className="border-white text-white hover:bg-white hover:text-primary-800">
+            <Button variant="outline" className="border-white !bg-transparent text-white hover:!bg-white hover:text-primary-800">
               <Download className="h-4 w-4 mr-2" />
               Templates
             </Button>

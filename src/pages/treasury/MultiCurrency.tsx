@@ -97,6 +97,14 @@ const MultiCurrency: React.FC = () => {
 
   const [dbExchangeRates, setDbExchangeRates] = useState<any[]>([]);
   const [dbHedgingPositions, setDbHedgingPositions] = useState<any[]>([]);
+  const [newHedgeForm, setNewHedgeForm] = useState({
+    currency: 'EUR',
+    type: 'forward' as 'forward' | 'option' | 'swap',
+    amount: '',
+    strikeRate: '',
+    maturityDate: new Date(Date.now() + 90 * 86400000).toISOString().split('T')[0],
+  });
+  const [hedgeSaving, setHedgeSaving] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -723,22 +731,114 @@ const MultiCurrency: React.FC = () => {
                 </div>
               </div>
 
-              <div className="p-6 space-y-6">
-                <div className="text-center text-neutral-600">
-                  <p>Fonctionnalité en développement...</p>
-                  <p className="text-sm mt-2">Interface de gestion des couvertures et conversions</p>
-                </div>
+              <div className="p-6 space-y-4">
+                {currencyModal.mode === 'hedge' ? (
+                  <>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-neutral-700 mb-1">Devise *</label>
+                        <select
+                          value={newHedgeForm.currency}
+                          onChange={(e) => setNewHedgeForm({ ...newHedgeForm, currency: e.target.value })}
+                          className="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]"
+                        >
+                          {['EUR', 'USD', 'GBP', 'CHF', 'JPY', 'CNY'].map(c => (
+                            <option key={c} value={c}>{c}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-neutral-700 mb-1">Type *</label>
+                        <select
+                          value={newHedgeForm.type}
+                          onChange={(e) => setNewHedgeForm({ ...newHedgeForm, type: e.target.value as 'forward' | 'option' | 'swap' })}
+                          className="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]"
+                        >
+                          <option value="forward">Forward</option>
+                          <option value="option">Option</option>
+                          <option value="swap">Swap</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-neutral-700 mb-1">Montant *</label>
+                        <input
+                          type="number"
+                          value={newHedgeForm.amount}
+                          onChange={(e) => setNewHedgeForm({ ...newHedgeForm, amount: e.target.value })}
+                          className="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]"
+                          placeholder="Ex: 100000"
+                          min="0"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-neutral-700 mb-1">Taux Strike *</label>
+                        <input
+                          type="number"
+                          value={newHedgeForm.strikeRate}
+                          onChange={(e) => setNewHedgeForm({ ...newHedgeForm, strikeRate: e.target.value })}
+                          className="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]"
+                          placeholder="Ex: 655.957"
+                          step="0.001"
+                          min="0"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-neutral-700 mb-1">Date d'échéance *</label>
+                      <input
+                        type="date"
+                        value={newHedgeForm.maturityDate}
+                        onChange={(e) => setNewHedgeForm({ ...newHedgeForm, maturityDate: e.target.value })}
+                        className="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]"
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center text-neutral-600 py-4">
+                    <p>Sélectionnez une devise dans le tableau pour consulter sa position.</p>
+                  </div>
+                )}
 
                 <div className="flex justify-end space-x-3 pt-4 border-t border-neutral-200">
                   <ElegantButton
                     variant="outline"
                     onClick={() => setCurrencyModal({ isOpen: false, mode: 'view' })}
                   >
-                    Fermer
+                    Annuler
                   </ElegantButton>
-                  {currencyModal.mode !== 'view' && (
-                    <ElegantButton variant="primary">
-                      {currencyModal.mode === 'hedge' ? 'Créer Couverture' : 'Convertir'}
+                  {currencyModal.mode === 'hedge' && (
+                    <ElegantButton
+                      variant="primary"
+                      loading={hedgeSaving}
+                      onClick={async () => {
+                        if (!newHedgeForm.amount || !newHedgeForm.strikeRate) return;
+                        setHedgeSaving(true);
+                        try {
+                          const rate = parseFloat(newHedgeForm.strikeRate);
+                          const newPos: Omit<DBHedgingPosition, 'id'> = {
+                            currency: newHedgeForm.currency,
+                            type: newHedgeForm.type,
+                            amount: parseFloat(newHedgeForm.amount),
+                            strikeRate: rate,
+                            currentRate: rate,
+                            maturityDate: newHedgeForm.maturityDate,
+                            unrealizedPnL: 0,
+                            status: 'active',
+                            createdAt: new Date().toISOString(),
+                          };
+                          await adapter.create<DBHedgingPosition>('hedgingPositions', newPos);
+                          const hp = await adapter.getAll('hedgingPositions');
+                          setDbHedgingPositions(hp as Record<string, unknown>[]);
+                          setCurrencyModal({ isOpen: false, mode: 'view' });
+                          setNewHedgeForm({ currency: 'EUR', type: 'forward', amount: '', strikeRate: '', maturityDate: new Date(Date.now() + 90 * 86400000).toISOString().split('T')[0] });
+                        } finally {
+                          setHedgeSaving(false);
+                        }
+                      }}
+                    >
+                      Créer Couverture
                     </ElegantButton>
                   )}
                 </div>

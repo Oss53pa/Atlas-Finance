@@ -123,7 +123,7 @@ const AtlasFnANavigation: React.FC<NavigationProps> = ({
           id: 'chart-accounts',
           label: 'Plan Comptable',
           icon: BarChart3,
-          href: '/accounting/chart-accounts',
+          href: '/accounting/chart-of-accounts',
           module: 'accounting'
         },
         {
@@ -213,7 +213,7 @@ const AtlasFnANavigation: React.FC<NavigationProps> = ({
       id: 'customers',
       label: t('navigation.clients'),
       icon: Users,
-      href: '/customers',
+      href: '/tiers/clients',
       module: 'customers',
       badge: navigationAlerts?.by_module?.customers || 0,
       children: [
@@ -221,28 +221,28 @@ const AtlasFnANavigation: React.FC<NavigationProps> = ({
           id: 'customer-dashboard',
           label: 'Dashboard Clients',
           icon: BarChart3,
-          href: '/customers/dashboard',
+          href: '/tiers',
           module: 'customers'
         },
         {
           id: 'customer-list',
           label: 'Liste Clients',
           icon: Users,
-          href: '/customers/list',
+          href: '/tiers/clients',
           module: 'customers'
         },
         {
           id: 'aging-balance',
           label: 'Balance Âgée',
           icon: Clock,
-          href: '/customers/aging',
+          href: '/tiers/recouvrement',
           module: 'customers'
         },
         {
           id: 'collection-management',
           label: t('thirdParty.collection'),
           icon: TrendingUp,
-          href: '/customers/collection',
+          href: '/tiers/recouvrement',
           module: 'customers'
         }
       ]
@@ -251,7 +251,7 @@ const AtlasFnANavigation: React.FC<NavigationProps> = ({
       id: 'suppliers',
       label: t('navigation.suppliers'),
       icon: Truck,
-      href: '/suppliers',
+      href: '/tiers/fournisseurs',
       module: 'suppliers',
       badge: navigationAlerts?.by_module?.suppliers || 0,
       children: [
@@ -259,28 +259,28 @@ const AtlasFnANavigation: React.FC<NavigationProps> = ({
           id: 'supplier-dashboard',
           label: 'Dashboard Fournisseurs',
           icon: BarChart3,
-          href: '/suppliers/dashboard',
+          href: '/tiers',
           module: 'suppliers'
         },
         {
           id: 'supplier-list',
           label: 'Liste Fournisseurs',
           icon: Truck,
-          href: '/suppliers/list',
+          href: '/tiers/fournisseurs',
           module: 'suppliers'
         },
         {
           id: 'payment-schedule',
           label: 'Échéancier Paiements',
           icon: Calendar,
-          href: '/suppliers/payments',
+          href: '/tiers/recouvrement',
           module: 'suppliers'
         },
         {
           id: 'performance-evaluation',
           label: 'Évaluation Performance',
           icon: TrendingUp,
-          href: '/suppliers/performance',
+          href: '/tiers/fournisseurs',
           module: 'suppliers'
         }
       ]

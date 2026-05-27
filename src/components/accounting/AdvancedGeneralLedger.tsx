@@ -335,16 +335,16 @@ const AdvancedGeneralLedger: React.FC = () => {
             <button
               key={view.id}
               onClick={() => setActiveView(view.id as typeof activeView)}
-              className={`relative px-4 py-2 rounded-lg transition-all duration-200 ${
+              className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-lg transition-all duration-200 ${
                 activeView === view.id
                   ? `${view.color} text-white shadow-lg transform scale-105`
                   : 'text-gray-600 hover:bg-gray-100 hover:shadow-md'
               }`}
             >
-              <view.icon className="w-4 h-4 mr-2 inline" />
+              <view.icon className="w-4 h-4" />
               {view.label}
               {view.badge && (
-                <span className={`absolute -top-2 -right-2 px-1.5 py-0.5 text-xs font-bold text-white rounded-full z-10 ${
+                <span className={`inline-flex items-center px-1.5 py-0.5 text-xs font-bold text-white rounded-full ${
                   view.badge === 'Nouveau' ? 'bg-red-500' : view.badge === 'IA' ? 'bg-primary-500' : 'bg-orange-500'
                 } animate-pulse`}>
                   {view.badge}

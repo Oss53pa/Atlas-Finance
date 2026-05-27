@@ -23,6 +23,15 @@ const TiersDashboard: React.FC = () => {
   const { adapter } = useData();
   const [activeTab, setActiveTab] = useState('overview');
   const [loading, setLoading] = useState(false);
+
+  // Navigate to dedicated module pages when clients/fournisseurs tabs are selected
+  useEffect(() => {
+    if (activeTab === 'clients') {
+      navigate('/tiers/clients');
+    } else if (activeTab === 'fournisseurs') {
+      navigate('/tiers/fournisseurs');
+    }
+  }, [activeTab, navigate]);
   const [searchTerm, setSearchTerm] = useState('');
   const [dateRange, setDateRange] = useState('30d');
 
@@ -428,38 +437,8 @@ const TiersDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* Other tabs would show respective components */}
-      {activeTab === 'clients' && (
-        <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-          <div className="text-center py-12">
-            <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-2">Module Clients</h3>
-            <p className="text-[var(--color-text-secondary)] mb-4">Interface de gestion complète des clients avec CRM intégré</p>
-            <button
-              onClick={() => navigate('/tiers/clients')}
-              className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 transition-colors"
-            >
-              Accéder au module Clients
-            </button>
-          </div>
-        </div>
-      )}
-
-      {activeTab === 'fournisseurs' && (
-        <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-          <div className="text-center py-12">
-            <Building2 className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-2">Module Fournisseurs</h3>
-            <p className="text-[var(--color-text-secondary)] mb-4">Gestion complète des fournisseurs et évaluations</p>
-            <button
-              onClick={() => navigate('/tiers/fournisseurs')}
-              className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 transition-colors"
-            >
-              Accéder au module Fournisseurs
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Clients and Fournisseurs tabs navigate to dedicated module pages */}
+      {(activeTab === 'clients' || activeTab === 'fournisseurs') && null}
 
       {activeTab === 'contacts' && (
         <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
