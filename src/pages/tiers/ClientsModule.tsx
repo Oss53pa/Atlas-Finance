@@ -437,18 +437,87 @@ const ClientsModule: React.FC = () => {
     });
   };
 
-  const handleSaveNewClient = () => {
-    handleCloseNewClientModal();
+  const handleSaveNewClient = async () => {
+    try {
+      const id = crypto.randomUUID();
+      await adapter.create('thirdParties', {
+        id,
+        code: newClient.code,
+        name: newClient.raisonSociale,
+        type: 'customer',
+        accountCode: `${newClient.compteComptable}${newClient.code || id.slice(0, 6).toUpperCase()}`,
+        taxId: newClient.niu,
+        rccm: newClient.rccm,
+        email: newClient.email,
+        phone: newClient.telephone,
+        address: newClient.adresse,
+        isActive: true,
+        conditionsPaiement: {
+          delaiJours: newClient.delaiPaiement,
+          modePaiement: newClient.modeReglement.toLowerCase(),
+          escompte: newClient.escompte,
+        },
+        regimeFiscal: newClient.regimeTVA === 'REEL_NORMAL' ? 'RNI' : 'RSI',
+        createdAt: new Date().toISOString(),
+      });
+      // Reload
+      const [allThirdParties, allEntries] = await Promise.all([
+        adapter.getAll('thirdParties'),
+        adapter.getAll('journalEntries')
+      ]);
+      const customers = (allThirdParties as any[]).filter((tp: any) => tp.type === 'customer' || tp.type === 'both');
+      setClients(customers.map((tp: any) => {
+        const lines: { debit: number; credit: number }[] = [];
+        (allEntries as any[]).forEach((e: any) => {
+          if (e.status === 'draft') return;
+          (e.lines || []).forEach((l: any) => {
+            if (l.thirdPartyCode === tp.code || l.accountCode === tp.accountCode)
+              lines.push({ debit: l.debit || 0, credit: l.credit || 0 });
+          });
+        });
+        const encours = lines.reduce((s, l) => s + l.debit - l.credit, 0);
+        return {
+          id: tp.id, code: tp.code || '', raisonSociale: tp.name || '',
+          nomCommercial: tp.name, categorie: 'PME' as const, secteurActivite: '', pays: '',
+          compteComptable: tp.accountCode || '411000', compteAuxiliaire: tp.code || '',
+          journalVentes: 'VE', rccm: tp.rccm || '', niu: tp.taxId || '',
+          regimeTVA: tp.regimeFiscal === 'RNI' ? 'REEL_NORMAL' as const : 'REEL_SIMPLIFIE' as const,
+          tauxTVA: 19.25, adresse: tp.address || '', codePostal: '', ville: '', region: '',
+          chiffreAffaires: lines.reduce((s, l) => s + l.debit, 0),
+          encoursActuel: Math.max(encours, 0), dso: tp.conditionsPaiement?.delaiJours || 30,
+          limiteCredit: 0, delaiPaiement: tp.conditionsPaiement?.delaiJours || 30,
+          remise: 0, escompte: tp.conditionsPaiement?.escompte || 0,
+          modeReglement: 'VIREMENT' as const, devise: 'XAF',
+          banque: tp.banque?.nomBanque, iban: tp.banque?.iban, swift: tp.banque?.swift,
+          scoreCredit: tp.isActive ? 80 : 40, tauxRecouvrement: 0,
+          notationInterne: 'B' as const, fidele: tp.isActive,
+          contactPrincipal: '', email: tp.email || '', telephone: tp.phone || '',
+          statut: tp.isActive ? 'ACTIF' as const : 'INACTIF' as const,
+          alertes: 0, nonEchu: Math.max(encours, 0), echu0_30: 0, echu31_60: 0, echu61_90: 0, echuPlus90: 0
+        };
+      }));
+      handleCloseNewClientModal();
+    } catch (err) {
+      console.error('Erreur création client:', err);
+    }
   };
 
   const handleViewClient = (clientId: string) => {
     navigate(`/tiers/clients/${clientId}`);
   };
 
-  const handleEditClient = (clientId: string) => {
+  const handleEditClient = (_clientId: string) => {
+    // TODO: open edit modal
   };
 
-  const handleDeleteClient = (clientId: string) => {
+  const handleDeleteClient = async (clientId: string) => {
+    if (!window.confirm('Supprimer ce client définitivement ?')) return;
+    try {
+      await adapter.delete('thirdParties', clientId);
+      setClients(prev => prev.filter(c => c.id !== clientId));
+    } catch (err) {
+      console.error('Erreur suppression client:', err);
+    }
   };
 
   // Générer code client automatique
