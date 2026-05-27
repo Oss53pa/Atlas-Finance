@@ -29,6 +29,7 @@ import HelpDrawer from './HelpDrawer';
 import ModernButton from '../ui/ModernButton';
 import LanguageSelector from '../ui/LanguageSelector';
 import MoneyFormatToggle from './MoneyFormatToggle';
+import { useData } from '../../contexts/DataContext';
 
 interface MenuItem {
   id: string;
@@ -58,8 +59,18 @@ const ModernDoubleSidebarLayout: React.FC = () => {
   const badgeCounts = useBadgeCounts();
   const { plan: tenantPlan, isStarter } = useTenantPlan();
   const { allowed: hasDedicatedSupport } = useFeatureAccess('support_dedie');
+  const { adapter } = useData();
+  const [companyName, setCompanyName] = useState<string>('');
   useInvalidateOnEntryChange();
   useKeyboardShortcuts();
+
+  useEffect(() => {
+    adapter.getAll<any>('companies').then((companies) => {
+      if (companies && companies.length > 0) {
+        setCompanyName(companies[0].name || companies[0].nom || companies[0].company_name || '');
+      }
+    }).catch(() => {});
+  }, [adapter]);
 
   // Detect demo mode (iframe preview) to auto-collapse sidebars and save space
   const isDemoMode = typeof sessionStorage !== 'undefined' && sessionStorage.getItem('atlas-demo-mode') === '1';
@@ -373,12 +384,19 @@ const ModernDoubleSidebarLayout: React.FC = () => {
             'flex items-center gap-3',
             primaryCollapsed && 'justify-center'
           )}>
-            <a href="/home" className="hover:opacity-80 transition-opacity" title="Retour à l'accueil Atlas F&amp;A">
-              <span
-                className="text-[var(--color-sidebar-text)] font-bold atlas-brand whitespace-nowrap"
-                style={{ fontSize: 'calc(1.25rem + 0.5pt)' }}
-              >Atlas F&A</span>
-            </a>
+            <div className="flex flex-col">
+              <a href="/home" className="hover:opacity-80 transition-opacity" title="Retour à l'accueil Atlas F&amp;A">
+                <span
+                  className="text-[var(--color-sidebar-text)] font-bold atlas-brand whitespace-nowrap"
+                  style={{ fontSize: 'calc(1.25rem + 0.5pt)' }}
+                >Atlas F&A</span>
+              </a>
+              {!primaryCollapsed && companyName && (
+                <span className="text-[0.65rem] text-[var(--color-sidebar-text-secondary)] truncate max-w-[10rem] leading-tight">
+                  {companyName}
+                </span>
+              )}
+            </div>
           </div>
           <button
             type="button"
@@ -455,9 +473,13 @@ const ModernDoubleSidebarLayout: React.FC = () => {
               <User className="w-5 h-5 text-[var(--color-sidebar-text-secondary)]" />
             </div>
             {!primaryCollapsed && (
-              <div className="flex-1">
-                <p className="text-sm font-medium text-[var(--color-sidebar-text)]">Admin</p>
-                <p className="text-xs text-[var(--color-sidebar-text-secondary)]">admin@atlasfna.com</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-[var(--color-sidebar-text)] truncate">
+                  {user?.first_name || user?.last_name
+                    ? `${user.first_name ?? ''} ${user.last_name ?? ''}`.trim()
+                    : (user?.email?.split('@')[0] ?? 'Utilisateur')}
+                </p>
+                <p className="text-xs text-[var(--color-sidebar-text-secondary)] truncate">{user?.email ?? ''}</p>
               </div>
             )}
           </div>
@@ -563,13 +585,16 @@ const ModernDoubleSidebarLayout: React.FC = () => {
             aria-label="Navigation mobile"
           >
             <div className="h-16 flex items-center justify-between px-4 border-b border-[var(--color-sidebar-border)]">
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col">
                 <a href="/home" className="hover:opacity-80 transition-opacity" title="Retour à l'accueil Atlas F&amp;A">
                   <span
                     className="text-white font-bold atlas-brand"
                     style={{ fontSize: 'calc(1.25rem + 0.5pt)' }}
                   >Atlas F&A</span>
                 </a>
+                {companyName && (
+                  <span className="text-[0.65rem] text-white/60 truncate max-w-[12rem] leading-tight">{companyName}</span>
+                )}
               </div>
               <button
                 type="button"
