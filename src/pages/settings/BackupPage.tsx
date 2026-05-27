@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { db } from '../../lib/db';
 import {
   HardDrive,
   Cloud,
@@ -27,7 +28,8 @@ import {
   ChevronRight,
   Info,
   History,
-  Filter
+  Filter,
+  XCircle
 } from 'lucide-react';
 import {
   Card,
@@ -93,6 +95,86 @@ const BackupPage: React.FC = () => {
   const [showKeyGenerator, setShowKeyGenerator] = useState(false);
   const [showCloudTestModal, setShowCloudTestModal] = useState(false);
   const [cloudConnectionStatus, setCloudConnectionStatus] = useState<'testing' | 'success' | 'error' | null>(null);
+
+  // Reset state
+  const [showResetConfirm, setShowResetConfirm] = useState<string | null>(null); // null | 'thirdParties' | 'journalEntries' | 'all'
+  const [resetInProgress, setResetInProgress] = useState(false);
+  const [resetDone, setResetDone] = useState<string | null>(null);
+
+  const RESET_GROUPS = [
+    {
+      key: 'thirdParties',
+      label: 'Clients & Fournisseurs',
+      description: 'Supprime tous les tiers (clients, fournisseurs, contacts)',
+      tables: ['thirdParties'],
+      color: 'bg-orange-50 border-orange-200 text-orange-800',
+      icon: '👥',
+    },
+    {
+      key: 'journalEntries',
+      label: 'Écritures comptables',
+      description: 'Supprime toutes les écritures du journal',
+      tables: ['journalEntries'],
+      color: 'bg-yellow-50 border-yellow-200 text-yellow-800',
+      icon: '📒',
+    },
+    {
+      key: 'assets',
+      label: 'Immobilisations',
+      description: 'Supprime le registre des biens',
+      tables: ['assets'],
+      color: 'bg-blue-50 border-blue-200 text-blue-800',
+      icon: '🏭',
+    },
+    {
+      key: 'budgets',
+      label: 'Budgets',
+      description: 'Supprime les lignes budgétaires',
+      tables: ['budgetLines'],
+      color: 'bg-purple-50 border-purple-200 text-purple-800',
+      icon: '📊',
+    },
+    {
+      key: 'treasury',
+      label: 'Trésorerie',
+      description: 'Supprime les positions de couverture et ordres de paiement',
+      tables: ['hedgingPositions', 'paymentOrders', 'loanSchedules', 'checks'],
+      color: 'bg-cyan-50 border-cyan-200 text-cyan-800',
+      icon: '💵',
+    },
+    {
+      key: 'all',
+      label: '🔴 Tout réinitialiser',
+      description: 'Efface TOUTES les données de la base locale (écritures, tiers, budgets, immobilisations, trésorerie…). IRRÉVERSIBLE.',
+      tables: [
+        'journalEntries', 'thirdParties', 'assets', 'budgetLines',
+        'hedgingPositions', 'paymentOrders', 'loanSchedules', 'checks',
+        'recoveryCases', 'taxDeclarations', 'taxRegistry', 'provisions',
+        'inventoryItems', 'stockMovements', 'revisionItems', 'closureSessions',
+        'exchangeRates', 'fiscalPeriods', 'cashMovements', 'cashRegisterSessions',
+      ],
+      color: 'bg-red-50 border-red-300 text-red-900',
+      icon: '🗑️',
+    },
+  ] as const;
+
+  const handleReset = async (key: string) => {
+    const group = RESET_GROUPS.find(g => g.key === key);
+    if (!group) return;
+    setResetInProgress(true);
+    try {
+      for (const table of group.tables) {
+        await (db as any)[table]?.clear();
+      }
+      setResetDone(key);
+      setTimeout(() => setResetDone(null), 4000);
+    } catch (err) {
+      console.error('Erreur réinitialisation:', err);
+    } finally {
+      setResetInProgress(false);
+      setShowResetConfirm(null);
+    }
+  };
 
   // Mock backups data
   const backups: Backup[] = [
@@ -312,6 +394,7 @@ const BackupPage: React.FC = () => {
           <TabsTrigger value="schedule">Planification</TabsTrigger>
           <TabsTrigger value="restore">Restauration</TabsTrigger>
           <TabsTrigger value="settings">{t('navigation.settings')}</TabsTrigger>
+          <TabsTrigger value="reset" className="text-red-600">Réinitialisation</TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
@@ -860,7 +943,141 @@ const BackupPage: React.FC = () => {
             </Card>
           </div>
         </TabsContent>
+
+        {/* ====== RESET TAB ====== */}
+        <TabsContent value="reset" className="space-y-6">
+          {/* Warning banner */}
+          <div className="flex items-start gap-3 p-4 rounded-lg bg-red-50 border border-red-200">
+            <AlertTriangle className="h-6 w-6 text-red-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="font-semibold text-red-800">Zone de réinitialisation — données supprimées définitivement</p>
+              <p className="text-sm text-red-700 mt-1">
+                Ces actions effacent les données de la base IndexedDB locale du navigateur.
+                Elles sont <strong>irréversibles</strong>. Faites une sauvegarde avant de procéder.
+              </p>
+            </div>
+          </div>
+
+          {/* Success message */}
+          {resetDone && (
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-green-50 border border-green-200 text-green-800">
+              <CheckCircle className="h-5 w-5" />
+              <span className="text-sm font-medium">Réinitialisation effectuée avec succès. Rechargez la page pour voir les changements.</span>
+              <Button variant="outline" size="sm" className="ml-auto" onClick={() => window.location.reload()}>
+                Recharger
+              </Button>
+            </div>
+          )}
+
+          {/* Reset groups grid */}
+          <div className="grid gap-4 md:grid-cols-2">
+            {RESET_GROUPS.filter(g => g.key !== 'all').map((group) => (
+              <Card key={group.key} className={`border-2 ${group.color.includes('border') ? '' : ''}`}>
+                <CardContent className="p-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-lg">{group.icon}</span>
+                        <p className="font-semibold text-[var(--color-text-primary)]">{group.label}</p>
+                      </div>
+                      <p className="text-sm text-[var(--color-text-secondary)]">{group.description}</p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-red-300 text-red-600 hover:bg-red-50 flex-shrink-0"
+                      onClick={() => setShowResetConfirm(group.key)}
+                      disabled={resetInProgress}
+                    >
+                      <Database className="mr-1 h-4 w-4" />
+                      Vider
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Full reset */}
+          <Card className="border-2 border-red-400">
+            <CardContent className="p-5">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="font-bold text-red-800 text-base flex items-center gap-2">
+                    🗑️ Réinitialisation complète
+                  </p>
+                  <p className="text-sm text-red-700 mt-1">
+                    Efface TOUTES les données de la base locale : écritures, tiers, budgets, immobilisations, trésorerie, taxes, stock, recouvrement…
+                    <br /><strong>L'application repart à zéro.</strong>
+                  </p>
+                </div>
+                <Button
+                  className="bg-red-600 hover:bg-red-700 text-white flex-shrink-0"
+                  onClick={() => setShowResetConfirm('all')}
+                  disabled={resetInProgress}
+                >
+                  <AlertTriangle className="mr-2 h-4 w-4" />
+                  Tout effacer
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
+
+      {/* Modal: Confirmation Réinitialisation */}
+      <Dialog open={!!showResetConfirm} onOpenChange={() => setShowResetConfirm(null)}>
+        <DialogContent className="bg-white">
+          <DialogHeader>
+            <DialogTitle className="text-red-700 flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5" />
+              {showResetConfirm === 'all' ? 'Réinitialisation complète' : `Vider : ${RESET_GROUPS.find(g => g.key === showResetConfirm)?.label}`}
+            </DialogTitle>
+            <DialogDescription>
+              <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-sm text-red-800 font-medium">⚠️ Cette action est irréversible.</p>
+                <p className="text-sm text-red-700 mt-1">
+                  {showResetConfirm === 'all'
+                    ? 'Toutes les données locales seront effacées définitivement.'
+                    : `Les données "${RESET_GROUPS.find(g => g.key === showResetConfirm)?.label}" seront effacées définitivement.`}
+                </p>
+              </div>
+              <p className="text-sm text-[var(--color-text-secondary)] mt-3">
+                Tapez <strong>CONFIRMER</strong> dans le champ ci-dessous pour valider.
+              </p>
+              <Input
+                id="reset-confirm-input"
+                placeholder="CONFIRMER"
+                className="mt-2"
+                autoFocus
+              />
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowResetConfirm(null)} disabled={resetInProgress}>
+              Annuler
+            </Button>
+            <Button
+              className="bg-red-600 hover:bg-red-700 text-white"
+              disabled={resetInProgress}
+              onClick={() => {
+                const input = document.getElementById('reset-confirm-input') as HTMLInputElement;
+                if (input?.value !== 'CONFIRMER') {
+                  toast.error('Tapez exactement "CONFIRMER" pour valider.');
+                  return;
+                }
+                handleReset(showResetConfirm!);
+              }}
+            >
+              {resetInProgress ? (
+                <><RefreshCw className="mr-2 h-4 w-4 animate-spin" />En cours...</>
+              ) : (
+                <><AlertTriangle className="mr-2 h-4 w-4" />Confirmer la suppression</>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Modal: Nouvelle Planification */}
       <Dialog open={showNewScheduleModal} onOpenChange={setShowNewScheduleModal}>
