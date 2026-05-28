@@ -437,7 +437,7 @@ const AtlasFnAHome: React.FC = () => {
                 <div className="flex items-center gap-2 flex-wrap mb-1">
                   <span className="chip chip-gold" style={{ padding: '0.25rem 0.625rem' }}>Insight du jour</span>
                   <span className="eyebrow-gold">
-                    <span className="brand-script" style={{ fontSize: '1.15em', color: 'var(--color-accent-deep)', letterSpacing: 'normal' }}>Proph3t</span>
+                    <span className="brand-script" style={{ fontSize: '1.15em', color: 'var(--color-accent-deep)', letterSpacing: 'normal', textTransform: 'none' }}>Proph3t</span>
                     {' · Confiance 86 %'}
                   </span>
                 </div>

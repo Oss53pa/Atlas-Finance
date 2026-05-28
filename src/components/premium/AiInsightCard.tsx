@@ -55,7 +55,7 @@ const AiInsightCard: React.FC<AiInsightCardProps> = ({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="chip chip-gold">{title}</span>
-            <span className="eyebrow-gold">{source}</span>
+            <span className="eyebrow-gold" style={{ textTransform: 'none' }}>{source}</span>
             {confidence !== undefined && (
               <span className="eyebrow num-tabular" style={{ color: 'var(--color-text-tertiary)' }}>
                 · Confiance {confidence} %

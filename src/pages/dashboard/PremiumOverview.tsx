@@ -484,7 +484,7 @@ const PremiumOverview: React.FC = () => {
           <div className="flex items-center gap-2">
             <span className="gold-dot" />
             <span className="eyebrow-gold">
-              <span className="atlas-brand" style={{ fontSize: '1.1em', letterSpacing: 'normal' }}>Atlas F&A</span>
+              <span className="atlas-brand" style={{ fontSize: '1.1em', letterSpacing: 'normal', textTransform: 'none' }}>Atlas F&A</span>
               {' · v3.0 · SYSCOHADA révisé 2017 · OHADA 17 pays'}
             </span>
           </div>
