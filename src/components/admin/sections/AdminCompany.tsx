@@ -20,6 +20,20 @@ const tabs = [
 
 const OHADA_COUNTRIES = ['Cote d\'Ivoire','Cameroun','Senegal','Gabon','Congo','Tchad','RCA','Mali','Burkina Faso','Niger','Togo','Benin','Guinee Equatoriale','Comores','Guinee','Guinee-Bissau','RDC'];
 
+// --- Sub-components defined OUTSIDE AdminCompany to prevent remount on every render ---
+const Modal: React.FC<{ title:string;onClose:()=>void;onSubmit:()=>void;submitLabel?:string;children:React.ReactNode }> = ({ title,onClose,onSubmit,submitLabel='Enregistrer',children }) => (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
+    <div className="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto" onClick={e=>e.stopPropagation()}>
+      <div className="flex items-center justify-between px-6 py-4 border-b"><h3 className="text-lg font-semibold text-gray-900">{title}</h3><button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button></div>
+      <div className="px-6 py-4 space-y-4">{children}</div>
+      <div className="flex justify-end gap-3 px-6 py-4 border-t"><button onClick={onClose} className="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">Annuler</button><button onClick={onSubmit} className="px-4 py-2 text-sm text-white rounded-lg hover:opacity-90" style={{backgroundColor:'#C0322B'}}>{submitLabel}</button></div>
+    </div>
+  </div>
+);
+const InputField: React.FC<{ label:string;value:string;onChange:(v:string)=>void;type?:string;required?:boolean;placeholder?:string }> = ({ label,value,onChange,type='text',required,placeholder }) => (<div><label className="block text-sm font-medium text-gray-700 mb-1">{label}{required&&<span className="text-red-500 ml-1">*</span>}</label><input type={type} value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none" /></div>);
+const SelectField: React.FC<{ label:string;value:string;onChange:(v:string)=>void;options:{value:string;label:string}[];required?:boolean }> = ({ label,value,onChange,options,required }) => (<div><label className="block text-sm font-medium text-gray-700 mb-1">{label}{required&&<span className="text-red-500 ml-1">*</span>}</label><select value={value} onChange={e=>onChange(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none bg-white">{options.map(o=><option key={o.value} value={o.value}>{o.label}</option>)}</select></div>);
+const Badge: React.FC<{ text:string;color?:string }> = ({ text,color='gray' }) => { const c: Record<string,string> = { green:'bg-green-100 text-green-700',red:'bg-red-100 text-red-700',blue:'bg-blue-100 text-blue-700',yellow:'bg-yellow-100 text-yellow-700',gray:'bg-gray-100 text-gray-700',primary:'bg-primary-100 text-primary-700' }; return <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${c[color]||c.gray}`}>{text}</span>; };
+
 const AdminCompany: React.FC<Props> = ({ subTab, setSubTab }) => {
   const { adapter } = useData();
   const [loading, setLoading] = useState(true);
@@ -74,19 +88,6 @@ const AdminCompany: React.FC<Props> = ({ subTab, setSubTab }) => {
   const handleExerciceSubmit = async () => { if (!exerciceForm.debut||!exerciceForm.fin) { toast.error('Les dates de debut et de fin sont obligatoires'); return; } try { await adapter.create('fiscalYears', { code: exerciceForm.code, name: `Exercice ${exerciceForm.code}`, startDate: exerciceForm.debut, endDate: exerciceForm.fin, isClosed: false, isActive: true }); toast.success(`Exercice ${exerciceForm.code} cree avec succes`); setShowExerciceModal(false); setExerciceForm({ debut:'',fin:'',code:'',periodes:'12' }); await loadData(); } catch (err) { /* silent */ toast.error('Erreur lors de la creation de l\'exercice'); } };
 
   const filteredAccounts = accounts.filter((a) => { const ms = !accountSearch||a.numero.includes(accountSearch)||a.libelle.toLowerCase().includes(accountSearch.toLowerCase()); const mc = !accountClasseFilter||a.classe===Number(accountClasseFilter); const mt = !accountTypeFilter||a.type===accountTypeFilter; return ms&&mc&&mt; });
-
-  const Modal: React.FC<{ title:string;onClose:()=>void;onSubmit:()=>void;submitLabel?:string;children:React.ReactNode }> = ({ title,onClose,onSubmit,submitLabel='Enregistrer',children }) => (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto" onClick={e=>e.stopPropagation()}>
-        <div className="flex items-center justify-between px-6 py-4 border-b"><h3 className="text-lg font-semibold text-gray-900">{title}</h3><button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button></div>
-        <div className="px-6 py-4 space-y-4">{children}</div>
-        <div className="flex justify-end gap-3 px-6 py-4 border-t"><button onClick={onClose} className="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">Annuler</button><button onClick={onSubmit} className="px-4 py-2 text-sm text-white rounded-lg hover:opacity-90" style={{backgroundColor:'#C0322B'}}>{submitLabel}</button></div>
-      </div>
-    </div>
-  );
-  const InputField: React.FC<{ label:string;value:string;onChange:(v:string)=>void;type?:string;required?:boolean;placeholder?:string }> = ({ label,value,onChange,type='text',required,placeholder }) => (<div><label className="block text-sm font-medium text-gray-700 mb-1">{label}{required&&<span className="text-red-500 ml-1">*</span>}</label><input type={type} value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none" /></div>);
-  const SelectField: React.FC<{ label:string;value:string;onChange:(v:string)=>void;options:{value:string;label:string}[];required?:boolean }> = ({ label,value,onChange,options,required }) => (<div><label className="block text-sm font-medium text-gray-700 mb-1">{label}{required&&<span className="text-red-500 ml-1">*</span>}</label><select value={value} onChange={e=>onChange(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none bg-white">{options.map(o=><option key={o.value} value={o.value}>{o.label}</option>)}</select></div>);
-  const Badge: React.FC<{ text:string;color?:string }> = ({ text,color='gray' }) => { const c: Record<string,string> = { green:'bg-green-100 text-green-700',red:'bg-red-100 text-red-700',blue:'bg-blue-100 text-blue-700',yellow:'bg-yellow-100 text-yellow-700',gray:'bg-gray-100 text-gray-700',primary:'bg-primary-100 text-primary-700' }; return <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${c[color]||c.gray}`}>{text}</span>; };
 
   if (loading) return <div className="flex items-center justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-gray-400" /><span className="ml-2 text-gray-500">Chargement...</span></div>;
 

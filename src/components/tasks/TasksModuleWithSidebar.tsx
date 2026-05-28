@@ -52,6 +52,69 @@ interface Task {
   comments?: number;
 }
 
+// Pure helpers and sub-components defined at module level to avoid remount on every render
+const getProgressColor = (progress: number) => {
+  if (progress >= 90) return 'bg-green-500';
+  if (progress >= 60) return 'bg-[var(--color-primary)]';
+  if (progress >= 30) return 'bg-[#E89A2E]';
+  return 'bg-[var(--color-text-secondary)]';
+};
+
+const TaskCard: React.FC<{ task: Task }> = ({ task }) => (
+  <div className="bg-white rounded-lg p-4 mb-3 border border-gray-200 hover:shadow-md transition-shadow">
+    {/* Tags */}
+    {task.tags && task.tags.length > 0 && (
+      <div className="flex gap-1 mb-2">
+        {task.tags.map((tag, idx) => (
+          <span key={idx} className={`text-xs px-2 py-1 rounded-full ${
+            idx === 0 ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]' : 'bg-[var(--color-text-secondary)]/10 text-[var(--color-text-secondary)]'
+          }`}>
+            {tag}
+          </span>
+        ))}
+      </div>
+    )}
+    {/* Title */}
+    <h4 className="font-medium text-gray-900 mb-2 text-sm">{task.title}</h4>
+    {/* Description */}
+    {task.description && (
+      <p className="text-xs text-gray-700 mb-3">{task.description}</p>
+    )}
+    {/* Progress Bar */}
+    {task.progress !== undefined && (
+      <div className="mb-3">
+        <div className="flex justify-between text-xs text-gray-600 mb-1">
+          <span>Progression</span>
+          <span>{task.progress}%</span>
+        </div>
+        <div className="w-full h-1.5 bg-gray-200 rounded-full">
+          <div
+            className={`h-full rounded-full ${getProgressColor(task.progress)}`}
+            style={{ width: `${task.progress}%` }}
+          />
+        </div>
+      </div>
+    )}
+    {/* Footer */}
+    <div className="flex items-center justify-between mt-3">
+      <div className="flex items-center gap-3">
+        <div className="flex -space-x-2">
+          <div className="w-6 h-6 rounded-full bg-[var(--color-primary)]/20 border-2 border-white flex items-center justify-center">
+            <User className="w-3 h-3 text-[var(--color-primary)]" />
+          </div>
+        </div>
+        {task.attachments ? (
+          <span className="text-xs text-gray-700 flex items-center gap-1">{task.attachments}</span>
+        ) : null}
+        <span className="text-xs text-gray-700 flex items-center gap-1">{task.comments || 0}</span>
+      </div>
+      <button className="p-1 hover:bg-gray-100 rounded">
+        <MoreVertical className="w-4 h-4 text-gray-700" />
+      </button>
+    </div>
+  </div>
+);
+
 const TasksModuleWithSidebar: React.FC = () => {
   const { t } = useLanguage();
   // Pas de donnees mock — partir d une liste vide.
@@ -75,13 +138,6 @@ const TasksModuleWithSidebar: React.FC = () => {
     { id: 'clients', label: t('navigation.clients'), icon: UserCheck },
   ];
 
-  const getProgressColor = (progress: number) => {
-    if (progress >= 90) return 'bg-green-500';
-    if (progress >= 60) return 'bg-[var(--color-primary)]';
-    if (progress >= 30) return 'bg-[#E89A2E]';
-    return 'bg-[var(--color-text-secondary)]';
-  };
-
   const filteredTasks = tasks.filter(task => {
     if (filter !== 'all' && task.status !== filter) return false;
     if (searchTerm && !task.title.toLowerCase().includes(searchTerm.toLowerCase())) return false;
@@ -94,78 +150,6 @@ const TasksModuleWithSidebar: React.FC = () => {
     review: filteredTasks.filter(t => t.status === 'review'),
     done: filteredTasks.filter(t => t.status === 'done')
   };
-
-  const TaskCard: React.FC<{ task: Task }> = ({ task }) => (
-    <div className="bg-white rounded-lg p-4 mb-3 border border-gray-200 hover:shadow-md transition-shadow">
-      {/* Tags */}
-      {task.tags && task.tags.length > 0 && (
-        <div className="flex gap-1 mb-2">
-          {task.tags.map((tag, idx) => (
-            <span key={idx} className={`text-xs px-2 py-1 rounded-full ${
-              idx === 0 ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]' : 'bg-[var(--color-text-secondary)]/10 text-[var(--color-text-secondary)]'
-            }`}>
-              {tag}
-            </span>
-          ))}
-        </div>
-      )}
-
-      {/* Title */}
-      <h4 className="font-medium text-gray-900 mb-2 text-sm">
-        {task.title}
-      </h4>
-
-      {/* Description */}
-      {task.description && (
-        <p className="text-xs text-gray-700 mb-3">{task.description}</p>
-      )}
-
-      {/* Progress Bar */}
-      {task.progress !== undefined && (
-        <div className="mb-3">
-          <div className="flex justify-between text-xs text-gray-600 mb-1">
-            <span>Progression</span>
-            <span>{task.progress}%</span>
-          </div>
-          <div className="w-full h-1.5 bg-gray-200 rounded-full">
-            <div
-              className={`h-full rounded-full ${getProgressColor(task.progress)}`}
-              style={{ width: `${task.progress}%` }}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Footer */}
-      <div className="flex items-center justify-between mt-3">
-        <div className="flex items-center gap-3">
-          {/* Assignees */}
-          <div className="flex -space-x-2">
-            <div className="w-6 h-6 rounded-full bg-[var(--color-primary)]/20 border-2 border-white flex items-center justify-center">
-              <User className="w-3 h-3 text-[var(--color-primary)]" />
-            </div>
-          </div>
-
-          {/* Attachments */}
-          {task.attachments ? (
-            <span className="text-xs text-gray-700 flex items-center gap-1">
-              {task.attachments}
-            </span>
-          ) : null}
-
-          {/* Comments */}
-          <span className="text-xs text-gray-700 flex items-center gap-1">
-            {task.comments || 0}
-          </span>
-        </div>
-
-        {/* Action Menu */}
-        <button className="p-1 hover:bg-gray-100 rounded">
-          <MoreVertical className="w-4 h-4 text-gray-700" />
-        </button>
-      </div>
-    </div>
-  );
 
   return (
     <div className="flex h-screen bg-gray-50">

@@ -37,10 +37,89 @@ interface Task {
   progress?: number;
 }
 
+// Pure helper — defined at module level to avoid remount on every render
+const getPriorityIcon = (priority: string) => {
+  switch (priority) {
+    case 'urgent':
+      return <ArrowUp className="w-4 h-4 text-red-500" />;
+    case 'high':
+      return <ArrowUp className="w-4 h-4 text-orange-500" />;
+    case 'medium':
+      return <ArrowRight className="w-4 h-4 text-yellow-500" />;
+    case 'low':
+      return <ArrowDown className="w-4 h-4 text-green-500" />;
+    default:
+      return null;
+  }
+};
+
+// TaskCard defined at module level to prevent remount on parent re-render
+const TaskCard: React.FC<{ task: Task; onToggleStatus: (id: string) => void }> = ({ task, onToggleStatus }) => (
+  <div className="bg-white rounded-lg p-4 mb-3 border border-gray-200 hover:shadow-md transition-shadow">
+    <div className="flex items-start justify-between mb-2">
+      <div className="flex items-start gap-3 flex-1">
+        <button onClick={() => onToggleStatus(task.id)} className="mt-1">
+          {task.status === 'done' ?
+            <CheckCircle2 className="w-5 h-5 text-green-500" /> :
+            <Circle className="w-5 h-5 text-gray-700" />
+          }
+        </button>
+        <div className="flex-1">
+          <h4 className={`font-medium ${task.status === 'done' ? 'line-through text-gray-700' : ''}`}>
+            {task.title}
+          </h4>
+          {task.description && (
+            <p className="text-sm text-gray-600 mt-1">{task.description}</p>
+          )}
+          <div className="flex items-center gap-4 mt-2">
+            {task.dueDate && (
+              <div className="flex items-center gap-1 text-xs text-gray-700">
+                <Calendar className="w-3 h-3" />
+                {new Date(task.dueDate).toLocaleDateString()}
+              </div>
+            )}
+            {task.assignee && (
+              <div className="flex items-center gap-1 text-xs text-gray-700">
+                <User className="w-3 h-3" />
+                {task.assignee}
+              </div>
+            )}
+            {task.progress !== undefined && (
+              <div className="flex items-center gap-2">
+                <div className="w-20 h-1.5 bg-gray-200 rounded-full">
+                  <div
+                    className="h-full bg-[var(--color-primary)] rounded-full"
+                    style={{ width: `${task.progress}%` }}
+                  />
+                </div>
+                <span className="text-xs text-gray-700">{task.progress}%</span>
+              </div>
+            )}
+          </div>
+          {task.tags && task.tags.length > 0 && (
+            <div className="flex gap-1 mt-2">
+              {task.tags.map(tag => (
+                <span key={tag} className="px-2 py-1 bg-gray-100 text-xs rounded-full">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        {getPriorityIcon(task.priority)}
+        <button className="p-1 hover:bg-gray-100 rounded">
+          <MoreVertical className="w-4 h-4 text-gray-700" />
+        </button>
+      </div>
+    </div>
+  </div>
+);
+
+const TasksModule: React.FC = () => {
   // Pas de donnees mock — partir d une liste vide.
   const [tasks, setTasks] = useState<Task[]>([]);
-const TasksModule: React.FC = () => {
-
   const [filter, setFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [showNewTask, setShowNewTask] = useState(false);
@@ -59,21 +138,6 @@ const TasksModule: React.FC = () => {
       'done': 'bg-green-100 text-green-700'
     };
     return colors[status as keyof typeof colors] || colors.todo;
-  };
-
-  const getPriorityIcon = (priority: string) => {
-    switch (priority) {
-      case 'urgent':
-        return <ArrowUp className="w-4 h-4 text-red-500" />;
-      case 'high':
-        return <ArrowUp className="w-4 h-4 text-orange-500" />;
-      case 'medium':
-        return <ArrowRight className="w-4 h-4 text-yellow-500" />;
-      case 'low':
-        return <ArrowDown className="w-4 h-4 text-green-500" />;
-      default:
-        return null;
-    }
   };
 
   const filteredTasks = tasks.filter(task => {
@@ -119,72 +183,6 @@ const TasksModule: React.FC = () => {
     setNewTask({ title: '', description: '', priority: 'medium', dueDate: '' });
     setShowNewTask(false);
   };
-
-  const TaskCard: React.FC<{ task: Task }> = ({ task }) => (
-    <div className="bg-white rounded-lg p-4 mb-3 border border-gray-200 hover:shadow-md transition-shadow">
-      <div className="flex items-start justify-between mb-2">
-        <div className="flex items-start gap-3 flex-1">
-          <button
-            onClick={() => toggleTaskStatus(task.id)}
-            className="mt-1"
-          >
-            {task.status === 'done' ?
-              <CheckCircle2 className="w-5 h-5 text-green-500" /> :
-              <Circle className="w-5 h-5 text-gray-700" />
-            }
-          </button>
-          <div className="flex-1">
-            <h4 className={`font-medium ${task.status === 'done' ? 'line-through text-gray-700' : ''}`}>
-              {task.title}
-            </h4>
-            {task.description && (
-              <p className="text-sm text-gray-600 mt-1">{task.description}</p>
-            )}
-            <div className="flex items-center gap-4 mt-2">
-              {task.dueDate && (
-                <div className="flex items-center gap-1 text-xs text-gray-700">
-                  <Calendar className="w-3 h-3" />
-                  {new Date(task.dueDate).toLocaleDateString()}
-                </div>
-              )}
-              {task.assignee && (
-                <div className="flex items-center gap-1 text-xs text-gray-700">
-                  <User className="w-3 h-3" />
-                  {task.assignee}
-                </div>
-              )}
-              {task.progress !== undefined && (
-                <div className="flex items-center gap-2">
-                  <div className="w-20 h-1.5 bg-gray-200 rounded-full">
-                    <div
-                      className="h-full bg-[var(--color-primary)] rounded-full"
-                      style={{ width: `${task.progress}%` }}
-                    />
-                  </div>
-                  <span className="text-xs text-gray-700">{task.progress}%</span>
-                </div>
-              )}
-            </div>
-            {task.tags && task.tags.length > 0 && (
-              <div className="flex gap-1 mt-2">
-                {task.tags.map(tag => (
-                  <span key={tag} className="px-2 py-1 bg-gray-100 text-xs rounded-full">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          {getPriorityIcon(task.priority)}
-          <button className="p-1 hover:bg-gray-100 rounded">
-            <MoreVertical className="w-4 h-4 text-gray-700" />
-          </button>
-        </div>
-      </div>
-    </div>
-  );
 
   return (
     <div className="h-full bg-gray-50">
@@ -254,7 +252,7 @@ const TasksModule: React.FC = () => {
               </span>
             </div>
             {tasksByStatus.todo.map(task => (
-              <TaskCard key={task.id} task={task} />
+              <TaskCard key={task.id} task={task} onToggleStatus={toggleTaskStatus} />
             ))}
           </div>
 
@@ -270,7 +268,7 @@ const TasksModule: React.FC = () => {
               </span>
             </div>
             {tasksByStatus['in-progress'].map(task => (
-              <TaskCard key={task.id} task={task} />
+              <TaskCard key={task.id} task={task} onToggleStatus={toggleTaskStatus} />
             ))}
           </div>
 
@@ -286,7 +284,7 @@ const TasksModule: React.FC = () => {
               </span>
             </div>
             {tasksByStatus.review.map(task => (
-              <TaskCard key={task.id} task={task} />
+              <TaskCard key={task.id} task={task} onToggleStatus={toggleTaskStatus} />
             ))}
           </div>
 
@@ -302,7 +300,7 @@ const TasksModule: React.FC = () => {
               </span>
             </div>
             {tasksByStatus.done.map(task => (
-              <TaskCard key={task.id} task={task} />
+              <TaskCard key={task.id} task={task} onToggleStatus={toggleTaskStatus} />
             ))}
           </div>
         </div>

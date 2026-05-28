@@ -182,6 +182,113 @@ interface TaskLink {
   targetTaskId: string;
 }
 
+// CompleteTaskCard defined at module level — prevents remount/focus-loss on every parent render
+const CompleteTaskCard: React.FC<{
+  task: Task;
+  onToggleStatus: (id: string) => void;
+  onSelect: (task: Task) => void;
+  getPriorityIcon: (priority: string) => React.ReactNode;
+}> = ({ task, onToggleStatus, onSelect, getPriorityIcon }) => (
+  <div className="bg-white rounded-lg p-4 mb-3 border border-gray-200 hover:shadow-lg transition-all cursor-pointer group">
+    <div className="flex items-start justify-between mb-2">
+      <div className="flex items-start gap-3 flex-1">
+        <button
+          onClick={(e) => { e.stopPropagation(); onToggleStatus(task.id); }}
+          className="mt-1 transition-transform hover:scale-110"
+        >
+          {task.status === 'done' ?
+            <CheckCircle2 className="w-5 h-5 text-green-500" /> :
+            task.status === 'blocked' ?
+            <AlertCircle className="w-5 h-5 text-orange-500" /> :
+            <Circle className="w-5 h-5 text-gray-700" />
+          }
+        </button>
+        <div className="flex-1" onClick={() => onSelect(task)}>
+          <h4 className={`font-medium ${task.status === 'done' ? 'line-through text-gray-700' : ''}`}>
+            {task.title}
+          </h4>
+          {task.description && (
+            <p className="text-sm text-gray-600 mt-1 line-clamp-2">{task.description}</p>
+          )}
+          <div className="flex flex-wrap items-center gap-3 mt-3">
+            {task.dueDate && (
+              <div className={`flex items-center gap-1 text-xs ${
+                new Date(task.dueDate) < new Date() && task.status !== 'done' ? 'text-red-500' : 'text-gray-700'
+              }`}>
+                <Calendar className="w-3 h-3" />
+                {new Date(task.dueDate).toLocaleDateString()}
+              </div>
+            )}
+            {task.assignee && (
+              <div className="flex items-center gap-1 text-xs text-gray-700">
+                <User className="w-3 h-3" />
+                {task.assignee}
+              </div>
+            )}
+            {task.estimatedHours && (
+              <div className="flex items-center gap-1 text-xs text-gray-700">
+                <Timer className="w-3 h-3" />
+                {task.actualHours || 0}/{task.estimatedHours}h
+              </div>
+            )}
+            {task.budget && (
+              <div className="flex items-center gap-1 text-xs text-gray-700">
+                <DollarSign className="w-3 h-3" />
+                {task.actualCost || 0}/{task.budget}
+              </div>
+            )}
+            {task.isRecurring && <Repeat className="w-3 h-3 text-blue-500" />}
+            {task.attachments && task.attachments.length > 0 && (
+              <div className="flex items-center gap-1 text-xs text-gray-700">
+                <Paperclip className="w-3 h-3" />
+                {task.attachments.length}
+              </div>
+            )}
+            {task.comments && task.comments.length > 0 && (
+              <div className="flex items-center gap-1 text-xs text-gray-700">
+                <MessageSquare className="w-3 h-3" />
+                {task.comments.length}
+              </div>
+            )}
+            {task.subTasks && task.subTasks.length > 0 && (
+              <div className="flex items-center gap-1 text-xs text-gray-700">
+                <CheckSquare className="w-3 h-3" />
+                {task.subTasks.filter(st => st.completed).length}/{task.subTasks.length}
+              </div>
+            )}
+          </div>
+          {task.progress !== undefined && task.progress > 0 && (
+            <div className="flex items-center gap-2 mt-3">
+              <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-text-secondary)] transition-all duration-500"
+                  style={{ width: `${task.progress}%` }}
+                />
+              </div>
+              <span className="text-xs text-gray-600 font-medium">{task.progress}%</span>
+            </div>
+          )}
+          {task.tags && task.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-3">
+              {task.tags.map(tag => (
+                <span key={tag} className="px-2 py-0.5 bg-gray-100 text-xs rounded-full hover:bg-gray-200 transition-colors">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        {getPriorityIcon(task.priority)}
+        <button onClick={(e) => e.stopPropagation()} className="p-1 hover:bg-gray-100 rounded transition-colors">
+          <MoreVertical className="w-4 h-4 text-gray-700" />
+        </button>
+      </div>
+    </div>
+  </div>
+);
+
 const CompleteTasksModule: React.FC = () => {
   const { t } = useLanguage();
   // Pas de donnees mock — partir d'une liste vide. Les vraies taches
@@ -357,139 +464,6 @@ const CompleteTasksModule: React.FC = () => {
     setTasks(prev => [newTask, ...prev]);
   };
 
-  const TaskCard: React.FC<{ task: Task }> = ({ task }) => (
-    <div className="bg-white rounded-lg p-4 mb-3 border border-gray-200 hover:shadow-lg transition-all cursor-pointer group">
-      <div className="flex items-start justify-between mb-2">
-        <div className="flex items-start gap-3 flex-1">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              toggleTaskStatus(task.id);
-            }}
-            className="mt-1 transition-transform hover:scale-110"
-          >
-            {task.status === 'done' ?
-              <CheckCircle2 className="w-5 h-5 text-green-500" /> :
-              task.status === 'blocked' ?
-              <AlertCircle className="w-5 h-5 text-orange-500" /> :
-              <Circle className="w-5 h-5 text-gray-700" />
-            }
-          </button>
-          <div
-            className="flex-1"
-            onClick={() => {
-              setSelectedTask(task);
-              setShowTaskDetails(true);
-            }}
-          >
-            <h4 className={`font-medium ${task.status === 'done' ? 'line-through text-gray-700' : ''}`}>
-              {task.title}
-            </h4>
-            {task.description && (
-              <p className="text-sm text-gray-600 mt-1 line-clamp-2">{task.description}</p>
-            )}
-
-            <div className="flex flex-wrap items-center gap-3 mt-3">
-              {task.dueDate && (
-                <div className={`flex items-center gap-1 text-xs ${
-                  new Date(task.dueDate) < new Date() && task.status !== 'done'
-                    ? 'text-red-500'
-                    : 'text-gray-700'
-                }`}>
-                  <Calendar className="w-3 h-3" />
-                  {new Date(task.dueDate).toLocaleDateString()}
-                </div>
-              )}
-
-              {task.assignee && (
-                <div className="flex items-center gap-1 text-xs text-gray-700">
-                  <User className="w-3 h-3" />
-                  {task.assignee}
-                </div>
-              )}
-
-              {task.estimatedHours && (
-                <div className="flex items-center gap-1 text-xs text-gray-700">
-                  <Timer className="w-3 h-3" />
-                  {task.actualHours || 0}/{task.estimatedHours}h
-                </div>
-              )}
-
-              {task.budget && (
-                <div className="flex items-center gap-1 text-xs text-gray-700">
-                  <DollarSign className="w-3 h-3" />
-                  {task.actualCost || 0}/{task.budget}
-                </div>
-              )}
-
-              {task.isRecurring && (
-                <Repeat className="w-3 h-3 text-blue-500" />
-              )}
-
-              {task.attachments && task.attachments.length > 0 && (
-                <div className="flex items-center gap-1 text-xs text-gray-700">
-                  <Paperclip className="w-3 h-3" />
-                  {task.attachments.length}
-                </div>
-              )}
-
-              {task.comments && task.comments.length > 0 && (
-                <div className="flex items-center gap-1 text-xs text-gray-700">
-                  <MessageSquare className="w-3 h-3" />
-                  {task.comments.length}
-                </div>
-              )}
-
-              {task.subTasks && task.subTasks.length > 0 && (
-                <div className="flex items-center gap-1 text-xs text-gray-700">
-                  <CheckSquare className="w-3 h-3" />
-                  {task.subTasks.filter(st => st.completed).length}/{task.subTasks.length}
-                </div>
-              )}
-            </div>
-
-            {task.progress !== undefined && task.progress > 0 && (
-              <div className="flex items-center gap-2 mt-3">
-                <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-text-secondary)] transition-all duration-500"
-                    style={{ width: `${task.progress}%` }}
-                  />
-                </div>
-                <span className="text-xs text-gray-600 font-medium">{task.progress}%</span>
-              </div>
-            )}
-
-            {task.tags && task.tags.length > 0 && (
-              <div className="flex flex-wrap gap-1 mt-3">
-                {task.tags.map(tag => (
-                  <span
-                    key={tag}
-                    className="px-2 py-0.5 bg-gray-100 text-xs rounded-full hover:bg-gray-200 transition-colors"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          {getPriorityIcon(task.priority)}
-          <div className="relative">
-            <button
-              onClick={(e) => e.stopPropagation()}
-              className="p-1 hover:bg-gray-100 rounded transition-colors"
-            >
-              <MoreVertical className="w-4 h-4 text-gray-700" />
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
   const KanbanView = () => (
     <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
       {Object.entries(tasksByGroup).map(([group, groupTasks]) => (
@@ -507,7 +481,13 @@ const CompleteTasksModule: React.FC = () => {
           </div>
           <div className="space-y-2">
             {groupTasks.map(task => (
-              <TaskCard key={task.id} task={task} />
+              <CompleteTaskCard
+                key={task.id}
+                task={task}
+                onToggleStatus={toggleTaskStatus}
+                onSelect={(t) => { setSelectedTask(t); setShowTaskDetails(true); }}
+                getPriorityIcon={getPriorityIcon}
+              />
             ))}
           </div>
         </div>
