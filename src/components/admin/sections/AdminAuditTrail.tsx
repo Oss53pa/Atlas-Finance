@@ -48,6 +48,10 @@ const parseDetails = (details: any): Record<string, string> => {
   return details;
 };
 
+const EmptyRow = ({ cols, text }: { cols: number; text: string }) => (
+  <tr><td colSpan={cols} className="px-4 py-8 text-center text-gray-400">{text}</td></tr>
+);
+
 const AdminAuditTrail: React.FC<Props> = ({ subTab, setSubTab }) => {
   const { adapter } = useData();
   const [loading, setLoading] = useState(true);
@@ -128,10 +132,6 @@ const AdminAuditTrail: React.FC<Props> = ({ subTab, setSubTab }) => {
         <input type="text" value={searchText} onChange={e => setSearchText(e.target.value)} placeholder="Rechercher..." className="border rounded px-2 py-1 text-sm" />
       </div>
     </div>
-  );
-
-  const EmptyRow = ({ cols, text }: { cols: number; text: string }) => (
-    <tr><td colSpan={cols} className="px-4 py-8 text-center text-gray-400">{text}</td></tr>
   );
 
   if (loading) {

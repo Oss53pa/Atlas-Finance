@@ -13,6 +13,12 @@ const tabIcons = [Key, Shield, Globe, FileText];
 
 const eventTypes = ['Tous', 'Connexion reussie', 'Connexion echouee', 'Changement role', 'Changement MDP', '2FA desactive', 'Verrouillage compte', 'Export donnees'];
 
+const Toggle = ({ checked, onChange }: { checked: boolean; onChange: () => void }) => (
+  <button type="button" onClick={onChange} className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${checked ? 'bg-blue-600' : 'bg-gray-300'}`}>
+    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${checked ? 'translate-x-6' : 'translate-x-1'}`} />
+  </button>
+);
+
 const AdminSecurity: React.FC<Props> = ({ subTab, setSubTab }) => {
   const { adapter } = useData();
   const [loading, setLoading] = useState(true);
@@ -198,12 +204,6 @@ const AdminSecurity: React.FC<Props> = ({ subTab, setSubTab }) => {
     };
     return <span className={`px-2 py-0.5 rounded text-xs font-medium ${colors[e] || 'bg-gray-100 text-gray-700'}`}>{e}</span>;
   };
-
-  const Toggle = ({ checked, onChange }: { checked: boolean; onChange: () => void }) => (
-    <button type="button" onClick={onChange} className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${checked ? 'bg-blue-600' : 'bg-gray-300'}`}>
-      <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${checked ? 'translate-x-6' : 'translate-x-1'}`} />
-    </button>
-  );
 
   if (loading) {
     return <div className="flex items-center justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-gray-400" /><span className="ml-2 text-gray-500">Chargement...</span></div>;

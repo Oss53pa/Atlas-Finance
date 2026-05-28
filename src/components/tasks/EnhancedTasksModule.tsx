@@ -320,6 +320,689 @@ const EnhancedTaskCard: React.FC<{
   </div>
 );
 
+// ─── Static constants ──────────────────────────────────────────────────────────
+const availableUsers = [
+  { id: 'user1', name: '', role: 'Comptable', team: 'Comptabilité' },
+  { id: 'user2', name: '', role: 'Manager', team: 'Finance' },
+  { id: 'user3', name: '', role: 'Acheteur', team: 'Achats' },
+  { id: 'user4', name: '', role: 'Analyste', team: 'Finance' },
+  { id: 'user5', name: '', role: 'Développeur', team: 'IT' }
+];
+
+// ─── TaskDetailsModal (module level) ────────────────────────────────────────────
+interface TaskDetailsModalProps {
+  selectedTask: Task;
+  setSelectedTask: React.Dispatch<React.SetStateAction<Task | null>>;
+  setShowTaskDetails: (show: boolean) => void;
+  editingTask: boolean;
+  setEditingTask: (b: boolean) => void;
+  newComment: string;
+  setNewComment: (s: string) => void;
+  setTasks: React.Dispatch<React.SetStateAction<Task[]>>;
+  currentUser: string;
+  currentUserId: string;
+  userRole: string;
+  setShowTransferModal: (show: boolean) => void;
+  addComment: () => void;
+  t: (key: string) => string;
+  getStatusColor: (status: string) => string;
+  getPriorityIcon: (priority: string) => React.ReactNode;
+  duplicateTask: (task: Task) => void;
+  deleteTask: (taskId: string) => void;
+}
+
+const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
+  selectedTask, setSelectedTask, setShowTaskDetails, editingTask, setEditingTask,
+  newComment, setNewComment, setTasks, currentUser, currentUserId, userRole,
+  setShowTransferModal, addComment, t, getStatusColor, getPriorityIcon,
+  duplicateTask, deleteTask,
+}) => {
+  if (!selectedTask) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-card rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col border shadow-lg">
+        {/* Header */}
+        <div className="px-6 py-4 border-b flex items-center justify-between bg-muted/50">
+          <div className="flex items-center gap-3">
+            <h2 className="text-lg font-bold text-foreground">Détails de la tâche</h2>
+            <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(selectedTask.status)}`}>
+              {selectedTask.status}
+            </span>
+            <div className="flex items-center gap-1">
+              {getPriorityIcon(selectedTask.priority)}
+              <span className="text-xs capitalize">{selectedTask.priority}</span>
+            </div>
+          </div>
+          <button
+            onClick={() => setShowTaskDetails(false)}
+            className="p-2 hover:bg-muted rounded-lg transition-colors"
+          >
+            <X className="w-5 h-5 text-muted-foreground" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-6">
+            {/* Titre et description */}
+            <div className="mb-6">
+              {editingTask ? (
+                <input
+                  type="text"
+                  value={selectedTask.title}
+                  onChange={(e) => setSelectedTask({...selectedTask, title: e.target.value})}
+                  className="text-lg font-bold w-full px-3 py-2 border rounded-lg mb-3"
+                />
+              ) : (
+                <h3 className="text-lg font-bold text-foreground mb-3">{selectedTask.title}</h3>
+              )}
+
+              {editingTask ? (
+                <textarea
+                  value={selectedTask.description}
+                  onChange={(e) => setSelectedTask({...selectedTask, description: e.target.value})}
+                  className="w-full px-3 py-2 border rounded-lg"
+                  rows={4}
+                />
+              ) : (
+                <p className="text-muted-foreground">{selectedTask.description || 'Aucune description'}</p>
+              )}
+            </div>
+
+            {/* Informations */}
+            <div className="grid grid-cols-2 gap-6 mb-6">
+              <div>
+                <h4 className="font-semibold text-foreground mb-3">Informations</h4>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Statut</span>
+                    <select
+                      value={selectedTask.status}
+                      onChange={(e) => {
+                        const newStatus = e.target.value;
+                        setSelectedTask({...selectedTask, status: newStatus});
+                        setTasks(prev => prev.map(t => {
+                          if (t.id === selectedTask.id) {
+                            const historyEntry: TaskHistory = {
+                              id: Date.now().toString(),
+                              action: 'status_changed',
+                              user: currentUser,
+                              date: new Date(),
+                              oldValue: t.status,
+                              newValue: newStatus,
+                              details: `Statut changé de ${t.status} à ${newStatus}`
+                            };
+                            return {
+                              ...t,
+                              status: newStatus,
+                              modifiedAt: new Date(),
+                              modifiedBy: currentUser,
+                              history: [...(t.history || []), historyEntry]
+                            };
+                          }
+                          return t;
+                        }));
+                      }}
+                      className={`px-2 py-1 text-xs rounded-full border-0 font-medium ${getStatusColor(selectedTask.status)}`}
+                      disabled={userRole === 'comptable' && selectedTask.assigneeId !== currentUserId}
+                    >
+                      <option value="todo" className="text-muted-foreground">À faire</option>
+                      <option value="in-progress" className="text-primary">{t('status.inProgress')}</option>
+                      <option value="review" className="text-warning">Révision</option>
+                      <option value="testing" className="text-info">Test</option>
+                      <option value="done" className="text-success">{t('status.completed')}</option>
+                      <option value="blocked" className="text-destructive">Bloqué</option>
+                    </select>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Assigné à</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">{selectedTask.assignee}</span>
+                      {(userRole === 'manager' || userRole === 'admin') && (
+                        <button
+                          onClick={() => setShowTransferModal(true)}
+                          className="p-1 hover:bg-muted rounded"
+                          title="Transférer la tâche"
+                        >
+                          <ArrowRightLeft className="w-3 h-3 text-muted-foreground" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Équipe</span>
+                    <span className="text-sm font-medium">{selectedTask.assigneeTeam || '-'}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Date de début</span>
+                    <span className="text-sm font-medium">
+                      {selectedTask.startDate ? new Date(selectedTask.startDate).toLocaleDateString() : '-'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Date d'échéance</span>
+                    <span className="text-sm font-medium">
+                      {selectedTask.dueDate ? new Date(selectedTask.dueDate).toLocaleDateString() : '-'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Créé par</span>
+                    <span className="text-sm font-medium">{selectedTask.createdBy || '-'}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Créé le</span>
+                    <span className="text-sm font-medium">
+                      {new Date(selectedTask.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="font-semibold text-foreground mb-3">Métriques</h4>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Progression</span>
+                    <div className="flex items-center gap-2">
+                      <div className="w-24 h-2 bg-muted rounded-full">
+                        <div
+                          className="h-full bg-primary rounded-full"
+                          style={{ width: `${selectedTask.progress || 0}%` }}
+                        />
+                      </div>
+                      <span className="text-sm font-medium">{selectedTask.progress || 0}%</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Heures</span>
+                    <span className="text-sm font-medium">
+                      {selectedTask.actualHours || 0}/{selectedTask.estimatedHours || 0}h
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">{t('navigation.budget')}</span>
+                    <span className="text-sm font-medium">
+                      {selectedTask.actualCost || 0}€/{selectedTask.budget || 0}€
+                    </span>
+                  </div>
+                  {selectedTask.tags && selectedTask.tags.length > 0 && (
+                    <div>
+                      <span className="text-sm text-muted-foreground">Tags</span>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {selectedTask.tags.map(tag => (
+                          <span key={tag} className="px-2 py-1 bg-secondary text-xs rounded-full">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Checklist */}
+            {selectedTask.checklist && selectedTask.checklist.length > 0 && (
+              <div className="mb-6">
+                <h4 className="font-semibold text-foreground mb-3">Checklist</h4>
+                <div className="space-y-2">
+                  {selectedTask.checklist.map(item => (
+                    <div key={item.id} className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={item.completed}
+                        onChange={() => {
+                          // Mise à jour checklist
+                        }}
+                        className="rounded border-input text-primary focus:ring-primary"
+                      />
+                      <span className={item.completed ? 'line-through text-muted-foreground' : 'text-foreground'}>
+                        {item.text}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Commentaires */}
+            <div className="mb-6">
+              <h4 className="font-semibold text-foreground mb-3">Commentaires</h4>
+              <div className="space-y-3 mb-4">
+                {selectedTask.comments?.map(comment => (
+                  <div key={comment.id} className="bg-muted/50 rounded-lg p-3">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm font-medium">{comment.author}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(comment.createdAt).toLocaleString()}
+                      </span>
+                    </div>
+                    <p className="text-sm text-foreground">{comment.text}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && addComment()}
+                  placeholder="Ajouter un commentaire..."
+                  className="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+                />
+                <button
+                  onClick={addComment}
+                  className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
+                >
+                  <Send className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Pièces jointes */}
+            <div className="mb-6">
+              <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+                <Paperclip className="w-4 h-4" />
+                Pièces jointes
+              </h4>
+              <div className="space-y-2 mb-4">
+                {selectedTask.attachments?.map((attachment, index) => (
+                  <div key={index} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm text-foreground">{attachment.name}</span>
+                      <span className="text-xs text-muted-foreground">({attachment.size})</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        className="p-1 hover:bg-muted rounded transition-colors"
+                        title={t('actions.download')} aria-label="Télécharger">
+                        <Download className="w-4 h-4 text-muted-foreground" />
+                      </button>
+                      {(userRole === 'manager' || userRole === 'admin' || selectedTask.assigneeId === currentUserId) && (
+                        <button
+                          className="p-1 hover:bg-destructive/10 rounded transition-colors"
+                          title={t('common.delete')}
+                          onClick={() => {
+                            // Supprimer la pièce jointe
+                            setTasks(prev => prev.map(t => {
+                              if (t.id === selectedTask.id) {
+                                return {
+                                  ...t,
+                                  attachments: t.attachments?.filter((_, i) => i !== index)
+                                };
+                              }
+                              return t;
+                            }));
+                            setSelectedTask({
+                              ...selectedTask,
+                              attachments: selectedTask.attachments?.filter((_, i) => i !== index)
+                            });
+                          }}
+                        >
+                          <X className="w-4 h-4 text-destructive" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                {(!selectedTask.attachments || selectedTask.attachments.length === 0) && (
+                  <p className="text-sm text-muted-foreground">Aucune pièce jointe</p>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <input
+                  type="file"
+                  id="file-upload"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => {
+                    const files = e.target.files;
+                    if (files) {
+                      const newAttachments = Array.from(files).map(file => ({
+                        name: file.name,
+                        size: `${(file.size / 1024).toFixed(2)} KB`,
+                        url: URL.createObjectURL(file),
+                        uploadedAt: new Date(),
+                        uploadedBy: currentUser
+                      }));
+
+                      setTasks(prev => prev.map(t => {
+                        if (t.id === selectedTask.id) {
+                          return {
+                            ...t,
+                            attachments: [...(t.attachments || []), ...newAttachments]
+                          };
+                        }
+                        return t;
+                      }));
+
+                      setSelectedTask({
+                        ...selectedTask,
+                        attachments: [...(selectedTask.attachments || []), ...newAttachments]
+                      });
+                    }
+                  }}
+                />
+                <label
+                  htmlFor="file-upload"
+                  className="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondary-hover transition-colors cursor-pointer flex items-center gap-2"
+                >
+                  <Upload className="w-4 h-4" />
+                  Ajouter des fichiers
+                </label>
+              </div>
+            </div>
+
+            {/* Historique */}
+            {selectedTask.history && selectedTask.history.length > 0 && (
+              <div>
+                <h4 className="font-semibold text-foreground mb-3">Historique</h4>
+                <div className="space-y-2">
+                  {selectedTask.history.map(entry => (
+                    <div key={entry.id} className="flex items-start gap-3 text-sm">
+                      <div className="w-2 h-2 rounded-full bg-muted-foreground mt-1.5" />
+                      <div className="flex-1">
+                        <span className="font-medium">{entry.user}</span>
+                        <span className="text-muted-foreground"> {entry.details}</span>
+                        <div className="text-xs text-muted-foreground mt-0.5">
+                          {new Date(entry.date).toLocaleString()}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="px-6 py-4 border-t bg-muted/50 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {(userRole === 'manager' || userRole === 'admin') && (
+              <>
+                <button
+                  onClick={() => setEditingTask(!editingTask)}
+                  className="flex items-center gap-2 px-3 py-1.5 text-muted-foreground hover:bg-muted rounded-lg transition-colors"
+                >
+                  <Edit3 className="w-4 h-4" />
+                  {editingTask ? 'Annuler' : 'Modifier'}
+                </button>
+                {editingTask && (
+                  <button
+                    onClick={() => {
+                      // Sauvegarder les modifications
+                      setTasks(prev => prev.map(t => t.id === selectedTask.id ? selectedTask : t));
+                      setEditingTask(false);
+                    }}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
+                  >
+                    <Save className="w-4 h-4" />
+                    Enregistrer
+                  </button>
+                )}
+                <button
+                  onClick={() => duplicateTask(selectedTask)}
+                  className="flex items-center gap-2 px-3 py-1.5 text-muted-foreground hover:bg-muted rounded-lg transition-colors"
+                >
+                  <Copy className="w-4 h-4" />
+                  Dupliquer
+                </button>
+                <button
+                  onClick={() => deleteTask(selectedTask.id)}
+                  className="flex items-center gap-2 px-3 py-1.5 text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Supprimer
+                </button>
+              </>
+            )}
+          </div>
+          <button
+            onClick={() => setShowTaskDetails(false)}
+            className="px-4 py-2 bg-muted text-muted-foreground rounded-lg hover:bg-muted/80 transition-colors"
+          >
+            Fermer
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─── TaskTransferModal (module level) ────────────────────────────────────────────
+interface TaskTransferModalProps {
+  showTransferModal: boolean;
+  selectedTask: Task | null;
+  setShowTransferModal: (show: boolean) => void;
+  availableUsers: Array<{ id: string; name: string; role: string; team: string }>;
+  transferTask: (taskId: string, fromUserId: string, toUserId: string) => void;
+}
+
+const TaskTransferModal: React.FC<TaskTransferModalProps> = ({
+  showTransferModal, selectedTask, setShowTransferModal, availableUsers, transferTask,
+}) => {
+  const [selectedUserId, setSelectedUserId] = useState('');
+
+  if (!showTransferModal || !selectedTask) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-card rounded-lg p-6 w-full max-w-md border shadow-lg">
+        <h3 className="text-lg font-semibold mb-4">Transférer la tâche</h3>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-foreground mb-2">
+            Transférer de : <span className="font-bold">{selectedTask.assignee}</span>
+          </label>
+
+          <label className="block text-sm font-medium text-foreground mb-2">
+            Vers :
+          </label>
+          <select
+            value={selectedUserId}
+            onChange={(e) => setSelectedUserId(e.target.value)}
+            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+          >
+            <option value="">Sélectionner un utilisateur</option>
+            {availableUsers
+              .filter(u => u.id !== selectedTask.assigneeId)
+              .map(user => (
+                <option key={user.id} value={user.id}>
+                  {user.name} - {user.role} ({user.team})
+                </option>
+              ))}
+          </select>
+        </div>
+
+        <div className="flex justify-end gap-3">
+          <button
+            onClick={() => {
+              setShowTransferModal(false);
+              setSelectedUserId('');
+            }}
+            className="px-4 py-2 text-muted-foreground hover:bg-muted rounded-lg transition-colors"
+          >
+            Annuler
+          </button>
+          <button
+            onClick={() => {
+              if (selectedUserId && selectedTask.assigneeId) {
+                transferTask(selectedTask.id, selectedTask.assigneeId, selectedUserId);
+                setShowTransferModal(false);
+                setSelectedUserId('');
+              }
+            }}
+            disabled={!selectedUserId}
+            className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Transférer
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
+// ─── KanbanView (module level) ──────────────────────────────────────────────
+interface EnhKanbanViewProps {
+  tasksByGroup: Record<string, Task[]>;
+  groupBy: 'status' | 'priority' | 'assignee' | 'project';
+  dragOverStatus: string | null;
+  handleDragOver: (e: React.DragEvent, group: string) => void;
+  handleDragLeave: () => void;
+  handleDrop: (e: React.DragEvent, group: string) => void;
+  handleDragStart: (e: React.DragEvent, task: Task) => void;
+  draggedTask: Task | null;
+  userRole: string;
+  currentUserId: string;
+  getStatusColor: (status: string) => string;
+  toggleTaskStatus: (taskId: string) => void;
+  setSelectedTask: React.Dispatch<React.SetStateAction<Task | null>>;
+  setShowTaskDetails: (b: boolean) => void;
+  getPriorityIcon: (priority: string) => React.ReactNode;
+}
+const KanbanView = ({ tasksByGroup, groupBy, dragOverStatus, handleDragOver, handleDragLeave, handleDrop, handleDragStart, draggedTask, userRole, currentUserId, getStatusColor, toggleTaskStatus, setSelectedTask, setShowTaskDetails, getPriorityIcon }: EnhKanbanViewProps) => (
+  <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+    {Object.entries(tasksByGroup).map(([group, groupTasks]) => (
+      <div
+        key={group}
+        className={`bg-muted/50 rounded-lg p-4 min-h-[400px] transition-all ${
+          dragOverStatus === group ? 'bg-primary/10 ring-2 ring-primary' : ''
+        }`}
+        onDragOver={(e) => groupBy === 'status' && handleDragOver(e, group)}
+        onDragLeave={handleDragLeave}
+        onDrop={(e) => groupBy === 'status' && handleDrop(e, group)}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-semibold text-foreground capitalize flex items-center gap-2">
+            {groupBy === 'status' && group === 'in-progress' && <Clock className="w-4 h-4" />}
+            {groupBy === 'status' && group === 'done' && <CheckCircle2 className="w-4 h-4" />}
+            {groupBy === 'status' && group === 'blocked' && <AlertCircle className="w-4 h-4" />}
+            {group.replace('-', ' ')}
+          </h3>
+          <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(group).split(' ').slice(0, 2).join(' ')}`}>
+            {groupTasks.length}
+          </span>
+        </div>
+        <div className="space-y-2">
+          {groupTasks.map(task => (
+            <div
+              key={task.id}
+              draggable={groupBy === 'status' && (userRole !== 'comptable' || task.assigneeId === currentUserId)}
+              onDragStart={(e) => handleDragStart(e, task)}
+              className={`cursor-move ${
+                draggedTask?.id === task.id ? 'opacity-50' : ''
+              }`}
+            >
+              <EnhancedTaskCard
+                task={task}
+                onToggleStatus={toggleTaskStatus}
+                onSelect={(t) => { setSelectedTask(t); setShowTaskDetails(true); }}
+                getPriorityIcon={getPriorityIcon}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    ))}
+  </div>
+);
+
+// ─── ListView (module level) ─────────────────────────────────────────────────
+interface EnhListViewProps {
+  filteredTasks: Task[];
+  setSelectedTask: React.Dispatch<React.SetStateAction<Task | null>>;
+  setShowTaskDetails: (b: boolean) => void;
+  getStatusColor: (status: string) => string;
+  getPriorityIcon: (priority: string) => React.ReactNode;
+}
+const ListView = ({ filteredTasks, setSelectedTask, setShowTaskDetails, getStatusColor, getPriorityIcon }: EnhListViewProps) => (
+  <div className="bg-card rounded-lg shadow border">
+    <table className="w-full">
+      <thead>
+        <tr className="border-b bg-muted/50">
+          <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Statut</th>
+          <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Titre</th>
+          <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Priorité</th>
+          <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Assigné</th>
+          <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Échéance</th>
+          <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Progrès</th>
+          <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Actions</th>
+        </tr>
+      </thead>
+      <tbody className="divide-y">
+        {filteredTasks.map(task => (
+          <tr
+            key={task.id}
+            className="hover:bg-muted/50 cursor-pointer"
+            onClick={() => {
+              setSelectedTask(task);
+              setShowTaskDetails(true);
+            }}
+          >
+            <td className="px-4 py-3">
+              <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(task.status)}`}>
+                {task.status}
+              </span>
+            </td>
+            <td className="px-4 py-3">
+              <div>
+                <div className="font-medium">{task.title}</div>
+                {task.tags && (
+                  <div className="flex gap-1 mt-1">
+                    {task.tags.map(tag => (
+                      <span key={tag} className="text-xs text-muted-foreground">#{tag}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </td>
+            <td className="px-4 py-3">
+              <div className="flex items-center gap-1">
+                {getPriorityIcon(task.priority)}
+                <span className="text-sm capitalize">{task.priority}</span>
+              </div>
+            </td>
+            <td className="px-4 py-3 text-sm">
+              {task.assignee || '-'}
+            </td>
+            <td className="px-4 py-3 text-sm">
+              {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : '-'}
+            </td>
+            <td className="px-4 py-3">
+              {task.progress !== undefined ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-20 h-2 bg-muted rounded-full">
+                    <div
+                      className="h-full bg-primary rounded-full"
+                      style={{ width: `${task.progress}%` }}
+                    />
+                  </div>
+                  <span className="text-xs">{task.progress}%</span>
+                </div>
+              ) : '-'}
+            </td>
+            <td className="px-4 py-3">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                }}
+                className="p-1 hover:bg-muted rounded"
+              >
+                <MoreVertical className="w-4 h-4" />
+              </button>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+);
+
 const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
   userRole = 'comptable',
   currentUserId = 'user1',
@@ -355,15 +1038,6 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
     subTasks: [],
     checklist: []
   });
-
-  // Liste des utilisateurs disponibles pour l'attribution
-  const availableUsers = [
-    { id: 'user1', name: '', role: 'Comptable', team: 'Comptabilité' },
-    { id: 'user2', name: '', role: 'Manager', team: 'Finance' },
-    { id: 'user3', name: '', role: 'Acheteur', team: 'Achats' },
-    { id: 'user4', name: '', role: 'Analyste', team: 'Finance' },
-    { id: 'user5', name: '', role: 'Développeur', team: 'IT' }
-  ];
 
   // Filtrer les tâches selon le rôle
   const visibleTasks = useMemo(() => {
@@ -650,485 +1324,6 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
     setTasks(prev => [newTask, ...prev]);
   };
 
-  const TaskDetailsModal = () => {
-    if (!selectedTask) return null;
-
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-card rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col border shadow-lg">
-          {/* Header */}
-          <div className="px-6 py-4 border-b flex items-center justify-between bg-muted/50">
-            <div className="flex items-center gap-3">
-              <h2 className="text-lg font-bold text-foreground">Détails de la tâche</h2>
-              <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(selectedTask.status)}`}>
-                {selectedTask.status}
-              </span>
-              <div className="flex items-center gap-1">
-                {getPriorityIcon(selectedTask.priority)}
-                <span className="text-xs capitalize">{selectedTask.priority}</span>
-              </div>
-            </div>
-            <button
-              onClick={() => setShowTaskDetails(false)}
-              className="p-2 hover:bg-muted rounded-lg transition-colors"
-            >
-              <X className="w-5 h-5 text-muted-foreground" />
-            </button>
-          </div>
-
-          {/* Content */}
-          <div className="flex-1 overflow-y-auto">
-            <div className="p-6">
-              {/* Titre et description */}
-              <div className="mb-6">
-                {editingTask ? (
-                  <input
-                    type="text"
-                    value={selectedTask.title}
-                    onChange={(e) => setSelectedTask({...selectedTask, title: e.target.value})}
-                    className="text-lg font-bold w-full px-3 py-2 border rounded-lg mb-3"
-                  />
-                ) : (
-                  <h3 className="text-lg font-bold text-foreground mb-3">{selectedTask.title}</h3>
-                )}
-
-                {editingTask ? (
-                  <textarea
-                    value={selectedTask.description}
-                    onChange={(e) => setSelectedTask({...selectedTask, description: e.target.value})}
-                    className="w-full px-3 py-2 border rounded-lg"
-                    rows={4}
-                  />
-                ) : (
-                  <p className="text-muted-foreground">{selectedTask.description || 'Aucune description'}</p>
-                )}
-              </div>
-
-              {/* Informations */}
-              <div className="grid grid-cols-2 gap-6 mb-6">
-                <div>
-                  <h4 className="font-semibold text-foreground mb-3">Informations</h4>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Statut</span>
-                      <select
-                        value={selectedTask.status}
-                        onChange={(e) => {
-                          const newStatus = e.target.value;
-                          setSelectedTask({...selectedTask, status: newStatus});
-                          setTasks(prev => prev.map(t => {
-                            if (t.id === selectedTask.id) {
-                              const historyEntry: TaskHistory = {
-                                id: Date.now().toString(),
-                                action: 'status_changed',
-                                user: currentUser,
-                                date: new Date(),
-                                oldValue: t.status,
-                                newValue: newStatus,
-                                details: `Statut changé de ${t.status} à ${newStatus}`
-                              };
-                              return {
-                                ...t,
-                                status: newStatus,
-                                modifiedAt: new Date(),
-                                modifiedBy: currentUser,
-                                history: [...(t.history || []), historyEntry]
-                              };
-                            }
-                            return t;
-                          }));
-                        }}
-                        className={`px-2 py-1 text-xs rounded-full border-0 font-medium ${getStatusColor(selectedTask.status)}`}
-                        disabled={userRole === 'comptable' && selectedTask.assigneeId !== currentUserId}
-                      >
-                        <option value="todo" className="text-muted-foreground">À faire</option>
-                        <option value="in-progress" className="text-primary">{t('status.inProgress')}</option>
-                        <option value="review" className="text-warning">Révision</option>
-                        <option value="testing" className="text-info">Test</option>
-                        <option value="done" className="text-success">{t('status.completed')}</option>
-                        <option value="blocked" className="text-destructive">Bloqué</option>
-                      </select>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Assigné à</span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium">{selectedTask.assignee}</span>
-                        {(userRole === 'manager' || userRole === 'admin') && (
-                          <button
-                            onClick={() => setShowTransferModal(true)}
-                            className="p-1 hover:bg-muted rounded"
-                            title="Transférer la tâche"
-                          >
-                            <ArrowRightLeft className="w-3 h-3 text-muted-foreground" />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Équipe</span>
-                      <span className="text-sm font-medium">{selectedTask.assigneeTeam || '-'}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Date de début</span>
-                      <span className="text-sm font-medium">
-                        {selectedTask.startDate ? new Date(selectedTask.startDate).toLocaleDateString() : '-'}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Date d'échéance</span>
-                      <span className="text-sm font-medium">
-                        {selectedTask.dueDate ? new Date(selectedTask.dueDate).toLocaleDateString() : '-'}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Créé par</span>
-                      <span className="text-sm font-medium">{selectedTask.createdBy || '-'}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Créé le</span>
-                      <span className="text-sm font-medium">
-                        {new Date(selectedTask.createdAt).toLocaleDateString()}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="font-semibold text-foreground mb-3">Métriques</h4>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Progression</span>
-                      <div className="flex items-center gap-2">
-                        <div className="w-24 h-2 bg-muted rounded-full">
-                          <div
-                            className="h-full bg-primary rounded-full"
-                            style={{ width: `${selectedTask.progress || 0}%` }}
-                          />
-                        </div>
-                        <span className="text-sm font-medium">{selectedTask.progress || 0}%</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Heures</span>
-                      <span className="text-sm font-medium">
-                        {selectedTask.actualHours || 0}/{selectedTask.estimatedHours || 0}h
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">{t('navigation.budget')}</span>
-                      <span className="text-sm font-medium">
-                        {selectedTask.actualCost || 0}€/{selectedTask.budget || 0}€
-                      </span>
-                    </div>
-                    {selectedTask.tags && selectedTask.tags.length > 0 && (
-                      <div>
-                        <span className="text-sm text-muted-foreground">Tags</span>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {selectedTask.tags.map(tag => (
-                            <span key={tag} className="px-2 py-1 bg-secondary text-xs rounded-full">
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Checklist */}
-              {selectedTask.checklist && selectedTask.checklist.length > 0 && (
-                <div className="mb-6">
-                  <h4 className="font-semibold text-foreground mb-3">Checklist</h4>
-                  <div className="space-y-2">
-                    {selectedTask.checklist.map(item => (
-                      <div key={item.id} className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          checked={item.completed}
-                          onChange={() => {
-                            // Mise à jour checklist
-                          }}
-                          className="rounded border-input text-primary focus:ring-primary"
-                        />
-                        <span className={item.completed ? 'line-through text-muted-foreground' : 'text-foreground'}>
-                          {item.text}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Commentaires */}
-              <div className="mb-6">
-                <h4 className="font-semibold text-foreground mb-3">Commentaires</h4>
-                <div className="space-y-3 mb-4">
-                  {selectedTask.comments?.map(comment => (
-                    <div key={comment.id} className="bg-muted/50 rounded-lg p-3">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm font-medium">{comment.author}</span>
-                        <span className="text-xs text-muted-foreground">
-                          {new Date(comment.createdAt).toLocaleString()}
-                        </span>
-                      </div>
-                      <p className="text-sm text-foreground">{comment.text}</p>
-                    </div>
-                  ))}
-                </div>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && addComment()}
-                    placeholder="Ajouter un commentaire..."
-                    className="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  />
-                  <button
-                    onClick={addComment}
-                    className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
-                  >
-                    <Send className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Pièces jointes */}
-              <div className="mb-6">
-                <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-                  <Paperclip className="w-4 h-4" />
-                  Pièces jointes
-                </h4>
-                <div className="space-y-2 mb-4">
-                  {selectedTask.attachments?.map((attachment, index) => (
-                    <div key={index} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
-                      <div className="flex items-center gap-2">
-                        <FileText className="w-4 h-4 text-muted-foreground" />
-                        <span className="text-sm text-foreground">{attachment.name}</span>
-                        <span className="text-xs text-muted-foreground">({attachment.size})</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          className="p-1 hover:bg-muted rounded transition-colors"
-                          title={t('actions.download')} aria-label="Télécharger">
-                          <Download className="w-4 h-4 text-muted-foreground" />
-                        </button>
-                        {(userRole === 'manager' || userRole === 'admin' || selectedTask.assigneeId === currentUserId) && (
-                          <button
-                            className="p-1 hover:bg-destructive/10 rounded transition-colors"
-                            title={t('common.delete')}
-                            onClick={() => {
-                              // Supprimer la pièce jointe
-                              setTasks(prev => prev.map(t => {
-                                if (t.id === selectedTask.id) {
-                                  return {
-                                    ...t,
-                                    attachments: t.attachments?.filter((_, i) => i !== index)
-                                  };
-                                }
-                                return t;
-                              }));
-                              setSelectedTask({
-                                ...selectedTask,
-                                attachments: selectedTask.attachments?.filter((_, i) => i !== index)
-                              });
-                            }}
-                          >
-                            <X className="w-4 h-4 text-destructive" />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                  {(!selectedTask.attachments || selectedTask.attachments.length === 0) && (
-                    <p className="text-sm text-muted-foreground">Aucune pièce jointe</p>
-                  )}
-                </div>
-                <div className="flex gap-2">
-                  <input
-                    type="file"
-                    id="file-upload"
-                    multiple
-                    className="hidden"
-                    onChange={(e) => {
-                      const files = e.target.files;
-                      if (files) {
-                        const newAttachments = Array.from(files).map(file => ({
-                          name: file.name,
-                          size: `${(file.size / 1024).toFixed(2)} KB`,
-                          url: URL.createObjectURL(file),
-                          uploadedAt: new Date(),
-                          uploadedBy: currentUser
-                        }));
-
-                        setTasks(prev => prev.map(t => {
-                          if (t.id === selectedTask.id) {
-                            return {
-                              ...t,
-                              attachments: [...(t.attachments || []), ...newAttachments]
-                            };
-                          }
-                          return t;
-                        }));
-
-                        setSelectedTask({
-                          ...selectedTask,
-                          attachments: [...(selectedTask.attachments || []), ...newAttachments]
-                        });
-                      }
-                    }}
-                  />
-                  <label
-                    htmlFor="file-upload"
-                    className="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondary-hover transition-colors cursor-pointer flex items-center gap-2"
-                  >
-                    <Upload className="w-4 h-4" />
-                    Ajouter des fichiers
-                  </label>
-                </div>
-              </div>
-
-              {/* Historique */}
-              {selectedTask.history && selectedTask.history.length > 0 && (
-                <div>
-                  <h4 className="font-semibold text-foreground mb-3">Historique</h4>
-                  <div className="space-y-2">
-                    {selectedTask.history.map(entry => (
-                      <div key={entry.id} className="flex items-start gap-3 text-sm">
-                        <div className="w-2 h-2 rounded-full bg-muted-foreground mt-1.5" />
-                        <div className="flex-1">
-                          <span className="font-medium">{entry.user}</span>
-                          <span className="text-muted-foreground"> {entry.details}</span>
-                          <div className="text-xs text-muted-foreground mt-0.5">
-                            {new Date(entry.date).toLocaleString()}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Footer */}
-          <div className="px-6 py-4 border-t bg-muted/50 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              {(userRole === 'manager' || userRole === 'admin') && (
-                <>
-                  <button
-                    onClick={() => setEditingTask(!editingTask)}
-                    className="flex items-center gap-2 px-3 py-1.5 text-muted-foreground hover:bg-muted rounded-lg transition-colors"
-                  >
-                    <Edit3 className="w-4 h-4" />
-                    {editingTask ? 'Annuler' : 'Modifier'}
-                  </button>
-                  {editingTask && (
-                    <button
-                      onClick={() => {
-                        // Sauvegarder les modifications
-                        setTasks(prev => prev.map(t => t.id === selectedTask.id ? selectedTask : t));
-                        setEditingTask(false);
-                      }}
-                      className="flex items-center gap-2 px-3 py-1.5 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
-                    >
-                      <Save className="w-4 h-4" />
-                      Enregistrer
-                    </button>
-                  )}
-                  <button
-                    onClick={() => duplicateTask(selectedTask)}
-                    className="flex items-center gap-2 px-3 py-1.5 text-muted-foreground hover:bg-muted rounded-lg transition-colors"
-                  >
-                    <Copy className="w-4 h-4" />
-                    Dupliquer
-                  </button>
-                  <button
-                    onClick={() => deleteTask(selectedTask.id)}
-                    className="flex items-center gap-2 px-3 py-1.5 text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    Supprimer
-                  </button>
-                </>
-              )}
-            </div>
-            <button
-              onClick={() => setShowTaskDetails(false)}
-              className="px-4 py-2 bg-muted text-muted-foreground rounded-lg hover:bg-muted/80 transition-colors"
-            >
-              Fermer
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const TransferModal = () => {
-    const [selectedUserId, setSelectedUserId] = useState('');
-
-    if (!showTransferModal || !selectedTask) return null;
-
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-card rounded-lg p-6 w-full max-w-md border shadow-lg">
-          <h3 className="text-lg font-semibold mb-4">Transférer la tâche</h3>
-
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-foreground mb-2">
-              Transférer de : <span className="font-bold">{selectedTask.assignee}</span>
-            </label>
-
-            <label className="block text-sm font-medium text-foreground mb-2">
-              Vers :
-            </label>
-            <select
-              value={selectedUserId}
-              onChange={(e) => setSelectedUserId(e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
-            >
-              <option value="">Sélectionner un utilisateur</option>
-              {availableUsers
-                .filter(u => u.id !== selectedTask.assigneeId)
-                .map(user => (
-                  <option key={user.id} value={user.id}>
-                    {user.name} - {user.role} ({user.team})
-                  </option>
-                ))}
-            </select>
-          </div>
-
-          <div className="flex justify-end gap-3">
-            <button
-              onClick={() => {
-                setShowTransferModal(false);
-                setSelectedUserId('');
-              }}
-              className="px-4 py-2 text-muted-foreground hover:bg-muted rounded-lg transition-colors"
-            >
-              Annuler
-            </button>
-            <button
-              onClick={() => {
-                if (selectedUserId && selectedTask.assigneeId) {
-                  transferTask(selectedTask.id, selectedTask.assigneeId, selectedUserId);
-                  setShowTransferModal(false);
-                  setSelectedUserId('');
-                }
-              }}
-              disabled={!selectedUserId}
-              className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Transférer
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   const [draggedTask, setDraggedTask] = useState<Task | null>(null);
   const [dragOverStatus, setDragOverStatus] = useState<string | null>(null);
 
@@ -1184,135 +1379,6 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
     setDraggedTask(null);
   };
 
-  const KanbanView = () => (
-    <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-      {Object.entries(tasksByGroup).map(([group, groupTasks]) => (
-        <div
-          key={group}
-          className={`bg-muted/50 rounded-lg p-4 min-h-[400px] transition-all ${
-            dragOverStatus === group ? 'bg-primary/10 ring-2 ring-primary' : ''
-          }`}
-          onDragOver={(e) => groupBy === 'status' && handleDragOver(e, group)}
-          onDragLeave={handleDragLeave}
-          onDrop={(e) => groupBy === 'status' && handleDrop(e, group)}
-        >
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-foreground capitalize flex items-center gap-2">
-              {groupBy === 'status' && group === 'in-progress' && <Clock className="w-4 h-4" />}
-              {groupBy === 'status' && group === 'done' && <CheckCircle2 className="w-4 h-4" />}
-              {groupBy === 'status' && group === 'blocked' && <AlertCircle className="w-4 h-4" />}
-              {group.replace('-', ' ')}
-            </h3>
-            <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(group).split(' ').slice(0, 2).join(' ')}`}>
-              {groupTasks.length}
-            </span>
-          </div>
-          <div className="space-y-2">
-            {groupTasks.map(task => (
-              <div
-                key={task.id}
-                draggable={groupBy === 'status' && (userRole !== 'comptable' || task.assigneeId === currentUserId)}
-                onDragStart={(e) => handleDragStart(e, task)}
-                className={`cursor-move ${
-                  draggedTask?.id === task.id ? 'opacity-50' : ''
-                }`}
-              >
-                <EnhancedTaskCard
-                  task={task}
-                  onToggleStatus={toggleTaskStatus}
-                  onSelect={(t) => { setSelectedTask(t); setShowTaskDetails(true); }}
-                  getPriorityIcon={getPriorityIcon}
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-
-  const ListView = () => (
-    <div className="bg-card rounded-lg shadow border">
-      <table className="w-full">
-        <thead>
-          <tr className="border-b bg-muted/50">
-            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Statut</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Titre</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Priorité</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Assigné</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Échéance</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Progrès</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Actions</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y">
-          {filteredTasks.map(task => (
-            <tr
-              key={task.id}
-              className="hover:bg-muted/50 cursor-pointer"
-              onClick={() => {
-                setSelectedTask(task);
-                setShowTaskDetails(true);
-              }}
-            >
-              <td className="px-4 py-3">
-                <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(task.status)}`}>
-                  {task.status}
-                </span>
-              </td>
-              <td className="px-4 py-3">
-                <div>
-                  <div className="font-medium">{task.title}</div>
-                  {task.tags && (
-                    <div className="flex gap-1 mt-1">
-                      {task.tags.map(tag => (
-                        <span key={tag} className="text-xs text-muted-foreground">#{tag}</span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </td>
-              <td className="px-4 py-3">
-                <div className="flex items-center gap-1">
-                  {getPriorityIcon(task.priority)}
-                  <span className="text-sm capitalize">{task.priority}</span>
-                </div>
-              </td>
-              <td className="px-4 py-3 text-sm">
-                {task.assignee || '-'}
-              </td>
-              <td className="px-4 py-3 text-sm">
-                {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : '-'}
-              </td>
-              <td className="px-4 py-3">
-                {task.progress !== undefined ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-20 h-2 bg-muted rounded-full">
-                      <div
-                        className="h-full bg-primary rounded-full"
-                        style={{ width: `${task.progress}%` }}
-                      />
-                    </div>
-                    <span className="text-xs">{task.progress}%</span>
-                  </div>
-                ) : '-'}
-              </td>
-              <td className="px-4 py-3">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                  }}
-                  className="p-1 hover:bg-muted rounded"
-                >
-                  <MoreVertical className="w-4 h-4" />
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
 
   return (
     <div className="h-full bg-background flex flex-col">
@@ -1457,13 +1523,38 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
 
       {/* Contenu principal */}
       <div className="flex-1 overflow-auto p-6">
-        {viewMode === 'kanban' && <KanbanView />}
-        {viewMode === 'list' && <ListView />}
+        {viewMode === 'kanban' && <KanbanView tasksByGroup={tasksByGroup} groupBy={groupBy} dragOverStatus={dragOverStatus} handleDragOver={handleDragOver} handleDragLeave={handleDragLeave} handleDrop={handleDrop} handleDragStart={handleDragStart} draggedTask={draggedTask} userRole={userRole} currentUserId={currentUserId} getStatusColor={getStatusColor} toggleTaskStatus={toggleTaskStatus} setSelectedTask={setSelectedTask} setShowTaskDetails={setShowTaskDetails} getPriorityIcon={getPriorityIcon} />}
+        {viewMode === 'list' && <ListView filteredTasks={filteredTasks} setSelectedTask={setSelectedTask} setShowTaskDetails={setShowTaskDetails} getStatusColor={getStatusColor} getPriorityIcon={getPriorityIcon} />}
       </div>
 
       {/* Modals */}
-      {showTaskDetails && <TaskDetailsModal />}
-      <TransferModal />
+      {showTaskDetails && <TaskDetailsModal
+          selectedTask={selectedTask!}
+          setSelectedTask={setSelectedTask}
+          setShowTaskDetails={setShowTaskDetails}
+          editingTask={editingTask}
+          setEditingTask={setEditingTask}
+          newComment={newComment}
+          setNewComment={setNewComment}
+          setTasks={setTasks}
+          currentUser={currentUser}
+          currentUserId={currentUserId}
+          userRole={userRole}
+          setShowTransferModal={setShowTransferModal}
+          addComment={addComment}
+          t={t}
+          getStatusColor={getStatusColor}
+          getPriorityIcon={getPriorityIcon}
+          duplicateTask={duplicateTask}
+          deleteTask={deleteTask}
+        />}
+      <TaskTransferModal
+          showTransferModal={showTransferModal}
+          selectedTask={selectedTask}
+          setShowTransferModal={setShowTransferModal}
+          availableUsers={availableUsers}
+          transferTask={transferTask}
+        />
 
       {/* Nouveau Formulaire de Tâche Avancé */}
       <AdvancedTaskForm

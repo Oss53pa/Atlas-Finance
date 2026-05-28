@@ -6,7 +6,22 @@ interface Props { subTab: number; setSubTab: (n: number) => void; }
 
 const tabs = ['Import Plan Comptable', 'Import Ecritures', 'Import Tiers', 'Export FEC', 'Export Grand Livre'];
 
-const AdminImportExport: React.FC<Props> = ({ subTab, setSubTab }) => {
+// ─── Module-level sub-components ────────────────────────────────────────────
+
+const ImportExportTabBar = ({ subTab, setSubTab }: { subTab: number; setSubTab: (n: number) => void }) => (
+  <div className="border-b border-gray-200 mb-6 overflow-x-auto">
+    <nav className="flex space-x-1 -mb-px">
+      {tabs.map((tab, i) => (
+        <button key={i} onClick={() => setSubTab(i)}
+          className={`whitespace-nowrap px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+            subTab === i ? 'border-[#C0322B] text-[#C0322B]' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+          }`}>{tab}</button>
+      ))}
+    </nav>
+  </div>
+);
+
+const UploadZone = ({ label, formats, templateCols }: { label: string; formats: string; templateCols: string[] }) => {
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploadedFile, setUploadedFile] = useState<{ name: string; size: string; rows: number } | null>(null);
 
@@ -17,20 +32,7 @@ const AdminImportExport: React.FC<Props> = ({ subTab, setSubTab }) => {
     toast.success(`Fichier ${f.name} charge`);
   };
 
-  const TabBar = () => (
-    <div className="border-b border-gray-200 mb-6 overflow-x-auto">
-      <nav className="flex space-x-1 -mb-px">
-        {tabs.map((tab, i) => (
-          <button key={i} onClick={() => { setSubTab(i); setUploadedFile(null); }}
-            className={`whitespace-nowrap px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
-              subTab === i ? 'border-[#C0322B] text-[#C0322B]' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}>{tab}</button>
-        ))}
-      </nav>
-    </div>
-  );
-
-  const UploadZone = ({ label, formats, templateCols }: { label: string; formats: string; templateCols: string[] }) => (
+  return (
     <div className="space-y-4">
       <div
         className="border-2 border-dashed border-gray-300 rounded-xl p-10 text-center hover:border-[#C0322B] transition-colors cursor-pointer"
@@ -72,12 +74,13 @@ const AdminImportExport: React.FC<Props> = ({ subTab, setSubTab }) => {
       </div>
     </div>
   );
+};
 
-  const ExportForm = ({ label }: { label: string }) => {
-    const cy = new Date().getFullYear();
-    const [exportFrom, setExportFrom] = useState(`${cy}-01-01`);
-    const [exportTo, setExportTo] = useState(`${cy}-12-31`);
-    return (
+const ExportForm = ({ label }: { label: string }) => {
+  const cy = new Date().getFullYear();
+  const [exportFrom, setExportFrom] = useState(`${cy}-01-01`);
+  const [exportTo, setExportTo] = useState(`${cy}-12-31`);
+  return (
     <div className="bg-white rounded-xl p-6 border space-y-5">
       <div className="grid grid-cols-2 gap-5">
         <div>
@@ -118,16 +121,19 @@ const AdminImportExport: React.FC<Props> = ({ subTab, setSubTab }) => {
         </button>
       </div>
     </div>
-    );
-  };
+  );
+};
 
+// ─── Main component ──────────────────────────────────────────────────────────
+
+const AdminImportExport: React.FC<Props> = ({ subTab, setSubTab }) => {
   return (
     <div className="p-6">
       <h2 className="text-lg font-bold mb-4">Import / Export</h2>
-      <TabBar />
-      {subTab === 0 && <UploadZone label="Plan Comptable" formats=".csv, .xlsx" templateCols={['numero', 'libelle', 'classe', 'type_compte', 'sens_normal', 'compte_collectif', 'statut']} />}
-      {subTab === 1 && <UploadZone label="Ecritures Comptables" formats=".csv, .xlsx, .txt (FEC)" templateCols={['journal', 'numero_piece', 'date_piece', 'compte', 'tiers_code', 'libelle', 'debit', 'credit', 'date_echeance', 'lettrage_ref']} />}
-      {subTab === 2 && <UploadZone label="Tiers (Clients/Fournisseurs)" formats=".csv, .xlsx" templateCols={['code', 'type', 'raison_sociale', 'nif', 'rccm', 'pays', 'compte_collectif', 'email', 'telephone', 'adresse', 'conditions_paiement']} />}
+      <ImportExportTabBar subTab={subTab} setSubTab={setSubTab} />
+      {subTab === 0 && <UploadZone key={0} label="Plan Comptable" formats=".csv, .xlsx" templateCols={['numero', 'libelle', 'classe', 'type_compte', 'sens_normal', 'compte_collectif', 'statut']} />}
+      {subTab === 1 && <UploadZone key={1} label="Ecritures Comptables" formats=".csv, .xlsx, .txt (FEC)" templateCols={['journal', 'numero_piece', 'date_piece', 'compte', 'tiers_code', 'libelle', 'debit', 'credit', 'date_echeance', 'lettrage_ref']} />}
+      {subTab === 2 && <UploadZone key={2} label="Tiers (Clients/Fournisseurs)" formats=".csv, .xlsx" templateCols={['code', 'type', 'raison_sociale', 'nif', 'rccm', 'pays', 'compte_collectif', 'email', 'telephone', 'adresse', 'conditions_paiement']} />}
       {subTab === 3 && <ExportForm label="FEC" />}
       {subTab === 4 && <ExportForm label="Grand Livre" />}
     </div>

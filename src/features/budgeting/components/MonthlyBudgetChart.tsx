@@ -20,6 +20,26 @@ interface MonthlyBudgetChartProps {
   loading?: boolean;
 }
 
+const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ color: string; name: string; value: number; payload: Record<string, unknown> }> }) => {
+  if (!active || !payload || !payload.length) return null;
+
+  return (
+    <div className="bg-white border border-[var(--color-border)] rounded-lg shadow-lg p-3">
+      <p className="font-semibold text-[var(--color-primary)] mb-2">{payload[0].payload.month as string}</p>
+      {payload.map((entry, index: number) => (
+        <p key={index} className="text-sm" style={{ color: entry.color }}>
+          {entry.name}: {formatCurrency(entry.value)}
+        </p>
+      ))}
+      {payload[0].payload.variance !== undefined && (
+        <p className="text-sm text-[var(--color-text-tertiary)] mt-1 pt-1 border-t border-[var(--color-border)]">
+          Écart: {formatCurrency(Math.abs(payload[0].payload.variance as number))}
+        </p>
+      )}
+    </div>
+  );
+};
+
 export const MonthlyBudgetChart: React.FC<MonthlyBudgetChartProps> = ({
   data,
   type = 'bar',
@@ -40,26 +60,6 @@ export const MonthlyBudgetChart: React.FC<MonthlyBudgetChartProps> = ({
       </div>
     );
   }
-
-  const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ color: string; name: string; value: number; payload: Record<string, unknown> }> }) => {
-    if (!active || !payload || !payload.length) return null;
-
-    return (
-      <div className="bg-white border border-[var(--color-border)] rounded-lg shadow-lg p-3">
-        <p className="font-semibold text-[var(--color-primary)] mb-2">{payload[0].payload.month as string}</p>
-        {payload.map((entry, index: number) => (
-          <p key={index} className="text-sm" style={{ color: entry.color }}>
-            {entry.name}: {formatCurrency(entry.value)}
-          </p>
-        ))}
-        {payload[0].payload.variance !== undefined && (
-          <p className="text-sm text-[var(--color-text-tertiary)] mt-1 pt-1 border-t border-[var(--color-border)]">
-            Écart: {formatCurrency(Math.abs(payload[0].payload.variance as number))}
-          </p>
-        )}
-      </div>
-    );
-  };
 
   const ChartComponent = type === 'line' ? LineChart : BarChart;
 

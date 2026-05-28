@@ -222,6 +222,7305 @@ interface DossierRecouvrement {
   prochainEtape: string;
 }
 
+
+// ─── AnalyticsData type ──────────────────────────────────────────────────────
+interface AnalyticsData {
+  statistiques: {
+    montantTotalCreances: number;
+    montantRecouvre: number;
+    tauxRecouvrement: number;
+    nombreCreances: number;
+    delaiMoyenRecouvrement: number;
+    creancesEnRetard: number;
+  };
+  evolutionRecouvrement: Array<{ mois: string; recouvre: number; creances: number }>;
+  repartitionNiveaux: Array<{ niveau: string; count: number; montant: number }>;
+  anciennete: Array<{ periode: string; nombre: number; montant: number }>;
+}
+
+// ─── AnalyticsTab (module level — was nested, caused focus loss) ─────────────
+interface AnalyticsTabProps { analyticsData: AnalyticsData; }
+const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
+  const [analyticsView, setAnalyticsView] = useState('dashboard');
+
+  const analyticsSubTabs = [
+    { id: 'dashboard', label: 'Vue d\'ensemble', icon: BarChart3 },
+    { id: 'performance', label: 'Performance', icon: TrendingUp },
+    { id: 'repartition', label: 'Répartition', icon: PieChart },
+    { id: 'tendances', label: 'Tendances', icon: Activity },
+    { id: 'comparaison', label: 'Comparaison', icon: LineChartIcon },
+    { id: 'previsions', label: 'Prévisions', icon: Calculator }
+  ];
+
+  function renderAnalyticsContent() {
+    switch (analyticsView) {
+      case 'dashboard':
+        return (
+          <div className="space-y-6">
+            {/* KPIs principaux avec intégrations temps réel */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-[var(--color-text-secondary)]">Créances Totales</p>
+                    <p className="text-lg font-bold text-[var(--color-primary)]">
+                      {formatCurrency(analyticsData.statistiques.montantTotalCreances)}
+                    </p>
+                    <p className="text-xs text-[var(--color-text-secondary)] mt-1">{analyticsData.statistiques.nombreCreances} dossiers</p>
+                    <div className="flex items-center mt-2 text-xs text-blue-600">
+                      <Link className="w-3 h-3 mr-1" />
+                      <span>Comptabilité sync</span>
+                    </div>
+                  </div>
+                  <DollarSign className="w-8 h-8 text-red-600" />
+                </div>
+              </div>
+              <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-[var(--color-text-secondary)]">Recouvré ce mois</p>
+                    <p className="text-lg font-bold text-[var(--color-primary)]">
+                      {formatCurrency(analyticsData.statistiques.montantRecouvre)}
+                    </p>
+                    <p className="text-xs text-green-600 mt-1">↑ +12% vs mois précédent</p>
+                    <div className="flex items-center mt-2 text-xs text-green-600">
+                      <Zap className="w-3 h-3 mr-1" />
+                      <span>Temps réel</span>
+                    </div>
+                  </div>
+                  <CheckCircle className="w-8 h-8 text-green-600" />
+                </div>
+              </div>
+              <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-[var(--color-text-secondary)]">Taux de succès</p>
+                    <p className="text-lg font-bold text-[var(--color-primary)]">
+                      {analyticsData.statistiques.tauxRecouvrement}%
+                    </p>
+                    <p className="text-xs text-blue-600 mt-1">Objectif: 85%</p>
+                    <div className="flex items-center mt-2 text-xs text-primary-600">
+                      <Cloud className="w-3 h-3 mr-1" />
+                      <span>IA enrichie</span>
+                    </div>
+                  </div>
+                  <TrendingUp className="w-8 h-8 text-blue-600" />
+                </div>
+              </div>
+              <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-[var(--color-text-secondary)]">Délai moyen</p>
+                    <p className="text-lg font-bold text-[var(--color-primary)]">
+                      {analyticsData.statistiques.delaiMoyenRecouvrement}j
+                    </p>
+                    <p className="text-xs text-orange-600 mt-1">{analyticsData.statistiques.creancesEnRetard} en retard</p>
+                    <div className="flex items-center mt-2 text-xs text-blue-600">
+                      <Calculator className="w-3 h-3 mr-1" />
+                      <span>CRM scoring</span>
+                    </div>
+                  </div>
+                  <Clock className="w-8 h-8 text-orange-600" />
+                </div>
+              </div>
+            </div>
+
+            {/* Panel des intégrations en temps réel */}
+            <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-[var(--color-primary)]">Flux de Données Atlas F&A</h3>
+                <div className="flex items-center space-x-2 text-sm text-green-600">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span>Synchronisation active</span>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-blue-800">{t('accounting.title')}</p>
+                      <p className="text-xs text-blue-600">156 factures sync</p>
+                      <p className="text-xs text-blue-600">23 nouveaux impayés</p>
+                    </div>
+                    <Calculator className="w-6 h-6 text-blue-600" />
+                  </div>
+                </div>
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-green-800">CRM</p>
+                      <p className="text-xs text-green-600">89 clients enrichis</p>
+                      <p className="text-xs text-green-600">Score risque mis à jour</p>
+                    </div>
+                    <Users className="w-6 h-6 text-green-600" />
+                  </div>
+                </div>
+                <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-primary-800">Commercial</p>
+                      <p className="text-xs text-primary-600">23 conditions part.</p>
+                      <p className="text-xs text-primary-600">7 litiges actifs</p>
+                    </div>
+                    <ShoppingCart className="w-6 h-6 text-primary-600" />
+                  </div>
+                </div>
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-orange-800">Finance</p>
+                      <p className="text-xs text-orange-600">Budgets à jour</p>
+                      <p className="text-xs text-orange-600">Provisions calculées</p>
+                    </div>
+                    <Package className="w-6 h-6 text-orange-600" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Graphiques principaux */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Évolution mensuelle */}
+              <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Évolution du Recouvrement</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <AreaChart data={analyticsData.evolutionRecouvrement}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="mois" />
+                    <YAxis tickFormatter={(value) => `${value / 1000}k`} />
+                    <Tooltip formatter={(value) => formatCurrency(value as number)} />
+                    <Area type="monotone" dataKey="creances" stackId="1" stroke="#C0322B" fill="#C0322B" fillOpacity={0.3} name="Créances" />
+                    <Area type="monotone" dataKey="recouvre" stackId="2" stroke="#15803D" fill="#15803D" fillOpacity={0.6} name="Recouvré" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Répartition par niveau */}
+              <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Répartition par Niveau</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <RechartsPieChart>
+                    <Pie
+                      dataKey="montant"
+                      data={analyticsData.repartitionNiveaux}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={100}
+                      fill="#235A6E"
+                      label={({ niveau, count }) => `${niveau} (${count})`}
+                    >
+                      {analyticsData.repartitionNiveaux.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value) => formatCurrency(value as number)} />
+                  </RechartsPieChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Tableau de bord activités récentes */}
+            <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Activités du jour</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-blue-50 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-blue-800">Nouvelles créances</p>
+                      <p className="text-lg font-bold text-blue-900">8</p>
+                    </div>
+                    <Plus className="w-6 h-6 text-blue-600" />
+                  </div>
+                </div>
+                <div className="bg-green-50 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-green-800">Recouvrements réalisés</p>
+                      <p className="text-lg font-bold text-green-900">12</p>
+                    </div>
+                    <CheckCircle className="w-6 h-6 text-green-600" />
+                  </div>
+                </div>
+                <div className="bg-orange-50 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-orange-800">Actions en attente</p>
+                      <p className="text-lg font-bold text-orange-900">5</p>
+                    </div>
+                    <Clock className="w-6 h-6 text-orange-600" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'performance':
+        return (
+          <div className="space-y-6">
+            {/* Performance par agent */}
+            <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Performance par Agent de Recouvrement</h3>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Agent</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Dossiers assignés</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Recouvré</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Taux succès</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Délai moyen</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Performance</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    <tr>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <UserCircle className="w-8 h-8 text-gray-700 mr-3" />
+                          <div>
+                            <div className="text-sm font-medium text-gray-900">Marie Diallo</div>
+                            <div className="text-sm text-gray-700">Senior</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">15</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{formatCurrency(420000)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                          89%
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">12j</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="w-full bg-gray-200 rounded-full h-2 mr-2">
+                            <div className="bg-green-600 h-2 rounded-full" style={{width: '89%'}}></div>
+                          </div>
+                          <TrendingUp className="w-4 h-4 text-green-600" />
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <UserCircle className="w-8 h-8 text-gray-700 mr-3" />
+                          <div>
+                            <div className="text-sm font-medium text-gray-900">Jean Kouassi</div>
+                            <div className="text-sm text-gray-700">Junior</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">12</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{formatCurrency(280000)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                          72%
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">18j</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="w-full bg-gray-200 rounded-full h-2 mr-2">
+                            <div className="bg-yellow-600 h-2 rounded-full" style={{width: '72%'}}></div>
+                          </div>
+                          <TrendingDown className="w-4 h-4 text-yellow-600" />
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Graphique performance */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Évolution des Taux de Succès</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={[
+                    { mois: 'Jan', marie: 85, jean: 68, equipe: 76 },
+                    { mois: 'Fév', marie: 87, jean: 70, equipe: 78 },
+                    { mois: 'Mar', marie: 89, jean: 72, equipe: 80 },
+                    { mois: 'Avr', marie: 88, jean: 71, equipe: 79 },
+                    { mois: 'Mai', marie: 90, jean: 74, equipe: 82 },
+                    { mois: 'Juin', marie: 89, jean: 72, equipe: 80 }
+                  ]}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="mois" />
+                    <YAxis />
+                    <Tooltip />
+                    <Line type="monotone" dataKey="marie" stroke="#15803D" strokeWidth={2} name="Marie Diallo" />
+                    <Line type="monotone" dataKey="jean" stroke="#E89A2E" strokeWidth={2} name="Jean Kouassi" />
+                    <Line type="monotone" dataKey="equipe" stroke="#235A6E" strokeWidth={3} name="Moyenne équipe" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Répartition du Temps</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <RechartsPieChart>
+                    <Pie
+                      dataKey="value"
+                      data={[
+                        { name: 'Appels clients', value: 40, fill: '#235A6E' },
+                        { name: 'Relances email', value: 25, fill: '#525252' },
+                        { name: 'Dossiers juridiques', value: 20, fill: '#525252' },
+                        { name: 'Administration', value: 15, fill: '#404040' }
+                      ]}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={100}
+                      label={({ name, value }) => `${name}: ${value}%`}
+                    >
+                    </Pie>
+                    <Tooltip />
+                  </RechartsPieChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'repartition':
+        return (
+          <div className="space-y-6">
+            {/* Répartition géographique */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Répartition Géographique</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={[
+                    { zone: 'Abidjan', creances: 450000, recouvre: 380000 },
+                    { zone: 'Bouaké', creances: 180000, recouvre: 140000 },
+                    { zone: 'San Pedro', creances: 120000, recouvre: 95000 },
+                    { zone: 'Yamoussoukro', creances: 95000, recouvre: 75000 },
+                    { zone: 'Korhogo', creances: 85000, recouvre: 60000 }
+                  ]}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="zone" />
+                    <YAxis tickFormatter={(value) => `${value / 1000}k`} />
+                    <Tooltip formatter={(value) => formatCurrency(value as number)} />
+                    <Bar radius={[6,6,0,0]} dataKey="creances" fill="url(#gradRed)" name="Créances" />
+                    <Bar radius={[6,6,0,0]} dataKey="recouvre" fill="url(#gradGreen)" name="Recouvré" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Répartition par Secteur</h3>
+                <div className="flex items-center justify-center h-[300px] text-sm text-gray-500">Données insuffisantes pour l'affichage</div>
+              </div>
+            </div>
+
+            {/* Ancienneté détaillée */}
+            <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Ancienneté des Créances par Secteur</h3>
+              <div className="flex items-center justify-center h-[400px] text-sm text-gray-500">Données insuffisantes pour l'affichage</div>
+            </div>
+          </div>
+        );
+
+      case 'tendances':
+        return (
+          <div className="space-y-6">
+            {/* Tendances temporelles */}
+            <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Tendances sur 12 mois</h3>
+              <div className="flex items-center justify-center h-[400px] text-sm text-gray-500">Données insuffisantes pour l'affichage</div>
+            </div>
+
+            {/* Analyse des cycles */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Cycle de Recouvrement Moyen</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                    <div className="flex items-center">
+                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                        <span className="text-sm font-semibold text-blue-600">1</span>
+                      </div>
+                      <span className="font-medium text-gray-900">Premier contact</span>
+                    </div>
+                    <span className="text-sm font-semibold text-blue-600">0-3j</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
+                    <div className="flex items-center">
+                      <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center mr-3">
+                        <span className="text-sm font-semibold text-yellow-600">2</span>
+                      </div>
+                      <span className="font-medium text-gray-900">Relances multiples</span>
+                    </div>
+                    <span className="text-sm font-semibold text-yellow-600">4-15j</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
+                    <div className="flex items-center">
+                      <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center mr-3">
+                        <span className="text-sm font-semibold text-orange-600">3</span>
+                      </div>
+                      <span className="font-medium text-gray-900">Négociation</span>
+                    </div>
+                    <span className="text-sm font-semibold text-orange-600">16-25j</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                    <div className="flex items-center">
+                      <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                        <span className="text-sm font-semibold text-green-600">4</span>
+                      </div>
+                      <span className="font-medium text-gray-900">Résolution</span>
+                    </div>
+                    <span className="text-sm font-semibold text-green-600">26-30j</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Facteurs de Réussite</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Contact dans les 24h</span>
+                    <div className="flex items-center">
+                      <div className="w-24 bg-gray-200 rounded-full h-2 mr-2">
+                        <div className="bg-green-600 h-2 rounded-full" style={{width: '92%'}}></div>
+                      </div>
+                      <span className="text-sm font-semibold text-green-600">92%</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Appel téléphonique direct</span>
+                    <div className="flex items-center">
+                      <div className="w-24 bg-gray-200 rounded-full h-2 mr-2">
+                        <div className="bg-green-600 h-2 rounded-full" style={{width: '85%'}}></div>
+                      </div>
+                      <span className="text-sm font-semibold text-green-600">85%</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Proposition d'échéancier</span>
+                    <div className="flex items-center">
+                      <div className="w-24 bg-gray-200 rounded-full h-2 mr-2">
+                        <div className="bg-blue-600 h-2 rounded-full" style={{width: '78%'}}></div>
+                      </div>
+                      <span className="text-sm font-semibold text-blue-600">78%</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Relance par email</span>
+                    <div className="flex items-center">
+                      <div className="w-24 bg-gray-200 rounded-full h-2 mr-2">
+                        <div className="bg-yellow-600 h-2 rounded-full" style={{width: '65%'}}></div>
+                      </div>
+                      <span className="text-sm font-semibold text-yellow-600">65%</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Courrier recommandé</span>
+                    <div className="flex items-center">
+                      <div className="w-24 bg-gray-200 rounded-full h-2 mr-2">
+                        <div className="bg-orange-600 h-2 rounded-full" style={{width: '45%'}}></div>
+                      </div>
+                      <span className="text-sm font-semibold text-orange-600">45%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'comparaison':
+        return (
+          <div className="space-y-6">
+            {/* Comparaison périodes */}
+            <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-[var(--color-primary)]">Comparaison Périodes</h3>
+                <div className="flex space-x-2">
+                  <select className="px-3 py-1 border border-gray-300 rounded-lg text-sm">
+                    <option>Ce mois vs mois précédent</option>
+                    <option>Ce trimestre vs trimestre précédent</option>
+                    <option>Cette année vs année précédente</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="text-center">
+                  <div className="text-lg font-bold text-[var(--color-primary)] mb-2">{formatCurrency(1250000)}</div>
+                  <div className="text-sm text-gray-600 mb-1">Créances ce mois</div>
+                  <div className="flex items-center justify-center text-sm">
+                    <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
+                    <span className="text-green-600 font-medium">+12.5%</span>
+                    <span className="text-gray-700 ml-1">vs mois précédent</span>
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="text-lg font-bold text-[var(--color-primary)] mb-2">{formatCurrency(980000)}</div>
+                  <div className="text-sm text-gray-600 mb-1">Montant recouvré</div>
+                  <div className="flex items-center justify-center text-sm">
+                    <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
+                    <span className="text-green-600 font-medium">+8.3%</span>
+                    <span className="text-gray-700 ml-1">vs mois précédent</span>
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="text-lg font-bold text-[var(--color-primary)] mb-2">78.4%</div>
+                  <div className="text-sm text-gray-600 mb-1">Taux de succès</div>
+                  <div className="flex items-center justify-center text-sm">
+                    <TrendingDown className="w-4 h-4 text-red-600 mr-1" />
+                    <span className="text-red-600 font-medium">-2.1%</span>
+                    <span className="text-gray-700 ml-1">vs mois précédent</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Comparaison détaillée */}
+            <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Évolution Comparative</h3>
+              <ResponsiveContainer width="100%" height={400}>
+                <LineChart data={[
+                  { mois: 'Jan', anneeActuelle: 180000, anneePrecedente: 165000 },
+                  { mois: 'Fév', anneeActuelle: 195000, anneePrecedente: 178000 },
+                  { mois: 'Mar', anneeActuelle: 210000, anneePrecedente: 185000 },
+                  { mois: 'Avr', anneeActuelle: 225000, anneePrecedente: 198000 },
+                  { mois: 'Mai', anneeActuelle: 240000, anneePrecedente: 205000 },
+                  { mois: 'Juin', anneeActuelle: 220000, anneePrecedente: 210000 }
+                ]}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="mois" />
+                  <YAxis tickFormatter={(value) => `${value / 1000}k`} />
+                  <Tooltip formatter={(value) => formatCurrency(value as number)} />
+                  <Line type="monotone" dataKey="anneeActuelle" stroke="#235A6E" strokeWidth={3} name="2024" />
+                  <Line type="monotone" dataKey="anneePrecedente" stroke="#B0BEC5" strokeWidth={2} strokeDasharray="5 5" name="2023" />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Benchmark secteur */}
+            <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Benchmark Sectoriel</h3>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
+                  <div>
+                    <div className="font-semibold text-gray-900">Taux de recouvrement</div>
+                    <div className="text-sm text-gray-600">Notre performance vs secteur</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-lg font-bold text-green-600">78.4%</div>
+                    <div className="text-sm text-gray-600">Secteur: 72.1%</div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
+                  <div>
+                    <div className="font-semibold text-gray-900">Délai moyen de recouvrement</div>
+                    <div className="text-sm text-gray-600">Notre performance vs secteur</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-lg font-bold text-blue-600">18j</div>
+                    <div className="text-sm text-gray-600">Secteur: 24j</div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between p-4 bg-yellow-50 rounded-lg">
+                  <div>
+                    <div className="font-semibold text-gray-900">Coût par dossier</div>
+                    <div className="text-sm text-gray-600">Notre performance vs secteur</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-lg font-bold text-yellow-600">{formatCurrency(15000)}</div>
+                    <div className="text-sm text-gray-600">Secteur: {formatCurrency(18500)}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'previsions':
+        return (
+          <div className="space-y-6">
+            {/* Prévisions financières */}
+            <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Prévisions de Recouvrement - 6 prochains mois</h3>
+              <ResponsiveContainer width="100%" height={350}>
+                <AreaChart data={[
+                  { mois: 'Juil', prevision: 260000, optimiste: 285000, pessimiste: 230000, realise: null },
+                  { mois: 'Août', prevision: 275000, optimiste: 300000, pessimiste: 245000, realise: null },
+                  { mois: 'Sep', prevision: 280000, optimiste: 310000, pessimiste: 250000, realise: null },
+                  { mois: 'Oct', prevision: 290000, optimiste: 320000, pessimiste: 260000, realise: null },
+                  { mois: 'Nov', prevision: 295000, optimiste: 325000, pessimiste: 265000, realise: null },
+                  { mois: 'Déc', prevision: 310000, optimiste: 340000, pessimiste: 280000, realise: null }
+                ]}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="mois" />
+                  <YAxis tickFormatter={(value) => `${value / 1000}k`} />
+                  <Tooltip formatter={(value) => formatCurrency(value as number)} />
+                  <Area type="monotone" dataKey="pessimiste" stackId="1" stroke="#C0322B" fill="#C0322B" fillOpacity={0.2} name="Scénario pessimiste" />
+                  <Area type="monotone" dataKey="prevision" stackId="2" stroke="#235A6E" fill="#235A6E" fillOpacity={0.4} name="Prévision réaliste" />
+                  <Area type="monotone" dataKey="optimiste" stackId="3" stroke="#15803D" fill="#15803D" fillOpacity={0.2} name="Scénario optimiste" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Facteurs de risque */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Facteurs de Risque Identifiés</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200">
+                    <div className="flex items-center">
+                      <AlertTriangle className="w-5 h-5 text-red-600 mr-3" />
+                      <div>
+                        <div className="font-medium text-red-800">Secteur BTP en difficulté</div>
+                        <div className="text-sm text-red-600">12 dossiers à risque</div>
+                      </div>
+                    </div>
+                    <span className="text-xs font-semibold bg-red-100 text-red-800 px-2 py-1 rounded">ÉLEVÉ</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                    <div className="flex items-center">
+                      <AlertTriangle className="w-5 h-5 text-yellow-600 mr-3" />
+                      <div>
+                        <div className="font-medium text-yellow-800">Saisonnalité agriculture</div>
+                        <div className="text-sm text-yellow-600">8 dossiers affectés</div>
+                      </div>
+                    </div>
+                    <span className="text-xs font-semibold bg-yellow-100 text-yellow-800 px-2 py-1 rounded">MOYEN</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg border border-orange-200">
+                    <div className="flex items-center">
+                      <AlertTriangle className="w-5 h-5 text-orange-600 mr-3" />
+                      <div>
+                        <div className="font-medium text-orange-800">Clients récidivistes</div>
+                        <div className="text-sm text-orange-600">5 dossiers surveillés</div>
+                      </div>
+                    </div>
+                    <span className="text-xs font-semibold bg-orange-100 text-orange-800 px-2 py-1 rounded">MOYEN</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Opportunités d'Amélioration</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
+                    <div className="flex items-center">
+                      <TrendingUp className="w-5 h-5 text-green-600 mr-3" />
+                      <div>
+                        <div className="font-medium text-green-800">Automatisation relances</div>
+                        <div className="text-sm text-green-600">Gain estimé: +15%</div>
+                      </div>
+                    </div>
+                    <span className="text-xs font-semibold bg-green-100 text-green-800 px-2 py-1 rounded">FORT</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="flex items-center">
+                      <Target className="w-5 h-5 text-blue-600 mr-3" />
+                      <div>
+                        <div className="font-medium text-blue-800">Scoring clients amélioré</div>
+                        <div className="text-sm text-blue-600">Gain estimé: +8%</div>
+                      </div>
+                    </div>
+                    <span className="text-xs font-semibold bg-blue-100 text-blue-800 px-2 py-1 rounded">MOYEN</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-primary-50 rounded-lg border border-primary-200">
+                    <div className="flex items-center">
+                      <Users className="w-5 h-5 text-primary-600 mr-3" />
+                      <div>
+                        <div className="font-medium text-primary-800">Formation équipe</div>
+                        <div className="text-sm text-primary-600">Gain estimé: +5%</div>
+                      </div>
+                    </div>
+                    <span className="text-xs font-semibold bg-primary-100 text-primary-800 px-2 py-1 rounded">FAIBLE</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Simulation scenarios */}
+            <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Simulation de Scénarios</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                  <div className="text-center">
+                    <div className="text-lg font-semibold text-green-800 mb-2">Scénario Optimiste</div>
+                    <div className="text-lg font-bold text-green-900 mb-1">{formatCurrency(1850000)}</div>
+                    <div className="text-sm text-green-600">Recouvrement 6 mois</div>
+                    <div className="mt-3 text-xs text-green-700">
+                      • Taux succès: 85%<br/>
+                      • Nouveaux outils IA<br/>
+                      • Équipe renforcée
+                    </div>
+                  </div>
+                </div>
+                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="text-center">
+                    <div className="text-lg font-semibold text-blue-800 mb-2">Scénario Réaliste</div>
+                    <div className="text-lg font-bold text-blue-900 mb-1">{formatCurrency(1650000)}</div>
+                    <div className="text-sm text-blue-600">Recouvrement 6 mois</div>
+                    <div className="mt-3 text-xs text-blue-700">
+                      • Taux succès: 78%<br/>
+                      • Maintien performance<br/>
+                      • Croissance modérée
+                    </div>
+                  </div>
+                </div>
+                <div className="p-4 bg-red-50 rounded-lg border border-red-200">
+                  <div className="text-center">
+                    <div className="text-lg font-semibold text-red-800 mb-2">Scénario Pessimiste</div>
+                    <div className="text-lg font-bold text-red-900 mb-1">{formatCurrency(1420000)}</div>
+                    <div className="text-sm text-red-600">Recouvrement 6 mois</div>
+                    <div className="mt-3 text-xs text-red-700">
+                      • Taux succès: 68%<br/>
+                      • Crise économique<br/>
+                      • Difficultés sectorielles
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      default:
+        return <div>Contenu non disponible</div>;
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Navigation sous-onglets */}
+      <div className="bg-white rounded-lg p-2 border border-[var(--color-border)] shadow-sm">
+        <div className="flex flex-wrap gap-1">
+          {analyticsSubTabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setAnalyticsView(tab.id)}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-colors ${
+                analyticsView === tab.id
+                  ? 'bg-[var(--color-text-tertiary)] text-white'
+                  : 'text-[var(--color-text-secondary)] hover:bg-gray-100'
+              }`}
+            >
+              <tab.icon className="w-4 h-4" />
+              <span className="text-sm font-medium">{tab.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Contenu selon le sous-onglet actif */}
+      {renderAnalyticsContent()}
+    </div>
+  );
+};
+
+// ─── ContentieuxTab (module level — was nested, caused focus loss) ──────────
+interface ContentieuxTabProps {
+  allJournalEntries: any[];
+  getStatutColor: (statut: string) => string;
+}
+const ContentieuxTab = ({ allJournalEntries, getStatutColor }: ContentieuxTabProps) => {
+  const [contentieuxView, setContentieuxView] = useState('dashboard'); // dashboard, liste, detail, workflow, couts, execution
+  const [selectedContentieux, setSelectedContentieux] = useState<DossierContentieux | null>(null);
+  const [filterStatutContentieux, setFilterStatutContentieux] = useState('tous');
+  const [filterProcedure, setFilterProcedure] = useState('tous');
+  const [showTransferContentieuxModal, setShowTransferContentieuxModal] = useState(false);
+  const [selectedDossierTransfer, setSelectedDossierTransfer] = useState<DossierContentieux | null>(null);
+  const [formData, setFormData] = useState({
+    creance_ids: [] as string[],
+    motif: '',
+    service_recouvrement: '',
+    date_transfert: new Date().toISOString().split('T')[0],
+    provision_montant: '',
+    documents: [] as string[],
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const queryClient = useQueryClient();
+  const [activeWorkflowPhase, setActiveWorkflowPhase] = useState('all');
+
+  // Create transfert contentieux mutation
+  const createMutation = useMutation({
+    mutationFn: tiersService.transfertContentieux,
+    onSuccess: () => {
+      toast.success('Transfert en contentieux créé avec succès');
+      queryClient.invalidateQueries({ queryKey: ['transferts-contentieux'] });
+      setShowTransferContentieuxModal(false);
+      resetForm();
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Erreur lors de la création');
+    },
+  });
+
+  const resetForm = () => {
+    setFormData({
+      creance_ids: [],
+      motif: '',
+      service_recouvrement: '',
+      date_transfert: new Date().toISOString().split('T')[0],
+      provision_montant: '',
+      documents: [],
+    });
+    setErrors({});
+    setIsSubmitting(false);
+  };
+
+  const handleInputChange = (field: string, value: string | string[] | number | undefined) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
+  };
+
+  const handleSubmit = async () => {
+    try {
+      setIsSubmitting(true);
+      setErrors({});
+
+      // Convert provision_montant to number if not empty
+      const processedData = {
+        ...formData,
+        provision_montant: formData.provision_montant ? Number(formData.provision_montant) : undefined,
+      };
+
+      const validatedData = createTransfertContentieuxSchema.parse(processedData);
+      await createMutation.mutateAsync(validatedData);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const fieldErrors: Record<string, string> = {};
+        error.errors.forEach((err) => {
+          const field = err.path[0] as string;
+          fieldErrors[field] = err.message;
+        });
+        setErrors(fieldErrors);
+        toast.error('Veuillez corriger les erreurs du formulaire');
+      } else {
+        toast.error('Erreur lors de la création');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // États pour les modals d'actions contentieuses
+  const [showAssignationModal, setShowAssignationModal] = useState(false);
+  const [showAudienceModal, setShowAudienceModal] = useState(false);
+  const [showConclusionsModal, setShowConclusionsModal] = useState(false);
+  const [showJugementModal, setShowJugementModal] = useState(false);
+  const [showContactAvocatModal, setShowContactAvocatModal] = useState(false);
+  const [showRetourAmiableModal, setShowRetourAmiableModal] = useState(false);
+  const [showExpertiseModal, setShowExpertiseModal] = useState(false);
+  const [showClotureModal, setShowClotureModal] = useState(false);
+  const [actionContentieuxData, setActionContentieuxData] = useState<Record<string, unknown>>({});
+
+  // États pour les modales d'exécution
+  const [showExecutionDetailModal, setShowExecutionDetailModal] = useState(false);
+  const [selectedExecutionDossier, setSelectedExecutionDossier] = useState<DossierContentieux | null>(null);
+
+  // États pour la page détaillée des dossiers contentieux
+  const [showContentieuxDetailPage, setShowContentieuxDetailPage] = useState(false);
+  const [selectedContentieuxDetail, setSelectedContentieuxDetail] = useState<DossierContentieux | null>(null);
+  const [activeContentieuxTab, setActiveContentieuxTab] = useState('general');
+
+  // Hooks pour les onglets enrichis
+  // Documents Tab
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [documentFilter, setDocumentFilter] = useState('all');
+
+  // Frais Tab
+  const [showAddFraisModal, setShowAddFraisModal] = useState(false);
+  const [fraisFilter, setFraisFilter] = useState('all');
+
+  // Correspondance Tab
+  const [showNewMessageModal, setShowNewMessageModal] = useState(false);
+  const [correspondanceFilter, setCorrespondanceFilter] = useState('all');
+  const [selectedCorrespondant, setSelectedCorrespondant] = useState(null);
+
+  // Execution Tab
+  const [showNewMesureModal, setShowNewMesureModal] = useState(false);
+  const [executionFilter, setExecutionFilter] = useState('all');
+
+  // Results Tab
+  const [showCloturerModal, setShowCloturerModal] = useState(false);
+
+  // États pour la modal de mise à jour dossier contentieux
+  const [showEditContentieuxModal, setShowEditContentieuxModal] = useState(false);
+  const [editContentieuxActiveTab, setEditContentieuxActiveTab] = useState('statut');
+
+  // Types de dépenses pour le contentieux
+  const typesDepenses = [
+    { value: 'creance_principale', label: 'Créance principale' },
+    { value: 'interets_retard', label: 'Intérêts de retard' },
+    { value: 'frais_procedure', label: 'Frais de procédure' },
+    { value: 'honoraires_avocat', label: 'Honoraires avocat' },
+    { value: 'frais_huissier', label: 'Frais huissier' },
+    { value: 'frais_greffe', label: 'Frais de greffe' },
+    { value: 'frais_expertise', label: 'Frais d\'expertise' },
+    { value: 'frais_signification', label: 'Frais de signification' },
+    { value: 'frais_execution', label: 'Frais d\'exécution' },
+    { value: 'provision', label: 'Provision comptable' },
+    { value: 'autres', label: 'Autres frais' }
+  ];
+
+  // État pour les dépenses du contentieux
+  const [contentieuxDepenses, setContentieuxDepenses] = useState<ContentieuxDepense[]>([]);
+  const [newDepense, setNewDepense] = useState({
+    type: 'creance_principale',
+    date: new Date().toISOString().split('T')[0],
+    montant: 0,
+    destinataire: '',
+    reference: '',
+    notes: ''
+  });
+
+  const [editContentieuxFormData, setEditContentieuxFormData] = useState<ContentieuxFormData>({
+    id: '',
+    statutJuridique: '',
+    typeProcedure: '',
+    // Intervenants
+    avocat: '',
+    avocatTel: '',
+    avocatEmail: '',
+    huissier: '',
+    huissierTel: '',
+    huissierEmail: '',
+    // Tribunal
+    tribunal: '',
+    tribunalAdresse: '',
+    numeroRG: '',
+    chambre: '',
+    // Dates clés
+    dateTransfert: '',
+    dateMiseEnDemeure: '',
+    dateAssignation: '',
+    dateAudience: '',
+    dateTitreExecutoire: '',
+    dateExecution: '',
+    // Provision comptable
+    provision: 0,
+    // Débiteur
+    debiteurAdresse: '',
+    debiteurTel: '',
+    debiteurEmail: '',
+    debiteurRepresentant: '',
+    // Procédure
+    motifTransfert: '',
+    resultatAttendu: '',
+    risques: '',
+    chancesSucces: 'moyenne',
+    // Suivi
+    prochaineEcheance: '',
+    priorite: 'normale',
+    notes: '',
+    dernierContact: '',
+    prochainContact: ''
+  });
+
+  // Fonction pour ajouter une dépense
+  const addDepense = () => {
+    if (newDepense.montant <= 0) {
+      toast.error('Le montant doit être supérieur à 0');
+      return;
+    }
+    const depense = {
+      id: Date.now(),
+      ...newDepense
+    };
+    setContentieuxDepenses([...contentieuxDepenses, depense]);
+    setNewDepense({
+      type: 'creance_principale',
+      date: new Date().toISOString().split('T')[0],
+      montant: 0,
+      destinataire: '',
+      reference: '',
+      notes: ''
+    });
+    toast.success('Dépense ajoutée');
+  };
+
+  // Fonction pour supprimer une dépense
+  const removeDepense = (id: number) => {
+    setContentieuxDepenses(contentieuxDepenses.filter(d => d.id !== id));
+    toast.success('Dépense supprimée');
+  };
+
+  // Calcul des totaux par type
+  const getTotalByType = (type: string) => {
+    return contentieuxDepenses
+      .filter(d => d.type === type)
+      .reduce((sum, d) => sum + d.montant, 0);
+  };
+
+  // Total général des dépenses
+  const getTotalDepenses = () => {
+    return contentieuxDepenses.reduce((sum, d) => sum + d.montant, 0);
+  };
+
+  // Types d'étapes de suivi
+  const typesEtapesSuivi = [
+    { value: 'appel_telephonique', label: 'Appel téléphonique', icon: 'phone' },
+    { value: 'envoi_courrier', label: 'Envoi de courrier', icon: 'mail' },
+    { value: 'envoi_email', label: 'Envoi email', icon: 'mail' },
+    { value: 'reunion', label: 'Réunion / Rendez-vous', icon: 'users' },
+    { value: 'mise_demeure', label: 'Mise en demeure', icon: 'alert' },
+    { value: 'depot_greffe', label: 'Dépôt au greffe', icon: 'file' },
+    { value: 'audience', label: 'Audience tribunal', icon: 'scale' },
+    { value: 'signification', label: 'Signification huissier', icon: 'gavel' },
+    { value: 'saisie', label: 'Saisie / Exécution', icon: 'lock' },
+    { value: 'paiement_recu', label: 'Paiement reçu', icon: 'check' },
+    { value: 'negociation', label: 'Négociation', icon: 'handshake' },
+    { value: 'autre', label: 'Autre', icon: 'circle' }
+  ];
+
+  // État pour les étapes de suivi
+  const [suiviEtapes, setSuiviEtapes] = useState<SuiviEtape[]>([]);
+  const [newSuiviEtape, setNewSuiviEtape] = useState({
+    type: 'appel_telephonique',
+    date: new Date().toISOString().split('T')[0],
+    heure: '',
+    intervenant: '',
+    roleIntervenant: '',
+    contact: '',
+    resultat: 'en_attente',
+    notes: '',
+    prochainRdv: '',
+    documentsJoints: ''
+  });
+
+  // Résultats possibles pour une étape
+  const resultatsEtape = [
+    { value: 'en_attente', label: 'En attente', color: 'gray' },
+    { value: 'reussi', label: 'Réussi', color: 'green' },
+    { value: 'echoue', label: 'Échoué', color: 'red' },
+    { value: 'reporte', label: 'Reporté', color: 'yellow' },
+    { value: 'annule', label: 'Annulé', color: 'orange' }
+  ];
+
+  // Fonction pour ajouter une étape de suivi
+  const addSuiviEtape = () => {
+    if (!newSuiviEtape.date) {
+      toast.error('La date est obligatoire');
+      return;
+    }
+    const etape = {
+      id: Date.now(),
+      ...newSuiviEtape,
+      createdAt: new Date().toISOString()
+    };
+    setSuiviEtapes([etape, ...suiviEtapes]); // Ajouter en premier (plus récent en haut)
+    setNewSuiviEtape({
+      type: 'appel_telephonique',
+      date: new Date().toISOString().split('T')[0],
+      heure: '',
+      intervenant: '',
+      roleIntervenant: '',
+      contact: '',
+      resultat: 'en_attente',
+      notes: '',
+      prochainRdv: '',
+      documentsJoints: ''
+    });
+    toast.success('Étape de suivi ajoutée');
+  };
+
+  // Fonction pour supprimer une étape de suivi
+  const removeSuiviEtape = (id: number) => {
+    setSuiviEtapes(suiviEtapes.filter(e => e.id !== id));
+    toast.success('Étape supprimée');
+  };
+
+  // Fonction pour mettre à jour le résultat d'une étape
+  const updateSuiviEtapeResultat = (id: number, resultat: string) => {
+    setSuiviEtapes(suiviEtapes.map(e =>
+      e.id === id ? { ...e, resultat } : e
+    ));
+  };
+
+  // Fonction pour ouvrir la modal d'édition avec les données du dossier
+  const openEditContentieuxModal = (dossier: DossierContentieux) => {
+    setEditContentieuxFormData({
+      id: dossier.id,
+      numeroRef: dossier.numeroRef,
+      client: dossier.client,
+      statutJuridique: dossier.statutJuridique,
+      typeProcedure: dossier.typeProcedure,
+      // Intervenants
+      avocat: dossier.avocat || '',
+      avocatTel: dossier.avocatTel || '+242 06 XXX XX XX',
+      avocatEmail: dossier.avocatEmail || '',
+      huissier: dossier.huissier || '',
+      huissierTel: dossier.huissierTel || '',
+      huissierEmail: dossier.huissierEmail || '',
+      // Tribunal
+      tribunal: dossier.tribunal || 'Tribunal de Commerce',
+      tribunalAdresse: dossier.tribunalAdresse || '',
+      numeroRG: dossier.numeroRG || '',
+      chambre: dossier.chambre || '',
+      // Dates clés
+      dateTransfert: dossier.dateTransfert || '',
+      dateMiseEnDemeure: dossier.dateMiseEnDemeure || '',
+      dateAssignation: dossier.dateAssignation || '',
+      dateAudience: dossier.dateAudience || '',
+      dateTitreExecutoire: dossier.dateTitreExecutoire || '',
+      dateExecution: dossier.dateExecution || '',
+      // Provision comptable
+      provision: dossier.provision || 0,
+      // Débiteur
+      debiteurAdresse: dossier.debiteurAdresse || '',
+      debiteurTel: dossier.debiteurTel || '',
+      debiteurEmail: dossier.debiteurEmail || '',
+      debiteurRepresentant: dossier.debiteurRepresentant || '',
+      // Procédure
+      motifTransfert: dossier.motifTransfert || '',
+      resultatAttendu: dossier.resultatAttendu || '',
+      risques: dossier.risques || '',
+      chancesSucces: dossier.chancesSucces || 'moyenne',
+      // Suivi
+      prochaineEcheance: dossier.prochaineEcheance || '',
+      priorite: dossier.priorite || 'normale',
+      notes: dossier.notes || '',
+      dernierContact: dossier.dernierContact || '',
+      prochainContact: dossier.prochainContact || ''
+    });
+
+    // Initialiser les dépenses à partir des données existantes du dossier
+    const depensesInitiales: ContentieuxDepense[] = [];
+    if (dossier.montantPrincipal > 0) {
+      depensesInitiales.push({
+        id: 1,
+        type: 'creance_principale',
+        date: dossier.dateTransfert || new Date().toISOString().split('T')[0],
+        montant: dossier.montantPrincipal,
+        destinataire: dossier.client,
+        reference: dossier.numeroRef,
+        notes: 'Créance principale'
+      });
+    }
+    if (dossier.interetsRetard > 0) {
+      depensesInitiales.push({
+        id: 2,
+        type: 'interets_retard',
+        date: dossier.dateTransfert || new Date().toISOString().split('T')[0],
+        montant: dossier.interetsRetard,
+        destinataire: dossier.client,
+        reference: '',
+        notes: 'Intérêts de retard'
+      });
+    }
+    if (dossier.fraisProcedure > 0) {
+      depensesInitiales.push({
+        id: 3,
+        type: 'frais_procedure',
+        date: dossier.dateTransfert || new Date().toISOString().split('T')[0],
+        montant: dossier.fraisProcedure,
+        destinataire: 'Greffe',
+        reference: '',
+        notes: 'Frais de procédure'
+      });
+    }
+    setContentieuxDepenses(depensesInitiales);
+    setEditContentieuxActiveTab('statut');
+    setShowEditContentieuxModal(true);
+  };
+
+  // Fonction pour sauvegarder les modifications
+  const handleSaveContentieux = () => {
+    // TODO: Appel API pour sauvegarder
+    toast.success(`Dossier ${editContentieuxFormData.numeroRef} mis à jour avec succès`);
+    setShowEditContentieuxModal(false);
+  };
+
+  // Onglets pour la page détaillée contentieux
+  const contentieuxDetailTabs = [
+    { id: 'general', label: 'Informations Générales', icon: FileText },
+    { id: 'procedure', label: 'Procédure Juridique', icon: Scale },
+    { id: 'chronologie', label: 'Chronologie', icon: Clock },
+    { id: 'documents', label: 'Documents', icon: Archive },
+    { id: 'frais', label: 'Frais & Coûts', icon: DollarSign },
+    { id: 'correspondance', label: 'Correspondance', icon: Mail },
+    { id: 'execution', label: 'Exécution', icon: Hammer },
+    { id: 'resultats', label: 'Résultats', icon: Award }
+  ];
+
+  // Données mock des dossiers d'exécution
+  const dossiersExecution = [
+    {
+      id: 'EXE-2024-001',
+      reference: 'EXE-2024-001',
+      client: 'SOCIETE ABIDJAN TRANSPORT',
+      typeExecution: 'Saisie-attribution',
+      montant: 4875000,
+      statut: 'En cours',
+      dateDebut: '2024-01-15',
+      huissier: 'Maître KOUAME',
+      datePrevisionnelle: '2024-02-15',
+      comptesSaisis: ['BNI-12345', 'SGCI-67890'],
+      montantSaisi: 2400000,
+      fraisHuissier: 125000
+    },
+    {
+      id: 'EXE-2024-002',
+      reference: 'EXE-2024-002',
+      client: 'GROUPE IVOIRIEN BATIMENT',
+      typeExecution: 'Saisie-vente',
+      montant: 13050000,
+      statut: 'Huissier mandaté',
+      dateDebut: '2024-01-20',
+      huissier: 'Maître DIABATE',
+      datePrevisionnelle: '2024-03-20',
+      biensSaisis: ['Véhicule Toyota Land Cruiser', 'Équipements de chantier'],
+      montantEstime: 8500000,
+      fraisHuissier: 350000
+    },
+    {
+      id: 'EXE-2024-003',
+      reference: 'EXE-2024-003',
+      client: 'COMMERCE GENERAL KOUASSI',
+      typeExecution: 'Saisie sur salaire',
+      montant: 3140000,
+      statut: 'Exécuté',
+      dateDebut: '2023-12-01',
+      dateFin: '2024-01-15',
+      employeur: 'MINISTERE DE LA CONSTRUCTION',
+      montantMensuel: 785000,
+      montantRecupere: 3140000,
+      fraisHuissier: 85000
+    }
+  ];
+
+  // Dossiers contentieux — chargés depuis l'adaptateur
+  const [dossiersContentieux, setDossiersContentieux] = useState<any[]>([]);
+  useEffect(() => {
+    adapter.getAll<any>('recoveryCases', { where: { statut: 'juridique' } })
+      .then(setDossiersContentieux)
+      .catch(() => setDossiersContentieux([]));
+  }, []);
+
+  // Workflow de contentieux avec les étapes correctes
+  const statutsContentieux = [
+    { value: 'tous', label: 'Tous les statuts' },
+    { value: 'reglement_amiable', label: '1. Règlement à l\'amiable' },
+    { value: 'mise_demeure_huissier', label: '2. Mise en demeure (Huissier)' },
+    { value: 'saisine_tribunal', label: '3. Saisine au tribunal' },
+    { value: 'procedure_injonction', label: '4. Procédure d\'injonction' },
+    { value: 'titre_executoire', label: '5. Titre exécutoire obtenu' },
+    { value: 'execution_forcee', label: '6. Exécution forcée / Saisie' },
+    { value: 'cloture', label: 'Clôturé' }
+  ];
+
+  const typesProcedure = [
+    { value: 'tous', label: 'Toutes les procédures' },
+    { value: 'injonction_payer', label: 'Injonction de payer' },
+    { value: 'refere_provision', label: 'Référé provision' },
+    { value: 'procedure_fond', label: 'Procédure au fond' },
+    { value: 'saisie_attribution', label: 'Saisie-attribution' },
+    { value: 'saisie_vente', label: 'Saisie-vente' },
+    { value: 'saisie_immobiliere', label: 'Saisie immobilière' }
+  ];
+
+  // États pour le workflow personnalisable
+  const [showWorkflowModal, setShowWorkflowModal] = useState(false);
+  const [selectedDossierWorkflow, setSelectedDossierWorkflow] = useState<DossierWorkflow | null>(null);
+  const [showAddEtapeModal, setShowAddEtapeModal] = useState(false);
+  const [newEtape, setNewEtape] = useState({ titre: '', description: '', datePrevu: '' });
+  const [showCommentModal, setShowCommentModal] = useState(false);
+  const [selectedEtape, setSelectedEtape] = useState<WorkflowEtape | null>(null);
+  const [newComment, setNewComment] = useState('');
+
+  // Structure des étapes du workflow par défaut
+  const defaultWorkflowEtapes = [
+    {
+      id: 1,
+      code: 'reglement_amiable',
+      titre: 'Règlement à l\'amiable',
+      description: 'Tentative de recouvrement amiable avant procédure judiciaire',
+      ordre: 1,
+      obligatoire: true,
+      delaiJours: 15
+    },
+    {
+      id: 2,
+      code: 'mise_demeure_huissier',
+      titre: 'Mise en demeure par Huissier',
+      description: 'Signification de la mise en demeure par voie d\'huissier de justice',
+      ordre: 2,
+      obligatoire: true,
+      delaiJours: 8
+    },
+    {
+      id: 3,
+      code: 'saisine_tribunal',
+      titre: 'Saisine au tribunal',
+      description: 'Dépôt de la requête auprès du tribunal compétent',
+      ordre: 3,
+      obligatoire: true,
+      delaiJours: 30
+    },
+    {
+      id: 4,
+      code: 'procedure_injonction',
+      titre: 'Procédure d\'injonction',
+      description: 'Procédure d\'injonction de payer devant le tribunal',
+      ordre: 4,
+      obligatoire: true,
+      delaiJours: 45
+    },
+    {
+      id: 5,
+      code: 'titre_executoire',
+      titre: 'Obtention du titre exécutoire',
+      description: 'Ordonnance d\'injonction de payer revêtue de la formule exécutoire',
+      ordre: 5,
+      obligatoire: true,
+      delaiJours: 15
+    },
+    {
+      id: 6,
+      code: 'execution_forcee',
+      titre: 'Exécution forcée / Saisie',
+      description: 'Mise en œuvre des mesures d\'exécution forcée (saisie-attribution, saisie-vente, etc.)',
+      ordre: 6,
+      obligatoire: true,
+      delaiJours: 30
+    }
+  ];
+
+  // État pour les étapes du workflow avec leurs statuts et commentaires
+  const [workflowData, setWorkflowData] = useState<{[key: string]: {
+    etapes: Array<{
+      id: number;
+      code: string;
+      titre: string;
+      description: string;
+      ordre: number;
+      obligatoire: boolean;
+      delaiJours: number;
+      statut: 'pending' | 'in_progress' | 'completed' | 'skipped';
+      dateDebut?: string;
+      dateFin?: string;
+      commentaires: Array<{
+        id: number;
+        texte: string;
+        auteur: string;
+        date: string;
+      }>;
+      custom?: boolean;
+    }>;
+  }}>({});
+
+  // Fonction pour initialiser le workflow d'un dossier
+  const initWorkflowForDossier = (dossierId: string) => {
+    if (!workflowData[dossierId]) {
+      setWorkflowData(prev => ({
+        ...prev,
+        [dossierId]: {
+          etapes: defaultWorkflowEtapes.map(etape => ({
+            ...etape,
+            statut: 'pending',
+            commentaires: []
+          }))
+        }
+      }));
+    }
+  };
+
+  // Fonction pour mettre à jour le statut d'une étape
+  const updateEtapeStatus = (dossierId: string, etapeId: number, newStatut: 'pending' | 'in_progress' | 'completed' | 'skipped') => {
+    setWorkflowData(prev => ({
+      ...prev,
+      [dossierId]: {
+        ...prev[dossierId],
+        etapes: prev[dossierId].etapes.map(etape =>
+          etape.id === etapeId
+            ? {
+                ...etape,
+                statut: newStatut,
+                dateDebut: newStatut === 'in_progress' ? new Date().toISOString().split('T')[0] : etape.dateDebut,
+                dateFin: newStatut === 'completed' ? new Date().toISOString().split('T')[0] : etape.dateFin
+              }
+            : etape
+        )
+      }
+    }));
+    toast.success(`Étape mise à jour: ${newStatut === 'completed' ? 'Terminée' : newStatut === 'in_progress' ? 'En cours' : 'En attente'}`);
+  };
+
+  // Fonction pour ajouter un commentaire à une étape
+  const addCommentToEtape = (dossierId: string, etapeId: number, commentText: string) => {
+    const newCommentObj = {
+      id: Date.now(),
+      texte: commentText,
+      auteur: 'Utilisateur actuel',
+      date: new Date().toISOString().split('T')[0]
+    };
+    setWorkflowData(prev => ({
+      ...prev,
+      [dossierId]: {
+        ...prev[dossierId],
+        etapes: prev[dossierId].etapes.map(etape =>
+          etape.id === etapeId
+            ? { ...etape, commentaires: [...etape.commentaires, newCommentObj] }
+            : etape
+        )
+      }
+    }));
+    toast.success('Commentaire ajouté');
+    setShowCommentModal(false);
+    setNewComment('');
+  };
+
+  // Fonction pour ajouter une étape personnalisée
+  const addCustomEtape = (dossierId: string) => {
+    const dossierWorkflow = workflowData[dossierId];
+    const maxOrdre = Math.max(...dossierWorkflow.etapes.map(e => e.ordre));
+    const newEtapeObj = {
+      id: Date.now(),
+      code: `custom_${Date.now()}`,
+      titre: newEtape.titre,
+      description: newEtape.description,
+      ordre: maxOrdre + 1,
+      obligatoire: false,
+      delaiJours: 0,
+      statut: 'pending' as const,
+      commentaires: [],
+      custom: true
+    };
+    setWorkflowData(prev => ({
+      ...prev,
+      [dossierId]: {
+        ...prev[dossierId],
+        etapes: [...prev[dossierId].etapes, newEtapeObj]
+      }
+    }));
+    toast.success('Étape personnalisée ajoutée');
+    setShowAddEtapeModal(false);
+    setNewEtape({ titre: '', description: '', datePrevu: '' });
+  };
+
+  const getStatutColor = (statut: string) => {
+    switch (statut) {
+      case 'reglement_amiable': return 'bg-blue-100 text-blue-800';
+      case 'mise_demeure_huissier': return 'bg-yellow-100 text-yellow-800';
+      case 'mise_demeure': return 'bg-yellow-100 text-yellow-800';
+      case 'saisine_tribunal': return 'bg-orange-100 text-orange-800';
+      case 'assignation': return 'bg-orange-100 text-orange-800';
+      case 'procedure_injonction': return 'bg-primary-100 text-primary-800';
+      case 'titre_executoire': return 'bg-primary-100 text-primary-800';
+      case 'jugement': return 'bg-primary-100 text-primary-800';
+      case 'execution_forcee': return 'bg-red-100 text-red-800';
+      case 'execution': return 'bg-red-100 text-red-800';
+      case 'appel': return 'bg-primary-100 text-primary-800';
+      case 'cloture': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getUrgenceIndicator = (jours: number) => {
+    if (jours <= 3) return 'text-red-600';
+    if (jours <= 7) return 'text-orange-600';
+    return 'text-gray-600';
+  };
+
+  const filteredContentieux = dossiersContentieux.filter(dossier => {
+    const matchStatut = filterStatutContentieux === 'tous' || dossier.statutJuridique === filterStatutContentieux;
+    const matchProcedure = filterProcedure === 'tous' || dossier.typeProcedure === filterProcedure;
+    return matchStatut && matchProcedure;
+  });
+
+  // Sous-onglets du contentieux
+  const contentieuxSubTabs = [
+    { id: 'dashboard', label: t('dashboard.title'), icon: BarChart3 },
+    { id: 'liste', label: 'Dossiers', icon: FileText },
+    { id: 'workflow', label: 'Workflow', icon: Activity },
+    { id: 'couts', label: 'Coûts & Budget', icon: DollarSign },
+    { id: 'execution', label: 'Exécution', icon: Scale },
+    { id: 'kpi', label: 'KPIs & Reporting', icon: TrendingUp }
+  ];
+
+  // Vue principale avec sous-onglets
+  return (
+    <div className="space-y-6">
+      {/* Barre de sous-navigation */}
+      <div className="bg-white rounded-lg p-2 border border-[var(--color-border)] shadow-sm">
+        <div className="flex space-x-1">
+          {contentieuxSubTabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setContentieuxView(tab.id)}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-colors ${
+                contentieuxView === tab.id
+                  ? 'bg-[var(--color-text-tertiary)] text-white'
+                  : 'text-[var(--color-text-secondary)] hover:bg-gray-100'
+              }`}
+            >
+              <tab.icon className="w-4 h-4" />
+              <span className="text-sm font-medium">{tab.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Contenu selon le sous-onglet actif */}
+      {renderContentieuxContent()}
+
+      {/* Modals d'actions contentieuses */}
+      {/* Modal Préparer Assignation */}
+      {showAssignationModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Préparer l'Assignation</h3>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Type d'assignation</label>
+                <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
+                  <option>Assignation en référé provision</option>
+                  <option>Assignation au fond</option>
+                  <option>Assignation en injonction de payer</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Tribunal compétent</label>
+                <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
+                  <option>Tribunal de Commerce d'Abidjan</option>
+                  <option>Tribunal de Première Instance d'Abidjan</option>
+                  <option>Tribunal de Commerce de Bouaké</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Montant réclamé</label>
+                <input
+                  type="text"
+                  value={selectedContentieux ? formatCurrency(selectedContentieux.montantTotal) : ''}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  readOnly
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Demandes accessoires</label>
+                <div className="space-y-2">
+                  <label className="flex items-center">
+                    <input type="checkbox" className="mr-2" defaultChecked />
+                    <span className="text-sm">Intérêts de retard</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input type="checkbox" className="mr-2" defaultChecked />
+                    <span className="text-sm">Pénalités contractuelles</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input type="checkbox" className="mr-2" defaultChecked />
+                    <span className="text-sm">Dommages et intérêts</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input type="checkbox" className="mr-2" defaultChecked />
+                    <span className="text-sm">Frais de procédure</span>
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Instructions spéciales</label>
+                <textarea
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 h-24"
+                  placeholder="Instructions particulières pour l'avocat..."
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => setShowAssignationModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={() => {
+                  // Traitement de l'assignation
+                  setShowAssignationModal(false);
+                }}
+                className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+              >
+                Préparer l'assignation
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Planifier Audience */}
+      {showAudienceModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Planifier une Audience</h3>
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Date d'audience</label>
+                  <input
+                    type="date"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Heure</label>
+                  <input
+                    type="time"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Type d'audience</label>
+                <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
+                  <option>Audience de conciliation</option>
+                  <option>Audience de mise en état</option>
+                  <option>Audience de plaidoirie</option>
+                  <option>Audience de jugement</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Avocat assigné</label>
+                <input
+                  type="text"
+                  value={selectedContentieux ? selectedContentieux.avocat : ''}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  readOnly
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Participants</label>
+                <div className="space-y-2">
+                  <label className="flex items-center">
+                    <input type="checkbox" className="mr-2" defaultChecked />
+                    <span className="text-sm">Demandeur (notre client)</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input type="checkbox" className="mr-2" defaultChecked />
+                    <span className="text-sm">Défendeur</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input type="checkbox" className="mr-2" />
+                    <span className="text-sm">Expert judiciaire</span>
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Notes de préparation</label>
+                <textarea
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 h-24"
+                  placeholder="Points à aborder, documents à présenter..."
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => setShowAudienceModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={() => {
+                  // Traitement de la planification
+                  setShowAudienceModal(false);
+                }}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                Programmer l'audience
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Générer Conclusions */}
+      {showConclusionsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Générer les Conclusions</h3>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Type de conclusions</label>
+                <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
+                  <option>Conclusions principales</option>
+                  <option>Conclusions subsidiaires</option>
+                  <option>Conclusions en duplique</option>
+                  <option>Conclusions en défense</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Points de droit à développer</label>
+                <div className="space-y-2">
+                  <label className="flex items-center">
+                    <input type="checkbox" className="mr-2" defaultChecked />
+                    <span className="text-sm">Créance certaine, liquide et exigible</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input type="checkbox" className="mr-2" defaultChecked />
+                    <span className="text-sm">Manquement contractuel du débiteur</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input type="checkbox" className="mr-2" />
+                    <span className="text-sm">Demande reconventionnelle</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input type="checkbox" className="mr-2" />
+                    <span className="text-sm">Exception d'inexécution</span>
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Demandes</label>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                    <span className="text-sm">Principal</span>
+                    <span className="font-medium">{selectedContentieux ? formatCurrency(selectedContentieux.montantPrincipal) : ''}</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                    <span className="text-sm">Intérêts de retard</span>
+                    <span className="font-medium">{selectedContentieux ? formatCurrency(selectedContentieux.interetsRetard) : ''}</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                    <span className="text-sm">Frais de procédure</span>
+                    <span className="font-medium">{selectedContentieux ? formatCurrency(selectedContentieux.fraisProcedure) : ''}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Pièces à annexer</label>
+                <div className="space-y-2">
+                  <label className="flex items-center">
+                    <input type="checkbox" className="mr-2" defaultChecked />
+                    <span className="text-sm">Contrat principal</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input type="checkbox" className="mr-2" defaultChecked />
+                    <span className="text-sm">Factures impayées</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input type="checkbox" className="mr-2" defaultChecked />
+                    <span className="text-sm">Mise en demeure</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input type="checkbox" className="mr-2" />
+                    <span className="text-sm">Correspondances</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => setShowConclusionsModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={() => {
+                  // Traitement de la génération
+                  setShowConclusionsModal(false);
+                }}
+                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+              >
+                Générer les conclusions
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Enregistrer Jugement */}
+      {showJugementModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Enregistrer le Jugement</h3>
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Date du jugement</label>
+                  <input
+                    type="date"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Numéro RG</label>
+                  <input
+                    type="text"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    placeholder="N° du rôle général"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Sens du jugement</label>
+                <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
+                  <option>Favorable (condamnation du débiteur)</option>
+                  <option>Défavorable (débouté de nos demandes)</option>
+                  <option>Partiellement favorable</option>
+                  <option>Décision avant dire droit</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Montant accordé</label>
+                <input
+                  type="text"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  placeholder="Montant de la condamnation"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Exécution provisoire</label>
+                <div className="space-y-2">
+                  <label className="flex items-center">
+                    <input type="radio" name="execution" className="mr-2" />
+                    <span className="text-sm">Oui, de droit</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input type="radio" name="execution" className="mr-2" />
+                    <span className="text-sm">Oui, à hauteur de...</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input type="radio" name="execution" className="mr-2" />
+                    <span className="text-sm">Non</span>
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Observations</label>
+                <textarea
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 h-24"
+                  placeholder="Remarques sur le jugement, voies de recours..."
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => setShowJugementModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={() => {
+                  // Traitement de l'enregistrement
+                  setShowJugementModal(false);
+                }}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+              >
+                Enregistrer le jugement
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Contacter Avocat */}
+      {showContactAvocatModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Contacter l'Avocat</h3>
+
+            <div className="space-y-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-center space-x-3">
+                  <UserCircle className="w-12 h-12 text-blue-600" />
+                  <div>
+                    <h4 className="font-semibold text-blue-900">{selectedContentieux ? selectedContentieux.avocat : ''}</h4>
+                    <p className="text-sm text-blue-700">Cabinet KONE & Associés</p>
+                    <p className="text-sm text-blue-600">+225 27 20 30 40 50</p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Mode de contact</label>
+                <div className="grid grid-cols-3 gap-3">
+                  <button className="flex items-center justify-center space-x-2 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50">
+                    <Phone className="w-4 h-4" />
+                    <span className="text-sm">Appel</span>
+                  </button>
+                  <button className="flex items-center justify-center space-x-2 px-4 py-3 bg-blue-100 border border-blue-300 rounded-lg">
+                    <Mail className="w-4 h-4" />
+                    <span className="text-sm">Email</span>
+                  </button>
+                  <button className="flex items-center justify-center space-x-2 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50">
+                    <MessageSquare className="w-4 h-4" />
+                    <span className="text-sm">Message</span>
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Objet</label>
+                <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
+                  <option>Point sur la procédure</option>
+                  <option>Demande de mise à jour</option>
+                  <option>Instructions particulières</option>
+                  <option>Urgence procédurale</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Message</label>
+                <textarea
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 h-32"
+                  placeholder="Votre message à l'avocat..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Pièces jointes</label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                  <Upload className="w-8 h-8 text-gray-700 mx-auto mb-2" />
+                  <p className="text-sm text-gray-600">Glissez vos fichiers ici ou cliquez pour parcourir</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => setShowContactAvocatModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={() => {
+                  // Traitement de l'envoi
+                  setShowContactAvocatModal(false);
+                }}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                Envoyer le message
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Retour en Amiable */}
+      {showRetourAmiableModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Retourner en Recouvrement Amiable</h3>
+
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+              <div className="flex items-start space-x-3">
+                <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5" />
+                <div>
+                  <h4 className="font-medium text-yellow-800">Attention</h4>
+                  <p className="text-sm text-yellow-700">Cette action va suspendre la procédure contentieuse en cours et transférer le dossier en recouvrement amiable.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Motif du retour en amiable</label>
+                <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
+                  <option>Proposition de règlement du débiteur</option>
+                  <option>Demande d'échelonnement acceptée</option>
+                  <option>Difficultés temporaires du débiteur</option>
+                  <option>Accord transactionnel en vue</option>
+                  <option>Autres motifs</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Nouvelle stratégie amiable</label>
+                <div className="space-y-2">
+                  <label className="flex items-center">
+                    <input type="checkbox" className="mr-2" />
+                    <span className="text-sm">Plan d'apurement négocié</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input type="checkbox" className="mr-2" />
+                    <span className="text-sm">Remise commerciale accordée</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input type="checkbox" className="mr-2" />
+                    <span className="text-sm">Garanties supplémentaires exigées</span>
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Agent assigné au suivi</label>
+                <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
+                  <option>Marie Diallo (Senior)</option>
+                  <option>Jean Kouassi (Junior)</option>
+                  <option>Aminata Traoré (Négociatrice)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Instructions particulières</label>
+                <textarea
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 h-24"
+                  placeholder="Instructions pour la nouvelle approche amiable..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Échéance de reprise contentieuse</label>
+                <input
+                  type="date"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => setShowRetourAmiableModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={() => {
+                  // Traitement du retour
+                  setShowRetourAmiableModal(false);
+                }}
+                className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+              >
+                Confirmer le retour en amiable
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Demander Expertise */}
+      {showExpertiseModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Demander une Expertise</h3>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Type d'expertise</label>
+                <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
+                  <option>Expertise comptable</option>
+                  <option>Expertise technique</option>
+                  <option>Expertise de gestion</option>
+                  <option>Expertise amiable</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Objet de l'expertise</label>
+                <textarea
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 h-24"
+                  placeholder="Précisez les points à faire examiner par l'expert..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Expert suggéré</label>
+                <input
+                  type="text"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  placeholder="Nom de l'expert proposé (optionnel)"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Budget estimé</label>
+                <input
+                  type="text"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  placeholder="Coût estimé de l'expertise"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Délai souhaité</label>
+                <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
+                  <option>1 mois</option>
+                  <option>2 mois</option>
+                  <option>3 mois</option>
+                  <option>6 mois</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Pièces à transmettre à l'expert</label>
+                <div className="space-y-2">
+                  <label className="flex items-center">
+                    <input type="checkbox" className="mr-2" defaultChecked />
+                    <span className="text-sm">Dossier complet du contentieux</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input type="checkbox" className="mr-2" />
+                    <span className="text-sm">Documents comptables</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input type="checkbox" className="mr-2" />
+                    <span className="text-sm">Correspondances</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => setShowExpertiseModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={() => {
+                  // Traitement de la demande
+                  setShowExpertiseModal(false);
+                }}
+                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+              >
+                Demander l'expertise
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Clôturer Dossier */}
+      {showClotureModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Clôturer le Dossier Contentieux</h3>
+
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+              <div className="flex items-start space-x-3">
+                <AlertTriangle className="w-5 h-5 text-red-600 mt-0.5" />
+                <div>
+                  <h4 className="font-medium text-red-800">Action irréversible</h4>
+                  <p className="text-sm text-red-700">La clôture du dossier est définitive. Assurez-vous que toutes les actions nécessaires ont été entreprises.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Motif de clôture</label>
+                <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
+                  <option>Recouvrement total</option>
+                  <option>Accord transactionnel</option>
+                  <option>Insolvabilité avérée du débiteur</option>
+                  <option>Prescription de la créance</option>
+                  <option>Abandon de créance</option>
+                  <option>Décision de justice défavorable définitive</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Montant finalement recouvré</label>
+                <input
+                  type="text"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  placeholder="Montant total récupéré"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Coûts totaux de la procédure</label>
+                <input
+                  type="text"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  placeholder="Frais d'avocat, d'huissier, de procédure..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Résumé final</label>
+                <textarea
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 h-32"
+                  placeholder="Bilan de la procédure, leçons apprises, recommandations..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Actions post-clôture</label>
+                <div className="space-y-2">
+                  <label className="flex items-center">
+                    <input type="checkbox" className="mr-2" />
+                    <span className="text-sm">Archiver le dossier</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input type="checkbox" className="mr-2" />
+                    <span className="text-sm">Mise à jour du scoring client</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input type="checkbox" className="mr-2" />
+                    <span className="text-sm">Notification à la direction</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => setShowClotureModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={() => {
+                  // Traitement de la clôture
+                  setShowClotureModal(false);
+                }}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+              >
+                Clôturer définitivement
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Modifier Dossier Contentieux */}
+      {showEditContentieuxModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <div>
+                <h2 className="text-lg font-semibold text-[var(--color-primary)]">
+                  Modifier Dossier Contentieux
+                </h2>
+                <p className="text-gray-600 mt-1">
+                  {editContentieuxFormData.numeroRef} - {editContentieuxFormData.client}
+                </p>
+              </div>
+              <button
+                onClick={() => setShowEditContentieuxModal(false)}
+                className="text-gray-700 hover:text-gray-600"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Navigation par onglets */}
+            <div className="border-b border-gray-200">
+              <div className="flex overflow-x-auto px-4">
+                {[
+                  { id: 'statut', label: 'Statut', icon: Scale, color: 'blue' },
+                  { id: 'dates', label: 'Dates', icon: Calendar, color: 'primary' },
+                  { id: 'juridiction', label: 'Juridiction', icon: Building, color: 'primary' },
+                  { id: 'intervenants', label: 'Intervenants', icon: Users, color: 'primary' },
+                  { id: 'debiteur', label: 'Débiteur', icon: UserCircle, color: 'red' },
+                  { id: 'montants', label: 'Montants', icon: DollarSign, color: 'orange' },
+                  { id: 'suivi', label: 'Suivi', icon: Phone, color: 'green' },
+                  { id: 'notes', label: 'Notes', icon: MessageSquare, color: 'gray' }
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setEditContentieuxActiveTab(tab.id)}
+                    className={`flex items-center px-4 py-3 border-b-2 transition-colors whitespace-nowrap ${
+                      editContentieuxActiveTab === tab.id
+                        ? `border-${tab.color}-500 text-${tab.color}-600 bg-${tab.color}-50`
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
+                  >
+                    <tab.icon className="w-4 h-4 mr-2" />
+                    <span className="text-sm font-medium">{tab.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="p-6">
+              {/* Onglet: Statut & Procédure */}
+              {editContentieuxActiveTab === 'statut' && (
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-blue-900 mb-4 flex items-center">
+                    <Scale className="w-5 h-5 mr-2" />
+                    Statut & Procédure
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Étape actuelle *</label>
+                      <select
+                        value={editContentieuxFormData.statutJuridique}
+                        onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, statutJuridique: e.target.value})}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="reglement_amiable">1. Règlement à l'amiable</option>
+                        <option value="mise_demeure_huissier">2. Mise en demeure (Huissier)</option>
+                        <option value="saisine_tribunal">3. Saisine au tribunal</option>
+                        <option value="procedure_injonction">4. Procédure d'injonction</option>
+                        <option value="titre_executoire">5. Titre exécutoire obtenu</option>
+                        <option value="execution_forcee">6. Exécution forcée / Saisie</option>
+                        <option value="cloture">Clôturé</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Type de Procédure *</label>
+                      <select
+                        value={editContentieuxFormData.typeProcedure}
+                        onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, typeProcedure: e.target.value})}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="injonction_payer">Injonction de payer</option>
+                        <option value="assignation_fond">Assignation au fond</option>
+                        <option value="refere">Référé provision</option>
+                        <option value="saisie_conservatoire">Saisie conservatoire</option>
+                        <option value="saisie_attribution">Saisie-attribution</option>
+                        <option value="saisie_vente">Saisie-vente</option>
+                        <option value="procedure_collective">Procédure collective</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Priorité</label>
+                      <select
+                        value={editContentieuxFormData.priorite}
+                        onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, priorite: e.target.value})}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="basse">Basse</option>
+                        <option value="normale">Normale</option>
+                        <option value="haute">Haute</option>
+                        <option value="urgente">Urgente</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Chances de succès</label>
+                      <select
+                        value={editContentieuxFormData.chancesSucces}
+                        onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, chancesSucces: e.target.value})}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="faible">Faible (&lt;30%)</option>
+                        <option value="moyenne">Moyenne (30-60%)</option>
+                        <option value="elevee">Élevée (60-80%)</option>
+                        <option value="tres_elevee">Très élevée (&gt;80%)</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Onglet: Dates Clés */}
+              {editContentieuxActiveTab === 'dates' && (
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-primary-900 mb-4 flex items-center">
+                    <Calendar className="w-5 h-5 mr-2" />
+                    Dates Clés de la Procédure
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Date transfert contentieux</label>
+                      <input
+                        type="date"
+                        value={editContentieuxFormData.dateTransfert}
+                        onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, dateTransfert: e.target.value})}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Date mise en demeure</label>
+                      <input
+                        type="date"
+                        value={editContentieuxFormData.dateMiseEnDemeure}
+                        onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, dateMiseEnDemeure: e.target.value})}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Date assignation</label>
+                      <input
+                        type="date"
+                        value={editContentieuxFormData.dateAssignation}
+                        onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, dateAssignation: e.target.value})}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Date audience</label>
+                      <input
+                        type="date"
+                        value={editContentieuxFormData.dateAudience}
+                        onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, dateAudience: e.target.value})}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Date titre exécutoire</label>
+                      <input
+                        type="date"
+                        value={editContentieuxFormData.dateTitreExecutoire}
+                        onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, dateTitreExecutoire: e.target.value})}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Date exécution</label>
+                      <input
+                        type="date"
+                        value={editContentieuxFormData.dateExecution}
+                        onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, dateExecution: e.target.value})}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Prochaine échéance</label>
+                    <input
+                      type="text"
+                      value={editContentieuxFormData.prochaineEcheance}
+                      onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, prochaineEcheance: e.target.value})}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500"
+                      placeholder="ex: Audience 15/02/2024 à 10h"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Onglet: Juridiction */}
+              {editContentieuxActiveTab === 'juridiction' && (
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-primary-900 mb-4 flex items-center">
+                    <Building className="w-5 h-5 mr-2" />
+                    Juridiction
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Tribunal compétent</label>
+                      <input
+                        type="text"
+                        value={editContentieuxFormData.tribunal}
+                        onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, tribunal: e.target.value})}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500"
+                        placeholder="ex: Tribunal de Commerce de Brazzaville"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">N° RG (Répertoire Général)</label>
+                      <input
+                        type="text"
+                        value={editContentieuxFormData.numeroRG}
+                        onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, numeroRG: e.target.value})}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500"
+                        placeholder="ex: RG 2024/001234"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Chambre</label>
+                      <input
+                        type="text"
+                        value={editContentieuxFormData.chambre}
+                        onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, chambre: e.target.value})}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500"
+                        placeholder="ex: 1ère Chambre"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Adresse tribunal</label>
+                      <input
+                        type="text"
+                        value={editContentieuxFormData.tribunalAdresse}
+                        onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, tribunalAdresse: e.target.value})}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500"
+                        placeholder="Adresse du tribunal"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Onglet: Intervenants */}
+              {editContentieuxActiveTab === 'intervenants' && (
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-primary-900 mb-4 flex items-center">
+                    <Users className="w-5 h-5 mr-2" />
+                    Intervenants
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Avocat */}
+                    <div className="bg-primary-50 p-4 rounded-lg border border-primary-200">
+                      <h4 className="font-medium text-primary-800 mb-3 flex items-center">
+                        <Briefcase className="w-4 h-4 mr-2" />
+                        Avocat
+                      </h4>
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-sm text-gray-600 mb-1">Nom</label>
+                          <input
+                            type="text"
+                            value={editContentieuxFormData.avocat}
+                            onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, avocat: e.target.value})}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                            placeholder="Maître..."
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm text-gray-600 mb-1">Téléphone</label>
+                          <input
+                            type="tel"
+                            value={editContentieuxFormData.avocatTel}
+                            onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, avocatTel: e.target.value})}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                            placeholder="+242 06 XXX XX XX"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm text-gray-600 mb-1">Email</label>
+                          <input
+                            type="email"
+                            value={editContentieuxFormData.avocatEmail}
+                            onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, avocatEmail: e.target.value})}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                            placeholder="avocat@cabinet.com"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    {/* Huissier */}
+                    <div className="bg-primary-50 p-4 rounded-lg border border-primary-200">
+                      <h4 className="font-medium text-primary-800 mb-3 flex items-center">
+                        <Gavel className="w-4 h-4 mr-2" />
+                        Huissier de Justice
+                      </h4>
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-sm text-gray-600 mb-1">Nom / Étude</label>
+                          <input
+                            type="text"
+                            value={editContentieuxFormData.huissier}
+                            onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, huissier: e.target.value})}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                            placeholder="SCP Huissiers..."
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm text-gray-600 mb-1">Téléphone</label>
+                          <input
+                            type="tel"
+                            value={editContentieuxFormData.huissierTel}
+                            onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, huissierTel: e.target.value})}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                            placeholder="+242 06 XXX XX XX"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm text-gray-600 mb-1">Email</label>
+                          <input
+                            type="email"
+                            value={editContentieuxFormData.huissierEmail}
+                            onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, huissierEmail: e.target.value})}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                            placeholder="contact@huissier.com"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Onglet: Informations Débiteur */}
+              {editContentieuxActiveTab === 'debiteur' && (
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-red-900 mb-4 flex items-center">
+                    <UserCircle className="w-5 h-5 mr-2" />
+                    Informations Débiteur
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Adresse complète</label>
+                      <textarea
+                        value={editContentieuxFormData.debiteurAdresse}
+                        onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, debiteurAdresse: e.target.value})}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 h-20"
+                        placeholder="Adresse du débiteur"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
+                      <input
+                        type="tel"
+                        value={editContentieuxFormData.debiteurTel}
+                        onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, debiteurTel: e.target.value})}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500"
+                        placeholder="+242 06 XXX XX XX"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                      <input
+                        type="email"
+                        value={editContentieuxFormData.debiteurEmail}
+                        onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, debiteurEmail: e.target.value})}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500"
+                        placeholder="email@debiteur.com"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Représentant légal</label>
+                      <input
+                        type="text"
+                        value={editContentieuxFormData.debiteurRepresentant}
+                        onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, debiteurRepresentant: e.target.value})}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500"
+                        placeholder="Nom du représentant"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Onglet: Montants & Frais */}
+              {editContentieuxActiveTab === 'montants' && (
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-orange-900 mb-4 flex items-center">
+                    <DollarSign className="w-5 h-5 mr-2" />
+                    Montants & Frais (FCFA)
+                  </h3>
+
+                  {/* Formulaire d'ajout de dépense */}
+                  <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                    <h4 className="font-medium text-orange-800 mb-3 flex items-center">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Ajouter une dépense
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
+                      <div className="md:col-span-2">
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Type de dépense *</label>
+                        <select
+                          value={newDepense.type}
+                          onChange={(e) => setNewDepense({...newDepense, type: e.target.value})}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500"
+                        >
+                          {typesDepenses.map(t => (
+                            <option key={t.value} value={t.value}>{t.label}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Date *</label>
+                        <input
+                          type="date"
+                          value={newDepense.date}
+                          onChange={(e) => setNewDepense({...newDepense, date: e.target.value})}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Montant (FCFA) *</label>
+                        <input
+                          type="number"
+                          value={newDepense.montant || ''}
+                          onChange={(e) => setNewDepense({...newDepense, montant: Number(e.target.value)})}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500"
+                          placeholder="0"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Destinataire</label>
+                        <input
+                          type="text"
+                          value={newDepense.destinataire}
+                          onChange={(e) => setNewDepense({...newDepense, destinataire: e.target.value})}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500"
+                          placeholder="Bénéficiaire..."
+                        />
+                      </div>
+                      <div className="flex items-end">
+                        <button
+                          onClick={addDepense}
+                          className="w-full bg-orange-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-orange-700 transition-colors flex items-center justify-center"
+                        >
+                          <Plus className="w-4 h-4 mr-1" />
+                          Ajouter
+                        </button>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Référence / N° Pièce</label>
+                        <input
+                          type="text"
+                          value={newDepense.reference}
+                          onChange={(e) => setNewDepense({...newDepense, reference: e.target.value})}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500"
+                          placeholder="N° facture, reçu..."
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Notes</label>
+                        <input
+                          type="text"
+                          value={newDepense.notes}
+                          onChange={(e) => setNewDepense({...newDepense, notes: e.target.value})}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500"
+                          placeholder="Observations..."
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Liste des dépenses */}
+                  <div className="border border-gray-200 rounded-lg overflow-hidden">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                          <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Montant</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Destinataire</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Référence</th>
+                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {contentieuxDepenses.length === 0 ? (
+                          <tr>
+                            <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                              Aucune dépense enregistrée. Utilisez le formulaire ci-dessus pour ajouter des dépenses.
+                            </td>
+                          </tr>
+                        ) : (
+                          contentieuxDepenses.map((dep) => (
+                            <tr key={dep.id} className="hover:bg-gray-50">
+                              <td className="px-4 py-3">
+                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                  dep.type === 'creance_principale' ? 'bg-blue-100 text-blue-800' :
+                                  dep.type === 'interets_retard' ? 'bg-primary-100 text-primary-800' :
+                                  dep.type === 'honoraires_avocat' ? 'bg-primary-100 text-primary-800' :
+                                  dep.type === 'frais_huissier' ? 'bg-primary-100 text-primary-800' :
+                                  dep.type === 'provision' ? 'bg-yellow-100 text-yellow-800' :
+                                  'bg-orange-100 text-orange-800'
+                                }`}>
+                                  {typesDepenses.find(t => t.value === dep.type)?.label || dep.type}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 text-sm text-gray-600">
+                                {new Date(dep.date).toLocaleDateString('fr-FR')}
+                              </td>
+                              <td className="px-4 py-3 text-sm text-right font-semibold text-gray-900">
+                                {formatCurrency(dep.montant)}
+                              </td>
+                              <td className="px-4 py-3 text-sm text-gray-600">
+                                {dep.destinataire || '-'}
+                              </td>
+                              <td className="px-4 py-3 text-sm text-gray-500">
+                                {dep.reference || '-'}
+                              </td>
+                              <td className="px-4 py-3 text-center">
+                                <button
+                                  onClick={() => removeDepense(dep.id)}
+                                  className="text-red-600 hover:text-red-800 p-1"
+                                  title="Supprimer"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Récapitulatif des totaux */}
+                  {contentieuxDepenses.length > 0 && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Totaux par type */}
+                      <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <h4 className="font-medium text-gray-800 mb-3">Récapitulatif par type</h4>
+                        <div className="space-y-2">
+                          {typesDepenses.map(type => {
+                            const total = getTotalByType(type.value);
+                            if (total === 0) return null;
+                            return (
+                              <div key={type.value} className="flex justify-between items-center text-sm">
+                                <span className="text-gray-600">{type.label}:</span>
+                                <span className="font-medium text-gray-800">{formatCurrency(total)}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Total général */}
+                      <div className="bg-orange-50 p-4 rounded-lg border border-orange-300">
+                        <div className="flex justify-between items-center mb-3">
+                          <span className="text-sm text-gray-600">Créance (principal + intérêts):</span>
+                          <span className="font-semibold text-orange-700">
+                            {formatCurrency((getTotalByType('creance_principale') + getTotalByType('interets_retard')))}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center mb-3">
+                          <span className="text-sm text-gray-600">Frais de procédure:</span>
+                          <span className="font-semibold text-orange-700">
+                            {formatCurrency((getTotalDepenses() - getTotalByType('creance_principale') - getTotalByType('interets_retard') - getTotalByType('provision')))}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center pt-3 border-t border-orange-200">
+                          <span className="font-medium text-gray-700">MONTANT TOTAL:</span>
+                          <span className="text-lg font-bold text-orange-600">
+                            {formatCurrency(getTotalDepenses())}
+                          </span>
+                        </div>
+                        <div className="mt-3 pt-3 border-t border-orange-200">
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-gray-600">Provision constituée:</span>
+                            <span className="font-medium text-yellow-700">
+                              {formatCurrency(getTotalByType('provision'))}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Onglet: Suivi & Contacts */}
+              {editContentieuxActiveTab === 'suivi' && (
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-green-900 mb-4 flex items-center">
+                    <Clock className="w-5 h-5 mr-2" />
+                    Historique des Étapes & Suivi
+                  </h3>
+
+                  {/* Formulaire d'ajout d'étape */}
+                  <div className="bg-gradient-to-br from-green-50 to-primary-50 p-5 rounded-xl border border-green-200 shadow-sm">
+                    <h4 className="font-semibold text-green-800 mb-4 flex items-center text-base">
+                      <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center mr-3">
+                        <Plus className="w-5 h-5 text-white" />
+                      </div>
+                      Nouvelle étape de suivi
+                    </h4>
+
+                    {/* Section 1: Informations principales */}
+                    <div className="bg-white p-4 rounded-lg border border-green-100 mb-4">
+                      <div className="text-xs font-semibold text-green-700 uppercase tracking-wide mb-3 flex items-center">
+                        <Calendar className="w-3 h-3 mr-1" />
+                        Informations de l'étape
+                      </div>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="col-span-2 md:col-span-1">
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Type d'action *</label>
+                          <select
+                            value={newSuiviEtape.type}
+                            onChange={(e) => setNewSuiviEtape({...newSuiviEtape, type: e.target.value})}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
+                          >
+                            {typesEtapesSuivi.map(t => (
+                              <option key={t.value} value={t.value}>{t.label}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Date *</label>
+                          <input
+                            type="date"
+                            value={newSuiviEtape.date}
+                            onChange={(e) => setNewSuiviEtape({...newSuiviEtape, date: e.target.value})}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Heure</label>
+                          <input
+                            type="time"
+                            value={newSuiviEtape.heure}
+                            onChange={(e) => setNewSuiviEtape({...newSuiviEtape, heure: e.target.value})}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Résultat</label>
+                          <select
+                            value={newSuiviEtape.resultat}
+                            onChange={(e) => setNewSuiviEtape({...newSuiviEtape, resultat: e.target.value})}
+                            className={`w-full border rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 ${
+                              newSuiviEtape.resultat === 'reussi' ? 'bg-green-50 border-green-300 text-green-800' :
+                              newSuiviEtape.resultat === 'echoue' ? 'bg-red-50 border-red-300 text-red-800' :
+                              newSuiviEtape.resultat === 'reporte' ? 'bg-yellow-50 border-yellow-300 text-yellow-800' :
+                              'bg-white border-gray-300'
+                            }`}
+                          >
+                            {resultatsEtape.map(r => (
+                              <option key={r.value} value={r.value}>{r.label}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Section 2: Intervenants */}
+                    <div className="bg-white p-4 rounded-lg border border-green-100 mb-4">
+                      <div className="text-xs font-semibold text-green-700 uppercase tracking-wide mb-3 flex items-center">
+                        <Users className="w-3 h-3 mr-1" />
+                        Intervenants
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Qui a effectué l'action ?</label>
+                          <input
+                            type="text"
+                            value={newSuiviEtape.intervenant}
+                            onChange={(e) => setNewSuiviEtape({...newSuiviEtape, intervenant: e.target.value})}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                            placeholder="Ex: Jean DUPONT"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Fonction / Rôle</label>
+                          <select
+                            value={newSuiviEtape.roleIntervenant}
+                            onChange={(e) => setNewSuiviEtape({...newSuiviEtape, roleIntervenant: e.target.value})}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
+                          >
+                            <option value="">-- Sélectionner --</option>
+                            <option value="responsable_recouvrement">Responsable recouvrement</option>
+                            <option value="agent_recouvrement">Agent de recouvrement</option>
+                            <option value="comptable">Comptable</option>
+                            <option value="directeur_financier">Directeur financier</option>
+                            <option value="commercial">Commercial</option>
+                            <option value="avocat">Avocat</option>
+                            <option value="huissier">Huissier de justice</option>
+                            <option value="expert">Expert / Consultant</option>
+                            <option value="autre">Autre</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Personne contactée (débiteur)</label>
+                          <input
+                            type="text"
+                            value={newSuiviEtape.contact}
+                            onChange={(e) => setNewSuiviEtape({...newSuiviEtape, contact: e.target.value})}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                            placeholder="Ex: M. KOUASSI (DG)"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Section 3: Notes et suivi */}
+                    <div className="bg-white p-4 rounded-lg border border-green-100 mb-4">
+                      <div className="text-xs font-semibold text-green-700 uppercase tracking-wide mb-3 flex items-center">
+                        <MessageSquare className="w-3 h-3 mr-1" />
+                        Compte-rendu & Suivi
+                      </div>
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Notes détaillées / Compte-rendu de l'échange
+                          </label>
+                          <textarea
+                            value={newSuiviEtape.notes}
+                            onChange={(e) => setNewSuiviEtape({...newSuiviEtape, notes: e.target.value})}
+                            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none"
+                            rows={5}
+                            placeholder="Décrivez en détail :&#10;- Le contenu de l'échange&#10;- Les engagements pris&#10;- Les difficultés rencontrées&#10;- Les décisions prises..."
+                          />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              <ArrowRight className="w-4 h-4 inline mr-1 text-orange-500" />
+                              Prochaine action à effectuer
+                            </label>
+                            <input
+                              type="text"
+                              value={newSuiviEtape.prochainRdv}
+                              onChange={(e) => setNewSuiviEtape({...newSuiviEtape, prochainRdv: e.target.value})}
+                              className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                              placeholder="Ex: Relancer le 20/12/2025 si pas de paiement"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              <FileText className="w-4 h-4 inline mr-1 text-blue-500" />
+                              Documents joints (références)
+                            </label>
+                            <input
+                              type="text"
+                              value={newSuiviEtape.documentsJoints}
+                              onChange={(e) => setNewSuiviEtape({...newSuiviEtape, documentsJoints: e.target.value})}
+                              className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                              placeholder="Ex: Courrier ref. LR-2024-001, Email du 15/12"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Bouton d'ajout */}
+                    <button
+                      onClick={addSuiviEtape}
+                      className="w-full bg-gradient-to-r from-green-600 to-primary-600 text-white rounded-lg px-6 py-3 font-medium hover:from-green-700 hover:to-primary-700 transition-all shadow-md hover:shadow-lg flex items-center justify-center"
+                    >
+                      <Plus className="w-5 h-5 mr-2" />
+                      Enregistrer cette étape de suivi
+                    </button>
+                  </div>
+
+                  {/* Timeline des étapes */}
+                  <div className="mt-6">
+                    <h4 className="font-medium text-gray-800 mb-4">
+                      Chronologie ({suiviEtapes.length} étape{suiviEtapes.length > 1 ? 's' : ''})
+                    </h4>
+
+                    {suiviEtapes.length === 0 ? (
+                      <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                        <Clock className="w-12 h-12 mx-auto text-gray-400 mb-2" />
+                        <p>Aucune étape de suivi enregistrée</p>
+                        <p className="text-sm">Utilisez le formulaire ci-dessus pour ajouter des étapes</p>
+                      </div>
+                    ) : (
+                      <div className="relative">
+                        {/* Ligne verticale de timeline */}
+                        <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-green-200"></div>
+
+                        <div className="space-y-4">
+                          {suiviEtapes.map((etape, index) => (
+                            <div key={etape.id} className="relative flex items-start">
+                              {/* Point de timeline */}
+                              <div className={`absolute left-4 w-5 h-5 rounded-full border-2 ${
+                                etape.resultat === 'reussi' ? 'bg-green-500 border-green-600' :
+                                etape.resultat === 'echoue' ? 'bg-red-500 border-red-600' :
+                                etape.resultat === 'reporte' ? 'bg-yellow-500 border-yellow-600' :
+                                etape.resultat === 'annule' ? 'bg-orange-500 border-orange-600' :
+                                'bg-gray-300 border-gray-400'
+                              }`}>
+                                {etape.resultat === 'reussi' && <CheckCircle className="w-3 h-3 text-white m-0.5" />}
+                              </div>
+
+                              {/* Carte de l'étape */}
+                              <div className="ml-12 flex-1 bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+                                <div className="flex items-start justify-between">
+                                  <div className="flex-1">
+                                    <div className="flex items-center space-x-2 mb-2">
+                                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                        etape.type === 'appel_telephonique' ? 'bg-blue-100 text-blue-800' :
+                                        etape.type === 'envoi_courrier' || etape.type === 'envoi_email' ? 'bg-primary-100 text-primary-800' :
+                                        etape.type === 'reunion' ? 'bg-primary-100 text-primary-800' :
+                                        etape.type === 'mise_demeure' ? 'bg-red-100 text-red-800' :
+                                        etape.type === 'audience' ? 'bg-primary-100 text-primary-800' :
+                                        etape.type === 'paiement_recu' ? 'bg-green-100 text-green-800' :
+                                        'bg-gray-100 text-gray-800'
+                                      }`}>
+                                        {typesEtapesSuivi.find(t => t.value === etape.type)?.label || etape.type}
+                                      </span>
+                                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                        etape.resultat === 'reussi' ? 'bg-green-100 text-green-800' :
+                                        etape.resultat === 'echoue' ? 'bg-red-100 text-red-800' :
+                                        etape.resultat === 'reporte' ? 'bg-yellow-100 text-yellow-800' :
+                                        etape.resultat === 'annule' ? 'bg-orange-100 text-orange-800' :
+                                        'bg-gray-100 text-gray-600'
+                                      }`}>
+                                        {resultatsEtape.find(r => r.value === etape.resultat)?.label || 'En attente'}
+                                      </span>
+                                    </div>
+
+                                    <div className="flex items-center text-sm text-gray-500 mb-2">
+                                      <Calendar className="w-4 h-4 mr-1" />
+                                      {new Date(etape.date).toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                                      {etape.heure && <span className="ml-2">à {etape.heure}</span>}
+                                    </div>
+
+                                    {(etape.intervenant || etape.contact) && (
+                                      <div className="flex flex-wrap gap-3 text-sm mb-2">
+                                        {etape.intervenant && (
+                                          <div className="flex items-center text-gray-600">
+                                            <Users className="w-4 h-4 mr-1 text-green-600" />
+                                            <span className="font-medium">{etape.intervenant}</span>
+                                            {etape.roleIntervenant && (
+                                              <span className="text-gray-400 ml-1">({etape.roleIntervenant})</span>
+                                            )}
+                                          </div>
+                                        )}
+                                        {etape.contact && (
+                                          <div className="flex items-center text-gray-600">
+                                            <UserCircle className="w-4 h-4 mr-1 text-blue-600" />
+                                            Contact: {etape.contact}
+                                          </div>
+                                        )}
+                                      </div>
+                                    )}
+
+                                    {etape.notes && (
+                                      <div className="bg-gray-50 p-2 rounded text-sm text-gray-700 mb-2">
+                                        {etape.notes}
+                                      </div>
+                                    )}
+
+                                    {etape.prochainRdv && (
+                                      <div className="text-sm text-orange-600 flex items-center">
+                                        <ArrowRight className="w-4 h-4 mr-1" />
+                                        Prochaine action: {etape.prochainRdv}
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  <div className="flex items-center space-x-2 ml-4">
+                                    <select
+                                      value={etape.resultat}
+                                      onChange={(e) => updateSuiviEtapeResultat(etape.id, e.target.value)}
+                                      className="text-xs border border-gray-300 rounded px-2 py-1"
+                                    >
+                                      {resultatsEtape.map(r => (
+                                        <option key={r.value} value={r.value}>{r.label}</option>
+                                      ))}
+                                    </select>
+                                    <button
+                                      onClick={() => removeSuiviEtape(etape.id)}
+                                      className="text-red-500 hover:text-red-700 p-1"
+                                      title="Supprimer"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Résumé des étapes */}
+                  {suiviEtapes.length > 0 && (
+                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mt-4">
+                      <h4 className="font-medium text-gray-800 mb-3">Résumé du suivi</h4>
+                      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
+                        <div className="bg-white p-3 rounded-lg border">
+                          <div className="text-lg font-bold text-gray-700">{suiviEtapes.length}</div>
+                          <div className="text-xs text-gray-500">Total étapes</div>
+                        </div>
+                        <div className="bg-white p-3 rounded-lg border">
+                          <div className="text-lg font-bold text-green-600">
+                            {suiviEtapes.filter(e => e.resultat === 'reussi').length}
+                          </div>
+                          <div className="text-xs text-gray-500">Réussies</div>
+                        </div>
+                        <div className="bg-white p-3 rounded-lg border">
+                          <div className="text-lg font-bold text-red-600">
+                            {suiviEtapes.filter(e => e.resultat === 'echoue').length}
+                          </div>
+                          <div className="text-xs text-gray-500">Échouées</div>
+                        </div>
+                        <div className="bg-white p-3 rounded-lg border">
+                          <div className="text-lg font-bold text-yellow-600">
+                            {suiviEtapes.filter(e => e.resultat === 'reporte').length}
+                          </div>
+                          <div className="text-xs text-gray-500">Reportées</div>
+                        </div>
+                        <div className="bg-white p-3 rounded-lg border">
+                          <div className="text-lg font-bold text-gray-500">
+                            {suiviEtapes.filter(e => e.resultat === 'en_attente').length}
+                          </div>
+                          <div className="text-xs text-gray-500">En attente</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Onglet: Analyse & Notes */}
+              {editContentieuxActiveTab === 'notes' && (
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-gray-900 mb-4 flex items-center">
+                    <MessageSquare className="w-5 h-5 mr-2" />
+                    Analyse & Notes
+                  </h3>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Motif du transfert en contentieux</label>
+                    <textarea
+                      value={editContentieuxFormData.motifTransfert}
+                      onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, motifTransfert: e.target.value})}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 h-24 focus:ring-2 focus:ring-gray-500"
+                      placeholder="Décrivez le motif du transfert..."
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Résultat attendu</label>
+                      <textarea
+                        value={editContentieuxFormData.resultatAttendu}
+                        onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, resultatAttendu: e.target.value})}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 h-24 focus:ring-2 focus:ring-gray-500"
+                        placeholder="Objectif de la procédure..."
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Risques identifiés</label>
+                      <textarea
+                        value={editContentieuxFormData.risques}
+                        onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, risques: e.target.value})}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 h-24 focus:ring-2 focus:ring-gray-500"
+                        placeholder="Risques potentiels..."
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Notes complémentaires</label>
+                    <textarea
+                      value={editContentieuxFormData.notes}
+                      onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, notes: e.target.value})}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 h-32 focus:ring-2 focus:ring-gray-500"
+                      placeholder="Informations supplémentaires, historique, observations..."
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Footer Actions */}
+            <div className="flex justify-between items-center p-6 border-t border-gray-200 bg-gray-50">
+              <div className="text-sm text-gray-500">
+                Dernière modification: {new Date().toLocaleDateString()}
+              </div>
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => setShowEditContentieuxModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={handleSaveContentieux}
+                  className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] transition-colors flex items-center space-x-2"
+                >
+                  <CheckCircle className="w-4 h-4" />
+                  <span>Enregistrer les modifications</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Gestion Workflow Contentieux */}
+      {showWorkflowModal && selectedDossierWorkflow && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-5xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-primary-600 to-primary-600">
+              <div className="text-white">
+                <h2 className="text-lg font-semibold flex items-center">
+                  <Activity className="w-6 h-6 mr-2" />
+                  Workflow de Procédure Contentieux
+                </h2>
+                <p className="text-primary-100 mt-1">
+                  {selectedDossierWorkflow.numeroRef} - {selectedDossierWorkflow.client}
+                </p>
+              </div>
+              <button
+                onClick={() => setShowWorkflowModal(false)}
+                className="text-white hover:text-primary-200"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="p-6">
+              {/* Barre de progression */}
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-gray-700">Progression du dossier</span>
+                  <span className="text-sm font-medium text-primary-600">
+                    {workflowData[selectedDossierWorkflow.id]?.etapes.filter(e => e.statut === 'completed').length || 0} / {workflowData[selectedDossierWorkflow.id]?.etapes.length || 6} étapes
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div
+                    className="bg-gradient-to-r from-primary-600 to-primary-600 h-3 rounded-full transition-all duration-500"
+                    style={{
+                      width: `${((workflowData[selectedDossierWorkflow.id]?.etapes.filter(e => e.statut === 'completed').length || 0) / (workflowData[selectedDossierWorkflow.id]?.etapes.length || 6)) * 100}%`
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Liste des étapes */}
+              <div className="space-y-4">
+                {(workflowData[selectedDossierWorkflow.id]?.etapes || defaultWorkflowEtapes.map(e => ({ ...e, statut: 'pending', commentaires: [] }))).map((etape, index) => (
+                  <div
+                    key={etape.id}
+                    className={`border rounded-lg p-4 ${
+                      etape.statut === 'completed' ? 'border-green-300 bg-green-50' :
+                      etape.statut === 'in_progress' ? 'border-blue-300 bg-blue-50' :
+                      etape.statut === 'skipped' ? 'border-gray-300 bg-gray-50 opacity-60' :
+                      'border-gray-200 bg-white'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start space-x-4">
+                        {/* Numéro de l'étape */}
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white ${
+                          etape.statut === 'completed' ? 'bg-green-500' :
+                          etape.statut === 'in_progress' ? 'bg-blue-500' :
+                          etape.statut === 'skipped' ? 'bg-gray-400' :
+                          'bg-gray-300'
+                        }`}>
+                          {etape.statut === 'completed' ? <CheckCircle className="w-5 h-5" /> : index + 1}
+                        </div>
+
+                        {/* Détails de l'étape */}
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2">
+                            <h4 className="font-semibold text-gray-900">{etape.titre}</h4>
+                            {etape.custom && (
+                              <span className="px-2 py-0.5 text-xs bg-primary-100 text-primary-700 rounded-full">Personnalisé</span>
+                            )}
+                            {etape.obligatoire && (
+                              <span className="px-2 py-0.5 text-xs bg-red-100 text-red-700 rounded-full">Obligatoire</span>
+                            )}
+                          </div>
+                          <p className="text-sm text-gray-600 mt-1">{etape.description}</p>
+                          {etape.delaiJours > 0 && (
+                            <p className="text-xs text-gray-500 mt-1">Délai estimé: {etape.delaiJours} jours</p>
+                          )}
+                          {etape.dateDebut && (
+                            <p className="text-xs text-blue-600 mt-1">Démarré le: {etape.dateDebut}</p>
+                          )}
+                          {etape.dateFin && (
+                            <p className="text-xs text-green-600 mt-1">Terminé le: {etape.dateFin}</p>
+                          )}
+
+                          {/* Commentaires de l'étape */}
+                          {etape.commentaires && etape.commentaires.length > 0 && (
+                            <div className="mt-3 space-y-2">
+                              <p className="text-xs font-medium text-gray-700">Commentaires ({etape.commentaires.length}):</p>
+                              {etape.commentaires.map(comment => (
+                                <div key={comment.id} className="bg-white border border-gray-200 rounded p-2 text-sm">
+                                  <p className="text-gray-700">{comment.texte}</p>
+                                  <p className="text-xs text-gray-500 mt-1">{comment.auteur} - {comment.date}</p>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex flex-col space-y-2">
+                        {/* Boutons de statut */}
+                        <div className="flex space-x-1">
+                          {etape.statut !== 'completed' && (
+                            <button
+                              onClick={() => updateEtapeStatus(selectedDossierWorkflow.id, etape.id, 'in_progress')}
+                              className={`px-2 py-1 text-xs rounded ${etape.statut === 'in_progress' ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'}`}
+                              title="En cours"
+                            >
+                              <Clock className="w-3 h-3" />
+                            </button>
+                          )}
+                          <button
+                            onClick={() => updateEtapeStatus(selectedDossierWorkflow.id, etape.id, 'completed')}
+                            className={`px-2 py-1 text-xs rounded ${etape.statut === 'completed' ? 'bg-green-600 text-white' : 'bg-green-100 text-green-700 hover:bg-green-200'}`}
+                            title="Terminé"
+                          >
+                            <CheckCircle className="w-3 h-3" />
+                          </button>
+                          {!etape.obligatoire && (
+                            <button
+                              onClick={() => updateEtapeStatus(selectedDossierWorkflow.id, etape.id, 'skipped')}
+                              className={`px-2 py-1 text-xs rounded ${etape.statut === 'skipped' ? 'bg-gray-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                              title="Passer"
+                            >
+                              <ArrowRight className="w-3 h-3" />
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Bouton commentaire */}
+                        <button
+                          onClick={() => {
+                            setSelectedEtape(etape);
+                            setShowCommentModal(true);
+                          }}
+                          className="px-2 py-1 text-xs bg-primary-100 text-primary-700 rounded hover:bg-primary-200 flex items-center justify-center space-x-1"
+                        >
+                          <MessageSquare className="w-3 h-3" />
+                          <span>Commenter</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Bouton ajouter étape */}
+              <button
+                onClick={() => setShowAddEtapeModal(true)}
+                className="mt-4 w-full py-3 border-2 border-dashed border-primary-300 rounded-lg text-primary-600 hover:bg-primary-50 flex items-center justify-center space-x-2"
+              >
+                <Plus className="w-5 h-5" />
+                <span>Ajouter une étape personnalisée</span>
+              </button>
+            </div>
+
+            {/* Footer */}
+            <div className="flex justify-end p-6 border-t border-gray-200 bg-gray-50">
+              <button
+                onClick={() => setShowWorkflowModal(false)}
+                className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+              >
+                Fermer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Ajouter Étape Personnalisée */}
+      {showAddEtapeModal && selectedDossierWorkflow && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60]">
+          <div className="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4">
+            <div className="p-6 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">Ajouter une étape personnalisée</h3>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Titre de l'étape</label>
+                <input
+                  type="text"
+                  value={newEtape.titre}
+                  onChange={(e) => setNewEtape({ ...newEtape, titre: e.target.value })}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500"
+                  placeholder="Ex: Négociation complémentaire"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea
+                  value={newEtape.description}
+                  onChange={(e) => setNewEtape({ ...newEtape, description: e.target.value })}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 h-24 focus:ring-2 focus:ring-primary-500"
+                  placeholder="Décrivez cette étape..."
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Date prévue (optionnel)</label>
+                <input
+                  type="date"
+                  value={newEtape.datePrevu}
+                  onChange={(e) => setNewEtape({ ...newEtape, datePrevu: e.target.value })}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end space-x-3 p-6 border-t border-gray-200">
+              <button
+                onClick={() => {
+                  setShowAddEtapeModal(false);
+                  setNewEtape({ titre: '', description: '', datePrevu: '' });
+                }}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={() => addCustomEtape(selectedDossierWorkflow.id)}
+                disabled={!newEtape.titre}
+                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
+              >
+                Ajouter l'étape
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Ajouter Commentaire */}
+      {showCommentModal && selectedEtape && selectedDossierWorkflow && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60]">
+          <div className="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4">
+            <div className="p-6 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">Ajouter un commentaire</h3>
+              <p className="text-sm text-gray-600 mt-1">Étape: {selectedEtape.titre}</p>
+            </div>
+            <div className="p-6">
+              <textarea
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 h-32 focus:ring-2 focus:ring-primary-500"
+                placeholder="Ajoutez votre commentaire, observation ou mise à jour..."
+              />
+            </div>
+            <div className="flex justify-end space-x-3 p-6 border-t border-gray-200">
+              <button
+                onClick={() => {
+                  setShowCommentModal(false);
+                  setNewComment('');
+                  setSelectedEtape(null);
+                }}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={() => addCommentToEtape(selectedDossierWorkflow.id, selectedEtape.id, newComment)}
+                disabled={!newComment}
+                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
+              >
+                Ajouter le commentaire
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Détail Dossier d'Exécution */}
+      {showExecutionDetailModal && selectedExecutionDossier && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <div>
+                <h2 className="text-lg font-semibold text-[var(--color-primary)]">
+                  Détail Exécution - {selectedExecutionDossier.reference}
+                </h2>
+                <p className="text-gray-600 mt-1">Client: {selectedExecutionDossier.client}</p>
+              </div>
+              <button
+                onClick={() => setShowExecutionDetailModal(false)}
+                className="text-gray-700 hover:text-gray-600"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Informations générales */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-blue-50 rounded-lg p-4">
+                  <h3 className="font-semibold text-[var(--color-primary)] mb-3">Informations Générales</h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Référence:</span>
+                      <span className="font-medium">{selectedExecutionDossier.reference}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Type d'exécution:</span>
+                      <span className="font-medium">{selectedExecutionDossier.typeExecution}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Montant à recouvrer:</span>
+                      <span className="font-medium text-[var(--color-primary)]">{formatCurrency(selectedExecutionDossier.montant)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Statut:</span>
+                      <span className={`font-medium ${
+                        selectedExecutionDossier.statut === 'Exécuté' ? 'text-green-600' :
+                        selectedExecutionDossier.statut === 'En cours' ? 'text-yellow-600' :
+                        'text-orange-600'
+                      }`}>
+                        {selectedExecutionDossier.statut}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-orange-50 rounded-lg p-4">
+                  <h3 className="font-semibold text-[var(--color-primary)] mb-3">Dates & Délais</h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Date de début:</span>
+                      <span className="font-medium">{new Date(selectedExecutionDossier.dateDebut).toLocaleDateString()}</span>
+                    </div>
+                    {selectedExecutionDossier.dateFin && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Date de fin:</span>
+                        <span className="font-medium">{new Date(selectedExecutionDossier.dateFin).toLocaleDateString()}</span>
+                      </div>
+                    )}
+                    {selectedExecutionDossier.datePrevisionnelle && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Date prévisionnelle:</span>
+                        <span className="font-medium">{new Date(selectedExecutionDossier.datePrevisionnelle).toLocaleDateString()}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Huissier:</span>
+                      <span className="font-medium">{selectedExecutionDossier.huissier}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Détails spécifiques selon le type d'exécution */}
+              <div className="bg-white border border-gray-200 rounded-lg">
+                <div className="px-4 py-3 border-b border-gray-200">
+                  <h3 className="font-semibold text-[var(--color-primary)]">Détails de l'Exécution</h3>
+                </div>
+                <div className="p-4">
+                  {selectedExecutionDossier.typeExecution === 'Saisie-attribution' && (
+                    <div className="space-y-4">
+                      <div>
+                        <h4 className="font-medium text-gray-900 mb-2">Comptes saisis</h4>
+                        <div className="space-y-2">
+                          {selectedExecutionDossier.comptesSaisis?.map((compte, index) => (
+                            <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                              <span className="text-sm">{compte}</span>
+                              <span className="text-xs text-green-600">Actif</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600">Montant saisi:</span>
+                          <span className="font-semibold text-green-600">{formatCurrency(selectedExecutionDossier.montantSaisi)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedExecutionDossier.typeExecution === 'Saisie-vente' && (
+                    <div className="space-y-4">
+                      <div>
+                        <h4 className="font-medium text-gray-900 mb-2">Biens saisis</h4>
+                        <div className="space-y-2">
+                          {selectedExecutionDossier.biensSaisis?.map((bien, index) => (
+                            <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                              <span className="text-sm">{bien}</span>
+                              <span className="text-xs text-blue-600">En cours d'évaluation</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600">Valeur estimée:</span>
+                          <span className="font-semibold text-blue-600">{formatCurrency(selectedExecutionDossier.montantEstime)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedExecutionDossier.typeExecution === 'Saisie sur salaire' && (
+                    <div className="space-y-4">
+                      <div>
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-gray-600">Employeur:</span>
+                          <span className="font-medium">{selectedExecutionDossier.employeur}</span>
+                        </div>
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-gray-600">Saisie mensuelle:</span>
+                          <span className="font-medium">{formatCurrency(selectedExecutionDossier.montantMensuel)}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600">Montant récupéré:</span>
+                          <span className="font-semibold text-green-600">{formatCurrency(selectedExecutionDossier.montantRecupere)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Frais d'huissier:</span>
+                      <span className="font-medium text-red-600">{formatCurrency(selectedExecutionDossier.fraisHuissier)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex justify-end space-x-3 pt-4 border-t">
+                <button
+                  onClick={() => setShowExecutionDetailModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                >
+                  Fermer
+                </button>
+                <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                  Modifier l'exécution
+                </button>
+                <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                  Générer rapport
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
+
+  function renderContentieuxDetailPage() {
+    return (
+      <div className="space-y-6">
+        {/* En-tête avec bouton retour */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={() => {
+                setShowContentieuxDetailPage(false);
+                setSelectedContentieuxDetail(null);
+                setActiveContentieuxTab('general');
+              }}
+              className="flex items-center space-x-2 text-gray-600 hover:text-gray-800"
+            >
+              <ArrowLeft className="w-5 h-5" />
+              <span>Retour aux dossiers contentieux</span>
+            </button>
+            <div>
+              <h1 className="text-lg font-bold text-gray-900">
+                Dossier Contentieux {selectedContentieuxDetail.numeroRef}
+              </h1>
+              <p className="text-gray-600">{selectedContentieuxDetail.client}</p>
+            </div>
+          </div>
+
+          {/* Statut et actions rapides */}
+          <div className="flex items-center space-x-4">
+            <div className="text-right">
+              <div className="text-sm text-gray-700">Statut</div>
+              <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${
+                selectedContentieuxDetail.statutJuridique === 'execution' ? 'bg-primary-100 text-primary-800' :
+                selectedContentieuxDetail.statutJuridique === 'jugement' ? 'bg-green-100 text-green-800' :
+                selectedContentieuxDetail.statutJuridique === 'assignation' ? 'bg-blue-100 text-blue-800' :
+                'bg-red-100 text-red-800'
+              }`}>
+                {selectedContentieuxDetail.statutJuridique?.replace('_', ' ').toUpperCase()}
+              </span>
+            </div>
+            <div className="text-right">
+              <div className="text-sm text-gray-700">Montant Total</div>
+              <div className="text-lg font-bold text-red-600">
+                {formatCurrency(selectedContentieuxDetail.montantTotal)}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Navigation par onglets */}
+        <div className="bg-white rounded-lg shadow">
+          <div className="border-b border-gray-200">
+            <nav className="flex space-x-8 px-6 overflow-x-auto">
+              {contentieuxDetailTabs.map((tab) => {
+                const IconComponent = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveContentieuxTab(tab.id)}
+                    className={`
+                      flex items-center space-x-2 py-4 border-b-2 font-medium text-sm transition-colors whitespace-nowrap
+                      ${activeContentieuxTab === tab.id
+                        ? 'border-red-500 text-red-600'
+                        : 'border-transparent text-gray-700 hover:text-gray-700 hover:border-gray-300'
+                      }
+                    `}
+                  >
+                    <IconComponent className="w-4 h-4" />
+                    <span>{tab.label}</span>
+                  </button>
+                );
+              })}
+            </nav>
+          </div>
+
+          {/* Contenu des onglets */}
+          <div className="p-6">
+            {renderContentieuxTabContent()}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  function renderContentieuxTabContent() {
+    switch (activeContentieuxTab) {
+      case 'general':
+        return renderGeneralTab();
+      case 'procedure':
+        return renderProcedureTab();
+      case 'chronologie':
+        return renderChronologieTab();
+      case 'documents':
+        return renderDocumentsTab();
+      case 'frais':
+        return renderFraisTab();
+      case 'correspondance':
+        return renderCorrespondanceTab();
+      case 'execution':
+        return renderExecutionTab();
+      case 'resultats':
+        return renderResultatsTab();
+      default:
+        return renderGeneralTab();
+    }
+  }
+
+  function renderGeneralTab() {
+    return (
+      <div className="space-y-6">
+        {/* Informations générales */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-red-50 rounded-lg p-4">
+            <h3 className="font-semibold text-[var(--color-primary)] mb-3">Informations Contentieuses</h3>
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Référence:</span>
+                <span className="font-medium">{selectedContentieuxDetail.numeroRef}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Origine amiable:</span>
+                <span className="font-medium text-blue-600">{selectedContentieuxDetail.origineAmiable}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Date de transfert:</span>
+                <span className="font-medium">{selectedContentieuxDetail.dateTransfert}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Jours restants:</span>
+                <span className={`font-medium ${selectedContentieuxDetail.joursRestants <= 5 ? 'text-red-600' : 'text-orange-600'}`}>
+                  {selectedContentieuxDetail.joursRestants} jours
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-orange-50 rounded-lg p-4">
+            <h3 className="font-semibold text-[var(--color-primary)] mb-3">Montants</h3>
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Principal:</span>
+                <span className="font-medium text-[var(--color-primary)]">{formatCurrency(selectedContentieuxDetail.montantPrincipal)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Intérêts de retard:</span>
+                <span className="font-medium text-orange-600">{formatCurrency(selectedContentieuxDetail.interetsRetard)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Frais de procédure:</span>
+                <span className="font-medium text-red-600">{formatCurrency(selectedContentieuxDetail.fraisProcedure)}</span>
+              </div>
+              <div className="flex justify-between border-t pt-2">
+                <span className="text-gray-600 font-semibold">Montant total:</span>
+                <span className="font-bold text-[var(--color-primary)]">{formatCurrency(selectedContentieuxDetail.montantTotal)}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Motif du transfert */}
+        <div className="bg-gray-50 rounded-lg p-4">
+          <h3 className="font-semibold text-[var(--color-primary)] mb-3">Motif du Transfert en Contentieux</h3>
+          <p className="text-gray-700 leading-relaxed">{selectedContentieuxDetail.motifTransfert}</p>
+        </div>
+
+        {/* Actions rapides */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <button
+            onClick={() => setActiveContentieuxTab('procedure')}
+            className="p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+          >
+            <Scale className="w-6 h-6 text-blue-600 mb-2" />
+            <div className="font-medium text-blue-900">Gérer la Procédure</div>
+            <div className="text-sm text-blue-600">Assignation, audiences, jugement</div>
+          </button>
+          <button
+            onClick={() => setActiveContentieuxTab('documents')}
+            className="p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
+          >
+            <Archive className="w-6 h-6 text-green-600 mb-2" />
+            <div className="font-medium text-green-900">Documents</div>
+            <div className="text-sm text-green-600">Pièces, actes, correspondances</div>
+          </button>
+          <button
+            onClick={() => setActiveContentieuxTab('execution')}
+            className="p-4 bg-primary-50 rounded-lg hover:bg-primary-100 transition-colors"
+          >
+            <Hammer className="w-6 h-6 text-primary-600 mb-2" />
+            <div className="font-medium text-primary-900">Exécution</div>
+            <div className="text-sm text-primary-600">Saisies, voies d'exécution</div>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  function renderProcedureTab() {
+    const etapesProcedure = [
+      {
+        id: 1,
+        titre: 'Mise en Demeure',
+        statut: 'complete',
+        date: '2024-01-10',
+        description: 'Mise en demeure préalable envoyée au débiteur',
+        documents: ['Mise en demeure', 'AR postal'],
+        prochaine: false
+      },
+      {
+        id: 2,
+        titre: 'Assignation',
+        statut: selectedContentieuxDetail.statutJuridique === 'assignation' ? 'current' :
+                selectedContentieuxDetail.statutJuridique === 'jugement' || selectedContentieuxDetail.statutJuridique === 'execution' ? 'complete' : 'pending',
+        date: selectedContentieuxDetail.statutJuridique !== 'mise_demeure' ? '2024-01-20' : null,
+        description: 'Assignation du débiteur devant le tribunal compétent',
+        documents: ['Acte d\'assignation', 'Exploit d\'huissier'],
+        prochaine: selectedContentieuxDetail.statutJuridique === 'mise_demeure'
+      },
+      {
+        id: 3,
+        titre: 'Audience',
+        statut: selectedContentieuxDetail.statutJuridique === 'jugement' || selectedContentieuxDetail.statutJuridique === 'execution' ? 'complete' : 'pending',
+        date: selectedContentieuxDetail.statutJuridique === 'jugement' || selectedContentieuxDetail.statutJuridique === 'execution' ? '2024-02-15' : selectedContentieuxDetail.prochaineEcheance,
+        description: 'Comparution devant le tribunal',
+        documents: ['Dossier de plaidoirie', 'Conclusions'],
+        prochaine: selectedContentieuxDetail.statutJuridique === 'assignation'
+      },
+      {
+        id: 4,
+        titre: 'Jugement',
+        statut: selectedContentieuxDetail.statutJuridique === 'jugement' || selectedContentieuxDetail.statutJuridique === 'execution' ? 'complete' : 'pending',
+        date: selectedContentieuxDetail.statutJuridique === 'jugement' || selectedContentieuxDetail.statutJuridique === 'execution' ? '2024-02-20' : null,
+        description: 'Prononcé du jugement par le tribunal',
+        documents: ['Jugement', 'Certificat de non-appel'],
+        prochaine: false
+      },
+      {
+        id: 5,
+        titre: 'Exécution',
+        statut: selectedContentieuxDetail.statutJuridique === 'execution' ? 'current' : 'pending',
+        date: selectedContentieuxDetail.statutJuridique === 'execution' ? '2024-03-01' : null,
+        description: 'Mise en œuvre des mesures d\'exécution forcée',
+        documents: ['Commandement', 'PV de saisie'],
+        prochaine: selectedContentieuxDetail.statutJuridique === 'jugement'
+      }
+    ];
+
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-gray-900">Étapes de la Procédure Contentieuse</h3>
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-gray-700">Avocat:</span>
+            <span className="font-medium">{selectedContentieuxDetail.avocat}</span>
+          </div>
+        </div>
+
+        {/* Timeline des étapes */}
+        <div className="space-y-4">
+          {etapesProcedure.map((etape, index) => (
+            <div key={etape.id} className="relative">
+              {index !== etapesProcedure.length - 1 && (
+                <div className={`absolute left-4 top-8 h-16 w-0.5 ${
+                  etape.statut === 'complete' ? 'bg-green-400' : 'bg-gray-300'
+                }`} />
+              )}
+
+              <div className={`flex items-start space-x-4 p-4 rounded-lg border-2 ${
+                etape.statut === 'current' ? 'border-blue-200 bg-blue-50' :
+                etape.statut === 'complete' ? 'border-green-200 bg-green-50' :
+                etape.prochaine ? 'border-orange-200 bg-orange-50' :
+                'border-gray-200 bg-gray-50'
+              }`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                  etape.statut === 'current' ? 'bg-blue-500 text-white' :
+                  etape.statut === 'complete' ? 'bg-green-500 text-white' :
+                  etape.prochaine ? 'bg-orange-500 text-white' :
+                  'bg-gray-300 text-gray-600'
+                }`}>
+                  {etape.statut === 'complete' ? <CheckCircle className="w-5 h-5" /> : etape.id}
+                </div>
+
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className={`font-semibold ${
+                      etape.statut === 'current' ? 'text-blue-900' :
+                      etape.statut === 'complete' ? 'text-green-900' :
+                      etape.prochaine ? 'text-orange-900' :
+                      'text-gray-600'
+                    }`}>
+                      {etape.titre}
+                      {etape.prochaine && <span className="ml-2 text-xs bg-orange-200 text-orange-800 px-2 py-1 rounded">PROCHAINE ÉTAPE</span>}
+                      {etape.statut === 'current' && <span className="ml-2 text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded">EN COURS</span>}
+                    </h4>
+                    {etape.date && (
+                      <span className="text-sm text-gray-700">{new Date(etape.date).toLocaleDateString()}</span>
+                    )}
+                  </div>
+
+                  <p className="text-gray-700 mb-3">{etape.description}</p>
+
+                  {etape.documents.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {etape.documents.map((doc, idx) => (
+                        <span key={idx} className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded">
+                          {doc}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {etape.prochaine && (
+                    <div className="mt-3 flex space-x-2">
+                      <button className="px-3 py-1 bg-orange-600 text-white text-sm rounded hover:bg-orange-700">
+                        Programmer {etape.titre}
+                      </button>
+                      <button className="px-3 py-1 bg-gray-600 text-white text-sm rounded hover:bg-gray-700">
+                        Voir Modèles
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  function renderChronologieTab() {
+    return (
+      <div className="space-y-6">
+        <h3 className="text-lg font-semibold text-gray-900">Chronologie Complète du Dossier</h3>
+
+        {/* Timeline détaillée */}
+        <div className="space-y-4">
+          {[
+            {
+              date: '2024-01-15',
+              type: 'Transfert',
+              titre: 'Transfert en contentieux',
+              description: `Dossier ${selectedContentieuxDetail.origineAmiable} transféré en contentieux après échec du recouvrement amiable`,
+              utilisateur: 'Système',
+              statut: 'info'
+            },
+            {
+              date: '2024-01-16',
+              type: 'Assignation',
+              titre: 'Assignation avocat',
+              description: `Dossier assigné à ${selectedContentieuxDetail.avocat}`,
+              utilisateur: '',
+              statut: 'success'
+            },
+            {
+              date: '2024-01-20',
+              type: 'Procédure',
+              titre: 'Préparation assignation',
+              description: 'Préparation des pièces pour assignation devant le tribunal',
+              utilisateur: selectedContentieuxDetail.avocat,
+              statut: 'warning'
+            },
+            {
+              date: selectedContentieuxDetail.prochaineEcheance,
+              type: 'Échéance',
+              titre: 'Prochaine action prévue',
+              description: 'Action programmée selon le planning contentieux',
+              utilisateur: selectedContentieuxDetail.avocat,
+              statut: 'pending'
+            }
+          ].map((event, index) => (
+            <div key={index} className="flex items-start space-x-4 p-4 bg-white border border-gray-200 rounded-lg">
+              <div className={`w-3 h-3 rounded-full mt-2 ${
+                event.statut === 'success' ? 'bg-green-500' :
+                event.statut === 'warning' ? 'bg-orange-500' :
+                event.statut === 'pending' ? 'bg-blue-500' :
+                'bg-gray-400'
+              }`} />
+
+              <div className="flex-1">
+                <div className="flex items-center justify-between mb-1">
+                  <h4 className="font-semibold text-gray-900">{event.titre}</h4>
+                  <div className="text-right">
+                    <div className="text-sm text-gray-700">{new Date(event.date).toLocaleDateString()}</div>
+                    <div className="text-xs text-gray-700">{event.utilisateur}</div>
+                  </div>
+                </div>
+                <p className="text-gray-700 text-sm">{event.description}</p>
+                <span className={`inline-block mt-2 text-xs px-2 py-1 rounded ${
+                  event.statut === 'success' ? 'bg-green-100 text-green-800' :
+                  event.statut === 'warning' ? 'bg-orange-100 text-orange-800' :
+                  event.statut === 'pending' ? 'bg-blue-100 text-blue-800' :
+                  'bg-gray-100 text-gray-800'
+                }`}>
+                  {event.type}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Placeholder functions pour les autres onglets
+  function renderDocumentsTab() {
+
+    const documentsContentieux = [
+      {
+        id: 1,
+        type: 'procedure',
+        nom: 'Acte d\'assignation',
+        dateCreation: '2024-01-15',
+        statut: 'final',
+        taille: '2.3 MB',
+        auteur: 'Me —',
+        description: 'Assignation devant le Tribunal de Commerce'
+      },
+      {
+        id: 2,
+        type: 'procedure',
+        nom: 'Mise en demeure préalable',
+        dateCreation: '2024-01-10',
+        statut: 'final',
+        taille: '1.1 MB',
+        auteur: 'SCP Avocats DELTA',
+        description: 'Mise en demeure avec délai de 8 jours'
+      },
+      {
+        id: 3,
+        type: 'justificatif',
+        nom: 'Facture impayée',
+        dateCreation: '2023-11-15',
+        statut: 'final',
+        taille: '458 KB',
+        auteur: 'Atlas F&A Auto',
+        description: 'Facture N°FAC-2023-1156'
+      },
+      {
+        id: 4,
+        type: 'justificatif',
+        nom: 'Bon de livraison',
+        dateCreation: '2023-11-10',
+        statut: 'final',
+        taille: '312 KB',
+        auteur: 'Service Logistique',
+        description: 'Preuve de livraison avec signature'
+      },
+      {
+        id: 5,
+        type: 'procedure',
+        nom: 'Conclusions principales',
+        dateCreation: '2024-02-01',
+        statut: 'brouillon',
+        taille: '4.7 MB',
+        auteur: 'Me —',
+        description: 'Conclusions en cours de finalisation'
+      },
+      {
+        id: 6,
+        type: 'correspondance',
+        nom: 'Échange email avocat',
+        dateCreation: '2024-01-28',
+        statut: 'final',
+        taille: '145 KB',
+        auteur: 'Me —',
+        description: 'Stratégie de défense et points de droit'
+      },
+      {
+        id: 7,
+        type: 'expertise',
+        nom: 'Rapport d\'expertise comptable',
+        dateCreation: '2024-01-25',
+        statut: 'final',
+        taille: '8.2 MB',
+        auteur: 'Cabinet EXPERTISE+',
+        description: 'Évaluation des préjudices subis'
+      },
+      {
+        id: 8,
+        type: 'huissier',
+        nom: 'Procès-verbal de signification',
+        dateCreation: '2024-01-20',
+        statut: 'final',
+        taille: '1.8 MB',
+        auteur: 'SCP Huissiers ALPHA',
+        description: 'Signification de l\'assignation'
+      }
+    ];
+
+    const filteredDocuments = documentFilter === 'all'
+      ? documentsContentieux
+      : documentsContentieux.filter(d => d.type === documentFilter);
+
+    return (
+      <div className="space-y-6">
+        {/* En-tête avec actions */}
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-gray-900">Documents & Pièces Juridiques</h3>
+          <div className="flex space-x-3">
+            <button
+              onClick={() => setShowUploadModal(true)}
+              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              Ajouter un document
+            </button>
+            <button className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+              <Download className="w-4 h-4 mr-2" />
+              Télécharger tout
+            </button>
+          </div>
+        </div>
+
+        {/* Filtres */}
+        <div className="flex items-center space-x-4">
+          <label className="text-sm font-medium text-gray-700">Filtrer par type:</label>
+          <select
+            value={documentFilter}
+            onChange={(e) => setDocumentFilter(e.target.value)}
+            className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
+          >
+            <option value="all">Tous les documents ({documentsContentieux.length})</option>
+            <option value="procedure">Actes de procédure ({documentsContentieux.filter(d => d.type === 'procedure').length})</option>
+            <option value="justificatif">Pièces justificatives ({documentsContentieux.filter(d => d.type === 'justificatif').length})</option>
+            <option value="correspondance">Correspondance ({documentsContentieux.filter(d => d.type === 'correspondance').length})</option>
+            <option value="expertise">Expertises ({documentsContentieux.filter(d => d.type === 'expertise').length})</option>
+            <option value="huissier">Actes d'huissier ({documentsContentieux.filter(d => d.type === 'huissier').length})</option>
+          </select>
+        </div>
+
+        {/* Liste des documents */}
+        <div className="bg-white rounded-lg border border-gray-200">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Document</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Type</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Auteur</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">{t('common.date')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Statut</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Taille</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredDocuments.map((doc) => {
+                  const typeIcons = {
+                    procedure: <Scale className="w-4 h-4 text-red-500" />,
+                    justificatif: <FileText className="w-4 h-4 text-blue-500" />,
+                    correspondance: <Mail className="w-4 h-4 text-green-500" />,
+                    expertise: <Calculator className="w-4 h-4 text-primary-500" />,
+                    huissier: <Gavel className="w-4 h-4 text-orange-500" />
+                  };
+
+                  const typeLabels = {
+                    procedure: 'Procédure',
+                    justificatif: 'Justificatif',
+                    correspondance: 'Correspondance',
+                    expertise: 'Expertise',
+                    huissier: 'Huissier'
+                  };
+
+                  return (
+                    <tr key={doc.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center space-x-3">
+                          {typeIcons[doc.type]}
+                          <div>
+                            <div className="text-sm font-medium text-gray-900">{doc.nom}</div>
+                            <div className="text-sm text-gray-700">{doc.description}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                          {typeLabels[doc.type]}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">{doc.auteur}</td>
+                      <td className="px-6 py-4 text-sm text-gray-700">{doc.dateCreation}</td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          doc.statut === 'final' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          {doc.statut === 'final' ? 'Finalisé' : 'Brouillon'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-700">{doc.taille}</td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center space-x-2">
+                          <button className="text-blue-600 hover:text-blue-800" aria-label="Voir les détails">
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          <button className="text-green-600 hover:text-green-800" aria-label="Télécharger">
+                            <Download className="w-4 h-4" />
+                          </button>
+                          <button className="text-gray-600 hover:text-gray-800">
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button className="text-red-600 hover:text-red-800" aria-label="Supprimer">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Statistiques documents */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="bg-blue-50 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-blue-600">Actes Procédure</p>
+                <p className="text-lg font-bold text-blue-900">{documentsContentieux.filter(d => d.type === 'procedure').length}</p>
+              </div>
+              <Scale className="w-8 h-8 text-blue-600" />
+            </div>
+          </div>
+          <div className="bg-green-50 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-green-600">Pièces Justificatives</p>
+                <p className="text-lg font-bold text-green-900">{documentsContentieux.filter(d => d.type === 'justificatif').length}</p>
+              </div>
+              <FileText className="w-8 h-8 text-green-600" />
+            </div>
+          </div>
+          <div className="bg-orange-50 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-orange-600">Actes Huissier</p>
+                <p className="text-lg font-bold text-orange-900">{documentsContentieux.filter(d => d.type === 'huissier').length}</p>
+              </div>
+              <Gavel className="w-8 h-8 text-orange-600" />
+            </div>
+          </div>
+          <div className="bg-primary-50 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-primary-600">Expertises</p>
+                <p className="text-lg font-bold text-primary-900">{documentsContentieux.filter(d => d.type === 'expertise').length}</p>
+              </div>
+              <Calculator className="w-8 h-8 text-primary-600" />
+            </div>
+          </div>
+        </div>
+
+        {/* Modal d'upload */}
+        {showUploadModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-lg">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Ajouter un Document</h3>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Type de document</label>
+                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
+                    <option>Acte de procédure</option>
+                    <option>Pièce justificative</option>
+                    <option>Correspondance</option>
+                    <option>Expertise</option>
+                    <option>Acte d'huissier</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Nom du document</label>
+                  <input
+                    type="text"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    placeholder="Ex: Conclusions subsidiaires"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                  <textarea
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 h-20"
+                    placeholder="Description du document..."
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Fichier</label>
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                    <Upload className="w-8 h-8 mx-auto text-gray-700 mb-2" />
+                    <p className="text-sm text-gray-600">Glissez-déposez votre fichier ou <span className="text-blue-600 cursor-pointer">parcourez</span></p>
+                    <p className="text-xs text-gray-700 mt-1">PDF, DOC, DOCX jusqu'à 10MB</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  onClick={() => setShowUploadModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={() => {
+                    // Traitement de l'upload
+                    setShowUploadModal(false);
+                  }}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                >
+                  Ajouter le document
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  function renderFraisTab() {
+
+    const fraisContentieux = [
+      {
+        id: 1,
+        type: 'avocat',
+        description: 'Honoraires Me — - Phase instruction',
+        montant: 450000,
+        dateEngagement: '2024-01-15',
+        dateFacturation: '2024-01-30',
+        statut: 'facture',
+        fournisseur: 'SCP Avocats DELTA',
+        imputable: true
+      },
+      {
+        id: 2,
+        type: 'huissier',
+        description: 'Signification assignation',
+        montant: 85000,
+        dateEngagement: '2024-01-20',
+        dateFacturation: '2024-01-25',
+        statut: 'paye',
+        fournisseur: 'SCP Huissiers ALPHA',
+        imputable: true
+      },
+      {
+        id: 3,
+        type: 'tribunal',
+        description: 'Droits de plaidoirie',
+        montant: 35000,
+        dateEngagement: '2024-02-01',
+        dateFacturation: '2024-02-01',
+        statut: 'paye',
+        fournisseur: 'Tribunal de Commerce',
+        imputable: false
+      },
+      {
+        id: 4,
+        type: 'expertise',
+        description: 'Expertise comptable préjudices',
+        montant: 180000,
+        dateEngagement: '2024-01-25',
+        dateFacturation: '2024-02-10',
+        statut: 'facture',
+        fournisseur: 'Cabinet EXPERTISE+',
+        imputable: true
+      },
+      {
+        id: 5,
+        type: 'avocat',
+        description: 'Honoraires conclusions principales',
+        montant: 320000,
+        dateEngagement: '2024-02-01',
+        dateFacturation: null,
+        statut: 'prevu',
+        fournisseur: 'SCP Avocats DELTA',
+        imputable: true
+      },
+      {
+        id: 6,
+        type: 'divers',
+        description: 'Frais de déplacement audience',
+        montant: 25000,
+        dateEngagement: '2024-02-15',
+        dateFacturation: null,
+        statut: 'prevu',
+        fournisseur: 'Frais internes',
+        imputable: false
+      }
+    ];
+
+    const totalFrais = fraisContentieux.reduce((sum, f) => sum + f.montant, 0);
+    const fraisPayes = fraisContentieux.filter(f => f.statut === 'paye').reduce((sum, f) => sum + f.montant, 0);
+    const fraisFactures = fraisContentieux.filter(f => f.statut === 'facture').reduce((sum, f) => sum + f.montant, 0);
+    const fraisPrevus = fraisContentieux.filter(f => f.statut === 'prevu').reduce((sum, f) => sum + f.montant, 0);
+    const fraisImputables = fraisContentieux.filter(f => f.imputable).reduce((sum, f) => sum + f.montant, 0);
+
+    const filteredFrais = fraisFilter === 'all'
+      ? fraisContentieux
+      : fraisContentieux.filter(f => f.type === fraisFilter);
+
+    return (
+      <div className="space-y-6">
+        {/* Tableau de bord financier */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="bg-blue-50 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-blue-600">Total Frais</p>
+                <p className="text-lg font-bold text-blue-900">{formatCurrency((totalFrais))}</p>
+              </div>
+              <Wallet className="w-8 h-8 text-blue-600" />
+            </div>
+          </div>
+          <div className="bg-green-50 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-green-600">Payés</p>
+                <p className="text-lg font-bold text-green-900">{formatCurrency((fraisPayes))}</p>
+              </div>
+              <CheckCircle className="w-8 h-8 text-green-600" />
+            </div>
+          </div>
+          <div className="bg-orange-50 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-orange-600">À Payer</p>
+                <p className="text-lg font-bold text-orange-900">{formatCurrency((fraisFactures))}</p>
+              </div>
+              <AlertCircle className="w-8 h-8 text-orange-600" />
+            </div>
+          </div>
+          <div className="bg-primary-50 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-primary-600">Imputables</p>
+                <p className="text-lg font-bold text-primary-900">{formatCurrency((fraisImputables))}</p>
+              </div>
+              <RefreshCw className="w-8 h-8 text-primary-600" />
+            </div>
+          </div>
+        </div>
+
+        {/* Actions et filtres */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <h3 className="text-lg font-semibold text-gray-900">Détail des Frais & Coûts</h3>
+            <select
+              value={fraisFilter}
+              onChange={(e) => setFraisFilter(e.target.value)}
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
+            >
+              <option value="all">Tous les frais</option>
+              <option value="avocat">Avocats</option>
+              <option value="huissier">Huissiers</option>
+              <option value="tribunal">Tribunal</option>
+              <option value="expertise">Expertises</option>
+              <option value="divers">Divers</option>
+            </select>
+          </div>
+          <div className="flex space-x-3">
+            <button
+              onClick={() => setShowAddFraisModal(true)}
+              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Ajouter frais
+            </button>
+            <button className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+              <FileText className="w-4 h-4 mr-2" />
+              Export détaillé
+            </button>
+          </div>
+        </div>
+
+        {/* Table des frais */}
+        <div className="bg-white rounded-lg border border-gray-200">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Description</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Type</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Fournisseur</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Montant</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Statut</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Imputable</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredFrais.map((frais) => {
+                  const typeIcons = {
+                    avocat: <Briefcase className="w-4 h-4 text-blue-500" />,
+                    huissier: <Gavel className="w-4 h-4 text-orange-500" />,
+                    tribunal: <Scale className="w-4 h-4 text-red-500" />,
+                    expertise: <Calculator className="w-4 h-4 text-primary-500" />,
+                    divers: <FileText className="w-4 h-4 text-gray-700" />
+                  };
+
+                  const statutColors = {
+                    paye: 'bg-green-100 text-green-800',
+                    facture: 'bg-orange-100 text-orange-800',
+                    prevu: 'bg-gray-100 text-gray-800'
+                  };
+
+                  const statutLabels = {
+                    paye: 'Payé',
+                    facture: 'Facturé',
+                    prevu: 'Prévu'
+                  };
+
+                  return (
+                    <tr key={frais.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center space-x-3">
+                          {typeIcons[frais.type]}
+                          <div>
+                            <div className="text-sm font-medium text-gray-900">{frais.description}</div>
+                            <div className="text-sm text-gray-700">Engagé le {frais.dateEngagement}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                          {frais.type.charAt(0).toUpperCase() + frais.type.slice(1)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">{frais.fournisseur}</td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm font-bold text-gray-900">{formatCurrency(frais.montant)}</div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statutColors[frais.statut]}`}>
+                          {statutLabels[frais.statut]}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        {frais.imputable ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            Oui
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                            Non
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center space-x-2">
+                          <button className="text-blue-600 hover:text-blue-800" aria-label="Voir les détails">
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          <button className="text-green-600 hover:text-green-800">
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          {frais.statut === 'facture' && (
+                            <button className="text-primary-600 hover:text-primary-800">
+                              <CreditCard className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Modal ajouter frais */}
+        {showAddFraisModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Ajouter un Frais</h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Type de frais</label>
+                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
+                    <option>Frais d'avocat</option>
+                    <option>Frais d'huissier</option>
+                    <option>Frais de tribunal</option>
+                    <option>Expertise</option>
+                    <option>Divers</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Montant (FCFA)</label>
+                  <input
+                    type="number"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    placeholder="0"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                  <input
+                    type="text"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    placeholder="Ex: Honoraires conclusions principales"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Fournisseur</label>
+                  <input
+                    type="text"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    placeholder="Nom du fournisseur"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Date d'engagement</label>
+                  <input
+                    type="date"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Statut</label>
+                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
+                    <option value="prevu">Prévu</option>
+                    <option value="facture">Facturé</option>
+                    <option value="paye">Payé</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="flex items-center space-x-2">
+                    <input type="checkbox" className="rounded" />
+                    <span className="text-sm text-gray-700">Frais imputable au débiteur</span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  onClick={() => setShowAddFraisModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={() => {
+                    // Traitement de l'ajout
+                    setShowAddFraisModal(false);
+                  }}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                >
+                  Ajouter le frais
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  function renderFraisTab() {
+    return (
+      <div className="space-y-6">
+        <h3 className="text-lg font-semibold text-gray-900">Frais & Coûts du Contentieux</h3>
+        <div className="bg-red-50 rounded-lg p-4">
+          <h4 className="font-semibold text-red-900 mb-3">Récapitulatif des Coûts</h4>
+          <div className="space-y-2">
+            <div className="flex justify-between">
+              <span>Frais d'avocat:</span>
+              <span className="font-medium">250,000 FCFA</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Frais d'huissier:</span>
+              <span className="font-medium">75,000 FCFA</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Frais de tribunal:</span>
+              <span className="font-medium">50,000 FCFA</span>
+            </div>
+            <div className="flex justify-between border-t pt-2 font-bold">
+              <span>Total frais:</span>
+              <span>375,000 FCFA</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  function renderCorrespondanceTab() {
+
+    const correspondances = [
+      {
+        id: 1,
+        type: 'avocat',
+        correspondant: 'Me —',
+        sujet: 'Point sur l\'avancement de la procédure',
+        dateEnvoi: '2024-02-15 14:30',
+        statut: 'lu',
+        priorite: 'normale',
+        message: 'Nous avons reçu les conclusions adverses. Je prépare notre réponse...',
+        pieces: ['conclusions_adverses.pdf'],
+        direction: 'recu'
+      },
+      {
+        id: 2,
+        type: 'huissier',
+        correspondant: 'SCP Huissiers ALPHA',
+        sujet: 'Signification effectuée',
+        dateEnvoi: '2024-02-10 09:15',
+        statut: 'lu',
+        priorite: 'haute',
+        message: 'Signification réalisée avec succès. PV ci-joint.',
+        pieces: ['pv_signification.pdf'],
+        direction: 'recu'
+      },
+      {
+        id: 3,
+        type: 'debiteur',
+        correspondant: 'SARL TECH SOLUTIONS',
+        sujet: 'Demande d\'échelonnement',
+        dateEnvoi: '2024-02-08 16:45',
+        statut: 'repondu',
+        priorite: 'haute',
+        message: 'Suite à votre mise en demeure, nous sollicitons un échelonnement...',
+        pieces: [],
+        direction: 'recu'
+      },
+      {
+        id: 4,
+        type: 'avocat',
+        correspondant: 'Me —',
+        sujet: 'Stratégie procédurale',
+        dateEnvoi: '2024-02-05 11:20',
+        statut: 'envoye',
+        priorite: 'normale',
+        message: 'Voici notre analyse de la situation et les prochaines étapes...',
+        pieces: ['note_strategique.pdf'],
+        direction: 'envoye'
+      },
+      {
+        id: 5,
+        type: 'tribunal',
+        correspondant: 'Tribunal de Commerce',
+        sujet: 'Fixation audience',
+        dateEnvoi: '2024-01-30 10:00',
+        statut: 'lu',
+        priorite: 'haute',
+        message: 'Audience fixée au 15 mars 2024 à 14h30. Salle 3.',
+        pieces: ['convocation_audience.pdf'],
+        direction: 'recu'
+      }
+    ];
+
+    const filteredCorrespondances = correspondanceFilter === 'all'
+      ? correspondances
+      : correspondances.filter(c => c.type === correspondanceFilter);
+
+    const correspondantsUniques = [...new Set(correspondances.map(c => c.correspondant))];
+
+    return (
+      <div className="space-y-6">
+        {/* Header avec actions */}
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-gray-900">Correspondance & Communications</h3>
+          <div className="flex space-x-3">
+            <button
+              onClick={() => setShowNewMessageModal(true)}
+              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              <Mail className="w-4 h-4 mr-2" />
+              Nouveau message
+            </button>
+            <button className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+              <Archive className="w-4 h-4 mr-2" />
+              Archiver sélection
+            </button>
+          </div>
+        </div>
+
+        {/* Statistiques rapides */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="bg-blue-50 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-blue-600">Messages</p>
+                <p className="text-lg font-bold text-blue-900">{correspondances.length}</p>
+              </div>
+              <MessageSquare className="w-8 h-8 text-blue-600" />
+            </div>
+          </div>
+          <div className="bg-red-50 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-red-600">Non lus</p>
+                <p className="text-lg font-bold text-red-900">{correspondances.filter(c => c.statut === 'non_lu').length}</p>
+              </div>
+              <AlertCircle className="w-8 h-8 text-red-600" />
+            </div>
+          </div>
+          <div className="bg-orange-50 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-orange-600">Haute priorité</p>
+                <p className="text-lg font-bold text-orange-900">{correspondances.filter(c => c.priorite === 'haute').length}</p>
+              </div>
+              <AlertTriangle className="w-8 h-8 text-orange-600" />
+            </div>
+          </div>
+          <div className="bg-green-50 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-green-600">Correspondants</p>
+                <p className="text-lg font-bold text-green-900">{correspondantsUniques.length}</p>
+              </div>
+              <Users className="w-8 h-8 text-green-600" />
+            </div>
+          </div>
+        </div>
+
+        {/* Filtres */}
+        <div className="flex items-center space-x-4">
+          <label className="text-sm font-medium text-gray-700">Filtrer par type:</label>
+          <select
+            value={correspondanceFilter}
+            onChange={(e) => setCorrespondanceFilter(e.target.value)}
+            className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
+          >
+            <option value="all">Toutes les correspondances</option>
+            <option value="avocat">Avocats</option>
+            <option value="huissier">Huissiers</option>
+            <option value="debiteur">Débiteur</option>
+            <option value="tribunal">Tribunal</option>
+            <option value="expert">Experts</option>
+          </select>
+        </div>
+
+        {/* Liste des correspondances */}
+        <div className="bg-white rounded-lg border border-gray-200">
+          <div className="divide-y divide-gray-200">
+            {filteredCorrespondances.map((corresp) => {
+              const typeIcons = {
+                avocat: <Briefcase className="w-5 h-5 text-blue-500" />,
+                huissier: <Gavel className="w-5 h-5 text-orange-500" />,
+                debiteur: <Building2 className="w-5 h-5 text-red-500" />,
+                tribunal: <Scale className="w-5 h-5 text-primary-500" />,
+                expert: <Calculator className="w-5 h-5 text-green-500" />
+              };
+
+              const prioriteColors = {
+                haute: 'bg-red-100 text-red-800',
+                normale: 'bg-gray-100 text-gray-800',
+                basse: 'bg-blue-100 text-blue-800'
+              };
+
+              const statutColors = {
+                lu: 'bg-gray-100 text-gray-800',
+                non_lu: 'bg-red-100 text-red-800',
+                repondu: 'bg-green-100 text-green-800',
+                envoye: 'bg-blue-100 text-blue-800'
+              };
+
+              return (
+                <div
+                  key={corresp.id}
+                  className="p-6 hover:bg-gray-50 cursor-pointer"
+                  onClick={() => setSelectedCorrespondant(corresp)}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start space-x-4 flex-1">
+                      <div className="flex-shrink-0">
+                        {typeIcons[corresp.type]}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center space-x-3 mb-2">
+                          <h4 className="text-sm font-semibold text-gray-900 truncate">
+                            {corresp.correspondant}
+                          </h4>
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${prioriteColors[corresp.priorite]}`}>
+                            {corresp.priorite}
+                          </span>
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statutColors[corresp.statut]}`}>
+                            {corresp.statut}
+                          </span>
+                          {corresp.direction === 'envoye' && (
+                            <Send className="w-4 h-4 text-blue-500" />
+                          )}
+                        </div>
+                        <p className="text-sm font-medium text-gray-900 mb-1">{corresp.sujet}</p>
+                        <p className="text-sm text-gray-600 line-clamp-2">{corresp.message}</p>
+                        {corresp.pieces.length > 0 && (
+                          <div className="flex items-center space-x-2 mt-2">
+                            <Paperclip className="w-4 h-4 text-gray-700" />
+                            <span className="text-xs text-gray-700">{corresp.pieces.length} pièce(s) jointe(s)</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-3 ml-4">
+                      <span className="text-xs text-gray-700">{corresp.dateEnvoi}</span>
+                      <button className="text-gray-700 hover:text-gray-600">
+                        <MoreVertical className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Modal nouveau message */}
+        {showNewMessageModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Nouveau Message</h3>
+
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Destinataire</label>
+                    <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
+                      <option>Choisir un correspondant...</option>
+                      <option>Me — (Avocat)</option>
+                      <option>SCP Huissiers ALPHA</option>
+                      <option>SARL TECH SOLUTIONS (Débiteur)</option>
+                      <option>Cabinet EXPERTISE+</option>
+                      <option>Tribunal de Commerce</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Priorité</label>
+                    <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
+                      <option value="normale">Normale</option>
+                      <option value="haute">Haute</option>
+                      <option value="basse">Basse</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Sujet</label>
+                  <input
+                    type="text"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    placeholder="Objet du message"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Message</label>
+                  <textarea
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 h-32"
+                    placeholder="Votre message..."
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Pièces jointes</label>
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                    <Paperclip className="w-6 h-6 mx-auto text-gray-700 mb-2" />
+                    <p className="text-sm text-gray-600">Glissez vos fichiers ou <span className="text-blue-600 cursor-pointer">parcourez</span></p>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-4">
+                  <label className="flex items-center space-x-2">
+                    <input type="checkbox" className="rounded" />
+                    <span className="text-sm text-gray-700">Marquer comme confidentiel</span>
+                  </label>
+                  <label className="flex items-center space-x-2">
+                    <input type="checkbox" className="rounded" />
+                    <span className="text-sm text-gray-700">Demander accusé de réception</span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  onClick={() => setShowNewMessageModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                >
+                  Annuler
+                </button>
+                <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                  Enregistrer brouillon
+                </button>
+                <button
+                  onClick={() => {
+                    setShowNewMessageModal(false);
+                  }}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                >
+                  Envoyer
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal détail correspondance */}
+        {selectedCorrespondant && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-3xl max-h-[80vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">{selectedCorrespondant.sujet}</h3>
+                <button
+                  onClick={() => setSelectedCorrespondant(null)}
+                  className="text-gray-700 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                      <span className="text-sm font-semibold text-blue-600">
+                        {selectedCorrespondant.correspondant.split(' ').map(n => n[0]).join('')}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900">{selectedCorrespondant.correspondant}</p>
+                      <p className="text-sm text-gray-700">{selectedCorrespondant.dateEnvoi}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <button className="text-blue-600 hover:text-blue-800">
+                      <Reply className="w-4 h-4" />
+                    </button>
+                    <button className="text-green-600 hover:text-green-800">
+                      <Forward className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="pprimary max-w-none">
+                  <p className="text-gray-700 whitespace-pre-wrap">{selectedCorrespondant.message}</p>
+                </div>
+
+                {selectedCorrespondant.pieces.length > 0 && (
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-900 mb-2">Pièces jointes</h4>
+                    <div className="space-y-2">
+                      {selectedCorrespondant.pieces.map((piece, index) => (
+                        <div key={index} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                          <div className="flex items-center space-x-3">
+                            <FileText className="w-5 h-5 text-gray-700" />
+                            <span className="text-sm text-gray-900">{piece}</span>
+                          </div>
+                          <button className="text-blue-600 hover:text-blue-800" aria-label="Télécharger">
+                            <Download className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  function renderExecutionTab() {
+
+    const mesuresExecution = [
+      {
+        id: 1,
+        type: 'saisie_attribution',
+        nom: 'Saisie-attribution compte principal',
+        dateOrdonnance: '2024-02-01',
+        dateExecution: '2024-02-05',
+        statut: 'executee',
+        huissier: 'SCP Huissiers ALPHA',
+        montantSaisi: 125000,
+        etablissement: 'Banque Atlantique',
+        resultat: 'Compte insuffisamment provisionné'
+      },
+      {
+        id: 2,
+        type: 'saisie_attribution',
+        nom: 'Saisie-attribution compte secondaire',
+        dateOrdonnance: '2024-02-01',
+        dateExecution: '2024-02-05',
+        statut: 'executee',
+        huissier: 'SCP Huissiers ALPHA',
+        montantSaisi: 45000,
+        etablissement: 'UBA Bénin',
+        resultat: 'Somme recouvrée intégralement'
+      },
+      {
+        id: 3,
+        type: 'saisie_vente',
+        nom: 'Saisie-vente mobilier bureau',
+        dateOrdonnance: '2024-02-10',
+        dateExecution: '2024-02-15',
+        statut: 'en_cours',
+        huissier: 'SCP Huissiers ALPHA',
+        montantEstime: 180000,
+        lieu: 'Siège social SARL TECH SOLUTIONS',
+        resultat: 'Inventaire en cours'
+      },
+      {
+        id: 4,
+        type: 'saisie_immobiliere',
+        nom: 'Saisie immobilière',
+        dateOrdonnance: '2024-01-20',
+        dateExecution: null,
+        statut: 'programmee',
+        huissier: 'SCP Huissiers BETA',
+        montantEstime: 850000,
+        lieu: 'Terrain Lot 45 Zone Industrielle',
+        resultat: 'Expertise en cours'
+      },
+      {
+        id: 5,
+        type: 'astreinte',
+        nom: 'Astreinte quotidienne',
+        dateOrdonnance: '2024-01-15',
+        dateExecution: '2024-01-16',
+        statut: 'executee',
+        montantAstreinte: 10000,
+        joursEcoules: 25,
+        totalAstreinte: 250000,
+        resultat: 'Débiteur reste en défaut'
+      },
+      {
+        id: 6,
+        type: 'opposition',
+        nom: 'Opposition administrative',
+        dateOrdonnance: '2024-02-08',
+        dateExecution: '2024-02-10',
+        statut: 'executee',
+        organisme: 'Direction Générale des Impôts',
+        montantBloque: 85000,
+        resultat: 'Remboursement TVA bloqué'
+      }
+    ];
+
+    const totalRecouvert = mesuresExecution
+      .filter(m => m.statut === 'executee' && (m.montantSaisi || m.montantBloque))
+      .reduce((sum, m) => sum + (m.montantSaisi || m.montantBloque || 0), 0);
+
+    const mesuresActives = mesuresExecution.filter(m => ['en_cours', 'programmee'].includes(m.statut)).length;
+
+    const filteredMesures = executionFilter === 'all'
+      ? mesuresExecution
+      : mesuresExecution.filter(m => m.type === executionFilter);
+
+    return (
+      <div className="space-y-6">
+        {/* En-tête et actions */}
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-gray-900">Mesures d'Exécution</h3>
+          <div className="flex space-x-3">
+            <button
+              onClick={() => setShowNewMesureModal(true)}
+              className="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Nouvelle mesure
+            </button>
+            <button className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+              <FileText className="w-4 h-4 mr-2" />
+              Rapport d'exécution
+            </button>
+          </div>
+        </div>
+
+        {/* Tableau de bord exécution */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="bg-green-50 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-green-600">Montant Recouvré</p>
+                <p className="text-lg font-bold text-green-900">{formatCurrency(totalRecouvert)}</p>
+              </div>
+              <DollarSign className="w-8 h-8 text-green-600" />
+            </div>
+          </div>
+          <div className="bg-orange-50 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-orange-600">Mesures Actives</p>
+                <p className="text-lg font-bold text-orange-900">{mesuresActives}</p>
+              </div>
+              <Activity className="w-8 h-8 text-orange-600" />
+            </div>
+          </div>
+          <div className="bg-blue-50 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-blue-600">Total Mesures</p>
+                <p className="text-lg font-bold text-blue-900">{mesuresExecution.length}</p>
+              </div>
+              <Target className="w-8 h-8 text-blue-600" />
+            </div>
+          </div>
+          <div className="bg-primary-50 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-primary-600">Taux Succès</p>
+                <p className="text-lg font-bold text-primary-900">
+                  {Math.round((totalRecouvert / 2500000) * 100)}%
+                </p>
+              </div>
+              <TrendingUp className="w-8 h-8 text-primary-600" />
+            </div>
+          </div>
+        </div>
+
+        {/* Filtres */}
+        <div className="flex items-center space-x-4">
+          <label className="text-sm font-medium text-gray-700">Type de mesure:</label>
+          <select
+            value={executionFilter}
+            onChange={(e) => setExecutionFilter(e.target.value)}
+            className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
+          >
+            <option value="all">Toutes les mesures</option>
+            <option value="saisie_attribution">Saisies-attributions</option>
+            <option value="saisie_vente">Saisies-ventes</option>
+            <option value="saisie_immobiliere">Saisies immobilières</option>
+            <option value="astreinte">Astreintes</option>
+            <option value="opposition">Oppositions</option>
+          </select>
+        </div>
+
+        {/* Liste des mesures */}
+        <div className="bg-white rounded-lg border border-gray-200">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Mesure</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Type</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Exécutant</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Dates</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Montant</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Statut</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredMesures.map((mesure) => {
+                  const typeIcons = {
+                    saisie_attribution: <CreditCard className="w-4 h-4 text-blue-500" />,
+                    saisie_vente: <Package className="w-4 h-4 text-orange-500" />,
+                    saisie_immobiliere: <Building className="w-4 h-4 text-green-500" />,
+                    astreinte: <Clock className="w-4 h-4 text-primary-500" />,
+                    opposition: <Shield className="w-4 h-4 text-red-500" />
+                  };
+
+                  const typeLabels = {
+                    saisie_attribution: 'Saisie-Attribution',
+                    saisie_vente: 'Saisie-Vente',
+                    saisie_immobiliere: 'Saisie Immobilière',
+                    astreinte: 'Astreinte',
+                    opposition: 'Opposition'
+                  };
+
+                  const statutColors = {
+                    executee: 'bg-green-100 text-green-800',
+                    en_cours: 'bg-orange-100 text-orange-800',
+                    programmee: 'bg-blue-100 text-blue-800',
+                    echec: 'bg-red-100 text-red-800'
+                  };
+
+                  const statutLabels = {
+                    executee: 'Exécutée',
+                    en_cours: 'En cours',
+                    programmee: 'Programmée',
+                    echec: 'Échec'
+                  };
+
+                  return (
+                    <tr key={mesure.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center space-x-3">
+                          {typeIcons[mesure.type]}
+                          <div>
+                            <div className="text-sm font-medium text-gray-900">{mesure.nom}</div>
+                            <div className="text-sm text-gray-700">{mesure.lieu || mesure.etablissement || mesure.organisme}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                          {typeLabels[mesure.type]}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">{mesure.huissier}</td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm text-gray-900">Ord: {mesure.dateOrdonnance}</div>
+                        {mesure.dateExecution && (
+                          <div className="text-sm text-gray-700">Exec: {mesure.dateExecution}</div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm font-bold text-gray-900">
+                          {formatCurrency((mesure.montantSaisi || mesure.montantEstime || mesure.totalAstreinte || mesure.montantBloque || 0))}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statutColors[mesure.statut]}`}>
+                          {statutLabels[mesure.statut]}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center space-x-2">
+                          <button className="text-blue-600 hover:text-blue-800" aria-label="Voir les détails">
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          <button className="text-green-600 hover:text-green-800">
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button className="text-primary-600 hover:text-primary-800">
+                            <FileText className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Modal nouvelle mesure */}
+        {showNewMesureModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Nouvelle Mesure d'Exécution</h3>
+
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Type de mesure</label>
+                    <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
+                      <option>Saisie-attribution</option>
+                      <option>Saisie-vente</option>
+                      <option>Saisie immobilière</option>
+                      <option>Astreinte</option>
+                      <option>Opposition administrative</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Huissier</label>
+                    <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
+                      <option>SCP Huissiers ALPHA</option>
+                      <option>SCP Huissiers BETA</option>
+                      <option>Cabinet JUSTICE+</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Nom de la mesure</label>
+                  <input
+                    type="text"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    placeholder="Ex: Saisie-attribution compte principal"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Date ordonnance</label>
+                    <input
+                      type="date"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Date d'exécution prévue</label>
+                    <input
+                      type="date"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Lieu/Établissement</label>
+                    <input
+                      type="text"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      placeholder="Ex: Banque Atlantique"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Montant estimé (FCFA)</label>
+                    <input
+                      type="number"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      placeholder="0"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Observations</label>
+                  <textarea
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 h-20"
+                    placeholder="Informations complémentaires..."
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  onClick={() => setShowNewMesureModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={() => {
+                    setShowNewMesureModal(false);
+                  }}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                >
+                  Programmer la mesure
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  function renderResultatsTab() {
+
+    const montantInitial = 2500000;
+    const montantRecouvert = 1875000;
+    const fraisTotaux = 450000;
+    const tauxRecouvrement = (montantRecouvert / montantInitial) * 100;
+    const beneficeNet = montantRecouvert - fraisTotaux;
+    const rentabilite = (beneficeNet / fraisTotaux) * 100;
+
+    const chronologieResultats = [
+      {
+        id: 1,
+        date: '2024-02-20',
+        type: 'recouvrement',
+        description: 'Paiement partiel suite saisie-attribution',
+        montant: 170000,
+        source: 'Banque Atlantique - Compte principal'
+      },
+      {
+        id: 2,
+        date: '2024-02-15',
+        type: 'recouvrement',
+        description: 'Recouvrement opposition administrative',
+        montant: 85000,
+        source: 'DGI - Remboursement TVA bloqué'
+      },
+      {
+        id: 3,
+        date: '2024-02-05',
+        type: 'recouvrement',
+        description: 'Saisie-attribution réussie',
+        montant: 45000,
+        source: 'UBA Bénin - Compte secondaire'
+      },
+      {
+        id: 4,
+        date: '2024-01-30',
+        type: 'paiement_volontaire',
+        description: 'Paiement suite mise en demeure',
+        montant: 750000,
+        source: 'Virement débiteur'
+      },
+      {
+        id: 5,
+        date: '2024-01-25',
+        type: 'paiement_volontaire',
+        description: 'Règlement partiel négocié',
+        montant: 825000,
+        source: 'Accord amiable'
+      }
+    ];
+
+    const analyseRentabilite = {
+      montantInitial,
+      montantRecouvert,
+      fraisTotaux,
+      beneficeNet,
+      dureeRecouvrement: 45, // jours
+      tauxRecouvrement,
+      rentabilite
+    };
+
+    const comparaison = {
+      moyenneMarche: 65,
+      dureeMoyenne: 120,
+      fraisisMoyens: 18
+    };
+
+    return (
+      <div className="space-y-6">
+        {/* En-tête avec actions */}
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-gray-900">Résultats & Bilan Contentieux</h3>
+          <div className="flex space-x-3">
+            {selectedContentieuxDetail.statutJuridique === 'execution' && (
+              <button
+                onClick={() => setShowCloturerModal(true)}
+                className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+              >
+                <CheckCircle className="w-4 h-4 mr-2" />
+                Clôturer le dossier
+              </button>
+            )}
+            <button className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+              <FileText className="w-4 h-4 mr-2" />
+              Rapport final
+            </button>
+            <button className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+              <Download className="w-4 h-4 mr-2" />
+              Export données
+            </button>
+          </div>
+        </div>
+
+        {/* Indicateurs clés de performance */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="bg-green-50 rounded-lg p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-green-600">Taux de Recouvrement</p>
+                <p className="text-lg font-bold text-green-900">{tauxRecouvrement.toFixed(1)}%</p>
+                <p className="text-xs text-green-600 mt-1">Objectif: 80%</p>
+              </div>
+              <Target className="w-10 h-10 text-green-600" />
+            </div>
+          </div>
+          <div className="bg-blue-50 rounded-lg p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-blue-600">Montant Recouvré</p>
+                <p className="text-lg font-bold text-blue-900">{formatCurrency(montantRecouvert)}</p>
+                <p className="text-xs text-blue-600 mt-1">/ {formatCurrency(montantInitial)}</p>
+              </div>
+              <DollarSign className="w-10 h-10 text-blue-600" />
+            </div>
+          </div>
+          <div className="bg-primary-50 rounded-lg p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-primary-600">Rentabilité</p>
+                <p className="text-lg font-bold text-primary-900">{rentabilite.toFixed(1)}%</p>
+                <p className="text-xs text-primary-600 mt-1">ROI excellent</p>
+              </div>
+              <TrendingUp className="w-10 h-10 text-primary-600" />
+            </div>
+          </div>
+          <div className="bg-orange-50 rounded-lg p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-orange-600">Durée</p>
+                <p className="text-lg font-bold text-orange-900">{analyseRentabilite.dureeRecouvrement}</p>
+                <p className="text-xs text-orange-600 mt-1">jours</p>
+              </div>
+              <Clock className="w-10 h-10 text-orange-600" />
+            </div>
+          </div>
+        </div>
+
+        {/* Graphique de recouvrement */}
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <h4 className="text-lg font-semibold text-gray-900 mb-4">Évolution du Recouvrement</h4>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between text-sm">
+              <span>Progression du recouvrement</span>
+              <span className="font-medium">{tauxRecouvrement.toFixed(1)}% complété</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-3">
+              <div
+                className="bg-gradient-to-r from-green-500 to-blue-500 h-3 rounded-full"
+                style={{ width: `${tauxRecouvrement}%` }}
+              ></div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div className="text-center">
+                <p className="font-medium text-gray-900">{formatCurrency(montantRecouvert)}</p>
+                <p className="text-gray-700">Recouvré</p>
+              </div>
+              <div className="text-center">
+                <p className="font-medium text-red-900">{formatCurrency((montantInitial - montantRecouvert))}</p>
+                <p className="text-gray-700">Reste à recouvrer</p>
+              </div>
+              <div className="text-center">
+                <p className="font-medium text-blue-900">{formatCurrency(fraisTotaux)}</p>
+                <p className="text-gray-700">Frais engagés</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Chronologie des recouvrements */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <h4 className="text-lg font-semibold text-gray-900 mb-4">Chronologie des Recouvrements</h4>
+            <div className="space-y-4">
+              {chronologieResultats.map((item) => (
+                <div key={item.id} className="flex items-start space-x-4">
+                  <div className="flex-shrink-0">
+                    <div className={`w-3 h-3 rounded-full mt-2 ${
+                      item.type === 'recouvrement' ? 'bg-red-500' : 'bg-green-500'
+                    }`}></div>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium text-gray-900">{item.description}</p>
+                      <span className="text-sm font-bold text-green-600">+{formatCurrency(item.montant)}</span>
+                    </div>
+                    <p className="text-xs text-gray-700">{item.source}</p>
+                    <p className="text-xs text-gray-700">{item.date}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Analyse comparative */}
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <h4 className="text-lg font-semibold text-gray-900 mb-4">Analyse Comparative</h4>
+            <div className="space-y-6">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-gray-600">Taux de recouvrement</span>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm font-bold text-green-600">{tauxRecouvrement.toFixed(1)}%</span>
+                    <span className="text-xs text-gray-700">vs {comparaison.moyenneMarche}% (marché)</span>
+                  </div>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="bg-green-500 h-2 rounded-full" style={{ width: `${(tauxRecouvrement/100)*100}%` }}></div>
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-gray-600">Durée de recouvrement</span>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm font-bold text-blue-600">{analyseRentabilite.dureeRecouvrement}j</span>
+                    <span className="text-xs text-gray-700">vs {comparaison.dureeMoyenne}j (marché)</span>
+                  </div>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="bg-blue-500 h-2 rounded-full" style={{ width: '62%' }}></div>
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-gray-600">Taux de frais</span>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm font-bold text-primary-600">{((fraisTotaux/montantInitial)*100).toFixed(1)}%</span>
+                    <span className="text-xs text-gray-700">vs {comparaison.fraisisMoyens}% (marché)</span>
+                  </div>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="bg-primary-500 h-2 rounded-full" style={{ width: '78%' }}></div>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-gray-200">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-900">Évaluation globale</span>
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    Excellent
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Analyse financière détaillée */}
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <h4 className="text-lg font-semibold text-gray-900 mb-4">Analyse Financière Détaillée</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h5 className="font-medium text-gray-900 mb-3">Répartition des Recouvrements</h5>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Paiements volontaires</span>
+                  <span className="text-sm font-medium">1,575,000 FCFA (84%)</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Mesures d'exécution</span>
+                  <span className="text-sm font-medium">300,000 FCFA (16%)</span>
+                </div>
+                <div className="flex items-center justify-between pt-2 border-t border-gray-200">
+                  <span className="text-sm font-semibold text-gray-900">Total recouvré</span>
+                  <span className="text-sm font-bold text-green-600">{formatCurrency(montantRecouvert)}</span>
+                </div>
+              </div>
+            </div>
+            <div>
+              <h5 className="font-medium text-gray-900 mb-3">Ventilation des Coûts</h5>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Frais d'avocat</span>
+                  <span className="text-sm font-medium">250,000 FCFA</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Frais d'huissier</span>
+                  <span className="text-sm font-medium">135,000 FCFA</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Frais de tribunal</span>
+                  <span className="text-sm font-medium">65,000 FCFA</span>
+                </div>
+                <div className="flex items-center justify-between pt-2 border-t border-gray-200">
+                  <span className="text-sm font-semibold text-gray-900">Total frais</span>
+                  <span className="text-sm font-bold text-red-600">{formatCurrency(fraisTotaux)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="mt-6 pt-6 border-t border-gray-200">
+            <div className="flex items-center justify-between">
+              <span className="text-lg font-semibold text-gray-900">Bénéfice Net</span>
+              <span className="text-lg font-bold text-green-600">{formatCurrency(beneficeNet)}</span>
+            </div>
+            <p className="text-sm text-gray-700 mt-1">
+              Rentabilité: {rentabilite.toFixed(1)}% | Efficacité: {tauxRecouvrement.toFixed(1)}%
+            </p>
+          </div>
+        </div>
+
+        {/* Modal clôture */}
+        {showCloturerModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-lg">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Clôturer le Dossier Contentieux</h3>
+
+              <div className="space-y-4">
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <div className="flex">
+                    <AlertTriangle className="w-5 h-5 text-yellow-400 mr-2" />
+                    <div>
+                      <h4 className="text-sm font-medium text-yellow-800">Attention</h4>
+                      <p className="text-sm text-yellow-700 mt-1">
+                        La clôture du dossier est définitive. Assurez-vous que toutes les actions ont été entreprises.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Motif de clôture</label>
+                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
+                    <option>Recouvrement total</option>
+                    <option>Recouvrement partiel - Débiteur insolvable</option>
+                    <option>Accord transactionnel</option>
+                    <option>Prescription</option>
+                    <option>Abandon de créance</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Commentaires de clôture</label>
+                  <textarea
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 h-20"
+                    placeholder="Bilan final et observations..."
+                  />
+                </div>
+
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h4 className="text-sm font-medium text-gray-900 mb-2">Récapitulatif Final</h4>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <span>Montant initial:</span>
+                      <span>{formatCurrency(montantInitial)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Montant recouvré:</span>
+                      <span className="text-green-600">{formatCurrency(montantRecouvert)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Taux de recouvrement:</span>
+                      <span className="font-medium">{tauxRecouvrement.toFixed(1)}%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  onClick={() => setShowCloturerModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={() => {
+                    setShowCloturerModal(false);
+                  }}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                >
+                  Confirmer la clôture
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  function renderContentieuxContent() {
+    // Page détaillée du dossier contentieux
+    if (showContentieuxDetailPage && selectedContentieuxDetail) {
+      return renderContentieuxDetailPage();
+    }
+
+    // Vue Dashboard KPIs
+    if (contentieuxView === 'dashboard') {
+      return (
+        <div className="space-y-6">
+          {/* KPIs consolidés */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-[var(--color-text-secondary)]">Performance Globale</p>
+                  <p className="text-lg font-bold text-[var(--color-primary)]">73%</p>
+                  <p className="text-xs text-green-600">+5% vs mois dernier</p>
+                </div>
+                <Target className="w-8 h-8 text-blue-600" />
+              </div>
+            </div>
+            <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-[var(--color-text-secondary)]">Taux Transfert Amiable→Contentieux</p>
+                  <p className="text-lg font-bold text-[var(--color-primary)]">18%</p>
+                  <p className="text-xs text-orange-600">↑ 2% ce mois</p>
+                </div>
+                <RefreshCw className="w-8 h-8 text-orange-600" />
+              </div>
+            </div>
+            <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-[var(--color-text-secondary)]">ROI Contentieux</p>
+                  <p className="text-lg font-bold text-green-600">3.2x</p>
+                  <p className="text-xs text-gray-600">Coût vs Recouvrement</p>
+                </div>
+                <TrendingUp className="w-8 h-8 text-green-600" />
+              </div>
+            </div>
+            <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-[var(--color-text-secondary)]">Délai Moyen</p>
+                  <p className="text-lg font-bold text-[var(--color-primary)]">127j</p>
+                  <p className="text-xs text-gray-600">Transfert → Jugement</p>
+                </div>
+                <Clock className="w-8 h-8 text-primary-600" />
+              </div>
+            </div>
+          </div>
+
+          {/* Graphiques comparatifs */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Performance Amiable vs Contentieux */}
+            <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">
+                Comparatif Amiable vs Contentieux
+              </h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={[
+                  { phase: 'Amiable', taux_succes: 82, delai_moyen: 45, cout_moyen: 50000 },
+                  { phase: 'Contentieux', taux_succes: 67, delai_moyen: 127, cout_moyen: 250000 }
+                ]}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="phase" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar radius={[6,6,0,0]} dataKey="taux_succes" fill="url(#gradPetrol)" name="Taux succès %" />
+                  <Bar radius={[6,6,0,0]} dataKey="delai_moyen" fill="url(#gradAmber)" name="Délai (jours)" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Flux entre processus */}
+            <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">
+                Flux mensuel Amiable → Contentieux
+              </h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={[
+                  { mois: 'Sept', transferts: 12, retours: 3 },
+                  { mois: 'Oct', transferts: 15, retours: 5 },
+                  { mois: 'Nov', transferts: 18, retours: 4 },
+                  { mois: 'Déc', transferts: 14, retours: 6 },
+                  { mois: 'Jan', transferts: 20, retours: 7 }
+                ]}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="mois" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Line type="monotone" dataKey="transferts" stroke="#C0322B" name="Transferts vers contentieux" />
+                  <Line type="monotone" dataKey="retours" stroke="#15803D" name="Retours en amiable" />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Statistiques par type de procédure */}
+          <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Performance par Type de Procédure</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="text-left px-4 py-2 text-xs font-medium text-gray-700 uppercase">Procédure</th>
+                    <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">Nb Dossiers</th>
+                    <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">Taux Succès</th>
+                    <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">Délai Moyen</th>
+                    <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">Coût Moyen</th>
+                    <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">ROI</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  <tr>
+                    <td className="px-4 py-3 text-sm">Injonction de payer</td>
+                    <td className="px-4 py-3 text-sm text-center">45</td>
+                    <td className="px-4 py-3 text-sm text-center"><span className="text-green-600 font-semibold">78%</span></td>
+                    <td className="px-4 py-3 text-sm text-center">60 jours</td>
+                    <td className="px-4 py-3 text-sm text-center">150K FCFA</td>
+                    <td className="px-4 py-3 text-sm text-center"><span className="text-green-600 font-semibold">4.2x</span></td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-3 text-sm">Référé provision</td>
+                    <td className="px-4 py-3 text-sm text-center">23</td>
+                    <td className="px-4 py-3 text-sm text-center"><span className="text-yellow-600 font-semibold">65%</span></td>
+                    <td className="px-4 py-3 text-sm text-center">90 jours</td>
+                    <td className="px-4 py-3 text-sm text-center">250K FCFA</td>
+                    <td className="px-4 py-3 text-sm text-center"><span className="text-yellow-600 font-semibold">2.8x</span></td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-3 text-sm">Procédure au fond</td>
+                    <td className="px-4 py-3 text-sm text-center">18</td>
+                    <td className="px-4 py-3 text-sm text-center"><span className="text-orange-600 font-semibold">55%</span></td>
+                    <td className="px-4 py-3 text-sm text-center">180 jours</td>
+                    <td className="px-4 py-3 text-sm text-center">450K FCFA</td>
+                    <td className="px-4 py-3 text-sm text-center"><span className="text-orange-600 font-semibold">1.9x</span></td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-3 text-sm">Saisie-attribution</td>
+                    <td className="px-4 py-3 text-sm text-center">12</td>
+                    <td className="px-4 py-3 text-sm text-center"><span className="text-green-600 font-semibold">85%</span></td>
+                    <td className="px-4 py-3 text-sm text-center">45 jours</td>
+                    <td className="px-4 py-3 text-sm text-center">100K FCFA</td>
+                    <td className="px-4 py-3 text-sm text-center"><span className="text-green-600 font-semibold">5.1x</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Vue Workflow
+    if (contentieuxView === 'workflow') {
+      return (
+        <div className="space-y-6">
+          {/* Sélecteur de phase */}
+          <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-[var(--color-primary)]">Workflow Complet Module Recouvrement</h3>
+              <select
+                value={activeWorkflowPhase}
+                onChange={(e) => setActiveWorkflowPhase(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="all">Toutes les phases</option>
+                <option value="amiable">Phase Amiable (J+0 à J+90)</option>
+                <option value="transfert">Transfert (J+91)</option>
+                <option value="contentieux">Phase Contentieuse</option>
+                <option value="execution">Exécution & Clôture</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Visualisation du workflow */}
+          <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+            <div className="relative">
+              {/* Phase 1: Amiable */}
+              <div className={`mb-8 ${activeWorkflowPhase !== 'all' && activeWorkflowPhase !== 'amiable' ? 'opacity-30' : ''}`}>
+                <div className="flex items-start space-x-4">
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <span className="text-blue-600 font-bold">1</span>
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-[var(--color-primary)] mb-2">Phase 1: Recouvrement Amiable (J+0 à J+90)</h4>
+                    <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <CheckCircle className="w-4 h-4 text-green-500" />
+                        <span className="text-sm">Détection automatique facture impayée</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <CheckCircle className="w-4 h-4 text-green-500" />
+                        <span className="text-sm">Attribution agent de recouvrement</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <CheckCircle className="w-4 h-4 text-green-500" />
+                        <span className="text-sm">Relances téléphoniques et écrites</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <CheckCircle className="w-4 h-4 text-green-500" />
+                        <span className="text-sm">Négociations et propositions</span>
+                      </div>
+                      <div className="mt-3 p-2 bg-yellow-50 rounded border border-yellow-200">
+                        <span className="text-sm font-medium text-yellow-800">
+                          Point de décision: Succès amiable ou transfert contentieux
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Flèche de connexion */}
+              <div className="flex justify-center my-4">
+                <ArrowDown className="w-6 h-6 text-gray-700" />
+              </div>
+
+              {/* Phase 2: Transfert */}
+              <div className={`mb-8 ${activeWorkflowPhase !== 'all' && activeWorkflowPhase !== 'transfert' ? 'opacity-30' : ''}`}>
+                <div className="flex items-start space-x-4">
+                  <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <span className="text-orange-600 font-bold">2</span>
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-[var(--color-primary)] mb-2">Phase 2: Transfert vers Contentieux (J+91)</h4>
+                    <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <AlertTriangle className="w-4 h-4 text-orange-500" />
+                        <span className="text-sm">Échec constaté du recouvrement amiable</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <FileText className="w-4 h-4 text-orange-500" />
+                        <span className="text-sm">Demande de transfert avec justification</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <UserCheck className="w-4 h-4 text-orange-500" />
+                        <span className="text-sm">Validation hiérarchique selon matrice</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <FolderOpen className="w-4 h-4 text-orange-500" />
+                        <span className="text-sm">Constitution automatique dossier contentieux</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Flèche de connexion */}
+              <div className="flex justify-center my-4">
+                <ArrowDown className="w-6 h-6 text-gray-700" />
+              </div>
+
+              {/* Phase 3: Contentieux */}
+              <div className={`mb-8 ${activeWorkflowPhase !== 'all' && activeWorkflowPhase !== 'contentieux' ? 'opacity-30' : ''}`}>
+                <div className="flex items-start space-x-4">
+                  <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <span className="text-red-600 font-bold">3</span>
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-[var(--color-primary)] mb-2">Phase 3: Procédure Contentieuse (J+91 à J+X)</h4>
+                    <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <Scale className="w-4 h-4 text-red-500" />
+                        <span className="text-sm">Analyse juridique du dossier</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Send className="w-4 h-4 text-red-500" />
+                        <span className="text-sm">Mise en demeure par huissier</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Gavel className="w-4 h-4 text-red-500" />
+                        <span className="text-sm">Choix de la procédure adaptée</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Briefcase className="w-4 h-4 text-red-500" />
+                        <span className="text-sm">Gestion du dossier judiciaire</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <CheckSquare className="w-4 h-4 text-red-500" />
+                        <span className="text-sm">Obtention décision de justice</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Flèche de connexion */}
+              <div className="flex justify-center my-4">
+                <ArrowDown className="w-6 h-6 text-gray-700" />
+              </div>
+
+              {/* Phase 4: Exécution */}
+              <div className={`mb-8 ${activeWorkflowPhase !== 'all' && activeWorkflowPhase !== 'execution' ? 'opacity-30' : ''}`}>
+                <div className="flex items-start space-x-4">
+                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <span className="text-green-600 font-bold">4</span>
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-[var(--color-primary)] mb-2">Phase 4: Exécution et Clôture</h4>
+                    <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <FileSignature className="w-4 h-4 text-green-500" />
+                        <span className="text-sm">Signification du jugement</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Hammer className="w-4 h-4 text-green-500" />
+                        <span className="text-sm">Mesures d'exécution forcée</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Coins className="w-4 h-4 text-green-500" />
+                        <span className="text-sm">Recouvrement des sommes</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <BarChart3 className="w-4 h-4 text-green-500" />
+                        <span className="text-sm">Analyse ROI global (amiable + contentieux)</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Archive className="w-4 h-4 text-green-500" />
+                        <span className="text-sm">Clôture et archivage</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Points de contrôle */}
+              <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <h4 className="font-semibold text-blue-900 mb-2">Points de contrôle et bascules</h4>
+                <ul className="space-y-1 text-sm text-blue-800">
+                  <li>• Retour possible en amiable à tout moment si accord</li>
+                  <li>• Escalade automatique selon délais paramétrés</li>
+                  <li>• Validation obligatoire pour certains montants</li>
+                  <li>• Reporting temps réel à chaque étape</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Vue Coûts & Budget
+    if (contentieuxView === 'couts') {
+      // Derive cost categories from real journal entries (class 6 accounts or AC journal)
+      const coutsByCategory: Record<string, number> = {};
+      let totalDepensesEngagees = 0;
+      let totalMontantsRecouVres = 0;
+      for (const entry of allJournalEntries) {
+        const isAchat = (entry.journalCode || '').toUpperCase().includes('AC');
+        for (const line of (entry.lines || [])) {
+          const acc: string = line.accountCode || '';
+          if (isAchat || acc.startsWith('6')) {
+            const debit = line.debit || 0;
+            if (debit > 0) {
+              // Group by first 3 chars of account code for a meaningful category label
+              const prefix = acc.slice(0, 3);
+              coutsByCategory[prefix] = (coutsByCategory[prefix] || 0) + debit;
+              totalDepensesEngagees += debit;
+            }
+          }
+          // Sum credits on 411xxx as recovered amounts
+          if (acc.startsWith('411') && (line.credit || 0) > 0) {
+            totalMontantsRecouVres += line.credit;
+          }
+        }
+      }
+
+      // Map account prefixes to human-readable labels
+      const accountPrefixLabels: Record<string, string> = {
+        '601': 'Achats marchandises', '602': 'Achats mat. premières', '603': 'Variation stocks',
+        '604': 'Achats fournitures', '605': 'Achats matériel', '606': 'Achats emballages',
+        '607': 'Achats matières', '608': 'Frais accessoires', '609': 'Remises fournisseurs',
+        '611': 'Transport sur achats', '612': 'Services extérieurs', '613': 'Locations',
+        '614': 'Charges locatives', '615': 'Entretien réparations', '616': 'Primes assurances',
+        '617': 'Documentation', '618': 'Divers services', '621': 'Rémunérations',
+        '622': 'Honoraires', '623': 'Publicité', '624': 'Transport livraisons',
+        '625': 'Déplacements', '626': 'Communications', '627': 'Services bancaires',
+        '628': 'Cotisations', '629': 'Divers charges', '631': 'Impôts taxes',
+        '632': 'Taxes apprentissage', '633': 'Taxes formation', '641': 'Rémunérations personnel',
+        '645': 'Charges sociales', '651': 'Pertes créances', '661': 'Charges intérêts',
+        '671': 'Dotations amortissements', '681': 'Dotations provisions',
+      };
+
+      const costChartData = Object.entries(coutsByCategory)
+        .map(([prefix, montant]) => ({
+          name: accountPrefixLabels[prefix] || `Compte ${prefix}xx`,
+          montant,
+        }))
+        .sort((a, b) => b.montant - a.montant)
+        .slice(0, 7); // top 7 categories
+
+      const totalCouts = costChartData.reduce((s, c) => s + c.montant, 0);
+      const roiLabel = totalDepensesEngagees > 0
+        ? `ROI: ${(totalMontantsRecouVres / totalDepensesEngagees).toFixed(1)}x`
+        : '—';
+      const budgetPct = totalDepensesEngagees > 0 && totalMontantsRecouVres > 0
+        ? `${Math.round((totalDepensesEngagees / (totalMontantsRecouVres || 1)) * 100)}% du récupéré`
+        : '—';
+
+      return (
+        <div className="space-y-6">
+          {/* Budget global */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-[var(--color-text-secondary)]">Budget Total Contentieux</p>
+                  <p className="text-lg font-bold text-[var(--color-primary)]">
+                    {totalMontantsRecouVres > 0 ? formatCurrency(totalMontantsRecouVres) : '—'}
+                  </p>
+                  <p className="text-xs text-gray-600">Créances recouvrées</p>
+                </div>
+                <Wallet className="w-8 h-8 text-blue-600" />
+              </div>
+            </div>
+            <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-[var(--color-text-secondary)]">Dépenses Engagées</p>
+                  <p className="text-lg font-bold text-orange-600">
+                    {totalDepensesEngagees > 0 ? formatCurrency(totalDepensesEngagees) : '—'}
+                  </p>
+                  <p className="text-xs text-gray-600">{budgetPct}</p>
+                </div>
+                <CreditCard className="w-8 h-8 text-orange-600" />
+              </div>
+            </div>
+            <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-[var(--color-text-secondary)]">Montants Recouvrés</p>
+                  <p className="text-lg font-bold text-green-600">
+                    {totalMontantsRecouVres > 0 ? formatCurrency(totalMontantsRecouVres) : '—'}
+                  </p>
+                  <p className="text-xs text-green-600">{roiLabel}</p>
+                </div>
+                <TrendingUp className="w-8 h-8 text-green-600" />
+              </div>
+            </div>
+          </div>
+
+          {/* Détail des coûts par type */}
+          <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Répartition des Coûts</h3>
+            {costChartData.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-gray-400">
+                <PieChart className="w-12 h-12 mb-3 opacity-30" />
+                <p className="text-sm">Aucune charge enregistrée (comptes classe 6)</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <RechartsPieChart>
+                      <Pie
+                        dataKey="montant"
+                        data={costChartData}
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={100}
+                        fill="#235A6E"
+                        label
+                      >
+                        {costChartData.map((_entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value) => formatCurrency(value as number)} />
+                      <Legend />
+                    </RechartsPieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="space-y-3">
+                  {costChartData.map((cat, index) => {
+                    const pct = totalCouts > 0 ? Math.round((cat.montant / totalCouts) * 100) : 0;
+                    return (
+                      <div key={cat.name} className="p-3 bg-gray-50 rounded-lg">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium">{cat.name}</span>
+                          <span className="text-sm font-bold">{formatCurrency(cat.montant)}</span>
+                        </div>
+                        <div className="mt-2 bg-gray-200 rounded-full h-2">
+                          <div
+                            className="h-2 rounded-full"
+                            style={{ width: `${pct}%`, backgroundColor: COLORS[index % COLORS.length] }}
+                          ></div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Analyse coût/bénéfice par dossier */}
+          <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Analyse Coût/Bénéfice par Dossier</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="text-left px-4 py-2 text-xs font-medium text-gray-700 uppercase">Dossier</th>
+                    <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">Créance</th>
+                    <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">Coûts Engagés</th>
+                    <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">Recouvré</th>
+                    <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">Bénéfice Net</th>
+                    <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">Rentabilité</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {dossiersContentieux.slice(0, 4).map(dossier => (
+                    <tr key={dossier.id}>
+                      <td className="px-4 py-3 text-sm">{dossier.numeroRef}</td>
+                      <td className="px-4 py-3 text-sm text-center">{formatCurrency(dossier.montantTotal)}</td>
+                      <td className="px-4 py-3 text-sm text-center">{formatCurrency(dossier.fraisProcedure)}</td>
+                      <td className="px-4 py-3 text-sm text-center font-semibold text-green-600">
+                        {formatCurrency(dossier.montantTotal * 0.7)}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-center font-semibold">
+                        {formatCurrency(dossier.montantTotal * 0.7 - dossier.fraisProcedure)}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-center">
+                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                          {Math.round((dossier.montantTotal * 0.7 - dossier.fraisProcedure) / dossier.fraisProcedure * 100)}%
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Vue Exécution
+    if (contentieuxView === 'execution') {
+      return (
+        <div className="space-y-6">
+          {/* Statistiques exécution */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-[var(--color-text-secondary)]">Jugements à exécuter</p>
+                  <p className="text-lg font-bold text-[var(--color-primary)]">8</p>
+                </div>
+                <Gavel className="w-8 h-8 text-primary-600" />
+              </div>
+            </div>
+            <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-[var(--color-text-secondary)]">Saisies en cours</p>
+                  <p className="text-lg font-bold text-orange-600">5</p>
+                </div>
+                <Lock className="w-8 h-8 text-orange-600" />
+              </div>
+            </div>
+            <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-[var(--color-text-secondary)]">Montants saisis</p>
+                  <p className="text-lg font-bold text-green-600">12.3M</p>
+                </div>
+                <Coins className="w-8 h-8 text-green-600" />
+              </div>
+            </div>
+            <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-[var(--color-text-secondary)]">Taux d'exécution</p>
+                  <p className="text-lg font-bold text-[var(--color-primary)]">62%</p>
+                </div>
+                <CheckSquare className="w-8 h-8 text-blue-600" />
+              </div>
+            </div>
+          </div>
+
+          {/* Liste des exécutions */}
+          <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Dossiers en Exécution</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="text-left px-4 py-2 text-xs font-medium text-gray-700 uppercase">Référence</th>
+                    <th className="text-left px-4 py-2 text-xs font-medium text-gray-700 uppercase">Client</th>
+                    <th className="text-left px-4 py-2 text-xs font-medium text-gray-700 uppercase">Type Exécution</th>
+                    <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">Montant</th>
+                    <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">Statut</th>
+                    <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {dossiersExecution.map((dossier) => (
+                    <tr key={dossier.id}>
+                      <td className="px-4 py-3 text-sm">{dossier.reference}</td>
+                      <td className="px-4 py-3 text-sm">{dossier.client}</td>
+                      <td className="px-4 py-3 text-sm">{dossier.typeExecution}</td>
+                      <td className="px-4 py-3 text-sm text-center font-semibold">{formatCurrency(dossier.montant)}</td>
+                      <td className="px-4 py-3 text-center">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          dossier.statut === 'En cours' ? 'bg-yellow-100 text-yellow-800' :
+                          dossier.statut === 'Huissier mandaté' ? 'bg-orange-100 text-orange-800' :
+                          dossier.statut === 'Exécuté' ? 'bg-green-100 text-green-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {dossier.statut}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <button
+                          onClick={() => {
+                            setSelectedExecutionDossier(dossier);
+                            setShowExecutionDetailModal(true);
+                          }}
+                          className="text-blue-600 hover:text-blue-800"
+                          title="Voir détails de l'exécution"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Types de mesures d'exécution */}
+          <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Mesures d'Exécution Disponibles</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <h4 className="font-semibold text-blue-900 mb-2">Saisie-attribution</h4>
+                <p className="text-sm text-blue-700">Saisie directe sur comptes bancaires</p>
+              </div>
+              <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                <h4 className="font-semibold text-orange-900 mb-2">Saisie-vente</h4>
+                <p className="text-sm text-orange-700">Vente forcée de biens mobiliers/immobiliers</p>
+              </div>
+              <div className="p-4 bg-primary-50 rounded-lg border border-primary-200">
+                <h4 className="font-semibold text-primary-900 mb-2">Saisie sur salaire</h4>
+                <p className="text-sm text-primary-700">Prélèvement sur rémunération</p>
+              </div>
+              <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                <h4 className="font-semibold text-green-900 mb-2">Hypothèque judiciaire</h4>
+                <p className="text-sm text-green-700">Garantie sur biens immobiliers</p>
+              </div>
+              <div className="p-4 bg-red-50 rounded-lg border border-red-200">
+                <h4 className="font-semibold text-red-900 mb-2">Astreinte</h4>
+                <p className="text-sm text-red-700">Pénalité journalière de retard</p>
+              </div>
+              <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <h4 className="font-semibold text-gray-900 mb-2">Plan échelonné</h4>
+                <p className="text-sm text-gray-700">Paiement fractionné validé</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+
+    // Vue KPIs & Reporting
+    if (contentieuxView === 'kpi') {
+      return (
+        <div className="space-y-6">
+          {/* KPIs consolidés */}
+          <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Indicateurs de Performance - Vue Consolidée</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <p className="text-lg font-bold text-[var(--color-primary)]">82%</p>
+                <p className="text-sm text-gray-600 mt-1">Taux succès amiable</p>
+              </div>
+              <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <p className="text-lg font-bold text-[var(--color-primary)]">67%</p>
+                <p className="text-sm text-gray-600 mt-1">Taux succès contentieux</p>
+              </div>
+              <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <p className="text-lg font-bold text-green-600">3.2x</p>
+                <p className="text-sm text-gray-600 mt-1">ROI global</p>
+              </div>
+              <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <p className="text-lg font-bold text-[var(--color-primary)]">45j</p>
+                <p className="text-sm text-gray-600 mt-1">Délai moyen amiable</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Évolution temporelle */}
+          <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Évolution des Performances</h3>
+            <ResponsiveContainer width="100%" height={400}>
+              <LineChart data={[
+                { mois: 'Août', amiable: 78, contentieux: 62, roi: 2.8 },
+                { mois: 'Sept', amiable: 80, contentieux: 65, roi: 2.9 },
+                { mois: 'Oct', amiable: 82, contentieux: 64, roi: 3.0 },
+                { mois: 'Nov', amiable: 81, contentieux: 68, roi: 3.1 },
+                { mois: 'Déc', amiable: 83, contentieux: 66, roi: 3.2 },
+                { mois: 'Jan', amiable: 82, contentieux: 67, roi: 3.2 }
+              ]}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="mois" />
+                <YAxis yAxisId="left" />
+                <YAxis yAxisId="right" orientation="right" />
+                <Tooltip />
+                <Legend />
+                <Line yAxisId="left" type="monotone" dataKey="amiable" stroke="#15803D" name="Taux succès amiable %" />
+                <Line yAxisId="left" type="monotone" dataKey="contentieux" stroke="#C0322B" name="Taux succès contentieux %" />
+                <Line yAxisId="right" type="monotone" dataKey="roi" stroke="#235A6E" name="ROI (x)" strokeWidth={2} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Analyse prédictive */}
+          <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Analyse Prédictive</h3>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="p-4 bg-blue-50 rounded-lg">
+                <h4 className="font-semibold text-blue-900 mb-3">Prévisions Q1 2024</h4>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm">Transferts vers contentieux estimés</span>
+                    <span className="text-sm font-semibold">65 dossiers</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm">Montant en contentieux prévu</span>
+                    <span className="text-sm font-semibold">42M FCFA</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm">Taux de succès attendu</span>
+                    <span className="text-sm font-semibold">69%</span>
+                  </div>
+                </div>
+              </div>
+              <div className="p-4 bg-green-50 rounded-lg">
+                <h4 className="font-semibold text-green-900 mb-3">Recommandations IA</h4>
+                <ul className="space-y-1 text-sm text-green-800">
+                  <li>• Augmenter les relances J+30 pour réduire transferts</li>
+                  <li>• Privilégier injonctions de payer (ROI 4.2x)</li>
+                  <li>• Focus sur dossiers 2-5M FCFA (meilleur ratio)</li>
+                  <li>• Renforcer équipe amiable zone Abidjan Nord</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* Actions de reporting */}
+          <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Rapports Disponibles</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <button
+                onClick={() => setShowRapportMensuelModal(true)}
+                className="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 text-left transition-colors hover:border-blue-400"
+              >
+                <FileText className="w-6 h-6 text-blue-600 mb-2" />
+                <h4 className="font-semibold text-[var(--color-primary)]">Rapport mensuel consolidé</h4>
+                <p className="text-sm text-gray-600 mt-1">Amiable + Contentieux</p>
+              </button>
+              <button
+                onClick={() => setShowAnalyseROIModal(true)}
+                className="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 text-left transition-colors hover:border-green-400"
+              >
+                <BarChart3 className="w-6 h-6 text-green-600 mb-2" />
+                <h4 className="font-semibold text-[var(--color-primary)]">Analyse ROI détaillée</h4>
+                <p className="text-sm text-gray-600 mt-1">Par phase et procédure</p>
+              </button>
+              <button
+                onClick={() => setShowPerformanceEquipeModal(true)}
+                className="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 text-left transition-colors hover:border-orange-400"
+              >
+                <Users className="w-6 h-6 text-orange-600 mb-2" />
+                <h4 className="font-semibold text-[var(--color-primary)]">Performance équipes</h4>
+                <p className="text-sm text-gray-600 mt-1">Agents et gestionnaires</p>
+              </button>
+              <button
+                onClick={() => setShowPrevisionTresorerieModal(true)}
+                className="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 text-left transition-colors hover:border-primary-400"
+              >
+                <TrendingUp className="w-6 h-6 text-primary-600 mb-2" />
+                <h4 className="font-semibold text-[var(--color-primary)]">Prévisions trésorerie</h4>
+                <p className="text-sm text-gray-600 mt-1">3-6 mois glissants</p>
+              </button>
+              <button
+                onClick={() => setShowDossiersRisqueModal(true)}
+                className="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 text-left transition-colors hover:border-red-400"
+              >
+                <AlertTriangle className="w-6 h-6 text-red-600 mb-2" />
+                <h4 className="font-semibold text-[var(--color-primary)]">Dossiers à risque</h4>
+                <p className="text-sm text-gray-600 mt-1">Alertes et escalades</p>
+              </button>
+              <button
+                onClick={() => setShowExportPersonnaliseModal(true)}
+                className="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 text-left transition-colors hover:border-gray-500"
+              >
+                <Download className="w-6 h-6 text-gray-600 mb-2" />
+                <h4 className="font-semibold text-[var(--color-primary)]">Export personnalisé</h4>
+                <p className="text-sm text-gray-600 mt-1">Excel / PDF / CSV</p>
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Vue Liste des dossiers
+    if (contentieuxView === 'liste') {
+      return (
+        <div className="space-y-6">
+          {/* En-tête avec statistiques */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-[var(--color-text-secondary)]">Dossiers actifs</p>
+                  <p className="text-lg font-bold text-[var(--color-primary)]">12</p>
+                </div>
+                <Scale className="w-8 h-8 text-orange-600" />
+              </div>
+            </div>
+            <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-[var(--color-text-secondary)]">Montant en contentieux</p>
+                  <p className="text-lg font-bold text-[var(--color-primary)]">28.4M</p>
+                </div>
+                <DollarSign className="w-8 h-8 text-red-600" />
+              </div>
+            </div>
+          <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-[var(--color-text-secondary)]">Taux de succès</p>
+                <p className="text-lg font-bold text-green-600">67%</p>
+              </div>
+              <TrendingUp className="w-8 h-8 text-green-600" />
+            </div>
+          </div>
+          <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-[var(--color-text-secondary)]">Audiences ce mois</p>
+                <p className="text-lg font-bold text-[var(--color-primary)]">8</p>
+              </div>
+              <Calendar className="w-8 h-8 text-blue-600" />
+            </div>
+          </div>
+        </div>
+
+        {/* Filtres et actions */}
+        <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div className="flex flex-wrap gap-2">
+              <select
+                value={filterStatutContentieux}
+                onChange={(e) => setFilterStatutContentieux(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {statutsContentieux.map(option => (
+                  <option key={option.value} value={option.value}>{option.label}</option>
+                ))}
+              </select>
+              <select
+                value={filterProcedure}
+                onChange={(e) => setFilterProcedure(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {typesProcedure.map(option => (
+                  <option key={option.value} value={option.value}>{option.label}</option>
+                ))}
+              </select>
+              <button className="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors" aria-label="Télécharger">
+                <Download className="w-4 h-4" />
+                <span>{t('common.export')}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Tableau des dossiers contentieux */}
+        <div className="bg-white rounded-lg border border-[var(--color-border)] shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    Référence
+                  </th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    Client
+                  </th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    Montant Total
+                  </th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    Statut Juridique
+                  </th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    Procédure
+                  </th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    Avocat
+                  </th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    Prochaine Échéance
+                  </th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredContentieux.map(dossier => (
+                  <tr key={dossier.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <span className="text-sm font-medium text-[var(--color-primary)]">{dossier.numeroRef}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div>
+                        <div className="text-sm font-medium text-[var(--color-primary)]">{dossier.client}</div>
+                        <div className="text-xs text-gray-700">Origine: {dossier.origineAmiable}</div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div>
+                        <div className="text-sm font-semibold text-[var(--color-primary)]">
+                          {formatCurrency(dossier.montantTotal)}
+                        </div>
+                        <div className="text-xs text-gray-700">
+                          Principal: {formatCurrency(dossier.montantPrincipal)}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatutColor(dossier.statutJuridique)}`}>
+                        {dossier.statutJuridique.replace('_', ' ').toUpperCase()}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="text-sm text-[var(--color-primary)]">
+                        {dossier.typeProcedure.replace('_', ' ')}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="text-sm text-[var(--color-primary)]">{dossier.avocat}</span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div>
+                        <div className="text-sm text-[var(--color-primary)]">{dossier.prochaineEcheance}</div>
+                        <div className={`text-xs font-medium ${getUrgenceIndicator(dossier.joursRestants)}`}>
+                          Dans {dossier.joursRestants} jours
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => {
+                            setSelectedContentieux(dossier);
+                            setContentieuxView('detail');
+                          }}
+                          className="text-blue-600 hover:text-blue-800"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => openEditContentieuxModal(dossier)}
+                          className="text-orange-600 hover:text-orange-800"
+                          title="Modifier le dossier"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            initWorkflowForDossier(dossier.id);
+                            setSelectedDossierWorkflow(dossier);
+                            setShowWorkflowModal(true);
+                          }}
+                          className="text-primary-600 hover:text-primary-800"
+                          title="Gérer le workflow"
+                        >
+                          <Activity className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            setSelectedContentieuxDetail(dossier);
+                            setShowContentieuxDetailPage(true);
+                            setActiveContentieuxTab('general');
+                          }}
+                          className="text-green-600 hover:text-green-800"
+                          title="Page détaillée du dossier"
+                        >
+                          <FileText className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      );
+    }
+
+    // Vue Détail d'un dossier contentieux
+    if (contentieuxView === 'detail' && selectedContentieux) {
+      return (
+        <div className="space-y-6">
+        {/* Header détail */}
+        <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+          <div className="flex justify-between items-start">
+            <div>
+              <div className="flex items-center space-x-4 mb-2">
+                <button
+                  onClick={() => {
+                    setContentieuxView('liste');
+                    setSelectedContentieux(null);
+                  }}
+                  className="text-blue-600 hover:text-blue-800"
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                </button>
+                <h2 className="text-lg font-bold text-[var(--color-primary)]">
+                  Dossier Contentieux {selectedContentieux.numeroRef}
+                </h2>
+              </div>
+              <div className="flex items-center space-x-4 mt-4">
+                <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getStatutColor(selectedContentieux.statutJuridique)}`}>
+                  {selectedContentieux.statutJuridique.replace('_', ' ').toUpperCase()}
+                </span>
+                <span className="text-sm text-gray-600">
+                  Transféré le {selectedContentieux.dateTransfert}
+                </span>
+              </div>
+            </div>
+            <div className="flex space-x-2">
+              <button className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                <Send className="w-4 h-4" />
+                <span>Envoyer mise à jour</span>
+              </button>
+              <button className="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
+                <Download className="w-4 h-4" />
+                <span>Générer rapport</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Informations principales */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Timeline de la procédure */}
+            <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Timeline de la procédure</h3>
+              <div className="space-y-4">
+                <div className="flex items-start space-x-3">
+                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                    <CheckCircle className="w-4 h-4 text-green-600" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex justify-between">
+                      <span className="font-medium text-[var(--color-primary)]">Transfert en contentieux</span>
+                      <span className="text-sm text-gray-700">15/01/2024</span>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1">{selectedContentieux.motifTransfert}</p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                    <CheckCircle className="w-4 h-4 text-green-600" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex justify-between">
+                      <span className="font-medium text-[var(--color-primary)]">Constitution du dossier</span>
+                      <span className="text-sm text-gray-700">16/01/2024</span>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1">Dossier complet transmis à {selectedContentieux.avocat}</p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+                    <Clock className="w-4 h-4 text-yellow-600" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex justify-between">
+                      <span className="font-medium text-[var(--color-primary)]">Mise en demeure envoyée</span>
+                      <span className="text-sm text-gray-700">18/01/2024</span>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1">En attente de réponse du débiteur</p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                    <Clock className="w-4 h-4 text-gray-700" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex justify-between">
+                      <span className="font-medium text-gray-700">Assignation prévue</span>
+                      <span className="text-sm text-gray-700">{selectedContentieux.prochaineEcheance}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Documents du dossier */}
+            <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Documents juridiques</h3>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <FileText className="w-5 h-5 text-gray-700" />
+                    <div>
+                      <span className="text-sm font-medium text-[var(--color-primary)]">Factures impayées.pdf</span>
+                      <span className="text-xs text-gray-700 ml-2">2.4 MB</span>
+                    </div>
+                  </div>
+                  <button className="text-blue-600 hover:text-blue-800" aria-label="Télécharger">
+                    <Download className="w-4 h-4" />
+                  </button>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <FileText className="w-5 h-5 text-gray-700" />
+                    <div>
+                      <span className="text-sm font-medium text-[var(--color-primary)]">Contrat client.pdf</span>
+                      <span className="text-xs text-gray-700 ml-2">1.2 MB</span>
+                    </div>
+                  </div>
+                  <button className="text-blue-600 hover:text-blue-800" aria-label="Télécharger">
+                    <Download className="w-4 h-4" />
+                  </button>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <FileText className="w-5 h-5 text-gray-700" />
+                    <div>
+                      <span className="text-sm font-medium text-[var(--color-primary)]">Mise en demeure.pdf</span>
+                      <span className="text-xs text-gray-700 ml-2">450 KB</span>
+                    </div>
+                  </div>
+                  <button className="text-blue-600 hover:text-blue-800" aria-label="Télécharger">
+                    <Download className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+              <button className="mt-4 w-full flex items-center justify-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                <Upload className="w-4 h-4" />
+                <span>Ajouter un document</span>
+              </button>
+            </div>
+
+            {/* Actions disponibles */}
+            <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Actions de procédure</h3>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => setShowAssignationModal(true)}
+                  className="flex items-center justify-center space-x-2 px-4 py-3 bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200">
+                  <Scale className="w-5 h-5" />
+                  <span>Préparer assignation</span>
+                </button>
+                <button
+                  onClick={() => setShowAudienceModal(true)}
+                  className="flex items-center justify-center space-x-2 px-4 py-3 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200">
+                  <Calendar className="w-5 h-5" />
+                  <span>Planifier audience</span>
+                </button>
+                <button
+                  onClick={() => setShowConclusionsModal(true)}
+                  className="flex items-center justify-center space-x-2 px-4 py-3 bg-primary-100 text-primary-700 rounded-lg hover:bg-primary-200">
+                  <FileText className="w-5 h-5" />
+                  <span>Générer conclusions</span>
+                </button>
+                <button
+                  onClick={() => setShowJugementModal(true)}
+                  className="flex items-center justify-center space-x-2 px-4 py-3 bg-green-100 text-green-700 rounded-lg hover:bg-green-200">
+                  <CheckCircle className="w-5 h-5" />
+                  <span>Enregistrer jugement</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Sidebar avec informations complémentaires */}
+          <div className="space-y-6">
+            {/* Détails financiers */}
+            <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Détails financiers</h3>
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-600">Montant principal</span>
+                  <span className="text-sm font-semibold text-[var(--color-primary)]">
+                    {formatCurrency(selectedContentieux.montantPrincipal)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-600">Intérêts de retard</span>
+                  <span className="text-sm font-semibold text-[var(--color-primary)]">
+                    {formatCurrency(selectedContentieux.interetsRetard)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-600">Frais de procédure</span>
+                  <span className="text-sm font-semibold text-[var(--color-primary)]">
+                    {formatCurrency(selectedContentieux.fraisProcedure)}
+                  </span>
+                </div>
+                <hr />
+                <div className="flex justify-between">
+                  <span className="text-sm font-semibold text-gray-700">Total à recouvrer</span>
+                  <span className="text-lg font-bold text-[var(--color-primary)]">
+                    {formatCurrency(selectedContentieux.montantTotal)}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Informations avocat */}
+            <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Avocat en charge</h3>
+              <div className="space-y-3">
+                <div className="flex items-center space-x-3">
+                  <UserCircle className="w-10 h-10 text-gray-700" />
+                  <div>
+                    <p className="font-semibold text-[var(--color-primary)]">{selectedContentieux.avocat}</p>
+                    <p className="text-sm text-gray-600">Cabinet KONE & Associés</p>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <Phone className="w-4 h-4 text-gray-700" />
+                    <span className="text-sm text-gray-600">+225 27 20 30 40 50</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Mail className="w-4 h-4 text-gray-700" />
+                    <span className="text-sm text-gray-600">contact@kone-associes.ci</span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowContactAvocatModal(true)}
+                  className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                  Contacter l'avocat
+                </button>
+              </div>
+            </div>
+
+            {/* Prochaines échéances */}
+            <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Prochaines échéances</h3>
+              <div className="space-y-3">
+                <div className="p-3 bg-red-50 rounded-lg border border-red-200">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="font-medium text-[var(--color-primary)]">Délai de réponse mise en demeure</p>
+                      <p className="text-sm text-gray-600 mt-1">01/02/2024</p>
+                    </div>
+                    <span className="text-xs font-semibold text-red-600">8 jours</span>
+                  </div>
+                </div>
+                <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="font-medium text-[var(--color-primary)]">Audience tribunal commerce</p>
+                      <p className="text-sm text-gray-600 mt-1">15/02/2024</p>
+                    </div>
+                    <span className="text-xs font-semibold text-yellow-600">22 jours</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Actions rapides */}
+            <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
+              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Actions rapides</h3>
+              <div className="space-y-2">
+                <button
+                  onClick={() => setShowRetourAmiableModal(true)}
+                  className="w-full px-4 py-2 text-left bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100">
+                  Retourner en amiable
+                </button>
+                <button
+                  onClick={() => setShowExpertiseModal(true)}
+                  className="w-full px-4 py-2 text-left bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100">
+                  Demander expertise
+                </button>
+                <button
+                  onClick={() => setShowClotureModal(true)}
+                  className="w-full px-4 py-2 text-left bg-gray-50 text-red-600 rounded-lg hover:bg-red-50">
+                  Clôturer le dossier
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      );
+    }
+
+    return null;
+  }
+
+};
+
 const RecouvrementModule: React.FC = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
@@ -937,7284 +8236,6 @@ Service Contentieux
       }));
   }, [mockCreances]);
 
-  // Composant Analytics Tab avec sous-onglets
-  const AnalyticsTab = () => {
-    const [analyticsView, setAnalyticsView] = useState('dashboard');
-
-    const analyticsSubTabs = [
-      { id: 'dashboard', label: 'Vue d\'ensemble', icon: BarChart3 },
-      { id: 'performance', label: 'Performance', icon: TrendingUp },
-      { id: 'repartition', label: 'Répartition', icon: PieChart },
-      { id: 'tendances', label: 'Tendances', icon: Activity },
-      { id: 'comparaison', label: 'Comparaison', icon: LineChartIcon },
-      { id: 'previsions', label: 'Prévisions', icon: Calculator }
-    ];
-
-    function renderAnalyticsContent() {
-      switch (analyticsView) {
-        case 'dashboard':
-          return (
-            <div className="space-y-6">
-              {/* KPIs principaux avec intégrations temps réel */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-[var(--color-text-secondary)]">Créances Totales</p>
-                      <p className="text-lg font-bold text-[var(--color-primary)]">
-                        {formatCurrency(analyticsData.statistiques.montantTotalCreances)}
-                      </p>
-                      <p className="text-xs text-[var(--color-text-secondary)] mt-1">{analyticsData.statistiques.nombreCreances} dossiers</p>
-                      <div className="flex items-center mt-2 text-xs text-blue-600">
-                        <Link className="w-3 h-3 mr-1" />
-                        <span>Comptabilité sync</span>
-                      </div>
-                    </div>
-                    <DollarSign className="w-8 h-8 text-red-600" />
-                  </div>
-                </div>
-                <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-[var(--color-text-secondary)]">Recouvré ce mois</p>
-                      <p className="text-lg font-bold text-[var(--color-primary)]">
-                        {formatCurrency(analyticsData.statistiques.montantRecouvre)}
-                      </p>
-                      <p className="text-xs text-green-600 mt-1">↑ +12% vs mois précédent</p>
-                      <div className="flex items-center mt-2 text-xs text-green-600">
-                        <Zap className="w-3 h-3 mr-1" />
-                        <span>Temps réel</span>
-                      </div>
-                    </div>
-                    <CheckCircle className="w-8 h-8 text-green-600" />
-                  </div>
-                </div>
-                <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-[var(--color-text-secondary)]">Taux de succès</p>
-                      <p className="text-lg font-bold text-[var(--color-primary)]">
-                        {analyticsData.statistiques.tauxRecouvrement}%
-                      </p>
-                      <p className="text-xs text-blue-600 mt-1">Objectif: 85%</p>
-                      <div className="flex items-center mt-2 text-xs text-primary-600">
-                        <Cloud className="w-3 h-3 mr-1" />
-                        <span>IA enrichie</span>
-                      </div>
-                    </div>
-                    <TrendingUp className="w-8 h-8 text-blue-600" />
-                  </div>
-                </div>
-                <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-[var(--color-text-secondary)]">Délai moyen</p>
-                      <p className="text-lg font-bold text-[var(--color-primary)]">
-                        {analyticsData.statistiques.delaiMoyenRecouvrement}j
-                      </p>
-                      <p className="text-xs text-orange-600 mt-1">{analyticsData.statistiques.creancesEnRetard} en retard</p>
-                      <div className="flex items-center mt-2 text-xs text-blue-600">
-                        <Calculator className="w-3 h-3 mr-1" />
-                        <span>CRM scoring</span>
-                      </div>
-                    </div>
-                    <Clock className="w-8 h-8 text-orange-600" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Panel des intégrations en temps réel */}
-              <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-[var(--color-primary)]">Flux de Données Atlas F&A</h3>
-                  <div className="flex items-center space-x-2 text-sm text-green-600">
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    <span>Synchronisation active</span>
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-blue-800">{t('accounting.title')}</p>
-                        <p className="text-xs text-blue-600">156 factures sync</p>
-                        <p className="text-xs text-blue-600">23 nouveaux impayés</p>
-                      </div>
-                      <Calculator className="w-6 h-6 text-blue-600" />
-                    </div>
-                  </div>
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-green-800">CRM</p>
-                        <p className="text-xs text-green-600">89 clients enrichis</p>
-                        <p className="text-xs text-green-600">Score risque mis à jour</p>
-                      </div>
-                      <Users className="w-6 h-6 text-green-600" />
-                    </div>
-                  </div>
-                  <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-primary-800">Commercial</p>
-                        <p className="text-xs text-primary-600">23 conditions part.</p>
-                        <p className="text-xs text-primary-600">7 litiges actifs</p>
-                      </div>
-                      <ShoppingCart className="w-6 h-6 text-primary-600" />
-                    </div>
-                  </div>
-                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-orange-800">Finance</p>
-                        <p className="text-xs text-orange-600">Budgets à jour</p>
-                        <p className="text-xs text-orange-600">Provisions calculées</p>
-                      </div>
-                      <Package className="w-6 h-6 text-orange-600" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Graphiques principaux */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Évolution mensuelle */}
-                <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                  <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Évolution du Recouvrement</h3>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <AreaChart data={analyticsData.evolutionRecouvrement}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="mois" />
-                      <YAxis tickFormatter={(value) => `${value / 1000}k`} />
-                      <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                      <Area type="monotone" dataKey="creances" stackId="1" stroke="#C0322B" fill="#C0322B" fillOpacity={0.3} name="Créances" />
-                      <Area type="monotone" dataKey="recouvre" stackId="2" stroke="#15803D" fill="#15803D" fillOpacity={0.6} name="Recouvré" />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-
-                {/* Répartition par niveau */}
-                <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                  <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Répartition par Niveau</h3>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <RechartsPieChart>
-                      <Pie
-                        dataKey="montant"
-                        data={analyticsData.repartitionNiveaux}
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={100}
-                        fill="#235A6E"
-                        label={({ niveau, count }) => `${niveau} (${count})`}
-                      >
-                        {analyticsData.repartitionNiveaux.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                    </RechartsPieChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-
-              {/* Tableau de bord activités récentes */}
-              <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Activités du jour</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="bg-blue-50 rounded-lg p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-blue-800">Nouvelles créances</p>
-                        <p className="text-lg font-bold text-blue-900">8</p>
-                      </div>
-                      <Plus className="w-6 h-6 text-blue-600" />
-                    </div>
-                  </div>
-                  <div className="bg-green-50 rounded-lg p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-green-800">Recouvrements réalisés</p>
-                        <p className="text-lg font-bold text-green-900">12</p>
-                      </div>
-                      <CheckCircle className="w-6 h-6 text-green-600" />
-                    </div>
-                  </div>
-                  <div className="bg-orange-50 rounded-lg p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-orange-800">Actions en attente</p>
-                        <p className="text-lg font-bold text-orange-900">5</p>
-                      </div>
-                      <Clock className="w-6 h-6 text-orange-600" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          );
-
-        case 'performance':
-          return (
-            <div className="space-y-6">
-              {/* Performance par agent */}
-              <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Performance par Agent de Recouvrement</h3>
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Agent</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Dossiers assignés</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Recouvré</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Taux succès</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Délai moyen</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Performance</th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      <tr>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <UserCircle className="w-8 h-8 text-gray-700 mr-3" />
-                            <div>
-                              <div className="text-sm font-medium text-gray-900">Marie Diallo</div>
-                              <div className="text-sm text-gray-700">Senior</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">15</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{formatCurrency(420000)}</td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                            89%
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">12j</td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <div className="w-full bg-gray-200 rounded-full h-2 mr-2">
-                              <div className="bg-green-600 h-2 rounded-full" style={{width: '89%'}}></div>
-                            </div>
-                            <TrendingUp className="w-4 h-4 text-green-600" />
-                          </div>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <UserCircle className="w-8 h-8 text-gray-700 mr-3" />
-                            <div>
-                              <div className="text-sm font-medium text-gray-900">Jean Kouassi</div>
-                              <div className="text-sm text-gray-700">Junior</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">12</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{formatCurrency(280000)}</td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                            72%
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">18j</td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <div className="w-full bg-gray-200 rounded-full h-2 mr-2">
-                              <div className="bg-yellow-600 h-2 rounded-full" style={{width: '72%'}}></div>
-                            </div>
-                            <TrendingDown className="w-4 h-4 text-yellow-600" />
-                          </div>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {/* Graphique performance */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                  <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Évolution des Taux de Succès</h3>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={[
-                      { mois: 'Jan', marie: 85, jean: 68, equipe: 76 },
-                      { mois: 'Fév', marie: 87, jean: 70, equipe: 78 },
-                      { mois: 'Mar', marie: 89, jean: 72, equipe: 80 },
-                      { mois: 'Avr', marie: 88, jean: 71, equipe: 79 },
-                      { mois: 'Mai', marie: 90, jean: 74, equipe: 82 },
-                      { mois: 'Juin', marie: 89, jean: 72, equipe: 80 }
-                    ]}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="mois" />
-                      <YAxis />
-                      <Tooltip />
-                      <Line type="monotone" dataKey="marie" stroke="#15803D" strokeWidth={2} name="Marie Diallo" />
-                      <Line type="monotone" dataKey="jean" stroke="#E89A2E" strokeWidth={2} name="Jean Kouassi" />
-                      <Line type="monotone" dataKey="equipe" stroke="#235A6E" strokeWidth={3} name="Moyenne équipe" />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-
-                <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                  <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Répartition du Temps</h3>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <RechartsPieChart>
-                      <Pie
-                        dataKey="value"
-                        data={[
-                          { name: 'Appels clients', value: 40, fill: '#235A6E' },
-                          { name: 'Relances email', value: 25, fill: '#525252' },
-                          { name: 'Dossiers juridiques', value: 20, fill: '#525252' },
-                          { name: 'Administration', value: 15, fill: '#404040' }
-                        ]}
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={100}
-                        label={({ name, value }) => `${name}: ${value}%`}
-                      >
-                      </Pie>
-                      <Tooltip />
-                    </RechartsPieChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-            </div>
-          );
-
-        case 'repartition':
-          return (
-            <div className="space-y-6">
-              {/* Répartition géographique */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                  <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Répartition Géographique</h3>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={[
-                      { zone: 'Abidjan', creances: 450000, recouvre: 380000 },
-                      { zone: 'Bouaké', creances: 180000, recouvre: 140000 },
-                      { zone: 'San Pedro', creances: 120000, recouvre: 95000 },
-                      { zone: 'Yamoussoukro', creances: 95000, recouvre: 75000 },
-                      { zone: 'Korhogo', creances: 85000, recouvre: 60000 }
-                    ]}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="zone" />
-                      <YAxis tickFormatter={(value) => `${value / 1000}k`} />
-                      <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                      <Bar radius={[6,6,0,0]} dataKey="creances" fill="url(#gradRed)" name="Créances" />
-                      <Bar radius={[6,6,0,0]} dataKey="recouvre" fill="url(#gradGreen)" name="Recouvré" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-
-                <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                  <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Répartition par Secteur</h3>
-                  <div className="flex items-center justify-center h-[300px] text-sm text-gray-500">Données insuffisantes pour l'affichage</div>
-                </div>
-              </div>
-
-              {/* Ancienneté détaillée */}
-              <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Ancienneté des Créances par Secteur</h3>
-                <div className="flex items-center justify-center h-[400px] text-sm text-gray-500">Données insuffisantes pour l'affichage</div>
-              </div>
-            </div>
-          );
-
-        case 'tendances':
-          return (
-            <div className="space-y-6">
-              {/* Tendances temporelles */}
-              <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Tendances sur 12 mois</h3>
-                <div className="flex items-center justify-center h-[400px] text-sm text-gray-500">Données insuffisantes pour l'affichage</div>
-              </div>
-
-              {/* Analyse des cycles */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                  <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Cycle de Recouvrement Moyen</h3>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                      <div className="flex items-center">
-                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                          <span className="text-sm font-semibold text-blue-600">1</span>
-                        </div>
-                        <span className="font-medium text-gray-900">Premier contact</span>
-                      </div>
-                      <span className="text-sm font-semibold text-blue-600">0-3j</span>
-                    </div>
-                    <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
-                      <div className="flex items-center">
-                        <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center mr-3">
-                          <span className="text-sm font-semibold text-yellow-600">2</span>
-                        </div>
-                        <span className="font-medium text-gray-900">Relances multiples</span>
-                      </div>
-                      <span className="text-sm font-semibold text-yellow-600">4-15j</span>
-                    </div>
-                    <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
-                      <div className="flex items-center">
-                        <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center mr-3">
-                          <span className="text-sm font-semibold text-orange-600">3</span>
-                        </div>
-                        <span className="font-medium text-gray-900">Négociation</span>
-                      </div>
-                      <span className="text-sm font-semibold text-orange-600">16-25j</span>
-                    </div>
-                    <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                      <div className="flex items-center">
-                        <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3">
-                          <span className="text-sm font-semibold text-green-600">4</span>
-                        </div>
-                        <span className="font-medium text-gray-900">Résolution</span>
-                      </div>
-                      <span className="text-sm font-semibold text-green-600">26-30j</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                  <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Facteurs de Réussite</h3>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Contact dans les 24h</span>
-                      <div className="flex items-center">
-                        <div className="w-24 bg-gray-200 rounded-full h-2 mr-2">
-                          <div className="bg-green-600 h-2 rounded-full" style={{width: '92%'}}></div>
-                        </div>
-                        <span className="text-sm font-semibold text-green-600">92%</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Appel téléphonique direct</span>
-                      <div className="flex items-center">
-                        <div className="w-24 bg-gray-200 rounded-full h-2 mr-2">
-                          <div className="bg-green-600 h-2 rounded-full" style={{width: '85%'}}></div>
-                        </div>
-                        <span className="text-sm font-semibold text-green-600">85%</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Proposition d'échéancier</span>
-                      <div className="flex items-center">
-                        <div className="w-24 bg-gray-200 rounded-full h-2 mr-2">
-                          <div className="bg-blue-600 h-2 rounded-full" style={{width: '78%'}}></div>
-                        </div>
-                        <span className="text-sm font-semibold text-blue-600">78%</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Relance par email</span>
-                      <div className="flex items-center">
-                        <div className="w-24 bg-gray-200 rounded-full h-2 mr-2">
-                          <div className="bg-yellow-600 h-2 rounded-full" style={{width: '65%'}}></div>
-                        </div>
-                        <span className="text-sm font-semibold text-yellow-600">65%</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Courrier recommandé</span>
-                      <div className="flex items-center">
-                        <div className="w-24 bg-gray-200 rounded-full h-2 mr-2">
-                          <div className="bg-orange-600 h-2 rounded-full" style={{width: '45%'}}></div>
-                        </div>
-                        <span className="text-sm font-semibold text-orange-600">45%</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          );
-
-        case 'comparaison':
-          return (
-            <div className="space-y-6">
-              {/* Comparaison périodes */}
-              <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-[var(--color-primary)]">Comparaison Périodes</h3>
-                  <div className="flex space-x-2">
-                    <select className="px-3 py-1 border border-gray-300 rounded-lg text-sm">
-                      <option>Ce mois vs mois précédent</option>
-                      <option>Ce trimestre vs trimestre précédent</option>
-                      <option>Cette année vs année précédente</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-[var(--color-primary)] mb-2">{formatCurrency(1250000)}</div>
-                    <div className="text-sm text-gray-600 mb-1">Créances ce mois</div>
-                    <div className="flex items-center justify-center text-sm">
-                      <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
-                      <span className="text-green-600 font-medium">+12.5%</span>
-                      <span className="text-gray-700 ml-1">vs mois précédent</span>
-                    </div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-[var(--color-primary)] mb-2">{formatCurrency(980000)}</div>
-                    <div className="text-sm text-gray-600 mb-1">Montant recouvré</div>
-                    <div className="flex items-center justify-center text-sm">
-                      <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
-                      <span className="text-green-600 font-medium">+8.3%</span>
-                      <span className="text-gray-700 ml-1">vs mois précédent</span>
-                    </div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-[var(--color-primary)] mb-2">78.4%</div>
-                    <div className="text-sm text-gray-600 mb-1">Taux de succès</div>
-                    <div className="flex items-center justify-center text-sm">
-                      <TrendingDown className="w-4 h-4 text-red-600 mr-1" />
-                      <span className="text-red-600 font-medium">-2.1%</span>
-                      <span className="text-gray-700 ml-1">vs mois précédent</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Comparaison détaillée */}
-              <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Évolution Comparative</h3>
-                <ResponsiveContainer width="100%" height={400}>
-                  <LineChart data={[
-                    { mois: 'Jan', anneeActuelle: 180000, anneePrecedente: 165000 },
-                    { mois: 'Fév', anneeActuelle: 195000, anneePrecedente: 178000 },
-                    { mois: 'Mar', anneeActuelle: 210000, anneePrecedente: 185000 },
-                    { mois: 'Avr', anneeActuelle: 225000, anneePrecedente: 198000 },
-                    { mois: 'Mai', anneeActuelle: 240000, anneePrecedente: 205000 },
-                    { mois: 'Juin', anneeActuelle: 220000, anneePrecedente: 210000 }
-                  ]}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="mois" />
-                    <YAxis tickFormatter={(value) => `${value / 1000}k`} />
-                    <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                    <Line type="monotone" dataKey="anneeActuelle" stroke="#235A6E" strokeWidth={3} name="2024" />
-                    <Line type="monotone" dataKey="anneePrecedente" stroke="#B0BEC5" strokeWidth={2} strokeDasharray="5 5" name="2023" />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* Benchmark secteur */}
-              <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Benchmark Sectoriel</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
-                    <div>
-                      <div className="font-semibold text-gray-900">Taux de recouvrement</div>
-                      <div className="text-sm text-gray-600">Notre performance vs secteur</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-lg font-bold text-green-600">78.4%</div>
-                      <div className="text-sm text-gray-600">Secteur: 72.1%</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
-                    <div>
-                      <div className="font-semibold text-gray-900">Délai moyen de recouvrement</div>
-                      <div className="text-sm text-gray-600">Notre performance vs secteur</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-lg font-bold text-blue-600">18j</div>
-                      <div className="text-sm text-gray-600">Secteur: 24j</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between p-4 bg-yellow-50 rounded-lg">
-                    <div>
-                      <div className="font-semibold text-gray-900">Coût par dossier</div>
-                      <div className="text-sm text-gray-600">Notre performance vs secteur</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-lg font-bold text-yellow-600">{formatCurrency(15000)}</div>
-                      <div className="text-sm text-gray-600">Secteur: {formatCurrency(18500)}</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          );
-
-        case 'previsions':
-          return (
-            <div className="space-y-6">
-              {/* Prévisions financières */}
-              <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Prévisions de Recouvrement - 6 prochains mois</h3>
-                <ResponsiveContainer width="100%" height={350}>
-                  <AreaChart data={[
-                    { mois: 'Juil', prevision: 260000, optimiste: 285000, pessimiste: 230000, realise: null },
-                    { mois: 'Août', prevision: 275000, optimiste: 300000, pessimiste: 245000, realise: null },
-                    { mois: 'Sep', prevision: 280000, optimiste: 310000, pessimiste: 250000, realise: null },
-                    { mois: 'Oct', prevision: 290000, optimiste: 320000, pessimiste: 260000, realise: null },
-                    { mois: 'Nov', prevision: 295000, optimiste: 325000, pessimiste: 265000, realise: null },
-                    { mois: 'Déc', prevision: 310000, optimiste: 340000, pessimiste: 280000, realise: null }
-                  ]}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="mois" />
-                    <YAxis tickFormatter={(value) => `${value / 1000}k`} />
-                    <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                    <Area type="monotone" dataKey="pessimiste" stackId="1" stroke="#C0322B" fill="#C0322B" fillOpacity={0.2} name="Scénario pessimiste" />
-                    <Area type="monotone" dataKey="prevision" stackId="2" stroke="#235A6E" fill="#235A6E" fillOpacity={0.4} name="Prévision réaliste" />
-                    <Area type="monotone" dataKey="optimiste" stackId="3" stroke="#15803D" fill="#15803D" fillOpacity={0.2} name="Scénario optimiste" />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* Facteurs de risque */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                  <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Facteurs de Risque Identifiés</h3>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200">
-                      <div className="flex items-center">
-                        <AlertTriangle className="w-5 h-5 text-red-600 mr-3" />
-                        <div>
-                          <div className="font-medium text-red-800">Secteur BTP en difficulté</div>
-                          <div className="text-sm text-red-600">12 dossiers à risque</div>
-                        </div>
-                      </div>
-                      <span className="text-xs font-semibold bg-red-100 text-red-800 px-2 py-1 rounded">ÉLEVÉ</span>
-                    </div>
-                    <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                      <div className="flex items-center">
-                        <AlertTriangle className="w-5 h-5 text-yellow-600 mr-3" />
-                        <div>
-                          <div className="font-medium text-yellow-800">Saisonnalité agriculture</div>
-                          <div className="text-sm text-yellow-600">8 dossiers affectés</div>
-                        </div>
-                      </div>
-                      <span className="text-xs font-semibold bg-yellow-100 text-yellow-800 px-2 py-1 rounded">MOYEN</span>
-                    </div>
-                    <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg border border-orange-200">
-                      <div className="flex items-center">
-                        <AlertTriangle className="w-5 h-5 text-orange-600 mr-3" />
-                        <div>
-                          <div className="font-medium text-orange-800">Clients récidivistes</div>
-                          <div className="text-sm text-orange-600">5 dossiers surveillés</div>
-                        </div>
-                      </div>
-                      <span className="text-xs font-semibold bg-orange-100 text-orange-800 px-2 py-1 rounded">MOYEN</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                  <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Opportunités d'Amélioration</h3>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
-                      <div className="flex items-center">
-                        <TrendingUp className="w-5 h-5 text-green-600 mr-3" />
-                        <div>
-                          <div className="font-medium text-green-800">Automatisation relances</div>
-                          <div className="text-sm text-green-600">Gain estimé: +15%</div>
-                        </div>
-                      </div>
-                      <span className="text-xs font-semibold bg-green-100 text-green-800 px-2 py-1 rounded">FORT</span>
-                    </div>
-                    <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
-                      <div className="flex items-center">
-                        <Target className="w-5 h-5 text-blue-600 mr-3" />
-                        <div>
-                          <div className="font-medium text-blue-800">Scoring clients amélioré</div>
-                          <div className="text-sm text-blue-600">Gain estimé: +8%</div>
-                        </div>
-                      </div>
-                      <span className="text-xs font-semibold bg-blue-100 text-blue-800 px-2 py-1 rounded">MOYEN</span>
-                    </div>
-                    <div className="flex items-center justify-between p-3 bg-primary-50 rounded-lg border border-primary-200">
-                      <div className="flex items-center">
-                        <Users className="w-5 h-5 text-primary-600 mr-3" />
-                        <div>
-                          <div className="font-medium text-primary-800">Formation équipe</div>
-                          <div className="text-sm text-primary-600">Gain estimé: +5%</div>
-                        </div>
-                      </div>
-                      <span className="text-xs font-semibold bg-primary-100 text-primary-800 px-2 py-1 rounded">FAIBLE</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Simulation scenarios */}
-              <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Simulation de Scénarios</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                    <div className="text-center">
-                      <div className="text-lg font-semibold text-green-800 mb-2">Scénario Optimiste</div>
-                      <div className="text-lg font-bold text-green-900 mb-1">{formatCurrency(1850000)}</div>
-                      <div className="text-sm text-green-600">Recouvrement 6 mois</div>
-                      <div className="mt-3 text-xs text-green-700">
-                        • Taux succès: 85%<br/>
-                        • Nouveaux outils IA<br/>
-                        • Équipe renforcée
-                      </div>
-                    </div>
-                  </div>
-                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <div className="text-center">
-                      <div className="text-lg font-semibold text-blue-800 mb-2">Scénario Réaliste</div>
-                      <div className="text-lg font-bold text-blue-900 mb-1">{formatCurrency(1650000)}</div>
-                      <div className="text-sm text-blue-600">Recouvrement 6 mois</div>
-                      <div className="mt-3 text-xs text-blue-700">
-                        • Taux succès: 78%<br/>
-                        • Maintien performance<br/>
-                        • Croissance modérée
-                      </div>
-                    </div>
-                  </div>
-                  <div className="p-4 bg-red-50 rounded-lg border border-red-200">
-                    <div className="text-center">
-                      <div className="text-lg font-semibold text-red-800 mb-2">Scénario Pessimiste</div>
-                      <div className="text-lg font-bold text-red-900 mb-1">{formatCurrency(1420000)}</div>
-                      <div className="text-sm text-red-600">Recouvrement 6 mois</div>
-                      <div className="mt-3 text-xs text-red-700">
-                        • Taux succès: 68%<br/>
-                        • Crise économique<br/>
-                        • Difficultés sectorielles
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          );
-
-        default:
-          return <div>Contenu non disponible</div>;
-      }
-    }
-
-    return (
-      <div className="space-y-6">
-        {/* Navigation sous-onglets */}
-        <div className="bg-white rounded-lg p-2 border border-[var(--color-border)] shadow-sm">
-          <div className="flex flex-wrap gap-1">
-            {analyticsSubTabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setAnalyticsView(tab.id)}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-colors ${
-                  analyticsView === tab.id
-                    ? 'bg-[var(--color-text-tertiary)] text-white'
-                    : 'text-[var(--color-text-secondary)] hover:bg-gray-100'
-                }`}
-              >
-                <tab.icon className="w-4 h-4" />
-                <span className="text-sm font-medium">{tab.label}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Contenu selon le sous-onglet actif */}
-        {renderAnalyticsContent()}
-      </div>
-    );
-  };
-
-  // Composant Onglet Contentieux
-  const ContentieuxTab = () => {
-    const [contentieuxView, setContentieuxView] = useState('dashboard'); // dashboard, liste, detail, workflow, couts, execution
-    const [selectedContentieux, setSelectedContentieux] = useState<DossierContentieux | null>(null);
-    const [filterStatutContentieux, setFilterStatutContentieux] = useState('tous');
-    const [filterProcedure, setFilterProcedure] = useState('tous');
-    const [showTransferContentieuxModal, setShowTransferContentieuxModal] = useState(false);
-    const [selectedDossierTransfer, setSelectedDossierTransfer] = useState<DossierContentieux | null>(null);
-    const [formData, setFormData] = useState({
-      creance_ids: [] as string[],
-      motif: '',
-      service_recouvrement: '',
-      date_transfert: new Date().toISOString().split('T')[0],
-      provision_montant: '',
-      documents: [] as string[],
-    });
-    const [errors, setErrors] = useState<Record<string, string>>({});
-    const [isSubmitting, setIsSubmitting] = useState(false);
-
-    const queryClient = useQueryClient();
-    const [activeWorkflowPhase, setActiveWorkflowPhase] = useState('all');
-
-    // Create transfert contentieux mutation
-    const createMutation = useMutation({
-      mutationFn: tiersService.transfertContentieux,
-      onSuccess: () => {
-        toast.success('Transfert en contentieux créé avec succès');
-        queryClient.invalidateQueries({ queryKey: ['transferts-contentieux'] });
-        setShowTransferContentieuxModal(false);
-        resetForm();
-      },
-      onError: (error: Error) => {
-        toast.error(error.message || 'Erreur lors de la création');
-      },
-    });
-
-    const resetForm = () => {
-      setFormData({
-        creance_ids: [],
-        motif: '',
-        service_recouvrement: '',
-        date_transfert: new Date().toISOString().split('T')[0],
-        provision_montant: '',
-        documents: [],
-      });
-      setErrors({});
-      setIsSubmitting(false);
-    };
-
-    const handleInputChange = (field: string, value: string | string[] | number | undefined) => {
-      setFormData(prev => ({ ...prev, [field]: value }));
-      if (errors[field]) {
-        setErrors(prev => {
-          const newErrors = { ...prev };
-          delete newErrors[field];
-          return newErrors;
-        });
-      }
-    };
-
-    const handleSubmit = async () => {
-      try {
-        setIsSubmitting(true);
-        setErrors({});
-
-        // Convert provision_montant to number if not empty
-        const processedData = {
-          ...formData,
-          provision_montant: formData.provision_montant ? Number(formData.provision_montant) : undefined,
-        };
-
-        const validatedData = createTransfertContentieuxSchema.parse(processedData);
-        await createMutation.mutateAsync(validatedData);
-      } catch (error) {
-        if (error instanceof z.ZodError) {
-          const fieldErrors: Record<string, string> = {};
-          error.errors.forEach((err) => {
-            const field = err.path[0] as string;
-            fieldErrors[field] = err.message;
-          });
-          setErrors(fieldErrors);
-          toast.error('Veuillez corriger les erreurs du formulaire');
-        } else {
-          toast.error('Erreur lors de la création');
-        }
-      } finally {
-        setIsSubmitting(false);
-      }
-    };
-
-    // États pour les modals d'actions contentieuses
-    const [showAssignationModal, setShowAssignationModal] = useState(false);
-    const [showAudienceModal, setShowAudienceModal] = useState(false);
-    const [showConclusionsModal, setShowConclusionsModal] = useState(false);
-    const [showJugementModal, setShowJugementModal] = useState(false);
-    const [showContactAvocatModal, setShowContactAvocatModal] = useState(false);
-    const [showRetourAmiableModal, setShowRetourAmiableModal] = useState(false);
-    const [showExpertiseModal, setShowExpertiseModal] = useState(false);
-    const [showClotureModal, setShowClotureModal] = useState(false);
-    const [actionContentieuxData, setActionContentieuxData] = useState<Record<string, unknown>>({});
-
-    // États pour les modales d'exécution
-    const [showExecutionDetailModal, setShowExecutionDetailModal] = useState(false);
-    const [selectedExecutionDossier, setSelectedExecutionDossier] = useState<DossierContentieux | null>(null);
-
-    // États pour la page détaillée des dossiers contentieux
-    const [showContentieuxDetailPage, setShowContentieuxDetailPage] = useState(false);
-    const [selectedContentieuxDetail, setSelectedContentieuxDetail] = useState<DossierContentieux | null>(null);
-    const [activeContentieuxTab, setActiveContentieuxTab] = useState('general');
-
-    // Hooks pour les onglets enrichis
-    // Documents Tab
-    const [showUploadModal, setShowUploadModal] = useState(false);
-    const [documentFilter, setDocumentFilter] = useState('all');
-
-    // Frais Tab
-    const [showAddFraisModal, setShowAddFraisModal] = useState(false);
-    const [fraisFilter, setFraisFilter] = useState('all');
-
-    // Correspondance Tab
-    const [showNewMessageModal, setShowNewMessageModal] = useState(false);
-    const [correspondanceFilter, setCorrespondanceFilter] = useState('all');
-    const [selectedCorrespondant, setSelectedCorrespondant] = useState(null);
-
-    // Execution Tab
-    const [showNewMesureModal, setShowNewMesureModal] = useState(false);
-    const [executionFilter, setExecutionFilter] = useState('all');
-
-    // Results Tab
-    const [showCloturerModal, setShowCloturerModal] = useState(false);
-
-    // États pour la modal de mise à jour dossier contentieux
-    const [showEditContentieuxModal, setShowEditContentieuxModal] = useState(false);
-    const [editContentieuxActiveTab, setEditContentieuxActiveTab] = useState('statut');
-
-    // Types de dépenses pour le contentieux
-    const typesDepenses = [
-      { value: 'creance_principale', label: 'Créance principale' },
-      { value: 'interets_retard', label: 'Intérêts de retard' },
-      { value: 'frais_procedure', label: 'Frais de procédure' },
-      { value: 'honoraires_avocat', label: 'Honoraires avocat' },
-      { value: 'frais_huissier', label: 'Frais huissier' },
-      { value: 'frais_greffe', label: 'Frais de greffe' },
-      { value: 'frais_expertise', label: 'Frais d\'expertise' },
-      { value: 'frais_signification', label: 'Frais de signification' },
-      { value: 'frais_execution', label: 'Frais d\'exécution' },
-      { value: 'provision', label: 'Provision comptable' },
-      { value: 'autres', label: 'Autres frais' }
-    ];
-
-    // État pour les dépenses du contentieux
-    const [contentieuxDepenses, setContentieuxDepenses] = useState<ContentieuxDepense[]>([]);
-    const [newDepense, setNewDepense] = useState({
-      type: 'creance_principale',
-      date: new Date().toISOString().split('T')[0],
-      montant: 0,
-      destinataire: '',
-      reference: '',
-      notes: ''
-    });
-
-    const [editContentieuxFormData, setEditContentieuxFormData] = useState<ContentieuxFormData>({
-      id: '',
-      statutJuridique: '',
-      typeProcedure: '',
-      // Intervenants
-      avocat: '',
-      avocatTel: '',
-      avocatEmail: '',
-      huissier: '',
-      huissierTel: '',
-      huissierEmail: '',
-      // Tribunal
-      tribunal: '',
-      tribunalAdresse: '',
-      numeroRG: '',
-      chambre: '',
-      // Dates clés
-      dateTransfert: '',
-      dateMiseEnDemeure: '',
-      dateAssignation: '',
-      dateAudience: '',
-      dateTitreExecutoire: '',
-      dateExecution: '',
-      // Provision comptable
-      provision: 0,
-      // Débiteur
-      debiteurAdresse: '',
-      debiteurTel: '',
-      debiteurEmail: '',
-      debiteurRepresentant: '',
-      // Procédure
-      motifTransfert: '',
-      resultatAttendu: '',
-      risques: '',
-      chancesSucces: 'moyenne',
-      // Suivi
-      prochaineEcheance: '',
-      priorite: 'normale',
-      notes: '',
-      dernierContact: '',
-      prochainContact: ''
-    });
-
-    // Fonction pour ajouter une dépense
-    const addDepense = () => {
-      if (newDepense.montant <= 0) {
-        toast.error('Le montant doit être supérieur à 0');
-        return;
-      }
-      const depense = {
-        id: Date.now(),
-        ...newDepense
-      };
-      setContentieuxDepenses([...contentieuxDepenses, depense]);
-      setNewDepense({
-        type: 'creance_principale',
-        date: new Date().toISOString().split('T')[0],
-        montant: 0,
-        destinataire: '',
-        reference: '',
-        notes: ''
-      });
-      toast.success('Dépense ajoutée');
-    };
-
-    // Fonction pour supprimer une dépense
-    const removeDepense = (id: number) => {
-      setContentieuxDepenses(contentieuxDepenses.filter(d => d.id !== id));
-      toast.success('Dépense supprimée');
-    };
-
-    // Calcul des totaux par type
-    const getTotalByType = (type: string) => {
-      return contentieuxDepenses
-        .filter(d => d.type === type)
-        .reduce((sum, d) => sum + d.montant, 0);
-    };
-
-    // Total général des dépenses
-    const getTotalDepenses = () => {
-      return contentieuxDepenses.reduce((sum, d) => sum + d.montant, 0);
-    };
-
-    // Types d'étapes de suivi
-    const typesEtapesSuivi = [
-      { value: 'appel_telephonique', label: 'Appel téléphonique', icon: 'phone' },
-      { value: 'envoi_courrier', label: 'Envoi de courrier', icon: 'mail' },
-      { value: 'envoi_email', label: 'Envoi email', icon: 'mail' },
-      { value: 'reunion', label: 'Réunion / Rendez-vous', icon: 'users' },
-      { value: 'mise_demeure', label: 'Mise en demeure', icon: 'alert' },
-      { value: 'depot_greffe', label: 'Dépôt au greffe', icon: 'file' },
-      { value: 'audience', label: 'Audience tribunal', icon: 'scale' },
-      { value: 'signification', label: 'Signification huissier', icon: 'gavel' },
-      { value: 'saisie', label: 'Saisie / Exécution', icon: 'lock' },
-      { value: 'paiement_recu', label: 'Paiement reçu', icon: 'check' },
-      { value: 'negociation', label: 'Négociation', icon: 'handshake' },
-      { value: 'autre', label: 'Autre', icon: 'circle' }
-    ];
-
-    // État pour les étapes de suivi
-    const [suiviEtapes, setSuiviEtapes] = useState<SuiviEtape[]>([]);
-    const [newSuiviEtape, setNewSuiviEtape] = useState({
-      type: 'appel_telephonique',
-      date: new Date().toISOString().split('T')[0],
-      heure: '',
-      intervenant: '',
-      roleIntervenant: '',
-      contact: '',
-      resultat: 'en_attente',
-      notes: '',
-      prochainRdv: '',
-      documentsJoints: ''
-    });
-
-    // Résultats possibles pour une étape
-    const resultatsEtape = [
-      { value: 'en_attente', label: 'En attente', color: 'gray' },
-      { value: 'reussi', label: 'Réussi', color: 'green' },
-      { value: 'echoue', label: 'Échoué', color: 'red' },
-      { value: 'reporte', label: 'Reporté', color: 'yellow' },
-      { value: 'annule', label: 'Annulé', color: 'orange' }
-    ];
-
-    // Fonction pour ajouter une étape de suivi
-    const addSuiviEtape = () => {
-      if (!newSuiviEtape.date) {
-        toast.error('La date est obligatoire');
-        return;
-      }
-      const etape = {
-        id: Date.now(),
-        ...newSuiviEtape,
-        createdAt: new Date().toISOString()
-      };
-      setSuiviEtapes([etape, ...suiviEtapes]); // Ajouter en premier (plus récent en haut)
-      setNewSuiviEtape({
-        type: 'appel_telephonique',
-        date: new Date().toISOString().split('T')[0],
-        heure: '',
-        intervenant: '',
-        roleIntervenant: '',
-        contact: '',
-        resultat: 'en_attente',
-        notes: '',
-        prochainRdv: '',
-        documentsJoints: ''
-      });
-      toast.success('Étape de suivi ajoutée');
-    };
-
-    // Fonction pour supprimer une étape de suivi
-    const removeSuiviEtape = (id: number) => {
-      setSuiviEtapes(suiviEtapes.filter(e => e.id !== id));
-      toast.success('Étape supprimée');
-    };
-
-    // Fonction pour mettre à jour le résultat d'une étape
-    const updateSuiviEtapeResultat = (id: number, resultat: string) => {
-      setSuiviEtapes(suiviEtapes.map(e =>
-        e.id === id ? { ...e, resultat } : e
-      ));
-    };
-
-    // Fonction pour ouvrir la modal d'édition avec les données du dossier
-    const openEditContentieuxModal = (dossier: DossierContentieux) => {
-      setEditContentieuxFormData({
-        id: dossier.id,
-        numeroRef: dossier.numeroRef,
-        client: dossier.client,
-        statutJuridique: dossier.statutJuridique,
-        typeProcedure: dossier.typeProcedure,
-        // Intervenants
-        avocat: dossier.avocat || '',
-        avocatTel: dossier.avocatTel || '+242 06 XXX XX XX',
-        avocatEmail: dossier.avocatEmail || '',
-        huissier: dossier.huissier || '',
-        huissierTel: dossier.huissierTel || '',
-        huissierEmail: dossier.huissierEmail || '',
-        // Tribunal
-        tribunal: dossier.tribunal || 'Tribunal de Commerce',
-        tribunalAdresse: dossier.tribunalAdresse || '',
-        numeroRG: dossier.numeroRG || '',
-        chambre: dossier.chambre || '',
-        // Dates clés
-        dateTransfert: dossier.dateTransfert || '',
-        dateMiseEnDemeure: dossier.dateMiseEnDemeure || '',
-        dateAssignation: dossier.dateAssignation || '',
-        dateAudience: dossier.dateAudience || '',
-        dateTitreExecutoire: dossier.dateTitreExecutoire || '',
-        dateExecution: dossier.dateExecution || '',
-        // Provision comptable
-        provision: dossier.provision || 0,
-        // Débiteur
-        debiteurAdresse: dossier.debiteurAdresse || '',
-        debiteurTel: dossier.debiteurTel || '',
-        debiteurEmail: dossier.debiteurEmail || '',
-        debiteurRepresentant: dossier.debiteurRepresentant || '',
-        // Procédure
-        motifTransfert: dossier.motifTransfert || '',
-        resultatAttendu: dossier.resultatAttendu || '',
-        risques: dossier.risques || '',
-        chancesSucces: dossier.chancesSucces || 'moyenne',
-        // Suivi
-        prochaineEcheance: dossier.prochaineEcheance || '',
-        priorite: dossier.priorite || 'normale',
-        notes: dossier.notes || '',
-        dernierContact: dossier.dernierContact || '',
-        prochainContact: dossier.prochainContact || ''
-      });
-
-      // Initialiser les dépenses à partir des données existantes du dossier
-      const depensesInitiales: ContentieuxDepense[] = [];
-      if (dossier.montantPrincipal > 0) {
-        depensesInitiales.push({
-          id: 1,
-          type: 'creance_principale',
-          date: dossier.dateTransfert || new Date().toISOString().split('T')[0],
-          montant: dossier.montantPrincipal,
-          destinataire: dossier.client,
-          reference: dossier.numeroRef,
-          notes: 'Créance principale'
-        });
-      }
-      if (dossier.interetsRetard > 0) {
-        depensesInitiales.push({
-          id: 2,
-          type: 'interets_retard',
-          date: dossier.dateTransfert || new Date().toISOString().split('T')[0],
-          montant: dossier.interetsRetard,
-          destinataire: dossier.client,
-          reference: '',
-          notes: 'Intérêts de retard'
-        });
-      }
-      if (dossier.fraisProcedure > 0) {
-        depensesInitiales.push({
-          id: 3,
-          type: 'frais_procedure',
-          date: dossier.dateTransfert || new Date().toISOString().split('T')[0],
-          montant: dossier.fraisProcedure,
-          destinataire: 'Greffe',
-          reference: '',
-          notes: 'Frais de procédure'
-        });
-      }
-      setContentieuxDepenses(depensesInitiales);
-      setEditContentieuxActiveTab('statut');
-      setShowEditContentieuxModal(true);
-    };
-
-    // Fonction pour sauvegarder les modifications
-    const handleSaveContentieux = () => {
-      // TODO: Appel API pour sauvegarder
-      toast.success(`Dossier ${editContentieuxFormData.numeroRef} mis à jour avec succès`);
-      setShowEditContentieuxModal(false);
-    };
-
-    // Onglets pour la page détaillée contentieux
-    const contentieuxDetailTabs = [
-      { id: 'general', label: 'Informations Générales', icon: FileText },
-      { id: 'procedure', label: 'Procédure Juridique', icon: Scale },
-      { id: 'chronologie', label: 'Chronologie', icon: Clock },
-      { id: 'documents', label: 'Documents', icon: Archive },
-      { id: 'frais', label: 'Frais & Coûts', icon: DollarSign },
-      { id: 'correspondance', label: 'Correspondance', icon: Mail },
-      { id: 'execution', label: 'Exécution', icon: Hammer },
-      { id: 'resultats', label: 'Résultats', icon: Award }
-    ];
-
-    // Données mock des dossiers d'exécution
-    const dossiersExecution = [
-      {
-        id: 'EXE-2024-001',
-        reference: 'EXE-2024-001',
-        client: 'SOCIETE ABIDJAN TRANSPORT',
-        typeExecution: 'Saisie-attribution',
-        montant: 4875000,
-        statut: 'En cours',
-        dateDebut: '2024-01-15',
-        huissier: 'Maître KOUAME',
-        datePrevisionnelle: '2024-02-15',
-        comptesSaisis: ['BNI-12345', 'SGCI-67890'],
-        montantSaisi: 2400000,
-        fraisHuissier: 125000
-      },
-      {
-        id: 'EXE-2024-002',
-        reference: 'EXE-2024-002',
-        client: 'GROUPE IVOIRIEN BATIMENT',
-        typeExecution: 'Saisie-vente',
-        montant: 13050000,
-        statut: 'Huissier mandaté',
-        dateDebut: '2024-01-20',
-        huissier: 'Maître DIABATE',
-        datePrevisionnelle: '2024-03-20',
-        biensSaisis: ['Véhicule Toyota Land Cruiser', 'Équipements de chantier'],
-        montantEstime: 8500000,
-        fraisHuissier: 350000
-      },
-      {
-        id: 'EXE-2024-003',
-        reference: 'EXE-2024-003',
-        client: 'COMMERCE GENERAL KOUASSI',
-        typeExecution: 'Saisie sur salaire',
-        montant: 3140000,
-        statut: 'Exécuté',
-        dateDebut: '2023-12-01',
-        dateFin: '2024-01-15',
-        employeur: 'MINISTERE DE LA CONSTRUCTION',
-        montantMensuel: 785000,
-        montantRecupere: 3140000,
-        fraisHuissier: 85000
-      }
-    ];
-
-    // Dossiers contentieux — chargés depuis l'adaptateur
-    const [dossiersContentieux, setDossiersContentieux] = useState<any[]>([]);
-    useEffect(() => {
-      adapter.getAll<any>('recoveryCases', { where: { statut: 'juridique' } })
-        .then(setDossiersContentieux)
-        .catch(() => setDossiersContentieux([]));
-    }, []);
-
-    // Workflow de contentieux avec les étapes correctes
-    const statutsContentieux = [
-      { value: 'tous', label: 'Tous les statuts' },
-      { value: 'reglement_amiable', label: '1. Règlement à l\'amiable' },
-      { value: 'mise_demeure_huissier', label: '2. Mise en demeure (Huissier)' },
-      { value: 'saisine_tribunal', label: '3. Saisine au tribunal' },
-      { value: 'procedure_injonction', label: '4. Procédure d\'injonction' },
-      { value: 'titre_executoire', label: '5. Titre exécutoire obtenu' },
-      { value: 'execution_forcee', label: '6. Exécution forcée / Saisie' },
-      { value: 'cloture', label: 'Clôturé' }
-    ];
-
-    const typesProcedure = [
-      { value: 'tous', label: 'Toutes les procédures' },
-      { value: 'injonction_payer', label: 'Injonction de payer' },
-      { value: 'refere_provision', label: 'Référé provision' },
-      { value: 'procedure_fond', label: 'Procédure au fond' },
-      { value: 'saisie_attribution', label: 'Saisie-attribution' },
-      { value: 'saisie_vente', label: 'Saisie-vente' },
-      { value: 'saisie_immobiliere', label: 'Saisie immobilière' }
-    ];
-
-    // États pour le workflow personnalisable
-    const [showWorkflowModal, setShowWorkflowModal] = useState(false);
-    const [selectedDossierWorkflow, setSelectedDossierWorkflow] = useState<DossierWorkflow | null>(null);
-    const [showAddEtapeModal, setShowAddEtapeModal] = useState(false);
-    const [newEtape, setNewEtape] = useState({ titre: '', description: '', datePrevu: '' });
-    const [showCommentModal, setShowCommentModal] = useState(false);
-    const [selectedEtape, setSelectedEtape] = useState<WorkflowEtape | null>(null);
-    const [newComment, setNewComment] = useState('');
-
-    // Structure des étapes du workflow par défaut
-    const defaultWorkflowEtapes = [
-      {
-        id: 1,
-        code: 'reglement_amiable',
-        titre: 'Règlement à l\'amiable',
-        description: 'Tentative de recouvrement amiable avant procédure judiciaire',
-        ordre: 1,
-        obligatoire: true,
-        delaiJours: 15
-      },
-      {
-        id: 2,
-        code: 'mise_demeure_huissier',
-        titre: 'Mise en demeure par Huissier',
-        description: 'Signification de la mise en demeure par voie d\'huissier de justice',
-        ordre: 2,
-        obligatoire: true,
-        delaiJours: 8
-      },
-      {
-        id: 3,
-        code: 'saisine_tribunal',
-        titre: 'Saisine au tribunal',
-        description: 'Dépôt de la requête auprès du tribunal compétent',
-        ordre: 3,
-        obligatoire: true,
-        delaiJours: 30
-      },
-      {
-        id: 4,
-        code: 'procedure_injonction',
-        titre: 'Procédure d\'injonction',
-        description: 'Procédure d\'injonction de payer devant le tribunal',
-        ordre: 4,
-        obligatoire: true,
-        delaiJours: 45
-      },
-      {
-        id: 5,
-        code: 'titre_executoire',
-        titre: 'Obtention du titre exécutoire',
-        description: 'Ordonnance d\'injonction de payer revêtue de la formule exécutoire',
-        ordre: 5,
-        obligatoire: true,
-        delaiJours: 15
-      },
-      {
-        id: 6,
-        code: 'execution_forcee',
-        titre: 'Exécution forcée / Saisie',
-        description: 'Mise en œuvre des mesures d\'exécution forcée (saisie-attribution, saisie-vente, etc.)',
-        ordre: 6,
-        obligatoire: true,
-        delaiJours: 30
-      }
-    ];
-
-    // État pour les étapes du workflow avec leurs statuts et commentaires
-    const [workflowData, setWorkflowData] = useState<{[key: string]: {
-      etapes: Array<{
-        id: number;
-        code: string;
-        titre: string;
-        description: string;
-        ordre: number;
-        obligatoire: boolean;
-        delaiJours: number;
-        statut: 'pending' | 'in_progress' | 'completed' | 'skipped';
-        dateDebut?: string;
-        dateFin?: string;
-        commentaires: Array<{
-          id: number;
-          texte: string;
-          auteur: string;
-          date: string;
-        }>;
-        custom?: boolean;
-      }>;
-    }}>({});
-
-    // Fonction pour initialiser le workflow d'un dossier
-    const initWorkflowForDossier = (dossierId: string) => {
-      if (!workflowData[dossierId]) {
-        setWorkflowData(prev => ({
-          ...prev,
-          [dossierId]: {
-            etapes: defaultWorkflowEtapes.map(etape => ({
-              ...etape,
-              statut: 'pending',
-              commentaires: []
-            }))
-          }
-        }));
-      }
-    };
-
-    // Fonction pour mettre à jour le statut d'une étape
-    const updateEtapeStatus = (dossierId: string, etapeId: number, newStatut: 'pending' | 'in_progress' | 'completed' | 'skipped') => {
-      setWorkflowData(prev => ({
-        ...prev,
-        [dossierId]: {
-          ...prev[dossierId],
-          etapes: prev[dossierId].etapes.map(etape =>
-            etape.id === etapeId
-              ? {
-                  ...etape,
-                  statut: newStatut,
-                  dateDebut: newStatut === 'in_progress' ? new Date().toISOString().split('T')[0] : etape.dateDebut,
-                  dateFin: newStatut === 'completed' ? new Date().toISOString().split('T')[0] : etape.dateFin
-                }
-              : etape
-          )
-        }
-      }));
-      toast.success(`Étape mise à jour: ${newStatut === 'completed' ? 'Terminée' : newStatut === 'in_progress' ? 'En cours' : 'En attente'}`);
-    };
-
-    // Fonction pour ajouter un commentaire à une étape
-    const addCommentToEtape = (dossierId: string, etapeId: number, commentText: string) => {
-      const newCommentObj = {
-        id: Date.now(),
-        texte: commentText,
-        auteur: 'Utilisateur actuel',
-        date: new Date().toISOString().split('T')[0]
-      };
-      setWorkflowData(prev => ({
-        ...prev,
-        [dossierId]: {
-          ...prev[dossierId],
-          etapes: prev[dossierId].etapes.map(etape =>
-            etape.id === etapeId
-              ? { ...etape, commentaires: [...etape.commentaires, newCommentObj] }
-              : etape
-          )
-        }
-      }));
-      toast.success('Commentaire ajouté');
-      setShowCommentModal(false);
-      setNewComment('');
-    };
-
-    // Fonction pour ajouter une étape personnalisée
-    const addCustomEtape = (dossierId: string) => {
-      const dossierWorkflow = workflowData[dossierId];
-      const maxOrdre = Math.max(...dossierWorkflow.etapes.map(e => e.ordre));
-      const newEtapeObj = {
-        id: Date.now(),
-        code: `custom_${Date.now()}`,
-        titre: newEtape.titre,
-        description: newEtape.description,
-        ordre: maxOrdre + 1,
-        obligatoire: false,
-        delaiJours: 0,
-        statut: 'pending' as const,
-        commentaires: [],
-        custom: true
-      };
-      setWorkflowData(prev => ({
-        ...prev,
-        [dossierId]: {
-          ...prev[dossierId],
-          etapes: [...prev[dossierId].etapes, newEtapeObj]
-        }
-      }));
-      toast.success('Étape personnalisée ajoutée');
-      setShowAddEtapeModal(false);
-      setNewEtape({ titre: '', description: '', datePrevu: '' });
-    };
-
-    const getStatutColor = (statut: string) => {
-      switch (statut) {
-        case 'reglement_amiable': return 'bg-blue-100 text-blue-800';
-        case 'mise_demeure_huissier': return 'bg-yellow-100 text-yellow-800';
-        case 'mise_demeure': return 'bg-yellow-100 text-yellow-800';
-        case 'saisine_tribunal': return 'bg-orange-100 text-orange-800';
-        case 'assignation': return 'bg-orange-100 text-orange-800';
-        case 'procedure_injonction': return 'bg-primary-100 text-primary-800';
-        case 'titre_executoire': return 'bg-primary-100 text-primary-800';
-        case 'jugement': return 'bg-primary-100 text-primary-800';
-        case 'execution_forcee': return 'bg-red-100 text-red-800';
-        case 'execution': return 'bg-red-100 text-red-800';
-        case 'appel': return 'bg-primary-100 text-primary-800';
-        case 'cloture': return 'bg-green-100 text-green-800';
-        default: return 'bg-gray-100 text-gray-800';
-      }
-    };
-
-    const getUrgenceIndicator = (jours: number) => {
-      if (jours <= 3) return 'text-red-600';
-      if (jours <= 7) return 'text-orange-600';
-      return 'text-gray-600';
-    };
-
-    const filteredContentieux = dossiersContentieux.filter(dossier => {
-      const matchStatut = filterStatutContentieux === 'tous' || dossier.statutJuridique === filterStatutContentieux;
-      const matchProcedure = filterProcedure === 'tous' || dossier.typeProcedure === filterProcedure;
-      return matchStatut && matchProcedure;
-    });
-
-    // Sous-onglets du contentieux
-    const contentieuxSubTabs = [
-      { id: 'dashboard', label: t('dashboard.title'), icon: BarChart3 },
-      { id: 'liste', label: 'Dossiers', icon: FileText },
-      { id: 'workflow', label: 'Workflow', icon: Activity },
-      { id: 'couts', label: 'Coûts & Budget', icon: DollarSign },
-      { id: 'execution', label: 'Exécution', icon: Scale },
-      { id: 'kpi', label: 'KPIs & Reporting', icon: TrendingUp }
-    ];
-
-    // Vue principale avec sous-onglets
-    return (
-      <div className="space-y-6">
-        {/* Barre de sous-navigation */}
-        <div className="bg-white rounded-lg p-2 border border-[var(--color-border)] shadow-sm">
-          <div className="flex space-x-1">
-            {contentieuxSubTabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setContentieuxView(tab.id)}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-colors ${
-                  contentieuxView === tab.id
-                    ? 'bg-[var(--color-text-tertiary)] text-white'
-                    : 'text-[var(--color-text-secondary)] hover:bg-gray-100'
-                }`}
-              >
-                <tab.icon className="w-4 h-4" />
-                <span className="text-sm font-medium">{tab.label}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Contenu selon le sous-onglet actif */}
-        {renderContentieuxContent()}
-
-        {/* Modals d'actions contentieuses */}
-        {/* Modal Préparer Assignation */}
-        {showAssignationModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Préparer l'Assignation</h3>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Type d'assignation</label>
-                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
-                    <option>Assignation en référé provision</option>
-                    <option>Assignation au fond</option>
-                    <option>Assignation en injonction de payer</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Tribunal compétent</label>
-                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
-                    <option>Tribunal de Commerce d'Abidjan</option>
-                    <option>Tribunal de Première Instance d'Abidjan</option>
-                    <option>Tribunal de Commerce de Bouaké</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Montant réclamé</label>
-                  <input
-                    type="text"
-                    value={selectedContentieux ? formatCurrency(selectedContentieux.montantTotal) : ''}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                    readOnly
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Demandes accessoires</label>
-                  <div className="space-y-2">
-                    <label className="flex items-center">
-                      <input type="checkbox" className="mr-2" defaultChecked />
-                      <span className="text-sm">Intérêts de retard</span>
-                    </label>
-                    <label className="flex items-center">
-                      <input type="checkbox" className="mr-2" defaultChecked />
-                      <span className="text-sm">Pénalités contractuelles</span>
-                    </label>
-                    <label className="flex items-center">
-                      <input type="checkbox" className="mr-2" defaultChecked />
-                      <span className="text-sm">Dommages et intérêts</span>
-                    </label>
-                    <label className="flex items-center">
-                      <input type="checkbox" className="mr-2" defaultChecked />
-                      <span className="text-sm">Frais de procédure</span>
-                    </label>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Instructions spéciales</label>
-                  <textarea
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 h-24"
-                    placeholder="Instructions particulières pour l'avocat..."
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-end space-x-3 mt-6">
-                <button
-                  onClick={() => setShowAssignationModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                >
-                  Annuler
-                </button>
-                <button
-                  onClick={() => {
-                    // Traitement de l'assignation
-                    setShowAssignationModal(false);
-                  }}
-                  className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
-                >
-                  Préparer l'assignation
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Modal Planifier Audience */}
-        {showAudienceModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Planifier une Audience</h3>
-
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Date d'audience</label>
-                    <input
-                      type="date"
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Heure</label>
-                    <input
-                      type="time"
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Type d'audience</label>
-                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
-                    <option>Audience de conciliation</option>
-                    <option>Audience de mise en état</option>
-                    <option>Audience de plaidoirie</option>
-                    <option>Audience de jugement</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Avocat assigné</label>
-                  <input
-                    type="text"
-                    value={selectedContentieux ? selectedContentieux.avocat : ''}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                    readOnly
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Participants</label>
-                  <div className="space-y-2">
-                    <label className="flex items-center">
-                      <input type="checkbox" className="mr-2" defaultChecked />
-                      <span className="text-sm">Demandeur (notre client)</span>
-                    </label>
-                    <label className="flex items-center">
-                      <input type="checkbox" className="mr-2" defaultChecked />
-                      <span className="text-sm">Défendeur</span>
-                    </label>
-                    <label className="flex items-center">
-                      <input type="checkbox" className="mr-2" />
-                      <span className="text-sm">Expert judiciaire</span>
-                    </label>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Notes de préparation</label>
-                  <textarea
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 h-24"
-                    placeholder="Points à aborder, documents à présenter..."
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-end space-x-3 mt-6">
-                <button
-                  onClick={() => setShowAudienceModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                >
-                  Annuler
-                </button>
-                <button
-                  onClick={() => {
-                    // Traitement de la planification
-                    setShowAudienceModal(false);
-                  }}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                >
-                  Programmer l'audience
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Modal Générer Conclusions */}
-        {showConclusionsModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Générer les Conclusions</h3>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Type de conclusions</label>
-                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
-                    <option>Conclusions principales</option>
-                    <option>Conclusions subsidiaires</option>
-                    <option>Conclusions en duplique</option>
-                    <option>Conclusions en défense</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Points de droit à développer</label>
-                  <div className="space-y-2">
-                    <label className="flex items-center">
-                      <input type="checkbox" className="mr-2" defaultChecked />
-                      <span className="text-sm">Créance certaine, liquide et exigible</span>
-                    </label>
-                    <label className="flex items-center">
-                      <input type="checkbox" className="mr-2" defaultChecked />
-                      <span className="text-sm">Manquement contractuel du débiteur</span>
-                    </label>
-                    <label className="flex items-center">
-                      <input type="checkbox" className="mr-2" />
-                      <span className="text-sm">Demande reconventionnelle</span>
-                    </label>
-                    <label className="flex items-center">
-                      <input type="checkbox" className="mr-2" />
-                      <span className="text-sm">Exception d'inexécution</span>
-                    </label>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Demandes</label>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                      <span className="text-sm">Principal</span>
-                      <span className="font-medium">{selectedContentieux ? formatCurrency(selectedContentieux.montantPrincipal) : ''}</span>
-                    </div>
-                    <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                      <span className="text-sm">Intérêts de retard</span>
-                      <span className="font-medium">{selectedContentieux ? formatCurrency(selectedContentieux.interetsRetard) : ''}</span>
-                    </div>
-                    <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                      <span className="text-sm">Frais de procédure</span>
-                      <span className="font-medium">{selectedContentieux ? formatCurrency(selectedContentieux.fraisProcedure) : ''}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Pièces à annexer</label>
-                  <div className="space-y-2">
-                    <label className="flex items-center">
-                      <input type="checkbox" className="mr-2" defaultChecked />
-                      <span className="text-sm">Contrat principal</span>
-                    </label>
-                    <label className="flex items-center">
-                      <input type="checkbox" className="mr-2" defaultChecked />
-                      <span className="text-sm">Factures impayées</span>
-                    </label>
-                    <label className="flex items-center">
-                      <input type="checkbox" className="mr-2" defaultChecked />
-                      <span className="text-sm">Mise en demeure</span>
-                    </label>
-                    <label className="flex items-center">
-                      <input type="checkbox" className="mr-2" />
-                      <span className="text-sm">Correspondances</span>
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex justify-end space-x-3 mt-6">
-                <button
-                  onClick={() => setShowConclusionsModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                >
-                  Annuler
-                </button>
-                <button
-                  onClick={() => {
-                    // Traitement de la génération
-                    setShowConclusionsModal(false);
-                  }}
-                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
-                >
-                  Générer les conclusions
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Modal Enregistrer Jugement */}
-        {showJugementModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Enregistrer le Jugement</h3>
-
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Date du jugement</label>
-                    <input
-                      type="date"
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Numéro RG</label>
-                    <input
-                      type="text"
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                      placeholder="N° du rôle général"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Sens du jugement</label>
-                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
-                    <option>Favorable (condamnation du débiteur)</option>
-                    <option>Défavorable (débouté de nos demandes)</option>
-                    <option>Partiellement favorable</option>
-                    <option>Décision avant dire droit</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Montant accordé</label>
-                  <input
-                    type="text"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                    placeholder="Montant de la condamnation"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Exécution provisoire</label>
-                  <div className="space-y-2">
-                    <label className="flex items-center">
-                      <input type="radio" name="execution" className="mr-2" />
-                      <span className="text-sm">Oui, de droit</span>
-                    </label>
-                    <label className="flex items-center">
-                      <input type="radio" name="execution" className="mr-2" />
-                      <span className="text-sm">Oui, à hauteur de...</span>
-                    </label>
-                    <label className="flex items-center">
-                      <input type="radio" name="execution" className="mr-2" />
-                      <span className="text-sm">Non</span>
-                    </label>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Observations</label>
-                  <textarea
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 h-24"
-                    placeholder="Remarques sur le jugement, voies de recours..."
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-end space-x-3 mt-6">
-                <button
-                  onClick={() => setShowJugementModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                >
-                  Annuler
-                </button>
-                <button
-                  onClick={() => {
-                    // Traitement de l'enregistrement
-                    setShowJugementModal(false);
-                  }}
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-                >
-                  Enregistrer le jugement
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Modal Contacter Avocat */}
-        {showContactAvocatModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Contacter l'Avocat</h3>
-
-              <div className="space-y-4">
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <div className="flex items-center space-x-3">
-                    <UserCircle className="w-12 h-12 text-blue-600" />
-                    <div>
-                      <h4 className="font-semibold text-blue-900">{selectedContentieux ? selectedContentieux.avocat : ''}</h4>
-                      <p className="text-sm text-blue-700">Cabinet KONE & Associés</p>
-                      <p className="text-sm text-blue-600">+225 27 20 30 40 50</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Mode de contact</label>
-                  <div className="grid grid-cols-3 gap-3">
-                    <button className="flex items-center justify-center space-x-2 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50">
-                      <Phone className="w-4 h-4" />
-                      <span className="text-sm">Appel</span>
-                    </button>
-                    <button className="flex items-center justify-center space-x-2 px-4 py-3 bg-blue-100 border border-blue-300 rounded-lg">
-                      <Mail className="w-4 h-4" />
-                      <span className="text-sm">Email</span>
-                    </button>
-                    <button className="flex items-center justify-center space-x-2 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50">
-                      <MessageSquare className="w-4 h-4" />
-                      <span className="text-sm">Message</span>
-                    </button>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Objet</label>
-                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
-                    <option>Point sur la procédure</option>
-                    <option>Demande de mise à jour</option>
-                    <option>Instructions particulières</option>
-                    <option>Urgence procédurale</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Message</label>
-                  <textarea
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 h-32"
-                    placeholder="Votre message à l'avocat..."
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Pièces jointes</label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
-                    <Upload className="w-8 h-8 text-gray-700 mx-auto mb-2" />
-                    <p className="text-sm text-gray-600">Glissez vos fichiers ici ou cliquez pour parcourir</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex justify-end space-x-3 mt-6">
-                <button
-                  onClick={() => setShowContactAvocatModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                >
-                  Annuler
-                </button>
-                <button
-                  onClick={() => {
-                    // Traitement de l'envoi
-                    setShowContactAvocatModal(false);
-                  }}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                >
-                  Envoyer le message
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Modal Retour en Amiable */}
-        {showRetourAmiableModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Retourner en Recouvrement Amiable</h3>
-
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-                <div className="flex items-start space-x-3">
-                  <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5" />
-                  <div>
-                    <h4 className="font-medium text-yellow-800">Attention</h4>
-                    <p className="text-sm text-yellow-700">Cette action va suspendre la procédure contentieuse en cours et transférer le dossier en recouvrement amiable.</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Motif du retour en amiable</label>
-                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
-                    <option>Proposition de règlement du débiteur</option>
-                    <option>Demande d'échelonnement acceptée</option>
-                    <option>Difficultés temporaires du débiteur</option>
-                    <option>Accord transactionnel en vue</option>
-                    <option>Autres motifs</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Nouvelle stratégie amiable</label>
-                  <div className="space-y-2">
-                    <label className="flex items-center">
-                      <input type="checkbox" className="mr-2" />
-                      <span className="text-sm">Plan d'apurement négocié</span>
-                    </label>
-                    <label className="flex items-center">
-                      <input type="checkbox" className="mr-2" />
-                      <span className="text-sm">Remise commerciale accordée</span>
-                    </label>
-                    <label className="flex items-center">
-                      <input type="checkbox" className="mr-2" />
-                      <span className="text-sm">Garanties supplémentaires exigées</span>
-                    </label>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Agent assigné au suivi</label>
-                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
-                    <option>Marie Diallo (Senior)</option>
-                    <option>Jean Kouassi (Junior)</option>
-                    <option>Aminata Traoré (Négociatrice)</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Instructions particulières</label>
-                  <textarea
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 h-24"
-                    placeholder="Instructions pour la nouvelle approche amiable..."
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Échéance de reprise contentieuse</label>
-                  <input
-                    type="date"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-end space-x-3 mt-6">
-                <button
-                  onClick={() => setShowRetourAmiableModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                >
-                  Annuler
-                </button>
-                <button
-                  onClick={() => {
-                    // Traitement du retour
-                    setShowRetourAmiableModal(false);
-                  }}
-                  className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
-                >
-                  Confirmer le retour en amiable
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Modal Demander Expertise */}
-        {showExpertiseModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Demander une Expertise</h3>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Type d'expertise</label>
-                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
-                    <option>Expertise comptable</option>
-                    <option>Expertise technique</option>
-                    <option>Expertise de gestion</option>
-                    <option>Expertise amiable</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Objet de l'expertise</label>
-                  <textarea
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 h-24"
-                    placeholder="Précisez les points à faire examiner par l'expert..."
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Expert suggéré</label>
-                  <input
-                    type="text"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                    placeholder="Nom de l'expert proposé (optionnel)"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Budget estimé</label>
-                  <input
-                    type="text"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                    placeholder="Coût estimé de l'expertise"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Délai souhaité</label>
-                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
-                    <option>1 mois</option>
-                    <option>2 mois</option>
-                    <option>3 mois</option>
-                    <option>6 mois</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Pièces à transmettre à l'expert</label>
-                  <div className="space-y-2">
-                    <label className="flex items-center">
-                      <input type="checkbox" className="mr-2" defaultChecked />
-                      <span className="text-sm">Dossier complet du contentieux</span>
-                    </label>
-                    <label className="flex items-center">
-                      <input type="checkbox" className="mr-2" />
-                      <span className="text-sm">Documents comptables</span>
-                    </label>
-                    <label className="flex items-center">
-                      <input type="checkbox" className="mr-2" />
-                      <span className="text-sm">Correspondances</span>
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex justify-end space-x-3 mt-6">
-                <button
-                  onClick={() => setShowExpertiseModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                >
-                  Annuler
-                </button>
-                <button
-                  onClick={() => {
-                    // Traitement de la demande
-                    setShowExpertiseModal(false);
-                  }}
-                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
-                >
-                  Demander l'expertise
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Modal Clôturer Dossier */}
-        {showClotureModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Clôturer le Dossier Contentieux</h3>
-
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-                <div className="flex items-start space-x-3">
-                  <AlertTriangle className="w-5 h-5 text-red-600 mt-0.5" />
-                  <div>
-                    <h4 className="font-medium text-red-800">Action irréversible</h4>
-                    <p className="text-sm text-red-700">La clôture du dossier est définitive. Assurez-vous que toutes les actions nécessaires ont été entreprises.</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Motif de clôture</label>
-                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
-                    <option>Recouvrement total</option>
-                    <option>Accord transactionnel</option>
-                    <option>Insolvabilité avérée du débiteur</option>
-                    <option>Prescription de la créance</option>
-                    <option>Abandon de créance</option>
-                    <option>Décision de justice défavorable définitive</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Montant finalement recouvré</label>
-                  <input
-                    type="text"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                    placeholder="Montant total récupéré"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Coûts totaux de la procédure</label>
-                  <input
-                    type="text"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                    placeholder="Frais d'avocat, d'huissier, de procédure..."
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Résumé final</label>
-                  <textarea
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 h-32"
-                    placeholder="Bilan de la procédure, leçons apprises, recommandations..."
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Actions post-clôture</label>
-                  <div className="space-y-2">
-                    <label className="flex items-center">
-                      <input type="checkbox" className="mr-2" />
-                      <span className="text-sm">Archiver le dossier</span>
-                    </label>
-                    <label className="flex items-center">
-                      <input type="checkbox" className="mr-2" />
-                      <span className="text-sm">Mise à jour du scoring client</span>
-                    </label>
-                    <label className="flex items-center">
-                      <input type="checkbox" className="mr-2" />
-                      <span className="text-sm">Notification à la direction</span>
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex justify-end space-x-3 mt-6">
-                <button
-                  onClick={() => setShowClotureModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                >
-                  Annuler
-                </button>
-                <button
-                  onClick={() => {
-                    // Traitement de la clôture
-                    setShowClotureModal(false);
-                  }}
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-                >
-                  Clôturer définitivement
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Modal Modifier Dossier Contentieux */}
-        {showEditContentieuxModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-              <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                <div>
-                  <h2 className="text-lg font-semibold text-[var(--color-primary)]">
-                    Modifier Dossier Contentieux
-                  </h2>
-                  <p className="text-gray-600 mt-1">
-                    {editContentieuxFormData.numeroRef} - {editContentieuxFormData.client}
-                  </p>
-                </div>
-                <button
-                  onClick={() => setShowEditContentieuxModal(false)}
-                  className="text-gray-700 hover:text-gray-600"
-                >
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
-
-              {/* Navigation par onglets */}
-              <div className="border-b border-gray-200">
-                <div className="flex overflow-x-auto px-4">
-                  {[
-                    { id: 'statut', label: 'Statut', icon: Scale, color: 'blue' },
-                    { id: 'dates', label: 'Dates', icon: Calendar, color: 'primary' },
-                    { id: 'juridiction', label: 'Juridiction', icon: Building, color: 'primary' },
-                    { id: 'intervenants', label: 'Intervenants', icon: Users, color: 'primary' },
-                    { id: 'debiteur', label: 'Débiteur', icon: UserCircle, color: 'red' },
-                    { id: 'montants', label: 'Montants', icon: DollarSign, color: 'orange' },
-                    { id: 'suivi', label: 'Suivi', icon: Phone, color: 'green' },
-                    { id: 'notes', label: 'Notes', icon: MessageSquare, color: 'gray' }
-                  ].map((tab) => (
-                    <button
-                      key={tab.id}
-                      onClick={() => setEditContentieuxActiveTab(tab.id)}
-                      className={`flex items-center px-4 py-3 border-b-2 transition-colors whitespace-nowrap ${
-                        editContentieuxActiveTab === tab.id
-                          ? `border-${tab.color}-500 text-${tab.color}-600 bg-${tab.color}-50`
-                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                      }`}
-                    >
-                      <tab.icon className="w-4 h-4 mr-2" />
-                      <span className="text-sm font-medium">{tab.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="p-6">
-                {/* Onglet: Statut & Procédure */}
-                {editContentieuxActiveTab === 'statut' && (
-                  <div className="space-y-4">
-                    <h3 className="font-semibold text-blue-900 mb-4 flex items-center">
-                      <Scale className="w-5 h-5 mr-2" />
-                      Statut & Procédure
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Étape actuelle *</label>
-                        <select
-                          value={editContentieuxFormData.statutJuridique}
-                          onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, statutJuridique: e.target.value})}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                        >
-                          <option value="reglement_amiable">1. Règlement à l'amiable</option>
-                          <option value="mise_demeure_huissier">2. Mise en demeure (Huissier)</option>
-                          <option value="saisine_tribunal">3. Saisine au tribunal</option>
-                          <option value="procedure_injonction">4. Procédure d'injonction</option>
-                          <option value="titre_executoire">5. Titre exécutoire obtenu</option>
-                          <option value="execution_forcee">6. Exécution forcée / Saisie</option>
-                          <option value="cloture">Clôturé</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Type de Procédure *</label>
-                        <select
-                          value={editContentieuxFormData.typeProcedure}
-                          onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, typeProcedure: e.target.value})}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                        >
-                          <option value="injonction_payer">Injonction de payer</option>
-                          <option value="assignation_fond">Assignation au fond</option>
-                          <option value="refere">Référé provision</option>
-                          <option value="saisie_conservatoire">Saisie conservatoire</option>
-                          <option value="saisie_attribution">Saisie-attribution</option>
-                          <option value="saisie_vente">Saisie-vente</option>
-                          <option value="procedure_collective">Procédure collective</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Priorité</label>
-                        <select
-                          value={editContentieuxFormData.priorite}
-                          onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, priorite: e.target.value})}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                        >
-                          <option value="basse">Basse</option>
-                          <option value="normale">Normale</option>
-                          <option value="haute">Haute</option>
-                          <option value="urgente">Urgente</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Chances de succès</label>
-                        <select
-                          value={editContentieuxFormData.chancesSucces}
-                          onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, chancesSucces: e.target.value})}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                        >
-                          <option value="faible">Faible (&lt;30%)</option>
-                          <option value="moyenne">Moyenne (30-60%)</option>
-                          <option value="elevee">Élevée (60-80%)</option>
-                          <option value="tres_elevee">Très élevée (&gt;80%)</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Onglet: Dates Clés */}
-                {editContentieuxActiveTab === 'dates' && (
-                  <div className="space-y-4">
-                    <h3 className="font-semibold text-primary-900 mb-4 flex items-center">
-                      <Calendar className="w-5 h-5 mr-2" />
-                      Dates Clés de la Procédure
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Date transfert contentieux</label>
-                        <input
-                          type="date"
-                          value={editContentieuxFormData.dateTransfert}
-                          onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, dateTransfert: e.target.value})}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Date mise en demeure</label>
-                        <input
-                          type="date"
-                          value={editContentieuxFormData.dateMiseEnDemeure}
-                          onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, dateMiseEnDemeure: e.target.value})}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Date assignation</label>
-                        <input
-                          type="date"
-                          value={editContentieuxFormData.dateAssignation}
-                          onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, dateAssignation: e.target.value})}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Date audience</label>
-                        <input
-                          type="date"
-                          value={editContentieuxFormData.dateAudience}
-                          onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, dateAudience: e.target.value})}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Date titre exécutoire</label>
-                        <input
-                          type="date"
-                          value={editContentieuxFormData.dateTitreExecutoire}
-                          onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, dateTitreExecutoire: e.target.value})}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Date exécution</label>
-                        <input
-                          type="date"
-                          value={editContentieuxFormData.dateExecution}
-                          onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, dateExecution: e.target.value})}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Prochaine échéance</label>
-                      <input
-                        type="text"
-                        value={editContentieuxFormData.prochaineEcheance}
-                        onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, prochaineEcheance: e.target.value})}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500"
-                        placeholder="ex: Audience 15/02/2024 à 10h"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* Onglet: Juridiction */}
-                {editContentieuxActiveTab === 'juridiction' && (
-                  <div className="space-y-4">
-                    <h3 className="font-semibold text-primary-900 mb-4 flex items-center">
-                      <Building className="w-5 h-5 mr-2" />
-                      Juridiction
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Tribunal compétent</label>
-                        <input
-                          type="text"
-                          value={editContentieuxFormData.tribunal}
-                          onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, tribunal: e.target.value})}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500"
-                          placeholder="ex: Tribunal de Commerce de Brazzaville"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">N° RG (Répertoire Général)</label>
-                        <input
-                          type="text"
-                          value={editContentieuxFormData.numeroRG}
-                          onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, numeroRG: e.target.value})}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500"
-                          placeholder="ex: RG 2024/001234"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Chambre</label>
-                        <input
-                          type="text"
-                          value={editContentieuxFormData.chambre}
-                          onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, chambre: e.target.value})}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500"
-                          placeholder="ex: 1ère Chambre"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Adresse tribunal</label>
-                        <input
-                          type="text"
-                          value={editContentieuxFormData.tribunalAdresse}
-                          onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, tribunalAdresse: e.target.value})}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500"
-                          placeholder="Adresse du tribunal"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Onglet: Intervenants */}
-                {editContentieuxActiveTab === 'intervenants' && (
-                  <div className="space-y-4">
-                    <h3 className="font-semibold text-primary-900 mb-4 flex items-center">
-                      <Users className="w-5 h-5 mr-2" />
-                      Intervenants
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {/* Avocat */}
-                      <div className="bg-primary-50 p-4 rounded-lg border border-primary-200">
-                        <h4 className="font-medium text-primary-800 mb-3 flex items-center">
-                          <Briefcase className="w-4 h-4 mr-2" />
-                          Avocat
-                        </h4>
-                        <div className="space-y-3">
-                          <div>
-                            <label className="block text-sm text-gray-600 mb-1">Nom</label>
-                            <input
-                              type="text"
-                              value={editContentieuxFormData.avocat}
-                              onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, avocat: e.target.value})}
-                              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                              placeholder="Maître..."
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm text-gray-600 mb-1">Téléphone</label>
-                            <input
-                              type="tel"
-                              value={editContentieuxFormData.avocatTel}
-                              onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, avocatTel: e.target.value})}
-                              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                              placeholder="+242 06 XXX XX XX"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm text-gray-600 mb-1">Email</label>
-                            <input
-                              type="email"
-                              value={editContentieuxFormData.avocatEmail}
-                              onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, avocatEmail: e.target.value})}
-                              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                              placeholder="avocat@cabinet.com"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      {/* Huissier */}
-                      <div className="bg-primary-50 p-4 rounded-lg border border-primary-200">
-                        <h4 className="font-medium text-primary-800 mb-3 flex items-center">
-                          <Gavel className="w-4 h-4 mr-2" />
-                          Huissier de Justice
-                        </h4>
-                        <div className="space-y-3">
-                          <div>
-                            <label className="block text-sm text-gray-600 mb-1">Nom / Étude</label>
-                            <input
-                              type="text"
-                              value={editContentieuxFormData.huissier}
-                              onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, huissier: e.target.value})}
-                              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                              placeholder="SCP Huissiers..."
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm text-gray-600 mb-1">Téléphone</label>
-                            <input
-                              type="tel"
-                              value={editContentieuxFormData.huissierTel}
-                              onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, huissierTel: e.target.value})}
-                              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                              placeholder="+242 06 XXX XX XX"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm text-gray-600 mb-1">Email</label>
-                            <input
-                              type="email"
-                              value={editContentieuxFormData.huissierEmail}
-                              onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, huissierEmail: e.target.value})}
-                              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                              placeholder="contact@huissier.com"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Onglet: Informations Débiteur */}
-                {editContentieuxActiveTab === 'debiteur' && (
-                  <div className="space-y-4">
-                    <h3 className="font-semibold text-red-900 mb-4 flex items-center">
-                      <UserCircle className="w-5 h-5 mr-2" />
-                      Informations Débiteur
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="md:col-span-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Adresse complète</label>
-                        <textarea
-                          value={editContentieuxFormData.debiteurAdresse}
-                          onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, debiteurAdresse: e.target.value})}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 h-20"
-                          placeholder="Adresse du débiteur"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
-                        <input
-                          type="tel"
-                          value={editContentieuxFormData.debiteurTel}
-                          onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, debiteurTel: e.target.value})}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500"
-                          placeholder="+242 06 XXX XX XX"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                        <input
-                          type="email"
-                          value={editContentieuxFormData.debiteurEmail}
-                          onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, debiteurEmail: e.target.value})}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500"
-                          placeholder="email@debiteur.com"
-                        />
-                      </div>
-                      <div className="md:col-span-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Représentant légal</label>
-                        <input
-                          type="text"
-                          value={editContentieuxFormData.debiteurRepresentant}
-                          onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, debiteurRepresentant: e.target.value})}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500"
-                          placeholder="Nom du représentant"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Onglet: Montants & Frais */}
-                {editContentieuxActiveTab === 'montants' && (
-                  <div className="space-y-4">
-                    <h3 className="font-semibold text-orange-900 mb-4 flex items-center">
-                      <DollarSign className="w-5 h-5 mr-2" />
-                      Montants & Frais (FCFA)
-                    </h3>
-
-                    {/* Formulaire d'ajout de dépense */}
-                    <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
-                      <h4 className="font-medium text-orange-800 mb-3 flex items-center">
-                        <Plus className="w-4 h-4 mr-2" />
-                        Ajouter une dépense
-                      </h4>
-                      <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
-                        <div className="md:col-span-2">
-                          <label className="block text-xs font-medium text-gray-600 mb-1">Type de dépense *</label>
-                          <select
-                            value={newDepense.type}
-                            onChange={(e) => setNewDepense({...newDepense, type: e.target.value})}
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500"
-                          >
-                            {typesDepenses.map(t => (
-                              <option key={t.value} value={t.value}>{t.label}</option>
-                            ))}
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-xs font-medium text-gray-600 mb-1">Date *</label>
-                          <input
-                            type="date"
-                            value={newDepense.date}
-                            onChange={(e) => setNewDepense({...newDepense, date: e.target.value})}
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-medium text-gray-600 mb-1">Montant (FCFA) *</label>
-                          <input
-                            type="number"
-                            value={newDepense.montant || ''}
-                            onChange={(e) => setNewDepense({...newDepense, montant: Number(e.target.value)})}
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500"
-                            placeholder="0"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-medium text-gray-600 mb-1">Destinataire</label>
-                          <input
-                            type="text"
-                            value={newDepense.destinataire}
-                            onChange={(e) => setNewDepense({...newDepense, destinataire: e.target.value})}
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500"
-                            placeholder="Bénéficiaire..."
-                          />
-                        </div>
-                        <div className="flex items-end">
-                          <button
-                            onClick={addDepense}
-                            className="w-full bg-orange-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-orange-700 transition-colors flex items-center justify-center"
-                          >
-                            <Plus className="w-4 h-4 mr-1" />
-                            Ajouter
-                          </button>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
-                        <div>
-                          <label className="block text-xs font-medium text-gray-600 mb-1">Référence / N° Pièce</label>
-                          <input
-                            type="text"
-                            value={newDepense.reference}
-                            onChange={(e) => setNewDepense({...newDepense, reference: e.target.value})}
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500"
-                            placeholder="N° facture, reçu..."
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-medium text-gray-600 mb-1">Notes</label>
-                          <input
-                            type="text"
-                            value={newDepense.notes}
-                            onChange={(e) => setNewDepense({...newDepense, notes: e.target.value})}
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500"
-                            placeholder="Observations..."
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Liste des dépenses */}
-                    <div className="border border-gray-200 rounded-lg overflow-hidden">
-                      <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                          <tr>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                            <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Montant</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Destinataire</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Référence</th>
-                            <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                          {contentieuxDepenses.length === 0 ? (
-                            <tr>
-                              <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
-                                Aucune dépense enregistrée. Utilisez le formulaire ci-dessus pour ajouter des dépenses.
-                              </td>
-                            </tr>
-                          ) : (
-                            contentieuxDepenses.map((dep) => (
-                              <tr key={dep.id} className="hover:bg-gray-50">
-                                <td className="px-4 py-3">
-                                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                    dep.type === 'creance_principale' ? 'bg-blue-100 text-blue-800' :
-                                    dep.type === 'interets_retard' ? 'bg-primary-100 text-primary-800' :
-                                    dep.type === 'honoraires_avocat' ? 'bg-primary-100 text-primary-800' :
-                                    dep.type === 'frais_huissier' ? 'bg-primary-100 text-primary-800' :
-                                    dep.type === 'provision' ? 'bg-yellow-100 text-yellow-800' :
-                                    'bg-orange-100 text-orange-800'
-                                  }`}>
-                                    {typesDepenses.find(t => t.value === dep.type)?.label || dep.type}
-                                  </span>
-                                </td>
-                                <td className="px-4 py-3 text-sm text-gray-600">
-                                  {new Date(dep.date).toLocaleDateString('fr-FR')}
-                                </td>
-                                <td className="px-4 py-3 text-sm text-right font-semibold text-gray-900">
-                                  {formatCurrency(dep.montant)}
-                                </td>
-                                <td className="px-4 py-3 text-sm text-gray-600">
-                                  {dep.destinataire || '-'}
-                                </td>
-                                <td className="px-4 py-3 text-sm text-gray-500">
-                                  {dep.reference || '-'}
-                                </td>
-                                <td className="px-4 py-3 text-center">
-                                  <button
-                                    onClick={() => removeDepense(dep.id)}
-                                    className="text-red-600 hover:text-red-800 p-1"
-                                    title="Supprimer"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </button>
-                                </td>
-                              </tr>
-                            ))
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-
-                    {/* Récapitulatif des totaux */}
-                    {contentieuxDepenses.length > 0 && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {/* Totaux par type */}
-                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                          <h4 className="font-medium text-gray-800 mb-3">Récapitulatif par type</h4>
-                          <div className="space-y-2">
-                            {typesDepenses.map(type => {
-                              const total = getTotalByType(type.value);
-                              if (total === 0) return null;
-                              return (
-                                <div key={type.value} className="flex justify-between items-center text-sm">
-                                  <span className="text-gray-600">{type.label}:</span>
-                                  <span className="font-medium text-gray-800">{formatCurrency(total)}</span>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-
-                        {/* Total général */}
-                        <div className="bg-orange-50 p-4 rounded-lg border border-orange-300">
-                          <div className="flex justify-between items-center mb-3">
-                            <span className="text-sm text-gray-600">Créance (principal + intérêts):</span>
-                            <span className="font-semibold text-orange-700">
-                              {formatCurrency((getTotalByType('creance_principale') + getTotalByType('interets_retard')))}
-                            </span>
-                          </div>
-                          <div className="flex justify-between items-center mb-3">
-                            <span className="text-sm text-gray-600">Frais de procédure:</span>
-                            <span className="font-semibold text-orange-700">
-                              {formatCurrency((getTotalDepenses() - getTotalByType('creance_principale') - getTotalByType('interets_retard') - getTotalByType('provision')))}
-                            </span>
-                          </div>
-                          <div className="flex justify-between items-center pt-3 border-t border-orange-200">
-                            <span className="font-medium text-gray-700">MONTANT TOTAL:</span>
-                            <span className="text-lg font-bold text-orange-600">
-                              {formatCurrency(getTotalDepenses())}
-                            </span>
-                          </div>
-                          <div className="mt-3 pt-3 border-t border-orange-200">
-                            <div className="flex justify-between items-center text-sm">
-                              <span className="text-gray-600">Provision constituée:</span>
-                              <span className="font-medium text-yellow-700">
-                                {formatCurrency(getTotalByType('provision'))}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Onglet: Suivi & Contacts */}
-                {editContentieuxActiveTab === 'suivi' && (
-                  <div className="space-y-4">
-                    <h3 className="font-semibold text-green-900 mb-4 flex items-center">
-                      <Clock className="w-5 h-5 mr-2" />
-                      Historique des Étapes & Suivi
-                    </h3>
-
-                    {/* Formulaire d'ajout d'étape */}
-                    <div className="bg-gradient-to-br from-green-50 to-primary-50 p-5 rounded-xl border border-green-200 shadow-sm">
-                      <h4 className="font-semibold text-green-800 mb-4 flex items-center text-base">
-                        <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center mr-3">
-                          <Plus className="w-5 h-5 text-white" />
-                        </div>
-                        Nouvelle étape de suivi
-                      </h4>
-
-                      {/* Section 1: Informations principales */}
-                      <div className="bg-white p-4 rounded-lg border border-green-100 mb-4">
-                        <div className="text-xs font-semibold text-green-700 uppercase tracking-wide mb-3 flex items-center">
-                          <Calendar className="w-3 h-3 mr-1" />
-                          Informations de l'étape
-                        </div>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                          <div className="col-span-2 md:col-span-1">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Type d'action *</label>
-                            <select
-                              value={newSuiviEtape.type}
-                              onChange={(e) => setNewSuiviEtape({...newSuiviEtape, type: e.target.value})}
-                              className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
-                            >
-                              {typesEtapesSuivi.map(t => (
-                                <option key={t.value} value={t.value}>{t.label}</option>
-                              ))}
-                            </select>
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Date *</label>
-                            <input
-                              type="date"
-                              value={newSuiviEtape.date}
-                              onChange={(e) => setNewSuiviEtape({...newSuiviEtape, date: e.target.value})}
-                              className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Heure</label>
-                            <input
-                              type="time"
-                              value={newSuiviEtape.heure}
-                              onChange={(e) => setNewSuiviEtape({...newSuiviEtape, heure: e.target.value})}
-                              className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Résultat</label>
-                            <select
-                              value={newSuiviEtape.resultat}
-                              onChange={(e) => setNewSuiviEtape({...newSuiviEtape, resultat: e.target.value})}
-                              className={`w-full border rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 ${
-                                newSuiviEtape.resultat === 'reussi' ? 'bg-green-50 border-green-300 text-green-800' :
-                                newSuiviEtape.resultat === 'echoue' ? 'bg-red-50 border-red-300 text-red-800' :
-                                newSuiviEtape.resultat === 'reporte' ? 'bg-yellow-50 border-yellow-300 text-yellow-800' :
-                                'bg-white border-gray-300'
-                              }`}
-                            >
-                              {resultatsEtape.map(r => (
-                                <option key={r.value} value={r.value}>{r.label}</option>
-                              ))}
-                            </select>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Section 2: Intervenants */}
-                      <div className="bg-white p-4 rounded-lg border border-green-100 mb-4">
-                        <div className="text-xs font-semibold text-green-700 uppercase tracking-wide mb-3 flex items-center">
-                          <Users className="w-3 h-3 mr-1" />
-                          Intervenants
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Qui a effectué l'action ?</label>
-                            <input
-                              type="text"
-                              value={newSuiviEtape.intervenant}
-                              onChange={(e) => setNewSuiviEtape({...newSuiviEtape, intervenant: e.target.value})}
-                              className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                              placeholder="Ex: Jean DUPONT"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Fonction / Rôle</label>
-                            <select
-                              value={newSuiviEtape.roleIntervenant}
-                              onChange={(e) => setNewSuiviEtape({...newSuiviEtape, roleIntervenant: e.target.value})}
-                              className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
-                            >
-                              <option value="">-- Sélectionner --</option>
-                              <option value="responsable_recouvrement">Responsable recouvrement</option>
-                              <option value="agent_recouvrement">Agent de recouvrement</option>
-                              <option value="comptable">Comptable</option>
-                              <option value="directeur_financier">Directeur financier</option>
-                              <option value="commercial">Commercial</option>
-                              <option value="avocat">Avocat</option>
-                              <option value="huissier">Huissier de justice</option>
-                              <option value="expert">Expert / Consultant</option>
-                              <option value="autre">Autre</option>
-                            </select>
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Personne contactée (débiteur)</label>
-                            <input
-                              type="text"
-                              value={newSuiviEtape.contact}
-                              onChange={(e) => setNewSuiviEtape({...newSuiviEtape, contact: e.target.value})}
-                              className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                              placeholder="Ex: M. KOUASSI (DG)"
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Section 3: Notes et suivi */}
-                      <div className="bg-white p-4 rounded-lg border border-green-100 mb-4">
-                        <div className="text-xs font-semibold text-green-700 uppercase tracking-wide mb-3 flex items-center">
-                          <MessageSquare className="w-3 h-3 mr-1" />
-                          Compte-rendu & Suivi
-                        </div>
-                        <div className="space-y-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Notes détaillées / Compte-rendu de l'échange
-                            </label>
-                            <textarea
-                              value={newSuiviEtape.notes}
-                              onChange={(e) => setNewSuiviEtape({...newSuiviEtape, notes: e.target.value})}
-                              className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none"
-                              rows={5}
-                              placeholder="Décrivez en détail :&#10;- Le contenu de l'échange&#10;- Les engagements pris&#10;- Les difficultés rencontrées&#10;- Les décisions prises..."
-                            />
-                          </div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
-                                <ArrowRight className="w-4 h-4 inline mr-1 text-orange-500" />
-                                Prochaine action à effectuer
-                              </label>
-                              <input
-                                type="text"
-                                value={newSuiviEtape.prochainRdv}
-                                onChange={(e) => setNewSuiviEtape({...newSuiviEtape, prochainRdv: e.target.value})}
-                                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                placeholder="Ex: Relancer le 20/12/2025 si pas de paiement"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
-                                <FileText className="w-4 h-4 inline mr-1 text-blue-500" />
-                                Documents joints (références)
-                              </label>
-                              <input
-                                type="text"
-                                value={newSuiviEtape.documentsJoints}
-                                onChange={(e) => setNewSuiviEtape({...newSuiviEtape, documentsJoints: e.target.value})}
-                                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                placeholder="Ex: Courrier ref. LR-2024-001, Email du 15/12"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Bouton d'ajout */}
-                      <button
-                        onClick={addSuiviEtape}
-                        className="w-full bg-gradient-to-r from-green-600 to-primary-600 text-white rounded-lg px-6 py-3 font-medium hover:from-green-700 hover:to-primary-700 transition-all shadow-md hover:shadow-lg flex items-center justify-center"
-                      >
-                        <Plus className="w-5 h-5 mr-2" />
-                        Enregistrer cette étape de suivi
-                      </button>
-                    </div>
-
-                    {/* Timeline des étapes */}
-                    <div className="mt-6">
-                      <h4 className="font-medium text-gray-800 mb-4">
-                        Chronologie ({suiviEtapes.length} étape{suiviEtapes.length > 1 ? 's' : ''})
-                      </h4>
-
-                      {suiviEtapes.length === 0 ? (
-                        <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg border border-dashed border-gray-300">
-                          <Clock className="w-12 h-12 mx-auto text-gray-400 mb-2" />
-                          <p>Aucune étape de suivi enregistrée</p>
-                          <p className="text-sm">Utilisez le formulaire ci-dessus pour ajouter des étapes</p>
-                        </div>
-                      ) : (
-                        <div className="relative">
-                          {/* Ligne verticale de timeline */}
-                          <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-green-200"></div>
-
-                          <div className="space-y-4">
-                            {suiviEtapes.map((etape, index) => (
-                              <div key={etape.id} className="relative flex items-start">
-                                {/* Point de timeline */}
-                                <div className={`absolute left-4 w-5 h-5 rounded-full border-2 ${
-                                  etape.resultat === 'reussi' ? 'bg-green-500 border-green-600' :
-                                  etape.resultat === 'echoue' ? 'bg-red-500 border-red-600' :
-                                  etape.resultat === 'reporte' ? 'bg-yellow-500 border-yellow-600' :
-                                  etape.resultat === 'annule' ? 'bg-orange-500 border-orange-600' :
-                                  'bg-gray-300 border-gray-400'
-                                }`}>
-                                  {etape.resultat === 'reussi' && <CheckCircle className="w-3 h-3 text-white m-0.5" />}
-                                </div>
-
-                                {/* Carte de l'étape */}
-                                <div className="ml-12 flex-1 bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
-                                  <div className="flex items-start justify-between">
-                                    <div className="flex-1">
-                                      <div className="flex items-center space-x-2 mb-2">
-                                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                          etape.type === 'appel_telephonique' ? 'bg-blue-100 text-blue-800' :
-                                          etape.type === 'envoi_courrier' || etape.type === 'envoi_email' ? 'bg-primary-100 text-primary-800' :
-                                          etape.type === 'reunion' ? 'bg-primary-100 text-primary-800' :
-                                          etape.type === 'mise_demeure' ? 'bg-red-100 text-red-800' :
-                                          etape.type === 'audience' ? 'bg-primary-100 text-primary-800' :
-                                          etape.type === 'paiement_recu' ? 'bg-green-100 text-green-800' :
-                                          'bg-gray-100 text-gray-800'
-                                        }`}>
-                                          {typesEtapesSuivi.find(t => t.value === etape.type)?.label || etape.type}
-                                        </span>
-                                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                          etape.resultat === 'reussi' ? 'bg-green-100 text-green-800' :
-                                          etape.resultat === 'echoue' ? 'bg-red-100 text-red-800' :
-                                          etape.resultat === 'reporte' ? 'bg-yellow-100 text-yellow-800' :
-                                          etape.resultat === 'annule' ? 'bg-orange-100 text-orange-800' :
-                                          'bg-gray-100 text-gray-600'
-                                        }`}>
-                                          {resultatsEtape.find(r => r.value === etape.resultat)?.label || 'En attente'}
-                                        </span>
-                                      </div>
-
-                                      <div className="flex items-center text-sm text-gray-500 mb-2">
-                                        <Calendar className="w-4 h-4 mr-1" />
-                                        {new Date(etape.date).toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                                        {etape.heure && <span className="ml-2">à {etape.heure}</span>}
-                                      </div>
-
-                                      {(etape.intervenant || etape.contact) && (
-                                        <div className="flex flex-wrap gap-3 text-sm mb-2">
-                                          {etape.intervenant && (
-                                            <div className="flex items-center text-gray-600">
-                                              <Users className="w-4 h-4 mr-1 text-green-600" />
-                                              <span className="font-medium">{etape.intervenant}</span>
-                                              {etape.roleIntervenant && (
-                                                <span className="text-gray-400 ml-1">({etape.roleIntervenant})</span>
-                                              )}
-                                            </div>
-                                          )}
-                                          {etape.contact && (
-                                            <div className="flex items-center text-gray-600">
-                                              <UserCircle className="w-4 h-4 mr-1 text-blue-600" />
-                                              Contact: {etape.contact}
-                                            </div>
-                                          )}
-                                        </div>
-                                      )}
-
-                                      {etape.notes && (
-                                        <div className="bg-gray-50 p-2 rounded text-sm text-gray-700 mb-2">
-                                          {etape.notes}
-                                        </div>
-                                      )}
-
-                                      {etape.prochainRdv && (
-                                        <div className="text-sm text-orange-600 flex items-center">
-                                          <ArrowRight className="w-4 h-4 mr-1" />
-                                          Prochaine action: {etape.prochainRdv}
-                                        </div>
-                                      )}
-                                    </div>
-
-                                    <div className="flex items-center space-x-2 ml-4">
-                                      <select
-                                        value={etape.resultat}
-                                        onChange={(e) => updateSuiviEtapeResultat(etape.id, e.target.value)}
-                                        className="text-xs border border-gray-300 rounded px-2 py-1"
-                                      >
-                                        {resultatsEtape.map(r => (
-                                          <option key={r.value} value={r.value}>{r.label}</option>
-                                        ))}
-                                      </select>
-                                      <button
-                                        onClick={() => removeSuiviEtape(etape.id)}
-                                        className="text-red-500 hover:text-red-700 p-1"
-                                        title="Supprimer"
-                                      >
-                                        <Trash2 className="w-4 h-4" />
-                                      </button>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Résumé des étapes */}
-                    {suiviEtapes.length > 0 && (
-                      <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mt-4">
-                        <h4 className="font-medium text-gray-800 mb-3">Résumé du suivi</h4>
-                        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
-                          <div className="bg-white p-3 rounded-lg border">
-                            <div className="text-lg font-bold text-gray-700">{suiviEtapes.length}</div>
-                            <div className="text-xs text-gray-500">Total étapes</div>
-                          </div>
-                          <div className="bg-white p-3 rounded-lg border">
-                            <div className="text-lg font-bold text-green-600">
-                              {suiviEtapes.filter(e => e.resultat === 'reussi').length}
-                            </div>
-                            <div className="text-xs text-gray-500">Réussies</div>
-                          </div>
-                          <div className="bg-white p-3 rounded-lg border">
-                            <div className="text-lg font-bold text-red-600">
-                              {suiviEtapes.filter(e => e.resultat === 'echoue').length}
-                            </div>
-                            <div className="text-xs text-gray-500">Échouées</div>
-                          </div>
-                          <div className="bg-white p-3 rounded-lg border">
-                            <div className="text-lg font-bold text-yellow-600">
-                              {suiviEtapes.filter(e => e.resultat === 'reporte').length}
-                            </div>
-                            <div className="text-xs text-gray-500">Reportées</div>
-                          </div>
-                          <div className="bg-white p-3 rounded-lg border">
-                            <div className="text-lg font-bold text-gray-500">
-                              {suiviEtapes.filter(e => e.resultat === 'en_attente').length}
-                            </div>
-                            <div className="text-xs text-gray-500">En attente</div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Onglet: Analyse & Notes */}
-                {editContentieuxActiveTab === 'notes' && (
-                  <div className="space-y-4">
-                    <h3 className="font-semibold text-gray-900 mb-4 flex items-center">
-                      <MessageSquare className="w-5 h-5 mr-2" />
-                      Analyse & Notes
-                    </h3>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Motif du transfert en contentieux</label>
-                      <textarea
-                        value={editContentieuxFormData.motifTransfert}
-                        onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, motifTransfert: e.target.value})}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 h-24 focus:ring-2 focus:ring-gray-500"
-                        placeholder="Décrivez le motif du transfert..."
-                      />
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Résultat attendu</label>
-                        <textarea
-                          value={editContentieuxFormData.resultatAttendu}
-                          onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, resultatAttendu: e.target.value})}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 h-24 focus:ring-2 focus:ring-gray-500"
-                          placeholder="Objectif de la procédure..."
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Risques identifiés</label>
-                        <textarea
-                          value={editContentieuxFormData.risques}
-                          onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, risques: e.target.value})}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 h-24 focus:ring-2 focus:ring-gray-500"
-                          placeholder="Risques potentiels..."
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Notes complémentaires</label>
-                      <textarea
-                        value={editContentieuxFormData.notes}
-                        onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, notes: e.target.value})}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 h-32 focus:ring-2 focus:ring-gray-500"
-                        placeholder="Informations supplémentaires, historique, observations..."
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Footer Actions */}
-              <div className="flex justify-between items-center p-6 border-t border-gray-200 bg-gray-50">
-                <div className="text-sm text-gray-500">
-                  Dernière modification: {new Date().toLocaleDateString()}
-                </div>
-                <div className="flex space-x-3">
-                  <button
-                    onClick={() => setShowEditContentieuxModal(false)}
-                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors"
-                  >
-                    Annuler
-                  </button>
-                  <button
-                    onClick={handleSaveContentieux}
-                    className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] transition-colors flex items-center space-x-2"
-                  >
-                    <CheckCircle className="w-4 h-4" />
-                    <span>Enregistrer les modifications</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Modal Gestion Workflow Contentieux */}
-        {showWorkflowModal && selectedDossierWorkflow && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg shadow-xl max-w-5xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-              <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-primary-600 to-primary-600">
-                <div className="text-white">
-                  <h2 className="text-lg font-semibold flex items-center">
-                    <Activity className="w-6 h-6 mr-2" />
-                    Workflow de Procédure Contentieux
-                  </h2>
-                  <p className="text-primary-100 mt-1">
-                    {selectedDossierWorkflow.numeroRef} - {selectedDossierWorkflow.client}
-                  </p>
-                </div>
-                <button
-                  onClick={() => setShowWorkflowModal(false)}
-                  className="text-white hover:text-primary-200"
-                >
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
-
-              <div className="p-6">
-                {/* Barre de progression */}
-                <div className="mb-6">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-700">Progression du dossier</span>
-                    <span className="text-sm font-medium text-primary-600">
-                      {workflowData[selectedDossierWorkflow.id]?.etapes.filter(e => e.statut === 'completed').length || 0} / {workflowData[selectedDossierWorkflow.id]?.etapes.length || 6} étapes
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-3">
-                    <div
-                      className="bg-gradient-to-r from-primary-600 to-primary-600 h-3 rounded-full transition-all duration-500"
-                      style={{
-                        width: `${((workflowData[selectedDossierWorkflow.id]?.etapes.filter(e => e.statut === 'completed').length || 0) / (workflowData[selectedDossierWorkflow.id]?.etapes.length || 6)) * 100}%`
-                      }}
-                    />
-                  </div>
-                </div>
-
-                {/* Liste des étapes */}
-                <div className="space-y-4">
-                  {(workflowData[selectedDossierWorkflow.id]?.etapes || defaultWorkflowEtapes.map(e => ({ ...e, statut: 'pending', commentaires: [] }))).map((etape, index) => (
-                    <div
-                      key={etape.id}
-                      className={`border rounded-lg p-4 ${
-                        etape.statut === 'completed' ? 'border-green-300 bg-green-50' :
-                        etape.statut === 'in_progress' ? 'border-blue-300 bg-blue-50' :
-                        etape.statut === 'skipped' ? 'border-gray-300 bg-gray-50 opacity-60' :
-                        'border-gray-200 bg-white'
-                      }`}
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-start space-x-4">
-                          {/* Numéro de l'étape */}
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white ${
-                            etape.statut === 'completed' ? 'bg-green-500' :
-                            etape.statut === 'in_progress' ? 'bg-blue-500' :
-                            etape.statut === 'skipped' ? 'bg-gray-400' :
-                            'bg-gray-300'
-                          }`}>
-                            {etape.statut === 'completed' ? <CheckCircle className="w-5 h-5" /> : index + 1}
-                          </div>
-
-                          {/* Détails de l'étape */}
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-2">
-                              <h4 className="font-semibold text-gray-900">{etape.titre}</h4>
-                              {etape.custom && (
-                                <span className="px-2 py-0.5 text-xs bg-primary-100 text-primary-700 rounded-full">Personnalisé</span>
-                              )}
-                              {etape.obligatoire && (
-                                <span className="px-2 py-0.5 text-xs bg-red-100 text-red-700 rounded-full">Obligatoire</span>
-                              )}
-                            </div>
-                            <p className="text-sm text-gray-600 mt-1">{etape.description}</p>
-                            {etape.delaiJours > 0 && (
-                              <p className="text-xs text-gray-500 mt-1">Délai estimé: {etape.delaiJours} jours</p>
-                            )}
-                            {etape.dateDebut && (
-                              <p className="text-xs text-blue-600 mt-1">Démarré le: {etape.dateDebut}</p>
-                            )}
-                            {etape.dateFin && (
-                              <p className="text-xs text-green-600 mt-1">Terminé le: {etape.dateFin}</p>
-                            )}
-
-                            {/* Commentaires de l'étape */}
-                            {etape.commentaires && etape.commentaires.length > 0 && (
-                              <div className="mt-3 space-y-2">
-                                <p className="text-xs font-medium text-gray-700">Commentaires ({etape.commentaires.length}):</p>
-                                {etape.commentaires.map(comment => (
-                                  <div key={comment.id} className="bg-white border border-gray-200 rounded p-2 text-sm">
-                                    <p className="text-gray-700">{comment.texte}</p>
-                                    <p className="text-xs text-gray-500 mt-1">{comment.auteur} - {comment.date}</p>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Actions */}
-                        <div className="flex flex-col space-y-2">
-                          {/* Boutons de statut */}
-                          <div className="flex space-x-1">
-                            {etape.statut !== 'completed' && (
-                              <button
-                                onClick={() => updateEtapeStatus(selectedDossierWorkflow.id, etape.id, 'in_progress')}
-                                className={`px-2 py-1 text-xs rounded ${etape.statut === 'in_progress' ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'}`}
-                                title="En cours"
-                              >
-                                <Clock className="w-3 h-3" />
-                              </button>
-                            )}
-                            <button
-                              onClick={() => updateEtapeStatus(selectedDossierWorkflow.id, etape.id, 'completed')}
-                              className={`px-2 py-1 text-xs rounded ${etape.statut === 'completed' ? 'bg-green-600 text-white' : 'bg-green-100 text-green-700 hover:bg-green-200'}`}
-                              title="Terminé"
-                            >
-                              <CheckCircle className="w-3 h-3" />
-                            </button>
-                            {!etape.obligatoire && (
-                              <button
-                                onClick={() => updateEtapeStatus(selectedDossierWorkflow.id, etape.id, 'skipped')}
-                                className={`px-2 py-1 text-xs rounded ${etape.statut === 'skipped' ? 'bg-gray-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
-                                title="Passer"
-                              >
-                                <ArrowRight className="w-3 h-3" />
-                              </button>
-                            )}
-                          </div>
-
-                          {/* Bouton commentaire */}
-                          <button
-                            onClick={() => {
-                              setSelectedEtape(etape);
-                              setShowCommentModal(true);
-                            }}
-                            className="px-2 py-1 text-xs bg-primary-100 text-primary-700 rounded hover:bg-primary-200 flex items-center justify-center space-x-1"
-                          >
-                            <MessageSquare className="w-3 h-3" />
-                            <span>Commenter</span>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Bouton ajouter étape */}
-                <button
-                  onClick={() => setShowAddEtapeModal(true)}
-                  className="mt-4 w-full py-3 border-2 border-dashed border-primary-300 rounded-lg text-primary-600 hover:bg-primary-50 flex items-center justify-center space-x-2"
-                >
-                  <Plus className="w-5 h-5" />
-                  <span>Ajouter une étape personnalisée</span>
-                </button>
-              </div>
-
-              {/* Footer */}
-              <div className="flex justify-end p-6 border-t border-gray-200 bg-gray-50">
-                <button
-                  onClick={() => setShowWorkflowModal(false)}
-                  className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
-                >
-                  Fermer
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Modal Ajouter Étape Personnalisée */}
-        {showAddEtapeModal && selectedDossierWorkflow && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60]">
-            <div className="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4">
-              <div className="p-6 border-b border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900">Ajouter une étape personnalisée</h3>
-              </div>
-              <div className="p-6 space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Titre de l'étape</label>
-                  <input
-                    type="text"
-                    value={newEtape.titre}
-                    onChange={(e) => setNewEtape({ ...newEtape, titre: e.target.value })}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500"
-                    placeholder="Ex: Négociation complémentaire"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                  <textarea
-                    value={newEtape.description}
-                    onChange={(e) => setNewEtape({ ...newEtape, description: e.target.value })}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 h-24 focus:ring-2 focus:ring-primary-500"
-                    placeholder="Décrivez cette étape..."
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Date prévue (optionnel)</label>
-                  <input
-                    type="date"
-                    value={newEtape.datePrevu}
-                    onChange={(e) => setNewEtape({ ...newEtape, datePrevu: e.target.value })}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500"
-                  />
-                </div>
-              </div>
-              <div className="flex justify-end space-x-3 p-6 border-t border-gray-200">
-                <button
-                  onClick={() => {
-                    setShowAddEtapeModal(false);
-                    setNewEtape({ titre: '', description: '', datePrevu: '' });
-                  }}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                >
-                  Annuler
-                </button>
-                <button
-                  onClick={() => addCustomEtape(selectedDossierWorkflow.id)}
-                  disabled={!newEtape.titre}
-                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
-                >
-                  Ajouter l'étape
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Modal Ajouter Commentaire */}
-        {showCommentModal && selectedEtape && selectedDossierWorkflow && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60]">
-            <div className="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4">
-              <div className="p-6 border-b border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900">Ajouter un commentaire</h3>
-                <p className="text-sm text-gray-600 mt-1">Étape: {selectedEtape.titre}</p>
-              </div>
-              <div className="p-6">
-                <textarea
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 h-32 focus:ring-2 focus:ring-primary-500"
-                  placeholder="Ajoutez votre commentaire, observation ou mise à jour..."
-                />
-              </div>
-              <div className="flex justify-end space-x-3 p-6 border-t border-gray-200">
-                <button
-                  onClick={() => {
-                    setShowCommentModal(false);
-                    setNewComment('');
-                    setSelectedEtape(null);
-                  }}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                >
-                  Annuler
-                </button>
-                <button
-                  onClick={() => addCommentToEtape(selectedDossierWorkflow.id, selectedEtape.id, newComment)}
-                  disabled={!newComment}
-                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
-                >
-                  Ajouter le commentaire
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Modal Détail Dossier d'Exécution */}
-        {showExecutionDetailModal && selectedExecutionDossier && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-              <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                <div>
-                  <h2 className="text-lg font-semibold text-[var(--color-primary)]">
-                    Détail Exécution - {selectedExecutionDossier.reference}
-                  </h2>
-                  <p className="text-gray-600 mt-1">Client: {selectedExecutionDossier.client}</p>
-                </div>
-                <button
-                  onClick={() => setShowExecutionDetailModal(false)}
-                  className="text-gray-700 hover:text-gray-600"
-                >
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
-
-              <div className="p-6 space-y-6">
-                {/* Informations générales */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-blue-50 rounded-lg p-4">
-                    <h3 className="font-semibold text-[var(--color-primary)] mb-3">Informations Générales</h3>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Référence:</span>
-                        <span className="font-medium">{selectedExecutionDossier.reference}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Type d'exécution:</span>
-                        <span className="font-medium">{selectedExecutionDossier.typeExecution}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Montant à recouvrer:</span>
-                        <span className="font-medium text-[var(--color-primary)]">{formatCurrency(selectedExecutionDossier.montant)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Statut:</span>
-                        <span className={`font-medium ${
-                          selectedExecutionDossier.statut === 'Exécuté' ? 'text-green-600' :
-                          selectedExecutionDossier.statut === 'En cours' ? 'text-yellow-600' :
-                          'text-orange-600'
-                        }`}>
-                          {selectedExecutionDossier.statut}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-orange-50 rounded-lg p-4">
-                    <h3 className="font-semibold text-[var(--color-primary)] mb-3">Dates & Délais</h3>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Date de début:</span>
-                        <span className="font-medium">{new Date(selectedExecutionDossier.dateDebut).toLocaleDateString()}</span>
-                      </div>
-                      {selectedExecutionDossier.dateFin && (
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Date de fin:</span>
-                          <span className="font-medium">{new Date(selectedExecutionDossier.dateFin).toLocaleDateString()}</span>
-                        </div>
-                      )}
-                      {selectedExecutionDossier.datePrevisionnelle && (
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Date prévisionnelle:</span>
-                          <span className="font-medium">{new Date(selectedExecutionDossier.datePrevisionnelle).toLocaleDateString()}</span>
-                        </div>
-                      )}
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Huissier:</span>
-                        <span className="font-medium">{selectedExecutionDossier.huissier}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Détails spécifiques selon le type d'exécution */}
-                <div className="bg-white border border-gray-200 rounded-lg">
-                  <div className="px-4 py-3 border-b border-gray-200">
-                    <h3 className="font-semibold text-[var(--color-primary)]">Détails de l'Exécution</h3>
-                  </div>
-                  <div className="p-4">
-                    {selectedExecutionDossier.typeExecution === 'Saisie-attribution' && (
-                      <div className="space-y-4">
-                        <div>
-                          <h4 className="font-medium text-gray-900 mb-2">Comptes saisis</h4>
-                          <div className="space-y-2">
-                            {selectedExecutionDossier.comptesSaisis?.map((compte, index) => (
-                              <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                                <span className="text-sm">{compte}</span>
-                                <span className="text-xs text-green-600">Actif</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-gray-600">Montant saisi:</span>
-                            <span className="font-semibold text-green-600">{formatCurrency(selectedExecutionDossier.montantSaisi)}</span>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {selectedExecutionDossier.typeExecution === 'Saisie-vente' && (
-                      <div className="space-y-4">
-                        <div>
-                          <h4 className="font-medium text-gray-900 mb-2">Biens saisis</h4>
-                          <div className="space-y-2">
-                            {selectedExecutionDossier.biensSaisis?.map((bien, index) => (
-                              <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                                <span className="text-sm">{bien}</span>
-                                <span className="text-xs text-blue-600">En cours d'évaluation</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-gray-600">Valeur estimée:</span>
-                            <span className="font-semibold text-blue-600">{formatCurrency(selectedExecutionDossier.montantEstime)}</span>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {selectedExecutionDossier.typeExecution === 'Saisie sur salaire' && (
-                      <div className="space-y-4">
-                        <div>
-                          <div className="flex justify-between items-center mb-2">
-                            <span className="text-gray-600">Employeur:</span>
-                            <span className="font-medium">{selectedExecutionDossier.employeur}</span>
-                          </div>
-                          <div className="flex justify-between items-center mb-2">
-                            <span className="text-gray-600">Saisie mensuelle:</span>
-                            <span className="font-medium">{formatCurrency(selectedExecutionDossier.montantMensuel)}</span>
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-gray-600">Montant récupéré:</span>
-                            <span className="font-semibold text-green-600">{formatCurrency(selectedExecutionDossier.montantRecupere)}</span>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="mt-4 pt-4 border-t border-gray-200">
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-600">Frais d'huissier:</span>
-                        <span className="font-medium text-red-600">{formatCurrency(selectedExecutionDossier.fraisHuissier)}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="flex justify-end space-x-3 pt-4 border-t">
-                  <button
-                    onClick={() => setShowExecutionDetailModal(false)}
-                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                  >
-                    Fermer
-                  </button>
-                  <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                    Modifier l'exécution
-                  </button>
-                  <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
-                    Générer rapport
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-      </div>
-    );
-
-    function renderContentieuxDetailPage() {
-      return (
-        <div className="space-y-6">
-          {/* En-tête avec bouton retour */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => {
-                  setShowContentieuxDetailPage(false);
-                  setSelectedContentieuxDetail(null);
-                  setActiveContentieuxTab('general');
-                }}
-                className="flex items-center space-x-2 text-gray-600 hover:text-gray-800"
-              >
-                <ArrowLeft className="w-5 h-5" />
-                <span>Retour aux dossiers contentieux</span>
-              </button>
-              <div>
-                <h1 className="text-lg font-bold text-gray-900">
-                  Dossier Contentieux {selectedContentieuxDetail.numeroRef}
-                </h1>
-                <p className="text-gray-600">{selectedContentieuxDetail.client}</p>
-              </div>
-            </div>
-
-            {/* Statut et actions rapides */}
-            <div className="flex items-center space-x-4">
-              <div className="text-right">
-                <div className="text-sm text-gray-700">Statut</div>
-                <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${
-                  selectedContentieuxDetail.statutJuridique === 'execution' ? 'bg-primary-100 text-primary-800' :
-                  selectedContentieuxDetail.statutJuridique === 'jugement' ? 'bg-green-100 text-green-800' :
-                  selectedContentieuxDetail.statutJuridique === 'assignation' ? 'bg-blue-100 text-blue-800' :
-                  'bg-red-100 text-red-800'
-                }`}>
-                  {selectedContentieuxDetail.statutJuridique?.replace('_', ' ').toUpperCase()}
-                </span>
-              </div>
-              <div className="text-right">
-                <div className="text-sm text-gray-700">Montant Total</div>
-                <div className="text-lg font-bold text-red-600">
-                  {formatCurrency(selectedContentieuxDetail.montantTotal)}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Navigation par onglets */}
-          <div className="bg-white rounded-lg shadow">
-            <div className="border-b border-gray-200">
-              <nav className="flex space-x-8 px-6 overflow-x-auto">
-                {contentieuxDetailTabs.map((tab) => {
-                  const IconComponent = tab.icon;
-                  return (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveContentieuxTab(tab.id)}
-                      className={`
-                        flex items-center space-x-2 py-4 border-b-2 font-medium text-sm transition-colors whitespace-nowrap
-                        ${activeContentieuxTab === tab.id
-                          ? 'border-red-500 text-red-600'
-                          : 'border-transparent text-gray-700 hover:text-gray-700 hover:border-gray-300'
-                        }
-                      `}
-                    >
-                      <IconComponent className="w-4 h-4" />
-                      <span>{tab.label}</span>
-                    </button>
-                  );
-                })}
-              </nav>
-            </div>
-
-            {/* Contenu des onglets */}
-            <div className="p-6">
-              {renderContentieuxTabContent()}
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    function renderContentieuxTabContent() {
-      switch (activeContentieuxTab) {
-        case 'general':
-          return renderGeneralTab();
-        case 'procedure':
-          return renderProcedureTab();
-        case 'chronologie':
-          return renderChronologieTab();
-        case 'documents':
-          return renderDocumentsTab();
-        case 'frais':
-          return renderFraisTab();
-        case 'correspondance':
-          return renderCorrespondanceTab();
-        case 'execution':
-          return renderExecutionTab();
-        case 'resultats':
-          return renderResultatsTab();
-        default:
-          return renderGeneralTab();
-      }
-    }
-
-    function renderGeneralTab() {
-      return (
-        <div className="space-y-6">
-          {/* Informations générales */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-red-50 rounded-lg p-4">
-              <h3 className="font-semibold text-[var(--color-primary)] mb-3">Informations Contentieuses</h3>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Référence:</span>
-                  <span className="font-medium">{selectedContentieuxDetail.numeroRef}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Origine amiable:</span>
-                  <span className="font-medium text-blue-600">{selectedContentieuxDetail.origineAmiable}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Date de transfert:</span>
-                  <span className="font-medium">{selectedContentieuxDetail.dateTransfert}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Jours restants:</span>
-                  <span className={`font-medium ${selectedContentieuxDetail.joursRestants <= 5 ? 'text-red-600' : 'text-orange-600'}`}>
-                    {selectedContentieuxDetail.joursRestants} jours
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-orange-50 rounded-lg p-4">
-              <h3 className="font-semibold text-[var(--color-primary)] mb-3">Montants</h3>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Principal:</span>
-                  <span className="font-medium text-[var(--color-primary)]">{formatCurrency(selectedContentieuxDetail.montantPrincipal)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Intérêts de retard:</span>
-                  <span className="font-medium text-orange-600">{formatCurrency(selectedContentieuxDetail.interetsRetard)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Frais de procédure:</span>
-                  <span className="font-medium text-red-600">{formatCurrency(selectedContentieuxDetail.fraisProcedure)}</span>
-                </div>
-                <div className="flex justify-between border-t pt-2">
-                  <span className="text-gray-600 font-semibold">Montant total:</span>
-                  <span className="font-bold text-[var(--color-primary)]">{formatCurrency(selectedContentieuxDetail.montantTotal)}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Motif du transfert */}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="font-semibold text-[var(--color-primary)] mb-3">Motif du Transfert en Contentieux</h3>
-            <p className="text-gray-700 leading-relaxed">{selectedContentieuxDetail.motifTransfert}</p>
-          </div>
-
-          {/* Actions rapides */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button
-              onClick={() => setActiveContentieuxTab('procedure')}
-              className="p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
-            >
-              <Scale className="w-6 h-6 text-blue-600 mb-2" />
-              <div className="font-medium text-blue-900">Gérer la Procédure</div>
-              <div className="text-sm text-blue-600">Assignation, audiences, jugement</div>
-            </button>
-            <button
-              onClick={() => setActiveContentieuxTab('documents')}
-              className="p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
-            >
-              <Archive className="w-6 h-6 text-green-600 mb-2" />
-              <div className="font-medium text-green-900">Documents</div>
-              <div className="text-sm text-green-600">Pièces, actes, correspondances</div>
-            </button>
-            <button
-              onClick={() => setActiveContentieuxTab('execution')}
-              className="p-4 bg-primary-50 rounded-lg hover:bg-primary-100 transition-colors"
-            >
-              <Hammer className="w-6 h-6 text-primary-600 mb-2" />
-              <div className="font-medium text-primary-900">Exécution</div>
-              <div className="text-sm text-primary-600">Saisies, voies d'exécution</div>
-            </button>
-          </div>
-        </div>
-      );
-    }
-
-    function renderProcedureTab() {
-      const etapesProcedure = [
-        {
-          id: 1,
-          titre: 'Mise en Demeure',
-          statut: 'complete',
-          date: '2024-01-10',
-          description: 'Mise en demeure préalable envoyée au débiteur',
-          documents: ['Mise en demeure', 'AR postal'],
-          prochaine: false
-        },
-        {
-          id: 2,
-          titre: 'Assignation',
-          statut: selectedContentieuxDetail.statutJuridique === 'assignation' ? 'current' :
-                  selectedContentieuxDetail.statutJuridique === 'jugement' || selectedContentieuxDetail.statutJuridique === 'execution' ? 'complete' : 'pending',
-          date: selectedContentieuxDetail.statutJuridique !== 'mise_demeure' ? '2024-01-20' : null,
-          description: 'Assignation du débiteur devant le tribunal compétent',
-          documents: ['Acte d\'assignation', 'Exploit d\'huissier'],
-          prochaine: selectedContentieuxDetail.statutJuridique === 'mise_demeure'
-        },
-        {
-          id: 3,
-          titre: 'Audience',
-          statut: selectedContentieuxDetail.statutJuridique === 'jugement' || selectedContentieuxDetail.statutJuridique === 'execution' ? 'complete' : 'pending',
-          date: selectedContentieuxDetail.statutJuridique === 'jugement' || selectedContentieuxDetail.statutJuridique === 'execution' ? '2024-02-15' : selectedContentieuxDetail.prochaineEcheance,
-          description: 'Comparution devant le tribunal',
-          documents: ['Dossier de plaidoirie', 'Conclusions'],
-          prochaine: selectedContentieuxDetail.statutJuridique === 'assignation'
-        },
-        {
-          id: 4,
-          titre: 'Jugement',
-          statut: selectedContentieuxDetail.statutJuridique === 'jugement' || selectedContentieuxDetail.statutJuridique === 'execution' ? 'complete' : 'pending',
-          date: selectedContentieuxDetail.statutJuridique === 'jugement' || selectedContentieuxDetail.statutJuridique === 'execution' ? '2024-02-20' : null,
-          description: 'Prononcé du jugement par le tribunal',
-          documents: ['Jugement', 'Certificat de non-appel'],
-          prochaine: false
-        },
-        {
-          id: 5,
-          titre: 'Exécution',
-          statut: selectedContentieuxDetail.statutJuridique === 'execution' ? 'current' : 'pending',
-          date: selectedContentieuxDetail.statutJuridique === 'execution' ? '2024-03-01' : null,
-          description: 'Mise en œuvre des mesures d\'exécution forcée',
-          documents: ['Commandement', 'PV de saisie'],
-          prochaine: selectedContentieuxDetail.statutJuridique === 'jugement'
-        }
-      ];
-
-      return (
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">Étapes de la Procédure Contentieuse</h3>
-            <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-700">Avocat:</span>
-              <span className="font-medium">{selectedContentieuxDetail.avocat}</span>
-            </div>
-          </div>
-
-          {/* Timeline des étapes */}
-          <div className="space-y-4">
-            {etapesProcedure.map((etape, index) => (
-              <div key={etape.id} className="relative">
-                {index !== etapesProcedure.length - 1 && (
-                  <div className={`absolute left-4 top-8 h-16 w-0.5 ${
-                    etape.statut === 'complete' ? 'bg-green-400' : 'bg-gray-300'
-                  }`} />
-                )}
-
-                <div className={`flex items-start space-x-4 p-4 rounded-lg border-2 ${
-                  etape.statut === 'current' ? 'border-blue-200 bg-blue-50' :
-                  etape.statut === 'complete' ? 'border-green-200 bg-green-50' :
-                  etape.prochaine ? 'border-orange-200 bg-orange-50' :
-                  'border-gray-200 bg-gray-50'
-                }`}>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                    etape.statut === 'current' ? 'bg-blue-500 text-white' :
-                    etape.statut === 'complete' ? 'bg-green-500 text-white' :
-                    etape.prochaine ? 'bg-orange-500 text-white' :
-                    'bg-gray-300 text-gray-600'
-                  }`}>
-                    {etape.statut === 'complete' ? <CheckCircle className="w-5 h-5" /> : etape.id}
-                  </div>
-
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className={`font-semibold ${
-                        etape.statut === 'current' ? 'text-blue-900' :
-                        etape.statut === 'complete' ? 'text-green-900' :
-                        etape.prochaine ? 'text-orange-900' :
-                        'text-gray-600'
-                      }`}>
-                        {etape.titre}
-                        {etape.prochaine && <span className="ml-2 text-xs bg-orange-200 text-orange-800 px-2 py-1 rounded">PROCHAINE ÉTAPE</span>}
-                        {etape.statut === 'current' && <span className="ml-2 text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded">EN COURS</span>}
-                      </h4>
-                      {etape.date && (
-                        <span className="text-sm text-gray-700">{new Date(etape.date).toLocaleDateString()}</span>
-                      )}
-                    </div>
-
-                    <p className="text-gray-700 mb-3">{etape.description}</p>
-
-                    {etape.documents.length > 0 && (
-                      <div className="flex flex-wrap gap-2">
-                        {etape.documents.map((doc, idx) => (
-                          <span key={idx} className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded">
-                            {doc}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-
-                    {etape.prochaine && (
-                      <div className="mt-3 flex space-x-2">
-                        <button className="px-3 py-1 bg-orange-600 text-white text-sm rounded hover:bg-orange-700">
-                          Programmer {etape.titre}
-                        </button>
-                        <button className="px-3 py-1 bg-gray-600 text-white text-sm rounded hover:bg-gray-700">
-                          Voir Modèles
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      );
-    }
-
-    function renderChronologieTab() {
-      return (
-        <div className="space-y-6">
-          <h3 className="text-lg font-semibold text-gray-900">Chronologie Complète du Dossier</h3>
-
-          {/* Timeline détaillée */}
-          <div className="space-y-4">
-            {[
-              {
-                date: '2024-01-15',
-                type: 'Transfert',
-                titre: 'Transfert en contentieux',
-                description: `Dossier ${selectedContentieuxDetail.origineAmiable} transféré en contentieux après échec du recouvrement amiable`,
-                utilisateur: 'Système',
-                statut: 'info'
-              },
-              {
-                date: '2024-01-16',
-                type: 'Assignation',
-                titre: 'Assignation avocat',
-                description: `Dossier assigné à ${selectedContentieuxDetail.avocat}`,
-                utilisateur: '',
-                statut: 'success'
-              },
-              {
-                date: '2024-01-20',
-                type: 'Procédure',
-                titre: 'Préparation assignation',
-                description: 'Préparation des pièces pour assignation devant le tribunal',
-                utilisateur: selectedContentieuxDetail.avocat,
-                statut: 'warning'
-              },
-              {
-                date: selectedContentieuxDetail.prochaineEcheance,
-                type: 'Échéance',
-                titre: 'Prochaine action prévue',
-                description: 'Action programmée selon le planning contentieux',
-                utilisateur: selectedContentieuxDetail.avocat,
-                statut: 'pending'
-              }
-            ].map((event, index) => (
-              <div key={index} className="flex items-start space-x-4 p-4 bg-white border border-gray-200 rounded-lg">
-                <div className={`w-3 h-3 rounded-full mt-2 ${
-                  event.statut === 'success' ? 'bg-green-500' :
-                  event.statut === 'warning' ? 'bg-orange-500' :
-                  event.statut === 'pending' ? 'bg-blue-500' :
-                  'bg-gray-400'
-                }`} />
-
-                <div className="flex-1">
-                  <div className="flex items-center justify-between mb-1">
-                    <h4 className="font-semibold text-gray-900">{event.titre}</h4>
-                    <div className="text-right">
-                      <div className="text-sm text-gray-700">{new Date(event.date).toLocaleDateString()}</div>
-                      <div className="text-xs text-gray-700">{event.utilisateur}</div>
-                    </div>
-                  </div>
-                  <p className="text-gray-700 text-sm">{event.description}</p>
-                  <span className={`inline-block mt-2 text-xs px-2 py-1 rounded ${
-                    event.statut === 'success' ? 'bg-green-100 text-green-800' :
-                    event.statut === 'warning' ? 'bg-orange-100 text-orange-800' :
-                    event.statut === 'pending' ? 'bg-blue-100 text-blue-800' :
-                    'bg-gray-100 text-gray-800'
-                  }`}>
-                    {event.type}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      );
-    }
-
-    // Placeholder functions pour les autres onglets
-    function renderDocumentsTab() {
-
-      const documentsContentieux = [
-        {
-          id: 1,
-          type: 'procedure',
-          nom: 'Acte d\'assignation',
-          dateCreation: '2024-01-15',
-          statut: 'final',
-          taille: '2.3 MB',
-          auteur: 'Me —',
-          description: 'Assignation devant le Tribunal de Commerce'
-        },
-        {
-          id: 2,
-          type: 'procedure',
-          nom: 'Mise en demeure préalable',
-          dateCreation: '2024-01-10',
-          statut: 'final',
-          taille: '1.1 MB',
-          auteur: 'SCP Avocats DELTA',
-          description: 'Mise en demeure avec délai de 8 jours'
-        },
-        {
-          id: 3,
-          type: 'justificatif',
-          nom: 'Facture impayée',
-          dateCreation: '2023-11-15',
-          statut: 'final',
-          taille: '458 KB',
-          auteur: 'Atlas F&A Auto',
-          description: 'Facture N°FAC-2023-1156'
-        },
-        {
-          id: 4,
-          type: 'justificatif',
-          nom: 'Bon de livraison',
-          dateCreation: '2023-11-10',
-          statut: 'final',
-          taille: '312 KB',
-          auteur: 'Service Logistique',
-          description: 'Preuve de livraison avec signature'
-        },
-        {
-          id: 5,
-          type: 'procedure',
-          nom: 'Conclusions principales',
-          dateCreation: '2024-02-01',
-          statut: 'brouillon',
-          taille: '4.7 MB',
-          auteur: 'Me —',
-          description: 'Conclusions en cours de finalisation'
-        },
-        {
-          id: 6,
-          type: 'correspondance',
-          nom: 'Échange email avocat',
-          dateCreation: '2024-01-28',
-          statut: 'final',
-          taille: '145 KB',
-          auteur: 'Me —',
-          description: 'Stratégie de défense et points de droit'
-        },
-        {
-          id: 7,
-          type: 'expertise',
-          nom: 'Rapport d\'expertise comptable',
-          dateCreation: '2024-01-25',
-          statut: 'final',
-          taille: '8.2 MB',
-          auteur: 'Cabinet EXPERTISE+',
-          description: 'Évaluation des préjudices subis'
-        },
-        {
-          id: 8,
-          type: 'huissier',
-          nom: 'Procès-verbal de signification',
-          dateCreation: '2024-01-20',
-          statut: 'final',
-          taille: '1.8 MB',
-          auteur: 'SCP Huissiers ALPHA',
-          description: 'Signification de l\'assignation'
-        }
-      ];
-
-      const filteredDocuments = documentFilter === 'all'
-        ? documentsContentieux
-        : documentsContentieux.filter(d => d.type === documentFilter);
-
-      return (
-        <div className="space-y-6">
-          {/* En-tête avec actions */}
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">Documents & Pièces Juridiques</h3>
-            <div className="flex space-x-3">
-              <button
-                onClick={() => setShowUploadModal(true)}
-                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-              >
-                <Upload className="w-4 h-4 mr-2" />
-                Ajouter un document
-              </button>
-              <button className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-                <Download className="w-4 h-4 mr-2" />
-                Télécharger tout
-              </button>
-            </div>
-          </div>
-
-          {/* Filtres */}
-          <div className="flex items-center space-x-4">
-            <label className="text-sm font-medium text-gray-700">Filtrer par type:</label>
-            <select
-              value={documentFilter}
-              onChange={(e) => setDocumentFilter(e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
-            >
-              <option value="all">Tous les documents ({documentsContentieux.length})</option>
-              <option value="procedure">Actes de procédure ({documentsContentieux.filter(d => d.type === 'procedure').length})</option>
-              <option value="justificatif">Pièces justificatives ({documentsContentieux.filter(d => d.type === 'justificatif').length})</option>
-              <option value="correspondance">Correspondance ({documentsContentieux.filter(d => d.type === 'correspondance').length})</option>
-              <option value="expertise">Expertises ({documentsContentieux.filter(d => d.type === 'expertise').length})</option>
-              <option value="huissier">Actes d'huissier ({documentsContentieux.filter(d => d.type === 'huissier').length})</option>
-            </select>
-          </div>
-
-          {/* Liste des documents */}
-          <div className="bg-white rounded-lg border border-gray-200">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Document</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Type</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Auteur</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">{t('common.date')}</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Statut</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Taille</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredDocuments.map((doc) => {
-                    const typeIcons = {
-                      procedure: <Scale className="w-4 h-4 text-red-500" />,
-                      justificatif: <FileText className="w-4 h-4 text-blue-500" />,
-                      correspondance: <Mail className="w-4 h-4 text-green-500" />,
-                      expertise: <Calculator className="w-4 h-4 text-primary-500" />,
-                      huissier: <Gavel className="w-4 h-4 text-orange-500" />
-                    };
-
-                    const typeLabels = {
-                      procedure: 'Procédure',
-                      justificatif: 'Justificatif',
-                      correspondance: 'Correspondance',
-                      expertise: 'Expertise',
-                      huissier: 'Huissier'
-                    };
-
-                    return (
-                      <tr key={doc.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4">
-                          <div className="flex items-center space-x-3">
-                            {typeIcons[doc.type]}
-                            <div>
-                              <div className="text-sm font-medium text-gray-900">{doc.nom}</div>
-                              <div className="text-sm text-gray-700">{doc.description}</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                            {typeLabels[doc.type]}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">{doc.auteur}</td>
-                        <td className="px-6 py-4 text-sm text-gray-700">{doc.dateCreation}</td>
-                        <td className="px-6 py-4">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            doc.statut === 'final' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                          }`}>
-                            {doc.statut === 'final' ? 'Finalisé' : 'Brouillon'}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-700">{doc.taille}</td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center space-x-2">
-                            <button className="text-blue-600 hover:text-blue-800" aria-label="Voir les détails">
-                              <Eye className="w-4 h-4" />
-                            </button>
-                            <button className="text-green-600 hover:text-green-800" aria-label="Télécharger">
-                              <Download className="w-4 h-4" />
-                            </button>
-                            <button className="text-gray-600 hover:text-gray-800">
-                              <Edit className="w-4 h-4" />
-                            </button>
-                            <button className="text-red-600 hover:text-red-800" aria-label="Supprimer">
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Statistiques documents */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-blue-50 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-blue-600">Actes Procédure</p>
-                  <p className="text-lg font-bold text-blue-900">{documentsContentieux.filter(d => d.type === 'procedure').length}</p>
-                </div>
-                <Scale className="w-8 h-8 text-blue-600" />
-              </div>
-            </div>
-            <div className="bg-green-50 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-green-600">Pièces Justificatives</p>
-                  <p className="text-lg font-bold text-green-900">{documentsContentieux.filter(d => d.type === 'justificatif').length}</p>
-                </div>
-                <FileText className="w-8 h-8 text-green-600" />
-              </div>
-            </div>
-            <div className="bg-orange-50 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-orange-600">Actes Huissier</p>
-                  <p className="text-lg font-bold text-orange-900">{documentsContentieux.filter(d => d.type === 'huissier').length}</p>
-                </div>
-                <Gavel className="w-8 h-8 text-orange-600" />
-              </div>
-            </div>
-            <div className="bg-primary-50 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-primary-600">Expertises</p>
-                  <p className="text-lg font-bold text-primary-900">{documentsContentieux.filter(d => d.type === 'expertise').length}</p>
-                </div>
-                <Calculator className="w-8 h-8 text-primary-600" />
-              </div>
-            </div>
-          </div>
-
-          {/* Modal d'upload */}
-          {showUploadModal && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-lg p-6 w-full max-w-lg">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Ajouter un Document</h3>
-
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Type de document</label>
-                    <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
-                      <option>Acte de procédure</option>
-                      <option>Pièce justificative</option>
-                      <option>Correspondance</option>
-                      <option>Expertise</option>
-                      <option>Acte d'huissier</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Nom du document</label>
-                    <input
-                      type="text"
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                      placeholder="Ex: Conclusions subsidiaires"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                    <textarea
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 h-20"
-                      placeholder="Description du document..."
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Fichier</label>
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                      <Upload className="w-8 h-8 mx-auto text-gray-700 mb-2" />
-                      <p className="text-sm text-gray-600">Glissez-déposez votre fichier ou <span className="text-blue-600 cursor-pointer">parcourez</span></p>
-                      <p className="text-xs text-gray-700 mt-1">PDF, DOC, DOCX jusqu'à 10MB</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex justify-end space-x-3 mt-6">
-                  <button
-                    onClick={() => setShowUploadModal(false)}
-                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                  >
-                    Annuler
-                  </button>
-                  <button
-                    onClick={() => {
-                      // Traitement de l'upload
-                      setShowUploadModal(false);
-                    }}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                  >
-                    Ajouter le document
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      );
-    }
-
-    function renderFraisTab() {
-
-      const fraisContentieux = [
-        {
-          id: 1,
-          type: 'avocat',
-          description: 'Honoraires Me — - Phase instruction',
-          montant: 450000,
-          dateEngagement: '2024-01-15',
-          dateFacturation: '2024-01-30',
-          statut: 'facture',
-          fournisseur: 'SCP Avocats DELTA',
-          imputable: true
-        },
-        {
-          id: 2,
-          type: 'huissier',
-          description: 'Signification assignation',
-          montant: 85000,
-          dateEngagement: '2024-01-20',
-          dateFacturation: '2024-01-25',
-          statut: 'paye',
-          fournisseur: 'SCP Huissiers ALPHA',
-          imputable: true
-        },
-        {
-          id: 3,
-          type: 'tribunal',
-          description: 'Droits de plaidoirie',
-          montant: 35000,
-          dateEngagement: '2024-02-01',
-          dateFacturation: '2024-02-01',
-          statut: 'paye',
-          fournisseur: 'Tribunal de Commerce',
-          imputable: false
-        },
-        {
-          id: 4,
-          type: 'expertise',
-          description: 'Expertise comptable préjudices',
-          montant: 180000,
-          dateEngagement: '2024-01-25',
-          dateFacturation: '2024-02-10',
-          statut: 'facture',
-          fournisseur: 'Cabinet EXPERTISE+',
-          imputable: true
-        },
-        {
-          id: 5,
-          type: 'avocat',
-          description: 'Honoraires conclusions principales',
-          montant: 320000,
-          dateEngagement: '2024-02-01',
-          dateFacturation: null,
-          statut: 'prevu',
-          fournisseur: 'SCP Avocats DELTA',
-          imputable: true
-        },
-        {
-          id: 6,
-          type: 'divers',
-          description: 'Frais de déplacement audience',
-          montant: 25000,
-          dateEngagement: '2024-02-15',
-          dateFacturation: null,
-          statut: 'prevu',
-          fournisseur: 'Frais internes',
-          imputable: false
-        }
-      ];
-
-      const totalFrais = fraisContentieux.reduce((sum, f) => sum + f.montant, 0);
-      const fraisPayes = fraisContentieux.filter(f => f.statut === 'paye').reduce((sum, f) => sum + f.montant, 0);
-      const fraisFactures = fraisContentieux.filter(f => f.statut === 'facture').reduce((sum, f) => sum + f.montant, 0);
-      const fraisPrevus = fraisContentieux.filter(f => f.statut === 'prevu').reduce((sum, f) => sum + f.montant, 0);
-      const fraisImputables = fraisContentieux.filter(f => f.imputable).reduce((sum, f) => sum + f.montant, 0);
-
-      const filteredFrais = fraisFilter === 'all'
-        ? fraisContentieux
-        : fraisContentieux.filter(f => f.type === fraisFilter);
-
-      return (
-        <div className="space-y-6">
-          {/* Tableau de bord financier */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-blue-50 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-blue-600">Total Frais</p>
-                  <p className="text-lg font-bold text-blue-900">{formatCurrency((totalFrais))}</p>
-                </div>
-                <Wallet className="w-8 h-8 text-blue-600" />
-              </div>
-            </div>
-            <div className="bg-green-50 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-green-600">Payés</p>
-                  <p className="text-lg font-bold text-green-900">{formatCurrency((fraisPayes))}</p>
-                </div>
-                <CheckCircle className="w-8 h-8 text-green-600" />
-              </div>
-            </div>
-            <div className="bg-orange-50 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-orange-600">À Payer</p>
-                  <p className="text-lg font-bold text-orange-900">{formatCurrency((fraisFactures))}</p>
-                </div>
-                <AlertCircle className="w-8 h-8 text-orange-600" />
-              </div>
-            </div>
-            <div className="bg-primary-50 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-primary-600">Imputables</p>
-                  <p className="text-lg font-bold text-primary-900">{formatCurrency((fraisImputables))}</p>
-                </div>
-                <RefreshCw className="w-8 h-8 text-primary-600" />
-              </div>
-            </div>
-          </div>
-
-          {/* Actions et filtres */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <h3 className="text-lg font-semibold text-gray-900">Détail des Frais & Coûts</h3>
-              <select
-                value={fraisFilter}
-                onChange={(e) => setFraisFilter(e.target.value)}
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
-              >
-                <option value="all">Tous les frais</option>
-                <option value="avocat">Avocats</option>
-                <option value="huissier">Huissiers</option>
-                <option value="tribunal">Tribunal</option>
-                <option value="expertise">Expertises</option>
-                <option value="divers">Divers</option>
-              </select>
-            </div>
-            <div className="flex space-x-3">
-              <button
-                onClick={() => setShowAddFraisModal(true)}
-                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Ajouter frais
-              </button>
-              <button className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-                <FileText className="w-4 h-4 mr-2" />
-                Export détaillé
-              </button>
-            </div>
-          </div>
-
-          {/* Table des frais */}
-          <div className="bg-white rounded-lg border border-gray-200">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Description</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Type</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Fournisseur</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Montant</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Statut</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Imputable</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredFrais.map((frais) => {
-                    const typeIcons = {
-                      avocat: <Briefcase className="w-4 h-4 text-blue-500" />,
-                      huissier: <Gavel className="w-4 h-4 text-orange-500" />,
-                      tribunal: <Scale className="w-4 h-4 text-red-500" />,
-                      expertise: <Calculator className="w-4 h-4 text-primary-500" />,
-                      divers: <FileText className="w-4 h-4 text-gray-700" />
-                    };
-
-                    const statutColors = {
-                      paye: 'bg-green-100 text-green-800',
-                      facture: 'bg-orange-100 text-orange-800',
-                      prevu: 'bg-gray-100 text-gray-800'
-                    };
-
-                    const statutLabels = {
-                      paye: 'Payé',
-                      facture: 'Facturé',
-                      prevu: 'Prévu'
-                    };
-
-                    return (
-                      <tr key={frais.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4">
-                          <div className="flex items-center space-x-3">
-                            {typeIcons[frais.type]}
-                            <div>
-                              <div className="text-sm font-medium text-gray-900">{frais.description}</div>
-                              <div className="text-sm text-gray-700">Engagé le {frais.dateEngagement}</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                            {frais.type.charAt(0).toUpperCase() + frais.type.slice(1)}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">{frais.fournisseur}</td>
-                        <td className="px-6 py-4">
-                          <div className="text-sm font-bold text-gray-900">{formatCurrency(frais.montant)}</div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statutColors[frais.statut]}`}>
-                            {statutLabels[frais.statut]}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          {frais.imputable ? (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                              Oui
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                              Non
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center space-x-2">
-                            <button className="text-blue-600 hover:text-blue-800" aria-label="Voir les détails">
-                              <Eye className="w-4 h-4" />
-                            </button>
-                            <button className="text-green-600 hover:text-green-800">
-                              <Edit className="w-4 h-4" />
-                            </button>
-                            {frais.statut === 'facture' && (
-                              <button className="text-primary-600 hover:text-primary-800">
-                                <CreditCard className="w-4 h-4" />
-                              </button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Modal ajouter frais */}
-          {showAddFraisModal && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Ajouter un Frais</h3>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Type de frais</label>
-                    <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
-                      <option>Frais d'avocat</option>
-                      <option>Frais d'huissier</option>
-                      <option>Frais de tribunal</option>
-                      <option>Expertise</option>
-                      <option>Divers</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Montant (FCFA)</label>
-                    <input
-                      type="number"
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                      placeholder="0"
-                    />
-                  </div>
-
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                    <input
-                      type="text"
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                      placeholder="Ex: Honoraires conclusions principales"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Fournisseur</label>
-                    <input
-                      type="text"
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                      placeholder="Nom du fournisseur"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Date d'engagement</label>
-                    <input
-                      type="date"
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Statut</label>
-                    <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
-                      <option value="prevu">Prévu</option>
-                      <option value="facture">Facturé</option>
-                      <option value="paye">Payé</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="flex items-center space-x-2">
-                      <input type="checkbox" className="rounded" />
-                      <span className="text-sm text-gray-700">Frais imputable au débiteur</span>
-                    </label>
-                  </div>
-                </div>
-
-                <div className="flex justify-end space-x-3 mt-6">
-                  <button
-                    onClick={() => setShowAddFraisModal(false)}
-                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                  >
-                    Annuler
-                  </button>
-                  <button
-                    onClick={() => {
-                      // Traitement de l'ajout
-                      setShowAddFraisModal(false);
-                    }}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                  >
-                    Ajouter le frais
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      );
-    }
-
-    function renderFraisTab() {
-      return (
-        <div className="space-y-6">
-          <h3 className="text-lg font-semibold text-gray-900">Frais & Coûts du Contentieux</h3>
-          <div className="bg-red-50 rounded-lg p-4">
-            <h4 className="font-semibold text-red-900 mb-3">Récapitulatif des Coûts</h4>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span>Frais d'avocat:</span>
-                <span className="font-medium">250,000 FCFA</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Frais d'huissier:</span>
-                <span className="font-medium">75,000 FCFA</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Frais de tribunal:</span>
-                <span className="font-medium">50,000 FCFA</span>
-              </div>
-              <div className="flex justify-between border-t pt-2 font-bold">
-                <span>Total frais:</span>
-                <span>375,000 FCFA</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    function renderCorrespondanceTab() {
-
-      const correspondances = [
-        {
-          id: 1,
-          type: 'avocat',
-          correspondant: 'Me —',
-          sujet: 'Point sur l\'avancement de la procédure',
-          dateEnvoi: '2024-02-15 14:30',
-          statut: 'lu',
-          priorite: 'normale',
-          message: 'Nous avons reçu les conclusions adverses. Je prépare notre réponse...',
-          pieces: ['conclusions_adverses.pdf'],
-          direction: 'recu'
-        },
-        {
-          id: 2,
-          type: 'huissier',
-          correspondant: 'SCP Huissiers ALPHA',
-          sujet: 'Signification effectuée',
-          dateEnvoi: '2024-02-10 09:15',
-          statut: 'lu',
-          priorite: 'haute',
-          message: 'Signification réalisée avec succès. PV ci-joint.',
-          pieces: ['pv_signification.pdf'],
-          direction: 'recu'
-        },
-        {
-          id: 3,
-          type: 'debiteur',
-          correspondant: 'SARL TECH SOLUTIONS',
-          sujet: 'Demande d\'échelonnement',
-          dateEnvoi: '2024-02-08 16:45',
-          statut: 'repondu',
-          priorite: 'haute',
-          message: 'Suite à votre mise en demeure, nous sollicitons un échelonnement...',
-          pieces: [],
-          direction: 'recu'
-        },
-        {
-          id: 4,
-          type: 'avocat',
-          correspondant: 'Me —',
-          sujet: 'Stratégie procédurale',
-          dateEnvoi: '2024-02-05 11:20',
-          statut: 'envoye',
-          priorite: 'normale',
-          message: 'Voici notre analyse de la situation et les prochaines étapes...',
-          pieces: ['note_strategique.pdf'],
-          direction: 'envoye'
-        },
-        {
-          id: 5,
-          type: 'tribunal',
-          correspondant: 'Tribunal de Commerce',
-          sujet: 'Fixation audience',
-          dateEnvoi: '2024-01-30 10:00',
-          statut: 'lu',
-          priorite: 'haute',
-          message: 'Audience fixée au 15 mars 2024 à 14h30. Salle 3.',
-          pieces: ['convocation_audience.pdf'],
-          direction: 'recu'
-        }
-      ];
-
-      const filteredCorrespondances = correspondanceFilter === 'all'
-        ? correspondances
-        : correspondances.filter(c => c.type === correspondanceFilter);
-
-      const correspondantsUniques = [...new Set(correspondances.map(c => c.correspondant))];
-
-      return (
-        <div className="space-y-6">
-          {/* Header avec actions */}
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">Correspondance & Communications</h3>
-            <div className="flex space-x-3">
-              <button
-                onClick={() => setShowNewMessageModal(true)}
-                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-              >
-                <Mail className="w-4 h-4 mr-2" />
-                Nouveau message
-              </button>
-              <button className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-                <Archive className="w-4 h-4 mr-2" />
-                Archiver sélection
-              </button>
-            </div>
-          </div>
-
-          {/* Statistiques rapides */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-blue-50 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-blue-600">Messages</p>
-                  <p className="text-lg font-bold text-blue-900">{correspondances.length}</p>
-                </div>
-                <MessageSquare className="w-8 h-8 text-blue-600" />
-              </div>
-            </div>
-            <div className="bg-red-50 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-red-600">Non lus</p>
-                  <p className="text-lg font-bold text-red-900">{correspondances.filter(c => c.statut === 'non_lu').length}</p>
-                </div>
-                <AlertCircle className="w-8 h-8 text-red-600" />
-              </div>
-            </div>
-            <div className="bg-orange-50 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-orange-600">Haute priorité</p>
-                  <p className="text-lg font-bold text-orange-900">{correspondances.filter(c => c.priorite === 'haute').length}</p>
-                </div>
-                <AlertTriangle className="w-8 h-8 text-orange-600" />
-              </div>
-            </div>
-            <div className="bg-green-50 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-green-600">Correspondants</p>
-                  <p className="text-lg font-bold text-green-900">{correspondantsUniques.length}</p>
-                </div>
-                <Users className="w-8 h-8 text-green-600" />
-              </div>
-            </div>
-          </div>
-
-          {/* Filtres */}
-          <div className="flex items-center space-x-4">
-            <label className="text-sm font-medium text-gray-700">Filtrer par type:</label>
-            <select
-              value={correspondanceFilter}
-              onChange={(e) => setCorrespondanceFilter(e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
-            >
-              <option value="all">Toutes les correspondances</option>
-              <option value="avocat">Avocats</option>
-              <option value="huissier">Huissiers</option>
-              <option value="debiteur">Débiteur</option>
-              <option value="tribunal">Tribunal</option>
-              <option value="expert">Experts</option>
-            </select>
-          </div>
-
-          {/* Liste des correspondances */}
-          <div className="bg-white rounded-lg border border-gray-200">
-            <div className="divide-y divide-gray-200">
-              {filteredCorrespondances.map((corresp) => {
-                const typeIcons = {
-                  avocat: <Briefcase className="w-5 h-5 text-blue-500" />,
-                  huissier: <Gavel className="w-5 h-5 text-orange-500" />,
-                  debiteur: <Building2 className="w-5 h-5 text-red-500" />,
-                  tribunal: <Scale className="w-5 h-5 text-primary-500" />,
-                  expert: <Calculator className="w-5 h-5 text-green-500" />
-                };
-
-                const prioriteColors = {
-                  haute: 'bg-red-100 text-red-800',
-                  normale: 'bg-gray-100 text-gray-800',
-                  basse: 'bg-blue-100 text-blue-800'
-                };
-
-                const statutColors = {
-                  lu: 'bg-gray-100 text-gray-800',
-                  non_lu: 'bg-red-100 text-red-800',
-                  repondu: 'bg-green-100 text-green-800',
-                  envoye: 'bg-blue-100 text-blue-800'
-                };
-
-                return (
-                  <div
-                    key={corresp.id}
-                    className="p-6 hover:bg-gray-50 cursor-pointer"
-                    onClick={() => setSelectedCorrespondant(corresp)}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start space-x-4 flex-1">
-                        <div className="flex-shrink-0">
-                          {typeIcons[corresp.type]}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center space-x-3 mb-2">
-                            <h4 className="text-sm font-semibold text-gray-900 truncate">
-                              {corresp.correspondant}
-                            </h4>
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${prioriteColors[corresp.priorite]}`}>
-                              {corresp.priorite}
-                            </span>
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statutColors[corresp.statut]}`}>
-                              {corresp.statut}
-                            </span>
-                            {corresp.direction === 'envoye' && (
-                              <Send className="w-4 h-4 text-blue-500" />
-                            )}
-                          </div>
-                          <p className="text-sm font-medium text-gray-900 mb-1">{corresp.sujet}</p>
-                          <p className="text-sm text-gray-600 line-clamp-2">{corresp.message}</p>
-                          {corresp.pieces.length > 0 && (
-                            <div className="flex items-center space-x-2 mt-2">
-                              <Paperclip className="w-4 h-4 text-gray-700" />
-                              <span className="text-xs text-gray-700">{corresp.pieces.length} pièce(s) jointe(s)</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-3 ml-4">
-                        <span className="text-xs text-gray-700">{corresp.dateEnvoi}</span>
-                        <button className="text-gray-700 hover:text-gray-600">
-                          <MoreVertical className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Modal nouveau message */}
-          {showNewMessageModal && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Nouveau Message</h3>
-
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Destinataire</label>
-                      <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
-                        <option>Choisir un correspondant...</option>
-                        <option>Me — (Avocat)</option>
-                        <option>SCP Huissiers ALPHA</option>
-                        <option>SARL TECH SOLUTIONS (Débiteur)</option>
-                        <option>Cabinet EXPERTISE+</option>
-                        <option>Tribunal de Commerce</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Priorité</label>
-                      <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
-                        <option value="normale">Normale</option>
-                        <option value="haute">Haute</option>
-                        <option value="basse">Basse</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Sujet</label>
-                    <input
-                      type="text"
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                      placeholder="Objet du message"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Message</label>
-                    <textarea
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 h-32"
-                      placeholder="Votre message..."
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Pièces jointes</label>
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
-                      <Paperclip className="w-6 h-6 mx-auto text-gray-700 mb-2" />
-                      <p className="text-sm text-gray-600">Glissez vos fichiers ou <span className="text-blue-600 cursor-pointer">parcourez</span></p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center space-x-4">
-                    <label className="flex items-center space-x-2">
-                      <input type="checkbox" className="rounded" />
-                      <span className="text-sm text-gray-700">Marquer comme confidentiel</span>
-                    </label>
-                    <label className="flex items-center space-x-2">
-                      <input type="checkbox" className="rounded" />
-                      <span className="text-sm text-gray-700">Demander accusé de réception</span>
-                    </label>
-                  </div>
-                </div>
-
-                <div className="flex justify-end space-x-3 mt-6">
-                  <button
-                    onClick={() => setShowNewMessageModal(false)}
-                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                  >
-                    Annuler
-                  </button>
-                  <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-                    Enregistrer brouillon
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowNewMessageModal(false);
-                    }}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                  >
-                    Envoyer
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Modal détail correspondance */}
-          {selectedCorrespondant && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-lg p-6 w-full max-w-3xl max-h-[80vh] overflow-y-auto">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">{selectedCorrespondant.sujet}</h3>
-                  <button
-                    onClick={() => setSelectedCorrespondant(null)}
-                    className="text-gray-700 hover:text-gray-600"
-                  >
-                    <X className="w-6 h-6" />
-                  </button>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                        <span className="text-sm font-semibold text-blue-600">
-                          {selectedCorrespondant.correspondant.split(' ').map(n => n[0]).join('')}
-                        </span>
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-900">{selectedCorrespondant.correspondant}</p>
-                        <p className="text-sm text-gray-700">{selectedCorrespondant.dateEnvoi}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <button className="text-blue-600 hover:text-blue-800">
-                        <Reply className="w-4 h-4" />
-                      </button>
-                      <button className="text-green-600 hover:text-green-800">
-                        <Forward className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="pprimary max-w-none">
-                    <p className="text-gray-700 whitespace-pre-wrap">{selectedCorrespondant.message}</p>
-                  </div>
-
-                  {selectedCorrespondant.pieces.length > 0 && (
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-900 mb-2">Pièces jointes</h4>
-                      <div className="space-y-2">
-                        {selectedCorrespondant.pieces.map((piece, index) => (
-                          <div key={index} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                            <div className="flex items-center space-x-3">
-                              <FileText className="w-5 h-5 text-gray-700" />
-                              <span className="text-sm text-gray-900">{piece}</span>
-                            </div>
-                            <button className="text-blue-600 hover:text-blue-800" aria-label="Télécharger">
-                              <Download className="w-4 h-4" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      );
-    }
-
-    function renderExecutionTab() {
-
-      const mesuresExecution = [
-        {
-          id: 1,
-          type: 'saisie_attribution',
-          nom: 'Saisie-attribution compte principal',
-          dateOrdonnance: '2024-02-01',
-          dateExecution: '2024-02-05',
-          statut: 'executee',
-          huissier: 'SCP Huissiers ALPHA',
-          montantSaisi: 125000,
-          etablissement: 'Banque Atlantique',
-          resultat: 'Compte insuffisamment provisionné'
-        },
-        {
-          id: 2,
-          type: 'saisie_attribution',
-          nom: 'Saisie-attribution compte secondaire',
-          dateOrdonnance: '2024-02-01',
-          dateExecution: '2024-02-05',
-          statut: 'executee',
-          huissier: 'SCP Huissiers ALPHA',
-          montantSaisi: 45000,
-          etablissement: 'UBA Bénin',
-          resultat: 'Somme recouvrée intégralement'
-        },
-        {
-          id: 3,
-          type: 'saisie_vente',
-          nom: 'Saisie-vente mobilier bureau',
-          dateOrdonnance: '2024-02-10',
-          dateExecution: '2024-02-15',
-          statut: 'en_cours',
-          huissier: 'SCP Huissiers ALPHA',
-          montantEstime: 180000,
-          lieu: 'Siège social SARL TECH SOLUTIONS',
-          resultat: 'Inventaire en cours'
-        },
-        {
-          id: 4,
-          type: 'saisie_immobiliere',
-          nom: 'Saisie immobilière',
-          dateOrdonnance: '2024-01-20',
-          dateExecution: null,
-          statut: 'programmee',
-          huissier: 'SCP Huissiers BETA',
-          montantEstime: 850000,
-          lieu: 'Terrain Lot 45 Zone Industrielle',
-          resultat: 'Expertise en cours'
-        },
-        {
-          id: 5,
-          type: 'astreinte',
-          nom: 'Astreinte quotidienne',
-          dateOrdonnance: '2024-01-15',
-          dateExecution: '2024-01-16',
-          statut: 'executee',
-          montantAstreinte: 10000,
-          joursEcoules: 25,
-          totalAstreinte: 250000,
-          resultat: 'Débiteur reste en défaut'
-        },
-        {
-          id: 6,
-          type: 'opposition',
-          nom: 'Opposition administrative',
-          dateOrdonnance: '2024-02-08',
-          dateExecution: '2024-02-10',
-          statut: 'executee',
-          organisme: 'Direction Générale des Impôts',
-          montantBloque: 85000,
-          resultat: 'Remboursement TVA bloqué'
-        }
-      ];
-
-      const totalRecouvert = mesuresExecution
-        .filter(m => m.statut === 'executee' && (m.montantSaisi || m.montantBloque))
-        .reduce((sum, m) => sum + (m.montantSaisi || m.montantBloque || 0), 0);
-
-      const mesuresActives = mesuresExecution.filter(m => ['en_cours', 'programmee'].includes(m.statut)).length;
-
-      const filteredMesures = executionFilter === 'all'
-        ? mesuresExecution
-        : mesuresExecution.filter(m => m.type === executionFilter);
-
-      return (
-        <div className="space-y-6">
-          {/* En-tête et actions */}
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">Mesures d'Exécution</h3>
-            <div className="flex space-x-3">
-              <button
-                onClick={() => setShowNewMesureModal(true)}
-                className="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Nouvelle mesure
-              </button>
-              <button className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-                <FileText className="w-4 h-4 mr-2" />
-                Rapport d'exécution
-              </button>
-            </div>
-          </div>
-
-          {/* Tableau de bord exécution */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-green-50 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-green-600">Montant Recouvré</p>
-                  <p className="text-lg font-bold text-green-900">{formatCurrency(totalRecouvert)}</p>
-                </div>
-                <DollarSign className="w-8 h-8 text-green-600" />
-              </div>
-            </div>
-            <div className="bg-orange-50 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-orange-600">Mesures Actives</p>
-                  <p className="text-lg font-bold text-orange-900">{mesuresActives}</p>
-                </div>
-                <Activity className="w-8 h-8 text-orange-600" />
-              </div>
-            </div>
-            <div className="bg-blue-50 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-blue-600">Total Mesures</p>
-                  <p className="text-lg font-bold text-blue-900">{mesuresExecution.length}</p>
-                </div>
-                <Target className="w-8 h-8 text-blue-600" />
-              </div>
-            </div>
-            <div className="bg-primary-50 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-primary-600">Taux Succès</p>
-                  <p className="text-lg font-bold text-primary-900">
-                    {Math.round((totalRecouvert / 2500000) * 100)}%
-                  </p>
-                </div>
-                <TrendingUp className="w-8 h-8 text-primary-600" />
-              </div>
-            </div>
-          </div>
-
-          {/* Filtres */}
-          <div className="flex items-center space-x-4">
-            <label className="text-sm font-medium text-gray-700">Type de mesure:</label>
-            <select
-              value={executionFilter}
-              onChange={(e) => setExecutionFilter(e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
-            >
-              <option value="all">Toutes les mesures</option>
-              <option value="saisie_attribution">Saisies-attributions</option>
-              <option value="saisie_vente">Saisies-ventes</option>
-              <option value="saisie_immobiliere">Saisies immobilières</option>
-              <option value="astreinte">Astreintes</option>
-              <option value="opposition">Oppositions</option>
-            </select>
-          </div>
-
-          {/* Liste des mesures */}
-          <div className="bg-white rounded-lg border border-gray-200">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Mesure</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Type</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Exécutant</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Dates</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Montant</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Statut</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredMesures.map((mesure) => {
-                    const typeIcons = {
-                      saisie_attribution: <CreditCard className="w-4 h-4 text-blue-500" />,
-                      saisie_vente: <Package className="w-4 h-4 text-orange-500" />,
-                      saisie_immobiliere: <Building className="w-4 h-4 text-green-500" />,
-                      astreinte: <Clock className="w-4 h-4 text-primary-500" />,
-                      opposition: <Shield className="w-4 h-4 text-red-500" />
-                    };
-
-                    const typeLabels = {
-                      saisie_attribution: 'Saisie-Attribution',
-                      saisie_vente: 'Saisie-Vente',
-                      saisie_immobiliere: 'Saisie Immobilière',
-                      astreinte: 'Astreinte',
-                      opposition: 'Opposition'
-                    };
-
-                    const statutColors = {
-                      executee: 'bg-green-100 text-green-800',
-                      en_cours: 'bg-orange-100 text-orange-800',
-                      programmee: 'bg-blue-100 text-blue-800',
-                      echec: 'bg-red-100 text-red-800'
-                    };
-
-                    const statutLabels = {
-                      executee: 'Exécutée',
-                      en_cours: 'En cours',
-                      programmee: 'Programmée',
-                      echec: 'Échec'
-                    };
-
-                    return (
-                      <tr key={mesure.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4">
-                          <div className="flex items-center space-x-3">
-                            {typeIcons[mesure.type]}
-                            <div>
-                              <div className="text-sm font-medium text-gray-900">{mesure.nom}</div>
-                              <div className="text-sm text-gray-700">{mesure.lieu || mesure.etablissement || mesure.organisme}</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                            {typeLabels[mesure.type]}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">{mesure.huissier}</td>
-                        <td className="px-6 py-4">
-                          <div className="text-sm text-gray-900">Ord: {mesure.dateOrdonnance}</div>
-                          {mesure.dateExecution && (
-                            <div className="text-sm text-gray-700">Exec: {mesure.dateExecution}</div>
-                          )}
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="text-sm font-bold text-gray-900">
-                            {formatCurrency((mesure.montantSaisi || mesure.montantEstime || mesure.totalAstreinte || mesure.montantBloque || 0))}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statutColors[mesure.statut]}`}>
-                            {statutLabels[mesure.statut]}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center space-x-2">
-                            <button className="text-blue-600 hover:text-blue-800" aria-label="Voir les détails">
-                              <Eye className="w-4 h-4" />
-                            </button>
-                            <button className="text-green-600 hover:text-green-800">
-                              <Edit className="w-4 h-4" />
-                            </button>
-                            <button className="text-primary-600 hover:text-primary-800">
-                              <FileText className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Modal nouvelle mesure */}
-          {showNewMesureModal && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Nouvelle Mesure d'Exécution</h3>
-
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Type de mesure</label>
-                      <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
-                        <option>Saisie-attribution</option>
-                        <option>Saisie-vente</option>
-                        <option>Saisie immobilière</option>
-                        <option>Astreinte</option>
-                        <option>Opposition administrative</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Huissier</label>
-                      <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
-                        <option>SCP Huissiers ALPHA</option>
-                        <option>SCP Huissiers BETA</option>
-                        <option>Cabinet JUSTICE+</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Nom de la mesure</label>
-                    <input
-                      type="text"
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                      placeholder="Ex: Saisie-attribution compte principal"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Date ordonnance</label>
-                      <input
-                        type="date"
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Date d'exécution prévue</label>
-                      <input
-                        type="date"
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Lieu/Établissement</label>
-                      <input
-                        type="text"
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                        placeholder="Ex: Banque Atlantique"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Montant estimé (FCFA)</label>
-                      <input
-                        type="number"
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                        placeholder="0"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Observations</label>
-                    <textarea
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 h-20"
-                      placeholder="Informations complémentaires..."
-                    />
-                  </div>
-                </div>
-
-                <div className="flex justify-end space-x-3 mt-6">
-                  <button
-                    onClick={() => setShowNewMesureModal(false)}
-                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                  >
-                    Annuler
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowNewMesureModal(false);
-                    }}
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-                  >
-                    Programmer la mesure
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      );
-    }
-
-    function renderResultatsTab() {
-
-      const montantInitial = 2500000;
-      const montantRecouvert = 1875000;
-      const fraisTotaux = 450000;
-      const tauxRecouvrement = (montantRecouvert / montantInitial) * 100;
-      const beneficeNet = montantRecouvert - fraisTotaux;
-      const rentabilite = (beneficeNet / fraisTotaux) * 100;
-
-      const chronologieResultats = [
-        {
-          id: 1,
-          date: '2024-02-20',
-          type: 'recouvrement',
-          description: 'Paiement partiel suite saisie-attribution',
-          montant: 170000,
-          source: 'Banque Atlantique - Compte principal'
-        },
-        {
-          id: 2,
-          date: '2024-02-15',
-          type: 'recouvrement',
-          description: 'Recouvrement opposition administrative',
-          montant: 85000,
-          source: 'DGI - Remboursement TVA bloqué'
-        },
-        {
-          id: 3,
-          date: '2024-02-05',
-          type: 'recouvrement',
-          description: 'Saisie-attribution réussie',
-          montant: 45000,
-          source: 'UBA Bénin - Compte secondaire'
-        },
-        {
-          id: 4,
-          date: '2024-01-30',
-          type: 'paiement_volontaire',
-          description: 'Paiement suite mise en demeure',
-          montant: 750000,
-          source: 'Virement débiteur'
-        },
-        {
-          id: 5,
-          date: '2024-01-25',
-          type: 'paiement_volontaire',
-          description: 'Règlement partiel négocié',
-          montant: 825000,
-          source: 'Accord amiable'
-        }
-      ];
-
-      const analyseRentabilite = {
-        montantInitial,
-        montantRecouvert,
-        fraisTotaux,
-        beneficeNet,
-        dureeRecouvrement: 45, // jours
-        tauxRecouvrement,
-        rentabilite
-      };
-
-      const comparaison = {
-        moyenneMarche: 65,
-        dureeMoyenne: 120,
-        fraisisMoyens: 18
-      };
-
-      return (
-        <div className="space-y-6">
-          {/* En-tête avec actions */}
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">Résultats & Bilan Contentieux</h3>
-            <div className="flex space-x-3">
-              {selectedContentieuxDetail.statutJuridique === 'execution' && (
-                <button
-                  onClick={() => setShowCloturerModal(true)}
-                  className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-                >
-                  <CheckCircle className="w-4 h-4 mr-2" />
-                  Clôturer le dossier
-                </button>
-              )}
-              <button className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-                <FileText className="w-4 h-4 mr-2" />
-                Rapport final
-              </button>
-              <button className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-                <Download className="w-4 h-4 mr-2" />
-                Export données
-              </button>
-            </div>
-          </div>
-
-          {/* Indicateurs clés de performance */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-green-50 rounded-lg p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-green-600">Taux de Recouvrement</p>
-                  <p className="text-lg font-bold text-green-900">{tauxRecouvrement.toFixed(1)}%</p>
-                  <p className="text-xs text-green-600 mt-1">Objectif: 80%</p>
-                </div>
-                <Target className="w-10 h-10 text-green-600" />
-              </div>
-            </div>
-            <div className="bg-blue-50 rounded-lg p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-blue-600">Montant Recouvré</p>
-                  <p className="text-lg font-bold text-blue-900">{formatCurrency(montantRecouvert)}</p>
-                  <p className="text-xs text-blue-600 mt-1">/ {formatCurrency(montantInitial)}</p>
-                </div>
-                <DollarSign className="w-10 h-10 text-blue-600" />
-              </div>
-            </div>
-            <div className="bg-primary-50 rounded-lg p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-primary-600">Rentabilité</p>
-                  <p className="text-lg font-bold text-primary-900">{rentabilite.toFixed(1)}%</p>
-                  <p className="text-xs text-primary-600 mt-1">ROI excellent</p>
-                </div>
-                <TrendingUp className="w-10 h-10 text-primary-600" />
-              </div>
-            </div>
-            <div className="bg-orange-50 rounded-lg p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-orange-600">Durée</p>
-                  <p className="text-lg font-bold text-orange-900">{analyseRentabilite.dureeRecouvrement}</p>
-                  <p className="text-xs text-orange-600 mt-1">jours</p>
-                </div>
-                <Clock className="w-10 h-10 text-orange-600" />
-              </div>
-            </div>
-          </div>
-
-          {/* Graphique de recouvrement */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h4 className="text-lg font-semibold text-gray-900 mb-4">Évolution du Recouvrement</h4>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between text-sm">
-                <span>Progression du recouvrement</span>
-                <span className="font-medium">{tauxRecouvrement.toFixed(1)}% complété</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-3">
-                <div
-                  className="bg-gradient-to-r from-green-500 to-blue-500 h-3 rounded-full"
-                  style={{ width: `${tauxRecouvrement}%` }}
-                ></div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                <div className="text-center">
-                  <p className="font-medium text-gray-900">{formatCurrency(montantRecouvert)}</p>
-                  <p className="text-gray-700">Recouvré</p>
-                </div>
-                <div className="text-center">
-                  <p className="font-medium text-red-900">{formatCurrency((montantInitial - montantRecouvert))}</p>
-                  <p className="text-gray-700">Reste à recouvrer</p>
-                </div>
-                <div className="text-center">
-                  <p className="font-medium text-blue-900">{formatCurrency(fraisTotaux)}</p>
-                  <p className="text-gray-700">Frais engagés</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Chronologie des recouvrements */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h4 className="text-lg font-semibold text-gray-900 mb-4">Chronologie des Recouvrements</h4>
-              <div className="space-y-4">
-                {chronologieResultats.map((item) => (
-                  <div key={item.id} className="flex items-start space-x-4">
-                    <div className="flex-shrink-0">
-                      <div className={`w-3 h-3 rounded-full mt-2 ${
-                        item.type === 'recouvrement' ? 'bg-red-500' : 'bg-green-500'
-                      }`}></div>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm font-medium text-gray-900">{item.description}</p>
-                        <span className="text-sm font-bold text-green-600">+{formatCurrency(item.montant)}</span>
-                      </div>
-                      <p className="text-xs text-gray-700">{item.source}</p>
-                      <p className="text-xs text-gray-700">{item.date}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Analyse comparative */}
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h4 className="text-lg font-semibold text-gray-900 mb-4">Analyse Comparative</h4>
-              <div className="space-y-6">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-gray-600">Taux de recouvrement</span>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm font-bold text-green-600">{tauxRecouvrement.toFixed(1)}%</span>
-                      <span className="text-xs text-gray-700">vs {comparaison.moyenneMarche}% (marché)</span>
-                    </div>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div className="bg-green-500 h-2 rounded-full" style={{ width: `${(tauxRecouvrement/100)*100}%` }}></div>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-gray-600">Durée de recouvrement</span>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm font-bold text-blue-600">{analyseRentabilite.dureeRecouvrement}j</span>
-                      <span className="text-xs text-gray-700">vs {comparaison.dureeMoyenne}j (marché)</span>
-                    </div>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div className="bg-blue-500 h-2 rounded-full" style={{ width: '62%' }}></div>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-gray-600">Taux de frais</span>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm font-bold text-primary-600">{((fraisTotaux/montantInitial)*100).toFixed(1)}%</span>
-                      <span className="text-xs text-gray-700">vs {comparaison.fraisisMoyens}% (marché)</span>
-                    </div>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div className="bg-primary-500 h-2 rounded-full" style={{ width: '78%' }}></div>
-                  </div>
-                </div>
-
-                <div className="pt-4 border-t border-gray-200">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-900">Évaluation globale</span>
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                      Excellent
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Analyse financière détaillée */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h4 className="text-lg font-semibold text-gray-900 mb-4">Analyse Financière Détaillée</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <h5 className="font-medium text-gray-900 mb-3">Répartition des Recouvrements</h5>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Paiements volontaires</span>
-                    <span className="text-sm font-medium">1,575,000 FCFA (84%)</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Mesures d'exécution</span>
-                    <span className="text-sm font-medium">300,000 FCFA (16%)</span>
-                  </div>
-                  <div className="flex items-center justify-between pt-2 border-t border-gray-200">
-                    <span className="text-sm font-semibold text-gray-900">Total recouvré</span>
-                    <span className="text-sm font-bold text-green-600">{formatCurrency(montantRecouvert)}</span>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <h5 className="font-medium text-gray-900 mb-3">Ventilation des Coûts</h5>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Frais d'avocat</span>
-                    <span className="text-sm font-medium">250,000 FCFA</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Frais d'huissier</span>
-                    <span className="text-sm font-medium">135,000 FCFA</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Frais de tribunal</span>
-                    <span className="text-sm font-medium">65,000 FCFA</span>
-                  </div>
-                  <div className="flex items-center justify-between pt-2 border-t border-gray-200">
-                    <span className="text-sm font-semibold text-gray-900">Total frais</span>
-                    <span className="text-sm font-bold text-red-600">{formatCurrency(fraisTotaux)}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="mt-6 pt-6 border-t border-gray-200">
-              <div className="flex items-center justify-between">
-                <span className="text-lg font-semibold text-gray-900">Bénéfice Net</span>
-                <span className="text-lg font-bold text-green-600">{formatCurrency(beneficeNet)}</span>
-              </div>
-              <p className="text-sm text-gray-700 mt-1">
-                Rentabilité: {rentabilite.toFixed(1)}% | Efficacité: {tauxRecouvrement.toFixed(1)}%
-              </p>
-            </div>
-          </div>
-
-          {/* Modal clôture */}
-          {showCloturerModal && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-lg p-6 w-full max-w-lg">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Clôturer le Dossier Contentieux</h3>
-
-                <div className="space-y-4">
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                    <div className="flex">
-                      <AlertTriangle className="w-5 h-5 text-yellow-400 mr-2" />
-                      <div>
-                        <h4 className="text-sm font-medium text-yellow-800">Attention</h4>
-                        <p className="text-sm text-yellow-700 mt-1">
-                          La clôture du dossier est définitive. Assurez-vous que toutes les actions ont été entreprises.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Motif de clôture</label>
-                    <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
-                      <option>Recouvrement total</option>
-                      <option>Recouvrement partiel - Débiteur insolvable</option>
-                      <option>Accord transactionnel</option>
-                      <option>Prescription</option>
-                      <option>Abandon de créance</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Commentaires de clôture</label>
-                    <textarea
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 h-20"
-                      placeholder="Bilan final et observations..."
-                    />
-                  </div>
-
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <h4 className="text-sm font-medium text-gray-900 mb-2">Récapitulatif Final</h4>
-                    <div className="space-y-1 text-sm">
-                      <div className="flex justify-between">
-                        <span>Montant initial:</span>
-                        <span>{formatCurrency(montantInitial)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Montant recouvré:</span>
-                        <span className="text-green-600">{formatCurrency(montantRecouvert)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Taux de recouvrement:</span>
-                        <span className="font-medium">{tauxRecouvrement.toFixed(1)}%</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex justify-end space-x-3 mt-6">
-                  <button
-                    onClick={() => setShowCloturerModal(false)}
-                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                  >
-                    Annuler
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowCloturerModal(false);
-                    }}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-                  >
-                    Confirmer la clôture
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      );
-    }
-
-    function renderContentieuxContent() {
-      // Page détaillée du dossier contentieux
-      if (showContentieuxDetailPage && selectedContentieuxDetail) {
-        return renderContentieuxDetailPage();
-      }
-
-      // Vue Dashboard KPIs
-      if (contentieuxView === 'dashboard') {
-        return (
-          <div className="space-y-6">
-            {/* KPIs consolidés */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-[var(--color-text-secondary)]">Performance Globale</p>
-                    <p className="text-lg font-bold text-[var(--color-primary)]">73%</p>
-                    <p className="text-xs text-green-600">+5% vs mois dernier</p>
-                  </div>
-                  <Target className="w-8 h-8 text-blue-600" />
-                </div>
-              </div>
-              <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-[var(--color-text-secondary)]">Taux Transfert Amiable→Contentieux</p>
-                    <p className="text-lg font-bold text-[var(--color-primary)]">18%</p>
-                    <p className="text-xs text-orange-600">↑ 2% ce mois</p>
-                  </div>
-                  <RefreshCw className="w-8 h-8 text-orange-600" />
-                </div>
-              </div>
-              <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-[var(--color-text-secondary)]">ROI Contentieux</p>
-                    <p className="text-lg font-bold text-green-600">3.2x</p>
-                    <p className="text-xs text-gray-600">Coût vs Recouvrement</p>
-                  </div>
-                  <TrendingUp className="w-8 h-8 text-green-600" />
-                </div>
-              </div>
-              <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-[var(--color-text-secondary)]">Délai Moyen</p>
-                    <p className="text-lg font-bold text-[var(--color-primary)]">127j</p>
-                    <p className="text-xs text-gray-600">Transfert → Jugement</p>
-                  </div>
-                  <Clock className="w-8 h-8 text-primary-600" />
-                </div>
-              </div>
-            </div>
-
-            {/* Graphiques comparatifs */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Performance Amiable vs Contentieux */}
-              <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">
-                  Comparatif Amiable vs Contentieux
-                </h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={[
-                    { phase: 'Amiable', taux_succes: 82, delai_moyen: 45, cout_moyen: 50000 },
-                    { phase: 'Contentieux', taux_succes: 67, delai_moyen: 127, cout_moyen: 250000 }
-                  ]}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="phase" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Bar radius={[6,6,0,0]} dataKey="taux_succes" fill="url(#gradPetrol)" name="Taux succès %" />
-                    <Bar radius={[6,6,0,0]} dataKey="delai_moyen" fill="url(#gradAmber)" name="Délai (jours)" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* Flux entre processus */}
-              <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">
-                  Flux mensuel Amiable → Contentieux
-                </h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={[
-                    { mois: 'Sept', transferts: 12, retours: 3 },
-                    { mois: 'Oct', transferts: 15, retours: 5 },
-                    { mois: 'Nov', transferts: 18, retours: 4 },
-                    { mois: 'Déc', transferts: 14, retours: 6 },
-                    { mois: 'Jan', transferts: 20, retours: 7 }
-                  ]}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="mois" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Line type="monotone" dataKey="transferts" stroke="#C0322B" name="Transferts vers contentieux" />
-                    <Line type="monotone" dataKey="retours" stroke="#15803D" name="Retours en amiable" />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            {/* Statistiques par type de procédure */}
-            <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Performance par Type de Procédure</h3>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="text-left px-4 py-2 text-xs font-medium text-gray-700 uppercase">Procédure</th>
-                      <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">Nb Dossiers</th>
-                      <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">Taux Succès</th>
-                      <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">Délai Moyen</th>
-                      <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">Coût Moyen</th>
-                      <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">ROI</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    <tr>
-                      <td className="px-4 py-3 text-sm">Injonction de payer</td>
-                      <td className="px-4 py-3 text-sm text-center">45</td>
-                      <td className="px-4 py-3 text-sm text-center"><span className="text-green-600 font-semibold">78%</span></td>
-                      <td className="px-4 py-3 text-sm text-center">60 jours</td>
-                      <td className="px-4 py-3 text-sm text-center">150K FCFA</td>
-                      <td className="px-4 py-3 text-sm text-center"><span className="text-green-600 font-semibold">4.2x</span></td>
-                    </tr>
-                    <tr>
-                      <td className="px-4 py-3 text-sm">Référé provision</td>
-                      <td className="px-4 py-3 text-sm text-center">23</td>
-                      <td className="px-4 py-3 text-sm text-center"><span className="text-yellow-600 font-semibold">65%</span></td>
-                      <td className="px-4 py-3 text-sm text-center">90 jours</td>
-                      <td className="px-4 py-3 text-sm text-center">250K FCFA</td>
-                      <td className="px-4 py-3 text-sm text-center"><span className="text-yellow-600 font-semibold">2.8x</span></td>
-                    </tr>
-                    <tr>
-                      <td className="px-4 py-3 text-sm">Procédure au fond</td>
-                      <td className="px-4 py-3 text-sm text-center">18</td>
-                      <td className="px-4 py-3 text-sm text-center"><span className="text-orange-600 font-semibold">55%</span></td>
-                      <td className="px-4 py-3 text-sm text-center">180 jours</td>
-                      <td className="px-4 py-3 text-sm text-center">450K FCFA</td>
-                      <td className="px-4 py-3 text-sm text-center"><span className="text-orange-600 font-semibold">1.9x</span></td>
-                    </tr>
-                    <tr>
-                      <td className="px-4 py-3 text-sm">Saisie-attribution</td>
-                      <td className="px-4 py-3 text-sm text-center">12</td>
-                      <td className="px-4 py-3 text-sm text-center"><span className="text-green-600 font-semibold">85%</span></td>
-                      <td className="px-4 py-3 text-sm text-center">45 jours</td>
-                      <td className="px-4 py-3 text-sm text-center">100K FCFA</td>
-                      <td className="px-4 py-3 text-sm text-center"><span className="text-green-600 font-semibold">5.1x</span></td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        );
-      }
-
-      // Vue Workflow
-      if (contentieuxView === 'workflow') {
-        return (
-          <div className="space-y-6">
-            {/* Sélecteur de phase */}
-            <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-[var(--color-primary)]">Workflow Complet Module Recouvrement</h3>
-                <select
-                  value={activeWorkflowPhase}
-                  onChange={(e) => setActiveWorkflowPhase(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="all">Toutes les phases</option>
-                  <option value="amiable">Phase Amiable (J+0 à J+90)</option>
-                  <option value="transfert">Transfert (J+91)</option>
-                  <option value="contentieux">Phase Contentieuse</option>
-                  <option value="execution">Exécution & Clôture</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Visualisation du workflow */}
-            <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-              <div className="relative">
-                {/* Phase 1: Amiable */}
-                <div className={`mb-8 ${activeWorkflowPhase !== 'all' && activeWorkflowPhase !== 'amiable' ? 'opacity-30' : ''}`}>
-                  <div className="flex items-start space-x-4">
-                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-blue-600 font-bold">1</span>
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-[var(--color-primary)] mb-2">Phase 1: Recouvrement Amiable (J+0 à J+90)</h4>
-                      <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                        <div className="flex items-center space-x-2">
-                          <CheckCircle className="w-4 h-4 text-green-500" />
-                          <span className="text-sm">Détection automatique facture impayée</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <CheckCircle className="w-4 h-4 text-green-500" />
-                          <span className="text-sm">Attribution agent de recouvrement</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <CheckCircle className="w-4 h-4 text-green-500" />
-                          <span className="text-sm">Relances téléphoniques et écrites</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <CheckCircle className="w-4 h-4 text-green-500" />
-                          <span className="text-sm">Négociations et propositions</span>
-                        </div>
-                        <div className="mt-3 p-2 bg-yellow-50 rounded border border-yellow-200">
-                          <span className="text-sm font-medium text-yellow-800">
-                            Point de décision: Succès amiable ou transfert contentieux
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Flèche de connexion */}
-                <div className="flex justify-center my-4">
-                  <ArrowDown className="w-6 h-6 text-gray-700" />
-                </div>
-
-                {/* Phase 2: Transfert */}
-                <div className={`mb-8 ${activeWorkflowPhase !== 'all' && activeWorkflowPhase !== 'transfert' ? 'opacity-30' : ''}`}>
-                  <div className="flex items-start space-x-4">
-                    <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-orange-600 font-bold">2</span>
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-[var(--color-primary)] mb-2">Phase 2: Transfert vers Contentieux (J+91)</h4>
-                      <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                        <div className="flex items-center space-x-2">
-                          <AlertTriangle className="w-4 h-4 text-orange-500" />
-                          <span className="text-sm">Échec constaté du recouvrement amiable</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <FileText className="w-4 h-4 text-orange-500" />
-                          <span className="text-sm">Demande de transfert avec justification</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <UserCheck className="w-4 h-4 text-orange-500" />
-                          <span className="text-sm">Validation hiérarchique selon matrice</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <FolderOpen className="w-4 h-4 text-orange-500" />
-                          <span className="text-sm">Constitution automatique dossier contentieux</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Flèche de connexion */}
-                <div className="flex justify-center my-4">
-                  <ArrowDown className="w-6 h-6 text-gray-700" />
-                </div>
-
-                {/* Phase 3: Contentieux */}
-                <div className={`mb-8 ${activeWorkflowPhase !== 'all' && activeWorkflowPhase !== 'contentieux' ? 'opacity-30' : ''}`}>
-                  <div className="flex items-start space-x-4">
-                    <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-red-600 font-bold">3</span>
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-[var(--color-primary)] mb-2">Phase 3: Procédure Contentieuse (J+91 à J+X)</h4>
-                      <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                        <div className="flex items-center space-x-2">
-                          <Scale className="w-4 h-4 text-red-500" />
-                          <span className="text-sm">Analyse juridique du dossier</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Send className="w-4 h-4 text-red-500" />
-                          <span className="text-sm">Mise en demeure par huissier</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Gavel className="w-4 h-4 text-red-500" />
-                          <span className="text-sm">Choix de la procédure adaptée</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Briefcase className="w-4 h-4 text-red-500" />
-                          <span className="text-sm">Gestion du dossier judiciaire</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <CheckSquare className="w-4 h-4 text-red-500" />
-                          <span className="text-sm">Obtention décision de justice</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Flèche de connexion */}
-                <div className="flex justify-center my-4">
-                  <ArrowDown className="w-6 h-6 text-gray-700" />
-                </div>
-
-                {/* Phase 4: Exécution */}
-                <div className={`mb-8 ${activeWorkflowPhase !== 'all' && activeWorkflowPhase !== 'execution' ? 'opacity-30' : ''}`}>
-                  <div className="flex items-start space-x-4">
-                    <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-green-600 font-bold">4</span>
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-[var(--color-primary)] mb-2">Phase 4: Exécution et Clôture</h4>
-                      <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                        <div className="flex items-center space-x-2">
-                          <FileSignature className="w-4 h-4 text-green-500" />
-                          <span className="text-sm">Signification du jugement</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Hammer className="w-4 h-4 text-green-500" />
-                          <span className="text-sm">Mesures d'exécution forcée</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Coins className="w-4 h-4 text-green-500" />
-                          <span className="text-sm">Recouvrement des sommes</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <BarChart3 className="w-4 h-4 text-green-500" />
-                          <span className="text-sm">Analyse ROI global (amiable + contentieux)</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Archive className="w-4 h-4 text-green-500" />
-                          <span className="text-sm">Clôture et archivage</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Points de contrôle */}
-                <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                  <h4 className="font-semibold text-blue-900 mb-2">Points de contrôle et bascules</h4>
-                  <ul className="space-y-1 text-sm text-blue-800">
-                    <li>• Retour possible en amiable à tout moment si accord</li>
-                    <li>• Escalade automatique selon délais paramétrés</li>
-                    <li>• Validation obligatoire pour certains montants</li>
-                    <li>• Reporting temps réel à chaque étape</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      }
-
-      // Vue Coûts & Budget
-      if (contentieuxView === 'couts') {
-        // Derive cost categories from real journal entries (class 6 accounts or AC journal)
-        const coutsByCategory: Record<string, number> = {};
-        let totalDepensesEngagees = 0;
-        let totalMontantsRecouVres = 0;
-        for (const entry of allJournalEntries) {
-          const isAchat = (entry.journalCode || '').toUpperCase().includes('AC');
-          for (const line of (entry.lines || [])) {
-            const acc: string = line.accountCode || '';
-            if (isAchat || acc.startsWith('6')) {
-              const debit = line.debit || 0;
-              if (debit > 0) {
-                // Group by first 3 chars of account code for a meaningful category label
-                const prefix = acc.slice(0, 3);
-                coutsByCategory[prefix] = (coutsByCategory[prefix] || 0) + debit;
-                totalDepensesEngagees += debit;
-              }
-            }
-            // Sum credits on 411xxx as recovered amounts
-            if (acc.startsWith('411') && (line.credit || 0) > 0) {
-              totalMontantsRecouVres += line.credit;
-            }
-          }
-        }
-
-        // Map account prefixes to human-readable labels
-        const accountPrefixLabels: Record<string, string> = {
-          '601': 'Achats marchandises', '602': 'Achats mat. premières', '603': 'Variation stocks',
-          '604': 'Achats fournitures', '605': 'Achats matériel', '606': 'Achats emballages',
-          '607': 'Achats matières', '608': 'Frais accessoires', '609': 'Remises fournisseurs',
-          '611': 'Transport sur achats', '612': 'Services extérieurs', '613': 'Locations',
-          '614': 'Charges locatives', '615': 'Entretien réparations', '616': 'Primes assurances',
-          '617': 'Documentation', '618': 'Divers services', '621': 'Rémunérations',
-          '622': 'Honoraires', '623': 'Publicité', '624': 'Transport livraisons',
-          '625': 'Déplacements', '626': 'Communications', '627': 'Services bancaires',
-          '628': 'Cotisations', '629': 'Divers charges', '631': 'Impôts taxes',
-          '632': 'Taxes apprentissage', '633': 'Taxes formation', '641': 'Rémunérations personnel',
-          '645': 'Charges sociales', '651': 'Pertes créances', '661': 'Charges intérêts',
-          '671': 'Dotations amortissements', '681': 'Dotations provisions',
-        };
-
-        const costChartData = Object.entries(coutsByCategory)
-          .map(([prefix, montant]) => ({
-            name: accountPrefixLabels[prefix] || `Compte ${prefix}xx`,
-            montant,
-          }))
-          .sort((a, b) => b.montant - a.montant)
-          .slice(0, 7); // top 7 categories
-
-        const totalCouts = costChartData.reduce((s, c) => s + c.montant, 0);
-        const roiLabel = totalDepensesEngagees > 0
-          ? `ROI: ${(totalMontantsRecouVres / totalDepensesEngagees).toFixed(1)}x`
-          : '—';
-        const budgetPct = totalDepensesEngagees > 0 && totalMontantsRecouVres > 0
-          ? `${Math.round((totalDepensesEngagees / (totalMontantsRecouVres || 1)) * 100)}% du récupéré`
-          : '—';
-
-        return (
-          <div className="space-y-6">
-            {/* Budget global */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-[var(--color-text-secondary)]">Budget Total Contentieux</p>
-                    <p className="text-lg font-bold text-[var(--color-primary)]">
-                      {totalMontantsRecouVres > 0 ? formatCurrency(totalMontantsRecouVres) : '—'}
-                    </p>
-                    <p className="text-xs text-gray-600">Créances recouvrées</p>
-                  </div>
-                  <Wallet className="w-8 h-8 text-blue-600" />
-                </div>
-              </div>
-              <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-[var(--color-text-secondary)]">Dépenses Engagées</p>
-                    <p className="text-lg font-bold text-orange-600">
-                      {totalDepensesEngagees > 0 ? formatCurrency(totalDepensesEngagees) : '—'}
-                    </p>
-                    <p className="text-xs text-gray-600">{budgetPct}</p>
-                  </div>
-                  <CreditCard className="w-8 h-8 text-orange-600" />
-                </div>
-              </div>
-              <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-[var(--color-text-secondary)]">Montants Recouvrés</p>
-                    <p className="text-lg font-bold text-green-600">
-                      {totalMontantsRecouVres > 0 ? formatCurrency(totalMontantsRecouVres) : '—'}
-                    </p>
-                    <p className="text-xs text-green-600">{roiLabel}</p>
-                  </div>
-                  <TrendingUp className="w-8 h-8 text-green-600" />
-                </div>
-              </div>
-            </div>
-
-            {/* Détail des coûts par type */}
-            <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Répartition des Coûts</h3>
-              {costChartData.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-gray-400">
-                  <PieChart className="w-12 h-12 mb-3 opacity-30" />
-                  <p className="text-sm">Aucune charge enregistrée (comptes classe 6)</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <div>
-                    <ResponsiveContainer width="100%" height={300}>
-                      <RechartsPieChart>
-                        <Pie
-                          dataKey="montant"
-                          data={costChartData}
-                          cx="50%"
-                          cy="50%"
-                          outerRadius={100}
-                          fill="#235A6E"
-                          label
-                        >
-                          {costChartData.map((_entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                        <Legend />
-                      </RechartsPieChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <div className="space-y-3">
-                    {costChartData.map((cat, index) => {
-                      const pct = totalCouts > 0 ? Math.round((cat.montant / totalCouts) * 100) : 0;
-                      return (
-                        <div key={cat.name} className="p-3 bg-gray-50 rounded-lg">
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm font-medium">{cat.name}</span>
-                            <span className="text-sm font-bold">{formatCurrency(cat.montant)}</span>
-                          </div>
-                          <div className="mt-2 bg-gray-200 rounded-full h-2">
-                            <div
-                              className="h-2 rounded-full"
-                              style={{ width: `${pct}%`, backgroundColor: COLORS[index % COLORS.length] }}
-                            ></div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Analyse coût/bénéfice par dossier */}
-            <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Analyse Coût/Bénéfice par Dossier</h3>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="text-left px-4 py-2 text-xs font-medium text-gray-700 uppercase">Dossier</th>
-                      <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">Créance</th>
-                      <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">Coûts Engagés</th>
-                      <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">Recouvré</th>
-                      <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">Bénéfice Net</th>
-                      <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">Rentabilité</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {dossiersContentieux.slice(0, 4).map(dossier => (
-                      <tr key={dossier.id}>
-                        <td className="px-4 py-3 text-sm">{dossier.numeroRef}</td>
-                        <td className="px-4 py-3 text-sm text-center">{formatCurrency(dossier.montantTotal)}</td>
-                        <td className="px-4 py-3 text-sm text-center">{formatCurrency(dossier.fraisProcedure)}</td>
-                        <td className="px-4 py-3 text-sm text-center font-semibold text-green-600">
-                          {formatCurrency(dossier.montantTotal * 0.7)}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-center font-semibold">
-                          {formatCurrency(dossier.montantTotal * 0.7 - dossier.fraisProcedure)}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-center">
-                          <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                            {Math.round((dossier.montantTotal * 0.7 - dossier.fraisProcedure) / dossier.fraisProcedure * 100)}%
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        );
-      }
-
-      // Vue Exécution
-      if (contentieuxView === 'execution') {
-        return (
-          <div className="space-y-6">
-            {/* Statistiques exécution */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-[var(--color-text-secondary)]">Jugements à exécuter</p>
-                    <p className="text-lg font-bold text-[var(--color-primary)]">8</p>
-                  </div>
-                  <Gavel className="w-8 h-8 text-primary-600" />
-                </div>
-              </div>
-              <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-[var(--color-text-secondary)]">Saisies en cours</p>
-                    <p className="text-lg font-bold text-orange-600">5</p>
-                  </div>
-                  <Lock className="w-8 h-8 text-orange-600" />
-                </div>
-              </div>
-              <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-[var(--color-text-secondary)]">Montants saisis</p>
-                    <p className="text-lg font-bold text-green-600">12.3M</p>
-                  </div>
-                  <Coins className="w-8 h-8 text-green-600" />
-                </div>
-              </div>
-              <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-[var(--color-text-secondary)]">Taux d'exécution</p>
-                    <p className="text-lg font-bold text-[var(--color-primary)]">62%</p>
-                  </div>
-                  <CheckSquare className="w-8 h-8 text-blue-600" />
-                </div>
-              </div>
-            </div>
-
-            {/* Liste des exécutions */}
-            <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Dossiers en Exécution</h3>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="text-left px-4 py-2 text-xs font-medium text-gray-700 uppercase">Référence</th>
-                      <th className="text-left px-4 py-2 text-xs font-medium text-gray-700 uppercase">Client</th>
-                      <th className="text-left px-4 py-2 text-xs font-medium text-gray-700 uppercase">Type Exécution</th>
-                      <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">Montant</th>
-                      <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">Statut</th>
-                      <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {dossiersExecution.map((dossier) => (
-                      <tr key={dossier.id}>
-                        <td className="px-4 py-3 text-sm">{dossier.reference}</td>
-                        <td className="px-4 py-3 text-sm">{dossier.client}</td>
-                        <td className="px-4 py-3 text-sm">{dossier.typeExecution}</td>
-                        <td className="px-4 py-3 text-sm text-center font-semibold">{formatCurrency(dossier.montant)}</td>
-                        <td className="px-4 py-3 text-center">
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                            dossier.statut === 'En cours' ? 'bg-yellow-100 text-yellow-800' :
-                            dossier.statut === 'Huissier mandaté' ? 'bg-orange-100 text-orange-800' :
-                            dossier.statut === 'Exécuté' ? 'bg-green-100 text-green-800' :
-                            'bg-gray-100 text-gray-800'
-                          }`}>
-                            {dossier.statut}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          <button
-                            onClick={() => {
-                              setSelectedExecutionDossier(dossier);
-                              setShowExecutionDetailModal(true);
-                            }}
-                            className="text-blue-600 hover:text-blue-800"
-                            title="Voir détails de l'exécution"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* Types de mesures d'exécution */}
-            <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Mesures d'Exécution Disponibles</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                  <h4 className="font-semibold text-blue-900 mb-2">Saisie-attribution</h4>
-                  <p className="text-sm text-blue-700">Saisie directe sur comptes bancaires</p>
-                </div>
-                <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
-                  <h4 className="font-semibold text-orange-900 mb-2">Saisie-vente</h4>
-                  <p className="text-sm text-orange-700">Vente forcée de biens mobiliers/immobiliers</p>
-                </div>
-                <div className="p-4 bg-primary-50 rounded-lg border border-primary-200">
-                  <h4 className="font-semibold text-primary-900 mb-2">Saisie sur salaire</h4>
-                  <p className="text-sm text-primary-700">Prélèvement sur rémunération</p>
-                </div>
-                <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                  <h4 className="font-semibold text-green-900 mb-2">Hypothèque judiciaire</h4>
-                  <p className="text-sm text-green-700">Garantie sur biens immobiliers</p>
-                </div>
-                <div className="p-4 bg-red-50 rounded-lg border border-red-200">
-                  <h4 className="font-semibold text-red-900 mb-2">Astreinte</h4>
-                  <p className="text-sm text-red-700">Pénalité journalière de retard</p>
-                </div>
-                <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                  <h4 className="font-semibold text-gray-900 mb-2">Plan échelonné</h4>
-                  <p className="text-sm text-gray-700">Paiement fractionné validé</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      }
-
-
-      // Vue KPIs & Reporting
-      if (contentieuxView === 'kpi') {
-        return (
-          <div className="space-y-6">
-            {/* KPIs consolidés */}
-            <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Indicateurs de Performance - Vue Consolidée</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="text-center p-4 bg-gray-50 rounded-lg">
-                  <p className="text-lg font-bold text-[var(--color-primary)]">82%</p>
-                  <p className="text-sm text-gray-600 mt-1">Taux succès amiable</p>
-                </div>
-                <div className="text-center p-4 bg-gray-50 rounded-lg">
-                  <p className="text-lg font-bold text-[var(--color-primary)]">67%</p>
-                  <p className="text-sm text-gray-600 mt-1">Taux succès contentieux</p>
-                </div>
-                <div className="text-center p-4 bg-gray-50 rounded-lg">
-                  <p className="text-lg font-bold text-green-600">3.2x</p>
-                  <p className="text-sm text-gray-600 mt-1">ROI global</p>
-                </div>
-                <div className="text-center p-4 bg-gray-50 rounded-lg">
-                  <p className="text-lg font-bold text-[var(--color-primary)]">45j</p>
-                  <p className="text-sm text-gray-600 mt-1">Délai moyen amiable</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Évolution temporelle */}
-            <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Évolution des Performances</h3>
-              <ResponsiveContainer width="100%" height={400}>
-                <LineChart data={[
-                  { mois: 'Août', amiable: 78, contentieux: 62, roi: 2.8 },
-                  { mois: 'Sept', amiable: 80, contentieux: 65, roi: 2.9 },
-                  { mois: 'Oct', amiable: 82, contentieux: 64, roi: 3.0 },
-                  { mois: 'Nov', amiable: 81, contentieux: 68, roi: 3.1 },
-                  { mois: 'Déc', amiable: 83, contentieux: 66, roi: 3.2 },
-                  { mois: 'Jan', amiable: 82, contentieux: 67, roi: 3.2 }
-                ]}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="mois" />
-                  <YAxis yAxisId="left" />
-                  <YAxis yAxisId="right" orientation="right" />
-                  <Tooltip />
-                  <Legend />
-                  <Line yAxisId="left" type="monotone" dataKey="amiable" stroke="#15803D" name="Taux succès amiable %" />
-                  <Line yAxisId="left" type="monotone" dataKey="contentieux" stroke="#C0322B" name="Taux succès contentieux %" />
-                  <Line yAxisId="right" type="monotone" dataKey="roi" stroke="#235A6E" name="ROI (x)" strokeWidth={2} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-
-            {/* Analyse prédictive */}
-            <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Analyse Prédictive</h3>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="p-4 bg-blue-50 rounded-lg">
-                  <h4 className="font-semibold text-blue-900 mb-3">Prévisions Q1 2024</h4>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-sm">Transferts vers contentieux estimés</span>
-                      <span className="text-sm font-semibold">65 dossiers</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm">Montant en contentieux prévu</span>
-                      <span className="text-sm font-semibold">42M FCFA</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm">Taux de succès attendu</span>
-                      <span className="text-sm font-semibold">69%</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="p-4 bg-green-50 rounded-lg">
-                  <h4 className="font-semibold text-green-900 mb-3">Recommandations IA</h4>
-                  <ul className="space-y-1 text-sm text-green-800">
-                    <li>• Augmenter les relances J+30 pour réduire transferts</li>
-                    <li>• Privilégier injonctions de payer (ROI 4.2x)</li>
-                    <li>• Focus sur dossiers 2-5M FCFA (meilleur ratio)</li>
-                    <li>• Renforcer équipe amiable zone Abidjan Nord</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            {/* Actions de reporting */}
-            <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Rapports Disponibles</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <button
-                  onClick={() => setShowRapportMensuelModal(true)}
-                  className="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 text-left transition-colors hover:border-blue-400"
-                >
-                  <FileText className="w-6 h-6 text-blue-600 mb-2" />
-                  <h4 className="font-semibold text-[var(--color-primary)]">Rapport mensuel consolidé</h4>
-                  <p className="text-sm text-gray-600 mt-1">Amiable + Contentieux</p>
-                </button>
-                <button
-                  onClick={() => setShowAnalyseROIModal(true)}
-                  className="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 text-left transition-colors hover:border-green-400"
-                >
-                  <BarChart3 className="w-6 h-6 text-green-600 mb-2" />
-                  <h4 className="font-semibold text-[var(--color-primary)]">Analyse ROI détaillée</h4>
-                  <p className="text-sm text-gray-600 mt-1">Par phase et procédure</p>
-                </button>
-                <button
-                  onClick={() => setShowPerformanceEquipeModal(true)}
-                  className="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 text-left transition-colors hover:border-orange-400"
-                >
-                  <Users className="w-6 h-6 text-orange-600 mb-2" />
-                  <h4 className="font-semibold text-[var(--color-primary)]">Performance équipes</h4>
-                  <p className="text-sm text-gray-600 mt-1">Agents et gestionnaires</p>
-                </button>
-                <button
-                  onClick={() => setShowPrevisionTresorerieModal(true)}
-                  className="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 text-left transition-colors hover:border-primary-400"
-                >
-                  <TrendingUp className="w-6 h-6 text-primary-600 mb-2" />
-                  <h4 className="font-semibold text-[var(--color-primary)]">Prévisions trésorerie</h4>
-                  <p className="text-sm text-gray-600 mt-1">3-6 mois glissants</p>
-                </button>
-                <button
-                  onClick={() => setShowDossiersRisqueModal(true)}
-                  className="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 text-left transition-colors hover:border-red-400"
-                >
-                  <AlertTriangle className="w-6 h-6 text-red-600 mb-2" />
-                  <h4 className="font-semibold text-[var(--color-primary)]">Dossiers à risque</h4>
-                  <p className="text-sm text-gray-600 mt-1">Alertes et escalades</p>
-                </button>
-                <button
-                  onClick={() => setShowExportPersonnaliseModal(true)}
-                  className="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 text-left transition-colors hover:border-gray-500"
-                >
-                  <Download className="w-6 h-6 text-gray-600 mb-2" />
-                  <h4 className="font-semibold text-[var(--color-primary)]">Export personnalisé</h4>
-                  <p className="text-sm text-gray-600 mt-1">Excel / PDF / CSV</p>
-                </button>
-              </div>
-            </div>
-          </div>
-        );
-      }
-
-      // Vue Liste des dossiers
-      if (contentieuxView === 'liste') {
-        return (
-          <div className="space-y-6">
-            {/* En-tête avec statistiques */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-[var(--color-text-secondary)]">Dossiers actifs</p>
-                    <p className="text-lg font-bold text-[var(--color-primary)]">12</p>
-                  </div>
-                  <Scale className="w-8 h-8 text-orange-600" />
-                </div>
-              </div>
-              <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-[var(--color-text-secondary)]">Montant en contentieux</p>
-                    <p className="text-lg font-bold text-[var(--color-primary)]">28.4M</p>
-                  </div>
-                  <DollarSign className="w-8 h-8 text-red-600" />
-                </div>
-              </div>
-            <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-[var(--color-text-secondary)]">Taux de succès</p>
-                  <p className="text-lg font-bold text-green-600">67%</p>
-                </div>
-                <TrendingUp className="w-8 h-8 text-green-600" />
-              </div>
-            </div>
-            <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-[var(--color-text-secondary)]">Audiences ce mois</p>
-                  <p className="text-lg font-bold text-[var(--color-primary)]">8</p>
-                </div>
-                <Calendar className="w-8 h-8 text-blue-600" />
-              </div>
-            </div>
-          </div>
-
-          {/* Filtres et actions */}
-          <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-              <div className="flex flex-wrap gap-2">
-                <select
-                  value={filterStatutContentieux}
-                  onChange={(e) => setFilterStatutContentieux(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  {statutsContentieux.map(option => (
-                    <option key={option.value} value={option.value}>{option.label}</option>
-                  ))}
-                </select>
-                <select
-                  value={filterProcedure}
-                  onChange={(e) => setFilterProcedure(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  {typesProcedure.map(option => (
-                    <option key={option.value} value={option.value}>{option.label}</option>
-                  ))}
-                </select>
-                <button className="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors" aria-label="Télécharger">
-                  <Download className="w-4 h-4" />
-                  <span>{t('common.export')}</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Tableau des dossiers contentieux */}
-          <div className="bg-white rounded-lg border border-[var(--color-border)] shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="text-left px-6 py-3 text-xs font-medium text-gray-700 uppercase tracking-wider">
-                      Référence
-                    </th>
-                    <th className="text-left px-6 py-3 text-xs font-medium text-gray-700 uppercase tracking-wider">
-                      Client
-                    </th>
-                    <th className="text-left px-6 py-3 text-xs font-medium text-gray-700 uppercase tracking-wider">
-                      Montant Total
-                    </th>
-                    <th className="text-left px-6 py-3 text-xs font-medium text-gray-700 uppercase tracking-wider">
-                      Statut Juridique
-                    </th>
-                    <th className="text-left px-6 py-3 text-xs font-medium text-gray-700 uppercase tracking-wider">
-                      Procédure
-                    </th>
-                    <th className="text-left px-6 py-3 text-xs font-medium text-gray-700 uppercase tracking-wider">
-                      Avocat
-                    </th>
-                    <th className="text-left px-6 py-3 text-xs font-medium text-gray-700 uppercase tracking-wider">
-                      Prochaine Échéance
-                    </th>
-                    <th className="text-left px-6 py-3 text-xs font-medium text-gray-700 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredContentieux.map(dossier => (
-                    <tr key={dossier.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <span className="text-sm font-medium text-[var(--color-primary)]">{dossier.numeroRef}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="text-sm font-medium text-[var(--color-primary)]">{dossier.client}</div>
-                          <div className="text-xs text-gray-700">Origine: {dossier.origineAmiable}</div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="text-sm font-semibold text-[var(--color-primary)]">
-                            {formatCurrency(dossier.montantTotal)}
-                          </div>
-                          <div className="text-xs text-gray-700">
-                            Principal: {formatCurrency(dossier.montantPrincipal)}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatutColor(dossier.statutJuridique)}`}>
-                          {dossier.statutJuridique.replace('_', ' ').toUpperCase()}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm text-[var(--color-primary)]">
-                          {dossier.typeProcedure.replace('_', ' ')}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm text-[var(--color-primary)]">{dossier.avocat}</span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="text-sm text-[var(--color-primary)]">{dossier.prochaineEcheance}</div>
-                          <div className={`text-xs font-medium ${getUrgenceIndicator(dossier.joursRestants)}`}>
-                            Dans {dossier.joursRestants} jours
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center space-x-2">
-                          <button
-                            onClick={() => {
-                              setSelectedContentieux(dossier);
-                              setContentieuxView('detail');
-                            }}
-                            className="text-blue-600 hover:text-blue-800"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => openEditContentieuxModal(dossier)}
-                            className="text-orange-600 hover:text-orange-800"
-                            title="Modifier le dossier"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => {
-                              initWorkflowForDossier(dossier.id);
-                              setSelectedDossierWorkflow(dossier);
-                              setShowWorkflowModal(true);
-                            }}
-                            className="text-primary-600 hover:text-primary-800"
-                            title="Gérer le workflow"
-                          >
-                            <Activity className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => {
-                              setSelectedContentieuxDetail(dossier);
-                              setShowContentieuxDetailPage(true);
-                              setActiveContentieuxTab('general');
-                            }}
-                            className="text-green-600 hover:text-green-800"
-                            title="Page détaillée du dossier"
-                          >
-                            <FileText className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-        );
-      }
-
-      // Vue Détail d'un dossier contentieux
-      if (contentieuxView === 'detail' && selectedContentieux) {
-        return (
-          <div className="space-y-6">
-          {/* Header détail */}
-          <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-            <div className="flex justify-between items-start">
-              <div>
-                <div className="flex items-center space-x-4 mb-2">
-                  <button
-                    onClick={() => {
-                      setContentieuxView('liste');
-                      setSelectedContentieux(null);
-                    }}
-                    className="text-blue-600 hover:text-blue-800"
-                  >
-                    <ArrowLeft className="w-5 h-5" />
-                  </button>
-                  <h2 className="text-lg font-bold text-[var(--color-primary)]">
-                    Dossier Contentieux {selectedContentieux.numeroRef}
-                  </h2>
-                </div>
-                <div className="flex items-center space-x-4 mt-4">
-                  <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getStatutColor(selectedContentieux.statutJuridique)}`}>
-                    {selectedContentieux.statutJuridique.replace('_', ' ').toUpperCase()}
-                  </span>
-                  <span className="text-sm text-gray-600">
-                    Transféré le {selectedContentieux.dateTransfert}
-                  </span>
-                </div>
-              </div>
-              <div className="flex space-x-2">
-                <button className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                  <Send className="w-4 h-4" />
-                  <span>Envoyer mise à jour</span>
-                </button>
-                <button className="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
-                  <Download className="w-4 h-4" />
-                  <span>Générer rapport</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Informations principales */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Timeline de la procédure */}
-              <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Timeline de la procédure</h3>
-                <div className="space-y-4">
-                  <div className="flex items-start space-x-3">
-                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                      <CheckCircle className="w-4 h-4 text-green-600" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex justify-between">
-                        <span className="font-medium text-[var(--color-primary)]">Transfert en contentieux</span>
-                        <span className="text-sm text-gray-700">15/01/2024</span>
-                      </div>
-                      <p className="text-sm text-gray-600 mt-1">{selectedContentieux.motifTransfert}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start space-x-3">
-                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                      <CheckCircle className="w-4 h-4 text-green-600" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex justify-between">
-                        <span className="font-medium text-[var(--color-primary)]">Constitution du dossier</span>
-                        <span className="text-sm text-gray-700">16/01/2024</span>
-                      </div>
-                      <p className="text-sm text-gray-600 mt-1">Dossier complet transmis à {selectedContentieux.avocat}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start space-x-3">
-                    <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
-                      <Clock className="w-4 h-4 text-yellow-600" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex justify-between">
-                        <span className="font-medium text-[var(--color-primary)]">Mise en demeure envoyée</span>
-                        <span className="text-sm text-gray-700">18/01/2024</span>
-                      </div>
-                      <p className="text-sm text-gray-600 mt-1">En attente de réponse du débiteur</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start space-x-3">
-                    <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
-                      <Clock className="w-4 h-4 text-gray-700" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex justify-between">
-                        <span className="font-medium text-gray-700">Assignation prévue</span>
-                        <span className="text-sm text-gray-700">{selectedContentieux.prochaineEcheance}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Documents du dossier */}
-              <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Documents juridiques</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <FileText className="w-5 h-5 text-gray-700" />
-                      <div>
-                        <span className="text-sm font-medium text-[var(--color-primary)]">Factures impayées.pdf</span>
-                        <span className="text-xs text-gray-700 ml-2">2.4 MB</span>
-                      </div>
-                    </div>
-                    <button className="text-blue-600 hover:text-blue-800" aria-label="Télécharger">
-                      <Download className="w-4 h-4" />
-                    </button>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <FileText className="w-5 h-5 text-gray-700" />
-                      <div>
-                        <span className="text-sm font-medium text-[var(--color-primary)]">Contrat client.pdf</span>
-                        <span className="text-xs text-gray-700 ml-2">1.2 MB</span>
-                      </div>
-                    </div>
-                    <button className="text-blue-600 hover:text-blue-800" aria-label="Télécharger">
-                      <Download className="w-4 h-4" />
-                    </button>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <FileText className="w-5 h-5 text-gray-700" />
-                      <div>
-                        <span className="text-sm font-medium text-[var(--color-primary)]">Mise en demeure.pdf</span>
-                        <span className="text-xs text-gray-700 ml-2">450 KB</span>
-                      </div>
-                    </div>
-                    <button className="text-blue-600 hover:text-blue-800" aria-label="Télécharger">
-                      <Download className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-                <button className="mt-4 w-full flex items-center justify-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-                  <Upload className="w-4 h-4" />
-                  <span>Ajouter un document</span>
-                </button>
-              </div>
-
-              {/* Actions disponibles */}
-              <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Actions de procédure</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    onClick={() => setShowAssignationModal(true)}
-                    className="flex items-center justify-center space-x-2 px-4 py-3 bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200">
-                    <Scale className="w-5 h-5" />
-                    <span>Préparer assignation</span>
-                  </button>
-                  <button
-                    onClick={() => setShowAudienceModal(true)}
-                    className="flex items-center justify-center space-x-2 px-4 py-3 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200">
-                    <Calendar className="w-5 h-5" />
-                    <span>Planifier audience</span>
-                  </button>
-                  <button
-                    onClick={() => setShowConclusionsModal(true)}
-                    className="flex items-center justify-center space-x-2 px-4 py-3 bg-primary-100 text-primary-700 rounded-lg hover:bg-primary-200">
-                    <FileText className="w-5 h-5" />
-                    <span>Générer conclusions</span>
-                  </button>
-                  <button
-                    onClick={() => setShowJugementModal(true)}
-                    className="flex items-center justify-center space-x-2 px-4 py-3 bg-green-100 text-green-700 rounded-lg hover:bg-green-200">
-                    <CheckCircle className="w-5 h-5" />
-                    <span>Enregistrer jugement</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Sidebar avec informations complémentaires */}
-            <div className="space-y-6">
-              {/* Détails financiers */}
-              <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Détails financiers</h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Montant principal</span>
-                    <span className="text-sm font-semibold text-[var(--color-primary)]">
-                      {formatCurrency(selectedContentieux.montantPrincipal)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Intérêts de retard</span>
-                    <span className="text-sm font-semibold text-[var(--color-primary)]">
-                      {formatCurrency(selectedContentieux.interetsRetard)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Frais de procédure</span>
-                    <span className="text-sm font-semibold text-[var(--color-primary)]">
-                      {formatCurrency(selectedContentieux.fraisProcedure)}
-                    </span>
-                  </div>
-                  <hr />
-                  <div className="flex justify-between">
-                    <span className="text-sm font-semibold text-gray-700">Total à recouvrer</span>
-                    <span className="text-lg font-bold text-[var(--color-primary)]">
-                      {formatCurrency(selectedContentieux.montantTotal)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Informations avocat */}
-              <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Avocat en charge</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-3">
-                    <UserCircle className="w-10 h-10 text-gray-700" />
-                    <div>
-                      <p className="font-semibold text-[var(--color-primary)]">{selectedContentieux.avocat}</p>
-                      <p className="text-sm text-gray-600">Cabinet KONE & Associés</p>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <Phone className="w-4 h-4 text-gray-700" />
-                      <span className="text-sm text-gray-600">+225 27 20 30 40 50</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Mail className="w-4 h-4 text-gray-700" />
-                      <span className="text-sm text-gray-600">contact@kone-associes.ci</span>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setShowContactAvocatModal(true)}
-                    className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                    Contacter l'avocat
-                  </button>
-                </div>
-              </div>
-
-              {/* Prochaines échéances */}
-              <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Prochaines échéances</h3>
-                <div className="space-y-3">
-                  <div className="p-3 bg-red-50 rounded-lg border border-red-200">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <p className="font-medium text-[var(--color-primary)]">Délai de réponse mise en demeure</p>
-                        <p className="text-sm text-gray-600 mt-1">01/02/2024</p>
-                      </div>
-                      <span className="text-xs font-semibold text-red-600">8 jours</span>
-                    </div>
-                  </div>
-                  <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <p className="font-medium text-[var(--color-primary)]">Audience tribunal commerce</p>
-                        <p className="text-sm text-gray-600 mt-1">15/02/2024</p>
-                      </div>
-                      <span className="text-xs font-semibold text-yellow-600">22 jours</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Actions rapides */}
-              <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Actions rapides</h3>
-                <div className="space-y-2">
-                  <button
-                    onClick={() => setShowRetourAmiableModal(true)}
-                    className="w-full px-4 py-2 text-left bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100">
-                    Retourner en amiable
-                  </button>
-                  <button
-                    onClick={() => setShowExpertiseModal(true)}
-                    className="w-full px-4 py-2 text-left bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100">
-                    Demander expertise
-                  </button>
-                  <button
-                    onClick={() => setShowClotureModal(true)}
-                    className="w-full px-4 py-2 text-left bg-gray-50 text-red-600 rounded-lg hover:bg-red-50">
-                    Clôturer le dossier
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        );
-      }
-
-      return null;
-    }
-
-  };
-
   const COLORS = ['#235A6E', '#E89A2E', '#15803D', '#2D7D9A', '#F4A228', '#6B9E6E', '#8BBCCC'];
 
   return (
@@ -8626,7 +8647,7 @@ Service Contentieux
       )}
 
       {/* Analytics Tab avec sous-onglets */}
-      {activeTab === 'analytics' && <AnalyticsTab />}
+      {activeTab === 'analytics' && <AnalyticsTab analyticsData={analyticsData} />}
 
       {/* Créance Detail Modal */}
       {selectedCreance && (
@@ -13134,7 +13155,7 @@ Service Contentieux
       )}
 
       {activeTab === 'contentieux' && (
-        <ContentieuxTab />
+        <ContentieuxTab allJournalEntries={allJournalEntries} getStatutColor={getStatutColor} />
       )}
 
       {/* Modal de création de dossier de recouvrement */}

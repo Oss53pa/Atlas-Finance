@@ -75,6 +75,26 @@ interface CashFlowDirectData {
   isCashFlowBalanced: boolean;
 }
 
+// ─── Module-level sub-components (moved out to avoid React remount focus loss) ─
+const SectionHeader = ({ title, bg }: { title: string; bg?: string }) => (
+  <tr className={bg || 'bg-[var(--color-primary)]/10'}>
+    <td className="px-6 py-3 font-bold text-[var(--color-primary)] text-base">{title}</td>
+    <td className="px-6 py-3"></td>
+  </tr>
+);
+
+const Row = ({ label, value, indent, bold, sign, bg }: { label: string; value: number; indent?: boolean; bold?: boolean; sign?: '+' | '-'; bg?: string }) => {
+  const fmt = useMoneyFormat();
+  return (
+    <tr className={bg || ''}>
+      <td className={`px-6 py-2 ${indent ? 'pl-10' : ''} text-sm ${bold ? 'font-bold text-[var(--color-primary)]' : 'text-[var(--color-primary)]/70'}`}>{label}</td>
+      <td className={`px-6 py-2 text-right text-sm ${bold ? 'font-bold text-[var(--color-primary)] text-lg' : 'font-medium'} ${sign === '-' ? 'text-[var(--color-text-secondary)]' : ''}`}>
+        {sign === '+' && value > 0 ? '+' : ''}{sign === '-' ? '-' : ''}{fmt(sign === '-' ? Math.abs(value) : value)}
+      </td>
+    </tr>
+  );
+};
+
 const CashFlowStatementSYSCOHADA: React.FC = () => {
   const fmt = useMoneyFormat();
   const { adapter } = useData();
@@ -208,21 +228,6 @@ const CashFlowStatementSYSCOHADA: React.FC = () => {
     return 'text-[var(--color-primary)]/70';
   };
 
-  const Row = ({ label, value, indent, bold, sign, bg }: { label: string; value: number; indent?: boolean; bold?: boolean; sign?: '+' | '-'; bg?: string }) => (
-    <tr className={bg || ''}>
-      <td className={`px-6 py-2 ${indent ? 'pl-10' : ''} text-sm ${bold ? 'font-bold text-[var(--color-primary)]' : 'text-[var(--color-primary)]/70'}`}>{label}</td>
-      <td className={`px-6 py-2 text-right text-sm ${bold ? 'font-bold text-[var(--color-primary)] text-lg' : 'font-medium'} ${sign === '-' ? 'text-[var(--color-text-secondary)]' : ''}`}>
-        {sign === '+' && value > 0 ? '+' : ''}{sign === '-' ? '-' : ''}{fmt(sign === '-' ? Math.abs(value) : value)}
-      </td>
-    </tr>
-  );
-
-  const SectionHeader = ({ title, bg }: { title: string; bg?: string }) => (
-    <tr className={bg || 'bg-[var(--color-primary)]/10'}>
-      <td className="px-6 py-3 font-bold text-[var(--color-primary)] text-base">{title}</td>
-      <td className="px-6 py-3"></td>
-    </tr>
-  );
 
   if (isLoading) {
     return (

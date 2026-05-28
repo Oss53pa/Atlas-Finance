@@ -12,143 +12,145 @@ import {
   X
 } from 'lucide-react';
 
-const AssetFormsComparison: React.FC = () => {
-  const [selectedForm, setSelectedForm] = useState<string | null>(null);
+const forms = [
+  {
+    id: 'complete',
+    name: 'Formulaire Complet',
+    description: 'Formulaire détaillé avec tous les champs',
+    icon: FileText,
+    color: '#171717',
+    fields: 45,
+    sections: 8,
+    features: ['Photos', 'QR Codes', 'Géolocalisation', 'Documents attachés']
+  },
+  {
+    id: 'registry',
+    name: 'Registre des Actifs',
+    description: 'Vue registre avec gestion en tableau',
+    icon: Package,
+    color: '#525252',
+    fields: 38,
+    sections: 6,
+    features: ['Import/Export', 'Filtres avancés', 'Actions groupées', 'Historique']
+  },
+  {
+    id: 'simplified',
+    name: 'Formulaire Simplifié',
+    description: 'Version allégée pour saisie rapide',
+    icon: Building,
+    color: '#737373',
+    fields: 20,
+    sections: 4,
+    features: ['Saisie rapide', 'Validation automatique', 'Templates', 'Auto-complétion']
+  },
+  {
+    id: 'financial',
+    name: 'Formulaire Financier',
+    description: 'Focus sur les données comptables',
+    icon: Calculator,
+    color: '#E8D7D3',
+    fields: 25,
+    sections: 5,
+    features: ['Calculs automatiques', 'Amortissements', 'Valeurs fiscales', 'Rapports']
+  },
+  {
+    id: 'maintenance',
+    name: 'Formulaire Maintenance',
+    description: 'Gestion de la maintenance et réparations',
+    icon: Settings,
+    color: '#737373',
+    fields: 30,
+    sections: 6,
+    features: ['Calendrier maintenance', 'Alertes', 'Historique interventions', 'Coûts']
+  }
+];
 
-  const forms = [
-    {
-      id: 'complete',
-      name: 'Formulaire Complet',
-      description: 'Formulaire détaillé avec tous les champs',
-      icon: FileText,
-      color: '#171717',
-      fields: 45,
-      sections: 8,
-      features: ['Photos', 'QR Codes', 'Géolocalisation', 'Documents attachés']
-    },
-    {
-      id: 'registry',
-      name: 'Registre des Actifs',
-      description: 'Vue registre avec gestion en tableau',
-      icon: Package,
-      color: '#525252',
-      fields: 38,
-      sections: 6,
-      features: ['Import/Export', 'Filtres avancés', 'Actions groupées', 'Historique']
-    },
-    {
-      id: 'simplified',
-      name: 'Formulaire Simplifié',
-      description: 'Version allégée pour saisie rapide',
-      icon: Building,
-      color: '#737373',
-      fields: 20,
-      sections: 4,
-      features: ['Saisie rapide', 'Validation automatique', 'Templates', 'Auto-complétion']
-    },
-    {
-      id: 'financial',
-      name: 'Formulaire Financier',
-      description: 'Focus sur les données comptables',
-      icon: Calculator,
-      color: '#E8D7D3',
-      fields: 25,
-      sections: 5,
-      features: ['Calculs automatiques', 'Amortissements', 'Valeurs fiscales', 'Rapports']
-    },
-    {
-      id: 'maintenance',
-      name: 'Formulaire Maintenance',
-      description: 'Gestion de la maintenance et réparations',
-      icon: Settings,
-      color: '#737373',
-      fields: 30,
-      sections: 6,
-      features: ['Calendrier maintenance', 'Alertes', 'Historique interventions', 'Coûts']
-    }
-  ];
+type FormItem = typeof forms[0];
 
-  const FormCard = ({ form }: { form: typeof forms[0] }) => (
-    <div
-      className="bg-white rounded-lg border border-[var(--color-border)] hover:border-[var(--color-primary)]/30 hover:shadow-lg transition-all cursor-pointer group"
-      onClick={() => setSelectedForm(form.id)}
-    >
-      <div className="p-6">
-        {/* Header */}
-        <div className="flex items-start justify-between mb-4">
-          <div
-            className="w-12 h-12 rounded-lg flex items-center justify-center"
-            style={{ backgroundColor: `${form.color}15` }}
-          >
-            <form.icon className="w-6 h-6" style={{ color: form.color }} />
-          </div>
-          <ChevronRight className="w-5 h-5 text-gray-700 group-hover:text-[var(--color-primary)] transition-colors" />
+const FormCard = ({ form, onSelect }: { form: FormItem; onSelect: (id: string) => void }) => (
+  <div
+    className="bg-white rounded-lg border border-[var(--color-border)] hover:border-[var(--color-primary)]/30 hover:shadow-lg transition-all cursor-pointer group"
+    onClick={() => onSelect(form.id)}
+  >
+    <div className="p-6">
+      {/* Header */}
+      <div className="flex items-start justify-between mb-4">
+        <div
+          className="w-12 h-12 rounded-lg flex items-center justify-center"
+          style={{ backgroundColor: `${form.color}15` }}
+        >
+          <form.icon className="w-6 h-6" style={{ color: form.color }} />
         </div>
+        <ChevronRight className="w-5 h-5 text-gray-700 group-hover:text-[var(--color-primary)] transition-colors" />
+      </div>
 
-        {/* Title and Description */}
-        <h3 className="text-lg font-bold text-[var(--color-primary)] mb-2">{form.name}</h3>
-        <p className="text-sm text-[var(--color-text-tertiary)] mb-4">{form.description}</p>
+      {/* Title and Description */}
+      <h3 className="text-lg font-bold text-[var(--color-primary)] mb-2">{form.name}</h3>
+      <p className="text-sm text-[var(--color-text-tertiary)] mb-4">{form.description}</p>
 
-        {/* Stats */}
-        <div className="flex items-center space-x-4 mb-4">
-          <div className="text-center">
-            <p className="text-lg font-bold" style={{ color: form.color }}>{form.fields}</p>
-            <p className="text-xs text-[var(--color-text-tertiary)]">Champs</p>
-          </div>
-          <div className="text-center">
-            <p className="text-lg font-bold text-[#404040]">{form.sections}</p>
-            <p className="text-xs text-[var(--color-text-tertiary)]">Sections</p>
-          </div>
+      {/* Stats */}
+      <div className="flex items-center space-x-4 mb-4">
+        <div className="text-center">
+          <p className="text-lg font-bold" style={{ color: form.color }}>{form.fields}</p>
+          <p className="text-xs text-[var(--color-text-tertiary)]">Champs</p>
         </div>
-
-        {/* Features */}
-        <div className="space-y-2">
-          {form.features.map((feature, index) => (
-            <div key={index} className="flex items-center space-x-2">
-              <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: form.color }} />
-              <span className="text-xs text-[var(--color-text-tertiary)]">{feature}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* Actions */}
-        <div className="flex items-center space-x-2 mt-4 pt-4 border-t border-gray-100">
-          <button
-            className="flex-1 px-3 py-2 text-sm font-medium rounded-lg border transition-colors flex items-center justify-center space-x-2"
-            style={{
-              borderColor: form.color,
-              color: form.color,
-              backgroundColor: `${form.color}10`
-            }}
-            onClick={(e) => {
-              e.stopPropagation();
-              window.location.href = `/assets/${form.id}`;
-            }}
-          >
-            <Eye className="w-4 h-4" />
-            <span>Voir</span>
-          </button>
-          <button
-            className="flex-1 px-3 py-2 text-sm font-medium rounded-lg transition-colors flex items-center justify-center space-x-2 hover:bg-gray-50 border border-gray-200"
-            onClick={(e) => {
-              e.stopPropagation();
-            }}
-          >
-            <Edit className="w-4 h-4" />
-            <span>Éditer</span>
-          </button>
-          <button
-            className="p-2 rounded-lg hover:bg-gray-50 transition-colors border border-gray-200"
-            onClick={(e) => {
-              e.stopPropagation();
-            }}
-          >
-            <Copy className="w-4 h-4 text-gray-700" />
-          </button>
+        <div className="text-center">
+          <p className="text-lg font-bold text-[#404040]">{form.sections}</p>
+          <p className="text-xs text-[var(--color-text-tertiary)]">Sections</p>
         </div>
       </div>
+
+      {/* Features */}
+      <div className="space-y-2">
+        {form.features.map((feature, index) => (
+          <div key={index} className="flex items-center space-x-2">
+            <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: form.color }} />
+            <span className="text-xs text-[var(--color-text-tertiary)]">{feature}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Actions */}
+      <div className="flex items-center space-x-2 mt-4 pt-4 border-t border-gray-100">
+        <button
+          className="flex-1 px-3 py-2 text-sm font-medium rounded-lg border transition-colors flex items-center justify-center space-x-2"
+          style={{
+            borderColor: form.color,
+            color: form.color,
+            backgroundColor: `${form.color}10`
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+            window.location.href = `/assets/${form.id}`;
+          }}
+        >
+          <Eye className="w-4 h-4" />
+          <span>Voir</span>
+        </button>
+        <button
+          className="flex-1 px-3 py-2 text-sm font-medium rounded-lg transition-colors flex items-center justify-center space-x-2 hover:bg-gray-50 border border-gray-200"
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
+        >
+          <Edit className="w-4 h-4" />
+          <span>Éditer</span>
+        </button>
+        <button
+          className="p-2 rounded-lg hover:bg-gray-50 transition-colors border border-gray-200"
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
+        >
+          <Copy className="w-4 h-4 text-gray-700" />
+        </button>
+      </div>
     </div>
-  );
+  </div>
+);
+
+const AssetFormsComparison: React.FC = () => {
+  const [selectedForm, setSelectedForm] = useState<string | null>(null);
 
   return (
     <div className="min-h-screen bg-[var(--color-background)]">
@@ -175,7 +177,7 @@ const AssetFormsComparison: React.FC = () => {
         {/* Comparison Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {forms.map((form) => (
-            <FormCard key={form.id} form={form} />
+            <FormCard key={form.id} form={form} onSelect={setSelectedForm} />
           ))}
         </div>
 

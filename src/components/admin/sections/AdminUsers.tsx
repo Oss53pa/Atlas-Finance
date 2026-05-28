@@ -35,6 +35,21 @@ const roleBadgeColor: Record<string, string> = {
   Lecteur: 'bg-gray-100 text-gray-700',
 };
 
+const AdminUsersTabBar = ({ tabs, active, onSelect }: { tabs: string[]; active: number; onSelect: (i: number) => void }) => (
+  <div className="border-b border-gray-200 mb-6 overflow-x-auto">
+    <nav className="flex space-x-1 -mb-px">
+      {tabs.map((tab, i) => (
+        <button key={i} onClick={() => onSelect(i)}
+          className={`whitespace-nowrap px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+            active === i ? 'border-[#C0322B] text-[#C0322B]' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+          }`}>
+          {tab}
+        </button>
+      ))}
+    </nav>
+  </div>
+);
+
 const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
   const { adapter } = useData();
   const [users, setUsers] = useState<any[]>([]);
@@ -320,21 +335,6 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
 
   const updateField = (field: string, value: string) => setForm(prev => ({ ...prev, [field]: value }));
 
-  const TabBar = ({ tabs, active }: { tabs: string[]; active: number }) => (
-    <div className="border-b border-gray-200 mb-6 overflow-x-auto">
-      <nav className="flex space-x-1 -mb-px">
-        {tabs.map((tab, i) => (
-          <button key={i} onClick={() => setSubTab(i)}
-            className={`whitespace-nowrap px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
-              active === i ? 'border-[#C0322B] text-[#C0322B]' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}>
-            {tab}
-          </button>
-        ))}
-      </nav>
-    </div>
-  );
-
   const togglePerm = (row: number, col: number) => {
     setPermMatrix(prev => prev.map((r, ri) => ri === row ? r.map((c, ci) => ci === col ? !c : c) : r));
   };
@@ -422,7 +422,7 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
   return (
     <div className="p-6">
       <h2 className="text-lg font-bold mb-4">Utilisateurs & Droits</h2>
-      <TabBar tabs={tabs} active={subTab} />
+      <AdminUsersTabBar tabs={tabs} active={subTab} onSelect={setSubTab} />
 
       {subTab === 0 && (
         <div className="space-y-4">

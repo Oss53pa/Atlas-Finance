@@ -289,6 +289,125 @@ const CompleteTaskCard: React.FC<{
   </div>
 );
 
+
+// ─── KanbanView (module level) ──────────────────────────────────────────────
+interface KanbanViewProps {
+  tasksByGroup: Record<string, Task[]>;
+  groupBy: 'status' | 'priority' | 'assignee' | 'project';
+  getStatusColor: (status: string) => string;
+  toggleTaskStatus: (taskId: string) => void;
+  setSelectedTask: React.Dispatch<React.SetStateAction<Task | null>>;
+  setShowTaskDetails: (b: boolean) => void;
+  getPriorityIcon: (priority: string) => React.ReactNode;
+}
+const KanbanView = ({ tasksByGroup, groupBy, getStatusColor, toggleTaskStatus, setSelectedTask, setShowTaskDetails, getPriorityIcon }: KanbanViewProps) => (
+  <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+    {Object.entries(tasksByGroup).map(([group, groupTasks]) => (
+      <div key={group} className="bg-gray-50 rounded-lg p-4 min-h-[400px]">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-semibold text-gray-700 capitalize flex items-center gap-2">
+            {groupBy === 'status' && group === 'in-progress' && <Clock className="w-4 h-4" />}
+            {groupBy === 'status' && group === 'done' && <CheckCircle2 className="w-4 h-4" />}
+            {groupBy === 'status' && group === 'blocked' && <AlertCircle className="w-4 h-4" />}
+            {group.replace('-', ' ')}
+          </h3>
+          <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(group).split(' ').slice(0, 2).join(' ')}`}>
+            {groupTasks.length}
+          </span>
+        </div>
+        <div className="space-y-2">
+          {groupTasks.map(task => (
+            <CompleteTaskCard
+              key={task.id}
+              task={task}
+              onToggleStatus={toggleTaskStatus}
+              onSelect={(t) => { setSelectedTask(t); setShowTaskDetails(true); }}
+              getPriorityIcon={getPriorityIcon}
+            />
+          ))}
+        </div>
+      </div>
+    ))}
+  </div>
+);
+
+// ─── ListView (module level) ─────────────────────────────────────────────────
+interface ListViewProps {
+  filteredTasks: Task[];
+  getStatusColor: (status: string) => string;
+  getPriorityIcon: (priority: string) => React.ReactNode;
+}
+const ListView = ({ filteredTasks, getStatusColor, getPriorityIcon }: ListViewProps) => (
+  <div className="bg-white rounded-lg shadow">
+    <table className="w-full">
+      <thead>
+        <tr className="border-b bg-gray-50">
+          <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Statut</th>
+          <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Titre</th>
+          <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Priorité</th>
+          <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Assigné</th>
+          <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Échéance</th>
+          <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Progrès</th>
+          <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Actions</th>
+        </tr>
+      </thead>
+      <tbody className="divide-y">
+        {filteredTasks.map(task => (
+          <tr key={task.id} className="hover:bg-gray-50 cursor-pointer">
+            <td className="px-4 py-3">
+              <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(task.status)}`}>
+                {task.status}
+              </span>
+            </td>
+            <td className="px-4 py-3">
+              <div>
+                <div className="font-medium">{task.title}</div>
+                {task.tags && (
+                  <div className="flex gap-1 mt-1">
+                    {task.tags.map(tag => (
+                      <span key={tag} className="text-xs text-gray-700">#{tag}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </td>
+            <td className="px-4 py-3">
+              <div className="flex items-center gap-1">
+                {getPriorityIcon(task.priority)}
+                <span className="text-sm capitalize">{task.priority}</span>
+              </div>
+            </td>
+            <td className="px-4 py-3 text-sm">
+              {task.assignee || '-'}
+            </td>
+            <td className="px-4 py-3 text-sm">
+              {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : '-'}
+            </td>
+            <td className="px-4 py-3">
+              {task.progress !== undefined ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-20 h-2 bg-gray-200 rounded-full">
+                    <div
+                      className="h-full bg-[var(--color-primary)] rounded-full"
+                      style={{ width: `${task.progress}%` }}
+                    />
+                  </div>
+                  <span className="text-xs">{task.progress}%</span>
+                </div>
+              ) : '-'}
+            </td>
+            <td className="px-4 py-3">
+              <button className="p-1 hover:bg-gray-100 rounded">
+                <MoreVertical className="w-4 h-4" />
+              </button>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+);
+
 const CompleteTasksModule: React.FC = () => {
   const { t } = useLanguage();
   // Pas de donnees mock — partir d'une liste vide. Les vraies taches
@@ -464,107 +583,6 @@ const CompleteTasksModule: React.FC = () => {
     setTasks(prev => [newTask, ...prev]);
   };
 
-  const KanbanView = () => (
-    <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-      {Object.entries(tasksByGroup).map(([group, groupTasks]) => (
-        <div key={group} className="bg-gray-50 rounded-lg p-4 min-h-[400px]">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-gray-700 capitalize flex items-center gap-2">
-              {groupBy === 'status' && group === 'in-progress' && <Clock className="w-4 h-4" />}
-              {groupBy === 'status' && group === 'done' && <CheckCircle2 className="w-4 h-4" />}
-              {groupBy === 'status' && group === 'blocked' && <AlertCircle className="w-4 h-4" />}
-              {group.replace('-', ' ')}
-            </h3>
-            <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(group).split(' ').slice(0, 2).join(' ')}`}>
-              {groupTasks.length}
-            </span>
-          </div>
-          <div className="space-y-2">
-            {groupTasks.map(task => (
-              <CompleteTaskCard
-                key={task.id}
-                task={task}
-                onToggleStatus={toggleTaskStatus}
-                onSelect={(t) => { setSelectedTask(t); setShowTaskDetails(true); }}
-                getPriorityIcon={getPriorityIcon}
-              />
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-
-  const ListView = () => (
-    <div className="bg-white rounded-lg shadow">
-      <table className="w-full">
-        <thead>
-          <tr className="border-b bg-gray-50">
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Statut</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Titre</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Priorité</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Assigné</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Échéance</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Progrès</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Actions</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y">
-          {filteredTasks.map(task => (
-            <tr key={task.id} className="hover:bg-gray-50 cursor-pointer">
-              <td className="px-4 py-3">
-                <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(task.status)}`}>
-                  {task.status}
-                </span>
-              </td>
-              <td className="px-4 py-3">
-                <div>
-                  <div className="font-medium">{task.title}</div>
-                  {task.tags && (
-                    <div className="flex gap-1 mt-1">
-                      {task.tags.map(tag => (
-                        <span key={tag} className="text-xs text-gray-700">#{tag}</span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </td>
-              <td className="px-4 py-3">
-                <div className="flex items-center gap-1">
-                  {getPriorityIcon(task.priority)}
-                  <span className="text-sm capitalize">{task.priority}</span>
-                </div>
-              </td>
-              <td className="px-4 py-3 text-sm">
-                {task.assignee || '-'}
-              </td>
-              <td className="px-4 py-3 text-sm">
-                {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : '-'}
-              </td>
-              <td className="px-4 py-3">
-                {task.progress !== undefined ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-20 h-2 bg-gray-200 rounded-full">
-                      <div
-                        className="h-full bg-[var(--color-primary)] rounded-full"
-                        style={{ width: `${task.progress}%` }}
-                      />
-                    </div>
-                    <span className="text-xs">{task.progress}%</span>
-                  </div>
-                ) : '-'}
-              </td>
-              <td className="px-4 py-3">
-                <button className="p-1 hover:bg-gray-100 rounded">
-                  <MoreVertical className="w-4 h-4" />
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
 
   return (
     <div className="h-full bg-gray-50 flex flex-col">
@@ -771,8 +789,8 @@ const CompleteTasksModule: React.FC = () => {
       <div className="flex-1 overflow-auto p-6">
         {activeTab === 'tasks' && (
           <>
-            {viewMode === 'kanban' && <KanbanView />}
-            {viewMode === 'list' && <ListView />}
+            {viewMode === 'kanban' && <KanbanView tasksByGroup={tasksByGroup} groupBy={groupBy} getStatusColor={getStatusColor} toggleTaskStatus={toggleTaskStatus} setSelectedTask={setSelectedTask} setShowTaskDetails={setShowTaskDetails} getPriorityIcon={getPriorityIcon} />}
+            {viewMode === 'list' && <ListView filteredTasks={filteredTasks} getStatusColor={getStatusColor} getPriorityIcon={getPriorityIcon} />}
             {viewMode === 'calendar' && (
               <div className="bg-white rounded-lg p-6 text-center">
                 <CalendarDays className="w-12 h-12 mx-auto mb-4 text-gray-700" />

@@ -54,6 +54,27 @@ interface AssetMasterDataModalProps {
   handleSaveAsset: () => void;
 }
 
+const ElegantButton = ({ variant = 'primary', onClick, children, className = '' }: {
+  variant?: 'primary' | 'outline';
+  onClick?: () => void;
+  children: React.ReactNode;
+  className?: string;
+}) => {
+  const variants: Record<string, string> = {
+    primary: 'bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)]',
+    outline: 'border border-gray-300 text-gray-700 hover:bg-gray-50'
+  };
+
+  return (
+    <button
+      onClick={onClick}
+      className={`px-4 py-2 rounded-lg transition-colors ${variants[variant]} ${className}`}
+    >
+      {children}
+    </button>
+  );
+};
+
 const AssetMasterDataModal: React.FC<AssetMasterDataModalProps> = ({
   showModal,
   onClose,
@@ -71,29 +92,6 @@ const AssetMasterDataModal: React.FC<AssetMasterDataModalProps> = ({
   wiseFMData,
   handleSaveAsset
 }) => {
-
-
-  const ElegantButton = ({ variant = 'primary', onClick, children, className = '' }: {
-    variant?: 'primary' | 'outline';
-    onClick?: () => void;
-    children: React.ReactNode;
-    className?: string;
-  }) => {
-    const variants: Record<string, string> = {
-      primary: 'bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)]',
-      outline: 'border border-gray-300 text-gray-700 hover:bg-gray-50'
-    };
-
-    return (
-      <button
-        onClick={onClick}
-        className={`px-4 py-2 rounded-lg transition-colors ${variants[variant]} ${className}`}
-      >
-        {children}
-      </button>
-    );
-  };
-
   if (!showModal) return null;
 
   return (
