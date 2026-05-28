@@ -35,8 +35,13 @@ export const AccessibilityProvider: React.FC<AccessibilityProviderProps> = ({ ch
     setPreferences((prev) => ({ ...prev, ...newPrefs }));
   }, []);
 
+  const value = React.useMemo(
+    () => ({ preferences, updatePreferences }),
+    [preferences, updatePreferences],
+  );
+
   return (
-    <AccessibilityContext.Provider value={{ preferences, updatePreferences }}>
+    <AccessibilityContext.Provider value={value}>
       {children}
     </AccessibilityContext.Provider>
   );

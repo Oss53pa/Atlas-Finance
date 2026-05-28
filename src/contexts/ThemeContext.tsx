@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import { themes, defaultTheme, getThemeCSSVariables, Theme, ThemeType, ThemeContextValue } from '../styles/theme';
 import { safeStorage } from '../utils/safeStorage';
 
@@ -56,15 +56,17 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     safeStorage.set('atlas-fna-theme', themeType);
   }, [theme, themeType]);
 
-  const setTheme = (type: ThemeType) => {
+  const setTheme = useCallback((type: ThemeType) => {
     if (type in themes) {
       setThemeType(type);
       setThemeState(themes[type]);
     }
-  };
+  }, []);
+
+  const value = useMemo(() => ({ theme, themeType, setTheme }), [theme, themeType, setTheme]);
 
   return (
-    <ThemeContext.Provider value={{ theme, themeType, setTheme }}>
+    <ThemeContext.Provider value={value}>
       {children}
     </ThemeContext.Provider>
   );

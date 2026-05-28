@@ -3,7 +3,7 @@
  * Provider pour intégrer le chatbot intelligent dans l'application
  */
 
-import React, { useState, createContext, useContext } from 'react';
+import React, { useState, createContext, useContext, useMemo, useCallback } from 'react';
 import { ChatWidget } from '../chatbot';
 import { FeatureGate } from '../gating';
 
@@ -35,16 +35,14 @@ export const ChatbotProvider: React.FC<ChatbotProviderProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
-  const toggle = () => setIsOpen(prev => !prev);
-  const open = () => setIsOpen(true);
-  const close = () => setIsOpen(false);
+  const toggle = useCallback(() => setIsOpen(prev => !prev), []);
+  const open = useCallback(() => setIsOpen(true), []);
+  const close = useCallback(() => setIsOpen(false), []);
 
-  const contextValue: ChatbotContextType = {
-    isOpen,
-    toggle,
-    open,
-    close,
-  };
+  const contextValue: ChatbotContextType = useMemo(
+    () => ({ isOpen, toggle, open, close }),
+    [isOpen, toggle, open, close],
+  );
 
   return (
     <ChatbotContext.Provider value={contextValue}>
