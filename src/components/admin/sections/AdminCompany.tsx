@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
 import {
   Building2, Image, CalendarDays, Coins, BookOpen, Receipt, Boxes,
   Plus, Search, Edit2, Trash2, Star, Upload, X, Save, Loader2
@@ -37,9 +37,13 @@ const SelectField: React.FC<{ label:string;value:string;onChange:(v:string)=>voi
 const Badge: React.FC<{ text:string;color?:string }> = ({ text,color='gray' }) => { const c: Record<string,string> = { green:'bg-green-100 text-green-700',red:'bg-red-100 text-red-700',blue:'bg-blue-100 text-blue-700',yellow:'bg-yellow-100 text-yellow-700',gray:'bg-gray-100 text-gray-700',primary:'bg-primary-100 text-primary-700' }; return <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${c[color]||c.gray}`}>{text}</span>; };
 
 // ─── LegalInfoSection ─────────────────────────────────────────────────────────
-// CONTROLLED inputs with LOCAL state — l'état vit DANS ce composant, pas dans
-// AdminCompany. Taper n'entraîne donc AUCUN re-render de l'ancêtre. React ne
-// peut pas re-monter ce composant à cause d'une frappe clavier.
+// CONTROLLED inputs + LOCAL state + useLayoutEffect focus-lock.
+//
+// Triple protection anti-perte-de-focus :
+//   1. État LOCAL  — taper ne re-rend PAS AdminCompany → pas de remontage
+//   2. useLayoutEffect — après chaque re-render, si un champ était focalisé
+//      il est immédiatement re-focalisé (avant que le navigateur peigne)
+//   3. FocusGuardV2 (main.tsx) — filet de sécurité global
 const DEFAULT_LEGAL = { raisonSociale:'',formeJuridique:'SARL',nif:'',rccm:'',capitalSocial:'',regimeFiscal:'Reel normal',adresse:'',ville:'',pays:"Cote d'Ivoire",telephone:'',email:'',siteWeb:'' };
 
 interface LegalInfoSectionProps {
@@ -50,11 +54,41 @@ interface LegalInfoSectionProps {
 const CLS = "w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none";
 
 const LegalInfoSection: React.FC<LegalInfoSectionProps> = ({ initialValues, saveSetting }) => {
-  // État LOCAL — les mises à jour restent ici, AdminCompany ne re-rend PAS
   const [form, setForm] = useState({ ...DEFAULT_LEGAL, ...initialValues });
+  const formRef = useRef<HTMLFormElement>(null);
+
+  // ── Focus lock ──────────────────────────────────────────────────────────────
+  // Ref pour l'id de l'input actuellement focalisé dans CE formulaire.
+  const focusedIdRef = useRef<string | null>(null);
+  // Ref pour la position curseur (pour restaurer correctement après re-render)
+  const selRef = useRef<[number,number]>([0,0]);
+
+  // Après CHAQUE re-render (sans dépendances = synchrone pré-paint) :
+  // si un champ était focalisé dans ce formulaire, on le re-focalise.
+  useLayoutEffect(() => {
+    const id = focusedIdRef.current;
+    if (!id || !formRef.current) return;
+    const el = formRef.current.querySelector<HTMLElement>(`#${id}`);
+    if (!el || document.activeElement === el) return; // déjà focalisé → rien
+    el.focus({ preventScroll: true });
+    // Restaurer la position curseur pour les inputs texte
+    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+      try {
+        const inp = el as HTMLInputElement;
+        inp.setSelectionRange(selRef.current[0], selRef.current[1]);
+      } catch { /* number / date / select — setSelectionRange non supporté */ }
+    }
+  });
+
+  // onChange : capture la position curseur AVANT le re-render
   const set = useCallback((field: string) =>
-    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
-      setForm(prev => ({ ...prev, [field]: e.target.value })),
+    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+      if (e.target.tagName !== 'SELECT') {
+        const t = e.target as HTMLInputElement;
+        selRef.current = [t.selectionStart ?? 0, t.selectionEnd ?? 0];
+      }
+      setForm(prev => ({ ...prev, [field]: e.target.value }));
+    },
   []);
 
   const handleSave = useCallback(async () => {
@@ -63,32 +97,48 @@ const LegalInfoSection: React.FC<LegalInfoSectionProps> = ({ initialValues, save
     toast.success('Informations legales enregistrees avec succes');
   }, [form, saveSetting]);
 
+  // Helpers onFocus / onBlur pour les inputs — standardisés
+  const onFocus = useCallback((id: string) => () => { focusedIdRef.current = id; }, []);
+  const onBlurField = useCallback((e: React.FocusEvent) => {
+    const related = e.relatedTarget as HTMLElement | null;
+    if (
+      !related ||
+      !formRef.current?.contains(related) ||
+      !['INPUT','TEXTAREA','SELECT'].includes(related.tagName)
+    ) {
+      // Focus quitte le formulaire OU va vers un non-input (ex: bouton Enregistrer)
+      // → arrêter le tracking pour ne pas interférer
+      focusedIdRef.current = null;
+    }
+    // Si focus va vers un autre input/select du formulaire, onFocus l'a déjà mis à jour
+  }, []);
+
   return (
-    <form onSubmit={e=>{e.preventDefault();handleSave();}} className="space-y-6">
+    <form ref={formRef} onSubmit={e=>{e.preventDefault();handleSave();}} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div><label className="block text-sm font-medium text-gray-700 mb-1">Raison sociale<span className="text-red-500 ml-1">*</span></label><input type="text" value={form.raisonSociale} onChange={set('raisonSociale')} className={CLS} /></div>
-        <div><label className="block text-sm font-medium text-gray-700 mb-1">Forme juridique</label><select value={form.formeJuridique} onChange={set('formeJuridique')} className={CLS+' bg-white'}>{['SARL','SA','SAS','SNC','Entreprise individuelle','GIE'].map(f=><option key={f} value={f}>{f}</option>)}</select></div>
-        <div><label className="block text-sm font-medium text-gray-700 mb-1">NIF</label><input type="text" value={form.nif} onChange={set('nif')} className={CLS} /></div>
-        <div><label className="block text-sm font-medium text-gray-700 mb-1">RCCM</label><input type="text" value={form.rccm} onChange={set('rccm')} className={CLS} /></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-raisonSociale">Raison sociale<span className="text-red-500 ml-1">*</span></label><input id="li-raisonSociale" type="text" value={form.raisonSociale} onChange={set('raisonSociale')} onFocus={onFocus('li-raisonSociale')} onBlur={onBlurField} className={CLS} /></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-formeJuridique">Forme juridique</label><select id="li-formeJuridique" value={form.formeJuridique} onChange={set('formeJuridique')} onFocus={onFocus('li-formeJuridique')} onBlur={onBlurField} className={CLS+' bg-white'}>{['SARL','SA','SAS','SNC','Entreprise individuelle','GIE'].map(f=><option key={f} value={f}>{f}</option>)}</select></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-nif">NIF</label><input id="li-nif" type="text" value={form.nif} onChange={set('nif')} onFocus={onFocus('li-nif')} onBlur={onBlurField} className={CLS} /></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-rccm">RCCM</label><input id="li-rccm" type="text" value={form.rccm} onChange={set('rccm')} onFocus={onFocus('li-rccm')} onBlur={onBlurField} className={CLS} /></div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Capital social</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-capitalSocial">Capital social</label>
           <div className="flex">
-            <input type="number" value={form.capitalSocial} onChange={set('capitalSocial')} className="flex-1 px-3 py-2 border border-gray-300 rounded-l-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none" />
+            <input id="li-capitalSocial" type="number" value={form.capitalSocial} onChange={set('capitalSocial')} onFocus={onFocus('li-capitalSocial')} onBlur={onBlurField} className="flex-1 px-3 py-2 border border-gray-300 rounded-l-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none" />
             <span className="px-3 py-2 bg-gray-100 border border-l-0 border-gray-300 rounded-r-lg text-sm text-gray-600">FCFA</span>
           </div>
         </div>
-        <div><label className="block text-sm font-medium text-gray-700 mb-1">Regime fiscal</label><select value={form.regimeFiscal} onChange={set('regimeFiscal')} className={CLS+' bg-white'}>{['Reel normal','Reel simplifie','BIC','BNC'].map(r=><option key={r} value={r}>{r}</option>)}</select></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-regimeFiscal">Regime fiscal</label><select id="li-regimeFiscal" value={form.regimeFiscal} onChange={set('regimeFiscal')} onFocus={onFocus('li-regimeFiscal')} onBlur={onBlurField} className={CLS+' bg-white'}>{['Reel normal','Reel simplifie','BIC','BNC'].map(r=><option key={r} value={r}>{r}</option>)}</select></div>
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Adresse siege</label>
-        <textarea value={form.adresse} onChange={set('adresse')} rows={3} className={CLS} />
+        <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-adresse">Adresse siege</label>
+        <textarea id="li-adresse" value={form.adresse} onChange={set('adresse')} onFocus={onFocus('li-adresse')} onBlur={onBlurField} rows={3} className={CLS} />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div><label className="block text-sm font-medium text-gray-700 mb-1">Ville</label><input type="text" value={form.ville} onChange={set('ville')} className={CLS} /></div>
-        <div><label className="block text-sm font-medium text-gray-700 mb-1">Pays</label><select value={form.pays} onChange={set('pays')} className={CLS+' bg-white'}>{OHADA_COUNTRIES.map(c=><option key={c} value={c}>{c}</option>)}</select></div>
-        <div><label className="block text-sm font-medium text-gray-700 mb-1">Telephone</label><input type="text" value={form.telephone} onChange={set('telephone')} className={CLS} /></div>
-        <div><label className="block text-sm font-medium text-gray-700 mb-1">Email</label><input type="email" value={form.email} onChange={set('email')} className={CLS} /></div>
-        <div><label className="block text-sm font-medium text-gray-700 mb-1">Site web</label><input type="text" value={form.siteWeb} onChange={set('siteWeb')} className={CLS} /></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-ville">Ville</label><input id="li-ville" type="text" value={form.ville} onChange={set('ville')} onFocus={onFocus('li-ville')} onBlur={onBlurField} className={CLS} /></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-pays">Pays</label><select id="li-pays" value={form.pays} onChange={set('pays')} onFocus={onFocus('li-pays')} onBlur={onBlurField} className={CLS+' bg-white'}>{OHADA_COUNTRIES.map(c=><option key={c} value={c}>{c}</option>)}</select></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-telephone">Telephone</label><input id="li-telephone" type="text" value={form.telephone} onChange={set('telephone')} onFocus={onFocus('li-telephone')} onBlur={onBlurField} className={CLS} /></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-email">Email</label><input id="li-email" type="email" value={form.email} onChange={set('email')} onFocus={onFocus('li-email')} onBlur={onBlurField} className={CLS} /></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-siteWeb">Site web</label><input id="li-siteWeb" type="text" value={form.siteWeb} onChange={set('siteWeb')} onFocus={onFocus('li-siteWeb')} onBlur={onBlurField} className={CLS} /></div>
       </div>
       <div className="flex justify-end">
         <button type="submit" className="flex items-center gap-2 px-6 py-2 text-white rounded-lg hover:opacity-90" style={{backgroundColor:'#C0322B'}}>
