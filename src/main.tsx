@@ -38,81 +38,149 @@ if (SENTRY_DSN) {
 import './styles/base.css'
 import './index.css'
 
-// ── Focus Guard ────────────────────────────────────────────────────────────────
-// Problème : des inputs perdent le focus à chaque frappe clavier sur TOUTES les
-// pages. Cause probable : un composant React est re-monté (key change, inline
-// component definition, conditional render) et React déplace le focus vers
-// document.body silencieusement.
+// ── Focus Guard v2 ────────────────────────────────────────────────────────────
+// Problème persistant : chaque frappe clavier fait perdre le focus sur TOUS les
+// inputs. Le guard v1 échouait car il vérifiait relatedTarget===null — mais quand
+// React re-monte un input ET focus immédiatement le nouveau nœud, relatedTarget
+// pointe vers le nouveau nœud (≠ null) → le guard v1 ignorait ce cas.
 //
-// Ce guard détecte le pattern "focus → body sans interaction pointeur" et :
-//   • restaure le focus sur l'élément original (correction visible)
-//   • logge l'élément ET la stacktrace en DEV (aide au diagnostic)
+// Guard v2 : APPROCHE KEYDOWN
+// Au lieu d'écouter focusout, on écoute keydown AVANT que React puisse re-rendre.
+// On mémorise quel input est focalisé + sa valeur + sa position curseur.
+// Après le prochain rAF (React a fini de re-rendre), on vérifie :
+//   → si l'input original est toujours focalisé : OK rien à faire
+//   → si focus parti sur body : React a retiré l'élément → restaurer
+//   → si focus parti sur un AUTRE input de même nom/id : React a re-monté
+//     l'input → restaurer la valeur tapée + re-focaliser le nouveau nœud
+//   → si focus parti sur un élément NON-input différent : action utilisateur
+//     intentionnelle (clic bouton, Tab) → ne rien faire
 //
-// Logique :
-//   - Si relatedTarget != null → l'utilisateur a cliqué ailleurs → ne rien faire
-//   - Si pointerdown récent (<300 ms) → clic intentionnel → ne rien faire
-//   - Si l'élément n'est plus dans le DOM → il a été vraiment retiré → ne rien faire
-//   - Sinon : focus volé par React → restaurer + loguer
-(function installFocusGuard(): void {
-  let lastPointerMs = 0;
+// MutationObserver DEV : logge chaque ajout/suppression d'input pour confirmer
+// que le problème est bien un re-montage et identifier le composant responsable.
+(function installFocusGuardV2(): void {
 
-  document.addEventListener('pointerdown', () => {
-    lastPointerMs = Date.now();
-  }, { capture: true, passive: true });
+  // ── MutationObserver (DEV uniquement) ──────────────────────────────────────
+  if (import.meta.env.DEV) {
+    const obs = new MutationObserver((mutations) => {
+      for (const m of mutations) {
+        const check = (nodes: NodeList, action: string) => {
+          nodes.forEach((n) => {
+            if (n.nodeType !== 1) return;
+            const el = n as Element;
+            const inputs: Element[] = ['INPUT','TEXTAREA','SELECT'].includes(el.tagName)
+              ? [el]
+              : Array.from(el.querySelectorAll('input,textarea,select'));
+            inputs.forEach((inp) => {
+              const i = inp as HTMLInputElement;
+              if (!i.name && !i.id && !i.placeholder) return; // skip anonymous
+              console.warn(
+                `[MutObs] INPUT ${action}: <${i.tagName}> name="${i.name}" ` +
+                `id="${i.id}" placeholder="${i.placeholder?.slice(0,25)}"`,
+              );
+            });
+          });
+        };
+        check(m.removedNodes, 'REMOVED');
+        check(m.addedNodes,   'ADDED');
+      }
+    });
+    obs.observe(document.body, { childList: true, subtree: true });
+  }
 
-  document.addEventListener('focusout', (e: FocusEvent) => {
-    const lost = e.target as HTMLElement;
-    const tag = lost.tagName;
-    // On ne surveille que les éléments de saisie
+  // ── Focus restoration ──────────────────────────────────────────────────────
+  // On ne s'active PAS sur Tab (navigation intentionnelle)
+  const SKIP_KEYS = new Set(['Tab','Escape','Enter','F1','F2','F3','F4','F5',
+    'F6','F7','F8','F9','F10','F11','F12']);
+
+  document.addEventListener('keydown', (e: KeyboardEvent) => {
+    // Touches de navigation ou modificateurs seuls → ignorer
+    if (SKIP_KEYS.has(e.key) || e.altKey || e.ctrlKey || e.metaKey) return;
+
+    const active = document.activeElement as HTMLElement | null;
+    if (!active) return;
+    const tag = active.tagName;
     if (tag !== 'INPUT' && tag !== 'TEXTAREA' && tag !== 'SELECT') return;
-    // L'utilisateur a intentionnellement changé le focus vers un autre élément
-    if (e.relatedTarget !== null) return;
-    // Clic souris/tactile récent → pas une perte accidentelle
-    if (Date.now() - lastPointerMs < 300) return;
+    if ((active as HTMLInputElement).disabled || (active as HTMLInputElement).readOnly) return;
 
-    // Capturer les identifiants AVANT le rAF (l'élément peut disparaître)
-    const lostName        = (lost as HTMLInputElement).name;
-    const lostId          = lost.id;
-    const lostPlaceholder = (lost as HTMLInputElement).placeholder;
+    // Capturer AVANT que React re-rende
+    const snapshot = {
+      el:          active,
+      tag,
+      name:        (active as HTMLInputElement).name,
+      id:          active.id,
+      placeholder: (active as HTMLInputElement).placeholder,
+      value:       (active as HTMLInputElement).value,
+      selStart:    (active as HTMLInputElement).selectionStart ?? 0,
+      selEnd:      (active as HTMLInputElement).selectionEnd   ?? 0,
+    };
 
+    // Après que React a fini de re-rendre
     requestAnimationFrame(() => {
-      // Focus est allé ailleurs (Tab, clic, etc.) — rien à faire
-      if (document.activeElement !== document.body && document.activeElement != null) return;
+      const nowActive = document.activeElement as HTMLElement | null;
 
+      // Toujours focalisé sur le même nœud DOM → rien à faire
+      if (nowActive === snapshot.el) return;
+
+      // L'utilisateur a cliqué ou tabé vers un élément non-input → action
+      // intentionnelle → ne pas interférer
+      if (nowActive && nowActive !== document.body &&
+          nowActive.tagName !== 'INPUT' &&
+          nowActive.tagName !== 'TEXTAREA' &&
+          nowActive.tagName !== 'SELECT') {
+        return;
+      }
+
+      // --- Trouver le nœud cible à re-focaliser ---
       let target: HTMLElement | null = null;
+      let isRemount = false;
 
-      if (document.body.contains(lost) && !(lost as HTMLInputElement).disabled) {
-        // Cas 1 : l'élément est TOUJOURS dans le DOM — focus volé par autre chose
-        target = lost;
+      if (document.body.contains(snapshot.el) && !(snapshot.el as HTMLInputElement).disabled) {
+        // Nœud original encore présent : focus simplement perdu → le redonner
+        target = snapshot.el;
       } else {
-        // Cas 2 : l'élément a été RE-MONTÉ par React (ancien nœud supprimé,
-        // nouveau nœud créé). On cherche le nouveau par attributs identifiants.
-        const tagLow = tag.toLowerCase();
-        const selector = lostName        ? `${tagLow}[name="${lostName}"]`
-                       : lostId          ? `#${lostId}`
-                       : lostPlaceholder ? `${tagLow}[placeholder="${lostPlaceholder}"]`
-                       : null;
-        if (selector) {
-          target = document.querySelector<HTMLElement>(selector);
-          if (target && (target as HTMLInputElement).disabled) target = null;
-        }
+        // Nœud original supprimé → React l'a re-monté
+        isRemount = true;
+        const tagLow = snapshot.tag.toLowerCase();
+        const sel = snapshot.name        ? `${tagLow}[name="${snapshot.name}"]`
+                  : snapshot.id          ? `#${snapshot.id}`
+                  : snapshot.placeholder ? `${tagLow}[placeholder="${snapshot.placeholder}"]`
+                  : null;
+        if (sel) target = document.querySelector<HTMLElement>(sel);
+        if (target && (target as HTMLInputElement).disabled) target = null;
       }
 
       if (!target) return;
 
+      // Si le nouveau nœud était déjà focalisé par React (remontage avec autoFocus
+      // ou appel .focus() interne) → on ne re-focus pas une deuxième fois, mais
+      // on restaure quand même la valeur si l'input est non-contrôlé
+      const alreadyFocused = (nowActive === target);
+
+      if (isRemount) {
+        const t = target as HTMLInputElement;
+        // Restaurer la valeur saisie (perdue au remontage pour les inputs non-contrôlés)
+        if (t.value !== snapshot.value) {
+          t.value = snapshot.value;
+        }
+        // Restaurer la position curseur
+        try { t.setSelectionRange(snapshot.selStart, snapshot.selEnd); } catch { /* select/date ignoré */ }
+      }
+
+      if (!alreadyFocused) {
+        target.focus({ preventScroll: true });
+      }
+
       if (import.meta.env.DEV) {
-        const name = lostName || lostPlaceholder || lostId || tag;
-        const remounted = target !== lost;
         console.warn(
-          `[FocusGuard] focus volé sur <${tag}> "${name}"` +
-          (remounted ? ' [élément RE-MONTÉ]' : '') +
-          ' — restauration.',
-          new Error('stacktrace').stack,
+          `[FocusGuardV2] focus perdu après keydown sur <${snapshot.tag}> ` +
+          `"${snapshot.name || snapshot.placeholder || snapshot.id}"` +
+          (isRemount ? ' [RE-MONTÉ → valeur restaurée]' : ' [focus volé]') +
+          (alreadyFocused ? ' [déjà focalisé par React]' : ' [re-focus appliqué]'),
         );
       }
-      target.focus({ preventScroll: true });
     });
-  }, true);
+  }, { capture: true, passive: true });
+
 })();
 
 // DEBUG - Test des providers un par un
