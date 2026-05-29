@@ -58,6 +58,21 @@ export class SupabaseAdapter implements DataAdapter {
   private tenantId: string
 
   /**
+   * Tables racines (tables "tenant" elles-mêmes) qui n'ont PAS de colonne
+   * tenant_id — elles SONT l'entité tenant. Toute requête sur ces tables
+   * filtre par `id = tenantId` (getAll) ou n'ajoute pas de filtre tenant
+   * (getById, update, delete) et n'injecte pas tenant_id dans les inserts.
+   */
+  private static readonly ROOT_TABLES = new Set(['societes'])
+
+  /**
+   * Indique si la table pg est une "root table" (pas de colonne tenant_id).
+   */
+  private isRootTable(pgTable: string): boolean {
+    return SupabaseAdapter.ROOT_TABLES.has(pgTable)
+  }
+
+  /**
    * Cree l'adapter Supabase.
    *
    * IMPORTANT : si l'app a deja un client Supabase global (avec session
@@ -89,17 +104,23 @@ export class SupabaseAdapter implements DataAdapter {
   }
 
   async getById<T>(table: TableName, id: string): Promise<T | null> {
+    const pg = this.pgTable(table)
     // maybeSingle : retourne null si pas de row (au lieu de throw 406).
-    const { data } = await this.client
-      .from(this.pgTable(table)).select('*')
-      .eq('id', id).eq('tenant_id', this.tenantId)
-      .maybeSingle()
+    // ROOT_TABLES (ex: societes) : pas de colonne tenant_id → filtrer par id seul.
+    let q = this.client.from(pg).select('*').eq('id', id)
+    if (!this.isRootTable(pg)) q = q.eq('tenant_id', this.tenantId)
+    const { data } = await q.maybeSingle()
     return data as T | null
   }
 
   async getAll<T>(table: TableName, filters?: QueryFilters): Promise<T[]> {
+    const pg = this.pgTable(table)
     try {
-      let query = this.client.from(this.pgTable(table)).select('*').eq('tenant_id', this.tenantId)
+      // ROOT_TABLES (ex: societes) : pas de colonne tenant_id.
+      // getAll('companies') = "donne-moi MA société" → filtrer par id = tenantId.
+      let query = this.isRootTable(pg)
+        ? this.client.from(pg).select('*').eq('id', this.tenantId)
+        : this.client.from(pg).select('*').eq('tenant_id', this.tenantId)
 
       if (filters?.where) {
         for (const [k, v] of Object.entries(filters.where)) {
@@ -135,31 +156,35 @@ export class SupabaseAdapter implements DataAdapter {
    */
   async createMany<T>(table: TableName, items: any[]): Promise<T[]> {
     if (!items || items.length === 0) return []
+    const pg = this.pgTable(table)
     const now = new Date().toISOString()
     const records = items.map(item => ({
       ...item,
       id: item.id ?? crypto.randomUUID(),
-      tenant_id: this.tenantId,
+      // ROOT_TABLES n'ont pas de colonne tenant_id
+      ...(!this.isRootTable(pg) ? { tenant_id: this.tenantId } : {}),
       created_at: now,
     }))
     const { data, error } = await this.client
-      .from(this.pgTable(table)).insert(records).select()
+      .from(pg).insert(records).select()
     if (error) throw new Error(`CreateMany failed: ${error.message}`)
     return (data || []) as T[]
   }
 
   async create<T>(table: TableName, data: any, initiatedBy?: string): Promise<T> {
+    const pg = this.pgTable(table)
     const record = {
       ...data,
       // P0-4 / F2-4 : respecter l'id fourni par l'appelant (cohérent avec
       // createMany et avec le DexieAdapter), sinon les liens pré-calculés
       // (reversedBy, hash) pointent dans le vide.
       id: data?.id ?? crypto.randomUUID(),
-      tenant_id: this.tenantId,
+      // ROOT_TABLES (societes) n'ont pas de colonne tenant_id
+      ...(!this.isRootTable(pg) ? { tenant_id: this.tenantId } : {}),
       created_at: new Date().toISOString(),
     }
     const { data: created, error } = await this.client
-      .from(this.pgTable(table)).insert(record).select().single()
+      .from(pg).insert(record).select().single()
     if (error) throw new Error(`Create failed: ${error.message}`)
 
     if (initiatedBy) {
@@ -197,8 +222,10 @@ export class SupabaseAdapter implements DataAdapter {
         }
       }
     }
-    const { data: updated, error } = await this.client
-      .from(this.pgTable(table)).update(data).eq('id', id).eq('tenant_id', this.tenantId).select().single()
+    const pgT = this.pgTable(table)
+    let uq = this.client.from(pgT).update(data).eq('id', id)
+    if (!this.isRootTable(pgT)) uq = uq.eq('tenant_id', this.tenantId)
+    const { data: updated, error } = await uq.select().single()
     if (error) throw new Error(`Update failed: ${error.message}`)
 
     if (initiatedBy) {
@@ -226,8 +253,10 @@ export class SupabaseAdapter implements DataAdapter {
         )
       }
     }
-    const { error } = await this.client
-      .from(this.pgTable(table)).delete().eq('id', id).eq('tenant_id', this.tenantId)
+    const pgDel = this.pgTable(table)
+    let dq = this.client.from(pgDel).delete().eq('id', id)
+    if (!this.isRootTable(pgDel)) dq = dq.eq('tenant_id', this.tenantId)
+    const { error } = await dq
     if (error) throw new Error(`Delete failed: ${error.message}`)
 
     if (initiatedBy) {
@@ -244,8 +273,10 @@ export class SupabaseAdapter implements DataAdapter {
   }
 
   async count(table: TableName, filters?: QueryFilters): Promise<number> {
+    const pgC = this.pgTable(table)
     try {
-      let query = this.client.from(this.pgTable(table)).select('*', { count: 'exact', head: true }).eq('tenant_id', this.tenantId)
+      let query = this.client.from(pgC).select('*', { count: 'exact', head: true })
+      if (!this.isRootTable(pgC)) query = query.eq('tenant_id', this.tenantId)
       if (filters?.where) {
         for (const [k, v] of Object.entries(filters.where)) {
           query = query.eq(k, v)
