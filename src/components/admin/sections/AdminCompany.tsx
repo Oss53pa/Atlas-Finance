@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Building2, Image, CalendarDays, Coins, BookOpen, Receipt, Boxes,
   Plus, Search, Edit2, Trash2, Star, Upload, X, Save, Loader2
@@ -37,7 +37,8 @@ const SelectField: React.FC<{ label:string;value:string;onChange:(v:string)=>voi
 const Badge: React.FC<{ text:string;color?:string }> = ({ text,color='gray' }) => { const c: Record<string,string> = { green:'bg-green-100 text-green-700',red:'bg-red-100 text-red-700',blue:'bg-blue-100 text-blue-700',yellow:'bg-yellow-100 text-yellow-700',gray:'bg-gray-100 text-gray-700',primary:'bg-primary-100 text-primary-700' }; return <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${c[color]||c.gray}`}>{text}</span>; };
 
 // ─── LegalInfoSection ─────────────────────────────────────────────────────────
-// Isolated component with its OWN state so typing never re-renders AdminCompany
+// UNCONTROLLED inputs — React never writes to input.value after mount.
+// This guarantees focus is NEVER lost regardless of any re-render in the tree.
 const DEFAULT_LEGAL = { raisonSociale:'',formeJuridique:'SARL',nif:'',rccm:'',capitalSocial:'',regimeFiscal:'Reel normal',adresse:'',ville:'',pays:"Cote d'Ivoire",telephone:'',email:'',siteWeb:'' };
 
 interface LegalInfoSectionProps {
@@ -45,52 +46,54 @@ interface LegalInfoSectionProps {
   saveSetting: (key: string, value: any) => Promise<void>;
 }
 
-const LegalInfoSection: React.FC<LegalInfoSectionProps> = ({ initialValues, saveSetting }) => {
-  const [form, setForm] = useState<typeof DEFAULT_LEGAL>({ ...DEFAULT_LEGAL, ...initialValues });
+const CLS = "w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none";
 
-  const set = useCallback((field: keyof typeof DEFAULT_LEGAL, value: string) => {
-    setForm(prev => ({ ...prev, [field]: value } as typeof DEFAULT_LEGAL));
-  }, []);
+const LegalInfoSection: React.FC<LegalInfoSectionProps> = ({ initialValues, saveSetting }) => {
+  const formRef = useRef<HTMLFormElement>(null);
 
   const handleSave = async () => {
-    if (!form.raisonSociale) { toast.error('La raison sociale est obligatoire'); return; }
-    await saveSetting('admin_company_legal', form);
+    if (!formRef.current) return;
+    const fd = new FormData(formRef.current);
+    const values: Record<string,string> = {};
+    fd.forEach((val, key) => { values[key] = val as string; });
+    if (!values.raisonSociale) { toast.error('La raison sociale est obligatoire'); return; }
+    await saveSetting('admin_company_legal', values);
     toast.success('Informations legales enregistrees avec succes');
   };
 
   return (
-    <div className="space-y-6">
+    <form ref={formRef} onSubmit={e=>{e.preventDefault();handleSave();}} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <InputField label="Raison sociale" value={form.raisonSociale} onChange={v=>set('raisonSociale',v)} required />
-        <SelectField label="Forme juridique" value={form.formeJuridique} onChange={v=>set('formeJuridique',v)} options={['SARL','SA','SAS','SNC','Entreprise individuelle','GIE'].map(f=>({value:f,label:f}))} />
-        <InputField label="NIF" value={form.nif} onChange={v=>set('nif',v)} />
-        <InputField label="RCCM" value={form.rccm} onChange={v=>set('rccm',v)} />
+        <div><label className="block text-sm font-medium text-gray-700 mb-1">Raison sociale<span className="text-red-500 ml-1">*</span></label><input name="raisonSociale" type="text" defaultValue={initialValues.raisonSociale} className={CLS} /></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1">Forme juridique</label><select name="formeJuridique" defaultValue={initialValues.formeJuridique} className={CLS+' bg-white'}>{['SARL','SA','SAS','SNC','Entreprise individuelle','GIE'].map(f=><option key={f} value={f}>{f}</option>)}</select></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1">NIF</label><input name="nif" type="text" defaultValue={initialValues.nif} className={CLS} /></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1">RCCM</label><input name="rccm" type="text" defaultValue={initialValues.rccm} className={CLS} /></div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Capital social</label>
           <div className="flex">
-            <input type="number" value={form.capitalSocial} onChange={e=>set('capitalSocial',e.target.value)} className="flex-1 px-3 py-2 border border-gray-300 rounded-l-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none" />
+            <input name="capitalSocial" type="number" defaultValue={initialValues.capitalSocial} className="flex-1 px-3 py-2 border border-gray-300 rounded-l-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none" />
             <span className="px-3 py-2 bg-gray-100 border border-l-0 border-gray-300 rounded-r-lg text-sm text-gray-600">FCFA</span>
           </div>
         </div>
-        <SelectField label="Regime fiscal" value={form.regimeFiscal} onChange={v=>set('regimeFiscal',v)} options={['Reel normal','Reel simplifie','BIC','BNC'].map(r=>({value:r,label:r}))} />
+        <div><label className="block text-sm font-medium text-gray-700 mb-1">Regime fiscal</label><select name="regimeFiscal" defaultValue={initialValues.regimeFiscal} className={CLS+' bg-white'}>{['Reel normal','Reel simplifie','BIC','BNC'].map(r=><option key={r} value={r}>{r}</option>)}</select></div>
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Adresse siege</label>
-        <textarea value={form.adresse} onChange={e=>set('adresse',e.target.value)} rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none" />
+        <textarea name="adresse" defaultValue={initialValues.adresse} rows={3} className={CLS} />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <InputField label="Ville" value={form.ville} onChange={v=>set('ville',v)} />
-        <SelectField label="Pays" value={form.pays} onChange={v=>set('pays',v)} options={OHADA_COUNTRIES.map(c=>({value:c,label:c}))} />
-        <InputField label="Telephone" value={form.telephone} onChange={v=>set('telephone',v)} />
-        <InputField label="Email" value={form.email} onChange={v=>set('email',v)} type="email" />
-        <InputField label="Site web" value={form.siteWeb} onChange={v=>set('siteWeb',v)} />
+        <div><label className="block text-sm font-medium text-gray-700 mb-1">Ville</label><input name="ville" type="text" defaultValue={initialValues.ville} className={CLS} /></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1">Pays</label><select name="pays" defaultValue={initialValues.pays} className={CLS+' bg-white'}>{OHADA_COUNTRIES.map(c=><option key={c} value={c}>{c}</option>)}</select></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1">Telephone</label><input name="telephone" type="text" defaultValue={initialValues.telephone} className={CLS} /></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1">Email</label><input name="email" type="email" defaultValue={initialValues.email} className={CLS} /></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1">Site web</label><input name="siteWeb" type="text" defaultValue={initialValues.siteWeb} className={CLS} /></div>
       </div>
       <div className="flex justify-end">
-        <button onClick={handleSave} className="flex items-center gap-2 px-6 py-2 text-white rounded-lg hover:opacity-90" style={{backgroundColor:'#C0322B'}}>
+        <button type="submit" className="flex items-center gap-2 px-6 py-2 text-white rounded-lg hover:opacity-90" style={{backgroundColor:'#C0322B'}}>
           <Save className="w-4 h-4" />Enregistrer
         </button>
       </div>
-    </div>
+    </form>
   );
 };
 
