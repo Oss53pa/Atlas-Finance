@@ -2,6 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
+import { Toaster as SonnerToaster } from 'sonner'
 import { HelmetProvider } from 'react-helmet-async'
 import * as Sentry from '@sentry/react'
 
@@ -37,6 +38,83 @@ if (SENTRY_DSN) {
 import './styles/base.css'
 import './index.css'
 
+// ── Focus Guard ────────────────────────────────────────────────────────────────
+// Problème : des inputs perdent le focus à chaque frappe clavier sur TOUTES les
+// pages. Cause probable : un composant React est re-monté (key change, inline
+// component definition, conditional render) et React déplace le focus vers
+// document.body silencieusement.
+//
+// Ce guard détecte le pattern "focus → body sans interaction pointeur" et :
+//   • restaure le focus sur l'élément original (correction visible)
+//   • logge l'élément ET la stacktrace en DEV (aide au diagnostic)
+//
+// Logique :
+//   - Si relatedTarget != null → l'utilisateur a cliqué ailleurs → ne rien faire
+//   - Si pointerdown récent (<300 ms) → clic intentionnel → ne rien faire
+//   - Si l'élément n'est plus dans le DOM → il a été vraiment retiré → ne rien faire
+//   - Sinon : focus volé par React → restaurer + loguer
+(function installFocusGuard(): void {
+  let lastPointerMs = 0;
+
+  document.addEventListener('pointerdown', () => {
+    lastPointerMs = Date.now();
+  }, { capture: true, passive: true });
+
+  document.addEventListener('focusout', (e: FocusEvent) => {
+    const lost = e.target as HTMLElement;
+    const tag = lost.tagName;
+    // On ne surveille que les éléments de saisie
+    if (tag !== 'INPUT' && tag !== 'TEXTAREA' && tag !== 'SELECT') return;
+    // L'utilisateur a intentionnellement changé le focus vers un autre élément
+    if (e.relatedTarget !== null) return;
+    // Clic souris/tactile récent → pas une perte accidentelle
+    if (Date.now() - lastPointerMs < 300) return;
+
+    // Capturer les identifiants AVANT le rAF (l'élément peut disparaître)
+    const lostName        = (lost as HTMLInputElement).name;
+    const lostId          = lost.id;
+    const lostPlaceholder = (lost as HTMLInputElement).placeholder;
+
+    requestAnimationFrame(() => {
+      // Focus est allé ailleurs (Tab, clic, etc.) — rien à faire
+      if (document.activeElement !== document.body && document.activeElement != null) return;
+
+      let target: HTMLElement | null = null;
+
+      if (document.body.contains(lost) && !(lost as HTMLInputElement).disabled) {
+        // Cas 1 : l'élément est TOUJOURS dans le DOM — focus volé par autre chose
+        target = lost;
+      } else {
+        // Cas 2 : l'élément a été RE-MONTÉ par React (ancien nœud supprimé,
+        // nouveau nœud créé). On cherche le nouveau par attributs identifiants.
+        const tagLow = tag.toLowerCase();
+        const selector = lostName        ? `${tagLow}[name="${lostName}"]`
+                       : lostId          ? `#${lostId}`
+                       : lostPlaceholder ? `${tagLow}[placeholder="${lostPlaceholder}"]`
+                       : null;
+        if (selector) {
+          target = document.querySelector<HTMLElement>(selector);
+          if (target && (target as HTMLInputElement).disabled) target = null;
+        }
+      }
+
+      if (!target) return;
+
+      if (import.meta.env.DEV) {
+        const name = lostName || lostPlaceholder || lostId || tag;
+        const remounted = target !== lost;
+        console.warn(
+          `[FocusGuard] focus volé sur <${tag}> "${name}"` +
+          (remounted ? ' [élément RE-MONTÉ]' : '') +
+          ' — restauration.',
+          new Error('stacktrace').stack,
+        );
+      }
+      target.focus({ preventScroll: true });
+    });
+  }, true);
+})();
+
 // DEBUG - Test des providers un par un
 // import App from './App.debug1'  // Test 1 : LanguageProvider seul OK
 // import App from './App.debug2'  // Test 2 : + ThemeProvider OK
@@ -62,6 +140,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <BrowserRouter future={{ v7_relativeSplatPath: true }}>
       <App />
       <Toaster position="top-right" />
+      {/* Sonner Toaster — utilisé dans AdminCompany, AdminUsers, etc. */}
+      <SonnerToaster position="top-right" richColors closeButton />
     </BrowserRouter>
   </HelmetProvider>,
 )
