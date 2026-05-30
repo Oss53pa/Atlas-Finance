@@ -38,24 +38,6 @@ if (SENTRY_DSN) {
 import './styles/base.css'
 import './index.css'
 
-// ── DIAGNOSTIC : intercepter les requêtes societes?tenant_id ──────────────────
-// Ce bloc identifie QUI génère encore la requête invalide.
-// À supprimer une fois la cause trouvée.
-if (import.meta.env.DEV) {
-  const _origFetch = window.fetch.bind(window);
-  window.fetch = function patchedFetch(input, init) {
-    const url = typeof input === 'string' ? input
-              : input instanceof Request ? input.url
-              : String(input);
-    if (url.includes('societes') && url.includes('tenant_id')) {
-      console.error(
-        '[SOCIETES-DEBUG] Requête invalide détectée !\n  URL:', url,
-        '\n  Stacktrace:', new Error('origin').stack
-      );
-    }
-    return _origFetch(input, init);
-  };
-}
 
 // ── Focus Guard v2 ────────────────────────────────────────────────────────────
 // Problème persistant : chaque frappe clavier fait perdre le focus sur TOUS les
