@@ -233,19 +233,15 @@ const AdminCompany: React.FC<Props> = ({ subTab, setSubTab }) => {
   const [exerciceForm, setExerciceForm] = useState({ debut:'',fin:'',code:'',periodes:'12' });
 
   const saveSetting = useCallback(async (key: string, value: any) => {
-    const record = { key, value: JSON.stringify(value), updatedAt: new Date().toISOString() };
-    // En mode SaaS, l'id dans settings est un UUID — on cherche par la colonne `key`
-    // pour éviter que getById('settings', 'admin_company_legal') ne bloque indéfiniment.
+    const data = { key, value: JSON.stringify(value), updatedAt: new Date().toISOString() };
+    // L'adapter gère maintenant settings correctement via KEY_PK_TABLES :
+    // getById('settings', key) → WHERE key=key, update('settings', key, data) → WHERE key=key
     try {
-      const existing = await adapter.getAll<any>('settings', { where: { key } });
-      if (existing && existing.length > 0) {
-        await adapter.update('settings', existing[0].id ?? existing[0].key, record);
-      } else {
-        await adapter.create('settings', record);
-      }
+      const existing = await adapter.getById('settings', key);
+      if (existing) { await adapter.update('settings', key, data); }
+      else { await adapter.create('settings', data); }
     } catch {
-      // Fallback : tenter un create (idempotent en cas de conflit UNIQUE sur key)
-      try { await adapter.create('settings', record); } catch { /* silent */ }
+      try { await adapter.create('settings', data); } catch { /* silent */ }
     }
   }, [adapter]);
 

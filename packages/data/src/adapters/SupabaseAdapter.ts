@@ -66,10 +66,22 @@ export class SupabaseAdapter implements DataAdapter {
   private static readonly ROOT_TABLES = new Set(['societes'])
 
   /**
-   * Indique si la table pg est une "root table" (pas de colonne tenant_id).
+   * Tables dont la clé primaire est la colonne `key` (TEXT) et non `id` (UUID).
+   * Schema settings : key TEXT PRIMARY KEY, tenant_id, value, updated_at.
+   * Pas de colonne `id` ni `created_at`.
+   *
+   * Pour ces tables, getById/update/delete utilisent `.eq('key', id)` et
+   * create n'injecte pas `id` ni `created_at`.
    */
+  private static readonly KEY_PK_TABLES = new Set(['settings'])
+
   private isRootTable(pgTable: string): boolean {
     return SupabaseAdapter.ROOT_TABLES.has(pgTable)
+  }
+
+  /** La clé primaire de cette table est-elle `key` (et non `id`) ? */
+  private isKeyPkTable(pgTable: string): boolean {
+    return SupabaseAdapter.KEY_PK_TABLES.has(pgTable)
   }
 
   /**
@@ -105,9 +117,10 @@ export class SupabaseAdapter implements DataAdapter {
 
   async getById<T>(table: TableName, id: string): Promise<T | null> {
     const pg = this.pgTable(table)
-    // maybeSingle : retourne null si pas de row (au lieu de throw 406).
-    // ROOT_TABLES (ex: societes) : pas de colonne tenant_id → filtrer par id seul.
-    let q = this.client.from(pg).select('*').eq('id', id)
+    // KEY_PK_TABLES (ex: settings) : PK = colonne `key`, pas `id`.
+    // ROOT_TABLES (ex: societes)   : pas de tenant_id → filtrer par id seul.
+    const pkCol = this.isKeyPkTable(pg) ? 'key' : 'id'
+    let q = this.client.from(pg).select('*').eq(pkCol, id)
     if (!this.isRootTable(pg)) q = q.eq('tenant_id', this.tenantId)
     const { data } = await q.maybeSingle()
     return data as T | null
@@ -173,16 +186,21 @@ export class SupabaseAdapter implements DataAdapter {
 
   async create<T>(table: TableName, data: any, initiatedBy?: string): Promise<T> {
     const pg = this.pgTable(table)
-    const record = {
-      ...data,
-      // P0-4 / F2-4 : respecter l'id fourni par l'appelant (cohérent avec
-      // createMany et avec le DexieAdapter), sinon les liens pré-calculés
-      // (reversedBy, hash) pointent dans le vide.
-      id: data?.id ?? crypto.randomUUID(),
-      // ROOT_TABLES (societes) n'ont pas de colonne tenant_id
-      ...(!this.isRootTable(pg) ? { tenant_id: this.tenantId } : {}),
-      created_at: new Date().toISOString(),
-    }
+    // KEY_PK_TABLES (settings) : PK = key TEXT, pas d'id ni created_at.
+    const record = this.isKeyPkTable(pg)
+      ? {
+          ...data,
+          ...(!this.isRootTable(pg) ? { tenant_id: this.tenantId } : {}),
+        }
+      : {
+          ...data,
+          // P0-4 / F2-4 : respecter l'id fourni par l'appelant (cohérent avec
+          // createMany et avec le DexieAdapter).
+          id: data?.id ?? crypto.randomUUID(),
+          // ROOT_TABLES (societes) n'ont pas de colonne tenant_id
+          ...(!this.isRootTable(pg) ? { tenant_id: this.tenantId } : {}),
+          created_at: new Date().toISOString(),
+        }
     const { data: created, error } = await this.client
       .from(pg).insert(record).select().single()
     if (error) throw new Error(`Create failed: ${error.message}`)
@@ -223,7 +241,9 @@ export class SupabaseAdapter implements DataAdapter {
       }
     }
     const pgT = this.pgTable(table)
-    let uq = this.client.from(pgT).update(data).eq('id', id)
+    // KEY_PK_TABLES (settings) : PK = colonne `key`, pas `id`.
+    const pkColU = this.isKeyPkTable(pgT) ? 'key' : 'id'
+    let uq = this.client.from(pgT).update(data).eq(pkColU, id)
     if (!this.isRootTable(pgT)) uq = uq.eq('tenant_id', this.tenantId)
     const { data: updated, error } = await uq.select().single()
     if (error) throw new Error(`Update failed: ${error.message}`)
@@ -254,7 +274,8 @@ export class SupabaseAdapter implements DataAdapter {
       }
     }
     const pgDel = this.pgTable(table)
-    let dq = this.client.from(pgDel).delete().eq('id', id)
+    const pkColD = this.isKeyPkTable(pgDel) ? 'key' : 'id'
+    let dq = this.client.from(pgDel).delete().eq(pkColD, id)
     if (!this.isRootTable(pgDel)) dq = dq.eq('tenant_id', this.tenantId)
     const { error } = await dq
     if (error) throw new Error(`Delete failed: ${error.message}`)
