@@ -53,92 +53,100 @@ interface LegalInfoSectionProps {
 
 const CLS = "w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none";
 
+// Attributs communs qui coupent les features navigateur susceptibles de voler le focus :
+// - autoComplete="off"    : désactive la saisie auto du navigateur
+// - autoCorrect="off"     : désactive la correction automatique (mobile/Safari)
+// - autoCapitalize="off"  : désactive la majuscule automatique (mobile)
+// - spellCheck={false}    : désactive la vérification orthographique (Grammarly, etc.)
+const NO_BROWSER_MAGIC = {
+  autoComplete: 'off' as const,
+  autoCorrect: 'off',
+  autoCapitalize: 'off',
+  spellCheck: false,
+};
+
 const LegalInfoSection: React.FC<LegalInfoSectionProps> = ({ initialValues, saveSetting }) => {
-  const [form, setForm] = useState({ ...DEFAULT_LEGAL, ...initialValues });
+  // ── ZÉRO re-render sur frappe ───────────────────────────────────────────────
+  // Les inputs sont NON-CONTRÔLÉS (pas de value= ni onChange=).
+  // React n'interfère jamais avec la valeur tapée → focus garanti.
+  // Les valeurs initiales sont injectées via ref après le montage.
+  // La valeur est lue depuis le DOM au moment de la soumission.
   const formRef = useRef<HTMLFormElement>(null);
 
-  // ── Focus lock ──────────────────────────────────────────────────────────────
-  // Ref pour l'id de l'input actuellement focalisé dans CE formulaire.
-  const focusedIdRef = useRef<string | null>(null);
-  // Ref pour la position curseur (pour restaurer correctement après re-render)
-  const selRef = useRef<[number,number]>([0,0]);
-
-  // Après CHAQUE re-render (sans dépendances = synchrone pré-paint) :
-  // si un champ était focalisé dans ce formulaire, on le re-focalise.
-  useLayoutEffect(() => {
-    const id = focusedIdRef.current;
-    if (!id || !formRef.current) return;
-    const el = formRef.current.querySelector<HTMLElement>(`#${id}`);
-    if (!el || document.activeElement === el) return; // déjà focalisé → rien
-    el.focus({ preventScroll: true });
-    // Restaurer la position curseur pour les inputs texte
-    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-      try {
-        const inp = el as HTMLInputElement;
-        inp.setSelectionRange(selRef.current[0], selRef.current[1]);
-      } catch { /* number / date / select — setSelectionRange non supporté */ }
-    }
-  });
-
-  // onChange : capture la position curseur AVANT le re-render
-  const set = useCallback((field: string) =>
-    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-      if (e.target.tagName !== 'SELECT') {
-        const t = e.target as HTMLInputElement;
-        selRef.current = [t.selectionStart ?? 0, t.selectionEnd ?? 0];
-      }
-      setForm(prev => ({ ...prev, [field]: e.target.value }));
-    },
-  []);
+  // Peupler les inputs avec les valeurs chargées depuis la BDD (une seule fois)
+  useEffect(() => {
+    const f = formRef.current;
+    if (!f) return;
+    const set = (id: string, val: string) => {
+      const el = f.querySelector<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(`#li-${id}`);
+      if (el) el.value = val;
+    };
+    set('raisonSociale',  initialValues.raisonSociale);
+    set('formeJuridique', initialValues.formeJuridique);
+    set('nif',            initialValues.nif);
+    set('rccm',           initialValues.rccm);
+    set('capitalSocial',  initialValues.capitalSocial);
+    set('regimeFiscal',   initialValues.regimeFiscal);
+    set('adresse',        initialValues.adresse);
+    set('ville',          initialValues.ville);
+    set('pays',           initialValues.pays);
+    set('telephone',      initialValues.telephone);
+    set('email',          initialValues.email);
+    set('siteWeb',        initialValues.siteWeb);
+  // On re-peuple si les valeurs initiales changent (rechargement depuis BDD)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(initialValues)]);
 
   const handleSave = useCallback(async () => {
-    if (!form.raisonSociale) { toast.error('La raison sociale est obligatoire'); return; }
-    await saveSetting('admin_company_legal', form);
+    const f = formRef.current;
+    if (!f) return;
+    const g = (id: string) =>
+      (f.querySelector<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(`#li-${id}`)?.value ?? '');
+    const values = {
+      raisonSociale:  g('raisonSociale'),
+      formeJuridique: g('formeJuridique'),
+      nif:            g('nif'),
+      rccm:           g('rccm'),
+      capitalSocial:  g('capitalSocial'),
+      regimeFiscal:   g('regimeFiscal'),
+      adresse:        g('adresse'),
+      ville:          g('ville'),
+      pays:           g('pays'),
+      telephone:      g('telephone'),
+      email:          g('email'),
+      siteWeb:        g('siteWeb'),
+    };
+    if (!values.raisonSociale) { toast.error('La raison sociale est obligatoire'); return; }
+    await saveSetting('admin_company_legal', values);
     toast.success('Informations legales enregistrees avec succes');
-  }, [form, saveSetting]);
-
-  // Helpers onFocus / onBlur pour les inputs — standardisés
-  const onFocus = useCallback((id: string) => () => { focusedIdRef.current = id; }, []);
-  const onBlurField = useCallback((e: React.FocusEvent) => {
-    const related = e.relatedTarget as HTMLElement | null;
-    if (
-      !related ||
-      !formRef.current?.contains(related) ||
-      !['INPUT','TEXTAREA','SELECT'].includes(related.tagName)
-    ) {
-      // Focus quitte le formulaire OU va vers un non-input (ex: bouton Enregistrer)
-      // → arrêter le tracking pour ne pas interférer
-      focusedIdRef.current = null;
-    }
-    // Si focus va vers un autre input/select du formulaire, onFocus l'a déjà mis à jour
-  }, []);
+  }, [saveSetting]);
 
   return (
     <form ref={formRef} onSubmit={e=>{e.preventDefault();handleSave();}} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-raisonSociale">Raison sociale<span className="text-red-500 ml-1">*</span></label><input id="li-raisonSociale" type="text" value={form.raisonSociale} onChange={set('raisonSociale')} onFocus={onFocus('li-raisonSociale')} onBlur={onBlurField} className={CLS} /></div>
-        <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-formeJuridique">Forme juridique</label><select id="li-formeJuridique" value={form.formeJuridique} onChange={set('formeJuridique')} onFocus={onFocus('li-formeJuridique')} onBlur={onBlurField} className={CLS+' bg-white'}>{['SARL','SA','SAS','SNC','Entreprise individuelle','GIE'].map(f=><option key={f} value={f}>{f}</option>)}</select></div>
-        <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-nif">NIF</label><input id="li-nif" type="text" value={form.nif} onChange={set('nif')} onFocus={onFocus('li-nif')} onBlur={onBlurField} className={CLS} /></div>
-        <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-rccm">RCCM</label><input id="li-rccm" type="text" value={form.rccm} onChange={set('rccm')} onFocus={onFocus('li-rccm')} onBlur={onBlurField} className={CLS} /></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-raisonSociale">Raison sociale<span className="text-red-500 ml-1">*</span></label><input id="li-raisonSociale" type="text" defaultValue="" className={CLS} {...NO_BROWSER_MAGIC} /></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-formeJuridique">Forme juridique</label><select id="li-formeJuridique" defaultValue="SARL" className={CLS+' bg-white'}>{['SARL','SA','SAS','SNC','Entreprise individuelle','GIE'].map(f=><option key={f} value={f}>{f}</option>)}</select></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-nif">NIF</label><input id="li-nif" type="text" defaultValue="" className={CLS} {...NO_BROWSER_MAGIC} /></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-rccm">RCCM</label><input id="li-rccm" type="text" defaultValue="" className={CLS} {...NO_BROWSER_MAGIC} /></div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-capitalSocial">Capital social</label>
           <div className="flex">
-            <input id="li-capitalSocial" type="number" value={form.capitalSocial} onChange={set('capitalSocial')} onFocus={onFocus('li-capitalSocial')} onBlur={onBlurField} className="flex-1 px-3 py-2 border border-gray-300 rounded-l-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none" />
+            <input id="li-capitalSocial" type="number" defaultValue="" className="flex-1 px-3 py-2 border border-gray-300 rounded-l-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none" {...NO_BROWSER_MAGIC} />
             <span className="px-3 py-2 bg-gray-100 border border-l-0 border-gray-300 rounded-r-lg text-sm text-gray-600">FCFA</span>
           </div>
         </div>
-        <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-regimeFiscal">Regime fiscal</label><select id="li-regimeFiscal" value={form.regimeFiscal} onChange={set('regimeFiscal')} onFocus={onFocus('li-regimeFiscal')} onBlur={onBlurField} className={CLS+' bg-white'}>{['Reel normal','Reel simplifie','BIC','BNC'].map(r=><option key={r} value={r}>{r}</option>)}</select></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-regimeFiscal">Regime fiscal</label><select id="li-regimeFiscal" defaultValue="Reel normal" className={CLS+' bg-white'}>{['Reel normal','Reel simplifie','BIC','BNC'].map(r=><option key={r} value={r}>{r}</option>)}</select></div>
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-adresse">Adresse siege</label>
-        <textarea id="li-adresse" value={form.adresse} onChange={set('adresse')} onFocus={onFocus('li-adresse')} onBlur={onBlurField} rows={3} className={CLS} />
+        <textarea id="li-adresse" defaultValue="" rows={3} className={CLS} {...NO_BROWSER_MAGIC} />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-ville">Ville</label><input id="li-ville" type="text" value={form.ville} onChange={set('ville')} onFocus={onFocus('li-ville')} onBlur={onBlurField} className={CLS} /></div>
-        <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-pays">Pays</label><select id="li-pays" value={form.pays} onChange={set('pays')} onFocus={onFocus('li-pays')} onBlur={onBlurField} className={CLS+' bg-white'}>{OHADA_COUNTRIES.map(c=><option key={c} value={c}>{c}</option>)}</select></div>
-        <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-telephone">Telephone</label><input id="li-telephone" type="text" value={form.telephone} onChange={set('telephone')} onFocus={onFocus('li-telephone')} onBlur={onBlurField} className={CLS} /></div>
-        <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-email">Email</label><input id="li-email" type="email" value={form.email} onChange={set('email')} onFocus={onFocus('li-email')} onBlur={onBlurField} className={CLS} /></div>
-        <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-siteWeb">Site web</label><input id="li-siteWeb" type="text" value={form.siteWeb} onChange={set('siteWeb')} onFocus={onFocus('li-siteWeb')} onBlur={onBlurField} className={CLS} /></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-ville">Ville</label><input id="li-ville" type="text" defaultValue="" className={CLS} {...NO_BROWSER_MAGIC} /></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-pays">Pays</label><select id="li-pays" defaultValue="Cote d'Ivoire" className={CLS+' bg-white'}>{OHADA_COUNTRIES.map(c=><option key={c} value={c}>{c}</option>)}</select></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-telephone">Telephone</label><input id="li-telephone" type="text" defaultValue="" className={CLS} {...NO_BROWSER_MAGIC} /></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-email">Email</label><input id="li-email" type="email" defaultValue="" className={CLS} {...NO_BROWSER_MAGIC} /></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-siteWeb">Site web</label><input id="li-siteWeb" type="text" defaultValue="" className={CLS} {...NO_BROWSER_MAGIC} /></div>
       </div>
       <div className="flex justify-end">
         <button type="submit" className="flex items-center gap-2 px-6 py-2 text-white rounded-lg hover:opacity-90" style={{backgroundColor:'#C0322B'}}>
