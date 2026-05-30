@@ -67,13 +67,11 @@ const NO_BROWSER_MAGIC = {
 
 const LegalInfoSection: React.FC<LegalInfoSectionProps> = ({ initialValues, saveSetting }) => {
   // ── ZÉRO re-render sur frappe ───────────────────────────────────────────────
-  // Les inputs sont NON-CONTRÔLÉS (pas de value= ni onChange=).
-  // React n'interfère jamais avec la valeur tapée → focus garanti.
-  // Les valeurs initiales sont injectées via ref après le montage.
-  // La valeur est lue depuis le DOM au moment de la soumission.
   const formRef = useRef<HTMLFormElement>(null);
+  const [saving, setSaving] = useState(false);
+  const [saved,  setSaved]  = useState(false);
 
-  // Peupler les inputs avec les valeurs chargées depuis la BDD (une seule fois)
+  // Peupler les inputs avec les valeurs chargées depuis la BDD
   useEffect(() => {
     const f = formRef.current;
     if (!f) return;
@@ -93,13 +91,12 @@ const LegalInfoSection: React.FC<LegalInfoSectionProps> = ({ initialValues, save
     set('telephone',      initialValues.telephone);
     set('email',          initialValues.email);
     set('siteWeb',        initialValues.siteWeb);
-  // On re-peuple si les valeurs initiales changent (rechargement depuis BDD)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(initialValues)]);
 
   const handleSave = useCallback(async () => {
     const f = formRef.current;
-    if (!f) return;
+    if (!f || saving) return;
     const g = (id: string) =>
       (f.querySelector<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(`#li-${id}`)?.value ?? '');
     const values = {
@@ -117,9 +114,19 @@ const LegalInfoSection: React.FC<LegalInfoSectionProps> = ({ initialValues, save
       siteWeb:        g('siteWeb'),
     };
     if (!values.raisonSociale) { toast.error('La raison sociale est obligatoire'); return; }
-    await saveSetting('admin_company_legal', values);
-    toast.success('Informations legales enregistrees avec succes');
-  }, [saveSetting]);
+    setSaving(true);
+    try {
+      await saveSetting('admin_company_legal', values);
+      setSaved(true);
+      toast.success('Informations legales enregistrees avec succes');
+      setTimeout(() => setSaved(false), 3000);
+    } catch (err) {
+      toast.error('Erreur lors de l\'enregistrement');
+      console.error('[LegalInfoSection] save error:', err);
+    } finally {
+      setSaving(false);
+    }
+  }, [saveSetting, saving]);
 
   return (
     <form ref={formRef} onSubmit={e=>{e.preventDefault();handleSave();}} className="space-y-6">
@@ -148,9 +155,18 @@ const LegalInfoSection: React.FC<LegalInfoSectionProps> = ({ initialValues, save
         <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-email">Email</label><input id="li-email" type="email" defaultValue="" className={CLS} {...NO_BROWSER_MAGIC} /></div>
         <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-siteWeb">Site web</label><input id="li-siteWeb" type="text" defaultValue="" className={CLS} {...NO_BROWSER_MAGIC} /></div>
       </div>
-      <div className="flex justify-end">
-        <button type="submit" className="flex items-center gap-2 px-6 py-2 text-white rounded-lg hover:opacity-90" style={{backgroundColor:'#C0322B'}}>
-          <Save className="w-4 h-4" />Enregistrer
+      <div className="flex items-center justify-end gap-3">
+        {saved && <span className="text-green-600 text-sm font-medium">✓ Enregistré avec succès</span>}
+        <button
+          type="submit"
+          disabled={saving}
+          className="flex items-center gap-2 px-6 py-2 text-white rounded-lg hover:opacity-90 disabled:opacity-60"
+          style={{backgroundColor:'#C0322B'}}
+        >
+          {saving
+            ? <><Loader2 className="w-4 h-4 animate-spin" />Enregistrement...</>
+            : <><Save className="w-4 h-4" />Enregistrer</>
+          }
         </button>
       </div>
     </form>
@@ -217,8 +233,20 @@ const AdminCompany: React.FC<Props> = ({ subTab, setSubTab }) => {
   const [exerciceForm, setExerciceForm] = useState({ debut:'',fin:'',code:'',periodes:'12' });
 
   const saveSetting = useCallback(async (key: string, value: any) => {
-    const data = { key, value: JSON.stringify(value), updatedAt: new Date().toISOString() };
-    try { const existing = await adapter.getById('settings', key); if (existing) { await adapter.update('settings', key, data); } else { await adapter.create('settings', data); } } catch { try { await adapter.create('settings', data); } catch { /* silent */ } }
+    const record = { key, value: JSON.stringify(value), updatedAt: new Date().toISOString() };
+    // En mode SaaS, l'id dans settings est un UUID — on cherche par la colonne `key`
+    // pour éviter que getById('settings', 'admin_company_legal') ne bloque indéfiniment.
+    try {
+      const existing = await adapter.getAll<any>('settings', { where: { key } });
+      if (existing && existing.length > 0) {
+        await adapter.update('settings', existing[0].id ?? existing[0].key, record);
+      } else {
+        await adapter.create('settings', record);
+      }
+    } catch {
+      // Fallback : tenter un create (idempotent en cas de conflit UNIQUE sur key)
+      try { await adapter.create('settings', record); } catch { /* silent */ }
+    }
   }, [adapter]);
 
   const loadData = useCallback(async () => {
