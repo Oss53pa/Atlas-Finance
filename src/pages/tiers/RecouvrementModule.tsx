@@ -1705,7 +1705,7 @@ const ContentieuxTab = ({ allJournalEntries, getStatutColor }: ContentieuxTabPro
     setNewEtape({ titre: '', description: '', datePrevu: '' });
   };
 
-  const getStatutColor = (statut: string) => {
+  const getProcedureStatutColor = (statut: string) => {
     switch (statut) {
       case 'reglement_amiable': return 'bg-blue-100 text-blue-800';
       case 'mise_demeure_huissier': return 'bg-yellow-100 text-yellow-800';
@@ -7149,7 +7149,7 @@ const ContentieuxTab = ({ allJournalEntries, getStatutColor }: ContentieuxTabPro
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatutColor(dossier.statutJuridique)}`}>
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getProcedureStatutColor(dossier.statutJuridique)}`}>
                         {dossier.statutJuridique.replace('_', ' ').toUpperCase()}
                       </span>
                     </td>
@@ -7244,7 +7244,7 @@ const ContentieuxTab = ({ allJournalEntries, getStatutColor }: ContentieuxTabPro
                 </h2>
               </div>
               <div className="flex items-center space-x-4 mt-4">
-                <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getStatutColor(selectedContentieux.statutJuridique)}`}>
+                <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getProcedureStatutColor(selectedContentieux.statutJuridique)}`}>
                   {selectedContentieux.statutJuridique.replace('_', ' ').toUpperCase()}
                 </span>
                 <span className="text-sm text-gray-600">
