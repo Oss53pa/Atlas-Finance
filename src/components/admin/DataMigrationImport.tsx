@@ -1008,12 +1008,13 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       // ── Si mode "Remplacer" : supprimer les données existantes du tenant ──
       if (params.existingDataAction === 'replace' && isSaasMode && supabaseClient) {
         setImportLabel('Suppression des données existantes...');
-        // Supprimer dans l'ordre inverse des FK : lignes → écritures → tiers → comptes → assets
+        // Passer toutes les écritures en draft pour lever le verrou validated
+        await supabaseClient.from('journal_entries')
+          .update({ status: 'draft' }).eq('tenant_id', tenantId);
+        // Supprimer dans l'ordre inverse des FK
         for (const table of ['journal_lines', 'journal_entries', 'third_parties', 'accounts', 'assets']) {
           const { error } = await supabaseClient
-            .from(table)
-            .delete()
-            .eq('tenant_id', tenantId);
+            .from(table).delete().eq('tenant_id', tenantId);
           if (error) report.warnings.push(`Suppression ${table} : ${error.message}`);
         }
       }
@@ -2709,77 +2710,134 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
               </button>
               <button onClick={async () => {
                 if (!importReport) return;
-                toast.info('Generation du rapport PDF...');
+                toast.info('Génération du rapport PDF...');
                 try {
                   const { default: jsPDF } = await import('jspdf');
                   const { default: autoTable } = await import('jspdf-autotable');
-                  const doc = new jsPDF();
-                  const now = new Date().toLocaleString('fr-FR');
-                  // En-tête
-                  doc.setFontSize(16); doc.setFont('helvetica','bold');
-                  doc.text('Rapport de Migration Comptable', 14, 18);
-                  doc.setFontSize(9); doc.setFont('helvetica','normal');
-                  doc.text(`Généré le ${now}`, 14, 25);
-                  doc.line(14, 28, 196, 28);
-                  // Statistiques
-                  doc.setFontSize(11); doc.setFont('helvetica','bold');
-                  doc.text('Statistiques d\'import', 14, 36);
+                  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+                  const W = 210; const M = 14; const now = new Date().toLocaleString('fr-FR');
+                  const PETROL: [number,number,number] = [35, 90, 110];
+                  const GREEN:  [number,number,number] = [22, 101, 52];
+                  const AMBER:  [number,number,number] = [146, 64, 14];
+                  const RED:    [number,number,number] = [153, 27, 27];
+                  const allOk = importReport.balanceOk && importReport.bilanOk && importReport.tiersOk && importReport.vncOk;
+                  const db = importReport.dbCounts;
+                  const fmt = (n: number) => n.toLocaleString('fr-FR');
+                  const fmtF = (n: number) => n.toLocaleString('fr-FR', { minimumFractionDigits: 2 }) + ' FCFA';
+
+                  // Humaniser les messages techniques
+                  const humanize = (w: string): { msg: string; action: string } => {
+                    if (w.includes('validated') || w.includes('Suppression interdite')) return { msg: 'Des écritures validées existaient et n\'ont pas pu être supprimées automatiquement.', action: 'Contrepasser ces écritures manuellement dans le Grand Livre avant de relancer.' };
+                    if (w.includes('duplicate key') || w.includes('unique constraint')) return { msg: 'Certains enregistrements existaient déjà et ont été ignorés (doublon).', action: 'Vérifier que les données sources n\'ont pas déjà été importées partiellement.' };
+                    if (w.includes('foreign key') || w.includes('fkey')) return { msg: 'Des lignes d\'écriture référencent des écritures qui n\'ont pas pu être créées.', action: 'Relancer la migration en mode Remplacer pour repartir d\'une base propre.' };
+                    if (w.includes('Déséquilibre bilan') || w.includes('bilanEcart')) return { msg: w, action: 'Identifier les comptes mal classifiés dans votre plan comptable et corriger les soldes.' };
+                    if (w.includes('non insérés') || w.includes('batch')) { const m = w.match(/(\d+) non insérés/); return { msg: `${m?.[1] || 'Certains'} enregistrements n\'ont pas pu être importés (erreur de format ou contrainte de données).`, action: 'Vérifier le mapping des colonnes et le format des données sources.' }; }
+                    if (w.includes('Report AN')) return { msg: 'Le report à nouveau n\'a pas pu être créé (écriture déjà existante).', action: 'Si vous relancez la migration, utiliser le mode Remplacer.' };
+                    return { msg: w, action: 'Contacter le support si le problème persiste.' };
+                  };
+
+                  // ── BANNIÈRE STATUT ──────────────────────────────────────
+                  doc.setFillColor(...(allOk ? GREEN : AMBER));
+                  doc.rect(0, 0, W, 28, 'F');
+                  doc.setTextColor(255, 255, 255);
+                  doc.setFontSize(17); doc.setFont('helvetica', 'bold');
+                  doc.text('RAPPORT DE MIGRATION COMPTABLE', M, 11);
+                  doc.setFontSize(9); doc.setFont('helvetica', 'normal');
+                  doc.text(`Logiciel : Atlas Finance & Accounting  |  Norme : SYSCOHADA révisé 2017  |  Généré le ${now}`, M, 18);
+                  doc.text(`Statut : ${allOk ? '✓ MIGRATION VALIDÉE — Données enregistrées dans les livres comptables' : '⚠ MIGRATION AVEC RÉSERVES — Corrections requises avant production des états financiers'}`, M, 24);
+                  doc.setTextColor(0, 0, 0);
+
+                  // ── DONNÉES EN BASE (vrais counts) ───────────────────────
+                  let y = 36;
+                  doc.setFontSize(11); doc.setFont('helvetica', 'bold'); doc.setTextColor(...PETROL);
+                  doc.text('1. Données enregistrées dans les livres', M, y); y += 5;
                   autoTable(doc, {
-                    startY: 40,
-                    head: [['Élément','Quantité']],
+                    startY: y,
+                    head: [['Livre comptable', 'Enregistrements importés', 'Confirmé en base']],
                     body: [
-                      ['Comptes',    String(importReport.accounts)],
-                      ['Journaux',   String(importReport.journals)],
-                      ['Tiers',      String(importReport.tiers)],
-                      ['Écritures',  String(importReport.entries)],
-                      ['Lignes',     String(importReport.lines)],
-                      ['Immobilisations', String(importReport.assets)],
-                      ['Lettrages',  String(importReport.lettrages)],
+                      ['Plan comptable (comptes)',      fmt(importReport.accounts),  db ? fmt(db.accounts) : '—'],
+                      ['Journaux comptables',            fmt(importReport.journals),  '—'],
+                      ['Tiers (clients / fournisseurs)', fmt(importReport.tiers),     db ? fmt(db.tiers) : '—'],
+                      ['Écritures comptables',           fmt(importReport.entries),   db ? fmt(db.entries) : '—'],
+                      ['Lignes d\'écriture',             fmt(importReport.lines),     db ? fmt(db.lines) : '—'],
+                      ['Immobilisations',                fmt(importReport.assets),    db ? fmt(db.assets) : '—'],
+                      ['Lettrages',                      fmt(importReport.lettrages), '—'],
                     ],
-                    styles: { fontSize: 9 },
-                    headStyles: { fillColor: [35, 90, 110] },
-                    margin: { left: 14 },
-                    tableWidth: 80,
+                    styles: { fontSize: 9, cellPadding: 2.5 },
+                    headStyles: { fillColor: PETROL, textColor: [255,255,255], fontStyle: 'bold' },
+                    columnStyles: { 1: { halign: 'right' }, 2: { halign: 'right', fontStyle: 'bold' } },
+                    alternateRowStyles: { fillColor: [245, 247, 249] },
+                    margin: { left: M, right: M },
                   });
-                  // Contrôles
-                  const afterStats = (doc as any).lastAutoTable.finalY + 8;
-                  doc.setFontSize(11); doc.setFont('helvetica','bold');
-                  doc.text('Contrôles post-import', 14, afterStats);
+
+                  // ── CONTRÔLES SYSCOHADA ──────────────────────────────────
+                  y = (doc as any).lastAutoTable.finalY + 8;
+                  doc.setFontSize(11); doc.setFont('helvetica', 'bold'); doc.setTextColor(...PETROL);
+                  doc.text('2. Contrôles de conformité SYSCOHADA', M, y); y += 5;
+                  const controls = [
+                    { label: 'Équilibre débit / crédit', ok: importReport.balanceOk, detail: importReport.balanceOk ? 'Toutes les écritures sont équilibrées.' : 'Des écritures ont un débit ≠ crédit. Vérifier les pièces concernées.', action: importReport.balanceOk ? '' : 'Grand Livre → filtrer les écritures déséquilibrées et corriger.' },
+                    { label: 'Équilibre bilan actif / passif', ok: importReport.bilanOk,
+                      detail: importReport.bilanOk ? 'Le bilan est équilibré (Actif = Passif).' : `Actif : ${fmtF(importReport.bilanEcart?.actif ?? 0)}  |  Passif : ${fmtF(importReport.bilanEcart?.passif ?? 0)}  |  Écart : ${fmtF(importReport.bilanEcart?.diff ?? 0)}`,
+                      action: importReport.bilanOk ? '' : 'Identifier les comptes mal classés (classe 1-5) et ajuster les soldes d\'ouverture.' },
+                    { label: 'Réconciliation tiers', ok: importReport.tiersOk, detail: importReport.tiersOk ? 'Tous les tiers sont réconciliés avec les écritures.' : 'Des comptes de tiers (401/411) n\'ont pas de fiche tiers associée.', action: importReport.tiersOk ? '' : 'Créer les fiches tiers manquantes depuis le module Tiers.' },
+                    { label: 'Cohérence VNC immobilisations', ok: importReport.vncOk, detail: importReport.vncOk ? 'La valeur nette comptable des immobilisations est cohérente.' : 'Des immobilisations ont une VNC négative ou incohérente.', action: importReport.vncOk ? '' : 'Vérifier les durées et taux d\'amortissement dans le fichier source.' },
+                  ];
                   autoTable(doc, {
-                    startY: afterStats + 4,
-                    head: [['Contrôle','Statut']],
-                    body: [
-                      ['Équilibre débit/crédit',       importReport.balanceOk ? '✓ OK' : '✗ KO'],
-                      ['Équilibre bilan actif/passif',  importReport.bilanOk   ? '✓ OK' : `✗ Écart ${importReport.bilanEcart?.diff.toLocaleString('fr-FR',{minimumFractionDigits:2})} FCFA`],
-                      ['Réconciliation tiers',          importReport.tiersOk   ? '✓ OK' : '✗ KO'],
-                      ['Cohérence VNC immobilisations', importReport.vncOk     ? '✓ OK' : '✗ KO'],
-                    ],
-                    styles: { fontSize: 9 },
-                    headStyles: { fillColor: [35, 90, 110] },
-                    bodyStyles: {},
+                    startY: y,
+                    head: [['Contrôle', 'Résultat', 'Détail', 'Action requise']],
+                    body: controls.map(c => [c.label, c.ok ? '✓ Validé' : '✗ Anomalie', c.detail, c.action]),
+                    styles: { fontSize: 8, cellPadding: 2.5, overflow: 'linebreak' },
+                    headStyles: { fillColor: PETROL, textColor: [255,255,255], fontStyle: 'bold' },
+                    columnStyles: { 0: { cellWidth: 42 }, 1: { cellWidth: 18, halign: 'center' }, 2: { cellWidth: 68 }, 3: { cellWidth: 50 } },
                     didParseCell: (data: any) => {
-                      if (data.column.index === 1 && data.cell.text[0]?.startsWith('✗')) {
-                        data.cell.styles.textColor = [180, 0, 0];
+                      if (data.column.index === 1) {
+                        data.cell.styles.textColor = data.cell.text[0]?.startsWith('✓') ? GREEN : RED;
+                        data.cell.styles.fontStyle = 'bold';
                       }
                     },
-                    margin: { left: 14 },
-                    tableWidth: 120,
+                    alternateRowStyles: { fillColor: [245, 247, 249] },
+                    margin: { left: M, right: M },
                   });
-                  // Points d'attention
-                  if (importReport.warnings.length > 0) {
-                    const afterChecks = (doc as any).lastAutoTable.finalY + 8;
-                    doc.setFontSize(11); doc.setFont('helvetica','bold');
-                    doc.text(`Points d'attention (${importReport.warnings.length})`, 14, afterChecks);
+
+                  // ── ANOMALIES & ACTIONS ──────────────────────────────────
+                  const realWarnings = importReport.warnings.filter(w => !w.startsWith('Déséquilibre bilan'));
+                  if (realWarnings.length > 0) {
+                    y = (doc as any).lastAutoTable.finalY + 8;
+                    if (y > 250) { doc.addPage(); y = 14; }
+                    doc.setFontSize(11); doc.setFont('helvetica', 'bold'); doc.setTextColor(...PETROL);
+                    doc.text('3. Anomalies détectées et actions correctives', M, y); y += 5;
                     autoTable(doc, {
-                      startY: afterChecks + 4,
-                      head: [['#','Message']],
-                      body: importReport.warnings.map((w, i) => [String(i+1), w]),
-                      styles: { fontSize: 8 },
-                      headStyles: { fillColor: [200, 120, 0] },
-                      columnStyles: { 0: { cellWidth: 10 } },
-                      margin: { left: 14 },
+                      startY: y,
+                      head: [['#', 'Anomalie constatée', 'Action corrective']],
+                      body: realWarnings.map((w, i) => { const h = humanize(w); return [String(i+1), h.msg, h.action]; }),
+                      styles: { fontSize: 8, cellPadding: 2.5, overflow: 'linebreak' },
+                      headStyles: { fillColor: [146, 64, 14], textColor: [255,255,255], fontStyle: 'bold' },
+                      columnStyles: { 0: { cellWidth: 8 }, 1: { cellWidth: 95 }, 2: { cellWidth: 75 } },
+                      alternateRowStyles: { fillColor: [255, 251, 235] },
+                      margin: { left: M, right: M },
                     });
                   }
+
+                  // ── PROCHAINES ÉTAPES ────────────────────────────────────
+                  y = (doc as any).lastAutoTable.finalY + 8;
+                  if (y > 240) { doc.addPage(); y = 14; }
+                  doc.setFontSize(11); doc.setFont('helvetica', 'bold'); doc.setTextColor(...PETROL);
+                  doc.text(`${realWarnings.length > 0 ? '4' : '3'}. Prochaines étapes recommandées`, M, y); y += 6;
+                  const steps = allOk
+                    ? ['Accéder au Grand Livre pour consulter les écritures importées.', 'Consulter la Balance générale pour vérifier les soldes par compte.', 'Générer le Bilan et le Compte de Résultat pour valider les états financiers.', 'Procéder à la clôture de l\'exercice si toutes les vérifications sont satisfaisantes.']
+                    : ['Corriger les anomalies listées dans la section 3 ci-dessus.', 'Une fois les corrections effectuées, vérifier la Balance pour confirmer l\'équilibre.', 'Ne pas produire d\'états financiers (Bilan, CDR, TAFIRE) avant résolution complète des anomalies.', 'En cas de doute, contacter votre expert-comptable avant toute validation définitive.'];
+                  doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor(0, 0, 0);
+                  steps.forEach((s, i) => { doc.text(`${i+1}.  ${s}`, M + 3, y); y += 6; });
+
+                  // ── PIED DE PAGE ─────────────────────────────────────────
+                  const pages = doc.getNumberOfPages();
+                  for (let p = 1; p <= pages; p++) {
+                    doc.setPage(p);
+                    doc.setFontSize(7); doc.setTextColor(150, 150, 150);
+                    doc.text(`Atlas Finance & Accounting  |  Rapport de Migration  |  ${now}  |  Page ${p}/${pages}`, M, 290);
+                    doc.line(M, 287, W - M, 287);
+                  }
+
                   doc.save(`rapport-migration-${new Date().toISOString().slice(0,10)}.pdf`);
                   toast.success('Rapport PDF téléchargé');
                 } catch (e: any) {
