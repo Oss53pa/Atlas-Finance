@@ -275,8 +275,9 @@ const JournalsPage: React.FC = () => {
             totalCredit += (line.credit || 0);
           }
         } else {
-          totalDebit += entry.totalDebit || 0;
-          totalCredit += entry.totalCredit || 0;
+          // Support camelCase (Dexie) et snake_case (Supabase)
+          totalDebit  += entry.totalDebit  || entry.total_debit  || 0;
+          totalCredit += entry.totalCredit || entry.total_credit || 0;
         }
         const d = entry.date || '';
         if (d > lastDate) lastDate = d;

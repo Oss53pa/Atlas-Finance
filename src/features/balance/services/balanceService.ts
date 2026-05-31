@@ -24,7 +24,8 @@ class BalanceService {
   async getAllEntriesWithLines(adapter: DataAdapter): Promise<any[]> {
     const entries = await adapter.getAll<any>('journalEntries');
     if (entries.length === 0) return entries;
-    if (entries.some((e: any) => e.lines && e.lines.length > 0)) return entries;
+    // Ne pas court-circuiter même si certaines entries ont des lignes —
+    // en SaaS toutes les lignes sont dans journalLines, pas dans entry.lines
     try {
       const allLines = await adapter.getAll<any>('journalLines');
       const byEntry = new Map<string, any[]>();
@@ -39,7 +40,10 @@ class BalanceService {
           label:  l.label || l.libelle || '',
         });
       }
-      return entries.map((e: any) => ({ ...e, lines: byEntry.get(e.id) ?? [] }));
+      return entries.map((e: any) => ({
+        ...e,
+        lines: byEntry.get(e.id)?.length ? byEntry.get(e.id)! : (e.lines ?? []),
+      }));
     } catch { return entries; }
   }
 

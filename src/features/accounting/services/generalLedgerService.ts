@@ -348,31 +348,35 @@ class GeneralLedgerService {
   // ---- Private helpers ----
 
   // Charge toutes les écritures et injecte les lignes depuis journal_lines
-  // si elles ne sont pas imbriquées (cas SaaS : tables séparées).
+  // Charge toutes les écritures ET leurs lignes depuis journalLines (SaaS : tables séparées).
+  // Merger avec entry.lines (Dexie) si présentes. Toujours appelé via ce helper.
   private async getAllEntriesWithLines(adapter: DataAdapter): Promise<DBJournalEntry[]> {
-    const entries = await this.getAllEntriesWithLines(adapter);
+    const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
     if (entries.length === 0) return entries;
-    const hasLines = entries.some(e => e.lines && e.lines.length > 0);
-    if (hasLines) return entries;
     try {
       const allLines = await adapter.getAll<any>('journalLines');
-      const byEntry = new Map<string, any[]>();
-      for (const l of allLines) {
-        const key = l.entryId || l.entry_id;
-        if (!byEntry.has(key)) byEntry.set(key, []);
-        byEntry.get(key)!.push({
-          accountCode: l.accountCode || l.account_code || '',
-          accountName: l.accountName || l.account_name || '',
-          debit:       Number(l.debit  ?? 0),
-          credit:      Number(l.credit ?? 0),
-          label:       l.label || l.libelle || '',
-          tiersCode:   l.tiersCode || l.tiers_code || '',
-        });
+      if (allLines.length > 0) {
+        const byEntry = new Map<string, any[]>();
+        for (const l of allLines) {
+          const key = l.entryId || l.entry_id;
+          if (!key) continue;
+          if (!byEntry.has(key)) byEntry.set(key, []);
+          byEntry.get(key)!.push({
+            accountCode: l.accountCode || l.account_code || '',
+            accountName: l.accountName || l.account_name || '',
+            debit:       Number(l.debit  ?? 0),
+            credit:      Number(l.credit ?? 0),
+            label:       l.label || l.libelle || '',
+            tiersCode:   l.tiersCode || l.tiers_code || '',
+          });
+        }
+        return entries.map(e => ({
+          ...e,
+          lines: byEntry.get(e.id)?.length ? byEntry.get(e.id)! : (e.lines ?? []),
+        }));
       }
-      return entries.map(e => ({ ...e, lines: byEntry.get(e.id) ?? [] }));
-    } catch {
-      return entries;
-    }
+    } catch { /* fallback sur entry.lines */ }
+    return entries;
   }
 
   private async queryEntries(adapter: DataAdapter, filters: GeneralLedgerFilters): Promise<DBJournalEntry[]> {
@@ -382,31 +386,6 @@ class GeneralLedgerService {
     if (filters.dateDebut) entries = entries.filter(e => e.date >= filters.dateDebut);
     if (filters.dateFin)   entries = entries.filter(e => e.date <= filters.dateFin);
     if (filters.journal)   entries = entries.filter(e => e.journal === filters.journal);
-
-    // En mode SaaS, les lignes sont dans journal_lines (table séparée).
-    // Si entry.lines est absent, on les charge et on les injecte.
-    if (entries.length > 0 && (!entries[0].lines || entries[0].lines.length === 0)) {
-      try {
-        const allLines = await adapter.getAll<any>('journalLines');
-        const linesByEntry = new Map<string, any[]>();
-        for (const l of allLines) {
-          const key = l.entryId || l.entry_id;
-          if (!linesByEntry.has(key)) linesByEntry.set(key, []);
-          linesByEntry.get(key)!.push({
-            accountCode:  l.accountCode  || l.account_code  || '',
-            accountName:  l.accountName  || l.account_name  || '',
-            debit:        Number(l.debit  ?? 0),
-            credit:       Number(l.credit ?? 0),
-            label:        l.label || l.libelle || '',
-            tiersCode:    l.tiersCode || l.tiers_code || '',
-          });
-        }
-        entries = entries.map(e => ({
-          ...e,
-          lines: linesByEntry.get(e.id) ?? e.lines ?? [],
-        }));
-      } catch { /* lignes absentes — garder entry.lines tel quel */ }
-    }
 
     return entries;
   }
