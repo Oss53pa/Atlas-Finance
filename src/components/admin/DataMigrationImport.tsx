@@ -1180,7 +1180,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
           is_active: true,
         });
       }
-      const tiersCreated = await batchUpsert('third_parties', tiersRecords, 'code,tenant_id',
+      const tiersCreated = await batchUpsert('third_parties', tiersRecords, 'tenant_id,code',
         pct => setImportProgress(15 + Math.round(pct * 0.15)));
       report.tiers += tiersCreated || 0;
 
@@ -1206,7 +1206,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
           status: 'active',
         });
       }
-      const assetsCreated = await batchUpsert('assets', assetRecords, 'code,tenant_id',
+      const assetsCreated = await batchUpsert('assets', assetRecords, 'tenant_id,code',
         pct => setImportProgress(30 + Math.round(pct * 0.15)));
       report.assets += assetsCreated || 0;
 
