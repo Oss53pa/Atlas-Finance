@@ -19,20 +19,29 @@ LANGUAGE SQL STABLE SECURITY DEFINER SET search_path = public AS $$
 $$;
 
 -- ============================================================
--- PARTIE 2 — RLS sur roles, permissions, role_permissions
+-- PARTIE 2 — RLS sur roles, permissions, role_permissions (si elles existent)
 -- ============================================================
+DO $$ BEGIN
+  -- roles
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='roles') THEN
+    ALTER TABLE roles ENABLE ROW LEVEL SECURITY;
+    DROP POLICY IF EXISTS roles_read_authenticated ON roles;
+    CREATE POLICY roles_read_authenticated ON roles FOR SELECT USING (auth.uid() IS NOT NULL);
+  END IF;
 
-ALTER TABLE roles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE permissions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE role_permissions ENABLE ROW LEVEL SECURITY;
+  -- permissions
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='permissions') THEN
+    ALTER TABLE permissions ENABLE ROW LEVEL SECURITY;
+    DROP POLICY IF EXISTS permissions_read_authenticated ON permissions;
+    CREATE POLICY permissions_read_authenticated ON permissions FOR SELECT USING (auth.uid() IS NOT NULL);
+  END IF;
 
-DROP POLICY IF EXISTS roles_read_authenticated ON roles;
-CREATE POLICY roles_read_authenticated ON roles FOR SELECT USING (auth.uid() IS NOT NULL);
-
-DROP POLICY IF EXISTS permissions_read_authenticated ON permissions;
-CREATE POLICY permissions_read_authenticated ON permissions FOR SELECT USING (auth.uid() IS NOT NULL);
-
-DROP POLICY IF EXISTS role_permissions_read_authenticated ON role_permissions;
-CREATE POLICY role_permissions_read_authenticated ON role_permissions FOR SELECT USING (auth.uid() IS NOT NULL);
+  -- role_permissions
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='role_permissions') THEN
+    ALTER TABLE role_permissions ENABLE ROW LEVEL SECURITY;
+    DROP POLICY IF EXISTS role_permissions_read_authenticated ON role_permissions;
+    CREATE POLICY role_permissions_read_authenticated ON role_permissions FOR SELECT USING (auth.uid() IS NOT NULL);
+  END IF;
+END $$;
 
 -- Pas de politique INSERT/UPDATE/DELETE -> seul le service-role peut modifier le RBAC
