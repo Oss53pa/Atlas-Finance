@@ -50,25 +50,42 @@ const EntriesPage: React.FC = () => {
   const loadEntries = useCallback(async () => {
     try {
       const entries = await adapter.getAll<any>('journalEntries');
+
+      // Charger les lignes depuis journalLines (SaaS : tables séparées)
+      let linesByEntry = new Map<string, any[]>();
+      try {
+        const allLines = await adapter.getAll<any>('journalLines');
+        for (const l of allLines) {
+          const key = l.entryId || l.entry_id;
+          if (!key) continue;
+          if (!linesByEntry.has(key)) linesByEntry.set(key, []);
+          linesByEntry.get(key)!.push(l);
+        }
+      } catch { /* pas de journalLines — utiliser entry.lines */ }
+
       const mapped: EcritureBrouillard[] = (entries as any[])
         .slice()
         .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')))
         .map((e: any) => {
-          const debit = Number(e.totalDebit) || 0;
-          const credit = Number(e.totalCredit) || 0;
+          // Support camelCase (Dexie) et snake_case (Supabase)
+          const injectedLines = linesByEntry.get(e.id) ?? (Array.isArray(e.lines) ? e.lines : []);
+          const debit  = injectedLines.reduce((s: number, l: any) => s + Number(l.debit  ?? 0), 0)
+                      || Number(e.totalDebit  || e.total_debit  || 0);
+          const credit = injectedLines.reduce((s: number, l: any) => s + Number(l.credit ?? 0), 0)
+                      || Number(e.totalCredit || e.total_credit || 0);
           return {
             id: e.id,
-            numero: e.entryNumber || '',
+            numero: e.entryNumber || e.entry_number || '',
             journal: e.journal || '',
             date: e.date || '',
-            source: (e.createdBy === 'system' || e.nature) ? 'API' : 'Manuel',
+            source: (e.createdBy === 'system' || e.created_by === 'system' || e.nature) ? 'API' : 'Manuel',
             libelle: e.label || '',
             debit,
             credit,
             equilibre: Math.abs(debit - credit) < 0.01,
             statut: e.status || 'draft',
             type: e.nature || 'manuelle',
-            lines: Array.isArray(e.lines) ? e.lines : [],
+            lines: injectedLines,
           } as EcritureBrouillard;
         });
       setEcrituresData(mapped);
@@ -282,12 +299,41 @@ const EntriesPage: React.FC = () => {
     );
   };
 
-  // Fonction pour valider la sélection
-  const handleValidateSelection = () => {
-    if (selectedEntries.length > 0) {
-      toast.success(`${selectedEntries.length} écriture(s) validée(s) avec succès`);
-      setSelectedEntries([]);
+  // Validation en lot — réelle, pas juste un toast
+  const [validatingBatch, setValidatingBatch] = useState(false);
+  const handleValidateSelection = async () => {
+    if (selectedEntries.length === 0) return;
+    setValidatingBatch(true);
+    let ok = 0; let ko = 0;
+    for (const id of selectedEntries) {
+      try {
+        const result = await validerEcriture(adapter, id);
+        if (result?.success) ok++; else ko++;
+      } catch { ko++; }
     }
+    setValidatingBatch(false);
+    setSelectedEntries([]);
+    await loadEntries();
+    if (ko === 0) toast.success(`${ok} écriture(s) validée(s) avec succès`);
+    else toast.error(`${ok} validée(s), ${ko} en erreur (vérifier l'équilibre débit/crédit)`);
+  };
+
+  // Valider TOUTES les écritures brouillon en un clic
+  const handleValidateAll = async () => {
+    const draftIds = ecrituresData.filter(e => e.statut === 'draft').map(e => e.id);
+    if (draftIds.length === 0) { toast.info('Aucun brouillon à valider'); return; }
+    setValidatingBatch(true);
+    let ok = 0; let ko = 0;
+    for (const id of draftIds) {
+      try {
+        const result = await validerEcriture(adapter, id);
+        if (result?.success) ok++; else ko++;
+      } catch { ko++; }
+    }
+    setValidatingBatch(false);
+    await loadEntries();
+    if (ko === 0) toast.success(`${ok} brouillon(s) validé(s) avec succès`);
+    else toast.error(`${ok} validé(s), ${ko} en erreur`);
   };
 
   return (
@@ -320,6 +366,28 @@ const EntriesPage: React.FC = () => {
               <Clock className="w-4 h-4" />
               <span>{draftCount} en attente</span>
             </div>
+
+            {/* Validation en lot */}
+            {selectedEntries.length > 0 && (
+              <button
+                onClick={handleValidateSelection}
+                disabled={validatingBatch}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2 disabled:opacity-60"
+              >
+                {validatingBatch ? <span className="animate-spin">⏳</span> : <span>✓</span>}
+                <span className="text-sm">Valider la sélection ({selectedEntries.length})</span>
+              </button>
+            )}
+            {draftCount > 0 && selectedEntries.length === 0 && (
+              <button
+                onClick={handleValidateAll}
+                disabled={validatingBatch}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2 disabled:opacity-60"
+              >
+                {validatingBatch ? <span className="animate-spin">⏳</span> : <span>✓✓</span>}
+                <span className="text-sm">Valider tout ({draftCount})</span>
+              </button>
+            )}
 
             <button
               onClick={() => setShowTemplateModal(true)}
