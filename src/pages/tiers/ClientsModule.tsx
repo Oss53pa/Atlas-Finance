@@ -233,7 +233,7 @@ const ClientsModule: React.FC = () => {
         ]);
 
         const customers = allThirdParties.filter(
-          (tp: any) => tp.type === 'customer' || tp.type === 'both'
+          (tp: any) => tp.type === 'customer' || tp.type === 'both' || /^41/.test(tp.code || '')
         );
 
         const clientsData: Client[] = customers.map((tp: any) => {
@@ -481,7 +481,10 @@ const ClientsModule: React.FC = () => {
         adapter.getAll('thirdParties'),
         adapter.getAll('journalEntries')
       ]);
-      const customers = (allThirdParties as any[]).filter((tp: any) => tp.type === 'customer' || tp.type === 'both');
+      const customers = (allThirdParties as any[]).filter((tp: any) =>
+        tp.type === 'customer' || tp.type === 'both' ||
+        /^41/.test(tp.code || '')  // 411xxx = clients SYSCOHADA
+      );
       setClients(customers.map((tp: any) => {
         const lines: { debit: number; credit: number }[] = [];
         (allEntries as any[]).forEach((e: any) => {

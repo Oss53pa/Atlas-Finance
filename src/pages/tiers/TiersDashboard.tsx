@@ -159,6 +159,8 @@ const TiersDashboard: React.FC = () => {
     { id: 'overview', label: 'Vue d\'ensemble', icon: BarChart3 },
     { id: 'clients', label: t('navigation.clients'), icon: Users, badge: kpis.totalClients.toString() },
     { id: 'fournisseurs', label: t('navigation.suppliers'), icon: Building2, badge: kpis.totalFournisseurs.toString() },
+    { id: 'personnel', label: 'Personnel', icon: UserCheck },
+    { id: 'autres', label: 'Autres tiers', icon: Building2 },
     { id: 'contacts', label: 'Contacts', icon: UserCheck, badge: kpis.totalContacts.toString() },
     { id: 'prospects', label: 'Prospects', icon: Target, badge: liveTiers.totalProspects > 0 ? liveTiers.totalProspects.toString() : undefined },
     { id: 'partenaires', label: 'Partenaires', icon: Handshake, badge: liveTiers.totalPartenaires > 0 ? liveTiers.totalPartenaires.toString() : undefined },
@@ -437,8 +439,11 @@ const TiersDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* Clients and Fournisseurs tabs navigate to dedicated module pages */}
-      {(activeTab === 'clients' || activeTab === 'fournisseurs') && null}
+      {/* Modules dédiés — navigation directe */}
+      {activeTab === 'clients' && (() => { navigate('/tiers/clients'); return null; })()}
+      {activeTab === 'fournisseurs' && (() => { navigate('/tiers/fournisseurs'); return null; })()}
+      {activeTab === 'personnel' && (() => { navigate('/tiers/personnel'); return null; })()}
+      {activeTab === 'autres' && (() => { navigate('/tiers/autres'); return null; })()}
 
       {activeTab === 'contacts' && (
         <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">

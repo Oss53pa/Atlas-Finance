@@ -132,7 +132,7 @@ const FournisseursModule: React.FC = () => {
         ]);
 
         const suppliers = allThirdParties.filter(
-          (tp: any) => tp.type === 'supplier' || tp.type === 'both'
+          (tp: any) => tp.type === 'supplier' || tp.type === 'both' || /^40/.test(tp.code || '')
         );
 
         const fournisseursData: Fournisseur[] = suppliers.map((tp: any) => {
@@ -1794,7 +1794,7 @@ const FournisseursModule: React.FC = () => {
                         });
                         setShowNewFournisseurModal(false); setFormStep(1);
                         const tp = await adapter.getAll<any>('thirdParties');
-                        const suppliers = tp.filter((t: any) => t.type === 'supplier' || t.type === 'both');
+                        const suppliers = tp.filter((t: any) => t.type === 'supplier' || t.type === 'both' || /^40/.test(t.code || ''));
                         setFournisseurs(suppliers.map((s: any) => ({
                           ...s, id: s.id, code: s.code || '', raisonSociale: s.name || '',
                           categorie: 'RECURRENT', typeDépense: 'FRAIS_GENERAUX', pays: 'Cameroun',

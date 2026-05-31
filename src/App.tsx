@@ -125,6 +125,8 @@ const TiersDashboard = lazyRetry(() => import('./pages/tiers/TiersDashboard'));
 const ClientsModule = lazyRetry(() => import('./pages/tiers/ClientsModule'));
 const FournisseursModule = lazyRetry(() => import('./pages/tiers/FournisseursModule'));
 const RecouvrementModule = lazyRetry(() => import('./pages/tiers/RecouvrementModule'));
+const PersonnelModule = lazyRetry(() => import('./pages/tiers/PersonnelModule'));
+const AutresTiersModule = lazyRetry(() => import('./pages/tiers/AutresTiersModule'));
 const ContactsModule = lazyRetry(() => import('./pages/tiers/ContactsModule'));
 const LettrageModule = lazyRetry(() => import('./pages/tiers/LettrageModule'));
 const PartenairesModule = lazyRetry(() => import('./pages/tiers/PartenairesModule'));
@@ -394,7 +396,11 @@ function App() {
                         <Route element={<RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant', 'user', 'viewer']}><FeatureErrorBoundary feature="Tiers" /></RBACGuard>}>
                           <Route path="/tiers" element={<TiersDashboard />} />
                           <Route path="/tiers/clients" element={<ClientsModule />} />
+                          <Route path="/tiers/clients/:id" element={<ClientsModule />} />
                           <Route path="/tiers/fournisseurs" element={<FournisseursModule />} />
+                          <Route path="/tiers/fournisseurs/:id" element={<FournisseursModule />} />
+                          <Route path="/tiers/personnel" element={<PersonnelModule />} />
+                          <Route path="/tiers/autres" element={<AutresTiersModule />} />
                           <Route path="/tiers/recouvrement" element={<RecouvrementModule />} />
                           <Route path="/tiers/contacts" element={<ContactsModule />} />
                           <Route path="/tiers/lettrage" element={<LettrageModule />} />
