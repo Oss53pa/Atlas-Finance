@@ -218,6 +218,8 @@ const AdminCompany: React.FC<Props> = ({ subTab, setSubTab }) => {
   const [loading, setLoading] = useState(true);
   const [savingSection, setSavingSection] = useState<'logo'|'devise'|null>(null);
   const [savedSection, setSavedSection] = useState<'logo'|'devise'|null>(null);
+  const [logoDataUrl, setLogoDataUrl] = useState<string>('');
+  const logoFileInputRef = useRef<HTMLInputElement>(null);
   const [accounts, setAccounts] = useState<any[]>([]);
   const [exercices, setExercices] = useState<any[]>([]);
   const [taxes, setTaxes] = useState<any[]>([]);
@@ -237,14 +239,15 @@ const AdminCompany: React.FC<Props> = ({ subTab, setSubTab }) => {
 
   const saveSetting = useCallback(async (key: string, value: any) => {
     const data = { key, value: JSON.stringify(value), updatedAt: new Date().toISOString() };
-    // L'adapter gère maintenant settings correctement via KEY_PK_TABLES :
-    // getById('settings', key) → WHERE key=key, update('settings', key, data) → WHERE key=key
+    // Timeout 8s pour éviter le spinner bloqué si Supabase ne répond pas
+    const withTimeout = <T,>(p: Promise<T>) =>
+      Promise.race([p, new Promise<T>((_, r) => setTimeout(() => r(new Error('timeout')), 8000))]);
     try {
-      const existing = await adapter.getById('settings', key);
-      if (existing) { await adapter.update('settings', key, data); }
-      else { await adapter.create('settings', data); }
+      const existing = await withTimeout(adapter.getById<any>('settings', key));
+      if (existing) { await withTimeout(adapter.update('settings', key, data)); }
+      else { await withTimeout(adapter.create('settings', data)); }
     } catch {
-      try { await adapter.create('settings', data); } catch { /* silent */ }
+      try { await withTimeout(adapter.create('settings', data)); } catch { /* silent */ }
     }
   }, [adapter]);
 
@@ -259,18 +262,27 @@ const AdminCompany: React.FC<Props> = ({ subTab, setSubTab }) => {
       const catS = allSettings.find((s: any) => s.key === 'admin_asset_categories'); if (catS?.value) setCategories(JSON.parse(catS.value));
       const legS = allSettings.find((s: any) => s.key === 'admin_company_legal'); if (legS?.value) setLegalForm(prev => ({ ...prev, ...JSON.parse(legS.value) }));
       const devS = allSettings.find((s: any) => s.key === 'admin_company_devise'); if (devS?.value) setDeviseForm(prev => ({ ...prev, ...JSON.parse(devS.value) }));
-      const logS = allSettings.find((s: any) => s.key === 'admin_company_logo'); if (logS?.value) setLogoToggles(JSON.parse(logS.value));
+      const logS = allSettings.find((s: any) => s.key === 'admin_company_logo'); if (logS?.value) { const lv = JSON.parse(logS.value); setLogoToggles({ etatsFinanciers: lv.etatsFinanciers ?? true, factures: lv.factures ?? true, entetePdf: lv.entetePdf ?? true }); if (lv.dataUrl) setLogoDataUrl(lv.dataUrl); }
     } catch { /* ignored */ } finally { setLoading(false); }
   }, [adapter]);
 
   useEffect(() => { loadData(); }, [loadData]);
 
+  const handleLogoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) { toast.error('Logo trop volumineux (max 2 Mo)'); return; }
+    const reader = new FileReader();
+    reader.onload = () => setLogoDataUrl(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
   const handleLogoSave = async () => {
     if (savingSection) return;
     setSavingSection('logo');
     try {
-      await saveSetting('admin_company_logo', logoToggles);
-      toast.success('Parametres du logo enregistres avec succes');
+      await saveSetting('admin_company_logo', { ...logoToggles, dataUrl: logoDataUrl });
+      toast.success('Logo et paramètres enregistrés');
       setSavedSection('logo');
       setTimeout(() => setSavedSection(s => s === 'logo' ? null : s), 3000);
     } catch {
@@ -296,11 +308,52 @@ const AdminCompany: React.FC<Props> = ({ subTab, setSubTab }) => {
   const handleAccountSubmit = async () => { if (!accountForm.numero||!accountForm.libelle) { toast.error('Le numero et le libelle sont obligatoires'); return; } try { await adapter.create('accounts', { code: accountForm.numero, name: accountForm.libelle, accountClass: Number(accountForm.classe||accountForm.numero[0]), accountType: accountForm.type.toLowerCase(), normalBalance: accountForm.sens==='Crediteur'?'credit':'debit', isReconcilable: accountForm.lettrable, isActive: true, level: 1 }); toast.success(`Compte ${accountForm.numero} ajoute avec succes`); setShowAccountModal(false); setAccountForm({ numero:'',libelle:'',classe:'',type:'Bilan',sens:'Debiteur',lettrable:false,compteCollectif:'' }); await loadData(); } catch { toast.error('Erreur lors de l\'ajout du compte'); } };
   const handleTaxSubmit = async () => { if (!taxForm.code||!taxForm.libelle) { toast.error('Le code et le libelle sont obligatoires'); return; } const n = [...taxes, { ...taxForm, taux: Number(taxForm.taux), actif: true }]; setTaxes(n); await saveSetting('admin_taxes', n); toast.success(`Taxe ${taxForm.code} ajoutee avec succes`); setShowTaxModal(false); setTaxForm({ code:'',libelle:'',taux:'',type:'TVA',compteCollecte:'',compteDeductible:'' }); };
   const handleCategorySubmit = async () => { if (!categoryForm.code||!categoryForm.libelle) { toast.error('Le code et le libelle sont obligatoires'); return; } const n = [...categories, { ...categoryForm, duree: Number(categoryForm.duree), taux: Number(categoryForm.taux) }]; setCategories(n); await saveSetting('admin_asset_categories', n); toast.success(`Categorie ${categoryForm.code} ajoutee avec succes`); setShowCategoryModal(false); setCategoryForm({ code:'',libelle:'',duree:'',taux:'',methode:'Lineaire',compteBilan:'',compteAmort:'',compteDotation:'' }); };
-  const handleExerciceSubmit = async () => { if (!exerciceForm.debut||!exerciceForm.fin) { toast.error('Les dates de debut et de fin sont obligatoires'); return; } try { await adapter.create('fiscalYears', { code: exerciceForm.code, name: `Exercice ${exerciceForm.code}`, startDate: exerciceForm.debut, endDate: exerciceForm.fin, isClosed: false, isActive: true }); toast.success(`Exercice ${exerciceForm.code} cree avec succes`); setShowExerciceModal(false); setExerciceForm({ debut:'',fin:'',code:'',periodes:'12' }); await loadData(); } catch { toast.error('Erreur lors de la creation de l\'exercice'); } };
+  const handleExerciceSubmit = async () => {
+    if (!exerciceForm.debut||!exerciceForm.fin) { toast.error('Les dates de debut et de fin sont obligatoires'); return; }
+    try {
+      await adapter.create('fiscalYears', {
+        code: exerciceForm.code,
+        name: `Exercice ${exerciceForm.code}`,
+        // camelCase pour DexieAdapter (local)
+        startDate: exerciceForm.debut,
+        endDate: exerciceForm.fin,
+        isClosed: false,
+        isActive: true,
+        // snake_case pour SupabaseAdapter (SaaS) — fiscal_years utilise start_date etc.
+        start_date: exerciceForm.debut,
+        end_date: exerciceForm.fin,
+        is_closed: false,
+        is_active: true,
+      });
+      toast.success(`Exercice ${exerciceForm.code} cree avec succes`);
+      setShowExerciceModal(false);
+      setExerciceForm({ debut:'',fin:'',code:'',periodes:'12' });
+      await loadData();
+    } catch (err) {
+      toast.error('Erreur lors de la creation de l\'exercice');
+      console.error('[handleExerciceSubmit]', err);
+    }
+  };
 
   if (loading) return <div className="flex items-center justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-gray-400" /><span className="ml-2 text-gray-500">Chargement...</span></div>;
 
-  const renderLogoEntete = () => (<div className="space-y-6"><div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-red-400 transition-colors cursor-pointer"><Upload className="w-10 h-10 mx-auto text-gray-400 mb-3" /><p className="text-sm text-gray-600 mb-1">Glissez-deposez votre logo ici ou cliquez pour parcourir</p><p className="text-xs text-gray-400">PNG, JPG ou SVG - Max 2Mo</p></div><div className="p-4 bg-gray-50 rounded-lg"><p className="text-sm font-medium text-gray-700 mb-2">Apercu du logo actuel</p><div className="w-32 h-32 bg-gray-200 rounded-lg flex items-center justify-center"><Image className="w-8 h-8 text-gray-400" /></div></div><div className="space-y-3">{([{key:'etatsFinanciers' as const,label:'Afficher sur les etats financiers'},{key:'factures' as const,label:'Afficher sur les factures'},{key:'entetePdf' as const,label:'Afficher dans l\'en-tete PDF'}]).map(({key,label})=>(<div key={key} className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg"><span className="text-sm text-gray-700">{label}</span><button onClick={()=>setLogoToggles({...logoToggles,[key]:!logoToggles[key]})} className={`w-10 h-6 rounded-full transition-colors relative ${logoToggles[key]?'bg-red-500':'bg-gray-300'}`}><span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${logoToggles[key]?'left-[18px]':'left-0.5'}`} /></button></div>))}</div><div className="flex items-center justify-end gap-3">{savedSection==='logo'&&<span className="text-green-600 text-sm font-medium">✓ Enregistré</span>}<button onClick={handleLogoSave} disabled={savingSection==='logo'} className="flex items-center gap-2 px-6 py-2 text-white rounded-lg hover:opacity-90 disabled:opacity-60" style={{backgroundColor:'#C0322B'}}>{savingSection==='logo'?<><Loader2 className="w-4 h-4 animate-spin" />Enregistrement...</>:<><Save className="w-4 h-4" />Enregistrer</>}</button></div></div>);
+  const renderLogoEntete = () => (<div className="space-y-6">
+    {/* Zone d'upload — cliquable */}
+    <input ref={logoFileInputRef} type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp" className="hidden" onChange={handleLogoFileChange} />
+    <div onClick={() => logoFileInputRef.current?.click()} className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-red-400 transition-colors cursor-pointer">
+      <Upload className="w-10 h-10 mx-auto text-gray-400 mb-3" />
+      <p className="text-sm text-gray-600 mb-1">Cliquez pour choisir votre logo</p>
+      <p className="text-xs text-gray-400">PNG, JPG, SVG ou WebP — Max 2 Mo</p>
+    </div>
+    {/* Aperçu */}
+    <div className="p-4 bg-gray-50 rounded-lg">
+      <p className="text-sm font-medium text-gray-700 mb-2">Aperçu du logo</p>
+      {logoDataUrl
+        ? <img src={logoDataUrl} alt="Logo entreprise" className="max-w-[200px] max-h-[80px] object-contain rounded border bg-white p-2" />
+        : <div className="w-32 h-20 bg-gray-200 rounded-lg flex items-center justify-center"><Image className="w-8 h-8 text-gray-400" /></div>
+      }
+      {logoDataUrl && <button onClick={() => setLogoDataUrl('')} className="mt-2 text-xs text-red-500 hover:underline">Supprimer le logo</button>}
+    </div><div className="space-y-3">{([{key:'etatsFinanciers' as const,label:'Afficher sur les etats financiers'},{key:'factures' as const,label:'Afficher sur les factures'},{key:'entetePdf' as const,label:'Afficher dans l\'en-tete PDF'}]).map(({key,label})=>(<div key={key} className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg"><span className="text-sm text-gray-700">{label}</span><button onClick={()=>setLogoToggles({...logoToggles,[key]:!logoToggles[key]})} className={`w-10 h-6 rounded-full transition-colors relative ${logoToggles[key]?'bg-red-500':'bg-gray-300'}`}><span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${logoToggles[key]?'left-[18px]':'left-0.5'}`} /></button></div>))}</div><div className="flex items-center justify-end gap-3">{savedSection==='logo'&&<span className="text-green-600 text-sm font-medium">✓ Enregistré</span>}<button onClick={handleLogoSave} disabled={savingSection==='logo'} className="flex items-center gap-2 px-6 py-2 text-white rounded-lg hover:opacity-90 disabled:opacity-60" style={{backgroundColor:'#C0322B'}}>{savingSection==='logo'?<><Loader2 className="w-4 h-4 animate-spin" />Enregistrement...</>:<><Save className="w-4 h-4" />Enregistrer</>}</button></div></div>);
 
   const renderExerciceComptable = () => (<div className="space-y-4"><div className="flex justify-end"><button onClick={()=>setShowExerciceModal(true)} className="flex items-center gap-2 px-4 py-2 text-white rounded-lg hover:opacity-90 text-sm" style={{backgroundColor:'#C0322B'}}><Plus className="w-4 h-4" />Creer un exercice</button></div><div className="overflow-x-auto border border-gray-200 rounded-lg"><table className="w-full text-sm"><thead className="bg-gray-50"><tr>{['Code','Date debut','Date fin','Nb periodes','Statut','Actif','Actions'].map(h=><th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{h}</th>)}</tr></thead><tbody className="divide-y divide-gray-200">{exercices.length===0?(<tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400">Aucun exercice comptable</td></tr>):exercices.map(ex=>(<tr key={ex.code} className="hover:bg-gray-50"><td className="px-4 py-3 font-medium">{ex.code}</td><td className="px-4 py-3">{ex.debut}</td><td className="px-4 py-3">{ex.fin}</td><td className="px-4 py-3">{ex.periodes}</td><td className="px-4 py-3"><Badge text={ex.statut} color={ex.statut==='Ouvert'?'green':'red'} /></td><td className="px-4 py-3">{ex.actif&&<Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />}</td><td className="px-4 py-3"><button className="text-gray-400 hover:text-gray-600"><Edit2 className="w-4 h-4" /></button></td></tr>))}</tbody></table></div></div>);
 
