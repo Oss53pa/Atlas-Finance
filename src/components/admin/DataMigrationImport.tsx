@@ -105,6 +105,21 @@ interface Props {
 
 // ─── Helpers ─────────────────────────────────────────────
 
+const normalizeKey = (s: string) =>
+  s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '');
+
+const findCol = (row: any, candidates: string[]): number => {
+  if (!row) return 0;
+  const keys = Object.keys(row);
+  for (const cand of candidates) {
+    const target = normalizeKey(cand);
+    for (const k of keys) {
+      if (normalizeKey(k) === target) return parseNumber(row[k]);
+    }
+  }
+  return 0;
+};
+
 const STEPS: { id: StepId; label: string }[] = [
   { id: 'mode', label: 'Mode' },
   { id: 'upload', label: 'Fichiers' },
@@ -646,18 +661,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
     // Les fichiers de migration ont souvent des colonnes supplémentaires
     // (solde, solde progressif...) qui fausseraient un calcul positionnel.
     // ───────────────────────────────────────────────────────────
-    const normalizeKey = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
-    const findCol = (row: any, candidates: string[]): number => {
-      if (!row) return 0;
-      const keys = Object.keys(row);
-      for (const cand of candidates) {
-        const target = normalizeKey(cand);
-        for (const k of keys) {
-          if (normalizeKey(k) === target) return parseNumber(row[k]);
-        }
-      }
-      return 0;
-    };
+    // normalizeKey + findCol d\u00e9finis au niveau module (accessibles ici et dans runImport)
     const debitAliases = ['debit', 'montantdebit', 'mtdebit'];
     const creditAliases = ['credit', 'montantcredit', 'mtcredit'];
 
@@ -1201,7 +1205,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
           acquisition_date: parseDate(getVal('dateAcquisition')) || new Date().toISOString().slice(0, 10),
           acquisition_value: parseNumber(getVal('valeurOrigine')),
           cumul_depreciation: parseNumber(getVal('amortCumule')),
-          useful_life_years: parseNumber(getVal('duree')) || 1,
+          useful_life_years: Math.round(parseNumber(getVal('duree'))) || 1,
           depreciation_method: String(getVal('methode') || 'LINEAIRE'),
           status: 'active',
         });
