@@ -1012,162 +1012,173 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
         return c || '0';
       };
 
-      // Helper : create + skip silencieux si duplicate (re-import idempotent).
-      // Ne stoppe pas l'import sur une erreur de doublon comme accounts_tenant_id_code_key.
-      let accountsSkipped = 0;
-      const tryCreateAccount = async (data: Record<string, unknown>) => {
-        try {
-          await adapter.create('accounts', data);
-          report.accounts++;
-        } catch (err) {
-          const msg = err instanceof Error ? err.message : '';
-          if (msg.includes('duplicate key') || msg.includes('unique constraint')) {
-            accountsSkipped++;
-          } else {
-            throw err; // erreur reelle (FK, NOT NULL, ...) -> remonter
-          }
-        }
-      };
+      // ── Construire la liste de comptes en mémoire, puis batch insert ─────────
+      // Même stratégie que les écritures : éviter N requêtes individuelles.
+      const accountRecords: Record<string, unknown>[] = [];
+      const isSaasForAccounts = adapter.getMode() === 'saas';
+      const supabaseForAccounts = isSaasForAccounts ? (adapter as any).client : null;
+      const tenantIdForAccounts = isSaasForAccounts ? (adapter as any).tenantId : null;
+
+      const buildAccount = (code: string, name: string, extra: Record<string, unknown> = {}) => ({
+        id: crypto.randomUUID(),
+        code, name,
+        account_class: accountClassFromNumero(code),
+        account_type: 'general',
+        level: code.length,
+        is_active: true,
+        ...extra,
+        ...(isSaasForAccounts ? { tenant_id: tenantIdForAccounts, created_at: new Date().toISOString() } : {}),
+      });
 
       if (pcData.length > 0) {
-        // Source explicite
-        for (let i = 0; i < pcData.length; i++) {
-          const row = pcData[i] as Record<string, any>;
-          const numCol = pcMapping.find(m => m.target === 'numero')?.source;
-          const libCol = pcMapping.find(m => m.target === 'libelle')?.source;
-          if (!numCol) continue;
-          const code = String(row[numCol] || '').trim();
-          if (!code) continue;
-          await tryCreateAccount({
-            code,
-            name: String(row[libCol || ''] || `Compte ${code}`),
-            account_class: accountClassFromNumero(code),
-            account_type: 'general',
-            level: code.length,
-            is_active: true,
+        const numCol = pcMapping.find(m => m.target === 'numero')?.source;
+        const libCol = pcMapping.find(m => m.target === 'libelle')?.source;
+        if (numCol) {
+          (pcData as Record<string, any>[]).forEach(row => {
+            const code = String(row[numCol] || '').trim();
+            if (code) accountRecords.push(buildAccount(code, String(row[libCol || ''] || `Compte ${code}`)));
           });
-          setImportProgress(Math.round((i / pcData.length) * 15));
         }
       } else if (generatedPC && generatedPC.accounts.length > 0) {
-        // Plan genere automatiquement depuis le GL (Mode 1 / Mode 3)
-        const accs = generatedPC.accounts;
-        for (let i = 0; i < accs.length; i++) {
-          const acc = accs[i];
-          await tryCreateAccount({
-            code: acc.numero,
-            name: acc.libelle,
+        generatedPC.accounts.forEach((acc: any) => {
+          accountRecords.push(buildAccount(acc.numero, acc.libelle, {
             account_class: String(acc.classe),
             account_type: acc.auxiliaire ? 'auxiliary' : 'general',
             level: acc.numero.length,
-            normal_balance: acc.sens === 'M' ? null : acc.sens, // 'D' ou 'C'
-            is_active: true,
-          });
-          setImportProgress(Math.round((i / accs.length) * 15));
-        }
+            normal_balance: acc.sens === 'M' ? null : acc.sens,
+          }));
+        });
       } else if (uploadedFiles.reportAN?.data && uploadedFiles.reportAN.data.length > 0) {
-        // Fallback Mode 2 : extraire les comptes du Balance/AN
         const anMappingForPC = mappings.reportAN || [];
         const numCol = anMappingForPC.find(m => m.target === 'numeroCompte')?.source;
         const libCol = anMappingForPC.find(m => m.target === 'libelle')?.source;
         if (numCol) {
           const seen = new Set<string>();
-          const rows = uploadedFiles.reportAN.data as Record<string, any>[];
-          for (let i = 0; i < rows.length; i++) {
-            const num = String(rows[i][numCol] || '').trim();
-            if (!num || seen.has(num)) continue;
-            seen.add(num);
-            await tryCreateAccount({
-              code: num,
-              name: String(libCol ? rows[i][libCol] : '') || `Compte ${num}`,
-              account_class: accountClassFromNumero(num),
-              account_type: 'general',
-              level: num.length,
-              is_active: true,
-            });
-            setImportProgress(Math.round((i / rows.length) * 15));
+          (uploadedFiles.reportAN.data as Record<string, any>[]).forEach(row => {
+            const num = String(row[numCol] || '').trim();
+            if (num && !seen.has(num)) { seen.add(num); accountRecords.push(buildAccount(num, String(libCol ? row[libCol] : '') || `Compte ${num}`)); }
+          });
+        }
+      }
+
+      // ── Insérer les comptes par batch ─────────────────────────────────────
+      let accountsSkipped = 0;
+      if (accountRecords.length > 0) {
+        if (isSaasForAccounts && supabaseForAccounts) {
+          const ACC_BATCH = 100;
+          for (let b = 0; b < accountRecords.length; b += ACC_BATCH) {
+            const chunk = accountRecords.slice(b, b + ACC_BATCH);
+            const { error } = await supabaseForAccounts
+              .from('accounts')
+              .upsert(chunk, { onConflict: 'code,tenant_id', ignoreDuplicates: true });
+            if (error && !error.message.includes('duplicate') && !error.message.includes('unique')) {
+              report.warnings.push(`Comptes batch [${b}] : ${error.message}`);
+            }
+            report.accounts += chunk.length;
+            setImportProgress(Math.round(((b + chunk.length) / accountRecords.length) * 15));
+          }
+        } else {
+          // Dexie : insertion une par une
+          for (let i = 0; i < accountRecords.length; i++) {
+            try {
+              await adapter.create('accounts', accountRecords[i]);
+              report.accounts++;
+            } catch (err) {
+              const msg = err instanceof Error ? err.message : '';
+              if (msg.includes('duplicate key') || msg.includes('unique constraint')) { accountsSkipped++; }
+              else { report.warnings.push(`Compte ${accountRecords[i].code} : ${msg}`); }
+            }
+            setImportProgress(Math.round((i / accountRecords.length) * 15));
           }
         }
       }
       if (accountsSkipped > 0) {
         report.warnings.push(`${accountsSkipped} comptes deja existants (ignores)`);
       }
+      setImportProgress(15);
+
+      // ── Helper batch upsert SaaS ─────────────────────────────────────────
+      const batchUpsert = async (
+        pgTable: string,
+        records: Record<string, unknown>[],
+        conflictCol: string,
+        onProgress?: (pct: number) => void,
+      ) => {
+        if (!records.length) return;
+        const BATCH = 200;
+        if (isSaasForAccounts && supabaseForAccounts) {
+          for (let b = 0; b < records.length; b += BATCH) {
+            const chunk = records.slice(b, b + BATCH).map(r => ({
+              id: crypto.randomUUID(), ...r,
+              tenant_id: tenantIdForAccounts,
+              created_at: new Date().toISOString(),
+            }));
+            const { error } = await supabaseForAccounts
+              .from(pgTable)
+              .upsert(chunk, { onConflict: conflictCol, ignoreDuplicates: true });
+            if (error && !error.message.includes('duplicate') && !error.message.includes('unique')) {
+              report.warnings.push(`${pgTable} batch [${b}] : ${error.message}`);
+            }
+            onProgress?.(Math.round(((b + chunk.length) / records.length) * 100));
+          }
+          return records.length;
+        }
+        // Dexie
+        let created = 0;
+        for (let i = 0; i < records.length; i++) {
+          try { await adapter.create(pgTable as any, records[i]); created++; }
+          catch { /* duplicate or error — skip */ }
+          onProgress?.(Math.round((i / records.length) * 100));
+        }
+        return created;
+      };
 
       // 2. Tiers — schema : code, name, type, email, phone, address, tax_id, ...
       const tiersMapping = mappings.tiers || [];
       const tiersData = uploadedFiles.tiers?.data || [];
       setImportLabel('Import des tiers...');
-      let tiersSkipped = 0;
-      for (let i = 0; i < tiersData.length; i++) {
-        const row = tiersData[i] as Record<string, any>;
+      const tiersRecords: Record<string, unknown>[] = [];
+      for (const row of tiersData as Record<string, any>[]) {
         const codeCol = tiersMapping.find(m => m.target === 'code')?.source;
-        const nomCol = tiersMapping.find(m => m.target === 'nom')?.source;
+        const nomCol  = tiersMapping.find(m => m.target === 'nom')?.source;
         const typeCol = tiersMapping.find(m => m.target === 'type')?.source;
         if (!codeCol || !nomCol) continue;
-        try {
-          await adapter.create('thirdParties', {
-            code: String(row[codeCol] || ''),
-            name: String(row[nomCol] || ''),
-            type: String(row[typeCol || ''] || 'client'),
-            is_active: true,
-          } as Record<string, unknown>);
-          report.tiers++;
-        } catch (err) {
-          const msg = err instanceof Error ? err.message : '';
-          if (msg.includes('duplicate key') || msg.includes('unique constraint')) {
-            tiersSkipped++;
-          } else {
-            throw err;
-          }
-        }
-        setImportProgress(15 + Math.round((i / tiersData.length) * 15));
+        tiersRecords.push({
+          code: String(row[codeCol] || ''),
+          name: String(row[nomCol]  || ''),
+          type: String(row[typeCol || ''] || 'client'),
+          is_active: true,
+        });
       }
-      if (tiersSkipped > 0) {
-        report.warnings.push(`${tiersSkipped} tiers deja existants (ignores)`);
-      }
+      const tiersCreated = await batchUpsert('third_parties', tiersRecords, 'code,tenant_id',
+        pct => setImportProgress(15 + Math.round(pct * 0.15)));
+      report.tiers += tiersCreated || 0;
 
-      // 3. Assets — schema : code, name, category, acquisition_date,
-      // acquisition_value, useful_life_years, account_code,
-      // depreciation_account_code, depreciation_method, status
+      // 3. Assets — batch insert
       const assetMapping = mappings.immobilisations || [];
       const assetData = uploadedFiles.immobilisations?.data || [];
       setImportLabel('Import des immobilisations...');
-      let assetsSkipped = 0;
-      for (let i = 0; i < assetData.length; i++) {
-        const row = assetData[i] as Record<string, any>;
-        const getVal = (field: string) => {
-          const col = assetMapping.find(m => m.target === field)?.source;
-          return col ? row[col] : '';
-        };
+      const assetRecords: Record<string, unknown>[] = [];
+      for (const row of assetData as Record<string, any>[]) {
+        const getVal = (field: string) => { const col = assetMapping.find(m => m.target === field)?.source; return col ? row[col] : ''; };
         const code = String(getVal('code') || '').trim();
         if (!code) continue;
-        try {
-          await adapter.create('assets', {
-            code,
-            name: String(getVal('libelle') || `Immo ${code}`),
-            category: String(getVal('categorie') || 'Autre'),
-            account_code: String(getVal('compteImmo') || ''),
-            depreciation_account_code: String(getVal('compteAmort') || ''),
-            acquisition_date: parseDate(getVal('dateAcquisition')) || new Date().toISOString().slice(0, 10),
-            acquisition_value: parseNumber(getVal('valeurOrigine')),
-            cumul_depreciation: parseNumber(getVal('amortCumule')),
-            useful_life_years: parseNumber(getVal('duree')) || 1,
-            depreciation_method: String(getVal('methode') || 'LINEAIRE'),
-            status: 'active',
-          } as Record<string, unknown>);
-          report.assets++;
-        } catch (err) {
-          const msg = err instanceof Error ? err.message : '';
-          if (msg.includes('duplicate key') || msg.includes('unique constraint')) {
-            assetsSkipped++;
-          } else {
-            throw err;
-          }
-        }
-        setImportProgress(30 + Math.round((i / assetData.length) * 15));
+        assetRecords.push({
+          code, name: String(getVal('libelle') || `Immo ${code}`),
+          category: String(getVal('categorie') || 'Autre'),
+          account_code: String(getVal('compteImmo') || ''),
+          depreciation_account_code: String(getVal('compteAmort') || ''),
+          acquisition_date: parseDate(getVal('dateAcquisition')) || new Date().toISOString().slice(0, 10),
+          acquisition_value: parseNumber(getVal('valeurOrigine')),
+          cumul_depreciation: parseNumber(getVal('amortCumule')),
+          useful_life_years: parseNumber(getVal('duree')) || 1,
+          depreciation_method: String(getVal('methode') || 'LINEAIRE'),
+          status: 'active',
+        });
       }
-      if (assetsSkipped > 0) {
-        report.warnings.push(`${assetsSkipped} immobilisations deja existantes (ignorees)`);
-      }
+      const assetsCreated = await batchUpsert('assets', assetRecords, 'code,tenant_id',
+        pct => setImportProgress(30 + Math.round(pct * 0.15)));
+      report.assets += assetsCreated || 0;
 
       // 4. Entries (group by piece number)
       // Mode 1 (Bascule en cours d'exercice) : source principale = grandLivre.
