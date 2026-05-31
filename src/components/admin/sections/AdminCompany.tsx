@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useData } from '../../../contexts/DataContext';
+import { supabase } from '../../../lib/supabase';
 
 interface Props { subTab: number; setSubTab: (n: number) => void; }
 
@@ -238,16 +239,31 @@ const AdminCompany: React.FC<Props> = ({ subTab, setSubTab }) => {
   const [exerciceForm, setExerciceForm] = useState({ debut:'',fin:'',code:'',periodes:'12' });
 
   const saveSetting = useCallback(async (key: string, value: any) => {
+    const record = {
+      key,
+      value: JSON.stringify(value),
+      updated_at: new Date().toISOString(),
+      tenant_id: (adapter as any).tenantId,
+    };
+    // Stratégie 1 : upsert direct Supabase (SaaS) — 1 seule requête, pas de getById
+    if (adapter.getMode() === 'saas') {
+      const { error } = await (supabase as any)
+        .from('settings')
+        .upsert(record, { onConflict: 'key' });
+      if (error) {
+        console.error('[saveSetting] Supabase error:', error.message, record);
+        throw new Error(error.message);
+      }
+      return;
+    }
+    // Stratégie 2 : adapter (mode local Dexie)
     const data = { key, value: JSON.stringify(value), updatedAt: new Date().toISOString() };
-    // Timeout 8s pour éviter le spinner bloqué si Supabase ne répond pas
-    const withTimeout = <T,>(p: Promise<T>) =>
-      Promise.race([p, new Promise<T>((_, r) => setTimeout(() => r(new Error('timeout')), 8000))]);
     try {
-      const existing = await withTimeout(adapter.getById<any>('settings', key));
-      if (existing) { await withTimeout(adapter.update('settings', key, data)); }
-      else { await withTimeout(adapter.create('settings', data)); }
+      const existing = await adapter.getById<any>('settings', key);
+      if (existing) { await adapter.update('settings', key, data); }
+      else { await adapter.create('settings', data); }
     } catch {
-      try { await withTimeout(adapter.create('settings', data)); } catch { /* silent */ }
+      try { await adapter.create('settings', data); } catch { /* silent */ }
     }
   }, [adapter]);
 
