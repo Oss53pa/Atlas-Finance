@@ -583,7 +583,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
 
   // ─── Step 3: Analysis ─────────────────────────────────
 
-  const runAnalysis = useCallback(() => {
+  const runAnalysis = useCallback(async () => {
     const warnings: AnalysisItem[] = [];
     const errors: AnalysisItem[] = [];
     let pcData = uploadedFiles.planComptable?.data || [];
