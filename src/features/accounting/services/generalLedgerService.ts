@@ -25,7 +25,7 @@ class GeneralLedgerService {
     if (filters.dateDebut) {
       // Fetch all non-draft entries to find pre-period movements.
       // Drafts must never weigh on opening balances (they are excluded from the period too).
-      const allEntries = (await adapter.getAll<DBJournalEntry>('journalEntries'))
+      const allEntries = (await this.getAllEntriesWithLines(adapter))
         .filter(e => e.status !== 'draft');
       for (const entry of allEntries) {
         if (entry.date >= filters.dateDebut) continue; // only entries BEFORE the period
@@ -114,7 +114,7 @@ class GeneralLedgerService {
     accountNumber: string,
     filters: Partial<GeneralLedgerFilters>
   ): Promise<AccountLedger> {
-    const allEntries = (await adapter.getAll<DBJournalEntry>('journalEntries'))
+    const allEntries = (await this.getAllEntriesWithLines(adapter))
       .filter(e => e.status !== 'draft');
 
     const lines: Array<{ id: string; date: string; piece: string; libelle: string; debit: number; credit: number; solde: number; journal: string; tiers: string }> = [];
@@ -190,7 +190,7 @@ class GeneralLedgerService {
   }
 
   async getStats(adapter: DataAdapter, filters: Partial<GeneralLedgerFilters>): Promise<LedgerStats> {
-    const entries = (await adapter.getAll<DBJournalEntry>('journalEntries'))
+    const entries = (await this.getAllEntriesWithLines(adapter))
       .filter(e => e.status !== 'draft');
     const accountCodes = new Set<string>();
     let totalDebit = 0;
@@ -222,7 +222,7 @@ class GeneralLedgerService {
   async search(adapter: DataAdapter, query: string, filters?: Partial<GeneralLedgerFilters>): Promise<LedgerSearchResult> {
     const startTime = Date.now();
     const q = query.toLowerCase();
-    const entries = (await adapter.getAll<DBJournalEntry>('journalEntries'))
+    const entries = (await this.getAllEntriesWithLines(adapter))
       .filter(e => e.status !== 'draft');
 
     const matchingAccounts = new Map<string, AccountLedger>();
@@ -347,18 +347,65 @@ class GeneralLedgerService {
 
   // ---- Private helpers ----
 
+  // Charge toutes les écritures et injecte les lignes depuis journal_lines
+  // si elles ne sont pas imbriquées (cas SaaS : tables séparées).
+  private async getAllEntriesWithLines(adapter: DataAdapter): Promise<DBJournalEntry[]> {
+    const entries = await this.getAllEntriesWithLines(adapter);
+    if (entries.length === 0) return entries;
+    const hasLines = entries.some(e => e.lines && e.lines.length > 0);
+    if (hasLines) return entries;
+    try {
+      const allLines = await adapter.getAll<any>('journalLines');
+      const byEntry = new Map<string, any[]>();
+      for (const l of allLines) {
+        const key = l.entryId || l.entry_id;
+        if (!byEntry.has(key)) byEntry.set(key, []);
+        byEntry.get(key)!.push({
+          accountCode: l.accountCode || l.account_code || '',
+          accountName: l.accountName || l.account_name || '',
+          debit:       Number(l.debit  ?? 0),
+          credit:      Number(l.credit ?? 0),
+          label:       l.label || l.libelle || '',
+          tiersCode:   l.tiersCode || l.tiers_code || '',
+        });
+      }
+      return entries.map(e => ({ ...e, lines: byEntry.get(e.id) ?? [] }));
+    } catch {
+      return entries;
+    }
+  }
+
   private async queryEntries(adapter: DataAdapter, filters: GeneralLedgerFilters): Promise<DBJournalEntry[]> {
-    let entries = (await adapter.getAll<DBJournalEntry>('journalEntries'))
+    let entries = (await this.getAllEntriesWithLines(adapter))
       .filter(e => e.status !== 'draft');
 
-    if (filters.dateDebut) {
-      entries = entries.filter(e => e.date >= filters.dateDebut);
-    }
-    if (filters.dateFin) {
-      entries = entries.filter(e => e.date <= filters.dateFin);
-    }
-    if (filters.journal) {
-      entries = entries.filter(e => e.journal === filters.journal);
+    if (filters.dateDebut) entries = entries.filter(e => e.date >= filters.dateDebut);
+    if (filters.dateFin)   entries = entries.filter(e => e.date <= filters.dateFin);
+    if (filters.journal)   entries = entries.filter(e => e.journal === filters.journal);
+
+    // En mode SaaS, les lignes sont dans journal_lines (table séparée).
+    // Si entry.lines est absent, on les charge et on les injecte.
+    if (entries.length > 0 && (!entries[0].lines || entries[0].lines.length === 0)) {
+      try {
+        const allLines = await adapter.getAll<any>('journalLines');
+        const linesByEntry = new Map<string, any[]>();
+        for (const l of allLines) {
+          const key = l.entryId || l.entry_id;
+          if (!linesByEntry.has(key)) linesByEntry.set(key, []);
+          linesByEntry.get(key)!.push({
+            accountCode:  l.accountCode  || l.account_code  || '',
+            accountName:  l.accountName  || l.account_name  || '',
+            debit:        Number(l.debit  ?? 0),
+            credit:       Number(l.credit ?? 0),
+            label:        l.label || l.libelle || '',
+            tiersCode:    l.tiersCode || l.tiers_code || '',
+          });
+        }
+        entries = entries.map(e => ({
+          ...e,
+          lines: linesByEntry.get(e.id) ?? e.lines ?? [],
+        }));
+      } catch { /* lignes absentes — garder entry.lines tel quel */ }
     }
 
     return entries;

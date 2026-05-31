@@ -21,9 +21,31 @@ const SYSCOHADA_CLASSES: Record<string, string> = {
 };
 
 class BalanceService {
+  async getAllEntriesWithLines(adapter: DataAdapter): Promise<any[]> {
+    const entries = await adapter.getAll<any>('journalEntries');
+    if (entries.length === 0) return entries;
+    if (entries.some((e: any) => e.lines && e.lines.length > 0)) return entries;
+    try {
+      const allLines = await adapter.getAll<any>('journalLines');
+      const byEntry = new Map<string, any[]>();
+      for (const l of allLines) {
+        const key = l.entryId || l.entry_id;
+        if (!byEntry.has(key)) byEntry.set(key, []);
+        byEntry.get(key)!.push({
+          accountCode: l.accountCode || l.account_code || '',
+          accountName: l.accountName || l.account_name || '',
+          debit:  Number(l.debit  ?? 0),
+          credit: Number(l.credit ?? 0),
+          label:  l.label || l.libelle || '',
+        });
+      }
+      return entries.map((e: any) => ({ ...e, lines: byEntry.get(e.id) ?? [] }));
+    } catch { return entries; }
+  }
+
   async getBalance(adapter: DataAdapter, filters: BalanceFilters): Promise<BalanceAccount[]> {
-    const allEntries = await adapter.getAll<any>('journalEntries');
-    const entries = allEntries.filter(e => e.status !== 'draft');
+    const allEntries = await this.getAllEntriesWithLines(adapter);
+    const entries = allEntries.filter((e: any) => e.status !== 'draft');
     const accounts = await adapter.getAll<any>('accounts');
 
     // Build account metadata map from chart of accounts
@@ -362,8 +384,8 @@ export async function verifyAuxiliaryReconciliation(
   adapter: DataAdapter,
   collectiveAccountCode: string,
 ): Promise<AuxiliaryReconciliationResult> {
-  const allEntries = await adapter.getAll<any>('journalEntries');
-  const entries = allEntries.filter(e => e.status !== 'draft');
+  const allEntries = await balanceService.getAllEntriesWithLines(adapter);
+  const entries = allEntries.filter((e: any) => e.status !== 'draft');
 
   let collectiveDebit = money(0);
   let collectiveCredit = money(0);
