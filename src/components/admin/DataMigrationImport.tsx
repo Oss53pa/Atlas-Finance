@@ -1570,8 +1570,8 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
     }
   }, [currentStep, sourceSystem, uploadedFiles, analysisReport, mappings, params, simulation]);
 
-  const goNext = () => {
-    if (currentStep === 'upload') runAnalysis();
+  const goNext = async () => {
+    if (currentStep === 'upload') await runAnalysis();
     if (currentStep === 'analysis') initMappings();
     if (currentStep === 'parameters') runSimulation();
     const next = STEPS[stepIndex + 1];
