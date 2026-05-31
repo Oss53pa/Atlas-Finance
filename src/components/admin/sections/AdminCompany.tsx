@@ -249,7 +249,7 @@ const AdminCompany: React.FC<Props> = ({ subTab, setSubTab }) => {
     if (adapter.getMode() === 'saas') {
       const { error } = await (supabase as any)
         .from('settings')
-        .upsert(record, { onConflict: 'key' });
+        .upsert(record, { onConflict: 'key,tenant_id' });
       if (error) {
         console.error('[saveSetting] Supabase error:', error.message, record);
         throw new Error(error.message);
