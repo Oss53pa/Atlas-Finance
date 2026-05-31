@@ -2560,13 +2560,45 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       {currentStep === 'importing' && importReport && (
         <div className="space-y-4">
           <div className="bg-white border rounded-xl p-6">
-            <div className="flex items-center gap-3 mb-6">
+            <div className="flex items-center gap-3 mb-4">
               <CheckCircle className="w-8 h-8 text-green-600" />
               <div>
                 <h2 className="text-xl font-semibold text-gray-900">Migration terminee</h2>
                 <p className="text-sm text-gray-500">Voici le rapport de migration</p>
               </div>
             </div>
+
+            {/* Bandeau de confirmation comptable */}
+            {(() => {
+              const allOk = importReport.balanceOk && importReport.bilanOk && importReport.tiersOk && importReport.vncOk && importReport.warnings.filter(w => w.startsWith('Erreur')).length === 0;
+              return allOk ? (
+                <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl">
+                  <div className="flex items-start gap-3">
+                    <CheckCircle className="w-6 h-6 text-green-600 mt-0.5 shrink-0" />
+                    <div>
+                      <p className="font-semibold text-green-800">Données enregistrées dans les livres comptables</p>
+                      <p className="text-sm text-green-700 mt-1">
+                        {importReport.entries.toLocaleString('fr-FR')} écriture(s) · {importReport.lines.toLocaleString('fr-FR')} ligne(s) · {importReport.tiers} tiers · {importReport.accounts} comptes
+                        — tous les contrôles SYSCOHADA sont validés. Vous pouvez accéder au Grand Livre et à la Balance.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                  <div className="flex items-start gap-3">
+                    <AlertTriangle className="w-6 h-6 text-amber-600 mt-0.5 shrink-0" />
+                    <div>
+                      <p className="font-semibold text-amber-800">Migration terminée avec des points d'attention</p>
+                      <p className="text-sm text-amber-700 mt-1">
+                        Les données ont été enregistrées dans les livres. Consultez les points d'attention ci-dessous
+                        et corrigez les anomalies manuellement avant de produire vos états financiers.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
               {[
