@@ -1000,6 +1000,11 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
     const journals = new Set<string>();
 
     try {
+      // ── Variables SaaS — déclarées ici pour être accessibles partout ──────
+      const isSaasMode = adapter.getMode() === 'saas';
+      const supabaseClient = isSaasMode ? (adapter as any).client : null;
+      const tenantId = isSaasMode ? (adapter as any).tenantId as string | null : null;
+
       // ── Si mode "Remplacer" : supprimer les données existantes du tenant ──
       if (params.existingDataAction === 'replace' && isSaasMode && supabaseClient) {
         setImportLabel('Suppression des données existantes...');
@@ -1034,9 +1039,10 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       // ── Construire la liste de comptes en mémoire, puis batch insert ─────────
       // Même stratégie que les écritures : éviter N requêtes individuelles.
       const accountRecords: Record<string, unknown>[] = [];
-      const isSaasForAccounts = adapter.getMode() === 'saas';
-      const supabaseForAccounts = isSaasForAccounts ? (adapter as any).client : null;
-      const tenantIdForAccounts = isSaasForAccounts ? (adapter as any).tenantId : null;
+      // isSaasMode / supabaseClient / tenantId déclarés au début du try
+      const isSaasForAccounts = isSaasMode;
+      const supabaseForAccounts = supabaseClient;
+      const tenantIdForAccounts = tenantId;
 
       const buildAccount = (code: string, name: string, extra: Record<string, unknown> = {}) => ({
         id: crypto.randomUUID(),
@@ -1263,10 +1269,6 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       // 1 saveJournalEntry (RPC) par pièce = 2 000+ requêtes pour un GL de 10 000 lignes.
       // Solution : construire les tableaux journal_entries + journal_lines en mémoire
       // puis insérer en batch (100 écritures / 500 lignes par requête).
-      const isSaasMode = adapter.getMode() === 'saas';
-      const supabaseClient = isSaasMode ? (adapter as any).client : null;
-      const tenantId = isSaasMode ? (adapter as any).tenantId : null;
-
       if (isSaasMode && supabaseClient) {
         // ── Construire tous les records en mémoire ──────────────────────────
         const batchEntries: any[] = [];
