@@ -94,6 +94,7 @@ interface ImportReport {
   lettrages: number;
   balanceOk: boolean;
   bilanOk: boolean;
+  bilanEcart?: { actif: number; passif: number; diff: number };
   tiersOk: boolean;
   vncOk: boolean;
   warnings: string[];
@@ -1526,7 +1527,16 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       setImportLabel('Controles post-import...');
       report.journals = journals.size;
       report.balanceOk = simulation?.balanced ?? true;
-      report.bilanOk = simulation ? money(simulation.totalActif).subtract(money(simulation.totalPassif)).abs().toNumber() < 1 : true;
+      if (simulation) {
+        const diff = money(simulation.totalActif).subtract(money(simulation.totalPassif)).abs().toNumber();
+        report.bilanOk = diff < 1;
+        if (diff >= 1) {
+          report.bilanEcart = { actif: simulation.totalActif, passif: simulation.totalPassif, diff };
+          report.warnings.push(`Déséquilibre bilan : Actif ${simulation.totalActif.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} FCFA — Passif ${simulation.totalPassif.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} FCFA — Écart ${diff.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} FCFA`);
+        }
+      } else {
+        report.bilanOk = true;
+      }
       report.tiersOk = report.tiers > 0 || tiersData.length === 0;
       report.vncOk = true;
       setImportProgress(100);
@@ -2541,7 +2551,10 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
             <div className="space-y-2 mb-6">
               {[
                 { label: 'Equilibre debit/credit', ok: importReport.balanceOk },
-                { label: 'Equilibre bilan actif/passif', ok: importReport.bilanOk },
+                { label: importReport.bilanEcart
+                    ? `Equilibre bilan actif/passif — Actif ${importReport.bilanEcart.actif.toLocaleString('fr-FR',{minimumFractionDigits:2})} / Passif ${importReport.bilanEcart.passif.toLocaleString('fr-FR',{minimumFractionDigits:2})} / Écart ${importReport.bilanEcart.diff.toLocaleString('fr-FR',{minimumFractionDigits:2})} FCFA`
+                    : 'Equilibre bilan actif/passif',
+                  ok: importReport.bilanOk },
                 { label: 'Reconciliation tiers', ok: importReport.tiersOk },
                 { label: 'Coherence VNC immobilisations', ok: importReport.vncOk },
               ].map(check => (
