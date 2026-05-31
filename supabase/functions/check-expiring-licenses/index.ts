@@ -17,7 +17,8 @@ Deno.serve(async (req) => {
   try {
     // ── Auth guard ──────────────────────────────────────────────────────────
     // Accept: (1) matching x-cron-secret header, OR (2) valid JWT of an admin.
-    const cronSecret = Deno.env.get('CRON_SECRET');
+    // Support both CRON_SHARED_SECRET (Supabase) and CRON_SECRET for compatibility
+    const cronSecret = Deno.env.get('CRON_SHARED_SECRET') || Deno.env.get('CRON_SECRET');
     const incomingCronSecret = req.headers.get('x-cron-secret');
     const authorizationHeader = req.headers.get('Authorization');
 
