@@ -53,7 +53,7 @@ const AdvancedBalance: React.FC = () => {
   // États principaux
   const [activeView, setActiveView] = useState<'dashboard' | 'generale' | 'analytique'>('dashboard');
   const [showPeriodModal, setShowPeriodModal] = useState(false);
-  const [dateRange, setDateRange] = useState({ start: '2025-01-01', end: '2025-12-31' });
+  const [dateRange, setDateRange] = useState({ start: `${new Date().getFullYear()}-01-01`, end: `${new Date().getFullYear()}-12-31` });
   const [filteredData, setFilteredData] = useState<BalanceData[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [showConfig, setShowConfig] = useState(false);

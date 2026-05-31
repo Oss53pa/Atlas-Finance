@@ -55,7 +55,7 @@ const Balance: React.FC = () => {
   });
 
   const [showPeriodModal, setShowPeriodModal] = useState(false);
-  const [dateRange, setDateRange] = useState({ start: '2024-01-01', end: '2024-12-31' });
+  const [dateRange, setDateRange] = useState({ start: `${new Date().getFullYear()}-01-01`, end: `${new Date().getFullYear()}-12-31` });
   const [searchAccount, setSearchAccount] = useState('');
   const [showZeroBalance, setShowZeroBalance] = useState(false);
   const [balanceType, setBalanceType] = useState<'generale' | 'auxiliaire' | 'agee' | 'cloture'>('generale');

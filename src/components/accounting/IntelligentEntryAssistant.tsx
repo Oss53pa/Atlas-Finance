@@ -113,7 +113,7 @@ interface TemplateSuggestion {
 const IntelligentEntryAssistant: React.FC = () => {
   const { t } = useLanguage();
   const [showPeriodModal, setShowPeriodModal] = useState(false);
-  const [dateRange, setDateRange] = useState({ start: '2024-01-01', end: '2024-12-31' });
+  const [dateRange, setDateRange] = useState({ start: `${new Date().getFullYear()}-01-01`, end: `${new Date().getFullYear()}-12-31` });
   const [assistantMode, setAssistantMode] = useState<'GUIDED' | 'SMART' | 'EXPERT'>('SMART');
   const [currentContext, setCurrentContext] = useState<Record<string, unknown>>({});
   const [suggestions, setSuggestions] = useState<IntelligentSuggestion[]>([]);

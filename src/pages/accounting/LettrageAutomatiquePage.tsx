@@ -74,7 +74,7 @@ interface LettrageStats {
 
 const LettrageAutomatiquePage: React.FC = () => {
   const [showPeriodModal, setShowPeriodModal] = useState(false);
-  const [dateRange, setDateRange] = useState({ start: '2024-01-01', end: '2024-12-31' });
+  const [dateRange, setDateRange] = useState({ start: `${new Date().getFullYear()}-01-01`, end: `${new Date().getFullYear()}-12-31` });
   const [isRunning, setIsRunning] = useState(false);
   const { adapter } = useData();
   const [allEntries, setAllEntries] = useState<any[]>([]);

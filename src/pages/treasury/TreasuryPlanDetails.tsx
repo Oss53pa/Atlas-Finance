@@ -31,8 +31,8 @@ const TreasuryPlanDetails: React.FC = () => {
   const [expandedImpots, setExpandedImpots] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedSubCategory, setSelectedSubCategory] = useState('');
-  const [dateDebut, setDateDebut] = useState('2025-01-01');
-  const [dateFin, setDateFin] = useState('2025-12-31');
+  const [dateDebut, setDateDebut] = useState(`${new Date().getFullYear()}-01-01`);
+  const [dateFin, setDateFin] = useState(`${new Date().getFullYear()}-12-31`);
   const [selectedFilter, setSelectedFilter] = useState('all');
 
   // Données du plan — chargées dynamiquement

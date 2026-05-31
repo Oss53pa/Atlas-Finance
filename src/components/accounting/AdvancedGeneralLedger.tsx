@@ -58,7 +58,8 @@ const AdvancedGeneralLedger: React.FC = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [showPrintPreview, setShowPrintPreview] = useState(false);
   const [showPeriodModal, setShowPeriodModal] = useState(false);
-  const [dateRange, setDateRange] = useState({ start: '2025-01-01', end: '2025-12-31' });
+  const currentYear = new Date().getFullYear();
+  const [dateRange, setDateRange] = useState({ start: `${currentYear}-01-01`, end: `${currentYear}-12-31` });
 
   // États pour les modales
   const [showExportModal, setShowExportModal] = useState(false);
