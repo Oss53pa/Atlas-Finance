@@ -1138,15 +1138,23 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       const tiersData = uploadedFiles.tiers?.data || [];
       setImportLabel('Import des tiers...');
       const tiersRecords: Record<string, unknown>[] = [];
+      const normalizeTiersType = (raw: string): 'customer' | 'supplier' | 'both' => {
+        const v = raw.toLowerCase().trim();
+        if (v === 'customer' || v === 'client' || v === 'c') return 'customer';
+        if (v === 'supplier' || v === 'fournisseur' || v === 'f') return 'supplier';
+        if (v === 'both' || v === 'les deux' || v === 'b') return 'both';
+        return 'customer';
+      };
+      const codeCol = tiersMapping.find(m => m.target === 'code')?.source;
+      const nomCol  = tiersMapping.find(m => m.target === 'nom')?.source;
+      const typeCol = tiersMapping.find(m => m.target === 'type')?.source;
       for (const row of tiersData as Record<string, any>[]) {
-        const codeCol = tiersMapping.find(m => m.target === 'code')?.source;
-        const nomCol  = tiersMapping.find(m => m.target === 'nom')?.source;
-        const typeCol = tiersMapping.find(m => m.target === 'type')?.source;
         if (!codeCol || !nomCol) continue;
+        const rawType = typeCol ? String(row[typeCol] || '') : '';
         tiersRecords.push({
           code: String(row[codeCol] || ''),
           name: String(row[nomCol]  || ''),
-          type: String(row[typeCol || ''] || 'client'),
+          type: normalizeTiersType(rawType),
           is_active: true,
         });
       }
