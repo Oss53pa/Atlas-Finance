@@ -149,7 +149,7 @@ type FileConfig = {
 const FILE_CONFIGS: Record<string, FileConfig> = {
   grandLivre: {
     label: 'Grand Livre',
-    description: 'Contient toutes les écritures (AN + mouvements). Source principale.',
+    description: 'Contient TOUTES les écritures (AN + mouvements). ⚠️ N\'importez PAS simultanément le Grand Livre complet ET un Grand Livre des Tiers — le GL des Tiers est un sous-ensemble du GL complet (comptes 401/411) et créerait des doublons.',
     icon: <FileSpreadsheet className="w-5 h-5" />,
     accept: '.csv,.xlsx,.xls,.txt',
     requiredModes: [1, 3],
@@ -801,8 +801,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       }
     }
 
-    // 5. Vérification : présence d'écritures équivalentes en doublon (anti-import multiple)
-    //    Heuristique simple : compter les doublons sur (date, debit, credit, libellé)
+    // 5. Vérification doublons INTRA-fichier (anti-concaténation)
     if (ecrituresData.length > 100) {
       const seen = new Set<string>();
       let duplicates = 0;
@@ -814,10 +813,46 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       if (duplicates > ecrituresData.length * 0.05) {
         warnings.push({
           code: 'POSSIBLE_DUPLICATES',
-          message: `${duplicates} doublon(s) potentiel(s) détecté(s)`,
+          message: `${duplicates} doublon(s) potentiel(s) dans le fichier`,
           details: `Plus de 5% d'écritures identiques (date+montants+libellé). Vérifiez que le fichier n'a pas été concaténé deux fois.`,
         });
       }
+    }
+
+    // 6. Vérification doublons INTER-SESSION (Grand Livre vs Grand Livre des Tiers)
+    //    Compare les écritures du fichier contre celles déjà présentes en base.
+    //    Détecte notamment le cas : GL complet importé en session 1 puis GL Tiers en session 2.
+    if (ecrituresData.length > 0) {
+      try {
+        const existingEntries = await adapter.getAll<any>('journalEntries');
+        if (existingEntries.length > 0) {
+          // Construire un set des numéros de pièce existants
+          const existingNums = new Set(existingEntries.map((e: any) =>
+            e.entry_number || e.entryNumber || e.piece || e.numero || ''
+          ).filter(Boolean));
+          // Compter les pièces du fichier qui existent déjà
+          const pieceAliases = ['numero_piece','piece','entry_number','entryNumber','journal_num','num_ecriture','n_piece'];
+          let crossDuplicates = 0;
+          ecrituresData.forEach((row: any) => {
+            const num = findCol(row, pieceAliases);
+            if (num && existingNums.has(String(num))) crossDuplicates++;
+          });
+          const ratio = crossDuplicates / ecrituresData.length;
+          if (ratio > 0.3) {
+            errors.push({
+              code: 'CROSS_SESSION_DUPLICATES',
+              message: `⚠️ ${crossDuplicates} écritures de ce fichier existent déjà en base (${Math.round(ratio*100)}%)`,
+              details: `La base contient déjà ${existingEntries.length} écriture(s). Ce fichier semble chevaucher les données existantes. Risque élevé de doublons — vérifiez que vous n'importez pas un Grand Livre des Tiers après avoir déjà importé le Grand Livre complet.`,
+            });
+          } else if (crossDuplicates > 0) {
+            warnings.push({
+              code: 'PARTIAL_OVERLAP',
+              message: `${crossDuplicates} écriture(s) de ce fichier ont déjà été importées`,
+              details: `Ces pièces seront ignorées (protection anti-doublon). Les nouvelles écritures seront ajoutées.`,
+            });
+          }
+        }
+      } catch { /* Adapter non disponible, skip */ }
     }
 
     setAnalysisReport({
