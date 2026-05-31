@@ -802,11 +802,16 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
     }
 
     // 5. Vérification doublons INTRA-fichier (anti-concaténation)
+    // La clé inclut le compte comptable pour éviter les faux positifs :
+    // dans un GL, débit et crédit d'une même pièce partagent date+montant+libellé
+    // mais PAS le même compte → sans le compte on aurait ~50% de "doublons".
     if (ecrituresData.length > 100) {
+      const accountAliases = ['compte','CompteNum','accountCode','account_code','compteNum','numCompte'];
       const seen = new Set<string>();
       let duplicates = 0;
       ecrituresData.forEach((row: any) => {
-        const key = `${row.date || ''}|${findCol(row, debitAliases)}|${findCol(row, creditAliases)}|${row.libelle || row.label || ''}`;
+        const account = findCol(row, accountAliases) || '';
+        const key = `${row.date || ''}|${account}|${findCol(row, debitAliases)}|${findCol(row, creditAliases)}|${row.libelle || row.label || ''}`;
         if (seen.has(key)) duplicates++;
         else seen.add(key);
       });
@@ -814,7 +819,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
         warnings.push({
           code: 'POSSIBLE_DUPLICATES',
           message: `${duplicates} doublon(s) potentiel(s) dans le fichier`,
-          details: `Plus de 5% d'écritures identiques (date+montants+libellé). Vérifiez que le fichier n'a pas été concaténé deux fois.`,
+          details: `Plus de 5% de lignes identiques (date+compte+montants+libellé). Vérifiez que le fichier n'a pas été concaténé deux fois.`,
         });
       }
     }
@@ -1193,6 +1198,95 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       let ecrIdx = 0;
       let entriesSkipped = 0;
       const entryErrors: string[] = [];
+
+      // ── Mode SaaS : batch insert direct pour éviter N requêtes individuelles ──
+      // 1 saveJournalEntry (RPC) par pièce = 2 000+ requêtes pour un GL de 10 000 lignes.
+      // Solution : construire les tableaux journal_entries + journal_lines en mémoire
+      // puis insérer en batch (100 écritures / 500 lignes par requête).
+      const isSaasMode = adapter.getMode() === 'saas';
+      const supabaseClient = isSaasMode ? (adapter as any).client : null;
+      const tenantId = isSaasMode ? (adapter as any).tenantId : null;
+
+      if (isSaasMode && supabaseClient) {
+        // ── Construire tous les records en mémoire ──────────────────────────
+        const batchEntries: any[] = [];
+        const batchLines: any[] = [];
+
+        for (const [piece, lines] of groups) {
+          const journalCode = String(getEcrVal(lines[0], 'journal') || getEcrVal(lines[0], 'JournalCode') || 'OD');
+          journals.add(journalCode);
+          const entryDate = parseDate(
+            getEcrVal(lines[0], 'date') ||
+            getEcrVal(lines[0], 'EcritureDate') ||
+            getEcrVal(lines[0], 'dateEcriture') || params.exerciceStart
+          );
+          const entryLabel = String(
+            getEcrVal(lines[0], 'libelle') || getEcrVal(lines[0], 'EcritureLib') ||
+            getEcrVal(lines[0], 'label') || piece
+          );
+          let totalDebit = 0; let totalCredit = 0;
+          lines.forEach((line: any) => {
+            totalDebit  += parseNumber(getEcrVal(line, 'debit')  || getEcrVal(line, 'Debit'));
+            totalCredit += parseNumber(getEcrVal(line, 'credit') || getEcrVal(line, 'Credit'));
+          });
+          const entryId = crypto.randomUUID();
+          batchEntries.push({
+            id: entryId, tenant_id: tenantId,
+            entry_number: piece, journal: journalCode, date: entryDate,
+            label: entryLabel, reference: piece,
+            status: params.entryStatus === 'validated' ? 'validated' : 'draft',
+            total_debit: totalDebit, total_credit: totalCredit,
+            created_at: new Date().toISOString(),
+          });
+          lines.forEach((line: any) => {
+            const debitAliases2 = ['debit','Debit','montantDebit','debitAmount'];
+            const creditAliases2 = ['credit','Credit','montantCredit','creditAmount'];
+            const accountCode = String(
+              getEcrVal(line, 'compte') || getEcrVal(line, 'CompteNum') ||
+              getEcrVal(line, 'accountCode') || ''
+            ).replace(/\s/g, '');
+            batchLines.push({
+              id: crypto.randomUUID(), entry_id: entryId, tenant_id: tenantId,
+              account_code: accountCode,
+              account_name: String(getEcrVal(line, 'compteLib') || getEcrVal(line, 'CompteLib') || accountCode),
+              label: String(getEcrVal(line, 'libelleEcriture') || getEcrVal(line, 'libelle') || entryLabel),
+              debit: parseNumber(findCol(line, debitAliases2)),
+              credit: parseNumber(findCol(line, creditAliases2)),
+            });
+          });
+        }
+
+        // ── Insérer les journal_entries par batch de 100 ──────────────────
+        const ENTRY_BATCH = 100;
+        for (let b = 0; b < batchEntries.length; b += ENTRY_BATCH) {
+          const chunk = batchEntries.slice(b, b + ENTRY_BATCH);
+          const { error } = await supabaseClient
+            .from('journal_entries')
+            .upsert(chunk, { onConflict: 'entry_number,tenant_id', ignoreDuplicates: true });
+          if (error && !error.message.includes('duplicate') && !error.message.includes('unique')) {
+            entryErrors.push(`Batch écritures [${b}-${b+ENTRY_BATCH}] : ${error.message}`);
+          }
+          ecrIdx += chunk.length;
+          report.entries += chunk.length;
+          setImportProgress(45 + Math.round((ecrIdx / batchEntries.length) * 25));
+        }
+
+        // ── Insérer les journal_lines par batch de 500 ─────────────────────
+        const LINE_BATCH = 500;
+        for (let b = 0; b < batchLines.length; b += LINE_BATCH) {
+          const chunk = batchLines.slice(b, b + LINE_BATCH);
+          const { error } = await supabaseClient
+            .from('journal_lines')
+            .upsert(chunk, { onConflict: 'id', ignoreDuplicates: true });
+          if (error && !error.message.includes('duplicate') && !error.message.includes('unique')) {
+            entryErrors.push(`Batch lignes [${b}-${b+LINE_BATCH}] : ${error.message}`);
+          }
+          report.lines += chunk.length;
+          setImportProgress(70 + Math.round((b / batchLines.length) * 10));
+        }
+
+      } else {
+        // ── Mode local (Dexie) : insertion une par une avec hash chain ─────
       for (const [piece, lines] of groups) {
         const journalCode = String(getEcrVal(lines[0], 'journal') || getEcrVal(lines[0], 'JournalCode') || 'OD');
         journals.add(journalCode);
@@ -1303,6 +1397,8 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
         ecrIdx++;
         setImportProgress(45 + Math.round((ecrIdx / groups.size) * 35));
       }
+      } // fin else Dexie
+
       if (entriesSkipped > 0) {
         report.warnings.push(`${entriesSkipped} ecritures deja existantes (ignorees)`);
       }
