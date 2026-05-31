@@ -999,6 +999,19 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
     const journals = new Set<string>();
 
     try {
+      // ── Si mode "Remplacer" : supprimer les données existantes du tenant ──
+      if (params.existingDataAction === 'replace' && isSaasMode && supabaseClient) {
+        setImportLabel('Suppression des données existantes...');
+        // Supprimer dans l'ordre inverse des FK : lignes → écritures → tiers → comptes → assets
+        for (const table of ['journal_lines', 'journal_entries', 'third_parties', 'accounts', 'assets']) {
+          const { error } = await supabaseClient
+            .from(table)
+            .delete()
+            .eq('tenant_id', tenantId);
+          if (error) report.warnings.push(`Suppression ${table} : ${error.message}`);
+        }
+      }
+
       // 1. Accounts
       // Sources possibles, par ordre de priorite :
       //   a) Fichier planComptable explicitement uploade (rare en Mode 1/2)
