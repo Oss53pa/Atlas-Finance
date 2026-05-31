@@ -15,6 +15,48 @@ const siteUrl = Deno.env.get('SITE_URL') || 'https://www.atlasstudio.org';
 
 Deno.serve(async (req) => {
   try {
+    // ── Auth guard ──────────────────────────────────────────────────────────
+    // Accept: (1) matching x-cron-secret header, OR (2) valid JWT of an admin.
+    const cronSecret = Deno.env.get('CRON_SECRET');
+    const incomingCronSecret = req.headers.get('x-cron-secret');
+    const authorizationHeader = req.headers.get('Authorization');
+
+    let authorized = false;
+
+    // (1) Cron secret check (used by Supabase Edge Functions scheduler)
+    if (cronSecret && incomingCronSecret && incomingCronSecret === cronSecret) {
+      authorized = true;
+    }
+
+    // (2) JWT check — fall back if cron secret didn't match
+    if (!authorized && authorizationHeader) {
+      const supabaseAnon = createClient(supabaseUrl, supabaseServiceKey, {
+        global: { headers: { Authorization: authorizationHeader } },
+      });
+      const { data: { user }, error: userError } = await supabaseAnon.auth.getUser();
+
+      if (!userError && user) {
+        // Fetch the user's role from the profiles table
+        const { data: profile } = await createClient(supabaseUrl, supabaseServiceKey)
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+
+        if (profile && (profile.role === 'super_admin' || profile.role === 'admin')) {
+          authorized = true;
+        }
+      }
+    }
+
+    if (!authorized) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+    // ── End auth guard ──────────────────────────────────────────────────────
+
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const now = new Date();

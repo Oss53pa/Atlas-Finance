@@ -119,3 +119,4 @@ SOURCE_DUMP_PARTS/
 *.bat
 *.sh
 .claude/worktrees/
+.vercel

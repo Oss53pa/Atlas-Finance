@@ -1,7 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
-import { Toaster } from 'react-hot-toast'
 import { Toaster as SonnerToaster } from 'sonner'
 import { HelmetProvider } from 'react-helmet-async'
 import * as Sentry from '@sentry/react'
@@ -184,15 +183,7 @@ import './index.css'
 
 })();
 
-// DEBUG - Test des providers un par un
-// import App from './App.debug1'  // Test 1 : LanguageProvider seul OK
-// import App from './App.debug2'  // Test 2 : + ThemeProvider OK
-// import App from './App.debug3'  // Test 3 : + QueryClient OK
-// import App from './App.debug4'  // Test 4 : + AuthProvider SANS useEffect
-// import App from './App.debug6'  // Test 6 : + AuthProvider SANS TAILWIND (styles inline)
-// import App from './App.debug8'  // Test 8 : Loader caché depuis React
-// import App from './App.stable'  // VERSION STABLE : Ne rendre que quand tout est prêt
-import App from './App'  // LOADER REACT : Tout géré par React
+import App from './App'
 
 // Fonction pour cacher le loader
 const hideLoader = () => {
@@ -208,8 +199,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <HelmetProvider>
     <BrowserRouter future={{ v7_relativeSplatPath: true }}>
       <App />
-      <Toaster position="top-right" />
-      {/* Sonner Toaster — utilisé dans AdminCompany, AdminUsers, etc. */}
+      {/* Sonner Toaster — utilisé partout */}
       <SonnerToaster position="top-right" richColors closeButton />
     </BrowserRouter>
   </HelmetProvider>,

@@ -102,6 +102,15 @@ interface RatiosFinanciers {
   rotationActifs: number;
 }
 
+interface TRowProps { tref?: string; label: string; value?: number; bold?: boolean; section?: boolean; fmt: (v: number) => string; }
+const TRow: React.FC<TRowProps> = ({ tref: r, label, value, bold, section, fmt }) => (
+  <tr className={section ? 'bg-blue-50 font-bold' : bold ? 'bg-gray-100 font-semibold' : ''}>
+    <td className="border border-[var(--color-border)] px-4 py-2 text-[var(--color-primary)]">{r || ''}</td>
+    <td className={`border border-[var(--color-border)] px-4 py-2 ${!r && !section ? 'pl-8' : ''}`}>{label}</td>
+    <td className="border border-[var(--color-border)] px-4 py-2 text-right font-mono">{value !== undefined ? fmt(value) : ''}</td>
+  </tr>
+);
+
 const FinancialStatements: React.FC = () => {
   const { t } = useLanguage();
   const fmt = useMoneyFormat();
@@ -2663,45 +2672,37 @@ const FinancialStatements: React.FC = () => {
                   {(() => {
                     const d = tftMethod === 'indirect' ? tftData?.indirect : tftData?.direct;
                     if (!d) return null;
-                    const TRow = ({ ref: r, label, value, bold, section }: { ref?: string; label: string; value?: number; bold?: boolean; section?: boolean }) => (
-                      <tr className={section ? 'bg-blue-50 font-bold' : bold ? 'bg-gray-100 font-semibold' : ''}>
-                        <td className="border border-[var(--color-border)] px-4 py-2 text-[var(--color-primary)]">{r || ''}</td>
-                        <td className={`border border-[var(--color-border)] px-4 py-2 ${!r && !section ? 'pl-8' : ''}`}>{label}</td>
-                        <td className="border border-[var(--color-border)] px-4 py-2 text-right font-mono">{value !== undefined ? fmt(value) : ''}</td>
-                      </tr>
-                    );
-
                     if (tftMethod === 'indirect') return (<>
-                      <TRow ref="ZA" label="FLUX DE TRÉSORERIE PROVENANT DES ACTIVITÉS OPÉRATIONNELLES" section />
-                      <TRow label="Résultat net de l'exercice" value={d.resultatNet} />
-                      <TRow label="+ Dotations aux amortissements" value={d.dotationsAmort} />
-                      <TRow label="+ Dotations aux provisions" value={d.dotationsProv} />
-                      <TRow label="- Reprises sur amortissements et provisions" value={-d.reprisesAmortProv} />
-                      <TRow label="± Plus/moins-values de cession" value={d.plusMoinsValues} />
-                      <TRow ref="" label="= Capacité d'autofinancement (CAF)" value={d.caf} bold />
-                      <TRow label="- Variation des stocks" value={-d.varStocks} />
-                      <TRow label="- Variation des créances clients" value={-d.varCreancesClients} />
-                      <TRow label="- Variation des autres créances" value={-d.varAutresCreances} />
-                      <TRow label="+ Variation des dettes fournisseurs" value={d.varDettesFournisseurs} />
-                      <TRow label="+ Variation des dettes fiscales et sociales" value={d.varDettesFiscales} />
-                      <TRow ref="ZB" label="= Flux net de trésorerie lié à l'activité (A)" value={d.fluxExploitation} bold />
+                      <TRow tref="ZA" label="FLUX DE TRÉSORERIE PROVENANT DES ACTIVITÉS OPÉRATIONNELLES" section fmt={fmt} />
+                      <TRow label="Résultat net de l'exercice" value={d.resultatNet} fmt={fmt} />
+                      <TRow label="+ Dotations aux amortissements" value={d.dotationsAmort} fmt={fmt} />
+                      <TRow label="+ Dotations aux provisions" value={d.dotationsProv} fmt={fmt} />
+                      <TRow label="- Reprises sur amortissements et provisions" value={-d.reprisesAmortProv} fmt={fmt} />
+                      <TRow label="± Plus/moins-values de cession" value={d.plusMoinsValues} fmt={fmt} />
+                      <TRow tref="" label="= Capacité d'autofinancement (CAF)" value={d.caf} bold fmt={fmt} />
+                      <TRow label="- Variation des stocks" value={-d.varStocks} fmt={fmt} />
+                      <TRow label="- Variation des créances clients" value={-d.varCreancesClients} fmt={fmt} />
+                      <TRow label="- Variation des autres créances" value={-d.varAutresCreances} fmt={fmt} />
+                      <TRow label="+ Variation des dettes fournisseurs" value={d.varDettesFournisseurs} fmt={fmt} />
+                      <TRow label="+ Variation des dettes fiscales et sociales" value={d.varDettesFiscales} fmt={fmt} />
+                      <TRow tref="ZB" label="= Flux net de trésorerie lié à l'activité (A)" value={d.fluxExploitation} bold fmt={fmt} />
 
-                      <TRow ref="ZC" label="FLUX DE TRÉSORERIE PROVENANT DES ACTIVITÉS D'INVESTISSEMENT" section />
-                      <TRow label="- Acquisitions d'immobilisations incorporelles" value={-d.acqIncorpo} />
-                      <TRow label="- Acquisitions d'immobilisations corporelles" value={-d.acqCorpo} />
-                      <TRow label="- Acquisitions d'immobilisations financières" value={-d.acqFinanc} />
-                      <TRow label="+ Cessions d'immobilisations" value={d.cessions} />
-                      <TRow ref="ZD" label="= Flux net de trésorerie lié aux investissements (B)" value={d.fluxInvestissement} bold />
+                      <TRow tref="ZC" label="FLUX DE TRÉSORERIE PROVENANT DES ACTIVITÉS D'INVESTISSEMENT" section fmt={fmt} />
+                      <TRow label="- Acquisitions d'immobilisations incorporelles" value={-d.acqIncorpo} fmt={fmt} />
+                      <TRow label="- Acquisitions d'immobilisations corporelles" value={-d.acqCorpo} fmt={fmt} />
+                      <TRow label="- Acquisitions d'immobilisations financières" value={-d.acqFinanc} fmt={fmt} />
+                      <TRow label="+ Cessions d'immobilisations" value={d.cessions} fmt={fmt} />
+                      <TRow tref="ZD" label="= Flux net de trésorerie lié aux investissements (B)" value={d.fluxInvestissement} bold fmt={fmt} />
 
-                      <TRow ref="ZE" label="FLUX DE TRÉSORERIE PROVENANT DES ACTIVITÉS DE FINANCEMENT" section />
-                      <TRow label="+ Augmentations de capital" value={d.augCapital} />
-                      <TRow label="- Dividendes versés" value={-d.dividendes} />
-                      <TRow label="+ Nouveaux emprunts" value={d.nouveauxEmprunts} />
-                      <TRow label="- Remboursements d'emprunts" value={-d.rembEmprunts} />
-                      <TRow ref="ZF" label="= Flux net de trésorerie lié au financement (C)" value={d.fluxFinancement} bold />
+                      <TRow tref="ZE" label="FLUX DE TRÉSORERIE PROVENANT DES ACTIVITÉS DE FINANCEMENT" section fmt={fmt} />
+                      <TRow label="+ Augmentations de capital" value={d.augCapital} fmt={fmt} />
+                      <TRow label="- Dividendes versés" value={-d.dividendes} fmt={fmt} />
+                      <TRow label="+ Nouveaux emprunts" value={d.nouveauxEmprunts} fmt={fmt} />
+                      <TRow label="- Remboursements d'emprunts" value={-d.rembEmprunts} fmt={fmt} />
+                      <TRow tref="ZF" label="= Flux net de trésorerie lié au financement (C)" value={d.fluxFinancement} bold fmt={fmt} />
 
-                      <TRow ref="ZG" label="VARIATION DE TRÉSORERIE NETTE (A+B+C)" value={d.variationTresorerie} bold />
-                      <TRow ref="ZH" label="Trésorerie à l'ouverture" value={d.tresorerieOuverture} />
+                      <TRow tref="ZG" label="VARIATION DE TRÉSORERIE NETTE (A+B+C)" value={d.variationTresorerie} bold fmt={fmt} />
+                      <TRow tref="ZH" label="Trésorerie à l'ouverture" value={d.tresorerieOuverture} fmt={fmt} />
                       <tr className="bg-gray-200 font-bold text-lg">
                         <td className="border border-[var(--color-border)] px-4 py-4 text-[var(--color-primary)]">ZJ</td>
                         <td className="border border-[var(--color-border)] px-4 py-4">TRÉSORERIE À LA CLÔTURE</td>
@@ -2711,30 +2712,30 @@ const FinancialStatements: React.FC = () => {
 
                     // Méthode directe
                     return (<>
-                      <TRow ref="ZA" label="FLUX DE TRÉSORERIE PROVENANT DES ACTIVITÉS OPÉRATIONNELLES" section />
-                      <TRow label="+ Encaissements reçus des clients" value={d.encClients} />
-                      <TRow label="+ Autres encaissements liés à l'activité" value={d.autresEncExploit} />
-                      <TRow label="- Décaissements versés aux fournisseurs" value={-d.decFournisseurs} />
-                      <TRow label="- Décaissements versés au personnel" value={-d.decPersonnel} />
-                      <TRow label="- Impôts sur le résultat payés" value={-d.decImpots} />
-                      <TRow label="- Autres décaissements liés à l'activité" value={-d.autresDecExploit} />
-                      <TRow ref="ZB" label="= Flux net de trésorerie lié à l'activité (A)" value={d.fluxExploitation} bold />
+                      <TRow tref="ZA" label="FLUX DE TRÉSORERIE PROVENANT DES ACTIVITÉS OPÉRATIONNELLES" section fmt={fmt} />
+                      <TRow label="+ Encaissements reçus des clients" value={d.encClients} fmt={fmt} />
+                      <TRow label="+ Autres encaissements liés à l'activité" value={d.autresEncExploit} fmt={fmt} />
+                      <TRow label="- Décaissements versés aux fournisseurs" value={-d.decFournisseurs} fmt={fmt} />
+                      <TRow label="- Décaissements versés au personnel" value={-d.decPersonnel} fmt={fmt} />
+                      <TRow label="- Impôts sur le résultat payés" value={-d.decImpots} fmt={fmt} />
+                      <TRow label="- Autres décaissements liés à l'activité" value={-d.autresDecExploit} fmt={fmt} />
+                      <TRow tref="ZB" label="= Flux net de trésorerie lié à l'activité (A)" value={d.fluxExploitation} bold fmt={fmt} />
 
-                      <TRow ref="ZC" label="FLUX DE TRÉSORERIE PROVENANT DES ACTIVITÉS D'INVESTISSEMENT" section />
-                      <TRow label="- Décaissements sur acquisitions d'immobilisations" value={-d.decAcqCorpo} />
-                      <TRow label="- Décaissements sur acquisitions financières" value={-d.decAcqFinanc} />
-                      <TRow label="+ Encaissements sur cessions d'immobilisations" value={d.encCessions} />
-                      <TRow ref="ZD" label="= Flux net de trésorerie lié aux investissements (B)" value={d.fluxInvestissement} bold />
+                      <TRow tref="ZC" label="FLUX DE TRÉSORERIE PROVENANT DES ACTIVITÉS D'INVESTISSEMENT" section fmt={fmt} />
+                      <TRow label="- Décaissements sur acquisitions d'immobilisations" value={-d.decAcqCorpo} fmt={fmt} />
+                      <TRow label="- Décaissements sur acquisitions financières" value={-d.decAcqFinanc} fmt={fmt} />
+                      <TRow label="+ Encaissements sur cessions d'immobilisations" value={d.encCessions} fmt={fmt} />
+                      <TRow tref="ZD" label="= Flux net de trésorerie lié aux investissements (B)" value={d.fluxInvestissement} bold fmt={fmt} />
 
-                      <TRow ref="ZE" label="FLUX DE TRÉSORERIE PROVENANT DES ACTIVITÉS DE FINANCEMENT" section />
-                      <TRow label="+ Encaissements sur augmentation de capital" value={d.encCapital} />
-                      <TRow label="+ Encaissements provenant d'emprunts" value={d.encEmprunts} />
-                      <TRow label="- Remboursements d'emprunts" value={-d.decRembEmprunts} />
-                      <TRow label="- Dividendes et distributions versés" value={-d.decDividendes} />
-                      <TRow ref="ZF" label="= Flux net de trésorerie lié au financement (C)" value={d.fluxFinancement} bold />
+                      <TRow tref="ZE" label="FLUX DE TRÉSORERIE PROVENANT DES ACTIVITÉS DE FINANCEMENT" section fmt={fmt} />
+                      <TRow label="+ Encaissements sur augmentation de capital" value={d.encCapital} fmt={fmt} />
+                      <TRow label="+ Encaissements provenant d'emprunts" value={d.encEmprunts} fmt={fmt} />
+                      <TRow label="- Remboursements d'emprunts" value={-d.decRembEmprunts} fmt={fmt} />
+                      <TRow label="- Dividendes et distributions versés" value={-d.decDividendes} fmt={fmt} />
+                      <TRow tref="ZF" label="= Flux net de trésorerie lié au financement (C)" value={d.fluxFinancement} bold fmt={fmt} />
 
-                      <TRow ref="ZG" label="VARIATION DE TRÉSORERIE NETTE (A+B+C)" value={d.variationTresorerie} bold />
-                      <TRow ref="ZH" label="Trésorerie à l'ouverture" value={d.tresorerieOuverture} />
+                      <TRow tref="ZG" label="VARIATION DE TRÉSORERIE NETTE (A+B+C)" value={d.variationTresorerie} bold fmt={fmt} />
+                      <TRow tref="ZH" label="Trésorerie à l'ouverture" value={d.tresorerieOuverture} fmt={fmt} />
                       <tr className="bg-gray-200 font-bold text-lg">
                         <td className="border border-[var(--color-border)] px-4 py-4 text-[var(--color-primary)]">ZJ</td>
                         <td className="border border-[var(--color-border)] px-4 py-4">TRÉSORERIE À LA CLÔTURE</td>

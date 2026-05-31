@@ -48,7 +48,6 @@ const PremierConnexionPage: React.FC = () => {
       supabase.auth.verifyOtp({ token_hash, type: type as Parameters<typeof supabase.auth.verifyOtp>[0]['type'] })
         .then(({ data, error: verifyErr }) => {
           if (verifyErr || !data.session?.user) {
-            console.error('[PremierConnexion] verifyOtp error:', verifyErr?.message);
             setStep('error');
           } else {
             applySession(data.session.user);

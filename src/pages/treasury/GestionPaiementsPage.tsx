@@ -74,7 +74,7 @@ const GestionPaiementsPage: React.FC = () => {
     description: ''
   });
 
-  const companyId = localStorage.getItem('company_id') || '';
+  const companyId = localStorage.getItem('atlas-tenant-id') || '';
 
   // TODO: rewire to real data — forecastOutflows not yet implemented
   const { data: outflowsData, isLoading: loadingOutflows } = useQuery({

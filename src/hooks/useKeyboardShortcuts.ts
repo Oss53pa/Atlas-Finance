@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
  * Global keyboard shortcuts for Atlas Finance.
  * Alt+S = Search / Alt+N = New entry / Esc = Close modal / Alt+D = Dashboard
  * Alt+B = Balance / Alt+G = Grand Livre / Alt+J = Journaux
+ * Alt+H is intentionally NOT handled here — KeyboardShortcutsHelp.tsx owns it.
  */
 export function useKeyboardShortcuts() {
   const navigate = useNavigate();
@@ -36,7 +37,7 @@ export function useKeyboardShortcuts() {
           case 'g': e.preventDefault(); navigate('/accounting/general-ledger'); break;
           case 'j': e.preventDefault(); navigate('/accounting/journals'); break;
           case 'p': e.preventDefault(); navigate('/proph3t'); break;
-          case 'h': e.preventDefault(); navigate('/help'); break;
+          // Alt+H removed: KeyboardShortcutsHelp.tsx handles Alt+H → open shortcuts modal
         }
       }
     };

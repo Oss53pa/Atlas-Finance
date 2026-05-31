@@ -164,10 +164,10 @@ const ConnexionsBancairesPage: React.FC = () => {
   const { data: reconciliationData } = useQuery({
     queryKey: ['reconciliation-status'],
     queryFn: async () => {
-      const companyId = localStorage.getItem('company_id') || '';
+      const companyId = localStorage.getItem('atlas-tenant-id') || '';
       return await treasuryAdvancedService.getReconciliationStatus(companyId);
     },
-    enabled: !!localStorage.getItem('company_id'),
+    enabled: !!localStorage.getItem('atlas-tenant-id'),
   });
 
   const syncLogs = (reconciliationData?.reconciliations || []).map((rec: Record<string, unknown>) => ({
@@ -239,7 +239,7 @@ const ConnexionsBancairesPage: React.FC = () => {
 
     try {
       // Real sync with reconciliation
-      const companyId = localStorage.getItem('company_id') || '';
+      const companyId = localStorage.getItem('atlas-tenant-id') || '';
       const account = connections.find(c => c.id === accountId);
 
       if (account) {

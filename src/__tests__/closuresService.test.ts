@@ -1,6 +1,7 @@
 /**
  * Tests for closures service connected to Dexie.
- * Verifies: session CRUD, balance computation, provisions, amortissements, closure workflow.
+ * Verifies: session CRUD, balance computation, provisions, amortissements, closure workflow,
+ * and SYSCOHADA Titre IV annual closure (closeGestionAccounts / executeFullAnnualClosure).
  */
 import { describe, it, expect, beforeEach } from 'vitest';
 import { closuresService } from '../features/closures/services/closuresService';
@@ -228,6 +229,313 @@ describe('ClosuresService (Dexie)', () => {
       // Verify persisted
       const sessions = await closuresService.getSessions(adapter);
       expect(sessions[0].statut).toBe('CLOTUREE');
+    });
+  });
+});
+
+// ============================================================================
+// SYSCOHADA Titre IV — closeGestionAccounts + executeFullAnnualClosure
+// ============================================================================
+
+describe('ClosuresService — SYSCOHADA Titre IV clôture annuelle', () => {
+  const FY2025 = {
+    id: 'FY2025',
+    code: '2025',
+    name: 'Exercice 2025',
+    startDate: '2025-01-01',
+    endDate: '2025-12-31',
+    isClosed: false,
+    isActive: true,
+  };
+
+  function makeEntry(
+    id: string,
+    num: string,
+    date: string,
+    lines: Array<{ accountCode: string; accountName: string; debit: number; credit: number }>,
+  ) {
+    const totalDebit = lines.reduce((s, l) => s + l.debit, 0);
+    const totalCredit = lines.reduce((s, l) => s + l.credit, 0);
+    return {
+      id,
+      entryNumber: num,
+      journal: 'OD',
+      date,
+      reference: '',
+      label: `Entry ${id}`,
+      status: 'validated' as const,
+      lines: lines.map((l, i) => ({
+        id: `${id}-l${i}`,
+        accountCode: l.accountCode,
+        accountName: l.accountName,
+        label: '',
+        debit: l.debit,
+        credit: l.credit,
+      })),
+      totalDebit,
+      totalCredit,
+      createdAt: `${date}T10:00:00.000Z`,
+      updatedAt: `${date}T10:00:00.000Z`,
+      hash: `hash-${id}`,
+    };
+  }
+
+  beforeEach(async () => {
+    await db.journalEntries.clear();
+    await db.fiscalYears.clear();
+    await db.auditLogs.clear();
+    await db.closureSessions.clear();
+
+    await db.fiscalYears.add(FY2025);
+
+    // Ventes : 3 000 000 FCFA (clients 411 / produits 701)
+    await db.journalEntries.add(
+      makeEntry('G1', 'VT-001', '2025-09-01', [
+        { accountCode: '411000', accountName: 'Clients', debit: 3_000_000, credit: 0 },
+        { accountCode: '701000', accountName: 'Ventes marchandises', debit: 0, credit: 3_000_000 },
+      ]),
+    );
+
+    // Achats : 1 200 000 FCFA (charges 601 / fournisseurs 401)
+    await db.journalEntries.add(
+      makeEntry('G2', 'AC-001', '2025-10-01', [
+        { accountCode: '601000', accountName: 'Achats marchandises', debit: 1_200_000, credit: 0 },
+        { accountCode: '401000', accountName: 'Fournisseurs', debit: 0, credit: 1_200_000 },
+      ]),
+    );
+  });
+
+  describe('closeGestionAccounts — bénéfice (produits > charges)', () => {
+    it('crée deux écritures OD brouillon', async () => {
+      await closuresService.closeGestionAccounts(adapter, 'FY2025');
+
+      const allEntries = await db.journalEntries.toArray();
+      const clEntries = allEntries.filter(e => e.entryNumber.startsWith('CL-'));
+      expect(clEntries.length).toBe(2);
+    });
+
+    it('l\'écriture CL-GES est équilibrée (D == C)', async () => {
+      await closuresService.closeGestionAccounts(adapter, 'FY2025');
+
+      const allEntries = await db.journalEntries.toArray();
+      const gesEntry = allEntries.find(e => e.entryNumber === 'CL-GES-2025');
+      expect(gesEntry).toBeDefined();
+      expect(gesEntry!.totalDebit).toBeCloseTo(gesEntry!.totalCredit, 2);
+    });
+
+    it('l\'écriture CL-GES débite les comptes 7x', async () => {
+      await closuresService.closeGestionAccounts(adapter, 'FY2025');
+
+      const allEntries = await db.journalEntries.toArray();
+      const gesEntry = allEntries.find(e => e.entryNumber === 'CL-GES-2025');
+      expect(gesEntry).toBeDefined();
+
+      // Les comptes 7x doivent apparaître au débit dans l'écriture de soldage
+      const debit7x = gesEntry!.lines
+        .filter(l => l.accountCode.startsWith('7'))
+        .reduce((s, l) => s + l.debit, 0);
+      expect(debit7x).toBe(3_000_000);
+    });
+
+    it('l\'écriture CL-GES crédite les comptes 6x', async () => {
+      await closuresService.closeGestionAccounts(adapter, 'FY2025');
+
+      const allEntries = await db.journalEntries.toArray();
+      const gesEntry = allEntries.find(e => e.entryNumber === 'CL-GES-2025');
+      expect(gesEntry).toBeDefined();
+
+      // Les comptes 6x doivent apparaître au crédit dans l'écriture de soldage
+      const credit6x = gesEntry!.lines
+        .filter(l => l.accountCode.startsWith('6'))
+        .reduce((s, l) => s + l.credit, 0);
+      expect(credit6x).toBe(1_200_000);
+    });
+
+    it('la contrepartie de l\'écriture CL-GES est bien le compte 1300', async () => {
+      await closuresService.closeGestionAccounts(adapter, 'FY2025');
+
+      const allEntries = await db.journalEntries.toArray();
+      const gesEntry = allEntries.find(e => e.entryNumber === 'CL-GES-2025');
+      expect(gesEntry).toBeDefined();
+
+      const line1300 = gesEntry!.lines.find(l => l.accountCode === '1300');
+      expect(line1300).toBeDefined();
+      // Bénéfice → 1300 au crédit
+      expect(line1300!.credit).toBeCloseTo(1_800_000, 2);
+      expect(line1300!.debit).toBe(0);
+    });
+
+    it('l\'écriture CL-RES reclasse 1300 → 131 (bénéfice)', async () => {
+      const result = await closuresService.closeGestionAccounts(adapter, 'FY2025');
+
+      expect(result.isBenefice).toBe(true);
+      expect(result.resultatNet).toBeCloseTo(1_800_000, 2);
+
+      const allEntries = await db.journalEntries.toArray();
+      const resEntry = allEntries.find(e => e.entryNumber === 'CL-RES-2025');
+      expect(resEntry).toBeDefined();
+
+      const line131 = resEntry!.lines.find(l => l.accountCode === '131');
+      expect(line131).toBeDefined();
+      expect(line131!.credit).toBeCloseTo(1_800_000, 2);
+
+      const line1300 = resEntry!.lines.find(l => l.accountCode === '1300');
+      expect(line1300).toBeDefined();
+      expect(line1300!.debit).toBeCloseTo(1_800_000, 2);
+    });
+
+    it('les deux écritures sont créées en statut draft', async () => {
+      await closuresService.closeGestionAccounts(adapter, 'FY2025');
+
+      const allEntries = await db.journalEntries.toArray();
+      const clEntries = allEntries.filter(e => e.entryNumber.startsWith('CL-'));
+      for (const entry of clEntries) {
+        expect(entry.status).toBe('draft');
+      }
+    });
+
+    it('un audit log CLOSE_GESTION_ACCOUNTS est créé', async () => {
+      await closuresService.closeGestionAccounts(adapter, 'FY2025');
+
+      const logs = await db.auditLogs.toArray();
+      expect(logs.some(l => l.action === 'CLOSE_GESTION_ACCOUNTS')).toBe(true);
+    });
+
+    it('retourne les IDs des deux écritures et le résultat net', async () => {
+      const result = await closuresService.closeGestionAccounts(adapter, 'FY2025');
+
+      expect(result.entryGestionId).toBeTruthy();
+      expect(result.entryResultatId).toBeTruthy();
+      expect(result.resultatNet).toBeCloseTo(1_800_000, 2);
+      expect(result.isBenefice).toBe(true);
+      expect(result.linesCount).toBeGreaterThan(0);
+    });
+  });
+
+  describe('closeGestionAccounts — perte (charges > produits)', () => {
+    beforeEach(async () => {
+      await db.journalEntries.clear();
+
+      // Charges plus élevées que produits → perte
+      await db.journalEntries.add(
+        makeEntry('P1', 'VT-P01', '2025-09-01', [
+          { accountCode: '411000', accountName: 'Clients', debit: 500_000, credit: 0 },
+          { accountCode: '701000', accountName: 'Ventes', debit: 0, credit: 500_000 },
+        ]),
+      );
+      await db.journalEntries.add(
+        makeEntry('P2', 'AC-P01', '2025-10-01', [
+          { accountCode: '601000', accountName: 'Achats', debit: 2_000_000, credit: 0 },
+          { accountCode: '401000', accountName: 'Fournisseurs', debit: 0, credit: 2_000_000 },
+        ]),
+      );
+    });
+
+    it('l\'écriture CL-RES reclasse 1300 → 139 (perte)', async () => {
+      const result = await closuresService.closeGestionAccounts(adapter, 'FY2025');
+
+      expect(result.isBenefice).toBe(false);
+      expect(result.resultatNet).toBeCloseTo(-1_500_000, 2);
+
+      const allEntries = await db.journalEntries.toArray();
+      const resEntry = allEntries.find(e => e.entryNumber === 'CL-RES-2025');
+      expect(resEntry).toBeDefined();
+
+      const line139 = resEntry!.lines.find(l => l.accountCode === '139');
+      expect(line139).toBeDefined();
+      expect(line139!.debit).toBeCloseTo(1_500_000, 2);
+
+      const line1300 = resEntry!.lines.find(l => l.accountCode === '1300');
+      expect(line1300).toBeDefined();
+      expect(line1300!.credit).toBeCloseTo(1_500_000, 2);
+    });
+
+    it('la contrepartie CL-GES est 1300 au débit (perte)', async () => {
+      await closuresService.closeGestionAccounts(adapter, 'FY2025');
+
+      const allEntries = await db.journalEntries.toArray();
+      const gesEntry = allEntries.find(e => e.entryNumber === 'CL-GES-2025');
+      expect(gesEntry).toBeDefined();
+
+      const line1300 = gesEntry!.lines.find(l => l.accountCode === '1300');
+      expect(line1300).toBeDefined();
+      expect(line1300!.debit).toBeCloseTo(1_500_000, 2);
+      expect(line1300!.credit).toBe(0);
+    });
+  });
+
+  describe('closeGestionAccounts — erreurs', () => {
+    it('lève une erreur si l\'exercice est introuvable', async () => {
+      await expect(
+        closuresService.closeGestionAccounts(adapter, 'INEXISTANT'),
+      ).rejects.toThrow('introuvable');
+    });
+
+    it('lève une erreur si aucune écriture validée de gestion', async () => {
+      await db.journalEntries.clear();
+      // Seule une écriture bilan (pas de classe 6 ou 7)
+      await db.journalEntries.add(
+        makeEntry('B1', 'OD-B01', '2025-01-01', [
+          { accountCode: '521000', accountName: 'Banque', debit: 1_000_000, credit: 0 },
+          { accountCode: '101000', accountName: 'Capital', debit: 0, credit: 1_000_000 },
+        ]),
+      );
+
+      await expect(
+        closuresService.closeGestionAccounts(adapter, 'FY2025'),
+      ).rejects.toThrow('Aucun compte de gestion');
+    });
+  });
+
+  describe('executeFullAnnualClosure', () => {
+    it('retourne success:true et un résultat gestion', async () => {
+      const result = await closuresService.executeFullAnnualClosure(adapter, {
+        exerciceId: 'FY2025',
+        initiateur: 'test-user',
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.errors).toHaveLength(0);
+      expect(result.gestion).toBeDefined();
+      expect(result.gestion!.isBenefice).toBe(true);
+      expect(result.gestion!.resultatNet).toBeCloseTo(1_800_000, 2);
+    });
+
+    it('retourne success:false avec erreur si exercice introuvable', async () => {
+      const result = await closuresService.executeFullAnnualClosure(adapter, {
+        exerciceId: 'INEXISTANT',
+        initiateur: 'test-user',
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.errors.length).toBeGreaterThan(0);
+    });
+
+    it('crée un audit log FULL_ANNUAL_CLOSURE_GESTION', async () => {
+      await closuresService.executeFullAnnualClosure(adapter, {
+        exerciceId: 'FY2025',
+        initiateur: 'test-user',
+      });
+
+      const logs = await db.auditLogs.toArray();
+      expect(logs.some(l => l.action === 'FULL_ANNUAL_CLOSURE_GESTION')).toBe(true);
+    });
+
+    it('les comptes 131/139 ont un solde après clôture (prérequis pour posterAffectation)', async () => {
+      const result = await closuresService.executeFullAnnualClosure(adapter, {
+        exerciceId: 'FY2025',
+        initiateur: 'test-user',
+      });
+      expect(result.success).toBe(true);
+
+      // L'écriture CL-RES doit avoir une ligne 131 au crédit (bénéfice)
+      const allEntries = await db.journalEntries.toArray();
+      const resEntry = allEntries.find(e => e.entryNumber === 'CL-RES-2025');
+      expect(resEntry).toBeDefined();
+
+      const line131 = resEntry!.lines.find(l => l.accountCode === '131');
+      expect(line131).toBeDefined();
+      expect(line131!.credit).toBeGreaterThan(0);
     });
   });
 });

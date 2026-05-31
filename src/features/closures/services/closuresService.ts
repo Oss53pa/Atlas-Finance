@@ -1,12 +1,12 @@
 /**
  * Closures Service — Connected to Dexie IndexedDB.
  * Manages closure sessions, provisions, amortissements, and closure entries.
- * Conforme SYSCOHADA révisé.
+ * Conforme SYSCOHADA révisé Titre IV — Clôture annuelle.
  */
 import type { DataAdapter } from '@atlas/data';
 import { Money, money } from '../../../utils/money';
 import { logAudit } from '../../../lib/db';
-import type { DBClosureSession, DBProvision } from '../../../lib/db';
+import type { DBClosureSession, DBProvision, DBFiscalYear, DBJournalLine } from '../../../lib/db';
 import { safeAddEntry } from '../../../services/entryGuard';
 import {
   ClotureSession,
@@ -17,6 +17,37 @@ import {
   ClotureStats,
   ClotureType,
 } from '../types/closures.types';
+
+// ============================================================================
+// TYPES — Clôture annuelle SYSCOHADA Titre IV
+// ============================================================================
+
+export interface CloseGestionResult {
+  /** ID de l'écriture de soldage des classes 6/7 vers 1300 */
+  entryGestionId: string;
+  /** ID de l'écriture d'extourne 1300 → 131 (bénéfice) ou 1300 → 139 (perte) */
+  entryResultatId: string;
+  /** Résultat net (positif = bénéfice, négatif = perte) */
+  resultatNet: number;
+  isBenefice: boolean;
+  /** Nombre de lignes de comptes de gestion soldés */
+  linesCount: number;
+}
+
+export interface FullAnnualClosureConfig {
+  /** ID de l'exercice fiscal à clôturer */
+  exerciceId: string;
+  /** Initiateur (user ID ou 'system') */
+  initiateur: string;
+  /** tenant_id (optionnel, pour SupabaseAdapter RLS) */
+  tenantId?: string;
+}
+
+export interface FullAnnualClosureResult {
+  success: boolean;
+  gestion?: CloseGestionResult;
+  errors: string[];
+}
 
 // ============================================================================
 // PROVISION AGING RULES (SYSCOHADA) — paramétrables via settings
@@ -480,6 +511,328 @@ class ClosuresService {
    */
   async updateProgression(adapter: DataAdapter, sessionId: string | number, progression: number): Promise<void> {
     await adapter.update('closureSessions', String(sessionId), { progression });
+  }
+
+  // ==========================================================================
+  // SYSCOHADA TITRE IV — Clôture annuelle des comptes de gestion (6x / 7x)
+  // ==========================================================================
+
+  /**
+   * Clôture SYSCOHADA Titre IV : solde les comptes de gestion (classes 6 et 7).
+   *
+   * Séquence en deux écritures OD :
+   *
+   * Écriture 1 — Soldage des classes 6 et 7 vers le compte transitoire 1300
+   *   • Pour chaque compte 7x (solde créditeur net) : Débit du compte 7x
+   *   • Pour chaque compte 6x (solde débiteur net)  : Crédit du compte 6x
+   *   • Contrepartie unique                          : Crédit/Débit 1300
+   *
+   * Écriture 2 — Reclassement 1300 → résultat définitif
+   *   • Bénéfice (produits > charges) : Débit 1300  / Crédit 131
+   *   • Perte    (charges > produits) : Débit 139    / Crédit 1300
+   *
+   * Les deux écritures sont créées avec status 'draft' pour permettre
+   * une revue avant validation.
+   *
+   * @param adapter  DataAdapter courant
+   * @param exerciceId  ID de l'exercice fiscal (fiscalYears)
+   * @param tenantId  Optionnel — tenant_id pour SupabaseAdapter RLS
+   */
+  async closeGestionAccounts(
+    adapter: DataAdapter,
+    exerciceId: string,
+    tenantId?: string,
+  ): Promise<CloseGestionResult> {
+    // 1. Charger l'exercice fiscal
+    const fiscalYear = await adapter.getById<DBFiscalYear>('fiscalYears', exerciceId);
+    if (!fiscalYear) throw new Error(`Exercice ${exerciceId} introuvable`);
+
+    // 2. Charger toutes les écritures validées/comptabilisées de la période
+    const allEntries = await adapter.getAll<any>('journalEntries');
+    const periodEntries = allEntries.filter(
+      (e: any) =>
+        e.date >= fiscalYear.startDate &&
+        e.date <= fiscalYear.endDate &&
+        (e.status === 'validated' || e.status === 'posted'),
+    );
+
+    // 3. Calculer le solde net de chaque compte 6x et 7x
+    //    Convention SYSCOHADA : solde = total_débit − total_crédit
+    const balances = new Map<string, { accountName: string; solde: number }>();
+
+    for (const entry of periodEntries) {
+      for (const line of entry.lines) {
+        const cls = String(line.accountCode).charAt(0);
+        if (cls !== '6' && cls !== '7') continue;
+
+        const existing = balances.get(line.accountCode) ?? {
+          accountName: line.accountName ?? line.accountCode,
+          solde: 0,
+        };
+        existing.solde = money(existing.solde)
+          .add(money(line.debit ?? 0))
+          .subtract(money(line.credit ?? 0))
+          .toNumber();
+        balances.set(line.accountCode, existing);
+      }
+    }
+
+    // 4. Construire les lignes de l'écriture de soldage (vers 1300)
+    const gestionLines: DBJournalLine[] = [];
+    let totalProduits = 0; // somme des crédits nets des comptes 7x (débit naturel inversé)
+    let totalCharges = 0;  // somme des débits nets des comptes 6x
+
+    for (const [accountCode, { accountName, solde }] of balances) {
+      if (Math.abs(solde) < 0.01) continue; // Solde nul → rien à solder
+
+      const cls = accountCode.charAt(0);
+
+      if (cls === '7') {
+        // Compte 7x — solde créditeur naturel (solde < 0 signifie crédit > débit)
+        const soldeCrediteur = money(0).subtract(money(solde)).toNumber();
+        if (soldeCrediteur > 0.01) {
+          // Débit du compte 7x pour le ramener à zéro
+          gestionLines.push({
+            id: crypto.randomUUID(),
+            accountCode,
+            accountName,
+            label: `Soldage compte produits ${accountCode} — clôture ${fiscalYear.code}`,
+            debit: soldeCrediteur,
+            credit: 0,
+          });
+          totalProduits = money(totalProduits).add(money(soldeCrediteur)).toNumber();
+        } else if (soldeCrediteur < -0.01) {
+          // Inhabituel : compte 7x à solde débiteur — créditer pour solder
+          gestionLines.push({
+            id: crypto.randomUUID(),
+            accountCode,
+            accountName,
+            label: `Soldage compte produits ${accountCode} — clôture ${fiscalYear.code}`,
+            debit: 0,
+            credit: Math.abs(soldeCrediteur),
+          });
+          totalCharges = money(totalCharges).add(money(Math.abs(soldeCrediteur))).toNumber();
+        }
+      } else if (cls === '6') {
+        // Compte 6x — solde débiteur naturel (solde > 0 signifie débit > crédit)
+        if (solde > 0.01) {
+          // Crédit du compte 6x pour le ramener à zéro
+          gestionLines.push({
+            id: crypto.randomUUID(),
+            accountCode,
+            accountName,
+            label: `Soldage compte charges ${accountCode} — clôture ${fiscalYear.code}`,
+            debit: 0,
+            credit: solde,
+          });
+          totalCharges = money(totalCharges).add(money(solde)).toNumber();
+        } else if (solde < -0.01) {
+          // Inhabituel : compte 6x à solde créditeur — débiter pour solder
+          gestionLines.push({
+            id: crypto.randomUUID(),
+            accountCode,
+            accountName,
+            label: `Soldage compte charges ${accountCode} — clôture ${fiscalYear.code}`,
+            debit: Math.abs(solde),
+            credit: 0,
+          });
+          totalProduits = money(totalProduits).add(money(Math.abs(solde))).toNumber();
+        }
+      }
+    }
+
+    if (gestionLines.length === 0) {
+      throw new Error(
+        `Aucun compte de gestion (6x/7x) avec solde non nul pour l'exercice ${exerciceId} — ` +
+        'les comptes sont déjà soldés ou aucune écriture validée trouvée',
+      );
+    }
+
+    // 5. Ligne de contrepartie sur le compte 1300 « Résultat en instance d'affectation »
+    const resultatNet = money(totalProduits).subtract(money(totalCharges)).toNumber();
+    const isBenefice = resultatNet > 0;
+
+    if (Math.abs(resultatNet) >= 0.01) {
+      if (isBenefice) {
+        // Produits > Charges → bénéfice : créditer 1300
+        gestionLines.push({
+          id: crypto.randomUUID(),
+          accountCode: '1300',
+          accountName: "Résultat en instance d'affectation",
+          label: `Résultat net — exercice ${fiscalYear.code}`,
+          debit: 0,
+          credit: resultatNet,
+        });
+      } else {
+        // Charges > Produits → perte : débiter 1300
+        gestionLines.push({
+          id: crypto.randomUUID(),
+          accountCode: '1300',
+          accountName: "Résultat en instance d'affectation",
+          label: `Résultat net — exercice ${fiscalYear.code}`,
+          debit: Math.abs(resultatNet),
+          credit: 0,
+        });
+      }
+    }
+
+    // 6. Persister l'écriture 1 (soldage 6x/7x → 1300)
+    const baseEntry: any = {
+      id: crypto.randomUUID(),
+      entryNumber: `CL-GES-${fiscalYear.code}`,
+      journal: 'OD',
+      date: fiscalYear.endDate,
+      reference: `CLOTURE-GESTION-${fiscalYear.code}`,
+      label: `Soldage comptes de gestion — clôture exercice ${fiscalYear.code}`,
+      status: 'draft',
+      lines: gestionLines,
+      createdAt: new Date().toISOString(),
+      createdBy: 'system',
+    };
+    if (tenantId) baseEntry.tenant_id = tenantId;
+
+    const entryGestionId = await safeAddEntry(adapter, baseEntry, { skipSyncValidation: true });
+
+    // 7. Écriture 2 — Reclassement 1300 → 131 (bénéfice) ou 1300 → 139 (perte)
+    const extourneLines: DBJournalLine[] = [];
+    if (Math.abs(resultatNet) >= 0.01) {
+      if (isBenefice) {
+        // Débit 1300 / Crédit 131
+        extourneLines.push(
+          {
+            id: crypto.randomUUID(),
+            accountCode: '1300',
+            accountName: "Résultat en instance d'affectation",
+            label: `Reclassement vers résultat bénéficiaire — exercice ${fiscalYear.code}`,
+            debit: resultatNet,
+            credit: 0,
+          },
+          {
+            id: crypto.randomUUID(),
+            accountCode: '131',
+            accountName: 'Résultat net : bénéfice',
+            label: `Bénéfice de l'exercice ${fiscalYear.code}`,
+            debit: 0,
+            credit: resultatNet,
+          },
+        );
+      } else {
+        // Débit 139 / Crédit 1300
+        extourneLines.push(
+          {
+            id: crypto.randomUUID(),
+            accountCode: '139',
+            accountName: 'Résultat net : perte',
+            label: `Perte de l'exercice ${fiscalYear.code}`,
+            debit: Math.abs(resultatNet),
+            credit: 0,
+          },
+          {
+            id: crypto.randomUUID(),
+            accountCode: '1300',
+            accountName: "Résultat en instance d'affectation",
+            label: `Reclassement vers résultat déficitaire — exercice ${fiscalYear.code}`,
+            debit: 0,
+            credit: Math.abs(resultatNet),
+          },
+        );
+      }
+    }
+
+    const extourneBase: any = {
+      id: crypto.randomUUID(),
+      entryNumber: `CL-RES-${fiscalYear.code}`,
+      journal: 'OD',
+      date: fiscalYear.endDate,
+      reference: `CLOTURE-RESULTAT-${fiscalYear.code}`,
+      label: isBenefice
+        ? `Bénéfice exercice ${fiscalYear.code} → compte 131`
+        : `Perte exercice ${fiscalYear.code} → compte 139`,
+      status: 'draft',
+      lines: extourneLines,
+      createdAt: new Date().toISOString(),
+      createdBy: 'system',
+    };
+    if (tenantId) extourneBase.tenant_id = tenantId;
+
+    const entryResultatId = await safeAddEntry(adapter, extourneBase, { skipSyncValidation: true });
+
+    // 8. Audit
+    await logAudit(
+      'CLOSE_GESTION_ACCOUNTS',
+      'journalEntry',
+      entryGestionId,
+      JSON.stringify({
+        exerciceId,
+        resultatNet,
+        isBenefice,
+        entryGestionId,
+        entryResultatId,
+        linesCount: gestionLines.length - 1, // Exclude 1300 counterpart line
+      }),
+    );
+
+    return {
+      entryGestionId,
+      entryResultatId,
+      resultatNet,
+      isBenefice,
+      linesCount: gestionLines.length - 1,
+    };
+  }
+
+  // ==========================================================================
+  // SYSCOHADA TITRE IV — Séquence complète de clôture annuelle
+  // ==========================================================================
+
+  /**
+   * Exécute la séquence complète de clôture annuelle SYSCOHADA Titre IV :
+   *
+   * 1. Clôture des comptes de gestion (closeGestionAccounts)
+   *    → Solde 6x/7x vers 1300, puis 1300 → 131/139
+   * 2. Affectation du résultat (posterAffectation via resultAffectationService)
+   *    → 131/139 → réserves, dividendes, report à nouveau
+   *
+   * IMPORTANT : posterAffectation doit être appelé séparément après validation
+   * des écritures de clôture (étape 1 crée des brouillons). Cette méthode
+   * s'arrête après l'étape 1 ; l'affectation est une décision de gouvernance
+   * qui nécessite une AG ou décision de direction.
+   *
+   * @param adapter DataAdapter courant
+   * @param config  Configuration de la clôture annuelle
+   */
+  async executeFullAnnualClosure(
+    adapter: DataAdapter,
+    config: FullAnnualClosureConfig,
+  ): Promise<FullAnnualClosureResult> {
+    const errors: string[] = [];
+
+    try {
+      // Étape 1 — Clôture SYSCOHADA Titre IV : solde des comptes de gestion
+      const gestion = await this.closeGestionAccounts(adapter, config.exerciceId, config.tenantId);
+
+      await logAudit(
+        'FULL_ANNUAL_CLOSURE_GESTION',
+        'fiscalYear',
+        config.exerciceId,
+        `Clôture annuelle SYSCOHADA Titre IV — exercice ${config.exerciceId}: ` +
+        `résultat=${gestion.resultatNet} (${gestion.isBenefice ? 'bénéfice' : 'perte'}), ` +
+        `écritures brouillon créées: ${gestion.entryGestionId}, ${gestion.entryResultatId}`,
+      );
+
+      // Étape 2 — L'affectation du résultat (posterAffectation) est intentionnellement
+      // externalisée : elle requiert une décision de gouvernance (AG, conseil d'administration)
+      // et doit être déclenchée séparément via resultAffectationService.posterAffectation()
+      // après validation des écritures de clôture créées à l'étape 1.
+      // Prérequis pour posterAffectation : les comptes 131/139 doivent exister
+      // (garantis par closeGestionAccounts ci-dessus).
+
+      return { success: true, gestion, errors };
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      errors.push(msg);
+      return { success: false, errors };
+    }
   }
 
   /**

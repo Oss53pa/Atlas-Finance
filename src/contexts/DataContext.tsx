@@ -74,6 +74,63 @@ export function DataProvider({ children, forceMode, forceAdapter }: DataProvider
 
   const mode = adapter.getMode()
 
+  // -------------------------------------------------------------------------
+  // Sécurité : synchroniser le tenantId depuis la session Supabase authentifiée
+  //
+  // Le tenantId initial est lu depuis localStorage (compatibilité pre-auth),
+  // ce qui expose une surface XSS. Dès que la session est restaurée ou change,
+  // on écrase ce tenantId par celui dérivé de la session serveur :
+  //   1. user_metadata.company_id  (renseigné par le serveur à la création du user)
+  //   2. table profiles.company_id (requête RLS-protégée, sans filtre tenant)
+  //
+  // setTenantId() est une opération synchrone — toutes les requêtes suivantes
+  // utilisent le nouveau tenantId certifié.
+  // -------------------------------------------------------------------------
+  useEffect(() => {
+    if (mode !== 'saas') return
+    const saasAdapter = adapter as SupabaseAdapter
+
+    const applyAuthenticatedTenant = async (userId: string) => {
+      // Priorité 1 : user_metadata.company_id (set côté serveur via Auth hook)
+      const { data: { user } } = await globalSupabaseClient.auth.getUser()
+      const metaCompanyId: string | undefined = user?.user_metadata?.company_id
+      if (metaCompanyId) {
+        saasAdapter.setTenantId(metaCompanyId)
+        localStorage.setItem('atlas-tenant-id', metaCompanyId)
+        return
+      }
+
+      // Priorité 2 : table profiles (RLS filtrée par id = auth.uid())
+      const { data: profile } = await globalSupabaseClient
+        .from('profiles')
+        .select('company_id')
+        .eq('id', userId)
+        .maybeSingle()
+      if (profile?.company_id) {
+        saasAdapter.setTenantId(profile.company_id)
+        localStorage.setItem('atlas-tenant-id', profile.company_id)
+      }
+    }
+
+    // Vérifier la session courante au montage (session déjà restaurée)
+    globalSupabaseClient.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user?.id) {
+        applyAuthenticatedTenant(session.user.id)
+      }
+    })
+
+    // Écouter les changements de session ultérieurs (login, token refresh, logout)
+    const { data: { subscription } } = globalSupabaseClient.auth.onAuthStateChange(
+      (_event, session) => {
+        if (session?.user?.id) {
+          applyAuthenticatedTenant(session.user.id)
+        }
+      }
+    )
+
+    return () => { subscription.unsubscribe() }
+  }, [adapter, mode])
+
   // Poll online status
   useEffect(() => {
     let mounted = true

@@ -29,8 +29,19 @@ const RESET_GROUPS = [
   ]},
 ];
 
+const SaasNotAvailable: React.FC<{ feature: string }> = ({ feature }) => (
+  <div className="flex flex-col items-center gap-4 p-8 bg-amber-50 border border-amber-200 rounded-lg">
+    <AlertTriangle className="w-12 h-12 text-amber-500" />
+    <h3 className="text-lg font-semibold text-amber-800">{feature} — mode SaaS</h3>
+    <p className="text-amber-700 text-center max-w-md">
+      La sauvegarde/restauration SaaS sera disponible prochainement. Contactez le support pour obtenir de l'aide.
+    </p>
+  </div>
+);
+
 const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
-  const { adapter } = useData();
+  const { adapter, mode } = useData();
+  const isSaas = mode === 'saas';
   const [backupHistory, setBackupHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastBackup, setLastBackup] = useState<any>(null);
@@ -175,7 +186,9 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
         ))}
       </div>
 
-      {subTab === 0 && (
+      {subTab === 0 && isSaas && <SaasNotAvailable feature="Sauvegarde manuelle" />}
+
+      {subTab === 0 && !isSaas && (
         <div className="space-y-6">
           <div className="flex flex-col items-center gap-4 p-8 bg-white rounded-lg border">
             <HardDrive className="w-16 h-16 text-blue-500" />
@@ -293,7 +306,9 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
         </div>
       )}
 
-      {subTab === 3 && (
+      {subTab === 3 && isSaas && <SaasNotAvailable feature="Restauration" />}
+
+      {subTab === 3 && !isSaas && (
         <div className="space-y-6">
           <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
             <AlertTriangle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
@@ -431,7 +446,9 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
         </div>
       )}
 
-      {subTab === 4 && (
+      {subTab === 4 && isSaas && <SaasNotAvailable feature="Export" />}
+
+      {subTab === 4 && !isSaas && (
         <div className="bg-white p-6 rounded-lg border space-y-6">
           <h3 className="font-semibold text-lg flex items-center gap-2"><FileDown className="w-5 h-5" /> Export des donnees</h3>
           <div>

@@ -102,6 +102,20 @@ export class SupabaseAdapter implements DataAdapter {
     this.tenantId = tenantId
   }
 
+  /**
+   * Met à jour le tenantId utilisé par toutes les requêtes suivantes.
+   *
+   * Appelé par DataContext dès que la session Supabase est restaurée ou
+   * modifiée (via onAuthStateChange). Permet de remplacer le tenantId
+   * initialement lu depuis localStorage (non-authentifié) par le tenantId
+   * certifié issu des métadonnées de session.
+   *
+   * @param id  UUID de la société (tenant) issu de la session authentifiée.
+   */
+  setTenantId(id: string): void {
+    this.tenantId = id
+  }
+
   getMode(): DataMode { return 'saas' }
 
   async isOnline(): Promise<boolean> {

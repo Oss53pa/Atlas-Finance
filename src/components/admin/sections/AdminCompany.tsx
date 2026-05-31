@@ -25,8 +25,8 @@ const DEVISE_SYMBOLS: Record<string,string> = { XOF:'FCFA',XAF:'FCFA',EUR:'€',
 // --- Sub-components defined OUTSIDE AdminCompany to prevent remount on every render ---
 const Modal: React.FC<{ title:string;onClose:()=>void;onSubmit:()=>void;submitLabel?:string;children:React.ReactNode }> = ({ title,onClose,onSubmit,submitLabel='Enregistrer',children }) => (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
-    <div className="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto" onClick={e=>e.stopPropagation()}>
-      <div className="flex items-center justify-between px-6 py-4 border-b"><h3 className="text-lg font-semibold text-gray-900">{title}</h3><button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button></div>
+    <div role="dialog" aria-modal="true" aria-labelledby="modal-title-id" className="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto" onClick={e=>e.stopPropagation()}>
+      <div className="flex items-center justify-between px-6 py-4 border-b"><h3 id="modal-title-id" className="text-lg font-semibold text-gray-900">{title}</h3><button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button></div>
       <div className="px-6 py-4 space-y-4">{children}</div>
       <div className="flex justify-end gap-3 px-6 py-4 border-t"><button onClick={onClose} className="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">Annuler</button><button onClick={onSubmit} className="px-4 py-2 text-sm text-white rounded-lg hover:opacity-90" style={{backgroundColor:'#C0322B'}}>{submitLabel}</button></div>
     </div>
@@ -70,6 +70,7 @@ const LegalInfoSection: React.FC<LegalInfoSectionProps> = ({ initialValues, save
   const formRef = useRef<HTMLFormElement>(null);
   const [saving, setSaving] = useState(false);
   const [saved,  setSaved]  = useState(false);
+  const [saveAttempted, setSaveAttempted] = useState(false);
 
   // Peupler les inputs avec les valeurs chargées depuis la BDD
   useEffect(() => {
@@ -113,16 +114,16 @@ const LegalInfoSection: React.FC<LegalInfoSectionProps> = ({ initialValues, save
       email:          g('email'),
       siteWeb:        g('siteWeb'),
     };
-    if (!values.raisonSociale) { toast.error('La raison sociale est obligatoire'); return; }
+    if (!values.raisonSociale) { setSaveAttempted(true); toast.error('La raison sociale est obligatoire'); return; }
+    setSaveAttempted(false);
     setSaving(true);
     try {
       await saveSetting('admin_company_legal', values);
       setSaved(true);
       toast.success('Informations legales enregistrees avec succes');
       setTimeout(() => setSaved(false), 3000);
-    } catch (err) {
+    } catch {
       toast.error('Erreur lors de l\'enregistrement');
-      console.error('[LegalInfoSection] save error:', err);
     } finally {
       setSaving(false);
     }
@@ -131,7 +132,7 @@ const LegalInfoSection: React.FC<LegalInfoSectionProps> = ({ initialValues, save
   return (
     <form ref={formRef} onSubmit={e=>{e.preventDefault();handleSave();}} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-raisonSociale">Raison sociale<span className="text-red-500 ml-1">*</span></label><input id="li-raisonSociale" type="text" defaultValue="" className={CLS} {...NO_BROWSER_MAGIC} /></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-raisonSociale">Raison sociale<span className="text-red-500 ml-1">*</span></label><input id="li-raisonSociale" type="text" defaultValue="" className={CLS} aria-required="true" aria-invalid={saveAttempted && !saved && !saving ? true : undefined} {...NO_BROWSER_MAGIC} /></div>
         <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-formeJuridique">Forme juridique</label><select id="li-formeJuridique" defaultValue="SARL" className={CLS+' bg-white'}>{['SARL','SA','SAS','SNC','Entreprise individuelle','GIE'].map(f=><option key={f} value={f}>{f}</option>)}</select></div>
         <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-nif">NIF</label><input id="li-nif" type="text" defaultValue="" className={CLS} {...NO_BROWSER_MAGIC} /></div>
         <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-rccm">RCCM</label><input id="li-rccm" type="text" defaultValue="" className={CLS} {...NO_BROWSER_MAGIC} /></div>
@@ -215,6 +216,8 @@ const PlanSyscohadaSection: React.FC<PlanSyscohadaSectionProps> = ({ accounts, o
 const AdminCompany: React.FC<Props> = ({ subTab, setSubTab }) => {
   const { adapter } = useData();
   const [loading, setLoading] = useState(true);
+  const [savingSection, setSavingSection] = useState<'logo'|'devise'|null>(null);
+  const [savedSection, setSavedSection] = useState<'logo'|'devise'|null>(null);
   const [accounts, setAccounts] = useState<any[]>([]);
   const [exercices, setExercices] = useState<any[]>([]);
   const [taxes, setTaxes] = useState<any[]>([]);
@@ -262,8 +265,34 @@ const AdminCompany: React.FC<Props> = ({ subTab, setSubTab }) => {
 
   useEffect(() => { loadData(); }, [loadData]);
 
-  const handleLogoSave = async () => { await saveSetting('admin_company_logo', logoToggles); toast.success('Parametres du logo enregistres avec succes'); };
-  const handleDeviseSave = async () => { await saveSetting('admin_company_devise', deviseForm); toast.success('Parametres de devise enregistres avec succes'); };
+  const handleLogoSave = async () => {
+    if (savingSection) return;
+    setSavingSection('logo');
+    try {
+      await saveSetting('admin_company_logo', logoToggles);
+      toast.success('Parametres du logo enregistres avec succes');
+      setSavedSection('logo');
+      setTimeout(() => setSavedSection(s => s === 'logo' ? null : s), 3000);
+    } catch {
+      toast.error('Erreur lors de l\'enregistrement du logo');
+    } finally {
+      setSavingSection(null);
+    }
+  };
+  const handleDeviseSave = async () => {
+    if (savingSection) return;
+    setSavingSection('devise');
+    try {
+      await saveSetting('admin_company_devise', deviseForm);
+      toast.success('Parametres de devise enregistres avec succes');
+      setSavedSection('devise');
+      setTimeout(() => setSavedSection(s => s === 'devise' ? null : s), 3000);
+    } catch {
+      toast.error('Erreur lors de l\'enregistrement de la devise');
+    } finally {
+      setSavingSection(null);
+    }
+  };
   const handleAccountSubmit = async () => { if (!accountForm.numero||!accountForm.libelle) { toast.error('Le numero et le libelle sont obligatoires'); return; } try { await adapter.create('accounts', { code: accountForm.numero, name: accountForm.libelle, accountClass: Number(accountForm.classe||accountForm.numero[0]), accountType: accountForm.type.toLowerCase(), normalBalance: accountForm.sens==='Crediteur'?'credit':'debit', isReconcilable: accountForm.lettrable, isActive: true, level: 1 }); toast.success(`Compte ${accountForm.numero} ajoute avec succes`); setShowAccountModal(false); setAccountForm({ numero:'',libelle:'',classe:'',type:'Bilan',sens:'Debiteur',lettrable:false,compteCollectif:'' }); await loadData(); } catch { toast.error('Erreur lors de l\'ajout du compte'); } };
   const handleTaxSubmit = async () => { if (!taxForm.code||!taxForm.libelle) { toast.error('Le code et le libelle sont obligatoires'); return; } const n = [...taxes, { ...taxForm, taux: Number(taxForm.taux), actif: true }]; setTaxes(n); await saveSetting('admin_taxes', n); toast.success(`Taxe ${taxForm.code} ajoutee avec succes`); setShowTaxModal(false); setTaxForm({ code:'',libelle:'',taux:'',type:'TVA',compteCollecte:'',compteDeductible:'' }); };
   const handleCategorySubmit = async () => { if (!categoryForm.code||!categoryForm.libelle) { toast.error('Le code et le libelle sont obligatoires'); return; } const n = [...categories, { ...categoryForm, duree: Number(categoryForm.duree), taux: Number(categoryForm.taux) }]; setCategories(n); await saveSetting('admin_asset_categories', n); toast.success(`Categorie ${categoryForm.code} ajoutee avec succes`); setShowCategoryModal(false); setCategoryForm({ code:'',libelle:'',duree:'',taux:'',methode:'Lineaire',compteBilan:'',compteAmort:'',compteDotation:'' }); };
@@ -271,11 +300,11 @@ const AdminCompany: React.FC<Props> = ({ subTab, setSubTab }) => {
 
   if (loading) return <div className="flex items-center justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-gray-400" /><span className="ml-2 text-gray-500">Chargement...</span></div>;
 
-  const renderLogoEntete = () => (<div className="space-y-6"><div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-red-400 transition-colors cursor-pointer"><Upload className="w-10 h-10 mx-auto text-gray-400 mb-3" /><p className="text-sm text-gray-600 mb-1">Glissez-deposez votre logo ici ou cliquez pour parcourir</p><p className="text-xs text-gray-400">PNG, JPG ou SVG - Max 2Mo</p></div><div className="p-4 bg-gray-50 rounded-lg"><p className="text-sm font-medium text-gray-700 mb-2">Apercu du logo actuel</p><div className="w-32 h-32 bg-gray-200 rounded-lg flex items-center justify-center"><Image className="w-8 h-8 text-gray-400" /></div></div><div className="space-y-3">{([{key:'etatsFinanciers' as const,label:'Afficher sur les etats financiers'},{key:'factures' as const,label:'Afficher sur les factures'},{key:'entetePdf' as const,label:'Afficher dans l\'en-tete PDF'}]).map(({key,label})=>(<div key={key} className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg"><span className="text-sm text-gray-700">{label}</span><button onClick={()=>setLogoToggles({...logoToggles,[key]:!logoToggles[key]})} className={`w-10 h-6 rounded-full transition-colors relative ${logoToggles[key]?'bg-red-500':'bg-gray-300'}`}><span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${logoToggles[key]?'left-[18px]':'left-0.5'}`} /></button></div>))}</div><div className="flex justify-end"><button onClick={handleLogoSave} className="flex items-center gap-2 px-6 py-2 text-white rounded-lg hover:opacity-90" style={{backgroundColor:'#C0322B'}}><Save className="w-4 h-4" />Enregistrer</button></div></div>);
+  const renderLogoEntete = () => (<div className="space-y-6"><div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-red-400 transition-colors cursor-pointer"><Upload className="w-10 h-10 mx-auto text-gray-400 mb-3" /><p className="text-sm text-gray-600 mb-1">Glissez-deposez votre logo ici ou cliquez pour parcourir</p><p className="text-xs text-gray-400">PNG, JPG ou SVG - Max 2Mo</p></div><div className="p-4 bg-gray-50 rounded-lg"><p className="text-sm font-medium text-gray-700 mb-2">Apercu du logo actuel</p><div className="w-32 h-32 bg-gray-200 rounded-lg flex items-center justify-center"><Image className="w-8 h-8 text-gray-400" /></div></div><div className="space-y-3">{([{key:'etatsFinanciers' as const,label:'Afficher sur les etats financiers'},{key:'factures' as const,label:'Afficher sur les factures'},{key:'entetePdf' as const,label:'Afficher dans l\'en-tete PDF'}]).map(({key,label})=>(<div key={key} className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg"><span className="text-sm text-gray-700">{label}</span><button onClick={()=>setLogoToggles({...logoToggles,[key]:!logoToggles[key]})} className={`w-10 h-6 rounded-full transition-colors relative ${logoToggles[key]?'bg-red-500':'bg-gray-300'}`}><span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${logoToggles[key]?'left-[18px]':'left-0.5'}`} /></button></div>))}</div><div className="flex items-center justify-end gap-3">{savedSection==='logo'&&<span className="text-green-600 text-sm font-medium">✓ Enregistré</span>}<button onClick={handleLogoSave} disabled={savingSection==='logo'} className="flex items-center gap-2 px-6 py-2 text-white rounded-lg hover:opacity-90 disabled:opacity-60" style={{backgroundColor:'#C0322B'}}>{savingSection==='logo'?<><Loader2 className="w-4 h-4 animate-spin" />Enregistrement...</>:<><Save className="w-4 h-4" />Enregistrer</>}</button></div></div>);
 
   const renderExerciceComptable = () => (<div className="space-y-4"><div className="flex justify-end"><button onClick={()=>setShowExerciceModal(true)} className="flex items-center gap-2 px-4 py-2 text-white rounded-lg hover:opacity-90 text-sm" style={{backgroundColor:'#C0322B'}}><Plus className="w-4 h-4" />Creer un exercice</button></div><div className="overflow-x-auto border border-gray-200 rounded-lg"><table className="w-full text-sm"><thead className="bg-gray-50"><tr>{['Code','Date debut','Date fin','Nb periodes','Statut','Actif','Actions'].map(h=><th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{h}</th>)}</tr></thead><tbody className="divide-y divide-gray-200">{exercices.length===0?(<tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400">Aucun exercice comptable</td></tr>):exercices.map(ex=>(<tr key={ex.code} className="hover:bg-gray-50"><td className="px-4 py-3 font-medium">{ex.code}</td><td className="px-4 py-3">{ex.debut}</td><td className="px-4 py-3">{ex.fin}</td><td className="px-4 py-3">{ex.periodes}</td><td className="px-4 py-3"><Badge text={ex.statut} color={ex.statut==='Ouvert'?'green':'red'} /></td><td className="px-4 py-3">{ex.actif&&<Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />}</td><td className="px-4 py-3"><button className="text-gray-400 hover:text-gray-600"><Edit2 className="w-4 h-4" /></button></td></tr>))}</tbody></table></div></div>);
 
-  const renderDevise = () => (<div className="space-y-6"><div className="grid grid-cols-1 md:grid-cols-2 gap-4"><SelectField label="Devise principale" value={deviseForm.devise} onChange={v=>setDeviseForm({...deviseForm,devise:v})} options={[{value:'XOF',label:'XOF - FCFA UEMOA'},{value:'XAF',label:'XAF - FCFA CEMAC'},{value:'EUR',label:'EUR - Euro'},{value:'USD',label:'USD - Dollar US'}]} /><SelectField label="Pays OHADA" value={deviseForm.pays} onChange={v=>setDeviseForm({...deviseForm,pays:v})} options={OHADA_COUNTRIES.map(c=>({value:c,label:c}))} /><SelectField label="Fuseau horaire" value={deviseForm.fuseau} onChange={v=>setDeviseForm({...deviseForm,fuseau:v})} options={[{value:'Africa/Abidjan',label:'Africa/Abidjan (GMT+0)'},{value:'Africa/Douala',label:'Africa/Douala (GMT+1)'},{value:'Africa/Dakar',label:'Africa/Dakar (GMT+0)'},{value:'Africa/Libreville',label:'Africa/Libreville (GMT+1)'},{value:'Africa/Brazzaville',label:'Africa/Brazzaville (GMT+1)'},{value:'Africa/Ndjamena',label:'Africa/Ndjamena (GMT+1)'}]} /><div><label className="block text-sm font-medium text-gray-700 mb-1">Symbole devise</label><input type="text" readOnly value={DEVISE_SYMBOLS[deviseForm.devise]||''} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50" /></div><SelectField label="Format nombre" value={deviseForm.formatNombre} onChange={v=>setDeviseForm({...deviseForm,formatNombre:v})} options={[{value:'1 000 000',label:'1 000 000'},{value:'1.000.000',label:'1.000.000'}]} /><SelectField label="Separateur decimal" value={deviseForm.separateurDecimal} onChange={v=>setDeviseForm({...deviseForm,separateurDecimal:v})} options={[{value:'virgule',label:'Virgule (,)'},{value:'point',label:'Point (.)'}]} /></div><div className="flex justify-end"><button onClick={handleDeviseSave} className="flex items-center gap-2 px-6 py-2 text-white rounded-lg hover:opacity-90" style={{backgroundColor:'#C0322B'}}><Save className="w-4 h-4" />Enregistrer</button></div></div>);
+  const renderDevise = () => (<div className="space-y-6"><div className="grid grid-cols-1 md:grid-cols-2 gap-4"><SelectField label="Devise principale" value={deviseForm.devise} onChange={v=>setDeviseForm({...deviseForm,devise:v})} options={[{value:'XOF',label:'XOF - FCFA UEMOA'},{value:'XAF',label:'XAF - FCFA CEMAC'},{value:'EUR',label:'EUR - Euro'},{value:'USD',label:'USD - Dollar US'}]} /><SelectField label="Pays OHADA" value={deviseForm.pays} onChange={v=>setDeviseForm({...deviseForm,pays:v})} options={OHADA_COUNTRIES.map(c=>({value:c,label:c}))} /><SelectField label="Fuseau horaire" value={deviseForm.fuseau} onChange={v=>setDeviseForm({...deviseForm,fuseau:v})} options={[{value:'Africa/Abidjan',label:'Africa/Abidjan (GMT+0)'},{value:'Africa/Douala',label:'Africa/Douala (GMT+1)'},{value:'Africa/Dakar',label:'Africa/Dakar (GMT+0)'},{value:'Africa/Libreville',label:'Africa/Libreville (GMT+1)'},{value:'Africa/Brazzaville',label:'Africa/Brazzaville (GMT+1)'},{value:'Africa/Ndjamena',label:'Africa/Ndjamena (GMT+1)'}]} /><div><label className="block text-sm font-medium text-gray-700 mb-1">Symbole devise</label><input type="text" readOnly value={DEVISE_SYMBOLS[deviseForm.devise]||''} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50" /></div><SelectField label="Format nombre" value={deviseForm.formatNombre} onChange={v=>setDeviseForm({...deviseForm,formatNombre:v})} options={[{value:'1 000 000',label:'1 000 000'},{value:'1.000.000',label:'1.000.000'}]} /><SelectField label="Separateur decimal" value={deviseForm.separateurDecimal} onChange={v=>setDeviseForm({...deviseForm,separateurDecimal:v})} options={[{value:'virgule',label:'Virgule (,)'},{value:'point',label:'Point (.)'}]} /></div><div className="flex items-center justify-end gap-3">{savedSection==='devise'&&<span className="text-green-600 text-sm font-medium">✓ Enregistré</span>}<button onClick={handleDeviseSave} disabled={savingSection==='devise'} className="flex items-center gap-2 px-6 py-2 text-white rounded-lg hover:opacity-90 disabled:opacity-60" style={{backgroundColor:'#C0322B'}}>{savingSection==='devise'?<><Loader2 className="w-4 h-4 animate-spin" />Enregistrement...</>:<><Save className="w-4 h-4" />Enregistrer</>}</button></div></div>);
 
   const renderTvaTaxes = () => (<div className="space-y-4"><div className="flex justify-end"><button onClick={()=>setShowTaxModal(true)} className="flex items-center gap-2 px-4 py-2 text-white rounded-lg hover:opacity-90 text-sm" style={{backgroundColor:'#C0322B'}}><Plus className="w-4 h-4" />Ajouter un taux</button></div><div className="overflow-x-auto border border-gray-200 rounded-lg"><table className="w-full text-sm"><thead className="bg-gray-50"><tr>{['Code','Libelle','Taux (%)','Type','Compte collecte','Compte deductible','Statut','Actions'].map(h=><th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{h}</th>)}</tr></thead><tbody className="divide-y divide-gray-200">{taxes.length===0?(<tr><td colSpan={8} className="px-4 py-8 text-center text-gray-400">Aucune taxe configuree</td></tr>):taxes.map((t: any)=>{const tc:Record<string,string>={TVA:'blue',Retenue:'yellow',IMF:'primary',Patente:'green'};return(<tr key={t.code} className="hover:bg-gray-50"><td className="px-4 py-3 font-mono font-medium">{t.code}</td><td className="px-4 py-3">{t.libelle}</td><td className="px-4 py-3">{t.taux}%</td><td className="px-4 py-3"><Badge text={t.type} color={tc[t.type]||'gray'} /></td><td className="px-4 py-3 font-mono">{t.compteCollecte}</td><td className="px-4 py-3 font-mono">{t.compteDeductible||'-'}</td><td className="px-4 py-3"><Badge text="Actif" color="green" /></td><td className="px-4 py-3 flex gap-2"><button className="text-gray-400 hover:text-gray-600"><Edit2 className="w-4 h-4" /></button><button className="text-gray-400 hover:text-red-500"><Trash2 className="w-4 h-4" /></button></td></tr>);})}</tbody></table></div></div>);
 

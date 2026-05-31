@@ -36,7 +36,7 @@ import { formatCurrency, formatDate, formatPercentage } from '../../lib/utils';
 const TreasuryDashboard: React.FC = () => {
   const [selectedTimeframe, setSelectedTimeframe] = useState('30d');
   const [selectedScenario, setSelectedScenario] = useState('most_likely');
-  const companyId = localStorage.getItem('company_id') || '';
+  const companyId = localStorage.getItem('atlas-tenant-id') || '';
 
   // Real API: Get bank accounts
   const { data: accountsData, isLoading: loadingAccounts } = useQuery({

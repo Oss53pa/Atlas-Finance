@@ -13,7 +13,6 @@ import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 interface ReevaluationRequest {
-  tenant_id: string;
   date_cloture: string;        // e.g. "2025-12-31"
   date_ouverture: string;      // e.g. "2026-01-01"
   taux_cloture: Record<string, number>; // e.g. { "EUR": 655.957, "USD": 610.50 }
@@ -27,25 +26,47 @@ interface EcritureConversion {
   currency: string;
 }
 
+const corsHeaders = { 'Content-Type': 'application/json' };
+
 serve(async (req: Request) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+
+    // 0. Verify JWT
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
+    }
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(authHeader.replace('Bearer ', ''));
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
+    }
+
+    // Derive tenant_id from authenticated user's profile
+    const { data: profile } = await supabaseAdmin.from('profiles').select('company_id').eq('id', user.id).single();
+    const tenantId = profile?.company_id;
+    if (!tenantId) {
+      return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: corsHeaders });
+    }
 
     const body: ReevaluationRequest = await req.json();
-    const { tenant_id, date_cloture, date_ouverture, taux_cloture } = body;
+    const { date_cloture, date_ouverture, taux_cloture } = body;
 
-    if (!tenant_id || !date_cloture || !taux_cloture) {
-      return new Response(JSON.stringify({ error: 'Missing required fields' }), { status: 400 });
+    if (!date_cloture || !taux_cloture) {
+      return new Response(JSON.stringify({ error: 'Missing required fields' }), { status: 400, headers: corsHeaders });
     }
+
+    // Alias for clarity — use supabaseAdmin for all DB operations
+    const supabase = supabaseAdmin;
 
     // 1. Retrieve open receivables/payables in foreign currencies
     //    Accounts 40x (fournisseurs) and 41x (clients) with currency info
     const { data: journalLines, error: linesError } = await supabase
       .from('journal_lines')
       .select('*, journal_entries!inner(id, date, status, tenant_id)')
-      .eq('journal_entries.tenant_id', tenant_id)
+      .eq('journal_entries.tenant_id', tenantId)
       .in('journal_entries.status', ['validated', 'posted'])
       .or('account_code.like.40%,account_code.like.41%');
 
@@ -57,7 +78,7 @@ serve(async (req: Request) => {
     const { data: historicalRates } = await supabase
       .from('exchange_rates')
       .select('*')
-      .eq('tenant_id', tenant_id)
+      .eq('tenant_id', tenantId)
       .order('date', { ascending: false });
 
     // Group open balances by account + currency
@@ -147,7 +168,7 @@ serve(async (req: Request) => {
     if (ecrituresCloture.length > 0) {
       const { error: insertError } = await supabase.from('journal_entries').insert({
         id: crypto.randomUUID(),
-        tenant_id,
+        tenant_id: tenantId,
         date: date_cloture,
         label: `Réévaluation devises - Clôture ${date_cloture}`,
         reference: `REEVAL-CLO-${date_cloture}`,
@@ -175,7 +196,7 @@ serve(async (req: Request) => {
       if (date_ouverture) {
         const { error: extourneError } = await supabase.from('journal_entries').insert({
           id: crypto.randomUUID(),
-          tenant_id,
+          tenant_id: tenantId,
           date: date_ouverture,
           label: `Extourne réévaluation devises - Ouverture ${date_ouverture}`,
           reference: `REEVAL-EXT-${date_ouverture}`,

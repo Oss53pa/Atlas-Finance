@@ -165,7 +165,7 @@ const BaseForm: React.FC<FormProps> = ({
               disabled={field.disabled}
               required={field.required}
               aria-describedby={hasError ? errorId : undefined}
-              aria-invalid={hasError}
+              aria-invalid={!!hasError}
             />
             {hasError && (
               <p id={errorId} className="text-sm text-red-600" role="alert">
@@ -191,7 +191,7 @@ const BaseForm: React.FC<FormProps> = ({
               disabled={field.disabled}
               required={field.required}
               aria-describedby={hasError ? errorId : undefined}
-              aria-invalid={hasError}
+              aria-invalid={!!hasError}
             >
               <option value="">-- Sélectionner --</option>
               {field.options?.map(option => (
@@ -220,7 +220,7 @@ const BaseForm: React.FC<FormProps> = ({
               onBlur={() => handleInputBlur(field)}
               disabled={field.disabled}
               aria-describedby={hasError ? errorId : undefined}
-              aria-invalid={hasError}
+              aria-invalid={!!hasError}
             />
             <label htmlFor={fieldId} className="text-sm font-medium text-[var(--color-text-primary)]">
               {field.label}
@@ -255,7 +255,7 @@ const BaseForm: React.FC<FormProps> = ({
               max={field.max}
               step={field.step}
               aria-describedby={hasError ? errorId : undefined}
-              aria-invalid={hasError}
+              aria-invalid={!!hasError}
             />
             {hasError && (
               <p id={errorId} className="text-sm text-red-600" role="alert">

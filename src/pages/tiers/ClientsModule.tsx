@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { toast } from 'sonner';
 import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
@@ -512,8 +513,8 @@ const ClientsModule: React.FC = () => {
         };
       }));
       handleCloseNewClientModal();
-    } catch (err) {
-      console.error('Erreur création client:', err);
+    } catch {
+      toast.error('Erreur lors de la création du client');
     }
   };
 
@@ -530,8 +531,8 @@ const ClientsModule: React.FC = () => {
     try {
       await adapter.delete('thirdParties', clientId);
       setClients(prev => prev.filter(c => c.id !== clientId));
-    } catch (err) {
-      console.error('Erreur suppression client:', err);
+    } catch {
+      toast.error('Erreur lors de la suppression du client');
     }
   };
 
