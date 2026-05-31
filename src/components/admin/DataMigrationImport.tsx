@@ -1292,7 +1292,9 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
               getEcrVal(line, 'accountCode') || ''
             ).replace(/\s/g, '');
             batchLines.push({
-              id: crypto.randomUUID(), entry_id: entryId, tenant_id: tenantId,
+              id: crypto.randomUUID(),
+              _entry_number: piece, // clé temporaire pour remapping post-insert
+              entry_id: entryId, tenant_id: tenantId,
               account_code: accountCode,
               account_name: String(getEcrVal(line, 'compteLib') || getEcrVal(line, 'CompteLib') || accountCode),
               label: String(getEcrVal(line, 'libelleEcriture') || getEcrVal(line, 'libelle') || entryLabel),
@@ -1316,6 +1318,29 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
           report.entries += chunk.length;
           setImportProgress(45 + Math.round((ecrIdx / batchEntries.length) * 25));
         }
+
+        // ── Remapper entry_id avec les vrais UUIDs en base ────────────────
+        // Sur re-import, ignoreDuplicates skip les entries existantes mais
+        // leurs UUIDs réels en base sont différents des UUIDs générés ici.
+        // On SELECT les vrais IDs et on corrige batchLines avant l'insert.
+        const allEntryNumbers = [...new Set(batchEntries.map((e: any) => e.entry_number))];
+        const CHUNK_IN = 500;
+        const entryIdMap = new Map<string, string>();
+        for (let i = 0; i < allEntryNumbers.length; i += CHUNK_IN) {
+          const slice = allEntryNumbers.slice(i, i + CHUNK_IN);
+          const { data: rows } = await supabaseClient
+            .from('journal_entries')
+            .select('id,entry_number')
+            .eq('tenant_id', tenantId)
+            .in('entry_number', slice);
+          rows?.forEach((r: any) => entryIdMap.set(r.entry_number, r.id));
+        }
+        // Appliquer le remapping et supprimer la clé temporaire
+        batchLines.forEach((line: any) => {
+          const realId = entryIdMap.get(line._entry_number);
+          if (realId) line.entry_id = realId;
+          delete line._entry_number;
+        });
 
         // ── Insérer les journal_lines par batch de 500 ─────────────────────
         const LINE_BATCH = 500;
@@ -2585,7 +2610,85 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
               >
                 Retour a l'administration
               </button>
-              <button onClick={() => toast.info('Generation du rapport PDF...')}
+              <button onClick={async () => {
+                if (!importReport) return;
+                toast.info('Generation du rapport PDF...');
+                try {
+                  const { default: jsPDF } = await import('jspdf');
+                  const { default: autoTable } = await import('jspdf-autotable');
+                  const doc = new jsPDF();
+                  const now = new Date().toLocaleString('fr-FR');
+                  // En-tête
+                  doc.setFontSize(16); doc.setFont('helvetica','bold');
+                  doc.text('Rapport de Migration Comptable', 14, 18);
+                  doc.setFontSize(9); doc.setFont('helvetica','normal');
+                  doc.text(`Généré le ${now}`, 14, 25);
+                  doc.line(14, 28, 196, 28);
+                  // Statistiques
+                  doc.setFontSize(11); doc.setFont('helvetica','bold');
+                  doc.text('Statistiques d\'import', 14, 36);
+                  autoTable(doc, {
+                    startY: 40,
+                    head: [['Élément','Quantité']],
+                    body: [
+                      ['Comptes',    String(importReport.accounts)],
+                      ['Journaux',   String(importReport.journals)],
+                      ['Tiers',      String(importReport.tiers)],
+                      ['Écritures',  String(importReport.entries)],
+                      ['Lignes',     String(importReport.lines)],
+                      ['Immobilisations', String(importReport.assets)],
+                      ['Lettrages',  String(importReport.lettrages)],
+                    ],
+                    styles: { fontSize: 9 },
+                    headStyles: { fillColor: [35, 90, 110] },
+                    margin: { left: 14 },
+                    tableWidth: 80,
+                  });
+                  // Contrôles
+                  const afterStats = (doc as any).lastAutoTable.finalY + 8;
+                  doc.setFontSize(11); doc.setFont('helvetica','bold');
+                  doc.text('Contrôles post-import', 14, afterStats);
+                  autoTable(doc, {
+                    startY: afterStats + 4,
+                    head: [['Contrôle','Statut']],
+                    body: [
+                      ['Équilibre débit/crédit',       importReport.balanceOk ? '✓ OK' : '✗ KO'],
+                      ['Équilibre bilan actif/passif',  importReport.bilanOk   ? '✓ OK' : `✗ Écart ${importReport.bilanEcart?.diff.toLocaleString('fr-FR',{minimumFractionDigits:2})} FCFA`],
+                      ['Réconciliation tiers',          importReport.tiersOk   ? '✓ OK' : '✗ KO'],
+                      ['Cohérence VNC immobilisations', importReport.vncOk     ? '✓ OK' : '✗ KO'],
+                    ],
+                    styles: { fontSize: 9 },
+                    headStyles: { fillColor: [35, 90, 110] },
+                    bodyStyles: {},
+                    didParseCell: (data: any) => {
+                      if (data.column.index === 1 && data.cell.text[0]?.startsWith('✗')) {
+                        data.cell.styles.textColor = [180, 0, 0];
+                      }
+                    },
+                    margin: { left: 14 },
+                    tableWidth: 120,
+                  });
+                  // Points d'attention
+                  if (importReport.warnings.length > 0) {
+                    const afterChecks = (doc as any).lastAutoTable.finalY + 8;
+                    doc.setFontSize(11); doc.setFont('helvetica','bold');
+                    doc.text(`Points d'attention (${importReport.warnings.length})`, 14, afterChecks);
+                    autoTable(doc, {
+                      startY: afterChecks + 4,
+                      head: [['#','Message']],
+                      body: importReport.warnings.map((w, i) => [String(i+1), w]),
+                      styles: { fontSize: 8 },
+                      headStyles: { fillColor: [200, 120, 0] },
+                      columnStyles: { 0: { cellWidth: 10 } },
+                      margin: { left: 14 },
+                    });
+                  }
+                  doc.save(`rapport-migration-${new Date().toISOString().slice(0,10)}.pdf`);
+                  toast.success('Rapport PDF téléchargé');
+                } catch (e: any) {
+                  toast.error(`Erreur PDF : ${e.message}`);
+                }
+              }}
                 className="px-4 py-2 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-2"
               >
                 <Download className="w-4 h-4" /> Telecharger le rapport PDF
