@@ -98,6 +98,7 @@ interface ImportReport {
   tiersOk: boolean;
   vncOk: boolean;
   warnings: string[];
+  dbCounts?: { accounts: number; entries: number; lines: number; tiers: number; assets: number };
 }
 
 interface Props {
@@ -1577,6 +1578,26 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       }
       report.tiersOk = report.tiers > 0 || tiersData.length === 0;
       report.vncOk = true;
+
+      // ── Vérification réelle en base : COUNT depuis Supabase ───────────────
+      setImportLabel('Vérification en base...');
+      if (isSaasMode && supabaseClient) {
+        const counts = await Promise.all([
+          supabaseClient.from('accounts').select('*', { count: 'exact', head: true }).eq('tenant_id', tenantId),
+          supabaseClient.from('journal_entries').select('*', { count: 'exact', head: true }).eq('tenant_id', tenantId),
+          supabaseClient.from('journal_lines').select('*', { count: 'exact', head: true }).eq('tenant_id', tenantId),
+          supabaseClient.from('third_parties').select('*', { count: 'exact', head: true }).eq('tenant_id', tenantId),
+          supabaseClient.from('assets').select('*', { count: 'exact', head: true }).eq('tenant_id', tenantId),
+        ]);
+        report.dbCounts = {
+          accounts: counts[0].count ?? 0,
+          entries:  counts[1].count ?? 0,
+          lines:    counts[2].count ?? 0,
+          tiers:    counts[3].count ?? 0,
+          assets:   counts[4].count ?? 0,
+        };
+      }
+
       setImportProgress(100);
 
       // Audit log — signature : logAudit(action, entityType, entityId, details)
@@ -2571,16 +2592,30 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
             {/* Bandeau de confirmation comptable */}
             {(() => {
               const allOk = importReport.balanceOk && importReport.bilanOk && importReport.tiersOk && importReport.vncOk && importReport.warnings.filter(w => w.startsWith('Erreur')).length === 0;
+              const db = importReport.dbCounts;
               return allOk ? (
                 <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl">
                   <div className="flex items-start gap-3">
                     <CheckCircle className="w-6 h-6 text-green-600 mt-0.5 shrink-0" />
-                    <div>
-                      <p className="font-semibold text-green-800">Données enregistrées dans les livres comptables</p>
-                      <p className="text-sm text-green-700 mt-1">
-                        {importReport.entries.toLocaleString('fr-FR')} écriture(s) · {importReport.lines.toLocaleString('fr-FR')} ligne(s) · {importReport.tiers} tiers · {importReport.accounts} comptes
-                        — tous les contrôles SYSCOHADA sont validés. Vous pouvez accéder au Grand Livre et à la Balance.
-                      </p>
+                    <div className="flex-1">
+                      <p className="font-semibold text-green-800 text-base">✓ Données confirmées dans les livres comptables</p>
+                      <p className="text-sm text-green-700 mt-1 mb-3">Tous les contrôles SYSCOHADA sont validés. Vous pouvez accéder au Grand Livre et à la Balance.</p>
+                      {db && (
+                        <div className="grid grid-cols-5 gap-2">
+                          {[
+                            { label: 'Comptes en base',    value: db.accounts },
+                            { label: 'Écritures en base',  value: db.entries },
+                            { label: 'Lignes en base',     value: db.lines },
+                            { label: 'Tiers en base',      value: db.tiers },
+                            { label: 'Immobilis. en base', value: db.assets },
+                          ].map(({ label, value }) => (
+                            <div key={label} className="bg-white rounded-lg p-2 text-center border border-green-200">
+                              <p className="text-lg font-bold text-green-800">{value.toLocaleString('fr-FR')}</p>
+                              <p className="text-xs text-green-600">{label}</p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -2588,12 +2623,27 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
                 <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl">
                   <div className="flex items-start gap-3">
                     <AlertTriangle className="w-6 h-6 text-amber-600 mt-0.5 shrink-0" />
-                    <div>
+                    <div className="flex-1">
                       <p className="font-semibold text-amber-800">Migration terminée avec des points d'attention</p>
-                      <p className="text-sm text-amber-700 mt-1">
-                        Les données ont été enregistrées dans les livres. Consultez les points d'attention ci-dessous
-                        et corrigez les anomalies manuellement avant de produire vos états financiers.
+                      <p className="text-sm text-amber-700 mt-1 mb-3">
+                        Les données ont été enregistrées dans les livres. Corrigez les anomalies ci-dessous avant de produire vos états financiers.
                       </p>
+                      {db && (
+                        <div className="grid grid-cols-5 gap-2">
+                          {[
+                            { label: 'Comptes en base',    value: db.accounts },
+                            { label: 'Écritures en base',  value: db.entries },
+                            { label: 'Lignes en base',     value: db.lines },
+                            { label: 'Tiers en base',      value: db.tiers },
+                            { label: 'Immobilis. en base', value: db.assets },
+                          ].map(({ label, value }) => (
+                            <div key={label} className="bg-white rounded-lg p-2 text-center border border-amber-200">
+                              <p className="text-lg font-bold text-amber-800">{value.toLocaleString('fr-FR')}</p>
+                              <p className="text-xs text-amber-600">{label}</p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
