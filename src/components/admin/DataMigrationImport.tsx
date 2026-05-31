@@ -1206,7 +1206,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
           acquisition_value: parseNumber(getVal('valeurOrigine')),
           cumul_depreciation: parseNumber(getVal('amortCumule')),
           useful_life_years: Math.round(parseNumber(getVal('duree'))) || 1,
-          depreciation_method: String(getVal('methode') || 'LINEAIRE'),
+          depreciation_method: (() => { const m = String(getVal('methode') || '').toLowerCase(); return m.includes('deg') ? 'declining' : 'linear'; })(),
           status: 'active',
         });
       }
@@ -1295,8 +1295,8 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
               account_code: accountCode,
               account_name: String(getEcrVal(line, 'compteLib') || getEcrVal(line, 'CompteLib') || accountCode),
               label: String(getEcrVal(line, 'libelleEcriture') || getEcrVal(line, 'libelle') || entryLabel),
-              debit: parseNumber(findCol(line, debitAliases2)),
-              credit: parseNumber(findCol(line, creditAliases2)),
+              debit: Math.abs(parseNumber(findCol(line, debitAliases2))),
+              credit: Math.abs(parseNumber(findCol(line, creditAliases2))),
             });
           });
         }
@@ -1390,8 +1390,8 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
               accountCode,
               accountName,
               label: lineLabel,
-              debit: parseNumber(getEcrVal(line, 'debit') || getEcrVal(line, 'Debit')),
-              credit: parseNumber(getEcrVal(line, 'credit') || getEcrVal(line, 'Credit')),
+              debit: Math.abs(parseNumber(getEcrVal(line, 'debit') || getEcrVal(line, 'Debit'))),
+              credit: Math.abs(parseNumber(getEcrVal(line, 'credit') || getEcrVal(line, 'Credit'))),
             };
           });
 
@@ -1470,8 +1470,8 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
             accountCode,
             accountName: String(libCol ? row[libCol] : '') || accountCode,
             label: String(libCol ? row[libCol] : 'Report AN'),
-            debit: parseNumber(dCol ? row[dCol] : 0),
-            credit: parseNumber(cCol ? row[cCol] : 0),
+            debit: Math.abs(parseNumber(dCol ? row[dCol] : 0)),
+            credit: Math.abs(parseNumber(cCol ? row[cCol] : 0)),
           };
         }).filter(l => l.debit > 0 || l.credit > 0);
 
