@@ -1,29 +1,44 @@
 -- ============================================================================
 -- Fix settings table: composite PK (key, tenant_id) pour multi-tenancy
 --
--- Problème : key TEXT PRIMARY KEY permettait une seule ligne par clé toutes
--- sociétés confondues. L'upsert ON CONFLICT (key) échouait silencieusement
--- (RLS bloquait l'UPDATE sans retourner d'erreur) pour les sociétés n'ayant
--- pas créé la ligne en premier.
+-- Problème : key TEXT PRIMARY KEY = une seule ligne par clé toutes sociétés
+-- confondues. L'upsert ON CONFLICT (key) échouait silencieusement via RLS
+-- pour toute société qui n'avait pas créé la ligne en premier.
 -- ============================================================================
 
 BEGIN;
 
--- 1. Supprimer les lignes orphelines (tenant_id invalide, ex: UUID impossible)
+-- Verrou exclusif pour éviter les insertions concurrentes pendant la migration
+LOCK TABLE settings IN SHARE ROW EXCLUSIVE MODE;
+
+-- 1. Supprimer les lignes orphelines (tenant_id absent de societes)
 DELETE FROM settings
 WHERE tenant_id NOT IN (SELECT id FROM societes);
 
--- 2. Parmi les doublons sur key, conserver uniquement la ligne la plus récente
-DELETE FROM settings s1
-WHERE EXISTS (
-  SELECT 1 FROM settings s2
-  WHERE s2.key = s1.key
-    AND s2.tenant_id = s1.tenant_id
-    AND s2.updated_at > s1.updated_at
+-- 2. Déduplication robuste sur (key, tenant_id) :
+--    - NULLS LAST : les updated_at NULL sont considérés comme les plus anciens
+--    - tiebreak sur ctid pour les updated_at identiques ou tous NULL
+DELETE FROM settings
+WHERE ctid NOT IN (
+  SELECT DISTINCT ON (key, tenant_id) ctid
+  FROM settings
+  ORDER BY key, tenant_id, updated_at DESC NULLS LAST, ctid DESC
 );
 
--- 3. Remplacer la PRIMARY KEY
-ALTER TABLE settings DROP CONSTRAINT settings_pkey;
+-- 3. Remplacer la PRIMARY KEY (nom résolu dynamiquement pour éviter le hardcode)
+DO $$
+DECLARE
+  v_pkey_name text;
+BEGIN
+  SELECT conname INTO v_pkey_name
+  FROM pg_constraint
+  WHERE conrelid = 'settings'::regclass AND contype = 'p';
+
+  IF v_pkey_name IS NOT NULL THEN
+    EXECUTE format('ALTER TABLE settings DROP CONSTRAINT %I', v_pkey_name);
+  END IF;
+END $$;
+
 ALTER TABLE settings ADD PRIMARY KEY (key, tenant_id);
 
 COMMIT;

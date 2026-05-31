@@ -239,14 +239,16 @@ const AdminCompany: React.FC<Props> = ({ subTab, setSubTab }) => {
   const [exerciceForm, setExerciceForm] = useState({ debut:'',fin:'',code:'',periodes:'12' });
 
   const saveSetting = useCallback(async (key: string, value: any) => {
+    const tenantId = (adapter as any).tenantId as string | undefined;
     const record = {
       key,
       value: JSON.stringify(value),
       updated_at: new Date().toISOString(),
-      tenant_id: (adapter as any).tenantId,
+      tenant_id: tenantId,
     };
     // Stratégie 1 : upsert direct Supabase (SaaS) — 1 seule requête, pas de getById
     if (adapter.getMode() === 'saas') {
+      if (!tenantId) throw new Error('tenant non initialisé — réessayez dans un instant');
       const { error } = await (supabase as any)
         .from('settings')
         .upsert(record, { onConflict: 'key,tenant_id' });
@@ -277,7 +279,9 @@ const AdminCompany: React.FC<Props> = ({ subTab, setSubTab }) => {
       // Évite la race condition tenant_id non encore initialisé dans l'adapter
       let allSettings: any[] = [];
       if (adapter.getMode() === 'saas') {
-        const { data: sRows } = await (supabase as any).from('settings').select('*');
+        const tid = (adapter as any).tenantId as string | undefined;
+        const q = (supabase as any).from('settings').select('*');
+        const { data: sRows } = tid ? await q.eq('tenant_id', tid) : await q;
         allSettings = sRows || [];
       } else {
         allSettings = await adapter.getAll<any>('settings');

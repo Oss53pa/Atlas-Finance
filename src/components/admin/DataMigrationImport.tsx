@@ -1071,10 +1071,12 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
             const { error } = await supabaseForAccounts
               .from('accounts')
               .upsert(chunk, { onConflict: 'code,tenant_id', ignoreDuplicates: true });
-            if (error && !error.message.includes('duplicate') && !error.message.includes('unique')) {
-              report.warnings.push(`Comptes batch [${b}] : ${error.message}`);
+            const isDupError = error && (error.message.includes('duplicate') || error.message.includes('unique'));
+            if (error && !isDupError) {
+              report.warnings.push(`Comptes batch [${b}] : ${error.message} (${chunk.length} non insérés)`);
+            } else {
+              report.accounts += chunk.length;
             }
-            report.accounts += chunk.length;
             setImportProgress(Math.round(((b + chunk.length) / accountRecords.length) * 15));
           }
         } else {
@@ -1097,38 +1099,58 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       }
       setImportProgress(15);
 
-      // ── Helper batch upsert SaaS ─────────────────────────────────────────
+      // Mapping noms de tables PG (snake_case) → noms Dexie (camelCase)
+      const PG_TO_DEXIE: Record<string, string> = {
+        third_parties: 'thirdParties',
+        assets: 'assets',
+        accounts: 'accounts',
+      };
+
+      // ── Helper batch upsert SaaS/Dexie ───────────────────────────────────
       const batchUpsert = async (
         pgTable: string,
         records: Record<string, unknown>[],
         conflictCol: string,
         onProgress?: (pct: number) => void,
-      ) => {
-        if (!records.length) return;
+      ): Promise<number> => {
+        if (!records.length) return 0;
         const BATCH = 200;
         if (isSaasForAccounts && supabaseForAccounts) {
+          let inserted = 0;
           for (let b = 0; b < records.length; b += BATCH) {
+            // Ne pas ré-injecter id/tenant_id si déjà présents dans le record (buildAccount les ajoute)
             const chunk = records.slice(b, b + BATCH).map(r => ({
-              id: crypto.randomUUID(), ...r,
+              ...r,
               tenant_id: tenantIdForAccounts,
               created_at: new Date().toISOString(),
             }));
             const { error } = await supabaseForAccounts
               .from(pgTable)
               .upsert(chunk, { onConflict: conflictCol, ignoreDuplicates: true });
-            if (error && !error.message.includes('duplicate') && !error.message.includes('unique')) {
-              report.warnings.push(`${pgTable} batch [${b}] : ${error.message}`);
+            const isDup = error && (error.message.includes('duplicate') || error.message.includes('unique'));
+            if (error && !isDup) {
+              report.warnings.push(`${pgTable} batch [${b}] : ${error.message} (${chunk.length} non insérés)`);
+            } else {
+              inserted += chunk.length;
             }
             onProgress?.(Math.round(((b + chunk.length) / records.length) * 100));
           }
-          return records.length;
+          return inserted;
         }
-        // Dexie
+        // Dexie — mapper le nom de table PG vers le nom camelCase Dexie
+        const dexieTable = (PG_TO_DEXIE[pgTable] ?? pgTable) as any;
         let created = 0;
         for (let i = 0; i < records.length; i++) {
-          try { await adapter.create(pgTable as any, records[i]); created++; }
-          catch { /* duplicate or error — skip */ }
-          onProgress?.(Math.round((i / records.length) * 100));
+          try {
+            await adapter.create(dexieTable, records[i]);
+            created++;
+          } catch (err) {
+            const msg = err instanceof Error ? err.message : String(err);
+            if (!msg.includes('duplicate key') && !msg.includes('unique constraint')) {
+              report.warnings.push(`${pgTable}[${i}] : ${msg}`);
+            }
+          }
+          onProgress?.(Math.round(((i + 1) / records.length) * 100));
         }
         return created;
       };
