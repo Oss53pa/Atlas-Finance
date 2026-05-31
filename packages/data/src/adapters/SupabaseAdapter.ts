@@ -118,6 +118,41 @@ export class SupabaseAdapter implements DataAdapter {
 
   getMode(): DataMode { return 'saas' }
 
+  /**
+   * Convertit toutes les clés d'un objet de camelCase vers snake_case.
+   *
+   * Le frontend TypeScript utilise camelCase (accountClass, startDate, isActive…)
+   * mais toutes les tables Supabase/PostgreSQL utilisent snake_case
+   * (account_class, start_date, is_active…).
+   *
+   * Cette transformation est appliquée sur le payload de TOUS les create/update
+   * pour garantir que les colonnes sont bien adressées, quelque soit l'appelant.
+   *
+   * Exceptions :
+   *  - Les clés déjà en snake_case (contenant '_') sont conservées
+   *  - Les clés réservées (id, key, tenant_id, created_at, updated_at) idem
+   *  - Si une clé camelCase ET sa version snake_case coexistent, snake_case gagne
+   */
+  private static toSnake(data: Record<string, unknown>): Record<string, unknown> {
+    const result: Record<string, unknown> = {}
+    for (const [k, v] of Object.entries(data)) {
+      const snake = k.replace(/([A-Z])/g, '_$1').toLowerCase()
+      result[snake] = v
+    }
+    // Si la version camelCase et snake_case coexistent, la valeur snake_case gagne
+    // (ex: { startDate: 'x', start_date: 'y' } → { start_date: 'y' })
+    for (const [k, v] of Object.entries(data)) {
+      const snake = k.replace(/([A-Z])/g, '_$1').toLowerCase()
+      if (snake !== k && k in data) {
+        // clé snake_case déjà présente dans data ? elle prend la priorité
+        if (Object.prototype.hasOwnProperty.call(data, snake)) {
+          result[snake] = data[snake]
+        }
+      }
+    }
+    return result
+  }
+
   async isOnline(): Promise<boolean> {
     try {
       const { error } = await this.client.from('settings').select('key').limit(1)
@@ -186,7 +221,8 @@ export class SupabaseAdapter implements DataAdapter {
     const pg = this.pgTable(table)
     const now = new Date().toISOString()
     const records = items.map(item => ({
-      ...item,
+      // camelCase → snake_case avant envoi à Supabase
+      ...SupabaseAdapter.toSnake(item),
       id: item.id ?? crypto.randomUUID(),
       // ROOT_TABLES n'ont pas de colonne tenant_id
       ...(!this.isRootTable(pg) ? { tenant_id: this.tenantId } : {}),
@@ -200,16 +236,17 @@ export class SupabaseAdapter implements DataAdapter {
 
   async create<T>(table: TableName, data: any, initiatedBy?: string): Promise<T> {
     const pg = this.pgTable(table)
+    // Normalisation camelCase → snake_case avant envoi à Supabase
+    const snake = SupabaseAdapter.toSnake(data)
     // KEY_PK_TABLES (settings) : PK = key TEXT, pas d'id ni created_at.
     const record = this.isKeyPkTable(pg)
       ? {
-          ...data,
+          ...snake,
           ...(!this.isRootTable(pg) ? { tenant_id: this.tenantId } : {}),
         }
       : {
-          ...data,
-          // P0-4 / F2-4 : respecter l'id fourni par l'appelant (cohérent avec
-          // createMany et avec le DexieAdapter).
+          ...snake,
+          // P0-4 / F2-4 : respecter l'id fourni par l'appelant.
           id: data?.id ?? crypto.randomUUID(),
           // ROOT_TABLES (societes) n'ont pas de colonne tenant_id
           ...(!this.isRootTable(pg) ? { tenant_id: this.tenantId } : {}),
@@ -255,9 +292,11 @@ export class SupabaseAdapter implements DataAdapter {
       }
     }
     const pgT = this.pgTable(table)
+    // Normalisation camelCase → snake_case avant envoi à Supabase
+    const snakeData = SupabaseAdapter.toSnake(data)
     // KEY_PK_TABLES (settings) : PK = colonne `key`, pas `id`.
     const pkColU = this.isKeyPkTable(pgT) ? 'key' : 'id'
-    let uq = this.client.from(pgT).update(data).eq(pkColU, id)
+    let uq = this.client.from(pgT).update(snakeData).eq(pkColU, id)
     if (!this.isRootTable(pgT)) uq = uq.eq('tenant_id', this.tenantId)
     const { data: updated, error } = await uq.select().single()
     if (error) throw new Error(`Update failed: ${error.message}`)
