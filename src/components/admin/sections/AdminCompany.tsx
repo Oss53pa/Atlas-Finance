@@ -273,7 +273,15 @@ const AdminCompany: React.FC<Props> = ({ subTab, setSubTab }) => {
       setAccounts(rawAccounts.map((a: any) => ({ numero: a.code||a.numero, libelle: a.name||a.libelle, classe: Number(a.accountClass||a.classe||(a.code||'')[0]||0), type: a.accountType||a.type||(Number((a.code||'')[0])<=5?'Bilan':'Gestion'), sens: a.normalBalance==='credit'?'Crediteur':(a.normalBalance==='debit'?'Debiteur':(a.sens||'Debiteur')), lettrable: a.isReconcilable??a.lettrable??false, actif: a.isActive??a.actif??true })));
       const rawFy = await adapter.getAll<any>('fiscalYears');
       setExercices(rawFy.map((fy: any) => ({ code: fy.code, debut: fy.startDate||fy.debut, fin: fy.endDate||fy.fin, periodes: 12, statut: fy.isClosed?'Cloture':'Ouvert', actif: fy.isActive??fy.actif??false })));
-      const allSettings = await adapter.getAll<any>('settings');
+      // Lecture des settings via Supabase direct (RLS = get_user_company_id())
+      // Évite la race condition tenant_id non encore initialisé dans l'adapter
+      let allSettings: any[] = [];
+      if (adapter.getMode() === 'saas') {
+        const { data: sRows } = await (supabase as any).from('settings').select('*');
+        allSettings = sRows || [];
+      } else {
+        allSettings = await adapter.getAll<any>('settings');
+      }
       const taxS = allSettings.find((s: any) => s.key === 'admin_taxes'); if (taxS?.value) setTaxes(JSON.parse(taxS.value));
       const catS = allSettings.find((s: any) => s.key === 'admin_asset_categories'); if (catS?.value) setCategories(JSON.parse(catS.value));
       const legS = allSettings.find((s: any) => s.key === 'admin_company_legal'); if (legS?.value) setLegalForm(prev => ({ ...prev, ...JSON.parse(legS.value) }));
