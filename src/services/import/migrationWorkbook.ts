@@ -38,14 +38,43 @@ const normalize = (s: string) =>
  * (qui n'est pas forcément la 1ère : titre/commentaire possible au-dessus).
  * Les marqueurs " *" des colonnes obligatoires sont retirés des en-têtes.
  */
-export function parseSheetToData(ws: XLSX.WorkSheet): ParsedSheet {
+/**
+ * A1 — Détecte la ligne d'en-tête par CORRESPONDANCE DE NOMS DE COLONNES
+ * (et non par position « 1ère ligne ≥2 cellules »). Robuste aux bannières/titres
+ * placés au-dessus. Retourne -1 si aucune ligne ne matche assez de colonnes.
+ */
+export function detectHeaderRowByColumnNames(
+  aoa: unknown[][], expected: string[], maxRows = 15,
+): number {
+  const wanted = expected.map(normalize).filter(Boolean);
+  if (wanted.length === 0) return -1;
+  let best = { idx: -1, matches: 0 };
+  for (let i = 0; i < Math.min(aoa.length, maxRows); i++) {
+    const cells = (aoa[i] || []).map(v => normalize(String(v ?? ''))).filter(Boolean);
+    if (cells.length < 2) continue;
+    let matches = 0;
+    for (const w of wanted) {
+      if (cells.some(c => c === w || c.includes(w) || w.includes(c))) matches++;
+    }
+    const ratio = matches / wanted.length;
+    if ((ratio >= 0.6 || matches >= 3) && matches > best.matches) best = { idx: i, matches };
+  }
+  return best.idx;
+}
+
+export function parseSheetToData(ws: XLSX.WorkSheet, expectedHeaders?: string[]): ParsedSheet {
   const aoa = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' }) as unknown[][];
 
-  let headerRowIndex = -1;
-  for (let i = 0; i < Math.min(aoa.length, 12); i++) {
-    const row = aoa[i] || [];
-    const nonEmpty = row.filter(v => v !== '' && v != null).length;
-    if (nonEmpty >= 2) { headerRowIndex = i; break; }
+  // A1 — détection par noms de colonnes attendus, repli « ≥2 cellules ».
+  let headerRowIndex = (expectedHeaders && expectedHeaders.length)
+    ? detectHeaderRowByColumnNames(aoa, expectedHeaders)
+    : -1;
+  if (headerRowIndex < 0) {
+    for (let i = 0; i < Math.min(aoa.length, 12); i++) {
+      const row = aoa[i] || [];
+      const nonEmpty = row.filter(v => v !== '' && v != null).length;
+      if (nonEmpty >= 2) { headerRowIndex = i; break; }
+    }
   }
   if (headerRowIndex < 0) return { data: [], columns: [] };
 
@@ -96,7 +125,11 @@ export function splitModeWorkbook(wb: XLSX.WorkBook, mode: MigrationModeId): Spl
       if (spec.required) missingRequired.push(spec.sheetName);
       continue;
     }
-    const parsed = parseSheetToData(wb.Sheets[found]);
+    const expectedHeaders = [
+      ...spec.columns.map(c => c.header),
+      ...spec.columns.flatMap(c => c.aliases || []),
+    ];
+    const parsed = parseSheetToData(wb.Sheets[found], expectedHeaders);
     if (parsed.data.length === 0) {
       if (spec.required) missingRequired.push(spec.sheetName);
       continue;
