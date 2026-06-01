@@ -90,14 +90,17 @@ const AtlasFnAHome: React.FC = () => {
           adapter.count('assets'),
           adapter.getAll('fiscalYears'),
         ]);
-        const activeFY = (fiscalYears as any[]).find((fy: any) => fy.isActive);
+        const activeFY = (fiscalYears as any[]).find((fy: any) => fy.isActive || fy.is_active);
         const exercice = activeFY
-          ? `${activeFY.startDate?.substring(0, 4)}–${activeFY.endDate?.substring(0, 4)}`
+          ? `${(activeFY.startDate || activeFY.start_date)?.substring(0, 4)}–${(activeFY.endDate || activeFY.end_date)?.substring(0, 4)}`
           : '—';
         setStats({ ecritures, comptes, tiers, immobilisations, exercice });
       } catch (err) { /* silent */ }
     };
     loadStats();
+    // Re-charger après 1.5s pour capturer le tenantId mis à jour par applyAuthenticatedTenant
+    const t = setTimeout(loadStats, 1500);
+    return () => clearTimeout(t);
   }, [adapter]);
 
   // ─── User context ───

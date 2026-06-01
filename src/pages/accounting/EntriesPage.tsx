@@ -59,7 +59,15 @@ const EntriesPage: React.FC = () => {
           const key = l.entryId || l.entry_id;
           if (!key) continue;
           if (!linesByEntry.has(key)) linesByEntry.set(key, []);
-          linesByEntry.get(key)!.push(l);
+          // Normaliser camelCase + snake_case
+          linesByEntry.get(key)!.push({
+            accountCode: l.accountCode || l.account_code || '',
+            accountName: l.accountName || l.account_name || '',
+            debit:       Number(l.debit  ?? 0),
+            credit:      Number(l.credit ?? 0),
+            label:       l.label || l.libelle || '',
+            tiersCode:   l.tiersCode || l.tiers_code || '',
+          });
         }
       } catch { /* pas de journalLines — utiliser entry.lines */ }
 

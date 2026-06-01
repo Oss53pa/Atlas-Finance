@@ -24,13 +24,12 @@ const TiersDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [loading, setLoading] = useState(false);
 
-  // Navigate to dedicated module pages when clients/fournisseurs tabs are selected
+  // Navigate to dedicated module pages when specific tabs are selected
   useEffect(() => {
-    if (activeTab === 'clients') {
-      navigate('/tiers/clients');
-    } else if (activeTab === 'fournisseurs') {
-      navigate('/tiers/fournisseurs');
-    }
+    if (activeTab === 'clients')      navigate('/tiers/clients');
+    else if (activeTab === 'fournisseurs') navigate('/tiers/fournisseurs');
+    else if (activeTab === 'personnel')   navigate('/tiers/personnel');
+    else if (activeTab === 'autres')      navigate('/tiers/autres');
   }, [activeTab, navigate]);
   const [searchTerm, setSearchTerm] = useState('');
   const [dateRange, setDateRange] = useState('30d');
@@ -439,11 +438,7 @@ const TiersDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* Modules dédiés — navigation directe */}
-      {activeTab === 'clients' && (() => { navigate('/tiers/clients'); return null; })()}
-      {activeTab === 'fournisseurs' && (() => { navigate('/tiers/fournisseurs'); return null; })()}
-      {activeTab === 'personnel' && (() => { navigate('/tiers/personnel'); return null; })()}
-      {activeTab === 'autres' && (() => { navigate('/tiers/autres'); return null; })()}
+      {/* Navigation vers modules dédiés gérée dans useEffect ci-dessus */}
 
       {activeTab === 'contacts' && (
         <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">

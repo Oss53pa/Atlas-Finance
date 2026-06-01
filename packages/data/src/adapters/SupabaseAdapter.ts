@@ -195,7 +195,13 @@ export class SupabaseAdapter implements DataAdapter {
       if (filters?.orderBy) {
         query = query.order(filters.orderBy.field, { ascending: filters.orderBy.direction === 'asc' })
       }
-      if (filters?.limit) query = query.limit(filters.limit)
+      if (filters?.limit) {
+        query = query.limit(filters.limit)
+      } else {
+        // PostgREST plafonne à 1000 lignes par défaut.
+        // Sans limite explicite on demande jusqu'à 100 000 lignes (couvre tout dataset raisonnable).
+        query = query.range(0, 99999)
+      }
       if (filters?.offset) query = query.range(filters.offset, filters.offset + (filters.limit || 100) - 1)
 
       const { data, error } = await query
