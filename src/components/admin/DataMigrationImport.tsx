@@ -1318,6 +1318,13 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
         const batchEntries: any[] = [];
         const batchLines: any[] = [];
 
+        // A2/A3 — Contrôle d'équilibre JAMAIS « par pièce reconstituée » seule :
+        // on agrège au niveau journal + global, et on n'autorise JAMAIS une écriture
+        // déséquilibrée à passer en 'validated' (downgrade silencieux → 'draft' + log).
+        let imbalancedDowngraded = 0;
+        let gDebit = 0, gCredit = 0;
+        const journalSums = new Map<string, { d: number; c: number }>();
+
         for (const [piece, lines] of groups) {
           const journalCode = String(getEcrVal(lines[0], 'journal') || getEcrVal(lines[0], 'JournalCode') || 'OD');
           journals.add(journalCode);
@@ -1330,17 +1337,38 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
             getEcrVal(lines[0], 'libelle') || getEcrVal(lines[0], 'EcritureLib') ||
             getEcrVal(lines[0], 'label') || piece
           );
+          // Somme via money() — aucune dérive flottante (A5)
           let totalDebit = 0; let totalCredit = 0;
           lines.forEach((line: any) => {
-            totalDebit  += parseNumber(getEcrVal(line, 'debit')  || getEcrVal(line, 'Debit'));
-            totalCredit += parseNumber(getEcrVal(line, 'credit') || getEcrVal(line, 'Credit'));
+            totalDebit  = money(totalDebit).add(money(parseNumber(getEcrVal(line, 'debit')  || getEcrVal(line, 'Debit')))).toNumber();
+            totalCredit = money(totalCredit).add(money(parseNumber(getEcrVal(line, 'credit') || getEcrVal(line, 'Credit')))).toNumber();
           });
+          const entryBalanced = money(totalDebit).subtract(money(totalCredit)).abs().toNumber() <= 0.01;
+
+          // A3 — une écriture déséquilibrée ne peut JAMAIS être 'validated'
+          let entryStatus: 'validated' | 'draft' = params.entryStatus === 'validated' ? 'validated' : 'draft';
+          if (!entryBalanced && entryStatus === 'validated') {
+            entryStatus = 'draft';
+            imbalancedDowngraded++;
+            if (report.warnings.length < 200) {
+              report.warnings.push(`Pièce ${piece} déséquilibrée (D=${totalDebit.toFixed(2)} C=${totalCredit.toFixed(2)}, écart ${money(totalDebit).subtract(money(totalCredit)).abs().toNumber().toFixed(2)}) → importée en brouillon (non validée).`);
+            }
+          }
+
+          // A2 — agrégats journal + global
+          gDebit = money(gDebit).add(money(totalDebit)).toNumber();
+          gCredit = money(gCredit).add(money(totalCredit)).toNumber();
+          const _js = journalSums.get(journalCode) || { d: 0, c: 0 };
+          _js.d = money(_js.d).add(money(totalDebit)).toNumber();
+          _js.c = money(_js.c).add(money(totalCredit)).toNumber();
+          journalSums.set(journalCode, _js);
+
           const entryId = crypto.randomUUID();
           batchEntries.push({
             id: entryId, tenant_id: tenantId,
             entry_number: piece, journal: journalCode, date: entryDate,
             label: entryLabel, reference: piece,
-            status: params.entryStatus === 'validated' ? 'validated' : 'draft',
+            status: entryStatus,
             total_debit: totalDebit, total_credit: totalCredit,
             created_at: new Date().toISOString(),
           });
@@ -1362,6 +1390,22 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
               credit: Math.abs(parseNumber(findCol(line, creditAliases2))),
             });
           });
+        }
+
+        // A2 — Contrôle d'équilibre GLOBAL + par journal (rapport, non-bloquant : aucune
+        // écriture déséquilibrée n'a été validée — cf. downgrade ci-dessus).
+        {
+          const gEcart = money(gDebit).subtract(money(gCredit)).abs().toNumber();
+          if (gEcart > 0.01) {
+            report.warnings.push(`⚠️ Déséquilibre GLOBAL d'import : D=${gDebit.toFixed(2)} C=${gCredit.toFixed(2)} (écart ${gEcart.toFixed(2)} FCFA). Vérifiez le fichier source — aucune pièce déséquilibrée n'a été validée.`);
+          }
+          for (const [j, s] of journalSums) {
+            const e = money(s.d).subtract(money(s.c)).abs().toNumber();
+            if (e > 0.01) report.warnings.push(`Journal ${j} déséquilibré : D=${s.d.toFixed(2)} C=${s.c.toFixed(2)} (écart ${e.toFixed(2)}).`);
+          }
+          if (imbalancedDowngraded > 0) {
+            report.warnings.push(`${imbalancedDowngraded} pièce(s) déséquilibrée(s) importée(s) en brouillon (statut 'draft', jamais 'validated').`);
+          }
         }
 
         // ── Insérer les journal_entries par batch de 100 ──────────────────
