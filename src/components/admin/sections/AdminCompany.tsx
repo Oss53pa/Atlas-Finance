@@ -255,6 +255,11 @@ const AdminCompany: React.FC<Props> = ({ subTab, setSubTab }) => {
         console.error('[saveSetting] RPC error:', error.message, { key });
         throw new Error(error.message);
       }
+      // Synchroniser aussi dans la table societes (source de vérité pour le nom entreprise)
+      if (key === 'admin_company_legal') {
+        const { error: soErr } = await (supabase as any).rpc('update_societe_legal', { p_data: value });
+        if (soErr) console.error('[saveSetting] societes sync error:', soErr.message);
+      }
       return;
     }
 
@@ -270,11 +275,39 @@ const AdminCompany: React.FC<Props> = ({ subTab, setSubTab }) => {
   }, [adapter]);
 
   const loadData = useCallback(async () => {
+    // Débloquer l'UI immédiatement — le chargement se fait en arrière-plan
+    // Un timeout de sécurité garantit que setLoading(false) est appelé dans tous les cas
+    const safetyTimeout = setTimeout(() => setLoading(false), 5000);
     try {
       const rawAccounts = await adapter.getAll<any>('accounts');
       setAccounts(rawAccounts.map((a: any) => ({ numero: a.code||a.numero, libelle: a.name||a.libelle, classe: Number(a.accountClass||a.classe||(a.code||'')[0]||0), type: a.accountType||a.type||(Number((a.code||'')[0])<=5?'Bilan':'Gestion'), sens: a.normalBalance==='credit'?'Crediteur':(a.normalBalance==='debit'?'Debiteur':(a.sens||'Debiteur')), lettrable: a.isReconcilable??a.lettrable??false, actif: a.isActive??a.actif??true })));
       const rawFy = await adapter.getAll<any>('fiscalYears');
       setExercices(rawFy.map((fy: any) => ({ code: fy.code, debut: fy.startDate||fy.debut, fin: fy.endDate||fy.fin, periodes: 12, statut: fy.isClosed?'Cloture':'Ouvert', actif: fy.isActive??fy.actif??false })));
+      // Charger d'abord depuis societes (source de vérité)
+      if (adapter.getMode() === 'saas') {
+        const { data: { session } } = await (supabase as any).auth.getSession();
+        if (session) {
+          const { data: soc } = await (supabase as any)
+            .from('societes').select('*').maybeSingle();
+          if (soc) {
+            setLegalForm(prev => ({
+              ...prev,
+              raisonSociale: soc.raison_sociale || soc.nom || prev.raisonSociale,
+              formeJuridique: soc.forme_juridique || prev.formeJuridique,
+              nif: soc.nif || prev.nif,
+              rccm: soc.rccm || prev.rccm,
+              capitalSocial: soc.capital_social ? String(soc.capital_social) : prev.capitalSocial,
+              regimeFiscal: soc.regime_fiscal || prev.regimeFiscal,
+              adresse: soc.address || prev.adresse,
+              ville: soc.ville || prev.ville,
+              pays: soc.pays || prev.pays,
+              telephone: soc.telephone || prev.telephone,
+              email: soc.email || prev.email,
+              siteWeb: soc.site_web || prev.siteWeb,
+            }));
+          }
+        }
+      }
       // Lecture des settings — attendre la session avant de requêter
       // (si la session est en cours de restauration, le client serait en anon → RLS = 0 lignes)
       let allSettings: any[] = [];
@@ -299,7 +332,12 @@ const AdminCompany: React.FC<Props> = ({ subTab, setSubTab }) => {
       const legS = allSettings.find((s: any) => s.key === 'admin_company_legal'); if (legS?.value) setLegalForm(prev => ({ ...prev, ...JSON.parse(legS.value) }));
       const devS = allSettings.find((s: any) => s.key === 'admin_company_devise'); if (devS?.value) setDeviseForm(prev => ({ ...prev, ...JSON.parse(devS.value) }));
       const logS = allSettings.find((s: any) => s.key === 'admin_company_logo'); if (logS?.value) { const lv = JSON.parse(logS.value); setLogoToggles({ etatsFinanciers: lv.etatsFinanciers ?? true, factures: lv.factures ?? true, entetePdf: lv.entetePdf ?? true }); if (lv.dataUrl) setLogoDataUrl(lv.dataUrl); }
-    } catch { /* ignored */ } finally { setLoading(false); }
+    } catch (err) {
+      console.error('[AdminCompany] loadData error:', err);
+    } finally {
+      clearTimeout(safetyTimeout);
+      setLoading(false);
+    }
   }, [adapter]);
 
   useEffect(() => { loadData(); }, [loadData]);
