@@ -555,20 +555,20 @@ const FournisseursModule: React.FC = () => {
                 </span>
               )}
               <ExportMenu
-                data={filteredFournisseurs}
+                data={filteredFournisseurs as unknown as Record<string, unknown>[]}
                 filename="fournisseurs"
-                columns={[
-                  { key: 'code', label: 'Code' },
-                  { key: 'raisonSociale', label: 'Fournisseur' },
-                  { key: 'secteurActivite', label: 'Secteur' },
-                  { key: 'categorie', label: 'Catégorie' },
-                  { key: 'pays', label: 'Pays' },
-                  { key: 'encoursActuel', label: 'Encours' },
-                  { key: 'volumeAchats', label: 'Volume Achats' },
-                  { key: 'dpo', label: 'DPO' },
-                  { key: 'notationInterne', label: 'Note' },
-                  { key: 'statut', label: 'Statut' }
-                ]}
+                columns={{
+                  code: 'Code',
+                  raisonSociale: 'Fournisseur',
+                  secteurActivite: 'Secteur',
+                  categorie: 'Catégorie',
+                  pays: 'Pays',
+                  encoursActuel: 'Encours',
+                  volumeAchats: 'Volume Achats',
+                  dpo: 'DPO',
+                  notationInterne: 'Note',
+                  statut: 'Statut'
+                }}
                 buttonText={t('common.export')}
                 buttonVariant="outline"
               />
@@ -735,7 +735,7 @@ const FournisseursModule: React.FC = () => {
                   <span>Date d'arrêté</span>
                 </button>
                 <ExportMenu
-                  data={balanceAgeeData}
+                  data={balanceAgeeData as unknown as Record<string, unknown>[]}
                   filename="balance-agee-fournisseurs"
                   columns={{
                     fournisseurCode: 'Code Fournisseur',
@@ -2101,9 +2101,9 @@ const FournisseursModule: React.FC = () => {
       <PeriodSelectorModal
         isOpen={showPeriodModal}
         onClose={() => setShowPeriodModal(false)}
-        currentRange={dateRange}
-        onPeriodChange={(newRange) => {
-          setDateRange(newRange);
+        initialDateRange={{ start: dateRange.startDate, end: dateRange.endDate }}
+        onApply={(newRange) => {
+          setDateRange(prev => ({ ...prev, startDate: newRange.start, endDate: newRange.end }));
           setShowPeriodModal(false);
         }}
       />

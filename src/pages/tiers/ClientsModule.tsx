@@ -745,7 +745,7 @@ const ClientsModule: React.FC = () => {
                     </span>
                   )}
                   <ExportMenu
-                    data={filteredClients}
+                    data={filteredClients as unknown as Record<string, unknown>[]}
                     filename="clients"
                     columns={{
                       code: 'Code',
@@ -938,7 +938,7 @@ const ClientsModule: React.FC = () => {
                   <span>Date d'arrêté</span>
                 </button>
                 <ExportMenu
-                  data={balanceAgeeData}
+                  data={balanceAgeeData as unknown as Record<string, unknown>[]}
                   filename="balance-agee-clients"
                   columns={{
                     clientCode: 'Code Client',
@@ -2346,9 +2346,9 @@ const ClientsModule: React.FC = () => {
       <PeriodSelectorModal
         isOpen={showPeriodModal}
         onClose={() => setShowPeriodModal(false)}
-        currentRange={dateRange}
-        onPeriodChange={(newRange) => {
-          setDateRange(newRange);
+        initialDateRange={{ start: dateRange.startDate, end: dateRange.endDate }}
+        onApply={(newRange) => {
+          setDateRange(prev => ({ ...prev, startDate: newRange.start, endDate: newRange.end }));
           setShowPeriodModal(false);
         }}
       />
