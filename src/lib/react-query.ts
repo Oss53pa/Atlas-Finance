@@ -17,7 +17,7 @@ const defaultOptions: DefaultOptions = {
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     refetchOnWindowFocus: false,
     refetchOnMount: true,
-    refetchOnReconnect: true,
+    refetchOnReconnect: false,
   },
   mutations: {
     retry: 0,

@@ -69,25 +69,51 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
-    chunkSizeWarningLimit: 700,
+    chunkSizeWarningLimit: 500,
+    reportCompressedSize: true,
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vendor-react': ['react', 'react-dom'],
-          'vendor-router': ['react-router-dom'],
-          'vendor-ui': [
-            '@radix-ui/react-dialog',
-            '@radix-ui/react-dropdown-menu',
-            '@radix-ui/react-select',
-            '@radix-ui/react-popover',
-            '@radix-ui/react-label',
-          ],
-          'vendor-charts': ['recharts', 'chart.js', 'react-chartjs-2', 'd3'],
-          'vendor-data': ['dexie', '@supabase/supabase-js', '@tanstack/react-query'],
-          'vendor-xlsx': ['xlsx'],
-          'vendor-forms': ['react-hook-form', '@hookform/resolvers', 'zod'],
-          'vendor-utils': ['date-fns', 'decimal.js', 'uuid'],
-          'vendor-pdf': ['jspdf'],
+        manualChunks: (id) => {
+          // Animation — chunk séparé pour lazy-loading
+          if (id.includes('framer-motion')) return 'vendor-animation';
+          // Charts — séparés pour éviter de tout charger d'un coup
+          if (id.includes('node_modules/recharts')) return 'vendor-charts';
+          if (
+            id.includes('node_modules/d3/') ||
+            id.includes('node_modules/d3-')
+          ) return 'vendor-d3';
+          if (
+            id.includes('node_modules/chart.js') ||
+            id.includes('node_modules/react-chartjs')
+          ) return 'vendor-chartjs';
+          // Infra data
+          if (
+            id.includes('node_modules/dexie') ||
+            id.includes('node_modules/@supabase') ||
+            id.includes('node_modules/@tanstack/react-query')
+          ) return 'vendor-data';
+          // UI libs
+          if (id.includes('node_modules/@radix-ui')) return 'vendor-ui';
+          // Forms
+          if (
+            id.includes('node_modules/react-hook-form') ||
+            id.includes('node_modules/@hookform') ||
+            id.includes('node_modules/zod')
+          ) return 'vendor-forms';
+          // Utilities
+          if (
+            id.includes('node_modules/date-fns') ||
+            id.includes('node_modules/decimal.js') ||
+            id.includes('node_modules/uuid')
+          ) return 'vendor-utils';
+          // PDF / XLSX
+          if (id.includes('node_modules/jspdf')) return 'vendor-pdf';
+          if (id.includes('node_modules/xlsx')) return 'vendor-xlsx';
+          // Router
+          if (id.includes('node_modules/react-router')) return 'vendor-router';
+          // React core
+          if (id.includes('node_modules/react-dom')) return 'vendor-react';
+          if (id.includes('node_modules/react/')) return 'vendor-react';
         },
       },
     },

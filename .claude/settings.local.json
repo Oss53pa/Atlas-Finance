@@ -188,7 +188,14 @@
       "mcp__56330ec3-a24d-455c-a7ea-6684f6563914__get_project",
       "Bash(Get-Content \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--devs-WiseBook\\\\6e60d990-7086-42dc-bbab-562b49a4d9dc\\\\tasks\\\\byc6dv28e.output\" -Wait -Tail 30)",
       "Bash(Select-String \"PersonnelModule\")",
-      "Bash(Select-Object -First 20)"
+      "Bash(Select-Object -First 20)",
+      "mcp__a58aae78-1ce6-4205-900f-0d0e6f7f4178__get_project",
+      "mcp__a58aae78-1ce6-4205-900f-0d0e6f7f4178__get_advisors",
+      "Bash(Get-ChildItem \"C:\\\\devs\\\\WiseBook\\\\src\\\\pages\" -Recurse -Filter \"*.tsx\")",
+      "Bash(Sort-Object Length -Descending)",
+      "Bash(Select-Object -First 10)",
+      "Bash(Format-Table Name, Length)",
+      "PowerShell($file = \"C:\\\\devs\\\\WiseBook\\\\src\\\\pages\\\\treasury\\\\RecouvrementModule.tsx\"; \\(Get-Content $file\\).Count)"
     ],
     "deny": [],
     "ask": []
