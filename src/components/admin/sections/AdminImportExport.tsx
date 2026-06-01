@@ -1,12 +1,33 @@
 import React, { useState, useRef } from 'react';
-import { Upload, Download, FileText, Users, Package, Search, CheckCircle, AlertTriangle, Plus, Trash2 } from 'lucide-react';
+import { Upload, Download, FileText, Users, Package, CheckCircle, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useData } from '../../../contexts/DataContext';
 
 interface Props { subTab: number; setSubTab: (n: number) => void; }
 
 const tabs = ['Import Plan Comptable', 'Import Ecritures', 'Import Tiers', 'Export FEC', 'Export Grand Livre'];
 
-// ─── Module-level sub-components ────────────────────────────────────────────
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+const triggerDownload = (blob: Blob, filename: string) => {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
+
+const TEMPLATES: Record<string, string> = {
+  'plan-comptable': 'Code,Libelle,Classe,Type,Sens\n411000,Clients,4,Bilan,Debiteur\n401000,Fournisseurs,4,Bilan,Crediteur',
+  'tiers': 'Code,Nom,Type,NIF,Telephone,Email\nCLI001,Client Exemple,customer,1234567A,0700000001,client@exemple.ci',
+  'immobilisations': 'Code,Libelle,Categorie,DateAcquisition,ValeurOrigine,DureeAmort\nIMM001,Ordinateur,Materiel informatique,2026-01-01,500000,3',
+  'ecritures': 'Date,Journal,NumeroPiece,Compte,Libelle,Debit,Credit\n2026-01-01,VTE,VTE001,411000,Facture client,1180000,\n2026-01-01,VTE,VTE001,707000,Vente,,1000000',
+};
+
+// ─── Module-level sub-components ─────────────────────────────────────────────
 
 const ImportExportTabBar = ({ subTab, setSubTab }: { subTab: number; setSubTab: (n: number) => void }) => (
   <div className="border-b border-gray-200 mb-6 overflow-x-auto">
@@ -21,15 +42,32 @@ const ImportExportTabBar = ({ subTab, setSubTab }: { subTab: number; setSubTab: 
   </div>
 );
 
-const UploadZone = ({ label, formats, templateCols }: { label: string; formats: string; templateCols: string[] }) => {
+const UploadZone = ({
+  label,
+  formats,
+  templateCols,
+  templateKey,
+}: {
+  label: string;
+  formats: string;
+  templateCols: string[];
+  templateKey: string;
+}) => {
   const fileRef = useRef<HTMLInputElement>(null);
-  const [uploadedFile, setUploadedFile] = useState<{ name: string; size: string; rows: number } | null>(null);
+  const [uploadedFile, setUploadedFile] = useState<{ name: string; size: string } | null>(null);
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
     if (!f) return;
-    setUploadedFile({ name: f.name, size: `${(f.size / 1024).toFixed(0)} Ko`, rows: 0 });
+    setUploadedFile({ name: f.name, size: `${(f.size / 1024).toFixed(0)} Ko` });
     toast.success(`Fichier ${f.name} charge`);
+  };
+
+  const downloadTemplate = () => {
+    const content = TEMPLATES[templateKey] || 'Colonne1,Colonne2';
+    const blob = new Blob(['﻿' + content], { type: 'text/csv;charset=utf-8' });
+    triggerDownload(blob, `template-${templateKey}.csv`);
+    toast.success('Template telecharge');
   };
 
   return (
@@ -68,7 +106,7 @@ const UploadZone = ({ label, formats, templateCols }: { label: string; formats: 
             <span key={col} className="px-3 py-1 bg-gray-100 rounded-full text-xs font-medium text-gray-700">{col}</span>
           ))}
         </div>
-        <button onClick={() => toast.info('Telechargement du template...')} className="mt-4 text-sm text-[#C0322B] hover:underline flex items-center space-x-1">
+        <button onClick={downloadTemplate} className="mt-4 text-sm text-[#C0322B] hover:underline flex items-center space-x-1">
           <Download className="w-4 h-4" /><span>Telecharger le template CSV</span>
         </button>
       </div>
@@ -76,7 +114,15 @@ const UploadZone = ({ label, formats, templateCols }: { label: string; formats: 
   );
 };
 
-const ExportForm = ({ label }: { label: string }) => {
+// ─── Export components ────────────────────────────────────────────────────────
+
+interface ExportFormProps {
+  label: string;
+  saving: boolean;
+  onExport: () => Promise<void>;
+}
+
+const ExportForm = ({ label, saving, onExport }: ExportFormProps) => {
   const cy = new Date().getFullYear();
   const [exportFrom, setExportFrom] = useState(`${cy}-01-01`);
   const [exportTo, setExportTo] = useState(`${cy}-12-31`);
@@ -116,26 +162,118 @@ const ExportForm = ({ label }: { label: string }) => {
         </div>
       )}
       <div className="flex justify-end">
-        <button onClick={() => toast.success(`Export ${label} genere avec succes`)} className="px-6 py-2.5 bg-[#C0322B] text-white rounded-lg text-sm font-medium flex items-center space-x-2">
-          <Download className="w-4 h-4" /><span>Generer l'export {label}</span>
+        <button
+          onClick={onExport}
+          disabled={saving}
+          className="px-6 py-2.5 bg-[#C0322B] text-white rounded-lg text-sm font-medium flex items-center space-x-2 disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          <Download className="w-4 h-4" />
+          <span>{saving ? 'Export en cours...' : `Generer l'export ${label}`}</span>
         </button>
       </div>
     </div>
   );
 };
 
-// ─── Main component ──────────────────────────────────────────────────────────
+// ─── Main component ───────────────────────────────────────────────────────────
 
 const AdminImportExport: React.FC<Props> = ({ subTab, setSubTab }) => {
+  const { adapter } = useData();
+  const [saving, setSaving] = useState(false);
+
+  const handleExportFEC = async () => {
+    try {
+      setSaving(true);
+      const entries = await adapter.getAll('journalEntries');
+      const header = 'JournalCode|JournalLib|EcritureNum|EcritureDate|CompteNum|CompteLib|PieceRef|PieceDate|EcritureLib|Debit|Credit\n';
+      const rows = (entries as any[]).map(e =>
+        [
+          e.journal || '',
+          `Journal ${e.journal || ''}`,
+          e.entry_number || e.entryNumber || '',
+          (e.date || '').replace(/-/g, ''),
+          '',
+          '',
+          e.reference || '',
+          e.date || '',
+          (e.label || '').substring(0, 99),
+          e.total_debit ?? e.totalDebit ?? 0,
+          e.total_credit ?? e.totalCredit ?? 0,
+        ].join('|')
+      ).join('\n');
+      const blob = new Blob([header + rows], { type: 'text/plain;charset=utf-8' });
+      triggerDownload(blob, 'FEC.txt');
+      toast.success(`FEC exporte — ${entries.length} ecritures`);
+    } catch {
+      toast.error('Erreur export FEC');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleExportGrandLivre = async () => {
+    try {
+      setSaving(true);
+      const entries = await adapter.getAll('journalEntries');
+      const header = 'Date,Journal,Numero,Libelle,Debit,Credit,Statut\n';
+      const rows = (entries as any[]).map(e =>
+        [
+          e.date || '',
+          e.journal || '',
+          e.entry_number || e.entryNumber || '',
+          '"' + (e.label || '').replace(/"/g, '') + '"',
+          e.total_debit ?? e.totalDebit ?? 0,
+          e.total_credit ?? e.totalCredit ?? 0,
+          e.status || '',
+        ].join(',')
+      ).join('\n');
+      const blob = new Blob(['﻿' + header + rows], { type: 'text/csv;charset=utf-8' });
+      triggerDownload(blob, 'GrandLivre.csv');
+      toast.success(`Grand Livre exporte — ${entries.length} ecritures`);
+    } catch {
+      toast.error('Erreur export GL');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div className="p-6">
       <h2 className="text-lg font-bold mb-4">Import / Export</h2>
       <ImportExportTabBar subTab={subTab} setSubTab={setSubTab} />
-      {subTab === 0 && <UploadZone key={0} label="Plan Comptable" formats=".csv, .xlsx" templateCols={['numero', 'libelle', 'classe', 'type_compte', 'sens_normal', 'compte_collectif', 'statut']} />}
-      {subTab === 1 && <UploadZone key={1} label="Ecritures Comptables" formats=".csv, .xlsx, .txt (FEC)" templateCols={['journal', 'numero_piece', 'date_piece', 'compte', 'tiers_code', 'libelle', 'debit', 'credit', 'date_echeance', 'lettrage_ref']} />}
-      {subTab === 2 && <UploadZone key={2} label="Tiers (Clients/Fournisseurs)" formats=".csv, .xlsx" templateCols={['code', 'type', 'raison_sociale', 'nif', 'rccm', 'pays', 'compte_collectif', 'email', 'telephone', 'adresse', 'conditions_paiement']} />}
-      {subTab === 3 && <ExportForm label="FEC" />}
-      {subTab === 4 && <ExportForm label="Grand Livre" />}
+      {subTab === 0 && (
+        <UploadZone
+          key={0}
+          label="Plan Comptable"
+          formats=".csv, .xlsx"
+          templateKey="plan-comptable"
+          templateCols={['numero', 'libelle', 'classe', 'type_compte', 'sens_normal', 'compte_collectif', 'statut']}
+        />
+      )}
+      {subTab === 1 && (
+        <UploadZone
+          key={1}
+          label="Ecritures Comptables"
+          formats=".csv, .xlsx, .txt (FEC)"
+          templateKey="ecritures"
+          templateCols={['journal', 'numero_piece', 'date_piece', 'compte', 'tiers_code', 'libelle', 'debit', 'credit', 'date_echeance', 'lettrage_ref']}
+        />
+      )}
+      {subTab === 2 && (
+        <UploadZone
+          key={2}
+          label="Tiers (Clients/Fournisseurs)"
+          formats=".csv, .xlsx"
+          templateKey="tiers"
+          templateCols={['code', 'type', 'raison_sociale', 'nif', 'rccm', 'pays', 'compte_collectif', 'email', 'telephone', 'adresse', 'conditions_paiement']}
+        />
+      )}
+      {subTab === 3 && (
+        <ExportForm label="FEC" saving={saving} onExport={handleExportFEC} />
+      )}
+      {subTab === 4 && (
+        <ExportForm label="Grand Livre" saving={saving} onExport={handleExportGrandLivre} />
+      )}
     </div>
   );
 };

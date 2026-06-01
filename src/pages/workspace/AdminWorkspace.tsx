@@ -6,6 +6,8 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useData } from '../../contexts/DataContext';
 import { themes } from '../../styles/theme';
 import type { ThemeType } from '../../styles/theme';
+import { supabase } from '../../lib/supabase';
+import { toast } from 'sonner';
 
 const APP_VERSION = __APP_VERSION__ || '3.0.0';
 
@@ -57,6 +59,9 @@ const AdminWorkspace: React.FC = () => {
   const [workspaceSwitcherOpen, setWorkspaceSwitcherOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('workspace');
   const [adminSubTab, setAdminSubTab] = useState(0);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [passwordSaving, setPasswordSaving] = useState(false);
 
   const changeSection = (section: string) => { setActiveSection(section); setAdminSubTab(0); };
 
@@ -131,10 +136,22 @@ const AdminWorkspace: React.FC = () => {
         </div>
         <div className="bg-white rounded-xl p-6 border">
           <h4 className="font-semibold mb-4 flex items-center"><Lock className="w-5 h-5 mr-2 text-[var(--color-accent)]" />Securite</h4>
-          <button className="w-full p-3 border rounded-lg text-sm hover:border-[var(--color-accent)] mb-2">Changer mot de passe</button>
-          <button className="w-full p-3 border rounded-lg text-sm hover:border-[var(--color-accent)] flex justify-between"><span>2FA</span><span className={`text-xs px-2 py-1 rounded ${userData.twoFactorEnabled ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{userData.twoFactorEnabled ? 'Actif' : 'Off'}</span></button>
+          <button onClick={() => setShowPasswordModal(true)} className="w-full p-3 border rounded-lg text-sm hover:border-[var(--color-accent)] mb-2">Changer mot de passe</button>
+          <button onClick={async () => { try { const { error } = await supabase.auth.updateUser({ data: { twoFactorEnabled: !userData.twoFactorEnabled } }); if (error) throw error; toast.success('2FA mis à jour'); } catch { toast.error('Erreur 2FA'); } }} className="w-full p-3 border rounded-lg text-sm hover:border-[var(--color-accent)] flex justify-between"><span>2FA</span><span className={`text-xs px-2 py-1 rounded ${userData.twoFactorEnabled ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{userData.twoFactorEnabled ? 'Actif' : 'Off'}</span></button>
         </div>
       </div>
+      {showPasswordModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-xl p-6 max-w-sm w-full mx-4 space-y-4">
+            <h3 className="font-bold text-lg">Changer le mot de passe</h3>
+            <input type="password" placeholder="Nouveau mot de passe (6 car. min)" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm" />
+            <div className="flex gap-3 justify-end">
+              <button onClick={() => { setShowPasswordModal(false); setNewPassword(''); }} className="px-4 py-2 border rounded-lg text-sm">Annuler</button>
+              <button disabled={passwordSaving || newPassword.length < 6} onClick={async () => { setPasswordSaving(true); try { const { error } = await supabase.auth.updateUser({ password: newPassword }); if (error) throw error; toast.success('Mot de passe mis à jour'); setShowPasswordModal(false); setNewPassword(''); } catch { toast.error('Erreur'); } finally { setPasswordSaving(false); } }} className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm disabled:opacity-50">{passwordSaving ? 'En cours...' : 'Enregistrer'}</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 
@@ -154,13 +171,13 @@ const AdminWorkspace: React.FC = () => {
       <div className="bg-white rounded-xl p-6 border">
         <h4 className="font-semibold mb-4">Maintenance</h4>
         <div className="space-y-3">
-          <button className="w-full p-4 border rounded-lg text-left hover:border-[var(--color-accent)] flex justify-between items-center">
+          <button onClick={async () => { try { const entries = await adapter.getAll('journalEntries'); const accounts = await adapter.getAll('accounts'); const blob = new Blob([JSON.stringify({ entries, accounts }, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'backup.json'; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); toast.success('Sauvegarde téléchargée'); } catch { toast.error('Erreur sauvegarde'); } }} className="w-full p-4 border rounded-lg text-left hover:border-[var(--color-accent)] flex justify-between items-center">
             <span>Sauvegarder la base</span><Database className="w-5 h-5 text-[var(--color-accent)]" />
           </button>
-          <button className="w-full p-4 border rounded-lg text-left hover:border-[var(--color-accent)] flex justify-between items-center">
+          <button onClick={() => { try { Object.keys(localStorage).filter(k => k.startsWith('atlas-cache-')).forEach(k => localStorage.removeItem(k)); toast.success('Cache vidé'); } catch { toast.error('Erreur cache'); } }} className="w-full p-4 border rounded-lg text-left hover:border-[var(--color-accent)] flex justify-between items-center">
             <span>Vider le cache</span><Cog className="w-5 h-5 text-[var(--color-accent)]" />
           </button>
-          <button className="w-full p-4 border rounded-lg text-left hover:border-yellow-500 flex justify-between items-center text-yellow-600">
+          <button onClick={async () => { const ok = window.confirm('Activer le mode maintenance ?'); try { await adapter.create('settings' as any, { key: 'maintenance_mode', value: JSON.stringify(ok), updatedAt: 'now' }); toast.success(ok ? 'Mode maintenance activé' : 'Désactivé'); } catch { toast.error('Erreur maintenance'); } }} className="w-full p-4 border rounded-lg text-left hover:border-yellow-500 flex justify-between items-center text-yellow-600">
             <span>Mode maintenance</span><AlertTriangle className="w-5 h-5" />
           </button>
         </div>
@@ -176,18 +193,18 @@ const AdminWorkspace: React.FC = () => {
       </div>
       <div className="bg-[var(--color-primary)] rounded-xl p-8 text-white">
         <h3 className="text-lg font-bold mb-4">Documentation Administrateur</h3>
-        <div className="relative"><Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" /><input placeholder="Rechercher..." className="w-full pl-12 pr-4 py-3 rounded-lg text-black" /></div>
+        <div className="relative"><Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" /><input placeholder="Rechercher..." className="w-full pl-12 pr-4 py-3 rounded-lg text-black" onKeyDown={e => { if (e.key === 'Enter' && e.currentTarget.value) window.open('https://docs.atlas-studio.org/search?q='+encodeURIComponent(e.currentTarget.value), '_blank'); }} /></div>
       </div>
       <div className="grid grid-cols-3 gap-4">
-        {[{icon: BookMarked, title: 'Documentation', color: 'var(--color-accent)'}, {icon: Video, title: 'Tutoriels', color: 'var(--color-primary)'}, {icon: FileQuestion, title: 'FAQ', color: 'var(--color-text-tertiary)'}].map((c, i) => (
-          <button key={i} className="bg-white rounded-xl p-6 border hover:border-[var(--color-accent)] text-left">
+        {[{icon: BookMarked, title: 'Documentation', color: 'var(--color-accent)', url: 'https://docs.atlas-studio.org'}, {icon: Video, title: 'Tutoriels', color: 'var(--color-primary)', url: 'https://docs.atlas-studio.org/tutoriels'}, {icon: FileQuestion, title: 'FAQ', color: 'var(--color-text-tertiary)', url: 'https://docs.atlas-studio.org/faq'}].map((c, i) => (
+          <button key={i} onClick={() => window.open(c.url, '_blank')} className="bg-white rounded-xl p-6 border hover:border-[var(--color-accent)] text-left">
             <div className="w-12 h-12 rounded-lg flex items-center justify-center mb-4" style={{backgroundColor: `color-mix(in srgb, ${c.color} 12%, transparent)`}}><c.icon className="w-6 h-6" style={{color: c.color}} /></div>
             <h4 className="font-semibold">{c.title}</h4>
           </button>
         ))}
       </div>
       <div className="grid grid-cols-2 gap-4">
-        <div className="bg-white rounded-xl p-6 border"><h4 className="font-semibold mb-4 flex items-center"><MessageCircle className="w-5 h-5 mr-2 text-[var(--color-accent)]" />Support technique</h4><button className="w-full py-3 bg-[var(--color-accent)] text-white rounded-lg">Contacter</button></div>
+        <div className="bg-white rounded-xl p-6 border"><h4 className="font-semibold mb-4 flex items-center"><MessageCircle className="w-5 h-5 mr-2 text-[var(--color-accent)]" />Support technique</h4><button onClick={() => window.open('mailto:support@atlas-studio.org', '_blank')} className="w-full py-3 bg-[var(--color-accent)] text-white rounded-lg">Contacter</button></div>
         <div className="bg-white rounded-xl p-6 border"><h4 className="font-semibold mb-4 flex items-center"><Headphones className="w-5 h-5 mr-2 text-[var(--color-accent)]" />Hotline</h4><p className="text-lg font-bold">{companyPhone || '—'}</p></div>
       </div>
     </div>
@@ -333,7 +350,7 @@ const AdminWorkspace: React.FC = () => {
                 ].map(item => (
                   <button key={item.id} onClick={() => changeSection(item.id)} className={`${activeSection===item.id?'bg-[var(--color-accent)]/10 text-[var(--color-accent)]':'text-gray-600 hover:bg-gray-50'} w-full flex items-center justify-between px-3 py-2 rounded-lg`}>
                     <div className="flex items-center space-x-3"><item.icon className="w-4 h-4" /><span className="text-sm font-medium">{item.label}</span></div>
-                    {'badge' in item && item.badge && <span className="px-2 py-0.5 text-xs rounded-full bg-[var(--color-accent-light)] text-[var(--color-error)]">{item.badge}</span>}
+                    {'badge' in item && item.badge && <span className="px-2 py-0.5 text-xs rounded-full bg-[var(--color-accent-light)] text-[var(--color-error)]">{String(item.badge)}</span>}
                   </button>
                 ))}
               </div>

@@ -316,7 +316,19 @@ const AdminAuditTrail: React.FC<Props> = ({ subTab, setSubTab }) => {
               </select>
             </div>
           </div>
-          <button onClick={() => toast.success(`Export ${exportFormat} de la piste d'audit genere`)} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
+          <button onClick={() => {
+  try {
+    const logs = allLogs || [];
+    const header = 'Date,Utilisateur,Evenement,Details\n';
+    const rows = (logs as any[]).map(l =>
+      [l.date||l.timestamp||'',l.utilisateur||l.userId||'',l.evenement||l.action||'','"'+(l.details||'').replace(/"/g,'').substring(0,100)+'"'].join(',')
+    ).join('\n');
+    const blob = new Blob(['﻿'+header+rows],{type:'text/csv;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href=url; a.download='piste-audit.csv'; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+    toast.success('Piste d\'audit exportée');
+  } catch { toast.error('Erreur export'); }
+}} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
             <Download className="w-4 h-4" /> Generer l'export
           </button>
         </div>

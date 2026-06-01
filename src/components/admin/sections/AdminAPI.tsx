@@ -311,7 +311,14 @@ const AdminAPI: React.FC<Props> = ({ subTab, setSubTab }) => {
                       {row.reponse ? <span className={`px-2 py-1 rounded text-xs font-medium ${row.reponse < 400 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{row.reponse}</span> : <span className="text-gray-400">-</span>}
                     </td>
                     <td className="px-4 py-3 flex gap-2">
-                      <button onClick={() => toast.success('Webhook teste avec succes')} className="text-blue-600 hover:text-blue-800 text-xs underline">Tester</button>
+                      <button onClick={async () => {
+                        try {
+                          const url = row.url;
+                          if (!url) { toast.error('URL webhook manquante'); return; }
+                          const res = await fetch(url, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ test: true, source: 'Atlas F&A' }) });
+                          toast.success(`Webhook OK — HTTP ${res.status}`);
+                        } catch { toast.error('Webhook inaccessible (vérifiez l\'URL et le CORS)'); }
+                      }} className="text-blue-600 hover:text-blue-800 text-xs underline">Tester</button>
                       <button onClick={async () => {
                         const updated = webhooks.filter((_, idx) => idx !== i);
                         setWebhooks(updated);
@@ -424,7 +431,7 @@ const AdminAPI: React.FC<Props> = ({ subTab, setSubTab }) => {
               </div>
             </div>
             <div className="flex gap-3 pt-2">
-              <button onClick={() => toast.success('Test de connexion reussi')} className="px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 flex items-center gap-2">
+              <button onClick={() => toast.info('Test de connexion — vérifiez votre clé API et reconnectez')} className="px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 flex items-center gap-2">
                 <Activity className="w-4 h-4" /> Tester la connexion
               </button>
               <button onClick={async () => {
@@ -491,7 +498,7 @@ const AdminAPI: React.FC<Props> = ({ subTab, setSubTab }) => {
               </div>
             </div>
             <div className="flex gap-3 pt-2">
-              <button onClick={() => toast.success('Test de connexion paie reussi')} className="px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 flex items-center gap-2">
+              <button onClick={() => toast.info('Test de connexion — vérifiez votre clé API et reconnectez')} className="px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 flex items-center gap-2">
                 <Activity className="w-4 h-4" /> Tester
               </button>
               <button onClick={async () => {
