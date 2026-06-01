@@ -246,15 +246,27 @@ const AdminCompany: React.FC<Props> = ({ subTab, setSubTab }) => {
       updated_at: new Date().toISOString(),
       tenant_id: tenantId,
     };
-    // Stratégie 1 : upsert direct Supabase (SaaS) — 1 seule requête, pas de getById
+    // Stratégie 1 : upsert direct Supabase (SaaS)
+    // onConflict: 'key' car la PK de la table settings est uniquement `key TEXT PRIMARY KEY`
+    // (pas de contrainte composite key+tenant_id — un seul tenant par projet Supabase)
     if (adapter.getMode() === 'saas') {
-      if (!tenantId) throw new Error('tenant non initialisé — réessayez dans un instant');
+      if (!tenantId) {
+        // Attendre que l'auth soit restaurée (max 3 tentatives)
+        let tid: string | undefined;
+        for (let i = 0; i < 3; i++) {
+          await new Promise(r => setTimeout(r, 800));
+          tid = (adapter as any).tenantId as string | undefined;
+          if (tid && tid !== 'default') break;
+        }
+        if (!tid || tid === 'default') throw new Error('Session non initialisée — rechargez la page');
+        record.tenant_id = tid;
+      }
       const { error } = await (supabase as any)
         .from('settings')
-        .upsert(record, { onConflict: 'key,tenant_id' });
+        .upsert(record, { onConflict: 'key' });
       if (error) {
         console.error('[saveSetting] Supabase error:', error.message, record);
-        throw new Error(error.message);
+        throw new Error(`Erreur Supabase : ${error.message}`);
       }
       return;
     }
