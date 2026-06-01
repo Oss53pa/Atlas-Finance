@@ -292,7 +292,9 @@ const TARGET_FIELDS: Record<string, { field: string; label: string; required: bo
 function parseNumber(val: any): number {
   if (val == null || val === '') return 0;
   if (typeof val === 'number') return val;
-  const s = String(val).replace(/\s/g, '').replace(',', '.');
+  // A5 — nettoyer TOUS les espaces, y compris insécables (NBSP, narrow NBSP,
+  // figure space) fréquents dans les exports Sage. 0 troncature.
+  const s = String(val).replace(/[\s   ]/g, '').replace(',', '.');
   const n = parseFloat(s);
   return isNaN(n) ? 0 : n;
 }
@@ -1270,7 +1272,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
           acquisition_date: parseDate(getVal('dateAcquisition')) || new Date().toISOString().slice(0, 10),
           acquisition_value: parseNumber(getVal('valeurOrigine')),
           cumul_depreciation: parseNumber(getVal('amortCumule')),
-          useful_life_years: Math.round(parseNumber(getVal('duree'))) || 1,
+          useful_life_years: Math.ceil(parseNumber(getVal('duree'))) || 1, // A5: ceil (pas de sous-amortissement)
           depreciation_method: (() => { const m = String(getVal('methode') || '').toLowerCase(); return m.includes('deg') ? 'declining' : 'linear'; })(),
           status: 'active',
         });
