@@ -6568,8 +6568,8 @@ const ContentieuxTab = ({ allJournalEntries, getStatutColor }: ContentieuxTabPro
               totalDepensesEngagees += debit;
             }
           }
-          // Sum credits on 411xxx as recovered amounts
-          if (acc.startsWith('411') && (line.credit || 0) > 0) {
+          // Sum credits on recouvrement accounts (411xxx + 42x/43x/44x/46x/47x) as recovered amounts
+          if (isRecouvrementAccount(acc) && (line.credit || 0) > 0) {
             totalMontantsRecouVres += line.credit;
           }
         }
@@ -7521,6 +7521,16 @@ const ContentieuxTab = ({ allJournalEntries, getStatutColor }: ContentieuxTabPro
 
 };
 
+/**
+ * isRecouvrementAccount — étend la sélection de comptes du module Recouvrement.
+ * Inclut les comptes clients (411), personnel (42x) et tiers divers SYSCOHADA
+ * (431 Sécurité sociale, 441 État, 461 Débiteurs divers, 471 Débiteurs provisoires, etc.).
+ * Préfixes couverts : 411, 421, 422, 423, 424, 425, 431, 441, 461, 471.
+ */
+const RECOUVREMENT_PREFIXES = ['411', '421', '422', '423', '424', '425', '431', '441', '461', '471'];
+const isRecouvrementAccount = (accountCode: string): boolean =>
+  RECOUVREMENT_PREFIXES.some(prefix => accountCode.startsWith(prefix));
+
 const RecouvrementModule: React.FC = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
@@ -7722,10 +7732,10 @@ Service Contentieux
     load();
   }, [adapter]);
 
-  // Build receivables per customer from 411xxx journal lines
+  // Build receivables per customer from recouvrement journal lines (411xxx + 42x + selected 43x/44x/46x/47x)
   const mockCreances = useMemo(() => {
     const today = new Date();
-    // Group debit lines on 411xxx accounts by thirdPartyCode
+    // Group debit lines on recouvrement accounts by thirdPartyCode
     const byClient: Record<string, {
       totalDebit: number;
       totalCredit: number;
@@ -7743,7 +7753,7 @@ Service Contentieux
 
     for (const entry of allJournalEntries) {
       for (const line of entry.lines) {
-        if (!line.accountCode.startsWith('411')) continue;
+        if (!isRecouvrementAccount(line.accountCode)) continue;
         const code = line.thirdPartyCode || line.accountCode;
         if (!byClient[code]) {
           byClient[code] = { totalDebit: 0, totalCredit: 0, lines: [] };
@@ -8057,11 +8067,11 @@ Service Contentieux
     const totalJoursRetard = mockCreances.reduce((sum, c) => sum + c.joursRetard, 0);
     const delaiMoyen = mockCreances.length > 0 ? Math.round(totalJoursRetard / mockCreances.length) : 0;
 
-    // Compute credit totals from 411xxx lines for recovered amounts
+    // Compute credit totals from recouvrement accounts (411xxx + 42x/43x/44x/46x/47x) for recovered amounts
     let montantRecouvre = 0;
     for (const entry of allJournalEntries) {
       for (const line of entry.lines) {
-        if (line.accountCode.startsWith('411') && line.credit > 0) {
+        if (isRecouvrementAccount(line.accountCode) && line.credit > 0) {
           montantRecouvre += line.credit;
         }
       }
@@ -8106,12 +8116,12 @@ Service Contentieux
       agingBuckets[bucket].montant += c.montantTotal;
     }
 
-    // Monthly evolution from journal entries (group 411xxx by month)
+    // Monthly evolution from journal entries (group recouvrement accounts by month)
     const monthlyData: Record<string, { creances: number; recouvre: number }> = {};
     const monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
     for (const entry of allJournalEntries) {
       for (const line of entry.lines) {
-        if (!line.accountCode.startsWith('411')) continue;
+        if (!isRecouvrementAccount(line.accountCode)) continue;
         const m = parseInt(entry.date.slice(5, 7), 10) - 1;
         const monthKey = monthNames[m] || 'N/A';
         if (!monthlyData[monthKey]) monthlyData[monthKey] = { creances: 0, recouvre: 0 };
@@ -8161,11 +8171,11 @@ Service Contentieux
         }))
     );
 
-    // Build credit notes from 411xxx credit lines
+    // Build credit notes from recouvrement account credit lines (411xxx + 42x/43x/44x/46x/47x)
     const avoirsNoteCredit: Array<{ id: string; client: string; montant: number; motif: string; statut: string }> = [];
     for (const entry of allJournalEntries) {
       for (const line of entry.lines) {
-        if (line.accountCode.startsWith('411') && line.credit > 0 && entry.label.toLowerCase().includes('avoir')) {
+        if (isRecouvrementAccount(line.accountCode) && line.credit > 0 && entry.label.toLowerCase().includes('avoir')) {
           avoirsNoteCredit.push({
             id: entry.entryNumber,
             client: line.thirdPartyName || line.accountCode,

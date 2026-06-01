@@ -225,7 +225,8 @@ const TARGET_FIELDS: Record<string, { field: string; label: string; required: bo
   tiers: [
     { field: 'code', label: 'Code tiers', required: true },
     { field: 'nom', label: 'Nom / Raison sociale', required: true },
-    { field: 'type', label: 'Type (client/fournisseur)', required: true },
+    { field: 'type', label: 'Type (client/fournisseur/personnel/autre)', required: true },
+    { field: 'compte', label: 'Numéro de compte SYSCOHADA (optionnel, déduit le type)', required: false },
     { field: 'nif', label: 'NIF / RCCM', required: false },
     { field: 'adresse', label: 'Adresse', required: false },
     { field: 'telephone', label: 'Telephone', required: false },
@@ -1229,23 +1230,57 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       const tiersData = uploadedFiles.tiers?.data || [];
       setImportLabel('Import des tiers...');
       const tiersRecords: Record<string, unknown>[] = [];
-      const normalizeTiersType = (raw: string): 'customer' | 'supplier' | 'both' => {
+      /**
+       * normalizeTiersType — mappe le type brut (colonne CSV/Excel) vers le type interne.
+       * Extension SYSCOHADA :
+       *   - 'personnel' / 'employee' → 'personnel'   (comptes 42x)
+       *   - 'social' / 'state' / 'autre' / 'other' → 'other'  (comptes 43x–47x)
+       * Si le type textuel est vide/inconnu, la déduction par préfixe de compte prend le relais
+       * via normalizeTiersTypeFromAccount() ci-dessous.
+       */
+      const normalizeTiersType = (raw: string): 'customer' | 'supplier' | 'both' | 'personnel' | 'other' => {
         const v = raw.toLowerCase().trim();
         if (v === 'customer' || v === 'client' || v === 'c') return 'customer';
         if (v === 'supplier' || v === 'fournisseur' || v === 'f') return 'supplier';
         if (v === 'both' || v === 'les deux' || v === 'b') return 'both';
+        // Personnel / employés (comptes SYSCOHADA 42x)
+        if (v.includes('personnel') || v.includes('employee')) return 'personnel';
+        // Tiers divers : organismes sociaux (43x), État (44x), débiteurs divers (46x), comptes transitoires (47x)
+        if (v.includes('social') || v.includes('state') || v.includes('autre') || v.includes('other')) return 'other';
         return 'customer';
       };
-      const codeCol = tiersMapping.find(m => m.target === 'code')?.source;
-      const nomCol  = tiersMapping.find(m => m.target === 'nom')?.source;
-      const typeCol = tiersMapping.find(m => m.target === 'type')?.source;
+      /**
+       * normalizeTiersTypeFromAccount — déduit le type à partir du préfixe de compte SYSCOHADA
+       * quand la colonne type est absente ou non reconnue.
+       *   42x → personnel, 43x/44x/46x/47x → other, 401/402 → supplier, 411/412 → customer
+       */
+      const normalizeTiersTypeFromAccount = (accountCode: string): 'customer' | 'supplier' | 'personnel' | 'other' | null => {
+        if (!accountCode) return null;
+        const prefix2 = accountCode.slice(0, 2);
+        const prefix3 = accountCode.slice(0, 3);
+        if (prefix2 === '42') return 'personnel';
+        if (prefix2 === '43' || prefix2 === '44' || prefix2 === '46' || prefix2 === '47') return 'other';
+        if (prefix3 === '401' || prefix3 === '402') return 'supplier';
+        if (prefix3 === '411' || prefix3 === '412') return 'customer';
+        return null;
+      };
+      const codeCol    = tiersMapping.find(m => m.target === 'code')?.source;
+      const nomCol     = tiersMapping.find(m => m.target === 'nom')?.source;
+      const typeCol    = tiersMapping.find(m => m.target === 'type')?.source;
+      const compteCol  = tiersMapping.find(m => m.target === 'compte')?.source;
       for (const row of tiersData as Record<string, any>[]) {
         if (!codeCol || !nomCol) continue;
-        const rawType = typeCol ? String(row[typeCol] || '') : '';
+        const rawType    = typeCol   ? String(row[typeCol]   || '') : '';
+        const rawCompte  = compteCol ? String(row[compteCol] || '') : '';
+        // Priority: explicit type column → account prefix deduction → default 'customer'
+        const resolvedType =
+          normalizeTiersType(rawType) !== 'customer' || rawType.toLowerCase().trim() === 'customer' || rawType.toLowerCase().trim() === 'c'
+            ? normalizeTiersType(rawType)
+            : normalizeTiersTypeFromAccount(rawCompte) ?? normalizeTiersType(rawType);
         tiersRecords.push({
           code: String(row[codeCol] || ''),
           name: String(row[nomCol]  || ''),
-          type: normalizeTiersType(rawType),
+          type: resolvedType,
           is_active: true,
         });
       }

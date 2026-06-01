@@ -183,7 +183,12 @@
       "Bash(Get-Content \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--devs-WiseBook\\\\4525bfd7-c56a-4a67-8681-f4151267ffab\\\\tasks\\\\brv503foy.output\" -Wait)",
       "Bash(Select-Object -First 50)",
       "Bash(echo \"TSC_EXIT_CODE:$?\")",
-      "Bash(Get-Content \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--devs-WiseBook\\\\4525bfd7-c56a-4a67-8681-f4151267ffab\\\\tasks\\\\bapa9p9z2.output\" -ErrorAction SilentlyContinue)"
+      "Bash(Get-Content \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--devs-WiseBook\\\\4525bfd7-c56a-4a67-8681-f4151267ffab\\\\tasks\\\\bapa9p9z2.output\" -ErrorAction SilentlyContinue)",
+      "Bash(npx supabase *)",
+      "mcp__56330ec3-a24d-455c-a7ea-6684f6563914__get_project",
+      "Bash(Get-Content \"C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--devs-WiseBook\\\\6e60d990-7086-42dc-bbab-562b49a4d9dc\\\\tasks\\\\byc6dv28e.output\" -Wait -Tail 30)",
+      "Bash(Select-String \"PersonnelModule\")",
+      "Bash(Select-Object -First 20)"
     ],
     "deny": [],
     "ask": []

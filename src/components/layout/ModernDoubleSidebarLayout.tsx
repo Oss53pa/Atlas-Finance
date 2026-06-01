@@ -227,6 +227,8 @@ const ModernDoubleSidebarLayout: React.FC = () => {
     tiers: [
       { id: 'crm-clients', label: t('navigation.clients'), path: '/tiers/clients', icon: <UserCheck className="w-4 h-4" /> },
       { id: 'suppliers', label: t('navigation.suppliers'), path: '/tiers/fournisseurs', icon: <Briefcase className="w-4 h-4" /> },
+      { id: 'personnel', label: 'Personnel', path: '/tiers/personnel', icon: <Users className="w-4 h-4" /> },
+      { id: 'autres-tiers', label: 'Autres tiers', path: '/tiers/autres', icon: <UserCheck className="w-4 h-4" /> },
       { id: 'recouvrement', label: t('thirdParty.collection'), path: '/tiers/recouvrement', icon: <Receipt className="w-4 h-4" /> },
       { id: 'global-lettrage', label: 'Lettrage Global', path: '/tiers/lettrage', icon: <RefreshCw className="w-4 h-4" /> },
       { id: 'contacts', label: 'Contacts', path: '/tiers/contacts', icon: <Users className="w-4 h-4" /> }
