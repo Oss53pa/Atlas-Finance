@@ -2,7 +2,7 @@
  * General Ledger Service — Connected to Dexie IndexedDB.
  * Queries real journal entries from the local database.
  */
-import type { DataAdapter } from '@atlas/data';
+import type { DataAdapter, TableName } from '@atlas/data';
 import type { DBJournalEntry } from '../../../lib/db';
 import { money } from '../../../utils/money';
 import {
@@ -350,11 +350,29 @@ class GeneralLedgerService {
   // Charge toutes les écritures et injecte les lignes depuis journal_lines
   // Charge toutes les écritures ET leurs lignes depuis journalLines (SaaS : tables séparées).
   // Merger avec entry.lines (Dexie) si présentes. Toujours appelé via ce helper.
+  /**
+   * A6 — Récupère TOUTES les lignes d'une table en pages keyset (sans le plafond
+   * de 100 000 lignes de getAll/range). Résultat identique, mais scalable et sans
+   * requête géante unique. Repli sur getAll si l'adapter n'expose pas getPage.
+   */
+  private async getAllPaged<T>(adapter: DataAdapter, table: TableName, pageSize = 1000): Promise<T[]> {
+    if (typeof adapter.getPage !== 'function') return adapter.getAll<T>(table);
+    const out: T[] = [];
+    let cursor: string | number | null = null;
+    for (let i = 0; i < 1000; i++) { // garde-fou : 1000 pages max
+      const { rows, nextCursor, hasMore } = await adapter.getPage<T>(table, { pageSize, sortField: 'id', cursor });
+      out.push(...rows);
+      if (!hasMore || nextCursor == null) break;
+      cursor = nextCursor;
+    }
+    return out;
+  }
+
   private async getAllEntriesWithLines(adapter: DataAdapter): Promise<DBJournalEntry[]> {
-    const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
+    const entries = await this.getAllPaged<DBJournalEntry>(adapter, 'journalEntries');
     if (entries.length === 0) return entries;
     try {
-      const allLines = await adapter.getAll<any>('journalLines');
+      const allLines = await this.getAllPaged<any>(adapter, 'journalLines');
       if (allLines.length > 0) {
         const byEntry = new Map<string, any[]>();
         for (const l of allLines) {
