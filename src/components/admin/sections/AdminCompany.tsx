@@ -239,39 +239,27 @@ const AdminCompany: React.FC<Props> = ({ subTab, setSubTab }) => {
   const [exerciceForm, setExerciceForm] = useState({ debut:'',fin:'',code:'',periodes:'12' });
 
   const saveSetting = useCallback(async (key: string, value: any) => {
-    const tenantId = (adapter as any).tenantId as string | undefined;
-    const record = {
-      key,
-      value: JSON.stringify(value),
-      updated_at: new Date().toISOString(),
-      tenant_id: tenantId,
-    };
-    // Stratégie 1 : upsert direct Supabase (SaaS)
-    // onConflict: 'key' car la PK de la table settings est uniquement `key TEXT PRIMARY KEY`
-    // (pas de contrainte composite key+tenant_id — un seul tenant par projet Supabase)
+    const serialized = JSON.stringify(value);
+
+    // ── Mode SaaS : RPC upsert_setting (SECURITY DEFINER) ─────────────────────
+    // Avantages vs upsert direct :
+    //   • tenant_id dérivé côté serveur via get_user_company_id() → jamais incorrect
+    //   • PK composite (key, tenant_id) → pas de conflit inter-tenant
+    //   • RLS bypassée proprement → 0 risque d'échec silencieux
     if (adapter.getMode() === 'saas') {
-      if (!tenantId) {
-        // Attendre que l'auth soit restaurée (max 3 tentatives)
-        let tid: string | undefined;
-        for (let i = 0; i < 3; i++) {
-          await new Promise(r => setTimeout(r, 800));
-          tid = (adapter as any).tenantId as string | undefined;
-          if (tid && tid !== 'default') break;
-        }
-        if (!tid || tid === 'default') throw new Error('Session non initialisée — rechargez la page');
-        record.tenant_id = tid;
-      }
-      const { error } = await (supabase as any)
-        .from('settings')
-        .upsert(record, { onConflict: 'key' });
+      const { error } = await (supabase as any).rpc('upsert_setting', {
+        p_key:   key,
+        p_value: serialized,
+      });
       if (error) {
-        console.error('[saveSetting] Supabase error:', error.message, record);
-        throw new Error(`Erreur Supabase : ${error.message}`);
+        console.error('[saveSetting] RPC error:', error.message, { key });
+        throw new Error(error.message);
       }
       return;
     }
-    // Stratégie 2 : adapter (mode local Dexie)
-    const data = { key, value: JSON.stringify(value), updatedAt: new Date().toISOString() };
+
+    // ── Mode local (Dexie) ────────────────────────────────────────────────────
+    const data = { key, value: serialized, updatedAt: new Date().toISOString() };
     try {
       const existing = await adapter.getById<any>('settings', key);
       if (existing) { await adapter.update('settings', key, data); }
@@ -287,13 +275,11 @@ const AdminCompany: React.FC<Props> = ({ subTab, setSubTab }) => {
       setAccounts(rawAccounts.map((a: any) => ({ numero: a.code||a.numero, libelle: a.name||a.libelle, classe: Number(a.accountClass||a.classe||(a.code||'')[0]||0), type: a.accountType||a.type||(Number((a.code||'')[0])<=5?'Bilan':'Gestion'), sens: a.normalBalance==='credit'?'Crediteur':(a.normalBalance==='debit'?'Debiteur':(a.sens||'Debiteur')), lettrable: a.isReconcilable??a.lettrable??false, actif: a.isActive??a.actif??true })));
       const rawFy = await adapter.getAll<any>('fiscalYears');
       setExercices(rawFy.map((fy: any) => ({ code: fy.code, debut: fy.startDate||fy.debut, fin: fy.endDate||fy.fin, periodes: 12, statut: fy.isClosed?'Cloture':'Ouvert', actif: fy.isActive??fy.actif??false })));
-      // Lecture des settings via Supabase direct (RLS = get_user_company_id())
-      // Évite la race condition tenant_id non encore initialisé dans l'adapter
+      // Lecture des settings via RLS directe (get_user_company_id() côté serveur)
+      // Avec PK composite (key, tenant_id), chaque tenant ne voit que ses propres settings
       let allSettings: any[] = [];
       if (adapter.getMode() === 'saas') {
-        const tid = (adapter as any).tenantId as string | undefined;
-        const q = (supabase as any).from('settings').select('*');
-        const { data: sRows } = tid ? await q.eq('tenant_id', tid) : await q;
+        const { data: sRows } = await (supabase as any).from('settings').select('*');
         allSettings = sRows || [];
       } else {
         allSettings = await adapter.getAll<any>('settings');
