@@ -1168,6 +1168,14 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       if (accountsSkipped > 0) {
         report.warnings.push(`${accountsSkipped} comptes deja existants (ignores)`);
       }
+      // A4 — alerter si des comptes restent sans intitulé (name === code) : le fichier
+      // source devrait porter une colonne LIBELLE, ou le Plan Comptable doit l'enrichir.
+      {
+        const sansLibelle = accountRecords.filter(a => String(a.name) === String(a.code)).length;
+        if (sansLibelle > 0) {
+          report.warnings.push(`${sansLibelle} compte(s) sans intitulé (libellé = numéro). Fournissez la colonne LIBELLE ou un Plan Comptable pour les nommer.`);
+        }
+      }
       setImportProgress(15);
 
       // Mapping noms de tables PG (snake_case) → noms Dexie (camelCase)
@@ -1386,7 +1394,9 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
               _entry_number: piece, // clé temporaire pour remapping post-insert
               entry_id: entryId, tenant_id: tenantId,
               account_code: accountCode,
-              account_name: String(getEcrVal(line, 'compteLib') || getEcrVal(line, 'CompteLib') || accountCode),
+              // A4 — privilégier le libellé de compte (colonne LIBELLE → libelleCompte)
+              // pour ne JAMAIS retomber sur « code = nom » quand le libellé est dispo.
+              account_name: String(getEcrVal(line, 'libelleCompte') || getEcrVal(line, 'compteLib') || getEcrVal(line, 'CompteLib') || accountCode),
               label: String(getEcrVal(line, 'libelleEcriture') || getEcrVal(line, 'libelle') || entryLabel),
               debit: Math.abs(parseNumber(findCol(line, debitAliases2))),
               credit: Math.abs(parseNumber(findCol(line, creditAliases2))),
