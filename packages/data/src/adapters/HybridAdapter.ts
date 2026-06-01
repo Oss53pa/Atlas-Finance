@@ -63,6 +63,13 @@ export class HybridAdapter implements DataAdapter {
     return this.local.getAll<T>(table, filters)
   }
 
+  // A6 — pagination keyset (déléguée au local, comme getAll)
+  async getPage<T>(table: TableName, opts?: import('../DataAdapter').PageOptions): Promise<import('../DataAdapter').PagedResult<T>> {
+    if (typeof this.local.getPage === 'function') return this.local.getPage<T>(table, opts)
+    const rows = await this.local.getAll<T>(table)
+    return { rows, nextCursor: null, hasMore: false }
+  }
+
   async create<T>(table: TableName, data: any, initiatedBy?: string): Promise<T> {
     const record = await this.local.create<T>(table, data, initiatedBy)
     this.enqueue(table, 'CREATE', record)
