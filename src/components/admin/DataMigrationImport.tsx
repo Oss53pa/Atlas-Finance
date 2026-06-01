@@ -103,6 +103,7 @@ interface ImportReport {
   vncOk: boolean;
   warnings: string[];
   dbCounts?: { accounts: number; entries: number; lines: number; tiers: number; assets: number };
+  migrationBatchId?: string;
 }
 
 interface Props {
@@ -1037,10 +1038,13 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
     setImporting(true);
     setImportProgress(0);
     const sessionId = generateId();
+    // A7 — identifiant du LOT de migration : rattache chaque entité importée
+    // pour permettre une ré-migration par écrasement bornée (purge_migration_batch).
+    const migrationBatchId = crypto.randomUUID();
     const report: ImportReport = {
       accounts: 0, journals: 0, tiers: 0, entries: 0, lines: 0,
       assets: 0, lettrages: 0, balanceOk: false, bilanOk: false,
-      tiersOk: false, vncOk: false, warnings: [],
+      tiersOk: false, vncOk: false, warnings: [], migrationBatchId,
     };
     const journals = new Set<string>();
 
@@ -1050,17 +1054,19 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       const supabaseClient = isSaasMode ? (adapter as any).client : null;
       const tenantId = isSaasMode ? (adapter as any).tenantId as string | null : null;
 
-      // ── Si mode "Remplacer" : supprimer les données existantes du tenant ──
+      // ── Mode "Remplacer" : A7 — purge BORNÉE aux données ISSUES DE MIGRATION
+      // (migration_batch_id NOT NULL). Les saisies manuelles (batch NULL) sont
+      // PRÉSERVÉES — fini le wipe total du tenant.
       if (params.existingDataAction === 'replace' && isSaasMode && supabaseClient) {
-        setImportLabel('Suppression des données existantes...');
-        // Passer toutes les écritures en draft pour lever le verrou validated
+        setImportLabel('Suppression des précédentes migrations (données manuelles préservées)...');
+        // Lever le verrou des écritures migrées validées
         await supabaseClient.from('journal_entries')
-          .update({ status: 'draft' }).eq('tenant_id', tenantId);
-        // Supprimer dans l'ordre inverse des FK
+          .update({ status: 'draft' }).eq('tenant_id', tenantId).not('migration_batch_id', 'is', null);
+        // Supprimer dans l'ordre inverse des FK, UNIQUEMENT les lignes migrées
         for (const table of ['journal_lines', 'journal_entries', 'third_parties', 'accounts', 'assets']) {
           const { error } = await supabaseClient
-            .from(table).delete().eq('tenant_id', tenantId);
-          if (error) report.warnings.push(`Suppression ${table} : ${error.message}`);
+            .from(table).delete().eq('tenant_id', tenantId).not('migration_batch_id', 'is', null);
+          if (error) report.warnings.push(`Suppression migrée ${table} : ${error.message}`);
         }
       }
 
@@ -1098,7 +1104,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
         level: code.length,
         is_active: true,
         ...extra,
-        ...(isSaasForAccounts ? { tenant_id: tenantIdForAccounts, created_at: new Date().toISOString() } : {}),
+        ...(isSaasForAccounts ? { tenant_id: tenantIdForAccounts, created_at: new Date().toISOString(), migration_batch_id: migrationBatchId } : {}),
       });
 
       if (pcData.length > 0) {
@@ -1202,6 +1208,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
               ...r,
               tenant_id: tenantIdForAccounts,
               created_at: new Date().toISOString(),
+              migration_batch_id: (r as Record<string, unknown>).migration_batch_id ?? migrationBatchId, // A7
             }));
             const { error } = await supabaseForAccounts
               .from(pgTable)
@@ -1381,6 +1388,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
             status: entryStatus,
             total_debit: totalDebit, total_credit: totalCredit,
             created_at: new Date().toISOString(),
+            migration_batch_id: migrationBatchId, // A7
           });
           lines.forEach((line: any) => {
             const debitAliases2 = ['debit','Debit','montantDebit','debitAmount'];
@@ -1400,6 +1408,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
               label: String(getEcrVal(line, 'libelleEcriture') || getEcrVal(line, 'libelle') || entryLabel),
               debit: Math.abs(parseNumber(findCol(line, debitAliases2))),
               credit: Math.abs(parseNumber(findCol(line, creditAliases2))),
+              migration_batch_id: migrationBatchId, // A7
             });
           });
         }
@@ -1633,7 +1642,16 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
           const totalCredit = lines.reduce((s, l) => s + l.credit, 0);
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const adapterExtAN = adapter as any;
-          if (typeof adapterExtAN.saveJournalEntry === 'function') {
+          if (isSaasMode && supabaseClient) {
+            // A7 — RPC batch pour TAGUER l'À-Nouveau avec le migration_batch_id
+            // (sinon la purge du lot oublierait les écritures AN).
+            const { error } = await supabaseClient.rpc('save_journal_entry_batch', {
+              p_entry: { entryNumber, journal: 'AN', date, label, reference: entryNumber, status: 'validated', totalDebit, totalCredit },
+              p_lines: lines,
+              p_batch_id: migrationBatchId,
+            });
+            if (error) { report.warnings.push(`Report AN ${entryNumber} ignoré : ${error.message}`); return; }
+          } else if (typeof adapterExtAN.saveJournalEntry === 'function') {
             await adapterExtAN.saveJournalEntry({
               entryNumber, journal: 'AN', date, label, reference: entryNumber,
               status: 'validated', totalDebit, totalCredit, lines,
@@ -1724,16 +1742,73 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
         `Migration ${sourceSystem || 'inconnu'}: ${report.accounts} comptes, ${report.entries} ecritures, ${report.tiers} tiers, ${report.assets} immobilisations`
       );
 
+      // A7 — enregistrer la session de migration (traçabilité + base de la purge/ré-migration)
+      if (isSaasMode && supabaseClient) {
+        await supabaseClient.from('migration_sessions').upsert({
+          tenant_id: tenantId, batch_id: migrationBatchId,
+          mode: String(migrationMode), source_system: sourceSystem || 'sage',
+          status: 'completed',
+          account_count: report.accounts, third_party_count: report.tiers,
+          asset_count: report.assets, entry_count: report.entries, line_count: report.lines,
+          completed_at: new Date().toISOString(),
+        }, { onConflict: 'tenant_id,batch_id' });
+      }
+
       setImportReport(report);
       toast.success('Migration terminee avec succes');
     } catch (err: any) {
       toast.error(`Erreur d'import: ${err.message || 'erreur inconnue'}`);
       report.warnings.push(`Erreur fatale: ${err.message}`);
+      // A7 — marquer la session en échec (le lot reste identifiable pour purge)
+      try {
+        if (adapter.getMode() === 'saas') {
+          await (adapter as any).client?.from('migration_sessions').upsert({
+            tenant_id: (adapter as any).tenantId, batch_id: migrationBatchId,
+            mode: String(migrationMode), source_system: sourceSystem || 'sage',
+            status: 'failed', error: String(err?.message || err),
+            completed_at: new Date().toISOString(),
+          }, { onConflict: 'tenant_id,batch_id' });
+        }
+      } catch { /* best effort */ }
       setImportReport(report);
     } finally {
       setImporting(false);
     }
-  }, [adapter, uploadedFiles, mappings, params, excludedEntries, simulation, sourceSystem]);
+  }, [adapter, uploadedFiles, mappings, params, excludedEntries, simulation, sourceSystem, migrationMode]);
+
+  // ─── A7 — Annuler/écraser un lot de migration (purge bornée + pré-flight) ───
+  const handlePurgeBatch = useCallback(async (batchId: string) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const client = (adapter as any).client;
+    if (adapter.getMode() !== 'saas' || !client) {
+      toast.error('Purge disponible uniquement en mode cloud.');
+      return;
+    }
+    try {
+      // 1. Pré-flight (dry-run) : compter ce qui sera supprimé
+      const { data: preflight, error: e1 } = await client.rpc('purge_migration_batch', { p_batch_id: batchId, p_dry_run: true });
+      if (e1) { toast.error(`Pré-flight échoué : ${e1.message}`); return; }
+      const c = (preflight?.counts ?? {}) as Record<string, number>;
+      const total = Object.values(c).reduce((s, n) => s + (Number(n) || 0), 0);
+      if (total === 0) { toast('Ce lot ne contient aucune donnée à supprimer.'); return; }
+      // 2. Confirmation explicite
+      const ok = window.confirm(
+        `Supprimer DÉFINITIVEMENT ce lot de migration ?\n\n` +
+        `• Écritures : ${c.journal_entries ?? 0}\n• Lignes : ${c.journal_lines ?? 0}\n` +
+        `• Comptes : ${c.accounts ?? 0}\n• Tiers : ${c.third_parties ?? 0}\n• Immobilisations : ${c.assets ?? 0}\n\n` +
+        `Les saisies manuelles (hors migration) ne sont PAS touchées.`
+      );
+      if (!ok) return;
+      // 3. Purge effective (bornée au lot côté serveur)
+      const { error: e2 } = await client.rpc('purge_migration_batch', { p_batch_id: batchId, p_dry_run: false });
+      if (e2) { toast.error(`Purge échouée : ${e2.message}`); return; }
+      toast.success(`Lot supprimé (${total} lignes). Vous pouvez relancer la migration.`);
+      setImportReport(null);
+      setCurrentStep('mode');
+    } catch (err) {
+      toast.error(`Erreur purge : ${err instanceof Error ? err.message : 'inconnue'}`);
+    }
+  }, [adapter]);
 
   // ─── Navigation ────────────────────────────────────────
 
@@ -2872,6 +2947,23 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
                 </div>
               ))}
             </div>
+
+            {importReport.migrationBatchId && (
+              <div className="mb-6 flex items-center justify-between gap-3 flex-wrap bg-slate-50 border border-slate-200 rounded-lg p-3">
+                <div className="text-sm text-slate-600">
+                  <span className="font-medium text-slate-700">Lot de migration :</span>{' '}
+                  <code className="text-xs bg-white px-1.5 py-0.5 rounded border">{importReport.migrationBatchId}</code>
+                  <p className="text-xs text-slate-400 mt-1">La ré-migration écrase ce lot ; les saisies manuelles ne sont jamais supprimées.</p>
+                </div>
+                <button
+                  onClick={() => handlePurgeBatch(importReport.migrationBatchId!)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-red-700 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors"
+                  title="Pré-flight + confirmation avant suppression"
+                >
+                  <Trash2 className="w-4 h-4" /> Annuler ce lot
+                </button>
+              </div>
+            )}
 
             {importReport.warnings.length > 0 && (
               <div className="mb-6">
