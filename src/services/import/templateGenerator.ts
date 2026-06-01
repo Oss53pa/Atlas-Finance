@@ -12,6 +12,8 @@
  */
 import * as XLSX from 'xlsx';
 import type { AtlasImportTemplate, TemplateColumn } from './atlasImportTemplates';
+import type { MigrationModeTemplate, MigrationModeId } from './migrationModeTemplates';
+import { getModeTemplate } from './migrationModeTemplates';
 
 const ATLAS_VERSION = '1.0';
 
@@ -230,4 +232,94 @@ export function downloadTemplate(
  */
 export function suggestTemplateFilename(template: AtlasImportTemplate): string {
   return `atlas-${template.code.toLowerCase()}-modele.xlsx`;
+}
+
+// ════════════════════════════════════════════════════════════════════
+// Générateur de CLASSEURS DE MIGRATION PAR MODE
+// (un seul fichier multi-feuilles : 📖 Instructions + feuilles + ✅ Contrôle)
+// ════════════════════════════════════════════════════════════════════
+
+function buildModeInstructionsSheet(mode: MigrationModeTemplate): XLSX.WorkSheet {
+  const rows: unknown[][] = [];
+  rows.push(['', 'ATLAS F&A — MODÈLE D\'IMPORT']);
+  for (const line of mode.instructions) rows.push(['', line]);
+  rows.push([]);
+  rows.push(['', 'RÈGLES GÉNÉRALES']);
+  rows.push(['', '• Ne modifiez pas les noms des feuilles ni les en-têtes des colonnes.']);
+  rows.push(['', '• Les colonnes marquées (*) sont obligatoires.']);
+  rows.push(['', '• Format date : AAAA-MM-JJ (ex. 2026-01-15).']);
+  rows.push(['', '• Montants : point comme séparateur décimal (ex. 1234.56), sans espace.']);
+  rows.push(['', '• Ne laissez pas de lignes vides entre les données.']);
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [{ wch: 2 }, { wch: 110 }];
+  return ws;
+}
+
+function buildModeControlSheet(mode: MigrationModeTemplate): XLSX.WorkSheet {
+  const rows: unknown[][] = [
+    [],
+    ['', 'CONTRÔLE D\'ÉQUILIBRE'],
+    ['', mode.controlLabel],
+    [],
+    ['', 'Total Débit', 0],
+    ['', 'Total Crédit', 0],
+    ['', 'Écart (D - C)', 0],
+    ['', 'Statut', '✅ ÉQUILIBRÉ'],
+  ];
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [{ wch: 2 }, { wch: 28 }, { wch: 18 }];
+  return ws;
+}
+
+/**
+ * Génère le classeur XLSX complet d'un mode de migration :
+ *   📖 Instructions · feuilles de données (en-têtes exacts) · ✅ Contrôle
+ */
+export function generateModeTemplateFile(mode: MigrationModeTemplate): ArrayBuffer {
+  const wb = XLSX.utils.book_new();
+
+  XLSX.utils.book_append_sheet(wb, buildModeInstructionsSheet(mode), '📖 Instructions');
+
+  for (const sheet of mode.sheets) {
+    // En-têtes : suffixe " *" sur les obligatoires, sauf feuilles `rawHeaders`
+    const headers = sheet.columns.map(c =>
+      (c.required && !sheet.rawHeaders) ? `${c.header} *` : c.header
+    );
+    const ws = XLSX.utils.aoa_to_sheet([headers]);
+    ws['!cols'] = sheet.columns.map(c => ({ wch: Math.max(c.header.length + 3, 12) }));
+    XLSX.utils.book_append_sheet(wb, ws, sheet.sheetName);
+  }
+
+  XLSX.utils.book_append_sheet(wb, buildModeControlSheet(mode), '✅ Contrôle');
+
+  wb.Props = {
+    Title: `Atlas F&A - Migration Mode ${mode.mode} (${mode.title})`,
+    Subject: `Modèle d'import de migration — Mode ${mode.mode}`,
+    Author: 'Atlas F&A',
+    Company: 'Atlas Studio',
+    Category: `atlas-migration-template:${mode.code}`,
+    Keywords: `atlas,syscohada,migration,mode${mode.mode},${mode.code}`,
+  };
+
+  const out = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+  return out instanceof ArrayBuffer ? out : new Uint8Array(out).buffer;
+}
+
+/**
+ * Déclenche le téléchargement du classeur de migration d'un mode.
+ */
+export function downloadModeTemplate(mode: MigrationModeId): void {
+  const tpl = getModeTemplate(mode);
+  const buffer = generateModeTemplateFile(tpl);
+  const blob = new Blob([buffer], {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${tpl.fileBaseName}.xlsx`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }

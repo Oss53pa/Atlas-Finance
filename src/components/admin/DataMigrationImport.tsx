@@ -20,6 +20,10 @@ import {
   generatePlanComptableFromGL,
   toXlsxRows,
   type GenerationResult,
+  downloadModeTemplate,
+  splitModeWorkbook,
+  getModeTemplate,
+  type MigrationModeId,
 } from '../../services/import';
 import { safeAddEntry } from '../../services/entryGuard';
 
@@ -418,6 +422,8 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
   // Step 2 state
   const [uploadedFiles, setUploadedFiles] = useState<Record<string, UploadedFile>>({});
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  /** Input caché pour l'upload du classeur unique du mode (flux recommandé). */
+  const modeWorkbookInputRef = useRef<HTMLInputElement | null>(null);
 
   // Step 3 state
   const [analysisReport, setAnalysisReport] = useState<AnalysisReport | null>(null);
@@ -597,6 +603,43 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       return next;
     });
   }, []);
+
+  /**
+   * Upload du CLASSEUR UNIQUE du mode (flux recommandé) : on lit toutes les
+   * feuilles attendues par le mode et on alimente les slots correspondants en
+   * une seule opération (Grand Livre → grandLivre, Balance → reportAN, etc.).
+   */
+  const handleModeWorkbookUpload = useCallback(async (file: File) => {
+    try {
+      const buffer = await file.arrayBuffer();
+      const wb = XLSX.read(new Uint8Array(buffer), { type: 'array', cellDates: true });
+      const result = splitModeWorkbook(wb, migrationMode as MigrationModeId);
+
+      if (!result.recognized) {
+        toast.error(
+          `Ce fichier ne correspond pas au modèle du Mode ${migrationMode}. ` +
+          `Téléchargez « Modèle du Mode ${migrationMode} » puis remplissez-le sans renommer les feuilles.`
+        );
+        return;
+      }
+
+      setUploadedFiles(prev => {
+        const next = { ...prev };
+        for (const [slot, parsed] of Object.entries(result.slots)) {
+          if (parsed) next[slot] = { file, data: parsed.data, columns: parsed.columns };
+        }
+        return next;
+      });
+
+      const summary = result.matched.map(m => `${m.sheetName} (${m.rows})`).join(' · ');
+      toast.success(`Classeur Mode ${migrationMode} importé — ${summary}`);
+      if (result.missingRequired.length > 0) {
+        toast(`⚠️ Feuille(s) obligatoire(s) vide(s) ou absente(s) : ${result.missingRequired.join(', ')}`);
+      }
+    } catch {
+      toast.error(`Erreur de lecture du classeur ${file.name}`);
+    }
+  }, [migrationMode]);
 
   // ─── Step 3: Analysis ─────────────────────────────────
 
@@ -1496,17 +1539,24 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
         report.warnings.push(`+ ${otherErrors} autres ecritures en erreur (voir logs)`);
       }
 
-      // 5. AN entries — Mode 2 / fallback Mode 1
+      // 5. AN entries — Mode 2 (balance N-1) / fallback Mode 1 / Mode 3 (1 AN par exercice)
       const anData = uploadedFiles.reportAN?.data || [];
       if (anData.length > 0) {
         setImportLabel('Import des reports a nouveau...');
         const anMapping = mappings.reportAN || [];
-        // camelCase requis par save_journal_entry (Supabase) et Dexie
-        const anLinesData = anData.map((row: Record<string, unknown>) => {
-          const numCol = anMapping.find(m => m.target === 'numeroCompte')?.source;
-          const libCol = anMapping.find(m => m.target === 'libelle')?.source;
-          const dCol = anMapping.find(m => m.target === 'debit')?.source;
-          const cCol = anMapping.find(m => m.target === 'credit')?.source;
+        const numCol = anMapping.find(m => m.target === 'numeroCompte')?.source;
+        const libCol = anMapping.find(m => m.target === 'libelle')?.source;
+        const dCol = anMapping.find(m => m.target === 'debit')?.source;
+        const cCol = anMapping.find(m => m.target === 'credit')?.source;
+
+        // Détecter une colonne EXERCICE (Mode 3 : balances de clôture par année)
+        const anColumns = uploadedFiles.reportAN?.columns || [];
+        const normCol = (s: string) =>
+          s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '');
+        const exerciceCol = anColumns.find(c => ['exercice', 'annee', 'year', 'periode'].includes(normCol(c)));
+
+        // Construit les lignes AN (camelCase requis par save_journal_entry et Dexie).
+        const buildAnLines = (rows: Record<string, unknown>[]) => rows.map(row => {
           const accountCode = String(numCol ? row[numCol] : '');
           return {
             id: crypto.randomUUID(),
@@ -1518,49 +1568,56 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
           };
         }).filter(l => l.debit > 0 || l.credit > 0);
 
-        if (anLinesData.length > 0) {
-          try {
-            const anTotalDebit = anLinesData.reduce((s, l) => s + l.debit, 0);
-            const anTotalCredit = anLinesData.reduce((s, l) => s + l.credit, 0);
-            const anDate = params.exerciceStart || params.dateBascule || new Date().toISOString().slice(0, 10);
-
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const adapterExtAN = adapter as any;
-            if (typeof adapterExtAN.saveJournalEntry === 'function') {
-              // SupabaseAdapter : atomique via save_journal_entry
-              await adapterExtAN.saveJournalEntry({
-                entryNumber: 'AN-MIGRATION',
-                journal: 'AN',
-                date: anDate,
-                label: 'Reports a nouveau — Migration',
-                reference: 'AN-MIGRATION',
-                status: 'validated',
-                totalDebit: anTotalDebit,
-                totalCredit: anTotalCredit,
-                lines: anLinesData,
-              });
-            } else {
-              // DexieAdapter : écriture AN via safeAddEntry (hash chain)
-              const now = new Date().toISOString();
-              await safeAddEntry(adapter, {
-                id: crypto.randomUUID(),
-                entryNumber: 'AN-MIGRATION',
-                journal: 'AN',
-                date: anDate,
-                label: 'Reports a nouveau — Migration',
-                reference: 'AN-MIGRATION',
-                status: 'validated',
-                lines: anLinesData,
-                createdAt: now,
-              }, { skipSyncValidation: true }); // skipSyncValidation : écriture d'ouverture système, équilibre garanti
-            }
-            report.lines += anLinesData.length;
-            report.entries++;
-            journals.add('AN');
-          } catch (err) {
-            const msg = err instanceof Error ? err.message : 'erreur inconnue';
-            report.warnings.push(`Report AN ignore : ${msg}`);
+        // Enregistre une écriture AN (Supabase RPC atomique ou Dexie hash-chain).
+        const saveAnEntry = async (
+          lines: ReturnType<typeof buildAnLines>, entryNumber: string, date: string, label: string,
+        ) => {
+          if (lines.length === 0) return;
+          const totalDebit = lines.reduce((s, l) => s + l.debit, 0);
+          const totalCredit = lines.reduce((s, l) => s + l.credit, 0);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const adapterExtAN = adapter as any;
+          if (typeof adapterExtAN.saveJournalEntry === 'function') {
+            await adapterExtAN.saveJournalEntry({
+              entryNumber, journal: 'AN', date, label, reference: entryNumber,
+              status: 'validated', totalDebit, totalCredit, lines,
+            });
+          } else {
+            await safeAddEntry(adapter, {
+              id: crypto.randomUUID(),
+              entryNumber, journal: 'AN', date, label, reference: entryNumber,
+              status: 'validated', lines, createdAt: new Date().toISOString(),
+            }, { skipSyncValidation: true }); // écriture d'ouverture système, équilibre garanti
           }
+          report.lines += lines.length;
+          report.entries++;
+          journals.add('AN');
+        };
+
+        try {
+          if (migrationMode === 3 && exerciceCol) {
+            // Mode 3 : une écriture AN par exercice clos → chaînage des À-Nouveaux.
+            const byExercice = new Map<string, Record<string, unknown>[]>();
+            for (const row of anData as Record<string, unknown>[]) {
+              const exo = String(row[exerciceCol] || '').trim() || 'N-1';
+              if (!byExercice.has(exo)) byExercice.set(exo, []);
+              byExercice.get(exo)!.push(row);
+            }
+            for (const exo of [...byExercice.keys()].sort()) {
+              const lines = buildAnLines(byExercice.get(exo)!);
+              const y = parseInt(exo, 10);
+              const date = Number.isFinite(y)
+                ? `${y}-01-01`
+                : (params.exerciceStart || new Date().toISOString().slice(0, 10));
+              await saveAnEntry(lines, `AN-${exo}`, date, `Report à nouveau — Clôture ${exo}`);
+            }
+          } else {
+            const anDate = params.exerciceStart || params.dateBascule || new Date().toISOString().slice(0, 10);
+            await saveAnEntry(buildAnLines(anData as Record<string, unknown>[]), 'AN-MIGRATION', anDate, 'Reports a nouveau — Migration');
+          }
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : 'erreur inconnue';
+          report.warnings.push(`Report AN ignore : ${msg}`);
         }
         setImportProgress(90);
       }
@@ -1990,6 +2047,76 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       {/* ─── Step 2: Upload ─── */}
       {currentStep === 'upload' && (
         <div className="space-y-4">
+          {/* Flux recommandé : UN seul classeur multi-feuilles pour le mode */}
+          <div className="bg-white border-2 rounded-xl p-6" style={{ borderColor: 'var(--color-primary, #15803D)' }}>
+            <div className="flex items-start justify-between gap-4 flex-wrap mb-4">
+              <div className="flex-1 min-w-[260px]">
+                <h2 className="text-lg font-semibold mb-1 flex items-center gap-2 flex-wrap">
+                  <FileSpreadsheet className="w-5 h-5 text-emerald-600" />
+                  Classeur du Mode {migrationMode} — {getModeTemplate(migrationMode as MigrationModeId).title}
+                  {getModeTemplate(migrationMode as MigrationModeId).recommended && (
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200">
+                      Recommandé
+                    </span>
+                  )}
+                </h2>
+                <p className="text-sm text-gray-500">
+                  Le flux le plus simple : <strong>un seul fichier Excel</strong> regroupant toutes les feuilles du mode.
+                  Téléchargez le modèle, remplissez-le sans renommer les feuilles, puis ré-importez-le ici —
+                  les feuilles (Grand Livre, Balance, Tiers, Immobilisations…) sont réparties automatiquement.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => downloadModeTemplate(migrationMode as MigrationModeId)}
+                className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium transition-colors shrink-0"
+              >
+                <Download className="w-4 h-4" /> Télécharger le modèle du Mode {migrationMode}
+              </button>
+            </div>
+
+            <input
+              ref={el => { modeWorkbookInputRef.current = el; }}
+              type="file"
+              accept=".xlsx,.xls"
+              className="hidden"
+              onChange={e => { const f = e.target.files?.[0]; if (f) handleModeWorkbookUpload(f); e.target.value = ''; }}
+            />
+            <button
+              type="button"
+              onClick={() => modeWorkbookInputRef.current?.click()}
+              onDragOver={e => e.preventDefault()}
+              onDrop={e => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) handleModeWorkbookUpload(f); }}
+              className="w-full py-8 border-2 border-dashed border-emerald-300 rounded-lg text-center text-sm text-emerald-700 hover:bg-emerald-50 transition-colors"
+            >
+              <Upload className="w-6 h-6 mx-auto mb-2 text-emerald-500" />
+              Glissez le classeur rempli ici, ou cliquez pour le sélectionner
+            </button>
+
+            <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-gray-500">
+              <span className="font-medium text-gray-600">Feuilles du modèle :</span>
+              {getModeTemplate(migrationMode as MigrationModeId).sheets.map(s => (
+                <span
+                  key={s.sheetName}
+                  className={`px-2 py-0.5 rounded-full border ${
+                    s.required
+                      ? 'bg-red-50 text-red-700 border-red-200 font-medium'
+                      : 'bg-gray-50 text-gray-500 border-gray-200'
+                  }`}
+                >
+                  {s.sheetName}{s.required ? ' *' : ''}
+                </span>
+              ))}
+              <span className="text-gray-400">(* obligatoire)</span>
+            </div>
+          </div>
+
+          {/* Repli : préparation fichier-par-fichier (sources externes hétérogènes) */}
+          <details className="bg-white border rounded-xl">
+            <summary className="cursor-pointer px-6 py-3 text-sm font-medium text-gray-600 hover:text-gray-900">
+              Vous préférez importer des fichiers séparés (export Sage, FEC…) ? Cliquez ici.
+            </summary>
+            <div className="px-6 pb-6 pt-2 space-y-4">
           {/* Bandeau téléchargement des modèles Excel */}
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
             <div className="flex items-start gap-3">
@@ -2103,6 +2230,8 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
               })}
             </div>
           </div>
+            </div>
+          </details>
         </div>
       )}
 

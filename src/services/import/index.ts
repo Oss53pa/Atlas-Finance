@@ -30,8 +30,30 @@ export {
   downloadTemplate,
   suggestTemplateFilename,
   buildTemplateFilename,
+  generateModeTemplateFile,
+  downloadModeTemplate,
 } from './templateGenerator';
 export type { TemplateFileNameParams } from './templateGenerator';
+
+// Migration par mode (classeur unique multi-feuilles)
+export {
+  MIGRATION_MODE_TEMPLATES,
+  getModeTemplate,
+  requiredSlotsForMode,
+} from './migrationModeTemplates';
+export type {
+  MigrationModeId,
+  MigrationModeTemplate,
+  MigrationSlot,
+  ModeSheetSpec,
+} from './migrationModeTemplates';
+
+export {
+  splitModeWorkbook,
+  looksLikeModeWorkbook,
+  parseSheetToData,
+} from './migrationWorkbook';
+export type { SplitResult, ParsedSheet } from './migrationWorkbook';
 
 export {
   generatePlanComptableFromGL,
