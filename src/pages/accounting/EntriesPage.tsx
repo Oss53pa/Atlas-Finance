@@ -77,10 +77,19 @@ const EntriesPage: React.FC = () => {
         .map((e: any) => {
           // Support camelCase (Dexie) et snake_case (Supabase)
           const injectedLines = linesByEntry.get(e.id) ?? (Array.isArray(e.lines) ? e.lines : []);
-          const debit  = injectedLines.reduce((s: number, l: any) => s + Number(l.debit  ?? 0), 0)
-                      || Number(e.totalDebit  || e.total_debit  || 0);
-          const credit = injectedLines.reduce((s: number, l: any) => s + Number(l.credit ?? 0), 0)
-                      || Number(e.totalCredit || e.total_credit || 0);
+          // Utiliser les totaux stockés en DB en priorité (calculés à l'import)
+          // Fallback sur la somme des lignes si les totaux sont absents
+          const dbDebit  = Number(e.totalDebit  || e.total_debit  || 0);
+          const dbCredit = Number(e.totalCredit || e.total_credit || 0);
+          const lineDebit  = injectedLines.reduce((s: number, l: any) => s + Number(l.debit  ?? 0), 0);
+          const lineCredit = injectedLines.reduce((s: number, l: any) => s + Number(l.credit ?? 0), 0);
+          const debit  = lineDebit  > 0 ? lineDebit  : dbDebit;
+          const credit = lineCredit > 0 ? lineCredit : dbCredit;
+          // L'équilibre est vérifié sur les totaux DB (calculés à l'import depuis la source)
+          // plus fiable que la somme des lignes qui peut être affectée par Math.abs()
+          const equilibre = dbDebit > 0 && dbCredit > 0
+            ? Math.abs(dbDebit - dbCredit) < 1   // tolérance 1 FCFA pour arrondis
+            : Math.abs(debit - credit) < 1;
           return {
             id: e.id,
             numero: e.entryNumber || e.entry_number || '',
@@ -90,7 +99,7 @@ const EntriesPage: React.FC = () => {
             libelle: e.label || '',
             debit,
             credit,
-            equilibre: Math.abs(debit - credit) < 0.01,
+            equilibre,
             statut: e.status || 'draft',
             type: e.nature || 'manuelle',
             lines: injectedLines,
@@ -579,12 +588,12 @@ const EntriesPage: React.FC = () => {
       {showDetailsModal && selectedEntry && (
         <>
           {/* Overlay */}
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-50" onClick={() => setShowDetailsModal(false)} />
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-40" onClick={() => setShowDetailsModal(false)} />
 
-          {/* Modal Content */}
-          <div className="fixed inset-0 z-50 overflow-y-auto">
+          {/* Modal Content — z-50 > overlay z-40 */}
+          <div className="fixed inset-0 z-50 overflow-y-auto pointer-events-none">
             <div className="flex items-center justify-center min-h-screen p-4">
-              <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full relative">
+              <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full relative pointer-events-auto">
                 {/* Header */}
                 <div className="p-6 border-b border-[var(--color-border)] bg-gradient-to-r from-[var(--color-primary)]/10 to-[var(--color-text-secondary)]/10">
                   <div className="flex items-center justify-between">
