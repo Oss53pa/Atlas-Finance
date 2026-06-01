@@ -216,7 +216,9 @@ const PlanSyscohadaSection: React.FC<PlanSyscohadaSectionProps> = ({ accounts, o
 // ─── AdminCompany ─────────────────────────────────────────────────────────────
 const AdminCompany: React.FC<Props> = ({ subTab, setSubTab }) => {
   const { adapter } = useData();
-  const [loading, setLoading] = useState(true);
+  // false par défaut — la page s'affiche immédiatement
+  // Les données se chargent en arrière-plan sans bloquer l'interface
+  const [loading, setLoading] = useState(false);
   const [savingSection, setSavingSection] = useState<'logo'|'devise'|null>(null);
   const [savedSection, setSavedSection] = useState<'logo'|'devise'|null>(null);
   const [logoDataUrl, setLogoDataUrl] = useState<string>('');
