@@ -183,6 +183,7 @@ const ClientsModule: React.FC = () => {
     period: 'month' as 'day' | 'week' | 'month' | 'quarter' | 'year' | 'custom'
   });
   const [compareMode, setCompareMode] = useState<boolean>(false);
+  const [editingClient, setEditingClient] = useState<Client | null>(null);
 
   // État formulaire nouveau client
   const [newClient, setNewClient] = useState<NewClientForm>({
@@ -525,8 +526,9 @@ const ClientsModule: React.FC = () => {
     navigate(`/tiers/clients/${clientId}`);
   };
 
-  const handleEditClient = (_clientId: string) => {
-    // TODO: open edit modal
+  const handleEditClient = (clientId: string) => {
+    const client = clients.find(c => c.id === clientId);
+    if (client) setEditingClient(client);
   };
 
   const handleDeleteClient = async (clientId: string) => {
@@ -2206,6 +2208,135 @@ const ClientsModule: React.FC = () => {
                   </button>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Édition Client */}
+      {editingClient && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-bold text-[var(--color-primary)]">Modifier le client</h3>
+              <button type="button" onClick={() => setEditingClient(null)} className="text-gray-400 hover:text-gray-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-sm font-medium text-gray-700">Raison sociale *</label>
+                <input
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                  value={editingClient.raisonSociale}
+                  onChange={e => setEditingClient({ ...editingClient, raisonSociale: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Code</label>
+                <input
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 bg-gray-50"
+                  readOnly
+                  value={editingClient.code}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">NIU</label>
+                <input
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                  value={editingClient.niu || ''}
+                  onChange={e => setEditingClient({ ...editingClient, niu: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Téléphone</label>
+                <input
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                  value={editingClient.telephone || ''}
+                  onChange={e => setEditingClient({ ...editingClient, telephone: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Email</label>
+                <input
+                  type="email"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                  value={editingClient.email || ''}
+                  onChange={e => setEditingClient({ ...editingClient, email: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Compte collectif</label>
+                <input
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                  value={editingClient.compteComptable || '411'}
+                  onChange={e => setEditingClient({ ...editingClient, compteComptable: e.target.value })}
+                />
+              </div>
+              <div className="col-span-2">
+                <label className="text-sm font-medium text-gray-700">Adresse</label>
+                <input
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                  value={editingClient.adresse || ''}
+                  onChange={e => setEditingClient({ ...editingClient, adresse: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Statut</label>
+                <select
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                  value={editingClient.statut}
+                  onChange={e => setEditingClient({ ...editingClient, statut: e.target.value as Client['statut'] })}
+                >
+                  <option value="ACTIF">Actif</option>
+                  <option value="BLOQUE">Bloqué</option>
+                  <option value="SUSPENDU">Suspendu</option>
+                  <option value="INACTIF">Inactif</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Limite crédit (FCFA)</label>
+                <input
+                  type="number"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                  value={editingClient.limiteCredit || 0}
+                  onChange={e => setEditingClient({ ...editingClient, limiteCredit: Number(e.target.value) })}
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setEditingClient(null)}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    await adapter.update('thirdParties', editingClient.id, {
+                      name: editingClient.raisonSociale,
+                      code: editingClient.code,
+                      email: editingClient.email,
+                      phone: editingClient.telephone,
+                      address: editingClient.adresse,
+                      accountCode: editingClient.compteComptable,
+                      taxId: editingClient.niu,
+                      isActive: editingClient.statut === 'ACTIF',
+                    });
+                    setClients(prev => prev.map(c => c.id === editingClient.id ? { ...c, ...editingClient } : c));
+                    toast.success('Client mis à jour');
+                    setEditingClient(null);
+                  } catch {
+                    toast.error('Erreur lors de la mise à jour');
+                  }
+                }}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
+              >
+                Enregistrer
+              </button>
             </div>
           </div>
         </div>

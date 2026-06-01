@@ -104,6 +104,24 @@ const FournisseursModule: React.FC = () => {
   });
   const [compareMode, setCompareMode] = useState(false);
   const [showNewFournisseurModal, setShowNewFournisseurModal] = useState(false);
+  const [editingFournisseur, setEditingFournisseur] = useState<Fournisseur | null>(null);
+  const [editForm, setEditForm] = useState<{
+    raisonSociale: string;
+    nif: string;
+    telephone: string;
+    email: string;
+    adresse: string;
+    typeFournisseur: 'local' | 'etranger';
+    compteComptable: string;
+    categorie: Fournisseur['categorie'];
+    statut: Fournisseur['statut'];
+    delaiPaiement: number;
+    modeReglement: Fournisseur['modeReglement'];
+  }>({
+    raisonSociale: '', nif: '', telephone: '', email: '', adresse: '',
+    typeFournisseur: 'local', compteComptable: '401',
+    categorie: 'RECURRENT', statut: 'ACTIF', delaiPaiement: 30, modeReglement: 'VIREMENT',
+  });
   const [formStep, setFormStep] = useState(1);
   const [newFournisseur, setNewFournisseur] = useState({
     code: '', raisonSociale: '', nomCommercial: '',
@@ -251,6 +269,59 @@ const FournisseursModule: React.FC = () => {
       setSelectedFournisseurs(selectedFournisseurs.filter(fId => fId !== id));
     } else {
       setSelectedFournisseurs([...selectedFournisseurs, id]);
+    }
+  };
+
+  const handleEditFournisseur = (fournisseur: Fournisseur) => {
+    setEditingFournisseur(fournisseur);
+    setEditForm({
+      raisonSociale: fournisseur.raisonSociale,
+      nif: '',
+      telephone: fournisseur.telephoneComptable,
+      email: fournisseur.emailComptable,
+      adresse: '',
+      typeFournisseur: 'local',
+      compteComptable: '401',
+      categorie: fournisseur.categorie,
+      statut: fournisseur.statut,
+      delaiPaiement: fournisseur.delaiPaiement,
+      modeReglement: fournisseur.modeReglement,
+    });
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingFournisseur) return;
+    try {
+      await adapter.update('thirdParties', editingFournisseur.id, {
+        name: editForm.raisonSociale,
+        phone: editForm.telephone,
+        email: editForm.email,
+        address: editForm.adresse,
+        taxId: editForm.nif,
+        isActive: editForm.statut === 'ACTIF',
+        conditionsPaiement: {
+          delaiJours: editForm.delaiPaiement,
+          modePaiement: editForm.modeReglement.toLowerCase(),
+        },
+      });
+      setFournisseurs(prev => prev.map(f =>
+        f.id === editingFournisseur.id
+          ? {
+              ...f,
+              raisonSociale: editForm.raisonSociale,
+              telephoneComptable: editForm.telephone,
+              emailComptable: editForm.email,
+              categorie: editForm.categorie,
+              statut: editForm.statut,
+              delaiPaiement: editForm.delaiPaiement,
+              dpo: editForm.delaiPaiement,
+              modeReglement: editForm.modeReglement,
+            }
+          : f
+      ));
+      setEditingFournisseur(null);
+    } catch {
+      /* ignored */
     }
   };
 
@@ -607,7 +678,11 @@ const FournisseursModule: React.FC = () => {
                       >
                         <Eye className="w-4 h-4" />
                       </button>
-                      <button className="p-1 text-blue-600 hover:bg-blue-100 rounded">
+                      <button
+                        onClick={() => handleEditFournisseur(fournisseur)}
+                        className="p-1 text-blue-600 hover:bg-blue-100 rounded"
+                        title="Modifier"
+                      >
                         <Edit className="w-4 h-4" />
                       </button>
                       <button className="p-1 text-red-600 hover:bg-red-100 rounded" aria-label="Supprimer">
@@ -1262,7 +1337,7 @@ const FournisseursModule: React.FC = () => {
           {/* Sub-tab: KPIs */}
           {analyticsSubTab === 'kpis' && (
             <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
                 <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
                   <Building className="w-5 h-5 text-[var(--color-primary)] mb-3" />
                   <p className="text-lg font-bold text-[var(--color-primary)]">{fournisseurs.length}</p>
@@ -1277,6 +1352,7 @@ const FournisseursModule: React.FC = () => {
                   <Timer className="w-5 h-5 text-blue-600 mb-3" />
                   <p className="text-lg font-bold text-[var(--color-primary)]">{avgDPO}j</p>
                   <p className="text-sm text-[var(--color-text-secondary)]">DPO Moyen</p>
+                  <p className="text-xs text-blue-500 mt-1">IFRS 7 — Dettes/Achats×365</p>
                 </div>
                 <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
                   <Wallet className="w-5 h-5 text-orange-600 mb-3" />
@@ -1287,6 +1363,14 @@ const FournisseursModule: React.FC = () => {
                   <Shield className="w-5 h-5 text-green-600 mb-3" />
                   <p className="text-lg font-bold text-[var(--color-primary)]">{avgQualite}/5</p>
                   <p className="text-sm text-[var(--color-text-secondary)]">Score Qualité</p>
+                </div>
+                <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
+                  <CheckCircle className="w-5 h-5 text-green-600 mb-3" />
+                  <p className="text-lg font-bold text-[var(--color-primary)]">
+                    {fournisseurs.length > 0 ? Math.round(fournisseurs.filter(f => f.conformite).length / fournisseurs.length * 100) : 0}%
+                  </p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">Conformité paiements</p>
+                  <p className="text-xs text-green-500 mt-1">IFRS 7 — % dans les délais</p>
                 </div>
               </div>
 
@@ -1810,6 +1894,204 @@ const FournisseursModule: React.FC = () => {
                   </button>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Édition Fournisseur */}
+      {editingFournisseur && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-[var(--color-border)] flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold text-[var(--color-primary)]">Modifier le Fournisseur</h3>
+                <p className="text-sm text-[var(--color-text-secondary)]">{editingFournisseur.code} — {editingFournisseur.raisonSociale}</p>
+              </div>
+              <button onClick={() => setEditingFournisseur(null)} className="p-2 hover:bg-gray-100 rounded-full">
+                <X className="w-5 h-5 text-[var(--color-text-secondary)]" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Identification */}
+              <div>
+                <h4 className="text-sm font-semibold text-[var(--color-primary)] flex items-center mb-3">
+                  <Building className="w-4 h-4 mr-2" />Identification
+                </h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="col-span-2">
+                    <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Raison sociale *</label>
+                    <input
+                      type="text"
+                      value={editForm.raisonSociale}
+                      onChange={(e) => setEditForm({ ...editForm, raisonSociale: e.target.value })}
+                      className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-[var(--color-text-secondary)] mb-1">NIF / NIU</label>
+                    <input
+                      type="text"
+                      value={editForm.nif}
+                      onChange={(e) => setEditForm({ ...editForm, nif: e.target.value })}
+                      className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
+                      placeholder="M0XXXXXXXXXX"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Catégorie</label>
+                    <select
+                      value={editForm.categorie}
+                      onChange={(e) => setEditForm({ ...editForm, categorie: e.target.value as Fournisseur['categorie'] })}
+                      className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
+                    >
+                      <option value="STRATEGIQUE">Stratégique</option>
+                      <option value="RECURRENT">Récurrent</option>
+                      <option value="PONCTUEL">Ponctuel</option>
+                      <option value="CRITIQUE">Critique</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Contact */}
+              <div>
+                <h4 className="text-sm font-semibold text-[var(--color-primary)] flex items-center mb-3">
+                  <Phone className="w-4 h-4 mr-2" />Contact
+                </h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Téléphone</label>
+                    <input
+                      type="tel"
+                      value={editForm.telephone}
+                      onChange={(e) => setEditForm({ ...editForm, telephone: e.target.value })}
+                      className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
+                      placeholder="+237 6XX XXX XXX"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Email</label>
+                    <input
+                      type="email"
+                      value={editForm.email}
+                      onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                      className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Adresse</label>
+                    <input
+                      type="text"
+                      value={editForm.adresse}
+                      onChange={(e) => setEditForm({ ...editForm, adresse: e.target.value })}
+                      className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
+                      placeholder="Rue, quartier, ville"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Comptabilité */}
+              <div>
+                <h4 className="text-sm font-semibold text-[var(--color-primary)] flex items-center mb-3">
+                  <BookOpen className="w-4 h-4 mr-2" />Paramètres Comptables SYSCOHADA
+                </h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Type fournisseur</label>
+                    <select
+                      value={editForm.typeFournisseur}
+                      onChange={(e) => {
+                        const typeFournisseur = e.target.value as 'local' | 'etranger';
+                        setEditForm({ ...editForm, typeFournisseur, compteComptable: typeFournisseur === 'etranger' ? '404' : '401' });
+                      }}
+                      className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
+                    >
+                      <option value="local">Local (compte 401 — FL)</option>
+                      <option value="etranger">Étranger (compte 404 — FE)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Compte collectif</label>
+                    <input
+                      type="text"
+                      value={editForm.compteComptable}
+                      readOnly
+                      className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg bg-gray-50 font-mono text-[var(--color-text-secondary)]"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Conditions commerciales */}
+              <div>
+                <h4 className="text-sm font-semibold text-[var(--color-primary)] flex items-center mb-3">
+                  <CreditCard className="w-4 h-4 mr-2" />Conditions Commerciales
+                </h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Mode de règlement</label>
+                    <select
+                      value={editForm.modeReglement}
+                      onChange={(e) => setEditForm({ ...editForm, modeReglement: e.target.value as Fournisseur['modeReglement'] })}
+                      className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
+                    >
+                      <option value="VIREMENT">Virement bancaire</option>
+                      <option value="CHEQUE">Chèque</option>
+                      <option value="PRELEVEMENT">Prélèvement automatique</option>
+                      <option value="TRAITE">Traite / Lettre de change</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Délai paiement (jours)</label>
+                    <select
+                      value={editForm.delaiPaiement}
+                      onChange={(e) => setEditForm({ ...editForm, delaiPaiement: parseInt(e.target.value) })}
+                      className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
+                    >
+                      <option value={0}>Comptant</option>
+                      <option value={15}>15 jours</option>
+                      <option value={30}>30 jours</option>
+                      <option value={45}>45 jours</option>
+                      <option value={60}>60 jours fin de mois</option>
+                      <option value={90}>90 jours</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Statut</label>
+                    <select
+                      value={editForm.statut}
+                      onChange={(e) => setEditForm({ ...editForm, statut: e.target.value as Fournisseur['statut'] })}
+                      className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
+                    >
+                      <option value="ACTIF">Actif</option>
+                      <option value="BLOQUE">Bloqué</option>
+                      <option value="SUSPENDU">Suspendu</option>
+                      <option value="INACTIF">Inactif</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-[var(--color-border)] flex justify-end space-x-3">
+              <button
+                type="button"
+                onClick={() => setEditingFournisseur(null)}
+                className="px-4 py-2 border border-[var(--color-border)] rounded-lg text-[var(--color-text-secondary)] hover:bg-gray-50"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveEdit}
+                className="flex items-center space-x-2 px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 font-semibold"
+              >
+                <Save className="w-4 h-4" />
+                <span>Enregistrer</span>
+              </button>
             </div>
           </div>
         </div>
