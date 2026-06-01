@@ -275,12 +275,22 @@ const AdminCompany: React.FC<Props> = ({ subTab, setSubTab }) => {
       setAccounts(rawAccounts.map((a: any) => ({ numero: a.code||a.numero, libelle: a.name||a.libelle, classe: Number(a.accountClass||a.classe||(a.code||'')[0]||0), type: a.accountType||a.type||(Number((a.code||'')[0])<=5?'Bilan':'Gestion'), sens: a.normalBalance==='credit'?'Crediteur':(a.normalBalance==='debit'?'Debiteur':(a.sens||'Debiteur')), lettrable: a.isReconcilable??a.lettrable??false, actif: a.isActive??a.actif??true })));
       const rawFy = await adapter.getAll<any>('fiscalYears');
       setExercices(rawFy.map((fy: any) => ({ code: fy.code, debut: fy.startDate||fy.debut, fin: fy.endDate||fy.fin, periodes: 12, statut: fy.isClosed?'Cloture':'Ouvert', actif: fy.isActive??fy.actif??false })));
-      // Lecture des settings via RLS directe (get_user_company_id() côté serveur)
-      // Avec PK composite (key, tenant_id), chaque tenant ne voit que ses propres settings
+      // Lecture des settings — attendre la session avant de requêter
+      // (si la session est en cours de restauration, le client serait en anon → RLS = 0 lignes)
       let allSettings: any[] = [];
       if (adapter.getMode() === 'saas') {
-        const { data: sRows } = await (supabase as any).from('settings').select('*');
-        allSettings = sRows || [];
+        // S'assurer que la session est chargée (restauration depuis localStorage ou refresh)
+        const { data: { session } } = await (supabase as any).auth.getSession();
+        if (session) {
+          const { data: sRows, error: sErr } = await (supabase as any).from('settings').select('*');
+          if (sErr) console.error('[AdminCompany] loadData settings error:', sErr.message);
+          allSettings = sRows || [];
+        } else {
+          // Session pas encore disponible — retenter dans 1 seconde
+          await new Promise(r => setTimeout(r, 1000));
+          const { data: sRows2 } = await (supabase as any).from('settings').select('*');
+          allSettings = sRows2 || [];
+        }
       } else {
         allSettings = await adapter.getAll<any>('settings');
       }
