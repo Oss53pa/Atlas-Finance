@@ -53,6 +53,76 @@ const TABLE_MAP: Record<TableName, string> = {
   companies: 'societes',
 }
 
+// ─── Normaliseurs snake_case → camelCase ─────────────────────────────────────
+// Appelés dans getAll() pour que TOUS les consommateurs reçoivent
+// du camelCase sans avoir à gérer deux formats.
+
+function normalizeJournalEntry(r: any): any {
+  return {
+    ...r,
+    entryNumber:  r.entry_number  || r.entryNumber  || '',
+    totalDebit:   Number(r.total_debit  ?? r.totalDebit  ?? 0),
+    totalCredit:  Number(r.total_credit ?? r.totalCredit ?? 0),
+    createdAt:    r.created_at    || r.createdAt,
+    createdBy:    r.created_by    || r.createdBy,
+    updatedAt:    r.updated_at    || r.updatedAt,
+    lines:        Array.isArray(r.lines) ? r.lines : [],  // injecté séparément
+  }
+}
+
+function normalizeJournalLine(r: any): any {
+  return {
+    ...r,
+    entryId:     r.entry_id     || r.entryId     || '',
+    accountCode: r.account_code || r.accountCode || '',
+    accountName: r.account_name || r.accountName || '',
+    tiersCode:   r.tiers_code   || r.tiersCode   || '',
+    debit:       Number(r.debit  ?? 0),
+    credit:      Number(r.credit ?? 0),
+  }
+}
+
+function normalizeFiscalYear(r: any): any {
+  return {
+    ...r,
+    startDate:  r.start_date  || r.startDate  || '',
+    endDate:    r.end_date    || r.endDate    || '',
+    isActive:   r.is_active   ?? r.isActive   ?? false,
+    isClosed:   r.is_closed   ?? r.isClosed   ?? false,
+    closedAt:   r.closed_at   || r.closedAt,
+    createdAt:  r.created_at  || r.createdAt,
+  }
+}
+
+function normalizeAccount(r: any): any {
+  return {
+    ...r,
+    isActive:       r.is_active      ?? r.isActive      ?? true,
+    normalBalance:  r.normal_balance  || r.normalBalance  || '',
+    accountClass:   r.account_class   || r.accountClass   || '',
+    accountType:    r.account_type    || r.accountType    || '',
+    isReconcilable: r.is_reconcilable ?? r.isReconcilable ?? false,
+    lettrable:      r.is_reconcilable ?? r.lettrable      ?? false,
+  }
+}
+
+function normalizeThirdParty(r: any): any {
+  return {
+    ...r,
+    raisonSociale: r.raisonSociale || r.name || '',
+    isActive:      r.is_active     ?? r.isActive ?? true,
+    accountCode:   r.account_code  || r.accountCode || '',
+  }
+}
+
+const TABLE_NORMALIZERS: Record<string, (r: any) => any> = {
+  journal_entries: normalizeJournalEntry,
+  journal_lines:   normalizeJournalLine,
+  fiscal_years:    normalizeFiscalYear,
+  accounts:        normalizeAccount,
+  third_parties:   normalizeThirdParty,
+}
+
 export class SupabaseAdapter implements DataAdapter {
   private client: SupabaseClient
   private tenantId: string
@@ -205,11 +275,42 @@ export class SupabaseAdapter implements DataAdapter {
       if (filters?.offset) query = query.range(filters.offset, filters.offset + (filters.limit || 100) - 1)
 
       const { data, error } = await query
-      // Tolerant : si la table n'existe pas (404), RLS bloque (403), ou
-      // schema partial, on retourne [] silencieusement plutot que de propager
-      // une erreur qui casse la page entiere.
       if (error) return []
-      return (data || []) as T[]
+      let rows = (data || []) as any[]
+
+      // ── Normalisation snake_case → camelCase ────────────────────────────
+      const normalizer = TABLE_NORMALIZERS[pg]
+      if (normalizer) {
+        rows = rows.map(normalizer)
+      }
+
+      // ── Injection automatique des lignes pour journal_entries ───────────
+      // En SaaS, les lignes d'écriture sont dans journal_lines (table séparée).
+      // Tous les consommateurs de getAll('journalEntries') reçoivent ainsi
+      // des entrées avec entry.lines[] correctement peuplées.
+      if (pg === 'journal_entries' && rows.length > 0) {
+        try {
+          const { data: linesData } = await this.client
+            .from('journal_lines')
+            .select('*')
+            .eq('tenant_id', this.tenantId)
+            .range(0, 99999)
+          const linesByEntry = new Map<string, any[]>()
+          for (const l of (linesData || [])) {
+            const norm = normalizeJournalLine(l)
+            const key = norm.entryId
+            if (!key) continue
+            if (!linesByEntry.has(key)) linesByEntry.set(key, [])
+            linesByEntry.get(key)!.push(norm)
+          }
+          rows = rows.map(e => ({
+            ...e,
+            lines: linesByEntry.get(e.id) ?? [],
+          }))
+        } catch { /* journalLines indisponible — lines reste [] */ }
+      }
+
+      return rows as T[]
     } catch (_e) {
       return []
     }
