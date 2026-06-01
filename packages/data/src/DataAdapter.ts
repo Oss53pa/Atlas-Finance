@@ -69,6 +69,27 @@ export interface QueryFilters {
   offset?: number
 }
 
+/** A6 — Pagination KEYSET (curseur) : pas de COUNT global, scalable sur 50k+ lignes. */
+export interface PageOptions {
+  /** Nombre de lignes par page (défaut 20). */
+  pageSize?: number
+  /** Curseur = valeur du champ de tri de la dernière ligne de la page précédente. */
+  cursor?: string | number | null
+  /** Champ de tri stable (défaut 'id'). Doit être indexé pour la performance. */
+  sortField?: string
+  /** Direction du tri (défaut 'asc'). */
+  direction?: 'asc' | 'desc'
+  /** Filtres d'égalité supplémentaires. */
+  where?: Record<string, any>
+}
+
+export interface PagedResult<T> {
+  rows: T[]
+  /** Curseur à passer pour obtenir la page suivante (null si fin). */
+  nextCursor: string | number | null
+  hasMore: boolean
+}
+
 export interface DataAdapter {
   // Mode
   getMode(): DataMode
@@ -77,6 +98,8 @@ export interface DataAdapter {
   // CRUD generique
   getById<T>(table: TableName, id: string): Promise<T | null>
   getAll<T>(table: TableName, filters?: QueryFilters): Promise<T[]>
+  /** A6 — Page keyset (optionnel : les adapters qui ne l'implémentent pas restent compatibles). */
+  getPage?<T>(table: TableName, opts?: PageOptions): Promise<PagedResult<T>>
   create<T>(table: TableName, data: Omit<T, 'id'>, initiatedBy?: string): Promise<T>
   update<T>(table: TableName, id: string, data: Partial<T>, initiatedBy?: string): Promise<T>
   delete(table: TableName, id: string, initiatedBy?: string): Promise<void>

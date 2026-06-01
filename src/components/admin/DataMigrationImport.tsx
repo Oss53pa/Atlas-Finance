@@ -103,6 +103,7 @@ interface ImportReport {
   vncOk: boolean;
   warnings: string[];
   dbCounts?: { accounts: number; entries: number; lines: number; tiers: number; assets: number };
+  migrationBatchId?: string;
 }
 
 interface Props {
@@ -293,7 +294,9 @@ const TARGET_FIELDS: Record<string, { field: string; label: string; required: bo
 function parseNumber(val: any): number {
   if (val == null || val === '') return 0;
   if (typeof val === 'number') return val;
-  const s = String(val).replace(/\s/g, '').replace(',', '.');
+  // A5 — nettoyer TOUS les espaces, y compris insécables (NBSP, narrow NBSP,
+  // figure space) fréquents dans les exports Sage. 0 troncature.
+  const s = String(val).replace(/[\s   ]/g, '').replace(',', '.');
   const n = parseFloat(s);
   return isNaN(n) ? 0 : n;
 }
@@ -1036,10 +1039,13 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
     setImporting(true);
     setImportProgress(0);
     const sessionId = generateId();
+    // A7 — identifiant du LOT de migration : rattache chaque entité importée
+    // pour permettre une ré-migration par écrasement bornée (purge_migration_batch).
+    const migrationBatchId = crypto.randomUUID();
     const report: ImportReport = {
       accounts: 0, journals: 0, tiers: 0, entries: 0, lines: 0,
       assets: 0, lettrages: 0, balanceOk: false, bilanOk: false,
-      tiersOk: false, vncOk: false, warnings: [],
+      tiersOk: false, vncOk: false, warnings: [], migrationBatchId,
     };
     const journals = new Set<string>();
 
@@ -1049,17 +1055,19 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       const supabaseClient = isSaasMode ? (adapter as any).client : null;
       const tenantId = isSaasMode ? (adapter as any).tenantId as string | null : null;
 
-      // ── Si mode "Remplacer" : supprimer les données existantes du tenant ──
+      // ── Mode "Remplacer" : A7 — purge BORNÉE aux données ISSUES DE MIGRATION
+      // (migration_batch_id NOT NULL). Les saisies manuelles (batch NULL) sont
+      // PRÉSERVÉES — fini le wipe total du tenant.
       if (params.existingDataAction === 'replace' && isSaasMode && supabaseClient) {
-        setImportLabel('Suppression des données existantes...');
-        // Passer toutes les écritures en draft pour lever le verrou validated
+        setImportLabel('Suppression des précédentes migrations (données manuelles préservées)...');
+        // Lever le verrou des écritures migrées validées
         await supabaseClient.from('journal_entries')
-          .update({ status: 'draft' }).eq('tenant_id', tenantId);
-        // Supprimer dans l'ordre inverse des FK
+          .update({ status: 'draft' }).eq('tenant_id', tenantId).not('migration_batch_id', 'is', null);
+        // Supprimer dans l'ordre inverse des FK, UNIQUEMENT les lignes migrées
         for (const table of ['journal_lines', 'journal_entries', 'third_parties', 'accounts', 'assets']) {
           const { error } = await supabaseClient
-            .from(table).delete().eq('tenant_id', tenantId);
-          if (error) report.warnings.push(`Suppression ${table} : ${error.message}`);
+            .from(table).delete().eq('tenant_id', tenantId).not('migration_batch_id', 'is', null);
+          if (error) report.warnings.push(`Suppression migrée ${table} : ${error.message}`);
         }
       }
 
@@ -1097,7 +1105,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
         level: code.length,
         is_active: true,
         ...extra,
-        ...(isSaasForAccounts ? { tenant_id: tenantIdForAccounts, created_at: new Date().toISOString() } : {}),
+        ...(isSaasForAccounts ? { tenant_id: tenantIdForAccounts, created_at: new Date().toISOString(), migration_batch_id: migrationBatchId } : {}),
       });
 
       if (pcData.length > 0) {
@@ -1167,6 +1175,14 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       if (accountsSkipped > 0) {
         report.warnings.push(`${accountsSkipped} comptes deja existants (ignores)`);
       }
+      // A4 — alerter si des comptes restent sans intitulé (name === code) : le fichier
+      // source devrait porter une colonne LIBELLE, ou le Plan Comptable doit l'enrichir.
+      {
+        const sansLibelle = accountRecords.filter(a => String(a.name) === String(a.code)).length;
+        if (sansLibelle > 0) {
+          report.warnings.push(`${sansLibelle} compte(s) sans intitulé (libellé = numéro). Fournissez la colonne LIBELLE ou un Plan Comptable pour les nommer.`);
+        }
+      }
       setImportProgress(15);
 
       // Mapping noms de tables PG (snake_case) → noms Dexie (camelCase)
@@ -1193,6 +1209,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
               ...r,
               tenant_id: tenantIdForAccounts,
               created_at: new Date().toISOString(),
+              migration_batch_id: (r as Record<string, unknown>).migration_batch_id ?? migrationBatchId, // A7
             }));
             const { error } = await supabaseForAccounts
               .from(pgTable)
@@ -1305,7 +1322,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
           acquisition_date: parseDate(getVal('dateAcquisition')) || new Date().toISOString().slice(0, 10),
           acquisition_value: parseNumber(getVal('valeurOrigine')),
           cumul_depreciation: parseNumber(getVal('amortCumule')),
-          useful_life_years: Math.round(parseNumber(getVal('duree'))) || 1,
+          useful_life_years: Math.ceil(parseNumber(getVal('duree'))) || 1, // A5: ceil (pas de sous-amortissement)
           depreciation_method: (() => { const m = String(getVal('methode') || '').toLowerCase(); return m.includes('deg') ? 'declining' : 'linear'; })(),
           status: 'active',
         });
@@ -1353,6 +1370,13 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
         const batchEntries: any[] = [];
         const batchLines: any[] = [];
 
+        // A2/A3 — Contrôle d'équilibre JAMAIS « par pièce reconstituée » seule :
+        // on agrège au niveau journal + global, et on n'autorise JAMAIS une écriture
+        // déséquilibrée à passer en 'validated' (downgrade silencieux → 'draft' + log).
+        let imbalancedDowngraded = 0;
+        let gDebit = 0, gCredit = 0;
+        const journalSums = new Map<string, { d: number; c: number }>();
+
         for (const [piece, lines] of groups) {
           const journalCode = String(getEcrVal(lines[0], 'journal') || getEcrVal(lines[0], 'JournalCode') || 'OD');
           journals.add(journalCode);
@@ -1365,19 +1389,41 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
             getEcrVal(lines[0], 'libelle') || getEcrVal(lines[0], 'EcritureLib') ||
             getEcrVal(lines[0], 'label') || piece
           );
+          // Somme via money() — aucune dérive flottante (A5)
           let totalDebit = 0; let totalCredit = 0;
           lines.forEach((line: any) => {
-            totalDebit  += parseNumber(getEcrVal(line, 'debit')  || getEcrVal(line, 'Debit'));
-            totalCredit += parseNumber(getEcrVal(line, 'credit') || getEcrVal(line, 'Credit'));
+            totalDebit  = money(totalDebit).add(money(parseNumber(getEcrVal(line, 'debit')  || getEcrVal(line, 'Debit')))).toNumber();
+            totalCredit = money(totalCredit).add(money(parseNumber(getEcrVal(line, 'credit') || getEcrVal(line, 'Credit')))).toNumber();
           });
+          const entryBalanced = money(totalDebit).subtract(money(totalCredit)).abs().toNumber() <= 0.01;
+
+          // A3 — une écriture déséquilibrée ne peut JAMAIS être 'validated'
+          let entryStatus: 'validated' | 'draft' = params.entryStatus === 'validated' ? 'validated' : 'draft';
+          if (!entryBalanced && entryStatus === 'validated') {
+            entryStatus = 'draft';
+            imbalancedDowngraded++;
+            if (report.warnings.length < 200) {
+              report.warnings.push(`Pièce ${piece} déséquilibrée (D=${totalDebit.toFixed(2)} C=${totalCredit.toFixed(2)}, écart ${money(totalDebit).subtract(money(totalCredit)).abs().toNumber().toFixed(2)}) → importée en brouillon (non validée).`);
+            }
+          }
+
+          // A2 — agrégats journal + global
+          gDebit = money(gDebit).add(money(totalDebit)).toNumber();
+          gCredit = money(gCredit).add(money(totalCredit)).toNumber();
+          const _js = journalSums.get(journalCode) || { d: 0, c: 0 };
+          _js.d = money(_js.d).add(money(totalDebit)).toNumber();
+          _js.c = money(_js.c).add(money(totalCredit)).toNumber();
+          journalSums.set(journalCode, _js);
+
           const entryId = crypto.randomUUID();
           batchEntries.push({
             id: entryId, tenant_id: tenantId,
             entry_number: piece, journal: journalCode, date: entryDate,
             label: entryLabel, reference: piece,
-            status: params.entryStatus === 'validated' ? 'validated' : 'draft',
+            status: entryStatus,
             total_debit: totalDebit, total_credit: totalCredit,
             created_at: new Date().toISOString(),
+            migration_batch_id: migrationBatchId, // A7
           });
           lines.forEach((line: any) => {
             const debitAliases2 = ['debit','Debit','montantDebit','debitAmount'];
@@ -1391,12 +1437,31 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
               _entry_number: piece, // clé temporaire pour remapping post-insert
               entry_id: entryId, tenant_id: tenantId,
               account_code: accountCode,
-              account_name: String(getEcrVal(line, 'compteLib') || getEcrVal(line, 'CompteLib') || accountCode),
+              // A4 — privilégier le libellé de compte (colonne LIBELLE → libelleCompte)
+              // pour ne JAMAIS retomber sur « code = nom » quand le libellé est dispo.
+              account_name: String(getEcrVal(line, 'libelleCompte') || getEcrVal(line, 'compteLib') || getEcrVal(line, 'CompteLib') || accountCode),
               label: String(getEcrVal(line, 'libelleEcriture') || getEcrVal(line, 'libelle') || entryLabel),
               debit: Math.abs(parseNumber(findCol(line, debitAliases2))),
               credit: Math.abs(parseNumber(findCol(line, creditAliases2))),
+              migration_batch_id: migrationBatchId, // A7
             });
           });
+        }
+
+        // A2 — Contrôle d'équilibre GLOBAL + par journal (rapport, non-bloquant : aucune
+        // écriture déséquilibrée n'a été validée — cf. downgrade ci-dessus).
+        {
+          const gEcart = money(gDebit).subtract(money(gCredit)).abs().toNumber();
+          if (gEcart > 0.01) {
+            report.warnings.push(`⚠️ Déséquilibre GLOBAL d'import : D=${gDebit.toFixed(2)} C=${gCredit.toFixed(2)} (écart ${gEcart.toFixed(2)} FCFA). Vérifiez le fichier source — aucune pièce déséquilibrée n'a été validée.`);
+          }
+          for (const [j, s] of journalSums) {
+            const e = money(s.d).subtract(money(s.c)).abs().toNumber();
+            if (e > 0.01) report.warnings.push(`Journal ${j} déséquilibré : D=${s.d.toFixed(2)} C=${s.c.toFixed(2)} (écart ${e.toFixed(2)}).`);
+          }
+          if (imbalancedDowngraded > 0) {
+            report.warnings.push(`${imbalancedDowngraded} pièce(s) déséquilibrée(s) importée(s) en brouillon (statut 'draft', jamais 'validated').`);
+          }
         }
 
         // ── Insérer les journal_entries par batch de 100 ──────────────────
@@ -1612,7 +1677,16 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
           const totalCredit = lines.reduce((s, l) => s + l.credit, 0);
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const adapterExtAN = adapter as any;
-          if (typeof adapterExtAN.saveJournalEntry === 'function') {
+          if (isSaasMode && supabaseClient) {
+            // A7 — RPC batch pour TAGUER l'À-Nouveau avec le migration_batch_id
+            // (sinon la purge du lot oublierait les écritures AN).
+            const { error } = await supabaseClient.rpc('save_journal_entry_batch', {
+              p_entry: { entryNumber, journal: 'AN', date, label, reference: entryNumber, status: 'validated', totalDebit, totalCredit },
+              p_lines: lines,
+              p_batch_id: migrationBatchId,
+            });
+            if (error) { report.warnings.push(`Report AN ${entryNumber} ignoré : ${error.message}`); return; }
+          } else if (typeof adapterExtAN.saveJournalEntry === 'function') {
             await adapterExtAN.saveJournalEntry({
               entryNumber, journal: 'AN', date, label, reference: entryNumber,
               status: 'validated', totalDebit, totalCredit, lines,
@@ -1703,16 +1777,73 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
         `Migration ${sourceSystem || 'inconnu'}: ${report.accounts} comptes, ${report.entries} ecritures, ${report.tiers} tiers, ${report.assets} immobilisations`
       );
 
+      // A7 — enregistrer la session de migration (traçabilité + base de la purge/ré-migration)
+      if (isSaasMode && supabaseClient) {
+        await supabaseClient.from('migration_sessions').upsert({
+          tenant_id: tenantId, batch_id: migrationBatchId,
+          mode: String(migrationMode), source_system: sourceSystem || 'sage',
+          status: 'completed',
+          account_count: report.accounts, third_party_count: report.tiers,
+          asset_count: report.assets, entry_count: report.entries, line_count: report.lines,
+          completed_at: new Date().toISOString(),
+        }, { onConflict: 'tenant_id,batch_id' });
+      }
+
       setImportReport(report);
       toast.success('Migration terminee avec succes');
     } catch (err: any) {
       toast.error(`Erreur d'import: ${err.message || 'erreur inconnue'}`);
       report.warnings.push(`Erreur fatale: ${err.message}`);
+      // A7 — marquer la session en échec (le lot reste identifiable pour purge)
+      try {
+        if (adapter.getMode() === 'saas') {
+          await (adapter as any).client?.from('migration_sessions').upsert({
+            tenant_id: (adapter as any).tenantId, batch_id: migrationBatchId,
+            mode: String(migrationMode), source_system: sourceSystem || 'sage',
+            status: 'failed', error: String(err?.message || err),
+            completed_at: new Date().toISOString(),
+          }, { onConflict: 'tenant_id,batch_id' });
+        }
+      } catch { /* best effort */ }
       setImportReport(report);
     } finally {
       setImporting(false);
     }
-  }, [adapter, uploadedFiles, mappings, params, excludedEntries, simulation, sourceSystem]);
+  }, [adapter, uploadedFiles, mappings, params, excludedEntries, simulation, sourceSystem, migrationMode]);
+
+  // ─── A7 — Annuler/écraser un lot de migration (purge bornée + pré-flight) ───
+  const handlePurgeBatch = useCallback(async (batchId: string) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const client = (adapter as any).client;
+    if (adapter.getMode() !== 'saas' || !client) {
+      toast.error('Purge disponible uniquement en mode cloud.');
+      return;
+    }
+    try {
+      // 1. Pré-flight (dry-run) : compter ce qui sera supprimé
+      const { data: preflight, error: e1 } = await client.rpc('purge_migration_batch', { p_batch_id: batchId, p_dry_run: true });
+      if (e1) { toast.error(`Pré-flight échoué : ${e1.message}`); return; }
+      const c = (preflight?.counts ?? {}) as Record<string, number>;
+      const total = Object.values(c).reduce((s, n) => s + (Number(n) || 0), 0);
+      if (total === 0) { toast('Ce lot ne contient aucune donnée à supprimer.'); return; }
+      // 2. Confirmation explicite
+      const ok = window.confirm(
+        `Supprimer DÉFINITIVEMENT ce lot de migration ?\n\n` +
+        `• Écritures : ${c.journal_entries ?? 0}\n• Lignes : ${c.journal_lines ?? 0}\n` +
+        `• Comptes : ${c.accounts ?? 0}\n• Tiers : ${c.third_parties ?? 0}\n• Immobilisations : ${c.assets ?? 0}\n\n` +
+        `Les saisies manuelles (hors migration) ne sont PAS touchées.`
+      );
+      if (!ok) return;
+      // 3. Purge effective (bornée au lot côté serveur)
+      const { error: e2 } = await client.rpc('purge_migration_batch', { p_batch_id: batchId, p_dry_run: false });
+      if (e2) { toast.error(`Purge échouée : ${e2.message}`); return; }
+      toast.success(`Lot supprimé (${total} lignes). Vous pouvez relancer la migration.`);
+      setImportReport(null);
+      setCurrentStep('mode');
+    } catch (err) {
+      toast.error(`Erreur purge : ${err instanceof Error ? err.message : 'inconnue'}`);
+    }
+  }, [adapter]);
 
   // ─── Navigation ────────────────────────────────────────
 
@@ -2851,6 +2982,23 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
                 </div>
               ))}
             </div>
+
+            {importReport.migrationBatchId && (
+              <div className="mb-6 flex items-center justify-between gap-3 flex-wrap bg-slate-50 border border-slate-200 rounded-lg p-3">
+                <div className="text-sm text-slate-600">
+                  <span className="font-medium text-slate-700">Lot de migration :</span>{' '}
+                  <code className="text-xs bg-white px-1.5 py-0.5 rounded border">{importReport.migrationBatchId}</code>
+                  <p className="text-xs text-slate-400 mt-1">La ré-migration écrase ce lot ; les saisies manuelles ne sont jamais supprimées.</p>
+                </div>
+                <button
+                  onClick={() => handlePurgeBatch(importReport.migrationBatchId!)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-red-700 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors"
+                  title="Pré-flight + confirmation avant suppression"
+                >
+                  <Trash2 className="w-4 h-4" /> Annuler ce lot
+                </button>
+              </div>
+            )}
 
             {importReport.warnings.length > 0 && (
               <div className="mb-6">

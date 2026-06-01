@@ -316,6 +316,58 @@ export class SupabaseAdapter implements DataAdapter {
     }
   }
 
+  // A6 — Pagination KEYSET : WHERE sortField </> cursor ORDER BY sortField LIMIT n+1.
+  // Pas de COUNT global (scalable). Injecte les lignes pour la page de journal_entries.
+  async getPage<T>(table: TableName, opts: import('../DataAdapter').PageOptions = {}): Promise<import('../DataAdapter').PagedResult<T>> {
+    const pg = this.pgTable(table)
+    const pageSize = opts.pageSize ?? 20
+    const sortField = opts.sortField ?? 'id'
+    const asc = (opts.direction ?? 'asc') === 'asc'
+    const empty = { rows: [] as T[], nextCursor: null, hasMore: false }
+    try {
+      let query = this.isRootTable(pg)
+        ? this.client.from(pg).select('*').eq('id', this.tenantId)
+        : this.client.from(pg).select('*').eq('tenant_id', this.tenantId)
+      if (opts.where) {
+        for (const [k, v] of Object.entries(opts.where)) query = query.eq(k, v)
+      }
+      if (opts.cursor !== undefined && opts.cursor !== null) {
+        query = asc ? query.gt(sortField, opts.cursor) : query.lt(sortField, opts.cursor)
+      }
+      query = query.order(sortField, { ascending: asc }).limit(pageSize + 1)
+      const { data, error } = await query
+      if (error) return empty
+      let raw = (data || []) as any[]
+      const hasMore = raw.length > pageSize
+      if (hasMore) raw = raw.slice(0, pageSize)
+      const lastRaw = raw[raw.length - 1]
+      const nextCursor = (hasMore && lastRaw) ? (lastRaw[sortField] ?? null) : null
+
+      const normalizer = TABLE_NORMALIZERS[pg]
+      let rows = normalizer ? raw.map(normalizer) : raw
+
+      if (pg === 'journal_entries' && rows.length > 0) {
+        try {
+          const ids = rows.map((e: any) => e.id).filter(Boolean)
+          const { data: linesData } = await this.client
+            .from('journal_lines').select('*')
+            .eq('tenant_id', this.tenantId).in('entry_id', ids)
+          const byEntry = new Map<string, any[]>()
+          for (const l of (linesData || [])) {
+            const norm = normalizeJournalLine(l)
+            if (!norm.entryId) continue
+            if (!byEntry.has(norm.entryId)) byEntry.set(norm.entryId, [])
+            byEntry.get(norm.entryId)!.push(norm)
+          }
+          rows = rows.map((e: any) => ({ ...e, lines: byEntry.get(e.id) ?? [] }))
+        } catch { /* lines indispo */ }
+      }
+      return { rows: rows as T[], nextCursor, hasMore }
+    } catch {
+      return empty
+    }
+  }
+
   /**
    * Bulk insert : insere plusieurs lignes en UNE seule requete HTTP -> une
    * seule transaction Postgres -> les triggers DEFERRABLE INITIALLY DEFERRED

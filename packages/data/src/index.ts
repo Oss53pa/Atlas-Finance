@@ -8,7 +8,7 @@
  */
 
 // Interface & types
-export type { DataAdapter, DataMode, TableName, QueryFilters } from './DataAdapter'
+export type { DataAdapter, DataMode, TableName, QueryFilters, PageOptions, PagedResult } from './DataAdapter'
 
 // Implementations
 export { DexieAdapter } from './adapters/DexieAdapter'

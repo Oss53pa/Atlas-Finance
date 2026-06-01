@@ -310,6 +310,31 @@ export class DexieAdapter implements DataAdapter {
     return results as T[]
   }
 
+  // A6 — Pagination keyset (en mémoire : données locales, volumétrie modérée).
+  async getPage<T>(table: TableName, opts: import('../DataAdapter').PageOptions = {}): Promise<import('../DataAdapter').PagedResult<T>> {
+    const pageSize = opts.pageSize ?? 20
+    const sortField = opts.sortField ?? 'id'
+    const asc = (opts.direction ?? 'asc') === 'asc'
+    let results = (await this.getTable(table).toArray()) as any[]
+    if (opts.where) {
+      for (const [f, v] of Object.entries(opts.where)) results = results.filter((r: any) => r[f] === v)
+    }
+    results.sort((a: any, b: any) => {
+      const av = a[sortField]; const bv = b[sortField]
+      const cmp = av < bv ? -1 : av > bv ? 1 : 0
+      return asc ? cmp : -cmp
+    })
+    if (opts.cursor !== undefined && opts.cursor !== null) {
+      const cur = opts.cursor
+      results = results.filter((r: any) => (asc ? r[sortField] > cur : r[sortField] < cur))
+    }
+    const hasMore = results.length > pageSize
+    const page = results.slice(0, pageSize)
+    const last = page[page.length - 1]
+    const nextCursor = (hasMore && last) ? (last[sortField] ?? null) : null
+    return { rows: page as T[], nextCursor, hasMore }
+  }
+
   async create<T>(table: TableName, data: any, initiatedBy?: string): Promise<T> {
     // P0-4 : toute écriture comptable doit être équilibrée et tomber dans une
     // période ouverte, quel que soit le chemin d'insertion (et plus seulement

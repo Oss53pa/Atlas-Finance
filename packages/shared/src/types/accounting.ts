@@ -33,6 +33,8 @@ export interface JournalEntry {
   createdBy?: string            // 'manual:<userId>' | 'proph3t:<userId>'
   exerciceId?: string
   tenantId?: string
+  /** Lot de migration (NULL = saisie manuelle). Cf. ré-migration par écrasement (A7). */
+  migrationBatchId?: string
 }
 
 export interface JournalEntryLine {
@@ -47,6 +49,7 @@ export interface JournalEntryLine {
   analyticalCode?: string
   lettrageCode?: string
   dateEcheance?: string
+  migrationBatchId?: string
 }
 
 // ============================================================================
@@ -64,6 +67,7 @@ export interface Account {
   normalBalance: 'debit' | 'credit'
   isReconcilable: boolean
   isActive: boolean
+  migrationBatchId?: string
 }
 
 // ============================================================================
@@ -83,6 +87,7 @@ export interface ThirdParty {
   isActive: boolean
   accountCode?: string
   tenantId?: string
+  migrationBatchId?: string
 }
 
 // ============================================================================
@@ -104,6 +109,29 @@ export interface Asset {
   cumulDepreciation?: number
   status: 'active' | 'disposed' | 'scrapped'
   tenantId?: string
+  migrationBatchId?: string
+}
+
+// ============================================================================
+// MIGRATION (ré-migration par écrasement — Cahier de Mission v3 / A7)
+// ============================================================================
+
+export interface MigrationSession {
+  id: string
+  tenantId: string
+  batchId: string
+  mode?: '1' | '2' | '3' | string
+  sourceSystem?: string
+  status: 'pending' | 'completed' | 'failed' | 'rolled_back'
+  accountCount?: number
+  thirdPartyCount?: number
+  assetCount?: number
+  entryCount?: number
+  lineCount?: number
+  error?: string
+  startedAt?: string
+  completedAt?: string
+  createdBy?: string
 }
 
 // ============================================================================
