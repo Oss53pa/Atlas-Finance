@@ -8,6 +8,9 @@ import {
   DollarSign, Target, Activity, FileText, Calculator, PieChart,
   RefreshCw, Eye, X, ChevronRight, ChevronDown
 } from 'lucide-react';
+import { toast } from 'react-hot-toast';
+import PrintableArea from '../../components/ui/PrintableArea';
+import { usePrintReport } from '../../hooks/usePrint';
 import { useData } from '../../contexts/DataContext';
 import type { DBJournalEntry } from '../../lib/db';
 
@@ -30,11 +33,18 @@ const CompteResultatPage: React.FC = () => {
   const [selectedPeriod, setSelectedPeriod] = useState<string>('');
   const [selectedAccount, setSelectedAccount] = useState<string>('');
 
-  // Données mensuelles calculées depuis Dexie
-  const { data: allEntries = [] } = useQuery({
+  const { printRef, handlePrint } = usePrintReport({
+    orientation: 'landscape',
+    fileName: 'etats-financiers-mensuels.pdf',
+    title: 'États Financiers Mensuels SYSCOHADA',
+  });
+
+  // Données mensuelles calculées depuis Dexie — drafts exclus des calculs financiers
+  const { data: rawAllEntries = [] } = useQuery({
     queryKey: ['compte-resultat-entries'],
     queryFn: () => adapter.getAll('journalEntries'),
   });
+  const allEntries = useMemo(() => rawAllEntries.filter((e: any) => e.status !== 'draft'), [rawAllEntries]);
 
   const MONTH_NAMES = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
 
@@ -313,6 +323,18 @@ const CompteResultatPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[var(--color-border)] ">
+      <PrintableArea
+        ref={printRef}
+        orientation="landscape"
+        pageSize="A4"
+        showPrintButton={false}
+        headerContent={
+          <div className="text-center mb-4">
+            <h2 className="text-lg font-bold">États Financiers Mensuels SYSCOHADA</h2>
+            <p className="text-sm text-gray-600">{tabs.find(t => t.id === activeTab)?.label || 'Compte de Résultat'}</p>
+          </div>
+        }
+      >
       {/* En-tête */}
       <div className="bg-white border-b border-[var(--color-border)] p-6">
         <div className="flex items-center justify-between">
@@ -1393,11 +1415,17 @@ const CompteResultatPage: React.FC = () => {
                         <h3 className="font-semibold text-[var(--color-primary)] mb-2">{tab.label}</h3>
                         <p className="text-sm text-[var(--color-text-tertiary)] mb-4">Exercice 2024 - Mensualisé</p>
                         <div className="space-y-2">
-                          <button className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-[var(--color-text-secondary)] text-white rounded-lg hover:bg-[#404040] transition-colors">
+                          <button
+                            onClick={() => { setActiveTab(tab.id); setTimeout(handlePrint, 150); }}
+                            className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-[var(--color-text-secondary)] text-white rounded-lg hover:bg-[#404040] transition-colors"
+                          >
                             <Download className="w-4 h-4" />
                             <span>PDF</span>
                           </button>
-                          <button className="w-full flex items-center justify-center space-x-2 px-4 py-2 border border-[var(--color-border)] text-[#404040] rounded-lg hover:bg-gray-50 transition-colors">
+                          <button
+                            onClick={() => toast('Export Excel : fonctionnalité disponible via l\'onglet « Écriture »', { icon: 'ℹ️' })}
+                            className="w-full flex items-center justify-center space-x-2 px-4 py-2 border border-[var(--color-border)] text-[#404040] rounded-lg hover:bg-gray-50 transition-colors"
+                          >
                             <FileText className="w-4 h-4" />
                             <span>Excel</span>
                           </button>
@@ -1553,6 +1581,7 @@ const CompteResultatPage: React.FC = () => {
           </div>
         </div>
       )}
+      </PrintableArea>
     </div>
   );
 };

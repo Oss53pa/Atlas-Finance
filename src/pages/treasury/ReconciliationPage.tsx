@@ -58,6 +58,7 @@ import {
 import { useBankAccounts } from '../../hooks';
 import { formatCurrency, formatDate } from '../../lib/utils';
 import { toast } from 'react-hot-toast';
+import type { DBJournalEntry } from '../../lib/db';
 
 interface ReconciliationItem {
   id: string;
@@ -365,10 +366,52 @@ const ReconciliationPage: React.FC = () => {
     }
   };
 
-  const handleCancelReconciliation = (item: ReconciliationItem) => {
-    if (confirm(`Annuler le rapprochement de l'élément "${item.libelle}" ?`)) {
-      toast.success(`Rapprochement annulé pour "${item.libelle}"`);
-      // TODO: Appel API pour annuler le rapprochement
+  const handleCancelReconciliation = async (item: ReconciliationItem) => {
+    if (!confirm(`Annuler le rapprochement de l'élément "${item.libelle}" ?`)) return;
+    if (!rapprochementResult) {
+      toast.error('Aucun résultat de rapprochement disponible');
+      return;
+    }
+
+    // Find the match for this item to know which entry/line IDs to unletter
+    const match = rapprochementResult.matches.find(m => m.bankTransactionId === item.id);
+    if (!match) {
+      toast.error('Correspondance introuvable — impossible d\'annuler');
+      return;
+    }
+
+    try {
+      let modified = 0;
+      const lineIdSet = new Set(match.lineIds);
+      const entryIdSet = new Set(match.entryIds);
+      for (const entryId of entryIdSet) {
+        const entry = await adapter.getById<DBJournalEntry>('journalEntries', entryId);
+        if (!entry) continue;
+        let changed = false;
+        for (const line of entry.lines) {
+          if (lineIdSet.has(line.id) && line.lettrageCode) {
+            line.lettrageCode = undefined;
+            changed = true;
+          }
+        }
+        if (changed) {
+          await adapter.update('journalEntries', entryId, { lines: entry.lines, updatedAt: new Date().toISOString() });
+          modified++;
+        }
+      }
+
+      toast.success(`Rapprochement annulé pour "${item.libelle}" (${modified} écriture(s) mise(s) à jour)`);
+
+      // Refresh result
+      if (bankTransactions.length > 0) {
+        const result = await rapprochementAutomatique(adapter, bankTransactions);
+        setRapprochementResult(result);
+        const compte = filters.compte || '512';
+        const etat = await genererEtatRapprochement(compte, bankTransactions, result);
+        setEtatRapprochement(etat);
+      }
+    } catch (error) {
+      toast.error('Erreur lors de l\'annulation du rapprochement');
     }
   };
 

@@ -250,8 +250,8 @@ const EntriesPage: React.FC = () => {
       filterable: true,
       filterType: 'select',
       filterOptions: [
-        { value: t('accounting.draft'), label: t('accounting.draft') },
-        { value: t('accounting.validated'), label: t('accounting.validated') }
+        { value: 'draft', label: t('accounting.draft') },
+        { value: 'validated', label: t('accounting.validated') }
       ],
       width: '100px',
       align: 'center',
@@ -533,7 +533,7 @@ const EntriesPage: React.FC = () => {
                       >
                         <Eye className="w-4 h-4 text-[var(--color-info)]" />
                       </button>
-                      {entry.statut === t('accounting.draft') && (
+                      {entry.statut === 'draft' && (
                       <button
                         onClick={() => handleEditEntry(entry)}
                         className={`p-1 hover:bg-[var(--color-warning-light)] rounded transition-colors ${
@@ -581,7 +581,18 @@ const EntriesPage: React.FC = () => {
         onClose={() => {
           setShowEditModal(false);
           setEditingEntry(null);
+          loadEntries();
         }}
+        mode="edit"
+        initialData={editingEntry ? {
+          id: editingEntry.id,
+          status: editingEntry.statut,
+          journal: editingEntry.journal,
+          date: editingEntry.date,
+          entryNumber: editingEntry.numero,
+          label: editingEntry.libelle,
+          lines: (editingEntry as any).lines ?? [],
+        } : undefined}
       />
 
       {/* Modal de détails d'écriture */}

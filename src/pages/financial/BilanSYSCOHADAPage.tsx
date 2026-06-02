@@ -1,6 +1,7 @@
 import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { toast } from 'react-hot-toast';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -105,53 +106,81 @@ const BilanSYSCOHADAPage: React.FC = () => {
     queryFn: () => adapter.getAll('journalEntries'),
   });
 
-  // Helper: net balance (debit - credit) for account prefixes
+  // Helper: net balance (debit - credit) for account prefixes — excludes drafts
   const net = (prefixes: string[]) => {
     let t = 0;
-    for (const e of rawEntries) for (const l of e.lines)
-      if (prefixes.some(p => l.accountCode.startsWith(p))) t += l.debit - l.credit;
+    for (const e of rawEntries) {
+      if (e.status === 'draft') continue;
+      for (const l of e.lines)
+        if (prefixes.some(p => l.accountCode.startsWith(p))) t += l.debit - l.credit;
+    }
     return t;
   };
   const creditNet = (prefixes: string[]) => {
     let t = 0;
-    for (const e of rawEntries) for (const l of e.lines)
-      if (prefixes.some(p => l.accountCode.startsWith(p))) t += l.credit - l.debit;
+    for (const e of rawEntries) {
+      if (e.status === 'draft') continue;
+      for (const l of e.lines)
+        if (prefixes.some(p => l.accountCode.startsWith(p))) t += l.credit - l.debit;
+    }
     return t;
   };
 
-  // Bilan data — computed from entries
+  // N-1 helpers: use AN (À Nouveau) journal entries — they carry previous-year closing balances
+  const netN1 = (prefixes: string[]) => {
+    let t = 0;
+    for (const e of rawEntries) {
+      if (e.journal !== 'AN' && e.journal !== 'RAN') continue;
+      for (const l of e.lines)
+        if (prefixes.some(p => l.accountCode.startsWith(p))) t += l.debit - l.credit;
+    }
+    return t;
+  };
+  const creditNetN1 = (prefixes: string[]) => {
+    let t = 0;
+    for (const e of rawEntries) {
+      if (e.journal !== 'AN' && e.journal !== 'RAN') continue;
+      for (const l of e.lines)
+        if (prefixes.some(p => l.accountCode.startsWith(p))) t += l.credit - l.debit;
+    }
+    return t;
+  };
+
+  // Bilan data — computed from entries (N-1 from AN/RAN journal opening entries)
   const bilanData = useMemo(() => ({
     actif: [
-      { code: '20', libelle: 'Charges immobilisées', exerciceN: Math.max(0, net(['20'])), exerciceN1: 0 },
-      { code: '21', libelle: 'Immobilisations incorporelles', exerciceN: Math.max(0, net(['21'])), exerciceN1: 0 },
-      { code: '22/23', libelle: 'Terrains', exerciceN: Math.max(0, net(['22', '23'])), exerciceN1: 0 },
-      { code: '24', libelle: 'Bâtiments et installations', exerciceN: Math.max(0, net(['24'])), exerciceN1: 0 },
-      { code: '245', libelle: 'Matériel et outillage', exerciceN: Math.max(0, net(['245'])), exerciceN1: 0 },
-      { code: '246', libelle: 'Matériel de transport', exerciceN: Math.max(0, net(['246'])), exerciceN1: 0 },
-      { code: '247', libelle: 'Matériel et mobilier', exerciceN: Math.max(0, net(['247'])), exerciceN1: 0 },
-      { code: '31', libelle: 'Stocks de marchandises', exerciceN: Math.max(0, net(['31'])), exerciceN1: 0 },
-      { code: '32', libelle: 'Stocks de matières premières', exerciceN: Math.max(0, net(['32'])), exerciceN1: 0 },
-      { code: '41', libelle: 'Clients et comptes rattachés', exerciceN: Math.max(0, net(['41'])), exerciceN1: 0 },
-      { code: '46', libelle: 'Débiteurs divers', exerciceN: Math.max(0, net(['46'])), exerciceN1: 0 },
-      { code: '50', libelle: 'Valeurs mobilières de placement', exerciceN: Math.max(0, net(['50'])), exerciceN1: 0 },
-      { code: '52', libelle: 'Banques', exerciceN: Math.max(0, net(['52'])), exerciceN1: 0 },
-      { code: '53', libelle: 'Caisses', exerciceN: Math.max(0, net(['57'])), exerciceN1: 0 },
+      { code: '20', libelle: 'Charges immobilisées', exerciceN: Math.max(0, net(['20'])), exerciceN1: Math.max(0, netN1(['20'])) },
+      { code: '21', libelle: 'Immobilisations incorporelles', exerciceN: Math.max(0, net(['21'])), exerciceN1: Math.max(0, netN1(['21'])) },
+      { code: '22/23', libelle: 'Terrains', exerciceN: Math.max(0, net(['22', '23'])), exerciceN1: Math.max(0, netN1(['22', '23'])) },
+      { code: '24', libelle: 'Bâtiments et installations', exerciceN: Math.max(0, net(['24'])), exerciceN1: Math.max(0, netN1(['24'])) },
+      { code: '245', libelle: 'Matériel et outillage', exerciceN: Math.max(0, net(['245'])), exerciceN1: Math.max(0, netN1(['245'])) },
+      { code: '246', libelle: 'Matériel de transport', exerciceN: Math.max(0, net(['246'])), exerciceN1: Math.max(0, netN1(['246'])) },
+      { code: '247', libelle: 'Matériel et mobilier', exerciceN: Math.max(0, net(['247'])), exerciceN1: Math.max(0, netN1(['247'])) },
+      { code: '31', libelle: 'Stocks de marchandises', exerciceN: Math.max(0, net(['31'])), exerciceN1: Math.max(0, netN1(['31'])) },
+      { code: '32', libelle: 'Stocks de matières premières', exerciceN: Math.max(0, net(['32'])), exerciceN1: Math.max(0, netN1(['32'])) },
+      { code: '41', libelle: 'Clients et comptes rattachés', exerciceN: Math.max(0, net(['41'])), exerciceN1: Math.max(0, netN1(['41'])) },
+      { code: '46', libelle: 'Débiteurs divers', exerciceN: Math.max(0, net(['46'])), exerciceN1: Math.max(0, netN1(['46'])) },
+      { code: '50', libelle: 'Valeurs mobilières de placement', exerciceN: Math.max(0, net(['50'])), exerciceN1: Math.max(0, netN1(['50'])) },
+      { code: '52', libelle: 'Banques', exerciceN: Math.max(0, net(['52'])), exerciceN1: Math.max(0, netN1(['52'])) },
+      // Bug fix: code 53 = Caisses uses prefix '53', not '57' (virements de fonds)
+      { code: '53', libelle: 'Caisses', exerciceN: Math.max(0, net(['53'])), exerciceN1: Math.max(0, netN1(['53'])) },
     ],
     passif: [
-      { code: '10', libelle: 'Capital social', exerciceN: creditNet(['10']), exerciceN1: 0 },
-      { code: '11', libelle: 'Réserves', exerciceN: creditNet(['11']), exerciceN1: 0 },
-      { code: '12', libelle: 'Report à nouveau', exerciceN: creditNet(['12']), exerciceN1: 0 },
-      { code: '13', libelle: 'Résultat de l\'exercice', exerciceN: creditNet(['7']) - (net(['6']) > 0 ? net(['6']) : 0), exerciceN1: 0 },
-      { code: '16', libelle: 'Emprunts et dettes financières', exerciceN: creditNet(['16']), exerciceN1: 0 },
-      { code: '40', libelle: 'Fournisseurs et comptes rattachés', exerciceN: creditNet(['40']), exerciceN1: 0 },
-      { code: '42', libelle: 'Personnel', exerciceN: creditNet(['42']), exerciceN1: 0 },
-      { code: '43', libelle: 'Organismes sociaux', exerciceN: creditNet(['43']), exerciceN1: 0 },
-      { code: '44', libelle: 'État et collectivités', exerciceN: creditNet(['44']), exerciceN1: 0 },
-      { code: '47', libelle: 'Créditeurs divers', exerciceN: creditNet(['47']), exerciceN1: 0 },
+      { code: '10', libelle: 'Capital social', exerciceN: creditNet(['10']), exerciceN1: creditNetN1(['10']) },
+      { code: '11', libelle: 'Réserves', exerciceN: creditNet(['11']), exerciceN1: creditNetN1(['11']) },
+      { code: '12', libelle: 'Report à nouveau', exerciceN: creditNet(['12']), exerciceN1: creditNetN1(['12']) },
+      { code: '13', libelle: 'Résultat de l\'exercice', exerciceN: creditNet(['7']) - (net(['6']) > 0 ? net(['6']) : 0), exerciceN1: creditNetN1(['12']) },
+      { code: '16', libelle: 'Emprunts et dettes financières', exerciceN: creditNet(['16']), exerciceN1: creditNetN1(['16']) },
+      { code: '40', libelle: 'Fournisseurs et comptes rattachés', exerciceN: creditNet(['40']), exerciceN1: creditNetN1(['40']) },
+      { code: '42', libelle: 'Personnel', exerciceN: creditNet(['42']), exerciceN1: creditNetN1(['42']) },
+      { code: '43', libelle: 'Organismes sociaux', exerciceN: creditNet(['43']), exerciceN1: creditNetN1(['43']) },
+      { code: '44', libelle: 'État et collectivités', exerciceN: creditNet(['44']), exerciceN1: creditNetN1(['44']) },
+      { code: '47', libelle: 'Créditeurs divers', exerciceN: creditNet(['47']), exerciceN1: creditNetN1(['47']) },
     ],
   }), [rawEntries]);
 
-  // Compte de Résultat
+  // Compte de Résultat — N-1 not available from AN entries (income stmt doesn't carry forward)
+  // We show 0 with a clear label; a full N-1 would require a prior-year dataset
   const compteResultatData = useMemo(() => ({
     produits: [
       { code: '70', libelle: 'Ventes de marchandises', exerciceN: creditNet(['70']), exerciceN1: 0 },
@@ -213,6 +242,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
     const re = ebe - net(['68']) + creditNet(['75', '78', '79']) - net(['65']);
     const rc = re + creditNet(['77']) - net(['67']);
     const rn = rc - net(['89']);
+    // Note: SIG N-1 requires a separate prior-year dataset (not carried in AN entries)
     return [
       { libelle: 'Marge commerciale', exerciceN: mc, exerciceN1: 0, variation: '—' },
       { libelle: 'Production de l\'exercice', exerciceN: prodExercice, exerciceN1: 0, variation: '—' },
@@ -1351,7 +1381,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                     const fluxInv = fluxTresorerieData.activitesInvestissement.reduce((s, i) => s + i.montant, 0);
                     const fluxFin = fluxTresorerieData.activitesFinancement.reduce((s, i) => s + i.montant, 0);
                     const variation = fluxOp + fluxInv + fluxFin;
-                    const tresoFin = net(['52', '57']) - net(['564']);
+                    const tresoFin = net(['52', '53']) - net(['564']); // 52=Banques, 53=Caisses
                     const tresoDebut = tresoFin - variation;
                     return (
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
@@ -1381,6 +1411,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                 let encCapital = 0, encEmprunts = 0, decRembEmprunts = 0, decDividendes = 0;
                 for (const e of rawEntries) {
                   if (e.journal === 'AN' || e.journal === 'RAN') continue;
+                  if (e.status === 'draft') continue; // exclude drafts
                   const cashL = e.lines?.filter((l: any) => l.accountCode.startsWith('5')) || [];
                   const otherL = e.lines?.filter((l: any) => !l.accountCode.startsWith('5')) || [];
                   if (cashL.length === 0) continue;
@@ -1402,7 +1433,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                 const dFluxInvest = encCessions - decAcqImmos - decAcqFinanc;
                 const dFluxFinanc = encCapital + encEmprunts - decRembEmprunts - decDividendes;
                 const dVariation = dFluxExploit + dFluxInvest + dFluxFinanc;
-                const tresoFin = net(['52', '57']) - net(['564']);
+                const tresoFin = net(['52', '53']) - net(['564']); // 53=Caisses, 52=Banques
                 const tresoDebut = tresoFin - dVariation;
 
                 const directPrefixMap: Record<string, string[]> = {
@@ -1465,11 +1496,17 @@ const BilanSYSCOHADAPage: React.FC = () => {
                         <h3 className="font-semibold text-[var(--color-primary)]">{tab.label}</h3>
                       </div>
                       <div className="space-y-3">
-                        <button className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-[var(--color-text-secondary)] text-white rounded-lg hover:bg-[#404040] transition-colors">
+                        <button
+                          onClick={() => { setActiveTab(tab.id); setTimeout(handlePrint, 150); }}
+                          className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-[var(--color-text-secondary)] text-white rounded-lg hover:bg-[#404040] transition-colors"
+                        >
                           <Download className="w-4 h-4" />
                           <span>PDF</span>
                         </button>
-                        <button className="w-full flex items-center justify-center space-x-2 px-4 py-2 border border-[var(--color-border)] text-[#404040] rounded-lg hover:bg-gray-50 transition-colors">
+                        <button
+                          onClick={() => toast('Export Excel : fonctionnalité disponible via l\'onglet « Écriture »', { icon: 'ℹ️' })}
+                          className="w-full flex items-center justify-center space-x-2 px-4 py-2 border border-[var(--color-border)] text-[#404040] rounded-lg hover:bg-gray-50 transition-colors"
+                        >
                           <FileText className="w-4 h-4" />
                           <span>Excel</span>
                         </button>
@@ -1482,11 +1519,17 @@ const BilanSYSCOHADAPage: React.FC = () => {
               <div className="bg-white rounded-lg p-6 border border-[var(--color-border)]">
                 <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4">Export Complet</h3>
                 <div className="flex flex-col sm:flex-row gap-4">
-                  <button className="flex-1 flex items-center justify-center space-x-2 px-6 py-3 bg-[var(--color-text-secondary)] text-white rounded-lg hover:bg-[#404040] transition-colors">
+                  <button
+                    onClick={handlePrint}
+                    className="flex-1 flex items-center justify-center space-x-2 px-6 py-3 bg-[var(--color-text-secondary)] text-white rounded-lg hover:bg-[#404040] transition-colors"
+                  >
                     <Download className="w-5 h-5" />
                     <span>Télécharger tous les états (PDF)</span>
                   </button>
-                  <button className="flex-1 flex items-center justify-center space-x-2 px-6 py-3 border border-[var(--color-border)] text-[#404040] rounded-lg hover:bg-gray-50 transition-colors">
+                  <button
+                    onClick={() => toast('Export Excel global : fonctionnalité disponible via l\'onglet « Écriture »', { icon: 'ℹ️' })}
+                    className="flex-1 flex items-center justify-center space-x-2 px-6 py-3 border border-[var(--color-border)] text-[#404040] rounded-lg hover:bg-gray-50 transition-colors"
+                  >
                     <FileText className="w-5 h-5" />
                     <span>Télécharger tous les états (Excel)</span>
                   </button>

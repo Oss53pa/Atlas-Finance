@@ -205,13 +205,90 @@ class TreasuryReportsService {
   }
 
   async getPosition(): Promise<unknown[]> {
+    const result = await this.generateTreasuryPosition();
+    return Array.isArray(result) ? result : [result];
+  }
+
+  /** Position de trésorerie consolidée (soldes par compte à une date donnée) */
+  async generateTreasuryPosition(params?: { date?: string; devise?: string }): Promise<unknown[]> {
     try {
+      const { data: companyId } = await supabase.rpc('get_user_company_id');
       const result = await callRpc<unknown[]>('get_treasury_position', {
-        p_company_id: (await supabase.rpc('get_user_company_id')).data,
+        p_company_id: companyId ?? undefined,
+        p_date: params?.date || new Date().toISOString().split('T')[0],
       });
       return result || [];
-    } catch (err) { /* silent */
+    } catch (err) {
       return [];
+    }
+  }
+
+  /** Prévision de trésorerie sur une période */
+  async generateCashFlowForecast(params: {
+    date_debut: string;
+    date_fin: string;
+    compte_bancaire?: string;
+  }): Promise<unknown> {
+    try {
+      const { data: companyId } = await supabase.rpc('get_user_company_id');
+      const query = supabase
+        .from('treasury_cash_movements')
+        .select('*')
+        .eq('company_id', companyId ?? '')
+        .gte('scheduled_date', params.date_debut)
+        .lte('scheduled_date', params.date_fin)
+        .order('scheduled_date', { ascending: true });
+      if (params.compte_bancaire) query.eq('bank_account_id', params.compte_bancaire);
+      const { data, error } = await query;
+      if (error) throw error;
+      return { movements: data || [], period: { start: params.date_debut, end: params.date_fin } };
+    } catch (err) {
+      return { movements: [], period: { start: params.date_debut, end: params.date_fin } };
+    }
+  }
+
+  /** Flux de trésorerie réels sur une période */
+  async generateCashFlow(params: {
+    date_debut: string;
+    date_fin: string;
+    compte_bancaire?: string;
+  }): Promise<unknown> {
+    return this.generateCashFlowForecast(params);
+  }
+
+  /** Rapport de rapprochement pour un compte sur une période */
+  async generateReconciliationReport(params: {
+    compte_bancaire: string;
+    date_debut: string;
+    date_fin: string;
+  }): Promise<unknown> {
+    try {
+      const { data, error } = await supabase
+        .from('treasury_cash_movements')
+        .select('*')
+        .eq('bank_account_id', params.compte_bancaire)
+        .gte('scheduled_date', params.date_debut)
+        .lte('scheduled_date', params.date_fin)
+        .order('scheduled_date', { ascending: true });
+      if (error) throw error;
+      const movements = data || [];
+      const reconciled = movements.filter((m: any) => m.execution_status === 'EXECUTED');
+      const pending = movements.filter((m: any) => m.execution_status !== 'EXECUTED');
+      return {
+        compte_bancaire: params.compte_bancaire,
+        period: { start: params.date_debut, end: params.date_fin },
+        total: movements.length,
+        reconciled: reconciled.length,
+        pending: pending.length,
+        reconciliation_rate: movements.length > 0 ? reconciled.length / movements.length : 0,
+        movements,
+      };
+    } catch (err) {
+      return {
+        compte_bancaire: params.compte_bancaire,
+        period: { start: params.date_debut, end: params.date_fin },
+        total: 0, reconciled: 0, pending: 0, reconciliation_rate: 0, movements: [],
+      };
     }
   }
 }

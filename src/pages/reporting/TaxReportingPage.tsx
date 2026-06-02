@@ -32,7 +32,8 @@ import {
   X,
   Zap,
   RefreshCw,
-  Settings
+  Settings,
+  Edit
 } from 'lucide-react';
 import {
   Card,
@@ -1182,14 +1183,40 @@ const TaxReportingPage: React.FC = () => {
     toast.success(`Téléchargement du rapport "${report.name}"`);
   };
 
-  const handleSubmitDeclaration = () => {
+  const handleSubmitDeclaration = async () => {
     if (!newDeclaration.type || !newDeclaration.periode || !newDeclaration.montant) {
       toast.error('Veuillez remplir tous les champs obligatoires');
       return;
     }
-    toast.success('Déclaration créée avec succès');
-    setShowNewDeclarationModal(false);
-    setNewDeclaration({ type: 'TVA', periode: '', montant: '', dateEcheance: '' });
+    try {
+      const now = new Date().toISOString();
+      const montant = Number(newDeclaration.montant);
+      await adapter.create('taxDeclarations', {
+        taxRegistryId: '',
+        taxCode: newDeclaration.type,
+        periodStart: periodBounds.start,
+        periodEnd: periodBounds.end,
+        periodLabel: newDeclaration.periode,
+        fiscalYear: new Date(periodBounds.start).getFullYear(),
+        base: montant,
+        grossTax: montant,
+        deductible: 0,
+        netTax: montant,
+        alreadyPaid: 0,
+        balanceDue: montant,
+        credit: 0,
+        status: 'draft',
+        declarationDeadline: newDeclaration.dateEcheance || undefined,
+        createdAt: now,
+        updatedAt: now,
+      });
+      toast.success('Déclaration créée avec succès');
+      setShowNewDeclarationModal(false);
+      setNewDeclaration({ type: 'TVA', periode: '', montant: '', dateEcheance: '' });
+      queryClient.invalidateQueries({ queryKey: ['tax-declarations-db'] });
+    } catch (err) {
+      toast.error('Erreur lors de la création de la déclaration');
+    }
   };
 
   const handleConfirmPayment = () => {

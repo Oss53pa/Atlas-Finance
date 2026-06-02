@@ -77,14 +77,24 @@ export async function calculerTVAMensuelle(
   let tvaCollectee = 0;
   let tvaDeductible = 0;
   let baseImposable18 = 0;
-  const baseImposable9 = 0;
-  const baseExoneree = 0;
+  let baseImposable9 = 0;
+  let baseExoneree = 0;
   const details: TVADetail[] = [];
 
   const accountTotals = new Map<string, { debit: number; credit: number }>();
 
   for (const entry of entries) {
-    for (const line of (entry as unknown as { lines: Array<{ accountCode: string; debit: number; credit: number }> }).lines || []) {
+    const lines = (entry as unknown as { lines: Array<{ accountCode: string; debit: number; credit: number }> }).lines || [];
+
+    // Determine which TVA rates appear in this entry to correlate with sales lines
+    const entryHasTaux18 = lines.some(l => l.accountCode?.startsWith('4431') || l.accountCode === '44310');
+    const entryHasTaux9  = lines.some(l => l.accountCode?.startsWith('4432') || l.accountCode === '44320');
+    const entryHasTaux0  = lines.some(l => l.accountCode?.startsWith('4436') || l.accountCode === '44360');
+    // Ecriture avec TVA exonéree : comptes 70x présents sans aucun 443x de TVA collectée
+    const entryHasNoTVA = !entryHasTaux18 && !entryHasTaux9 && !entryHasTaux0
+      && lines.some(l => (l.accountCode || '').startsWith('70'));
+
+    for (const line of lines) {
       const code = line.accountCode || '';
 
       // TVA collectee (443x)
@@ -105,11 +115,17 @@ export async function calculerTVAMensuelle(
         accountTotals.set(code, existing);
       }
 
-      // Ventes pour base imposable (701-707)
+      // Ventes pour base imposable (70x) — ventilation par taux selon comptes 443x présents
       if (code.startsWith('70')) {
         const montantHT = money(line.credit).subtract(money(line.debit)).toNumber();
-        // Heuristique : si un compte 4431 (TVA 18%) est dans la meme ecriture
-        baseImposable18 = money(baseImposable18).add(money(montantHT)).toNumber(); // Simplification — tout en 18% par defaut
+        if (entryHasTaux18) {
+          baseImposable18 = money(baseImposable18).add(money(montantHT)).toNumber();
+        } else if (entryHasTaux9) {
+          baseImposable9 = money(baseImposable9).add(money(montantHT)).toNumber();
+        } else if (entryHasTaux0 || entryHasNoTVA) {
+          // Taux zéro / opérations exonérées ou hors-champ (export, franchise)
+          baseExoneree = money(baseExoneree).add(money(montantHT)).toNumber();
+        }
       }
     }
   }

@@ -65,11 +65,31 @@ const ModernDoubleSidebarLayout: React.FC = () => {
   useKeyboardShortcuts();
 
   useEffect(() => {
-    adapter.getAll<any>('companies').then((companies) => {
-      if (companies && companies.length > 0) {
-        setCompanyName(companies[0].name || companies[0].nom || companies[0].company_name || '');
-      }
-    }).catch(() => {});
+    let cancelled = false;
+    const resolveCompanyName = async () => {
+      // 1) Source canonique : le setting admin_company_legal est TOUJOURS écrit
+      //    lors de la sauvegarde des infos légales (saas ET local). Le sync vers
+      //    la table societes peut échouer silencieusement (RPC non déployée, etc.)
+      //    ou ne pas exister en local — donc on lit d'abord le setting.
+      try {
+        const legalRow = await adapter.getById<any>('settings', 'admin_company_legal');
+        const raison = legalRow?.value
+          ? JSON.parse(legalRow.value)?.raisonSociale
+          : undefined;
+        if (raison && !cancelled) { setCompanyName(raison); return; }
+      } catch { /* on tente le repli ci-dessous */ }
+
+      // 2) Repli : ligne societes/companies. Le nom légal est dans raison_sociale.
+      try {
+        const companies = await adapter.getAll<any>('companies');
+        if (companies && companies.length > 0 && !cancelled) {
+          const c = companies[0];
+          setCompanyName(c.raison_sociale || c.name || c.nom || c.company_name || '');
+        }
+      } catch { /* silencieux */ }
+    };
+    resolveCompanyName();
+    return () => { cancelled = true; };
   }, [adapter]);
 
   // Detect demo mode (iframe preview) to auto-collapse sidebars and save space

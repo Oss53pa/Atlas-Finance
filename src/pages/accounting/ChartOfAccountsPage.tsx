@@ -81,18 +81,34 @@ const ChartOfAccountsPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const isError = false;
 
+  // Formulaire d'édition contrôlé
+  const [editForm, setEditForm] = useState<{
+    libelle: string;
+    classe: number;
+    nature: string;
+    sens_normal: string;
+    is_collectif: boolean;
+    is_active: boolean;
+  }>({ libelle: '', classe: 1, nature: 'ACTIF', sens_normal: 'DEBITEUR', is_collectif: false, is_active: true });
+  const [isSavingAccount, setIsSavingAccount] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+
+  const reloadAccounts = async () => {
+    try {
+      const [accounts, entries] = await Promise.all([
+        adapter.getAll<any>('accounts'),
+        adapter.getAll<any>('journalEntries'),
+      ]);
+      setDbAccounts(accounts);
+      setDbEntries(entries);
+    } catch { /* ignored */ }
+  };
+
   useEffect(() => {
     const loadData = async () => {
       try {
         setIsLoading(true);
-        const [accounts, entries] = await Promise.all([
-          adapter.getAll<any>('accounts'),
-          adapter.getAll<any>('journalEntries'),
-        ]);
-        setDbAccounts(accounts);
-        setDbEntries(entries);
-      } catch (err) {
-        /* ignored */
+        await reloadAccounts();
       } finally {
         setIsLoading(false);
       }
@@ -483,6 +499,14 @@ const ChartOfAccountsPage: React.FC = () => {
                                   className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-all"
                                   onClick={() => {
                                     setSelectedAccount(account);
+                                    setEditForm({
+                                      libelle: account.libelle,
+                                      classe: account.classe,
+                                      nature: account.nature,
+                                      sens_normal: account.sens_normal,
+                                      is_collectif: account.is_collectif,
+                                      is_active: account.is_active,
+                                    });
                                     setShowEditAccountModal(true);
                                   }}
                                 >
@@ -720,6 +744,16 @@ const ChartOfAccountsPage: React.FC = () => {
               <button
                 onClick={() => {
                   setShowViewAccountModal(false);
+                  if (selectedAccount) {
+                    setEditForm({
+                      libelle: selectedAccount.libelle,
+                      classe: selectedAccount.classe,
+                      nature: selectedAccount.nature,
+                      sens_normal: selectedAccount.sens_normal,
+                      is_collectif: selectedAccount.is_collectif,
+                      is_active: selectedAccount.is_active,
+                    });
+                  }
                   setShowEditAccountModal(true);
                 }}
                 className="px-6 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600"
@@ -750,10 +784,31 @@ const ChartOfAccountsPage: React.FC = () => {
                 </button>
               </div>
             </div>
-            <form onSubmit={(e) => {
+            <form onSubmit={async (e) => {
               e.preventDefault();
-              toast.success('Compte modifié avec succès !');
-              setShowEditAccountModal(false);
+              if (!selectedAccount) return;
+              setIsSavingAccount(true);
+              try {
+                // Trouver l'id réel du compte en DB (avant padding)
+                const dbAcc = dbAccounts.find((a: any) =>
+                  (a.code || a.number || '').padEnd(9, '0') === selectedAccount.code
+                );
+                const accountId = dbAcc?.id || selectedAccount.code;
+                await adapter.update<any>('accounts', accountId, {
+                  name: editForm.libelle,
+                  libelle: editForm.libelle,
+                  accountClass: editForm.classe,
+                  isCollective: editForm.is_collectif,
+                  isActive: editForm.is_active,
+                });
+                await reloadAccounts();
+                toast.success('Compte modifié avec succès !');
+                setShowEditAccountModal(false);
+              } catch (err) {
+                toast.error('Erreur lors de la modification : ' + ((err instanceof Error) ? err.message : String(err)));
+              } finally {
+                setIsSavingAccount(false);
+              }
             }}>
               <div className="p-6 space-y-4">
                 <div className="grid grid-cols-2 gap-4">
@@ -761,9 +816,10 @@ const ChartOfAccountsPage: React.FC = () => {
                     <label className="block text-sm font-medium text-neutral-700 mb-2">Code Compte</label>
                     <input
                       type="text"
-                      defaultValue={selectedAccount.code}
+                      value={selectedAccount.code}
                       className="w-full px-3 py-2 border border-neutral-300 rounded-lg bg-neutral-100 font-mono"
                       disabled
+                      readOnly
                     />
                     <p className="text-xs text-neutral-500 mt-1">Le code ne peut pas être modifié</p>
                   </div>
@@ -771,7 +827,8 @@ const ChartOfAccountsPage: React.FC = () => {
                     <label className="block text-sm font-medium text-neutral-700 mb-2">Classe</label>
                     <select
                       className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      defaultValue={selectedAccount.classe}
+                      value={editForm.classe}
+                      onChange={e => setEditForm(prev => ({ ...prev, classe: parseInt(e.target.value) }))}
                     >
                       <option value={1}>Classe 1 - Ressources Durables</option>
                       <option value={2}>Classe 2 - Actif Immobilisé</option>
@@ -787,7 +844,8 @@ const ChartOfAccountsPage: React.FC = () => {
                   <label className="block text-sm font-medium text-neutral-700 mb-2">Libellé *</label>
                   <input
                     type="text"
-                    defaultValue={selectedAccount.libelle}
+                    value={editForm.libelle}
+                    onChange={e => setEditForm(prev => ({ ...prev, libelle: e.target.value }))}
                     className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                     required
                   />
@@ -797,7 +855,8 @@ const ChartOfAccountsPage: React.FC = () => {
                     <label className="block text-sm font-medium text-neutral-700 mb-2">Nature</label>
                     <select
                       className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      defaultValue={selectedAccount.nature}
+                      value={editForm.nature}
+                      onChange={e => setEditForm(prev => ({ ...prev, nature: e.target.value }))}
                     >
                       <option value="ACTIF">ACTIF</option>
                       <option value="PASSIF">PASSIF</option>
@@ -809,7 +868,8 @@ const ChartOfAccountsPage: React.FC = () => {
                     <label className="block text-sm font-medium text-neutral-700 mb-2">Sens Normal</label>
                     <select
                       className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      defaultValue={selectedAccount.sens_normal}
+                      value={editForm.sens_normal}
+                      onChange={e => setEditForm(prev => ({ ...prev, sens_normal: e.target.value }))}
                     >
                       <option value="DEBITEUR">DEBITEUR</option>
                       <option value="CREDITEUR">CREDITEUR</option>
@@ -821,7 +881,8 @@ const ChartOfAccountsPage: React.FC = () => {
                     <input
                       type="checkbox"
                       className="rounded border-neutral-300 text-blue-600"
-                      defaultChecked={selectedAccount.is_collectif}
+                      checked={editForm.is_collectif}
+                      onChange={e => setEditForm(prev => ({ ...prev, is_collectif: e.target.checked }))}
                     />
                     <span className="text-sm text-neutral-700">Compte collectif</span>
                   </label>
@@ -829,7 +890,8 @@ const ChartOfAccountsPage: React.FC = () => {
                     <input
                       type="checkbox"
                       className="rounded border-neutral-300 text-green-600"
-                      defaultChecked={selectedAccount.is_active}
+                      checked={editForm.is_active}
+                      onChange={e => setEditForm(prev => ({ ...prev, is_active: e.target.checked }))}
                     />
                     <span className="text-sm text-neutral-700">Compte actif</span>
                   </label>
@@ -845,9 +907,10 @@ const ChartOfAccountsPage: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600"
+                  disabled={isSavingAccount}
+                  className="px-6 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 disabled:opacity-60"
                 >
-                  Enregistrer
+                  {isSavingAccount ? 'Enregistrement...' : 'Enregistrer'}
                 </button>
               </div>
             </form>
@@ -887,14 +950,28 @@ const ChartOfAccountsPage: React.FC = () => {
                 Annuler
               </button>
               <button
-                onClick={() => {
-                  toast.success(`Compte ${selectedAccount.code} supprimé !`);
-                  setShowDeleteConfirmModal(false);
-                  setSelectedAccount(null);
+                disabled={isDeletingAccount}
+                onClick={async () => {
+                  setIsDeletingAccount(true);
+                  try {
+                    const dbAcc = dbAccounts.find((a: any) =>
+                      (a.code || a.number || '').padEnd(9, '0') === selectedAccount.code
+                    );
+                    const accountId = dbAcc?.id || selectedAccount.code;
+                    await adapter.delete('accounts', accountId);
+                    await reloadAccounts();
+                    toast.success(`Compte ${selectedAccount.code} supprimé !`);
+                    setShowDeleteConfirmModal(false);
+                    setSelectedAccount(null);
+                  } catch (err) {
+                    toast.error('Erreur lors de la suppression : ' + ((err instanceof Error) ? err.message : String(err)));
+                  } finally {
+                    setIsDeletingAccount(false);
+                  }
                 }}
-                className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-60"
               >
-                Supprimer
+                {isDeletingAccount ? 'Suppression...' : 'Supprimer'}
               </button>
             </div>
           </motion.div>

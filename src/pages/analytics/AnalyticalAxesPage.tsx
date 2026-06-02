@@ -83,6 +83,9 @@ const AnalyticalAxesPage: React.FC = () => {
     libelle: '',
     type: 'centre_cout' as 'centre_cout' | 'centre_profit' | 'projet' | 'produit' | 'region' | 'activite',
     description: '',
+    niveau: '1',
+    statut: 'actif',
+    responsable: '',
     hierarchique: false,
     obligatoire_classes: [] as string[],
     actif: true,
@@ -156,7 +159,7 @@ const AnalyticalAxesPage: React.FC = () => {
     mutationFn: async (data: AxeData) => {
       const current = await adapter.getById<{ value: string }>('settings', 'analytical_axes');
       const axes = current ? JSON.parse(current.value) : [];
-      const newAxe = { ...data, id: crypto.randomUUID(), statut: 'actif', niveau: 1, nb_centres: 0, nb_ventilations: 0, montant_total: 0 };
+      const newAxe = { ...data, id: crypto.randomUUID(), nb_centres: 0, nb_ventilations: 0, montant_total: 0 };
       axes.push(newAxe);
       await adapter.create('settings', { key: 'analytical_axes', value: JSON.stringify(axes), updatedAt: new Date().toISOString() });
       return newAxe;
@@ -220,6 +223,9 @@ const AnalyticalAxesPage: React.FC = () => {
       libelle: '',
       type: 'centre_cout',
       description: '',
+      niveau: '1',
+      statut: 'actif',
+      responsable: '',
       hierarchique: false,
       obligatoire_classes: [],
       actif: true,
@@ -245,11 +251,24 @@ const AnalyticalAxesPage: React.FC = () => {
       setIsSubmitting(true);
       setErrors({});
 
-      // Validate with Zod
+      // Validate with Zod (valide les champs du schéma)
       const validatedData = createAxeSchema.parse(formData);
 
+      // Merge avec les champs contrôlés hors-schéma (niveau, statut, responsable)
+      const fullData: AxeData = {
+        ...(validatedData as unknown as AxeData),
+        niveau: Number(formData.niveau) || 1,
+        statut: formData.statut || 'actif',
+        responsable: formData.responsable || '',
+        email_responsable: '',
+        nb_centres: 0,
+        nb_ventilations: 0,
+        montant_total: 0,
+        id: '',
+      };
+
       // Submit to backend
-      await createMutation.mutateAsync(validatedData as unknown as AxeData);
+      await createMutation.mutateAsync(fullData);
     } catch (error) {
       if (error instanceof z.ZodError) {
         // Map Zod errors to form fields
@@ -843,9 +862,10 @@ const AnalyticalAxesPage: React.FC = () => {
                       </label>
                       <select
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
-                        defaultValue={selectedAxe?.niveau}
+                        value={formData.niveau}
+                        onChange={(e) => handleInputChange('niveau', e.target.value)}
+                        disabled={isSubmitting}
                       >
-                        <option value="">Sélectionner</option>
                         <option value="1">Niveau 1 - Stratégique</option>
                         <option value="2">Niveau 2 - Tactique</option>
                         <option value="3">Niveau 3 - Opérationnel</option>
@@ -859,7 +879,9 @@ const AnalyticalAxesPage: React.FC = () => {
                       </label>
                       <select
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
-                        defaultValue={selectedAxe?.statut || 'actif'}
+                        value={formData.statut}
+                        onChange={(e) => handleInputChange('statut', e.target.value)}
+                        disabled={isSubmitting}
                       >
                         <option value="actif">Actif</option>
                         <option value="inactif">Inactif</option>
@@ -874,7 +896,9 @@ const AnalyticalAxesPage: React.FC = () => {
                     </label>
                     <select
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
-                      defaultValue={selectedAxe?.responsable}
+                      value={formData.responsable}
+                      onChange={(e) => handleInputChange('responsable', e.target.value)}
+                      disabled={isSubmitting}
                     >
                       <option value="">Sélectionner un responsable</option>
                       <option value="user1">Directeur Financier</option>

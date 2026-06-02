@@ -26,7 +26,9 @@ export default defineConfig({
     },
   },
   define: {
-    'import.meta.env.VITE_DATA_MODE': JSON.stringify('local'),
+    // 'hybrid' : Dexie (offline-first) + sync automatique vers Supabase.
+    // Dégrade proprement en local pur si VITE_SUPABASE_URL/KEY ne sont pas fournis.
+    'import.meta.env.VITE_DATA_MODE': JSON.stringify('hybrid'),
     __APP_VERSION__: JSON.stringify(pkg.version),
   },
   server: {

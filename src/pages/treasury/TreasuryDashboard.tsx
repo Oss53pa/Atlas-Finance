@@ -87,21 +87,38 @@ const TreasuryDashboard: React.FC = () => {
     enabled: !!companyId,
   });
 
+  // Compute derived stats from real account data
+  const totalBalance = accountsData?.reduce((sum: number, acc: any) =>
+    sum + (acc.current_balance ?? acc.solde_courant ?? 0), 0) || 0;
+  const activeAccounts = accountsData?.filter((acc: any) =>
+    (acc.status ?? acc.statut ?? '') === 'ACTIVE' || (acc.actif === true)) || [];
+  // Reconciliation: ratio of accounts with zero discrepancy (initial_balance ≈ current_balance as proxy)
+  const reconciledCount = accountsData?.filter((acc: any) => {
+    const cb = acc.current_balance ?? 0;
+    const ib = acc.initial_balance ?? 0;
+    return Math.abs(cb - ib) < 1;
+  }).length || 0;
+  const totalAccountsCount = accountsData?.length || 0;
+  const reconciliationRate = totalAccountsCount > 0
+    ? Math.round((reconciledCount / totalAccountsCount) * 100) / 100
+    : 0;
+  const pendingReconciliation = totalAccountsCount - reconciledCount;
+
   const stats = {
-    total_accounts: accountsData?.length || 0,
-    total_balance: accountsData?.reduce((sum: number, acc: any) => sum + (acc.solde_courant || 0), 0) || 0,
+    total_accounts: totalAccountsCount,
+    total_balance: totalBalance,
     total_in: globalKPIs?.treasury?.cash_flow || 0,
     total_out: Math.abs(globalKPIs?.treasury?.cash_flow || 0),
-    totalCashPosition: globalKPIs?.treasury?.cash_position || 0,
-    activeBankConnections: accountsData?.filter((acc: any) => acc.actif).length || 0,
-    reconciliationRate: 0,
-    pendingReconciliation: 0,
+    totalCashPosition: globalKPIs?.treasury?.cash_position || totalBalance,
+    activeBankConnections: activeAccounts.length,
+    reconciliationRate,
+    pendingReconciliation,
     cashForecast30d: cashFlowPrediction?.predictions?.[29]?.predicted_balance || 0
   };
 
   const bankConnections = {
-    ebics_connected: accountsData?.filter((acc: any) => acc.actif).length || 0,
-    total: accountsData?.length || 0,
+    ebics_connected: activeAccounts.length,
+    total: totalAccountsCount,
   };
 
   const cashForecast = {

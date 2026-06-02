@@ -43,7 +43,7 @@ import {
   SelectTrigger,
   SelectValue
 } from '../../components/ui';
-import { assetsService, createAmortissementSchema } from '../../services/modules/assets.service';
+import { createAmortissementSchema } from '../../services/modules/assets.service';
 import { z } from 'zod';
 import { formatCurrency, formatDate } from '../../lib/utils';
 import { toast } from 'react-hot-toast';
@@ -114,12 +114,21 @@ const DepreciationPage: React.FC = () => {
 
   const queryClient = useQueryClient();
 
-  // Create amortissement mutation
+  // Create amortissement mutation — Bug #7 fix: use adapter directly
   const createMutation = useMutation({
-    mutationFn: assetsService.createAmortissement,
+    mutationFn: async (data: { immobilisation_id: string; exercice: string; montant: number; date_debut?: string; date_fin?: string; methode?: string }) => {
+      if (!adapter) throw new Error('Adapter non disponible');
+      // Add montant as additional depreciation on the asset
+      const asset = await adapter.getById('assets', data.immobilisation_id) as Record<string, unknown> | null;
+      if (!asset) throw new Error('Immobilisation introuvable');
+      const currentCumul = (asset.cumulDepreciation as number) || 0;
+      await adapter.update('assets', data.immobilisation_id, { cumulDepreciation: currentCumul + data.montant });
+      return data;
+    },
     onSuccess: () => {
       toast.success('Amortissement créé avec succès');
-      queryClient.invalidateQueries({ queryKey: ['amortissements'] });
+      queryClient.invalidateQueries({ queryKey: ['depreciation'] });
+      queryClient.invalidateQueries({ queryKey: ['fixed-assets'] });
       setShowCreateModal(false);
       resetForm();
     },
@@ -128,42 +137,138 @@ const DepreciationPage: React.FC = () => {
     },
   });
 
-  // Fetch depreciation data
+  // Fetch depreciation data — Bug #7 fix: compute from assets table
   const { data: depreciationData, isLoading } = useQuery({
     queryKey: ['depreciation', 'list', page, filters],
-    queryFn: () => assetsService.getDepreciationData({ 
-      page, 
-      ...filters
-    }),
+    queryFn: async () => {
+      if (!adapter) return { results: [], count: 0, total_periode: 0, total_comptabilise: 0, total_en_attente: 0, total_dotations: 0, total_cumul: 0, total_vnc: 0, taux_moyen: 0 };
+      const allAssets = await adapter.getAll('assets') as Array<Record<string, unknown>>;
+      const activeAssets = allAssets.filter(a => a.status === 'active');
+
+      // Build depreciation records — one per asset per year
+      const currentYear = new Date().getFullYear().toString();
+      let records: DepreciationRecord[] = activeAssets.map(a => {
+        const valeur = (a.acquisitionValue as number) || 0;
+        const duree = (a.usefulLifeYears as number) || 5;
+        const cumul = (a.cumulDepreciation as number) || 0;
+        const dotationAnnuelle = duree > 0 ? valeur / duree : 0;
+        const vnc = valeur - cumul;
+        const taux = duree > 0 ? Math.round((1 / duree) * 100 * 100) / 100 : 0;
+        return {
+          id: String(a.id),
+          immobilisation_id: String(a.id),
+          exercice: currentYear,
+          date_amortissement: new Date().toISOString().split('T')[0],
+          nom_actif: String(a.name || ''),
+          code_actif: String(a.code || ''),
+          methode: (a.depreciationMethod as string) === 'declining' ? 'degressive' : 'lineaire',
+          periode: 'annuel',
+          valeur_base: valeur,
+          taux_amortissement: taux,
+          montant_dotation: dotationAnnuelle,
+          cumul_amortissements: cumul,
+          valeur_nette_comptable: vnc,
+          statut: cumul >= valeur ? 'comptabilise' : 'calcule',
+        } as DepreciationRecord;
+      });
+
+      // Apply filters
+      if (filters.search) {
+        const s = filters.search.toLowerCase();
+        records = records.filter(r => r.nom_actif.toLowerCase().includes(s) || r.code_actif.toLowerCase().includes(s));
+      }
+      if (filters.methode) records = records.filter(r => r.methode === filters.methode);
+      if (filters.statut) records = records.filter(r => r.statut === filters.statut);
+      if (filters.actif) records = records.filter(r => r.immobilisation_id === filters.actif);
+
+      const total = records.length;
+      const pageSize = 20;
+      const start = (page - 1) * pageSize;
+      const paged = records.slice(start, start + pageSize);
+      const totalDotations = records.reduce((s, r) => s + r.montant_dotation, 0);
+      const totalCumul = records.reduce((s, r) => s + r.cumul_amortissements, 0);
+      const totalVnc = records.reduce((s, r) => s + r.valeur_nette_comptable, 0);
+      const tauxMoyen = records.length > 0 ? Math.round(records.reduce((s, r) => s + r.taux_amortissement, 0) / records.length * 100) / 100 : 0;
+      const totalComptabilise = records.filter(r => r.statut === 'comptabilise').reduce((s, r) => s + r.montant_dotation, 0);
+      const totalEnAttente = records.filter(r => r.statut !== 'comptabilise').reduce((s, r) => s + r.montant_dotation, 0);
+      return {
+        results: paged,
+        count: total,
+        total_periode: totalDotations,
+        total_comptabilise: totalComptabilise,
+        total_en_attente: totalEnAttente,
+        total_dotations: totalDotations,
+        total_cumul: totalCumul,
+        total_vnc: totalVnc,
+        taux_moyen: tauxMoyen,
+      };
+    },
   });
 
-  // Fetch assets for selection
+  // Fetch assets for selection — Bug #7 fix
   const { data: assets } = useQuery({
-    queryKey: ['fixed-assets', 'list'],
-    queryFn: () => assetsService.getFixedAssets({ page: 1, limit: 1000 }),
+    queryKey: ['fixed-assets', 'list-for-depreciation'],
+    queryFn: async () => {
+      if (!adapter) return { results: [] };
+      const all = await adapter.getAll('assets') as Array<Record<string, unknown>>;
+      return {
+        results: all.map(a => ({
+          id: String(a.id),
+          designation: String(a.name || ''),
+          code_immobilisation: String(a.code || ''),
+        })),
+      };
+    },
   });
 
-  // Calculate depreciation mutation
+  // Calculate depreciation mutation — Bug #7 fix: update cumulDepreciation for all active assets
   const calculateDepreciationMutation = useMutation({
-    mutationFn: assetsService.calculateDepreciation,
+    mutationFn: async (_params: { date_debut: string; date_fin: string; methode: string }) => {
+      if (!adapter) throw new Error('Adapter non disponible');
+      const allAssets = await adapter.getAll('assets') as Array<Record<string, unknown>>;
+      const activeAssets = allAssets.filter(a => a.status === 'active');
+      let count = 0;
+      for (const a of activeAssets) {
+        const valeur = (a.acquisitionValue as number) || 0;
+        const duree = (a.usefulLifeYears as number) || 5;
+        const dotation = duree > 0 ? valeur / duree : 0;
+        const currentCumul = (a.cumulDepreciation as number) || 0;
+        if (currentCumul < valeur && dotation > 0) {
+          await adapter.update('assets', String(a.id), {
+            cumulDepreciation: Math.min(currentCumul + dotation, valeur),
+          });
+          count++;
+        }
+      }
+      return { count };
+    },
     onSuccess: (result) => {
       toast.success(`${result.count} amortissements calculés`);
       queryClient.invalidateQueries({ queryKey: ['depreciation'] });
+      queryClient.invalidateQueries({ queryKey: ['fixed-assets'] });
     },
-    onError: () => {
-      toast.error('Erreur lors du calcul des amortissements');
+    onError: (error: Error) => {
+      toast.error(error.message || 'Erreur lors du calcul des amortissements');
     }
   });
 
-  // Delete depreciation mutation
+  // Delete depreciation mutation — Bug #7 fix: reset cumul to 0 for the asset
   const deleteDepreciationMutation = useMutation({
-    mutationFn: assetsService.deleteDepreciation,
+    mutationFn: async (depreciationId: string) => {
+      if (!adapter) throw new Error('Adapter non disponible');
+      // depreciationId == asset id in our computed model
+      const asset = await adapter.getById('assets', depreciationId) as Record<string, unknown> | null;
+      if (!asset) throw new Error('Actif introuvable');
+      // Reset cumul for this asset (removes the depreciation record)
+      await adapter.update('assets', depreciationId, { cumulDepreciation: 0 });
+    },
     onSuccess: () => {
       toast.success('Amortissement supprimé avec succès');
       queryClient.invalidateQueries({ queryKey: ['depreciation'] });
+      queryClient.invalidateQueries({ queryKey: ['fixed-assets'] });
     },
-    onError: () => {
-      toast.error('Erreur lors de la suppression');
+    onError: (error: Error) => {
+      toast.error(error.message || 'Erreur lors de la suppression');
     }
   });
 
@@ -327,17 +432,25 @@ const DepreciationPage: React.FC = () => {
   };
 
   const handleUpdateDepreciation = async () => {
+    if (!depreciationToEdit) return;
     try {
       setIsSubmitting(true);
-      // Simulation de mise à jour
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      if (!adapter) throw new Error('Adapter non disponible');
+      // Bug #3 fix: persist the new montant_dotation as updated cumulDepreciation on the asset
+      const assetId = depreciationToEdit.immobilisation_id || depreciationToEdit.id;
+      const asset = await adapter.getById('assets', assetId) as Record<string, unknown> | null;
+      if (!asset) throw new Error('Immobilisation introuvable');
+      const valeur = (asset.acquisitionValue as number) || 0;
+      const newCumul = Math.min(formData.montant, valeur);
+      await adapter.update('assets', assetId, { cumulDepreciation: newCumul });
       toast.success('Amortissement mis à jour avec succès');
       queryClient.invalidateQueries({ queryKey: ['depreciation'] });
+      queryClient.invalidateQueries({ queryKey: ['fixed-assets'] });
       setShowEditDepreciationModal(false);
       setDepreciationToEdit(null);
       resetForm();
     } catch (error) {
-      toast.error('Erreur lors de la mise à jour');
+      toast.error((error as Error).message || 'Erreur lors de la mise à jour');
     } finally {
       setIsSubmitting(false);
     }

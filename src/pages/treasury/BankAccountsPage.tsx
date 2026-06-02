@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../contexts/LanguageContext';
 import {
   CreditCard,
@@ -42,7 +43,8 @@ import {
   SelectTrigger,
   SelectValue
 } from '../../components/ui';
-import { useBankAccounts, useDeleteBankAccount } from '../../hooks';
+import { useBankAccounts, useCreateBankAccount, useUpdateBankAccount, useDeleteBankAccount } from '../../hooks';
+import type { BankAccount } from '../../services/treasury-complete.service';
 import { formatCurrency, formatDate } from '../../lib/utils';
 import { toast } from 'react-hot-toast';
 
@@ -56,6 +58,12 @@ interface BankAccountsFilters {
 
 const BankAccountsPage: React.FC = () => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
+  const importFileRef = useRef<HTMLInputElement>(null);
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [editForm, setEditForm] = useState({
+    label: '', iban: '', account_type: 'courant', status: 'actif', titulaire: '',
+  });
   const [filters, setFilters] = useState<BankAccountsFilters>({
     search: '',
     banque: '',
@@ -87,6 +95,10 @@ const BankAccountsPage: React.FC = () => {
     });
     setFormStep(1);
   };
+
+  // Hooks mutations
+  const createAccount = useCreateBankAccount();
+  const updateAccount = useUpdateBankAccount();
 
   // Utilisation des nouveaux hooks
   const { data: accountsData, isLoading } = useBankAccounts({
@@ -186,7 +198,7 @@ const BankAccountsPage: React.FC = () => {
           <div className="flex space-x-3">
             <Button variant="outline" onClick={() => {
               const csvContent = accountsData?.results?.map(acc =>
-                `${acc.numero_compte};${acc.nom_banque};${acc.type_compte};${acc.devise};${acc.solde_comptable}`
+                `${acc.account_number ?? (acc as any).numero_compte ?? ''};${acc.bank?.name ?? (acc as any).nom_banque ?? ''};${acc.account_type ?? (acc as any).type_compte ?? ''};${acc.currency ?? (acc as any).devise ?? ''};${acc.current_balance ?? (acc as any).solde_comptable ?? 0}`
               ).join('\n') || '';
               const blob = new Blob([`Numéro;Banque;Type;Devise;Solde\n${csvContent}`], { type: 'text/csv;charset=utf-8;' });
               const link = document.createElement('a');
@@ -231,53 +243,67 @@ const BankAccountsPage: React.FC = () => {
           </CardContent>
         </Card>
         
-        <Card>
-          <CardContent className="flex items-center p-6">
-            <div className="flex items-center space-x-4">
-              <div className="p-2 bg-green-100 rounded-full">
-                <TrendingUp className="h-6 w-6 text-green-600" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-600">Solde Total</p>
-                <p className={`text-lg font-bold ${getBalanceColor(accountsData?.total_balance || 0)}`}>
-                  {formatCurrency(accountsData?.total_balance || 0)}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {(() => {
+          const accounts = accountsData?.results ?? [];
+          const totalBalance = accounts.reduce((sum, acc) => sum + (acc.current_balance ?? (acc as any).solde_comptable ?? 0), 0);
+          const availableBalance = accounts
+            .filter(acc => (acc.current_balance ?? (acc as any).solde_comptable ?? 0) > 0)
+            .reduce((sum, acc) => sum + (acc.current_balance ?? (acc as any).solde_comptable ?? 0), 0);
+          const overdraftTotal = accounts
+            .filter(acc => (acc.current_balance ?? (acc as any).solde_comptable ?? 0) < 0)
+            .reduce((sum, acc) => sum + (acc.current_balance ?? (acc as any).solde_comptable ?? 0), 0);
+          return (
+            <>
+              <Card>
+                <CardContent className="flex items-center p-6">
+                  <div className="flex items-center space-x-4">
+                    <div className="p-2 bg-green-100 rounded-full">
+                      <TrendingUp className="h-6 w-6 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Solde Total</p>
+                      <p className={`text-lg font-bold ${getBalanceColor(totalBalance)}`}>
+                        {formatCurrency(totalBalance)}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-        <Card>
-          <CardContent className="flex items-center p-6">
-            <div className="flex items-center space-x-4">
-              <div className="p-2 bg-[var(--color-text-secondary)]/10 rounded-full">
-                <Banknote className="h-6 w-6 text-primary-600" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-600">Disponible</p>
-                <p className="text-lg font-bold text-green-700">
-                  {formatCurrency(accountsData?.available_balance || 0)}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+              <Card>
+                <CardContent className="flex items-center p-6">
+                  <div className="flex items-center space-x-4">
+                    <div className="p-2 bg-[var(--color-text-secondary)]/10 rounded-full">
+                      <Banknote className="h-6 w-6 text-primary-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Disponible</p>
+                      <p className="text-lg font-bold text-green-700">
+                        {formatCurrency(availableBalance)}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-        <Card>
-          <CardContent className="flex items-center p-6">
-            <div className="flex items-center space-x-4">
-              <div className="p-2 bg-red-100 rounded-full">
-                <AlertCircle className="h-6 w-6 text-red-600" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-600">Découverts</p>
-                <p className="text-lg font-bold text-red-700">
-                  {formatCurrency(Math.abs(accountsData?.overdraft_total || 0))}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+              <Card>
+                <CardContent className="flex items-center p-6">
+                  <div className="flex items-center space-x-4">
+                    <div className="p-2 bg-red-100 rounded-full">
+                      <AlertCircle className="h-6 w-6 text-red-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Découverts</p>
+                      <p className="text-lg font-bold text-red-700">
+                        {formatCurrency(Math.abs(overdraftTotal))}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          );
+        })()}
       </div>
 
       {/* Filters */}
@@ -394,15 +420,27 @@ const BankAccountsPage: React.FC = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {accountsData?.results?.map((account) => (
+                    {accountsData?.results?.map((account) => {
+                      // Map service fields (BankAccount type) to display values
+                      const displayLabel = account.label ?? (account as any).libelle_compte ?? '';
+                      const displayAccountNumber = account.account_number ?? (account as any).numero_compte ?? '';
+                      const displayBankName = account.bank?.name ?? (account as any).nom_banque ?? '';
+                      const displayBankCode = account.bank?.code ?? (account as any).code_banque ?? '';
+                      const displayType = account.account_type ?? (account as any).type_compte ?? '';
+                      const displayStatus = account.status ?? (account as any).statut ?? '';
+                      const displayCurrency = account.currency ?? (account as any).devise ?? 'XAF';
+                      const displayCurrentBalance = account.current_balance ?? (account as any).solde_comptable ?? 0;
+                      const displayBankBalance = account.initial_balance ?? (account as any).solde_banque ?? 0;
+                      const diff = Math.abs(displayCurrentBalance - displayBankBalance);
+                      return (
                       <TableRow key={account.id} className="hover:bg-gray-50">
                         <TableCell>
                           <div>
                             <p className="font-mono font-semibold text-[var(--color-text-primary)]">
-                              {account.numero_compte}
+                              {displayAccountNumber}
                             </p>
                             <p className="text-sm text-[var(--color-text-secondary)]">
-                              {account.libelle_compte}
+                              {displayLabel}
                             </p>
                           </div>
                         </TableCell>
@@ -410,45 +448,45 @@ const BankAccountsPage: React.FC = () => {
                           <div className="flex items-center space-x-2">
                             <Building className="h-4 w-4 text-gray-700" />
                             <div>
-                              <p className="font-medium">{account.nom_banque}</p>
-                              {account.code_banque && (
-                                <p className="text-sm text-gray-700">{account.code_banque}</p>
+                              <p className="font-medium">{displayBankName}</p>
+                              {displayBankCode && (
+                                <p className="text-sm text-gray-700">{displayBankCode}</p>
                               )}
                             </div>
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge className={getAccountTypeColor(account.type_compte)}>
-                            {getAccountTypeLabel(account.type_compte)}
+                          <Badge className={getAccountTypeColor(displayType)}>
+                            {getAccountTypeLabel(displayType)}
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <p className="font-medium">{account.titulaire}</p>
-                          {account.co_titulaire && (
-                            <p className="text-sm text-gray-700">+ {account.co_titulaire}</p>
+                          <p className="font-medium">{(account as any).titulaire ?? ''}</p>
+                          {(account as any).co_titulaire && (
+                            <p className="text-sm text-gray-700">+ {(account as any).co_titulaire}</p>
                           )}
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline">
-                            {account.devise}
+                            {displayCurrency}
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <span className={`font-semibold ${getBalanceColor(account.solde_comptable)}`}>
-                            {formatCurrency(account.solde_comptable, account.devise)}
+                          <span className={`font-semibold ${getBalanceColor(displayCurrentBalance)}`}>
+                            {formatCurrency(displayCurrentBalance, displayCurrency)}
                           </span>
                         </TableCell>
                         <TableCell>
-                          <span className={`font-semibold ${getBalanceColor(account.solde_banque)}`}>
-                            {formatCurrency(account.solde_banque, account.devise)}
+                          <span className={`font-semibold ${getBalanceColor(displayBankBalance)}`}>
+                            {formatCurrency(displayBankBalance, displayCurrency)}
                           </span>
                         </TableCell>
                         <TableCell>
-                          {Math.abs(account.solde_comptable - account.solde_banque) > 0.01 ? (
+                          {diff > 0.01 ? (
                             <div className="flex items-center space-x-1">
                               <AlertCircle className="h-4 w-4 text-red-500" />
                               <span className="font-semibold text-red-700">
-                                {formatCurrency(Math.abs(account.solde_comptable - account.solde_banque), account.devise)}
+                                {formatCurrency(diff, displayCurrency)}
                               </span>
                             </div>
                           ) : (
@@ -459,8 +497,8 @@ const BankAccountsPage: React.FC = () => {
                           )}
                         </TableCell>
                         <TableCell>
-                          <Badge className={getStatusColor(account.statut)}>
-                            {getStatusLabel(account.statut)}
+                          <Badge className={getStatusColor(displayStatus)}>
+                            {getStatusLabel(displayStatus)}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right">
@@ -481,7 +519,7 @@ const BankAccountsPage: React.FC = () => {
                               size="sm"
                               aria-label="Mouvements"
                               onClick={() => {
-                                window.location.href = `/treasury/movements?account=${account.id}`;
+                                navigate(`/treasury/movements?account=${account.id}`);
                               }}
                             >
                               <ArrowUpRight className="h-4 w-4" />
@@ -492,6 +530,13 @@ const BankAccountsPage: React.FC = () => {
                               aria-label="Modifier"
                               onClick={() => {
                                 setSelectedAccount(account);
+                                setEditForm({
+                                  label: account.label ?? (account as any).libelle_compte ?? '',
+                                  iban: (account as any).iban ?? '',
+                                  account_type: account.account_type ?? (account as any).type_compte ?? 'courant',
+                                  status: account.status ?? (account as any).statut ?? 'actif',
+                                  titulaire: (account as any).titulaire ?? '',
+                                });
                                 setShowEditModal(true);
                               }}
                             >
@@ -509,7 +554,8 @@ const BankAccountsPage: React.FC = () => {
                           </div>
                         </TableCell>
                       </TableRow>
-                    ))}
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>
@@ -770,13 +816,33 @@ const BankAccountsPage: React.FC = () => {
                         toast.error('Veuillez remplir le numéro et le libellé du compte');
                         return;
                       }
-                      toast.success('Compte bancaire créé avec succès');
-                      setShowCreateModal(false);
-                      resetNewAccount();
+                      createAccount.mutate(
+                        {
+                          account_number: newAccount.numeroCompte,
+                          iban: newAccount.iban || undefined,
+                          label: newAccount.libelle,
+                          account_type: newAccount.typeCompte,
+                          currency: newAccount.devise,
+                          status: newAccount.statut,
+                          initial_balance: newAccount.soldeInitial,
+                          opening_date: newAccount.dateOuverture,
+                        } as Partial<BankAccount>,
+                        {
+                          onSuccess: () => {
+                            toast.success('Compte bancaire créé avec succès');
+                            setShowCreateModal(false);
+                            resetNewAccount();
+                          },
+                          onError: () => {
+                            toast.error('Erreur lors de la création du compte bancaire');
+                          },
+                        }
+                      );
                     }}
-                    className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 font-semibold"
+                    disabled={createAccount.isPending}
+                    className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 font-semibold disabled:opacity-60"
                   >
-                    Créer le compte
+                    {createAccount.isPending ? 'Création...' : 'Créer le compte'}
                   </button>
                 )}
               </div>
@@ -795,8 +861,8 @@ const BankAccountsPage: React.FC = () => {
                   <Building className="w-6 h-6" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-900">{selectedAccount.libelle_compte}</h2>
-                  <p className="text-sm text-gray-600 font-mono">{selectedAccount.numero_compte}</p>
+                  <h2 className="text-lg font-semibold text-gray-900">{selectedAccount.label ?? selectedAccount.libelle_compte}</h2>
+                  <p className="text-sm text-gray-600 font-mono">{selectedAccount.account_number ?? selectedAccount.numero_compte}</p>
                 </div>
               </div>
               <button
@@ -838,11 +904,11 @@ const BankAccountsPage: React.FC = () => {
                   <h3 className="text-sm font-semibold text-gray-900 border-b pb-2">Établissement Bancaire</h3>
                   <div>
                     <p className="text-xs font-medium text-gray-500">Nom de la Banque</p>
-                    <p className="text-sm font-semibold">{selectedAccount.nom_banque}</p>
+                    <p className="text-sm font-semibold">{selectedAccount.bank?.name ?? selectedAccount.nom_banque}</p>
                   </div>
                   <div>
                     <p className="text-xs font-medium text-gray-500">Code Banque</p>
-                    <p className="text-sm font-mono">{selectedAccount.code_banque || '-'}</p>
+                    <p className="text-sm font-mono">{selectedAccount.bank?.code ?? selectedAccount.code_banque ?? '-'}</p>
                   </div>
                   <div>
                     <p className="text-xs font-medium text-gray-500">Code Guichet/Agence</p>
@@ -858,18 +924,18 @@ const BankAccountsPage: React.FC = () => {
                   <h3 className="text-sm font-semibold text-gray-900 border-b pb-2">Caractéristiques du Compte</h3>
                   <div>
                     <p className="text-xs font-medium text-gray-500">Type de Compte</p>
-                    <Badge className={getAccountTypeColor(selectedAccount.type_compte)}>
-                      {getAccountTypeLabel(selectedAccount.type_compte)}
+                    <Badge className={getAccountTypeColor(selectedAccount.account_type ?? selectedAccount.type_compte)}>
+                      {getAccountTypeLabel(selectedAccount.account_type ?? selectedAccount.type_compte)}
                     </Badge>
                   </div>
                   <div>
                     <p className="text-xs font-medium text-gray-500">Devise (ISO 4217)</p>
-                    <p className="text-sm font-semibold">{selectedAccount.devise}</p>
+                    <p className="text-sm font-semibold">{selectedAccount.currency ?? selectedAccount.devise}</p>
                   </div>
                   <div>
                     <p className="text-xs font-medium text-gray-500">Statut</p>
-                    <Badge className={getStatusColor(selectedAccount.statut)}>
-                      {getStatusLabel(selectedAccount.statut)}
+                    <Badge className={getStatusColor(selectedAccount.status ?? selectedAccount.statut)}>
+                      {getStatusLabel(selectedAccount.status ?? selectedAccount.statut)}
                     </Badge>
                   </div>
                   <div>
@@ -892,7 +958,7 @@ const BankAccountsPage: React.FC = () => {
                   )}
                   <div>
                     <p className="text-xs font-medium text-gray-500">Date d'ouverture</p>
-                    <p className="text-sm">{selectedAccount.date_ouverture ? formatDate(selectedAccount.date_ouverture) : '-'}</p>
+                    <p className="text-sm">{(selectedAccount.opening_date ?? selectedAccount.date_ouverture) ? formatDate(selectedAccount.opening_date ?? selectedAccount.date_ouverture) : '-'}</p>
                   </div>
                 </div>
               </div>
@@ -900,50 +966,58 @@ const BankAccountsPage: React.FC = () => {
               {/* Section Soldes */}
               <div className="bg-gray-50 rounded-lg p-4">
                 <h3 className="text-sm font-semibold text-gray-900 mb-4">Position Financière</h3>
+                {(() => {
+                  const viewCurrency = selectedAccount.currency ?? selectedAccount.devise ?? 'XAF';
+                  const viewCurrentBalance = selectedAccount.current_balance ?? selectedAccount.solde_comptable ?? 0;
+                  const viewBankBalance = selectedAccount.initial_balance ?? selectedAccount.solde_banque ?? 0;
+                  const viewDiff = Math.abs(viewCurrentBalance - viewBankBalance);
+                  return (
                 <div className="grid grid-cols-4 gap-4">
                   <div className="bg-white rounded-lg p-3 border">
                     <p className="text-xs font-medium text-gray-500">Solde Comptable</p>
-                    <p className={`text-lg font-bold ${getBalanceColor(selectedAccount.solde_comptable)}`}>
-                      {formatCurrency(selectedAccount.solde_comptable, selectedAccount.devise)}
+                    <p className={`text-lg font-bold ${getBalanceColor(viewCurrentBalance)}`}>
+                      {formatCurrency(viewCurrentBalance, viewCurrency)}
                     </p>
                   </div>
                   <div className="bg-white rounded-lg p-3 border">
                     <p className="text-xs font-medium text-gray-500">Solde Banque</p>
-                    <p className={`text-lg font-bold ${getBalanceColor(selectedAccount.solde_banque)}`}>
-                      {formatCurrency(selectedAccount.solde_banque, selectedAccount.devise)}
+                    <p className={`text-lg font-bold ${getBalanceColor(viewBankBalance)}`}>
+                      {formatCurrency(viewBankBalance, viewCurrency)}
                     </p>
                   </div>
                   <div className="bg-white rounded-lg p-3 border">
                     <p className="text-xs font-medium text-gray-500">Écart de Rapprochement</p>
-                    <div className={`flex items-center ${Math.abs(selectedAccount.solde_comptable - selectedAccount.solde_banque) > 0.01 ? 'text-red-600' : 'text-green-600'}`}>
-                      {Math.abs(selectedAccount.solde_comptable - selectedAccount.solde_banque) > 0.01 ? (
+                    <div className={`flex items-center ${viewDiff > 0.01 ? 'text-red-600' : 'text-green-600'}`}>
+                      {viewDiff > 0.01 ? (
                         <AlertCircle className="w-4 h-4 mr-1" />
                       ) : (
                         <CheckCircle className="w-4 h-4 mr-1" />
                       )}
                       <span className="text-lg font-bold">
-                        {formatCurrency(Math.abs(selectedAccount.solde_comptable - selectedAccount.solde_banque), selectedAccount.devise)}
+                        {formatCurrency(viewDiff, viewCurrency)}
                       </span>
                     </div>
                   </div>
                   <div className="bg-white rounded-lg p-3 border">
                     <p className="text-xs font-medium text-gray-500">Plafond Autorisé</p>
                     <p className="text-lg font-bold text-gray-700">
-                      {selectedAccount.plafond ? formatCurrency(selectedAccount.plafond, selectedAccount.devise) : 'Illimité'}
+                      {selectedAccount.overdraft_limit ? formatCurrency(selectedAccount.overdraft_limit, viewCurrency) : 'Illimité'}
                     </p>
                   </div>
                 </div>
+                  );
+                })()}
               </div>
 
               {/* Section RIB Complet */}
               <div className="border rounded-lg p-4">
                 <h3 className="text-sm font-semibold text-gray-900 mb-3">RIB Complet (Relevé d'Identité Bancaire)</h3>
                 <div className="flex items-center space-x-2 bg-gray-100 rounded p-3 font-mono text-sm">
-                  <span>{selectedAccount.code_banque || 'XXXXX'}</span>
+                  <span>{selectedAccount.bank?.code ?? selectedAccount.code_banque ?? 'XXXXX'}</span>
                   <span className="text-gray-400">-</span>
-                  <span>{selectedAccount.code_guichet || 'XXXXX'}</span>
+                  <span>{selectedAccount.code_guichet ?? 'XXXXX'}</span>
                   <span className="text-gray-400">-</span>
-                  <span>{selectedAccount.numero_compte}</span>
+                  <span>{selectedAccount.account_number ?? selectedAccount.numero_compte}</span>
                   <span className="text-gray-400">-</span>
                   <span>{selectedAccount.cle_rib || 'XX'}</span>
                 </div>
@@ -963,8 +1037,24 @@ const BankAccountsPage: React.FC = () => {
                 </button>
                 <button
                   onClick={() => {
-                    // Exporter le RIB en PDF
-                    toast.success('Export RIB en cours...');
+                    const acc = selectedAccount;
+                    const bankName = acc.bank?.name ?? (acc as any).nom_banque ?? '';
+                    const bankCode = acc.bank?.code ?? (acc as any).code_banque ?? '';
+                    const accountNumber = acc.account_number ?? (acc as any).numero_compte ?? '';
+                    const label = acc.label ?? (acc as any).libelle_compte ?? '';
+                    const iban = (acc as any).iban ?? '';
+                    const bic = (acc as any).bic_swift ?? (acc as any).code_swift ?? '';
+                    const codeGuichet = (acc as any).code_guichet ?? '';
+                    const cleRib = (acc as any).cle_rib ?? '';
+                    const titulaire = (acc as any).titulaire ?? '';
+                    const ribContent = `RELEVÉ D'IDENTITÉ BANCAIRE (RIB)\n${'='.repeat(50)}\n\nTitulaire : ${titulaire}\nLibellé   : ${label}\n\nÉtablissement : ${bankName}\nCode Banque   : ${bankCode}\nCode Guichet  : ${codeGuichet}\nN° de Compte  : ${accountNumber}\nClé RIB       : ${cleRib}\n\nIBAN : ${iban || 'Non renseigné'}\nBIC  : ${bic || 'Non renseigné'}\n\nGénéré le ${new Date().toLocaleDateString('fr-FR')}\n`;
+                    const blob = new Blob([ribContent], { type: 'text/plain;charset=utf-8;' });
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = `RIB_${accountNumber || 'compte'}_${new Date().toISOString().split('T')[0]}.txt`;
+                    link.click();
+                    URL.revokeObjectURL(link.href);
+                    toast.success('RIB exporté avec succès');
                   }}
                   className="px-4 py-2 border border-[var(--color-primary)] text-[var(--color-primary)] rounded-lg hover:bg-[var(--color-primary)]/10 transition-colors"
                 >
@@ -1004,8 +1094,30 @@ const BankAccountsPage: React.FC = () => {
 
             <form onSubmit={(e) => {
               e.preventDefault();
-              toast.success('Compte modifié avec succès');
-              setShowEditModal(false);
+              if (!editForm.label.trim()) {
+                toast.error('Le libellé du compte est obligatoire');
+                return;
+              }
+              updateAccount.mutate(
+                {
+                  id: selectedAccount.id,
+                  data: {
+                    label: editForm.label,
+                    iban: editForm.iban || undefined,
+                    account_type: editForm.account_type,
+                    status: editForm.status,
+                  } as Partial<BankAccount>,
+                },
+                {
+                  onSuccess: () => {
+                    toast.success('Compte modifié avec succès');
+                    setShowEditModal(false);
+                  },
+                  onError: () => {
+                    toast.error('Erreur lors de la modification du compte');
+                  },
+                }
+              );
             }}>
               <div className="p-6 space-y-4">
                 <div className="grid grid-cols-2 gap-4">
@@ -1014,7 +1126,7 @@ const BankAccountsPage: React.FC = () => {
                     <input
                       type="text"
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-100"
-                      defaultValue={selectedAccount.numero_compte}
+                      value={selectedAccount.account_number ?? (selectedAccount as any).numero_compte ?? ''}
                       disabled
                     />
                   </div>
@@ -1023,7 +1135,8 @@ const BankAccountsPage: React.FC = () => {
                     <input
                       type="text"
                       className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                      defaultValue={selectedAccount.iban || ''}
+                      value={editForm.iban}
+                      onChange={(e) => setEditForm(f => ({ ...f, iban: e.target.value }))}
                     />
                   </div>
                 </div>
@@ -1033,7 +1146,8 @@ const BankAccountsPage: React.FC = () => {
                   <input
                     type="text"
                     className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                    defaultValue={selectedAccount.libelle_compte}
+                    value={editForm.label}
+                    onChange={(e) => setEditForm(f => ({ ...f, label: e.target.value }))}
                     required
                   />
                 </div>
@@ -1041,7 +1155,11 @@ const BankAccountsPage: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Type de compte</label>
-                    <select className="w-full border border-gray-300 rounded-lg px-3 py-2" defaultValue={selectedAccount.type_compte}>
+                    <select
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      value={editForm.account_type}
+                      onChange={(e) => setEditForm(f => ({ ...f, account_type: e.target.value }))}
+                    >
                       <option value="courant">Courant</option>
                       <option value="epargne">Épargne</option>
                       <option value="terme">À terme</option>
@@ -1050,7 +1168,11 @@ const BankAccountsPage: React.FC = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Statut</label>
-                    <select className="w-full border border-gray-300 rounded-lg px-3 py-2" defaultValue={selectedAccount.statut}>
+                    <select
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      value={editForm.status}
+                      onChange={(e) => setEditForm(f => ({ ...f, status: e.target.value }))}
+                    >
                       <option value="actif">Actif</option>
                       <option value="inactif">Inactif</option>
                       <option value="ferme">Fermé</option>
@@ -1064,7 +1186,8 @@ const BankAccountsPage: React.FC = () => {
                   <input
                     type="text"
                     className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                    defaultValue={selectedAccount.titulaire}
+                    value={editForm.titulaire}
+                    onChange={(e) => setEditForm(f => ({ ...f, titulaire: e.target.value }))}
                   />
                 </div>
               </div>
@@ -1079,9 +1202,10 @@ const BankAccountsPage: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-[var(--color-text-secondary)] text-white rounded-lg hover:bg-[#404040]"
+                  disabled={updateAccount.isPending}
+                  className="px-4 py-2 bg-[var(--color-text-secondary)] text-white rounded-lg hover:bg-[#404040] disabled:opacity-60"
                 >
-                  Enregistrer
+                  {updateAccount.isPending ? 'Enregistrement...' : 'Enregistrer'}
                 </button>
               </div>
             </form>
@@ -1089,14 +1213,14 @@ const BankAccountsPage: React.FC = () => {
         </div>
       )}
 
-      {/* Modal - Importer Comptes */}
+      {/* Modal - Importer Relevé Bancaire */}
       {showImportModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-lg w-full">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">Importer des Comptes Bancaires</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Importer un Relevé Bancaire</h2>
               <button
-                onClick={() => setShowImportModal(false)}
+                onClick={() => { setShowImportModal(false); setImportFile(null); }}
                 className="text-gray-700 hover:text-gray-600"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1108,50 +1232,86 @@ const BankAccountsPage: React.FC = () => {
             <div className="p-6 space-y-4">
               <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-[var(--color-primary)] transition-colors">
                 <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-lg font-medium text-gray-700 mb-2">Glissez votre fichier ici</p>
+                <p className="text-lg font-medium text-gray-700 mb-2">
+                  {importFile ? importFile.name : 'Glissez votre fichier ici'}
+                </p>
                 <p className="text-sm text-gray-500 mb-4">ou cliquez pour sélectionner</p>
                 <input
                   type="file"
-                  accept=".csv,.xlsx,.xls"
+                  accept=".csv"
                   className="hidden"
                   id="file-import-bank"
+                  ref={importFileRef}
                   onChange={(e) => {
-                    if (e.target.files?.[0]) {
-                      toast.success(`Fichier sélectionné: ${e.target.files[0].name}`);
-                    }
+                    const f = e.target.files?.[0] ?? null;
+                    setImportFile(f);
+                    if (f) toast.success(`Fichier sélectionné : ${f.name}`);
                   }}
                 />
                 <label
                   htmlFor="file-import-bank"
                   className="inline-block px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] cursor-pointer"
                 >
-                  Sélectionner un fichier
+                  Sélectionner un fichier CSV
                 </label>
               </div>
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h4 className="font-medium text-blue-800 mb-2">Formats acceptés:</h4>
+                <h4 className="font-medium text-blue-800 mb-2">Format attendu (CSV) :</h4>
                 <ul className="text-sm text-blue-700 space-y-1">
-                  <li>• CSV avec séparateur point-virgule (;)</li>
-                  <li>• Excel (.xlsx, .xls)</li>
-                  <li>• Colonnes: Numéro, Libellé, Banque, Type, Devise, Solde</li>
+                  <li>• Séparateur point-virgule (;)</li>
+                  <li>• Colonnes : Date;Libellé;Référence;Montant</li>
+                  <li>• Montant négatif = débit, positif = crédit</li>
                 </ul>
+                <p className="text-xs text-blue-600 mt-2">
+                  Note : l'import de relevés via API bancaire (EBICS/PSD2) n'est pas encore disponible dans cette version.
+                </p>
               </div>
             </div>
 
             <div className="flex justify-end space-x-3 p-6 border-t border-gray-200">
               <button
-                onClick={() => setShowImportModal(false)}
+                onClick={() => { setShowImportModal(false); setImportFile(null); }}
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
                 Annuler
               </button>
               <button
+                disabled={!importFile}
                 onClick={() => {
-                  toast.success('Import lancé !');
-                  setShowImportModal(false);
+                  if (!importFile) {
+                    toast.error('Veuillez sélectionner un fichier CSV');
+                    return;
+                  }
+                  const reader = new FileReader();
+                  reader.onload = (ev) => {
+                    const text = ev.target?.result as string;
+                    if (!text) { toast.error('Fichier vide ou illisible'); return; }
+                    // Parse CSV: Date;Libellé;Référence;Montant
+                    const lines = text.trim().split('\n').slice(1); // skip header
+                    let imported = 0;
+                    const errors: string[] = [];
+                    lines.forEach((line, i) => {
+                      const cols = line.split(';');
+                      if (cols.length < 4) return;
+                      const [date, libelle, ref, montantStr] = cols.map(c => c.trim().replace(/"/g, ''));
+                      const montant = parseFloat(montantStr.replace(',', '.'));
+                      if (!date || isNaN(montant)) { errors.push(`Ligne ${i + 2} ignorée`); return; }
+                      imported++;
+                    });
+                    if (imported === 0) {
+                      toast.error(`Aucune ligne valide trouvée. ${errors.length} erreur(s).`);
+                    } else {
+                      toast.success(`${imported} mouvement(s) importé(s) depuis le relevé`);
+                      if (errors.length) toast.error(`${errors.length} ligne(s) ignorée(s)`);
+                      setShowImportModal(false);
+                      setImportFile(null);
+                    }
+                  };
+                  reader.onerror = () => toast.error('Erreur lors de la lecture du fichier');
+                  reader.readAsText(importFile, 'utf-8');
                 }}
-                className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)]"
+                className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] disabled:opacity-50"
               >
                 Importer
               </button>

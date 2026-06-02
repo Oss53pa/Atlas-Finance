@@ -7,9 +7,11 @@ export { analyticsService } from '../analytics.service';
 export const createAxeSchema = z.object({
   code: z.string().min(1, 'Code requis'),
   libelle: z.string().min(1, 'Libellé requis'),
-  type_axe: z.enum(['ACTIVITE', 'CENTRE_COUT', 'CENTRE_PROFIT', 'PROJET', 'PRODUIT', 'CLIENT', 'GEOGRAPHIE', 'RESPONSABLE', 'AUTRE']),
+  type: z.enum(['centre_cout', 'centre_profit', 'projet', 'produit', 'region', 'activite'], {
+    errorMap: () => ({ message: "Type d'axe invalide" }),
+  }),
   description: z.string().optional(),
-  obligatoire: z.boolean().default(false),
+  actif: z.boolean().default(true),
   hierarchique: z.boolean().default(false),
 });
 

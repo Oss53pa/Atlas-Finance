@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
-import { useAdapterQuery } from '../../contexts/DataContext';
+import { useAdapterQuery, useData } from '../../contexts/DataContext';
 import {
   Calculator, Search, Filter, Download, ArrowLeft, Home, Plus,
   Edit, Eye, Check, X, BarChart3, Building2, Package, Users,
@@ -13,10 +13,20 @@ import {
 import DataTableRaw from '../../components/ui/DataTable';
 const DataTable = DataTableRaw as unknown as React.ComponentType<Record<string, unknown>>;
 import { useDataTable } from '../../hooks/useDataTable';
-import { accountService } from '../../services/api.service';
-import { accountingService, createJournalSchema } from '../../services/modules/accounting.service';
 import { z } from 'zod';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+
+// Schema correct pour un compte SYSCOHADA (distinct du schéma Journal)
+const createCompteSchema = z.object({
+  code: z.string().min(1, 'Code requis').regex(/^\d+$/, 'Code doit être numérique'),
+  libelle: z.string().min(1, 'Libellé requis'),
+  type: z.enum(['general', 'detail', 'collectif', 'auxiliaire'], {
+    errorMap: () => ({ message: 'Type invalide' }),
+  }),
+  classe: z.string().min(1, 'Classe requise'),
+  description: z.string().optional(),
+  actif: z.boolean().default(true),
+});
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import { Button, Input } from '../../components/ui';
 
@@ -38,6 +48,7 @@ interface Compte {
 const PlanSYSCOHADAPage: React.FC = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const { adapter } = useData();
   const [selectedClasse, setSelectedClasse] = useState<string>('1');
   const [selectedComptes, setSelectedComptes] = useState<string[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -729,9 +740,19 @@ const PlanSYSCOHADAPage: React.FC = () => {
     };
   }, [selectedClasse, getSolde]);
 
-  // Create mutation
+  // Create mutation — persiste un compte custom dans la table 'accounts' via le DataAdapter
   const createMutation = useMutation({
-    mutationFn: accountingService.createJournal, // Temporaire
+    mutationFn: async (data: z.infer<typeof createCompteSchema>) => {
+      return adapter.create<any>('accounts', {
+        code: data.code,
+        name: data.libelle,
+        type: data.type,
+        classe: data.classe,
+        description: data.description ?? '',
+        isActive: data.actif,
+        createdAt: new Date().toISOString(),
+      });
+    },
     onSuccess: () => {
       toast.success('Compte SYSCOHADA créé avec succès');
       queryClient.invalidateQueries({ queryKey: ['comptes-syscohada'] });
@@ -799,7 +820,7 @@ const PlanSYSCOHADAPage: React.FC = () => {
       setErrors({});
 
       // Validate with Zod
-      const validatedData = createJournalSchema.parse(formData);
+      const validatedData = createCompteSchema.parse(formData);
 
       // Submit to backend
       await createMutation.mutateAsync(validatedData);
@@ -849,6 +870,45 @@ const PlanSYSCOHADAPage: React.FC = () => {
   };
 
   const currentClass = planComptable[selectedClasse];
+
+  // ── Export / Import helpers ───────────────────────────────────────────────
+  const importFileRef = React.useRef<HTMLInputElement>(null);
+
+  const handleExportPlan = () => {
+    try {
+      // Export current class accounts as CSV
+      const rows: string[] = ['Code,Libellé,Solde,Statut'];
+      for (const compte of currentClass.comptes) {
+        const solde = getSolde(compte.code);
+        rows.push(`"${compte.code}","${compte.libelle}",${solde},"${compte.status}"`);
+        for (const sc of compte.sousComptes ?? []) {
+          rows.push(`"${sc.code}","${sc.libelle}",${getSolde(sc.code)},"actif"`);
+        }
+      }
+      const csv = rows.join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `plan-syscohada-classe${selectedClasse}-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success('Plan comptable exporté');
+    } catch (err: any) {
+      toast.error(err?.message ?? 'Erreur lors de l\'export');
+    }
+  };
+
+  const handleImportPlan = () => {
+    importFileRef.current?.click();
+  };
+
+  const handleImportFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    toast('Import de comptes personnalisés : veuillez utiliser le formulaire "Nouveau Compte" pour ajouter des comptes SYSCOHADA.', { icon: 'ℹ️' });
+    e.target.value = '';
+  };
 
   // Colonnes pour le DataTable
   const columns = useMemo(() => [
@@ -908,6 +968,15 @@ const PlanSYSCOHADAPage: React.FC = () => {
 
   return (
     <div className="flex h-full bg-[var(--color-background)]">
+      {/* Hidden file input for plan import */}
+      <input
+        ref={importFileRef}
+        type="file"
+        accept=".json,.csv"
+        className="hidden"
+        onChange={handleImportFileSelected}
+      />
+
       {/* Sidebar des Classes */}
       <div className={`${sidebarOpen ? 'w-80' : 'w-16'} bg-[var(--color-surface)] border-r border-[var(--color-border)] transition-all duration-300 flex flex-col`}>
         {/* Sidebar Header */}
@@ -999,7 +1068,10 @@ const PlanSYSCOHADAPage: React.FC = () => {
         {sidebarOpen && (
           <div className="p-4 border-t border-[var(--color-border)]">
             <div className="space-y-2">
-              <button className="w-full px-3 py-2 bg-[var(--color-background)] rounded-lg text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] transition-colors flex items-center gap-2">
+              <button
+                onClick={handleExportPlan}
+                className="w-full px-3 py-2 bg-[var(--color-background)] rounded-lg text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] transition-colors flex items-center gap-2"
+              >
                 <Download className="w-4 h-4" />
                 Exporter le plan
               </button>
@@ -1026,11 +1098,24 @@ const PlanSYSCOHADAPage: React.FC = () => {
               </p>
             </div>
             <div className="flex items-center gap-3">
-              <button className="px-4 py-2 bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-lg hover:bg-[var(--color-surface-hover)] transition-colors flex items-center gap-2">
+              <button
+                onClick={handleImportPlan}
+                className="px-4 py-2 bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-lg hover:bg-[var(--color-surface-hover)] transition-colors flex items-center gap-2"
+              >
+                <Upload className="w-4 h-4" />
+                Importer
+              </button>
+              <button
+                onClick={handleExportPlan}
+                className="px-4 py-2 bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-lg hover:bg-[var(--color-surface-hover)] transition-colors flex items-center gap-2"
+              >
                 <FileSpreadsheet className="w-4 h-4" />
                 Exporter
               </button>
-              <button className="px-4 py-2 bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-lg hover:bg-[var(--color-surface-hover)] transition-colors flex items-center gap-2">
+              <button
+                onClick={() => window.print()}
+                className="px-4 py-2 bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-lg hover:bg-[var(--color-surface-hover)] transition-colors flex items-center gap-2"
+              >
                 <Printer className="w-4 h-4" />
                 Imprimer
               </button>

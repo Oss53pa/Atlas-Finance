@@ -10,6 +10,8 @@ import type { ThemeType } from '../../styles/theme';
 import CompleteTasksModule from '../../components/tasks/CompleteTasksModule';
 import CollaborationModule from '../../components/collaboration/CollaborationModule';
 import { useFiscalUrgentAlerts } from '../../hooks/useFiscalAlerts';
+import { supabase } from '../../lib/supabase';
+import { toast } from 'sonner';
 import {
   Briefcase, FileText, BarChart3, Users, PieChart, TrendingUp,
   Clock, CheckCircle, DollarSign, Zap, ArrowUpRight, ArrowDownRight, ExternalLink,
@@ -47,6 +49,12 @@ const ManagerWorkspace: React.FC = () => {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [workspaceSwitcherOpen, setWorkspaceSwitcherOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<'workspace' | 'tasks' | 'chat' | 'profile' | 'settings' | 'help'>('workspace');
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [passwordSaving, setPasswordSaving] = useState(false);
+  const [notifPrefs, setNotifPrefs] = useState<Record<string, boolean>>({ Email: true, Push: true, 'Rapports hebdo': true });
+  const [headerSearch, setHeaderSearch] = useState('');
+  const [helpSearch, setHelpSearch] = useState('');
 
   const workspaceOptions = user?.role === 'admin' ? [
     { label: 'Espace Admin', path: '/workspace/admin', icon: Shield, color: '#C0322B', current: false },
@@ -79,6 +87,8 @@ const ManagerWorkspace: React.FC = () => {
         let ca = 0, charges = 0, treasury = 0;
         for (const entry of entries) {
           if (!entry.lines) continue;
+          // Bug 6 fix: exclude draft entries from financial stats
+          if (entry.status === 'draft') continue;
           for (const line of entry.lines) {
             const acc = accounts.find((a: any) => a.id === line.accountId || a.number === line.accountNumber);
             if (!acc) continue;
@@ -122,10 +132,22 @@ const ManagerWorkspace: React.FC = () => {
         </div>
         <div className="bg-white rounded-xl p-6 border">
           <h4 className="font-semibold mb-4 flex items-center"><Shield className="w-5 h-5 mr-2 text-[var(--color-secondary)]" />Securite</h4>
-          <button className="w-full p-3 border rounded-lg text-sm hover:border-[var(--color-secondary)] mb-2">Changer mot de passe</button>
-          <button className="w-full p-3 border rounded-lg text-sm hover:border-[var(--color-secondary)] flex justify-between"><span>2FA</span><span className={`text-xs px-2 py-1 rounded ${userData.twoFactorEnabled ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{userData.twoFactorEnabled ? 'Actif' : 'Off'}</span></button>
+          <button onClick={() => setShowPasswordModal(true)} className="w-full p-3 border rounded-lg text-sm hover:border-[var(--color-secondary)] mb-2">Changer mot de passe</button>
+          <button onClick={async () => { try { const { error } = await supabase.auth.updateUser({ data: { twoFactorEnabled: !userData.twoFactorEnabled } }); if (error) throw error; toast.success('2FA mis à jour'); } catch { toast.error('Erreur mise à jour 2FA'); } }} className="w-full p-3 border rounded-lg text-sm hover:border-[var(--color-secondary)] flex justify-between"><span>2FA</span><span className={`text-xs px-2 py-1 rounded ${userData.twoFactorEnabled ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{userData.twoFactorEnabled ? 'Actif' : 'Off'}</span></button>
         </div>
       </div>
+      {showPasswordModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-xl p-6 max-w-sm w-full mx-4 space-y-4">
+            <h3 className="font-bold text-lg">Changer le mot de passe</h3>
+            <input type="password" placeholder="Nouveau mot de passe (6 car. min)" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm" />
+            <div className="flex gap-3 justify-end">
+              <button onClick={() => { setShowPasswordModal(false); setNewPassword(''); }} className="px-4 py-2 border rounded-lg text-sm">Annuler</button>
+              <button disabled={passwordSaving || newPassword.length < 6} onClick={async () => { setPasswordSaving(true); try { const { error } = await supabase.auth.updateUser({ password: newPassword }); if (error) throw error; toast.success('Mot de passe mis à jour'); setShowPasswordModal(false); setNewPassword(''); } catch { toast.error('Erreur changement de mot de passe'); } finally { setPasswordSaving(false); } }} className="px-4 py-2 bg-[var(--color-secondary)] text-white rounded-lg text-sm disabled:opacity-50">{passwordSaving ? 'En cours...' : 'Enregistrer'}</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 
@@ -145,9 +167,9 @@ const ManagerWorkspace: React.FC = () => {
       <div className="bg-white rounded-xl p-6 border">
         <h4 className="font-semibold mb-4">Notifications</h4>
         <div className="space-y-3">
-          {['Email', 'Push', 'Rapports hebdo'].map((n, i) => (
-            <div key={i} className="flex justify-between p-3 border rounded-lg"><span>{n}</span>
-              <label className="relative inline-flex cursor-pointer"><input type="checkbox" defaultChecked className="sr-only peer" />
+          {(['Email', 'Push', 'Rapports hebdo'] as const).map((n) => (
+            <div key={n} className="flex justify-between p-3 border rounded-lg"><span>{n}</span>
+              <label className="relative inline-flex cursor-pointer"><input type="checkbox" checked={!!notifPrefs[n]} onChange={async e => { const next = { ...notifPrefs, [n]: e.target.checked }; setNotifPrefs(next); try { await adapter.upsert?.('settings' as any, { key: `notif_manager_${n}`, value: String(e.target.checked), updatedAt: new Date().toISOString() }); } catch { /* persisted in state only */ } }} className="sr-only peer" />
               <div className="w-11 h-6 bg-gray-200 peer-checked:bg-[var(--color-secondary)] rounded-full after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div></label>
             </div>
           ))}
@@ -164,18 +186,18 @@ const ManagerWorkspace: React.FC = () => {
       </div>
       <div className="bg-gradient-to-r from-[var(--color-secondary)] to-[var(--color-text-secondary)] rounded-xl p-8 text-white">
         <h3 className="text-lg font-bold mb-4">Comment pouvons-nous vous aider?</h3>
-        <div className="relative"><Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" /><input placeholder="Rechercher..." className="w-full pl-12 pr-4 py-3 rounded-lg text-black" /></div>
+        <div className="relative"><Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" /><input placeholder="Rechercher..." value={helpSearch} onChange={e => setHelpSearch(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && helpSearch.trim()) window.open('https://docs.atlas-studio.org/search?q='+encodeURIComponent(helpSearch.trim()), '_blank'); }} className="w-full pl-12 pr-4 py-3 rounded-lg text-black" /></div>
       </div>
       <div className="grid grid-cols-3 gap-4">
-        {[{icon: BookMarked, title: 'Documentation', color: 'var(--color-secondary)'}, {icon: Video, title: 'Videos', color: 'var(--color-primary)'}, {icon: FileQuestion, title: 'FAQ', color: 'var(--color-text-tertiary)'}].map((c, i) => (
-          <button key={i} className="bg-white rounded-xl p-6 border hover:border-[var(--color-secondary)] text-left">
+        {[{icon: BookMarked, title: 'Documentation', color: 'var(--color-secondary)', url: 'https://docs.atlas-studio.org'}, {icon: Video, title: 'Videos', color: 'var(--color-primary)', url: 'https://docs.atlas-studio.org/tutoriels'}, {icon: FileQuestion, title: 'FAQ', color: 'var(--color-text-tertiary)', url: 'https://docs.atlas-studio.org/faq'}].map((c, i) => (
+          <button key={i} onClick={() => window.open(c.url, '_blank')} className="bg-white rounded-xl p-6 border hover:border-[var(--color-secondary)] text-left">
             <div className="w-12 h-12 rounded-lg flex items-center justify-center mb-4" style={{backgroundColor: `color-mix(in srgb, ${c.color} 12%, transparent)`}}><c.icon className="w-6 h-6" style={{color: c.color}} /></div>
             <h4 className="font-semibold">{c.title}</h4>
           </button>
         ))}
       </div>
       <div className="grid grid-cols-2 gap-4">
-        <div className="bg-white rounded-xl p-6 border"><h4 className="font-semibold mb-4 flex items-center"><MessageCircle className="w-5 h-5 mr-2 text-[var(--color-secondary)]" />Chat</h4><button className="w-full py-3 bg-[var(--color-secondary)] text-white rounded-lg">Demarrer</button></div>
+        <div className="bg-white rounded-xl p-6 border"><h4 className="font-semibold mb-4 flex items-center"><MessageCircle className="w-5 h-5 mr-2 text-[var(--color-secondary)]" />Chat</h4><button onClick={() => { setActiveSection('chat'); }} className="w-full py-3 bg-[var(--color-secondary)] text-white rounded-lg">Demarrer</button></div>
         <div className="bg-white rounded-xl p-6 border"><h4 className="font-semibold mb-4 flex items-center"><Headphones className="w-5 h-5 mr-2 text-[var(--color-secondary)]" />Telephone</h4><p className="text-lg font-bold">{companyPhone || '—'}</p></div>
       </div>
     </div>
@@ -264,7 +286,7 @@ const ManagerWorkspace: React.FC = () => {
               )}
             </div>
           </div>
-          <div className="flex-1 max-w-md mx-6 hidden md:block"><div className="relative"><Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" /><input placeholder="Recherche..." className="w-full pl-10 pr-4 py-2 border rounded-lg text-sm" /></div></div>
+          <div className="flex-1 max-w-md mx-6 hidden md:block"><div className="relative"><Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" /><input placeholder="Recherche..." value={headerSearch} onChange={e => setHeaderSearch(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && headerSearch.trim()) navigate(`/reporting?search=${encodeURIComponent(headerSearch.trim())}`); }} className="w-full pl-10 pr-4 py-2 border rounded-lg text-sm" /></div></div>
           <div className="flex items-center space-x-3">
             <button onClick={() => navigate('/dashboard')} className="group px-6 py-2.5 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] rounded-lg text-white font-semibold flex items-center space-x-2 transition-all shadow-sm hover:shadow-md"><LayoutDashboard className="w-5 h-5" /><span>Atlas Fna</span><ExternalLink className="w-4 h-4 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" /></button>
             <button className="relative p-2 rounded-lg hover:bg-gray-100"><Bell className="w-5 h-5 text-gray-500" /></button>

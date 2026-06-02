@@ -18,9 +18,15 @@ import type {
   ChangeRecord,
   SyncResult,
 } from '@atlas/shared'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import type { DataAdapter, DataMode, TableName, QueryFilters } from '../DataAdapter'
 import { DexieAdapter } from './DexieAdapter'
 import { SupabaseAdapter } from './SupabaseAdapter'
+
+/** Intervalle de sync périodique (push + pull) quand l'app est en ligne. */
+const SYNC_INTERVAL_MS = 30_000
+/** Clé settings où la file de sync est persistée (survit aux reloads/crashs). */
+const SYNC_QUEUE_KEY = 'syncQueue'
 
 interface SyncQueueItem {
   id: string
@@ -36,18 +42,36 @@ export class HybridAdapter implements DataAdapter {
   private remote: SupabaseAdapter
   private syncQueue: SyncQueueItem[] = []
   private syncing = false
+  private syncTimer: ReturnType<typeof setInterval> | null = null
+  private autoSyncStarted = false
+  /** Résolue une fois la file persistée chargée depuis IndexedDB. */
+  private readyPromise: Promise<void>
 
   constructor(
     dbName: string | undefined,
     supabaseUrl: string,
     supabaseKey: string,
     tenantId: string,
+    existingClient?: SupabaseClient,
   ) {
     this.local = new DexieAdapter(dbName)
-    this.remote = new SupabaseAdapter(supabaseUrl, supabaseKey, tenantId)
+    // CRITICAL : transmettre le client Supabase authentifié (sinon l'adapter
+    // distant tourne en anon → 'permission denied' sur tout INSERT/UPDATE/DELETE).
+    this.remote = new SupabaseAdapter(supabaseUrl, supabaseKey, tenantId, existingClient)
+    // Charger la file de sync persistée (lecture IndexedDB, non bloquante).
+    // Le constructeur reste SANS effet de bord réseau/timer → testable.
+    this.readyPromise = this.loadQueue()
   }
 
   getMode(): DataMode { return 'hybrid' }
+
+  /** Met à jour le tenantId du remote (appelé par DataContext après login). */
+  setTenantId(tenantId: string): void {
+    this.remote.setTenantId(tenantId)
+  }
+
+  /** À attendre dans les tests pour garantir que la file persistée est chargée. */
+  whenReady(): Promise<void> { return this.readyPromise }
 
   async isOnline(): Promise<boolean> {
     return this.remote.isOnline()
@@ -72,19 +96,19 @@ export class HybridAdapter implements DataAdapter {
 
   async create<T>(table: TableName, data: any, initiatedBy?: string): Promise<T> {
     const record = await this.local.create<T>(table, data, initiatedBy)
-    this.enqueue(table, 'CREATE', record)
+    await this.enqueue(table, 'CREATE', record)
     return record
   }
 
   async update<T>(table: TableName, id: string, data: any, initiatedBy?: string): Promise<T> {
     const record = await this.local.update<T>(table, id, data, initiatedBy)
-    this.enqueue(table, 'UPDATE', { id, ...data })
+    await this.enqueue(table, 'UPDATE', { id, ...data })
     return record
   }
 
   async delete(table: TableName, id: string, initiatedBy?: string): Promise<void> {
     await this.local.delete(table, id, initiatedBy)
-    this.enqueue(table, 'DELETE', { id })
+    await this.enqueue(table, 'DELETE', { id })
   }
 
   async count(table: TableName, filters?: QueryFilters): Promise<number> {
@@ -111,7 +135,7 @@ export class HybridAdapter implements DataAdapter {
 
   async saveJournalEntry(entry: Omit<JournalEntry, 'id' | 'createdAt'>): Promise<JournalEntry> {
     const record = await this.local.saveJournalEntry(entry)
-    this.enqueue('journalEntries', 'CREATE', record)
+    await this.enqueue('journalEntries', 'CREATE', record)
     return record
   }
 
@@ -132,7 +156,7 @@ export class HybridAdapter implements DataAdapter {
 
   // ---- Sync ----
 
-  private enqueue(table: TableName, action: SyncQueueItem['action'], payload: any): void {
+  private async enqueue(table: TableName, action: SyncQueueItem['action'], payload: any): Promise<void> {
     this.syncQueue.push({
       id: crypto.randomUUID(),
       table,
@@ -141,6 +165,80 @@ export class HybridAdapter implements DataAdapter {
       timestamp: new Date().toISOString(),
       retries: 0,
     })
+    // Persister AVANT de rendre la main : une saisie hors-ligne ne doit JAMAIS
+    // être perdue si l'app est rechargée/fermée avant le prochain push.
+    await this.persistQueue()
+  }
+
+  /** Vrai si un enregistrement a une écriture locale en attente (non poussée). */
+  private hasPending(table: TableName, id: string): boolean {
+    return this.syncQueue.some(q => q.table === table && q.payload?.id === id)
+  }
+
+  /** Charge la file de sync persistée depuis la table settings (IndexedDB). */
+  private async loadQueue(): Promise<void> {
+    try {
+      const row = await this.local.getById<{ key: string; value: string }>('settings', SYNC_QUEUE_KEY)
+      if (row?.value) {
+        const parsed = JSON.parse(row.value)
+        if (Array.isArray(parsed)) this.syncQueue = parsed
+      }
+    } catch { /* absente ou corrompue → on repart d'une file vide */ }
+  }
+
+  /** Écrit la file courante dans settings (upsert). */
+  private async persistQueue(): Promise<void> {
+    await this.upsertSetting(SYNC_QUEUE_KEY, JSON.stringify(this.syncQueue))
+  }
+
+  /**
+   * Upsert d'un setting keyé. NB : Dexie.update() sur une clé absente ne lève
+   * PAS d'erreur (retourne 0) — un simple try/catch ne suffit donc pas pour
+   * détecter l'insertion initiale. On teste l'existence explicitement.
+   */
+  private async upsertSetting(key: string, value: string): Promise<void> {
+    try {
+      const existing = await this.local.getById('settings', key)
+      if (existing) {
+        await this.local.update('settings', key, { key, value })
+      } else {
+        await this.local.create('settings', { key, value })
+      }
+    } catch { /* persistance best-effort */ }
+  }
+
+  // ---- Orchestration de la sync automatique ----
+
+  private handleOnline = (): void => { void this.syncNow() }
+
+  /**
+   * Démarre la sync automatique : sync immédiate, à la reconnexion (event
+   * 'online') et périodiquement. Idempotent. Appelé par DataContext (mode hybrid).
+   */
+  startAutoSync(): void {
+    if (this.autoSyncStarted) return
+    this.autoSyncStarted = true
+    void this.readyPromise.then(() => this.syncNow())
+    if (typeof window !== 'undefined') {
+      window.addEventListener('online', this.handleOnline)
+    }
+    this.syncTimer = setInterval(() => { void this.syncNow() }, SYNC_INTERVAL_MS)
+  }
+
+  /** Stoppe les déclencheurs auto (timer + listener). */
+  dispose(): void {
+    if (this.syncTimer) { clearInterval(this.syncTimer); this.syncTimer = null }
+    if (typeof window !== 'undefined') window.removeEventListener('online', this.handleOnline)
+    this.autoSyncStarted = false
+  }
+
+  /** Flush la file vers le cloud puis tire les changements distants. */
+  async syncNow(): Promise<SyncResult> {
+    await this.readyPromise
+    const since = (await this.getLastSyncTimestamp()) ?? new Date(0).toISOString()
+    const result = await this.pushChanges({ changes: [], since })
+    try { await this.pullChanges(since) } catch { /* pull best-effort */ }
+    return result
   }
 
   async getLastSyncTimestamp(): Promise<string | null> {
@@ -192,13 +290,12 @@ export class HybridAdapter implements DataAdapter {
         }
       }
 
+      // Persister la file après traitement (items réussis retirés, retries à jour)
+      await this.persistQueue()
+
       // Update last sync timestamp
       const now = new Date().toISOString()
-      try {
-        await this.local.update('settings', 'lastSyncTimestamp', { key: 'lastSyncTimestamp', value: now })
-      } catch {
-        await this.local.create('settings', { key: 'lastSyncTimestamp', value: now })
-      }
+      await this.upsertSetting('lastSyncTimestamp', now)
 
       return { pushed, conflicts, errors }
     } finally {
@@ -250,6 +347,11 @@ export class HybridAdapter implements DataAdapter {
 
     // Apply pulled changes to local DB
     for (const change of result.changes) {
+      // Politique de conflit : une écriture locale en attente (non encore poussée)
+      // est prioritaire — on ne l'écrase JAMAIS par la version distante.
+      if (this.hasPending(change.table as TableName, change.id)) {
+        continue
+      }
       try {
         const existing = await this.local.getById(change.table as TableName, change.id)
         if (existing) {

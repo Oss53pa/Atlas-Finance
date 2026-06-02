@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useData } from '../../contexts/DataContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Building,
@@ -44,7 +45,7 @@ import {
   SelectTrigger,
   SelectValue
 } from '../../components/ui';
-import { assetsService, createImmobilisationSchema } from '../../services/modules/assets.service';
+import { createImmobilisationSchema } from '../../services/modules/assets.service';
 import { z } from 'zod';
 import { formatCurrency, formatDate, formatPercentage } from '../../lib/utils';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
@@ -64,6 +65,7 @@ interface AssetsFilters {
 
 const FixedAssetsPage: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   const [filters, setFilters] = useState<AssetsFilters>({
     search: '',
     categorie: '',
@@ -95,15 +97,52 @@ const FixedAssetsPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPeriodModal, setShowPeriodModal] = useState(false);
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [assetToEdit, setAssetToEdit] = useState<Record<string, unknown> | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    code: '',
+    designation: '',
+    categorie: '',
+    localisation: '',
+    fournisseur: '',
+    date_acquisition: '',
+    montant_acquisition: 0,
+    duree_amortissement: 5,
+    methode_amortissement: 'lineaire' as 'lineaire' | 'degressive' | 'unites_oeuvre' | 'exceptionnelle',
+    statut: 'en_service' as string,
+    numero_serie: '',
+    description: '',
+  });
+  const [editErrors, setEditErrors] = useState<Record<string, string>>({});
+  const [isEditSubmitting, setIsEditSubmitting] = useState(false);
 
   const queryClient = useQueryClient();
 
-  // Create immobilisation mutation
+  // Create immobilisation mutation — uses adapter directly (Bug #6 fix)
   const createMutation = useMutation({
-    mutationFn: assetsService.createImmobilisation,
+    mutationFn: async (data: Record<string, unknown>) => {
+      // Normalize: form sends montant_acquisition, map to valeur_acquisition for DB
+      const dbData = {
+        id: crypto.randomUUID(),
+        code: data.code,
+        name: data.designation,
+        category: data.categorie || 'AUTRE',
+        acquisitionDate: data.date_acquisition,
+        acquisitionValue: (data.montant_acquisition as number) || (data.valeur_acquisition as number) || 0,
+        residualValue: 0,
+        depreciationMethod: data.methode_amortissement === 'degressive' ? 'declining' : 'linear',
+        usefulLifeYears: (data.duree_amortissement as number) || 5,
+        accountCode: '',
+        depreciationAccountCode: '',
+        status: 'active',
+        location: data.localisation,
+        cumulDepreciation: 0,
+      };
+      return adapter.create('assets', dbData);
+    },
     onSuccess: () => {
       toast.success('Immobilisation créée avec succès');
-      queryClient.invalidateQueries({ queryKey: ['immobilisations'] });
+      queryClient.invalidateQueries({ queryKey: ['fixed-assets'] });
       setShowCreateModal(false);
       resetForm();
     },
@@ -112,30 +151,98 @@ const FixedAssetsPage: React.FC = () => {
     },
   });
 
-  // Fetch fixed assets
+  // Update immobilisation mutation — Bug #1 fix
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Record<string, unknown> }) => {
+      const updates = {
+        code: data.code,
+        name: data.designation,
+        category: data.categorie || 'AUTRE',
+        acquisitionDate: data.date_acquisition,
+        acquisitionValue: (data.montant_acquisition as number) || (data.valeur_acquisition as number) || 0,
+        depreciationMethod: data.methode_amortissement === 'degressive' ? 'declining' : 'linear',
+        usefulLifeYears: (data.duree_amortissement as number) || 5,
+        location: data.localisation,
+      };
+      return adapter.update('assets', id, updates);
+    },
+    onSuccess: () => {
+      toast.success('Immobilisation mise à jour avec succès');
+      queryClient.invalidateQueries({ queryKey: ['fixed-assets'] });
+      setShowEditModal(false);
+      setAssetToEdit(null);
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Erreur lors de la mise à jour');
+    },
+  });
+
+  // Fetch fixed assets — Bug #6 fix: use adapter.getAll('assets')
   const { data: assetsData, isLoading } = useQuery({
     queryKey: ['fixed-assets', 'list', page, filters],
-    queryFn: () => assetsService.getFixedAssets({ 
-      page, 
-      ...filters
-    }),
+    queryFn: async () => {
+      const all = await adapter.getAll('assets');
+      let filtered = all as Array<Record<string, unknown>>;
+      if (filters.search) {
+        const s = filters.search.toLowerCase();
+        filtered = filtered.filter(a =>
+          String(a.name || '').toLowerCase().includes(s) ||
+          String(a.code || '').toLowerCase().includes(s)
+        );
+      }
+      if (filters.categorie) filtered = filtered.filter(a => a.category === filters.categorie);
+      if (filters.statut) filtered = filtered.filter(a => a.status === filters.statut);
+      if (filters.localisation) {
+        const loc = filters.localisation.toLowerCase();
+        filtered = filtered.filter(a => String(a.location || '').toLowerCase().includes(loc));
+      }
+      const total = filtered.length;
+      const pageSize = 20;
+      const start = (page - 1) * pageSize;
+      const results = filtered.slice(start, start + pageSize).map(a => ({
+        id: a.id,
+        code_immobilisation: a.code,
+        designation: a.name,
+        categorie: a.category,
+        nom_categorie: a.category,
+        date_acquisition: a.acquisitionDate,
+        valeur_acquisition: a.acquisitionValue,
+        amortissements_cumules: a.cumulDepreciation || 0,
+        valeur_nette: (a.acquisitionValue as number) - ((a.cumulDepreciation as number) || 0),
+        pourcentage_amortissement: (a.acquisitionValue as number) > 0
+          ? Math.round(((a.cumulDepreciation as number || 0) / (a.acquisitionValue as number)) * 100)
+          : 0,
+        statut: a.status,
+        localisation: a.location,
+        numero_serie: a.numeroSerie,
+        responsable: a.responsable,
+        fournisseur: a.fournisseur,
+        // keep original for edit
+        _raw: a,
+      }));
+      return { results, count: total, total_value: filtered.reduce((s, a) => s + ((a.acquisitionValue as number) || 0), 0), total_depreciation: filtered.reduce((s, a) => s + ((a.cumulDepreciation as number) || 0), 0), maintenance_count: 0 };
+    },
   });
 
-  // Fetch categories for selection
+  // Fetch categories for selection — Bug #6 fix: derive from assets
   const { data: categories } = useQuery({
     queryKey: ['asset-categories', 'list'],
-    queryFn: () => assetsService.getAssetCategories(),
+    queryFn: async () => {
+      const all = await adapter.getAll('assets') as Array<Record<string, unknown>>;
+      const cats = [...new Set(all.map(a => a.category as string).filter(Boolean))];
+      return cats.map((c, i) => ({ id: String(i), code: c, nom: c }));
+    },
   });
 
-  // Delete asset mutation
+  // Delete asset mutation — Bug #6 fix
   const deleteAssetMutation = useMutation({
-    mutationFn: assetsService.deleteAsset,
+    mutationFn: (assetId: string) => adapter.delete('assets', assetId),
     onSuccess: () => {
       toast.success('Actif supprimé avec succès');
       queryClient.invalidateQueries({ queryKey: ['fixed-assets'] });
     },
-    onError: () => {
-      toast.error('Erreur lors de la suppression');
+    onError: (error: Error) => {
+      toast.error(error.message || 'Erreur lors de la suppression');
     }
   });
 
@@ -200,11 +307,11 @@ const FixedAssetsPage: React.FC = () => {
       setIsSubmitting(true);
       setErrors({});
 
-      // Validate with Zod
+      // Validate with Zod — schema now accepts both montant_acquisition and methode_amortissement (Bug #2 fix)
       const validatedData = createImmobilisationSchema.parse(formData);
 
-      // Submit to backend
-      await createMutation.mutateAsync(validatedData);
+      // Submit via adapter mutation
+      await createMutation.mutateAsync(validatedData as unknown as Record<string, unknown>);
     } catch (error) {
       if (error instanceof z.ZodError) {
         // Map Zod errors to form fields
@@ -274,12 +381,50 @@ const FixedAssetsPage: React.FC = () => {
   };
 
   const generateQRCode = async (assetId: string) => {
+    // QR Code generation requires a third-party integration — not yet implemented.
+    toast('QR Code : fonctionnalité disponible en intégration tierce (ex: QR Monkey, ZXing).', { icon: 'ℹ️' });
+    void assetId;
+  };
+
+  const handleOpenEditModal = (asset: Record<string, unknown>) => {
+    setAssetToEdit(asset);
+    setEditFormData({
+      code: String(asset.code_immobilisation || ''),
+      designation: String(asset.designation || ''),
+      categorie: String(asset.categorie || ''),
+      localisation: String(asset.localisation || ''),
+      fournisseur: String(asset.fournisseur || ''),
+      date_acquisition: String(asset.date_acquisition || ''),
+      montant_acquisition: (asset.valeur_acquisition as number) || 0,
+      duree_amortissement: 5,
+      methode_amortissement: 'lineaire',
+      statut: String(asset.statut || 'en_service'),
+      numero_serie: String(asset.numero_serie || ''),
+      description: '',
+    });
+    setEditErrors({});
+    setShowEditModal(true);
+  };
+
+  const handleEditInputChange = (field: string, value: string | number) => {
+    setEditFormData(prev => ({ ...prev, [field]: value }));
+    if (editErrors[field]) {
+      setEditErrors(prev => { const e = { ...prev }; delete e[field]; return e; });
+    }
+  };
+
+  const handleEditSubmit = async () => {
+    if (!assetToEdit) return;
     try {
-      toast.loading('Génération du QR Code...');
-      await assetsService.generateQRCode(assetId);
-      toast.success('QR Code généré avec succès');
+      setIsEditSubmitting(true);
+      setEditErrors({});
+      if (!editFormData.code) { setEditErrors({ code: 'Code requis' }); return; }
+      if (!editFormData.designation) { setEditErrors({ designation: 'Désignation requise' }); return; }
+      await updateMutation.mutateAsync({ id: String(assetToEdit.id), data: editFormData as unknown as Record<string, unknown> });
     } catch (error) {
-      toast.error('Erreur lors de la génération du QR Code');
+      toast.error('Erreur lors de la mise à jour');
+    } finally {
+      setIsEditSubmitting(false);
     }
   };
 
@@ -605,6 +750,7 @@ const FixedAssetsPage: React.FC = () => {
                             <Button
                               variant="ghost"
                               size="sm"
+                              onClick={() => handleOpenEditModal(asset)}
                               aria-label="Modifier"
                             >
                               <Edit className="h-4 w-4" />
@@ -935,6 +1081,77 @@ const FixedAssetsPage: React.FC = () => {
                     <span>{t('actions.create')}</span>
                   </>
                 )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Asset Modal — Bug #1 fix */}
+      {showEditModal && assetToEdit && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-lg flex justify-between items-center">
+              <div className="flex items-center space-x-3">
+                <div className="bg-blue-100 text-blue-600 p-2 rounded-lg">
+                  <Edit className="w-5 h-5" />
+                </div>
+                <h2 className="text-lg font-bold text-gray-900">Modifier l'Actif Immobilisé</h2>
+              </div>
+              <button onClick={() => { setShowEditModal(false); setAssetToEdit(null); }} disabled={isEditSubmitting} className="text-gray-700 hover:text-gray-700">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Code immobilisation *</label>
+                    <Input value={editFormData.code} onChange={(e) => handleEditInputChange('code', e.target.value)} disabled={isEditSubmitting} />
+                    {editErrors.code && <p className="mt-1 text-sm text-red-600">{editErrors.code}</p>}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Désignation *</label>
+                    <Input value={editFormData.designation} onChange={(e) => handleEditInputChange('designation', e.target.value)} disabled={isEditSubmitting} />
+                    {editErrors.designation && <p className="mt-1 text-sm text-red-600">{editErrors.designation}</p>}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Catégorie</label>
+                    <Input value={editFormData.categorie} onChange={(e) => handleEditInputChange('categorie', e.target.value)} disabled={isEditSubmitting} />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Numéro de série</label>
+                    <Input value={editFormData.numero_serie} onChange={(e) => handleEditInputChange('numero_serie', e.target.value)} disabled={isEditSubmitting} />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Valeur d'acquisition (XOF)</label>
+                    <Input type="number" step="0.01" min="0" value={editFormData.montant_acquisition} onChange={(e) => handleEditInputChange('montant_acquisition', parseFloat(e.target.value) || 0)} disabled={isEditSubmitting} />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Date d'acquisition</label>
+                    <Input type="date" value={editFormData.date_acquisition} onChange={(e) => handleEditInputChange('date_acquisition', e.target.value)} disabled={isEditSubmitting} />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Durée d'amortissement (années)</label>
+                    <Input type="number" min="1" max="50" value={editFormData.duree_amortissement} onChange={(e) => handleEditInputChange('duree_amortissement', parseInt(e.target.value) || 1)} disabled={isEditSubmitting} />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Localisation</label>
+                    <Input value={editFormData.localisation} onChange={(e) => handleEditInputChange('localisation', e.target.value)} disabled={isEditSubmitting} />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Fournisseur</label>
+                    <Input value={editFormData.fournisseur} onChange={(e) => handleEditInputChange('fournisseur', e.target.value)} disabled={isEditSubmitting} />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 rounded-b-lg flex justify-end space-x-3">
+              <button onClick={() => { setShowEditModal(false); setAssetToEdit(null); }} disabled={isEditSubmitting} className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50">
+                Annuler
+              </button>
+              <button onClick={handleEditSubmit} disabled={isEditSubmitting} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2 disabled:opacity-50">
+                {isEditSubmitting ? <><LoadingSpinner size="sm" /><span>Enregistrement...</span></> : <><CheckCircle className="w-4 h-4" /><span>Enregistrer</span></>}
               </button>
             </div>
           </div>

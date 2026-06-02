@@ -6,6 +6,7 @@ import type { DataAdapter } from '@atlas/data';
 import { BalanceAccount, BalanceFilters, BalanceTotals } from '../types/balance.types';
 import { formatCurrency } from '@/utils/formatters';
 import { money } from '@/utils/money';
+import type { DBJournalEntry } from '../../../lib/db';
 
 // SYSCOHADA account class hierarchy
 const SYSCOHADA_CLASSES: Record<string, string> = {
@@ -434,6 +435,106 @@ export async function verifyAuxiliaryReconciliation(
     isReconciled: difference < 0.01,
     auxiliaryCount: auxiliaryBalances.size,
   };
+}
+
+// ============================================================================
+// Balance Âgée des Créances — aged receivables (comptes 411)
+// ============================================================================
+
+export interface AgedReceivable {
+  /** Auxiliary/third-party code (e.g. 411001) */
+  clientCode: string;
+  clientName: string;
+  total: number;
+  nonEchu: number;
+  days0_30: number;
+  days31_60: number;
+  days60plus: number;
+  risque: 'faible' | 'moyen' | 'eleve';
+}
+
+interface AgedOpenItem {
+  dueDate: string;
+  amount: number;
+}
+
+/**
+ * Calcule la balance âgée des créances clients depuis les écritures réelles.
+ *
+ * Pour chaque client (compte auxiliaire 411xxx ou tiers), les factures (débits)
+ * sont ventilées par tranche d'ancienneté à partir de leur date d'échéance
+ * (`dateEcheance`, sinon date de l'écriture). Les règlements (crédits) sont
+ * imputés en FIFO sur les factures les plus anciennes — un client soldé ou en
+ * trop-perçu disparaît de la liste.
+ *
+ * Tranches : Non échu (échéance future), 0-30, 31-60, > 60 jours.
+ * N'utilise que les écritures validées (hors brouillons).
+ */
+export async function getAgedReceivables(
+  adapter: DataAdapter,
+  asOf: Date = new Date(),
+): Promise<AgedReceivable[]> {
+  const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
+  const valid = entries.filter((e) => e.status !== 'draft');
+
+  const clients = new Map<string, { name: string; debits: AgedOpenItem[]; credits: number }>();
+
+  for (const entry of valid) {
+    for (const line of entry.lines || []) {
+      if (!line.accountCode || !line.accountCode.startsWith('411')) continue;
+      const key = line.thirdPartyCode || line.accountCode;
+      const name = line.thirdPartyName || line.accountName || key;
+      const c = clients.get(key) || { name, debits: [], credits: 0 };
+      if (!c.name && name) c.name = name;
+      const debit = Number(line.debit || 0);
+      const credit = Number(line.credit || 0);
+      if (debit > 0) c.debits.push({ dueDate: line.dateEcheance || entry.date, amount: debit });
+      if (credit > 0) c.credits = money(c.credits).add(money(credit)).toNumber();
+      clients.set(key, c);
+    }
+  }
+
+  const DAY = 86400000;
+  const result: AgedReceivable[] = [];
+
+  for (const [code, c] of clients) {
+    // FIFO : imputer les règlements sur les factures les plus anciennes
+    const items = [...c.debits].sort((a, b) => a.dueDate.localeCompare(b.dueDate));
+    let remainingCredit = c.credits;
+    const open: AgedOpenItem[] = [];
+    for (const it of items) {
+      if (remainingCredit <= 0) { open.push(it); continue; }
+      if (remainingCredit >= it.amount) {
+        remainingCredit = money(remainingCredit).subtract(it.amount).toNumber();
+      } else {
+        open.push({ dueDate: it.dueDate, amount: money(it.amount).subtract(remainingCredit).toNumber() });
+        remainingCredit = 0;
+      }
+    }
+
+    let nonEchu = 0, d0 = 0, d30 = 0, d60 = 0;
+    for (const it of open) {
+      const days = Math.floor((asOf.getTime() - new Date(it.dueDate).getTime()) / DAY);
+      if (days < 0) nonEchu = money(nonEchu).add(it.amount).toNumber();
+      else if (days <= 30) d0 = money(d0).add(it.amount).toNumber();
+      else if (days <= 60) d30 = money(d30).add(it.amount).toNumber();
+      else d60 = money(d60).add(it.amount).toNumber();
+    }
+    const total = money(nonEchu).add(d0).add(d30).add(d60).toNumber();
+    if (total <= 0.001) continue; // client soldé ou trop-perçu
+
+    let risque: AgedReceivable['risque'] = 'faible';
+    if (d60 > 0 && money(d60).divide(total).toNumber() >= 0.25) risque = 'eleve';
+    else if (d30 > 0 || d60 > 0) risque = 'moyen';
+
+    result.push({
+      clientCode: code,
+      clientName: c.name || code,
+      total, nonEchu, days0_30: d0, days31_60: d30, days60plus: d60, risque,
+    });
+  }
+
+  return result.sort((a, b) => b.total - a.total);
 }
 
 export const balanceService = new BalanceService();

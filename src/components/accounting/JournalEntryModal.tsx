@@ -174,6 +174,38 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
     return () => { cancelled = true; };
   }, [adapter]);
 
+  // Pré-remplissage en mode édition : quand le modal s'ouvre avec initialData
+  useEffect(() => {
+    if (!isOpen || mode !== 'edit' || !initialData) return;
+    // Remplir les détails depuis l'écriture existante
+    const journalCode = String(initialData.journal || '');
+    const journalLabels: Record<string, string> = {
+      VE: 'VE - Ventes', AC: 'AC - Achats', BQ: 'BQ - Banque',
+      CA: 'CA - Caisse', OD: 'OD - Opérations Diverses', AN: 'AN - A-Nouveau',
+    };
+    const journalLabel = journalCode
+      ? (journalLabels[journalCode] || journalCode)
+      : getJournalByType('other');
+    setDetails(prev => ({
+      ...prev,
+      dateEcriture: String(initialData.date || prev.dateEcriture),
+      numeroEcriture: String(initialData.entryNumber || prev.numeroEcriture),
+      journal: journalLabel,
+      description: String(initialData.label || ''),
+    }));
+    // Pré-remplir les lignes si disponibles
+    const rawLines = Array.isArray(initialData.lines) ? initialData.lines as any[] : [];
+    if (rawLines.length > 0) {
+      setLignesEcriture(rawLines.map((l: any) => ({
+        compte: String(l.accountCode || l.compte || ''),
+        libelle: String(l.label || l.libelle || l.accountName || ''),
+        debit: Number(l.debit ?? 0),
+        credit: Number(l.credit ?? 0),
+        codeAnalytique: String(l.codeAnalytique || l.analytique || ''),
+      })));
+    }
+  }, [isOpen, mode, initialData?.id]);
+
   // Codes analytiques
   const codesAnalytiques = [
     { code: 'CC001', libelle: 'CC001 - Commercial' },

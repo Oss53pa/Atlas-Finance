@@ -16,6 +16,7 @@ import { usePrintReport } from '../../hooks/usePrint';
 import { formatCurrency } from '../../utils/formatters';
 import { useMoneyFormat } from '../../hooks/useMoneyFormat';
 import { money } from '../../utils/money';
+import { getAgedReceivables, type AgedReceivable } from '../../features/balance/services/balanceService';
 
 interface BalanceAccount {
   code: string;
@@ -79,6 +80,16 @@ const Balance: React.FC = () => {
 
   // Load real data from adapter
   const [accounts, setAccounts] = useState<BalanceAccount[]>([]);
+  const [agedReceivables, setAgedReceivables] = useState<AgedReceivable[]>([]);
+
+  // Balance âgée des créances — calculée depuis les écritures (comptes 411)
+  useEffect(() => {
+    let cancelled = false;
+    getAgedReceivables(adapter, new Date(dateRange.end))
+      .then((rows) => { if (!cancelled) setAgedReceivables(rows); })
+      .catch(() => { if (!cancelled) setAgedReceivables([]); });
+    return () => { cancelled = true; };
+  }, [adapter, dateRange.end]);
 
   useEffect(() => {
     const loadBalance = async () => {
@@ -246,6 +257,14 @@ const Balance: React.FC = () => {
   const formatAmount = (amount: number) => {
     return fmt(amount);
   };
+
+  // Balance âgée : libellé + classes du badge de risque
+  const RISQUE_BADGE: Record<AgedReceivable['risque'], { label: string; cls: string }> = {
+    faible: { label: 'Faible', cls: 'bg-green-100 text-green-800' },
+    moyen: { label: 'Moyen', cls: 'bg-orange-100 text-orange-800' },
+    eleve: { label: 'Élevé', cls: 'bg-red-100 text-red-800' },
+  };
+  const agedCell = (n: number) => (n > 0 ? formatAmount(n) : '—');
 
   // Fonctions pour les actions rapides
   const handleExportExcel = () => {
@@ -1237,68 +1256,46 @@ const Balance: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                <tr className="hover:bg-gray-50 border-b">
-                  <td className="px-4 py-2">
-                    <div>
-                      <span className="font-mono text-[var(--color-primary)]">411001</span> - Client A SARL
-                    </div>
-                  </td>
-                  <td className="px-4 py-2 text-right font-semibold">2 200 000,00</td>
-                  <td className="px-4 py-2 text-right text-green-600">800 000,00</td>
-                  <td className="px-4 py-2 text-right text-yellow-600">700 000,00</td>
-                  <td className="px-4 py-2 text-right text-orange-600">400 000,00</td>
-                  <td className="px-4 py-2 text-right text-red-600">300 000,00</td>
-                  <td className="px-4 py-2 text-center">
-                    <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs font-semibold">Moyen</span>
-                  </td>
-                  <td className="px-4 py-2 text-center">
-                    <button
-                      className="text-blue-600 hover:text-blue-900 mr-2"
-                      onClick={() => toast('Consultation des créances client')}
-                      title="Voir détails"
-                    >
-                      <Eye className="w-4 h-4" />
-                    </button>
-                    <button
-                      className="text-orange-600 hover:text-orange-800"
-                      onClick={() => toast.success('Relance envoyée par email')}
-                      title="Envoyer relance"
-                    >
-                      <Mail className="w-4 h-4" />
-                    </button>
-                  </td>
-                </tr>
-                <tr className="hover:bg-gray-50 border-b">
-                  <td className="px-4 py-2">
-                    <div>
-                      <span className="font-mono text-[var(--color-primary)]">411002</span> - Client B SAS
-                    </div>
-                  </td>
-                  <td className="px-4 py-2 text-right font-semibold">1 100 000,00</td>
-                  <td className="px-4 py-2 text-right text-green-600">900 000,00</td>
-                  <td className="px-4 py-2 text-right text-yellow-600">200 000,00</td>
-                  <td className="px-4 py-2 text-right text-orange-600">0,00</td>
-                  <td className="px-4 py-2 text-right text-red-600">0,00</td>
-                  <td className="px-4 py-2 text-center">
-                    <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">Faible</span>
-                  </td>
-                  <td className="px-4 py-2 text-center">
-                    <button
-                      className="text-blue-600 hover:text-blue-900 mr-2"
-                      onClick={() => toast('Consultation des créances client')}
-                      title="Voir détails"
-                    >
-                      <Eye className="w-4 h-4" />
-                    </button>
-                    <button
-                      className="text-orange-600 hover:text-orange-800"
-                      onClick={() => toast.success('Relance envoyée par email')}
-                      title="Envoyer relance"
-                    >
-                      <Mail className="w-4 h-4" />
-                    </button>
-                  </td>
-                </tr>
+                {agedReceivables.length === 0 && (
+                  <tr>
+                    <td colSpan={8} className="px-4 py-10 text-center text-[var(--color-text-secondary)]">
+                      Aucune créance client sur la période.
+                    </td>
+                  </tr>
+                )}
+                {agedReceivables.map((r) => (
+                  <tr key={r.clientCode} className="hover:bg-gray-50 border-b">
+                    <td className="px-4 py-2">
+                      <div>
+                        <span className="font-mono text-[var(--color-primary)]">{r.clientCode}</span> - {r.clientName}
+                      </div>
+                    </td>
+                    <td className="px-4 py-2 text-right font-semibold">{formatAmount(r.total)}</td>
+                    <td className="px-4 py-2 text-right text-green-600">{agedCell(r.nonEchu)}</td>
+                    <td className="px-4 py-2 text-right text-yellow-600">{agedCell(r.days0_30)}</td>
+                    <td className="px-4 py-2 text-right text-orange-600">{agedCell(r.days31_60)}</td>
+                    <td className="px-4 py-2 text-right text-red-600">{agedCell(r.days60plus)}</td>
+                    <td className="px-4 py-2 text-center">
+                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${RISQUE_BADGE[r.risque].cls}`}>{RISQUE_BADGE[r.risque].label}</span>
+                    </td>
+                    <td className="px-4 py-2 text-center">
+                      <button
+                        className="text-blue-600 hover:text-blue-900 mr-2"
+                        onClick={() => toast(`Créances de ${r.clientName}`)}
+                        title="Voir détails"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                      <button
+                        className="text-orange-600 hover:text-orange-800"
+                        onClick={() => toast.success(`Relance envoyée à ${r.clientName}`)}
+                        title="Envoyer relance"
+                      >
+                        <Mail className="w-4 h-4" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
@@ -1325,18 +1322,27 @@ const Balance: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    <tr className="hover:bg-gray-50 border-b">
-                      <td className="px-4 py-2 font-mono text-[var(--color-primary)]">411001</td>
-                      <td className="px-4 py-2">Client A SARL</td>
-                      <td className="px-4 py-2 text-right font-semibold">2 200 000,00</td>
-                      <td className="px-4 py-2 text-right text-green-600">800 000,00</td>
-                      <td className="px-4 py-2 text-right text-yellow-600">700 000,00</td>
-                      <td className="px-4 py-2 text-right text-orange-600">400 000,00</td>
-                      <td className="px-4 py-2 text-right text-red-600">300 000,00</td>
-                      <td className="px-4 py-2 text-center">
-                        <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs">Moyen</span>
-                      </td>
-                    </tr>
+                    {agedReceivables.length === 0 && (
+                      <tr>
+                        <td colSpan={8} className="px-4 py-10 text-center text-[var(--color-text-secondary)]">
+                          Aucune créance client sur la période.
+                        </td>
+                      </tr>
+                    )}
+                    {agedReceivables.map((r) => (
+                      <tr key={r.clientCode} className="hover:bg-gray-50 border-b">
+                        <td className="px-4 py-2 font-mono text-[var(--color-primary)]">{r.clientCode}</td>
+                        <td className="px-4 py-2">{r.clientName}</td>
+                        <td className="px-4 py-2 text-right font-semibold">{formatAmount(r.total)}</td>
+                        <td className="px-4 py-2 text-right text-green-600">{agedCell(r.nonEchu)}</td>
+                        <td className="px-4 py-2 text-right text-yellow-600">{agedCell(r.days0_30)}</td>
+                        <td className="px-4 py-2 text-right text-orange-600">{agedCell(r.days31_60)}</td>
+                        <td className="px-4 py-2 text-right text-red-600">{agedCell(r.days60plus)}</td>
+                        <td className="px-4 py-2 text-center">
+                          <span className={`px-2 py-1 rounded-full text-xs ${RISQUE_BADGE[r.risque].cls}`}>{RISQUE_BADGE[r.risque].label}</span>
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
@@ -1350,122 +1356,51 @@ const Balance: React.FC = () => {
               </div>
               <div className="overflow-auto flex-1 p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {/* Client A SARL */}
-                  <div className="bg-white border-2 border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center space-x-2">
-                        <Users className="w-5 h-5 text-[var(--color-text-secondary)]" />
-                        <span className="font-mono text-sm text-[var(--color-text-secondary)] font-bold">411001</span>
+                  {agedReceivables.length === 0 && (
+                    <div className="col-span-full py-10 text-center text-[var(--color-text-secondary)]">
+                      Aucune créance client sur la période.
+                    </div>
+                  )}
+                  {agedReceivables.map((r) => (
+                    <div key={r.clientCode} className="bg-white border-2 border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center space-x-2">
+                          <Users className="w-5 h-5 text-[var(--color-text-secondary)]" />
+                          <span className="font-mono text-sm text-[var(--color-text-secondary)] font-bold">{r.clientCode}</span>
+                        </div>
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${RISQUE_BADGE[r.risque].cls}`}>{RISQUE_BADGE[r.risque].label}</span>
+                      </div>
+
+                      <h4 className="text-sm mb-3 font-semibold">{r.clientName}</h4>
+
+                      <div className="space-y-2 text-xs">
+                        <div className="flex justify-between items-center p-2 bg-green-50 rounded">
+                          <span className="text-gray-600">Non échu:</span>
+                          <span className="text-green-600 font-semibold">{agedCell(r.nonEchu)}</span>
+                        </div>
+
+                        <div className="flex justify-between items-center p-2 bg-yellow-50 rounded">
+                          <span className="text-gray-600">0-30j:</span>
+                          <span className="text-yellow-600 font-semibold">{agedCell(r.days0_30)}</span>
+                        </div>
+
+                        <div className="flex justify-between items-center p-2 bg-orange-50 rounded">
+                          <span className="text-gray-600">31-60j:</span>
+                          <span className="text-orange-600 font-semibold">{agedCell(r.days31_60)}</span>
+                        </div>
+
+                        <div className="flex justify-between items-center p-2 bg-red-50 rounded">
+                          <span className="text-gray-600">&gt;60j:</span>
+                          <span className="text-red-600 font-semibold">{agedCell(r.days60plus)}</span>
+                        </div>
+
+                        <div className="flex justify-between items-center p-2 bg-blue-50 rounded">
+                          <span className="text-gray-600 font-semibold">Total:</span>
+                          <span className="text-blue-600 font-bold">{formatAmount(r.total)}</span>
+                        </div>
                       </div>
                     </div>
-
-                    <h4 className="text-sm mb-3 font-semibold">Client A SARL</h4>
-
-                    <div className="space-y-2 text-xs">
-                      <div className="flex justify-between items-center p-2 bg-green-50 rounded">
-                        <span className="text-gray-600">Non échu:</span>
-                        <span className="text-green-600 font-semibold">800 000</span>
-                      </div>
-
-                      <div className="flex justify-between items-center p-2 bg-yellow-50 rounded">
-                        <span className="text-gray-600">0-30j:</span>
-                        <span className="text-yellow-600 font-semibold">700 000</span>
-                      </div>
-
-                      <div className="flex justify-between items-center p-2 bg-orange-50 rounded">
-                        <span className="text-gray-600">31-60j:</span>
-                        <span className="text-orange-600 font-semibold">400 000</span>
-                      </div>
-
-                      <div className="flex justify-between items-center p-2 bg-red-50 rounded">
-                        <span className="text-gray-600">&gt;60j:</span>
-                        <span className="text-red-600 font-semibold">300 000</span>
-                      </div>
-
-                      <div className="flex justify-between items-center p-2 bg-blue-50 rounded">
-                        <span className="text-gray-600 font-semibold">Total:</span>
-                        <span className="text-blue-600 font-bold">2 200 000</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Client B SAS */}
-                  <div className="bg-white border-2 border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center space-x-2">
-                        <Users className="w-5 h-5 text-[var(--color-text-secondary)]" />
-                        <span className="font-mono text-sm text-[var(--color-text-secondary)] font-bold">411002</span>
-                      </div>
-                    </div>
-
-                    <h4 className="text-sm mb-3 font-semibold">Client B SAS</h4>
-
-                    <div className="space-y-2 text-xs">
-                      <div className="flex justify-between items-center p-2 bg-green-50 rounded">
-                        <span className="text-gray-600">Non échu:</span>
-                        <span className="text-green-600 font-semibold">900 000</span>
-                      </div>
-
-                      <div className="flex justify-between items-center p-2 bg-yellow-50 rounded">
-                        <span className="text-gray-600">0-30j:</span>
-                        <span className="text-yellow-600 font-semibold">200 000</span>
-                      </div>
-
-                      <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
-                        <span className="text-gray-600">31-60j:</span>
-                        <span className="text-gray-700 font-semibold">—</span>
-                      </div>
-
-                      <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
-                        <span className="text-gray-600">&gt;60j:</span>
-                        <span className="text-gray-700 font-semibold">—</span>
-                      </div>
-
-                      <div className="flex justify-between items-center p-2 bg-blue-50 rounded">
-                        <span className="text-gray-600 font-semibold">Total:</span>
-                        <span className="text-blue-600 font-bold">1 100 000</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Client C SA */}
-                  <div className="bg-white border-2 border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center space-x-2">
-                        <Users className="w-5 h-5 text-[var(--color-text-secondary)]" />
-                        <span className="font-mono text-sm text-[var(--color-text-secondary)] font-bold">411003</span>
-                      </div>
-                    </div>
-
-                    <h4 className="text-sm mb-3 font-semibold">Client C SA</h4>
-
-                    <div className="space-y-2 text-xs">
-                      <div className="flex justify-between items-center p-2 bg-green-50 rounded">
-                        <span className="text-gray-600">Non échu:</span>
-                        <span className="text-green-600 font-semibold">500 000</span>
-                      </div>
-
-                      <div className="flex justify-between items-center p-2 bg-yellow-50 rounded">
-                        <span className="text-gray-600">0-30j:</span>
-                        <span className="text-yellow-600 font-semibold">800 000</span>
-                      </div>
-
-                      <div className="flex justify-between items-center p-2 bg-orange-50 rounded">
-                        <span className="text-gray-600">31-60j:</span>
-                        <span className="text-orange-600 font-semibold">900 000</span>
-                      </div>
-
-                      <div className="flex justify-between items-center p-2 bg-red-50 rounded">
-                        <span className="text-gray-600">&gt;60j:</span>
-                        <span className="text-red-600 font-semibold">1 300 000</span>
-                      </div>
-
-                      <div className="flex justify-between items-center p-2 bg-blue-50 rounded">
-                        <span className="text-gray-600 font-semibold">Total:</span>
-                        <span className="text-blue-600 font-bold">3 500 000</span>
-                      </div>
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </div>
             </div>

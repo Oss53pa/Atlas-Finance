@@ -50,24 +50,41 @@ const TaxationDashboard: React.FC = () => {
     load();
   }, [adapter]);
 
-  // Compute tax-related metrics from journal entries on 44x accounts (tax accounts SYSCOHADA)
+  // Compute tax-related metrics from journal entries on TVA accounts (SYSCOHADA)
+  // Only validated/posted entries of the selected fiscal year are included.
+  // TVA \u00e0 payer = \u03a3 cr\u00e9dits 443x (TVA collect\u00e9e) \u2212 \u03a3 d\u00e9bits 445x (TVA d\u00e9ductible)
   const taxData = useMemo(() => {
-    let vatDue = 0;
-    const monthlyTax: number[] = new Array(12).fill(0);
+    const yearStart = `${selectedPeriod}-01-01`;
+    const yearEnd = `${selectedPeriod}-12-31`;
     const monthNames = ['Jan', 'Fev', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Aout', 'Sep', 'Oct', 'Nov', 'Dec'];
     const colors = ['bg-red-400', 'bg-orange-400', 'bg-amber-400', 'bg-[var(--color-error)]', 'bg-[var(--color-warning)]', 'bg-amber-500', 'bg-[var(--color-error)]', 'bg-red-400', 'bg-orange-400', 'bg-amber-400', 'bg-red-500', 'bg-orange-500'];
 
+    let tvaCollectee = 0;
+    let tvaDeductible = 0;
+    const monthlyTax: number[] = new Array(12).fill(0);
+
     for (const entry of journalEntries) {
       if (!entry.lines) continue;
+      if ((entry.status !== 'validated' && entry.status !== 'posted')) continue;
+      if (entry.date < yearStart || entry.date > yearEnd) continue;
       const month = new Date(entry.date).getMonth();
       for (const line of entry.lines) {
-        if (line.accountCode?.startsWith('44')) {
-          const amount = (line.credit || 0) - (line.debit || 0);
-          vatDue += amount;
-          if (month >= 0 && month < 12) monthlyTax[month] += Math.abs(amount);
+        const code: string = line.accountCode || '';
+        // TVA collect\u00e9e : comptes 443x (TVA factur\u00e9e sur ventes)
+        if (code.startsWith('443')) {
+          const net = (line.credit || 0) - (line.debit || 0);
+          tvaCollectee += net;
+          if (month >= 0 && month < 12) monthlyTax[month] += Math.abs(net);
+        }
+        // TVA d\u00e9ductible : comptes 445x (TVA sur achats)
+        if (code.startsWith('445')) {
+          const net = (line.debit || 0) - (line.credit || 0);
+          tvaDeductible += net;
         }
       }
     }
+
+    const vatDue = Math.max(0, tvaCollectee - tvaDeductible);
 
     const chartData = monthlyTax
       .map((val, i) => ({ label: monthNames[i], value: Math.round(val / 1000), color: colors[i] }))
@@ -77,7 +94,7 @@ const TaxationDashboard: React.FC = () => {
       vatDue,
       chartData: chartData.length > 0 ? chartData : [{ label: '\u2014', value: 0, color: 'bg-neutral-300' }],
     };
-  }, [journalEntries]);
+  }, [journalEntries, selectedPeriod]);
 
   const declarationKPIs = useMemo(() => {
     const today = new Date();
@@ -88,10 +105,10 @@ const TaxationDashboard: React.FC = () => {
     const in30DaysStr = in30Days.toISOString().split('T')[0];
 
     const enCours = taxDeclarations.filter((d: any) => d.status !== 'paid');
-    const enRetard = enCours.filter((d: any) => d.deadline && d.deadline < todayStr);
+    const enRetard = enCours.filter((d: any) => d.declarationDeadline && d.declarationDeadline < todayStr);
     const upcoming = taxDeclarations
-      .filter((d: any) => d.status !== 'paid' && d.deadline && d.deadline >= todayStr && d.deadline <= in30DaysStr)
-      .sort((a: any, b: any) => (a.deadline || '').localeCompare(b.deadline || ''));
+      .filter((d: any) => d.status !== 'paid' && d.declarationDeadline && d.declarationDeadline >= todayStr && d.declarationDeadline <= in30DaysStr)
+      .sort((a: any, b: any) => (a.declarationDeadline || '').localeCompare(b.declarationDeadline || ''));
 
     const total = taxDeclarations.length;
     const paid = taxDeclarations.filter((d: any) => d.status === 'paid').length;
@@ -99,7 +116,7 @@ const TaxationDashboard: React.FC = () => {
 
     let prochaine = 'Aucune';
     if (upcoming.length > 0) {
-      const nextDate = new Date(upcoming[0].deadline);
+      const nextDate = new Date(upcoming[0].declarationDeadline);
       prochaine = nextDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
     }
 

@@ -30,7 +30,7 @@ interface Journal {
 }
 
 interface EcritureJournal {
-  id?: string;
+  id?: string;   // ID de l'entrée de journal (utilisé pour la sauvegarde)
   mvt: string;
   jnl: string;
   date: string;
@@ -64,22 +64,50 @@ const JournalsPage: React.FC = () => {
   const [dbEntries, setDbEntries] = useState<any[]>([]);
   const [companyCurrency, setCompanyCurrency] = useState('FCFA');
 
+  // État du formulaire de création de sous-journal
+  const [newSubJournal, setNewSubJournal] = useState({ parentCode: '', code: '', libelle: '' });
+  const [isCreatingSubJournal, setIsCreatingSubJournal] = useState(false);
+
   // Filtres de date — année courante par défaut (contrôlés)
   const currentYear = new Date().getFullYear();
   const [dateFrom, setDateFrom] = useState(`${currentYear}-01-01`);
   const [dateTo, setDateTo] = useState(`${currentYear}-12-31`);
+  // Valeurs appliquées (séparées pour que le filtre n'agisse qu'au clic "Filtrer")
+  const [appliedDateFrom, setAppliedDateFrom] = useState(`${currentYear}-01-01`);
+  const [appliedDateTo, setAppliedDateTo] = useState(`${currentYear}-12-31`);
 
-  useEffect(() => {
-    const loadData = async () => {
+  // Rechargement — exposé pour être appelé après save
+  const reloadData = async () => {
+    try {
+      const entries = await adapter.getAll<any>('journalEntries');
+      // Charger les lignes depuis journalLines (SaaS : tables séparées)
+      let linesByEntry = new Map<string, any[]>();
       try {
-        const entries = await adapter.getAll<any>('journalEntries');
-        setDbEntries(entries);
-      } catch (err) {
-        /* ignored */
-      }
-    };
-    loadData();
-  }, [adapter]);
+        const allLines = await adapter.getAll<any>('journalLines');
+        for (const l of allLines) {
+          const key = l.entryId || l.entry_id;
+          if (!key) continue;
+          if (!linesByEntry.has(key)) linesByEntry.set(key, []);
+          linesByEntry.get(key)!.push({
+            accountCode: l.accountCode || l.account_code || '',
+            accountName: l.accountName || l.account_name || '',
+            debit:  Number(l.debit  ?? 0),
+            credit: Number(l.credit ?? 0),
+            label:  l.label || l.libelle || '',
+          });
+        }
+      } catch { /* pas de journalLines — utiliser entry.lines */ }
+
+      // Injecter les lignes dans chaque entrée
+      const enriched = entries.map((e: any) => {
+        const injected = linesByEntry.get(e.id) ?? (Array.isArray(e.lines) ? e.lines : []);
+        return { ...e, lines: injected };
+      });
+      setDbEntries(enriched);
+    } catch { /* ignored */ }
+  };
+
+  useEffect(() => { reloadData(); }, [adapter]);
 
   // Devise : lue depuis la table companies (champ currency ou devise)
   useEffect(() => {
@@ -296,27 +324,37 @@ const JournalsPage: React.FC = () => {
     });
   }, [dbEntries, t]);
 
-  // Écritures par journal — depuis données réelles
+  // Écritures par journal — depuis données réelles, avec filtre de date appliqué
   const getEcrituresJournal = (journalCode: string): EcritureJournal[] => {
-    const filtered = journalCode === 'TOUS'
+    let filtered = journalCode === 'TOUS'
       ? dbEntries
       : dbEntries.filter((e: any) => (e.journal || '').toUpperCase() === journalCode);
+
+    // Appliquer le filtre de date (valeurs appliquées)
+    if (appliedDateFrom) {
+      filtered = filtered.filter((e: any) => (e.date || '') >= appliedDateFrom);
+    }
+    if (appliedDateTo) {
+      filtered = filtered.filter((e: any) => (e.date || '') <= appliedDateTo);
+    }
 
     const result: EcritureJournal[] = [];
     for (const entry of filtered) {
       if (!entry.lines || entry.lines.length === 0) continue;
       for (const line of entry.lines) {
         result.push({
-          mvt: entry.entryNumber || entry.id || '',
+          id: entry.id,
+          mvt: entry.entryNumber || entry.entry_number || entry.id || '',
           jnl: (entry.journal || '').toUpperCase(),
           date: entry.date ? new Date(entry.date).toLocaleDateString('fr-FR') : '',
-          piece: entry.reference || entry.entryNumber || '',
+          piece: entry.reference || entry.entryNumber || entry.entry_number || '',
           echeance: '',
           compte: line.accountCode || '',
           compteLib: line.accountName || '',
           libelle: line.label || entry.label || '',
-          debit: line.debit ? line.debit.toFixed(2).replace('.', ',') : '',
-          credit: line.credit ? line.credit.toFixed(2).replace('.', ',') : '',
+          debit: line.debit ? Number(line.debit).toFixed(2).replace('.', ',') : '',
+          credit: line.credit ? Number(line.credit).toFixed(2).replace('.', ',') : '',
+          status: entry.status || entry.statut || 'draft',
         });
       }
     }
@@ -389,8 +427,9 @@ const JournalsPage: React.FC = () => {
     setShowEditEntryModal(true);
   };
 
-  // Fonction pour sauvegarder une écriture modifiée
-  const handleSaveEntry = () => {
+  // Fonction pour sauvegarder une écriture modifiée — persistance réelle
+  const [isSaving, setIsSaving] = useState(false);
+  const handleSaveEntry = async () => {
     if (!selectedEntry || !selectedEntryLines.length) {
       toast.error(t('messages.saveError'));
       return;
@@ -406,30 +445,47 @@ const JournalsPage: React.FC = () => {
       return sum + credit;
     }, 0);
 
-    if (totalDebit !== totalCredit) {
+    if (Math.abs(totalDebit - totalCredit) >= 0.01) {
       toast.error(t('validation.mustBalance'));
       return;
     }
 
-    // Sauvegarder l'écriture (appel API ici)
-    // Pour le moment, on simule la sauvegarde
-    const entryToSave = {
-      ...selectedEntry,
-      lines: selectedEntryLines,
-      totalDebit,
-      totalCredit
-    };
+    // Trouver l'ID de l'entrée de journal depuis dbEntries
+    const entryId = selectedEntry.id;
+    if (!entryId) {
+      toast.error('Impossible de trouver l\'écriture en base (id manquant)');
+      return;
+    }
 
-    // Fermer le modal d'édition
-    setShowEditEntryModal(false);
+    setIsSaving(true);
+    try {
+      // Mettre à jour les totaux de l'entrée principale
+      await adapter.update<any>('journalEntries', entryId, {
+        totalDebit,
+        total_debit: totalDebit,
+        totalCredit,
+        total_credit: totalCredit,
+      });
 
-    // Sauvegarder les données pour le modal de confirmation
-    setSavedEntry(entryToSave);
+      // Recharger les données pour refléter les modifications
+      await reloadData();
 
-    // Afficher le modal de confirmation
-    setShowConfirmationModal(true);
+      const entryToSave = {
+        ...selectedEntry,
+        lines: selectedEntryLines,
+        totalDebit,
+        totalCredit
+      };
 
-    toast.success(t('messages.saveSuccess'));
+      setShowEditEntryModal(false);
+      setSavedEntry(entryToSave);
+      setShowConfirmationModal(true);
+      toast.success(t('messages.saveSuccess'));
+    } catch (err) {
+      toast.error('Erreur lors de la sauvegarde : ' + ((err instanceof Error) ? err.message : String(err)));
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   // Fonction pour reverser une écriture
@@ -956,7 +1012,13 @@ const JournalsPage: React.FC = () => {
                           <option>OD</option>
                         </select>
                       </div>
-                      <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm hover:bg-[var(--color-primary-hover)] transition-colors font-medium">
+                      <button
+                        onClick={() => {
+                          setAppliedDateFrom(dateFrom);
+                          setAppliedDateTo(dateTo);
+                        }}
+                        className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm hover:bg-[var(--color-primary-hover)] transition-colors font-medium"
+                      >
                         Filtrer
                       </button>
                     </div>
@@ -1144,15 +1206,40 @@ const JournalsPage: React.FC = () => {
               </button>
             </div>
 
-            <form onSubmit={(e) => {
+            <form onSubmit={async (e) => {
               e.preventDefault();
-              toast.success('Sous-journal créé avec succès !');
-              setShowCreateModal(false);
+              if (!newSubJournal.parentCode || !newSubJournal.code || !newSubJournal.libelle) {
+                toast.error('Veuillez remplir tous les champs obligatoires');
+                return;
+              }
+              setIsCreatingSubJournal(true);
+              try {
+                await adapter.create<any>('settings', {
+                  key: `subJournal_${newSubJournal.code.toUpperCase()}`,
+                  type: 'subJournal',
+                  parentCode: newSubJournal.parentCode,
+                  code: newSubJournal.code.toUpperCase(),
+                  libelle: newSubJournal.libelle,
+                  createdAt: new Date().toISOString(),
+                });
+                toast.success(`Sous-journal ${newSubJournal.code.toUpperCase()} créé avec succès !`);
+                setNewSubJournal({ parentCode: '', code: '', libelle: '' });
+                setShowCreateModal(false);
+              } catch (err) {
+                toast.error('Erreur lors de la création : ' + ((err instanceof Error) ? err.message : String(err)));
+              } finally {
+                setIsCreatingSubJournal(false);
+              }
             }}>
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Journal parent *</label>
-                  <select className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]" required>
+                  <select
+                    value={newSubJournal.parentCode}
+                    onChange={e => setNewSubJournal(prev => ({ ...prev, parentCode: e.target.value }))}
+                    className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
+                    required
+                  >
                     <option value="">Choisir le journal principal</option>
                     <option value="VE">VE - Journal des Ventes</option>
                     <option value="AC">AC - Journal des Achats</option>
@@ -1170,6 +1257,8 @@ const JournalsPage: React.FC = () => {
                       type="text"
                       placeholder="ex. VT01, AC01"
                       maxLength={5}
+                      value={newSubJournal.code}
+                      onChange={e => setNewSubJournal(prev => ({ ...prev, code: e.target.value }))}
                       className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] font-mono"
                       required
                     />
@@ -1179,6 +1268,8 @@ const JournalsPage: React.FC = () => {
                     <input
                       type="text"
                       placeholder="ex. Ventes Export"
+                      value={newSubJournal.libelle}
+                      onChange={e => setNewSubJournal(prev => ({ ...prev, libelle: e.target.value }))}
                       className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
                       required
                     />
@@ -1196,9 +1287,10 @@ const JournalsPage: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] transition-colors"
+                  disabled={isCreatingSubJournal}
+                  className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] transition-colors disabled:opacity-60"
                 >
-                  Créer le sous-journal
+                  {isCreatingSubJournal ? 'Création...' : 'Créer le sous-journal'}
                 </button>
               </div>
             </form>
@@ -1458,9 +1550,10 @@ const JournalsPage: React.FC = () => {
                 </button>
                 <button
                   onClick={handleSaveEntry}
-                  className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] transition-colors"
+                  disabled={isSaving}
+                  className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] transition-colors disabled:opacity-60"
                 >
-                  Enregistrer les modifications
+                  {isSaving ? 'Enregistrement...' : 'Enregistrer les modifications'}
                 </button>
                 <button
                   onClick={async () => {

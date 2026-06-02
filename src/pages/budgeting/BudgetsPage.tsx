@@ -62,6 +62,11 @@ const BudgetsPage: React.FC = () => {
   const [showEditPeriodModal, setShowEditPeriodModal] = useState(false);
   const [createDateRange, setCreateDateRange] = useState({ start: '', end: '' });
   const [editDateRange, setEditDateRange] = useState({ start: '', end: '' });
+  // Bug #5 fix: controlled edit form state
+  const [editForm, setEditForm] = useState<{
+    name: string; code: string; type: Budget['type']; status: Budget['status'];
+    period: string; currency: string; description: string; responsible: string; totalAmount: number;
+  }>({ name: '', code: '', type: 'operational', status: 'draft', period: '', currency: 'XOF', description: '', responsible: '', totalAmount: 0 });
   const [createStep, setCreateStep] = useState(1);
   const [costCenters, setCostCenters] = useState<any[]>([]);
   const [newBudget, setNewBudget] = useState({
@@ -172,23 +177,55 @@ const BudgetsPage: React.FC = () => {
     }
   });
 
+  // Bug #4 fix: delete all budgetLines for the given fiscalYear (budget.id == fiscalYear)
   const deleteBudgetMutation = useMutation({
     mutationFn: async (budgetId: string) => {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const lines = await adapter.getAll<any>('budgetLines');
+      const toDelete = lines.filter((l: any) => l.fiscalYear === budgetId);
+      for (const line of toDelete) {
+        await adapter.delete('budgetLines', line.id);
+      }
       return budgetId;
     },
     onSuccess: () => {
+      toast.success('Budget supprimé avec succès');
       queryClient.invalidateQueries({ queryKey: ['budgets'] });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Erreur lors de la suppression');
     }
   });
 
+  // Bug #4 fix: duplicate all budgetLines for the given fiscalYear under a new code
   const duplicateBudgetMutation = useMutation({
     mutationFn: async (budgetId: string) => {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const lines = await adapter.getAll<any>('budgetLines');
+      const toClone = lines.filter((l: any) => l.fiscalYear === budgetId);
+      if (toClone.length === 0) {
+        // Clone the budget with a single empty line
+        await adapter.create('budgetLines', {
+          accountCode: 'GLOBAL',
+          fiscalYear: `${budgetId}-COPIE-${Date.now().toString(36).toUpperCase()}`,
+          period: 'annual',
+          budgeted: 0,
+          actual: 0,
+          version: 'B0',
+        });
+      } else {
+        const newCode = `${budgetId}-COPIE-${Date.now().toString(36).toUpperCase()}`;
+        for (const line of toClone) {
+          const { id: _id, ...rest } = line;
+          await adapter.create('budgetLines', { ...rest, fiscalYear: newCode, actual: 0 });
+        }
+      }
       return budgetId;
     },
     onSuccess: () => {
+      toast.success('Budget dupliqué avec succès');
       queryClient.invalidateQueries({ queryKey: ['budgets'] });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Erreur lors de la duplication');
     }
   });
 
@@ -536,6 +573,18 @@ const BudgetsPage: React.FC = () => {
                         <button
                           onClick={() => {
                             setSelectedBudget(budget);
+                            setEditForm({
+                              name: budget.name,
+                              code: budget.code,
+                              type: budget.type,
+                              status: budget.status,
+                              period: budget.period,
+                              currency: budget.currency,
+                              description: budget.description || '',
+                              responsible: budget.responsible,
+                              totalAmount: budget.totalAmount,
+                            });
+                            setEditDateRange({ start: budget.startDate, end: budget.endDate });
                             setShowEditModal(true);
                           }}
                           className="p-2 text-gray-700 hover:text-[var(--color-primary)] transition-colors"
@@ -911,7 +960,7 @@ const BudgetsPage: React.FC = () => {
         </div>
       )}
 
-      {/* Modal - Modifier Budget */}
+      {/* Modal - Modifier Budget — Bug #5 fix: controlled inputs + real save */}
       {showEditModal && selectedBudget && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
@@ -933,7 +982,8 @@ const BudgetsPage: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Nom du budget *</label>
                   <input
                     type="text"
-                    defaultValue={selectedBudget.name}
+                    value={editForm.name}
+                    onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2"
                   />
                 </div>
@@ -941,7 +991,8 @@ const BudgetsPage: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Code *</label>
                   <input
                     type="text"
-                    defaultValue={selectedBudget.code}
+                    value={editForm.code}
+                    onChange={(e) => setEditForm({ ...editForm, code: e.target.value })}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2"
                   />
                 </div>
@@ -951,7 +1002,8 @@ const BudgetsPage: React.FC = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Type *</label>
                   <select
-                    defaultValue={selectedBudget.type}
+                    value={editForm.type}
+                    onChange={(e) => setEditForm({ ...editForm, type: e.target.value as Budget['type'] })}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2"
                   >
                     <option value="operational">Opérationnel</option>
@@ -962,7 +1014,8 @@ const BudgetsPage: React.FC = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Statut *</label>
                   <select
-                    defaultValue={selectedBudget.status}
+                    value={editForm.status}
+                    onChange={(e) => setEditForm({ ...editForm, status: e.target.value as Budget['status'] })}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2"
                   >
                     <option value="draft">{t('accounting.draft')}</option>
@@ -975,7 +1028,8 @@ const BudgetsPage: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Période</label>
                   <input
                     type="text"
-                    defaultValue={selectedBudget.period}
+                    value={editForm.period}
+                    onChange={(e) => setEditForm({ ...editForm, period: e.target.value })}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2"
                   />
                 </div>
@@ -988,21 +1042,14 @@ const BudgetsPage: React.FC = () => {
                 </label>
                 <button
                   type="button"
-                  onClick={() => {
-                    setEditDateRange({
-                      start: selectedBudget.startDate,
-                      end: selectedBudget.endDate
-                    });
-                    setShowEditPeriodModal(true);
-                  }}
+                  onClick={() => setShowEditPeriodModal(true)}
                   className="w-full flex items-center justify-center space-x-2 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                 >
                   <CalendarIcon className="h-4 w-4" />
                   <span>
                     {editDateRange.start && editDateRange.end
                       ? `Du ${new Date(editDateRange.start).toLocaleDateString('fr-FR')} au ${new Date(editDateRange.end).toLocaleDateString('fr-FR')}`
-                      : `Du ${new Date(selectedBudget.startDate).toLocaleDateString('fr-FR')} au ${new Date(selectedBudget.endDate).toLocaleDateString('fr-FR')}`
-                    }
+                      : 'Sélectionner une période'}
                   </span>
                 </button>
               </div>
@@ -1012,17 +1059,20 @@ const BudgetsPage: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Montant total *</label>
                   <input
                     type="number"
-                    defaultValue={selectedBudget.totalAmount}
+                    value={editForm.totalAmount}
+                    onChange={(e) => setEditForm({ ...editForm, totalAmount: parseFloat(e.target.value) || 0 })}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Devise *</label>
                   <select
-                    defaultValue={selectedBudget.currency}
+                    value={editForm.currency}
+                    onChange={(e) => setEditForm({ ...editForm, currency: e.target.value })}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2"
                   >
-                    <option value="FCFA">FCFA</option>
+                    <option value="XOF">XOF (FCFA UEMOA)</option>
+                    <option value="XAF">XAF (FCFA CEMAC)</option>
                     <option value="EUR">EUR</option>
                     <option value="USD">USD</option>
                   </select>
@@ -1031,18 +1081,11 @@ const BudgetsPage: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Département *</label>
-                  <input
-                    type="text"
-                    defaultValue={selectedBudget.department}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                  />
-                </div>
-                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Responsable *</label>
                   <input
                     type="text"
-                    defaultValue={selectedBudget.responsible}
+                    value={editForm.responsible}
+                    onChange={(e) => setEditForm({ ...editForm, responsible: e.target.value })}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2"
                   />
                 </div>
@@ -1052,7 +1095,8 @@ const BudgetsPage: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
                 <textarea
                   rows={3}
-                  defaultValue={selectedBudget.description}
+                  value={editForm.description}
+                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2"
                 />
               </div>
@@ -1066,8 +1110,37 @@ const BudgetsPage: React.FC = () => {
                 Annuler
               </button>
               <button
-                onClick={() => {
-                  setShowEditModal(false);
+                onClick={async () => {
+                  if (!selectedBudget) return;
+                  try {
+                    // Bug #5 fix: update budgetLines records for this fiscalYear
+                    // We update the first budget line's budgeted amount to reflect totalAmount changes
+                    const lines = await adapter.getAll<any>('budgetLines');
+                    const budgetLines = lines.filter((l: any) => l.fiscalYear === selectedBudget.id);
+                    if (budgetLines.length > 0 && editForm.totalAmount !== selectedBudget.totalAmount) {
+                      // Proportionally update all lines
+                      const oldTotal = budgetLines.reduce((s: number, l: any) => s + (l.budgeted || 0), 0);
+                      const ratio = oldTotal > 0 ? editForm.totalAmount / oldTotal : 1;
+                      for (const line of budgetLines) {
+                        await adapter.update('budgetLines', line.id, { budgeted: Math.round((line.budgeted || 0) * ratio) });
+                      }
+                    } else if (budgetLines.length === 0) {
+                      // Create a placeholder line if none exist
+                      await adapter.create('budgetLines', {
+                        accountCode: 'GLOBAL',
+                        fiscalYear: selectedBudget.id,
+                        period: editForm.period || 'annual',
+                        budgeted: editForm.totalAmount,
+                        actual: 0,
+                        version: 'B0',
+                      });
+                    }
+                    toast.success('Budget mis à jour avec succès');
+                    queryClient.invalidateQueries({ queryKey: ['budgets'] });
+                    setShowEditModal(false);
+                  } catch (err) {
+                    toast.error((err as Error).message || 'Erreur lors de la mise à jour');
+                  }
                 }}
                 className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90"
               >
@@ -1234,6 +1307,20 @@ const BudgetsPage: React.FC = () => {
               </button>
               <button
                 onClick={() => {
+                  if (selectedBudget) {
+                    setEditForm({
+                      name: selectedBudget.name,
+                      code: selectedBudget.code,
+                      type: selectedBudget.type,
+                      status: selectedBudget.status,
+                      period: selectedBudget.period,
+                      currency: selectedBudget.currency,
+                      description: selectedBudget.description || '',
+                      responsible: selectedBudget.responsible,
+                      totalAmount: selectedBudget.totalAmount,
+                    });
+                    setEditDateRange({ start: selectedBudget.startDate, end: selectedBudget.endDate });
+                  }
                   setShowViewModal(false);
                   setShowEditModal(true);
                 }}

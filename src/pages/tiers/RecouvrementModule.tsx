@@ -24,7 +24,7 @@ import {
 import { DebtCollection, CollectionAction, InvoiceDebt } from '../../types/tiers';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { LoadingSpinner } from '../../components/ui';
-import { tiersService, createTransfertContentieuxSchema } from '../../services/modules/tiers.service';
+import { createTransfertContentieuxSchema } from '../../services/modules/tiers.service';
 import { z } from 'zod';
 import { toast } from 'react-hot-toast';
 
@@ -241,6 +241,7 @@ interface AnalyticsData {
 // ─── AnalyticsTab (module level — was nested, caused focus loss) ─────────────
 interface AnalyticsTabProps { analyticsData: AnalyticsData; }
 const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
+  const { t } = useLanguage();
   const [analyticsView, setAnalyticsView] = useState('dashboard');
 
   const analyticsSubTabs = [
@@ -1022,6 +1023,8 @@ interface ContentieuxTabProps {
   getStatutColor: (statut: string) => string;
 }
 const ContentieuxTab = ({ allJournalEntries, getStatutColor }: ContentieuxTabProps) => {
+  const { t } = useLanguage();
+  const { adapter } = useData();
   const [contentieuxView, setContentieuxView] = useState('dashboard'); // dashboard, liste, detail, workflow, couts, execution
   const [selectedContentieux, setSelectedContentieux] = useState<DossierContentieux | null>(null);
   const [filterStatutContentieux, setFilterStatutContentieux] = useState('tous');
@@ -1044,7 +1047,17 @@ const ContentieuxTab = ({ allJournalEntries, getStatutColor }: ContentieuxTabPro
 
   // Create transfert contentieux mutation
   const createMutation = useMutation({
-    mutationFn: tiersService.transfertContentieux,
+    mutationFn: async (data: { tiers_id?: string; factures?: string[]; motif: string; date_transfert?: string; responsable_contentieux?: string; }) => {
+      const newCase = {
+        ...data,
+        id: crypto.randomUUID(),
+        statut: 'juridique',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      await adapter.create('recoveryCases', newCase);
+      return newCase;
+    },
     onSuccess: () => {
       toast.success('Transfert en contentieux créé avec succès');
       queryClient.invalidateQueries({ queryKey: ['transferts-contentieux'] });
@@ -1432,10 +1445,22 @@ const ContentieuxTab = ({ allJournalEntries, getStatutColor }: ContentieuxTabPro
   };
 
   // Fonction pour sauvegarder les modifications
-  const handleSaveContentieux = () => {
-    // TODO: Appel API pour sauvegarder
-    toast.success(`Dossier ${editContentieuxFormData.numeroRef} mis à jour avec succès`);
-    setShowEditContentieuxModal(false);
+  const handleSaveContentieux = async () => {
+    try {
+      const { id, ...fields } = editContentieuxFormData;
+      await adapter.update('recoveryCases', id, {
+        ...fields,
+        updatedAt: new Date().toISOString(),
+      });
+      // Rafraîchir la liste locale
+      const updated = await adapter.getAll<any>('recoveryCases', { where: { statut: 'juridique' } });
+      setDossiersContentieux(updated);
+      toast.success(`Dossier ${editContentieuxFormData.numeroRef} mis à jour avec succès`);
+      setShowEditContentieuxModal(false);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Erreur lors de la sauvegarde';
+      toast.error(msg);
+    }
   };
 
   // Onglets pour la page détaillée contentieux

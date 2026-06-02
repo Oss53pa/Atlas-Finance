@@ -13,7 +13,7 @@
  */
 import React, { createContext, useContext, useMemo, useRef, useState, useEffect, useCallback } from 'react'
 import type { DataAdapter, DataMode } from '@atlas/data'
-import { DexieAdapter, SupabaseAdapter } from '@atlas/data'
+import { DexieAdapter, SupabaseAdapter, HybridAdapter } from '@atlas/data'
 import { supabase as globalSupabaseClient } from '@/lib/supabase'
 
 // ============================================================================
@@ -64,7 +64,21 @@ export function DataProvider({ children, forceMode, forceAdapter }: DataProvider
         return new SupabaseAdapter(url, key, tenantId, globalSupabaseClient as unknown as ConstructorParameters<typeof SupabaseAdapter>[3])
       }
       case 'hybrid': {
-        return new DexieAdapter()
+        const url = import.meta.env.VITE_SUPABASE_URL
+        const key = import.meta.env.VITE_SUPABASE_ANON_KEY
+        if (!url || !key || url.includes('YOUR_PROJECT_ID')) {
+          // Supabase non configuré → local pur (offline only), pas de sync possible
+          return new DexieAdapter()
+        }
+        const tenantId = localStorage.getItem('atlas-tenant-id') || 'default'
+        // Même client global authentifié que le mode saas (voir note CRITICAL ci-dessus)
+        return new HybridAdapter(
+          undefined,
+          url,
+          key,
+          tenantId,
+          globalSupabaseClient as unknown as ConstructorParameters<typeof HybridAdapter>[4],
+        )
       }
       case 'local':
       default:
@@ -87,15 +101,16 @@ export function DataProvider({ children, forceMode, forceAdapter }: DataProvider
   // utilisent le nouveau tenantId certifié.
   // -------------------------------------------------------------------------
   useEffect(() => {
-    if (mode !== 'saas') return
-    const saasAdapter = adapter as SupabaseAdapter
+    // saas ET hybrid disposent tous deux d'un remote Supabase à recibler.
+    if (mode !== 'saas' && mode !== 'hybrid') return
+    const tenantAware = adapter as unknown as { setTenantId(id: string): void }
 
     const applyAuthenticatedTenant = async (userId: string) => {
       // Priorité 1 : user_metadata.company_id (set côté serveur via Auth hook)
       const { data: { user } } = await globalSupabaseClient.auth.getUser()
       const metaCompanyId: string | undefined = user?.user_metadata?.company_id
       if (metaCompanyId) {
-        saasAdapter.setTenantId(metaCompanyId)
+        tenantAware.setTenantId(metaCompanyId)
         localStorage.setItem('atlas-tenant-id', metaCompanyId)
         return
       }
@@ -107,7 +122,7 @@ export function DataProvider({ children, forceMode, forceAdapter }: DataProvider
         .eq('id', userId)
         .maybeSingle()
       if (profile?.company_id) {
-        saasAdapter.setTenantId(profile.company_id)
+        tenantAware.setTenantId(profile.company_id)
         localStorage.setItem('atlas-tenant-id', profile.company_id)
       }
     }
@@ -151,6 +166,15 @@ export function DataProvider({ children, forceMode, forceAdapter }: DataProvider
       window.removeEventListener('offline', onOffline)
     }
   }, [adapter])
+
+  // Démarrer la synchro automatique Dexie ↔ Supabase (mode hybride uniquement).
+  // Le moteur gère : sync au démarrage, à la reconnexion, et périodiquement.
+  useEffect(() => {
+    if (mode !== 'hybrid') return
+    const syncable = adapter as unknown as { startAutoSync?: () => void; dispose?: () => void }
+    syncable.startAutoSync?.()
+    return () => syncable.dispose?.()
+  }, [adapter, mode])
 
   const value = useMemo<DataContextValue>(() => ({
     adapter,
