@@ -75,6 +75,8 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
   const [exportEnd, setExportEnd] = useState(new Date().getFullYear() + '-12-31');
   const [resetTarget, setResetTarget] = useState<string | null>(null);
   const [resetInput, setResetInput] = useState('');
+  const [resetPassword, setResetPassword] = useState('');
+  const [resetPasswordError, setResetPasswordError] = useState('');
   const [resetLoading, setResetLoading] = useState(false);
   const [resetSuccess, setResetSuccess] = useState(false);
 
@@ -228,7 +230,24 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
   };
 
   const handleReset = async () => {
-    if (resetInput.trim() !== 'CONFIRMER') { toast.error('Tapez exactement "CONFIRMER" pour valider.'); return; }
+    // Étape 1 : phrase de confirmation
+    if (resetInput.trim().toLowerCase() !== 'tout réinitialiser') {
+      toast.error('Tapez exactement "tout réinitialiser" pour continuer.');
+      return;
+    }
+    // Étape 2 : vérification du mot de passe via Supabase Auth
+    setResetPasswordError('');
+    if (!resetPassword) { setResetPasswordError('Mot de passe requis.'); return; }
+    try {
+      const { data: { session } } = await (supabase as any).auth.getSession();
+      if (!session?.user?.email) { setResetPasswordError('Session expirée — rechargez la page.'); return; }
+      // Re-authentifier pour confirmer le mot de passe
+      const { error: authErr } = await (supabase as any).auth.signInWithPassword({
+        email: session.user.email,
+        password: resetPassword,
+      });
+      if (authErr) { setResetPasswordError('Mot de passe incorrect.'); return; }
+    } catch { setResetPasswordError('Erreur de vérification — réessayez.'); return; }
     const group = RESET_GROUPS.find(g => g.key === resetTarget);
     if (!group) return;
     setResetLoading(true);
@@ -295,7 +314,7 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
         // ── Mode local (Dexie) ────────────────────────────────────────────
         for (const table of group.tables) { await (db as any)[table]?.clear(); }
       }
-      setResetSuccess(true); setResetTarget(null); setResetInput('');
+      setResetSuccess(true); setResetTarget(null); setResetInput(''); setResetPassword(''); setResetPasswordError('');
       toast.success('Réinitialisation effectuée. Rechargez la page.');
     } catch (err) {
       toast.error('Erreur lors de la réinitialisation : ' + (err instanceof Error ? err.message : String(err)));
@@ -537,19 +556,87 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
           </div>
           {resetTarget && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 space-y-4 shadow-xl">
-                <h3 className="text-lg font-semibold text-red-800 flex items-center gap-2"><AlertTriangle className="w-5 h-5" />{RESET_GROUPS.find(g => g.key === resetTarget)?.label}</h3>
-                <div className="p-3 bg-red-50 border border-red-200 rounded-lg"><p className="text-sm text-red-700">{RESET_GROUPS.find(g => g.key === resetTarget)?.desc}</p></div>
-                <div>
-                  <p className="text-sm text-gray-600 mb-2">Tapez <strong>CONFIRMER</strong> pour valider :</p>
-                  <input type="text" value={resetInput} onChange={e => setResetInput(e.target.value)} placeholder="CONFIRMER" autoFocus
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-400" />
+              <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 space-y-5 shadow-2xl">
+                {/* Titre */}
+                <div className="flex items-center gap-3 pb-2 border-b border-red-100">
+                  <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                    <AlertTriangle className="w-5 h-5 text-red-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-red-800">{RESET_GROUPS.find(g => g.key === resetTarget)?.label}</h3>
+                    <p className="text-xs text-red-600">Action irréversible — toutes les données seront supprimées</p>
+                  </div>
                 </div>
-                <div className="flex gap-3 justify-end">
-                  <button onClick={() => { setResetTarget(null); setResetInput(''); }} className="px-4 py-2 border rounded-lg hover:bg-gray-50 text-sm">Annuler</button>
-                  <button onClick={handleReset} disabled={resetLoading}
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 flex items-center gap-2 text-sm">
-                    {resetLoading ? <><RefreshCw className="w-4 h-4 animate-spin" /> En cours…</> : <><Trash2 className="w-4 h-4" /> Confirmer</>}
+
+                {/* Description */}
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-sm text-red-700">{RESET_GROUPS.find(g => g.key === resetTarget)?.desc}</p>
+                </div>
+
+                {/* Étape 1 — phrase */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">
+                    <span className="bg-red-100 text-red-700 text-xs font-bold px-2 py-0.5 rounded mr-2">Étape 1</span>
+                    Tapez exactement : <span className="font-mono text-red-700">tout réinitialiser</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={resetInput}
+                    onChange={e => setResetInput(e.target.value)}
+                    placeholder="tout réinitialiser"
+                    autoFocus
+                    className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-400 ${
+                      resetInput && resetInput.toLowerCase() !== 'tout réinitialiser' ? 'border-red-400 bg-red-50' : 'border-gray-300'
+                    }`}
+                  />
+                  {resetInput && resetInput.toLowerCase() === 'tout réinitialiser' && (
+                    <p className="text-xs text-green-600 mt-1">✓ Phrase confirmée</p>
+                  )}
+                </div>
+
+                {/* Étape 2 — mot de passe */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">
+                    <span className="bg-red-100 text-red-700 text-xs font-bold px-2 py-0.5 rounded mr-2">Étape 2</span>
+                    Confirmez votre mot de passe
+                  </label>
+                  <input
+                    type="password"
+                    value={resetPassword}
+                    onChange={e => { setResetPassword(e.target.value); setResetPasswordError(''); }}
+                    placeholder="Votre mot de passe"
+                    className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-400 ${
+                      resetPasswordError ? 'border-red-400 bg-red-50' : 'border-gray-300'
+                    }`}
+                  />
+                  {resetPasswordError && (
+                    <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
+                      <AlertTriangle className="w-3 h-3" />{resetPasswordError}
+                    </p>
+                  )}
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-3 justify-end pt-1">
+                  <button
+                    onClick={() => { setResetTarget(null); setResetInput(''); setResetPassword(''); setResetPasswordError(''); }}
+                    className="px-4 py-2 border rounded-lg hover:bg-gray-50 text-sm"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    onClick={handleReset}
+                    disabled={
+                      resetLoading ||
+                      resetInput.toLowerCase() !== 'tout réinitialiser' ||
+                      !resetPassword
+                    }
+                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 text-sm font-medium"
+                  >
+                    {resetLoading
+                      ? <><RefreshCw className="w-4 h-4 animate-spin" /> Réinitialisation…</>
+                      : <><Trash2 className="w-4 h-4" /> Réinitialiser définitivement</>
+                    }
                   </button>
                 </div>
               </div>
