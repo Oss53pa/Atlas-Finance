@@ -51,9 +51,22 @@ import {
   TabsList,
   TabsTrigger
 } from '../ui';
-import { migrationService } from '../../services';
+import services from '../../services';
 import { formatCurrency, formatDate } from '../../lib/utils';
 import { toast } from 'react-hot-toast';
+
+// Le service de migration Sage n'est pas (encore) exposé par le barrel `services`.
+// On le récupère de façon tolérante et on le type pour conserver le typage côté UI
+// sans modifier le comportement runtime existant (valeur potentiellement undefined).
+interface MigrationService {
+  getSageMigrationTemplates: () => Promise<any>;
+  getAccountMappingSuggestions: (args: { sessionId: string | null }) => Promise<any>;
+  createMigrationSession: (args: any) => Promise<any>;
+  uploadMigrationFiles: (args: { sessionId: string | null; files: FormData }) => Promise<any>;
+  validateMigration: (args: { sessionId: string | null; mappingConfig: Record<string, unknown> }) => Promise<any>;
+  executeMigration: (args: { sessionId: string | null }) => Promise<any>;
+}
+const migrationService = (services as any).migrationService as MigrationService;
 
 interface SageMigrationWizardProps {
   companyId: string;
@@ -101,7 +114,7 @@ const SageMigrationWizard: React.FC<SageMigrationWizardProps> = ({
 
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [mappingConfig, setMappingConfig] = useState({});
-  const [validationResults, setValidationResults] = useState(null);
+  const [validationResults, setValidationResults] = useState<any>(null);
 
   // Étapes du wizard
   const steps: MigrationStep[] = [
@@ -182,7 +195,7 @@ const SageMigrationWizard: React.FC<SageMigrationWizardProps> = ({
     mutationFn: migrationService.executeMigration,
     onSuccess: (result) => {
       toast.success('Migration terminée avec succès !');
-      onComplete?.(sessionId);
+      if (sessionId) onComplete?.(sessionId);
     }
   });
 
@@ -228,10 +241,10 @@ const SageMigrationWizard: React.FC<SageMigrationWizardProps> = ({
     }
   };
 
-  const handleFileSelect = (fileType: string, file: File) => {
+  const handleFileSelect = (fileType: string, file: File | undefined) => {
     setSelectedFiles(prev => ({
       ...prev,
-      [fileType]: file
+      [fileType]: file ?? null
     }));
   };
 
@@ -337,9 +350,9 @@ const SageMigrationWizard: React.FC<SageMigrationWizardProps> = ({
                   <div className="flex items-center space-x-3">
                     <Checkbox
                       checked={migrationConfig.include_chart_of_accounts}
-                      onCheckedChange={(checked) => setMigrationConfig({
+                      onChange={(e) => setMigrationConfig({
                         ...migrationConfig,
-                        include_chart_of_accounts: checked
+                        include_chart_of_accounts: e.target.checked
                       })}
                     />
                     <label className="text-sm font-medium">Plan comptable</label>
@@ -349,9 +362,9 @@ const SageMigrationWizard: React.FC<SageMigrationWizardProps> = ({
                   <div className="flex items-center space-x-3">
                     <Checkbox
                       checked={migrationConfig.include_opening_balance}
-                      onCheckedChange={(checked) => setMigrationConfig({
+                      onChange={(e) => setMigrationConfig({
                         ...migrationConfig,
-                        include_opening_balance: checked
+                        include_opening_balance: e.target.checked
                       })}
                     />
                     <label className="text-sm font-medium">Balance d'ouverture</label>
@@ -361,9 +374,9 @@ const SageMigrationWizard: React.FC<SageMigrationWizardProps> = ({
                   <div className="flex items-center space-x-3">
                     <Checkbox
                       checked={migrationConfig.include_journal_entries}
-                      onCheckedChange={(checked) => setMigrationConfig({
+                      onChange={(e) => setMigrationConfig({
                         ...migrationConfig,
-                        include_journal_entries: checked
+                        include_journal_entries: e.target.checked
                       })}
                     />
                     <label className="text-sm font-medium">Écritures comptables</label>
@@ -375,9 +388,9 @@ const SageMigrationWizard: React.FC<SageMigrationWizardProps> = ({
                   <div className="flex items-center space-x-3">
                     <Checkbox
                       checked={migrationConfig.include_customers}
-                      onCheckedChange={(checked) => setMigrationConfig({
+                      onChange={(e) => setMigrationConfig({
                         ...migrationConfig,
-                        include_customers: checked
+                        include_customers: e.target.checked
                       })}
                     />
                     <label className="text-sm font-medium">Fichier clients</label>
@@ -387,9 +400,9 @@ const SageMigrationWizard: React.FC<SageMigrationWizardProps> = ({
                   <div className="flex items-center space-x-3">
                     <Checkbox
                       checked={migrationConfig.include_suppliers}
-                      onCheckedChange={(checked) => setMigrationConfig({
+                      onChange={(e) => setMigrationConfig({
                         ...migrationConfig,
-                        include_suppliers: checked
+                        include_suppliers: e.target.checked
                       })}
                     />
                     <label className="text-sm font-medium">Fichier fournisseurs</label>

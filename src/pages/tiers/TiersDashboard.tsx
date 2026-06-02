@@ -3,12 +3,13 @@ import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../../contexts/DataContext';
+import { toast } from 'react-hot-toast';
 import {
   Users, Building2, UserCheck, Clock, DollarSign, TrendingUp,
   ArrowLeft, Plus, Download, Eye, Edit, Search, Filter,
   BarChart3, PieChart, Activity, AlertTriangle, CheckCircle,
   Phone, Mail, MapPin, Calendar, Target, CreditCard,
-  FileText, MessageSquare, Settings, RefreshCw, Handshake
+  FileText, MessageSquare, Settings, RefreshCw, Handshake, X
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -26,13 +27,18 @@ const TiersDashboard: React.FC = () => {
 
   // Navigate to dedicated module pages when specific tabs are selected
   useEffect(() => {
-    if (activeTab === 'clients')      navigate('/tiers/clients');
+    if (activeTab === 'clients')          navigate('/tiers/clients');
     else if (activeTab === 'fournisseurs') navigate('/tiers/fournisseurs');
-    else if (activeTab === 'personnel')   navigate('/tiers/personnel');
-    else if (activeTab === 'autres')      navigate('/tiers/autres');
+    else if (activeTab === 'personnel')    navigate('/tiers/personnel');
+    else if (activeTab === 'autres')       navigate('/tiers/autres');
+    else if (activeTab === 'contacts')     navigate('/tiers/contacts');
+    else if (activeTab === 'prospects')    navigate('/tiers/prospects');
+    else if (activeTab === 'partenaires')  navigate('/tiers/partenaires');
+    else if (activeTab === 'recouvrement') navigate('/tiers/recouvrement');
+    else if (activeTab === 'lettrage')     navigate('/tiers/lettrage');
+    else if (activeTab === 'collaboration') navigate('/tiers/collaboration');
   }, [activeTab, navigate]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [dateRange, setDateRange] = useState('30d');
 
   // KPIs from DataContext
   const [liveTiers, setLiveTiers] = useState({
@@ -151,7 +157,7 @@ const TiersDashboard: React.FC = () => {
   // Empty recent activities
   const recentActivities: Array<{
     id: string; type: string; description: string; user: string;
-    timestamp: string; icon: any; color: string;
+    timestamp: string; icon: React.ElementType; color: string;
   }> = [];
 
   const tabs = [
@@ -174,6 +180,7 @@ const TiersDashboard: React.FC = () => {
   };
 
   const handleExport = () => {
+    toast('Fonctionnalité d\'export en cours de développement.', { icon: '⏳' });
   };
 
 
@@ -229,8 +236,8 @@ const TiersDashboard: React.FC = () => {
 
             <button
               onClick={handleRefresh}
-              className={`p-2 rounded-lg bg-[var(--color-background-hover)] hover:bg-[var(--color-border)] transition-colors ${loading ? 'animate-spin' : ''}`} aria-label="Actualiser">
-              <RefreshCw className="w-4 h-4 text-[#404040]" />
+              className="p-2 rounded-lg bg-[var(--color-background-hover)] hover:bg-[var(--color-border)] transition-colors" aria-label="Actualiser">
+              <RefreshCw className={`w-4 h-4 text-[#404040] ${loading ? 'animate-spin' : ''}`} />
             </button>
 
             <button
@@ -241,7 +248,7 @@ const TiersDashboard: React.FC = () => {
             </button>
 
             <button
-              onClick={() => navigate('/tiers/clients')}
+              onClick={() => navigate('/tiers/clients?action=new')}
               className="flex items-center space-x-2 px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-dark)] transition-colors"
             >
               <Plus className="w-4 h-4" />
@@ -310,7 +317,9 @@ const TiersDashboard: React.FC = () => {
                 <div>
                   <p className="text-sm text-[var(--color-text-secondary)]">CA Total</p>
                   <p className="text-lg font-bold text-[var(--color-primary)]">{formatCurrency(kpis.chiffreAffairesTotal)}</p>
-                  <p className="text-xs text-[var(--color-success)]">+{kpis.croissanceCA}% vs mois dernier</p>
+                  <p className={`text-xs ${kpis.croissanceCA >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'}`}>
+                    {kpis.croissanceCA >= 0 ? '+' : ''}{kpis.croissanceCA}% vs mois dernier
+                  </p>
                 </div>
                 <div className="w-10 h-10 bg-[var(--color-success-lighter)] rounded-lg flex items-center justify-center">
                   <TrendingUp className="w-5 h-5 text-[var(--color-success)]" />
@@ -350,38 +359,50 @@ const TiersDashboard: React.FC = () => {
             {/* Client Segments */}
             <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
               <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Répartition Clients par Segment</h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <RechartsPieChart>
-                  <Pie
-                    dataKey="ca"
-                    data={clientAnalytics.repartitionParSegment}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={100}
-                    fill="#235A6E"
-                    label={({ segment, pourcentage }) => `${segment} (${pourcentage}%)`}
-                  >
-                    {clientAnalytics.repartitionParSegment.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                </RechartsPieChart>
-              </ResponsiveContainer>
+              {clientAnalytics.repartitionParSegment.length > 0 ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <RechartsPieChart>
+                    <Pie
+                      dataKey="ca"
+                      data={clientAnalytics.repartitionParSegment}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={100}
+                      fill="#235A6E"
+                      label={({ segment, pourcentage }) => `${segment} (${pourcentage}%)`}
+                    >
+                      {clientAnalytics.repartitionParSegment.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value) => formatCurrency(value as number)} />
+                  </RechartsPieChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-[300px] text-sm text-[var(--color-text-secondary)]">
+                  Aucune donnée de segmentation disponible.
+                </div>
+              )}
             </div>
 
             {/* CA Evolution */}
             <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
               <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Évolution du Chiffre d'Affaires</h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <AreaChart data={clientAnalytics.evolutionCA}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis tickFormatter={(value) => `${value / 1000}k`} />
-                  <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                  <Area type="monotone" dataKey="valeur" stroke="#235A6E" fill="#235A6E" fillOpacity={0.3} />
-                </AreaChart>
-              </ResponsiveContainer>
+              {clientAnalytics.evolutionCA.length > 0 ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <AreaChart data={clientAnalytics.evolutionCA}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" />
+                    <YAxis tickFormatter={(value) => `${value / 1000}k`} />
+                    <Tooltip formatter={(value) => formatCurrency(value as number)} />
+                    <Area type="monotone" dataKey="valeur" stroke="#235A6E" fill="#235A6E" fillOpacity={0.3} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-[300px] text-sm text-[var(--color-text-secondary)]">
+                  Aucune donnée d'évolution du CA disponible.
+                </div>
+              )}
             </div>
           </div>
 
@@ -399,19 +420,24 @@ const TiersDashboard: React.FC = () => {
                 </button>
               </div>
               <div className="space-y-3">
-                {clientAnalytics.topClients.map((client) => (
-                  <div key={client.id} className="flex items-center justify-between p-3 bg-[var(--color-background-secondary)] rounded-lg">
-                    <div className="flex-1">
-                      <p className="font-medium text-[var(--color-primary)]">{client.nom}</p>
-                      <p className="text-sm text-[var(--color-text-secondary)]">CA: {formatCurrency(client.ca)} • DSO: {client.dso}j</p>
+                {clientAnalytics.topClients
+                  .filter(c => !searchTerm || c.nom.toLowerCase().includes(searchTerm.toLowerCase()))
+                  .map((client) => (
+                    <div key={client.id} className="flex items-center justify-between p-3 bg-[var(--color-background-secondary)] rounded-lg">
+                      <div className="flex-1">
+                        <p className="font-medium text-[var(--color-primary)]">{client.nom}</p>
+                        <p className="text-sm text-[var(--color-text-secondary)]">CA: {formatCurrency(client.ca)} • DSO: {client.dso}j</p>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusBadge(client.statut)}`}>
+                          {client.statut}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusBadge(client.statut)}`}>
-                        {client.statut}
-                      </span>
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                {clientAnalytics.topClients.length === 0 && (
+                  <p className="text-sm text-[var(--color-text-secondary)] text-center py-6">Aucun client à afficher pour le moment.</p>
+                )}
               </div>
             </div>
 
@@ -432,6 +458,9 @@ const TiersDashboard: React.FC = () => {
                     </div>
                   </div>
                 ))}
+                {recentActivities.length === 0 && (
+                  <p className="text-sm text-[var(--color-text-secondary)] text-center py-6">Aucune activité récente à afficher.</p>
+                )}
               </div>
             </div>
           </div>
@@ -440,101 +469,8 @@ const TiersDashboard: React.FC = () => {
 
       {/* Navigation vers modules dédiés gérée dans useEffect ci-dessus */}
 
-      {activeTab === 'contacts' && (
-        <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-          <div className="text-center py-12">
-            <UserCheck className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-2">Module Contacts</h3>
-            <p className="text-[var(--color-text-secondary)] mb-4">Centralisation de tous les contacts tiers</p>
-            <button
-              onClick={() => navigate('/tiers/contacts')}
-              className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 transition-colors"
-            >
-              Accéder au module Contacts
-            </button>
-          </div>
-        </div>
-      )}
-
-      {activeTab === 'recouvrement' && (
-        <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-          <div className="text-center py-12">
-            <DollarSign className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-2">Module Recouvrement</h3>
-            <p className="text-[var(--color-text-secondary)] mb-4">Gestion des créances et processus de recouvrement</p>
-            <button
-              onClick={() => navigate('/tiers/recouvrement')}
-              className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 transition-colors"
-            >
-              Accéder au module Recouvrement
-            </button>
-          </div>
-        </div>
-      )}
-
-      {activeTab === 'lettrage' && (
-        <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-          <div className="text-center py-12">
-            <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-2">Module Lettrage Global</h3>
-            <p className="text-[var(--color-text-secondary)] mb-4">Rapprochement et lettrage des comptes tiers</p>
-            <button
-              onClick={() => navigate('/tiers/lettrage')}
-              className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 transition-colors"
-            >
-              Accéder au module Lettrage
-            </button>
-          </div>
-        </div>
-      )}
-
-      {activeTab === 'prospects' && (
-        <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-          <div className="text-center py-12">
-            <Target className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-2">Module Prospects</h3>
-            <p className="text-[var(--color-text-secondary)] mb-4">Gestion du pipeline commercial et suivi des opportunités</p>
-            <button
-              onClick={() => navigate('/tiers/prospects')}
-              className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 transition-colors"
-            >
-              Accéder au module Prospects
-            </button>
-          </div>
-        </div>
-      )}
-
-      {activeTab === 'partenaires' && (
-        <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-          <div className="text-center py-12">
-            <Handshake className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-2">Module Partenaires</h3>
-            <p className="text-[var(--color-text-secondary)] mb-4">Écosystème et réseau de partenaires stratégiques</p>
-            <button
-              onClick={() => navigate('/tiers/partenaires')}
-              className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 transition-colors"
-            >
-              Accéder au module Partenaires
-            </button>
-          </div>
-        </div>
-      )}
-
-      {activeTab === 'collaboration' && (
-        <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-          <div className="text-center py-12">
-            <MessageSquare className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-2">Module Chat & Collaboration</h3>
-            <p className="text-[var(--color-text-secondary)] mb-4">Communication en temps réel et collaboration équipe</p>
-            <button
-              onClick={() => navigate('/tiers/contacts')}
-              className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 transition-colors"
-            >
-              Accéder au module Collaboration
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Tabs contacts/prospects/partenaires/recouvrement/lettrage/collaboration
+          navigate immediately via the useEffect above — no duplicate redirect panels needed */}
     </div>
   );
 };

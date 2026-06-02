@@ -59,6 +59,10 @@ export type TableName =
   | 'offBalanceCommitments'
   // Tenants / Societes / Compagnies
   | 'companies'
+  // Relevés bancaires importés + journal des rapports
+  | 'bankStatements'
+  | 'bankStatementLines'
+  | 'reports'
 
 export interface QueryFilters {
   where?: Record<string, any>

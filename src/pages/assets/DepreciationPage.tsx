@@ -50,6 +50,7 @@ import { toast } from 'react-hot-toast';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import ExportMenu from '../../components/shared/ExportMenu';
 import { useData } from '../../contexts/DataContext';
+import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 
 interface DepreciationRecord {
   id: string;
@@ -103,6 +104,7 @@ const DepreciationPage: React.FC = () => {
     date_debut: '',
     date_fin: '',
     methode: 'lineaire' as 'lineaire' | 'degressive' | 'unites_oeuvre' | 'exceptionnelle',
+    justification: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -111,6 +113,9 @@ const DepreciationPage: React.FC = () => {
   const [showComptabiliserModal, setShowComptabiliserModal] = useState(false);
   const [showEditDepreciationModal, setShowEditDepreciationModal] = useState(false);
   const [depreciationToEdit, setDepreciationToEdit] = useState<DepreciationRecord | null>(null);
+  const [deleteDeprecConfirm, setDeleteDeprecConfirm] = useState<{ isOpen: boolean; id: string | null }>({ isOpen: false, id: null });
+  const [calcConfirm, setCalcConfirm] = useState(false);
+  const [comptabiliserToutConfirm, setComptabiliserToutConfirm] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -180,6 +185,8 @@ const DepreciationPage: React.FC = () => {
       if (filters.methode) records = records.filter(r => r.methode === filters.methode);
       if (filters.statut) records = records.filter(r => r.statut === filters.statut);
       if (filters.actif) records = records.filter(r => r.immobilisation_id === filters.actif);
+      // Warning #27 fix: apply periode filter
+      if (filters.periode) records = records.filter(r => r.periode === filters.periode);
 
       const total = records.length;
       const pageSize = 20;
@@ -252,15 +259,20 @@ const DepreciationPage: React.FC = () => {
     }
   });
 
-  // Delete depreciation mutation — Bug #7 fix: reset cumul to 0 for the asset
+  // Delete depreciation mutation — subtract one period's dotation instead of resetting cumul to 0
   const deleteDepreciationMutation = useMutation({
     mutationFn: async (depreciationId: string) => {
       if (!adapter) throw new Error('Adapter non disponible');
       // depreciationId == asset id in our computed model
       const asset = await adapter.getById('assets', depreciationId) as Record<string, unknown> | null;
       if (!asset) throw new Error('Actif introuvable');
-      // Reset cumul for this asset (removes the depreciation record)
-      await adapter.update('assets', depreciationId, { cumulDepreciation: 0 });
+      const valeur = (asset.acquisitionValue as number) || 0;
+      const duree = (asset.usefulLifeYears as number) || 5;
+      const currentCumul = (asset.cumulDepreciation as number) || 0;
+      // Subtract one annual dotation (reversal), floor at 0
+      const dotation = duree > 0 ? valeur / duree : 0;
+      const newCumul = Math.max(0, currentCumul - dotation);
+      await adapter.update('assets', depreciationId, { cumulDepreciation: newCumul });
     },
     onSuccess: () => {
       toast.success('Amortissement supprimé avec succès');
@@ -273,39 +285,38 @@ const DepreciationPage: React.FC = () => {
   });
 
   const handleDeleteDepreciation = (depreciationId: string) => {
-    if (confirm('Êtes-vous sûr de vouloir supprimer cet amortissement ?')) {
-      deleteDepreciationMutation.mutate(depreciationId);
-    }
+    setDeleteDeprecConfirm({ isOpen: true, id: depreciationId });
   };
 
   // Comptabiliser mutation — crée les écritures OD (681x / 28xx) dans le journal
+  // Accepts the full DepreciationRecord to avoid closure-state races (Warning #24 fix)
   const comptabiliserMutation = useMutation({
-    mutationFn: async (_depreciationId: string) => {
+    mutationFn: async (dep: DepreciationRecord) => {
       if (!adapter) throw new Error('Adapter non disponible');
-      if (!selectedDepreciation) throw new Error('Aucun amortissement sélectionné');
 
-      const montant = selectedDepreciation.montant_dotation;
-      const codeActif = selectedDepreciation.code_actif || '2183';
+      const montant = dep.montant_dotation;
 
-      // Construire l'écriture OD directement depuis les données de l'amortissement
-      const dotationAccount = '681' + codeActif.charAt(0);
-      const amortAccount = '28' + codeActif.substring(1);
+      // Warning #25 fix: use SYSCOHADA standard accounts instead of deriving from asset code string
+      // 6813 = Dotations aux amortissements sur immobilisations corporelles
+      // 2813 = Amortissements des constructions / equipment — default generic account
+      const dotationAccount = '6813';
+      const amortAccount = '2813';
 
       const entryNumber = `OD-${Date.now().toString(36).toUpperCase()}`;
       const entry = {
         id: crypto.randomUUID(),
         entryNumber,
         journal: 'OD',
-        date: selectedDepreciation.date_amortissement || new Date().toISOString().split('T')[0],
-        label: `Dotation amortissement — ${selectedDepreciation.nom_actif}`,
-        reference: selectedDepreciation.code_actif,
+        date: dep.date_amortissement || new Date().toISOString().split('T')[0],
+        label: `Dotation amortissement — ${dep.nom_actif}`,
+        reference: dep.code_actif,
         status: 'validated',
         lines: [
           {
             id: crypto.randomUUID(),
             accountCode: dotationAccount,
             accountName: 'Dotation aux amortissements',
-            label: `Dotation ${selectedDepreciation.nom_actif}`,
+            label: `Dotation ${dep.nom_actif}`,
             debit: montant,
             credit: 0,
           },
@@ -313,7 +324,7 @@ const DepreciationPage: React.FC = () => {
             id: crypto.randomUUID(),
             accountCode: amortAccount,
             accountName: 'Amortissements cumulés',
-            label: `Amort. ${selectedDepreciation.nom_actif}`,
+            label: `Amort. ${dep.nom_actif}`,
             debit: 0,
             credit: montant,
           },
@@ -359,9 +370,9 @@ const DepreciationPage: React.FC = () => {
 
       for (const dep of nonComptabilises) {
         const montant = dep.montant_dotation;
-        const codeActif = dep.code_actif || '2183';
-        const dotationAccount = '681' + codeActif.charAt(0);
-        const amortAccount = '28' + codeActif.substring(1);
+        // Warning #25 fix: use SYSCOHADA standard accounts
+        const dotationAccount = '6813';
+        const amortAccount = '2813';
 
         const entry = {
           id: crypto.randomUUID(),
@@ -401,20 +412,18 @@ const DepreciationPage: React.FC = () => {
   });
 
   const handleComptabiliserTout = () => {
-    if (window.confirm('Comptabiliser toutes les dotations aux amortissements ?\n\nCette action va créer les écritures OD (Débit 681x / Crédit 28xx) dans le journal.')) {
-      comptabiliserToutMutation.mutate();
-    }
+    setComptabiliserToutConfirm(true);
   };
 
   const handleComptabiliser = (depreciation: DepreciationRecord) => {
+    // Set state and open modal synchronously — mutation now receives record directly (Warning #24 fix)
     setSelectedDepreciation(depreciation);
-    // Use setTimeout to ensure state is set before modal renders
-    setTimeout(() => setShowComptabiliserModal(true), 0);
+    setShowComptabiliserModal(true);
   };
 
   const confirmComptabiliser = () => {
     if (selectedDepreciation) {
-      comptabiliserMutation.mutate(selectedDepreciation.id);
+      comptabiliserMutation.mutate(selectedDepreciation);
     }
   };
 
@@ -426,7 +435,8 @@ const DepreciationPage: React.FC = () => {
       montant: depreciation.montant_dotation || 0,
       date_debut: depreciation.date_debut || '',
       date_fin: depreciation.date_fin || '',
-      methode: depreciation.methode || 'lineaire',
+      methode: (depreciation.methode as 'lineaire' | 'degressive' | 'unites_oeuvre' | 'exceptionnelle') || 'lineaire',
+      justification: '',
     });
     setShowEditDepreciationModal(true);
   };
@@ -457,13 +467,7 @@ const DepreciationPage: React.FC = () => {
   };
 
   const handleCalculateDepreciation = () => {
-    if (confirm('Lancer le calcul automatique des amortissements pour la période ?')) {
-      calculateDepreciationMutation.mutate({
-        date_debut: filters.date_debut,
-        date_fin: filters.date_fin,
-        methode: filters.methode || 'lineaire'
-      });
-    }
+    setCalcConfirm(true);
   };
 
   const handleFilterChange = (key: keyof DepreciationFilters, value: string) => {
@@ -492,6 +496,7 @@ const DepreciationPage: React.FC = () => {
       date_debut: '',
       date_fin: '',
       methode: 'lineaire',
+      justification: '',
     });
     setErrors({});
     setIsSubmitting(false);
@@ -539,11 +544,11 @@ const DepreciationPage: React.FC = () => {
 
   const getMethodeColor = (methode: string) => {
     switch (methode) {
-      case 'lineaire': return 'bg-var(--color-blue-light) text-var(--color-blue-dark)';
-      case 'degressive': return 'bg-var(--color-green-light) text-var(--color-green-dark)';
-      case 'unites_oeuvre': return 'bg-var(--color-primary-light) text-var(--color-primary-dark)';
-      case 'exceptionnelle': return 'bg-var(--color-red-light) text-var(--color-red-dark)';
-      default: return 'bg-var(--color-gray-light) text-var(--color-gray-dark)';
+      case 'lineaire': return 'bg-blue-100 text-blue-800';
+      case 'degressive': return 'bg-green-100 text-green-800';
+      case 'unites_oeuvre': return 'bg-purple-100 text-purple-800';
+      case 'exceptionnelle': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -559,11 +564,11 @@ const DepreciationPage: React.FC = () => {
 
   const getStatusColor = (statut: string) => {
     switch (statut) {
-      case 'calcule': return 'bg-var(--color-blue-light) text-var(--color-blue-dark)';
-      case 'comptabilise': return 'bg-var(--color-green-light) text-var(--color-green-dark)';
-      case 'annule': return 'bg-var(--color-red-light) text-var(--color-red-dark)';
-      case 'provisoire': return 'bg-var(--color-yellow-light) text-var(--color-yellow-dark)';
-      default: return 'bg-var(--color-gray-light) text-var(--color-gray-dark)';
+      case 'calcule': return 'bg-blue-100 text-blue-800';
+      case 'comptabilise': return 'bg-green-100 text-green-800';
+      case 'annule': return 'bg-red-100 text-red-800';
+      case 'provisoire': return 'bg-yellow-100 text-yellow-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -581,7 +586,7 @@ const DepreciationPage: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="border-b border-var(--color-border) pb-4">
+      <div className="border-b border-gray-200 pb-4">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center">
@@ -628,7 +633,7 @@ const DepreciationPage: React.FC = () => {
             />
             {calculationMode === 'auto' && (
               <Button 
-                className="bg-var(--color-blue-primary) hover:bg-var(--color-blue-dark) text-var(--color-text-inverse)"
+                className="bg-blue-600 hover:bg-blue-700 text-white"
                 onClick={handleCalculateDepreciation}
                 disabled={calculateDepreciationMutation.isPending}
               >
@@ -684,7 +689,7 @@ const DepreciationPage: React.FC = () => {
                 <TrendingDown className="h-6 w-6 text-blue-600" />
               </div>
               <div>
-                <p className="text-sm font-medium text-var(--color-text-secondary)">Total Période</p>
+                <p className="text-sm font-medium text-gray-600">Total Période</p>
                 <p className="text-lg font-bold text-blue-700">
                   {formatCurrency(depreciationData?.total_periode || 0)}
                 </p>
@@ -700,7 +705,7 @@ const DepreciationPage: React.FC = () => {
                 <CheckCircle className="h-6 w-6 text-green-600" />
               </div>
               <div>
-                <p className="text-sm font-medium text-var(--color-text-secondary)">Comptabilisés</p>
+                <p className="text-sm font-medium text-gray-600">Comptabilisés</p>
                 <p className="text-lg font-bold text-green-700">
                   {formatCurrency(depreciationData?.total_comptabilise || 0)}
                 </p>
@@ -716,7 +721,7 @@ const DepreciationPage: React.FC = () => {
                 <AlertCircle className="h-6 w-6 text-yellow-600" />
               </div>
               <div>
-                <p className="text-sm font-medium text-var(--color-text-secondary)">{t('status.pending')}</p>
+                <p className="text-sm font-medium text-gray-600">{t('status.pending')}</p>
                 <p className="text-lg font-bold text-yellow-700">
                   {formatCurrency(depreciationData?.total_en_attente || 0)}
                 </p>
@@ -732,7 +737,7 @@ const DepreciationPage: React.FC = () => {
                 <BarChart3 className="h-6 w-6 text-primary-600" />
               </div>
               <div>
-                <p className="text-sm font-medium text-var(--color-text-secondary)">Nb. Opérations</p>
+                <p className="text-sm font-medium text-gray-600">Nb. Opérations</p>
                 <p className="text-lg font-bold text-primary-700">
                   {depreciationData?.count || 0}
                 </p>
@@ -753,7 +758,7 @@ const DepreciationPage: React.FC = () => {
         <CardContent>
           <div className="grid gap-4 md:grid-cols-4 lg:grid-cols-7">
             <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-var(--color-text-muted)" />
+              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
                 placeholder="Rechercher..."
                 value={filters.search}
@@ -838,7 +843,7 @@ const DepreciationPage: React.FC = () => {
           <CardTitle className="flex items-center justify-between">
             <span>Tableau des Amortissements</span>
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-var(--color-text-secondary)">
+              <span className="text-sm text-gray-600">
                 Du {formatDate(filters.date_debut)} au {formatDate(filters.date_fin)}
               </span>
               {depreciationData && (
@@ -875,17 +880,17 @@ const DepreciationPage: React.FC = () => {
                   </TableHeader>
                   <TableBody>
                     {depreciationData?.results?.map((depreciation) => (
-                      <TableRow key={depreciation.id} className="hover:bg-var(--color-background-secondary)">
+                      <TableRow key={depreciation.id} className="hover:bg-gray-50">
                         <TableCell>
                           <div className="flex items-center text-sm">
-                            <Calendar className="h-4 w-4 text-var(--color-text-muted) mr-2" />
+                            <Calendar className="h-4 w-4 text-gray-400 mr-2" />
                             {formatDate(depreciation.date_amortissement)}
                           </div>
                         </TableCell>
                         <TableCell>
                           <div>
                             <p className="font-medium text-[var(--color-text-primary)]">{depreciation.nom_actif}</p>
-                            <p className="text-sm text-var(--color-text-secondary) font-mono">
+                            <p className="text-sm text-gray-600 font-mono">
                               {depreciation.code_actif}
                             </p>
                           </div>
@@ -901,7 +906,7 @@ const DepreciationPage: React.FC = () => {
                           </span>
                         </TableCell>
                         <TableCell className="text-right">
-                          <span className="font-semibold text-var(--color-text-primary)">
+                          <span className="font-semibold text-gray-900">
                             {formatCurrency(depreciation.valeur_base)}
                           </span>
                         </TableCell>
@@ -983,28 +988,28 @@ const DepreciationPage: React.FC = () => {
 
               {/* Summary Row */}
               {depreciationData && depreciationData.results && depreciationData.results.length > 0 && (
-                <div className="mt-4 p-4 bg-var(--color-background-secondary) rounded-lg">
+                <div className="mt-4 p-4 bg-gray-50 rounded-lg">
                   <div className="grid gap-4 md:grid-cols-4">
                     <div className="text-center">
-                      <p className="text-sm font-medium text-var(--color-text-secondary)">Total Dotations</p>
+                      <p className="text-sm font-medium text-gray-600">Total Dotations</p>
                       <p className="text-lg font-bold text-red-700">
                         {formatCurrency(depreciationData.total_dotations || 0)}
                       </p>
                     </div>
                     <div className="text-center">
-                      <p className="text-sm font-medium text-var(--color-text-secondary)">Total Cumul</p>
+                      <p className="text-sm font-medium text-gray-600">Total Cumul</p>
                       <p className="text-lg font-bold text-orange-700">
                         {formatCurrency(depreciationData.total_cumul || 0)}
                       </p>
                     </div>
                     <div className="text-center">
-                      <p className="text-sm font-medium text-var(--color-text-secondary)">Total VNC</p>
+                      <p className="text-sm font-medium text-gray-600">Total VNC</p>
                       <p className="text-lg font-bold text-green-700">
                         {formatCurrency(depreciationData.total_vnc || 0)}
                       </p>
                     </div>
                     <div className="text-center">
-                      <p className="text-sm font-medium text-var(--color-text-secondary)">Taux Moyen</p>
+                      <p className="text-sm font-medium text-gray-600">Taux Moyen</p>
                       <p className="text-lg font-bold text-blue-700">
                         {depreciationData.taux_moyen || 0}%
                       </p>
@@ -1026,14 +1031,14 @@ const DepreciationPage: React.FC = () => {
 
               {(!depreciationData?.results || depreciationData.results.length === 0) && (
                 <div className="text-center py-12">
-                  <TrendingDown className="h-12 w-12 text-var(--color-text-muted) mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-var(--color-text-primary) mb-2">Aucun amortissement trouvé</h3>
-                  <p className="text-var(--color-text-secondary) mb-6">
+                  <TrendingDown className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun amortissement trouvé</h3>
+                  <p className="text-gray-600 mb-6">
                     Aucun amortissement calculé pour la période et les critères sélectionnés.
                   </p>
                   <div className="flex justify-center space-x-3">
                     <Button 
-                      className="bg-var(--color-blue-primary) hover:bg-var(--color-blue-dark) text-var(--color-text-inverse)"
+                      className="bg-blue-600 hover:bg-blue-700 text-white"
                       onClick={handleCalculateDepreciation}
                       disabled={calculateDepreciationMutation.isPending}
                     >
@@ -1211,6 +1216,9 @@ const DepreciationPage: React.FC = () => {
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         rows={3}
                         placeholder="Justification de cet amortissement manuel..."
+                        value={formData.justification || ''}
+                        onChange={(e) => handleInputChange('justification', e.target.value)}
+                        disabled={isSubmitting}
                       />
                     </div>
                   </div>
@@ -1257,11 +1265,62 @@ const DepreciationPage: React.FC = () => {
         onClose={() => setShowPeriodModal(false)}
         onApply={(newDateRange) => {
           setDateRange(newDateRange);
-          // Update filter logic
           handleFilterChange('date_debut', newDateRange.start);
           handleFilterChange('date_fin', newDateRange.end);
         }}
         initialDateRange={dateRange}
+      />
+
+      {/* Confirmation suppression amortissement */}
+      <ConfirmDialog
+        isOpen={deleteDeprecConfirm.isOpen}
+        onClose={() => setDeleteDeprecConfirm({ isOpen: false, id: null })}
+        onConfirm={() => {
+          if (deleteDeprecConfirm.id) deleteDepreciationMutation.mutate(deleteDeprecConfirm.id);
+          setDeleteDeprecConfirm({ isOpen: false, id: null });
+        }}
+        title="Confirmer la suppression"
+        message="Êtes-vous sûr de vouloir supprimer cet amortissement ? La dotation annuelle sera déduite du cumul de l'actif."
+        variant="danger"
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        confirmLoading={deleteDepreciationMutation.isPending}
+      />
+
+      {/* Confirmation calcul automatique */}
+      <ConfirmDialog
+        isOpen={calcConfirm}
+        onClose={() => setCalcConfirm(false)}
+        onConfirm={() => {
+          setCalcConfirm(false);
+          calculateDepreciationMutation.mutate({
+            date_debut: filters.date_debut,
+            date_fin: filters.date_fin,
+            methode: filters.methode || 'lineaire',
+          });
+        }}
+        title="Calcul automatique des amortissements"
+        message="Lancer le calcul automatique des amortissements pour la période sélectionnée ? Les cumuls des actifs actifs seront mis à jour."
+        variant="info"
+        confirmText="Calculer"
+        cancelText="Annuler"
+        confirmLoading={calculateDepreciationMutation.isPending}
+      />
+
+      {/* Confirmation comptabiliser tout */}
+      <ConfirmDialog
+        isOpen={comptabiliserToutConfirm}
+        onClose={() => setComptabiliserToutConfirm(false)}
+        onConfirm={() => {
+          setComptabiliserToutConfirm(false);
+          comptabiliserToutMutation.mutate();
+        }}
+        title="Comptabiliser toutes les dotations"
+        message={"Comptabiliser toutes les dotations aux amortissements ?\n\nCette action va créer les écritures OD (Débit 6813 / Crédit 2813) dans le journal."}
+        variant="info"
+        confirmText="Comptabiliser tout"
+        cancelText="Annuler"
+        confirmLoading={comptabiliserToutMutation.isPending}
       />
 
       {/* Modal de comptabilisation */}
@@ -1314,13 +1373,13 @@ const DepreciationPage: React.FC = () => {
                   </thead>
                   <tbody>
                     <tr className="border-b border-neutral-100">
-                      <td className="py-2 px-2 font-mono text-neutral-700">681{selectedDepreciation.code_actif?.charAt(0) || 'x'}</td>
+                      <td className="py-2 px-2 font-mono text-neutral-700">6813</td>
                       <td className="py-2 px-2 text-neutral-700">Dotation aux amortissements</td>
                       <td className="py-2 px-2 text-right font-mono font-semibold text-neutral-900">{formatCurrency(selectedDepreciation.montant_dotation)}</td>
                       <td className="py-2 px-2 text-right font-mono text-neutral-400">—</td>
                     </tr>
                     <tr className="border-b border-neutral-100">
-                      <td className="py-2 px-2 font-mono text-neutral-700">28{selectedDepreciation.code_actif?.substring(1) || 'xx'}</td>
+                      <td className="py-2 px-2 font-mono text-neutral-700">2813</td>
                       <td className="py-2 px-2 text-neutral-700">Amortissements cumulés</td>
                       <td className="py-2 px-2 text-right font-mono text-neutral-400">—</td>
                       <td className="py-2 px-2 text-right font-mono font-semibold text-neutral-900">{formatCurrency(selectedDepreciation.montant_dotation)}</td>

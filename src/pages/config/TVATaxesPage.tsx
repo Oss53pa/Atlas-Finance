@@ -178,7 +178,12 @@ const TVATaxesPage: React.FC = () => {
       setExemptionsSetting(ex);
       setTaxSettingsSetting(ts);
       if (ts) {
-        try { setTaxSettings(JSON.parse((ts as any).value)); } catch {}
+        try {
+          setTaxSettings(JSON.parse((ts as any).value));
+        } catch (parseErr) {
+          console.error('[TVATaxes] Erreur lecture paramètres TVA:', parseErr);
+          toast.error('Impossible de lire les paramètres TVA enregistrés, utilisation des valeurs par défaut');
+        }
       }
     };
     load();
@@ -231,6 +236,15 @@ const TVATaxesPage: React.FC = () => {
   const handleSaveRate = async () => {
     if (!modalForm.code?.trim() || !modalForm.libelle?.trim()) {
       toast.error('Code et Libellé sont obligatoires');
+      return;
+    }
+    if (!modalForm.applicable_depuis?.trim()) {
+      toast.error('La date "Applicable depuis" est obligatoire');
+      return;
+    }
+    const taux = modalForm.taux ?? 0;
+    if (typeof taux !== 'number' || isNaN(taux) || taux < 0 || taux > 100) {
+      toast.error('Le taux doit être un nombre entre 0 et 100');
       return;
     }
     setIsSavingRate(true);
@@ -349,6 +363,18 @@ const TVATaxesPage: React.FC = () => {
     } finally {
       setIsSavingSettings(false);
     }
+  };
+
+  const handleDuplicateTaxRate = (rate: TaxRate) => {
+    setEditingRate(null);
+    setModalForm({
+      ...rate,
+      id: undefined,
+      code: `${rate.code}_COPIE`,
+      libelle: `${rate.libelle} (copie)`,
+      is_default: false,
+    });
+    setShowModal(true);
   };
 
   // ── display helpers ───────────────────────────────────────────────────────
@@ -583,7 +609,7 @@ const TVATaxesPage: React.FC = () => {
                     </label>
                   </div>
 
-                  <Button variant="outline" className="flex items-center">
+                  <Button variant="outline" className="flex items-center" onClick={() => toast('Filtres avancés — fonctionnalité à venir', { icon: 'ℹ️' })}>
                     <Filter className="mr-2 h-4 w-4" />
                     Filtres Avancés
                   </Button>
@@ -684,7 +710,12 @@ const TVATaxesPage: React.FC = () => {
                             </TableCell>
                             <TableCell className="text-center">
                               <div className="flex items-center justify-center space-x-1">
-                                <Button variant="ghost" size="sm">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  title="Voir le détail"
+                                  onClick={() => toast(`Détail : ${rate.libelle} — ${rate.taux}%`)}
+                                >
                                   <Eye className="h-4 w-4" />
                                 </Button>
                                 <Button
@@ -694,7 +725,12 @@ const TVATaxesPage: React.FC = () => {
                                 >
                                   <Edit className="h-4 w-4" />
                                 </Button>
-                                <Button variant="ghost" size="sm">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  title="Dupliquer"
+                                  onClick={() => handleDuplicateTaxRate(rate)}
+                                >
                                   <Copy className="h-4 w-4" />
                                 </Button>
                                 <Button
@@ -723,7 +759,7 @@ const TVATaxesPage: React.FC = () => {
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <span>Règles d'Application</span>
-                  <Button className="bg-primary-600 hover:bg-primary-700">
+                  <Button className="bg-primary-600 hover:bg-primary-700" onClick={() => toast('Création de règle — fonctionnalité à venir', { icon: 'ℹ️' })}>
                     <Plus className="mr-2 h-4 w-4" />
                     Nouvelle Règle
                   </Button>
@@ -759,8 +795,8 @@ const TVATaxesPage: React.FC = () => {
                         </div>
                       </div>
                       <div className="flex justify-end space-x-2 mt-4 pt-4 border-t">
-                        <Button size="sm" variant="outline"><Eye className="mr-2 h-4 w-4" />Tester</Button>
-                        <Button size="sm" variant="outline"><Edit className="mr-2 h-4 w-4" />Modifier</Button>
+                        <Button size="sm" variant="outline" onClick={() => toast(`Test de la règle "${rule.name}" — fonctionnalité à venir`, { icon: 'ℹ️' })}><Eye className="mr-2 h-4 w-4" />Tester</Button>
+                        <Button size="sm" variant="outline" onClick={() => toast(`Modification de la règle "${rule.name}" — fonctionnalité à venir`, { icon: 'ℹ️' })}><Edit className="mr-2 h-4 w-4" />Modifier</Button>
                       </div>
                     </div>
                   ))}
@@ -775,7 +811,7 @@ const TVATaxesPage: React.FC = () => {
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <span>Exonérations et Réductions</span>
-                  <Button className="bg-orange-600 hover:bg-orange-700">
+                  <Button className="bg-orange-600 hover:bg-orange-700" onClick={() => toast('Création d\'exonération — fonctionnalité à venir', { icon: 'ℹ️' })}>
                     <Plus className="mr-2 h-4 w-4" />
                     Nouvelle Exonération
                   </Button>
@@ -842,8 +878,8 @@ const TVATaxesPage: React.FC = () => {
                           </TableCell>
                           <TableCell className="text-center">
                             <div className="flex items-center justify-center space-x-1">
-                              <Button variant="ghost" size="sm"><Eye className="h-4 w-4" /></Button>
-                              <Button variant="ghost" size="sm"><Edit className="h-4 w-4" /></Button>
+                              <Button variant="ghost" size="sm" title="Voir le détail" onClick={() => toast(`Détail exonération : ${exemption.libelle}`, { icon: 'ℹ️' })}><Eye className="h-4 w-4" /></Button>
+                              <Button variant="ghost" size="sm" title="Modifier" onClick={() => toast(`Modification de l'exonération "${exemption.libelle}" — fonctionnalité à venir`, { icon: 'ℹ️' })}><Edit className="h-4 w-4" /></Button>
                             </div>
                           </TableCell>
                         </TableRow>
@@ -934,7 +970,19 @@ const TVATaxesPage: React.FC = () => {
                   <div className="flex justify-end space-x-3">
                     <Button
                       variant="outline"
-                      onClick={() => setTaxSettings(taxSettingsSetting ? JSON.parse(taxSettingsSetting.value) : DEFAULT_TAX_SETTINGS)}
+                      onClick={() => {
+                        if (taxSettingsSetting) {
+                          try {
+                            setTaxSettings(JSON.parse(taxSettingsSetting.value));
+                          } catch (parseErr) {
+                            console.error('[TVATaxes] Erreur restauration paramètres:', parseErr);
+                            toast.error('Impossible de restaurer les paramètres enregistrés');
+                            setTaxSettings(DEFAULT_TAX_SETTINGS);
+                          }
+                        } else {
+                          setTaxSettings(DEFAULT_TAX_SETTINGS);
+                        }
+                      }}
                     >
                       Annuler
                     </Button>

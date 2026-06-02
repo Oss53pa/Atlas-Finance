@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../contexts/LanguageContext';
 import {
@@ -61,6 +61,9 @@ const BankAccountsPage: React.FC = () => {
   const navigate = useNavigate();
   const importFileRef = useRef<HTMLInputElement>(null);
   const [importFile, setImportFile] = useState<File | null>(null);
+  // Confirmation modale de suppression (remplace window.confirm bloquant)
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [deleteConfirmLabel, setDeleteConfirmLabel] = useState<string>('');
   const [editForm, setEditForm] = useState({
     label: '', iban: '', account_type: 'courant', status: 'actif', titulaire: '',
   });
@@ -113,11 +116,25 @@ const BankAccountsPage: React.FC = () => {
 
   const deleteAccount = useDeleteBankAccount();
 
-  const handleDeleteAccount = (accountId: string) => {
-    if (confirm('Êtes-vous sûr de vouloir supprimer ce compte bancaire ?')) {
-      deleteAccount.mutate(accountId);
-    }
-  };
+  const handleDeleteAccount = useCallback((accountId: string, label: string) => {
+    setDeleteConfirmId(accountId);
+    setDeleteConfirmLabel(label);
+  }, []);
+
+  const confirmDelete = useCallback(() => {
+    if (!deleteConfirmId) return;
+    deleteAccount.mutate(deleteConfirmId, {
+      onSuccess: () => {
+        toast.success('Compte bancaire supprimé avec succès');
+        setDeleteConfirmId(null);
+      },
+      onError: (error) => {
+        console.error('[BankAccountsPage] Erreur suppression compte:', error);
+        toast.error('Erreur lors de la suppression du compte bancaire');
+        setDeleteConfirmId(null);
+      },
+    });
+  }, [deleteConfirmId, deleteAccount]);
 
   const handleFilterChange = (key: keyof BankAccountsFilters, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }));
@@ -368,7 +385,8 @@ const BankAccountsPage: React.FC = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">Toutes les devises</SelectItem>
-                <SelectItem value="XOF">XOF (Franc CFA)</SelectItem>
+                <SelectItem value="XAF">XAF (Franc CFA CEMAC)</SelectItem>
+                <SelectItem value="XOF">XOF (Franc CFA UEMOA)</SelectItem>
                 <SelectItem value="EUR">EUR (Euro)</SelectItem>
                 <SelectItem value="USD">USD (Dollar)</SelectItem>
                 <SelectItem value="GBP">GBP (Livre Sterling)</SelectItem>
@@ -430,7 +448,9 @@ const BankAccountsPage: React.FC = () => {
                       const displayStatus = account.status ?? (account as any).statut ?? '';
                       const displayCurrency = account.currency ?? (account as any).devise ?? 'XAF';
                       const displayCurrentBalance = account.current_balance ?? (account as any).solde_comptable ?? 0;
-                      const displayBankBalance = account.initial_balance ?? (account as any).solde_banque ?? 0;
+                      // Priorité : solde_banque (relevé réel) > bank_balance > initial_balance (ouverture uniquement)
+                      const hasBankBalance = (account as any).solde_banque != null || (account as any).bank_balance != null;
+                      const displayBankBalance = (account as any).bank_balance ?? (account as any).solde_banque ?? account.initial_balance ?? 0;
                       const diff = Math.abs(displayCurrentBalance - displayBankBalance);
                       return (
                       <TableRow key={account.id} className="hover:bg-gray-50">
@@ -480,6 +500,9 @@ const BankAccountsPage: React.FC = () => {
                           <span className={`font-semibold ${getBalanceColor(displayBankBalance)}`}>
                             {formatCurrency(displayBankBalance, displayCurrency)}
                           </span>
+                          {!hasBankBalance && (
+                            <p className="text-xs text-amber-600 mt-0.5">solde ouverture</p>
+                          )}
                         </TableCell>
                         <TableCell>
                           {diff > 0.01 ? (
@@ -545,7 +568,10 @@ const BankAccountsPage: React.FC = () => {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleDeleteAccount(account.id)}
+                              onClick={() => handleDeleteAccount(
+                                account.id,
+                                account.label ?? (account as any).libelle_compte ?? account.account_number ?? ''
+                              )}
                               className="text-red-600 hover:text-red-700"
                               aria-label="Supprimer"
                             >
@@ -807,7 +833,24 @@ const BankAccountsPage: React.FC = () => {
               </button>
               <div className="flex space-x-3">
                 {formStep < 4 ? (
-                  <button onClick={() => setFormStep(formStep + 1)}
+                  <button onClick={() => {
+                    // Valider les champs obligatoires de l'étape 1 avant d'avancer
+                    if (formStep === 1) {
+                      if (!newAccount.numeroCompte.trim()) {
+                        toast.error('Le numéro de compte est obligatoire');
+                        return;
+                      }
+                      if (!newAccount.libelle.trim()) {
+                        toast.error('Le libellé du compte est obligatoire');
+                        return;
+                      }
+                      if (!newAccount.titulaire.trim()) {
+                        toast.error('Le titulaire du compte est obligatoire');
+                        return;
+                      }
+                    }
+                    setFormStep(formStep + 1);
+                  }}
                     className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90">Suivant</button>
                 ) : (
                   <button
@@ -1289,20 +1332,26 @@ const BankAccountsPage: React.FC = () => {
                     if (!text) { toast.error('Fichier vide ou illisible'); return; }
                     // Parse CSV: Date;Libellé;Référence;Montant
                     const lines = text.trim().split('\n').slice(1); // skip header
-                    let imported = 0;
+                    let parsed = 0;
                     const errors: string[] = [];
                     lines.forEach((line, i) => {
                       const cols = line.split(';');
                       if (cols.length < 4) return;
-                      const [date, libelle, ref, montantStr] = cols.map(c => c.trim().replace(/"/g, ''));
+                      const [date, , , montantStr] = cols.map(c => c.trim().replace(/"/g, ''));
                       const montant = parseFloat(montantStr.replace(',', '.'));
                       if (!date || isNaN(montant)) { errors.push(`Ligne ${i + 2} ignorée`); return; }
-                      imported++;
+                      parsed++;
                     });
-                    if (imported === 0) {
+                    if (parsed === 0) {
                       toast.error(`Aucune ligne valide trouvée. ${errors.length} erreur(s).`);
                     } else {
-                      toast.success(`${imported} mouvement(s) importé(s) depuis le relevé`);
+                      // NOTE: Le fichier est parsé mais les mouvements ne sont pas encore persistés.
+                      // Utilisez la page Rapprochement Bancaire pour importer et valider ce relevé.
+                      console.info(`[BankAccountsPage] CSV parsé : ${parsed} ligne(s) valide(s). Redirection vers Rapprochement conseillée.`);
+                      toast.success(
+                        `${parsed} ligne(s) lue(s) dans le fichier. Pour persister ces mouvements, utilisez la page Rapprochement Bancaire.`,
+                        { duration: 6000 }
+                      );
                       if (errors.length) toast.error(`${errors.length} ligne(s) ignorée(s)`);
                       setShowImportModal(false);
                       setImportFile(null);
@@ -1314,6 +1363,46 @@ const BankAccountsPage: React.FC = () => {
                 className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] disabled:opacity-50"
               >
                 Importer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modale de confirmation de suppression */}
+      {deleteConfirmId && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <div className="flex items-start space-x-4">
+              <div className="p-2 bg-red-100 rounded-full flex-shrink-0">
+                <Trash2 className="h-6 w-6 text-red-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-1">Supprimer le compte bancaire</h3>
+                <p className="text-sm text-gray-600">
+                  Êtes-vous sûr de vouloir supprimer le compte{' '}
+                  <span className="font-semibold">{deleteConfirmLabel}</span> ?
+                  Cette action est irréversible.
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => setDeleteConfirmId(null)}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={confirmDelete}
+                disabled={deleteAccount.isPending}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-60 flex items-center space-x-2"
+              >
+                {deleteAccount.isPending ? (
+                  <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /><span>Suppression...</span></>
+                ) : (
+                  <><Trash2 className="h-4 w-4" /><span>Supprimer</span></>
+                )}
               </button>
             </div>
           </div>

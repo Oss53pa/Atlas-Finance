@@ -215,7 +215,21 @@
       "Bash(Select-String -Pattern \"BilanSYSCOHADA|CompteResultat|error TS\")",
       "Bash(perl -0pi -e \"s/\\\\`hybrid-durability-\\\\\\\\\\\\$\\\\{Math\\\\.floor\\\\\\(performance\\\\.now\\\\\\(\\\\\\)\\\\\\)\\\\}\\\\`/'hybrid-db-durability'/g; s/\\\\`hybrid-actions-\\\\\\\\\\\\$\\\\{Math\\\\.floor\\\\\\(performance\\\\.now\\\\\\(\\\\\\)\\\\\\)\\\\}\\\\`/'hybrid-db-actions'/g; s/\\\\`hybrid-push-\\\\\\\\\\\\$\\\\{Math\\\\.floor\\\\\\(performance\\\\.now\\\\\\(\\\\\\)\\\\\\)\\\\}\\\\`/'hybrid-db-push'/g; s/\\\\`hybrid-offline-\\\\\\\\\\\\$\\\\{Math\\\\.floor\\\\\\(performance\\\\.now\\\\\\(\\\\\\)\\\\\\)\\\\}\\\\`/'hybrid-db-offline'/g; s/\\\\`hybrid-conflict-\\\\\\\\\\\\$\\\\{Math\\\\.floor\\\\\\(performance\\\\.now\\\\\\(\\\\\\)\\\\\\)\\\\}\\\\`/'hybrid-db-conflict'/g\" src/__tests__/hybridAdapterSync.test.ts)",
       "Bash(node node_modules/typescript/bin/tsc --noEmit --skipLibCheck)",
-      "Bash(echo \"TSC_DONE=$?\")"
+      "Bash(echo \"TSC_DONE=$?\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5178/)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://127.0.0.1:5178/)",
+      "Bash(Get-ChildItem -Path \"C:\\\\devs\\\\WiseBook\\\\src\" -Recurse -Filter \"ReportingDashboard.tsx\")",
+      "Bash(Select-Object FullName)",
+      "Bash(Select-String \"AccountingSettingsPage|TVATaxesPage|error TS\")",
+      "Bash(powershell -Command \"while \\(!\\(Test-Path 'C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--devs-WiseBook\\\\4525bfd7-c56a-4a67-8681-f4151267ffab\\\\tasks\\\\bj5tpobq2.output'\\) -or \\(Get-Content 'C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--devs-WiseBook\\\\4525bfd7-c56a-4a67-8681-f4151267ffab\\\\tasks\\\\bj5tpobq2.output' -Raw\\) -match '^\\\\s*$'\\) { Start-Sleep -Milliseconds 500 }; Get-Content 'C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--devs-WiseBook\\\\4525bfd7-c56a-4a67-8681-f4151267ffab\\\\tasks\\\\bj5tpobq2.output'\")",
+      "Bash(grep -vE \"design-|^index.html|apps\\\\\\\\\\\\\\\\web\\\\\\\\\\\\\\\\index|//|/\\\\*|\\\\* \")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" --max-time 10 http://127.0.0.1:5178/)",
+      "Bash(curl -s --max-time 10 http://127.0.0.1:5178/src/pages/platform/AtlasFnAHome.tsx)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" --max-time 15 http://127.0.0.1:5178/)",
+      "Bash(awk '$1>=5800 && $1<=6200 || $1>=7700 && $1<=7900 || $1>=9000 && $1<=9120 || $1>=12880 && $1<=13200 || $1>=14500 && $1<=14860 {print \"IN MY RANGE: \"$1}')",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" --max-time 45 http://localhost:5178/)",
+      "Bash(tee .tsc_files.txt)",
+      "Bash(grep -v \"^.claude/settings.local.json$\")"
     ],
     "deny": [],
     "ask": []

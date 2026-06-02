@@ -2,26 +2,20 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
+import { useData } from '../../contexts/DataContext';
 import analyticsAdvancedService from '../../services/analytics-advanced.service';
 import treasuryMLService from '../../services/treasury-ml.service';
-import { bankAccountsService } from '../../services/treasury-complete.service';
-import { 
+import {
   Banknote,
-  ArrowUpDown,
   TrendingUp,
   Shield,
   Brain,
   Target,
-  AlertTriangle,
-  CheckCircle,
-  BarChart3,
-  Activity,
-  Globe,
   CreditCard,
   Wallet,
-  DollarSign
+  AlertTriangle
 } from 'lucide-react';
-import { 
+import {
   UnifiedCard,
   KPICard,
   SectionHeader,
@@ -31,23 +25,29 @@ import {
   ColorfulBarChart
 } from '../../components/ui/DesignSystem';
 import { useBankAccounts } from '../../hooks';
-import { formatCurrency, formatDate, formatPercentage } from '../../lib/utils';
+import { formatCurrency, formatPercentage } from '../../lib/utils';
+import { queryKeys } from '../../lib/react-query';
+import { toast } from 'react-hot-toast';
 
 const TreasuryDashboard: React.FC = () => {
   const [selectedTimeframe, setSelectedTimeframe] = useState('30d');
-  const [selectedScenario, setSelectedScenario] = useState('most_likely');
-  const companyId = localStorage.getItem('atlas-tenant-id') || '';
+  const { adapter } = useData();
+  // Derive companyId from adapter to follow project pattern instead of reading directly from localStorage
+  const companyId = (adapter as unknown as { tenantId?: string }).tenantId
+    ?? localStorage.getItem('atlas-tenant-id')
+    ?? '';
 
-  // Real API: Get bank accounts
-  const { data: accountsData, isLoading: loadingAccounts } = useQuery({
-    queryKey: ['bank-accounts-dashboard'],
+  // Real API: Get bank accounts — uses the shared queryKey so invalidations are coordinated
+  const { data: accountsData, isLoading: loadingAccounts, isError: errorAccounts } = useQuery({
+    queryKey: queryKeys.treasury.bankAccounts.list({}),
     queryFn: async () => {
-      return await bankAccountsService.getActiveAccounts();
+      const { bankAccountsService } = await import('../../services/treasury-complete.service');
+      return bankAccountsService.getActiveAccounts();
     },
   });
 
   // Real API: Get global KPIs from analytics service
-  const { data: globalKPIs, isLoading: loadingKPIs } = useQuery({
+  const { data: globalKPIs, isLoading: loadingKPIs, isError: errorKPIs } = useQuery({
     queryKey: ['global-kpis', companyId],
     queryFn: async () => {
       const today = new Date();
@@ -60,85 +60,135 @@ const TreasuryDashboard: React.FC = () => {
       });
     },
     enabled: !!companyId,
+    meta: {
+      onError: (error: unknown) => {
+        console.error('[TreasuryDashboard] Erreur chargement KPIs globaux:', error);
+        toast.error('Impossible de charger les KPIs de trésorerie');
+      }
+    },
   });
 
   // Real API: Get ML cash flow predictions
-  const { data: cashFlowPrediction, isLoading: loadingForecast } = useQuery({
+  const { data: cashFlowPrediction, isLoading: loadingForecast, isError: errorForecast } = useQuery({
     queryKey: ['cash-flow-prediction', companyId, selectedTimeframe],
     queryFn: async () => {
       const days = selectedTimeframe === '30d' ? 30 : selectedTimeframe === '90d' ? 90 : 7;
-      return await treasuryMLService.predictCashFlow({
-        company_id: companyId,
-        forecast_days: days,
-        confidence_level: 0.95,
-        include_scenarios: true,
-        historical_months: 12
-      });
+      try {
+        const result = await treasuryMLService.predictCashFlow({
+          company_id: companyId,
+          forecast_days: days,
+          confidence_level: 0.95,
+          include_scenarios: true,
+          historical_months: 12
+        });
+        return result;
+      } catch (error) {
+        console.error('[TreasuryDashboard] Erreur prévisions ML cash flow:', error);
+        throw error;
+      }
     },
     enabled: !!companyId,
   });
 
   // Real API: Get AI recommendations
-  const { data: aiRecommendations, isLoading: loadingRecommendations } = useQuery({
+  const { data: aiRecommendations, isLoading: loadingRecommendations, isError: errorRecommendations } = useQuery({
     queryKey: ['ai-recommendations', companyId],
     queryFn: async () => {
-      return await treasuryMLService.getAIRecommendations(companyId);
+      try {
+        return await treasuryMLService.getAIRecommendations(companyId);
+      } catch (error) {
+        console.error('[TreasuryDashboard] Erreur recommandations IA:', error);
+        throw error;
+      }
     },
     enabled: !!companyId,
   });
 
+  // Afficher les erreurs non bloquantes à l'utilisateur
+  React.useEffect(() => {
+    if (errorAccounts) {
+      toast.error('Impossible de charger les comptes bancaires');
+    }
+  }, [errorAccounts]);
+
+  React.useEffect(() => {
+    if (errorForecast) {
+      toast.error('Impossible de charger les prévisions de trésorerie');
+    }
+  }, [errorForecast]);
+
+  React.useEffect(() => {
+    if (errorRecommendations) {
+      console.error('[TreasuryDashboard] Erreur recommandations IA');
+    }
+  }, [errorRecommendations]);
+
   // Compute derived stats from real account data
-  const totalBalance = accountsData?.reduce((sum: number, acc: any) =>
-    sum + (acc.current_balance ?? acc.solde_courant ?? 0), 0) || 0;
-  const activeAccounts = accountsData?.filter((acc: any) =>
-    (acc.status ?? acc.statut ?? '') === 'ACTIVE' || (acc.actif === true)) || [];
-  // Reconciliation: ratio of accounts with zero discrepancy (initial_balance ≈ current_balance as proxy)
-  const reconciledCount = accountsData?.filter((acc: any) => {
-    const cb = acc.current_balance ?? 0;
-    const ib = acc.initial_balance ?? 0;
-    return Math.abs(cb - ib) < 1;
-  }).length || 0;
-  const totalAccountsCount = accountsData?.length || 0;
-  const reconciliationRate = totalAccountsCount > 0
-    ? Math.round((reconciledCount / totalAccountsCount) * 100) / 100
-    : 0;
-  const pendingReconciliation = totalAccountsCount - reconciledCount;
+  const accounts = Array.isArray(accountsData) ? accountsData : [];
+  const totalBalance = accounts.reduce((sum: number, acc: any) =>
+    sum + (acc.current_balance ?? acc.solde_courant ?? 0), 0);
+  const activeAccounts = accounts.filter((acc: any) =>
+    (acc.status ?? acc.statut ?? '') === 'ACTIVE' || (acc.actif === true));
+
+  // Récupérer les entrées non rapprochées depuis les recommandations IA (catégorie correcte)
+  const reconciliationPendingCount = aiRecommendations?.recommendations?.filter(
+    (r: any) => r.category === 'reconciliation' || r.category === 'unmatched'
+  ).length ?? 0;
+
+  // Taux de rapprochement : proxy basé sur les comptes disponibles côté client
+  // (le KPI analytics ne retourne pas encore de reconciliation_rate)
+  const rawReconciliationRate: number = (() => {
+    const kpisExt = globalKPIs?.treasury as Record<string, unknown> | undefined;
+    if (typeof kpisExt?.reconciliation_rate === 'number') {
+      return kpisExt.reconciliation_rate as number;
+    }
+    // Proxy : proportion de comptes dont l'écart est nul
+    const total = accounts.length;
+    if (total === 0) return 0;
+    const reconciled = accounts.filter((acc: any) => {
+      const cb = acc.current_balance ?? 0;
+      const ib = acc.initial_balance ?? 0;
+      return Math.abs(cb - ib) < 1;
+    }).length;
+    return reconciled / total;
+  })();
+  const reconciliationRate = Math.round(rawReconciliationRate * 100) / 100;
+
+  // Flux de trésorerie : cash_flow positif = entrées, négatif = sorties
+  // Le service analytics ne distingue pas encore total_in / total_out séparément
+  const cashFlow = globalKPIs?.treasury?.cash_flow ?? 0;
+  const totalIn: number = cashFlow > 0 ? cashFlow : 0;
+  const totalOut: number = cashFlow < 0 ? Math.abs(cashFlow) : 0;
+
+  // Prévision J+30 : lire depuis le scénario most_likely si predictions[29] vaut 0
+  const pred30 = cashFlowPrediction?.predictions?.[29]?.predicted_balance;
+  const cashForecast30d: number = (() => {
+    if (pred30 && pred30 !== 0) return pred30;
+    // Fallback vers le scénario most_likely si disponible
+    const scenario = cashFlowPrediction?.scenarios?.most_likely;
+    if (typeof scenario === 'number' && scenario !== 0) return scenario;
+    return pred30 ?? 0;
+  })();
 
   const stats = {
-    total_accounts: totalAccountsCount,
+    total_accounts: accounts.length,
     total_balance: totalBalance,
-    total_in: globalKPIs?.treasury?.cash_flow || 0,
-    total_out: Math.abs(globalKPIs?.treasury?.cash_flow || 0),
-    totalCashPosition: globalKPIs?.treasury?.cash_position || totalBalance,
+    total_in: totalIn,
+    total_out: totalOut,
+    totalCashPosition: globalKPIs?.treasury?.cash_position ?? totalBalance,
     activeBankConnections: activeAccounts.length,
     reconciliationRate,
-    pendingReconciliation,
-    cashForecast30d: cashFlowPrediction?.predictions?.[29]?.predicted_balance || 0
-  };
-
-  const bankConnections = {
-    ebics_connected: activeAccounts.length,
-    total: totalAccountsCount,
-  };
-
-  const cashForecast = {
-    scenarios: cashFlowPrediction?.scenarios || {},
-  };
-
-  const reconciliationPending = {
-    count: aiRecommendations?.recommendations?.filter((r: any) => r.category === 'payment_strategy').length || 0,
+    pendingReconciliation: reconciliationPendingCount,
+    cashForecast30d,
   };
 
   const isLoadingStats = loadingAccounts || loadingKPIs;
-  const isLoadingConnections = loadingAccounts;
-  const isLoadingForecast = loadingForecast;
-  const isLoadingReconciliation = loadingRecommendations;
 
   if (isLoadingStats) {
     return (
       <PageContainer background="warm" padding="lg">
         <div className="flex justify-center items-center min-h-[60vh]">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             className="flex flex-col items-center space-y-4 bg-white/90 backdrop-blur-sm p-8 rounded-xl shadow-sm"
@@ -151,9 +201,33 @@ const TreasuryDashboard: React.FC = () => {
     );
   }
 
+  // Afficher un bandeau d'erreur si companyId manquant (queries désactivées)
+  const missingCompanyId = !companyId;
+
   return (
     <PageContainer background="warm" padding="lg">
       <div className="space-y-8">
+        {/* Avertissement si companyId absent */}
+        {missingCompanyId && (
+          <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 text-amber-800 text-sm">
+            <AlertTriangle className="h-5 w-5 flex-shrink-0 text-amber-500" />
+            <span>
+              Session non initialisée — certaines données de trésorerie ne peuvent pas être chargées.
+              Reconnectez-vous pour actualiser votre contexte.
+            </span>
+          </div>
+        )}
+
+        {/* Avertissement si KPIs en erreur */}
+        {(errorKPIs || errorForecast) && !missingCompanyId && (
+          <div className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-red-800 text-sm">
+            <AlertTriangle className="h-5 w-5 flex-shrink-0 text-red-500" />
+            <span>
+              Certaines données du tableau de bord ne sont pas disponibles. Les valeurs affichées peuvent être incomplètes.
+            </span>
+          </div>
+        )}
+
         {/* Header épuré */}
         <SectionHeader
           title="Module Trésorerie & Cash Management"
@@ -179,38 +253,46 @@ const TreasuryDashboard: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <KPICard
             title="Position de Trésorerie"
-            value={formatCurrency(stats?.totalCashPosition || 0)}
-            subtitle={stats?.totalCashPosition ? `${stats.total_accounts} compte(s)` : 'Aucune donnée'}
+            value={formatCurrency(stats.totalCashPosition)}
+            subtitle={stats.total_accounts > 0 ? `${stats.total_accounts} compte(s)` : 'Aucun compte trouvé'}
             icon={Wallet}
             color="success"
             delay={0.1}
             withChart={true}
           />
-          
+
           <KPICard
             title="Connexions Bancaires"
-            value={(stats?.activeBankConnections || 0).toString()}
+            value={stats.activeBankConnections.toString()}
             subtitle="EBICS • SWIFT • PSD2 • Temps réel"
             icon={Shield}
             color="neutral"
             delay={0.2}
             withChart={true}
           />
-          
+
           <KPICard
             title="Rapprochement IA"
-            value={formatPercentage(stats?.reconciliationRate || 0)}
-            subtitle={`Taux de matching • ${stats?.pendingReconciliation || 0} en attente`}
+            value={formatPercentage(stats.reconciliationRate)}
+            subtitle={`Taux de matching${stats.pendingReconciliation > 0 ? ` • ${stats.pendingReconciliation} en attente` : ''}`}
             icon={Brain}
             color="primary"
             delay={0.3}
             withChart={true}
           />
-          
+
           <KPICard
             title="Cash Forecast 30J"
-            value={formatCurrency(stats?.cashForecast30d || 0)}
-            subtitle="Monte Carlo • Confiance 95%"
+            value={stats.cashForecast30d !== 0 ? formatCurrency(stats.cashForecast30d) : '—'}
+            subtitle={
+              errorForecast
+                ? 'Prévisions indisponibles'
+                : loadingForecast
+                ? 'Chargement...'
+                : stats.cashForecast30d === 0
+                ? 'Aucune prévision disponible'
+                : 'Monte Carlo • Confiance 95%'
+            }
             icon={Target}
             color="warning"
             delay={0.4}
@@ -229,21 +311,38 @@ const TreasuryDashboard: React.FC = () => {
             subtitle="Flux mensuels et prévisions ML"
             icon={TrendingUp}
           >
-            <ColorfulBarChart
-              data={(cashFlowPrediction?.predictions || []).slice(0, 7).map((pred: any, idx: number) => {
-                const date = new Date(pred.forecast_date);
-                const monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
-                const color = pred.predicted_balance > (cashFlowPrediction?.predictions?.[idx - 1]?.predicted_balance || 0)
-                  ? 'bg-[var(--color-success)]'
-                  : 'bg-[var(--color-warning)]';
-                return {
-                  label: `${monthNames[date.getMonth()]} ${date.getDate()}`,
-                  value: Math.round(pred.predicted_balance / 1000000), // Convert to millions
-                  color: color
-                };
-              })}
-              height={160}
-            />
+            {loadingForecast ? (
+              <div className="flex justify-center items-center h-40">
+                <div className="w-8 h-8 border-4 border-neutral-200 border-t-[var(--color-primary)] rounded-full animate-spin" />
+              </div>
+            ) : errorForecast ? (
+              <div className="flex flex-col items-center justify-center h-40 text-neutral-500 text-sm">
+                <AlertTriangle className="h-8 w-8 text-amber-400 mb-2" />
+                <span>Prévisions temporairement indisponibles</span>
+              </div>
+            ) : (cashFlowPrediction?.predictions?.length ?? 0) === 0 ||
+               (cashFlowPrediction?.predictions ?? []).every((p: any) => p.predicted_balance === 0) ? (
+              <div className="flex flex-col items-center justify-center h-40 text-neutral-500 text-sm">
+                <span>Aucune prévision disponible pour cette période</span>
+              </div>
+            ) : (
+              <ColorfulBarChart
+                data={(cashFlowPrediction?.predictions || []).slice(0, 7).map((pred: any, idx: number) => {
+                  const date = new Date(pred.forecast_date);
+                  const monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
+                  const prevBalance = cashFlowPrediction?.predictions?.[idx - 1]?.predicted_balance ?? 0;
+                  const color = pred.predicted_balance > prevBalance
+                    ? 'bg-[var(--color-success)]'
+                    : 'bg-[var(--color-warning)]';
+                  return {
+                    label: `${monthNames[date.getMonth()]} ${date.getDate()}`,
+                    value: Math.round(pred.predicted_balance / 1000000),
+                    color,
+                  };
+                })}
+                height={160}
+              />
+            )}
           </ModernChartCard>
         </motion.div>
 
@@ -256,7 +355,7 @@ const TreasuryDashboard: React.FC = () => {
           <UnifiedCard variant="elevated" size="md">
             <div className="space-y-6">
               <h2 className="text-lg font-semibold text-neutral-800">Actions Rapides</h2>
-              
+
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <Link to="/treasury/bank-connections" className="group">
                   <motion.div

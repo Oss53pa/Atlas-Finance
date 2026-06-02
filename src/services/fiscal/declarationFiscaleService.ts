@@ -165,16 +165,49 @@ export async function calculerTVAMensuelle(
   };
 }
 
+// Default IS rate and IMF minimum — used only as fallback when tax registry is unavailable.
+// These defaults correspond to Côte d'Ivoire (CI) tax parameters.
+const IS_TAUX_DEFAULT = 25;       // 25 % pour CI
+const IMF_MINIMUM_DEFAULT = 3_000_000; // 3 000 000 FCFA minimum CI
+const IMF_TAUX_DEFAULT = 1;       // 1 % du CA
+
 /**
  * Calculer l'IS annuel.
+ * Le taux IS et le minimum IMF sont lus depuis le registre fiscal (taxRegistry)
+ * lorsque disponibles — les constantes CI ci-dessus ne servent que de fallback.
  */
 export async function calculerIS(
   adapter: DataAdapter,
   exercice: string,
-  tauxIS: number = 25, // Cote d'Ivoire 25%
+  tauxIS?: number, // undefined = lire depuis le registre
   reintegrations: number = 0,
   deductions: number = 0
 ): Promise<DeclarationIS> {
+  // Resolve IS rate from tax registry when not explicitly passed
+  let resolvedTauxIS = tauxIS;
+  let resolvedImfMinimum = IMF_MINIMUM_DEFAULT;
+  let resolvedImfTaux = IMF_TAUX_DEFAULT;
+
+  if (resolvedTauxIS === undefined) {
+    try {
+      const registry = await adapter.getAll('taxRegistry') as Array<{
+        taxCode: string;
+        rate?: number;
+        minAmount?: number;
+        additionalRate?: number;
+      }>;
+      const isEntry = registry.find(r => r.taxCode === 'IS');
+      const imfEntry = registry.find(r => r.taxCode === 'IMF');
+      resolvedTauxIS = isEntry?.rate ?? IS_TAUX_DEFAULT;
+      if (imfEntry) {
+        resolvedImfMinimum = imfEntry.minAmount ?? IMF_MINIMUM_DEFAULT;
+        resolvedImfTaux = imfEntry.rate ?? IMF_TAUX_DEFAULT;
+      }
+    } catch {
+      resolvedTauxIS = IS_TAUX_DEFAULT;
+    }
+  }
+
   const allEntries = await adapter.getAll('journalEntries');
   const entries = allEntries.filter(
     (e: any) => e.date >= `${exercice}-01-01` && e.date <= `${exercice}-12-31`
@@ -183,12 +216,16 @@ export async function calculerIS(
 
   let produits = 0;
   let charges = 0;
+  // IMF base: only class-70 (ventes) — excludes financial (76x) and exceptional (77x) revenues
+  let chiffreAffaires70 = 0;
 
   for (const entry of entries) {
     for (const line of (entry as unknown as { lines: Array<{ accountCode: string; debit: number; credit: number }> }).lines || []) {
       const code = line.accountCode || '';
       if (code.startsWith('7')) produits = money(produits).add(money(line.credit).subtract(money(line.debit))).toNumber();
       if (code.startsWith('6')) charges = money(charges).add(money(line.debit).subtract(money(line.credit))).toNumber();
+      // CA = ventes class-70 seulement (701 à 709)
+      if (code.startsWith('70')) chiffreAffaires70 = money(chiffreAffaires70).add(money(line.credit).subtract(money(line.debit))).toNumber();
     }
   }
 
@@ -199,17 +236,17 @@ export async function calculerIS(
     .toNumber();
 
   const montantIS = money(Math.max(0, resultatFiscal))
-    .multiply(tauxIS)
+    .multiply(resolvedTauxIS)
     .divide(100)
     .round(0)
     .toNumber();
 
-  // IMF = 1% du CA (minimum 3M FCFA pour CI)
-  const chiffreAffaires = produits;
-  const imfCalcule = money(chiffreAffaires).multiply(1).divide(100).round(0).toNumber();
-  const imf = Math.max(imfCalcule, 3000000); // minimum 3M FCFA
+  // IMF = taux% du CA class-70, plancher au minimum du registre
+  const imfCalcule = money(Math.max(0, chiffreAffaires70)).multiply(resolvedImfTaux).divide(100).round(0).toNumber();
+  const imf = Math.max(imfCalcule, resolvedImfMinimum);
 
   const montantDu = Math.max(montantIS, imf);
+  const tauxISFinal = resolvedTauxIS;
 
   return {
     exercice,
@@ -217,7 +254,7 @@ export async function calculerIS(
     reintegrations,
     deductions,
     resultatFiscal,
-    tauxIS,
+    tauxIS: tauxISFinal,
     montantIS,
     imf,
     montantDu,

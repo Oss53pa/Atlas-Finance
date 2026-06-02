@@ -5,15 +5,13 @@ import { toast } from 'react-hot-toast';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import {
-  Building2, TrendingUp, BarChart3, Download, ArrowLeft, Home,
-  DollarSign, Target, Activity, FileText, Calculator, PieChart,
-  ArrowUpRight, Eye, Filter, RefreshCw, ChevronRight, X
+  Building2, TrendingUp, BarChart3, Download, ArrowLeft,
+  DollarSign, Target, FileText, Calculator, PieChart,
+  Eye, ChevronRight, X, ChevronDown
 } from 'lucide-react';
 import PrintableArea from '../../components/ui/PrintableArea';
 import { usePrintReport } from '../../hooks/usePrint';
 import { useData } from '../../contexts/DataContext';
-import type { DBJournalEntry } from '../../lib/db';
-import { money } from '../../utils/money';
 
 interface DirectSectionProps {
   title: string;
@@ -78,10 +76,9 @@ const BilanSYSCOHADAPage: React.FC = () => {
   const [periode, setPeriode] = useState('current');
 
   // États pour la modal de détails
-  const [selectedDetail, setSelectedDetail] = useState<{ type: string; title: string; data: Array<Record<string, unknown>>; total?: number } | null>(null);
+  const [selectedDetail, setSelectedDetail] = useState<{ type: string; title: string; data: Array<Record<string, any>>; total?: number } | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState<string>('');
-  const [selectedAccount, setSelectedAccount] = useState<string>('');
 
   const { printRef, handlePrint } = usePrintReport({
     orientation: 'landscape',
@@ -101,15 +98,38 @@ const BilanSYSCOHADAPage: React.FC = () => {
   ];
 
   // ========== DONNÉES RÉELLES DEPUIS DEXIE ==========
-  const { data: rawEntries = [] } = useQuery({
+  const { data: rawEntries = [] } = useQuery<any[]>({
     queryKey: ['bilan-syscohada-entries'],
-    queryFn: () => adapter.getAll('journalEntries'),
+    queryFn: () => adapter.getAll<any>('journalEntries'),
   });
+
+  // Derive current fiscal year from entries (most frequent year, or current year)
+  const fiscalYear = useMemo(() => {
+    const years: Record<string, number> = {};
+    for (const e of rawEntries) {
+      if (e.status === 'draft') continue;
+      const y = e.date?.split('-')[0];
+      if (y) years[y] = (years[y] || 0) + 1;
+    }
+    const sorted = Object.entries(years).sort((a, b) => b[1] - a[1]);
+    return sorted[0]?.[0] || String(new Date().getFullYear());
+  }, [rawEntries]);
+
+  const prevFiscalYear = String(Number(fiscalYear) - 1);
+
+  // Helper: filter entries by periode selector (current year only, previous year only, or both)
+  const filterByPeriode = (entries: any[]) => {
+    if (periode === 'previous') {
+      return entries.filter(e => e.date?.startsWith(prevFiscalYear));
+    }
+    // 'current' and 'comparison' both show current year for net/creditNet
+    return entries.filter(e => e.date?.startsWith(fiscalYear));
+  };
 
   // Helper: net balance (debit - credit) for account prefixes — excludes drafts
   const net = (prefixes: string[]) => {
     let t = 0;
-    for (const e of rawEntries) {
+    for (const e of filterByPeriode(rawEntries)) {
       if (e.status === 'draft') continue;
       for (const l of e.lines)
         if (prefixes.some(p => l.accountCode.startsWith(p))) t += l.debit - l.credit;
@@ -118,7 +138,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
   };
   const creditNet = (prefixes: string[]) => {
     let t = 0;
-    for (const e of rawEntries) {
+    for (const e of filterByPeriode(rawEntries)) {
       if (e.status === 'draft') continue;
       for (const l of e.lines)
         if (prefixes.some(p => l.accountCode.startsWith(p))) t += l.credit - l.debit;
@@ -350,77 +370,53 @@ const BilanSYSCOHADAPage: React.FC = () => {
     ];
   }, [bilanData, compteResultatData, sigData]);
 
-  // TODO: wire to Dexie query for real transaction details
-  const generateTransactionDetails = (_accountCode: string, _period: string, _amount: number) => {
-    return [] as Array<{ id: string; date: string; reference: string; libelle: string; montant: number; tiers: string; piece: string }>;
-  };
-
-  const getTransactionLibelle = (_accountCode: string) => {
-    return 'Transaction';
-  };
-
-  const getTiers = (_accountCode: string) => {
-    return 'Tiers';
-  };
-
-  // Génération des sous-comptes pour un compte principal
-  const generateSubAccounts = (mainAccountCode: string, amount: number) => {
-    const subAccountsConfig = {
-      '21': [
-        { code: '211', libelle: 'Frais de développement', pourcentage: 0.4 },
-        { code: '213', libelle: 'Brevets, licences, logiciels', pourcentage: 0.35 },
-        { code: '218', libelle: 'Autres immobilisations incorporelles', pourcentage: 0.25 }
-      ],
-      '24': [
-        { code: '241', libelle: 'Bâtiments industriels', pourcentage: 0.6 },
-        { code: '242', libelle: 'Bâtiments commerciaux', pourcentage: 0.25 },
-        { code: '248', libelle: 'Autres bâtiments', pourcentage: 0.15 }
-      ],
-      '245': [
-        { code: '2451', libelle: 'Matériel industriel', pourcentage: 0.5 },
-        { code: '2452', libelle: 'Matériel de transport', pourcentage: 0.3 },
-        { code: '2458', libelle: 'Autres matériels', pourcentage: 0.2 }
-      ],
-      '31': [
-        { code: '311', libelle: 'Marchandises A', pourcentage: 0.45 },
-        { code: '312', libelle: 'Marchandises B', pourcentage: 0.35 },
-        { code: '318', libelle: 'Autres marchandises', pourcentage: 0.2 }
-      ],
-      '41': [
-        { code: '411', libelle: 'Clients ordinaires', pourcentage: 0.7 },
-        { code: '413', libelle: 'Clients douteux', pourcentage: 0.15 },
-        { code: '416', libelle: 'Clients créditeurs', pourcentage: 0.15 }
-      ],
-      '40': [
-        { code: '401', libelle: 'Fournisseurs ordinaires', pourcentage: 0.8 },
-        { code: '403', libelle: 'Fournisseurs d\'immobilisations', pourcentage: 0.15 },
-        { code: '408', libelle: 'Fournisseurs factures non parvenues', pourcentage: 0.05 }
-      ],
-      '66': [
-        { code: '661', libelle: 'Rémunérations directes', pourcentage: 0.65 },
-        { code: '664', libelle: 'Charges sociales', pourcentage: 0.25 },
-        { code: '668', libelle: 'Autres charges de personnel', pourcentage: 0.1 }
-      ],
-      '70': [
-        { code: '701', libelle: 'Ventes produits finis', pourcentage: 0.6 },
-        { code: '702', libelle: 'Ventes produits intermédiaires', pourcentage: 0.25 },
-        { code: '708', libelle: 'Autres ventes', pourcentage: 0.15 }
-      ]
-    };
-
-    const config = subAccountsConfig[mainAccountCode];
-    if (!config) {
-      return [
-        { code: `${mainAccountCode}1`, libelle: `Sous-compte ${mainAccountCode}1`, montant: Math.round(amount * 0.6) },
-        { code: `${mainAccountCode}2`, libelle: `Sous-compte ${mainAccountCode}2`, montant: Math.round(amount * 0.4) }
-      ];
+  // Real transaction details from rawEntries for a given account prefix
+  const generateTransactionDetails = (accountCode: string, _period: string, _amount: number) => {
+    const result: Array<{ id: string; date: string; reference: string; libelle: string; montant: number; tiers: string; piece: string }> = [];
+    for (const e of rawEntries) {
+      if (e.status === 'draft') continue;
+      for (const l of e.lines) {
+        if (l.accountCode.startsWith(accountCode)) {
+          result.push({
+            id: `${e.id}-${l.accountCode}`,
+            date: e.date,
+            reference: e.entryNumber || e.pieceRef || e.id?.substring(0, 8) || '',
+            libelle: l.label || e.label || '',
+            montant: l.debit - l.credit,
+            tiers: (e as any).thirdPartyName || '',
+            piece: e.pieceRef || '',
+          });
+        }
+      }
     }
+    return result;
+  };
 
-    return config.map(sub => ({
-      code: sub.code,
-      libelle: sub.libelle,
-      montant: Math.round(amount * sub.pourcentage)
-    }));
+  // Génération des sous-comptes pour un compte principal — données réelles depuis les écritures
+  const generateSubAccounts = (mainAccountCode: string, _amount: number) => {
+    const accountTotals: Record<string, { debit: number; credit: number; label: string }> = {};
+    for (const e of rawEntries) {
+      if (e.status === 'draft') continue;
+      for (const l of e.lines) {
+        if (l.accountCode.startsWith(mainAccountCode) && l.accountCode.length > mainAccountCode.length) {
+          if (!accountTotals[l.accountCode]) {
+            accountTotals[l.accountCode] = { debit: 0, credit: 0, label: l.label || l.accountCode };
+          }
+          accountTotals[l.accountCode].debit += l.debit;
+          accountTotals[l.accountCode].credit += l.credit;
+        }
+      }
+    }
+    const entries = Object.entries(accountTotals);
+    const totalAbs = entries.reduce((s, [, v]) => s + Math.abs(v.debit - v.credit), 0);
+    return entries
+      .map(([code, v]) => ({
+        code,
+        libelle: v.label,
+        montant: Math.round(v.debit - v.credit),
+      }))
+      .filter(s => s.montant !== 0)
+      .sort((a, b) => Math.abs(b.montant) - Math.abs(a.montant));
   };
 
   // Fonction pour ouvrir la modal de détails
@@ -442,7 +438,6 @@ const BilanSYSCOHADAPage: React.FC = () => {
       });
     }
     setSelectedPeriod(period);
-    setSelectedAccount(accountCode);
     setIsModalOpen(true);
   };
 
@@ -451,7 +446,6 @@ const BilanSYSCOHADAPage: React.FC = () => {
     setIsModalOpen(false);
     setSelectedDetail(null);
     setSelectedPeriod('');
-    setSelectedAccount('');
   };
 
   return (
@@ -491,8 +485,8 @@ const BilanSYSCOHADAPage: React.FC = () => {
               onChange={(e) => setPeriode(e.target.value)}
               className="px-4 py-2 border border-[var(--color-border)] rounded-lg text-sm focus:ring-2 focus:ring-[var(--color-text-secondary)]/20"
             >
-              <option value="current">Exercice 2024</option>
-              <option value="previous">Exercice 2023</option>
+              <option value="current">Exercice {fiscalYear}</option>
+              <option value="previous">Exercice {prevFiscalYear}</option>
               <option value="comparison">Comparaison</option>
             </select>
           </div>
@@ -532,7 +526,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
             <div className="space-y-6">
               <div className="text-center mb-6">
                 <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">BILAN SYSCOHADA</h2>
-                <p className="text-[var(--color-text-tertiary)]">Exercice du 01/01/2024 au 31/12/2024</p>
+                <p className="text-[var(--color-text-tertiary)]">Exercice du 01/01/{fiscalYear} au 31/12/{fiscalYear}</p>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -746,7 +740,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
             <div className="space-y-6">
               <div className="text-center mb-6">
                 <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">COMPTE DE RÉSULTAT SYSCOHADA</h2>
-                <p className="text-[var(--color-text-tertiary)]">Exercice du 01/01/2024 au 31/12/2024</p>
+                <p className="text-[var(--color-text-tertiary)]">Exercice du 01/01/{fiscalYear} au 31/12/{fiscalYear}</p>
               </div>
 
               <div className="space-y-8">
@@ -1572,22 +1566,30 @@ const BilanSYSCOHADAPage: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {selectedDetail.data.map((subAccount: Record<string, unknown>, index: number) => (
-                          <tr key={index} className="border-b border-[var(--color-border)] hover:bg-gray-50">
-                            <td className="p-3 font-medium text-[var(--color-text-secondary)]">{subAccount.code}</td>
-                            <td className="p-3 text-[var(--color-primary)]">{subAccount.libelle}</td>
-                            <td className="p-3 text-right font-mono">{formatCurrency(subAccount.montant)}</td>
-                            <td className="p-3 text-center">
-                              <button
-                                onClick={() => openDetailModal(subAccount.code, subAccount.libelle, selectedPeriod, subAccount.montant)}
-                                className="text-[var(--color-text-secondary)] hover:text-[#404040] p-1 rounded"
-                                title="Voir les transactions"
-                              >
-                                <Eye className="w-4 h-4" />
-                              </button>
+                        {selectedDetail.data.length === 0 ? (
+                          <tr>
+                            <td colSpan={4} className="p-8 text-center text-gray-400 italic">
+                              Aucun sous-compte trouvé — ce code ({selectedDetail.title}) n'a pas d'écritures détaillées.
                             </td>
                           </tr>
-                        ))}
+                        ) : (
+                          selectedDetail.data.map((subAccount: Record<string, any>, index: number) => (
+                            <tr key={index} className="border-b border-[var(--color-border)] hover:bg-gray-50">
+                              <td className="p-3 font-medium text-[var(--color-text-secondary)]">{subAccount.code}</td>
+                              <td className="p-3 text-[var(--color-primary)]">{subAccount.libelle}</td>
+                              <td className="p-3 text-right font-mono">{formatCurrency(subAccount.montant)}</td>
+                              <td className="p-3 text-center">
+                                <button
+                                  onClick={() => openDetailModal(String(subAccount.code), String(subAccount.libelle), selectedPeriod, Number(subAccount.montant))}
+                                  className="text-[var(--color-text-secondary)] hover:text-[#404040] p-1 rounded"
+                                  title="Voir les transactions"
+                                >
+                                  <Eye className="w-4 h-4" />
+                                </button>
+                              </td>
+                            </tr>
+                          ))
+                        )}
                       </tbody>
                     </table>
                   </div>
@@ -1599,7 +1601,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                     <div className="flex justify-between items-center">
                       <p className="text-[var(--color-text-tertiary)] text-sm">Liste des écritures comptables</p>
                       <p className="text-sm font-semibold text-[var(--color-text-secondary)]">
-                        Total: {formatCurrency(selectedDetail.total)}
+                        Total: {formatCurrency(selectedDetail.total ?? 0)}
                       </p>
                     </div>
                   </div>
@@ -1617,16 +1619,24 @@ const BilanSYSCOHADAPage: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {selectedDetail.data.map((transaction: Record<string, unknown>, index: number) => (
-                          <tr key={index} className="border-b border-[var(--color-border)] hover:bg-gray-50">
-                            <td className="p-3 text-[var(--color-text-tertiary)]">{transaction.date}</td>
-                            <td className="p-3 font-medium text-[var(--color-text-secondary)]">{transaction.reference}</td>
-                            <td className="p-3 text-[var(--color-primary)]">{transaction.libelle}</td>
-                            <td className="p-3 text-[var(--color-text-tertiary)] text-xs">{transaction.tiers}</td>
-                            <td className="p-3 text-right font-mono text-[var(--color-primary)]">{formatCurrency(transaction.montant)}</td>
-                            <td className="p-3 text-[var(--color-text-tertiary)] text-xs">{transaction.piece}</td>
+                        {selectedDetail.data.length === 0 ? (
+                          <tr>
+                            <td colSpan={6} className="p-8 text-center text-gray-400 italic">
+                              Aucune transaction trouvée pour ce compte sur cette période.
+                            </td>
                           </tr>
-                        ))}
+                        ) : (
+                          selectedDetail.data.map((transaction: Record<string, any>, index: number) => (
+                            <tr key={index} className="border-b border-[var(--color-border)] hover:bg-gray-50">
+                              <td className="p-3 text-[var(--color-text-tertiary)]">{transaction.date}</td>
+                              <td className="p-3 font-medium text-[var(--color-text-secondary)]">{transaction.reference}</td>
+                              <td className="p-3 text-[var(--color-primary)]">{transaction.libelle}</td>
+                              <td className="p-3 text-[var(--color-text-tertiary)] text-xs">{transaction.tiers}</td>
+                              <td className="p-3 text-right font-mono text-[var(--color-primary)]">{formatCurrency(transaction.montant)}</td>
+                              <td className="p-3 text-[var(--color-text-tertiary)] text-xs">{transaction.piece}</td>
+                            </tr>
+                          ))
+                        )}
                       </tbody>
                     </table>
                   </div>

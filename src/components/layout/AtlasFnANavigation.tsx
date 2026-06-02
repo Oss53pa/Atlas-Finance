@@ -29,19 +29,15 @@ import {
   Banknote,
   Building,
   Activity,
-  Target
+  Target,
+  Calendar
 } from 'lucide-react';
 import {
   Badge,
   Button,
   Input,
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator
 } from '../ui';
-import { dashboardService } from '../../services';
+import dashboardService from '../../services/dashboard.service';
 
 interface NavigationProps {
   companyId: string;
@@ -132,7 +128,7 @@ const AtlasFnANavigation: React.FC<NavigationProps> = ({
           icon: Calculator,
           href: '/accounting/balance',
           module: 'accounting',
-          submenu: [
+          children: [
             {
               id: 'balance-simple',
               label: 'Balance Simple',
@@ -169,7 +165,7 @@ const AtlasFnANavigation: React.FC<NavigationProps> = ({
           icon: BarChart3,
           href: '/accounting/financial-statements',
           module: 'accounting',
-          submenu: [
+          children: [
             {
               id: 'financial-dashboard',
               label: 'Tableau de Bord',
@@ -532,7 +528,7 @@ const AtlasFnANavigation: React.FC<NavigationProps> = ({
                 {/* Sous-menu */}
                 {hasChildren && isExpanded && (
                   <div className="ml-6 mt-2 space-y-1 border-l border-gray-200 pl-4">
-                    {item.children.map((child) => {
+                    {(item.children ?? []).map((child) => {
                       const ChildIcon = child.icon;
                       const isChildActive = isActive(child.href);
                       const childAlertCount = child.badge || 0;
@@ -570,48 +566,41 @@ const AtlasFnANavigation: React.FC<NavigationProps> = ({
 
       {/* Actions rapides contextuelles */}
       <div className="p-4 border-t border-gray-200">
-        <DropdownMenu open={showQuickActions} onOpenChange={setShowQuickActions}>
-          <DropdownMenuTrigger asChild>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="w-full justify-between"
-            >
-              <span className="flex items-center">
-                <Zap className="h-4 w-4 mr-2" />
-                Actions Rapides
-              </span>
-              <ChevronDown className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56" align="start">
-            <DropdownMenuItem onClick={() => navigate('/accounting/entries/create')}>
-              <FileText className="h-4 w-4 mr-2" />
-              Nouvelle Écriture
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate('/customers/create')}>
-              <Users className="h-4 w-4 mr-2" />
-              Nouveau Client
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate('/suppliers/create')}>
-              <Truck className="h-4 w-4 mr-2" />
-              Nouveau Fournisseur
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate('/treasury/fund-calls/create')}>
-              <Banknote className="h-4 w-4 mr-2" />
-              Appel de Fonds
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => navigate('/accounting/reconciliation')}>
-              <Shield className="h-4 w-4 mr-2" />
-              Lettrage Automatique
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate('/reporting/executive')}>
-              <TrendingUp className="h-4 w-4 mr-2" />
-              Rapport Executive
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full justify-between"
+          onClick={() => setShowQuickActions(!showQuickActions)}
+        >
+          <span className="flex items-center">
+            <Zap className="h-4 w-4 mr-2" />
+            Actions Rapides
+          </span>
+          <ChevronDown className="h-4 w-4" />
+        </Button>
+        {showQuickActions && (
+          <div className="mt-1 w-full bg-white border border-gray-200 rounded-md shadow-md z-50">
+            <button className="w-full flex items-center px-3 py-2 text-sm hover:bg-gray-50" onClick={() => { navigate('/accounting/entries/create'); setShowQuickActions(false); }}>
+              <FileText className="h-4 w-4 mr-2" />Nouvelle Écriture
+            </button>
+            <button className="w-full flex items-center px-3 py-2 text-sm hover:bg-gray-50" onClick={() => { navigate('/customers/create'); setShowQuickActions(false); }}>
+              <Users className="h-4 w-4 mr-2" />Nouveau Client
+            </button>
+            <button className="w-full flex items-center px-3 py-2 text-sm hover:bg-gray-50" onClick={() => { navigate('/suppliers/create'); setShowQuickActions(false); }}>
+              <Truck className="h-4 w-4 mr-2" />Nouveau Fournisseur
+            </button>
+            <button className="w-full flex items-center px-3 py-2 text-sm hover:bg-gray-50" onClick={() => { navigate('/treasury/fund-calls/create'); setShowQuickActions(false); }}>
+              <Banknote className="h-4 w-4 mr-2" />Appel de Fonds
+            </button>
+            <hr className="border-gray-200" />
+            <button className="w-full flex items-center px-3 py-2 text-sm hover:bg-gray-50" onClick={() => { navigate('/accounting/reconciliation'); setShowQuickActions(false); }}>
+              <Shield className="h-4 w-4 mr-2" />Lettrage Automatique
+            </button>
+            <button className="w-full flex items-center px-3 py-2 text-sm hover:bg-gray-50" onClick={() => { navigate('/reporting/executive'); setShowQuickActions(false); }}>
+              <TrendingUp className="h-4 w-4 mr-2" />Rapport Executive
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Notifications et activités récentes */}
@@ -622,12 +611,12 @@ const AtlasFnANavigation: React.FC<NavigationProps> = ({
             <Bell className="h-4 w-4" />
           </Button>
         </div>
-        
+
         <div className="space-y-2">
-          {recentActivities?.slice(0, 3).map((activity, index) => (
+          {recentActivities?.slice(0, 3).map((activity: { description?: string; timestamp?: string }, index: number) => (
             <div key={index} className="text-xs text-gray-600 p-2 bg-white rounded border">
-              <p className="font-medium">{activity.description}</p>
-              <p className="text-gray-700">{formatDate(activity.timestamp, 'HH:mm')}</p>
+              <p className="font-medium">{activity.description ?? ''}</p>
+              <p className="text-gray-700">{activity.timestamp ? new Date(activity.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : ''}</p>
             </div>
           ))}
         </div>
@@ -638,36 +627,20 @@ const AtlasFnANavigation: React.FC<NavigationProps> = ({
         <div className="flex items-center space-x-3">
           <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
             <span className="text-gray-600 text-sm font-medium">
-              {currentUser?.firstName?.[0]}{currentUser?.lastName?.[0]}
+              {String(currentUser?.['firstName'] ?? '').charAt(0)}{String(currentUser?.['lastName'] ?? '').charAt(0)}
             </span>
           </div>
           <div className="flex-1">
             <p className="text-sm font-medium text-gray-900">
-              {currentUser?.firstName} {currentUser?.lastName}
+              {String(currentUser?.['firstName'] ?? '')} {String(currentUser?.['lastName'] ?? '')}
             </p>
-            <p className="text-xs text-gray-700">{currentUser?.role}</p>
+            <p className="text-xs text-gray-700">{String(currentUser?.['role'] ?? '')}</p>
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm">
-                <Settings className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => navigate('/profile')}>
-                Profil
-              </DropdownMenuItem>
-              {currentUser?.role === 'admin' && (
-                <DropdownMenuItem onClick={() => navigate('/settings')}>
-                  Paramètres
-                </DropdownMenuItem>
-              )}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate('/logout')}>
-                Déconnexion
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="relative">
+            <Button variant="ghost" size="sm" onClick={() => setShowQuickActions(!showQuickActions)}>
+              <Settings className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
     </div>

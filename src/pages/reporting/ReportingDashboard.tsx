@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useData } from '../../contexts/DataContext';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   ChartBarIcon,
@@ -54,20 +54,40 @@ interface Report {
   tags: string[];
 }
 
+// Supported export formats — derived from static capabilities; update when adapter adds new formats
+const SUPPORTED_FORMATS = ['PDF', 'Excel', 'Dashboard'] as const;
+
 const ReportingDashboard: React.FC = () => {
   const { adapter } = useData();
+  const navigate = useNavigate();
   const [selectedView, setSelectedView] = useState<'overview' | 'reports' | 'dashboards'>('overview');
   const [selectedPeriod, setSelectedPeriod] = useState('30d');
 
-  // Load fiscal years and journal entries from Dexie
-  const { data: fiscalYears = [], isLoading: fyLoading } = useQuery({
-    queryKey: ['dashboard-fiscal-years'],
-    queryFn: () => adapter.getAll('fiscalYears'),
+  // Load fiscal years from adapter — filtered by selectedPeriod where applicable
+  const { data: fiscalYears = [], isLoading: fyLoading, isError: fyError } = useQuery({
+    queryKey: ['dashboard-fiscal-years', selectedPeriod],
+    queryFn: async () => {
+      const all = await adapter.getAll('fiscalYears');
+      if (selectedPeriod === 'all') return all;
+      const now = new Date();
+      const cutoffDays = selectedPeriod === '7d' ? 7 : selectedPeriod === '30d' ? 30 : 90;
+      const cutoff = new Date(now.getTime() - cutoffDays * 24 * 60 * 60 * 1000).toISOString().substring(0, 10);
+      return (all as Array<{ endDate?: string; startDate?: string }>).filter(fy =>
+        (fy.endDate ?? fy.startDate ?? '') >= cutoff
+      );
+    },
   });
 
-  const { data: journalEntries = [], isLoading: jeLoading } = useQuery({
-    queryKey: ['dashboard-journal-entries'],
-    queryFn: () => adapter.getAll('journalEntries'),
+  // Load journal entries filtered by selectedPeriod
+  const { data: journalEntries = [], isLoading: jeLoading, isError: jeError } = useQuery({
+    queryKey: ['dashboard-journal-entries', selectedPeriod],
+    queryFn: async () => {
+      const all = await adapter.getAll('journalEntries');
+      const now = new Date();
+      const cutoffDays = selectedPeriod === '7d' ? 7 : selectedPeriod === '30d' ? 30 : 90;
+      const cutoff = new Date(now.getTime() - cutoffDays * 24 * 60 * 60 * 1000).toISOString().substring(0, 10);
+      return (all as Array<{ date?: string }>).filter(e => (e.date ?? '') >= cutoff);
+    },
   });
 
   // Build report list from real data
@@ -117,6 +137,7 @@ const ReportingDashboard: React.FC = () => {
   }, [fiscalYears, journalEntries]);
 
   const reportsLoading = fyLoading || jeLoading;
+  const reportsError = fyError || jeError;
 
   // Compute total entry count for "Générations" KPI
   const totalGenerations = journalEntries.length.toString();
@@ -143,7 +164,7 @@ const ReportingDashboard: React.FC = () => {
     return (
       <PageContainer background="warm" padding="lg">
         <div className="flex justify-center items-center min-h-[60vh]">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             className="flex flex-col items-center space-y-6 bg-white/90 backdrop-blur-sm p-12 rounded-xl shadow-md"
@@ -151,6 +172,20 @@ const ReportingDashboard: React.FC = () => {
             <div className="w-20 h-20 border-4 border-[var(--color-primary)]/20 border-t-[var(--color-primary)] rounded-full animate-spin"></div>
             <p className="text-lg font-semibold text-neutral-700">Chargement du tableau de bord reporting...</p>
           </motion.div>
+        </div>
+      </PageContainer>
+    );
+  }
+
+  if (reportsError) {
+    return (
+      <PageContainer background="warm" padding="lg">
+        <div className="flex justify-center items-center min-h-[60vh]">
+          <div className="flex flex-col items-center space-y-4 bg-white/90 backdrop-blur-sm p-12 rounded-xl shadow-md text-center">
+            <DocumentTextIcon className="h-12 w-12 text-red-400" />
+            <p className="text-lg font-semibold text-neutral-700">Impossible de charger les données de reporting</p>
+            <p className="text-sm text-neutral-500">Vérifiez votre connexion et réessayez.</p>
+          </div>
         </div>
       </PageContainer>
     );
@@ -175,7 +210,7 @@ const ReportingDashboard: React.FC = () => {
                 <option value="30d">30 derniers jours</option>
                 <option value="90d">90 derniers jours</option>
               </select>
-              <ElegantButton icon={PlusIcon}>
+              <ElegantButton icon={PlusIcon} onClick={() => navigate('/reporting/reports')}>
                 Nouveau Rapport
               </ElegantButton>
             </div>
@@ -194,9 +229,9 @@ const ReportingDashboard: React.FC = () => {
             withChart={true}
           />
           <KPICard
-            title="Vues Totales"
-            value={reports.reduce((sum, r) => sum + r.views, 0).toString()}
-            subtitle="Ce mois"
+            title="Rapports Générés"
+            value={reports.length.toString()}
+            subtitle={`Sur ${selectedPeriod === '7d' ? '7 jours' : selectedPeriod === '30d' ? '30 jours' : '90 jours'}`}
             icon={Eye}
             color="success"
             delay={0.2}
@@ -267,6 +302,13 @@ const ReportingDashboard: React.FC = () => {
             </div>
 
             <div className="space-y-6">
+              {reports.length === 0 && (
+                <div className="flex flex-col items-center py-12 text-neutral-500 space-y-2">
+                  <FileText className="h-10 w-10 text-neutral-300" />
+                  <p className="text-sm font-medium">Aucun rapport disponible pour cette période</p>
+                  <p className="text-xs text-neutral-400">Modifiez le filtre de période ou créez un premier rapport.</p>
+                </div>
+              )}
               {reports.map((report, index) => (
                 <motion.div
                   key={report.id}
@@ -355,9 +397,9 @@ const ReportingDashboard: React.FC = () => {
               >
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-sm font-semibold text-primary-900">Formats Supportés</span>
-                  <span className="font-bold text-xl text-primary-900">3</span>
+                  <span className="font-bold text-xl text-primary-900">{SUPPORTED_FORMATS.length}</span>
                 </div>
-                <p className="text-sm text-primary-700">PDF, Excel, Dashboard</p>
+                <p className="text-sm text-primary-700">{SUPPORTED_FORMATS.join(', ')}</p>
               </motion.div>
 
               <motion.div
@@ -383,7 +425,7 @@ const ReportingDashboard: React.FC = () => {
             <p className="text-neutral-600">Gestion des rapports et tableaux de bord</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Link to="/reporting/custom">
+            <Link to="/reporting/reports">
               <motion.div
                 whileHover={{ scale: 1.05, y: -5 }}
                 initial={{ opacity: 0, y: 20 }}

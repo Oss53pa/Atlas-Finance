@@ -13,31 +13,31 @@ import {
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  PieChart as RechartsPieChart, Cell, LineChart, Line, ResponsiveContainer
+  PieChart as RechartsPieChart, Pie, Cell, LineChart, Line, ResponsiveContainer
 } from 'recharts';
 import { Message, Collaboration, CollaborationTask } from '../../types/tiers';
 
 const CollaborationModule: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('chat');
-  const [selectedChat, setSelectedChat] = useState<Record<string, unknown> | null>(null);
+  const [selectedChat, setSelectedChat] = useState<any | null>(null);
   const [messageText, setMessageText] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Data from DataContext
   const { adapter } = useData();
-  const [thirdParties, setThirdParties] = useState<Record<string, unknown>[]>([]);
-  const [settings, setSettings] = useState<Record<string, unknown>[]>([]);
+  const [thirdParties, setThirdParties] = useState<any[]>([]);
+  const [settings, setSettings] = useState<any[]>([]);
 
   useEffect(() => {
     const load = async () => {
       const [tps, stgs] = await Promise.all([
-        adapter.getAll('thirdParties'),
-        adapter.getAll('settings'),
+        adapter.getAll<any>('thirdParties'),
+        adapter.getAll<any>('settings'),
       ]);
-      setThirdParties(tps as Record<string, unknown>[]);
-      setSettings(stgs as Record<string, unknown>[]);
+      setThirdParties(tps as any[]);
+      setSettings(stgs as any[]);
     };
     load();
   }, [adapter]);
@@ -94,9 +94,9 @@ const CollaborationModule: React.FC = () => {
   // Analytics computed from real data
   const analyticsData = {
     statistiques: {
-      totalMessages: chats.reduce((s, c) => s + ((c as unknown as { messages?: unknown[] }).messages?.length || 0), 0),
+      totalMessages: mockChats.reduce((s, c) => s + ((c as unknown as { messages?: unknown[] }).messages?.length || 0), 0),
       messagesAujourdhui: 0,
-      collaborationsActives: collaborations.filter((c: any) => c.status === 'active' || c.progress < 100).length,
+      collaborationsActives: mockCollaborations.filter((c: any) => c.status === 'active' || (c.progress as number) < 100).length,
       tauxReponse: 0
     },
     activiteParJour: [] as { jour: string; messages: number; collaborations: number }[],
@@ -371,7 +371,7 @@ const CollaborationModule: React.FC = () => {
 
                 {/* Messages */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                  {(selectedChat.messages as Array<Record<string, unknown>>).map((message: Record<string, unknown>) => (
+                  {(selectedChat.messages as any[]).map((message: any) => (
                     <div
                       key={message.id}
                       className={`flex ${message.isOwn ? 'justify-end' : 'justify-start'}`}
@@ -569,7 +569,7 @@ const CollaborationModule: React.FC = () => {
                         {collab.participants.map((participant) => (
                           <div key={participant.id} className="flex items-center bg-gray-100 rounded-full px-3 py-1">
                             <div className="w-6 h-6 bg-[var(--color-text-tertiary)] rounded-full flex items-center justify-center text-white text-xs font-semibold mr-2">
-                              {participant.name.split(' ').map(n => n[0]).join('')}
+                              {String(participant.name).split(' ').map((n: string) => n[0]).join('')}
                             </div>
                             <span className="text-sm text-gray-700">{participant.name}</span>
                             <span className="text-xs text-gray-700 ml-1">({participant.role})</span>
@@ -701,7 +701,7 @@ const CollaborationModule: React.FC = () => {
                     cy="50%"
                     outerRadius={100}
                     fill="#235A6E"
-                    label={({ type, pourcentage }) => `${type} (${pourcentage}%)`}
+                    label={({ type, pourcentage }: { type?: string; pourcentage?: number }) => `${type} (${pourcentage}%)`}
                   >
                     {analyticsData.typesCommunication.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />

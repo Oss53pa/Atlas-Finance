@@ -213,7 +213,7 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
 
       } else {
         // Mise à jour dans company_members (Supabase)
-        const { error: updateErr } = await supabase
+        const { error: updateErr } = await (supabase as any)
           .from('company_members')
           .update({
             first_name: form.prenom,
@@ -253,7 +253,7 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
       : u2
     ));
     // Persistance Supabase
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('company_members')
       .update({ active: newActive })
       .eq('email', u.email);

@@ -18,7 +18,14 @@ import {
   LockClosedIcon,
   LockOpenIcon,
   CurrencyDollarIcon,
-  TagIcon
+  TagIcon,
+  BuildingOfficeIcon,
+  UsersIcon,
+  DocumentTextIcon,
+  ChartBarIcon,
+  ShieldCheckIcon,
+  GlobeAltIcon,
+  ViewfinderCircleIcon as TargetIcon
 } from '@heroicons/react/24/outline';
 
 interface SYSCOHADAAccount {
@@ -74,7 +81,7 @@ interface AccountClass {
   title: string;
   description: string;
   color: string;
-  icon: string;
+  icon: React.ElementType;
   mandatory: boolean;
   accountCount: number;
 }
@@ -850,7 +857,7 @@ const SYSCOHADAAccountsConfig: React.FC = () => {
                           <span className="text-sm text-gray-700">{param.label}</span>
                         </div>
                         <div className="flex items-center space-x-2">
-                          {(account as Record<string, unknown>)[param.key] ? (
+                          {(account as unknown as Record<string, unknown>)[param.key] ? (
                             <CheckCircleIcon className="h-4 w-4 text-green-500" />
                           ) : (
                             <div className="h-4 w-4 border border-gray-300 rounded-full"></div>

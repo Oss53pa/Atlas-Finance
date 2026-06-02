@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
@@ -58,7 +58,14 @@ import {
 import { useBankAccounts } from '../../hooks';
 import { formatCurrency, formatDate } from '../../lib/utils';
 import { toast } from 'react-hot-toast';
-import type { DBJournalEntry } from '../../lib/db';
+import type { DBJournalEntry, DBBankStatement, DBBankStatementLine } from '../../lib/db';
+import {
+  getBankStatements,
+  getBankStatementLines,
+  createBankStatement,
+  deleteBankStatement,
+  type BankStatementSetupInfo,
+} from '../../services/bankStatementService';
 
 interface ReconciliationItem {
   id: string;
@@ -114,6 +121,62 @@ const ReconciliationPage: React.FC = () => {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState<ReconciliationItem | null>(null);
 
+  // Journal des relevés bancaires importés
+  const [statements, setStatements] = useState<DBBankStatement[]>([]);
+  const [expandedStatementId, setExpandedStatementId] = useState<string | null>(null);
+  const [statementLines, setStatementLines] = useState<DBBankStatementLine[]>([]);
+  const [showImportSetup, setShowImportSetup] = useState(false);
+  const emptySetup: BankStatementSetupInfo = {
+    accountCode: '521',
+    accountLabel: 'Banque',
+    bankName: '',
+    periodStart: filters.periode_debut,
+    periodEnd: filters.periode_fin,
+    openingBalance: 0,
+    closingBalance: 0,
+    currency: 'XOF',
+    fileName: '',
+  };
+  const [setupInfo, setSetupInfo] = useState<BankStatementSetupInfo>(emptySetup);
+
+  const refreshStatements = useCallback(async () => {
+    try {
+      setStatements(await getBankStatements(adapter));
+    } catch (error) {
+      console.error('[ReconciliationPage] Erreur chargement relevés bancaires:', error);
+    }
+  }, [adapter]);
+
+  useEffect(() => { refreshStatements(); }, [refreshStatements]);
+
+  const toggleStatementDetail = useCallback(async (id: string) => {
+    if (expandedStatementId === id) {
+      setExpandedStatementId(null);
+      setStatementLines([]);
+      return;
+    }
+    setExpandedStatementId(id);
+    try {
+      setStatementLines(await getBankStatementLines(adapter, id));
+    } catch (error) {
+      console.error('[ReconciliationPage] Erreur chargement lignes relevé:', error);
+      setStatementLines([]);
+    }
+  }, [adapter, expandedStatementId]);
+
+  const handleDeleteStatement = useCallback(async (id: string) => {
+    if (!confirm('Supprimer ce relevé et toutes ses lignes ?')) return;
+    try {
+      await deleteBankStatement(adapter, id);
+      if (expandedStatementId === id) { setExpandedStatementId(null); setStatementLines([]); }
+      await refreshStatements();
+      toast.success('Relevé supprimé');
+    } catch (error) {
+      console.error('[ReconciliationPage] Erreur suppression relevé:', error);
+      toast.error('Erreur lors de la suppression du relevé');
+    }
+  }, [adapter, expandedStatementId, refreshStatements]);
+
   const { data: bankAccounts } = useBankAccounts({
     page: 1,
     page_size: 100,
@@ -162,9 +225,18 @@ const ReconciliationPage: React.FC = () => {
       ]
     : [];
 
+  // Appliquer les filtres statut et type_ecart sur les items (warnings 18/19)
+  const PAGE_SIZE = 50;
+  const filteredItems = reconciliationItems.filter(item => {
+    if (filters.statut && item.statut !== filters.statut) return false;
+    if (filters.type_ecart && item.type_ecart !== filters.type_ecart) return false;
+    return true;
+  });
+  const paginatedItems = filteredItems.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
   const reconciliationData = {
-    count: reconciliationItems.length,
-    results: reconciliationItems,
+    count: filteredItems.length,
+    results: paginatedItems,
     matched_count: rapprochementResult?.matches.length || 0,
     unmatched_count: (rapprochementResult?.unmatchedBank.length || 0) + (rapprochementResult?.unmatchedCompta.length || 0),
     total_difference: rapprochementResult?.ecart || 0,
@@ -185,21 +257,42 @@ const ReconciliationPage: React.FC = () => {
     try {
       const result = await rapprochementAutomatique(adapter, transactions);
       setRapprochementResult(result);
-      // Generate état de rapprochement
-      const compte = filters.compte || '512';
-      const etat = await genererEtatRapprochement(compte, transactions, result);
-      setEtatRapprochement(etat);
+      // Generate état de rapprochement uniquement si un compte est identifié
+      const compte = setupInfo.accountCode || filters.compte || '';
+      if (compte) {
+        const etat = await genererEtatRapprochement(compte, transactions, result);
+        setEtatRapprochement(etat);
+      }
+
+      // Persister le relevé dans le journal des relevés
+      try {
+        // Reporter le statut de rapprochement sur les transactions persistées
+        const matchedIds = new Set(result.matches.map(m => m.bankTransactionId));
+        const persisted = transactions.map(tx => ({
+          ...tx,
+          matched: matchedIds.has(tx.id),
+          matchedEntryIds: result.matches.find(m => m.bankTransactionId === tx.id)?.entryIds,
+        }));
+        await createBankStatement(adapter, setupInfo, persisted);
+        await refreshStatements();
+      } catch (persistError) {
+        console.error('[ReconciliationPage] Erreur persistance relevé (best-effort):', persistError);
+      }
+
       toast.success(`Rapprochement terminé : ${result.matches.length} correspondances trouvées`);
     } catch (error) {
+      console.error('[ReconciliationPage] Erreur rapprochement automatique:', error);
       toast.error('Erreur lors du rapprochement automatique');
     } finally {
       setIsLoading(false);
+      setShowImportSetup(false);
     }
-  }, [adapter, filters.compte]);
+  }, [adapter, filters.compte, setupInfo, refreshStatements]);
 
   const handleFileUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    setSetupInfo(prev => ({ ...prev, fileName: file.name }));
     const reader = new FileReader();
     reader.onload = (event) => {
       const csvContent = event.target?.result as string;
@@ -254,11 +347,16 @@ const ReconciliationPage: React.FC = () => {
     try {
       const result = await rapprochementAutomatique(adapter, bankTransactions);
       setRapprochementResult(result);
-      const compte = filters.compte || '512';
-      const etat = await genererEtatRapprochement(compte, bankTransactions, result);
-      setEtatRapprochement(etat);
+      // Utiliser le code du compte sélectionné ; si absent, utiliser celui du setup info
+      // Ne pas avoir recours au hardcode '512' si on n'a pas de compte sélectionné
+      const compte = filters.compte || setupInfo.accountCode || '';
+      if (compte) {
+        const etat = await genererEtatRapprochement(compte, bankTransactions, result);
+        setEtatRapprochement(etat);
+      }
       toast.success(`Rapprochement terminé : ${result.matches.length} correspondances`);
     } catch (error) {
+      console.error('[ReconciliationPage] Erreur rapprochement automatique:', error);
       toast.error('Erreur lors du rapprochement automatique');
     } finally {
       setIsLoading(false);
@@ -294,11 +392,14 @@ const ReconciliationPage: React.FC = () => {
       if (bankTransactions.length > 0) {
         const result = await rapprochementAutomatique(adapter, bankTransactions);
         setRapprochementResult(result);
-        const compte = filters.compte || '512';
-        const etat = await genererEtatRapprochement(compte, bankTransactions, result);
-        setEtatRapprochement(etat);
+        const compte = filters.compte || setupInfo.accountCode || '';
+        if (compte) {
+          const etat = await genererEtatRapprochement(compte, bankTransactions, result);
+          setEtatRapprochement(etat);
+        }
       }
     } catch (error) {
+      console.error('[ReconciliationPage] Erreur rapprochement manuel:', error);
       toast.error('Erreur lors du rapprochement');
     }
   };
@@ -344,24 +445,40 @@ const ReconciliationPage: React.FC = () => {
     if (!rapprochementResult) return;
     if (!confirm(`Confirmer le rapprochement de l'élément "${item.libelle}" ?`)) return;
 
-    const match = rapprochementResult.matches.find(m => m.bankTransactionId === item.id);
-    if (!match) {
-      toast.error('Aucune correspondance trouvée pour cet élément');
+    // L'item peut venir de matches (rapproché) ou de unmatchedBank/unmatchedCompta (non rapproché).
+    // Pour les items non rapprochés, on cherche d'abord dans les matches existants,
+    // puis dans les non-rapprochés banque et comptabilité.
+    const matchFromMatches = rapprochementResult.matches.find(m => m.bankTransactionId === item.id);
+    const isUnmatchedBank = rapprochementResult.unmatchedBank.some(tx => tx.id === item.id);
+    const isUnmatchedCompta = rapprochementResult.unmatchedCompta.some(cl => cl.lineId === item.id);
+
+    if (!matchFromMatches) {
+      if (isUnmatchedBank || isUnmatchedCompta) {
+        toast.error(
+          'Cet élément est non rapproché — aucune correspondance automatique disponible. ' +
+          'Utilisez le rapprochement manuel pour l\'associer à une écriture.'
+        );
+      } else {
+        toast.error('Aucune correspondance trouvée pour cet élément');
+      }
       return;
     }
 
     try {
-      const applied = await appliquerRapprochement(adapter, [match]);
+      const applied = await appliquerRapprochement(adapter, [matchFromMatches]);
       toast.success(`${applied} écriture(s) rapprochée(s) pour "${item.libelle}"`);
       // Refresh
       if (bankTransactions.length > 0) {
         const result = await rapprochementAutomatique(adapter, bankTransactions);
         setRapprochementResult(result);
-        const compte = filters.compte || '512';
-        const etat = await genererEtatRapprochement(compte, bankTransactions, result);
-        setEtatRapprochement(etat);
+        const compte = filters.compte || setupInfo.accountCode || '';
+        if (compte) {
+          const etat = await genererEtatRapprochement(compte, bankTransactions, result);
+          setEtatRapprochement(etat);
+        }
       }
     } catch (error) {
+      console.error('[ReconciliationPage] Erreur rapprochement individuel:', error);
       toast.error('Erreur lors du rapprochement');
     }
   };
@@ -387,15 +504,17 @@ const ReconciliationPage: React.FC = () => {
       for (const entryId of entryIdSet) {
         const entry = await adapter.getById<DBJournalEntry>('journalEntries', entryId);
         if (!entry) continue;
-        let changed = false;
-        for (const line of entry.lines) {
+        // Créer une copie des lignes pour ne pas muter l'objet du cache adaptateur avant
+        // que la mise à jour soit confirmée en base (évite la corruption de l'état si update échoue)
+        const updatedLines = entry.lines.map(line => {
           if (lineIdSet.has(line.id) && line.lettrageCode) {
-            line.lettrageCode = undefined;
-            changed = true;
+            return { ...line, lettrageCode: undefined };
           }
-        }
+          return line;
+        });
+        const changed = updatedLines.some((l, i) => l !== entry.lines[i]);
         if (changed) {
-          await adapter.update('journalEntries', entryId, { lines: entry.lines, updatedAt: new Date().toISOString() });
+          await adapter.update('journalEntries', entryId, { lines: updatedLines, updatedAt: new Date().toISOString() });
           modified++;
         }
       }
@@ -406,11 +525,14 @@ const ReconciliationPage: React.FC = () => {
       if (bankTransactions.length > 0) {
         const result = await rapprochementAutomatique(adapter, bankTransactions);
         setRapprochementResult(result);
-        const compte = filters.compte || '512';
-        const etat = await genererEtatRapprochement(compte, bankTransactions, result);
-        setEtatRapprochement(etat);
+        const compte = filters.compte || setupInfo.accountCode || '';
+        if (compte) {
+          const etat = await genererEtatRapprochement(compte, bankTransactions, result);
+          setEtatRapprochement(etat);
+        }
       }
     } catch (error) {
+      console.error('[ReconciliationPage] Erreur annulation rapprochement:', error);
       toast.error('Erreur lors de l\'annulation du rapprochement');
     }
   };
@@ -464,7 +586,7 @@ const ReconciliationPage: React.FC = () => {
               buttonText="Exporter"
               buttonVariant="outline"
             />
-            <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
+            <Button variant="outline" onClick={() => { setSetupInfo(emptySetup); setShowImportSetup(true); }}>
               <Upload className="mr-2 h-4 w-4" />
               Importer Relevé
             </Button>
@@ -855,12 +977,12 @@ const ReconciliationPage: React.FC = () => {
                 </Table>
               </div>
 
-              {/* Pagination */}
-              {reconciliationData && reconciliationData.count > 0 && (
+              {/* Pagination fonctionnelle sur les données filtrées */}
+              {filteredItems.length > PAGE_SIZE && (
                 <div className="mt-6">
                   <Pagination
                     currentPage={page}
-                    totalPages={Math.ceil(reconciliationData.count / 50)}
+                    totalPages={Math.ceil(filteredItems.length / PAGE_SIZE)}
                     onPageChange={setPage}
                   />
                 </div>
@@ -871,9 +993,11 @@ const ReconciliationPage: React.FC = () => {
                   <GitCompare className="h-12 w-12 text-gray-700 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun élément trouvé</h3>
                   <p className="text-gray-700 mb-6">
-                    {!filters.compte 
-                      ? 'Veuillez sélectionner un compte pour afficher les éléments de rapprochement.'
-                      : 'Aucun élément de rapprochement trouvé pour la période et les critères sélectionnés.'}
+                    {bankTransactions.length > 0 && reconciliationItems.length > 0
+                      ? 'Aucun élément ne correspond aux filtres sélectionnés.'
+                      : bankTransactions.length > 0
+                      ? 'Aucun élément de rapprochement sur cette période.'
+                      : 'Importez un relevé bancaire (CSV) pour lancer le rapprochement.'}
                   </p>
                 </div>
               )}
@@ -1160,6 +1284,225 @@ const ReconciliationPage: React.FC = () => {
                   </button>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Journal des relevés bancaires importés */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <CreditCard className="h-5 w-5" />
+            Journal des relevés bancaires
+            <span className="ml-2 text-sm font-normal text-gray-500">
+              ({statements.length} relevé{statements.length !== 1 ? 's' : ''})
+            </span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {statements.length === 0 ? (
+            <div className="py-8 text-center text-gray-500 text-sm">
+              Aucun relevé importé. Cliquez sur « Importer Relevé » pour saisir les informations du relevé puis charger le fichier.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 text-left text-xs uppercase text-gray-600">
+                  <tr>
+                    <th className="px-3 py-2">Compte</th>
+                    <th className="px-3 py-2">Banque</th>
+                    <th className="px-3 py-2">Période</th>
+                    <th className="px-3 py-2 text-right">Solde ouverture</th>
+                    <th className="px-3 py-2 text-right">Solde clôture</th>
+                    <th className="px-3 py-2 text-right">Lignes</th>
+                    <th className="px-3 py-2 text-right">Débit</th>
+                    <th className="px-3 py-2 text-right">Crédit</th>
+                    <th className="px-3 py-2 text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {statements.map((st) => (
+                    <React.Fragment key={st.id}>
+                      <tr className="hover:bg-gray-50">
+                        <td className="px-3 py-2 font-mono text-[var(--color-primary)]">{st.accountCode}</td>
+                        <td className="px-3 py-2">{st.bankName || st.accountLabel}</td>
+                        <td className="px-3 py-2">{formatDate(st.periodStart)} → {formatDate(st.periodEnd)}</td>
+                        <td className="px-3 py-2 text-right">{formatCurrency(st.openingBalance)}</td>
+                        <td className="px-3 py-2 text-right">{formatCurrency(st.closingBalance)}</td>
+                        <td className="px-3 py-2 text-right">{st.lineCount}</td>
+                        <td className="px-3 py-2 text-right text-red-600">{formatCurrency(st.totalDebit)}</td>
+                        <td className="px-3 py-2 text-right text-green-600">{formatCurrency(st.totalCredit)}</td>
+                        <td className="px-3 py-2 text-center whitespace-nowrap">
+                          <button
+                            onClick={() => toggleStatementDetail(st.id)}
+                            className="text-blue-600 hover:text-blue-900 mr-3"
+                            title="Voir le détail des écritures"
+                          >
+                            <Eye className="w-4 h-4 inline" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteStatement(st.id)}
+                            className="text-red-600 hover:text-red-800"
+                            title="Supprimer le relevé"
+                          >
+                            <X className="w-4 h-4 inline" />
+                          </button>
+                        </td>
+                      </tr>
+                      {expandedStatementId === st.id && (
+                        <tr>
+                          <td colSpan={9} className="bg-gray-50 px-3 py-3">
+                            <div className="text-xs font-semibold text-gray-700 mb-2">
+                              Détail des écritures du relevé {st.fileName ? `(${st.fileName})` : ''}
+                            </div>
+                            <div className="overflow-x-auto max-h-72 overflow-y-auto">
+                              <table className="w-full text-xs">
+                                <thead className="bg-white sticky top-0 text-left text-gray-500">
+                                  <tr>
+                                    <th className="px-2 py-1">Date</th>
+                                    <th className="px-2 py-1">Libellé</th>
+                                    <th className="px-2 py-1">Référence</th>
+                                    <th className="px-2 py-1 text-right">Débit</th>
+                                    <th className="px-2 py-1 text-right">Crédit</th>
+                                    <th className="px-2 py-1 text-center">Rapproché</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100">
+                                  {statementLines.length === 0 && (
+                                    <tr><td colSpan={6} className="px-2 py-3 text-center text-gray-400">Aucune ligne.</td></tr>
+                                  )}
+                                  {statementLines.map((ln) => (
+                                    <tr key={ln.id}>
+                                      <td className="px-2 py-1 whitespace-nowrap">{formatDate(ln.date)}</td>
+                                      <td className="px-2 py-1">{ln.label}</td>
+                                      <td className="px-2 py-1 font-mono text-gray-500">{ln.reference || '—'}</td>
+                                      <td className="px-2 py-1 text-right text-red-600">{ln.debit > 0 ? formatCurrency(ln.debit) : '—'}</td>
+                                      <td className="px-2 py-1 text-right text-green-600">{ln.credit > 0 ? formatCurrency(ln.credit) : '—'}</td>
+                                      <td className="px-2 py-1 text-center">
+                                        {ln.reconciled
+                                          ? <Check className="w-3.5 h-3.5 inline text-green-600" />
+                                          : <span className="text-gray-300">—</span>}
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Modal de setup avant import d'un relevé */}
+      {showImportSetup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between px-6 py-4 border-b">
+              <h3 className="text-lg font-semibold text-gray-900">Informations du relevé</h3>
+              <button onClick={() => setShowImportSetup(false)} className="text-gray-400 hover:text-gray-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="px-6 py-4 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Compte trésorerie</label>
+                  <input
+                    type="text"
+                    value={setupInfo.accountCode}
+                    onChange={(e) => setSetupInfo(p => ({ ...p, accountCode: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono"
+                    placeholder="521"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Libellé compte</label>
+                  <input
+                    type="text"
+                    value={setupInfo.accountLabel}
+                    onChange={(e) => setSetupInfo(p => ({ ...p, accountLabel: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                    placeholder="Banque"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Banque</label>
+                <input
+                  type="text"
+                  value={setupInfo.bankName}
+                  onChange={(e) => setSetupInfo(p => ({ ...p, bankName: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                  placeholder="Nom de la banque"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Période — début</label>
+                  <input
+                    type="date"
+                    value={setupInfo.periodStart}
+                    onChange={(e) => setSetupInfo(p => ({ ...p, periodStart: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Période — fin</label>
+                  <input
+                    type="date"
+                    value={setupInfo.periodEnd}
+                    onChange={(e) => setSetupInfo(p => ({ ...p, periodEnd: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Solde ouverture</label>
+                  <input
+                    type="number"
+                    value={setupInfo.openingBalance}
+                    onChange={(e) => setSetupInfo(p => ({ ...p, openingBalance: Number(e.target.value) }))}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-right"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Solde clôture</label>
+                  <input
+                    type="number"
+                    value={setupInfo.closingBalance}
+                    onChange={(e) => setSetupInfo(p => ({ ...p, closingBalance: Number(e.target.value) }))}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-right"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Devise</label>
+                  <input
+                    type="text"
+                    value={setupInfo.currency}
+                    onChange={(e) => setSetupInfo(p => ({ ...p, currency: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                  />
+                </div>
+              </div>
+              {setupInfo.fileName && (
+                <p className="text-xs text-gray-500">Fichier sélectionné : {setupInfo.fileName}</p>
+              )}
+            </div>
+            <div className="flex justify-end gap-3 px-6 py-4 border-t">
+              <Button variant="outline" onClick={() => setShowImportSetup(false)}>Annuler</Button>
+              <Button onClick={() => fileInputRef.current?.click()} disabled={isLoading || !setupInfo.accountCode}>
+                <Upload className="mr-2 h-4 w-4" />
+                {isLoading ? 'Import en cours…' : 'Choisir le fichier CSV et importer'}
+              </Button>
             </div>
           </div>
         </div>

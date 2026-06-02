@@ -4,16 +4,14 @@ import { useQuery } from '@tanstack/react-query';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import {
-  Building2, TrendingUp, BarChart3, Download, ArrowLeft, Home,
-  DollarSign, Target, Activity, FileText, Calculator, PieChart,
-  RefreshCw, Eye, X, ChevronRight, ChevronDown
+  Building2, TrendingUp, BarChart3, Download, ArrowLeft,
+  DollarSign, Target, FileText, Calculator, PieChart,
+  RefreshCw, X, ChevronRight, ChevronDown
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import PrintableArea from '../../components/ui/PrintableArea';
 import { usePrintReport } from '../../hooks/usePrint';
 import { useData } from '../../contexts/DataContext';
-import type { DBJournalEntry } from '../../lib/db';
-
 const CompteResultatPage: React.FC = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
@@ -22,8 +20,10 @@ const CompteResultatPage: React.FC = () => {
   const [tftMethod, setTftMethod] = useState<'indirect' | 'direct'>('indirect');
   const [tftExpandedRows, setTftExpandedRows] = useState<Set<string>>(new Set());
   const [selectedDetail, setSelectedDetail] = useState<{
+    type?: 'sous-comptes' | 'transactions';
     title?: string;
     accountCode?: string;
+    libelle?: string;
     month?: string;
     amount?: number;
     subAccounts?: Array<{ id: string; code: string; libelle: string; montant: number; pourcentage: number }>;
@@ -31,7 +31,6 @@ const CompteResultatPage: React.FC = () => {
   } | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState<string>('');
-  const [selectedAccount, setSelectedAccount] = useState<string>('');
 
   const { printRef, handlePrint } = usePrintReport({
     orientation: 'landscape',
@@ -45,6 +44,17 @@ const CompteResultatPage: React.FC = () => {
     queryFn: () => adapter.getAll('journalEntries'),
   });
   const allEntries = useMemo(() => rawAllEntries.filter((e: any) => e.status !== 'draft'), [rawAllEntries]);
+
+  // Derive fiscal year from entries
+  const fiscalYear = useMemo(() => {
+    const years: Record<string, number> = {};
+    for (const e of allEntries) {
+      const y = e.date?.split('-')[0];
+      if (y) years[y] = (years[y] || 0) + 1;
+    }
+    const sorted = Object.entries(years).sort((a, b) => b[1] - a[1]);
+    return sorted[0]?.[0] || String(new Date().getFullYear());
+  }, [allEntries]);
 
   const MONTH_NAMES = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
 
@@ -298,7 +308,6 @@ const CompteResultatPage: React.FC = () => {
       });
     }
     setSelectedPeriod(month);
-    setSelectedAccount(accountCode);
     setIsModalOpen(true);
   };
 
@@ -306,7 +315,6 @@ const CompteResultatPage: React.FC = () => {
     setIsModalOpen(false);
     setSelectedDetail(null);
     setSelectedPeriod('');
-    setSelectedAccount('');
   };
 
   // Onglets des états financiers SYSCOHADA mensuels
@@ -349,14 +357,18 @@ const CompteResultatPage: React.FC = () => {
             <div className="h-6 w-px bg-[var(--color-border)]" />
             <div>
               <h1 className="text-lg font-bold text-[var(--color-primary)]">États Financiers Mensuels SYSCOHADA</h1>
-              <p className="text-sm text-[var(--color-text-tertiary)]">Tableaux financiers mensualisés de janvier à décembre 2024</p>
+              <p className="text-sm text-[var(--color-text-tertiary)]">Tableaux financiers mensualisés de janvier à décembre {fiscalYear}</p>
             </div>
           </div>
           <div className="flex items-center space-x-3">
             <div className="text-sm text-[var(--color-text-tertiary)]">
-              Exercice 2024 • Données mensualisées
+              Exercice {fiscalYear} • Données mensualisées
             </div>
-            <button className="p-2 border border-[var(--color-border)] rounded-lg hover:bg-gray-50" aria-label="Actualiser">
+            <button
+              className="p-2 border border-[var(--color-border)] rounded-lg hover:bg-gray-50"
+              aria-label="Actualiser"
+              onClick={() => window.location.reload()}
+            >
               <RefreshCw className="w-4 h-4 text-[var(--color-text-tertiary)]" />
             </button>
           </div>
@@ -395,7 +407,7 @@ const CompteResultatPage: React.FC = () => {
           {activeTab === 'bilan' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">BILAN SYSCOHADA - Exercice 2024</h2>
+                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">BILAN SYSCOHADA - Exercice {fiscalYear}</h2>
                 <p className="text-[var(--color-text-tertiary)]">Données mensualisées de janvier à décembre</p>
               </div>
 
@@ -570,7 +582,7 @@ const CompteResultatPage: React.FC = () => {
           {activeTab === 'bilan-fonctionnel' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">BILAN FONCTIONNEL - Exercice 2024</h2>
+                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">BILAN FONCTIONNEL - Exercice {fiscalYear}</h2>
                 <p className="text-[var(--color-text-tertiary)]">Analyse fonctionnelle des emplois et ressources mensualisée</p>
               </div>
 
@@ -600,9 +612,9 @@ const CompteResultatPage: React.FC = () => {
                         </td>
                       </tr>
                       {[
-                        { libelle: 'Emplois stables', calcul: (month: string) => Math.round(monthlyData[month as keyof typeof monthlyData].ca * 3.2) },
-                        { libelle: 'Actif circulant d\'exploitation', calcul: (month: string) => Math.round(monthlyData[month as keyof typeof monthlyData].ca * 0.8) },
-                        { libelle: 'Actif de trésorerie', calcul: (month: string) => Math.round(monthlyData[month as keyof typeof monthlyData].resultat * 1.2) }
+                        { libelle: 'Emplois stables (immobilisations cl.2)', calcul: (month: string) => { const m = parseInt(month); return Math.round(soldeCumulByPrefix('2', m)); } },
+                        { libelle: 'Actif circulant d\'exploitation (cl.3+41)', calcul: (month: string) => { const m = parseInt(month); return Math.round(soldeCumulByPrefix('3', m) + soldeCumulByPrefix('41', m)); } },
+                        { libelle: 'Actif de trésorerie (cl.5)', calcul: (month: string) => { const m = parseInt(month); return Math.round(soldeCumulByPrefix('5', m)); } }
                       ].map((item, index) => {
                         const monthlyValues = months.map(month => item.calcul(month));
                         const total = monthlyValues.reduce((sum, value) => sum + value, 0);
@@ -629,9 +641,9 @@ const CompteResultatPage: React.FC = () => {
                         </td>
                       </tr>
                       {[
-                        { libelle: 'Ressources stables', calcul: (month: string) => Math.round(monthlyData[month as keyof typeof monthlyData].ca * 2.8) },
-                        { libelle: 'Passif circulant d\'exploitation', calcul: (month: string) => Math.round(monthlyData[month as keyof typeof monthlyData].charges * 0.6) },
-                        { libelle: 'Passif de trésorerie', calcul: (month: string) => Math.round(monthlyData[month as keyof typeof monthlyData].charges * 0.25) }
+                        { libelle: 'Ressources stables (cp+dettes LT)', calcul: (month: string) => { const m = parseInt(month); return Math.round(soldeCreditCumulByPrefix('10', m) + soldeCreditCumulByPrefix('11', m) + soldeCreditCumulByPrefix('12', m) + soldeCreditCumulByPrefix('16', m)); } },
+                        { libelle: 'Passif circulant d\'exploitation (cl.40)', calcul: (month: string) => { const m = parseInt(month); return Math.round(soldeCreditCumulByPrefix('40', m)); } },
+                        { libelle: 'Passif circulant hors exploit. (42+43+44)', calcul: (month: string) => { const m = parseInt(month); return Math.round(soldeCreditCumulByPrefix('42', m) + soldeCreditCumulByPrefix('43', m) + soldeCreditCumulByPrefix('44', m)); } }
                       ].map((item, index) => {
                         const monthlyValues = months.map(month => item.calcul(month));
                         const total = monthlyValues.reduce((sum, value) => sum + value, 0);
@@ -661,7 +673,7 @@ const CompteResultatPage: React.FC = () => {
           {activeTab === 'compte-resultat' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">COMPTE DE RÉSULTAT - Exercice 2024</h2>
+                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">COMPTE DE RÉSULTAT - Exercice {fiscalYear}</h2>
                 <p className="text-[var(--color-text-tertiary)]">Produits et charges mensualisés</p>
               </div>
 
@@ -857,7 +869,7 @@ const CompteResultatPage: React.FC = () => {
           {activeTab === 'tableau-financement' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">TABLEAU DE FINANCEMENT - Exercice 2024</h2>
+                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">TABLEAU DE FINANCEMENT - Exercice {fiscalYear}</h2>
                 <p className="text-[var(--color-text-tertiary)]">Analyse des flux financiers mensualisée</p>
               </div>
 
@@ -886,9 +898,9 @@ const CompteResultatPage: React.FC = () => {
                         </td>
                       </tr>
                       {[
-                        { libelle: 'Investissements du mois', calcul: (month: string) => Math.round(monthlyData[month as keyof typeof monthlyData].ca * 0.15) },
-                        { libelle: 'Remboursements d\'emprunts', calcul: (month: string) => Math.round(monthlyData[month as keyof typeof monthlyData].ca * 0.08) },
-                        { libelle: 'Distributions', calcul: (month: string) => Math.round(monthlyData[month as keyof typeof monthlyData].resultat * 0.3) }
+                        { libelle: 'Acquisitions immobilisations (débit cl.2)', calcul: (month: string) => { const m = parseInt(month); return Math.max(0, Math.round(soldeByPrefix('2', m))); } },
+                        { libelle: 'Remboursements d\'emprunts (débit cl.16)', calcul: (month: string) => { const m = parseInt(month); return Math.max(0, Math.round(soldeByPrefix('16', m))); } },
+                        { libelle: 'Distributions (débit cl.465)', calcul: (month: string) => { const m = parseInt(month); return Math.max(0, Math.round(soldeByPrefix('465', m))); } }
                       ].map((item, index) => {
                         const monthlyValues = months.map(month => item.calcul(month));
                         const total = monthlyValues.reduce((sum, value) => sum + value, 0);
@@ -915,9 +927,9 @@ const CompteResultatPage: React.FC = () => {
                         </td>
                       </tr>
                       {[
-                        { libelle: 'Capacité d\'autofinancement', calcul: (month: string) => Math.round(monthlyData[month as keyof typeof monthlyData].resultat * 1.2) },
-                        { libelle: 'Nouveaux emprunts', calcul: (month: string) => Math.round(monthlyData[month as keyof typeof monthlyData].ca * 0.1) },
-                        { libelle: 'Autres ressources', calcul: (month: string) => Math.round(monthlyData[month as keyof typeof monthlyData].ca * 0.05) }
+                        { libelle: 'CAF (résultat + dotations)', calcul: (month: string) => { const m = parseInt(month); return Math.round(soldeCreditByPrefix('7', m) - soldeByPrefix('6', m) + soldeByPrefix('68', m)); } },
+                        { libelle: 'Nouveaux emprunts (crédit cl.16)', calcul: (month: string) => { const m = parseInt(month); return Math.max(0, Math.round(soldeCreditByPrefix('16', m))); } },
+                        { libelle: 'Augmentations de capital (crédit cl.10)', calcul: (month: string) => { const m = parseInt(month); return Math.max(0, Math.round(soldeCreditByPrefix('10', m))); } }
                       ].map((item, index) => {
                         const monthlyValues = months.map(month => item.calcul(month));
                         const total = monthlyValues.reduce((sum, value) => sum + value, 0);
@@ -1180,7 +1192,7 @@ const CompteResultatPage: React.FC = () => {
           {activeTab === 'sig' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">SIG (SOLDES INTERMÉDIAIRES) - Exercice 2024</h2>
+                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">SIG (SOLDES INTERMÉDIAIRES) - Exercice {fiscalYear}</h2>
                 <p className="text-[var(--color-text-tertiary)]">Formation du résultat mensualisée</p>
               </div>
 
@@ -1253,7 +1265,7 @@ const CompteResultatPage: React.FC = () => {
           {activeTab === 'ratios' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">RATIOS FINANCIERS - Exercice 2024</h2>
+                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">RATIOS FINANCIERS - Exercice {fiscalYear}</h2>
                 <p className="text-[var(--color-text-tertiary)]">Indicateurs de performance mensualisés</p>
               </div>
 
@@ -1278,9 +1290,9 @@ const CompteResultatPage: React.FC = () => {
                     </thead>
                     <tbody>
                       {[
-                        { code: 'R1', nom: 'Marge nette', calcul: (month: string) => ((monthlyData[month as keyof typeof monthlyData].resultat / monthlyData[month as keyof typeof monthlyData].ca) * 100) },
-                        { code: 'R2', nom: 'Marge brute', calcul: (month: string) => ((monthlyData[month as keyof typeof monthlyData].resultat / monthlyData[month as keyof typeof monthlyData].ca) * 100 + 15) },
-                        { code: 'R3', nom: 'Rentabilité CA', calcul: (month: string) => ((monthlyData[month as keyof typeof monthlyData].resultat / monthlyData[month as keyof typeof monthlyData].ca) * 100 + 5) }
+                        { code: 'R1', nom: 'Marge nette (RN/CA)', calcul: (month: string) => { const d = monthlyData[month as keyof typeof monthlyData]; return d.ca === 0 ? 0 : (d.resultat / d.ca) * 100; } },
+                        { code: 'R2', nom: 'Taux de charges (Charges/CA)', calcul: (month: string) => { const d = monthlyData[month as keyof typeof monthlyData]; return d.ca === 0 ? 0 : (d.charges / d.ca) * 100; } },
+                        { code: 'R3', nom: 'Taux de résultat (RN/CA)', calcul: (month: string) => { const d = monthlyData[month as keyof typeof monthlyData]; return d.ca === 0 ? 0 : (d.resultat / d.ca) * 100; } }
                       ].map((ratio, index) => {
                         const monthlyValues = months.map(month => ratio.calcul(month));
                         const moyenne = monthlyValues.reduce((sum, value) => sum + value, 0) / monthlyValues.length;
@@ -1346,7 +1358,7 @@ const CompteResultatPage: React.FC = () => {
                     </thead>
                     <tbody>
                       {[
-                        { code: 'A1', nom: 'Charges/CA', calcul: (month: string) => ((monthlyData[month as keyof typeof monthlyData].charges / monthlyData[month as keyof typeof monthlyData].ca) * 100), format: '%' },
+                        { code: 'A1', nom: 'Charges/CA', calcul: (month: string) => { const d = monthlyData[month as keyof typeof monthlyData]; return d.ca === 0 ? 0 : (d.charges / d.ca) * 100; }, format: '%' },
                         { code: 'A2', nom: 'Croissance', calcul: (month: string) => monthlyData[month as keyof typeof monthlyData].evolution, format: '%' },
                         { code: 'A3', nom: 'CA/jour', calcul: (month: string) => (monthlyData[month as keyof typeof monthlyData].ca / 30), format: '€' }
                       ].map((ratio, index) => {
@@ -1400,7 +1412,7 @@ const CompteResultatPage: React.FC = () => {
             <div className="space-y-6">
               <div className="text-center mb-6">
                 <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">Export États Financiers Mensuels</h2>
-                <p className="text-[var(--color-text-tertiary)]">Téléchargement des tableaux pour l'exercice 2024</p>
+                <p className="text-[var(--color-text-tertiary)]">Téléchargement des tableaux pour l'exercice {fiscalYear}</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -1413,7 +1425,7 @@ const CompteResultatPage: React.FC = () => {
                           <IconComponent className="w-5 h-5 text-[var(--color-text-secondary)]" />
                         </div>
                         <h3 className="font-semibold text-[var(--color-primary)] mb-2">{tab.label}</h3>
-                        <p className="text-sm text-[var(--color-text-tertiary)] mb-4">Exercice 2024 - Mensualisé</p>
+                        <p className="text-sm text-[var(--color-text-tertiary)] mb-4">Exercice {fiscalYear} - Mensualisé</p>
                         <div className="space-y-2">
                           <button
                             onClick={() => { setActiveTab(tab.id); setTimeout(handlePrint, 150); }}
@@ -1451,7 +1463,7 @@ const CompteResultatPage: React.FC = () => {
                   {selectedDetail.type === 'sous-comptes' ? 'Sous-comptes' : 'Détail des transactions'}
                 </h2>
                 <p className="text-sm opacity-90">
-                  {selectedDetail.accountCode} - {selectedDetail.libelle} | {selectedDetail.month} 2024
+                  {selectedDetail.accountCode} - {selectedDetail.libelle} | {selectedDetail.month} {fiscalYear}
                 </p>
               </div>
               <button
@@ -1472,7 +1484,7 @@ const CompteResultatPage: React.FC = () => {
                   </div>
                   <div>
                     <p className="text-sm text-[var(--color-text-tertiary)]">Période</p>
-                    <p className="font-bold text-[var(--color-primary)]">{selectedDetail.month} 2024</p>
+                    <p className="font-bold text-[var(--color-primary)]">{selectedDetail.month} {fiscalYear}</p>
                   </div>
                   <div>
                     <p className="text-sm text-[var(--color-text-tertiary)]">Montant total</p>
@@ -1496,26 +1508,34 @@ const CompteResultatPage: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {selectedDetail.subAccounts?.map((subAccount, index: number) => (
-                        <tr key={subAccount.id} className={`hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-25'}`}>
-                          <td className="p-3 border-b border-[var(--color-border)] font-mono font-bold">{subAccount.code}</td>
-                          <td className="p-3 border-b border-[var(--color-border)]">{subAccount.libelle}</td>
-                          <td className="p-3 border-b border-[var(--color-border)] text-right font-mono font-bold">
-                            {formatCurrency(subAccount.montant)}
-                          </td>
-                          <td className="p-3 border-b border-[var(--color-border)] text-right text-sm text-[var(--color-text-tertiary)]">
-                            {subAccount.pourcentage.toFixed(1)}%
-                          </td>
-                          <td className="p-3 border-b border-[var(--color-border)] text-center">
-                            <button
-                              onClick={() => openDetailModal(subAccount.code, subAccount.libelle, selectedPeriod, subAccount.montant)}
-                              className="px-2 py-1 text-xs bg-[var(--color-text-secondary)] text-white rounded hover:bg-[#404040] transition-colors"
-                            >
-                              Transactions
-                            </button>
+                      {(!selectedDetail.subAccounts || selectedDetail.subAccounts.length === 0) ? (
+                        <tr>
+                          <td colSpan={5} className="p-8 text-center text-gray-400 italic">
+                            Aucun sous-compte trouvé — ce code ({selectedDetail.accountCode}) n'a pas d'écritures détaillées dans la période.
                           </td>
                         </tr>
-                      ))}
+                      ) : (
+                        selectedDetail.subAccounts.map((subAccount, index: number) => (
+                          <tr key={subAccount.id} className={`hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-25'}`}>
+                            <td className="p-3 border-b border-[var(--color-border)] font-mono font-bold">{subAccount.code}</td>
+                            <td className="p-3 border-b border-[var(--color-border)]">{subAccount.libelle}</td>
+                            <td className="p-3 border-b border-[var(--color-border)] text-right font-mono font-bold">
+                              {formatCurrency(subAccount.montant)}
+                            </td>
+                            <td className="p-3 border-b border-[var(--color-border)] text-right text-sm text-[var(--color-text-tertiary)]">
+                              {subAccount.pourcentage.toFixed(1)}%
+                            </td>
+                            <td className="p-3 border-b border-[var(--color-border)] text-center">
+                              <button
+                                onClick={() => openDetailModal(subAccount.code, subAccount.libelle, selectedPeriod, subAccount.montant)}
+                                className="px-2 py-1 text-xs bg-[var(--color-text-secondary)] text-white rounded hover:bg-[#404040] transition-colors"
+                              >
+                                Transactions
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
                     </tbody>
                   </table>
                 ) : (
@@ -1532,18 +1552,26 @@ const CompteResultatPage: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {selectedDetail.transactions?.map((transaction, index: number) => (
-                        <tr key={transaction.id} className={`hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-25'}`}>
-                          <td className="p-3 border-b border-[var(--color-border)]">{transaction.date}</td>
-                          <td className="p-3 border-b border-[var(--color-border)] font-mono text-xs">{transaction.reference}</td>
-                          <td className="p-3 border-b border-[var(--color-border)]">{transaction.libelle}</td>
-                          <td className="p-3 border-b border-[var(--color-border)]">{transaction.tiers}</td>
-                          <td className="p-3 border-b border-[var(--color-border)] font-mono text-xs">{transaction.piece}</td>
-                          <td className="p-3 border-b border-[var(--color-border)] text-right font-mono font-bold">
-                            {formatCurrency(transaction.montant)}
+                      {(!selectedDetail.transactions || selectedDetail.transactions.length === 0) ? (
+                        <tr>
+                          <td colSpan={6} className="p-8 text-center text-gray-400 italic">
+                            Aucune transaction trouvée pour ce compte sur cette période.
                           </td>
                         </tr>
-                      ))}
+                      ) : (
+                        selectedDetail.transactions.map((transaction, index: number) => (
+                          <tr key={transaction.id} className={`hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-25'}`}>
+                            <td className="p-3 border-b border-[var(--color-border)]">{transaction.date}</td>
+                            <td className="p-3 border-b border-[var(--color-border)] font-mono text-xs">{transaction.reference}</td>
+                            <td className="p-3 border-b border-[var(--color-border)]">{transaction.libelle}</td>
+                            <td className="p-3 border-b border-[var(--color-border)]">{transaction.tiers}</td>
+                            <td className="p-3 border-b border-[var(--color-border)] font-mono text-xs">{transaction.piece}</td>
+                            <td className="p-3 border-b border-[var(--color-border)] text-right font-mono font-bold">
+                              {formatCurrency(transaction.montant)}
+                            </td>
+                          </tr>
+                        ))
+                      )}
                     </tbody>
                   </table>
                 )}

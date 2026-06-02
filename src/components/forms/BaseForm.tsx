@@ -215,7 +215,7 @@ const BaseForm: React.FC<FormProps> = ({
               id={fieldId}
               type="checkbox"
               className="h-4 w-4 text-[var(--color-text-primary)] focus:ring-[var(--color-primary)] border-gray-300 rounded"
-              checked={value || false}
+              checked={Boolean(value)}
               onChange={(e) => handleInputChange(field, e.target.checked)}
               onBlur={() => handleInputBlur(field)}
               disabled={field.disabled}

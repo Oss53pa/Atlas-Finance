@@ -1,0 +1,1006 @@
+packages/data/src/adapters/SupabaseAdapter.ts(427,26): error TS2339: Property 'id' does not exist on type '{ tenant_id?: string | undefined; } | { created_at: string; tenant_id?: string | undefined; id: any; }'.
+src/components/admin/sections/AdminUsers.tsx(218,19): error TS2345: Argument of type '{ first_name: string; last_name: string; role: string; telephone: string; departement: string; active: boolean; }' is not assignable to parameter of type 'never'.
+src/components/admin/sections/AdminUsers.tsx(258,15): error TS2345: Argument of type '{ active: boolean; }' is not assignable to parameter of type 'never'.
+src/components/forms/BaseForm.tsx(218,15): error TS2322: Type 'string | false' is not assignable to type 'boolean | undefined'.
+src/components/layout/AtlasFnANavigation.tsx(38,3): error TS2305: Module '"../ui"' has no exported member 'DropdownMenu'.
+src/components/layout/AtlasFnANavigation.tsx(39,3): error TS2305: Module '"../ui"' has no exported member 'DropdownMenuContent'.
+src/components/layout/AtlasFnANavigation.tsx(40,3): error TS2305: Module '"../ui"' has no exported member 'DropdownMenuItem'.
+src/components/layout/AtlasFnANavigation.tsx(41,3): error TS2305: Module '"../ui"' has no exported member 'DropdownMenuTrigger'.
+src/components/layout/AtlasFnANavigation.tsx(42,3): error TS2305: Module '"../ui"' has no exported member 'DropdownMenuSeparator'.
+src/components/layout/AtlasFnANavigation.tsx(44,10): error TS2614: Module '"../../services"' has no exported member 'dashboardService'. Did you mean to use 'import dashboardService from "../../services"' instead?
+src/components/layout/AtlasFnANavigation.tsx(135,11): error TS2353: Object literal may only specify known properties, and 'submenu' does not exist in type 'NavItem'.
+src/components/layout/AtlasFnANavigation.tsx(172,11): error TS2353: Object literal may only specify known properties, and 'submenu' does not exist in type 'NavItem'.
+src/components/layout/AtlasFnANavigation.tsx(275,17): error TS2304: Cannot find name 'Calendar'.
+src/components/layout/AtlasFnANavigation.tsx(535,22): error TS18048: 'item.children' is possibly 'undefined'.
+src/components/layout/AtlasFnANavigation.tsx(627,47): error TS7006: Parameter 'activity' implicitly has an 'any' type.
+src/components/layout/AtlasFnANavigation.tsx(627,57): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/components/layout/AtlasFnANavigation.tsx(630,45): error TS2304: Cannot find name 'formatDate'.
+src/components/layout/AtlasFnANavigation.tsx(641,16): error TS7053: Element implicitly has an 'any' type because expression of type '0' can't be used to index type '{}'.
+src/components/layout/AtlasFnANavigation.tsx(641,45): error TS7053: Element implicitly has an 'any' type because expression of type '0' can't be used to index type '{}'.
+src/components/layout/AtlasFnANavigation.tsx(646,15): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined'.
+src/components/layout/AtlasFnANavigation.tsx(646,40): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined'.
+src/components/layout/AtlasFnANavigation.tsx(648,50): error TS2322: Type 'unknown' is not assignable to type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>'.
+src/components/migration/SageMigrationWizard.tsx(54,10): error TS2614: Module '"../../services"' has no exported member 'migrationService'. Did you mean to use 'import migrationService from "../../services"' instead?
+src/components/migration/SageMigrationWizard.tsx(156,20): error TS18046: 'result' is of type 'unknown'.
+src/components/migration/SageMigrationWizard.tsx(176,28): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'SetStateAction<null>'.
+src/components/migration/SageMigrationWizard.tsx(185,20): error TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string'.
+src/components/migration/SageMigrationWizard.tsx(193,36): error TS2345: Argument of type '{ migration_name: string; source_version: string; include_chart_of_accounts: boolean; include_opening_balance: boolean; include_journal_entries: boolean; include_customers: boolean; ... 4 more ...; companyId: string; }' is not assignable to parameter of type 'void'.
+src/components/migration/SageMigrationWizard.tsx(206,34): error TS2345: Argument of type '{ sessionId: string | null; files: FormData; }' is not assignable to parameter of type 'void'.
+src/components/migration/SageMigrationWizard.tsx(212,40): error TS2345: Argument of type '{ sessionId: string | null; mappingConfig: {}; }' is not assignable to parameter of type 'void'.
+src/components/migration/SageMigrationWizard.tsx(218,30): error TS2339: Property 'is_valid' does not exist on type 'never'.
+src/components/migration/SageMigrationWizard.tsx(219,41): error TS2345: Argument of type '{ sessionId: string | null; }' is not assignable to parameter of type 'void'.
+src/components/migration/SageMigrationWizard.tsx(340,23): error TS2322: Type '{ checked: boolean; onCheckedChange: (checked: any) => void; }' is not assignable to type 'IntrinsicAttributes & CheckboxProps & RefAttributes<HTMLInputElement>'.
+src/components/migration/SageMigrationWizard.tsx(340,41): error TS7006: Parameter 'checked' implicitly has an 'any' type.
+src/components/migration/SageMigrationWizard.tsx(352,23): error TS2322: Type '{ checked: boolean; onCheckedChange: (checked: any) => void; }' is not assignable to type 'IntrinsicAttributes & CheckboxProps & RefAttributes<HTMLInputElement>'.
+src/components/migration/SageMigrationWizard.tsx(352,41): error TS7006: Parameter 'checked' implicitly has an 'any' type.
+src/components/migration/SageMigrationWizard.tsx(364,23): error TS2322: Type '{ checked: boolean; onCheckedChange: (checked: any) => void; }' is not assignable to type 'IntrinsicAttributes & CheckboxProps & RefAttributes<HTMLInputElement>'.
+src/components/migration/SageMigrationWizard.tsx(364,41): error TS7006: Parameter 'checked' implicitly has an 'any' type.
+src/components/migration/SageMigrationWizard.tsx(378,23): error TS2322: Type '{ checked: boolean; onCheckedChange: (checked: any) => void; }' is not assignable to type 'IntrinsicAttributes & CheckboxProps & RefAttributes<HTMLInputElement>'.
+src/components/migration/SageMigrationWizard.tsx(378,41): error TS7006: Parameter 'checked' implicitly has an 'any' type.
+src/components/migration/SageMigrationWizard.tsx(390,23): error TS2322: Type '{ checked: boolean; onCheckedChange: (checked: any) => void; }' is not assignable to type 'IntrinsicAttributes & CheckboxProps & RefAttributes<HTMLInputElement>'.
+src/components/migration/SageMigrationWizard.tsx(390,41): error TS7006: Parameter 'checked' implicitly has an 'any' type.
+src/components/migration/SageMigrationWizard.tsx(478,76): error TS2345: Argument of type 'File | undefined' is not assignable to parameter of type 'File'.
+src/components/migration/SageMigrationWizard.tsx(507,74): error TS2345: Argument of type 'File | undefined' is not assignable to parameter of type 'File'.
+src/components/migration/SageMigrationWizard.tsx(536,66): error TS2345: Argument of type 'File | undefined' is not assignable to parameter of type 'File'.
+src/components/migration/SageMigrationWizard.tsx(565,68): error TS2345: Argument of type 'File | undefined' is not assignable to parameter of type 'File'.
+src/components/migration/SageMigrationWizard.tsx(634,88): error TS7006: Parameter 'mapping' implicitly has an 'any' type.
+src/components/migration/SageMigrationWizard.tsx(634,97): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/components/migration/SageMigrationWizard.tsx(666,60): error TS7006: Parameter 'conflict' implicitly has an 'any' type.
+src/components/migration/SageMigrationWizard.tsx(666,70): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/components/migration/SageMigrationWizard.tsx(682,59): error TS7006: Parameter 'suggestion' implicitly has an 'any' type.
+src/components/migration/SageMigrationWizard.tsx(682,71): error TS7006: Parameter 'idx' implicitly has an 'any' type.
+src/components/migration/SageMigrationWizard.tsx(713,38): error TS2339: Property 'summary' does not exist on type 'never'.
+src/components/migration/SageMigrationWizard.tsx(720,38): error TS2339: Property 'summary' does not exist on type 'never'.
+src/components/migration/SageMigrationWizard.tsx(727,53): error TS2339: Property 'summary' does not exist on type 'never'.
+src/components/migration/SageMigrationWizard.tsx(734,38): error TS2339: Property 'estimated_time' does not exist on type 'never'.
+src/components/migration/SageMigrationWizard.tsx(744,34): error TS2339: Property 'coherence_checks' does not exist on type 'never'.
+src/components/migration/SageMigrationWizard.tsx(744,57): error TS7006: Parameter 'check' implicitly has an 'any' type.
+src/components/migration/SageMigrationWizard.tsx(744,64): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/components/migration/SageMigrationWizard.tsx(775,32): error TS2339: Property 'preview_sample' does not exist on type 'never'.
+src/components/migration/SageMigrationWizard.tsx(790,42): error TS2339: Property 'preview_sample' does not exist on type 'never'.
+src/components/migration/SageMigrationWizard.tsx(790,75): error TS7006: Parameter 'item' implicitly has an 'any' type.
+src/components/migration/SageMigrationWizard.tsx(790,81): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/components/migration/SageMigrationWizard.tsx(880,59): error TS2339: Property 'is_valid' does not exist on type 'never'.
+src/components/plan-comptable/ImportPlanComptable.tsx(245,36): error TS2554: Expected 2 arguments, but got 1.
+src/components/plan-comptable/ImportPlanComptable.tsx(263,37): error TS2554: Expected 2 arguments, but got 1.
+src/components/plan-comptable/ImportPlanComptable.tsx(273,55): error TS2554: Expected 2 arguments, but got 1.
+src/components/plan-comptable/ImportPlanComptable.tsx(274,37): error TS2554: Expected 2 arguments, but got 1.
+src/components/plan-comptable/NouveauCompteWizard.tsx(277,27): error TS2554: Expected 2 arguments, but got 1.
+src/components/plan-comptable/NouveauCompteWizard.tsx(278,27): error TS2554: Expected 2 arguments, but got 1.
+src/components/plan-comptable/NouveauCompteWizard.tsx(365,34): error TS2554: Expected 2 arguments, but got 1.
+src/components/plan-comptable/NouveauCompteWizard.tsx(381,35): error TS2554: Expected 2 arguments, but got 1.
+src/components/plan-comptable/NouveauCompteWizard.tsx(389,35): error TS2554: Expected 2 arguments, but got 1.
+src/components/plan-comptable/NouveauCompteWizard.tsx(397,35): error TS2554: Expected 3 arguments, but got 2.
+src/components/reporting/NewReportCreator.tsx(732,29): error TS2322: Type 'unknown' is not assignable to type 'string | number | readonly string[] | undefined'.
+src/components/reporting/NewReportCreator.tsx(738,73): error TS2322: Type 'unknown' is not assignable to type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>'.
+src/components/reporting/NewReportCreator.tsx(741,35): error TS2339: Property 'description' does not exist on type '{ id: string; type: "table" | "text" | "dashboard" | "comment"; data?: unknown; }'.
+src/components/reporting/NewReportCreator.tsx(742,79): error TS2339: Property 'description' does not exist on type '{ id: string; type: "table" | "text" | "dashboard" | "comment"; data?: unknown; }'.
+src/components/reporting/NewReportCreator.tsx(744,35): error TS2339: Property 'periodStart' does not exist on type '{ id: string; type: "table" | "text" | "dashboard" | "comment"; data?: unknown; }'.
+src/components/reporting/NewReportCreator.tsx(744,55): error TS2339: Property 'periodEnd' does not exist on type '{ id: string; type: "table" | "text" | "dashboard" | "comment"; data?: unknown; }'.
+src/components/reporting/NewReportCreator.tsx(747,54): error TS2339: Property 'periodStart' does not exist on type '{ id: string; type: "table" | "text" | "dashboard" | "comment"; data?: unknown; }'.
+src/components/reporting/NewReportCreator.tsx(747,76): error TS2339: Property 'periodEnd' does not exist on type '{ id: string; type: "table" | "text" | "dashboard" | "comment"; data?: unknown; }'.
+src/components/reporting/NewReportCreator.tsx(755,73): error TS2322: Type 'unknown' is not assignable to type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>'.
+src/components/reporting/NewReportCreator.tsx(758,35): error TS2339: Property 'description' does not exist on type '{ id: string; type: "table" | "text" | "dashboard" | "comment"; data?: unknown; }'.
+src/components/reporting/NewReportCreator.tsx(759,79): error TS2339: Property 'description' does not exist on type '{ id: string; type: "table" | "text" | "dashboard" | "comment"; data?: unknown; }'.
+src/components/reporting/NewReportCreator.tsx(761,35): error TS2339: Property 'periodStart' does not exist on type '{ id: string; type: "table" | "text" | "dashboard" | "comment"; data?: unknown; }'.
+src/components/reporting/NewReportCreator.tsx(761,55): error TS2339: Property 'periodEnd' does not exist on type '{ id: string; type: "table" | "text" | "dashboard" | "comment"; data?: unknown; }'.
+src/components/reporting/NewReportCreator.tsx(764,54): error TS2339: Property 'periodStart' does not exist on type '{ id: string; type: "table" | "text" | "dashboard" | "comment"; data?: unknown; }'.
+src/components/reporting/NewReportCreator.tsx(764,76): error TS2339: Property 'periodEnd' does not exist on type '{ id: string; type: "table" | "text" | "dashboard" | "comment"; data?: unknown; }'.
+src/components/reporting/NewReportCreator.tsx(775,31): error TS2322: Type 'unknown' is not assignable to type 'string | number | readonly string[] | undefined'.
+src/components/reporting/NewReportCreator.tsx(909,35): error TS2322: Type '{}' is not assignable to type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>'.
+src/components/reporting/NewReportCreator.tsx(973,37): error TS2322: Type '{}' is not assignable to type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>'.
+src/components/reporting/NewReportCreator.tsx(997,35): error TS2322: Type '{}' is not assignable to type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>'.
+src/components/reporting/NewReportCreator.tsx(1013,37): error TS2322: Type '{}' is not assignable to type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>'.
+src/components/reporting/NewReportCreator.tsx(1622,59): error TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string'.
+src/components/reporting/ReportModals.tsx(146,22): error TS2532: Object is possibly 'undefined'.
+src/components/reporting/ReportModals.tsx(146,66): error TS2532: Object is possibly 'undefined'.
+src/components/setup/CompanySetupWizard.tsx(51,28): error TS2769: No overload matches this call.
+src/components/setup/CompanySetupWizard.tsx(126,7): error TS2322: Type 'number' is not assignable to type 'string'.
+src/components/setup/CompanySetupWizard.tsx(328,38): error TS2345: Argument of type '(data: CompanySetupData) => void' is not assignable to parameter of type 'SubmitHandler<TFieldValues>'.
+src/components/setup/CompanySetupWizard.tsx(814,24): error TS2304: Cannot find name 'ExclamationTriangleIcon'.
+src/components/setup/CompanySetupWizard.tsx(1399,26): error TS2304: Cannot find name 't'.
+src/components/setup/CompanySetupWizard.tsx(1428,19): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined'.
+src/components/setup/MultiCompanyManager.tsx(10,3): error TS2724: '"@heroicons/react/24/outline"' has no exported member named 'CopyIcon'. Did you mean 'CogIcon'?
+src/components/setup/MultiCompanyManager.tsx(93,22): error TS2339: Property 'value' does not exist on type '{}'.
+src/components/setup/MultiCompanyManager.tsx(93,55): error TS2339: Property 'value' does not exist on type '{}'.
+src/components/setup/MultiCompanyManager.tsx(282,30): error TS2339: Property 'value' does not exist on type '{}'.
+src/components/setup/MultiCompanyManager.tsx(282,58): error TS2339: Property 'value' does not exist on type '{}'.
+src/components/setup/TaxConfiguration.tsx(152,12): error TS2345: Argument of type '{ id: string; code: string; libelle: string; type: "TVA"; taux: number; compteCollecte: string; compteDeductible: string; base: "HT"; zone: string; actif: boolean; dateApplication: string; exonerable: boolean; recuperable: boolean; declarationType: "MENSUELLE"; seuil: number; }' is not assignable to parameter of type '{ base: "HT" | "TTC" | "BRUT" | "NET"; code: string; id: string; type: "AUTRE" | "TVA" | "IRPP" | "IS" | "CAC" | "CSS" | "TAXE_SPECIALE" | "DROIT_ACCISE" | "PRECOMPTE"; actif: boolean; ... 9 more ...; compteDeductible?: string | undefined; } | { ...; }[]'.
+src/components/shared/ReconciliationManager.tsx(118,34): error TS18046: 'result' is of type 'unknown'.
+src/components/shared/ReconciliationManager.tsx(119,13): error TS18046: 'result' is of type 'unknown'.
+src/components/shared/ReconciliationManager.tsx(132,24): error TS18046: 'result' is of type 'unknown'.
+src/components/shared/ReconciliationManager.tsx(156,44): error TS2339: Property 'unreconciled_lines' does not exist on type '{}'.
+src/components/shared/ReconciliationManager.tsx(156,68): error TS7006: Parameter 'line' implicitly has an 'any' type.
+src/components/shared/ReconciliationManager.tsx(193,30): error TS2339: Property 'unreconciled_lines' does not exist on type '{}'.
+src/components/shared/ReconciliationManager.tsx(196,39): error TS2339: Property 'unreconciled_lines' does not exist on type '{}'.
+src/components/shared/ReconciliationManager.tsx(196,63): error TS7006: Parameter 'l' implicitly has an 'any' type.
+src/components/shared/ReconciliationManager.tsx(220,37): error TS2339: Property 'automationRate' does not exist on type '{}'.
+src/components/shared/ReconciliationManager.tsx(249,37): error TS2339: Property 'totalUnreconciled' does not exist on type '{}'.
+src/components/shared/ReconciliationManager.tsx(258,37): error TS2339: Property 'todayReconciled' does not exist on type '{}'.
+src/components/shared/ReconciliationManager.tsx(267,52): error TS2339: Property 'unreconciledAmount' does not exist on type '{}'.
+src/components/shared/ReconciliationManager.tsx(276,37): error TS2339: Property 'averageProcessingTime' does not exist on type '{}'.
+src/components/shared/ReconciliationManager.tsx(336,25): error TS2339: Property 'length' does not exist on type '{}'.
+src/components/shared/ReconciliationManager.tsx(341,44): error TS18046: 'autoSuggestions' is of type 'unknown'.
+src/components/shared/ReconciliationManager.tsx(346,16): error TS18046: 'autoSuggestions' is of type 'unknown'.
+src/components/shared/ReconciliationManager.tsx(346,49): error TS7006: Parameter 'suggestion' implicitly has an 'any' type.
+src/components/shared/ReconciliationManager.tsx(346,61): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/components/shared/ReconciliationManager.tsx(387,54): error TS2339: Property 'unreconciled_lines' does not exist on type '{}'.
+src/components/shared/ReconciliationManager.tsx(427,68): error TS2339: Property 'unreconciled_lines' does not exist on type '{}'.
+src/components/shared/ReconciliationManager.tsx(428,43): error TS2339: Property 'unreconciled_lines' does not exist on type '{}'.
+src/components/shared/ReconciliationManager.tsx(430,21): error TS2322: Type '{ checked: boolean; onCheckedChange: (checked: boolean) => void; }' is not assignable to type 'IntrinsicAttributes & CheckboxProps & RefAttributes<HTMLInputElement>'.
+src/components/shared/ReconciliationManager.tsx(433,61): error TS2339: Property 'unreconciled_lines' does not exist on type '{}'.
+src/components/shared/ReconciliationManager.tsx(440,59): error TS2339: Property 'algorithmsAvailable' does not exist on type '{}'.
+src/components/shared/ReconciliationManager.tsx(464,42): error TS2339: Property 'unreconciled_lines' does not exist on type '{}'.
+src/components/shared/ReconciliationManager.tsx(464,67): error TS7006: Parameter 'line' implicitly has an 'any' type.
+src/components/shared/ReconciliationManager.tsx(478,31): error TS2322: Type '{ checked: boolean; onCheckedChange: (checked: any) => void; }' is not assignable to type 'IntrinsicAttributes & CheckboxProps & RefAttributes<HTMLInputElement>'.
+src/components/shared/ReconciliationManager.tsx(478,49): error TS7006: Parameter 'checked' implicitly has an 'any' type.
+src/components/shared/ReconciliationManager.tsx(619,47): error TS2339: Property 'globalReconciliationRate' does not exist on type '{}'.
+src/components/shared/ReconciliationManager.tsx(623,42): error TS2339: Property 'globalReconciliationRate' does not exist on type '{}'.
+src/components/shared/ReconciliationManager.tsx(632,47): error TS2339: Property 'aiAccuracy' does not exist on type '{}'.
+src/components/shared/ReconciliationManager.tsx(636,42): error TS2339: Property 'aiAccuracy' does not exist on type '{}'.
+src/components/shared/ReconciliationManager.tsx(646,41): error TS2339: Property 'averageProcessingTime' does not exist on type '{}'.
+src/components/shared/TreasuryForecastPanel.tsx(113,28): error TS2339: Property 'daily_forecast' does not exist on type '{}'.
+src/components/shared/TreasuryForecastPanel.tsx(115,35): error TS2339: Property 'daily_forecast' does not exist on type '{}'.
+src/components/shared/TreasuryForecastPanel.tsx(197,24): error TS2339: Property 'criticalAlerts' does not exist on type '{}'.
+src/components/shared/TreasuryForecastPanel.tsx(207,16): error TS18046: 'treasuryAlerts' is of type 'unknown'.
+src/components/shared/TreasuryForecastPanel.tsx(207,51): error TS7006: Parameter 'alert' implicitly has an 'any' type.
+src/components/shared/TreasuryForecastPanel.tsx(207,58): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/components/shared/TreasuryForecastPanel.tsx(313,39): error TS2339: Property 'daily_forecast' does not exist on type '{}'.
+src/components/shared/TreasuryForecastPanel.tsx(348,38): error TS2339: Property 'receivables_breakdown' does not exist on type '{}'.
+src/components/shared/TreasuryForecastPanel.tsx(348,66): error TS7006: Parameter 'item' implicitly has an 'any' type.
+src/components/shared/TreasuryForecastPanel.tsx(348,72): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/components/shared/TreasuryForecastPanel.tsx(386,38): error TS2339: Property 'payables_breakdown' does not exist on type '{}'.
+src/components/shared/TreasuryForecastPanel.tsx(386,63): error TS7006: Parameter 'item' implicitly has an 'any' type.
+src/components/shared/TreasuryForecastPanel.tsx(386,69): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/components/shared/TreasuryForecastPanel.tsx(416,96): error TS2345: Argument of type 'string' is not assignable to parameter of type 'SetStateAction<"optimistic" | "pessimistic" | "realistic">'.
+src/components/shared/TreasuryForecastPanel.tsx(428,11): error TS2322: Type 'unknown' is not assignable to type 'ReactNode'.
+src/components/shared/TreasuryForecastPanel.tsx(433,30): error TS7053: Element implicitly has an 'any' type because expression of type '"optimistic" | "pessimistic" | "realistic"' can't be used to index type '{}'.
+src/components/shared/TreasuryForecastPanel.tsx(489,38): error TS2339: Property 'receivables_risks' does not exist on type '{}'.
+src/components/shared/TreasuryForecastPanel.tsx(489,62): error TS7006: Parameter 'risk' implicitly has an 'any' type.
+src/components/shared/TreasuryForecastPanel.tsx(489,68): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/components/shared/TreasuryForecastPanel.tsx(510,38): error TS2339: Property 'payables_risks' does not exist on type '{}'.
+src/components/shared/TreasuryForecastPanel.tsx(510,59): error TS7006: Parameter 'risk' implicitly has an 'any' type.
+src/components/shared/TreasuryForecastPanel.tsx(510,65): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/components/shared/TreasuryForecastPanel.tsx(547,40): error TS2339: Property 'recommended_actions' does not exist on type '{}'.
+src/components/shared/TreasuryForecastPanel.tsx(547,84): error TS7006: Parameter 'action' implicitly has an 'any' type.
+src/components/shared/TreasuryForecastPanel.tsx(547,92): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/components/shared/TreasuryForecastPanel.tsx(572,40): error TS2339: Property 'recommended_actions' does not exist on type '{}'.
+src/components/shared/TreasuryForecastPanel.tsx(572,84): error TS7006: Parameter 'action' implicitly has an 'any' type.
+src/components/shared/TreasuryForecastPanel.tsx(572,92): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/components/shared/TreasuryForecastPanel.tsx(608,36): error TS2339: Property 'performance_metrics' does not exist on type '{}'.
+src/components/shared/TreasuryForecastPanel.tsx(611,59): error TS2339: Property 'performance_metrics' does not exist on type '{}'.
+src/components/shared/TreasuryForecastPanel.tsx(618,50): error TS2339: Property 'performance_metrics' does not exist on type '{}'.
+src/components/shared/TreasuryForecastPanel.tsx(621,56): error TS2339: Property 'performance_metrics' does not exist on type '{}'.
+src/components/shared/TreasuryForecastPanel.tsx(628,50): error TS2339: Property 'performance_metrics' does not exist on type '{}'.
+src/components/tasks/EnhancedTasksModule.tsx(424,59): error TS2322: Type 'string' is not assignable to type '"done" | "cancelled" | "todo" | "in-progress" | "review" | "blocked"'.
+src/components/tasks/EnhancedTasksModule.tsx(425,34): error TS2345: Argument of type '(prev: Task[]) => (Task | { status: string; modifiedAt: Date; modifiedBy: string; history: TaskHistory[]; id: string; title: string; description?: string | undefined; ... 32 more ...; templateId?: string | undefined; })[]' is not assignable to parameter of type 'SetStateAction<Task[]>'.
+src/components/tasks/EnhancedTasksModule.tsx(671,32): error TS2345: Argument of type '(prev: Task[]) => (Task | { attachments: (Attachment | { name: string; size: string; url: string; uploadedAt: Date; uploadedBy: string; })[]; id: string; title: string; ... 36 more ...; history?: TaskHistory[] | undefined; })[]' is not assignable to parameter of type 'SetStateAction<Task[]>'.
+src/components/tasks/EnhancedTasksModule.tsx(683,25): error TS2322: Type '(Attachment | { name: string; size: string; url: string; uploadedAt: Date; uploadedBy: string; })[]' is not assignable to type 'Attachment[]'.
+src/components/tasks/EnhancedTasksModule.tsx(1136,11): error TS2339: Property 'completionRate' does not exist on type '{ total: number; completed: number; inProgress: number; overdue: number; highPriority: number; totalBudget: number; totalCost: number; totalHours: number; avgProgress: number; }'.
+src/components/tasks/EnhancedTasksModule.tsx(1356,16): error TS2345: Argument of type '(prev: Task[]) => (Task | { status: string; modifiedAt: Date; modifiedBy: string; history: TaskHistory[]; id: string; title: string; description?: string | undefined; ... 32 more ...; templateId?: string | undefined; })[]' is not assignable to parameter of type 'SetStateAction<Task[]>'.
+src/components/tasks/EnhancedTasksModule.tsx(1509,72): error TS2339: Property 'completionRate' does not exist on type '{ total: number; completed: number; inProgress: number; overdue: number; highPriority: number; totalBudget: number; totalCost: number; totalHours: number; avgProgress: number; }'.
+src/components/tasks/EnhancedTasksModule.tsx(1588,20): error TS2345: Argument of type '(prev: Task[]) => (Task | { id: string; title: string; description: string; status: "completed" | "cancelled" | "todo" | "in-progress" | "review"; priority: "low" | "medium" | "high" | "urgent"; ... 16 more ...; recurrencePattern: "monthly" | ... 3 more ... | undefined; })[]' is not assignable to parameter of type 'SetStateAction<Task[]>'.
+src/contexts/DataContext.tsx(124,20): error TS2339: Property 'company_id' does not exist on type 'never'.
+src/contexts/DataContext.tsx(125,41): error TS2339: Property 'company_id' does not exist on type 'never'.
+src/contexts/DataContext.tsx(126,57): error TS2339: Property 'company_id' does not exist on type 'never'.
+src/features/accounting/services/generalLedgerService.ts(363,21): error TS7022: 'nextCursor' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+src/features/clients/components/CustomerModals.tsx(165,9): error TS2353: Object literal may only specify known properties, and 'type_tiers' does not exist in type 'Partial<ThirdParty>'.
+src/features/clients/components/CustomerModals.tsx(741,13): error TS18047: 'customer' is possibly 'null'.
+src/features/reporting/services/reportingService.ts(740,37): error TS2339: Property 'date' does not exist on type '{}'.
+src/features/reporting/services/reportingService.ts(831,19): error TS2339: Property 'fecExportService' does not exist on type 'typeof import("C:/devs/WiseBook/src/services/export/fecExportService")'.
+src/features/reporting/services/reportingService.ts(854,7): error TS2322: Type 'string' is not assignable to type 'ReportType'.
+src/features/reporting/services/reportingService.ts(859,7): error TS2322: Type 'undefined' is not assignable to type 'string'.
+src/pages/accounting/JournalsPage.tsx(419,25): error TS2345: Argument of type '"costCenters"' is not assignable to parameter of type 'TableName'.
+src/pages/accounting/JournalsPage.tsx(1018,46): error TS2339: Property 'info' does not exist on type '{ (message: Message, opts?: Partial<Pick<Toast, "position" | "style" | "className" | "id" | "icon" | "duration" | "ariaProps" | "iconTheme" | "toasterId" | "removeDelay">> | undefined): string; ... 8 more ...; promise<T>(promise: Promise<...> | (() => Promise<...>), msgs: { ...; }, opts?: DefaultToastOptions | undef...'.
+src/pages/accounting/JournalsPage.tsx(1543,50): error TS2339: Property 'info' does not exist on type '{ (message: Message, opts?: Partial<Pick<Toast, "position" | "style" | "className" | "id" | "icon" | "duration" | "ariaProps" | "iconTheme" | "toasterId" | "removeDelay">> | undefined): string; ... 8 more ...; promise<T>(promise: Promise<...> | (() => Promise<...>), msgs: { ...; }, opts?: DefaultToastOptions | undef...'.
+src/pages/analytics/AnalyticsDashboard.tsx(83,18): error TS2339: Property 'analyticalCode' does not exist on type '{ accountCode: string; debit: number; credit: number; thirdPartyCode?: string | undefined; thirdPartyId?: string | undefined; }'.
+src/pages/analytics/AnalyticsDashboard.tsx(84,36): error TS2339: Property 'analyticalCode' does not exist on type '{ accountCode: string; debit: number; credit: number; thirdPartyCode?: string | undefined; thirdPartyId?: string | undefined; }'.
+src/pages/assets/DepreciationPage.tsx(339,21): error TS2339: Property 'add' does not exist on type 'DataAdapter'.
+src/pages/assets/DepreciationPage.tsx(395,23): error TS2339: Property 'add' does not exist on type 'DataAdapter'.
+src/pages/assets/DepreciationPage.tsx(618,15): error TS2322: Type 'DepreciationRecord[]' is not assignable to type 'Record<string, unknown>[]'.
+src/pages/assets/DepreciationPage.tsx(1103,25): error TS2322: Type '{ children: Element[]; value: string; onValueChange: (value: string) => void; disabled: boolean; }' is not assignable to type 'IntrinsicAttributes & SelectProps'.
+src/pages/assets/DepreciationPage.tsx(1168,25): error TS2322: Type '{ children: Element[]; value: "lineaire" | "degressive" | "unites_oeuvre" | "exceptionnelle"; onValueChange: (value: string) => void; disabled: boolean; }' is not assignable to type 'IntrinsicAttributes & SelectProps'.
+src/pages/assets/DepreciationPage.tsx(1488,21): error TS2322: Type '{ children: Element[]; value: "lineaire" | "degressive" | "unites_oeuvre" | "exceptionnelle"; onValueChange: (value: string) => void; disabled: boolean; }' is not assignable to type 'IntrinsicAttributes & SelectProps'.
+src/pages/assets/FixedAssetsPage.tsx(698,33): error TS2322: Type 'unknown' is not assignable to type 'Key | null | undefined'.
+src/pages/assets/FixedAssetsPage.tsx(702,48): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'string'.
+src/pages/assets/FixedAssetsPage.tsx(705,91): error TS2322: Type 'unknown' is not assignable to type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>'.
+src/pages/assets/FixedAssetsPage.tsx(707,33): error TS2322: Type 'unknown' is not assignable to type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>'.
+src/pages/assets/FixedAssetsPage.tsx(709,31): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined'.
+src/pages/assets/FixedAssetsPage.tsx(711,40): error TS2322: Type '{}' is not assignable to type 'string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined'.
+src/pages/assets/FixedAssetsPage.tsx(718,62): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'string'.
+src/pages/assets/FixedAssetsPage.tsx(719,29): error TS2322: Type 'unknown' is not assignable to type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>'.
+src/pages/assets/FixedAssetsPage.tsx(725,41): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'string | Date'.
+src/pages/assets/FixedAssetsPage.tsx(730,29): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined'.
+src/pages/assets/FixedAssetsPage.tsx(731,58): error TS2322: Type '{}' is not assignable to type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>'.
+src/pages/assets/FixedAssetsPage.tsx(733,29): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined'.
+src/pages/assets/FixedAssetsPage.tsx(734,60): error TS2322: Type '{}' is not assignable to type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>'.
+src/pages/assets/FixedAssetsPage.tsx(740,45): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'number'.
+src/pages/assets/FixedAssetsPage.tsx(745,45): error TS2345: Argument of type '{}' is not assignable to parameter of type 'number'.
+src/pages/assets/FixedAssetsPage.tsx(759,60): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'string'.
+src/pages/assets/FixedAssetsPage.tsx(760,45): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'string'.
+src/pages/assets/FixedAssetsPage.tsx(776,61): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'string'.
+src/pages/assets/FixedAssetsPage.tsx(792,64): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'string'.
+src/pages/assets/FixedAssetsPage.tsx(911,25): error TS2322: Type '{ children: Element[]; value: string; onValueChange: (value: string) => void; disabled: boolean; }' is not assignable to type 'IntrinsicAttributes & SelectProps'.
+src/pages/assets/FixedAssetsPage.tsx(994,25): error TS2322: Type '{ children: Element[]; value: "lineaire" | "degressive" | "unites_oeuvre" | "exceptionnelle"; onValueChange: (value: string) => void; disabled: boolean; }' is not assignable to type 'IntrinsicAttributes & SelectProps'.
+src/pages/assets/FixedAssetsPage.tsx(1046,25): error TS2322: Type '{ children: Element[]; value: "en_service" | "en_maintenance" | "hors_service" | "cede"; onValueChange: (value: string) => void; disabled: boolean; }' is not assignable to type 'IntrinsicAttributes & SelectProps'.
+src/pages/assets/FixedAssetsPage.tsx(1154,23): error TS2322: Type '{ children: Element[]; value: string; onValueChange: (value: string) => void; disabled: boolean; }' is not assignable to type 'IntrinsicAttributes & SelectProps'.
+src/pages/assets/InventairePhysiquePage.tsx(1381,79): error TS2339: Property 'code' does not exist on type 'InventoryItem'.
+src/pages/assets/InventairePhysiquePage.tsx(1385,79): error TS2339: Property 'designation' does not exist on type 'InventoryItem'.
+src/pages/assets/InventairePhysiquePage.tsx(1393,64): error TS2339: Property 'localisation' does not exist on type 'InventoryItem'.
+src/pages/assets/InventairePhysiquePage.tsx(1430,29): error TS2339: Property 'ecart' does not exist on type 'InventoryItem'.
+src/pages/assets/InventairePhysiquePage.tsx(1436,66): error TS2339: Property 'ecart' does not exist on type 'InventoryItem'.
+src/pages/assets/InventairePhysiquePage.tsx(1441,54): error TS2339: Property 'ecart' does not exist on type 'InventoryItem'.
+src/pages/assets/InventairePhysiquePage.tsx(1446,60): error TS2339: Property 'ecart' does not exist on type 'InventoryItem'.
+src/pages/assets/InventairePhysiquePage.tsx(1509,48): error TS2339: Property 'localisation' does not exist on type 'InventoryItem'.
+src/pages/assets/InventairePhysiquePage.tsx(1567,79): error TS2339: Property 'code' does not exist on type 'InventoryItem'.
+src/pages/assets/InventairePhysiquePage.tsx(1575,34): error TS2339: Property 'designation' does not exist on type 'InventoryItem'.
+src/pages/assets/InventairePhysiquePage.tsx(1576,59): error TS2339: Property 'localisation' does not exist on type 'InventoryItem'.
+src/pages/budgeting/BudgetControlPage.tsx(88,13): error TS18046: 'bl' is of type 'unknown'.
+src/pages/budgeting/BudgetControlPage.tsx(89,30): error TS18046: 'bl' is of type 'unknown'.
+src/pages/budgeting/BudgetControlPage.tsx(90,27): error TS18046: 'bl' is of type 'unknown'.
+src/pages/budgeting/BudgetControlPage.tsx(90,73): error TS18046: 'bl' is of type 'unknown'.
+src/pages/budgeting/BudgetControlPage.tsx(90,101): error TS18046: 'bl' is of type 'unknown'.
+src/pages/budgeting/BudgetControlPage.tsx(92,25): error TS18046: 'bl' is of type 'unknown'.
+src/pages/budgeting/BudgetControlPage.tsx(92,53): error TS18046: 'bl' is of type 'unknown'.
+src/pages/budgeting/BudgetControlPage.tsx(98,14): error TS18046: 'entry' is of type 'unknown'.
+src/pages/budgeting/BudgetControlPage.tsx(99,28): error TS18046: 'entry' is of type 'unknown'.
+src/pages/budgeting/BudgetControlPage.tsx(153,13): error TS2322: Type '{ month: string; budgeted: unknown; actual: unknown; variance: number; }[]' is not assignable to type 'MonthlyData[]'.
+src/pages/budgeting/BudgetControlPage.tsx(159,25): error TS18046: 'bl' is of type 'unknown'.
+src/pages/budgeting/BudgetControlPage.tsx(159,61): error TS18046: 'bl' is of type 'unknown'.
+src/pages/budgeting/BudgetControlPage.tsx(160,34): error TS18046: 'bl' is of type 'unknown'.
+src/pages/budgeting/BudgetControlPage.tsx(164,24): error TS18046: 'e' is of type 'unknown'.
+src/pages/budgeting/BudgetControlPage.tsx(165,33): error TS18046: 'e' is of type 'unknown'.
+src/pages/budgeting/BudgetControlPage.tsx(165,48): error TS7006: Parameter 'l' implicitly has an 'any' type.
+src/pages/budgeting/BudgetControlPage.tsx(165,92): error TS7006: Parameter 'ls' implicitly has an 'any' type.
+src/pages/budgeting/BudgetControlPage.tsx(165,96): error TS7006: Parameter 'l' implicitly has an 'any' type.
+src/pages/budgeting/BudgetControlPage.tsx(167,53): error TS18046: 'actual' is of type 'unknown'.
+src/pages/budgeting/BudgetControlPage.tsx(167,62): error TS18046: 'budgeted' is of type 'unknown'.
+src/pages/budgeting/BudgetRecapPage.tsx(56,38): error TS18046: 'entry' is of type 'unknown'.
+src/pages/budgeting/BudgetRecapPage.tsx(60,26): error TS18046: 'entry' is of type 'unknown'.
+src/pages/budgeting/BudgetRecapPage.tsx(93,25): error TS18046: 'bl' is of type 'unknown'.
+src/pages/budgeting/BudgetRecapPage.tsx(93,43): error TS18046: 'bl' is of type 'unknown'.
+src/pages/budgeting/BudgetRecapPage.tsx(101,29): error TS18046: 'bl' is of type 'unknown'.
+src/pages/budgeting/BudgetRecapPage.tsx(101,47): error TS18046: 'bl' is of type 'unknown'.
+src/pages/budgeting/BudgetRecapPage.tsx(108,24): error TS18046: 'bl' is of type 'unknown'.
+src/pages/budgeting/BudgetRecapPage.tsx(109,32): error TS18046: 'bl' is of type 'unknown'.
+src/pages/budgeting/BudgetsPage.tsx(137,31): error TS18046: 'bl' is of type 'unknown'.
+src/pages/budgeting/BudgetsPage.tsx(139,18): error TS18046: 'bl' is of type 'unknown'.
+src/pages/budgeting/BudgetsPage.tsx(145,42): error TS18046: 'f' is of type 'unknown'.
+src/pages/budgeting/BudgetsPage.tsx(145,59): error TS18046: 'f' is of type 'unknown'.
+src/pages/budgeting/BudgetsPage.tsx(146,58): error TS18046: 'l' is of type 'unknown'.
+src/pages/budgeting/BudgetsPage.tsx(147,57): error TS18046: 'l' is of type 'unknown'.
+src/pages/budgeting/BudgetsPage.tsx(148,27): error TS18046: 'totalBudgeted' is of type 'unknown'.
+src/pages/budgeting/BudgetsPage.tsx(148,43): error TS18046: 'totalActual' is of type 'unknown'.
+src/pages/budgeting/BudgetsPage.tsx(149,22): error TS18046: 'totalBudgeted' is of type 'unknown'.
+src/pages/budgeting/BudgetsPage.tsx(149,54): error TS18046: 'totalActual' is of type 'unknown'.
+src/pages/budgeting/BudgetsPage.tsx(149,68): error TS18046: 'totalBudgeted' is of type 'unknown'.
+src/pages/budgeting/BudgetsPage.tsx(153,31): error TS2339: Property 'name' does not exist on type '{}'.
+src/pages/budgeting/BudgetsPage.tsx(156,23): error TS2339: Property 'isClosed' does not exist on type '{}'.
+src/pages/budgeting/BudgetsPage.tsx(157,23): error TS2339: Property 'name' does not exist on type '{}'.
+src/pages/budgeting/BudgetsPage.tsx(158,26): error TS2339: Property 'startDate' does not exist on type '{}'.
+src/pages/budgeting/BudgetsPage.tsx(159,24): error TS2339: Property 'endDate' does not exist on type '{}'.
+src/pages/budgeting/BudgetsPage.tsx(160,11): error TS2322: Type 'unknown' is not assignable to type 'number'.
+src/pages/budgeting/BudgetsPage.tsx(161,11): error TS2322: Type 'unknown' is not assignable to type 'number'.
+src/pages/budgeting/BudgetsPage.tsx(167,54): error TS2339: Property 'name' does not exist on type '{}'.
+src/pages/budgeting/BudgetsPage.tsx(168,26): error TS2339: Property 'startDate' does not exist on type '{}'.
+src/pages/closures/RevisionsModule.tsx(290,25): error TS2345: Argument of type '"auditRisks"' is not assignable to parameter of type 'TableName'.
+src/pages/closures/RevisionsModule.tsx(313,21): error TS2339: Property 'add' does not exist on type 'DataAdapter'.
+src/pages/config/PlanSYSCOHADAPage.tsx(701,22): error TS2339: Property 'sousComptes' does not exist on type '{ code: string; libelle: string; solde: number; type: string; status: string; sousComptes: { code: string; libelle: string; solde: number; }[]; } | { code: string; libelle: string; solde: number; type: string; status: string; sousComptes?: undefined; } | { ...; } | { ...; }'.
+src/pages/config/PlanSYSCOHADAPage.tsx(701,39): error TS7006: Parameter 'sc' implicitly has an 'any' type.
+src/pages/config/PlanSYSCOHADAPage.tsx(714,18): error TS2339: Property 'sortBy' does not exist on type '{ search?: string | undefined; page?: number | undefined; pageSize?: number | undefined; }'.
+src/pages/config/PlanSYSCOHADAPage.tsx(716,35): error TS2339: Property 'sortBy' does not exist on type '{ search?: string | undefined; page?: number | undefined; pageSize?: number | undefined; }'.
+src/pages/config/PlanSYSCOHADAPage.tsx(717,35): error TS2339: Property 'sortBy' does not exist on type '{ search?: string | undefined; page?: number | undefined; pageSize?: number | undefined; }'.
+src/pages/config/PlanSYSCOHADAPage.tsx(718,32): error TS2339: Property 'sortOrder' does not exist on type '{ search?: string | undefined; page?: number | undefined; pageSize?: number | undefined; }'.
+src/pages/config/PlanSYSCOHADAPage.tsx(786,5): error TS2322: Type '(params: { search?: string; page?: number; pageSize?: number; }) => Promise<{ data: ({ id: string; classe: string; solde: number; sousComptes: any; code: string; libelle: string; type: string; status: string; } | { ...; } | { ...; } | { ...; })[]; total: number; page: number; pageSize: number; }>' is not assignable to type '(params: QueryParams) => Promise<PaginatedResponse<Compte>>'.
+src/pages/config/PlanSYSCOHADAPage.tsx(872,24): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ '1': { nom: string; shortName: string; color: string; icon: ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>; description: string; comptes: ({ ...; } | { ...; })[]; }; ... 7 more ...; '9': { ...; }; }'.
+src/pages/config/ProfilsSecuritePage.tsx(229,20): error TS2353: Object literal may only specify known properties, and 'max_amount' does not exist in type 'string[]'.
+src/pages/config/ProfilsSecuritePage.tsx(257,20): error TS2353: Object literal may only specify known properties, and 'start_time' does not exist in type 'string[]'.
+src/pages/config/ProfilsSecuritePage.tsx(264,20): error TS2353: Object literal may only specify known properties, and 'max_amount' does not exist in type 'string[]'.
+src/pages/config/ProfilsSecuritePage.tsx(292,20): error TS2353: Object literal may only specify known properties, and 'months_back' does not exist in type 'string[]'.
+src/pages/config/ProfilsSecuritePage.tsx(955,23): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/pages/config/ProfilsSecuritePage.tsx(955,24): error TS2786: 'History' cannot be used as a JSX component.
+src/pages/core/CompanyPage.tsx(147,21): error TS2322: Type '{}' is not assignable to type 'string | number | readonly string[] | undefined'.
+src/pages/core/CompanyPage.tsx(162,21): error TS2322: Type '{}' is not assignable to type 'string | number | readonly string[] | undefined'.
+src/pages/core/CompanyPage.tsx(177,21): error TS2322: Type '{}' is not assignable to type 'string | number | readonly string[] | undefined'.
+src/pages/core/CompanyPage.tsx(192,21): error TS2322: Type '{}' is not assignable to type 'string | number | readonly string[] | undefined'.
+src/pages/core/CompanyPage.tsx(208,21): error TS2322: Type '{}' is not assignable to type 'string | number | readonly string[] | undefined'.
+src/pages/core/CompanyPage.tsx(225,21): error TS2322: Type '{}' is not assignable to type 'string | number | readonly string[] | undefined'.
+src/pages/core/CompanyPage.tsx(242,21): error TS2322: Type '{}' is not assignable to type 'string | number | readonly string[] | undefined'.
+src/pages/core/CompanyPage.tsx(258,21): error TS2322: Type '{}' is not assignable to type 'string | number | readonly string[] | undefined'.
+src/pages/core/ExercicePage.tsx(80,5): error TS2322: Type '(adapter: DataAdapter, data: { libelle: string; date_debut: string; date_fin: string; type: string; plan_comptable?: string; devise?: string; }) => Promise<...>' is not assignable to type 'MutationFunction<{ success: boolean; data: { id: `${string}-${string}-${string}-${string}-${string}`; libelle: string; }; }, DataAdapter>'.
+src/pages/core/ExercicePage.tsx(95,5): error TS2769: No overload matches this call.
+src/pages/core/ExercicePage.tsx(101,5): error TS2769: No overload matches this call.
+src/pages/core/ExercicePage.tsx(106,5): error TS2322: Type '(adapter: DataAdapter, id: string) => Promise<{ success: boolean; }>' is not assignable to type 'MutationFunction<{ success: boolean; }, DataAdapter>'.
+src/pages/core/ExercicePage.tsx(118,5): error TS2322: Type '(adapter: DataAdapter, id: string) => Promise<{ success: boolean; }>' is not assignable to type 'MutationFunction<{ success: boolean; }, DataAdapter>'.
+src/pages/core/ExercicePage.tsx(130,36): error TS2345: Argument of type 'string' is not assignable to parameter of type 'DataAdapter'.
+src/pages/core/ExercicePage.tsx(136,37): error TS2345: Argument of type 'string' is not assignable to parameter of type 'DataAdapter'.
+src/pages/core/ExercicePage.tsx(141,33): error TS2339: Property 'length' does not exist on type '{}'.
+src/pages/core/ExercicePage.tsx(147,34): error TS2339: Property 'map' does not exist on type '{}'.
+src/pages/core/ExercicePage.tsx(147,38): error TS7006: Parameter 'exercice' implicitly has an 'any' type.
+src/pages/core/ExercicePage.tsx(165,27): error TS7006: Parameter 'row' implicitly has an 'any' type.
+src/pages/core/ExercicePage.tsx(183,27): error TS7006: Parameter 'row' implicitly has an 'any' type.
+src/pages/core/ExercicePage.tsx(240,48): error TS2345: Argument of type '{ type: "long" | "normal" | "exceptionnel" | "court"; libelle: string; date_debut: string; date_fin: string; plan_comptable?: "syscohada" | "pcg" | "ifrs" | undefined; devise?: string | undefined; cloture_anticipee?: boolean | undefined; reouverture_auto?: boolean | undefined; }' is not assignable to parameter of type 'DataAdapter'.
+src/pages/core/ExercicePage.tsx(288,7): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined'.
+src/pages/core/ExercicePage.tsx(363,36): error TS2339: Property 'libelle' does not exist on type '{}'.
+src/pages/core/ExercicePage.tsx(372,47): error TS2339: Property 'date_debut' does not exist on type '{}'.
+src/pages/core/ExercicePage.tsx(372,90): error TS2339: Property 'date_fin' does not exist on type '{}'.
+src/pages/core/ExercicePage.tsx(380,66): error TS2339: Property 'statut' does not exist on type '{}'.
+src/pages/core/ExercicePage.tsx(381,36): error TS2339: Property 'statut' does not exist on type '{}'.
+src/pages/core/ExercicePage.tsx(382,36): error TS2339: Property 'statut' does not exist on type '{}'.
+src/pages/core/ExercicePage.tsx(391,36): error TS2339: Property 'duree_mois' does not exist on type '{}'.
+src/pages/core/ExercicePage.tsx(396,30): error TS2339: Property 'statut' does not exist on type '{}'.
+src/pages/core/ExercicePage.tsx(402,65): error TS2339: Property 'stats' does not exist on type '{}'.
+src/pages/core/ExercicePage.tsx(406,68): error TS2339: Property 'stats' does not exist on type '{}'.
+src/pages/core/ExercicePage.tsx(421,27): error TS2339: Property 'length' does not exist on type '{}'.
+src/pages/core/ExercicePage.tsx(441,29): error TS2339: Property 'map' does not exist on type '{}'.
+src/pages/core/ExercicePage.tsx(441,34): error TS7006: Parameter 'exercice' implicitly has an 'any' type.
+src/pages/core/ExercicePage.tsx(445,43): error TS2339: Property 'id' does not exist on type '{}'.
+src/pages/core/ExercicePage.tsx(540,37): error TS2339: Property 'length' does not exist on type '{}'.
+src/pages/core/ExercicePage.tsx(713,25): error TS2322: Type '{ children: Element[]; value: "long" | "normal" | "exceptionnel" | "court"; onValueChange: (value: string) => void; disabled: boolean; }' is not assignable to type 'IntrinsicAttributes & SelectProps'.
+src/pages/core/ExercicePage.tsx(753,25): error TS2322: Type '{ children: Element[]; value: "syscohada" | "pcg" | "ifrs"; onValueChange: (value: string) => void; disabled: boolean; }' is not assignable to type 'IntrinsicAttributes & SelectProps'.
+src/pages/core/SetupWizardPage.tsx(398,70): error TS2322: Type '{ value: string; id: string; className: string; }' is not assignable to type 'IntrinsicAttributes & { value: string; id?: string | undefined; }'.
+src/pages/core/SetupWizardPage.tsx(409,70): error TS2322: Type '{ value: string; id: string; className: string; }' is not assignable to type 'IntrinsicAttributes & { value: string; id?: string | undefined; }'.
+src/pages/core/SetupWizardPage.tsx(419,72): error TS2322: Type '{ value: string; id: string; className: string; }' is not assignable to type 'IntrinsicAttributes & { value: string; id?: string | undefined; }'.
+src/pages/examples/BankAccountsExamplePage.tsx(256,7): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined'.
+src/pages/examples/BankAccountsExamplePage.tsx(310,74): error TS2339: Property 'numero_compte' does not exist on type 'BankAccount'.
+src/pages/examples/BankAccountsExamplePage.tsx(312,41): error TS2339: Property 'libelle' does not exist on type 'BankAccount'.
+src/pages/examples/BankAccountsExamplePage.tsx(316,40): error TS2339: Property 'banque' does not exist on type 'BankAccount'.
+src/pages/examples/BankAccountsExamplePage.tsx(321,49): error TS2339: Property 'solde_actuel' does not exist on type 'BankAccount'.
+src/pages/examples/BankAccountsExamplePage.tsx(321,71): error TS2339: Property 'devise' does not exist on type 'BankAccount'.
+src/pages/examples/BankAccountsExamplePage.tsx(327,35): error TS2339: Property 'actif' does not exist on type 'BankAccount'.
+src/pages/examples/BankAccountsExamplePage.tsx(332,34): error TS2339: Property 'actif' does not exist on type 'BankAccount'.
+src/pages/examples/BankAccountsExamplePage.tsx(340,60): error TS2345: Argument of type 'import("C:/devs/WiseBook/src/services/treasury-complete.service").BankAccount' is not assignable to parameter of type 'import("C:/devs/WiseBook/src/types/api.types").BankAccount'.
+src/pages/examples/BankAccountsExamplePage.tsx(348,60): error TS2345: Argument of type 'BankAccount' is not assignable to parameter of type 'SetStateAction<BankAccount | null>'.
+src/pages/examples/BankAccountsExamplePage.tsx(414,50): error TS2339: Property 'solde' does not exist on type '{}'.
+src/pages/examples/BankAccountsExamplePage.tsx(416,73): error TS2339: Property 'date' does not exist on type '{}'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(110,11): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(111,17): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(153,11): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(153,33): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(154,23): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(162,11): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(162,33): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(163,23): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(377,11): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(378,23): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(381,20): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(382,19): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(383,24): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(383,41): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(383,55): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(384,33): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(387,20): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(399,11): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(400,23): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(1230,79): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(1230,180): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(1230,197): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(1230,226): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(1230,241): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(1230,259): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(1230,278): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(1284,79): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(1284,180): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(1284,197): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(1284,226): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(1284,241): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(1284,259): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(1284,278): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(1337,79): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(1337,180): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(1337,197): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(1337,226): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(1337,241): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(1337,259): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(1337,278): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(1407,23): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(1407,45): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(1408,23): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(1409,33): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(1410,34): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(1578,98): error TS2322: Type 'unknown' is not assignable to type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(1579,79): error TS2322: Type 'unknown' is not assignable to type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(1580,88): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'number'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(1604,48): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(1631,85): error TS2322: Type 'unknown' is not assignable to type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(1632,98): error TS2322: Type 'unknown' is not assignable to type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(1633,79): error TS2322: Type 'unknown' is not assignable to type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(1634,93): error TS2322: Type 'unknown' is not assignable to type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(1635,116): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'number'.
+src/pages/financial/BilanSYSCOHADAPage.tsx(1636,93): error TS2322: Type 'unknown' is not assignable to type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>'.
+src/pages/financial/CompteResultatPage.tsx(52,17): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/CompteResultatPage.tsx(67,23): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/CompteResultatPage.tsx(72,25): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/CompteResultatPage.tsx(112,21): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/CompteResultatPage.tsx(114,23): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/CompteResultatPage.tsx(127,21): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/CompteResultatPage.tsx(129,23): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/CompteResultatPage.tsx(237,21): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/CompteResultatPage.tsx(239,23): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/CompteResultatPage.tsx(242,20): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/CompteResultatPage.tsx(243,19): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/CompteResultatPage.tsx(244,24): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/CompteResultatPage.tsx(244,38): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/CompteResultatPage.tsx(245,33): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/CompteResultatPage.tsx(248,20): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/CompteResultatPage.tsx(260,23): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/CompteResultatPage.tsx(964,104): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/CompteResultatPage.tsx(965,108): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/CompteResultatPage.tsx(968,85): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/CompteResultatPage.tsx(968,173): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/CompteResultatPage.tsx(968,190): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/CompteResultatPage.tsx(968,205): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/CompteResultatPage.tsx(968,234): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/CompteResultatPage.tsx(968,249): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/CompteResultatPage.tsx(968,267): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/CompteResultatPage.tsx(968,286): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/CompteResultatPage.tsx(982,65): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/CompteResultatPage.tsx(982,87): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/CompteResultatPage.tsx(982,134): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/CompteResultatPage.tsx(992,90): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/CompteResultatPage.tsx(992,112): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/CompteResultatPage.tsx(992,149): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/CompteResultatPage.tsx(1000,19): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/CompteResultatPage.tsx(1000,41): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/CompteResultatPage.tsx(1001,26): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/CompteResultatPage.tsx(1002,27): error TS18046: 'e' is of type 'unknown'.
+src/pages/financial/CompteResultatPage.tsx(1491,105): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number'.
+src/pages/financial/CompteResultatPage.tsx(1590,37): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number'.
+src/pages/fiscal/FiscalDashboard.tsx(208,25): error TS2339: Property 'category' does not exist on type 'DBTaxRegistry'.
+src/pages/fiscal/FiscalDashboard.tsx(365,46): error TS2339: Property 'name' does not exist on type 'DBTaxRegistry'.
+src/pages/fiscal/FiscalDashboard.tsx(383,46): error TS2339: Property 'name' does not exist on type 'DBTaxRegistry'.
+src/pages/fiscal/FiscalDashboard.tsx(401,46): error TS2339: Property 'name' does not exist on type 'DBTaxRegistry'.
+src/pages/fiscal/FiscalDashboard.tsx(503,83): error TS2339: Property 'name' does not exist on type 'DBTaxRegistry'.
+src/pages/inventory/components/InventoryFilters.tsx(171,13): error TS2322: Type '{ isOpen: boolean; onClose: () => void; onPeriodSelect: (period: any) => void; }' is not assignable to type 'IntrinsicAttributes & PeriodSelectorModalProps'.
+src/pages/inventory/components/InventoryFilters.tsx(171,30): error TS7006: Parameter 'period' implicitly has an 'any' type.
+src/pages/inventory/InventoryDashboard.tsx(399,9): error TS2322: Type '{ isOpen: boolean; onClose: () => void; onPeriodSelect: (period: any) => void; }' is not assignable to type 'IntrinsicAttributes & PeriodSelectorModalProps'.
+src/pages/inventory/InventoryDashboard.tsx(399,26): error TS7006: Parameter 'period' implicitly has an 'any' type.
+src/pages/inventory/InventoryMovements.tsx(193,87): error TS2345: Argument of type 'Date' is not assignable to parameter of type 'number'.
+src/pages/inventory/InventoryMovements.tsx(198,90): error TS2345: Argument of type 'Date' is not assignable to parameter of type 'number'.
+src/pages/inventory/InventoryMovements.tsx(204,88): error TS2345: Argument of type 'Date' is not assignable to parameter of type 'number'.
+src/pages/inventory/InventoryMovements.tsx(417,13): error TS2322: Type 'InventoryMovement[]' is not assignable to type 'Record<string, unknown>[]'.
+src/pages/inventory/InventoryReports.tsx(146,17): error TS2322: Type '{ isOpen: boolean; onClose: () => void; onPeriodSelect: (period: any) => void; }' is not assignable to type 'IntrinsicAttributes & PeriodSelectorModalProps'.
+src/pages/inventory/InventoryReports.tsx(146,34): error TS7006: Parameter 'period' implicitly has an 'any' type.
+src/pages/inventory/InventoryReports.tsx(420,7): error TS2322: Type 'string' is not assignable to type '"json" | "excel" | "csv" | "pdf"'.
+src/pages/inventory/InventoryValuation.tsx(175,33): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'number'.
+src/pages/inventory/InventoryValuation.tsx(176,30): error TS18046: 'cost' is of type 'unknown'.
+src/pages/inventory/InventoryValuation.tsx(176,37): error TS18046: 'nrv' is of type 'unknown'.
+src/pages/inventory/InventoryValuation.tsx(176,43): error TS18046: 'cost' is of type 'unknown'.
+src/pages/inventory/InventoryValuation.tsx(176,50): error TS18046: 'nrv' is of type 'unknown'.
+src/pages/inventory/InventoryValuation.tsx(177,48): error TS18046: 'item.quantity' is of type 'unknown'.
+src/pages/inventory/InventoryValuation.tsx(194,20): error TS2345: Argument of type '{ itemId: unknown; sku: unknown; name: unknown; cost: unknown; marketValue: unknown; nrv: unknown; lcmValue: number; impairmentLoss: number; quantity: unknown; totalImpairment: number; status: string; }[]' is not assignable to parameter of type 'SetStateAction<LCMTestResult[]>'.
+src/pages/inventory/InventoryValuation.tsx(196,20): error TS2345: Argument of type '{ itemId: unknown; sku: unknown; name: unknown; cost: unknown; marketValue: unknown; nrv: unknown; lcmValue: number; impairmentLoss: number; quantity: unknown; totalImpairment: number; status: string; }[]' is not assignable to parameter of type 'LCMTestResult[]'.
+src/pages/inventory/InventoryValuation.tsx(199,67): error TS18046: 'item.totalImpairment' is of type 'unknown'.
+src/pages/inventory/InventoryValuation.tsx(308,68): error TS2322: Type 'unknown' is not assignable to type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>'.
+src/pages/inventory/InventoryValuation.tsx(309,64): error TS2322: Type 'unknown' is not assignable to type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>'.
+src/pages/inventory/InventoryValuation.tsx(319,40): error TS2322: Type 'unknown' is not assignable to type 'number'.
+src/pages/inventory/InventoryValuation.tsx(322,40): error TS2322: Type 'unknown' is not assignable to type 'number'.
+src/pages/inventory/InventoryValuation.tsx(326,25): error TS2322: Type 'unknown' is not assignable to type 'number'.
+src/pages/inventory/InventoryValuation.tsx(329,36): error TS18046: 'result.totalImpairment' is of type 'unknown'.
+src/pages/inventory/InventoryValuation.tsx(388,18): error TS18046: 'item.quantity' is of type 'unknown'.
+src/pages/inventory/InventoryValuation.tsx(388,34): error TS18046: 'item.unitCost' is of type 'unknown'.
+src/pages/inventory/InventoryValuation.tsx(391,21): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'number'.
+src/pages/inventory/InventoryValuation.tsx(392,23): error TS18046: 'item.unitCost' is of type 'unknown'.
+src/pages/inventory/InventoryValuation.tsx(392,39): error TS2571: Object is of type 'unknown'.
+src/pages/inventory/InventoryValuation.tsx(393,12): error TS18046: 'item.unitCost' is of type 'unknown'.
+src/pages/inventory/InventoryValuation.tsx(393,28): error TS2571: Object is of type 'unknown'.
+src/pages/inventory/InventoryValuation.tsx(393,59): error TS18046: 'item.quantity' is of type 'unknown'.
+src/pages/inventory/InventoryValuation.tsx(400,61): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+src/pages/inventory/InventoryValuation.tsx(400,84): error TS18046: 'i.quantity' is of type 'unknown'.
+src/pages/inventory/InventoryValuation.tsx(406,7): error TS2322: Type '{ itemId: unknown; sku: unknown; name: unknown; quantity: unknown; unitCost: unknown; totalCost: number; marketValue: unknown; nrv: unknown; lcm: number; impairmentLoss: number; category: unknown; location: unknown; }[]' is not assignable to type '{ itemId: string; sku: string; name: string; quantity: number; unitCost: number; totalCost: number; marketValue?: number | undefined; nrv?: number | undefined; lcm?: number | undefined; impairmentLoss?: number | undefined; category: string; location: string; }[]'.
+src/pages/inventory/InventoryValuation.tsx(527,9): error TS2322: Type '{ isOpen: boolean; onClose: () => void; onPeriodSelect: (period: any) => void; }' is not assignable to type 'IntrinsicAttributes & PeriodSelectorModalProps'.
+src/pages/inventory/InventoryValuation.tsx(527,26): error TS7006: Parameter 'period' implicitly has an 'any' type.
+src/pages/inventory/PhysicalInventory.tsx(573,53): error TS2304: Cannot find name 't'.
+src/pages/inventory/PhysicalInventory.tsx(755,86): error TS18048: 'item.variance' is possibly 'undefined'.
+src/pages/inventory/PhysicalInventory.tsx(757,48): error TS2322: Type 'number | undefined' is not assignable to type 'number'.
+src/pages/inventory/PhysicalInventory.tsx(761,34): error TS18048: 'item.variance' is possibly 'undefined'.
+src/pages/inventory/PhysicalInventory.tsx(902,9): error TS2322: Type '{ isOpen: boolean; onClose: () => void; onPeriodSelect: (period: any) => void; }' is not assignable to type 'IntrinsicAttributes & PeriodSelectorModalProps'.
+src/pages/inventory/PhysicalInventory.tsx(902,26): error TS7006: Parameter 'period' implicitly has an 'any' type.
+src/pages/onboarding/PremierConnexionPage.tsx(48,31): error TS2345: Argument of type '{ token_hash: string; type: Parameters<typeof supabase.auth.verifyOtp>[0]["type"]; }' is not assignable to parameter of type 'VerifyOtpParams'.
+src/pages/reporting/DashboardsPage.tsx(99,55): error TS18046: 'e' is of type 'unknown'.
+src/pages/reporting/DashboardsPage.tsx(99,83): error TS18046: 'e' is of type 'unknown'.
+src/pages/reporting/DashboardsPage.tsx(130,14): error TS18046: 'fy' is of type 'unknown'.
+src/pages/reporting/DashboardsPage.tsx(130,31): error TS18046: 'fy' is of type 'unknown'.
+src/pages/reporting/DashboardsPage.tsx(131,16): error TS18046: 'e' is of type 'unknown'.
+src/pages/reporting/DashboardsPage.tsx(131,26): error TS18046: 'fy' is of type 'unknown'.
+src/pages/reporting/DashboardsPage.tsx(131,42): error TS18046: 'e' is of type 'unknown'.
+src/pages/reporting/DashboardsPage.tsx(131,52): error TS18046: 'fy' is of type 'unknown'.
+src/pages/reporting/DashboardsPage.tsx(134,19): error TS18046: 'fy' is of type 'unknown'.
+src/pages/reporting/DashboardsPage.tsx(135,27): error TS18046: 'fy' is of type 'unknown'.
+src/pages/reporting/DashboardsPage.tsx(135,38): error TS18046: 'fy' is of type 'unknown'.
+src/pages/reporting/DashboardsPage.tsx(136,58): error TS18046: 'fy' is of type 'unknown'.
+src/pages/reporting/DashboardsPage.tsx(136,83): error TS18046: 'fy' is of type 'unknown'.
+src/pages/reporting/DashboardsPage.tsx(139,17): error TS18046: 'fy' is of type 'unknown'.
+src/pages/reporting/DashboardsPage.tsx(141,23): error TS18046: 'fy' is of type 'unknown'.
+src/pages/reporting/DashboardsPage.tsx(142,23): error TS18046: 'fy' is of type 'unknown'.
+src/pages/reporting/DashboardsPage.tsx(149,22): error TS18046: 'fy' is of type 'unknown'.
+src/pages/reporting/DashboardsPage.tsx(150,20): error TS18046: 'fy' is of type 'unknown'.
+src/pages/reporting/DashboardsPage.tsx(162,51): error TS18046: 'a' is of type 'unknown'.
+src/pages/reporting/ReportingDashboard.tsx(100,19): error TS18046: 'fy' is of type 'unknown'.
+src/pages/reporting/ReportingDashboard.tsx(101,36): error TS18046: 'fy' is of type 'unknown'.
+src/pages/reporting/ReportingDashboard.tsx(101,47): error TS18046: 'fy' is of type 'unknown'.
+src/pages/reporting/ReportingDashboard.tsx(104,58): error TS18046: 'fy' is of type 'unknown'.
+src/pages/reporting/ReportingDashboard.tsx(105,24): error TS18046: 'fy' is of type 'unknown'.
+src/pages/reporting/ReportingDashboard.tsx(108,17): error TS18046: 'fy' is of type 'unknown'.
+src/pages/reporting/ReportingDashboard.tsx(118,64): error TS18048: 'e.date' is possibly 'undefined'.
+src/pages/reporting/ReportingDashboard.tsx(118,73): error TS18048: 'latest.date' is possibly 'undefined'.
+src/pages/reporting/ReportingDashboard.tsx(125,9): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+src/pages/reporting/ReportingIFRS.tsx(130,24): error TS18046: 'fy' is of type 'unknown'.
+src/pages/reporting/ReportingIFRS.tsx(133,18): error TS18046: 'fy' is of type 'unknown'.
+src/pages/reporting/ReportingIFRS.tsx(135,35): error TS18046: 'fy' is of type 'unknown'.
+src/pages/reporting/ReportingIFRS.tsx(136,19): error TS18046: 'fy' is of type 'unknown'.
+src/pages/reporting/ReportingIFRS.tsx(138,25): error TS18046: 'fy' is of type 'unknown'.
+src/pages/reporting/ReportingIFRS.tsx(399,34): error TS18046: 'fy' is of type 'unknown'.
+src/pages/reporting/ReportingIFRS.tsx(400,41): error TS18046: 'fy' is of type 'unknown'.
+src/pages/reporting/ReportingIFRS.tsx(426,19): error TS2322: Type '{ data: { label: string; value: number; color: string; }[]; height: number; showValues: boolean; valueFormatter: (value: any) => string; }' is not assignable to type 'IntrinsicAttributes & ColorfulBarChartProps'.
+src/pages/reporting/ReportingIFRS.tsx(427,36): error TS7006: Parameter 'value' implicitly has an 'any' type.
+src/pages/reporting/ReportingIFRS.tsx(481,36): error TS18046: 'fy' is of type 'unknown'.
+src/pages/reporting/ReportingIFRS.tsx(482,43): error TS18046: 'fy' is of type 'unknown'.
+src/pages/settings/AccountingSettingsPage.tsx(867,73): error TS2339: Property 'focus' does not exist on type 'Element'.
+src/pages/settings/AccountingSettingsPage.tsx(1126,12): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ general: { title: string; icon: ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>; }; ... 11 more ...; normes: { ...; }; }'.
+src/pages/settings/AccountingSettingsPage.tsx(1137,15): error TS2322: Type 'string | number | boolean' is not assignable to type 'string | number | readonly string[] | undefined'.
+src/pages/settings/AccountingSettingsPage.tsx(1167,15): error TS2322: Type 'string | number | boolean' is not assignable to type 'string | number | readonly string[] | undefined'.
+src/pages/settings/AccountingSettingsPage.tsx(1193,15): error TS2322: Type 'string | number | boolean' is not assignable to type 'boolean | undefined'.
+src/pages/settings/AccountingSettingsPage.tsx(1208,15): error TS2322: Type 'string | number | boolean' is not assignable to type 'string | number | readonly string[] | undefined'.
+src/pages/settings/AccountingSettingsPage.tsx(1377,17): error TS7034: Variable 'categoriesToShow' implicitly has type 'any[]' in some locations where its type cannot be determined.
+src/pages/settings/AccountingSettingsPage.tsx(1467,60): error TS7005: Variable 'categoriesToShow' implicitly has an 'any[]' type.
+src/pages/settings/BackupPage.tsx(426,29): error TS2322: Type '{ defaultChecked: true; }' is not assignable to type 'IntrinsicAttributes & SwitchProps & RefAttributes<HTMLButtonElement>'.
+src/pages/settings/BackupPage.tsx(430,29): error TS2322: Type '{ defaultChecked: true; }' is not assignable to type 'IntrinsicAttributes & SwitchProps & RefAttributes<HTMLButtonElement>'.
+src/pages/settings/BackupPage.tsx(434,29): error TS2322: Type '{ defaultChecked: true; }' is not assignable to type 'IntrinsicAttributes & SwitchProps & RefAttributes<HTMLButtonElement>'.
+src/pages/settings/BackupPage.tsx(438,29): error TS2322: Type '{ defaultChecked: true; }' is not assignable to type 'IntrinsicAttributes & SwitchProps & RefAttributes<HTMLButtonElement>'.
+src/pages/settings/BackupPage.tsx(821,29): error TS2322: Type '{ defaultChecked: true; }' is not assignable to type 'IntrinsicAttributes & SwitchProps & RefAttributes<HTMLButtonElement>'.
+src/pages/settings/BackupPage.tsx(825,29): error TS2322: Type '{ defaultChecked: true; }' is not assignable to type 'IntrinsicAttributes & SwitchProps & RefAttributes<HTMLButtonElement>'.
+src/pages/settings/BackupPage.tsx(1200,23): error TS2322: Type '{ defaultChecked: boolean | undefined; }' is not assignable to type 'IntrinsicAttributes & SwitchProps & RefAttributes<HTMLButtonElement>'.
+src/pages/settings/IAConfigPage.tsx(465,13): error TS2322: Type '{ children: string; onClick: (() => void) | undefined; disabled: boolean; variant: "ghost"; size: "sm"; className: string; icon: Element; }' is not assignable to type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+src/pages/settings/IAConfigPage.tsx(560,21): error TS2322: Type '{ children: string; onClick: (() => void) | undefined; disabled: boolean; variant: "outline"; size: "sm"; icon: Element; }' is not assignable to type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+src/pages/settings/IAConfigPage.tsx(1851,21): error TS2322: Type '{ children: string; className: string; icon: Element; }' is not assignable to type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+src/pages/settings/IAConfigPage.tsx(1857,21): error TS2322: Type '{ children: string; variant: "outline"; icon: Element; }' is not assignable to type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+src/pages/settings/OfflineModePage.tsx(510,27): error TS2322: Type '{ defaultChecked: true; }' is not assignable to type 'IntrinsicAttributes & SwitchProps & RefAttributes<HTMLButtonElement>'.
+src/pages/settings/OfflineModePage.tsx(515,27): error TS2322: Type '{ defaultChecked: true; }' is not assignable to type 'IntrinsicAttributes & SwitchProps & RefAttributes<HTMLButtonElement>'.
+src/pages/settings/OfflineModePage.tsx(524,29): error TS2322: Type '{ defaultChecked: true; }' is not assignable to type 'IntrinsicAttributes & SwitchProps & RefAttributes<HTMLButtonElement>'.
+src/pages/settings/OfflineModePage.tsx(717,27): error TS2322: Type '{ defaultChecked: true; }' is not assignable to type 'IntrinsicAttributes & SwitchProps & RefAttributes<HTMLButtonElement>'.
+src/pages/settings/OfflineModePage.tsx(744,27): error TS2322: Type '{ defaultChecked: true; }' is not assignable to type 'IntrinsicAttributes & SwitchProps & RefAttributes<HTMLButtonElement>'.
+src/pages/settings/OfflineModePage.tsx(790,27): error TS2322: Type '{ defaultChecked: true; }' is not assignable to type 'IntrinsicAttributes & SwitchProps & RefAttributes<HTMLButtonElement>'.
+src/pages/settings/OfflineModePage.tsx(808,27): error TS2322: Type '{ defaultChecked: true; disabled: true; }' is not assignable to type 'IntrinsicAttributes & SwitchProps & RefAttributes<HTMLButtonElement>'.
+src/pages/settings/OfflineModePage.tsx(816,27): error TS2322: Type '{ defaultChecked: true; }' is not assignable to type 'IntrinsicAttributes & SwitchProps & RefAttributes<HTMLButtonElement>'.
+src/pages/settings/OfflineModePage.tsx(874,29): error TS2322: Type '{ checked: boolean; onCheckedChange: (checked: any) => void; }' is not assignable to type 'IntrinsicAttributes & CheckboxProps & RefAttributes<HTMLInputElement>'.
+src/pages/settings/OfflineModePage.tsx(874,47): error TS7006: Parameter 'checked' implicitly has an 'any' type.
+src/pages/settings/OfflineModePage.tsx(1033,29): error TS2322: Type '{ defaultChecked: true; }' is not assignable to type 'IntrinsicAttributes & SwitchProps & RefAttributes<HTMLButtonElement>'.
+src/pages/settings/OfflineModePage.tsx(1041,29): error TS2322: Type '{ defaultChecked: true; }' is not assignable to type 'IntrinsicAttributes & SwitchProps & RefAttributes<HTMLButtonElement>'.
+src/pages/settings/RegionalSettingsPage.tsx(443,29): error TS2322: Type '{ defaultChecked: true; }' is not assignable to type 'IntrinsicAttributes & SwitchProps & RefAttributes<HTMLButtonElement>'.
+src/pages/settings/RegionalSettingsPage.tsx(563,27): error TS2322: Type '{ defaultChecked: true; }' is not assignable to type 'IntrinsicAttributes & SwitchProps & RefAttributes<HTMLButtonElement>'.
+src/pages/settings/RegionalSettingsPage.tsx(599,27): error TS2322: Type '{ defaultChecked: true; }' is not assignable to type 'IntrinsicAttributes & SwitchProps & RefAttributes<HTMLButtonElement>'.
+src/pages/settings/RegionalSettingsPage.tsx(647,27): error TS2322: Type '{ defaultChecked: true; }' is not assignable to type 'IntrinsicAttributes & SwitchProps & RefAttributes<HTMLButtonElement>'.
+src/pages/settings/RegionalSettingsPage.tsx(665,29): error TS2322: Type '{ defaultChecked: true; }' is not assignable to type 'IntrinsicAttributes & SwitchProps & RefAttributes<HTMLButtonElement>'.
+src/pages/settings/RegionalSettingsPage.tsx(669,29): error TS2322: Type '{ defaultChecked: true; }' is not assignable to type 'IntrinsicAttributes & SwitchProps & RefAttributes<HTMLButtonElement>'.
+src/pages/settings/RegionalSettingsPage.tsx(673,29): error TS2322: Type '{ defaultChecked: true; }' is not assignable to type 'IntrinsicAttributes & SwitchProps & RefAttributes<HTMLButtonElement>'.
+src/pages/settings/RegionalSettingsPage.tsx(677,29): error TS2322: Type '{ defaultChecked: true; }' is not assignable to type 'IntrinsicAttributes & SwitchProps & RefAttributes<HTMLButtonElement>'.
+src/pages/settings/RegionalSettingsPage.tsx(681,29): error TS2322: Type '{ defaultChecked: true; }' is not assignable to type 'IntrinsicAttributes & SwitchProps & RefAttributes<HTMLButtonElement>'.
+src/pages/settings/RegionalSettingsPage.tsx(685,29): error TS2322: Type '{ defaultChecked: true; }' is not assignable to type 'IntrinsicAttributes & SwitchProps & RefAttributes<HTMLButtonElement>'.
+src/pages/settings/RegionalSettingsPage.tsx(770,27): error TS2322: Type '{ defaultChecked: true; }' is not assignable to type 'IntrinsicAttributes & SwitchProps & RefAttributes<HTMLButtonElement>'.
+src/pages/settings/RegionalSettingsPage.tsx(788,27): error TS2322: Type '{ defaultChecked: true; }' is not assignable to type 'IntrinsicAttributes & SwitchProps & RefAttributes<HTMLButtonElement>'.
+src/pages/settings/RegionalSettingsPage.tsx(792,27): error TS2322: Type '{ defaultChecked: true; }' is not assignable to type 'IntrinsicAttributes & SwitchProps & RefAttributes<HTMLButtonElement>'.
+src/pages/settings/RegionalSettingsPage.tsx(796,27): error TS2322: Type '{ defaultChecked: true; }' is not assignable to type 'IntrinsicAttributes & SwitchProps & RefAttributes<HTMLButtonElement>'.
+src/pages/settings/RegionalSettingsPage.tsx(800,27): error TS2322: Type '{ defaultChecked: true; }' is not assignable to type 'IntrinsicAttributes & SwitchProps & RefAttributes<HTMLButtonElement>'.
+src/pages/settings/RegionalSettingsPage.tsx(804,27): error TS2322: Type '{ defaultChecked: true; }' is not assignable to type 'IntrinsicAttributes & SwitchProps & RefAttributes<HTMLButtonElement>'.
+src/pages/settings/RegionalSettingsPage.tsx(808,27): error TS2322: Type '{ defaultChecked: true; }' is not assignable to type 'IntrinsicAttributes & SwitchProps & RefAttributes<HTMLButtonElement>'.
+src/pages/taxation/EcheancesFiscalesPage.tsx(96,11): error TS2322: Type 'unknown' is not assignable to type 'string'.
+src/pages/taxation/EcheancesFiscalesPage.tsx(97,11): error TS2322: Type '{}' is not assignable to type 'string'.
+src/pages/taxation/EcheancesFiscalesPage.tsx(98,11): error TS2322: Type '{}' is not assignable to type 'string'.
+src/pages/taxation/EcheancesFiscalesPage.tsx(99,11): error TS2322: Type '{}' is not assignable to type 'string'.
+src/pages/taxation/EcheancesFiscalesPage.tsx(100,11): error TS2322: Type '{}' is not assignable to type 'string'.
+src/pages/taxation/EcheancesFiscalesPage.tsx(101,11): error TS2322: Type '{}' is not assignable to type 'string'.
+src/pages/taxation/EcheancesFiscalesPage.tsx(103,11): error TS2322: Type '{}' is not assignable to type 'number'.
+src/pages/taxation/EcheancesFiscalesPage.tsx(104,11): error TS2322: Type '{}' is not assignable to type 'string'.
+src/pages/taxation/EcheancesFiscalesPage.tsx(105,11): error TS2322: Type '{}' is not assignable to type 'boolean'.
+src/pages/taxation/EcheancesFiscalesPage.tsx(121,34): error TS2365: Operator '+' cannot be applied to types 'number' and '{}'.
+src/pages/taxation/EcheancesFiscalesPage.tsx(133,15): error TS2322: Type 'unknown' is not assignable to type 'string'.
+src/pages/taxation/EcheancesFiscalesPage.tsx(134,15): error TS2322: Type 'unknown' is not assignable to type 'string'.
+src/pages/taxation/EcheancesFiscalesPage.tsx(135,15): error TS2322: Type 'unknown' is not assignable to type 'string'.
+src/pages/taxation/EcheancesFiscalesPage.tsx(143,15): error TS2322: Type 'unknown' is not assignable to type 'string'.
+src/pages/taxation/EcheancesFiscalesPage.tsx(144,15): error TS2322: Type '{}' is not assignable to type 'boolean'.
+src/pages/third-party/ContactsPage.tsx(91,38): error TS2339: Property 'getContacts' does not exist on type 'ThirdPartyService'.
+src/pages/third-party/ContactsPage.tsx(104,38): error TS2339: Property 'getCompanies' does not exist on type 'ThirdPartyService'.
+src/pages/third-party/ContactsPage.tsx(109,35): error TS2339: Property 'deleteContact' does not exist on type 'ThirdPartyService'.
+src/pages/third-party/ContactsPage.tsx(121,36): error TS2345: Argument of type 'string' is not assignable to parameter of type 'void'.
+src/pages/third-party/ContactsPage.tsx(339,43): error TS7006: Parameter 'company' implicitly has an 'any' type.
+src/pages/third-party/ContactsPage.tsx(415,50): error TS7006: Parameter 'contact' implicitly has an 'any' type.
+src/pages/third-party/ContactsPage.tsx(592,9): error TS2322: Type 'ContactRecord | null' is not assignable to type 'ContactData | null'.
+src/pages/third-party/ContactsPage.tsx(599,9): error TS2322: Type 'ContactRecord | null' is not assignable to type 'ContactData | null'.
+src/pages/third-party/CustomersPage.tsx(202,35): error TS2339: Property 'count' does not exist on type '{}'.
+src/pages/third-party/CustomersPage.tsx(218,35): error TS2339: Property 'active_count' does not exist on type '{}'.
+src/pages/third-party/CustomersPage.tsx(234,50): error TS2339: Property 'total_ca' does not exist on type '{}'.
+src/pages/third-party/CustomersPage.tsx(250,50): error TS2339: Property 'total_unpaid' does not exist on type '{}'.
+src/pages/third-party/CustomersPage.tsx(336,13): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined'.
+src/pages/third-party/CustomersPage.tsx(338,32): error TS2339: Property 'count' does not exist on type '{}'.
+src/pages/third-party/CustomersPage.tsx(366,37): error TS2339: Property 'results' does not exist on type '{}'.
+src/pages/third-party/CustomersPage.tsx(366,51): error TS7006: Parameter 'customer' implicitly has an 'any' type.
+src/pages/third-party/CustomersPage.tsx(485,47): error TS2339: Property 'count' does not exist on type '{}'.
+src/pages/third-party/CustomersPage.tsx(489,57): error TS2339: Property 'count' does not exist on type '{}'.
+src/pages/third-party/CustomersPage.tsx(495,33): error TS2339: Property 'results' does not exist on type '{}'.
+src/pages/third-party/CustomersPage.tsx(495,58): error TS2339: Property 'results' does not exist on type '{}'.
+src/pages/third-party/CustomersPage.tsx(528,9): error TS2322: Type 'Record<string, unknown> | null' is not assignable to type 'CustomerData | null'.
+src/pages/third-party/CustomersPage.tsx(535,9): error TS2322: Type 'Record<string, unknown> | null' is not assignable to type 'CustomerData | null'.
+src/pages/third-party/SuppliersPage.tsx(224,35): error TS2339: Property 'count' does not exist on type '{}'.
+src/pages/third-party/SuppliersPage.tsx(240,35): error TS2339: Property 'active_count' does not exist on type '{}'.
+src/pages/third-party/SuppliersPage.tsx(256,50): error TS2339: Property 'total_purchases' does not exist on type '{}'.
+src/pages/third-party/SuppliersPage.tsx(272,50): error TS2339: Property 'total_debt' does not exist on type '{}'.
+src/pages/third-party/SuppliersPage.tsx(366,13): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined'.
+src/pages/third-party/SuppliersPage.tsx(368,32): error TS2339: Property 'count' does not exist on type '{}'.
+src/pages/third-party/SuppliersPage.tsx(397,37): error TS2339: Property 'results' does not exist on type '{}'.
+src/pages/third-party/SuppliersPage.tsx(397,51): error TS7006: Parameter 'supplier' implicitly has an 'any' type.
+src/pages/third-party/SuppliersPage.tsx(423,34): error TS2304: Cannot find name 'Users'.
+src/pages/third-party/SuppliersPage.tsx(523,47): error TS2339: Property 'count' does not exist on type '{}'.
+src/pages/third-party/SuppliersPage.tsx(527,57): error TS2339: Property 'count' does not exist on type '{}'.
+src/pages/third-party/SuppliersPage.tsx(533,33): error TS2339: Property 'results' does not exist on type '{}'.
+src/pages/third-party/SuppliersPage.tsx(533,58): error TS2339: Property 'results' does not exist on type '{}'.
+src/pages/third-party/SuppliersPage.tsx(566,9): error TS2322: Type 'Record<string, unknown> | null' is not assignable to type 'SupplierRecord | null'.
+src/pages/third-party/SuppliersPage.tsx(573,9): error TS2322: Type 'Record<string, unknown> | null' is not assignable to type 'SupplierRecord | null'.
+src/pages/tiers/ClientDetailView.tsx(236,44): error TS2339: Property 'code' does not exist on type '{}'.
+src/pages/tiers/ClientDetailView.tsx(236,76): error TS2339: Property 'accountCode' does not exist on type '{}'.
+src/pages/tiers/ClientDetailView.tsx(254,18): error TS2339: Property 'id' does not exist on type '{}'.
+src/pages/tiers/ClientDetailView.tsx(255,20): error TS2339: Property 'code' does not exist on type '{}'.
+src/pages/tiers/ClientDetailView.tsx(256,19): error TS2339: Property 'name' does not exist on type '{}'.
+src/pages/tiers/ClientDetailView.tsx(257,29): error TS2339: Property 'name' does not exist on type '{}'.
+src/pages/tiers/ClientDetailView.tsx(259,21): error TS2339: Property 'taxId' does not exist on type '{}'.
+src/pages/tiers/ClientDetailView.tsx(263,21): error TS2339: Property 'address' does not exist on type '{}'.
+src/pages/tiers/ClientDetailView.tsx(269,48): error TS2339: Property 'email' does not exist on type '{}'.
+src/pages/tiers/ClientDetailView.tsx(269,75): error TS2339: Property 'phone' does not exist on type '{}'.
+src/pages/tiers/ClientDetailView.tsx(270,59): error TS2339: Property 'email' does not exist on type '{}'.
+src/pages/tiers/ClientDetailView.tsx(270,86): error TS2339: Property 'phone' does not exist on type '{}'.
+src/pages/tiers/ClientDetailView.tsx(273,33): error TS2339: Property 'accountCode' does not exist on type '{}'.
+src/pages/tiers/ClientDetailView.tsx(274,36): error TS2339: Property 'accountCode' does not exist on type '{}'.
+src/pages/tiers/ClientDetailView.tsx(274,54): error TS2339: Property 'accountCode' does not exist on type '{}'.
+src/pages/tiers/ClientDetailView.tsx(278,32): error TS2339: Property 'conditionsPaiement' does not exist on type '{}'.
+src/pages/tiers/ClientDetailView.tsx(279,36): error TS2339: Property 'conditionsPaiement' does not exist on type '{}'.
+src/pages/tiers/ClientDetailView.tsx(279,63): error TS2339: Property 'conditionsPaiement' does not exist on type '{}'.
+src/pages/tiers/ClientDetailView.tsx(280,31): error TS2339: Property 'conditionsPaiement' does not exist on type '{}'.
+src/pages/tiers/ClientDetailView.tsx(285,22): error TS2339: Property 'banque' does not exist on type '{}'.
+src/pages/tiers/ClientDetailView.tsx(286,21): error TS2339: Property 'banque' does not exist on type '{}'.
+src/pages/tiers/ClientDetailView.tsx(287,31): error TS2339: Property 'banque' does not exist on type '{}'.
+src/pages/tiers/ClientDetailView.tsx(301,21): error TS2339: Property 'conditionsPaiement' does not exist on type '{}'.
+src/pages/tiers/ClientDetailView.tsx(303,29): error TS2339: Property 'isActive' does not exist on type '{}'.
+src/pages/tiers/ClientDetailView.tsx(308,72): error TS2339: Property 'conditionsPaiement' does not exist on type '{}'.
+src/pages/tiers/ClientDetailView.tsx(1928,9): error TS2322: Type '{ isOpen: boolean; onClose: () => void; currentRange: { startDate: string; endDate: string; period: "month" | "year" | "day" | "week" | "custom" | "quarter"; }; onPeriodChange: (newRange: any) => void; }' is not assignable to type 'IntrinsicAttributes & PeriodSelectorModalProps'.
+src/pages/tiers/ClientDetailView.tsx(1929,26): error TS7006: Parameter 'newRange' implicitly has an 'any' type.
+src/pages/tiers/CollaborationModule.tsx(57,75): error TS18046: 'tp.name' is of type 'unknown'.
+src/pages/tiers/CollaborationModule.tsx(61,35): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'number'.
+src/pages/tiers/CollaborationModule.tsx(62,18): error TS18046: 'tp.balance' is of type 'unknown'.
+src/pages/tiers/CollaborationModule.tsx(84,26): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'number'.
+src/pages/tiers/CollaborationModule.tsx(97,22): error TS2304: Cannot find name 'chats'.
+src/pages/tiers/CollaborationModule.tsx(97,36): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/pages/tiers/CollaborationModule.tsx(97,39): error TS7006: Parameter 'c' implicitly has an 'any' type.
+src/pages/tiers/CollaborationModule.tsx(99,30): error TS2304: Cannot find name 'collaborations'.
+src/pages/tiers/CollaborationModule.tsx(137,23): error TS2488: Type 'unknown' must have a '[Symbol.iterator]()' method that returns an iterator.
+src/pages/tiers/CollaborationModule.tsx(259,21): error TS2322: Type 'unknown' is not assignable to type 'Key | null | undefined'.
+src/pages/tiers/CollaborationModule.tsx(276,25): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined'.
+src/pages/tiers/CollaborationModule.tsx(283,85): error TS2322: Type 'unknown' is not assignable to type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>'.
+src/pages/tiers/CollaborationModule.tsx(307,17): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined'.
+src/pages/tiers/CollaborationModule.tsx(319,67): error TS2322: Type 'unknown' is not assignable to type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>'.
+src/pages/tiers/CollaborationModule.tsx(321,26): error TS18046: 'selectedChat.participants' is of type 'unknown'.
+src/pages/tiers/CollaborationModule.tsx(321,57): error TS7006: Parameter 'participant' implicitly has an 'any' type.
+src/pages/tiers/CollaborationModule.tsx(321,70): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/pages/tiers/CollaborationModule.tsx(324,38): error TS18046: 'selectedChat.participants' is of type 'unknown'.
+src/pages/tiers/CollaborationModule.tsx(355,49): error TS2339: Property 'type' does not exist on type '{}'.
+src/pages/tiers/CollaborationModule.tsx(358,49): error TS2339: Property 'chiffreAffaires' does not exist on type '{}'.
+src/pages/tiers/CollaborationModule.tsx(359,76): error TS2339: Property 'chiffreAffaires' does not exist on type '{}'.
+src/pages/tiers/CollaborationModule.tsx(361,49): error TS2339: Property 'encours' does not exist on type '{}'.
+src/pages/tiers/CollaborationModule.tsx(362,81): error TS2339: Property 'encours' does not exist on type '{}'.
+src/pages/tiers/CollaborationModule.tsx(364,49): error TS2339: Property 'evaluation' does not exist on type '{}'.
+src/pages/tiers/CollaborationModule.tsx(365,63): error TS2339: Property 'evaluation' does not exist on type '{}'.
+src/pages/tiers/CollaborationModule.tsx(376,23): error TS2322: Type 'unknown' is not assignable to type 'Key | null | undefined'.
+src/pages/tiers/CollaborationModule.tsx(386,29): error TS2322: Type 'unknown' is not assignable to type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>'.
+src/pages/tiers/CollaborationModule.tsx(391,50): error TS2322: Type 'unknown' is not assignable to type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>'.
+src/pages/tiers/CollaborationModule.tsx(398,66): error TS2322: Type 'unknown' is not assignable to type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>'.
+src/pages/tiers/CollaborationModule.tsx(399,65): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined'.
+src/pages/tiers/CollaborationModule.tsx(407,39): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'string'.
+src/pages/tiers/CollaborationModule.tsx(572,32): error TS18046: 'participant.name' is of type 'unknown'.
+src/pages/tiers/CollaborationModule.tsx(572,64): error TS7006: Parameter 'n' implicitly has an 'any' type.
+src/pages/tiers/CollaborationModule.tsx(574,69): error TS2322: Type 'unknown' is not assignable to type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>'.
+src/pages/tiers/CollaborationModule.tsx(697,20): error TS2304: Cannot find name 'Pie'.
+src/pages/tiers/CollaborationModule.tsx(704,31): error TS7031: Binding element 'type' implicitly has an 'any' type.
+src/pages/tiers/CollaborationModule.tsx(704,37): error TS7031: Binding element 'pourcentage' implicitly has an 'any' type.
+src/pages/tiers/CollaborationModule.tsx(709,21): error TS2304: Cannot find name 'Pie'.
+src/pages/tiers/PartenairesModule.tsx(131,30): error TS2339: Property 'createPartenaire' does not exist on type 'ThirdPartyService'.
+src/pages/tiers/PartenairesModule.tsx(181,40): error TS2345: Argument of type '{ code: string; nom: string; type: "fournisseur" | "client" | "mixte"; pays: string; conditions_paiement: number; email?: string | undefined; telephone?: string | undefined; adresse?: string | undefined; ville?: string | undefined; compte_comptable?: string | undefined; }' is not assignable to parameter of type 'void'.
+src/pages/tiers/PartenairesModule.tsx(674,18): error TS2304: Cannot find name 'Pie'.
+src/pages/tiers/PartenairesModule.tsx(681,29): error TS7031: Binding element 'type' implicitly has an 'any' type.
+src/pages/tiers/PartenairesModule.tsx(681,35): error TS7031: Binding element 'nombre' implicitly has an 'any' type.
+src/pages/tiers/PartenairesModule.tsx(686,19): error TS2304: Cannot find name 'Pie'.
+src/pages/tiers/ProspectsModule.tsx(548,18): error TS2304: Cannot find name 'Pie'.
+src/pages/tiers/ProspectsModule.tsx(555,29): error TS7031: Binding element 'stade' implicitly has an 'any' type.
+src/pages/tiers/ProspectsModule.tsx(555,36): error TS7031: Binding element 'nombre' implicitly has an 'any' type.
+src/pages/tiers/ProspectsModule.tsx(560,19): error TS2304: Cannot find name 'Pie'.
+src/pages/tiers/RecouvrementModule.tsx(415,59): error TS2304: Cannot find name 'COLORS'.
+src/pages/tiers/RecouvrementModule.tsx(415,74): error TS2304: Cannot find name 'COLORS'.
+src/pages/tiers/RecouvrementModule.tsx(1342,7): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+src/pages/tiers/RecouvrementModule.tsx(1343,7): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+src/pages/tiers/RecouvrementModule.tsx(1396,9): error TS18048: 'dossier.interetsRetard' is possibly 'undefined'.
+src/pages/tiers/RecouvrementModule.tsx(1401,9): error TS2322: Type 'number | undefined' is not assignable to type 'number'.
+src/pages/tiers/RecouvrementModule.tsx(1407,9): error TS18048: 'dossier.fraisProcedure' is possibly 'undefined'.
+src/pages/tiers/RecouvrementModule.tsx(1412,9): error TS2322: Type 'number | undefined' is not assignable to type 'number'.
+src/pages/tiers/RecouvrementModule.tsx(1966,89): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number'.
+src/pages/tiers/RecouvrementModule.tsx(1970,89): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number'.
+src/pages/tiers/RecouvrementModule.tsx(3772,38): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined'.
+src/pages/tiers/RecouvrementModule.tsx(3792,53): error TS2322: Type 'unknown' is not assignable to type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>'.
+src/pages/tiers/RecouvrementModule.tsx(3796,53): error TS2322: Type 'unknown' is not assignable to type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>'.
+src/pages/tiers/RecouvrementModule.tsx(3800,97): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'number'.
+src/pages/tiers/RecouvrementModule.tsx(3809,25): error TS2322: Type 'unknown' is not assignable to type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>'.
+src/pages/tiers/RecouvrementModule.tsx(3820,63): error TS2769: No overload matches this call.
+src/pages/tiers/RecouvrementModule.tsx(3822,21): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined'.
+src/pages/tiers/RecouvrementModule.tsx(3825,65): error TS2769: No overload matches this call.
+src/pages/tiers/RecouvrementModule.tsx(3828,21): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined'.
+src/pages/tiers/RecouvrementModule.tsx(3831,65): error TS2769: No overload matches this call.
+src/pages/tiers/RecouvrementModule.tsx(3853,68): error TS2339: Property 'map' does not exist on type '{}'.
+src/pages/tiers/RecouvrementModule.tsx(3853,73): error TS7006: Parameter 'compte' implicitly has an 'any' type.
+src/pages/tiers/RecouvrementModule.tsx(3853,81): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/pages/tiers/RecouvrementModule.tsx(3864,90): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'number'.
+src/pages/tiers/RecouvrementModule.tsx(3875,66): error TS2339: Property 'map' does not exist on type '{}'.
+src/pages/tiers/RecouvrementModule.tsx(3875,71): error TS7006: Parameter 'bien' implicitly has an 'any' type.
+src/pages/tiers/RecouvrementModule.tsx(3875,77): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/pages/tiers/RecouvrementModule.tsx(3886,89): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'number'.
+src/pages/tiers/RecouvrementModule.tsx(3897,57): error TS2322: Type 'unknown' is not assignable to type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>'.
+src/pages/tiers/RecouvrementModule.tsx(3901,73): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'number'.
+src/pages/tiers/RecouvrementModule.tsx(3905,90): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'number'.
+src/pages/tiers/RecouvrementModule.tsx(3914,82): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'number'.
+src/pages/tiers/RecouvrementModule.tsx(3962,38): error TS18047: 'selectedContentieuxDetail' is possibly 'null'.
+src/pages/tiers/RecouvrementModule.tsx(3964,45): error TS18047: 'selectedContentieuxDetail' is possibly 'null'.
+src/pages/tiers/RecouvrementModule.tsx(3973,17): error TS18047: 'selectedContentieuxDetail' is possibly 'null'.
+src/pages/tiers/RecouvrementModule.tsx(3974,17): error TS18047: 'selectedContentieuxDetail' is possibly 'null'.
+src/pages/tiers/RecouvrementModule.tsx(3975,17): error TS18047: 'selectedContentieuxDetail' is possibly 'null'.
+src/pages/tiers/RecouvrementModule.tsx(3978,18): error TS18047: 'selectedContentieuxDetail' is possibly 'null'.
+src/pages/tiers/RecouvrementModule.tsx(3984,33): error TS18047: 'selectedContentieuxDetail' is possibly 'null'.
+src/pages/tiers/RecouvrementModule.tsx(4058,48): error TS18047: 'selectedContentieuxDetail' is possibly 'null'.
+src/pages/tiers/RecouvrementModule.tsx(4062,61): error TS2322: Type 'unknown' is not assignable to type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>'.
+src/pages/tiers/RecouvrementModule.tsx(4062,62): error TS18047: 'selectedContentieuxDetail' is possibly 'null'.
+src/pages/tiers/RecouvrementModule.tsx(4066,48): error TS18047: 'selectedContentieuxDetail' is possibly 'null'.
+src/pages/tiers/RecouvrementModule.tsx(4070,49): error TS18047: 'selectedContentieuxDetail' is possibly 'null'.
+src/pages/tiers/RecouvrementModule.tsx(4070,49): error TS18046: 'selectedContentieuxDetail.joursRestants' is of type 'unknown'.
+src/pages/tiers/RecouvrementModule.tsx(4071,19): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined'.
+src/pages/tiers/RecouvrementModule.tsx(4071,20): error TS18047: 'selectedContentieuxDetail' is possibly 'null'.
+src/pages/tiers/RecouvrementModule.tsx(4082,91): error TS18047: 'selectedContentieuxDetail' is possibly 'null'.
+src/pages/tiers/RecouvrementModule.tsx(4086,79): error TS18047: 'selectedContentieuxDetail' is possibly 'null'.
+src/pages/tiers/RecouvrementModule.tsx(4086,79): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number'.
+src/pages/tiers/RecouvrementModule.tsx(4090,76): error TS18047: 'selectedContentieuxDetail' is possibly 'null'.
+src/pages/tiers/RecouvrementModule.tsx(4090,76): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number'.
+src/pages/tiers/RecouvrementModule.tsx(4094,89): error TS18047: 'selectedContentieuxDetail' is possibly 'null'.
+src/pages/tiers/RecouvrementModule.tsx(4103,57): error TS18047: 'selectedContentieuxDetail' is possibly 'null'.
+src/pages/tiers/RecouvrementModule.tsx(4151,17): error TS18047: 'selectedContentieuxDetail' is possibly 'null'.
+src/pages/tiers/RecouvrementModule.tsx(4152,17): error TS18047: 'selectedContentieuxDetail' is possibly 'null'.
+src/pages/tiers/RecouvrementModule.tsx(4152,77): error TS18047: 'selectedContentieuxDetail' is possibly 'null'.
+src/pages/tiers/RecouvrementModule.tsx(4153,15): error TS18047: 'selectedContentieuxDetail' is possibly 'null'.
+src/pages/tiers/RecouvrementModule.tsx(4156,20): error TS18047: 'selectedContentieuxDetail' is possibly 'null'.
+src/pages/tiers/RecouvrementModule.tsx(4161,17): error TS18047: 'selectedContentieuxDetail' is possibly 'null'.
+src/pages/tiers/RecouvrementModule.tsx(4161,77): error TS18047: 'selectedContentieuxDetail' is possibly 'null'.
+src/pages/tiers/RecouvrementModule.tsx(4162,15): error TS18047: 'selectedContentieuxDetail' is possibly 'null'.
+src/pages/tiers/RecouvrementModule.tsx(4162,75): error TS18047: 'selectedContentieuxDetail' is possibly 'null'.
+src/pages/tiers/RecouvrementModule.tsx(4162,150): error TS18047: 'selectedContentieuxDetail' is possibly 'null'.
+src/pages/tiers/RecouvrementModule.tsx(4165,20): error TS18047: 'selectedContentieuxDetail' is possibly 'null'.
+src/pages/tiers/RecouvrementModule.tsx(4170,17): error TS18047: 'selectedContentieuxDetail' is possibly 'null'.
+src/pages/tiers/RecouvrementModule.tsx(4170,77): error TS18047: 'selectedContentieuxDetail' is possibly 'null'.
+src/pages/tiers/RecouvrementModule.tsx(4171,15): error TS18047: 'selectedContentieuxDetail' is possibly 'null'.
+src/pages/tiers/RecouvrementModule.tsx(4171,75): error TS18047: 'selectedContentieuxDetail' is possibly 'null'.
+src/pages/tiers/RecouvrementModule.tsx(4179,17): error TS18047: 'selectedContentieuxDetail' is possibly 'null'.
+src/pages/tiers/RecouvrementModule.tsx(4180,15): error TS18047: 'selectedContentieuxDetail' is possibly 'null'.
+src/pages/tiers/RecouvrementModule.tsx(4183,20): error TS18047: 'selectedContentieuxDetail' is possibly 'null'.
+src/pages/tiers/RecouvrementModule.tsx(4193,44): error TS18047: 'selectedContentieuxDetail' is possibly 'null'.
+src/pages/tiers/RecouvrementModule.tsx(4282,39): error TS18047: 'selectedContentieuxDetail' is possibly 'null'.
+src/pages/tiers/RecouvrementModule.tsx(4290,49): error TS18047: 'selectedContentieuxDetail' is possibly 'null'.
+src/pages/tiers/RecouvrementModule.tsx(4299,28): error TS18047: 'selectedContentieuxDetail' is possibly 'null'.
+src/pages/tiers/RecouvrementModule.tsx(4303,21): error TS18047: 'selectedContentieuxDetail' is possibly 'null'.
+src/pages/tiers/RecouvrementModule.tsx(4307,28): error TS18047: 'selectedContentieuxDetail' is possibly 'null'.
+src/pages/tiers/RecouvrementModule.tsx(4323,70): error TS2769: No overload matches this call.
+src/pages/tiers/RecouvrementModule.tsx(4508,28): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ procedure: Element; justificatif: Element; correspondance: Element; expertise: Element; huissier: Element; }'.
+src/pages/tiers/RecouvrementModule.tsx(4517,28): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ procedure: string; justificatif: string; correspondance: string; expertise: string; huissier: string; }'.
+src/pages/tiers/RecouvrementModule.tsx(4663,12): error TS2393: Duplicate function implementation.
+src/pages/tiers/RecouvrementModule.tsx(4859,28): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ avocat: Element; huissier: Element; tribunal: Element; expertise: Element; divers: Element; }'.
+src/pages/tiers/RecouvrementModule.tsx(4876,117): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ paye: string; facture: string; prevu: string; }'.
+src/pages/tiers/RecouvrementModule.tsx(4877,28): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ paye: string; facture: string; prevu: string; }'.
+src/pages/tiers/RecouvrementModule.tsx(5008,12): error TS2393: Duplicate function implementation.
+src/pages/tiers/RecouvrementModule.tsx(5219,26): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ avocat: Element; huissier: Element; debiteur: Element; tribunal: Element; expert: Element; }'.
+src/pages/tiers/RecouvrementModule.tsx(5226,119): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ haute: string; normale: string; basse: string; }'.
+src/pages/tiers/RecouvrementModule.tsx(5229,119): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ lu: string; non_lu: string; repondu: string; envoye: string; }'.
+src/pages/tiers/RecouvrementModule.tsx(5631,28): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ saisie_attribution: Element; saisie_vente: Element; saisie_immobiliere: Element; astreinte: Element; opposition: Element; }'.
+src/pages/tiers/RecouvrementModule.tsx(5640,28): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ saisie_attribution: string; saisie_vente: string; saisie_immobiliere: string; astreinte: string; opposition: string; }'.
+src/pages/tiers/RecouvrementModule.tsx(5656,117): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ executee: string; en_cours: string; programmee: string; echec: string; }'.
+src/pages/tiers/RecouvrementModule.tsx(5657,28): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ executee: string; en_cours: string; programmee: string; echec: string; }'.
+src/pages/tiers/RecouvrementModule.tsx(5829,14): error TS18047: 'selectedContentieuxDetail' is possibly 'null'.
+src/pages/tiers/RecouvrementModule.tsx(6611,61): error TS2304: Cannot find name 'COLORS'.
+src/pages/tiers/RecouvrementModule.tsx(6611,76): error TS2304: Cannot find name 'COLORS'.
+src/pages/tiers/RecouvrementModule.tsx(6631,73): error TS2304: Cannot find name 'COLORS'.
+src/pages/tiers/RecouvrementModule.tsx(6631,88): error TS2304: Cannot find name 'COLORS'.
+src/pages/tiers/RecouvrementModule.tsx(6904,32): error TS2304: Cannot find name 'setShowRapportMensuelModal'.
+src/pages/tiers/RecouvrementModule.tsx(6912,32): error TS2304: Cannot find name 'setShowAnalyseROIModal'.
+src/pages/tiers/RecouvrementModule.tsx(6920,32): error TS2304: Cannot find name 'setShowPerformanceEquipeModal'.
+src/pages/tiers/RecouvrementModule.tsx(6928,32): error TS2304: Cannot find name 'setShowPrevisionTresorerieModal'.
+src/pages/tiers/RecouvrementModule.tsx(6936,32): error TS2304: Cannot find name 'setShowDossiersRisqueModal'.
+src/pages/tiers/RecouvrementModule.tsx(6944,32): error TS2552: Cannot find name 'setShowExportPersonnaliseModal'. Did you mean 'setShowExpertiseModal'?
+src/pages/tiers/RecouvrementModule.tsx(7183,118): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+src/pages/tiers/RecouvrementModule.tsx(7184,20): error TS18048: 'selectedContentieux.statutJuridique' is possibly 'undefined'.
+src/pages/tiers/RecouvrementModule.tsx(7355,37): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number'.
+src/pages/tiers/RecouvrementModule.tsx(7361,37): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number'.
+src/pages/tiers/RecouvrementModule.tsx(8465,39): error TS2339: Property 'crmData' does not exist on type '{ id: string; clientId: string; clientNom: string; clientCode: string; factures: { factureId: string; numero: string; date: string; dateEcheance: string; montantOriginal: number; montantRestant: number; joursRetard: number; }[]; ... 8 more ...; commentaires: string; }'.
+src/pages/tiers/RecouvrementModule.tsx(8466,42): error TS2339: Property 'crmData' does not exist on type '{ id: string; clientId: string; clientNom: string; clientCode: string; factures: { factureId: string; numero: string; date: string; dateEcheance: string; montantOriginal: number; montantRestant: number; joursRetard: number; }[]; ... 8 more ...; commentaires: string; }'.
+src/pages/tiers/RecouvrementModule.tsx(8467,42): error TS2339: Property 'crmData' does not exist on type '{ id: string; clientId: string; clientNom: string; clientCode: string; factures: { factureId: string; numero: string; date: string; dateEcheance: string; montantOriginal: number; montantRestant: number; joursRetard: number; }[]; ... 8 more ...; commentaires: string; }'.
+src/pages/tiers/RecouvrementModule.tsx(8471,41): error TS2339: Property 'crmData' does not exist on type '{ id: string; clientId: string; clientNom: string; clientCode: string; factures: { factureId: string; numero: string; date: string; dateEcheance: string; montantOriginal: number; montantRestant: number; joursRetard: number; }[]; ... 8 more ...; commentaires: string; }'.
+src/pages/tiers/RecouvrementModule.tsx(8472,44): error TS2339: Property 'crmData' does not exist on type '{ id: string; clientId: string; clientNom: string; clientCode: string; factures: { factureId: string; numero: string; date: string; dateEcheance: string; montantOriginal: number; montantRestant: number; joursRetard: number; }[]; ... 8 more ...; commentaires: string; }'.
+src/pages/tiers/RecouvrementModule.tsx(8473,44): error TS2339: Property 'crmData' does not exist on type '{ id: string; clientId: string; clientNom: string; clientCode: string; factures: { factureId: string; numero: string; date: string; dateEcheance: string; montantOriginal: number; montantRestant: number; joursRetard: number; }[]; ... 8 more ...; commentaires: string; }'.
+src/pages/tiers/RecouvrementModule.tsx(8480,38): error TS2339: Property 'crmData' does not exist on type '{ id: string; clientId: string; clientNom: string; clientCode: string; factures: { factureId: string; numero: string; date: string; dateEcheance: string; montantOriginal: number; montantRestant: number; joursRetard: number; }[]; ... 8 more ...; commentaires: string; }'.
+src/pages/tiers/RecouvrementModule.tsx(8483,43): error TS2339: Property 'crmData' does not exist on type '{ id: string; clientId: string; clientNom: string; clientCode: string; factures: { factureId: string; numero: string; date: string; dateEcheance: string; montantOriginal: number; montantRestant: number; joursRetard: number; }[]; ... 8 more ...; commentaires: string; }'.
+src/pages/tiers/RecouvrementModule.tsx(8484,43): error TS2339: Property 'crmData' does not exist on type '{ id: string; clientId: string; clientNom: string; clientCode: string; factures: { factureId: string; numero: string; date: string; dateEcheance: string; montantOriginal: number; montantRestant: number; joursRetard: number; }[]; ... 8 more ...; commentaires: string; }'.
+src/pages/tiers/RecouvrementModule.tsx(8488,51): error TS2339: Property 'crmData' does not exist on type '{ id: string; clientId: string; clientNom: string; clientCode: string; factures: { factureId: string; numero: string; date: string; dateEcheance: string; montantOriginal: number; montantRestant: number; joursRetard: number; }[]; ... 8 more ...; commentaires: string; }'.
+src/pages/tiers/RecouvrementModule.tsx(8491,63): error TS2339: Property 'crmData' does not exist on type '{ id: string; clientId: string; clientNom: string; clientCode: string; factures: { factureId: string; numero: string; date: string; dateEcheance: string; montantOriginal: number; montantRestant: number; joursRetard: number; }[]; ... 8 more ...; commentaires: string; }'.
+src/pages/tiers/RecouvrementModule.tsx(8522,36): error TS2339: Property 'commercialData' does not exist on type '{ id: string; clientId: string; clientNom: string; clientCode: string; factures: { factureId: string; numero: string; date: string; dateEcheance: string; montantOriginal: number; montantRestant: number; joursRetard: number; }[]; ... 8 more ...; commentaires: string; }'.
+src/pages/tiers/RecouvrementModule.tsx(8524,45): error TS2339: Property 'commercialData' does not exist on type '{ id: string; clientId: string; clientNom: string; clientCode: string; factures: { factureId: string; numero: string; date: string; dateEcheance: string; montantOriginal: number; montantRestant: number; joursRetard: number; }[]; ... 8 more ...; commentaires: string; }'.
+src/pages/tiers/RecouvrementModule.tsx(8537,63): error TS2345: Argument of type '{ id: string; clientId: string; clientNom: string; clientCode: string; factures: { factureId: string; numero: string; date: string; dateEcheance: string; montantOriginal: number; montantRestant: number; joursRetard: number; }[]; ... 8 more ...; commentaires: string; }' is not assignable to parameter of type 'SetStateAction<CreanceEnrichie | null>'.
+src/pages/tiers/RecouvrementModule.tsx(8542,38): error TS2339: Property 'crmData' does not exist on type '{ id: string; clientId: string; clientNom: string; clientCode: string; factures: { factureId: string; numero: string; date: string; dateEcheance: string; montantOriginal: number; montantRestant: number; joursRetard: number; }[]; ... 8 more ...; commentaires: string; }'.
+src/pages/tiers/RecouvrementModule.tsx(8542,57): error TS2339: Property 'commercialData' does not exist on type '{ id: string; clientId: string; clientNom: string; clientCode: string; factures: { factureId: string; numero: string; date: string; dateEcheance: string; montantOriginal: number; montantRestant: number; joursRetard: number; }[]; ... 8 more ...; commentaires: string; }'.
+src/pages/tiers/RecouvrementModule.tsx(8548,50): error TS2345: Argument of type '{ id: string; clientId: string; clientNom: string; clientCode: string; factures: { factureId: string; numero: string; date: string; dateEcheance: string; montantOriginal: number; montantRestant: number; joursRetard: number; }[]; ... 8 more ...; commentaires: string; }' is not assignable to parameter of type 'SetStateAction<CreanceEnrichie | null>'.
+src/pages/tiers/RecouvrementModule.tsx(8555,38): error TS2339: Property 'crmData' does not exist on type '{ id: string; clientId: string; clientNom: string; clientCode: string; factures: { factureId: string; numero: string; date: string; dateEcheance: string; montantOriginal: number; montantRestant: number; joursRetard: number; }[]; ... 8 more ...; commentaires: string; }'.
+src/pages/tiers/RecouvrementModule.tsx(8555,70): error TS2339: Property 'crmData' does not exist on type '{ id: string; clientId: string; clientNom: string; clientCode: string; factures: { factureId: string; numero: string; date: string; dateEcheance: string; montantOriginal: number; montantRestant: number; joursRetard: number; }[]; ... 8 more ...; commentaires: string; }'.
+src/pages/tiers/RecouvrementModule.tsx(8561,44): error TS2339: Property 'crmData' does not exist on type '{ id: string; clientId: string; clientNom: string; clientCode: string; factures: { factureId: string; numero: string; date: string; dateEcheance: string; montantOriginal: number; montantRestant: number; joursRetard: number; }[]; ... 8 more ...; commentaires: string; }'.
+src/pages/tiers/RecouvrementModule.tsx(8562,50): error TS2339: Property 'crmData' does not exist on type '{ id: string; clientId: string; clientNom: string; clientCode: string; factures: { factureId: string; numero: string; date: string; dateEcheance: string; montantOriginal: number; montantRestant: number; joursRetard: number; }[]; ... 8 more ...; commentaires: string; }'.
+src/pages/tiers/RecouvrementModule.tsx(8564,43): error TS2339: Property 'crmData' does not exist on type '{ id: string; clientId: string; clientNom: string; clientCode: string; factures: { factureId: string; numero: string; date: string; dateEcheance: string; montantOriginal: number; montantRestant: number; joursRetard: number; }[]; ... 8 more ...; commentaires: string; }'.
+src/pages/tiers/RecouvrementModule.tsx(8565,60): error TS2339: Property 'crmData' does not exist on type '{ id: string; clientId: string; clientNom: string; clientCode: string; factures: { factureId: string; numero: string; date: string; dateEcheance: string; montantOriginal: number; montantRestant: number; joursRetard: number; }[]; ... 8 more ...; commentaires: string; }'.
+src/pages/tiers/RecouvrementModule.tsx(8570,38): error TS2339: Property 'crmData' does not exist on type '{ id: string; clientId: string; clientNom: string; clientCode: string; factures: { factureId: string; numero: string; date: string; dateEcheance: string; montantOriginal: number; montantRestant: number; joursRetard: number; }[]; ... 8 more ...; commentaires: string; }'.
+src/pages/tiers/RecouvrementModule.tsx(8576,44): error TS2339: Property 'crmData' does not exist on type '{ id: string; clientId: string; clientNom: string; clientCode: string; factures: { factureId: string; numero: string; date: string; dateEcheance: string; montantOriginal: number; montantRestant: number; joursRetard: number; }[]; ... 8 more ...; commentaires: string; }'.
+src/pages/tiers/RecouvrementModule.tsx(8577,50): error TS2339: Property 'crmData' does not exist on type '{ id: string; clientId: string; clientNom: string; clientCode: string; factures: { factureId: string; numero: string; date: string; dateEcheance: string; montantOriginal: number; montantRestant: number; joursRetard: number; }[]; ... 8 more ...; commentaires: string; }'.
+src/pages/tiers/RecouvrementModule.tsx(8579,43): error TS2339: Property 'crmData' does not exist on type '{ id: string; clientId: string; clientNom: string; clientCode: string; factures: { factureId: string; numero: string; date: string; dateEcheance: string; montantOriginal: number; montantRestant: number; joursRetard: number; }[]; ... 8 more ...; commentaires: string; }'.
+src/pages/tiers/RecouvrementModule.tsx(8580,63): error TS2339: Property 'crmData' does not exist on type '{ id: string; clientId: string; clientNom: string; clientCode: string; factures: { factureId: string; numero: string; date: string; dateEcheance: string; montantOriginal: number; montantRestant: number; joursRetard: number; }[]; ... 8 more ...; commentaires: string; }'.
+src/pages/tiers/RecouvrementModule.tsx(8585,38): error TS2339: Property 'crmData' does not exist on type '{ id: string; clientId: string; clientNom: string; clientCode: string; factures: { factureId: string; numero: string; date: string; dateEcheance: string; montantOriginal: number; montantRestant: number; joursRetard: number; }[]; ... 8 more ...; commentaires: string; }'.
+src/pages/tiers/RecouvrementModule.tsx(8589,36): error TS2339: Property 'commercialData' does not exist on type '{ id: string; clientId: string; clientNom: string; clientCode: string; factures: { factureId: string; numero: string; date: string; dateEcheance: string; montantOriginal: number; montantRestant: number; joursRetard: number; }[]; ... 8 more ...; commentaires: string; }'.
+src/pages/tiers/RecouvrementModule.tsx(8589,77): error TS2339: Property 'commercialData' does not exist on type '{ id: string; clientId: string; clientNom: string; clientCode: string; factures: { factureId: string; numero: string; date: string; dateEcheance: string; montantOriginal: number; montantRestant: number; joursRetard: number; }[]; ... 8 more ...; commentaires: string; }'.
+src/pages/tiers/RecouvrementModule.tsx(8591,79): error TS2322: Type '{ className: string; title: string; }' is not assignable to type 'IntrinsicAttributes & Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>'.
+src/pages/tiers/RecouvrementModule.tsx(8591,97): error TS2339: Property 'commercialData' does not exist on type '{ id: string; clientId: string; clientNom: string; clientCode: string; factures: { factureId: string; numero: string; date: string; dateEcheance: string; montantOriginal: number; montantRestant: number; joursRetard: number; }[]; ... 8 more ...; commentaires: string; }'.
+src/pages/tiers/RecouvrementModule.tsx(11472,77): error TS2345: Argument of type 'ValueType' is not assignable to parameter of type 'number'.
+src/pages/tiers/RecouvrementModule.tsx(11499,79): error TS2345: Argument of type 'ValueType' is not assignable to parameter of type 'number'.
+src/pages/tiers/RecouvrementModule.tsx(14491,40): error TS2365: Operator '<' cannot be applied to types 'number' and 'string | number'.
+src/pages/tiers/RecouvrementModule.tsx(14500,64): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+src/pages/tiers/RecouvrementModule.tsx(14865,46): error TS2551: Property 'client' does not exist on type 'CreanceEnrichie'. Did you mean 'clientId'?
+src/pages/tiers/RecouvrementModule.tsx(14908,79): error TS2322: Type 'ActionTypeRecouvrement' is not assignable to type '"APPEL" | "EMAIL" | "VISITE" | "MISE_EN_DEMEURE" | "COURRIER" | "SMS"'.
+src/pages/tiers/RecouvrementModule.tsx(15098,19): error TS2304: Cannot find name 'setShowTransferContentieuxModal'.
+src/pages/tiers/RecouvrementModule.tsx(15099,19): error TS2304: Cannot find name 'resetForm'.
+src/pages/tiers/RecouvrementModule.tsx(15102,27): error TS2304: Cannot find name 'isSubmitting'.
+src/pages/tiers/RecouvrementModule.tsx(15137,33): error TS2304: Cannot find name 'handleInputChange'.
+src/pages/tiers/RecouvrementModule.tsx(15137,70): error TS2304: Cannot find name 'formData'.
+src/pages/tiers/RecouvrementModule.tsx(15139,33): error TS2304: Cannot find name 'handleInputChange'.
+src/pages/tiers/RecouvrementModule.tsx(15139,66): error TS2304: Cannot find name 'formData'.
+src/pages/tiers/RecouvrementModule.tsx(15139,94): error TS7006: Parameter 'id' implicitly has an 'any' type.
+src/pages/tiers/RecouvrementModule.tsx(15142,39): error TS2304: Cannot find name 'isSubmitting'.
+src/pages/tiers/RecouvrementModule.tsx(15154,33): error TS2304: Cannot find name 'handleInputChange'.
+src/pages/tiers/RecouvrementModule.tsx(15154,70): error TS2304: Cannot find name 'formData'.
+src/pages/tiers/RecouvrementModule.tsx(15156,33): error TS2304: Cannot find name 'handleInputChange'.
+src/pages/tiers/RecouvrementModule.tsx(15156,66): error TS2304: Cannot find name 'formData'.
+src/pages/tiers/RecouvrementModule.tsx(15156,94): error TS7006: Parameter 'id' implicitly has an 'any' type.
+src/pages/tiers/RecouvrementModule.tsx(15159,39): error TS2304: Cannot find name 'isSubmitting'.
+src/pages/tiers/RecouvrementModule.tsx(15171,33): error TS2304: Cannot find name 'handleInputChange'.
+src/pages/tiers/RecouvrementModule.tsx(15171,70): error TS2304: Cannot find name 'formData'.
+src/pages/tiers/RecouvrementModule.tsx(15173,33): error TS2304: Cannot find name 'handleInputChange'.
+src/pages/tiers/RecouvrementModule.tsx(15173,66): error TS2304: Cannot find name 'formData'.
+src/pages/tiers/RecouvrementModule.tsx(15173,94): error TS7006: Parameter 'id' implicitly has an 'any' type.
+src/pages/tiers/RecouvrementModule.tsx(15176,39): error TS2304: Cannot find name 'isSubmitting'.
+src/pages/tiers/RecouvrementModule.tsx(15181,24): error TS2304: Cannot find name 'errors'.
+src/pages/tiers/RecouvrementModule.tsx(15182,67): error TS2304: Cannot find name 'errors'.
+src/pages/tiers/RecouvrementModule.tsx(15196,32): error TS2304: Cannot find name 'formData'.
+src/pages/tiers/RecouvrementModule.tsx(15197,42): error TS2304: Cannot find name 'handleInputChange'.
+src/pages/tiers/RecouvrementModule.tsx(15198,35): error TS2304: Cannot find name 'isSubmitting'.
+src/pages/tiers/RecouvrementModule.tsx(15206,24): error TS2304: Cannot find name 'errors'.
+src/pages/tiers/RecouvrementModule.tsx(15207,67): error TS2304: Cannot find name 'errors'.
+src/pages/tiers/RecouvrementModule.tsx(15215,32): error TS2304: Cannot find name 'formData'.
+src/pages/tiers/RecouvrementModule.tsx(15216,42): error TS2304: Cannot find name 'handleInputChange'.
+src/pages/tiers/RecouvrementModule.tsx(15217,35): error TS2304: Cannot find name 'isSubmitting'.
+src/pages/tiers/RecouvrementModule.tsx(15219,24): error TS2304: Cannot find name 'errors'.
+src/pages/tiers/RecouvrementModule.tsx(15220,67): error TS2304: Cannot find name 'errors'.
+src/pages/tiers/RecouvrementModule.tsx(15230,32): error TS2304: Cannot find name 'formData'.
+src/pages/tiers/RecouvrementModule.tsx(15231,42): error TS2304: Cannot find name 'handleInputChange'.
+src/pages/tiers/RecouvrementModule.tsx(15232,35): error TS2304: Cannot find name 'isSubmitting'.
+src/pages/tiers/RecouvrementModule.tsx(15234,24): error TS2304: Cannot find name 'errors'.
+src/pages/tiers/RecouvrementModule.tsx(15235,67): error TS2304: Cannot find name 'errors'.
+src/pages/tiers/RecouvrementModule.tsx(15244,32): error TS2304: Cannot find name 'formData'.
+src/pages/tiers/RecouvrementModule.tsx(15245,42): error TS2304: Cannot find name 'handleInputChange'.
+src/pages/tiers/RecouvrementModule.tsx(15246,35): error TS2304: Cannot find name 'isSubmitting'.
+src/pages/tiers/RecouvrementModule.tsx(15248,24): error TS2304: Cannot find name 'errors'.
+src/pages/tiers/RecouvrementModule.tsx(15249,67): error TS2304: Cannot find name 'errors'.
+src/pages/tiers/RecouvrementModule.tsx(15264,30): error TS2304: Cannot find name 'formData'.
+src/pages/tiers/RecouvrementModule.tsx(15265,40): error TS2304: Cannot find name 'handleInputChange'.
+src/pages/tiers/RecouvrementModule.tsx(15266,33): error TS2304: Cannot find name 'isSubmitting'.
+src/pages/tiers/RecouvrementModule.tsx(15269,22): error TS2304: Cannot find name 'errors'.
+src/pages/tiers/RecouvrementModule.tsx(15270,65): error TS2304: Cannot find name 'errors'.
+src/pages/tiers/RecouvrementModule.tsx(15272,64): error TS2304: Cannot find name 'formData'.
+src/pages/tiers/RecouvrementModule.tsx(15282,19): error TS2304: Cannot find name 'setShowTransferContentieuxModal'.
+src/pages/tiers/RecouvrementModule.tsx(15283,19): error TS2304: Cannot find name 'resetForm'.
+src/pages/tiers/RecouvrementModule.tsx(15285,27): error TS2304: Cannot find name 'isSubmitting'.
+src/pages/tiers/RecouvrementModule.tsx(15291,26): error TS2304: Cannot find name 'handleSubmit'.
+src/pages/tiers/RecouvrementModule.tsx(15292,27): error TS2304: Cannot find name 'isSubmitting'.
+src/pages/tiers/RecouvrementModule.tsx(15295,18): error TS2304: Cannot find name 'isSubmitting'.
+src/pages/treasury/BankMovementsPage.tsx(32,37): error TS2339: Property 'isLoading' does not exist on type '{ data: BankPosition[]; loading: boolean; error: Error | null; refetch: () => void; }'.
+src/pages/treasury/BankMovementsPage.tsx(115,29): error TS2353: Object literal may only specify known properties, and 'date' does not exist in type '(prevState: null) => null'.
+src/pages/treasury/BankMovementsPage.tsx(636,61): error TS2339: Property 'date' does not exist on type 'never'.
+src/pages/treasury/BankMovementsPage.tsx(650,77): error TS2339: Property 'data' does not exist on type 'never'.
+src/pages/treasury/BankMovementsPage.tsx(656,77): error TS2339: Property 'data' does not exist on type 'never'.
+src/pages/treasury/BankMovementsPage.tsx(662,77): error TS2339: Property 'data' does not exist on type 'never'.
+src/pages/treasury/BankMovementsPage.tsx(668,77): error TS2339: Property 'data' does not exist on type 'never'.
+src/pages/treasury/BankMovementsPage.tsx(692,70): error TS2339: Property 'date' does not exist on type 'never'.
+src/pages/treasury/CashFlowPage.tsx(165,24): error TS2339: Property 'periods' does not exist on type '{ solde_initial: number; total_entrees: number; total_sorties: number; flux_net: number; solde_final: number; trend: "up" | "down" | "stable"; evolution_percentage: number; rotation_moyenne: number; jours_couverture: number; }'.
+src/pages/treasury/CashFlowPage.tsx(182,27): error TS2339: Property 'periods' does not exist on type '{ solde_initial: number; total_entrees: number; total_sorties: number; flux_net: number; solde_final: number; trend: "up" | "down" | "stable"; evolution_percentage: number; rotation_moyenne: number; jours_couverture: number; }'.
+src/pages/treasury/CashFlowPage.tsx(182,40): error TS7006: Parameter 'period' implicitly has an 'any' type.
+src/pages/treasury/CashFlowPage.tsx(182,48): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/pages/treasury/CashFlowPage.tsx(241,24): error TS2339: Property 'categories' does not exist on type '{ solde_initial: number; total_entrees: number; total_sorties: number; flux_net: number; solde_final: number; trend: "up" | "down" | "stable"; evolution_percentage: number; rotation_moyenne: number; jours_couverture: number; }'.
+src/pages/treasury/CashFlowPage.tsx(255,29): error TS2339: Property 'categories' does not exist on type '{ solde_initial: number; total_entrees: number; total_sorties: number; flux_net: number; solde_final: number; trend: "up" | "down" | "stable"; evolution_percentage: number; rotation_moyenne: number; jours_couverture: number; }'.
+src/pages/treasury/CashFlowPage.tsx(255,54): error TS7006: Parameter 'category' implicitly has an 'any' type.
+src/pages/treasury/CashFlowPage.tsx(255,64): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/pages/treasury/CashFlowPage.tsx(286,29): error TS2339: Property 'categories' does not exist on type '{ solde_initial: number; total_entrees: number; total_sorties: number; flux_net: number; solde_final: number; trend: "up" | "down" | "stable"; evolution_percentage: number; rotation_moyenne: number; jours_couverture: number; }'.
+src/pages/treasury/CashFlowPage.tsx(286,54): error TS7006: Parameter 'category' implicitly has an 'any' type.
+src/pages/treasury/CashFlowPage.tsx(286,64): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/pages/treasury/CashFlowPage.tsx(311,24): error TS2339: Property 'accounts' does not exist on type '{ solde_initial: number; total_entrees: number; total_sorties: number; flux_net: number; solde_final: number; trend: "up" | "down" | "stable"; evolution_percentage: number; rotation_moyenne: number; jours_couverture: number; }'.
+src/pages/treasury/CashFlowPage.tsx(329,27): error TS2339: Property 'accounts' does not exist on type '{ solde_initial: number; total_entrees: number; total_sorties: number; flux_net: number; solde_final: number; trend: "up" | "down" | "stable"; evolution_percentage: number; rotation_moyenne: number; jours_couverture: number; }'.
+src/pages/treasury/CashFlowPage.tsx(329,41): error TS7006: Parameter 'account' implicitly has an 'any' type.
+src/pages/treasury/CashFlowPage.tsx(603,30): error TS2339: Property 'numero_compte' does not exist on type 'BankAccount'.
+src/pages/treasury/CashFlowPage.tsx(603,56): error TS2339: Property 'libelle_compte' does not exist on type 'BankAccount'.
+src/pages/treasury/ConnexionsBancairesPage.tsx(113,27): error TS2345: Argument of type '(acc: Record<string, unknown>) => { id: string; nom_banque: string; nom_compte: string; numero_compte: string; type_compte: string; statut: string; derniere_sync: string; solde_actuel: number; ... 6 more ...; authentification: "OAuth"; }' is not assignable to parameter of type '(value: BankAccount, index: number, array: BankAccount[]) => { id: string; nom_banque: string; nom_compte: string; numero_compte: string; type_compte: string; ... 9 more ...; authentification: "OAuth"; }'.
+src/pages/treasury/ConnexionsBancairesPage.tsx(141,63): error TS2339: Property 'getAll' does not exist on type 'BankTransactionsService'.
+src/pages/treasury/ConnexionsBancairesPage.tsx(144,65): error TS2339: Property 'getByAccount' does not exist on type 'BankTransactionsService'.
+src/pages/treasury/ConnexionsBancairesPage.tsx(168,44): error TS2339: Property 'getReconciliationStatus' does not exist on type 'TreasuryAdvancedService'.
+src/pages/treasury/ConnexionsBancairesPage.tsx(246,39): error TS2339: Property 'autoReconcile' does not exist on type 'TreasuryAdvancedService'.
+src/pages/treasury/ConnexionsBancairesPage.tsx(598,42): error TS7006: Parameter 'transaction' implicitly has an 'any' type.
+src/pages/treasury/ConnexionsBancairesPage.tsx(662,34): error TS7006: Parameter 'log' implicitly has an 'any' type.
+src/pages/treasury/FundCallDetails.tsx(217,17): error TS7006: Parameter 'l' implicitly has an 'any' type.
+src/pages/treasury/FundCallDetails.tsx(218,14): error TS7006: Parameter 'l' implicitly has an 'any' type.
+src/pages/treasury/FundCallDetails.tsx(592,56): error TS2769: No overload matches this call.
+src/pages/treasury/FundCallDetails.tsx(598,63): error TS2769: No overload matches this call.
+src/pages/treasury/FundCallsPage.tsx(62,3): error TS2305: Module '"../../components/ui"' has no exported member 'DialogTrigger'.
+src/pages/treasury/FundCallsPage.tsx(160,19): error TS7006: Parameter 'line' implicitly has an 'any' type.
+src/pages/treasury/FundCallsPage.tsx(161,19): error TS7006: Parameter 'line' implicitly has an 'any' type.
+src/pages/treasury/FundCallsPage.tsx(162,20): error TS7006: Parameter 'line' implicitly has an 'any' type.
+src/pages/treasury/FundCallsPage.tsx(388,17): error TS2322: Type '{ id: string; checked: boolean; onCheckedChange: (checked: any) => void; }' is not assignable to type 'IntrinsicAttributes & CheckboxProps & RefAttributes<HTMLInputElement>'.
+src/pages/treasury/FundCallsPage.tsx(388,35): error TS7006: Parameter 'checked' implicitly has an 'any' type.
+src/pages/treasury/FundCallsPage.tsx(414,23): error TS2322: Type '{ checked: boolean; onCheckedChange: (checked: any) => void; }' is not assignable to type 'IntrinsicAttributes & CheckboxProps & RefAttributes<HTMLInputElement>'.
+src/pages/treasury/FundCallsPage.tsx(414,41): error TS7006: Parameter 'checked' implicitly has an 'any' type.
+src/pages/treasury/FundCallsPage.tsx(465,29): error TS2322: Type '{ checked: boolean; onCheckedChange: () => void; }' is not assignable to type 'IntrinsicAttributes & CheckboxProps & RefAttributes<HTMLInputElement>'.
+src/pages/treasury/FundCallsPage.tsx(562,47): error TS2345: Argument of type '(prev: PayableItem[]) => (PayableItem | { recommendation: string; id: string; vendor: string; vendorCode: string; documentDate: Date; documentNumber: string; ... 10 more ...; account: string; })[]' is not assignable to parameter of type 'SetStateAction<PayableItem[]>'.
+src/pages/treasury/MultiCurrency.tsx(261,19): error TS2339: Property 'date' does not exist on type 'ExchangeRate'.
+src/pages/treasury/MultiCurrency.tsx(263,20): error TS2339: Property 'to_currency' does not exist on type 'ExchangeRate'.
+src/pages/treasury/MultiCurrency.tsx(397,19): error TS2322: Type '{ data: { label: string; value: number; color: string; }[]; height: number; showValues: boolean; valueFormatter: (value: any) => string; }' is not assignable to type 'IntrinsicAttributes & ColorfulBarChartProps'.
+src/pages/treasury/MultiCurrency.tsx(398,36): error TS7006: Parameter 'value' implicitly has an 'any' type.
+src/pages/treasury/TreasuryPlanDetails.tsx(58,24): error TS2769: No overload matches this call.
+src/pages/treasury/TreasuryPlanDetails.tsx(59,29): error TS2488: Type '{}' must have a '[Symbol.iterator]()' method that returns an iterator.
+src/pages/treasury/TreasuryPlanDetails.tsx(71,24): error TS2769: No overload matches this call.
+src/pages/treasury/TreasuryPlanDetails.tsx(71,67): error TS2769: No overload matches this call.
+src/pages/treasury/TreasuryPlanDetails.tsx(72,29): error TS2488: Type '{}' must have a '[Symbol.iterator]()' method that returns an iterator.
+src/pages/treasury/TreasuryPlanDetails.tsx(984,31): error TS2322: Type 'string' is not assignable to type 'number'.
+src/pages/treasury/TreasuryPlanDetails.tsx(1073,31): error TS2322: Type 'string' is not assignable to type 'number'.
+src/pages/treasury/TreasuryPlanDetails.tsx(1162,31): error TS2322: Type 'string' is not assignable to type 'number'.
+src/pages/treasury/TreasuryPlanDetails.tsx(1647,25): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ ventes: { label: string; subCategories: { produits_locaux: string; produits_importes: string; }; }; services: { label: string; subCategories: { conseil_formation: string; maintenance: string; }; }; autres_produits: { ...; }; } | { ...; }'.
+src/pages/treasury/TreasuryPlanDetails.tsx(1649,55): error TS2322: Type 'unknown' is not assignable to type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>'.
+src/pages/treasury/TreasuryPlanDetails.tsx(1730,75): error TS18046: 'inv.montant' is of type 'unknown'.
+src/pages/treasury/TreasuryPlanDetails.tsx(1770,25): error TS2322: Type 'unknown' is not assignable to type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>'.
+src/pages/treasury/TreasuryPlanDetails.tsx(1773,25): error TS2322: Type 'unknown' is not assignable to type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>'.
+src/pages/treasury/TreasuryPlanDetails.tsx(1775,57): error TS2322: Type 'unknown' is not assignable to type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>'.
+src/pages/treasury/TreasuryPlanDetails.tsx(1776,57): error TS2322: Type 'unknown' is not assignable to type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>'.
+src/pages/treasury/TreasuryPlanDetails.tsx(1780,64): error TS2769: No overload matches this call.
+src/pages/treasury/TreasuryPlanDetails.tsx(1789,27): error TS2322: Type 'unknown' is not assignable to type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>'.
+src/pages/treasury/TreasuryPositions.tsx(296,15): error TS2322: Type '{ data: { label: string; value: number; color: string; }[]; height: number; showValues: boolean; valueFormatter: (value: any) => string; }' is not assignable to type 'IntrinsicAttributes & ColorfulBarChartProps'.
+src/pages/treasury/TreasuryPositions.tsx(297,32): error TS7006: Parameter 'value' implicitly has an 'any' type.
+src/pages/workspace/AdminWorkspace.tsx(353,21): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined'.
+src/pages/workspace/ComptableWorkspaceFinal.tsx(249,33): error TS2339: Property 'upsert' does not exist on type 'DataAdapter'.
+src/pages/workspace/ManagerWorkspace.tsx(248,33): error TS2339: Property 'upsert' does not exist on type 'DataAdapter'.
+src/services/auxiliaryCode/auxiliaryCodeService.ts(24,26): error TS2347: Untyped function calls may not accept type arguments.
+src/services/auxiliaryCode/auxiliaryCodeService.ts(47,26): error TS2347: Untyped function calls may not accept type arguments.
+src/services/auxiliaryCode/auxiliaryCodeService.ts(53,11): error TS2347: Untyped function calls may not accept type arguments.
+src/services/auxiliaryCode/auxiliaryCodeService.ts(59,11): error TS2347: Untyped function calls may not accept type arguments.
+src/services/prophet/tools/analytique/AnalytiqueEngine.ts(234,47): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'number'.
+src/services/prophet/tools/analytique/AnalytiqueEngine.ts(239,13): error TS2322: Type '{ compte_analytique: string; centre_cout: string; libelle: string; montant: number; sens: {}; }[]' is not assignable to type 'EcritureAnalytique[]'.
+src/services/prophet/tools/analytique/AnalytiqueEngine.ts(254,42): error TS18046: 'montant' is of type 'unknown'.
+src/services/prophet/tools/analytique/AnalytiqueEngine.ts(284,32): error TS2339: Property 'length' does not exist on type '{}'.
+src/services/prophet/tools/analytique/AnalytiqueEngine.ts(286,71): error TS2339: Property 'debut' does not exist on type '{}'.
+src/services/prophet/tools/analytique/AnalytiqueEngine.ts(286,91): error TS2339: Property 'fin' does not exist on type '{}'.
+src/services/prophet/tools/analytique/AnalytiqueEngine.ts(293,23): error TS7053: Element implicitly has an 'any' type because expression of type '0' can't be used to index type '{}'.
+src/services/prophet/tools/analytique/AnalytiqueEngine.ts(299,48): error TS2345: Argument of type '{}' is not assignable to parameter of type '{ compte: string; libelle: string; centre: string; budget: number; realise: number; }[]'.
+src/services/prophet/tools/analytique/AnalytiqueEngine.ts(316,30): error TS2339: Property 'length' does not exist on type '{}'.
+src/services/prophet/tools/analytique/AnalytiqueEngine.ts(320,49): error TS2339: Property 'debut' does not exist on type '{}'.
+src/services/prophet/tools/analytique/AnalytiqueEngine.ts(320,69): error TS2339: Property 'fin' does not exist on type '{}'.
+src/services/prophet/tools/analytique/AnalytiqueEngine.ts(320,122): error TS2339: Property 'length' does not exist on type '{}'.
+src/services/prophet/tools/devises/MultiDeviseEngine.ts(233,45): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'number'.
+src/services/prophet/tools/devises/MultiDeviseEngine.ts(259,30): error TS2339: Property 'length' does not exist on type '{}'.
+src/services/prophet/tools/devises/MultiDeviseEngine.ts(272,87): error TS18046: 'cours_cloture' is of type 'unknown'.
+src/services/prophet/tools/devises/MultiDeviseEngine.ts(273,33): error TS18046: 'cours_cloture' is of type 'unknown'.

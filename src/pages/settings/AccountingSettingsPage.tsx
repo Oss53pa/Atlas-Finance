@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
 import { toast } from 'react-hot-toast';
@@ -765,7 +765,8 @@ const AccountingSettingsPage: React.FC = () => {
       return `${setting.label} est obligatoire`;
     }
     if (setting.type === 'number') {
-      const num = parseFloat(setting.value);
+      if (typeof setting.value === 'boolean') return null; // boolean settings are never 'number' type
+      const num = parseFloat(String(setting.value));
       if (isNaN(num)) return `${setting.label} doit être un nombre`;
       if (setting.min !== undefined && num < setting.min) {
         return `${setting.label} doit être supérieur ou égal à ${setting.min}`;
@@ -867,7 +868,7 @@ const AccountingSettingsPage: React.FC = () => {
             break;
           case 'r':
             event.preventDefault();
-            handleResetClick();
+            if (hasChanges) handleResetClick();
             break;
         }
       }
@@ -920,22 +921,15 @@ const AccountingSettingsPage: React.FC = () => {
       setSaving(false);
       setHasChanges(false);
       toast.success('Les paramètres de comptabilité ont été enregistrés avec succès');
-      setNotification({
-        type: 'success',
-        message: 'Les paramètres de comptabilité ont été enregistrés avec succès'
-      });
     } catch (error) {
+      console.error('[AccountingSettings] Erreur sauvegarde:', error);
       setSaving(false);
       toast.error('Erreur lors de la sauvegarde des paramètres');
-      setNotification({
-        type: 'error',
-        message: 'Erreur lors de la sauvegarde des paramètres'
-      });
     }
-    setTimeout(() => setNotification(null), 5000);
   };
 
   const [resetConfirm, setResetConfirm] = useState(false);
+  const importModalFileRef = useRef<HTMLInputElement>(null);
 
   // --- Codification des Tiers ---
   const [auxMappings, setAuxMappings] = useState<AuxiliaryCodeMapping[]>(DEFAULT_MAPPINGS);
@@ -950,8 +944,9 @@ const AccountingSettingsPage: React.FC = () => {
       try {
         const mappings = await loadMappings(adapter);
         if (mounted) setAuxMappings(mappings);
-      } catch {
-        /* ignore */
+      } catch (err) {
+        console.error('[AccountingSettings] Erreur chargement codification tiers:', err);
+        if (mounted) toast.error('Impossible de charger la codification des tiers');
       } finally {
         if (mounted) setAuxMappingsLoading(false);
       }
@@ -972,6 +967,7 @@ const AccountingSettingsPage: React.FC = () => {
   };
 
   const handleAuxReset = () => {
+    if (!window.confirm('Réinitialiser toutes les codifications aux valeurs par défaut ? Les modifications non enregistrées seront perdues.')) return;
     setAuxMappings(DEFAULT_MAPPINGS);
     setAuxEditingId(null);
     setAuxEditRow(null);
@@ -995,6 +991,7 @@ const AccountingSettingsPage: React.FC = () => {
   };
 
   const handleAuxDelete = (id: string) => {
+    if (!window.confirm('Supprimer cette ligne de codification ?')) return;
     setAuxMappings(prev => prev.filter(m => m.id !== id));
     if (auxEditingId === id) { setAuxEditingId(null); setAuxEditRow(null); }
   };
@@ -1018,13 +1015,11 @@ const AccountingSettingsPage: React.FC = () => {
   };
 
   const handleConfirmReset = () => {
-    // Reset to default values
-    window.location.reload();
-    setNotification({
-      type: 'info',
-      message: 'Paramètres réinitialisés aux valeurs par défaut'
-    });
+    // Reset to default values — state updates are irrelevant because the page
+    // is about to reload; close the dialog first so the confirm is visually
+    // dismissed before the reload.
     setResetConfirm(false);
+    window.location.reload();
   };
 
   const handleExportSettings = () => {
@@ -1061,20 +1056,36 @@ const AccountingSettingsPage: React.FC = () => {
     reader.onload = (e) => {
       try {
         const importedData = JSON.parse(e.target?.result as string);
-        if (importedData.settings) {
-          setSettings(importedData.settings);
-          setHasChanges(true);
-          setNotification({
-            type: 'success',
-            message: 'Paramètres importés avec succès'
-          });
-        } else {
-          throw new Error('Format invalide');
+        if (!importedData || typeof importedData !== 'object') {
+          throw new Error('Format invalide : objet attendu');
         }
-      } catch (error) {
+        if (!importedData.settings || typeof importedData.settings !== 'object') {
+          throw new Error('Format invalide : clé "settings" manquante');
+        }
+        // Structural validation: each category must be an array of objects with id/value
+        for (const [category, items] of Object.entries(importedData.settings)) {
+          if (!Array.isArray(items)) {
+            throw new Error(`Format invalide : la catégorie "${category}" doit être un tableau`);
+          }
+          for (const item of items as any[]) {
+            if (typeof item !== 'object' || item === null || !('id' in item) || !('value' in item)) {
+              throw new Error(`Format invalide : entrée malformée dans la catégorie "${category}"`);
+            }
+          }
+        }
+        setSettings(importedData.settings as Record<string, AccountingSetting[]>);
+        setHasChanges(true);
+        toast.success('Paramètres importés avec succès');
+        setNotification({
+          type: 'success',
+          message: 'Paramètres importés avec succès'
+        });
+      } catch (error: any) {
+        console.error('[AccountingSettings] Erreur import paramètres:', error);
+        toast.error(`Erreur lors de l'import : ${error?.message ?? 'fichier invalide'}`);
         setNotification({
           type: 'error',
-          message: 'Erreur lors de l\'import: fichier invalide'
+          message: `Erreur lors de l'import : ${error?.message ?? 'fichier invalide'}`
         });
       }
     };
@@ -1339,22 +1350,15 @@ const AccountingSettingsPage: React.FC = () => {
         </div>
 
         <div className="flex gap-2">
-          <input
-            type="file"
-            accept=".json"
-            onChange={handleImportSettings}
-            className="hidden"
-            id="import-settings"
-          />
-          <label
-            htmlFor="import-settings"
+          <button
+            onClick={() => setShowImportModal(true)}
             className="px-3 py-2 border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-surface-hover)] transition-colors cursor-pointer flex items-center gap-2 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
           >
             <Upload className="w-4 h-4" />
             Importer
-          </label>
+          </button>
           <button
-            onClick={handleExportSettings}
+            onClick={() => setShowExportModal(true)}
             className="px-3 py-2 border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-surface-hover)] transition-colors flex items-center gap-2 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
           >
             <Download className="w-4 h-4" />
@@ -1750,14 +1754,35 @@ const AccountingSettingsPage: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Fichier de configuration <span className="text-red-500">*</span>
                 </label>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors cursor-pointer">
+                <input
+                  ref={importModalFileRef}
+                  type="file"
+                  accept=".json"
+                  onChange={(e) => { handleImportSettings(e); setShowImportModal(false); }}
+                  className="hidden"
+                />
+                <div
+                  className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors cursor-pointer"
+                  onClick={() => importModalFileRef.current?.click()}
+                  onDragOver={(e) => { e.preventDefault(); e.currentTarget.classList.add('border-blue-400'); }}
+                  onDragLeave={(e) => { e.currentTarget.classList.remove('border-blue-400'); }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    e.currentTarget.classList.remove('border-blue-400');
+                    const file = e.dataTransfer.files[0];
+                    if (!file) return;
+                    const syntheticEvent = { target: { files: e.dataTransfer.files, value: '' }, currentTarget: { files: e.dataTransfer.files, value: '' } } as unknown as React.ChangeEvent<HTMLInputElement>;
+                    handleImportSettings(syntheticEvent);
+                    setShowImportModal(false);
+                  }}
+                >
                   <svg className="w-12 h-12 text-gray-700 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                   </svg>
                   <p className="text-sm text-gray-600 mb-1">
                     Cliquez pour sélectionner ou glissez-déposez
                   </p>
-                  <p className="text-xs text-gray-700">JSON, Excel (.xlsx, .xls) - Max 5 MB</p>
+                  <p className="text-xs text-gray-700">JSON - Max 5 MB</p>
                 </div>
               </div>
 
@@ -1805,7 +1830,10 @@ const AccountingSettingsPage: React.FC = () => {
               >
                 Annuler
               </button>
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
+              <button
+                onClick={() => importModalFileRef.current?.click()}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+              >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                 </svg>
@@ -1975,7 +2003,10 @@ const AccountingSettingsPage: React.FC = () => {
               >
                 Annuler
               </button>
-              <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2">
+              <button
+                onClick={() => { handleExportSettings(); setShowExportModal(false); }}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+              >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>

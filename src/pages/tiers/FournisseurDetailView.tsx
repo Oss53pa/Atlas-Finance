@@ -249,8 +249,8 @@ const FournisseurDetailView: React.FC = () => {
       setLoading(true);
       try {
         const [allThirdParties, allEntries] = await Promise.all([
-          adapter.getAll('thirdParties'),
-          adapter.getAll('journalEntries')
+          adapter.getAll<any>('thirdParties'),
+          adapter.getAll<any>('journalEntries')
         ]);
 
         const tp = allThirdParties.find((t: any) => t.id === fournisseurId);
@@ -417,7 +417,7 @@ const FournisseurDetailView: React.FC = () => {
   const COLORS = ['#235A6E', '#E89A2E', '#15803D', '#4E7E8D', '#C77E2C', '#7FA3AF'];
 
   // Render Synthese Tab
-  const renderSyntheseTab = () => (
+  const renderSyntheseTab = () => fournisseurDetail && (
     <div className="space-y-6">
       {/* KPIs Row */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -630,7 +630,7 @@ const FournisseurDetailView: React.FC = () => {
   );
 
   // Render Comptable Tab
-  const renderComptableTab = () => (
+  const renderComptableTab = () => fournisseurDetail && (
     <div className="space-y-6">
       {/* Mouvements Comptables */}
       <div className="bg-white rounded-lg border border-[var(--color-border)] shadow-sm">
@@ -748,7 +748,7 @@ const FournisseurDetailView: React.FC = () => {
   );
 
   // Render Financier Tab
-  const renderFinancierTab = () => (
+  const renderFinancierTab = () => fournisseurDetail && (
     <div className="space-y-6">
       {/* Analyse des Dettes */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -855,7 +855,7 @@ const FournisseurDetailView: React.FC = () => {
   );
 
   // Render Achats Tab
-  const renderAchatsTab = () => (
+  const renderAchatsTab = () => fournisseurDetail && (
     <div className="space-y-6">
       {/* Historique des Commandes */}
       <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
@@ -1008,7 +1008,7 @@ const FournisseurDetailView: React.FC = () => {
   );
 
   // Render Documents Tab
-  const renderDocumentsTab = () => (
+  const renderDocumentsTab = () => fournisseurDetail && (
     <div className="space-y-6">
       {/* Upload et Actions */}
       <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
@@ -1113,7 +1113,7 @@ const FournisseurDetailView: React.FC = () => {
   );
 
   // Render Conformité Tab
-  const renderConformiteTab = () => (
+  const renderConformiteTab = () => fournisseurDetail && (
     <div className="space-y-6">
       {/* Score de Conformité Global */}
       <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
@@ -1422,9 +1422,9 @@ const FournisseurDetailView: React.FC = () => {
       <PeriodSelectorModal
         isOpen={showPeriodModal}
         onClose={() => setShowPeriodModal(false)}
-        currentRange={dateRange}
-        onPeriodChange={(newRange) => {
-          setDateRange(newRange);
+        initialDateRange={{ start: dateRange.startDate, end: dateRange.endDate }}
+        onApply={(newRange) => {
+          setDateRange(prev => ({ ...prev, startDate: newRange.start, endDate: newRange.end }));
           setShowPeriodModal(false);
         }}
       />

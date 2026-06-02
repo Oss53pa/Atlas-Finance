@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useData } from '../../contexts/DataContext';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { 
+import { useMutation } from '@tanstack/react-query';
+import {
   Layers,
   Plus,
   Search,
@@ -16,7 +16,8 @@ import {
   AlertCircle,
   CheckCircle,
   Download,
-  Upload
+  Upload,
+  X
 } from 'lucide-react';
 import { 
   Card, 
@@ -89,11 +90,12 @@ const AnalyticalAxesPage: React.FC = () => {
     hierarchique: false,
     obligatoire_classes: [] as string[],
     actif: true,
+    budget: false,
+    reporting: false,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const queryClient = useQueryClient();
   const { adapter } = useData();
 
   // Load analytical axes from settings
@@ -102,14 +104,28 @@ const AnalyticalAxesPage: React.FC = () => {
 
   useEffect(() => {
     const load = async () => {
-      const setting = await adapter.getById('settings', 'analytical_axes');
-      setAxesSetting(setting);
-      setIsLoading(false);
+      try {
+        const setting = await adapter.getById('settings', 'analytical_axes');
+        setAxesSetting(setting);
+      } catch (err) {
+        console.error('[AnalyticalAxesPage] Erreur chargement axes analytiques:', err);
+        toast.error('Impossible de charger les axes analytiques.');
+      } finally {
+        setIsLoading(false);
+      }
     };
     load();
   }, [adapter]);
 
-  const allAxes: AxeData[] = axesSetting ? JSON.parse(axesSetting.value) : [];
+  const allAxes: AxeData[] = useMemo(() => {
+    if (!axesSetting) return [];
+    try {
+      return JSON.parse(axesSetting.value) as AxeData[];
+    } catch (err) {
+      console.error('[AnalyticalAxesPage] JSON invalide dans analytical_axes:', err);
+      return [];
+    }
+  }, [axesSetting]);
 
   // Compute filtered & paginated axesData from Dexie
   const axesData = useMemo(() => {
@@ -158,10 +174,18 @@ const AnalyticalAxesPage: React.FC = () => {
   const createMutation = useMutation({
     mutationFn: async (data: AxeData) => {
       const current = await adapter.getById<{ value: string }>('settings', 'analytical_axes');
-      const axes = current ? JSON.parse(current.value) : [];
+      let axes: AxeData[] = [];
+      if (current) {
+        try { axes = JSON.parse(current.value); } catch { axes = []; }
+      }
       const newAxe = { ...data, id: crypto.randomUUID(), nb_centres: 0, nb_ventilations: 0, montant_total: 0 };
       axes.push(newAxe);
-      await adapter.create('settings', { key: 'analytical_axes', value: JSON.stringify(axes), updatedAt: new Date().toISOString() });
+      const payload = { key: 'analytical_axes', value: JSON.stringify(axes), updatedAt: new Date().toISOString() };
+      if (current) {
+        await adapter.update('settings', 'analytical_axes', payload);
+      } else {
+        await adapter.create('settings', payload);
+      }
       return newAxe;
     },
     onSuccess: async () => {
@@ -181,9 +205,17 @@ const AnalyticalAxesPage: React.FC = () => {
   const deleteAxeMutation = useMutation({
     mutationFn: async (axeId: string) => {
       const current = await adapter.getById<{ value: string }>('settings', 'analytical_axes');
-      const axes = current ? JSON.parse(current.value) : [];
+      let axes: AxeData[] = [];
+      if (current) {
+        try { axes = JSON.parse(current.value); } catch { axes = []; }
+      }
       const updated = axes.filter((a: AxeData) => a.id !== axeId);
-      await adapter.create('settings', { key: 'analytical_axes', value: JSON.stringify(updated), updatedAt: new Date().toISOString() });
+      const payload = { key: 'analytical_axes', value: JSON.stringify(updated), updatedAt: new Date().toISOString() };
+      if (current) {
+        await adapter.update('settings', 'analytical_axes', payload);
+      } else {
+        await adapter.create('settings', payload);
+      }
     },
     onSuccess: async () => {
       toast.success('Axe supprime avec succes');
@@ -229,6 +261,8 @@ const AnalyticalAxesPage: React.FC = () => {
       hierarchique: false,
       obligatoire_classes: [],
       actif: true,
+      budget: false,
+      reporting: false,
     });
     setErrors({});
     setIsSubmitting(false);
@@ -254,7 +288,7 @@ const AnalyticalAxesPage: React.FC = () => {
       // Validate with Zod (valide les champs du schéma)
       const validatedData = createAxeSchema.parse(formData);
 
-      // Merge avec les champs contrôlés hors-schéma (niveau, statut, responsable)
+      // Merge avec les champs contrôlés hors-schéma (niveau, statut, responsable, budget, reporting)
       const fullData: AxeData = {
         ...(validatedData as unknown as AxeData),
         niveau: Number(formData.niveau) || 1,
@@ -265,6 +299,8 @@ const AnalyticalAxesPage: React.FC = () => {
         nb_ventilations: 0,
         montant_total: 0,
         id: '',
+        budget: formData.budget,
+        reporting: formData.reporting,
       };
 
       // Submit to backend
@@ -349,11 +385,11 @@ const AnalyticalAxesPage: React.FC = () => {
             </p>
           </div>
           <div className="flex space-x-3">
-            <Button variant="outline">
+            <Button variant="outline" onClick={() => toast('Fonctionnalité d\'export en cours de développement.', { icon: '⏳' })}>
               <Download className="mr-2 h-4 w-4" />
               Exporter
             </Button>
-            <Button variant="outline">
+            <Button variant="outline" onClick={() => toast('Fonctionnalité d\'import en cours de développement.', { icon: '⏳' })}>
               <Upload className="mr-2 h-4 w-4" />
               Importer
             </Button>
@@ -613,6 +649,7 @@ const AnalyticalAxesPage: React.FC = () => {
                               variant="ghost"
                               size="sm"
                               aria-label="Centres"
+                              onClick={() => toast(`Centres de l'axe "${axe.libelle}" — fonctionnalité en cours de développement.`, { icon: '⏳' })}
                             >
                               <Users className="h-4 w-4" />
                             </Button>
@@ -620,6 +657,7 @@ const AnalyticalAxesPage: React.FC = () => {
                               variant="ghost"
                               size="sm"
                               aria-label="Paramètres"
+                              onClick={() => toast(`Paramètres de l'axe "${axe.libelle}" — fonctionnalité en cours de développement.`, { icon: '⏳' })}
                             >
                               <Settings className="h-4 w-4" />
                             </Button>
@@ -627,6 +665,24 @@ const AnalyticalAxesPage: React.FC = () => {
                               variant="ghost"
                               size="sm"
                               aria-label="Modifier"
+                              onClick={() => {
+                                setSelectedAxe(axe);
+                                setFormData({
+                                  code: axe.code,
+                                  libelle: axe.libelle,
+                                  type: axe.type as typeof formData.type,
+                                  description: axe.description || '',
+                                  niveau: String(axe.niveau || 1),
+                                  statut: axe.statut || 'actif',
+                                  responsable: axe.responsable || '',
+                                  hierarchique: false,
+                                  obligatoire_classes: [],
+                                  actif: axe.statut === 'actif',
+                                  budget: !!(axe.budget),
+                                  reporting: !!(axe.reporting),
+                                });
+                                setShowCreateModal(true);
+                              }}
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
@@ -748,10 +804,11 @@ const AnalyticalAxesPage: React.FC = () => {
                   setSelectedAxe(null);
                   resetForm();
                 }}
-                className="text-gray-700 hover:text-gray-700"
+                className="text-gray-700 hover:text-gray-900"
                 disabled={isSubmitting}
+                aria-label="Fermer"
               >
-                <Plus className="w-6 h-6 rotate-45" />
+                <X className="w-6 h-6" />
               </button>
             </div>
 
@@ -945,7 +1002,9 @@ const AnalyticalAxesPage: React.FC = () => {
                       <input
                         type="checkbox"
                         id="budget"
-                        defaultChecked={selectedAxe?.budget as boolean | undefined}
+                        checked={!!formData.budget}
+                        onChange={(e) => handleInputChange('budget', e.target.checked)}
+                        disabled={isSubmitting}
                         className="w-4 h-4 text-[var(--color-primary)] border-gray-300 rounded focus:ring-[var(--color-primary)]"
                       />
                       <label htmlFor="budget" className="ml-2 text-sm text-gray-700">
@@ -957,7 +1016,9 @@ const AnalyticalAxesPage: React.FC = () => {
                       <input
                         type="checkbox"
                         id="reporting"
-                        defaultChecked={selectedAxe?.reporting as boolean | undefined}
+                        checked={!!formData.reporting}
+                        onChange={(e) => handleInputChange('reporting', e.target.checked)}
+                        disabled={isSubmitting}
                         className="w-4 h-4 text-[var(--color-primary)] border-gray-300 rounded focus:ring-[var(--color-primary)]"
                       />
                       <label htmlFor="reporting" className="ml-2 text-sm text-gray-700">

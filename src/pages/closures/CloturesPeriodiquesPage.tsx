@@ -159,10 +159,12 @@ function CloturesPeriodiquesPage() {
         const entries = allEntries.filter(
           (e: any) => e.date >= targetFY.startDate && e.date <= targetFY.endDate
         );
+        // Exclude drafts from financial totals (consistent with financialStatementsService)
+        const validEntries = entries.filter((e: any) => e.status !== 'draft');
 
         let produits = 0;
         let charges = 0;
-        for (const entry of entries) {
+        for (const entry of validEntries) {
           for (const line of entry.lines) {
             const cls = line.accountCode.charAt(0);
             if (cls === '7') produits += line.credit - line.debit;
@@ -178,7 +180,8 @@ function CloturesPeriodiquesPage() {
           resultat: produits - charges,
         });
       }
-    } catch (err) { /* silent */
+    } catch (err) {
+      console.error('[loadDashboard]', err);
       toast.error('Erreur chargement tableau de bord');
     } finally {
       setDashLoading(false);
@@ -1067,7 +1070,7 @@ function SectionsOverview({ mode }: { mode: ClotureMode }) {
             <div className="flex items-center gap-2 mb-2">
               <div className="text-blue-600">{section.icon}</div>
               <h3 className="text-sm font-semibold text-gray-800">
-                {mode === 'mensuelle' ? idx + 1 : idx + 1}. {section.title}
+                {idx + 1}. {section.title}
               </h3>
             </div>
             <p className="text-xs text-gray-500 mb-3">{section.description}</p>

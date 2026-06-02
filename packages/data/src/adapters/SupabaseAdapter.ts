@@ -51,6 +51,10 @@ const TABLE_MAP: Record<TableName, string> = {
   offBalanceCommitments: 'off_balance_commitments',
   // Tenants / Societes : 'companies' (legacy TS) -> 'societes' (table Supabase OHADA)
   companies: 'societes',
+  // Relevés bancaires importés + journal des rapports
+  bankStatements: 'bank_statements',
+  bankStatementLines: 'bank_statement_lines',
+  reports: 'reports',
 }
 
 // ─── Normaliseurs snake_case → camelCase ─────────────────────────────────────
@@ -420,7 +424,7 @@ export class SupabaseAdapter implements DataAdapter {
         timestamp: new Date().toISOString(),
         action: 'CREATE',
         entityType: table,
-        entityId: record.id,
+        entityId: (record as { id?: string }).id ?? data?.id,
         details: JSON.stringify(record),
         previousHash: '',
         initiatedBy,

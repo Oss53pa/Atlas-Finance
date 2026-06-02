@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  TargetIcon,
+  ViewfinderCircleIcon as TargetIcon,
+  CurrencyDollarIcon,
   PlusIcon,
   PencilIcon,
   TrashIcon,

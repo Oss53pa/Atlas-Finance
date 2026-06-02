@@ -42,12 +42,35 @@ const EntriesPage: React.FC = () => {
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [showTemplateDropdown, setShowTemplateDropdown] = useState(false);
   const [entryModalTemplateId, setEntryModalTemplateId] = useState<string | undefined>();
+  // État contrôlé du formulaire de création de modèle
+  const [templateForm, setTemplateForm] = useState({
+    nom: '',
+    type: '',
+    journal: '',
+    description: '',
+    actif: false,
+  });
+  const [templateLines, setTemplateLines] = useState<Array<{ compte: string; libelle: string; debit: string; credit: string }>>([
+    { compte: '', libelle: '', debit: '', credit: '' },
+  ]);
+  const [isSavingTemplate, setIsSavingTemplate] = useState(false);
 
   // P1-E : données réelles depuis le DataAdapter (plus de tableau vide en dur).
   const { adapter } = useData();
   const [ecrituresData, setEcrituresData] = useState<EcritureBrouillard[]>([]);
+  // Options de filtre journal calculées dynamiquement depuis les données réelles
+  const journalFilterOptions = React.useMemo(() => {
+    const codes = Array.from(new Set(ecrituresData.map(e => e.journal).filter(Boolean))).sort();
+    if (codes.length === 0) {
+      // Valeurs par défaut SYSCOHADA si pas encore de données chargées
+      return ['VE', 'AC', 'BQ', 'CA', 'OD'].map(c => ({ value: c, label: c }));
+    }
+    return codes.map(c => ({ value: c, label: c }));
+  }, [ecrituresData]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const loadEntries = useCallback(async () => {
+    setIsLoading(true);
     try {
       const entries = await adapter.getAll<any>('journalEntries');
 
@@ -69,7 +92,10 @@ const EntriesPage: React.FC = () => {
             tiersCode:   l.tiersCode || l.tiers_code || '',
           });
         }
-      } catch { /* pas de journalLines — utiliser entry.lines */ }
+      } catch (linesErr) {
+        console.error('[EntriesPage] Chargement journalLines échoué, utilisation de entry.lines :', linesErr);
+        /* pas de journalLines — utiliser entry.lines */
+      }
 
       const mapped: EcritureBrouillard[] = (entries as any[])
         .slice()
@@ -106,8 +132,12 @@ const EntriesPage: React.FC = () => {
           } as EcritureBrouillard;
         });
       setEcrituresData(mapped);
-    } catch (_e) {
+    } catch (err) {
+      console.error('[EntriesPage] Erreur chargement des écritures :', err);
+      toast.error('Impossible de charger les écritures comptables. Vérifiez votre connexion.');
       setEcrituresData([]);
+    } finally {
+      setIsLoading(false);
     }
   }, [adapter]);
 
@@ -157,13 +187,7 @@ const EntriesPage: React.FC = () => {
       sortable: true,
       filterable: true,
       filterType: 'select',
-      filterOptions: [
-        { value: 'VE', label: 'VE' },
-        { value: 'AC', label: 'AC' },
-        { value: 'BQ', label: 'BQ' },
-        { value: 'CA', label: 'CA' },
-        { value: 'OD', label: 'OD' }
-      ],
+      filterOptions: journalFilterOptions,
       width: '80px',
       align: 'center',
       render: (item) => (
@@ -256,8 +280,16 @@ const EntriesPage: React.FC = () => {
       width: '100px',
       align: 'center',
       render: (item) => (
-        <span className="px-2 py-1 text-xs bg-[var(--color-warning-light)] text-[var(--color-warning)] rounded-full">
-          {item.statut}
+        <span className={`px-2 py-1 text-xs rounded-full ${
+          item.statut === 'validated'
+            ? 'bg-[var(--color-success-light)] text-[var(--color-success)]'
+            : 'bg-[var(--color-warning-light)] text-[var(--color-warning)]'
+        }`}>
+          {item.statut === 'validated' ? (
+            <><CheckCircle className="w-3 h-3 inline mr-1" />Validée</>
+          ) : (
+            <><Clock className="w-3 h-3 inline mr-1" />Brouillon</>
+          )}
         </span>
       )
     }
@@ -288,13 +320,23 @@ const EntriesPage: React.FC = () => {
   };
 
   // Fonction pour valider une écriture — transition réelle via le workflow.
+  const [isValidatingEntry, setIsValidatingEntry] = useState(false);
   const handleValidateEntry = async (entryId: string) => {
-    const result = await validerEcriture(adapter, entryId);
-    if (result.success) {
-      toast.success('Écriture validée avec succès');
-      loadEntries();
-    } else {
-      toast.error(result.error || 'Validation impossible');
+    if (isValidatingEntry) return;
+    setIsValidatingEntry(true);
+    try {
+      const result = await validerEcriture(adapter, entryId);
+      if (result.success) {
+        toast.success('Écriture validée avec succès');
+        loadEntries();
+      } else {
+        toast.error(result.error || 'Validation impossible');
+      }
+    } catch (err) {
+      console.error('[EntriesPage] Erreur validation écriture :', err);
+      toast.error('Erreur lors de la validation');
+    } finally {
+      setIsValidatingEntry(false);
     }
   };
 
@@ -326,7 +368,10 @@ const EntriesPage: React.FC = () => {
       try {
         const result = await validerEcriture(adapter, id);
         if (result?.success) ok++; else ko++;
-      } catch { ko++; }
+      } catch (err) {
+        console.error(`[EntriesPage] Erreur validation écriture ${id} :`, err);
+        ko++;
+      }
     }
     setValidatingBatch(false);
     setSelectedEntries([]);
@@ -345,7 +390,10 @@ const EntriesPage: React.FC = () => {
       try {
         const result = await validerEcriture(adapter, id);
         if (result?.success) ok++; else ko++;
-      } catch { ko++; }
+      } catch (err) {
+        console.error(`[EntriesPage] Erreur validation écriture ${id} :`, err);
+        ko++;
+      }
     }
     setValidatingBatch(false);
     await loadEntries();
@@ -512,8 +560,15 @@ const EntriesPage: React.FC = () => {
           {/* ONGLET BROUILLARD avec validation intégrée */}
           {activeTab === 'brouillard' && (
             <div className="w-full h-full">
+                {/* Indicateur de chargement */}
+                {isLoading && (
+                  <div className="flex items-center justify-center py-8 space-x-2 text-[var(--color-text-tertiary)]">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[var(--color-primary)]"></div>
+                    <span className="text-sm">Chargement des écritures…</span>
+                  </div>
+                )}
                 {/* Liste des écritures avec DataTable - Pleine largeur */}
-                <DataTable
+                {!isLoading && <DataTable
                   columns={ecrituresColumns as unknown as import('../../components/ui/DataTable').Column<Record<string, unknown>>[]}
                   data={ecrituresData as unknown as Record<string, unknown>[]}
                   pageSize={15}
@@ -549,7 +604,7 @@ const EntriesPage: React.FC = () => {
                   }}
                   emptyMessage="Aucune écriture en brouillard"
                   className="bg-white border-0 data-table w-full rounded-none shadow-none"
-                />
+                />}
             </div>
           )}
         </div>
@@ -737,9 +792,13 @@ const EntriesPage: React.FC = () => {
                         if (selectedEntry) handleValidateEntry(selectedEntry.id);
                         setShowDetailsModal(false);
                       }}
-                      className="px-6 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success)] flex items-center space-x-2"
+                      disabled={isValidatingEntry}
+                      className="px-6 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success)] flex items-center space-x-2 disabled:opacity-60 disabled:cursor-not-allowed"
                     >
-                      <CheckCircle className="w-4 h-4" />
+                      {isValidatingEntry
+                        ? <span className="animate-spin">⏳</span>
+                        : <CheckCircle className="w-4 h-4" />
+                      }
                       <span>{t('actions.validate')}</span>
                     </button>
                   </div>
@@ -779,6 +838,8 @@ const EntriesPage: React.FC = () => {
                     <label className="block text-sm font-medium text-[#404040] mb-2">Nom du modèle *</label>
                     <input
                       type="text"
+                      value={templateForm.nom}
+                      onChange={e => setTemplateForm(f => ({ ...f, nom: e.target.value }))}
                       placeholder="Ex: Facture fournisseur avec TVA"
                       className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]/20"
                     />
@@ -786,7 +847,11 @@ const EntriesPage: React.FC = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-[#404040] mb-2">Type de transaction *</label>
-                    <select className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]/20">
+                    <select
+                      value={templateForm.type}
+                      onChange={e => setTemplateForm(f => ({ ...f, type: e.target.value }))}
+                      className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]/20"
+                    >
                       <option value="">Sélectionnez un type</option>
                       <option value="achats">Facture d'Achat</option>
                       <option value="ventes">Facture de Vente</option>
@@ -805,8 +870,8 @@ const EntriesPage: React.FC = () => {
                         { value: 'CA', label: 'CA - Caisse' },
                         { value: 'OD', label: 'OD - Opérations Diverses' }
                       ]}
-                      value=""
-                      onChange={() => {}}
+                      value={templateForm.journal}
+                      onChange={val => setTemplateForm(f => ({ ...f, journal: val }))}
                       placeholder="Sélectionnez un journal"
                       searchPlaceholder="Rechercher un journal..."
                       clearable
@@ -817,6 +882,8 @@ const EntriesPage: React.FC = () => {
                     <label className="block text-sm font-medium text-[#404040] mb-2">Description</label>
                     <textarea
                       rows={3}
+                      value={templateForm.description}
+                      onChange={e => setTemplateForm(f => ({ ...f, description: e.target.value }))}
                       placeholder="Description du modèle..."
                       className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]/20"
                     />
@@ -825,14 +892,44 @@ const EntriesPage: React.FC = () => {
                   <div className="border rounded-lg p-4 bg-[var(--color-surface-hover)]">
                     <h3 className="text-sm font-medium text-[#404040] mb-3">Lignes d'écriture par défaut</h3>
                     <div className="space-y-2">
-                      <div className="flex items-center space-x-2">
-                        <input type="text" placeholder={t('accounting.account')} className="w-24 px-2 py-1 border rounded text-sm" />
-                        <input type="text" placeholder={t('accounting.label')} className="flex-1 px-2 py-1 border rounded text-sm" />
-                        <input type="text" placeholder={t('accounting.debit')} className="w-24 px-2 py-1 border rounded text-sm" />
-                        <input type="text" placeholder={t('accounting.credit')} className="w-24 px-2 py-1 border rounded text-sm" />
-                      </div>
+                      {templateLines.map((line, idx) => (
+                        <div key={idx} className="flex items-center space-x-2">
+                          <input
+                            type="text"
+                            value={line.compte}
+                            onChange={e => setTemplateLines(ls => ls.map((l, i) => i === idx ? { ...l, compte: e.target.value } : l))}
+                            placeholder={t('accounting.account')}
+                            className="w-24 px-2 py-1 border rounded text-sm"
+                          />
+                          <input
+                            type="text"
+                            value={line.libelle}
+                            onChange={e => setTemplateLines(ls => ls.map((l, i) => i === idx ? { ...l, libelle: e.target.value } : l))}
+                            placeholder={t('accounting.label')}
+                            className="flex-1 px-2 py-1 border rounded text-sm"
+                          />
+                          <input
+                            type="text"
+                            value={line.debit}
+                            onChange={e => setTemplateLines(ls => ls.map((l, i) => i === idx ? { ...l, debit: e.target.value } : l))}
+                            placeholder={t('accounting.debit')}
+                            className="w-24 px-2 py-1 border rounded text-sm"
+                          />
+                          <input
+                            type="text"
+                            value={line.credit}
+                            onChange={e => setTemplateLines(ls => ls.map((l, i) => i === idx ? { ...l, credit: e.target.value } : l))}
+                            placeholder={t('accounting.credit')}
+                            className="w-24 px-2 py-1 border rounded text-sm"
+                          />
+                        </div>
+                      ))}
                     </div>
-                    <button className="mt-3 text-sm text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] flex items-center space-x-1">
+                    <button
+                      type="button"
+                      onClick={() => setTemplateLines(ls => [...ls, { compte: '', libelle: '', debit: '', credit: '' }])}
+                      className="mt-3 text-sm text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] flex items-center space-x-1"
+                    >
                       <Plus className="w-4 h-4" />
                       <span>Ajouter une ligne</span>
                     </button>
@@ -840,7 +937,12 @@ const EntriesPage: React.FC = () => {
 
                   <div>
                     <label className="flex items-center space-x-2">
-                      <input type="checkbox" className="rounded border-[var(--color-border)]" />
+                      <input
+                        type="checkbox"
+                        checked={templateForm.actif}
+                        onChange={e => setTemplateForm(f => ({ ...f, actif: e.target.checked }))}
+                        className="rounded border-[var(--color-border)]"
+                      />
                       <span className="text-sm text-[#404040]">Activer ce modèle</span>
                     </label>
                   </div>
@@ -854,8 +956,44 @@ const EntriesPage: React.FC = () => {
                   >
                     Annuler
                   </button>
-                  <button className="px-6 py-2 bg-[var(--color-text-secondary)] text-white rounded-lg hover:bg-[#404040]">
-                    Créer le modèle
+                  <button
+                    disabled={isSavingTemplate}
+                    onClick={async () => {
+                      if (!templateForm.nom.trim()) {
+                        toast.error('Le nom du modèle est obligatoire');
+                        return;
+                      }
+                      if (!templateForm.journal) {
+                        toast.error('Veuillez sélectionner un journal par défaut');
+                        return;
+                      }
+                      setIsSavingTemplate(true);
+                      try {
+                        await adapter.create<any>('settings', {
+                          key: `template_${Date.now()}`,
+                          type: 'journalTemplate',
+                          nom: templateForm.nom.trim(),
+                          transactionType: templateForm.type,
+                          journal: templateForm.journal,
+                          description: templateForm.description.trim(),
+                          actif: templateForm.actif,
+                          lines: templateLines.filter(l => l.compte.trim()),
+                          createdAt: new Date().toISOString(),
+                        });
+                        toast.success(`Modèle "${templateForm.nom}" créé avec succès`);
+                        setTemplateForm({ nom: '', type: '', journal: '', description: '', actif: false });
+                        setTemplateLines([{ compte: '', libelle: '', debit: '', credit: '' }]);
+                        setShowTemplateModal(false);
+                      } catch (err) {
+                        console.error('[EntriesPage] Erreur création modèle :', err);
+                        toast.error('Erreur lors de la création du modèle');
+                      } finally {
+                        setIsSavingTemplate(false);
+                      }
+                    }}
+                    className="px-6 py-2 bg-[var(--color-text-secondary)] text-white rounded-lg hover:bg-[#404040] disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    {isSavingTemplate ? 'Création…' : 'Créer le modèle'}
                   </button>
                 </div>
               </div>

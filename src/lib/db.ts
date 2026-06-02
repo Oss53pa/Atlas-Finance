@@ -542,6 +542,64 @@ export interface DBOffBalanceCommitment {
 }
 
 // ============================================================================
+// Relevés bancaires importés (journal des relevés + détail des lignes)
+// ============================================================================
+
+export interface DBBankStatement {
+  id: string;
+  companyId?: string;
+  /** Compte comptable de trésorerie rapproché (ex 521xxx) */
+  accountCode: string;
+  accountLabel: string;
+  bankName?: string;
+  periodStart: string;
+  periodEnd: string;
+  openingBalance: number;
+  closingBalance: number;
+  currency: string;
+  fileName?: string;
+  lineCount: number;
+  totalDebit: number;
+  totalCredit: number;
+  importedAt: string;
+  createdAt: string;
+}
+
+export interface DBBankStatementLine {
+  id: string;
+  statementId: string;
+  date: string;
+  dateValeur?: string;
+  label: string;
+  reference?: string;
+  debit: number;
+  credit: number;
+  /** Montant signé : >0 crédit banque, <0 débit banque */
+  amount: number;
+  type: 'credit' | 'debit';
+  balance?: number;
+  /** Renseigné une fois la ligne rapprochée à une écriture */
+  matchedEntryId?: string;
+  reconciled: boolean;
+}
+
+/** Journal des rapports générés (états financiers, reportings) — persistance légère */
+export interface DBReport {
+  id: string;
+  companyId?: string;
+  title: string;
+  type?: string;
+  status: string;
+  periodLabel?: string;
+  templateName?: string;
+  pageCount?: number;
+  version?: number;
+  createdBy?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ============================================================================
 // DATABASE
 // ============================================================================
 
@@ -579,6 +637,10 @@ class AtlasFnADB extends Dexie {
   goodsReceipts!: Table<DBGoodsReceipt, string>;
   // Correction #11 — Off-Balance Commitments
   offBalanceCommitments!: Table<DBOffBalanceCommitment, string>;
+  // Relevés bancaires + journal des rapports
+  bankStatements!: Table<DBBankStatement, string>;
+  bankStatementLines!: Table<DBBankStatementLine, string>;
+  reports!: Table<DBReport, string>;
   constructor() {
     super('AtlasFnADB');
     this.version(1).stores({
@@ -758,6 +820,14 @@ class AtlasFnADB extends Dexie {
       goodsReceipts: 'id, companyId, purchaseOrderId, receiptNumber',
       // Correction #11 — Off-Balance Commitments
       offBalanceCommitments: 'id, companyId, type, status, [companyId+status]',
+    });
+
+    this.version(10).stores({
+      // Relevés bancaires importés + détail des lignes
+      bankStatements: 'id, companyId, accountCode, periodStart, periodEnd, importedAt, [accountCode+periodStart]',
+      bankStatementLines: 'id, statementId, date, reconciled, [statementId+date]',
+      // Journal des rapports (remplace l'ancien accès distant à une table inexistante)
+      reports: 'id, companyId, status, type, createdAt',
     });
   }
 }

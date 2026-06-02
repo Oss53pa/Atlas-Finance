@@ -51,6 +51,7 @@ import { formatCurrency, formatDate, formatPercentage } from '../../lib/utils';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import ExportMenu from '../../components/shared/ExportMenu';
 import { toast } from 'react-hot-toast';
+import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 
 interface AssetsFilters {
   search: string;
@@ -115,6 +116,10 @@ const FixedAssetsPage: React.FC = () => {
   });
   const [editErrors, setEditErrors] = useState<Record<string, string>>({});
   const [isEditSubmitting, setIsEditSubmitting] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; assetId: string | null }>({
+    isOpen: false,
+    assetId: null,
+  });
 
   const queryClient = useQueryClient();
 
@@ -196,6 +201,15 @@ const FixedAssetsPage: React.FC = () => {
         const loc = filters.localisation.toLowerCase();
         filtered = filtered.filter(a => String(a.location || '').toLowerCase().includes(loc));
       }
+      // Warning #15 fix: apply value range filters
+      if (filters.valeur_min) {
+        const minVal = parseFloat(filters.valeur_min);
+        if (!isNaN(minVal)) filtered = filtered.filter(a => ((a.acquisitionValue as number) || 0) >= minVal);
+      }
+      if (filters.valeur_max) {
+        const maxVal = parseFloat(filters.valeur_max);
+        if (!isNaN(maxVal)) filtered = filtered.filter(a => ((a.acquisitionValue as number) || 0) <= maxVal);
+      }
       const total = filtered.length;
       const pageSize = 20;
       const start = (page - 1) * pageSize;
@@ -220,7 +234,9 @@ const FixedAssetsPage: React.FC = () => {
         // keep original for edit
         _raw: a,
       }));
-      return { results, count: total, total_value: filtered.reduce((s, a) => s + ((a.acquisitionValue as number) || 0), 0), total_depreciation: filtered.reduce((s, a) => s + ((a.cumulDepreciation as number) || 0), 0), maintenance_count: 0 };
+      // Warning #16 fix: compute maintenance_count from actual asset status
+      const maintenanceCount = filtered.filter(a => a.status === 'en_maintenance' || a.status === 'maintenance').length;
+      return { results, count: total, total_value: filtered.reduce((s, a) => s + ((a.acquisitionValue as number) || 0), 0), total_depreciation: filtered.reduce((s, a) => s + ((a.cumulDepreciation as number) || 0), 0), maintenance_count: maintenanceCount };
     },
   });
 
@@ -247,9 +263,7 @@ const FixedAssetsPage: React.FC = () => {
   });
 
   const handleDeleteAsset = (assetId: string) => {
-    if (confirm('Êtes-vous sûr de vouloir supprimer cet actif ?')) {
-      deleteAssetMutation.mutate(assetId);
-    }
+    setDeleteConfirm({ isOpen: true, assetId });
   };
 
   const handleFilterChange = (key: keyof AssetsFilters, value: string) => {
@@ -388,6 +402,12 @@ const FixedAssetsPage: React.FC = () => {
 
   const handleOpenEditModal = (asset: Record<string, unknown>) => {
     setAssetToEdit(asset);
+    const raw = asset._raw as Record<string, unknown> | undefined;
+    // Read depreciation params from the raw DB record to avoid losing existing values (Warning #14 fix)
+    const rawDuree = raw ? ((raw.usefulLifeYears as number) || 5) : 5;
+    const rawMethode = raw
+      ? ((raw.depreciationMethod as string) === 'declining' ? 'degressive' : 'lineaire')
+      : 'lineaire';
     setEditFormData({
       code: String(asset.code_immobilisation || ''),
       designation: String(asset.designation || ''),
@@ -396,11 +416,11 @@ const FixedAssetsPage: React.FC = () => {
       fournisseur: String(asset.fournisseur || ''),
       date_acquisition: String(asset.date_acquisition || ''),
       montant_acquisition: (asset.valeur_acquisition as number) || 0,
-      duree_amortissement: 5,
-      methode_amortissement: 'lineaire',
+      duree_amortissement: rawDuree,
+      methode_amortissement: rawMethode as 'lineaire' | 'degressive' | 'unites_oeuvre' | 'exceptionnelle',
       statut: String(asset.statut || 'en_service'),
       numero_serie: String(asset.numero_serie || ''),
-      description: '',
+      description: String(raw?.description || ''),
     });
     setEditErrors({});
     setShowEditModal(true);
@@ -418,11 +438,22 @@ const FixedAssetsPage: React.FC = () => {
     try {
       setIsEditSubmitting(true);
       setEditErrors({});
-      if (!editFormData.code) { setEditErrors({ code: 'Code requis' }); return; }
-      if (!editFormData.designation) { setEditErrors({ designation: 'Désignation requise' }); return; }
+      if (!editFormData.code) { setEditErrors({ code: 'Code requis' }); setIsEditSubmitting(false); return; }
+      if (!editFormData.designation) { setEditErrors({ designation: 'Désignation requise' }); setIsEditSubmitting(false); return; }
       await updateMutation.mutateAsync({ id: String(assetToEdit.id), data: editFormData as unknown as Record<string, unknown> });
     } catch (error) {
-      toast.error('Erreur lors de la mise à jour');
+      console.error('[FixedAssetsPage] edit submit error:', error);
+      if (error instanceof z.ZodError) {
+        const fieldErrors: Record<string, string> = {};
+        error.errors.forEach((err) => {
+          const field = err.path[0] as string;
+          fieldErrors[field] = err.message;
+        });
+        setEditErrors(fieldErrors);
+        toast.error('Veuillez corriger les erreurs du formulaire');
+      } else {
+        toast.error((error as Error).message || 'Erreur lors de la mise à jour');
+      }
     } finally {
       setIsEditSubmitting(false);
     }
@@ -1117,7 +1148,30 @@ const FixedAssetsPage: React.FC = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Catégorie</label>
-                    <Input value={editFormData.categorie} onChange={(e) => handleEditInputChange('categorie', e.target.value)} disabled={isEditSubmitting} />
+                    <Select
+                      value={editFormData.categorie}
+                      onValueChange={(value) => handleEditInputChange('categorie', value)}
+                      disabled={isEditSubmitting}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner une catégorie" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories?.map((category) => (
+                          <SelectItem key={category.id} value={category.code}>
+                            {category.nom}
+                          </SelectItem>
+                        ))}
+                        {/* Fallback options always present */}
+                        <SelectItem value="materiel_informatique">Matériel informatique</SelectItem>
+                        <SelectItem value="vehicules">Véhicules</SelectItem>
+                        <SelectItem value="mobilier">Mobilier</SelectItem>
+                        <SelectItem value="equipements">Équipements</SelectItem>
+                        <SelectItem value="immobilier">Immobilier</SelectItem>
+                        <SelectItem value="AUTRE">Autre</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {editErrors.categorie && <p className="mt-1 text-sm text-red-600">{editErrors.categorie}</p>}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Numéro de série</label>
@@ -1164,11 +1218,26 @@ const FixedAssetsPage: React.FC = () => {
         onClose={() => setShowPeriodModal(false)}
         onApply={(newDateRange) => {
           setDateRange(newDateRange);
-          // Update filter logic
           handleFilterChange('date_acquisition_debut', newDateRange.start);
           handleFilterChange('date_acquisition_fin', newDateRange.end);
         }}
         initialDateRange={dateRange}
+      />
+
+      {/* Confirmation suppression actif */}
+      <ConfirmDialog
+        isOpen={deleteConfirm.isOpen}
+        onClose={() => setDeleteConfirm({ isOpen: false, assetId: null })}
+        onConfirm={() => {
+          if (deleteConfirm.assetId) deleteAssetMutation.mutate(deleteConfirm.assetId);
+          setDeleteConfirm({ isOpen: false, assetId: null });
+        }}
+        title="Confirmer la suppression"
+        message="Êtes-vous sûr de vouloir supprimer cet actif ? Cette action est irréversible."
+        variant="danger"
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        confirmLoading={deleteAssetMutation.isPending}
       />
     </div>
   );

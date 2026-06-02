@@ -15,7 +15,6 @@
  */
 import React, { useState, useMemo, useCallback } from 'react';
 import { formatCurrency } from '../../utils/formatters';
-import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
@@ -47,7 +46,6 @@ import {
 const MONTHS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
 
 const TaxDeclarationsPage: React.FC = () => {
-  const { t } = useLanguage();
   const { adapter } = useData();
   const queryClient = useQueryClient();
 
@@ -85,7 +83,7 @@ const TaxDeclarationsPage: React.FC = () => {
   });
 
   // Detection results
-  const { data: detectionResults = [], isLoading: loadingDetection, refetch: refetchDetection } = useQuery({
+  const { data: detectionResults = [], isLoading: loadingDetection, isError: isDetectionError, refetch: refetchDetection } = useQuery({
     queryKey: ['tax-detection', periodStart, periodEnd],
     queryFn: async () => {
       if (taxRegistry.length === 0) return [];
@@ -183,22 +181,37 @@ const TaxDeclarationsPage: React.FC = () => {
     const updates: Partial<DBTaxDeclaration> = { status: newStatus as DBTaxDeclaration['status'], updatedAt: now };
     if (newStatus === 'declared') updates.declaredAt = now;
     if (newStatus === 'paid') updates.paidAt = now;
-    await adapter.update('taxDeclarations', decl.id, updates);
-    await queryClient.invalidateQueries({ queryKey: ['tax-declarations'] });
-    toast.success(`Déclaration ${decl.taxCode} → ${newStatus}`);
+    try {
+      await adapter.update('taxDeclarations', decl.id, updates);
+      await queryClient.invalidateQueries({ queryKey: ['tax-declarations'] });
+      toast.success(`Déclaration ${decl.taxCode} → ${newStatus}`);
+    } catch (err) {
+      console.error('[TaxDeclarations] handleStatusChange error:', err);
+      toast.error('Erreur lors de la mise à jour du statut : ' + (err instanceof Error ? err.message : String(err)));
+    }
   }, [adapter, queryClient]);
 
   const handleSeedRegistry = useCallback(async () => {
-    await seedTaxRegistryCI(adapter);
-    await seedIRPPBracketsCI(adapter);
-    await queryClient.invalidateQueries({ queryKey: ['tax-registry'] });
-    toast.success('15 taxes CI initialisées dans le registre');
+    try {
+      await seedTaxRegistryCI(adapter);
+      await seedIRPPBracketsCI(adapter);
+      await queryClient.invalidateQueries({ queryKey: ['tax-registry'] });
+      toast.success('15 taxes CI initialisées dans le registre');
+    } catch (err) {
+      console.error('[TaxDeclarations] handleSeedRegistry error:', err);
+      toast.error('Erreur lors de l\'initialisation du registre : ' + (err instanceof Error ? err.message : String(err)));
+    }
   }, [adapter, queryClient]);
 
   const handleDelete = useCallback(async (id: string) => {
-    await adapter.delete('taxDeclarations', id);
-    await queryClient.invalidateQueries({ queryKey: ['tax-declarations'] });
-    toast.success('Déclaration supprimée');
+    try {
+      await adapter.delete('taxDeclarations', id);
+      await queryClient.invalidateQueries({ queryKey: ['tax-declarations'] });
+      toast.success('Déclaration supprimée');
+    } catch (err) {
+      console.error('[TaxDeclarations] handleDelete error:', err);
+      toast.error('Erreur lors de la suppression : ' + (err instanceof Error ? err.message : String(err)));
+    }
   }, [adapter, queryClient]);
 
   // ── Helpers ─────────────────────────────────────────────────
@@ -289,6 +302,25 @@ const TaxDeclarationsPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Erreur moteur de détection */}
+      {isDetectionError && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center space-x-3">
+          <ExclamationTriangleIcon className="h-5 w-5 text-red-600 flex-shrink-0" />
+          <div>
+            <span className="font-medium text-red-800">Le moteur de détection fiscale a rencontré une erreur.</span>
+            <span className="text-red-700 ml-1">Les taxes détectées peuvent être incomplètes.</span>
+          </div>
+        </div>
+      )}
+
+      {/* Chargement détection */}
+      {loadingDetection && taxRegistry.length > 0 && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-center space-x-3">
+          <ArrowPathIcon className="h-4 w-4 text-blue-600 animate-spin flex-shrink-0" />
+          <span className="text-sm text-blue-700">Détection des taxes en cours…</span>
+        </div>
+      )}
+
       {/* Alertes urgentes */}
       {(overdueTaxes.length > 0 || dueSoonTaxes.length > 0) && (
         <div className="space-y-2">
@@ -365,7 +397,7 @@ const TaxDeclarationsPage: React.FC = () => {
                 <div className="flex justify-between"><span className="text-gray-600">IS ({isCalc.tauxIS}%)</span><span>{formatCurrency(isCalc.montantIS)}</span></div>
                 <div className="flex justify-between"><span className="text-gray-600">IMF (1% CA, min 3M)</span><span>{formatCurrency(isCalc.imf)}</span></div>
                 <hr />
-                <div className="flex justify-between font-bold"><span>Montant dû (max IS, IMF)</span><span className="text-red-600">{formatCurrency(isCalc.montantDu)}</span></div>
+                <div className="flex justify-between font-bold"><span>Montant dû (max IS, IMF)</span><span className={isCalc.montantDu > 0 ? 'text-red-600' : 'text-green-600'}>{formatCurrency(isCalc.montantDu)}</span></div>
               </div>
             </div>
           )}
@@ -432,7 +464,7 @@ const TaxDeclarationsPage: React.FC = () => {
               {MONTHS.map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
             </select>
             <select value={selectedYear} onChange={e => setSelectedYear(Number(e.target.value))} className="border border-gray-300 rounded-lg px-3 py-2 text-sm">
-              {[now.getFullYear(), now.getFullYear() - 1, now.getFullYear() - 2].map(y => <option key={y} value={y}>{y}</option>)}
+              {Array.from({ length: 5 }, (_, i) => now.getFullYear() - i).map(y => <option key={y} value={y}>{y}</option>)}
             </select>
 
             <div className="relative ml-3">
@@ -452,7 +484,38 @@ const TaxDeclarationsPage: React.FC = () => {
           </div>
 
           <button
-            onClick={() => { toast.success('Export CSV en cours...'); }}
+            onClick={() => {
+              try {
+                if (filteredDeclarations.length === 0) {
+                  toast.error('Aucune déclaration à exporter.');
+                  return;
+                }
+                const header = 'Taxe;Période;Statut;Échéance;Base imposable;Montant dû\n';
+                const rows = filteredDeclarations.map(d =>
+                  [
+                    getTaxName(d.taxCode),
+                    d.periodLabel ?? '',
+                    getStatusLabel(d.status),
+                    d.declarationDeadline ? new Date(d.declarationDeadline).toLocaleDateString('fr-FR') : '',
+                    d.base ?? 0,
+                    d.netTax ?? 0,
+                  ].join(';')
+                ).join('\n');
+                const blob = new Blob(['﻿' + header + rows], { type: 'text/csv;charset=utf-8;' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `declarations_fiscales_${selectedYear}_${String(selectedMonth).padStart(2, '0')}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                toast.success(`${filteredDeclarations.length} déclaration(s) exportée(s) en CSV`);
+              } catch (err) {
+                console.error('[TaxDeclarations] exportCSV error:', err);
+                toast.error('Erreur lors de l\'export CSV : ' + (err instanceof Error ? err.message : String(err)));
+              }
+            }}
             className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg flex items-center space-x-1 text-sm transition-colors"
           >
             <DocumentArrowDownIcon className="h-4 w-4" />

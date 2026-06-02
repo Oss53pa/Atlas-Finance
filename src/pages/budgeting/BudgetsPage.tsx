@@ -4,7 +4,7 @@ import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useData } from '../../contexts/DataContext';
-import { getBudgetAnalysis } from '../../services/budgetAnalysisService';
+import { toast } from 'react-hot-toast';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import {
@@ -63,12 +63,16 @@ const BudgetsPage: React.FC = () => {
   const [createDateRange, setCreateDateRange] = useState({ start: '', end: '' });
   const [editDateRange, setEditDateRange] = useState({ start: '', end: '' });
   // Bug #5 fix: controlled edit form state
+  const [isEditSaving, setIsEditSaving] = useState(false);
   const [editForm, setEditForm] = useState<{
     name: string; code: string; type: Budget['type']; status: Budget['status'];
     period: string; currency: string; description: string; responsible: string; totalAmount: number;
-  }>({ name: '', code: '', type: 'operational', status: 'draft', period: '', currency: 'XOF', description: '', responsible: '', totalAmount: 0 });
+  }>({ name: '', code: '', type: 'operational', status: 'draft', period: '', currency: 'XAF', description: '', responsible: '', totalAmount: 0 });
   const [createStep, setCreateStep] = useState(1);
-  const [costCenters, setCostCenters] = useState<any[]>([]);
+
+  interface CostCenter { id: string; libelle: string; code: string; responsable?: string; }
+  const [costCenters, setCostCenters] = useState<CostCenter[]>([]);
+  const [selectedCostCenterId, setSelectedCostCenterId] = useState<string>('');
   const [newBudget, setNewBudget] = useState({
     name: '', code: '', type: 'operational' as Budget['type'], status: 'draft' as Budget['status'],
     period: '', currency: 'XAF', description: '', responsible: '',
@@ -91,7 +95,7 @@ const BudgetsPage: React.FC = () => {
           })));
           return;
         }
-      } catch (err) { /* silent */ /* API not available, try local */ }
+      } catch (err) { console.warn('[BudgetsPage] analytics API unavailable, falling back to local:', err); }
 
       try {
         // Fallback: load from Dexie settings
@@ -416,17 +420,17 @@ const BudgetsPage: React.FC = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Département</label>
+              {/* Département filter derives from real budget data; currently all budgets are mapped from
+                  fiscalYears which don't carry a department — only "Tous les départements" is shown. */}
               <select
                 value={selectedDepartment}
                 onChange={(e) => setSelectedDepartment(e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
               >
                 <option value="all">Tous les départements</option>
-                <option value="Exploitation">Exploitation</option>
-                <option value="IT">IT</option>
-                <option value="Finance">Finance</option>
-                <option value="RH">RH</option>
-                <option value="Commercial">Commercial</option>
+                {[...new Set(budgets.map(b => b.department).filter(d => d && d !== 'Tous'))].map(dep => (
+                  <option key={dep} value={dep}>{dep}</option>
+                ))}
               </select>
             </div>
           </div>
@@ -757,11 +761,15 @@ const BudgetsPage: React.FC = () => {
                     <div className="flex-1">
                       <label className="block text-sm font-medium text-gray-700 mb-1">Centre de coûts</label>
                       {costCenters.length > 0 ? (
-                        <select id="cc-select" className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]">
+                        <select
+                          value={selectedCostCenterId}
+                          onChange={(e) => setSelectedCostCenterId(e.target.value)}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]"
+                        >
                           <option value="">Sélectionner un centre de coûts...</option>
                           {costCenters
-                            .filter((cc: any) => !newBudget.costCenterAllocations.some(a => a.costCenterId === cc.id))
-                            .map((cc: any) => (
+                            .filter((cc) => !newBudget.costCenterAllocations.some(a => a.costCenterId === cc.id))
+                            .map((cc) => (
                               <option key={cc.id} value={cc.id}>{cc.libelle || cc.code || cc.id}{cc.responsable ? ` — ${cc.responsable}` : ''}</option>
                             ))}
                         </select>
@@ -774,14 +782,14 @@ const BudgetsPage: React.FC = () => {
                     {costCenters.length > 0 && (
                       <button
                         onClick={() => {
-                          const sel = (document.getElementById('cc-select') as HTMLSelectElement)?.value;
-                          if (!sel) return;
-                          const cc = costCenters.find((c: any) => c.id === sel);
+                          if (!selectedCostCenterId) return;
+                          const cc = costCenters.find((c) => c.id === selectedCostCenterId);
                           if (!cc) return;
                           setNewBudget({ ...newBudget, costCenterAllocations: [
                             ...newBudget.costCenterAllocations,
                             { costCenterId: cc.id, costCenterName: cc.libelle || cc.code || cc.id, amount: 0 }
                           ]});
+                          setSelectedCostCenterId('');
                         }}
                         className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 flex items-center space-x-2 whitespace-nowrap">
                         <PlusIcon className="w-4 h-4" /><span>Ajouter</span>
@@ -912,7 +920,14 @@ const BudgetsPage: React.FC = () => {
               </button>
               <div className="flex space-x-3">
                 {createStep < 3 ? (
-                  <button onClick={() => setCreateStep(createStep + 1)}
+                  <button onClick={() => {
+                    if (createStep === 1) {
+                      if (!newBudget.name.trim()) { toast.error('Le nom du budget est requis'); return; }
+                      if (!newBudget.code.trim()) { toast.error('Le code du budget est requis'); return; }
+                      if (!createDateRange.start || !createDateRange.end) { toast.error('La période (date début et date fin) est requise'); return; }
+                    }
+                    setCreateStep(createStep + 1);
+                  }}
                     className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90">Suivant</button>
                 ) : (
                   <button
@@ -947,7 +962,8 @@ const BudgetsPage: React.FC = () => {
                         setCreateStep(1);
                         setNewBudget({ name: '', code: '', type: 'operational', status: 'draft', period: '', currency: 'XAF', description: '', responsible: '', costCenterAllocations: [] });
                       } catch (err) {
-                        /* ignored */
+                        console.error('[BudgetsPage] create budget error:', err);
+                        toast.error((err as Error).message || 'Erreur lors de la création du budget');
                       }
                     }}
                     className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 font-semibold">
@@ -1071,8 +1087,8 @@ const BudgetsPage: React.FC = () => {
                     onChange={(e) => setEditForm({ ...editForm, currency: e.target.value })}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2"
                   >
-                    <option value="XOF">XOF (FCFA UEMOA)</option>
                     <option value="XAF">XAF (FCFA CEMAC)</option>
+                    <option value="XOF">XOF (FCFA UEMOA)</option>
                     <option value="EUR">EUR</option>
                     <option value="USD">USD</option>
                   </select>
@@ -1110,8 +1126,10 @@ const BudgetsPage: React.FC = () => {
                 Annuler
               </button>
               <button
+                disabled={isEditSaving}
                 onClick={async () => {
-                  if (!selectedBudget) return;
+                  if (!selectedBudget || isEditSaving) return;
+                  setIsEditSaving(true);
                   try {
                     // Bug #5 fix: update budgetLines records for this fiscalYear
                     // We update the first budget line's budgeted amount to reflect totalAmount changes
@@ -1139,12 +1157,15 @@ const BudgetsPage: React.FC = () => {
                     queryClient.invalidateQueries({ queryKey: ['budgets'] });
                     setShowEditModal(false);
                   } catch (err) {
+                    console.error('[BudgetsPage] edit save error:', err);
                     toast.error((err as Error).message || 'Erreur lors de la mise à jour');
+                  } finally {
+                    setIsEditSaving(false);
                   }
                 }}
-                className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90"
+                className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Enregistrer les modifications
+                {isEditSaving ? 'Enregistrement...' : 'Enregistrer les modifications'}
               </button>
             </div>
           </div>
@@ -1250,13 +1271,13 @@ const BudgetsPage: React.FC = () => {
                     <div>
                       <dt className="text-sm text-gray-700">Date de début</dt>
                       <dd className="text-sm font-medium text-gray-900 mt-1">
-                        {new Date(selectedBudget.startDate).toLocaleDateString()}
+                        {selectedBudget.startDate ? new Date(selectedBudget.startDate).toLocaleDateString() : '—'}
                       </dd>
                     </div>
                     <div>
                       <dt className="text-sm text-gray-700">Date de fin</dt>
                       <dd className="text-sm font-medium text-gray-900 mt-1">
-                        {new Date(selectedBudget.endDate).toLocaleDateString()}
+                        {selectedBudget.endDate ? new Date(selectedBudget.endDate).toLocaleDateString() : '—'}
                       </dd>
                     </div>
                   </dl>

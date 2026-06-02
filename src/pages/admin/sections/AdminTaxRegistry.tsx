@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Settings, Shield, ToggleLeft, Calculator, Calendar, DollarSign,
   Edit2, Save, RefreshCw, AlertTriangle, CheckCircle, ChevronDown,
@@ -138,6 +138,27 @@ const AdminTaxRegistry: React.FC = () => {
 
   // ---- State ----
   const [selectedCountry, setSelectedCountry] = useState('CI');
+
+  // Le pays par défaut s'adapte au pays de l'entreprise (settings.admin_company_legal.pays).
+  // Le nom stocké (ex "Cote d'Ivoire") est mappé vers le code OHADA (ex "CI").
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const all = await adapter.getAll<any>('settings');
+        const legal = all.find((s: any) => s.key === 'admin_company_legal');
+        const parsed = legal?.value
+          ? (typeof legal.value === 'string' ? JSON.parse(legal.value) : legal.value)
+          : null;
+        const paysName: string | undefined = parsed?.pays;
+        if (!paysName || cancelled) return;
+        const norm = (s: string) => s.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase().trim();
+        const match = OHADA_COUNTRIES.find(c => norm(c.name) === norm(paysName));
+        if (match && !cancelled) setSelectedCountry(match.code);
+      } catch { /* garde le défaut CI */ }
+    })();
+    return () => { cancelled = true; };
+  }, [adapter]);
   const [expandedCategories, setExpandedCategories] = useState<Set<TaxCategory>>(
     new Set(['INDIRECT', 'DIRECT', 'SOCIAL', 'RETENUE', 'AUTRE']),
   );
