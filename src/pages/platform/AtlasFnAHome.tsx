@@ -15,6 +15,7 @@ import {
 import { Area, AreaChart, ResponsiveContainer } from 'recharts';
 import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
+import CompanyOnboardingModal from '../../components/onboarding/CompanyOnboardingModal';
 
 // ─────────────────────────────────────────────────────────────
 // Sparkline helper
@@ -80,6 +81,9 @@ const AtlasFnAHome: React.FC = () => {
     ecritures: 0, comptes: 0, tiers: 0, immobilisations: 0, exercice: '—',
   });
   const [resolvedCompany, setResolvedCompany] = useState<string>('');
+  // Premier accès : null = en cours de détection, false = entreprise non configurée, true = OK
+  const [companyConfigured, setCompanyConfigured] = useState<boolean | null>(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
     const loadStats = async () => {
@@ -104,30 +108,35 @@ const AtlasFnAHome: React.FC = () => {
     return () => clearTimeout(t);
   }, [adapter]);
 
-  // ─── Nom entreprise : source canonique = setting admin_company_legal ───
+  // ─── Nom entreprise + détection du premier accès (entreprise non configurée) ───
   useEffect(() => {
     let cancelled = false;
-    const resolveCompanyName = async () => {
-      // 1) Source canonique : admin_company_legal (toujours écrit, saas + local)
+    const resolve = async () => {
+      let configured = false;
+      // 1) Source canonique : admin_company_legal → raisonSociale.
+      //    C'est le SEUL signal fiable de « entreprise configurée » (la table
+      //    companies/societes peut contenir une ligne seedée placeholder).
       try {
         const legalRow = await adapter.getById<any>('settings', 'admin_company_legal');
-        const raison = legalRow?.value
-          ? JSON.parse(legalRow.value)?.raisonSociale
-          : undefined;
-        if (raison && !cancelled) { setResolvedCompany(raison); return; }
-      } catch { /* repli ci-dessous */ }
-      // 2) Repli : ligne societes/companies (raison_sociale)
-      try {
-        const companies = await adapter.getAll<any>('companies');
-        if (companies && companies.length > 0 && !cancelled) {
-          const c = companies[0];
-          const name = c.raison_sociale || c.name || c.nom || c.company_name || '';
-          if (name) setResolvedCompany(name);
+        const raison = legalRow?.value ? JSON.parse(legalRow.value)?.raisonSociale : undefined;
+        if (raison) {
+          configured = true;
+          if (!cancelled) setResolvedCompany(raison);
         }
-      } catch { /* silencieux */ }
+      } catch { /* repli affichage ci-dessous */ }
+      // 2) Repli AFFICHAGE uniquement (ne vaut pas configuration) : societes/companies
+      if (!configured) {
+        try {
+          const companies = await adapter.getAll<any>('companies');
+          const c = companies?.[0];
+          const name = c ? (c.raison_sociale || c.name || c.nom || c.company_name || '') : '';
+          if (name && !cancelled) setResolvedCompany(name);
+        } catch { /* silencieux */ }
+      }
+      if (!cancelled) setCompanyConfigured(configured);
     };
-    resolveCompanyName();
-    const t = setTimeout(resolveCompanyName, 1500);
+    resolve();
+    const t = setTimeout(resolve, 1500);
     return () => { cancelled = true; clearTimeout(t); };
   }, [adapter]);
 
@@ -135,7 +144,27 @@ const AtlasFnAHome: React.FC = () => {
   const firstName = user?.first_name || user?.name?.split(' ')[0] || 'Bienvenue';
   const companyName = resolvedCompany || user?.company || 'Mon entreprise';
   const workspacePath = getWorkspacePath(user?.role || '');
+  const isAdmin = user?.role === 'admin' || (user?.role as string) === 'super_admin';
   const period = useMemo(() => new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }).replace(/^\w/, c => c.toUpperCase()), []);
+
+  // ─── Premier accès admin → ouvrir la modal d'onboarding entreprise ───
+  useEffect(() => {
+    if (companyConfigured === false && isAdmin) {
+      const dismissed = typeof sessionStorage !== 'undefined'
+        && sessionStorage.getItem('atlas-onboarding-dismissed') === '1';
+      if (!dismissed) setShowOnboarding(true);
+    }
+  }, [companyConfigured, isAdmin]);
+
+  const handleOnboardingSaved = (name: string) => {
+    setResolvedCompany(name);
+    setCompanyConfigured(true);
+    setShowOnboarding(false);
+  };
+  const handleOnboardingDismiss = () => {
+    try { sessionStorage.setItem('atlas-onboarding-dismissed', '1'); } catch { /* ignore */ }
+    setShowOnboarding(false);
+  };
 
   // ─── KPI data (basée sur les vraies données comptables) ───
   const kpis = useMemo(() => {
@@ -673,6 +702,13 @@ const AtlasFnAHome: React.FC = () => {
           </div>
         </footer>
       </main>
+
+      {/* Premier accès admin — modal de création d'entreprise */}
+      <CompanyOnboardingModal
+        open={showOnboarding}
+        onSaved={handleOnboardingSaved}
+        onDismiss={handleOnboardingDismiss}
+      />
     </div>
   );
 };
