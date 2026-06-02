@@ -240,38 +240,51 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
         if (!sc || !tid) throw new Error('Client Supabase non initialisé');
 
         // Mapping table JS → nom table Postgres
-        const pgMap: Record<string, string> = {
-          journalEntries: 'journal_entries', thirdParties: 'third_parties',
-          assets: 'assets', budgetLines: 'budget_lines',
-          hedgingPositions: 'hedging_positions', paymentOrders: 'payment_orders',
-          loanSchedules: 'loan_schedules', checks: 'checks_register',
-          recoveryCases: 'recovery_cases', taxDeclarations: 'tax_declarations',
-          taxRegistry: 'tax_registry', provisions: 'provisions',
-          inventoryItems: 'inventory_items', stockMovements: 'stock_movements',
-          revisionItems: 'revision_items', closureSessions: 'closure_sessions',
-          exchangeRates: 'exchange_rates', fiscalPeriods: 'periodes_comptables',
-          cashMovements: 'cash_movements', cashRegisterSessions: 'cash_register_sessions',
-          accounts: 'accounts', fiscalYears: 'fiscal_years',
-          auditLogs: 'audit_logs', settings: 'settings',
+        // Mapping JS table name → { pgTable, tenantCol }
+        // Les tables trésorerie (migration 14) utilisent company_id, pas tenant_id
+        const pgMap: Record<string, { pg: string; col: string }> = {
+          journalEntries:       { pg: 'journal_entries',        col: 'tenant_id' },
+          thirdParties:         { pg: 'third_parties',          col: 'tenant_id' },
+          assets:               { pg: 'assets',                 col: 'tenant_id' },
+          budgetLines:          { pg: 'budget_lines',           col: 'tenant_id' },
+          provisions:           { pg: 'provisions',             col: 'tenant_id' },
+          inventoryItems:       { pg: 'inventory_items',        col: 'tenant_id' },
+          stockMovements:       { pg: 'stock_movements',        col: 'tenant_id' },
+          revisionItems:        { pg: 'revision_items',         col: 'tenant_id' },
+          closureSessions:      { pg: 'closure_sessions',       col: 'tenant_id' },
+          exchangeRates:        { pg: 'exchange_rates',         col: 'tenant_id' },
+          recoveryCases:        { pg: 'recovery_cases',         col: 'tenant_id' },
+          taxDeclarations:      { pg: 'tax_declarations',       col: 'tenant_id' },
+          taxRegistry:          { pg: 'tax_registry',           col: 'tenant_id' },
+          accounts:             { pg: 'accounts',               col: 'tenant_id' },
+          fiscalYears:          { pg: 'fiscal_years',           col: 'tenant_id' },
+          auditLogs:            { pg: 'audit_logs',             col: 'tenant_id' },
+          settings:             { pg: 'settings',               col: 'tenant_id' },
+          fiscalPeriods:        { pg: 'periodes_comptables',    col: 'tenant_id' },
+          // Trésorerie — utilisent company_id (migration 14)
+          paymentOrders:        { pg: 'payment_orders',         col: 'company_id' },
+          cashRegisterSessions: { pg: 'cash_register_sessions', col: 'company_id' },
+          cashMovements:        { pg: 'cash_movements',         col: 'company_id' },
+          loanSchedules:        { pg: 'loan_schedules',         col: 'company_id' },
+          checks:               { pg: 'checks_register',        col: 'company_id' },
+          purchaseOrders:       { pg: 'purchase_orders',        col: 'company_id' },
+          goodsReceipts:        { pg: 'goods_receipts',         col: 'company_id' },
+          offBalanceCommitments:{ pg: 'off_balance_commitments',col: 'company_id' },
+          hedgingPositions:     { pg: 'hedging_positions',      col: 'tenant_id' },
         };
 
-        // journal_lines doit être supprimé EN PREMIER (FK sur journal_entries)
+        // journal_lines EN PREMIER (FK sur journal_entries)
         const tablesWithLines = group.key === 'all' || group.key === 'journalEntries';
         if (tablesWithLines) {
-          await sc.from('journal_lines').delete().eq('tenant_id', tid);
+          const { error } = await sc.from('journal_lines').delete().eq('tenant_id', tid);
+          if (error) console.error('[Reset SaaS] journal_lines:', error.message);
         }
 
         for (const table of group.tables) {
-          const pgTable = pgMap[table];
-          if (!pgTable) continue;
-          const pkCol = pgTable === 'settings' ? 'key' : 'id';
-          if (pgTable === 'settings') {
-            const { error } = await sc.from(pgTable).delete().eq('tenant_id', tid);
-            if (error) console.error(`[Reset SaaS] ${pgTable}:`, error.message);
-          } else {
-            const { error } = await sc.from(pgTable).delete().eq('tenant_id', tid);
-            if (error) console.error(`[Reset SaaS] ${pgTable}:`, error.message);
-          }
+          const mapping = pgMap[table];
+          if (!mapping) continue;
+          const { error } = await sc.from(mapping.pg).delete().eq(mapping.col, tid);
+          if (error) console.error(`[Reset SaaS] ${mapping.pg} (${mapping.col}):`, error.message);
         }
         // Vider aussi le cache local (IndexedDB + localStorage)
         try {
