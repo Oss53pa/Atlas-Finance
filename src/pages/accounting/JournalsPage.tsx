@@ -302,6 +302,7 @@ const JournalsPage: React.FC = () => {
       BQ: t('accounting.bankJournal'), CA: t('accounting.cashJournal'),
       OD: t('accounting.miscJournal'),
       AN: 'Journal A-Nouveau', RAN: 'Journal A-Nouveau (RAN)',
+      IPE: 'Instruments de paiement électronique', SAL: 'Journal de paie',
     };
     const palette = ['var(--color-primary)', 'var(--color-primary-hover)', 'var(--color-text-secondary)', '#8B6DAF', '#2E8B7F', '#C77D3A'];
 

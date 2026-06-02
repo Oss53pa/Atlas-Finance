@@ -303,6 +303,34 @@ function parseNumber(val: any): number {
   return isNaN(n) ? 0 : n;
 }
 
+/**
+ * Rapproche un code journal SOURCE (nommé librement par l'entreprise : RAN,
+ * VENTE, NSIA C, CAISSM, CARTEG…) vers un TYPE de journal standard SYSCOHADA.
+ * Deux signaux combinés : le NOM du journal, puis les COMPTES de trésorerie
+ * mouvementés (plus fiable). Types : VE, AC, BQ, CA, OD, AN, SAL, IPE.
+ *   IPE = Instruments de Paiement Électronique (cartes, comptes 55).
+ */
+function classifyJournal(sourceCode: string, accountCodes: string[] = []): string {
+  const c = String(sourceCode).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '');
+  // 1) Par le nom du journal
+  if (/anouveau|anouvel|reportanouveau|^ran$|^an$/.test(c)) return 'AN';
+  if (/carte|monetique|paiementelectro|^ipe$/.test(c)) return 'IPE';
+  if (/vente|^vte$|^ve$|facturecl/.test(c)) return 'VE';
+  if (/achat|^ach$|^ac$|facturefou/.test(c)) return 'AC';
+  if (/paie|salaire|^sal$|paye/.test(c)) return 'SAL';
+  if (/caisse|^caiss|^ca$|espece/.test(c)) return 'CA';
+  if (/banque|^bq$|^bank$|nsia|^bni$|bridge|ecobank|^eco$|sgbci|^boa$|bicici|^uba$|orabank|coris|cheque|virement|versement/.test(c)) return 'BQ';
+  if (/^od|divers|provision|^prov|operation|cloture|extourne/.test(c)) return 'OD';
+  // 2) Par les comptes de trésorerie présents (signal comptable, prioritaire en cas de doute)
+  const prefixes = new Set(accountCodes.map(a => String(a || '').replace(/\s/g, '').slice(0, 2)));
+  if (prefixes.has('57')) return 'CA';                                   // caisse
+  if (prefixes.has('55')) return 'IPE';                                  // monnaie électronique / cartes
+  if (prefixes.has('52') || prefixes.has('53') || prefixes.has('56')) return 'BQ'; // banque / ets financiers
+  // 3) Repli : classe 1 dominante = ouverture, sinon opérations diverses
+  if (accountCodes.some(a => String(a || '').startsWith('1'))) return 'AN';
+  return 'OD';
+}
+
 function parseDate(val: any): string {
   if (val == null || val === '') return '';
   // 1. Date JS (xlsx peut renvoyer des objets Date)
@@ -1482,7 +1510,12 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
         const journalSums = new Map<string, { d: number; c: number }>();
 
         for (const [piece, lines] of groups) {
-          const journalCode = String(getEcrVal(lines[0], 'journal') || getEcrVal(lines[0], 'JournalCode') || 'OD');
+          const rawJournal = String(getEcrVal(lines[0], 'journal') || getEcrVal(lines[0], 'JournalCode') || 'OD');
+          // Rapprochement vers un type standard (le code source reste tracé dans entry_number).
+          const journalCode = classifyJournal(
+            rawJournal,
+            lines.map((l: any) => String(getEcrVal(l, 'compte') || getEcrVal(l, 'CompteNum') || getEcrVal(l, 'accountCode') || ''))
+          );
           journals.add(journalCode);
           const entryDate = parseDate(
             getEcrVal(lines[0], 'date') ||
@@ -1624,7 +1657,11 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       } else {
         // ── Mode local (Dexie) : insertion une par une avec hash chain ─────
       for (const [piece, lines] of groups) {
-        const journalCode = String(getEcrVal(lines[0], 'journal') || getEcrVal(lines[0], 'JournalCode') || 'OD');
+        const rawJournal = String(getEcrVal(lines[0], 'journal') || getEcrVal(lines[0], 'JournalCode') || 'OD');
+        const journalCode = classifyJournal(
+          rawJournal,
+          lines.map((l: any) => String(getEcrVal(l, 'compte') || getEcrVal(l, 'numeroCompte') || getEcrVal(l, 'CompteNum') || ''))
+        );
         journals.add(journalCode);
 
         // Schema journal_entries : entry_number, journal, date, label, status,
@@ -1637,11 +1674,11 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
         ) || new Date().toISOString().slice(0, 10);
 
         const totalDebit = lines.reduce(
-          (s: number, l: any) => s + parseNumber(getEcrVal(l, 'debit') || getEcrVal(l, 'Debit')),
+          (s: number, l: any) => s + lineAmounts(l).debit,
           0
         );
         const totalCredit = lines.reduce(
-          (s: number, l: any) => s + parseNumber(getEcrVal(l, 'credit') || getEcrVal(l, 'Credit')),
+          (s: number, l: any) => s + lineAmounts(l).credit,
           0
         );
 
@@ -1676,13 +1713,14 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
               getEcrVal(line, 'EcritureLib') || entryLabel
             );
             // camelCase — requis par save_journal_entry (RPC Supabase) ET par Dexie
+            const { debit, credit } = lineAmounts(line);
             return {
               id: crypto.randomUUID(),
               accountCode,
               accountName,
               label: lineLabel,
-              debit: Math.abs(parseNumber(getEcrVal(line, 'debit') || getEcrVal(line, 'Debit'))),
-              credit: Math.abs(parseNumber(getEcrVal(line, 'credit') || getEcrVal(line, 'Credit'))),
+              debit,
+              credit,
             };
           });
 
@@ -1761,15 +1799,20 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
         const exerciceCol = anColumns.find(c => ['exercice', 'annee', 'year', 'periode'].includes(normCol(c)));
 
         // Construit les lignes AN (camelCase requis par save_journal_entry et Dexie).
+        // Montants négatifs basculés du côté opposé (pas de Math.abs qui déséquilibre).
         const buildAnLines = (rows: Record<string, unknown>[]) => rows.map(row => {
           const accountCode = String(numCol ? row[numCol] : '');
+          let debit = parseNumber(dCol ? row[dCol] : 0);
+          let credit = parseNumber(cCol ? row[cCol] : 0);
+          if (debit < 0) { credit = money(credit).add(money(-debit)).toNumber(); debit = 0; }
+          if (credit < 0) { debit = money(debit).add(money(-credit)).toNumber(); credit = 0; }
           return {
             id: crypto.randomUUID(),
             accountCode,
             accountName: String(libCol ? row[libCol] : '') || accountCode,
             label: String(libCol ? row[libCol] : 'Report AN'),
-            debit: Math.abs(parseNumber(dCol ? row[dCol] : 0)),
-            credit: Math.abs(parseNumber(cCol ? row[cCol] : 0)),
+            debit,
+            credit,
           };
         }).filter(l => l.debit > 0 || l.credit > 0);
 
