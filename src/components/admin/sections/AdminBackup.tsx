@@ -233,10 +233,61 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
     if (!group) return;
     setResetLoading(true);
     try {
-      for (const table of group.tables) { await (db as any)[table]?.clear(); }
+      if (isSaas) {
+        // ── Mode SaaS : supprimer via Supabase directement ───────────────
+        const sc = (adapter as any).client;
+        const tid = (adapter as any).tenantId;
+        if (!sc || !tid) throw new Error('Client Supabase non initialisé');
+
+        // Mapping table JS → nom table Postgres
+        const pgMap: Record<string, string> = {
+          journalEntries: 'journal_entries', thirdParties: 'third_parties',
+          assets: 'assets', budgetLines: 'budget_lines',
+          hedgingPositions: 'hedging_positions', paymentOrders: 'payment_orders',
+          loanSchedules: 'loan_schedules', checks: 'checks_register',
+          recoveryCases: 'recovery_cases', taxDeclarations: 'tax_declarations',
+          taxRegistry: 'tax_registry', provisions: 'provisions',
+          inventoryItems: 'inventory_items', stockMovements: 'stock_movements',
+          revisionItems: 'revision_items', closureSessions: 'closure_sessions',
+          exchangeRates: 'exchange_rates', fiscalPeriods: 'periodes_comptables',
+          cashMovements: 'cash_movements', cashRegisterSessions: 'cash_register_sessions',
+          accounts: 'accounts', fiscalYears: 'fiscal_years',
+          auditLogs: 'audit_logs', settings: 'settings',
+        };
+
+        // journal_lines doit être supprimé EN PREMIER (FK sur journal_entries)
+        const tablesWithLines = group.key === 'all' || group.key === 'journalEntries';
+        if (tablesWithLines) {
+          await sc.from('journal_lines').delete().eq('tenant_id', tid);
+        }
+
+        for (const table of group.tables) {
+          const pgTable = pgMap[table];
+          if (!pgTable) continue;
+          const pkCol = pgTable === 'settings' ? 'key' : 'id';
+          if (pgTable === 'settings') {
+            const { error } = await sc.from(pgTable).delete().eq('tenant_id', tid);
+            if (error) console.error(`[Reset SaaS] ${pgTable}:`, error.message);
+          } else {
+            const { error } = await sc.from(pgTable).delete().eq('tenant_id', tid);
+            if (error) console.error(`[Reset SaaS] ${pgTable}:`, error.message);
+          }
+        }
+        // Vider aussi le cache local (IndexedDB + localStorage)
+        try {
+          const dbs = await indexedDB.databases?.() || [];
+          for (const db of dbs) { if (db.name) indexedDB.deleteDatabase(db.name); }
+        } catch { /* ignore si API non disponible */ }
+      } else {
+        // ── Mode local (Dexie) ────────────────────────────────────────────
+        for (const table of group.tables) { await (db as any)[table]?.clear(); }
+      }
       setResetSuccess(true); setResetTarget(null); setResetInput('');
       toast.success('Réinitialisation effectuée. Rechargez la page.');
-    } catch { toast.error('Erreur lors de la réinitialisation.'); }
+    } catch (err) {
+      toast.error('Erreur lors de la réinitialisation : ' + (err instanceof Error ? err.message : String(err)));
+      console.error('[handleReset]', err);
+    }
     finally { setResetLoading(false); }
   };
 
