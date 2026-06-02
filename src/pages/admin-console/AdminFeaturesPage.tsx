@@ -7,7 +7,7 @@ import { toast } from 'react-hot-toast';
 import { getLandingTheme, setLandingTheme, type LandingThemeMode } from '../../config/landingTheme';
 
 const MODULES = [
-  { code: 'atlas-fna', label: 'Atlas F&A', color: '#171717' },
+  { code: 'atlas-fna', label: 'Atlas FnA', color: '#171717' },
   { code: 'liass-pilot', label: "Liass'Pilot", color: '#0891b2' },
   { code: 'docjourney', label: 'DocJourney', color: '#C77E2C' },
   { code: 'tms-pro', label: 'TMS Pro Africa', color: '#dc2626' },
@@ -229,7 +229,7 @@ const LandingThemeConfig: React.FC = () => {
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="font-semibold text-sm text-[#0f172a]">Landing Page — Thème</h3>
-          <p className="text-xs text-gray-500 mt-0.5">Mode d'affichage de la page d'accueil Atlas F&A</p>
+          <p className="text-xs text-gray-500 mt-0.5">Mode d'affichage de la page d'accueil Atlas FnA</p>
         </div>
         <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
           <button

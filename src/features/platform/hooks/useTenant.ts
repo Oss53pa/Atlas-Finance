@@ -39,7 +39,7 @@ const DEMO_SUBSCRIPTIONS = [
     solution: {
       id: 'sol-001',
       code: 'atlas-fna',
-      name: 'Atlas F&A',
+      name: 'Atlas FnA',
       description: 'ERP Comptable & Financier SYSCOHADA',
       icon: 'calculator',
       color: '#171717',

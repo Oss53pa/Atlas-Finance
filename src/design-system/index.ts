@@ -1,5 +1,5 @@
 /**
- * Atlas F&A Design System - Main Export File
+ * Atlas FnA Design System - Main Export File
  * Complete design system with theme and components
  */
 

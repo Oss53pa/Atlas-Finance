@@ -243,7 +243,7 @@ const AssistantDemarragePage: React.FC = () => {
             </div>
             <div>
               <h2 className="text-lg font-bold text-gray-900 mb-4">
-                Bienvenue dans Atlas F&A
+                Bienvenue dans Atlas FnA
               </h2>
               <p className="text-lg text-gray-600 max-w-2xl mx-auto">
                 Cet assistant vous guidera à travers les étapes essentielles pour configurer 
@@ -898,7 +898,7 @@ const AssistantDemarragePage: React.FC = () => {
                 Configuration Terminée !
               </h2>
               <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                Félicitations ! Votre système Atlas F&A est maintenant configuré et prêt à être utilisé.
+                Félicitations ! Votre système Atlas FnA est maintenant configuré et prêt à être utilisé.
               </p>
             </div>
 
@@ -947,7 +947,7 @@ const AssistantDemarragePage: React.FC = () => {
                 ) : (
                   <>
                     <Rocket className="mr-2 h-4 w-4" />
-                    Commencer à utiliser Atlas F&A
+                    Commencer à utiliser Atlas FnA
                   </>
                 )}
               </Button>

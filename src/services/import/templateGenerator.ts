@@ -1,7 +1,7 @@
 /**
- * Atlas F&A — Générateur de fichiers templates d'import.
+ * Atlas FnA — Générateur de fichiers templates d'import.
  *
- * Produit un fichier XLSX officiel Atlas F&A avec :
+ * Produit un fichier XLSX officiel Atlas FnA avec :
  *   - une feuille "Instructions" listant les règles de remplissage
  *   - une feuille par sheet du template, avec les en-têtes attendus
  *     et des lignes d'exemple pré-remplies
@@ -19,7 +19,7 @@ const ATLAS_VERSION = '1.0';
 
 function buildInstructionsSheet(template: AtlasImportTemplate): XLSX.WorkSheet {
   const rows: unknown[][] = [];
-  rows.push(['Atlas F&A — Modèle d\'import']);
+  rows.push(['Atlas FnA — Modèle d\'import']);
   rows.push([`Template : ${template.label} (${template.code})`]);
   rows.push([`Version : ${ATLAS_VERSION}`]);
   rows.push([`Description : ${template.description}`]);
@@ -132,13 +132,13 @@ export function generateTemplateFile(template: AtlasImportTemplate): ArrayBuffer
 
   // Métadonnées workbook pour que le fichier soit identifié comme Atlas template
   wb.Props = {
-    Title: `Atlas F&A - ${template.label}`,
+    Title: `Atlas FnA - ${template.label}`,
     Subject: template.description,
-    Author: 'Atlas F&A',
+    Author: 'Atlas FnA',
     CreatedDate: new Date(),
     Company: 'Atlas Studio',
     Category: `atlas-template:${template.code}`,
-    Comments: `Atlas F&A Import Template v${ATLAS_VERSION} — Code ${template.code}`,
+    Comments: `Atlas FnA Import Template v${ATLAS_VERSION} — Code ${template.code}`,
     Keywords: `atlas,syscohada,import,${template.code}`,
   };
 
@@ -241,7 +241,7 @@ export function suggestTemplateFilename(template: AtlasImportTemplate): string {
 
 function buildModeInstructionsSheet(mode: MigrationModeTemplate): XLSX.WorkSheet {
   const rows: unknown[][] = [];
-  rows.push(['', 'ATLAS F&A — MODÈLE D\'IMPORT']);
+  rows.push(['', 'ATLAS FnA — MODÈLE D\'IMPORT']);
   for (const line of mode.instructions) rows.push(['', line]);
   rows.push([]);
   rows.push(['', 'RÈGLES GÉNÉRALES']);
@@ -293,9 +293,9 @@ export function generateModeTemplateFile(mode: MigrationModeTemplate): ArrayBuff
   XLSX.utils.book_append_sheet(wb, buildModeControlSheet(mode), '✅ Contrôle');
 
   wb.Props = {
-    Title: `Atlas F&A - Migration Mode ${mode.mode} (${mode.title})`,
+    Title: `Atlas FnA - Migration Mode ${mode.mode} (${mode.title})`,
     Subject: `Modèle d'import de migration — Mode ${mode.mode}`,
-    Author: 'Atlas F&A',
+    Author: 'Atlas FnA',
     Company: 'Atlas Studio',
     Category: `atlas-migration-template:${mode.code}`,
     Keywords: `atlas,syscohada,migration,mode${mode.mode},${mode.code}`,

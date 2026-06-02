@@ -1,5 +1,5 @@
 /**
- * Configurateur de Thèmes Atlas F&A
+ * Configurateur de Thèmes Atlas FnA
  * Connecté au ThemeContext officiel (src/contexts/ThemeContext.tsx)
  * Affiche les 7 palettes officielles définies dans src/styles/theme.ts
  * + onglet Personnalisation pour un thème custom (clé 'custom' en localStorage).
@@ -130,7 +130,7 @@ const ThemeConfigurator: React.FC<ThemeConfiguratorProps> = ({ className = '' })
         <div>
           <h2 className="text-lg font-bold flex items-center" style={{ color: 'var(--color-text-primary)' }}>
             <Palette className="h-6 w-6 mr-3" />
-            Configurateur de Thèmes Atlas F&A
+            Configurateur de Thèmes Atlas FnA
           </h2>
           <p className="mt-1" style={{ color: 'var(--color-text-secondary)' }}>
             Palette active : <strong>{themes[themeType]?.name ?? 'Personnalisée'}</strong>
@@ -304,7 +304,7 @@ const ThemeConfigurator: React.FC<ThemeConfiguratorProps> = ({ className = '' })
                       className="px-3 py-1 rounded text-white text-sm text-center"
                       style={{ backgroundColor: customColors.secondary }}
                     >
-                      Exemple widget Atlas F&A
+                      Exemple widget Atlas FnA
                     </div>
                   </div>
 
@@ -351,7 +351,7 @@ const ThemeConfigurator: React.FC<ThemeConfiguratorProps> = ({ className = '' })
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Eye className="h-5 w-5 mr-2" />
-                Aperçu Interface Atlas F&A
+                Aperçu Interface Atlas FnA
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -398,7 +398,7 @@ const ThemeConfigurator: React.FC<ThemeConfiguratorProps> = ({ className = '' })
                   }}
                 >
                   <h4 className="font-semibold mb-3" style={{ color: 'var(--color-text-primary)' }}>
-                    Navigation Atlas F&A
+                    Navigation Atlas FnA
                   </h4>
                   <div className="space-y-2">
                     <div

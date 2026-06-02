@@ -1,5 +1,5 @@
 
-/* Atlas F&A - Design System
+/* Atlas FnA - Design System
  * Dosis (sans-serif principale, tres lisible, geometrique douce)
  * Grand Hotel (script — RESERVE au wordmark/titres marque)
  * Instrument Serif (italic editorial)
@@ -126,7 +126,7 @@
 }
 
 @layer components {
-  /* Atlas F&A Design System Components */
+  /* Atlas FnA Design System Components */
 
   /* Enhanced KPI Card — Obsidian & Champagne */
   .kpi-card-enhanced {

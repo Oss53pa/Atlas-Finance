@@ -2,7 +2,7 @@
  * TeamSettingsPage.tsx — Page "Paramètres → Utilisateurs" générique
  * ==================================================================
  * Composant réutilisable pour gérer l'équipe d'un tenant dans n'importe
- * quelle app Atlas Studio (Cockpit F&A, Atlas F&A, CockpitJourney,
+ * quelle app Atlas Studio (Cockpit F&A, Atlas FnA, CockpitJourney,
  * TableSmart, Advist, Liass'Pilot).
  *
  * Source de vérité : table licence_seats (système universel Atlas Studio)

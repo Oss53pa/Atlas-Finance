@@ -41,7 +41,7 @@ const BalancePage: React.FC = () => {
   const printConfig = {
     title: 'Balance Comptable',
     subtitle: `Période du ${filters.period.from} au ${filters.period.to}`,
-    appName: 'Atlas F&A',
+    appName: 'Atlas FnA',
     orientation: 'landscape' as const,
   };
 

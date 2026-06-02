@@ -7,7 +7,7 @@ export default function NotFoundPage() {
   return (
     <>
       <Helmet>
-        <title>404 — Page introuvable · Atlas F&A</title>
+        <title>404 — Page introuvable · Atlas FnA</title>
       </Helmet>
 
       <div

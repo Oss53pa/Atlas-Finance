@@ -1,6 +1,6 @@
 /**
  * Report Builder — Types Complets
- * CDC V1 + V2 + V3 — Atlas F&A
+ * CDC V1 + V2 + V3 — Atlas FnA
  */
 
 // ============================================================================

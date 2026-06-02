@@ -232,7 +232,7 @@ const DemoPage: React.FC = () => {
                 <Eye className="w-3.5 h-3.5" /> Aucun compte requis — explorez librement
               </div>
               <h1 className="text-4xl md:text-6xl font-extrabold leading-tight mb-5" style={{ color: W }}>
-                Découvrez Atlas F&A
+                Découvrez Atlas FnA
                 <br />
                 <span className="bg-gradient-to-r from-[#dbc396] via-[#e0cc9e] to-[#dbc396] bg-clip-text text-transparent" style={{ color: 'transparent' }}>en action.</span>
               </h1>
@@ -262,7 +262,7 @@ const DemoPage: React.FC = () => {
                   <span className="text-[10px] flex items-center gap-1" style={{ color: W20 }}><Clock className="w-3 h-3" /> 2-3 min chacune</span>
                 </button>
 
-                <a href="mailto:contact@atlasstudio.org?subject=Demande de démo live Atlas F%26A" className="group p-7 bg-white/[0.03] border border-white/[0.06] rounded-2xl text-left hover:bg-white/[0.06] hover:border-white/[0.12] transition-all hover:-translate-y-1" style={{ color: W }}>
+                <a href="mailto:contact@atlasstudio.org?subject=Demande de démo live Atlas FnA" className="group p-7 bg-white/[0.03] border border-white/[0.06] rounded-2xl text-left hover:bg-white/[0.06] hover:border-white/[0.12] transition-all hover:-translate-y-1" style={{ color: W }}>
                   <div className="w-14 h-14 bg-white/[0.06] rounded-xl flex items-center justify-center mb-5 group-hover:bg-white/10 transition-colors">
                     <Users className="w-7 h-7" style={{ color: G }} />
                   </div>
@@ -509,7 +509,7 @@ const DemoPage: React.FC = () => {
               <iframe
                 key={previewRoute}
                 src={`${window.location.origin}${previewRoute}`}
-                title="Aperçu Atlas F&A"
+                title="Aperçu Atlas FnA"
                 style={{
                   width: `${IFRAME_DESIGN_WIDTH}px`,
                   height: `${100 / previewScale}%`,

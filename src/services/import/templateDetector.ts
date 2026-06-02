@@ -1,5 +1,5 @@
 /**
- * Atlas F&A — Détecteur de templates d'import.
+ * Atlas FnA — Détecteur de templates d'import.
  *
  * Reconnaît automatiquement le template Atlas auquel un fichier uploadé
  * correspond (XLSX ou CSV), en comparant :

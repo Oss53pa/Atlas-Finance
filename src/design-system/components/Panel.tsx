@@ -1,5 +1,5 @@
 /**
- * Atlas F&A Design System - Panel Component
+ * Atlas FnA Design System - Panel Component
  * Flexible panel component for layout sections and content areas
  */
 

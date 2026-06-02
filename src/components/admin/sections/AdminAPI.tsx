@@ -315,7 +315,7 @@ const AdminAPI: React.FC<Props> = ({ subTab, setSubTab }) => {
                         try {
                           const url = row.url;
                           if (!url) { toast.error('URL webhook manquante'); return; }
-                          const res = await fetch(url, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ test: true, source: 'Atlas F&A' }) });
+                          const res = await fetch(url, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ test: true, source: 'Atlas FnA' }) });
                           toast.success(`Webhook OK — HTTP ${res.status}`);
                         } catch { toast.error('Webhook inaccessible (vérifiez l\'URL et le CORS)'); }
                       }} className="text-blue-600 hover:text-blue-800 text-xs underline">Tester</button>

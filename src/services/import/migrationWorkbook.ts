@@ -1,5 +1,5 @@
 /**
- * Atlas F&A — Lecture/éclatement d'un CLASSEUR DE MIGRATION par mode.
+ * Atlas FnA — Lecture/éclatement d'un CLASSEUR DE MIGRATION par mode.
  *
  * L'utilisateur télécharge le modèle d'un mode (multi-feuilles), le remplit,
  * puis ré-uploade UN seul fichier. `splitModeWorkbook` retrouve chaque feuille

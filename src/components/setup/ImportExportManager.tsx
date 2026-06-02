@@ -320,11 +320,11 @@ const ImportExportManager: React.FC = () => {
       {/* Onglet Import */}
       {activeTab === 'import' && (
         <div className="space-y-6">
-          {/* Accès au catalogue Atlas F&A complet */}
+          {/* Accès au catalogue Atlas FnA complet */}
           <div className="bg-gradient-to-r from-neutral-900 to-neutral-700 rounded-lg p-5 text-white flex items-center justify-between">
             <div>
               <div className="text-[10px] font-bold uppercase tracking-wider text-amber-300 mb-1">
-                Atlas F&A — Catalogue officiel
+                Atlas FnA — Catalogue officiel
               </div>
               <h3 className="text-lg font-bold">Modèles d'import SYSCOHADA</h3>
               <p className="text-sm text-neutral-200 mt-1">

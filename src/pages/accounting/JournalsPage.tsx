@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   BookOpen, BarChart3, FileText, Plus, Search, Filter, Edit, Eye,
@@ -63,6 +63,7 @@ const JournalsPage: React.FC = () => {
   const { adapter } = useData();
   const [dbEntries, setDbEntries] = useState<any[]>([]);
   const [companyCurrency, setCompanyCurrency] = useState('FCFA');
+  const [isLoadingEntries, setIsLoadingEntries] = useState(false);
 
   // État du formulaire de création de sous-journal
   const [newSubJournal, setNewSubJournal] = useState({ parentCode: '', code: '', libelle: '' });
@@ -76,8 +77,9 @@ const JournalsPage: React.FC = () => {
   const [appliedDateFrom, setAppliedDateFrom] = useState(`${currentYear}-01-01`);
   const [appliedDateTo, setAppliedDateTo] = useState(`${currentYear}-12-31`);
 
-  // Rechargement — exposé pour être appelé après save
-  const reloadData = async () => {
+  // Rechargement — mémoïsé avec useCallback pour éviter les re-exécutions inutiles de l'useEffect
+  const reloadData = useCallback(async () => {
+    setIsLoadingEntries(true);
     try {
       const entries = await adapter.getAll<any>('journalEntries');
       // Charger les lignes depuis journalLines (SaaS : tables séparées)
@@ -96,7 +98,10 @@ const JournalsPage: React.FC = () => {
             label:  l.label || l.libelle || '',
           });
         }
-      } catch { /* pas de journalLines — utiliser entry.lines */ }
+      } catch (linesErr) {
+        console.error('[JournalsPage] Chargement journalLines échoué, utilisation de entry.lines :', linesErr);
+        /* pas de journalLines — utiliser entry.lines */
+      }
 
       // Injecter les lignes dans chaque entrée
       const enriched = entries.map((e: any) => {
@@ -104,10 +109,15 @@ const JournalsPage: React.FC = () => {
         return { ...e, lines: injected };
       });
       setDbEntries(enriched);
-    } catch { /* ignored */ }
-  };
+    } catch (err) {
+      console.error('[JournalsPage] Erreur chargement des journaux :', err);
+      toast.error('Impossible de charger les données des journaux. Vérifiez votre connexion.');
+    } finally {
+      setIsLoadingEntries(false);
+    }
+  }, [adapter]);
 
-  useEffect(() => { reloadData(); }, [adapter]);
+  useEffect(() => { reloadData(); }, [reloadData]);
 
   // Devise : lue depuis la table companies (champ currency ou devise)
   useEffect(() => {
@@ -400,6 +410,22 @@ const JournalsPage: React.FC = () => {
       });
   }, [dbEntries, selectedJournal]);
 
+  // Filtre journal dans la vue journal-view (contrôlé)
+  const [journalViewFilter, setJournalViewFilter] = useState('');
+
+  // Centres analytiques — chargés depuis l'adapter (table 'costCenters' ou 'analytique')
+  const [costCenters, setCostCenters] = useState<Array<{ code: string; libelle: string }>>([]);
+  useEffect(() => {
+    adapter.getAll<any>('costCenters').then(rows => {
+      if (rows.length > 0) {
+        setCostCenters(rows.map((r: any) => ({
+          code: r.code || r.id || '',
+          libelle: r.name || r.libelle || r.label || '',
+        })));
+      }
+    }).catch(() => {/* table absente — laisser la liste vide */});
+  }, [adapter]);
+
   // Pas de sous-journaux hardcodés
   const sousJournaux: Record<string, { id: string; code: string; libelle: string; entries: number; color: string }[]> = {};
 
@@ -429,6 +455,7 @@ const JournalsPage: React.FC = () => {
 
   // Fonction pour sauvegarder une écriture modifiée — persistance réelle
   const [isSaving, setIsSaving] = useState(false);
+  const [isValidatingFromModal, setIsValidatingFromModal] = useState(false);
   const handleSaveEntry = async () => {
     if (!selectedEntry || !selectedEntryLines.length) {
       toast.error(t('messages.saveError'));
@@ -622,8 +649,16 @@ const JournalsPage: React.FC = () => {
                 </div>
               </div>
 
+              {/* Indicateur de chargement commun aux deux vues */}
+              {isLoadingEntries && (
+                <div className="flex items-center justify-center py-10 space-x-2 text-[var(--color-text-tertiary)]">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[var(--color-primary)]"></div>
+                  <span className="text-sm">Chargement des journaux…</span>
+                </div>
+              )}
+
               {/* Vue Cartes */}
-              {viewMode === 'cards' && (
+              {!isLoadingEntries && viewMode === 'cards' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {/* Carte spéciale Journal tous mouvements */}
                   <div className="bg-[var(--color-surface)] rounded-lg border border-[var(--color-border)] p-5 hover:shadow-md transition-all cursor-pointer">
@@ -777,7 +812,7 @@ const JournalsPage: React.FC = () => {
               )}
 
               {/* Vue Table */}
-              {viewMode === 'table' && (
+              {!isLoadingEntries && viewMode === 'table' && (
                 <div className="bg-white rounded-lg border border-[var(--color-border)]">
                   <div className="overflow-x-auto">
                     <table className="w-full">
@@ -793,6 +828,13 @@ const JournalsPage: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-200">
+                        {journaux.every(j => j.entries === 0) && (
+                          <tr>
+                            <td colSpan={7} className="px-4 py-10 text-center text-sm text-[var(--color-text-tertiary)]">
+                              Aucun journal avec des écritures pour la période sélectionnée
+                            </td>
+                          </tr>
+                        )}
                         {journaux.map((journal) => (
                           <React.Fragment key={journal.id}>
                             {/* Ligne du journal principal */}
@@ -972,7 +1014,10 @@ const JournalsPage: React.FC = () => {
                       >
                         ← Retour
                       </button>
-                      <button className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg text-sm hover:bg-[var(--color-success)] transition-colors flex items-center space-x-2">
+                      <button
+                        onClick={() => toast.info('Export en cours de développement — utilisez le bouton export intégré au tableau ci-dessous')}
+                        className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg text-sm hover:bg-[var(--color-success)] transition-colors flex items-center space-x-2"
+                      >
                         <FileSpreadsheet className="w-4 h-4" />
                         <span>{t('common.export')}</span>
                       </button>
@@ -1003,13 +1048,15 @@ const JournalsPage: React.FC = () => {
                       </div>
                       <div className="flex items-center space-x-2">
                         <label className="text-sm font-medium text-[var(--color-text-secondary)]">{t('accounting.journal')}</label>
-                        <select className="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]">
-                          <option>&lt;tout&gt;</option>
-                          <option>VT</option>
-                          <option>AC</option>
-                          <option>BQ</option>
-                          <option>CA</option>
-                          <option>OD</option>
+                        <select
+                          value={journalViewFilter}
+                          onChange={e => setJournalViewFilter(e.target.value)}
+                          className="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
+                        >
+                          <option value="">&lt;tout&gt;</option>
+                          {journaux.map(j => (
+                            <option key={j.code} value={j.code}>{j.code}</option>
+                          ))}
                         </select>
                       </div>
                       <button
@@ -1057,7 +1104,7 @@ const JournalsPage: React.FC = () => {
                   }
                   footerContent={
                     <div className="text-center text-xs text-[var(--color-text-tertiary)]">
-                      Atlas F&A - Logiciel de Comptabilité
+                      Atlas FnA - Logiciel de Comptabilité
                     </div>
                   }
                 >
@@ -1082,7 +1129,10 @@ const JournalsPage: React.FC = () => {
                   {/* Table des écritures avec DataTable */}
                   <DataTable
                     columns={ecrituresColumns as unknown as import('../../components/ui/DataTable').Column<Record<string, unknown>>[]}
-                    data={getEcrituresJournal(selectedJournal?.code || 'TOUS') as unknown as Record<string, unknown>[]}
+                    data={(journalViewFilter
+                      ? getEcrituresJournal(journalViewFilter)
+                      : getEcrituresJournal(selectedJournal?.code || 'TOUS')
+                    ) as unknown as Record<string, unknown>[]}
                     pageSize={15}
                     searchable={true}
                     exportable={true}
@@ -1374,7 +1424,19 @@ const JournalsPage: React.FC = () => {
                 </h4>
                 <button
                   onClick={() => {
-                    // Ajouter une nouvelle ligne vide
+                    setSelectedEntryLines(prev => [...prev, {
+                      id: undefined as any,
+                      mvt: selectedEntry?.mvt ?? '',
+                      jnl: selectedEntry?.jnl ?? '',
+                      date: selectedEntry?.date ?? '',
+                      piece: selectedEntry?.piece ?? '',
+                      echeance: '',
+                      compte: '',
+                      compteLib: '',
+                      libelle: '',
+                      debit: '',
+                      credit: '',
+                    }]);
                   }}
                   className="px-3 py-1 bg-[var(--color-primary)] text-white text-sm rounded-lg hover:bg-[var(--color-primary-hover)] flex items-center space-x-1"
                 >
@@ -1412,7 +1474,8 @@ const JournalsPage: React.FC = () => {
                         <td className="px-2 py-2">
                           <input
                             type="text"
-                            defaultValue={line.compte}
+                            value={line.compte}
+                            onChange={e => setSelectedEntryLines(ls => ls.map((l, i) => i === index ? { ...l, compte: e.target.value } : l))}
                             className="w-full px-2 py-1 border border-[var(--color-border)] rounded text-sm font-mono"
                             placeholder={t('accounting.account')}
                           />
@@ -1420,7 +1483,8 @@ const JournalsPage: React.FC = () => {
                         <td className="px-2 py-2">
                           <input
                             type="text"
-                            defaultValue={line.compteLib}
+                            value={line.compteLib}
+                            onChange={e => setSelectedEntryLines(ls => ls.map((l, i) => i === index ? { ...l, compteLib: e.target.value } : l))}
                             className="w-full px-2 py-1 border border-[var(--color-border)] rounded text-sm"
                             placeholder="Libellé compte"
                           />
@@ -1428,7 +1492,8 @@ const JournalsPage: React.FC = () => {
                         <td className="px-2 py-2">
                           <input
                             type="text"
-                            defaultValue={line.libelle}
+                            value={line.libelle}
+                            onChange={e => setSelectedEntryLines(ls => ls.map((l, i) => i === index ? { ...l, libelle: e.target.value } : l))}
                             className="w-full px-2 py-1 border border-[var(--color-border)] rounded text-sm"
                             placeholder={t('accounting.label')}
                           />
@@ -1436,18 +1501,30 @@ const JournalsPage: React.FC = () => {
                         <td className="px-2 py-2">
                           <select
                             className="w-full px-2 py-1 border border-[var(--color-border)] rounded text-sm"
-                            defaultValue=""
+                            value={(line as any).centreAnalytique ?? ''}
+                            onChange={e => setSelectedEntryLines(ls => ls.map((l, i) => i === index ? { ...l, centreAnalytique: e.target.value } : l))}
                           >
                             <option value="">Aucun</option>
-                            <option value="AX001">AX001 - Centre 1</option>
-                            <option value="AX002">AX002 - Centre 2</option>
-                            <option value="AX003">AX003 - Centre 3</option>
+                            {costCenters.length > 0
+                              ? costCenters.map(c => (
+                                  <option key={c.code} value={c.code}>{c.code}{c.libelle ? ` - ${c.libelle}` : ''}</option>
+                                ))
+                              : (
+                                /* Fallback par défaut si la table costCenters est absente */
+                                <>
+                                  <option value="AX001">AX001 - Centre 1</option>
+                                  <option value="AX002">AX002 - Centre 2</option>
+                                  <option value="AX003">AX003 - Centre 3</option>
+                                </>
+                              )
+                            }
                           </select>
                         </td>
                         <td className="px-2 py-2">
                           <input
                             type="text"
-                            defaultValue={line.debit}
+                            value={line.debit}
+                            onChange={e => setSelectedEntryLines(ls => ls.map((l, i) => i === index ? { ...l, debit: e.target.value } : l))}
                             className="w-20 px-2 py-1 border border-[var(--color-border)] rounded text-sm text-right font-mono text-[var(--color-error)]"
                             placeholder="0"
                           />
@@ -1455,13 +1532,15 @@ const JournalsPage: React.FC = () => {
                         <td className="px-2 py-2">
                           <input
                             type="text"
-                            defaultValue={line.credit}
+                            value={line.credit}
+                            onChange={e => setSelectedEntryLines(ls => ls.map((l, i) => i === index ? { ...l, credit: e.target.value } : l))}
                             className="w-20 px-2 py-1 border border-[var(--color-border)] rounded text-sm text-right font-mono text-[var(--color-success)]"
                             placeholder="0"
                           />
                         </td>
                         <td className="px-2 py-2 text-center">
                           <button
+                            onClick={() => toast.info('Fonctionnalité de note en cours de développement')}
                             className="p-1 text-[var(--color-info)] hover:text-[var(--color-info)] hover:bg-[var(--color-info-light)] rounded"
                             title="Ajouter une note"
                           >
@@ -1556,17 +1635,28 @@ const JournalsPage: React.FC = () => {
                   {isSaving ? 'Enregistrement...' : 'Enregistrer les modifications'}
                 </button>
                 <button
+                  disabled={isValidatingFromModal}
                   onClick={async () => {
                     if (!selectedEntry?.id) return;
-                    const res = await validerEcriture(adapter, String(selectedEntry.id));
-                    if (res.success) {
-                      toast.success(`Écriture ${String(selectedEntry.piece ?? '')} validée`);
-                      setShowEditEntryModal(false);
-                    } else {
-                      toast.error(res.error || 'Validation impossible');
+                    if (isValidatingFromModal) return;
+                    setIsValidatingFromModal(true);
+                    try {
+                      const res = await validerEcriture(adapter, String(selectedEntry.id));
+                      if (res.success) {
+                        toast.success(`Écriture ${String(selectedEntry.piece ?? '')} validée`);
+                        setShowEditEntryModal(false);
+                        await reloadData();
+                      } else {
+                        toast.error(res.error || 'Validation impossible');
+                      }
+                    } catch (err) {
+                      console.error('[JournalsPage] Erreur validation depuis modal :', err);
+                      toast.error('Erreur lors de la validation');
+                    } finally {
+                      setIsValidatingFromModal(false);
                     }
                   }}
-                  className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success)] transition-colors flex items-center space-x-2"
+                  className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success)] transition-colors flex items-center space-x-2 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   <CheckCircle className="w-4 h-4" />
                   <span>Valider et transférer au journal</span>

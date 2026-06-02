@@ -85,7 +85,7 @@ function renderFooter(doc: jsPDF): void {
   doc.setFontSize(8);
   doc.setTextColor(120, 120, 120);
   doc.text(
-    `Généré le ${dd}/${mm}/${yyyy} — Atlas F&A`,
+    `Généré le ${dd}/${mm}/${yyyy} — Atlas FnA`,
     pageWidth / 2,
     pageHeight - 10,
     { align: 'center' },

@@ -1,5 +1,5 @@
 /**
- * Navigation Intelligente Atlas F&A
+ * Navigation Intelligente Atlas FnA
  * Menu adaptatif avec notifications et raccourcis contextuels
  */
 import React, { useState, useMemo } from 'react';
@@ -87,7 +87,7 @@ const AtlasFnANavigation: React.FC<NavigationProps> = ({
     queryFn: () => dashboardService.getRecentActivities({ companyId, limit: 5 }),
   });
 
-  // Structure de navigation Atlas F&A
+  // Structure de navigation Atlas FnA
   const navigationStructure: NavItem[] = [
     {
       id: 'dashboard',
@@ -453,7 +453,7 @@ const AtlasFnANavigation: React.FC<NavigationProps> = ({
           </div>
           <div>
             <h2 className="text-lg font-bold text-gray-900" style={{ fontFamily: 'Sometype Mono, sans-serif' }}>
-              Atlas F&A
+              Atlas FnA
             </h2>
             <p className="text-xs text-gray-700">ERP Comptable SYSCOHADA</p>
           </div>

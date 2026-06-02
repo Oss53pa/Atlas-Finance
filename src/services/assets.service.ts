@@ -1,5 +1,5 @@
 /**
- * Service Assets Atlas F&A
+ * Service Assets Atlas FnA
  * Gestion des immobilisations et amortissements
  *
  * Fonctionnalités:

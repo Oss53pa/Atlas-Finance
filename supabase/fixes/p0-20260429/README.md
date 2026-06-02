@@ -1,8 +1,8 @@
-# Atlas F&A — Scripts de correction P0
+# Atlas FnA — Scripts de correction P0
 
 **Version :** 1.0
 **Date :** 29 avril 2026
-**Cible :** Atlas F&A en pré-production (avant ouverture clients externes)
+**Cible :** Atlas FnA en pré-production (avant ouverture clients externes)
 
 ---
 

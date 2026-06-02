@@ -1,5 +1,5 @@
 /**
- * PremiumOverview — Vitrine ultra-premium pour /executive d'Atlas F&A.
+ * PremiumOverview — Vitrine ultra-premium pour /executive d'Atlas FnA.
  * ERP comptable SYSCOHADA — pas un cockpit recouvrement.
  *
  * Composition : Hero wordmark + KPIs comptables (écritures / comptes / tiers
@@ -175,7 +175,7 @@ const PremiumOverview: React.FC = () => {
           <PremiumBreadcrumb
             items={[
               { label: 'Atlas Studio', onClick: () => navigate('/home') },
-              { label: 'Atlas F&A', onClick: () => navigate('/home') },
+              { label: 'Atlas FnA', onClick: () => navigate('/home') },
               { label: 'Vue exécutive' },
             ]}
             rootIcon={null}
@@ -217,7 +217,7 @@ const PremiumOverview: React.FC = () => {
         <HeroBrandHeader
           eyebrow={`VUE EXÉCUTIVE · ${periodLabel.toUpperCase()}`}
           titleObsidian="Atlas"
-          titleChampagne="F&A"
+          titleChampagne="FnA"
           subtitle={
             <>
               ERP comptable conforme <strong style={{ color: 'var(--color-text-primary)' }}>SYSCOHADA révisé 2017</strong>.
@@ -484,7 +484,7 @@ const PremiumOverview: React.FC = () => {
           <div className="flex items-center gap-2">
             <span className="gold-dot" />
             <span className="eyebrow-gold">
-              <span className="atlas-brand" style={{ fontSize: '1.1em', letterSpacing: 'normal', textTransform: 'none' }}>Atlas F&A</span>
+              <span className="atlas-brand" style={{ fontSize: '1.1em', letterSpacing: 'normal', textTransform: 'none' }}>Atlas FnA</span>
               {' · v3.0 · SYSCOHADA révisé 2017 · OHADA 17 pays'}
             </span>
           </div>

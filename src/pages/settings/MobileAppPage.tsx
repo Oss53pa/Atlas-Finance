@@ -787,7 +787,7 @@ const MobileAppPage: React.FC = () => {
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-lg font-bold text-[var(--color-text-primary)]">Application Mobile</h1>
-        <p className="text-[var(--color-text-secondary)] mt-1">Gérez l'application mobile Atlas F&A et les appareils connectés</p>
+        <p className="text-[var(--color-text-secondary)] mt-1">Gérez l'application mobile Atlas FnA et les appareils connectés</p>
       </div>
 
       {/* Tabs */}
@@ -842,7 +842,7 @@ const MobileAppPage: React.FC = () => {
             </div>
             <div className="text-center space-y-2">
               <p className="text-sm text-gray-600">
-                Scannez ce QR code avec l'application mobile Atlas F&A
+                Scannez ce QR code avec l'application mobile Atlas FnA
               </p>
               <p className="text-xs text-gray-700">
                 Code d'association : <span className="font-mono font-bold">{pairingToken}</span>

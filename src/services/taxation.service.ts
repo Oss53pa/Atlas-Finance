@@ -1,6 +1,6 @@
 
 /**
- * SERVICE FRONTEND TAXATION - Atlas F&A
+ * SERVICE FRONTEND TAXATION - Atlas FnA
  *
  * Ré-export du service fiscal connecté aux données réelles via DataAdapter.
  * Le moteur de détection automatique des taxes est dans src/services/fiscal/.

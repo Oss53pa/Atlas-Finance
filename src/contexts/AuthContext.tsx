@@ -227,7 +227,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email: email.toLowerCase(),
         role: account.role,
         permissions: account.permissions,
-        company: 'Atlas F&A',
+        company: 'Atlas FnA',
       };
       setUser(devUser);
       persistDevUser(devUser);

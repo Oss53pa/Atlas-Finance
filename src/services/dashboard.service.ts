@@ -1,5 +1,5 @@
 /**
- * Service Dashboard Atlas F&A
+ * Service Dashboard Atlas FnA
  * Tableau de bord exécutif et KPIs consolidés
  *
  * Fonctionnalités:

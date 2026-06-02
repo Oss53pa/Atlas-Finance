@@ -90,13 +90,13 @@ const STEPS = [
 ];
 
 const TESTIMONIALS = [
-  { name: 'Amadou Diallo', initials: 'AD', role: 'Expert-Comptable', company: 'Cabinet Diallo & Associés, Dakar', text: 'Atlas F&A a transformé notre cabinet. La conformité SYSCOHADA est native, on gagne 3 heures par dossier.' },
+  { name: 'Amadou Diallo', initials: 'AD', role: 'Expert-Comptable', company: 'Cabinet Diallo & Associés, Dakar', text: 'Atlas FnA a transformé notre cabinet. La conformité SYSCOHADA est native, on gagne 3 heures par dossier.' },
   { name: 'Marie-Claire Eboué', initials: 'MC', role: 'DAF', company: 'TechCorp Cameroun, Douala', text: 'Le rapprochement bancaire et les prévisions nous ont permis de réduire nos délais de clôture de 5 à 2 jours.' },
   { name: 'Ibrahim Koné', initials: 'IK', role: 'Directeur Financier', company: 'Groupe Koné Industries, Abidjan', text: 'La consolidation multi-sociétés qui prenait une semaine se fait maintenant en une heure. Impressionnant.' },
 ];
 
 const FAQ = [
-  { q: 'Atlas F&A est-il conforme au SYSCOHADA révisé 2017 ?', a: 'Oui, à 100%. Plan comptable OHADA intégré nativement, états financiers conformes aux modèles officiels, piste d\'audit conforme aux exigences OHADA.' },
+  { q: 'Atlas FnA est-il conforme au SYSCOHADA révisé 2017 ?', a: 'Oui, à 100%. Plan comptable OHADA intégré nativement, états financiers conformes aux modèles officiels, piste d\'audit conforme aux exigences OHADA.' },
   { q: 'Puis-je essayer avant de payer ?', a: 'Souscrivez maintenant avec toutes les fonctionnalités. Aucune carte bancaire requise.' },
   { q: 'Quels modes de paiement acceptez-vous ?', a: 'Mobile Money (Orange Money, MTN MoMo, Wave), virement bancaire, carte bancaire (Visa, Mastercard). Facturation en FCFA ou EUR.' },
   { q: 'Mes données sont-elles sécurisées ?', a: 'Chiffrement AES-256, backup quotidien, piste d\'audit SHA-256. Conformité RGPD et réglementation OHADA.' },
@@ -270,7 +270,7 @@ const LandingPage: React.FC = () => {
           </h1>
 
           <p className="anim-hero-delay-2 text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed" style={c.sSec}>
-            Atlas F&A est l'ERP comptable et financier conçu pour les{' '}
+            Atlas FnA est l'ERP comptable et financier conçu pour les{' '}
             <strong style={c.s}>17 pays de l'espace OHADA</strong>.
             Écritures, états financiers, fiscalité, trésorerie — tout est automatisé.
           </p>
@@ -373,7 +373,7 @@ const LandingPage: React.FC = () => {
                 </div>
                 <h2 className="text-3xl md:text-4xl font-bold mb-3" style={c.s}>Essayez avant de vous inscrire</h2>
                 <p className="mb-6 leading-relaxed" style={c.sSec}>
-                  Visite guidée, démos interactives et tutoriels. Découvrez Atlas F&A en action.
+                  Visite guidée, démos interactives et tutoriels. Découvrez Atlas FnA en action.
                 </p>
                 <button onClick={() => navigate('/demo')} className={`group px-8 py-4 ${c.btnPrimary} rounded-xl text-sm font-bold transition-all shadow-lg inline-flex items-center gap-2`} style={c.sBtnP}>
                   <Play className="w-4 h-4" /> Lancer la démo
@@ -596,7 +596,7 @@ const LandingPage: React.FC = () => {
             <span className="bg-gradient-to-r from-[#F2A93B] via-[#F2A93B] to-[#E89A2E] bg-clip-text text-transparent" style={{ color: 'transparent' }}>comptabilité ?</span>
           </h2>
           <p className="text-lg max-w-lg mx-auto mb-10" style={{ color: 'rgba(255,255,255,0.4)' }}>
-            Rejoignez 500+ entreprises qui font confiance à Atlas F&A. Souscrivez maintenant.
+            Rejoignez 500+ entreprises qui font confiance à Atlas FnA. Souscrivez maintenant.
           </p>
           <div className="flex items-center justify-center gap-4 flex-wrap mb-8">
             <button onClick={handleGetStarted} className="group px-10 py-4 bg-[#E89A2E] rounded-xl text-sm font-bold hover:bg-[#F2A93B] transition-all shadow-lg hover:-translate-y-0.5 flex items-center gap-2" style={{ color: '#261E15' }}>
@@ -638,7 +638,7 @@ const LandingPage: React.FC = () => {
             <div>
               <h4 className="text-xs font-bold uppercase tracking-wider mb-4" style={c.sTer}>Solutions</h4>
               <ul className="space-y-2.5 text-xs" style={c.sMuted}>
-                <li className="flex items-center gap-1.5"><span className={`w-1.5 h-1.5 rounded-full ${c.goldBg}`} /> Atlas F&A</li>
+                <li className="flex items-center gap-1.5"><span className={`w-1.5 h-1.5 rounded-full ${c.goldBg}`} /> Atlas FnA</li>
                 <li className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-blue-400" /> Liass'Pilot</li>
                 <li className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400" /> Advist</li>
               </ul>

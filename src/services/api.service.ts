@@ -1,5 +1,5 @@
 /**
- * API Service - Atlas F&A
+ * API Service - Atlas FnA
  * Unified service layer using Supabase client
  *
  * This replaces the previous Axios-based API service.

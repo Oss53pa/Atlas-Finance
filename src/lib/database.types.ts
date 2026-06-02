@@ -1,5 +1,5 @@
 /**
- * Supabase Database Types for Atlas F&A
+ * Supabase Database Types for Atlas FnA
  *
  * NOTE: In production, generate this file automatically with:
  *   npx supabase gen types typescript --project-id <your-project-id> > src/lib/database.types.ts

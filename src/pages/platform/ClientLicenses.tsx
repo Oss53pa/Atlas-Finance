@@ -16,8 +16,8 @@ const isDev = import.meta.env.VITE_APP_ENV === 'development' || import.meta.env.
 // Démo : quel membre a accès à quelle solution
 const DEMO_ACCESS: Record<string, string[]> = {
   'u1': ['atlas-fna', 'liass-pilot'],  // Amadou — tout
-  'u2': ['atlas-fna'],                  // Fatou — Atlas F&A
-  'u3': ['atlas-fna'],                  // Ibrahim — Atlas F&A
+  'u2': ['atlas-fna'],                  // Fatou — Atlas FnA
+  'u3': ['atlas-fna'],                  // Ibrahim — Atlas FnA
   'u4': [],                                  // Marie — rien encore
 };
 

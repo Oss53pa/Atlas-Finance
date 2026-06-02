@@ -77,7 +77,7 @@ const GeneralLedgerPage: React.FC = () => {
             config={{
               title: 'Grand Livre',
               subtitle: `Du ${filters.dateDebut} au ${filters.dateFin}`,
-              appName: 'Atlas F&A',
+              appName: 'Atlas FnA',
               orientation: 'landscape',
             }}
             label="Imprimer"

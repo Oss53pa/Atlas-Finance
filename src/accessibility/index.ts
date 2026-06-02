@@ -1,5 +1,5 @@
 /**
- * Atlas F&A Accessibility System
+ * Atlas FnA Accessibility System
  * WCAG 2.1 AA Compliance Implementation
  */
 

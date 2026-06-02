@@ -1,5 +1,5 @@
 /**
- * Service Budget Atlas F&A
+ * Service Budget Atlas FnA
  * Gestion budgétaire intelligente avec IA, dashboards et alertes automatiques
  *
  * Fonctionnalités:

@@ -305,7 +305,7 @@ export function usePrintReport(options: PrintOptions = {}) {
   return usePrint({
     ...options,
     headerText: options.headerText || `${options.title || 'Rapport'} - Généré le ${today}`,
-    footerText: options.footerText || `© ${new Date().getFullYear()} Atlas F&A - Page `,
+    footerText: options.footerText || `© ${new Date().getFullYear()} Atlas FnA - Page `,
     showHeaders: true,
     showFooters: true
   });

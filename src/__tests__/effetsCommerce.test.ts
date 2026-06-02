@@ -21,9 +21,9 @@ describe('Effets de Commerce — OHADA', () => {
         type: 'lettre_de_change',
         montant: 1_000_000,
         dateEcheance: '2026-06-30',
-        tireur: 'Atlas F&A',
+        tireur: 'Atlas FnA',
         tire: 'Client A',
-        beneficiaire: 'Atlas F&A',
+        beneficiaire: 'Atlas FnA',
       });
       expect(effet.statut).toBe('cree');
       expect(effet.montant).toBe(1_000_000);
@@ -39,7 +39,7 @@ describe('Effets de Commerce — OHADA', () => {
         montant: 500_000,
         dateEcheance: '2026-09-30',
         tireur: 'Fournisseur B',
-        tire: 'Atlas F&A',
+        tire: 'Atlas FnA',
         beneficiaire: 'Fournisseur B',
       });
       expect(effet.type).toBe('billet_a_ordre');

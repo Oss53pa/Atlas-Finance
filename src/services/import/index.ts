@@ -1,5 +1,5 @@
 /**
- * Atlas F&A — Module d'import.
+ * Atlas FnA — Module d'import.
  * Catalogue de templates officiels + détection automatique + générateur.
  */
 export {

@@ -19,7 +19,7 @@ const MODULE_ICONS: Record<string, React.FC<{ className?: string }>> = {
 };
 
 const MODULE_LABELS: Record<string, string> = {
-  'atlas-fna': 'Atlas F&A', 'liass-pilot': "Liass'Pilot", 'docjourney': 'DocJourney',
+  'atlas-fna': 'Atlas FnA', 'liass-pilot': "Liass'Pilot", 'docjourney': 'DocJourney',
   'tms-pro': 'TMS Pro Africa', 'scrutix': 'Scrutix', 'atlas-hr': 'Atlas HR',
 };
 

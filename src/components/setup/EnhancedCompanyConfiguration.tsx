@@ -345,7 +345,7 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                       <input
                         {...field}
                         type="text"
-                        placeholder="Atlas F&A Pro"
+                        placeholder="Atlas FnA Pro"
                         className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                       />
                     )}

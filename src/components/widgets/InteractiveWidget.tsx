@@ -1,5 +1,5 @@
 /**
- * Widget Interactif Configurable Atlas F&A
+ * Widget Interactif Configurable Atlas FnA
  * Widgets drag & drop avec personnalisation selon cahier des charges
  */
 import React, { useState, useMemo } from 'react';
@@ -426,7 +426,7 @@ export const WidgetFactory = {
   })
 };
 
-// Widgets prédéfinis Atlas F&A
+// Widgets prédéfinis Atlas FnA
 export const AtlasFnAWidgets = {
   treasury: {
     position: WidgetFactory.createKPIWidget({

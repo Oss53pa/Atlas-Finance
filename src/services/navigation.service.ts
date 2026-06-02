@@ -1,5 +1,5 @@
 /**
- * Service Navigation Atlas F&A
+ * Service Navigation Atlas FnA
  * Gestion de la navigation dynamique et des menus
  *
  * Fonctionnalités:

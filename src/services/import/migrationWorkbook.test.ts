@@ -6,7 +6,7 @@ import { getModeTemplate, MIGRATION_MODE_TEMPLATES, requiredSlotsForMode } from 
 describe('A1 — detectHeaderRowByColumnNames', () => {
   it("détecte la ligne d'en-tête sous une bannière + ligne vide", () => {
     const aoa: unknown[][] = [
-      ["ATLAS F&A — MODÈLE D'IMPORT"],
+      ["ATLAS FnA — MODÈLE D'IMPORT"],
       [],
       ['COMPTE', 'LIBELLE', 'DATE', 'JOURNAL', 'NUMERO DE SAISIE', 'DESCRIPTION', 'LETTRAGE', 'DEBIT', 'CREDIT'],
       ['411000', 'Clients', '2026-01-01', 'VE', 'VE-1', 'Facture', '', '100', '0'],

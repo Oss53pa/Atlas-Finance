@@ -14,7 +14,7 @@ const EmailTemplate: React.FC = () => {
               💰
             </div>
             <div>
-              <h1 className="text-lg font-bold"><span className="atlas-brand">Atlas F&A</span></h1>
+              <h1 className="text-lg font-bold"><span className="atlas-brand">Atlas FnA</span></h1>
               <p className="text-[var(--color-text-secondary)]/80">Système de Gestion Intégrée</p>
             </div>
           </div>
@@ -106,7 +106,7 @@ const EmailTemplate: React.FC = () => {
         {/* Footer */}
         <div className="bg-[var(--color-primary)] text-white p-4 text-center">
           <p className="text-sm">
-            © 2025 Atlas F&A - Praedium Tech
+            © 2025 Atlas FnA - Praedium Tech
           </p>
           <p className="text-xs text-gray-700">
             Système conforme SYSCOHADA | Sécurisé et auditable

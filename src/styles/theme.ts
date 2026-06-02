@@ -1,4 +1,4 @@
-// Système de thème pour Atlas F&A
+// Système de thème pour Atlas FnA
 // Palette Atlas Studio (anthracite + or mat) par défaut + 6 thèmes additionnels
 
 export interface ThemeColors {
@@ -145,10 +145,10 @@ const atlasStudioTheme: Theme = {
 };
 
 // ============================================================================
-// 1. Atlas F&A — Grayscale Monochrome
+// 1. Atlas FnA — Grayscale Monochrome
 // ============================================================================
 const atlasFinanceTheme: Theme = {
-  name: 'Atlas F&A',
+  name: 'Atlas FnA',
   description: 'Palette grayscale monochrome professionnelle',
   colors: {
     primary: '#171717',

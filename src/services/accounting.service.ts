@@ -1,5 +1,5 @@
 /**
- * SERVICE FRONTEND ACCOUNTING - Atlas F&A v4.1.0
+ * SERVICE FRONTEND ACCOUNTING - Atlas FnA v4.1.0
  * BASE PATH: /api/v1/accounting/
  *
  * Alignement 100% avec backend Django REST Framework

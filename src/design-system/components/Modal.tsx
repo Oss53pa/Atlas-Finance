@@ -1,5 +1,5 @@
 /**
- * Atlas F&A Design System - Modal Component
+ * Atlas FnA Design System - Modal Component
  * Fully accessible modal with focus management and ARIA attributes
  */
 

@@ -1,5 +1,5 @@
 /**
- * Atlas F&A — Catalogue officiel des templates d'import.
+ * Atlas FnA — Catalogue officiel des templates d'import.
  *
  * Chaque template définit :
  *   - une ou plusieurs feuilles (sheets)
@@ -85,7 +85,7 @@ export interface AtlasImportTemplate {
 }
 
 /**
- * ATLAS_IMPORT_TEMPLATES — Catalogue officiel des modèles Atlas F&A.
+ * ATLAS_IMPORT_TEMPLATES — Catalogue officiel des modèles Atlas FnA.
  */
 export const ATLAS_IMPORT_TEMPLATES: AtlasImportTemplate[] = [
   // ────────────────────────────────────────────
@@ -102,7 +102,7 @@ export const ATLAS_IMPORT_TEMPLATES: AtlasImportTemplate[] = [
       {
         sheetName: 'Plan Comptable',
         sheetAliases: ['PlanComptable', 'Comptes', 'PCG', 'Plan_Comptable'],
-        headerComment: 'Atlas F&A — Modèle Plan Comptable SYSCOHADA',
+        headerComment: 'Atlas FnA — Modèle Plan Comptable SYSCOHADA',
         columns: [
           { key: 'numero', header: 'Numéro', aliases: ['N°', 'No', 'Compte', 'CompteNum', 'Numero'], required: true, type: 'string', example: '411000', description: 'Code du compte SYSCOHADA (2 à 8 chiffres)' },
           { key: 'libelle', header: 'Libellé', aliases: ['Libelle', 'Intitule', 'Intitulé', 'Nom', 'CompteLib'], required: true, type: 'string', example: 'Clients', description: 'Intitulé officiel du compte' },
@@ -137,7 +137,7 @@ export const ATLAS_IMPORT_TEMPLATES: AtlasImportTemplate[] = [
       {
         sheetName: 'Tiers',
         sheetAliases: ['Clients', 'Fournisseurs', 'ClientsFournisseurs', 'Partners'],
-        headerComment: 'Atlas F&A — Modèle Tiers (clients, fournisseurs, autres)',
+        headerComment: 'Atlas FnA — Modèle Tiers (clients, fournisseurs, autres)',
         columns: [
           { key: 'code', header: 'Code', aliases: ['CodeTiers', 'ThirdPartyCode', 'ID'], required: true, type: 'string', example: 'CLI001', description: 'Code unique du tiers' },
           { key: 'nom', header: 'Nom', aliases: ['RaisonSociale', 'Denomination', 'Dénomination', 'Nom_Client'], required: true, type: 'string', example: 'SANGA & Fils SARL' },
@@ -173,7 +173,7 @@ export const ATLAS_IMPORT_TEMPLATES: AtlasImportTemplate[] = [
       {
         sheetName: 'Ecritures',
         sheetAliases: ['Écritures', 'Entries', 'Journal', 'JournalEntries'],
-        headerComment: 'Atlas F&A — Modèle Écritures Comptables',
+        headerComment: 'Atlas FnA — Modèle Écritures Comptables',
         columns: [
           { key: 'date', header: 'Date', aliases: ['EcritureDate', 'DateEcriture'], required: true, type: 'date', example: '2026-01-15' },
           { key: 'journal', header: 'Journal', aliases: ['JournalCode', 'Code_Journal'], required: true, type: 'string', example: 'VE', description: 'AC, VE, BQ, CA, OD, AN, CL' },
@@ -209,7 +209,7 @@ export const ATLAS_IMPORT_TEMPLATES: AtlasImportTemplate[] = [
       {
         sheetName: 'A-Nouveaux',
         sheetAliases: ['ReportsANouveau', 'AN', 'Balance_Ouverture', 'OpeningBalance'],
-        headerComment: 'Atlas F&A — Modèle Reports à Nouveau (solde d\'ouverture)',
+        headerComment: 'Atlas FnA — Modèle Reports à Nouveau (solde d\'ouverture)',
         columns: [
           { key: 'compte', header: 'Compte', aliases: ['CompteNum', 'Numero'], required: true, type: 'string', example: '101000' },
           { key: 'libelle', header: 'Libellé', aliases: ['Libelle', 'CompteLib'], required: false, type: 'string' },
@@ -240,7 +240,7 @@ export const ATLAS_IMPORT_TEMPLATES: AtlasImportTemplate[] = [
       {
         sheetName: 'Immobilisations',
         sheetAliases: ['Immo', 'Assets', 'FixedAssets', 'Registre_Immos'],
-        headerComment: 'Atlas F&A — Modèle Immobilisations',
+        headerComment: 'Atlas FnA — Modèle Immobilisations',
         columns: [
           { key: 'code', header: 'Code', aliases: ['CodeImmo', 'AssetCode', 'ID'], required: true, type: 'string', example: 'IMMO-001' },
           { key: 'libelle', header: 'Désignation', aliases: ['Libelle', 'Designation', 'Nom'], required: true, type: 'string', example: 'Véhicule Toyota Hilux' },
@@ -275,7 +275,7 @@ export const ATLAS_IMPORT_TEMPLATES: AtlasImportTemplate[] = [
       {
         sheetName: 'FEC',
         sheetAliases: ['FichierEcrituresComptables', 'FEC_SYSCOHADA'],
-        headerComment: 'Atlas F&A — FEC SYSCOHADA (18 colonnes réglementaires)',
+        headerComment: 'Atlas FnA — FEC SYSCOHADA (18 colonnes réglementaires)',
         columns: [
           { key: 'JournalCode', header: 'JournalCode', required: true, type: 'string' },
           { key: 'JournalLib', header: 'JournalLib', required: true, type: 'string' },
@@ -314,7 +314,7 @@ export const ATLAS_IMPORT_TEMPLATES: AtlasImportTemplate[] = [
       {
         sheetName: 'Balance',
         sheetAliases: ['BalanceGenerale', 'BalanceAuxiliaire', 'TrialBalance'],
-        headerComment: 'Atlas F&A — Modèle Balance',
+        headerComment: 'Atlas FnA — Modèle Balance',
         columns: [
           { key: 'compte', header: 'Compte', aliases: ['CompteNum', 'Numero'], required: true, type: 'string' },
           { key: 'libelle', header: 'Libellé', aliases: ['Libelle', 'CompteLib'], required: true, type: 'string' },
@@ -341,7 +341,7 @@ export const ATLAS_IMPORT_TEMPLATES: AtlasImportTemplate[] = [
       {
         sheetName: 'Budget',
         sheetAliases: ['Budgets', 'Previsions', 'Forecast'],
-        headerComment: 'Atlas F&A — Modèle Budget prévisionnel',
+        headerComment: 'Atlas FnA — Modèle Budget prévisionnel',
         columns: [
           { key: 'compte', header: 'Compte', required: true, type: 'string' },
           { key: 'libelle', header: 'Libellé', required: false, type: 'string' },
@@ -377,7 +377,7 @@ export const ATLAS_IMPORT_TEMPLATES: AtlasImportTemplate[] = [
       {
         sheetName: 'Taux de change',
         sheetAliases: ['Devises', 'Currencies', 'ExchangeRates', 'TauxDevises'],
-        headerComment: 'Atlas F&A — Taux de change (cours officiel)',
+        headerComment: 'Atlas FnA — Taux de change (cours officiel)',
         columns: [
           { key: 'date', header: 'Date', required: true, type: 'date' },
           { key: 'deviseSource', header: 'Devise Source', aliases: ['From', 'DeviseFrom'], required: true, type: 'string', example: 'EUR' },
@@ -406,7 +406,7 @@ export const ATLAS_IMPORT_TEMPLATES: AtlasImportTemplate[] = [
       {
         sheetName: 'Stocks',
         sheetAliases: ['Inventaire', 'Inventory', 'Articles'],
-        headerComment: 'Atlas F&A — Modèle Stocks',
+        headerComment: 'Atlas FnA — Modèle Stocks',
         columns: [
           { key: 'codeArticle', header: 'Code Article', aliases: ['Code', 'SKU', 'Reference'], required: true, type: 'string' },
           { key: 'designation', header: 'Désignation', aliases: ['Designation', 'Libelle'], required: true, type: 'string' },
@@ -435,7 +435,7 @@ export const ATLAS_IMPORT_TEMPLATES: AtlasImportTemplate[] = [
       {
         sheetName: 'Société',
         sheetAliases: ['Societe', 'Company', 'Entity', 'Entreprise'],
-        headerComment: 'Atlas F&A — Modèle Paramètres Société',
+        headerComment: 'Atlas FnA — Modèle Paramètres Société',
         columns: [
           { key: 'code', header: 'Code', aliases: ['CodeSociete', 'CompanyCode'], required: true, type: 'string', example: 'SANGA' },
           { key: 'nom', header: 'Nom', aliases: ['RaisonSociale', 'CompanyName', 'Denomination'], required: true, type: 'string', example: 'SANGA & Fils SARL' },
@@ -474,7 +474,7 @@ export const ATLAS_IMPORT_TEMPLATES: AtlasImportTemplate[] = [
       {
         sheetName: 'Exercices',
         sheetAliases: ['FiscalYears', 'Periods', 'Exercice'],
-        headerComment: 'Atlas F&A — Modèle Paramètres Exercices',
+        headerComment: 'Atlas FnA — Modèle Paramètres Exercices',
         columns: [
           { key: 'code', header: 'Code', aliases: ['CodeExercice', 'FiscalYearCode'], required: true, type: 'string', example: '2026' },
           { key: 'libelle', header: 'Libellé', aliases: ['Libelle', 'Label'], required: true, type: 'string', example: 'Exercice 2026' },
@@ -506,7 +506,7 @@ export const ATLAS_IMPORT_TEMPLATES: AtlasImportTemplate[] = [
       {
         sheetName: 'Journaux',
         sheetAliases: ['Journals', 'Journal', 'CodeJournaux'],
-        headerComment: 'Atlas F&A — Modèle Paramètres Journaux',
+        headerComment: 'Atlas FnA — Modèle Paramètres Journaux',
         columns: [
           { key: 'code', header: 'Code', aliases: ['CodeJournal', 'JournalCode'], required: true, type: 'string', example: 'VE' },
           { key: 'libelle', header: 'Libellé', aliases: ['Libelle', 'JournalLib'], required: true, type: 'string', example: 'Journal des Ventes' },
@@ -546,7 +546,7 @@ export const ATLAS_IMPORT_TEMPLATES: AtlasImportTemplate[] = [
       {
         sheetName: 'Taux TVA',
         sheetAliases: ['TauxTVA', 'VATRates', 'TVA'],
-        headerComment: 'Atlas F&A — Modèle Paramètres Taux TVA',
+        headerComment: 'Atlas FnA — Modèle Paramètres Taux TVA',
         columns: [
           { key: 'code', header: 'Code', aliases: ['CodeTVA', 'VATCode'], required: true, type: 'string', example: 'TVA18' },
           { key: 'taux', header: 'Taux (%)', aliases: ['Taux', 'Rate'], required: true, type: 'number', example: 18 },
@@ -582,7 +582,7 @@ export const ATLAS_IMPORT_TEMPLATES: AtlasImportTemplate[] = [
       {
         sheetName: 'Comptes Bancaires',
         sheetAliases: ['ComptesBancaires', 'BankAccounts', 'Banques'],
-        headerComment: 'Atlas F&A — Modèle Comptes Bancaires',
+        headerComment: 'Atlas FnA — Modèle Comptes Bancaires',
         columns: [
           { key: 'code', header: 'Code', aliases: ['CodeCompte', 'AccountCode'], required: true, type: 'string', example: 'SGBCI-MAIN' },
           { key: 'intitule', header: 'Intitulé', aliases: ['Intitule', 'Label'], required: true, type: 'string', example: 'SGBCI Compte Principal' },
@@ -621,7 +621,7 @@ export const ATLAS_IMPORT_TEMPLATES: AtlasImportTemplate[] = [
       {
         sheetName: 'Utilisateurs',
         sheetAliases: ['Users', 'Utilisateur'],
-        headerComment: 'Atlas F&A — Modèle Utilisateurs',
+        headerComment: 'Atlas FnA — Modèle Utilisateurs',
         columns: [
           { key: 'email', header: 'Email', aliases: ['Mail'], required: true, type: 'string', example: 'kouassi@sangafils.ci' },
           { key: 'prenom', header: 'Prénom', aliases: ['Prenom', 'FirstName'], required: true, type: 'string', example: 'Jean' },
@@ -635,7 +635,7 @@ export const ATLAS_IMPORT_TEMPLATES: AtlasImportTemplate[] = [
       {
         sheetName: 'Rôles',
         sheetAliases: ['Roles', 'Role', 'Profils'],
-        headerComment: 'Atlas F&A — Rôles d\'accès',
+        headerComment: 'Atlas FnA — Rôles d\'accès',
         columns: [
           { key: 'code', header: 'Code rôle', aliases: ['CodeRole', 'RoleCode'], required: true, type: 'string', example: 'COMPTABLE' },
           { key: 'libelle', header: 'Libellé', aliases: ['Libelle', 'Label'], required: true, type: 'string', example: 'Comptable' },
@@ -667,7 +667,7 @@ export const ATLAS_IMPORT_TEMPLATES: AtlasImportTemplate[] = [
       {
         sheetName: 'Sections Analytiques',
         sheetAliases: ['SectionsAnalytiques', 'CostCenters', 'Analytique'],
-        headerComment: 'Atlas F&A — Modèle Sections Analytiques',
+        headerComment: 'Atlas FnA — Modèle Sections Analytiques',
         columns: [
           { key: 'code', header: 'Code', aliases: ['CodeSection', 'SectionCode'], required: true, type: 'string', example: 'VENTE-CI' },
           { key: 'libelle', header: 'Libellé', aliases: ['Libelle', 'Label'], required: true, type: 'string', example: 'Ventes Côte d\'Ivoire' },
@@ -701,7 +701,7 @@ export const ATLAS_IMPORT_TEMPLATES: AtlasImportTemplate[] = [
       {
         sheetName: 'Grand Livre',
         sheetAliases: ['GrandLivre', 'GeneralLedger', 'GL'],
-        headerComment: 'Atlas F&A — Modèle Grand Livre',
+        headerComment: 'Atlas FnA — Modèle Grand Livre',
         columns: [
           { key: 'date', header: 'Date', aliases: ['EcritureDate', 'DateEcriture', 'DatePiece'], required: true, type: 'date', example: '2026-01-15' },
           { key: 'journal', header: 'Journal', aliases: ['JournalCode', 'Code_Journal', 'CodeJournal'], required: true, type: 'string', example: 'VE' },
@@ -757,7 +757,7 @@ export const ATLAS_IMPORT_TEMPLATES: AtlasImportTemplate[] = [
       {
         sheetName: 'Ordres Paiement',
         sheetAliases: ['OrdresPaiement', 'PaymentOrders', 'OP'],
-        headerComment: 'Atlas F&A — Modèle Ordres de Paiement',
+        headerComment: 'Atlas FnA — Modèle Ordres de Paiement',
         columns: [
           { key: 'numero', header: 'N° ordre', aliases: ['NumeroOrdre', 'OrderNumber'], required: true, type: 'string', example: 'OP-2026-0001' },
           { key: 'type', header: 'Type', aliases: ['TypeOrdre'], required: false, type: 'string', example: 'Simple', description: 'Simple, Batch' },
@@ -795,7 +795,7 @@ export const ATLAS_IMPORT_TEMPLATES: AtlasImportTemplate[] = [
       {
         sheetName: 'Registre Chèques',
         sheetAliases: ['RegistreCheques', 'Cheques', 'CheckRegister'],
-        headerComment: 'Atlas F&A — Modèle Registre Chèques',
+        headerComment: 'Atlas FnA — Modèle Registre Chèques',
         columns: [
           { key: 'numero', header: 'N° chèque', aliases: ['NumeroCheque', 'CheckNumber'], required: true, type: 'string', example: '1234567' },
           { key: 'sens', header: 'Sens', aliases: ['Direction'], required: true, type: 'string', example: 'Émis', description: 'Émis, Reçu' },
@@ -836,7 +836,7 @@ export const ATLAS_IMPORT_TEMPLATES: AtlasImportTemplate[] = [
       {
         sheetName: 'Emprunts',
         sheetAliases: ['Loans', 'Emprunt'],
-        headerComment: 'Atlas F&A — Emprunts',
+        headerComment: 'Atlas FnA — Emprunts',
         columns: [
           { key: 'codeEmprunt', header: 'Code emprunt', aliases: ['CodeEmprunt', 'LoanCode'], required: true, type: 'string', example: 'EMP-2026-001' },
           { key: 'organisme', header: 'Organisme prêteur', aliases: ['Organisme', 'Lender'], required: true, type: 'string', example: 'SGBCI' },
@@ -852,7 +852,7 @@ export const ATLAS_IMPORT_TEMPLATES: AtlasImportTemplate[] = [
       {
         sheetName: 'Echéances',
         sheetAliases: ['Echeances', 'Schedule', 'Amortissement'],
-        headerComment: 'Atlas F&A — Tableau d\'amortissement',
+        headerComment: 'Atlas FnA — Tableau d\'amortissement',
         columns: [
           { key: 'codeEmprunt', header: 'Code emprunt', aliases: ['CodeEmprunt'], required: true, type: 'string', example: 'EMP-2026-001' },
           { key: 'numero', header: 'N° échéance', aliases: ['NumeroEcheance', 'PaymentNumber'], required: true, type: 'number', example: 1 },
@@ -890,7 +890,7 @@ export const ATLAS_IMPORT_TEMPLATES: AtlasImportTemplate[] = [
       {
         sheetName: 'Mouvements Stocks',
         sheetAliases: ['MouvementsStocks', 'StockMovements', 'Mouvements'],
-        headerComment: 'Atlas F&A — Modèle Mouvements de Stocks',
+        headerComment: 'Atlas FnA — Modèle Mouvements de Stocks',
         columns: [
           { key: 'dateMouvement', header: 'Date mouvement', aliases: ['DateMouvement', 'MovementDate'], required: true, type: 'date', example: '2026-01-10' },
           { key: 'article', header: 'Article', aliases: ['CodeArticle', 'SKU'], required: true, type: 'string', example: 'ART-001' },
@@ -930,7 +930,7 @@ export const ATLAS_IMPORT_TEMPLATES: AtlasImportTemplate[] = [
       {
         sheetName: 'Engagements Hors-Bilan',
         sheetAliases: ['EngagementsHorsBilan', 'OffBalanceSheet', 'Engagements'],
-        headerComment: 'Atlas F&A — Modèle Engagements Hors-Bilan',
+        headerComment: 'Atlas FnA — Modèle Engagements Hors-Bilan',
         columns: [
           { key: 'code', header: 'Code', aliases: ['CodeEngagement'], required: true, type: 'string', example: 'EHB-2026-001' },
           { key: 'type', header: 'Type', aliases: ['TypeEngagement'], required: true, type: 'string', example: 'Caution', description: 'Caution, Garantie, Aval, Lettre crédit, Nantissement, Hypothèque' },

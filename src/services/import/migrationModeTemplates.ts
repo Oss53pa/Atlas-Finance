@@ -1,5 +1,5 @@
 /**
- * Atlas F&A — Templates de migration PAR MODE.
+ * Atlas FnA — Templates de migration PAR MODE.
  *
  * Contrairement au catalogue `atlasImportTemplates.ts` (organisé par TYPE de
  * fichier : plan comptable, tiers, grand livre…), ce module décrit les

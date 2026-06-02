@@ -83,7 +83,7 @@ L'ossature est récupérable, mais aucune mise en production n'est envisageable 
 **[UX-08] P2/P3 — Iconographie mixte lucide + heroicons.** SUPPOSÉ (deps `package.json` : `lucide-react` + `@heroicons/react`). Risque de styles de trait/épaisseur incohérents selon les écrans. À standardiser sur lucide (dominant).
 
 **[UX-09] POSITIF — Système de tokens cohérent et soigné.** VÉRIFIÉ (`globals.css`, `tailwind.config.js`).
-- Tokens complets (couleurs, ombres multi-couches, motion easings, radius, letter-spacing), palette Petrol Cream documentée, plusieurs thèmes nommés (`theme.ts` : Petrol Cream, Atlas F&A, Ocean Blue, Midnight, Sahel Gold…). Branding « Atlas F&A » en Grand Hotel observé en direct.
+- Tokens complets (couleurs, ombres multi-couches, motion easings, radius, letter-spacing), palette Petrol Cream documentée, plusieurs thèmes nommés (`theme.ts` : Petrol Cream, Atlas FnA, Ocean Blue, Midnight, Sahel Gold…). Branding « Atlas FnA » en Grand Hotel observé en direct.
 
 ### 3.3 Accessibilité WCAG 2.1 AA
 

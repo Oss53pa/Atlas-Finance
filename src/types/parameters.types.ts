@@ -1,7 +1,7 @@
 /**
  * TYPES TYPESCRIPT - MODULE PARAMÈTRES
  *
- * Types pour la configuration système et les paramètres Atlas F&A
+ * Types pour la configuration système et les paramètres Atlas FnA
  */
 
 export type ParameterCategory =

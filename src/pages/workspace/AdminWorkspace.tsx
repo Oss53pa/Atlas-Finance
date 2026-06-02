@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 const APP_VERSION = __APP_VERSION__ || '3.0.0';
 
 const themeLabels: Record<string, string> = {
-  atlasFinance: 'Atlas F&A',
+  atlasFinance: 'Atlas FnA',
   oceanBlue: 'Ocean Blue',
   forestGreen: 'Forest Green',
   midnightDark: 'Mode Sombre',
@@ -277,7 +277,7 @@ const AdminWorkspace: React.FC = () => {
             <button onClick={() => navigate('/')} className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 border-2 border-gray-300"><ArrowLeft className="w-5 h-5" /><span className="text-sm font-semibold">Accueil</span></button>
             <button onClick={() => setSidebarOpen(!sidebarOpen)} className="lg:hidden p-2 rounded-lg hover:bg-gray-100">{sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}</button>
             <div className="hidden sm:flex items-baseline gap-2">
-              <span className="atlas-brand" style={{ fontSize: '1.5rem', color: 'var(--color-text-primary)' }}>Atlas F&A</span>
+              <span className="atlas-brand" style={{ fontSize: '1.5rem', color: 'var(--color-text-primary)' }}>Atlas FnA</span>
               <span className="text-xs num-tabular" style={{ color: 'var(--color-text-quaternary)' }}>v{APP_VERSION}</span>
             </div>
             <div className="hidden md:block relative">

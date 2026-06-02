@@ -47,7 +47,7 @@ const FinancialStatementsPage: React.FC = () => {
             config={{
               title: activeTab === 'bilan' ? 'Bilan SYSCOHADA' : activeTab === 'compte-resultat' ? 'Compte de Résultat' : 'Ratios Financiers',
               subtitle: `Exercice ${selectedExercice}${showComparison ? ` vs ${compareExercice}` : ''}`,
-              appName: 'Atlas F&A',
+              appName: 'Atlas FnA',
             }}
             label="Imprimer"
             className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"

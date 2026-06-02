@@ -1,6 +1,6 @@
 
 /**
- * Gestion Multi-Sociétés Atlas F&A
+ * Gestion Multi-Sociétés Atlas FnA
  * Configuration selon EXP-PAR-002
  */
 import React, { useState } from 'react';

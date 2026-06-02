@@ -175,7 +175,7 @@ const LoginPage: React.FC = () => {
               letterSpacing: '-0.005em',
             }}
           >
-            Pilotage intégral du cycle Order-to-Cash, conformité OHADA et IA <span className="brand-script" style={{ color: '#E89A2E', fontSize: '1.15em' }}>Proph3t</span> intégrée — pour les cabinets et directions financières exigeants.
+            Pilotage intégral de votre comptabilité, conformité OHADA · SYSCOHADA et IA <span className="brand-script" style={{ color: '#E89A2E', fontSize: '1.15em' }}>Proph3t</span> intégrée — pour les cabinets et directions financières exigeants.
           </p>
         </div>
 
@@ -226,7 +226,7 @@ const LoginPage: React.FC = () => {
               Bon retour
             </h2>
             <p className="text-sm" style={{ color: 'var(--color-text-tertiary)', lineHeight: 1.55 }}>
-              Connectez-vous à votre espace <span className="brand-script" style={{ color: 'var(--color-accent-deep)', fontSize: '1.05em' }}>Atlas F&A</span> pour reprendre votre activité.
+              Connectez-vous à votre espace <span className="brand-script" style={{ color: 'var(--color-accent-deep)', fontSize: '1.05em' }}>Atlas FnA</span> pour reprendre votre activité.
             </p>
             {selectedRole && (
               <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full" style={{ background: 'var(--color-accent-light)', border: '1px solid rgba(35,90,110,0.25)' }}>

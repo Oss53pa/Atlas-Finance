@@ -1,5 +1,5 @@
 /**
- * Atlas F&A Performance Optimization System
+ * Atlas FnA Performance Optimization System
  * Comprehensive performance monitoring and optimization
  */
 

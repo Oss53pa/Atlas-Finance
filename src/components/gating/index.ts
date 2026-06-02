@@ -1,5 +1,5 @@
 /**
- * Atlas F&A — Gating components
+ * Atlas FnA — Gating components
  * Gestion des features réservées au plan Premium.
  */
 export { FeatureGate, useFeatureAccess } from './FeatureGate';

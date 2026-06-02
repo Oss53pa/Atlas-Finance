@@ -1,5 +1,5 @@
 /**
- * Atlas F&A Design System - Checkbox Component
+ * Atlas FnA Design System - Checkbox Component
  * Fully accessible checkbox with validation and custom styling
  */
 

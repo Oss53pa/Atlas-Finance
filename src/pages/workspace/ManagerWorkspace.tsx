@@ -17,13 +17,18 @@ import {
   Clock, CheckCircle, DollarSign, Zap, ArrowUpRight, ArrowDownRight, ExternalLink,
   ArrowLeft, Bell, HelpCircle, User, Search, Menu, X, Settings, LogOut, ChevronDown,
   Shield, Mail, BookMarked, MessageCircle, FileQuestion, Video, Headphones,
-  Target, Activity, Layers, FolderOpen, ListTodo, MessageSquare, LayoutDashboard
+  Target, Activity, Layers, FolderOpen, ListTodo, MessageSquare, LayoutDashboard,
+  AlertTriangle
 } from 'lucide-react';
 
-const APP_VERSION = __APP_VERSION__ || '3.0.0';
+// W16: APP_VERSION fallback '3.0.0' replaced by a build-time guard
+const APP_VERSION: string =
+  typeof __APP_VERSION__ !== 'undefined' && __APP_VERSION__
+    ? __APP_VERSION__
+    : 'dev';
 
 const themeLabels: Record<string, string> = {
-  atlasFinance: 'Atlas F&A',
+  atlasFinance: 'Atlas FnA',
   oceanBlue: 'Ocean Blue',
   forestGreen: 'Forest Green',
   midnightDark: 'Mode Sombre',
@@ -43,7 +48,13 @@ const ManagerWorkspace: React.FC = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { adapter } = useData();
-  const [mgrStats, setMgrStats] = useState({ ca: 0, charges: 0, marge: 0, treasury: 0 });
+
+  // W15 / W14: state distinguishes null (not yet loaded) from 0 (réellement zéro)
+  const [mgrStats, setMgrStats] = useState<{
+    ca: number; charges: number; marge: number; treasury: number;
+  } | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true); // W14: loading state
+
   const [companyPhone, setCompanyPhone] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -52,7 +63,11 @@ const ManagerWorkspace: React.FC = () => {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [passwordSaving, setPasswordSaving] = useState(false);
+
+  // W27: notifPrefs chargées depuis l'adapter au montage
   const [notifPrefs, setNotifPrefs] = useState<Record<string, boolean>>({ Email: true, Push: true, 'Rapports hebdo': true });
+  const [notifPrefsLoaded, setNotifPrefsLoaded] = useState(false);
+
   const [headerSearch, setHeaderSearch] = useState('');
   const [helpSearch, setHelpSearch] = useState('');
 
@@ -64,6 +79,9 @@ const ManagerWorkspace: React.FC = () => {
     { label: 'Espace Manager', path: '/workspace/manager', icon: Briefcase, color: 'var(--color-secondary)', current: true },
     { label: 'Espace Comptable', path: '/workspace/comptable', icon: BarChart3, color: 'var(--color-primary)', current: false },
   ];
+
+  // Derived values (safe defaults while loading)
+  const stats = mgrStats ?? { ca: 0, charges: 0, marge: 0, treasury: 0 };
 
   const atlasFinanceLinks = [
     { id: 'dashboard', label: "Tableau de bord", icon: BarChart3, path: '/dashboard' },
@@ -77,8 +95,10 @@ const ManagerWorkspace: React.FC = () => {
   const handleLogout = () => { logout(); navigate('/'); };
   const userData = { name: user?.name || '', email: user?.email || '', role: user?.role || '', phone: user?.phone || '', department: user?.department || '', twoFactorEnabled: user?.twoFactorEnabled ?? false };
 
+  // W13 / W14: loadStats avec isLoading + console.error + toast.error
   useEffect(() => {
     const loadStats = async () => {
+      setStatsLoading(true);
       try {
         const [entries, accounts] = await Promise.all([
           adapter.getAll<any>('journalEntries'),
@@ -87,7 +107,6 @@ const ManagerWorkspace: React.FC = () => {
         let ca = 0, charges = 0, treasury = 0;
         for (const entry of entries) {
           if (!entry.lines) continue;
-          // Bug 6 fix: exclude draft entries from financial stats
           if (entry.status === 'draft') continue;
           for (const line of entry.lines) {
             const acc = accounts.find((a: any) => a.id === line.accountId || a.number === line.accountNumber);
@@ -100,17 +119,41 @@ const ManagerWorkspace: React.FC = () => {
         }
         const marge = ca > 0 ? ((ca - charges) / ca) * 100 : 0;
         setMgrStats({ ca, charges, marge, treasury });
-        // Charger le téléphone de la société
         const companies = await adapter.getAll<any>('companies');
         if (companies.length > 0) {
           setCompanyPhone(companies[0].phone || companies[0].telephone || '');
         }
       } catch (err) {
-        /* ignored */
+        console.error('[ManagerWorkspace] Erreur chargement stats:', err);
+        toast.error('Impossible de charger les statistiques du workspace');
+      } finally {
+        setStatsLoading(false);
       }
     };
     loadStats();
   }, [adapter]);
+
+  // W27: charger les préférences de notifications depuis l'adapter au montage
+  useEffect(() => {
+    if (notifPrefsLoaded) return;
+    const loadNotifPrefs = async () => {
+      try {
+        const keys = ['Email', 'Push', 'Rapports hebdo'] as const;
+        const loaded: Record<string, boolean> = { Email: true, Push: true, 'Rapports hebdo': true };
+        for (const key of keys) {
+          const rows = await adapter.getAll<any>('settings' as any);
+          const row = rows.find((r: any) => r.key === `notif_manager_${key}`);
+          if (row) loaded[key] = row.value === 'true';
+        }
+        setNotifPrefs(loaded);
+      } catch (err) {
+        console.error('[ManagerWorkspace] Erreur chargement préférences notifs:', err);
+      } finally {
+        setNotifPrefsLoaded(true);
+      }
+    };
+    loadNotifPrefs();
+  }, [adapter, notifPrefsLoaded]);
 
   const renderProfile = () => (
     <div className="p-6 space-y-6">
@@ -133,7 +176,20 @@ const ManagerWorkspace: React.FC = () => {
         <div className="bg-white rounded-xl p-6 border">
           <h4 className="font-semibold mb-4 flex items-center"><Shield className="w-5 h-5 mr-2 text-[var(--color-secondary)]" />Securite</h4>
           <button onClick={() => setShowPasswordModal(true)} className="w-full p-3 border rounded-lg text-sm hover:border-[var(--color-secondary)] mb-2">Changer mot de passe</button>
-          <button onClick={async () => { try { const { error } = await supabase.auth.updateUser({ data: { twoFactorEnabled: !userData.twoFactorEnabled } }); if (error) throw error; toast.success('2FA mis à jour'); } catch { toast.error('Erreur mise à jour 2FA'); } }} className="w-full p-3 border rounded-lg text-sm hover:border-[var(--color-secondary)] flex justify-between"><span>2FA</span><span className={`text-xs px-2 py-1 rounded ${userData.twoFactorEnabled ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{userData.twoFactorEnabled ? 'Actif' : 'Off'}</span></button>
+          {/* W18: log + toast sur erreur 2FA */}
+          <button onClick={async () => {
+            try {
+              const { error } = await supabase.auth.updateUser({ data: { twoFactorEnabled: !userData.twoFactorEnabled } });
+              if (error) throw error;
+              toast.success('2FA mis à jour');
+            } catch (err) {
+              console.error('[ManagerWorkspace] Erreur toggle 2FA:', err);
+              toast.error('Erreur mise à jour 2FA');
+            }
+          }} className="w-full p-3 border rounded-lg text-sm hover:border-[var(--color-secondary)] flex justify-between">
+            <span>2FA</span>
+            <span className={`text-xs px-2 py-1 rounded ${userData.twoFactorEnabled ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{userData.twoFactorEnabled ? 'Actif' : 'Off'}</span>
+          </button>
         </div>
       </div>
       {showPasswordModal && (
@@ -143,7 +199,22 @@ const ManagerWorkspace: React.FC = () => {
             <input type="password" placeholder="Nouveau mot de passe (6 car. min)" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm" />
             <div className="flex gap-3 justify-end">
               <button onClick={() => { setShowPasswordModal(false); setNewPassword(''); }} className="px-4 py-2 border rounded-lg text-sm">Annuler</button>
-              <button disabled={passwordSaving || newPassword.length < 6} onClick={async () => { setPasswordSaving(true); try { const { error } = await supabase.auth.updateUser({ password: newPassword }); if (error) throw error; toast.success('Mot de passe mis à jour'); setShowPasswordModal(false); setNewPassword(''); } catch { toast.error('Erreur changement de mot de passe'); } finally { setPasswordSaving(false); } }} className="px-4 py-2 bg-[var(--color-secondary)] text-white rounded-lg text-sm disabled:opacity-50">{passwordSaving ? 'En cours...' : 'Enregistrer'}</button>
+              {/* W19: log + toast sur erreur changement de mot de passe */}
+              <button disabled={passwordSaving || newPassword.length < 6} onClick={async () => {
+                setPasswordSaving(true);
+                try {
+                  const { error } = await supabase.auth.updateUser({ password: newPassword });
+                  if (error) throw error;
+                  toast.success('Mot de passe mis à jour');
+                  setShowPasswordModal(false);
+                  setNewPassword('');
+                } catch (err) {
+                  console.error('[ManagerWorkspace] Erreur changement de mot de passe:', err);
+                  toast.error('Erreur changement de mot de passe');
+                } finally {
+                  setPasswordSaving(false);
+                }
+              }} className="px-4 py-2 bg-[var(--color-secondary)] text-white rounded-lg text-sm disabled:opacity-50">{passwordSaving ? 'En cours...' : 'Enregistrer'}</button>
             </div>
           </div>
         </div>
@@ -169,7 +240,17 @@ const ManagerWorkspace: React.FC = () => {
         <div className="space-y-3">
           {(['Email', 'Push', 'Rapports hebdo'] as const).map((n) => (
             <div key={n} className="flex justify-between p-3 border rounded-lg"><span>{n}</span>
-              <label className="relative inline-flex cursor-pointer"><input type="checkbox" checked={!!notifPrefs[n]} onChange={async e => { const next = { ...notifPrefs, [n]: e.target.checked }; setNotifPrefs(next); try { await adapter.upsert?.('settings' as any, { key: `notif_manager_${n}`, value: String(e.target.checked), updatedAt: new Date().toISOString() }); } catch { /* persisted in state only */ } }} className="sr-only peer" />
+              <label className="relative inline-flex cursor-pointer"><input type="checkbox" checked={!!notifPrefs[n]} onChange={async e => {
+                const next = { ...notifPrefs, [n]: e.target.checked };
+                setNotifPrefs(next);
+                // W17: log + toast si la persistance échoue
+                try {
+                  await adapter.upsert?.('settings' as any, { key: `notif_manager_${n}`, value: String(e.target.checked), updatedAt: new Date().toISOString() });
+                } catch (err) {
+                  console.error('[ManagerWorkspace] Erreur persistance préférence notif:', err);
+                  toast.error('Impossible de sauvegarder la préférence de notification');
+                }
+              }} className="sr-only peer" />
               <div className="w-11 h-6 bg-gray-200 peer-checked:bg-[var(--color-secondary)] rounded-full after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div></label>
             </div>
           ))}
@@ -188,9 +269,10 @@ const ManagerWorkspace: React.FC = () => {
         <h3 className="text-lg font-bold mb-4">Comment pouvons-nous vous aider?</h3>
         <div className="relative"><Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" /><input placeholder="Rechercher..." value={helpSearch} onChange={e => setHelpSearch(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && helpSearch.trim()) window.open('https://docs.atlas-studio.org/search?q='+encodeURIComponent(helpSearch.trim()), '_blank'); }} className="w-full pl-12 pr-4 py-3 rounded-lg text-black" /></div>
       </div>
+      {/* W25: clés stables basées sur url */}
       <div className="grid grid-cols-3 gap-4">
-        {[{icon: BookMarked, title: 'Documentation', color: 'var(--color-secondary)', url: 'https://docs.atlas-studio.org'}, {icon: Video, title: 'Videos', color: 'var(--color-primary)', url: 'https://docs.atlas-studio.org/tutoriels'}, {icon: FileQuestion, title: 'FAQ', color: 'var(--color-text-tertiary)', url: 'https://docs.atlas-studio.org/faq'}].map((c, i) => (
-          <button key={i} onClick={() => window.open(c.url, '_blank')} className="bg-white rounded-xl p-6 border hover:border-[var(--color-secondary)] text-left">
+        {[{icon: BookMarked, title: 'Documentation', color: 'var(--color-secondary)', url: 'https://docs.atlas-studio.org'}, {icon: Video, title: 'Videos', color: 'var(--color-primary)', url: 'https://docs.atlas-studio.org/tutoriels'}, {icon: FileQuestion, title: 'FAQ', color: 'var(--color-text-tertiary)', url: 'https://docs.atlas-studio.org/faq'}].map((c) => (
+          <button key={c.url} onClick={() => window.open(c.url, '_blank')} className="bg-white rounded-xl p-6 border hover:border-[var(--color-secondary)] text-left">
             <div className="w-12 h-12 rounded-lg flex items-center justify-center mb-4" style={{backgroundColor: `color-mix(in srgb, ${c.color} 12%, transparent)`}}><c.icon className="w-6 h-6" style={{color: c.color}} /></div>
             <h4 className="font-semibold">{c.title}</h4>
           </button>
@@ -205,45 +287,57 @@ const ManagerWorkspace: React.FC = () => {
 
   const renderWorkspace = () => (
     <div className="p-6 space-y-6">
+      {/* W14: skeleton pendant le chargement */}
       <div className="grid grid-cols-4 gap-4">
-        {[{title:'CA du mois',value:formatCurrency(mgrStats.ca),icon:DollarSign,color:'var(--color-secondary)',change:'',up:true},{title:'Marge',value:`${mgrStats.marge.toFixed(1)}%`,icon:Target,color:'var(--color-primary)',change:'',up:mgrStats.marge >= 0},{title:'Charges',value:formatCurrency(mgrStats.charges),icon:Layers,color:'var(--color-text-tertiary)',change:'',up:false},{title:'Tresorerie',value:formatCurrency(mgrStats.treasury),icon:DollarSign,color:'var(--color-secondary)',change:'',up:mgrStats.treasury >= 0}].map((m,i) => (
-          <div key={i} className="bg-white rounded-lg p-4 border hover:shadow-md">
-            <div className="flex justify-between mb-3"><div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{backgroundColor:`color-mix(in srgb, ${m.color} 12%, transparent)`}}><m.icon className="w-5 h-5" style={{color:m.color}} /></div><span className={m.up?'text-green-600 text-xs':'text-red-600 text-xs'}>{m.change}</span></div>
-            <h3 className="text-lg font-bold">{m.value}</h3><p className="text-sm text-gray-600">{m.title}</p>
-          </div>
-        ))}
+        {statsLoading
+          ? Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="bg-white rounded-lg p-4 border animate-pulse">
+                <div className="w-10 h-10 rounded-lg bg-gray-200 mb-3" />
+                <div className="h-6 bg-gray-200 rounded w-2/3 mb-2" />
+                <div className="h-4 bg-gray-100 rounded w-1/2" />
+              </div>
+            ))
+          /* W25: clés stables basées sur le titre */
+          : [{title:'CA du mois',value:formatCurrency(stats.ca),icon:DollarSign,color:'var(--color-secondary)',change:'',up:true},{title:'Marge',value:`${stats.marge.toFixed(1)}%`,icon:Target,color:'var(--color-primary)',change:'',up:stats.marge >= 0},{title:'Charges',value:formatCurrency(stats.charges),icon:Layers,color:'var(--color-text-tertiary)',change:'',up:false},{title:'Tresorerie',value:formatCurrency(stats.treasury),icon:DollarSign,color:'var(--color-secondary)',change:'',up:stats.treasury >= 0}].map((m) => (
+            <div key={m.title} className="bg-white rounded-lg p-4 border hover:shadow-md">
+              <div className="flex justify-between mb-3"><div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{backgroundColor:`color-mix(in srgb, ${m.color} 12%, transparent)`}}><m.icon className="w-5 h-5" style={{color:m.color}} /></div><span className={m.up?'text-green-600 text-xs':'text-red-600 text-xs'}>{m.change}</span></div>
+              <h3 className="text-lg font-bold">{m.value}</h3><p className="text-sm text-gray-600">{m.title}</p>
+            </div>
+          ))
+        }
       </div>
       <div className="bg-white rounded-lg p-6 border">
-        <h2 className="text-lg font-semibold mb-4">Raccourcis Atlas F&A</h2>
+        <h2 className="text-lg font-semibold mb-4">Raccourcis Atlas FnA</h2>
+        {/* W25: clés stables basées sur le path */}
         <div className="grid grid-cols-4 gap-3">
-          {[{label:'Rapports',icon:FileText,path:'/reporting',color:'var(--color-secondary)'},{label:'Budgets',icon:Target,path:'/budgeting',color:'var(--color-primary)'},{label:'Trésorerie',icon:DollarSign,path:'/treasury',color:'var(--color-text-tertiary)'},{label:'Équipe',icon:Users,path:'/security/users',color:'var(--color-secondary)'}].map((a,i) => (
-            <button key={i} onClick={() => navigate(a.path)} className="p-4 rounded-lg border hover:border-gray-400 hover:shadow-sm transition-all">
+          {[{label:'Rapports',icon:FileText,path:'/reporting',color:'var(--color-secondary)'},{label:'Budgets',icon:Target,path:'/budgeting',color:'var(--color-primary)'},{label:'Trésorerie',icon:DollarSign,path:'/treasury',color:'var(--color-text-tertiary)'},{label:'Équipe',icon:Users,path:'/security/users',color:'var(--color-secondary)'}].map((a) => (
+            <button key={a.path} onClick={() => navigate(a.path)} className="p-4 rounded-lg border hover:border-gray-400 hover:shadow-sm transition-all">
               <div className="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-2" style={{backgroundColor:`color-mix(in srgb, ${a.color} 8%, transparent)`}}><a.icon className="w-5 h-5" style={{color:a.color}} /></div>
               <span className="text-sm font-medium block text-center">{a.label}</span>
             </button>
           ))}
         </div>
       </div>
-      {/* Apercu Taches */}
+      {/* W20: Tâches — délégué à CompleteTasksModule */}
       <div className="bg-white rounded-lg p-6 border">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold flex items-center"><ListTodo className="w-5 h-5 mr-2 text-[var(--color-secondary)]" />Mes Taches</h2>
           <button onClick={() => setActiveSection('tasks')} className="text-sm text-[var(--color-secondary)] hover:underline">Voir tout</button>
         </div>
-        <div className="space-y-2">
-          <div className="text-center py-4 text-gray-400 text-sm">Aucune tache en cours</div>
+        <div className="text-center py-4 text-gray-400 text-sm">
+          Accédez à la section <button onClick={() => setActiveSection('tasks')} className="underline text-[var(--color-secondary)]">Mes taches</button> pour voir et gérer vos tâches.
         </div>
       </div>
       {/* Alertes Fiscales */}
       <ManagerFiscalWidget navigate={navigate} />
-      {/* Apercu Chat */}
+      {/* W21: Messages — délégué au module Collaboration */}
       <div className="bg-white rounded-lg p-6 border">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold flex items-center"><MessageSquare className="w-5 h-5 mr-2 text-[var(--color-secondary)]" />Messages recents</h2>
           <button onClick={() => setActiveSection('chat')} className="text-sm text-[var(--color-secondary)] hover:underline">Voir tout</button>
         </div>
-        <div className="space-y-2">
-          <div className="text-center py-4 text-gray-400 text-sm">Aucun message récent</div>
+        <div className="text-center py-4 text-gray-400 text-sm">
+          Accédez à la section <button onClick={() => setActiveSection('chat')} className="underline text-[var(--color-secondary)]">Chat équipe</button> pour consulter vos messages.
         </div>
       </div>
     </div>
@@ -257,7 +351,7 @@ const ManagerWorkspace: React.FC = () => {
             <button onClick={() => navigate('/')} className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 border-2 border-gray-300"><ArrowLeft className="w-5 h-5" /><span className="text-sm font-semibold">Accueil</span></button>
             <button onClick={() => setSidebarOpen(!sidebarOpen)} className="lg:hidden p-2 rounded-lg hover:bg-gray-100">{sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}</button>
             <div className="hidden sm:flex items-baseline gap-2">
-              <span className="atlas-brand" style={{ fontSize: '1.5rem', color: 'var(--color-text-primary)' }}>Atlas F&A</span>
+              <span className="atlas-brand" style={{ fontSize: '1.5rem', color: 'var(--color-text-primary)' }}>Atlas FnA</span>
               <span className="text-xs num-tabular" style={{ color: 'var(--color-text-quaternary)' }}>v{APP_VERSION}</span>
             </div>
             <div className="hidden md:block relative">
@@ -267,9 +361,10 @@ const ManagerWorkspace: React.FC = () => {
               >
                 <Briefcase className="w-4 h-4 text-[var(--color-secondary)]" />
                 <span className="text-sm font-medium text-[var(--color-secondary)]">Espace Manager</span>
-                <ChevronDown className={`w-3 h-3 text-[var(--color-secondary)] transition-transform ${workspaceSwitcherOpen ? 'rotate-180' : ''}`} />
+                {/* W23: ChevronDown conditionnel, identique à ComptableWorkspaceFinal */}
+                {workspaceOptions.length > 1 && <ChevronDown className={`w-3 h-3 text-[var(--color-secondary)] transition-transform ${workspaceSwitcherOpen ? 'rotate-180' : ''}`} />}
               </button>
-              {workspaceSwitcherOpen && (
+              {workspaceSwitcherOpen && workspaceOptions.length > 1 && (
                 <div className="absolute top-full left-0 mt-1 w-56 bg-white rounded-lg shadow-lg border z-50">
                   {workspaceOptions.map(ws => (
                     <button
@@ -289,7 +384,14 @@ const ManagerWorkspace: React.FC = () => {
           <div className="flex-1 max-w-md mx-6 hidden md:block"><div className="relative"><Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" /><input placeholder="Recherche..." value={headerSearch} onChange={e => setHeaderSearch(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && headerSearch.trim()) navigate(`/reporting?search=${encodeURIComponent(headerSearch.trim())}`); }} className="w-full pl-10 pr-4 py-2 border rounded-lg text-sm" /></div></div>
           <div className="flex items-center space-x-3">
             <button onClick={() => navigate('/dashboard')} className="group px-6 py-2.5 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] rounded-lg text-white font-semibold flex items-center space-x-2 transition-all shadow-sm hover:shadow-md"><LayoutDashboard className="w-5 h-5" /><span>Atlas Fna</span><ExternalLink className="w-4 h-4 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" /></button>
-            <button className="relative p-2 rounded-lg hover:bg-gray-100"><Bell className="w-5 h-5 text-gray-500" /></button>
+            {/* W22: bouton Bell avec onClick → échéances fiscales */}
+            <button
+              onClick={() => navigate('/taxation/echeances')}
+              className="relative p-2 rounded-lg hover:bg-gray-100"
+              title="Voir les échéances fiscales"
+            >
+              <Bell className="w-5 h-5 text-gray-500" />
+            </button>
             <button onClick={() => setActiveSection('help')} className="p-2 rounded-lg hover:bg-gray-100"><HelpCircle className="w-5 h-5 text-gray-500" /></button>
             <div className="relative">
               <button onClick={() => setUserMenuOpen(!userMenuOpen)} className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-100">
@@ -315,15 +417,16 @@ const ManagerWorkspace: React.FC = () => {
           <div className="p-4">
 
             {/* Mon espace */}
+            {/* W24: pas de propriété badge manquante — tableau typé explicitement */}
             <div className="border-b mb-4 pb-4"><div className="text-xs font-semibold text-gray-500 uppercase mb-3">Mon espace</div>
               <div className="space-y-1">
                 {[
-                  {id:'workspace',label:'Accueil',icon:LayoutDashboard},
-                  {id:'tasks',label:'Mes taches',icon:ListTodo},
-                  {id:'chat',label:'Chat equipe',icon:MessageSquare},
-                  {id:'profile',label:'Mon profil',icon:User},
-                  {id:'settings',label:'Parametres',icon:Settings},
-                  {id:'help',label:'Aide',icon:HelpCircle}
+                  {id:'workspace',label:'Accueil',icon:LayoutDashboard,badge: undefined as string | undefined},
+                  {id:'tasks',label:'Mes taches',icon:ListTodo,badge: undefined as string | undefined},
+                  {id:'chat',label:'Chat equipe',icon:MessageSquare,badge: undefined as string | undefined},
+                  {id:'profile',label:'Mon profil',icon:User,badge: undefined as string | undefined},
+                  {id:'settings',label:'Parametres',icon:Settings,badge: undefined as string | undefined},
+                  {id:'help',label:'Aide',icon:HelpCircle,badge: undefined as string | undefined}
                 ].map(item => (
                   <button key={item.id} onClick={() => setActiveSection(item.id as typeof activeSection)} className={`${activeSection===item.id?'bg-[var(--color-secondary)]/10 text-[var(--color-secondary)]':'text-gray-600 hover:bg-gray-50'} w-full flex items-center justify-between px-3 py-2 rounded-lg`}>
                     <div className="flex items-center space-x-3"><item.icon className="w-4 h-4" /><span className="text-sm font-medium">{item.label}</span></div>
@@ -339,7 +442,6 @@ const ManagerWorkspace: React.FC = () => {
               {atlasFinanceLinks.map(item => (
                 <button key={item.id} onClick={() => navigate(item.path)} className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-gray-600 hover:text-[var(--color-secondary)] hover:bg-gray-50">
                   <div className="flex items-center space-x-3"><item.icon className="w-4 h-4" /><span className="text-sm">{item.label}</span></div>
-                  {item.badge && <span className="px-2 py-0.5 text-xs rounded-full bg-orange-100 text-orange-600">{item.badge}</span>}
                 </button>
               ))}
             </div>
@@ -360,6 +462,7 @@ const ManagerWorkspace: React.FC = () => {
 };
 
 // Fiscal Alerts Widget for Manager Workspace
+// W28: icônes AlertTriangle/Clock ajoutées par ligne d'alerte (alignement avec FiscalAlertsWidget)
 const ManagerFiscalWidget: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) => {
   const urgentAlerts = useFiscalUrgentAlerts();
   if (urgentAlerts.length === 0) return null;
@@ -382,15 +485,29 @@ const ManagerFiscalWidget: React.FC<{ navigate: (path: string) => void }> = ({ n
       <div className="space-y-2">
         {urgentAlerts.slice(0, 4).map(alert => (
           <div key={alert.id} className={`flex items-center justify-between p-3 rounded-lg ${alert.isOverdue ? 'bg-red-100' : 'bg-orange-100'}`}>
-            <div>
-              <span className="font-medium text-sm">{alert.taxName}</span>
-              <span className="text-xs text-gray-600 ml-2">{alert.periodLabel}</span>
+            <div className="flex items-center gap-3">
+              {alert.isOverdue
+                ? <AlertTriangle className="w-4 h-4 text-red-600 flex-shrink-0" />
+                : <Clock className="w-4 h-4 text-orange-600 flex-shrink-0" />
+              }
+              <div>
+                <span className="font-medium text-sm">{alert.taxName}</span>
+                <span className="text-xs text-gray-600 ml-2">{alert.periodLabel}</span>
+              </div>
             </div>
-            <div className={`text-xs font-semibold ${alert.isOverdue ? 'text-red-700' : 'text-orange-700'}`}>
-              {alert.isOverdue ? `${Math.abs(alert.daysUntil)}j retard` : `${alert.daysUntil}j`}
+            <div className="text-right">
+              <div className={`text-xs font-semibold ${alert.isOverdue ? 'text-red-700' : 'text-orange-700'}`}>
+                {alert.isOverdue ? `${Math.abs(alert.daysUntil)}j retard` : `${alert.daysUntil}j`}
+              </div>
+              <div className="text-xs text-gray-500">{alert.deadline}</div>
             </div>
           </div>
         ))}
+        {urgentAlerts.length > 4 && (
+          <button onClick={() => navigate('/taxation/echeances')} className="text-sm text-[var(--color-secondary)] font-medium hover:underline w-full text-center py-2">
+            + {urgentAlerts.length - 4} autre(s) échéance(s)
+          </button>
+        )}
       </div>
     </div>
   );

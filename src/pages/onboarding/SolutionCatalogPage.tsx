@@ -24,7 +24,7 @@ interface SolutionDef {
 const SOLUTIONS: SolutionDef[] = [
   {
     code: 'atlas-fna',
-    name: 'Atlas F&A',
+    name: 'Atlas FnA',
     desc: 'ERP Comptable & Financier SYSCOHADA',
     longDesc: 'Solution comptable complète conforme au plan SYSCOHADA révisé. Gestion des écritures, lettrage automatique, rapprochement bancaire, immobilisations, fiscalité, clôture et états financiers.',
     icon: Calculator,
@@ -129,7 +129,7 @@ const SOLUTIONS: SolutionDef[] = [
       'Pipeline commercial visuel',
       'Devis & facturation intégrée',
       'Suivi de recouvrement',
-      'Intégration comptable Atlas F&A',
+      'Intégration comptable Atlas FnA',
     ],
   },
 ];

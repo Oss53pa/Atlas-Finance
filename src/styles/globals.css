@@ -215,7 +215,7 @@ h1, h2, h3, h4, h5, h6 {
 .font-semibold { font-weight: 500 !important; }
 .font-medium { font-weight: 500 !important; }
 
-/* Wordmark Grand Hotel — UNIQUEMENT pour la marque (Atlas, Atlas F&A, Atlas Studio, Proph3t)
+/* Wordmark Grand Hotel — UNIQUEMENT pour la marque (Atlas, Atlas FnA, Atlas Studio, Proph3t)
  * Cette regle a priorite sur tout heading h1/h2 contenant la classe. */
 .atlas-brand,
 .brand-script,

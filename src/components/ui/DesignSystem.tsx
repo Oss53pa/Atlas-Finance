@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { LucideIcon } from 'lucide-react';
 
-// Design System unifié pour Atlas F&A
+// Design System unifié pour Atlas FnA
 // Palette de couleurs cohérente et élégante
 
 export const designTokens = {

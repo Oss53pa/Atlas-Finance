@@ -254,7 +254,7 @@ const CompanySetupWizard: React.FC = () => {
             <div>
               <h1 className="text-lg font-bold text-white flex items-center">
                 <SparklesIcon className="h-8 w-8 mr-3 text-white" />
-                Assistant de Configuration Atlas F&A
+                Assistant de Configuration Atlas FnA
               </h1>
               <p className="text-[var(--color-surface-hover)] mt-2">Configuration complète en 4 étapes selon SYSCOHADA</p>
             </div>

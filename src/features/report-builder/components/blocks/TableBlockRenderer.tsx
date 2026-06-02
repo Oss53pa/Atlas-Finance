@@ -1,5 +1,5 @@
 /**
- * Table Block Renderer — Connected to live Atlas F&A data via useTableData
+ * Table Block Renderer — Connected to live Atlas FnA data via useTableData
  */
 import React from 'react';
 import { Loader2 } from 'lucide-react';

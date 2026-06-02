@@ -1,6 +1,6 @@
 /**
  * UpgradeBanner — Bloc sobre affiché lorsqu'une feature Premium est verrouillée.
- * Design Atlas F&A : fond #1a1a1a, bordure amber #EF9F27, texte blanc.
+ * Design Atlas FnA : fond #1a1a1a, bordure amber #EF9F27, texte blanc.
  */
 import React from 'react';
 import { useNavigate } from 'react-router-dom';

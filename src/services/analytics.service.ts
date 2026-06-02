@@ -1,5 +1,5 @@
 /**
- * Service Analytics Atlas F&A
+ * Service Analytics Atlas FnA
  * Comptabilité analytique multi-axes
  *
  * Fonctionnalités:

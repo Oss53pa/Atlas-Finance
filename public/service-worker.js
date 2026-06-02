@@ -1,5 +1,5 @@
 /**
- * Atlas F&A service worker — NO-OP.
+ * Atlas FnA service worker — NO-OP.
  *
  * L'app ne fait PLUS appel au service worker (le SW v1 cache-first cassait
  * les déploiements). Ce fichier est conservé pour les navigateurs qui ont

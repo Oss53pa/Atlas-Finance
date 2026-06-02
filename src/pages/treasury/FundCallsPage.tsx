@@ -1,5 +1,5 @@
 /**
- * Module Appels de Fonds Atlas F&A
+ * Module Appels de Fonds Atlas FnA
  * Interface complète avec workflow de validation selon cahier des charges
  */
 import React, { useState, useEffect, useMemo } from 'react';

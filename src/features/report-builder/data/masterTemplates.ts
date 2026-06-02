@@ -86,7 +86,7 @@ const emptyStyle = { marginBottom: 12 };
 function cover(title: string, subtitle = ''): BlockFactory {
   return {
     type: 'cover',
-    companyName: 'Atlas F&A',
+    companyName: 'Atlas FnA',
     reportTitle: title,
     subtitle,
     backgroundStyle: 'corporate-classic',
@@ -99,7 +99,7 @@ function cover(title: string, subtitle = ''): BlockFactory {
 function backPage(): BlockFactory {
   return {
     type: 'back-page',
-    companyName: 'Atlas F&A',
+    companyName: 'Atlas FnA',
     backgroundStyle: 'corporate-classic',
     locked: false,
     style: { marginBottom: 0 },
@@ -407,7 +407,7 @@ export const masterTemplates: Record<MasterTemplateId, () => BlockFactory[]> = {
 };
 
 export interface TemplateInstantiationOptions {
-  /** Real company name to inject into cover/back-page blocks (replaces 'Atlas F&A') */
+  /** Real company name to inject into cover/back-page blocks (replaces 'Atlas FnA') */
   companyName?: string;
 }
 

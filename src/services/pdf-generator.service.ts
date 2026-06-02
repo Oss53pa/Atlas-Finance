@@ -40,7 +40,7 @@ export interface NotificationContent {
 
 class PDFGeneratorService {
   private defaultCompany: CompanyInfo = {
-    name: 'Atlas F&A',
+    name: 'Atlas FnA',
     address: '',
     city: '',
     postalCode: '',

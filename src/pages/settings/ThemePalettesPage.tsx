@@ -1,5 +1,5 @@
 /**
- * Palettes officielles Atlas F&A
+ * Palettes officielles Atlas FnA
  * Page de sélection des palettes de couleurs avec aperçu visuel.
  * Route : /settings/themes
  */
@@ -30,7 +30,7 @@ const paletteMeta: Record<ThemeType, PaletteMeta> = {
     tagline: 'Sobriété moderne — Linear · Vercel · Cockpit CR',
   },
   atlasFinance: {
-    longName: 'Atlas F&A — Grayscale',
+    longName: 'Atlas FnA — Grayscale',
     tagline: 'Monochrome sobre et intemporel',
   },
   oceanBlue: {
@@ -125,7 +125,7 @@ const ThemePalettesPage: React.FC = () => {
         <div className="flex items-center gap-3 mb-2">
           <Palette className="w-7 h-7" style={{ color: 'var(--color-accent)' }} />
           <h1 className="text-2xl font-bold" style={{ color: 'var(--color-text-primary)' }}>
-            Palettes de couleurs Atlas F&A
+            Palettes de couleurs Atlas FnA
           </h1>
         </div>
         <p style={{ color: 'var(--color-text-secondary)' }}>

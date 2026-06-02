@@ -353,7 +353,7 @@ function App() {
                       </Route>
 
                       {/* Application principale avec layout + chatbot IA */}
-                      {/* Page d'accueil Atlas F&A — plein écran, sans sidebar (pattern DocJourney) */}
+                      {/* Page d'accueil Atlas FnA — plein écran, sans sidebar (pattern DocJourney) */}
                       <Route path="/home" element={<AtlasFnAHome />} />
 
                       <Route element={<ChatbotProvider><ModernDoubleSidebarLayout /></ChatbotProvider>}>

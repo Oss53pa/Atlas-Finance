@@ -407,11 +407,11 @@ const ModernDoubleSidebarLayout: React.FC = () => {
             primaryCollapsed && 'justify-center'
           )}>
             <div className="flex flex-col">
-              <a href="/home" className="hover:opacity-80 transition-opacity" title="Retour à l'accueil Atlas F&amp;A">
+              <a href="/home" className="hover:opacity-80 transition-opacity" title="Retour à l'accueil Atlas FnA">
                 <span
                   className="text-[var(--color-sidebar-text)] font-bold atlas-brand whitespace-nowrap"
                   style={{ fontSize: 'calc(1.25rem + 0.5pt)' }}
-                >Atlas F&A</span>
+                >Atlas FnA</span>
               </a>
               {!primaryCollapsed && companyName && (
                 <span className="text-[0.65rem] text-[var(--color-sidebar-text-secondary)] truncate max-w-[10rem] leading-tight">
@@ -608,11 +608,11 @@ const ModernDoubleSidebarLayout: React.FC = () => {
           >
             <div className="h-16 flex items-center justify-between px-4 border-b border-[var(--color-sidebar-border)]">
               <div className="flex flex-col">
-                <a href="/home" className="hover:opacity-80 transition-opacity" title="Retour à l'accueil Atlas F&amp;A">
+                <a href="/home" className="hover:opacity-80 transition-opacity" title="Retour à l'accueil Atlas FnA">
                   <span
                     className="text-white font-bold atlas-brand"
                     style={{ fontSize: 'calc(1.25rem + 0.5pt)' }}
-                  >Atlas F&A</span>
+                  >Atlas FnA</span>
                 </a>
                 {companyName && (
                   <span className="text-[0.65rem] text-white/60 truncate max-w-[12rem] leading-tight">{companyName}</span>

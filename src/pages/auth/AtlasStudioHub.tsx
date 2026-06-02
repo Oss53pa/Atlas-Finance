@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 
 const APPS = [
-  { code: 'atlas-fna', name: 'Atlas F&A',  desc: 'ERP Comptable & Financier SYSCOHADA', icon: Calculator, color: '#171717', active: true },
+  { code: 'atlas-fna', name: 'Atlas FnA',  desc: 'ERP Comptable & Financier SYSCOHADA', icon: Calculator, color: '#171717', active: true },
   { code: 'liass-pilot',   name: "Liass'Pilot",    desc: 'Liasse fiscale automatique',          icon: FileText,   color: '#0891b2', active: true },
   { code: 'docjourney',    name: 'DocJourney',     desc: 'Gestion documentaire intelligente',   icon: FolderOpen, color: '#C77E2C', active: true },
   { code: 'atlas-hr',      name: 'Atlas HR',       desc: 'Ressources Humaines & Paie',          icon: Users,      color: '#235A6E', active: false },

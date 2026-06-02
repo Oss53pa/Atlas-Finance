@@ -1,6 +1,6 @@
 
 /**
- * Atlas F&A Design System - Table Component
+ * Atlas FnA Design System - Table Component
  * Comprehensive table component with sorting, filtering, and pagination
  */
 

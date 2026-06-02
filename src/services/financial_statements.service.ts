@@ -1,5 +1,5 @@
 /**
- * Service Financial Statements Atlas F&A
+ * Service Financial Statements Atlas FnA
  * Génération automatique des états financiers SYSCOHADA
  *
  * Fonctionnalités:

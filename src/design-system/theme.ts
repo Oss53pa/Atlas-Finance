@@ -1,5 +1,5 @@
 /**
- * Atlas F&A Design System - Theme Configuration
+ * Atlas FnA Design System - Theme Configuration
  * Unified design tokens for consistent UI across the application
  */
 

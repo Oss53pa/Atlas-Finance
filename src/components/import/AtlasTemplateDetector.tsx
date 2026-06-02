@@ -1,6 +1,6 @@
 /**
  * AtlasTemplateDetector — Composant d'upload qui détecte automatiquement
- * le template Atlas F&A à partir d'un fichier XLSX/CSV.
+ * le template Atlas FnA à partir d'un fichier XLSX/CSV.
  *
  * Fonctionnalités :
  *   • Upload drag-and-drop ou input file

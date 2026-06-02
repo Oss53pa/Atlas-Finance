@@ -1,5 +1,5 @@
 /**
- * Atlas F&A — Génération automatique du Plan Comptable à partir du Grand Livre.
+ * Atlas FnA — Génération automatique du Plan Comptable à partir du Grand Livre.
  *
  * Principe (inspiré de Cockpit F&A) :
  *   1) On extrait tous les numéros de compte distincts du GL.

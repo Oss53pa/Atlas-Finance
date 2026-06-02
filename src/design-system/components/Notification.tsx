@@ -1,5 +1,5 @@
 /**
- * Atlas F&A Design System - Notification Component
+ * Atlas FnA Design System - Notification Component
  * Toast notification system with positioning and animation
  */
 

@@ -1,5 +1,5 @@
 /**
- * Dashboard Analyse Financière Avancée Atlas F&A
+ * Dashboard Analyse Financière Avancée Atlas FnA
  * TAFIRE, SIG et ratios SYSCOHADA selon EXF-AF-001 à EXF-AF-007
  */
 import React, { useState, useMemo } from 'react';

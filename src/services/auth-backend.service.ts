@@ -1,5 +1,5 @@
 /**
- * Auth Backend Service - Atlas F&A
+ * Auth Backend Service - Atlas FnA
  * Handles authentication with Django backend
  *
  * SECURITY: Tokens are stored in-memory (module-scoped variables) instead of

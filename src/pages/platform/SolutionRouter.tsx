@@ -13,7 +13,7 @@ const SolutionRouter: React.FC = () => {
   const { code } = useParams<{ code: string }>();
   const navigate = useNavigate();
 
-  // Atlas F&A → page d'accueil dédiée
+  // Atlas FnA → page d'accueil dédiée
   if (code === 'atlas-fna') {
     return <AtlasFnAHome />;
   }

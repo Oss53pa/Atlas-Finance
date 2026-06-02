@@ -1,6 +1,6 @@
 /**
- * Atlas F&A Catalog — Complete inventory of all available
- * tables, dashboards, charts, and KPIs from Atlas F&A.
+ * Atlas FnA Catalog — Complete inventory of all available
+ * tables, dashboards, charts, and KPIs from Atlas FnA.
  *
  * This is the HEART of the Report Builder — section 6.3 of the CDC.
  * Users browse this catalog and drag elements into their report.

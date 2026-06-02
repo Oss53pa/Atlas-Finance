@@ -1,5 +1,5 @@
 /**
- * Atlas F&A Design System - Card Component
+ * Atlas FnA Design System - Card Component
  * Flexible card component for consistent layouts and content organization
  */
 

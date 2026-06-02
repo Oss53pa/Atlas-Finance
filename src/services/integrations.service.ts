@@ -1,5 +1,5 @@
 /**
- * Service Integrations Atlas F&A
+ * Service Integrations Atlas FnA
  * Intégrations bancaires et fiscales
  *
  * Fonctionnalités:

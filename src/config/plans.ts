@@ -1,5 +1,5 @@
 /**
- * Atlas F&A — Plan Configuration
+ * Atlas FnA — Plan Configuration
  * Two tiers: PME/TPE (starter) and Premium (pro)
  */
 

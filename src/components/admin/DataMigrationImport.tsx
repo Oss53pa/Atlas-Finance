@@ -153,7 +153,7 @@ const SOURCE_SYSTEMS = ['Sage', 'Ciel/Saari', 'EBP', 'Cegid', 'Odoo', 'FEC', 'Ex
  *   • Mode 3 (historique complet)   : Grand Livre + Tiers + Immos obligatoires
  *
  * Le Plan Comptable n'est plus demandé : il est embarqué nativement dans
- * Atlas F&A (src/data/syscohada-referentiel.ts — OHADA révisé 2017).
+ * Atlas FnA (src/data/syscohada-referentiel.ts — OHADA révisé 2017).
  */
 type FileConfig = {
   label: string;
@@ -1987,7 +1987,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
             <div aria-hidden style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: 'linear-gradient(90deg, transparent, var(--color-accent), transparent)', opacity: 0.55 }} />
             <div className="eyebrow-gold mb-2">Étape 1 · Mode de migration</div>
             <h2 className="font-medium" style={{ fontSize: '1.125rem', color: 'var(--color-text-primary)', letterSpacing: 0 }}>
-              À quelle date effectuez-vous la bascule vers <span className="atlas-brand" style={{ fontSize: '1.15em', color: 'var(--color-accent-deep)' }}>Atlas F&A</span> ?
+              À quelle date effectuez-vous la bascule vers <span className="atlas-brand" style={{ fontSize: '1.15em', color: 'var(--color-accent-deep)' }}>Atlas FnA</span> ?
             </h2>
             <p className="text-sm mt-1.5" style={{ color: 'var(--color-text-tertiary)' }}>
               Le mode détermine le périmètre des fichiers à importer et la stratégie de reprise comptable selon SYSCOHADA révisé 2017.
@@ -2163,7 +2163,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
 
             {migrationMode === 2 && (
               <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <p className="text-xs text-blue-800"><strong>Pourquoi la Balance et pas le Grand Livre ?</strong> La Balance condense tout en une seule ligne par compte (le solde final au 31/12/N-1). C'est exactement ce dont Atlas F&A a besoin pour ouvrir l'exercice N — ni plus, ni moins.</p>
+                <p className="text-xs text-blue-800"><strong>Pourquoi la Balance et pas le Grand Livre ?</strong> La Balance condense tout en une seule ligne par compte (le solde final au 31/12/N-1). C'est exactement ce dont Atlas FnA a besoin pour ouvrir l'exercice N — ni plus, ni moins.</p>
               </div>
             )}
             {migrationMode === 1 && (
@@ -2173,7 +2173,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
             )}
             {migrationMode === 3 && (
               <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-3">
-                <p className="text-xs text-red-800"><strong>Attention :</strong> Un fichier Grand Livre par exercice. Ne pas fusionner plusieurs exercices dans un seul fichier. Atlas F&A verifie la coherence inter-exercices : Bilan cloture N-3 = Bilan ouverture N-2, etc.</p>
+                <p className="text-xs text-red-800"><strong>Attention :</strong> Un fichier Grand Livre par exercice. Ne pas fusionner plusieurs exercices dans un seul fichier. Atlas FnA verifie la coherence inter-exercices : Bilan cloture N-3 = Bilan ouverture N-2, etc.</p>
               </div>
             )}
           </div>
@@ -2288,7 +2288,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
             <div className="flex items-start gap-3">
               <Download className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
               <div className="flex-1">
-                <p className="font-semibold text-amber-800 mb-1">Téléchargez les modèles Excel Atlas F&amp;A avant de préparer vos fichiers</p>
+                <p className="font-semibold text-amber-800 mb-1">Téléchargez les modèles Excel Atlas FnA avant de préparer vos fichiers</p>
                 <p className="text-xs text-amber-700 mb-3">Chaque modèle contient les colonnes exactes attendues + des exemples de données. Respectez le format pour éviter les erreurs de mapping.</p>
                 <div className="flex flex-wrap gap-2">
                   {availableFileKeys.map(key => {
@@ -2355,7 +2355,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
                             }
                           }}
                           className="text-xs text-red-600 hover:underline flex items-center gap-1 cursor-pointer"
-                          title="Télécharger le modèle Atlas F&A pré-rempli"
+                          title="Télécharger le modèle Atlas FnA pré-rempli"
                         >
                           <Download className="w-3 h-3" /> Télécharger le modèle
                         </button>
@@ -2850,7 +2850,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
             <div className="text-center space-y-4">
               <Play className="w-12 h-12 text-red-500 mx-auto" />
               <h2 className="text-xl font-semibold text-gray-900">Pret a importer</h2>
-              <p className="text-gray-500">L'import va creer les enregistrements dans votre base Atlas F&A.</p>
+              <p className="text-gray-500">L'import va creer les enregistrements dans votre base Atlas FnA.</p>
               <button onClick={runImport}
                 className="px-6 py-3 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition-colors"
               >

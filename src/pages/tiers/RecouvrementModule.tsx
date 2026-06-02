@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useData } from '../../contexts/DataContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
@@ -329,7 +330,7 @@ const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
             {/* Panel des intégrations en temps réel */}
             <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-[var(--color-primary)]">Flux de Données Atlas F&A</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-primary)]">Flux de Données Atlas FnA</h3>
                 <div className="flex items-center space-x-2 text-sm text-green-600">
                   <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                   <span>Synchronisation active</span>
@@ -462,75 +463,12 @@ const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
             {/* Performance par agent */}
             <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
               <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Performance par Agent de Recouvrement</h3>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Agent</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Dossiers assignés</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Recouvré</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Taux succès</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Délai moyen</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Performance</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    <tr>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <UserCircle className="w-8 h-8 text-gray-700 mr-3" />
-                          <div>
-                            <div className="text-sm font-medium text-gray-900">Marie Diallo</div>
-                            <div className="text-sm text-gray-700">Senior</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">15</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{formatCurrency(420000)}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                          89%
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">12j</td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="w-full bg-gray-200 rounded-full h-2 mr-2">
-                            <div className="bg-green-600 h-2 rounded-full" style={{width: '89%'}}></div>
-                          </div>
-                          <TrendingUp className="w-4 h-4 text-green-600" />
-                        </div>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <UserCircle className="w-8 h-8 text-gray-700 mr-3" />
-                          <div>
-                            <div className="text-sm font-medium text-gray-900">Jean Kouassi</div>
-                            <div className="text-sm text-gray-700">Junior</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">12</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{formatCurrency(280000)}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                          72%
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">18j</td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="w-full bg-gray-200 rounded-full h-2 mr-2">
-                            <div className="bg-yellow-600 h-2 rounded-full" style={{width: '72%'}}></div>
-                          </div>
-                          <TrendingDown className="w-4 h-4 text-yellow-600" />
-                        </div>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+              <div className="flex items-center justify-center py-8 text-sm text-gray-500">
+                <div className="text-center">
+                  <UserCircle className="w-10 h-10 text-gray-400 mx-auto mb-2" />
+                  <p>Aucune donnée de performance par agent disponible.</p>
+                  <p className="text-xs text-gray-400 mt-1">Configurez les agents dans les paramètres de recouvrement.</p>
+                </div>
               </div>
             </div>
 
@@ -538,24 +476,24 @@ const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
                 <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Évolution des Taux de Succès</h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={[
-                    { mois: 'Jan', marie: 85, jean: 68, equipe: 76 },
-                    { mois: 'Fév', marie: 87, jean: 70, equipe: 78 },
-                    { mois: 'Mar', marie: 89, jean: 72, equipe: 80 },
-                    { mois: 'Avr', marie: 88, jean: 71, equipe: 79 },
-                    { mois: 'Mai', marie: 90, jean: 74, equipe: 82 },
-                    { mois: 'Juin', marie: 89, jean: 72, equipe: 80 }
-                  ]}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="mois" />
-                    <YAxis />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="marie" stroke="#15803D" strokeWidth={2} name="Marie Diallo" />
-                    <Line type="monotone" dataKey="jean" stroke="#E89A2E" strokeWidth={2} name="Jean Kouassi" />
-                    <Line type="monotone" dataKey="equipe" stroke="#235A6E" strokeWidth={3} name="Moyenne équipe" />
-                  </LineChart>
-                </ResponsiveContainer>
+                {analyticsData.evolutionRecouvrement.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={analyticsData.evolutionRecouvrement.map(d => ({
+                      mois: d.mois,
+                      taux: d.creances > 0 ? Math.round((d.recouvre / d.creances) * 100) : 0
+                    }))}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="mois" />
+                      <YAxis domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
+                      <Tooltip formatter={(v) => `${v}%`} />
+                      <Line type="monotone" dataKey="taux" stroke="#235A6E" strokeWidth={3} name="Taux recouvrement %" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-[300px] text-sm text-gray-500">
+                    Données insuffisantes pour l'affichage
+                  </div>
+                )}
               </div>
 
               <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
@@ -611,14 +549,30 @@ const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
 
               <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
                 <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Répartition par Secteur</h3>
-                <div className="flex items-center justify-center h-[300px] text-sm text-gray-500">Données insuffisantes pour l'affichage</div>
+                <div className="flex items-center justify-center h-[300px] text-sm text-gray-500">
+                  Données sectorielles non disponibles — activez la classification sectorielle des tiers pour afficher ce graphique.
+                </div>
               </div>
             </div>
 
             {/* Ancienneté détaillée */}
             <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Ancienneté des Créances par Secteur</h3>
-              <div className="flex items-center justify-center h-[400px] text-sm text-gray-500">Données insuffisantes pour l'affichage</div>
+              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Ancienneté des Créances</h3>
+              {analyticsData.anciennete.length > 0 ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={analyticsData.anciennete}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="periode" />
+                    <YAxis tickFormatter={(value) => `${value / 1000}k`} />
+                    <Tooltip formatter={(value) => formatCurrency(value as number)} />
+                    <Bar dataKey="montant" fill="#235A6E" name="Montant" radius={[6,6,0,0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-[300px] text-sm text-gray-500">
+                  Aucune donnée d'ancienneté disponible.
+                </div>
+              )}
             </div>
           </div>
         );
@@ -629,7 +583,22 @@ const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
             {/* Tendances temporelles */}
             <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
               <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Tendances sur 12 mois</h3>
-              <div className="flex items-center justify-center h-[400px] text-sm text-gray-500">Données insuffisantes pour l'affichage</div>
+              {analyticsData.evolutionRecouvrement.length > 0 ? (
+                <ResponsiveContainer width="100%" height={400}>
+                  <AreaChart data={analyticsData.evolutionRecouvrement}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="mois" />
+                    <YAxis tickFormatter={(value) => `${value / 1000}k`} />
+                    <Tooltip formatter={(value) => formatCurrency(value as number)} />
+                    <Area type="monotone" dataKey="creances" stroke="#C0322B" fill="#C0322B" fillOpacity={0.3} name="Créances" />
+                    <Area type="monotone" dataKey="recouvre" stroke="#15803D" fill="#15803D" fillOpacity={0.6} name="Recouvré" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-[400px] text-sm text-gray-500">
+                  Aucune donnée d'évolution disponible pour le moment.
+                </div>
+              )}
             </div>
 
             {/* Analyse des cycles */}
@@ -1025,6 +994,7 @@ interface ContentieuxTabProps {
 const ContentieuxTab = ({ allJournalEntries, getStatutColor }: ContentieuxTabProps) => {
   const { t } = useLanguage();
   const { adapter } = useData();
+  const { user } = useAuth();
   const [contentieuxView, setContentieuxView] = useState('dashboard'); // dashboard, liste, detail, workflow, couts, execution
   const [selectedContentieux, setSelectedContentieux] = useState<DossierContentieux | null>(null);
   const [filterStatutContentieux, setFilterStatutContentieux] = useState('tous');
@@ -1155,7 +1125,13 @@ const ContentieuxTab = ({ allJournalEntries, getStatutColor }: ContentieuxTabPro
   // Correspondance Tab
   const [showNewMessageModal, setShowNewMessageModal] = useState(false);
   const [correspondanceFilter, setCorrespondanceFilter] = useState('all');
-  const [selectedCorrespondant, setSelectedCorrespondant] = useState(null);
+  const [selectedCorrespondant, setSelectedCorrespondant] = useState<{
+    sujet: string;
+    correspondant: string;
+    dateEnvoi: string;
+    message: string;
+    pieces: string[];
+  } | null>(null);
 
   // Execution Tab
   const [showNewMesureModal, setShowNewMesureModal] = useState(false);
@@ -1367,7 +1343,7 @@ const ContentieuxTab = ({ allJournalEntries, getStatutColor }: ContentieuxTabPro
       typeProcedure: dossier.typeProcedure,
       // Intervenants
       avocat: dossier.avocat || '',
-      avocatTel: dossier.avocatTel || '+242 06 XXX XX XX',
+      avocatTel: dossier.avocatTel || '',
       avocatEmail: dossier.avocatEmail || '',
       huissier: dossier.huissier || '',
       huissierTel: dossier.huissierTel || '',
@@ -1475,59 +1451,22 @@ const ContentieuxTab = ({ allJournalEntries, getStatutColor }: ContentieuxTabPro
     { id: 'resultats', label: 'Résultats', icon: Award }
   ];
 
-  // Données mock des dossiers d'exécution
-  const dossiersExecution = [
-    {
-      id: 'EXE-2024-001',
-      reference: 'EXE-2024-001',
-      client: 'SOCIETE ABIDJAN TRANSPORT',
-      typeExecution: 'Saisie-attribution',
-      montant: 4875000,
-      statut: 'En cours',
-      dateDebut: '2024-01-15',
-      huissier: 'Maître KOUAME',
-      datePrevisionnelle: '2024-02-15',
-      comptesSaisis: ['BNI-12345', 'SGCI-67890'],
-      montantSaisi: 2400000,
-      fraisHuissier: 125000
-    },
-    {
-      id: 'EXE-2024-002',
-      reference: 'EXE-2024-002',
-      client: 'GROUPE IVOIRIEN BATIMENT',
-      typeExecution: 'Saisie-vente',
-      montant: 13050000,
-      statut: 'Huissier mandaté',
-      dateDebut: '2024-01-20',
-      huissier: 'Maître DIABATE',
-      datePrevisionnelle: '2024-03-20',
-      biensSaisis: ['Véhicule Toyota Land Cruiser', 'Équipements de chantier'],
-      montantEstime: 8500000,
-      fraisHuissier: 350000
-    },
-    {
-      id: 'EXE-2024-003',
-      reference: 'EXE-2024-003',
-      client: 'COMMERCE GENERAL KOUASSI',
-      typeExecution: 'Saisie sur salaire',
-      montant: 3140000,
-      statut: 'Exécuté',
-      dateDebut: '2023-12-01',
-      dateFin: '2024-01-15',
-      employeur: 'MINISTERE DE LA CONSTRUCTION',
-      montantMensuel: 785000,
-      montantRecupere: 3140000,
-      fraisHuissier: 85000
-    }
-  ];
+  // Dossiers d'exécution — pas de modèle de données dédié (huissier, saisies).
+  // Vidé pour ne pas afficher de données fabriquées ; à brancher quand le
+  // modèle d'exécution forcée existera.
+  const dossiersExecution: any[] = [];
 
   // Dossiers contentieux — chargés depuis l'adaptateur
   const [dossiersContentieux, setDossiersContentieux] = useState<any[]>([]);
   useEffect(() => {
     adapter.getAll<any>('recoveryCases', { where: { statut: 'juridique' } })
       .then(setDossiersContentieux)
-      .catch(() => setDossiersContentieux([]));
-  }, []);
+      .catch((err) => {
+        console.error('[RecouvrementModule] Erreur chargement dossiers contentieux:', err);
+        toast.error('Impossible de charger les dossiers contentieux.');
+        setDossiersContentieux([]);
+      });
+  }, [adapter]);
 
   // Workflow de contentieux avec les étapes correctes
   const statutsContentieux = [
@@ -1683,7 +1622,7 @@ const ContentieuxTab = ({ allJournalEntries, getStatutColor }: ContentieuxTabPro
     const newCommentObj = {
       id: Date.now(),
       texte: commentText,
-      auteur: 'Utilisateur actuel',
+      auteur: user?.name || user?.email || 'Utilisateur',
       date: new Date().toISOString().split('T')[0]
     };
     setWorkflowData(prev => ({
@@ -4433,7 +4372,7 @@ const ContentieuxTab = ({ allJournalEntries, getStatutColor }: ContentieuxTabPro
         dateCreation: '2023-11-15',
         statut: 'final',
         taille: '458 KB',
-        auteur: 'Atlas F&A Auto',
+        auteur: 'Atlas FnA Auto',
         description: 'Facture N°FAC-2023-1156'
       },
       {
@@ -5846,55 +5785,24 @@ const ContentieuxTab = ({ allJournalEntries, getStatutColor }: ContentieuxTabPro
 
   function renderResultatsTab() {
 
-    const montantInitial = 2500000;
-    const montantRecouvert = 1875000;
-    const fraisTotaux = 450000;
-    const tauxRecouvrement = (montantRecouvert / montantInitial) * 100;
+    // Métriques dérivées des dossiers contentieux réels (statut juridique).
+    const montantInitial = dossiersContentieux.reduce((s: number, d: any) => s + Number(d.montantTotal || 0), 0);
+    const montantRecouvert = dossiersContentieux.reduce((s: number, d: any) => s + Number(d.montantPaye || 0), 0);
+    const fraisTotaux = dossiersContentieux.reduce((s: number, d: any) => s + Number(d.frais || 0), 0);
+    const tauxRecouvrement = montantInitial > 0 ? (montantRecouvert / montantInitial) * 100 : 0;
     const beneficeNet = montantRecouvert - fraisTotaux;
-    const rentabilite = (beneficeNet / fraisTotaux) * 100;
+    const rentabilite = fraisTotaux > 0 ? (beneficeNet / fraisTotaux) * 100 : 0;
 
-    const chronologieResultats = [
-      {
-        id: 1,
-        date: '2024-02-20',
-        type: 'recouvrement',
-        description: 'Paiement partiel suite saisie-attribution',
-        montant: 170000,
-        source: 'Banque Atlantique - Compte principal'
-      },
-      {
-        id: 2,
-        date: '2024-02-15',
-        type: 'recouvrement',
-        description: 'Recouvrement opposition administrative',
-        montant: 85000,
-        source: 'DGI - Remboursement TVA bloqué'
-      },
-      {
-        id: 3,
-        date: '2024-02-05',
-        type: 'recouvrement',
-        description: 'Saisie-attribution réussie',
-        montant: 45000,
-        source: 'UBA Bénin - Compte secondaire'
-      },
-      {
-        id: 4,
-        date: '2024-01-30',
-        type: 'paiement_volontaire',
-        description: 'Paiement suite mise en demeure',
-        montant: 750000,
-        source: 'Virement débiteur'
-      },
-      {
-        id: 5,
-        date: '2024-01-25',
-        type: 'paiement_volontaire',
-        description: 'Règlement partiel négocié',
-        montant: 825000,
-        source: 'Accord amiable'
-      }
-    ];
+    // Chronologie des recouvrements : pas de journal d'encaissements de
+    // recouvrement dédié → vide (pas de données fabriquées).
+    const chronologieResultats: Array<{
+      id: number | string;
+      date: string;
+      type: string;
+      description: string;
+      montant: number;
+      source: string;
+    }> = [];
 
     const analyseRentabilite = {
       montantInitial,
@@ -6018,6 +5926,9 @@ const ContentieuxTab = ({ allJournalEntries, getStatutColor }: ContentieuxTabPro
           <div className="bg-white rounded-lg border border-gray-200 p-6">
             <h4 className="text-lg font-semibold text-gray-900 mb-4">Chronologie des Recouvrements</h4>
             <div className="space-y-4">
+              {chronologieResultats.length === 0 && (
+                <p className="text-sm text-gray-500 py-6 text-center">Aucun encaissement de recouvrement enregistré.</p>
+              )}
               {chronologieResultats.map((item) => (
                 <div key={item.id} className="flex items-start space-x-4">
                   <div className="flex-shrink-0">
@@ -6072,7 +5983,7 @@ const ContentieuxTab = ({ allJournalEntries, getStatutColor }: ContentieuxTabPro
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm text-gray-600">Taux de frais</span>
                   <div className="flex items-center space-x-2">
-                    <span className="text-sm font-bold text-primary-600">{((fraisTotaux/montantInitial)*100).toFixed(1)}%</span>
+                    <span className="text-sm font-bold text-primary-600">{(montantInitial > 0 ? (fraisTotaux/montantInitial)*100 : 0).toFixed(1)}%</span>
                     <span className="text-xs text-gray-700">vs {comparaison.fraisisMoyens}% (marché)</span>
                   </div>
                 </div>
@@ -6102,11 +6013,11 @@ const ContentieuxTab = ({ allJournalEntries, getStatutColor }: ContentieuxTabPro
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">Paiements volontaires</span>
-                  <span className="text-sm font-medium">1,575,000 FCFA (84%)</span>
+                  <span className="text-sm font-medium text-gray-400">—</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">Mesures d'exécution</span>
-                  <span className="text-sm font-medium">300,000 FCFA (16%)</span>
+                  <span className="text-sm font-medium text-gray-400">—</span>
                 </div>
                 <div className="flex items-center justify-between pt-2 border-t border-gray-200">
                   <span className="text-sm font-semibold text-gray-900">Total recouvré</span>
@@ -7743,19 +7654,87 @@ Service Contentieux
   const { adapter } = useData();
   const [customerThirdParties, setCustomerThirdParties] = useState<any[]>([]);
   const [allJournalEntries, setAllJournalEntries] = useState<any[]>([]);
+  const [recoveryCases, setRecoveryCases] = useState<any[]>([]);
 
   useEffect(() => {
     const load = async () => {
-      const [tps, entries] = await Promise.all([
+      const [tps, entries, cases] = await Promise.all([
         adapter.getAll('thirdParties'),
         adapter.getAll('journalEntries'),
+        adapter.getAll('recoveryCases').catch(() => []),
       ]);
       const allTps = tps as Record<string, unknown>[];
       setCustomerThirdParties(allTps.filter(tp => tp.type === 'customer' || tp.type === 'both'));
       setAllJournalEntries(entries as Record<string, unknown>[]);
+      setRecoveryCases(cases as Record<string, unknown>[]);
     };
     load();
   }, [adapter]);
+
+  // Plans de remboursement — dérivés des dossiers de recouvrement réels (recoveryCases).
+  // Les champs sans source réelle (échéancier mensuel) restent volontairement vides.
+  const repaymentPlans = useMemo(() => {
+    return recoveryCases
+      .filter((c: any) => Number(c.montantTotal || 0) > 0)
+      .map((c: any) => {
+        const montantTotal = Number(c.montantTotal || 0);
+        const montantPaye = Number(c.montantPaye || 0);
+        const montantRestant = Math.max(0, montantTotal - montantPaye);
+        const progression = montantTotal > 0 ? Math.round((montantPaye / montantTotal) * 100) : 0;
+        const statut = progression >= 100 ? 'Respecté' : progression > 0 ? 'Partiel' : 'En retard';
+        return {
+          id: c.id,
+          reference: c.numeroRef || c.id,
+          client: c.clientName || c.client || '—',
+          montantTotal,
+          montantPaye,
+          montantRestant,
+          progression,
+          statut,
+          // Champs sans source réelle (échéancier) — défauts sûrs pour les modals
+          mensualite: 0,
+          echeancesPayees: 0,
+          prochaineEcheance: '',
+        };
+      });
+  }, [recoveryCases]);
+
+  const repaymentKpis = useMemo(() => {
+    const actifs = repaymentPlans.filter(p => p.statut !== 'Respecté').length;
+    const respectes = repaymentPlans.filter(p => p.statut === 'Respecté').length;
+    const enRetard = repaymentPlans.filter(p => p.statut === 'En retard').length;
+    const montantTotal = repaymentPlans.reduce((s, p) => s + p.montantRestant, 0);
+    const tauxRespect = repaymentPlans.length > 0
+      ? Math.round((respectes / repaymentPlans.length) * 100)
+      : 0;
+    return { actifs, enRetard, montantTotal, tauxRespect };
+  }, [repaymentPlans]);
+
+  // Historique des relances — dérivé des actions réelles des dossiers (recoveryCases.actions).
+  const relancesData = useMemo(() => {
+    return recoveryCases
+      .filter((c: any) => Array.isArray(c.actions) && c.actions.length > 0)
+      .map((c: any) => {
+        const actions = (c.actions as any[]);
+        const sorted = [...actions].sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+        const reponses = actions.filter(a => a.reponse || a.resultat).length;
+        return {
+          client: c.clientName || c.client || '—',
+          nombreRelances: actions.length,
+          derniereRelance: sorted[0]?.date || '',
+          montantTotal: Math.max(0, Number(c.montantTotal || 0) - Number(c.montantPaye || 0)),
+          statut: c.statut === 'juridique' ? 'Critique' : c.statut === 'suspendu' ? 'En attente' : 'En cours',
+          tauxReponse: actions.length > 0 ? Math.round((reponses / actions.length) * 100) : 0,
+          relances: sorted.map(a => ({
+            date: a.date || '',
+            type: a.type || 'Email',
+            objet: a.resultat || a.notes || '',
+            statut: 'Envoyé',
+            reponse: Boolean(a.reponse),
+          })),
+        };
+      });
+  }, [recoveryCases]);
 
   // Build receivables per customer from recouvrement journal lines (411xxx + 42x + selected 43x/44x/46x/47x)
   const mockCreances = useMemo(() => {
@@ -8179,7 +8158,7 @@ Service Contentieux
     };
   }, [mockCreances, allJournalEntries]);
 
-  // Données d'intégration Atlas F&A - Flux entrants (derived from Dexie)
+  // Données d'intégration Atlas FnA - Flux entrants (derived from Dexie)
   const integrationData = useMemo(() => {
     const today = new Date();
     // Build unpaid invoices from 411xxx debit lines
@@ -9011,52 +8990,12 @@ Service Contentieux
             </div>
 
             <div className="divide-y divide-[var(--color-border)]">
-              {[
-                {
-                  client: 'SARL CONGO BUSINESS',
-                  nombreRelances: 12,
-                  derniereRelance: '20/01/2025',
-                  montantTotal: 485000,
-                  statut: 'En cours',
-                  tauxReponse: 75,
-                  relances: [
-                    { date: '20/01/2025', type: 'Email', objet: 'Rappel: Facture FAC-2024-089 en retard', statut: 'Envoyé', reponse: false },
-                    { date: '15/01/2025', type: 'Appel', objet: 'Relance téléphonique', statut: 'Complété', reponse: true },
-                    { date: '10/01/2025', type: 'SMS', objet: 'Rappel automatique', statut: 'Envoyé', reponse: false },
-                    { date: '05/01/2025', type: 'Courrier', objet: 'Mise en demeure', statut: 'Envoyé', reponse: true },
-                    { date: '28/12/2024', type: 'Email', objet: 'Première relance', statut: 'Envoyé', reponse: true }
-                  ]
-                },
-                {
-                  client: 'ENTREPRISE MBOTE',
-                  nombreRelances: 8,
-                  derniereRelance: '19/01/2025',
-                  montantTotal: 325000,
-                  statut: 'En attente',
-                  tauxReponse: 50,
-                  relances: [
-                    { date: '19/01/2025', type: 'Email', objet: 'Relance: 3 factures impayées', statut: 'Envoyé', reponse: false },
-                    { date: '12/01/2025', type: 'Appel', objet: 'Contact commercial', statut: 'Complété', reponse: true },
-                    { date: '08/01/2025', type: 'Email', objet: 'Rappel échéance', statut: 'Envoyé', reponse: false },
-                    { date: '02/01/2025', type: 'SMS', objet: 'Notification automatique', statut: 'Envoyé', reponse: true }
-                  ]
-                },
-                {
-                  client: 'SOCIETE MAKASI',
-                  nombreRelances: 15,
-                  derniereRelance: '21/01/2025',
-                  montantTotal: 875000,
-                  statut: 'Critique',
-                  tauxReponse: 20,
-                  relances: [
-                    { date: '21/01/2025', type: 'Huissier', objet: 'Signification commandement', statut: 'En cours', reponse: false },
-                    { date: '18/01/2025', type: 'Courrier AR', objet: 'Dernière mise en demeure', statut: 'Reçu', reponse: false },
-                    { date: '14/01/2025', type: 'Appel', objet: 'Tentative négociation', statut: 'Sans réponse', reponse: false },
-                    { date: '10/01/2025', type: 'Email', objet: 'Mise en demeure', statut: 'Lu', reponse: false },
-                    { date: '05/01/2025', type: 'Courrier', objet: 'Relance formelle', statut: 'Envoyé', reponse: false }
-                  ]
-                }
-              ].map((clientData, index) => (
+              {relancesData.length === 0 && (
+                <div className="p-8 text-center text-gray-500 text-sm">
+                  Aucune relance enregistrée. Les relances apparaissent ici dès qu'une action est ajoutée à un dossier de recouvrement.
+                </div>
+              )}
+              {relancesData.map((clientData, index) => (
                 <div key={index} className="p-4">
                   <div
                     className="flex items-center justify-between cursor-pointer hover:bg-gray-50 p-2 rounded-lg"
@@ -9735,14 +9674,14 @@ Service Contentieux
                                   <p style={{ fontSize: '14px', color: '#333' }}>
                                     Cordialement,<br/>
                                     <strong>{selectedTemplateType === 'mise_demeure' || selectedTemplateType === 'pre_contentieux' ? 'Service Juridique et Contentieux' : 'Service Comptabilité'}</strong><br/>
-                                    Atlas F&A
+                                    Atlas FnA
                                   </p>
                                 </div>
                               </div>
 
                               {/* Pied de page */}
                               <div style={{ backgroundColor: 'var(--color-background)', padding: '20px', borderTop: '1px solid #e5e5e5', fontSize: '11px', color: '#666' }}>
-                                <p style={{ margin: '5px 0', fontWeight: 'bold' }}><span className="atlas-brand">Atlas F&A</span> - Solutions de gestion d'entreprise</p>
+                                <p style={{ margin: '5px 0', fontWeight: 'bold' }}><span className="atlas-brand">Atlas FnA</span> - Solutions de gestion d'entreprise</p>
                                 <p style={{ margin: '5px 0' }}>123 Avenue de la République, Brazzaville, Congo</p>
                                 <p style={{ margin: '5px 0' }}>+242 06 XXX XX XX | contact@atlasfna.com | www.atlasfna.com</p>
                                 <p style={{ margin: '10px 0 5px 0', fontSize: '10px', color: '#999' }}>
@@ -12887,31 +12826,26 @@ Service Contentieux
             </div>
 
             {/* KPIs globaux */}
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="bg-blue-50 rounded-lg p-4">
                 <div className="text-sm text-blue-600 font-medium">Plans Actifs</div>
-                <div className="text-lg font-bold text-blue-900">12</div>
+                <div className="text-lg font-bold text-blue-900">{repaymentKpis.actifs}</div>
                 <div className="text-xs text-blue-600 mt-1">{t('status.inProgress')}</div>
               </div>
               <div className="bg-green-50 rounded-lg p-4">
                 <div className="text-sm text-green-600 font-medium">Taux de Respect</div>
-                <div className="text-lg font-bold text-green-900">78%</div>
-                <div className="text-xs text-green-600 mt-1">Paiements à temps</div>
+                <div className="text-lg font-bold text-green-900">{repaymentKpis.tauxRespect}%</div>
+                <div className="text-xs text-green-600 mt-1">Plans soldés</div>
               </div>
               <div className="bg-orange-50 rounded-lg p-4">
-                <div className="text-sm text-orange-600 font-medium">Montant Total</div>
-                <div className="text-lg font-bold text-orange-900">485,000 FCFA</div>
+                <div className="text-sm text-orange-600 font-medium">Montant Restant</div>
+                <div className="text-lg font-bold text-orange-900">{formatCurrency(repaymentKpis.montantTotal)}</div>
                 <div className="text-xs text-orange-600 mt-1">Sous plan</div>
               </div>
               <div className="bg-red-50 rounded-lg p-4">
                 <div className="text-sm text-red-600 font-medium">En Retard</div>
-                <div className="text-lg font-bold text-red-900">3</div>
-                <div className="text-xs text-red-600 mt-1">Plans non respectés</div>
-              </div>
-              <div className="bg-primary-50 rounded-lg p-4">
-                <div className="text-sm text-primary-600 font-medium">À Échéance</div>
-                <div className="text-lg font-bold text-primary-900">5</div>
-                <div className="text-xs text-primary-600 mt-1">Cette semaine</div>
+                <div className="text-lg font-bold text-red-900">{repaymentKpis.enRetard}</div>
+                <div className="text-xs text-red-600 mt-1">Aucun paiement</div>
               </div>
             </div>
           </div>
@@ -12972,69 +12906,15 @@ Service Contentieux
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {[
-                  {
-                    reference: 'PLN-2024-001',
-                    client: 'SARL Congo Commerce',
-                    montantTotal: 45000,
-                    mensualite: 7500,
-                    echeancesPayees: '4/6',
-                    progression: 67,
-                    prochaineEcheance: '2024-04-30',
-                    statut: 'Respecté',
-                    montantPaye: 30000,
-                    montantRestant: 15000
-                  },
-                  {
-                    reference: 'PLN-2024-002',
-                    client: 'Entreprise Ndoki',
-                    montantTotal: 120000,
-                    mensualite: 10000,
-                    echeancesPayees: '2/12',
-                    progression: 17,
-                    prochaineEcheance: '2024-04-15',
-                    statut: 'En retard',
-                    montantPaye: 20000,
-                    montantRestant: 100000
-                  },
-                  {
-                    reference: 'PLN-2024-003',
-                    client: 'Société Brazza Tech',
-                    montantTotal: 60000,
-                    mensualite: 5000,
-                    echeancesPayees: '5/12',
-                    progression: 42,
-                    prochaineEcheance: '2024-04-25',
-                    statut: 'Respecté',
-                    montantPaye: 25000,
-                    montantRestant: 35000
-                  },
-                  {
-                    reference: 'PLN-2024-004',
-                    client: 'Commerce Likouala',
-                    montantTotal: 35000,
-                    mensualite: 8750,
-                    echeancesPayees: '1/4',
-                    progression: 25,
-                    prochaineEcheance: '2024-04-10',
-                    statut: 'Partiel',
-                    montantPaye: 8750,
-                    montantRestant: 26250
-                  },
-                  {
-                    reference: 'PLN-2024-005',
-                    client: 'Import Export Congo',
-                    montantTotal: 90000,
-                    mensualite: 15000,
-                    echeancesPayees: '3/6',
-                    progression: 50,
-                    prochaineEcheance: '2024-05-01',
-                    statut: 'Respecté',
-                    montantPaye: 45000,
-                    montantRestant: 45000
-                  }
-                ].map((plan, index) => (
-                  <tr key={index} className="hover:bg-gray-50">
+                {repaymentPlans.length === 0 && (
+                  <tr>
+                    <td colSpan={9} className="px-6 py-10 text-center text-gray-500">
+                      Aucun plan de remboursement. Les plans sont créés depuis les dossiers de recouvrement.
+                    </td>
+                  </tr>
+                )}
+                {repaymentPlans.map((plan, index) => (
+                  <tr key={plan.id || index} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-blue-600">
                         {plan.reference}
@@ -13054,14 +12934,10 @@ Service Contentieux
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-green-600">
-                        {formatCurrency(plan.mensualite)}
-                      </div>
+                      <div className="text-sm font-medium text-gray-400">—</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
-                        {plan.echeancesPayees}
-                      </div>
+                      <div className="text-sm font-medium text-gray-400">—</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="w-full">
@@ -13082,12 +12958,7 @@ Service Contentieux
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        {new Date(plan.prochaineEcheance).toLocaleDateString()}
-                      </div>
-                      <div className="text-xs text-gray-700">
-                        Dans {Math.ceil((new Date(plan.prochaineEcheance).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} jours
-                      </div>
+                      <div className="text-sm text-gray-400">—</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
@@ -13139,53 +13010,49 @@ Service Contentieux
             </table>
           </div>
 
-          {/* Alerte pour les échéances proches */}
-          <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <div className="flex items-start">
-              <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5" />
-              <div className="ml-3">
-                <h4 className="text-sm font-semibold text-yellow-800">Échéances cette semaine</h4>
-                <p className="text-sm text-yellow-700 mt-1">
-                  5 plans ont des échéances dans les 7 prochains jours. Pensez à relancer les clients concernés.
-                </p>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                    PLN-2024-002 - 15/04
-                  </span>
-                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                    PLN-2024-004 - 10/04
-                  </span>
-                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                    PLN-2024-007 - 12/04
-                  </span>
+          {/* Alerte pour les plans en retard (aucun paiement enregistré) */}
+          {repaymentPlans.some(p => p.statut === 'En retard') && (
+            <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <div className="flex items-start">
+                <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5" />
+                <div className="ml-3">
+                  <h4 className="text-sm font-semibold text-yellow-800">Plans en retard</h4>
+                  <p className="text-sm text-yellow-700 mt-1">
+                    {repaymentPlans.filter(p => p.statut === 'En retard').length} plan(s) sans aucun paiement enregistré. Pensez à relancer les clients concernés.
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {repaymentPlans.filter(p => p.statut === 'En retard').map(p => (
+                      <span key={p.id} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                        {p.reference} — {p.client}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          )}
 
-          {/* Graphique de suivi mensuel */}
-          <div className="mt-6 bg-white rounded-lg shadow p-6">
-            <h4 className="text-lg font-semibold text-gray-900 mb-4">Évolution du Respect des Plans</h4>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={[
-                  { mois: 'Jan', respectes: 8, enRetard: 2, total: 10 },
-                  { mois: 'Fév', respectes: 9, enRetard: 3, total: 12 },
-                  { mois: 'Mar', respectes: 10, enRetard: 3, total: 13 },
-                  { mois: 'Avr', respectes: 9, enRetard: 3, total: 12 }
-                ]}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="mois" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line type="monotone" dataKey="total" stroke="#235A6E" name="Total Plans" strokeWidth={2} />
-                  <Line type="monotone" dataKey="respectes" stroke="#15803D" name="Respectés" strokeWidth={2} />
-                  <Line type="monotone" dataKey="enRetard" stroke="#C0322B" name="En Retard" strokeWidth={2} />
-                </LineChart>
-              </ResponsiveContainer>
+          {/* Suivi du respect des plans — instantané réel (l'évolution mensuelle nécessite un historique non encore tracé) */}
+          {repaymentPlans.length > 0 && (
+            <div className="mt-6 bg-white rounded-lg shadow p-6">
+              <h4 className="text-lg font-semibold text-gray-900 mb-4">Respect des Plans</h4>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={[
+                    { statut: 'Respectés', count: repaymentPlans.filter(p => p.statut === 'Respecté').length },
+                    { statut: 'Partiels', count: repaymentPlans.filter(p => p.statut === 'Partiel').length },
+                    { statut: 'En retard', count: repaymentPlans.filter(p => p.statut === 'En retard').length },
+                  ]}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="statut" />
+                    <YAxis allowDecimals={false} />
+                    <Tooltip />
+                    <Bar dataKey="count" name="Plans" fill="#235A6E" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       )}
 
@@ -14562,11 +14429,11 @@ Service Contentieux
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Mensualité:</span>
-                      <span className="font-medium">{formatCurrency(selectedPlan.mensualite)}</span>
+                      <span className="font-medium">{selectedPlan.mensualite > 0 ? formatCurrency(selectedPlan.mensualite) : '—'}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Durée:</span>
-                      <span className="font-medium">{Math.round(selectedPlan.montantTotal / selectedPlan.mensualite)} mois</span>
+                      <span className="font-medium">{selectedPlan.mensualite > 0 ? `${Math.round(selectedPlan.montantTotal / selectedPlan.mensualite)} mois` : '—'}</span>
                     </div>
                   </div>
                 </div>
@@ -14611,7 +14478,14 @@ Service Contentieux
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {Array.from({ length: Math.round(selectedPlan.montantTotal / selectedPlan.mensualite) }, (_, i) => {
+                      {selectedPlan.mensualite <= 0 && (
+                        <tr>
+                          <td colSpan={5} className="px-4 py-8 text-center text-gray-500 text-sm">
+                            Échéancier non défini pour ce dossier.
+                          </td>
+                        </tr>
+                      )}
+                      {selectedPlan.mensualite > 0 && Array.from({ length: Math.round(selectedPlan.montantTotal / selectedPlan.mensualite) }, (_, i) => {
                         const echeanceDate = new Date();
                         echeanceDate.setMonth(echeanceDate.getMonth() + i);
                         const isPaid = i < selectedPlan.echeancesPayees;
@@ -14708,11 +14582,11 @@ Service Contentieux
                   </div>
                   <div>
                     <span className="text-gray-600">Mensualité:</span>
-                    <div className="font-medium">{formatCurrency(selectedPlan.mensualite)}</div>
+                    <div className="font-medium">{selectedPlan.mensualite > 0 ? formatCurrency(selectedPlan.mensualite) : '—'}</div>
                   </div>
                   <div>
                     <span className="text-gray-600">Prochaine échéance:</span>
-                    <div className="font-medium">{new Date(selectedPlan.prochaineEcheance).toLocaleDateString()}</div>
+                    <div className="font-medium">{selectedPlan.prochaineEcheance ? new Date(selectedPlan.prochaineEcheance).toLocaleDateString() : '—'}</div>
                   </div>
                 </div>
               </div>
@@ -14859,11 +14733,11 @@ Service Contentieux
                   </div>
                   <div>
                     <span className="text-gray-600">Prochaine échéance:</span>
-                    <div className="font-medium">{new Date(selectedPlan.prochaineEcheance).toLocaleDateString()}</div>
+                    <div className="font-medium">{selectedPlan.prochaineEcheance ? new Date(selectedPlan.prochaineEcheance).toLocaleDateString() : '—'}</div>
                   </div>
                   <div>
                     <span className="text-gray-600">Montant attendu:</span>
-                    <div className="font-medium">{formatCurrency(selectedPlan.mensualite)}</div>
+                    <div className="font-medium">{selectedPlan.mensualite > 0 ? formatCurrency(selectedPlan.mensualite) : '—'}</div>
                   </div>
                   <div>
                     <span className="text-gray-600">Retard:</span>

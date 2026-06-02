@@ -65,7 +65,7 @@ const DemoModal: React.FC<DemoModalProps> = ({ isOpen, onClose, initialSolution 
 
   const demos = (INTERACTIVE_DEMOS as Record<string, typeof INTERACTIVE_DEMOS['atlas-fna']>)[solution] || INTERACTIVE_DEMOS['atlas-fna'];
   const tutorials = (TUTORIALS as Record<string, typeof TUTORIALS['atlas-fna']>)[solution] || TUTORIALS['atlas-fna'];
-  const solutionLabel = solution === 'atlas-fna' ? 'Atlas F&A' : solution === 'liass-pilot' ? "Liass'Pilot" : 'DocJourney';
+  const solutionLabel = solution === 'atlas-fna' ? 'Atlas FnA' : solution === 'liass-pilot' ? "Liass'Pilot" : 'DocJourney';
 
   const goBack = () => { setView('menu'); setTutoStep(0); };
 
@@ -96,7 +96,7 @@ const DemoModal: React.FC<DemoModalProps> = ({ isOpen, onClose, initialSolution 
             {/* Solution tabs */}
             <div className="px-5 pt-4 flex gap-2">
               {[
-                { id: 'atlas-fna', label: 'Atlas F&A' },
+                { id: 'atlas-fna', label: 'Atlas FnA' },
                 { id: 'liass-pilot', label: "Liass'Pilot" },
                 { id: 'doc-journey', label: 'DocJourney' },
               ].map(s => (

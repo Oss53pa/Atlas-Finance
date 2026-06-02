@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react'; // Palette Atlas F&A appliquée
+import React, { useState, useMemo } from 'react'; // Palette Atlas FnA appliquée
 import type { DBAsset } from '../../lib/db';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';

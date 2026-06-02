@@ -1145,7 +1145,7 @@ const AdvancedBalance: React.FC = () => {
               {/* Pied de page */}
               <div className="mt-8 pt-4 border-t border-[var(--color-border)] flex justify-between items-center text-xs text-[var(--color-primary)]/50">
                 <div>
-                  <p><span className="atlas-brand">Atlas F&A</span> - Balance Générale</p>
+                  <p><span className="atlas-brand">Atlas FnA</span> - Balance Générale</p>
                   <p>Système conforme SYSCOHADA</p>
                 </div>
                 <div className="text-right">

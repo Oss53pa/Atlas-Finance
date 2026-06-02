@@ -2675,7 +2675,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                       <BookOpen className="w-10 h-10 text-white" />
                     </div>
                     <div>
-                      <h2 className="text-lg font-bold text-gray-900"><span className="atlas-brand">Atlas F&A Enterprise</span></h2>
+                      <h2 className="text-lg font-bold text-gray-900"><span className="atlas-brand">Atlas FnA Enterprise</span></h2>
                       <p className="text-sm text-gray-600">123 Business Avenue</p>
                       <p className="text-sm text-gray-600">New York, NY 10001</p>
                       <p className="text-sm text-gray-600">Tel: +1 (555) 123-4567</p>
@@ -2895,8 +2895,8 @@ const AdvancedGeneralLedger: React.FC = () => {
                 {/* Bottom bar */}
                 <div className="mt-6 pt-3 border-t border-gray-400 flex justify-between items-center text-xs text-gray-700">
                   <div>
-                    <p className="font-semibold"><span className="atlas-brand">Atlas F&A</span> Enterprise ERP System</p>
-                    <p>Version 2.0 | Licensed to: Atlas F&A Corporation</p>
+                    <p className="font-semibold"><span className="atlas-brand">Atlas FnA</span> Enterprise ERP System</p>
+                    <p>Version 2.0 | Licensed to: Atlas FnA Corporation</p>
                   </div>
                   <div className="text-center">
                     <p>Page 1 of 1</p>

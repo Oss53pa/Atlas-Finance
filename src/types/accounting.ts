@@ -1,5 +1,5 @@
 /**
- * Types comptables Atlas F&A
+ * Types comptables Atlas FnA
  * Importés depuis les types partagés backend
  */
 

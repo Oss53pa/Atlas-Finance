@@ -365,7 +365,7 @@ const AssetsSummary: React.FC = () => {
 
     // Titre
     pdf.setFontSize(20);
-    pdf.text('Synthèse des Actifs - Atlas F&A', pageWidth / 2, yPos, { align: 'center' });
+    pdf.text('Synthèse des Actifs - Atlas FnA', pageWidth / 2, yPos, { align: 'center' });
     yPos += 20;
 
     // Date

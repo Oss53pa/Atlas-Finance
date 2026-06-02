@@ -134,7 +134,7 @@ const APIIntegrationsPage: React.FC = () => {
         status: log.statusCode || 200,
         duration: log.duration ? `${log.duration}ms` : '-',
         ip: log.ip || '-',
-        userAgent: log.userAgent || log.source || 'Atlas F&A',
+        userAgent: log.userAgent || log.source || 'Atlas FnA',
         error: log.error || undefined,
       }));
       setApiLogs(mapped);

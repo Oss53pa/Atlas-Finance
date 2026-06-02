@@ -1,5 +1,5 @@
 /**
- * ImportTemplatesCatalogPage — Catalogue complet des modèles d'import Atlas F&A.
+ * ImportTemplatesCatalogPage — Catalogue complet des modèles d'import Atlas FnA.
  *
  * Fonctionnalités :
  *   • Grille de cartes pour tous les templates du catalogue
@@ -146,7 +146,7 @@ const ImportTemplatesCatalogPage: React.FC = () => {
           </div>
           <div>
             <h1 className="text-xl font-bold text-neutral-900">
-              Modèles d'import Atlas F&amp;A
+              Modèles d'import Atlas FnA
             </h1>
             <p className="text-sm text-neutral-600">
               {ATLAS_IMPORT_TEMPLATES.length} modèles SYSCOHADA prêts à l'emploi — paramétrage, comptabilité, tiers, immobilisations, trésorerie, stocks

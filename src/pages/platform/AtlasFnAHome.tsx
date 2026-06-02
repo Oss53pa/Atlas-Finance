@@ -1,5 +1,5 @@
 /**
- * AtlasFnAHome — Cockpit R&C-grade dashboard d'accueil Atlas F&A.
+ * AtlasFnAHome — Cockpit R&C-grade dashboard d'accueil Atlas FnA.
  * Composition strict du référent : top bar contexte, hero wordmark centré,
  * 4 KPI strip avec sparklines, AI insight 2/3 + 6 mini-metrics stack 1/3,
  * progress exercise + carte Assistant IA, footer signature.
@@ -79,6 +79,7 @@ const AtlasFnAHome: React.FC = () => {
   const [stats, setStats] = useState({
     ecritures: 0, comptes: 0, tiers: 0, immobilisations: 0, exercice: '—',
   });
+  const [resolvedCompany, setResolvedCompany] = useState<string>('');
 
   useEffect(() => {
     const loadStats = async () => {
@@ -103,9 +104,36 @@ const AtlasFnAHome: React.FC = () => {
     return () => clearTimeout(t);
   }, [adapter]);
 
+  // ─── Nom entreprise : source canonique = setting admin_company_legal ───
+  useEffect(() => {
+    let cancelled = false;
+    const resolveCompanyName = async () => {
+      // 1) Source canonique : admin_company_legal (toujours écrit, saas + local)
+      try {
+        const legalRow = await adapter.getById<any>('settings', 'admin_company_legal');
+        const raison = legalRow?.value
+          ? JSON.parse(legalRow.value)?.raisonSociale
+          : undefined;
+        if (raison && !cancelled) { setResolvedCompany(raison); return; }
+      } catch { /* repli ci-dessous */ }
+      // 2) Repli : ligne societes/companies (raison_sociale)
+      try {
+        const companies = await adapter.getAll<any>('companies');
+        if (companies && companies.length > 0 && !cancelled) {
+          const c = companies[0];
+          const name = c.raison_sociale || c.name || c.nom || c.company_name || '';
+          if (name) setResolvedCompany(name);
+        }
+      } catch { /* silencieux */ }
+    };
+    resolveCompanyName();
+    const t = setTimeout(resolveCompanyName, 1500);
+    return () => { cancelled = true; clearTimeout(t); };
+  }, [adapter]);
+
   // ─── User context ───
   const firstName = user?.first_name || user?.name?.split(' ')[0] || 'Bienvenue';
-  const companyName = user?.company || 'Mon entreprise';
+  const companyName = resolvedCompany || user?.company || 'Mon entreprise';
   const workspacePath = getWorkspacePath(user?.role || '');
   const period = useMemo(() => new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }).replace(/^\w/, c => c.toUpperCase()), []);
 
@@ -365,7 +393,7 @@ const AtlasFnAHome: React.FC = () => {
                 letterSpacing: 'normal',
               }}
             >
-              F&A
+              FnA
             </span>
           </h1>
           <p
@@ -378,7 +406,7 @@ const AtlasFnAHome: React.FC = () => {
               letterSpacing: '-0.005em',
             }}
           >
-            Pilotage intégral du cycle <strong style={{ color: 'var(--color-text-primary)', fontWeight: 600 }}>Order-to-Cash</strong>, du recouvrement amiable et du contentieux <strong style={{ color: 'var(--color-text-primary)', fontWeight: 600 }}>OHADA · SYSCOHADA</strong>. Données 100 % en temps réel.
+            Pilotage intégral de votre <strong style={{ color: 'var(--color-text-primary)', fontWeight: 600 }}>comptabilité</strong> — du plan comptable aux <strong style={{ color: 'var(--color-text-primary)', fontWeight: 600 }}>états financiers</strong>, en conformité <strong style={{ color: 'var(--color-text-primary)', fontWeight: 600 }}>OHADA · SYSCOHADA</strong>. Données 100 % en temps réel.
           </p>
         </section>
 
@@ -450,7 +478,7 @@ const AtlasFnAHome: React.FC = () => {
                 >
                   {stats.ecritures > 0
                     ? <>Aucune anomalie détectée sur les <span className="num-tabular">{stats.ecritures.toLocaleString('fr-FR')}</span> écritures de l'exercice <span className="num-tabular">{stats.exercice}</span>.</>
-                    : <>Bienvenue dans votre espace <span className="brand-script" style={{ fontSize: '1.1em', color: 'var(--color-accent-deep)', letterSpacing: 'normal' }}>Atlas&nbsp;F&amp;A</span> — prêt pour la première saisie.</>
+                    : <>Bienvenue dans votre espace <span className="brand-script" style={{ fontSize: '1.1em', color: 'var(--color-accent-deep)', letterSpacing: 'normal' }}>Atlas&nbsp;FnA</span> — prêt pour la première saisie.</>
                   }
                 </h3>
                 <p className="mt-2 text-sm" style={{ color: 'var(--color-text-tertiary)', lineHeight: 1.65 }}>
