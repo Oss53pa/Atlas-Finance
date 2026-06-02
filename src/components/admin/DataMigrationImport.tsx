@@ -417,6 +417,8 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
 
   // Step navigation
   const [currentStep, setCurrentStep] = useState<StepId>('mode');
+  /** Vrai pendant l'action asynchrone d'un passage d'étape (analyse, simulation…). */
+  const [navBusy, setNavBusy] = useState(false);
   const stepIndex = STEPS.findIndex(s => s.id === currentStep);
 
   // Step 1 state
@@ -882,7 +884,15 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
     //    Détecte notamment le cas : GL complet importé en session 1 puis GL Tiers en session 2.
     if (ecrituresData.length > 0) {
       try {
-        const existingEntries = await adapter.getAll<any>('journalEntries');
+        // Garde-fou : en SaaS, lire TOUTES les écritures peut être lent. On borne
+        // l'attente à 8 s — au-delà, on saute le contrôle anti-doublon inter-session
+        // plutôt que de figer le passage à l'étape « Analyse ».
+        const existingEntries = await Promise.race([
+          adapter.getAll<any>('journalEntries'),
+          new Promise<any[]>((_, reject) =>
+            setTimeout(() => reject(new Error('timeout lecture écritures existantes')), 8000)
+          ),
+        ]);
         if (existingEntries.length > 0) {
           // Construire un set des numéros de pièce existants
           const existingNums = new Set(existingEntries.map((e: any) =>
@@ -1863,14 +1873,30 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       case 'simulation': return simulation?.balanced ?? false;
       default: return false;
     }
-  }, [currentStep, sourceSystem, uploadedFiles, analysisReport, mappings, params, simulation]);
+  }, [currentStep, migrationMode, sourceSystem, uploadedFiles, analysisReport, mappings, params, simulation]);
 
   const goNext = async () => {
-    if (currentStep === 'upload') await runAnalysis();
-    if (currentStep === 'analysis') initMappings();
-    if (currentStep === 'parameters') runSimulation();
-    const next = STEPS[stepIndex + 1];
-    if (next) setCurrentStep(next.id);
+    if (navBusy) return;
+    setNavBusy(true);
+    try {
+      // Les actions pré-étape (analyse, init mapping, simulation) peuvent être
+      // longues (SaaS : lecture des écritures existantes) ou échouer sur des
+      // données atypiques. On les exécute SOUS contrôle pour ne JAMAIS laisser
+      // le bouton « Suivant » sans effet et sans message (cf. ticket import).
+      if (currentStep === 'upload') await runAnalysis();
+      if (currentStep === 'analysis') initMappings();
+      if (currentStep === 'parameters') runSimulation();
+      const next = STEPS[stepIndex + 1];
+      if (next) setCurrentStep(next.id);
+    } catch (err) {
+      console.error('[Migration] Échec du passage à l\'étape suivante :', err);
+      toast.error(
+        `Impossible de continuer : ${err instanceof Error ? err.message : 'erreur inconnue'}. ` +
+        `Vérifiez le fichier importé puis réessayez.`
+      );
+    } finally {
+      setNavBusy(false);
+    }
   };
 
   const goPrev = () => {
@@ -2275,6 +2301,23 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
               ))}
               <span className="text-gray-400">(* obligatoire)</span>
             </div>
+
+            {/* Confirmation persistante : feuilles effectivement chargées (le toast
+                disparaît ; sans ce récap l'utilisateur ne sait pas si le GL est prêt). */}
+            {Object.keys(uploadedFiles).length > 0 && (
+              <div className="mt-4 rounded-lg border border-green-200 bg-green-50 p-3">
+                <div className="flex items-center gap-2 text-sm font-medium text-green-800 mb-1">
+                  <CheckCircle className="w-4 h-4" /> Données chargées et prêtes
+                </div>
+                <ul className="flex flex-wrap gap-2 text-xs">
+                  {Object.entries(uploadedFiles).map(([key, uf]) => (
+                    <li key={key} className="px-2 py-1 rounded bg-white border border-green-200 text-green-700">
+                      {FILE_CONFIGS[key]?.label ?? key} — <strong>{uf.data.length}</strong> ligne(s)
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
 
           {/* Repli : préparation fichier-par-fichier (sources externes hétérogènes) */}
@@ -3173,12 +3216,16 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
           >
             <ArrowLeft className="w-4 h-4" /> {stepIndex === 0 ? 'Retour' : 'Precedent'}
           </button>
-          <button onClick={goNext} disabled={!canNext}
+          <button onClick={goNext} disabled={!canNext || navBusy}
             className={`flex items-center gap-2 px-6 py-2 rounded-lg font-medium transition-colors ${
-              canNext ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              canNext && !navBusy ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
             }`}
           >
-            Suivant <ChevronRight className="w-4 h-4" />
+            {navBusy ? (
+              <><Loader2 className="w-4 h-4 animate-spin" /> Analyse en cours…</>
+            ) : (
+              <>Suivant <ChevronRight className="w-4 h-4" /></>
+            )}
           </button>
         </div>
       )}
