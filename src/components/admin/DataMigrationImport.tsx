@@ -99,6 +99,8 @@ interface ImportReport {
   balanceOk: boolean;
   bilanOk: boolean;
   bilanEcart?: { actif: number; passif: number; diff: number };
+  /** Mode 1 : l'écart Actif/Passif = résultat de la période (normal, pas un déséquilibre). */
+  bilanIsResult?: boolean;
   tiersOk: boolean;
   vncOk: boolean;
   warnings: string[];
@@ -1387,20 +1389,64 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
         return col ? (row as Record<string, any>)[col] : '';
       };
 
-      // Group entries by piece (ou numero d'écriture pour le grand livre)
-      const groups = new Map<string, any[]>();
-      ecrData.forEach((row: any, i: number) => {
-        const piece = String(
-          getEcrVal(row, 'numeroEcriture') ||
-          getEcrVal(row, 'numeroPiece') ||
-          getEcrVal(row, 'piece') ||
-          getEcrVal(row, 'EcritureNum') ||
-          `AUTO_${i}`
+      // ── Regroupement des lignes en écritures équilibrées (A2/A3) ──────────
+      // Certaines sources (ex. colonne « NUMERO DE SAISIE ») numérotent les
+      // lignes SANS reconstituer des pièces équilibrées : la même valeur peut
+      // traverser plusieurs journaux. Grouper dessus fabrique des centaines de
+      // fausses pièces déséquilibrées. On choisit donc la clé la PLUS FINE qui
+      // équilibre correctement : n° de pièce → sinon journal+date → sinon journal.
+      const journalKeyOf = (row: any) => String(getEcrVal(row, 'journal') || getEcrVal(row, 'JournalCode') || 'OD');
+      const dateKeyOf = (row: any) => parseDate(
+        getEcrVal(row, 'date') || getEcrVal(row, 'EcritureDate') || getEcrVal(row, 'dateEcriture') || ''
+      );
+      const pieceKeyOf = (row: any, i: number) => String(
+        getEcrVal(row, 'numeroEcriture') ||
+        getEcrVal(row, 'numeroPiece') ||
+        getEcrVal(row, 'piece') ||
+        getEcrVal(row, 'EcritureNum') ||
+        `AUTO_${i}`
+      );
+      const buildGroups = (keyFn: (row: any, i: number) => string) => {
+        const m = new Map<string, any[]>();
+        ecrData.forEach((row: any, i: number) => {
+          const k = keyFn(row, i);
+          if (excludedEntries.includes(k)) return;
+          if (!m.has(k)) m.set(k, []);
+          m.get(k)!.push(row);
+        });
+        return m;
+      };
+      const unbalancedRatio = (m: Map<string, any[]>) => {
+        if (m.size === 0) return 0;
+        let unbal = 0;
+        for (const lines of m.values()) {
+          let d = 0, c = 0;
+          lines.forEach((l: any) => {
+            d = money(d).add(money(parseNumber(getEcrVal(l, 'debit') || getEcrVal(l, 'Debit')))).toNumber();
+            c = money(c).add(money(parseNumber(getEcrVal(l, 'credit') || getEcrVal(l, 'Credit')))).toNumber();
+          });
+          if (money(d).subtract(money(c)).abs().toNumber() > 0.01) unbal++;
+        }
+        return unbal / m.size;
+      };
+
+      const UNBAL_THRESHOLD = 0.10; // au-delà de 10% de pièces déséquilibrées, la clé est jugée non fiable
+      let groups = buildGroups(pieceKeyOf);
+      let groupingMode = 'pièce';
+      if (unbalancedRatio(groups) > UNBAL_THRESHOLD) {
+        const byJournalDate = buildGroups((row: any) => `${journalKeyOf(row)}|${dateKeyOf(row)}`);
+        if (unbalancedRatio(byJournalDate) <= UNBAL_THRESHOLD) {
+          groups = byJournalDate; groupingMode = 'journal + date';
+        } else {
+          const byJournal = buildGroups((row: any) => journalKeyOf(row));
+          if (unbalancedRatio(byJournal) < unbalancedRatio(groups)) {
+            groups = byJournal; groupingMode = 'journal';
+          }
+        }
+        report.warnings.push(
+          `Regroupement des écritures par « ${groupingMode} » : la colonne n° de pièce/saisie ne reconstituait pas des écritures équilibrées.`
         );
-        if (excludedEntries.includes(piece)) return;
-        if (!groups.has(piece)) groups.set(piece, []);
-        groups.get(piece)!.push(row);
-      });
+      }
 
       let ecrIdx = 0;
       let entriesSkipped = 0;
@@ -1782,10 +1828,26 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       report.balanceOk = simulation?.balanced ?? true;
       if (simulation) {
         const diff = money(simulation.totalActif).subtract(money(simulation.totalPassif)).abs().toNumber();
-        report.bilanOk = diff < 1;
-        if (diff >= 1) {
-          report.bilanEcart = { actif: simulation.totalActif, passif: simulation.totalPassif, diff };
-          report.warnings.push(`Déséquilibre bilan : Actif ${simulation.totalActif.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} FCFA — Passif ${simulation.totalPassif.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} FCFA — Écart ${diff.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} FCFA`);
+        if (migrationMode === 1) {
+          // Bascule EN COURS d'exercice : Actif - Passif = résultat de la période
+          // (charges classe 6 / produits classe 7 pas encore affectés). Ce n'est PAS
+          // un déséquilibre — l'équilibre comptable est garanti par l'équilibre
+          // global débit = crédit (report.balanceOk). On l'affiche comme cohérent
+          // et on signale le résultat à titre informatif.
+          report.bilanOk = report.balanceOk;
+          if (diff >= 1) {
+            report.bilanEcart = { actif: simulation.totalActif, passif: simulation.totalPassif, diff };
+            report.bilanIsResult = true;
+            report.warnings.push(`Bilan en cours d'exercice : Actif − Passif = ${diff.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} FCFA = résultat de la période (classes 6-7 non affectées). Normal pour une bascule en cours d'exercice.`);
+          }
+        } else {
+          // Modes 2/3 (début d'exercice / historique) : le résultat est affecté,
+          // le bilan DOIT s'équilibrer (Actif = Passif).
+          report.bilanOk = diff < 1;
+          if (diff >= 1) {
+            report.bilanEcart = { actif: simulation.totalActif, passif: simulation.totalPassif, diff };
+            report.warnings.push(`Déséquilibre bilan : Actif ${simulation.totalActif.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} FCFA — Passif ${simulation.totalPassif.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} FCFA — Écart ${diff.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} FCFA`);
+          }
         }
       } else {
         report.bilanOk = true;
@@ -3053,7 +3115,9 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
             <div className="space-y-2 mb-6">
               {[
                 { label: 'Equilibre debit/credit', ok: importReport.balanceOk },
-                { label: importReport.bilanEcart
+                { label: importReport.bilanIsResult && importReport.bilanEcart
+                    ? `Bilan en cours d'exercice — Résultat de la période : ${importReport.bilanEcart.diff.toLocaleString('fr-FR',{minimumFractionDigits:2})} FCFA (Actif ${importReport.bilanEcart.actif.toLocaleString('fr-FR',{minimumFractionDigits:2})} / Passif ${importReport.bilanEcart.passif.toLocaleString('fr-FR',{minimumFractionDigits:2})})`
+                    : importReport.bilanEcart
                     ? `Equilibre bilan actif/passif — Actif ${importReport.bilanEcart.actif.toLocaleString('fr-FR',{minimumFractionDigits:2})} / Passif ${importReport.bilanEcart.passif.toLocaleString('fr-FR',{minimumFractionDigits:2})} / Écart ${importReport.bilanEcart.diff.toLocaleString('fr-FR',{minimumFractionDigits:2})} FCFA`
                     : 'Equilibre bilan actif/passif',
                   ok: importReport.bilanOk },
@@ -3173,7 +3237,9 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
                   const controls = [
                     { label: 'Équilibre débit / crédit', ok: importReport.balanceOk, detail: importReport.balanceOk ? 'Toutes les écritures sont équilibrées.' : 'Des écritures ont un débit ≠ crédit. Vérifier les pièces concernées.', action: importReport.balanceOk ? '' : 'Grand Livre → filtrer les écritures déséquilibrées et corriger.' },
                     { label: 'Équilibre bilan actif / passif', ok: importReport.bilanOk,
-                      detail: importReport.bilanOk ? 'Le bilan est équilibré (Actif = Passif).' : `Actif : ${fmtF(importReport.bilanEcart?.actif ?? 0)}  |  Passif : ${fmtF(importReport.bilanEcart?.passif ?? 0)}  |  Écart : ${fmtF(importReport.bilanEcart?.diff ?? 0)}`,
+                      detail: importReport.bilanIsResult
+                        ? `Bascule en cours d'exercice : Actif − Passif = ${fmtF(importReport.bilanEcart?.diff ?? 0)} = résultat de la période (classes 6-7 non affectées). Équilibre comptable garanti par débit = crédit.`
+                        : importReport.bilanOk ? 'Le bilan est équilibré (Actif = Passif).' : `Actif : ${fmtF(importReport.bilanEcart?.actif ?? 0)}  |  Passif : ${fmtF(importReport.bilanEcart?.passif ?? 0)}  |  Écart : ${fmtF(importReport.bilanEcart?.diff ?? 0)}`,
                       action: importReport.bilanOk ? '' : 'Identifier les comptes mal classés (classe 1-5) et ajuster les soldes d\'ouverture.' },
                     { label: 'Réconciliation tiers', ok: importReport.tiersOk, detail: importReport.tiersOk ? 'Tous les tiers sont réconciliés avec les écritures.' : 'Des comptes de tiers (401/411) n\'ont pas de fiche tiers associée.', action: importReport.tiersOk ? '' : 'Créer les fiches tiers manquantes depuis le module Tiers.' },
                     { label: 'Cohérence VNC immobilisations', ok: importReport.vncOk, detail: importReport.vncOk ? 'La valeur nette comptable des immobilisations est cohérente.' : 'Des immobilisations ont une VNC négative ou incohérente.', action: importReport.vncOk ? '' : 'Vérifier les durées et taux d\'amortissement dans le fichier source.' },
