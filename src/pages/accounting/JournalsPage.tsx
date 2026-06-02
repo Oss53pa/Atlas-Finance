@@ -290,19 +290,29 @@ const JournalsPage: React.FC = () => {
     ...(selectedJournal ? [{ id: 'journal-view', label: `${selectedJournal.code}`, icon: Eye }] : [])
   ];
 
-  // Journaux calculés depuis les données réelles
+  // Journaux calculés depuis les données réelles : on liste les codes journaux
+  // RÉELLEMENT présents (issus de la migration ou de la saisie) et non une liste
+  // figée {VE,AC,BQ,CA,OD,AN}. Sinon les journaux d'une source importée
+  // (RAN, VENTE, ACHAT, ODPROV, banques…) restaient invisibles faute de
+  // correspondre aux codes standards, et leurs écritures/montants n'apparaissaient pas.
   const journaux: Journal[] = useMemo(() => {
-    const journalTypes = [
-      { code: 'VE', libelle: t('accounting.salesJournal'), color: 'var(--color-primary)' },
-      { code: 'AC', libelle: t('accounting.purchaseJournal'), color: 'var(--color-primary)' },
-      { code: 'BQ', libelle: t('accounting.bankJournal'), color: 'var(--color-text-secondary)' },
-      { code: 'CA', libelle: t('accounting.cashJournal'), color: 'var(--color-primary-hover)' },
-      { code: 'OD', libelle: t('accounting.miscJournal'), color: 'var(--color-primary-hover)' },
-      { code: 'AN', libelle: 'Journal A-Nouveau', color: '#8B6DAF' },
-    ];
+    const labelMap: Record<string, string> = {
+      VE: t('accounting.salesJournal'), VENTE: t('accounting.salesJournal'),
+      AC: t('accounting.purchaseJournal'), ACHAT: t('accounting.purchaseJournal'),
+      BQ: t('accounting.bankJournal'), CA: t('accounting.cashJournal'),
+      OD: t('accounting.miscJournal'),
+      AN: 'Journal A-Nouveau', RAN: 'Journal A-Nouveau (RAN)',
+    };
+    const palette = ['var(--color-primary)', 'var(--color-primary-hover)', 'var(--color-text-secondary)', '#8B6DAF', '#2E8B7F', '#C77D3A'];
 
-    return journalTypes.map((jt, idx) => {
-      const jEntries = dbEntries.filter((e: any) => (e.journal || '').toUpperCase() === jt.code);
+    // Codes journaux présents dans les données ; sinon le jeu standard (système vierge).
+    const present = [...new Set(
+      dbEntries.map((e: any) => String(e.journal || '').toUpperCase().trim()).filter(Boolean)
+    )].sort();
+    const codes = present.length > 0 ? present : ['VE', 'AC', 'BQ', 'CA', 'OD', 'AN'];
+
+    return codes.map((code, idx) => {
+      const jEntries = dbEntries.filter((e: any) => String(e.journal || '').toUpperCase().trim() === code);
       let totalDebit = 0;
       let totalCredit = 0;
       let lastDate = '';
@@ -322,14 +332,14 @@ const JournalsPage: React.FC = () => {
       }
       return {
         id: String(idx + 1),
-        code: jt.code,
-        libelle: jt.libelle,
-        type: jt.code as Journal['type'],
+        code,
+        libelle: labelMap[code] ?? code,
+        type: code as Journal['type'],
         entries: jEntries.length,
         totalDebit,
         totalCredit,
         lastEntry: lastDate,
-        color: jt.color,
+        color: palette[idx % palette.length],
       };
     });
   }, [dbEntries, t]);
@@ -338,7 +348,7 @@ const JournalsPage: React.FC = () => {
   const getEcrituresJournal = (journalCode: string): EcritureJournal[] => {
     let filtered = journalCode === 'TOUS'
       ? dbEntries
-      : dbEntries.filter((e: any) => (e.journal || '').toUpperCase() === journalCode);
+      : dbEntries.filter((e: any) => String(e.journal || '').toUpperCase().trim() === journalCode);
 
     // Appliquer le filtre de date (valeurs appliquées)
     if (appliedDateFrom) {
@@ -416,7 +426,7 @@ const JournalsPage: React.FC = () => {
   // Centres analytiques — chargés depuis l'adapter (table 'costCenters' ou 'analytique')
   const [costCenters, setCostCenters] = useState<Array<{ code: string; libelle: string }>>([]);
   useEffect(() => {
-    adapter.getAll<any>('costCenters').then(rows => {
+    adapter.getAll<any>('costCenters' as any).then(rows => {
       if (rows.length > 0) {
         setCostCenters(rows.map((r: any) => ({
           code: r.code || r.id || '',
@@ -1015,7 +1025,7 @@ const JournalsPage: React.FC = () => {
                         ← Retour
                       </button>
                       <button
-                        onClick={() => toast.info('Export en cours de développement — utilisez le bouton export intégré au tableau ci-dessous')}
+                        onClick={() => toast('Export en cours de développement — utilisez le bouton export intégré au tableau ci-dessous')}
                         className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg text-sm hover:bg-[var(--color-success)] transition-colors flex items-center space-x-2"
                       >
                         <FileSpreadsheet className="w-4 h-4" />
@@ -1540,7 +1550,7 @@ const JournalsPage: React.FC = () => {
                         </td>
                         <td className="px-2 py-2 text-center">
                           <button
-                            onClick={() => toast.info('Fonctionnalité de note en cours de développement')}
+                            onClick={() => toast('Fonctionnalité de note en cours de développement')}
                             className="p-1 text-[var(--color-info)] hover:text-[var(--color-info)] hover:bg-[var(--color-info-light)] rounded"
                             title="Ajouter une note"
                           >
