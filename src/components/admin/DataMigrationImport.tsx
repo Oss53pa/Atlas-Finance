@@ -1049,6 +1049,19 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       ? new Set(ecr.map((row: any) => String((row as Record<string, any>)[numCol] || '')).filter(Boolean)).size
       : (uploadedFiles.planComptable?.data.length || 0);
 
+    // RAN : en Mode 1 les À-Nouveau sont DANS le Grand Livre (journal RAN/AN),
+    // pas dans un fichier « Reports à Nouveau » séparé. On compte ces lignes
+    // pour ne pas afficher 0 alors que le RAN est bien présent dans l'import.
+    const journalCol = ecrMapping.find(m => m.target === 'journal')?.source;
+    const normJournal = (s: string) =>
+      s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '');
+    const RAN_JOURNALS = ['ran', 'an', 'anouveau', 'anouveaux', 'reportanouveau', 'reportsanouveau'];
+    const ranLinesInGL = journalCol
+      ? ecr.filter((row: any) =>
+          RAN_JOURNALS.includes(normJournal(String((row as Record<string, any>)[journalCol] ?? '')))
+        ).length
+      : 0;
+
     setSimulation({
       totalDebit, totalCredit,
       balanced: money(totalDebit).subtract(money(totalCredit)).abs().toNumber() < 0.01,
@@ -1058,7 +1071,8 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
         comptes: uploadedFiles.planComptable?.data.length || comptesUniques,
         tiers: uploadedFiles.tiers?.data.length || 0,
         ecritures: ecr.length,
-        reportAN: an.length,
+        // Fichier AN séparé (Mode 2/3) sinon lignes RAN détectées dans le GL (Mode 1).
+        reportAN: an.length || ranLinesInGL,
         immobilisations: assets.length,
       },
     });
@@ -2844,12 +2858,18 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
-              {Object.entries(simulation.counts).map(([key, val]) => (
-                <div key={key} className="bg-gray-50 rounded-lg p-3 text-center">
-                  <p className="text-xl font-bold text-gray-900">{val}</p>
-                  <p className="text-xs text-gray-500">{key}</p>
-                </div>
-              ))}
+              {Object.entries(simulation.counts).map(([key, val]) => {
+                const COUNT_LABELS: Record<string, string> = {
+                  comptes: 'comptes', tiers: 'tiers', ecritures: 'écritures',
+                  reportAN: 'RAN (À Nouveau)', immobilisations: 'immobilisations',
+                };
+                return (
+                  <div key={key} className="bg-gray-50 rounded-lg p-3 text-center">
+                    <p className="text-xl font-bold text-gray-900">{val}</p>
+                    <p className="text-xs text-gray-500">{COUNT_LABELS[key] ?? key}</p>
+                  </div>
+                );
+              })}
             </div>
 
             <div className={`flex items-center justify-between rounded-lg p-4 ${simulation.balanced ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
