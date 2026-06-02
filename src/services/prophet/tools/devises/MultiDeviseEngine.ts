@@ -230,7 +230,7 @@ export const devisesTools: Record<string, ToolDefinition> = {
     },
     execute: async (args, _adapter) => {
       const { montant, devise_source, devise_cible, type_taux, date } = args as Record<string, unknown>;
-      return JSON.stringify(convertirDevise(montant, devise_source, devise_cible, type_taux || 'moyen', date));
+      return JSON.stringify(convertirDevise(montant as number, devise_source as CodeDevise, devise_cible as CodeDevise, (type_taux as 'achat' | 'vente' | 'moyen') || 'moyen', date as string | undefined));
     },
   },
 
@@ -252,8 +252,9 @@ export const devisesTools: Record<string, ToolDefinition> = {
       },
     },
     execute: async (args, adapter) => {
-      const { exercice, cours_cloture } = args as Record<string, unknown>;
-      let { postes } = args as Record<string, unknown>;
+      const { exercice, cours_cloture: cours_cloture_raw } = args as Record<string, unknown>;
+      const cours_cloture = (cours_cloture_raw || {}) as Record<string, number>;
+      let postes = (args as Record<string, unknown>).postes as any[] | undefined;
 
       // Lire les postes en devises depuis la balance réelle (comptes 4784, 4786, créances/dettes en devises)
       if ((!postes || postes.length === 0) && adapter) {

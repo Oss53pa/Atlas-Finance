@@ -507,12 +507,12 @@ const OfflineModePage: React.FC = () => {
 
                 <div className="flex items-center justify-between">
                   <Label>Compression des données</Label>
-                  <Switch defaultChecked />
+                  <Switch checked />
                 </div>
 
                 <div className="flex items-center justify-between">
                   <Label>Chiffrement local</Label>
-                  <Switch defaultChecked />
+                  <Switch checked />
                 </div>
 
                 <Separator />
@@ -521,7 +521,7 @@ const OfflineModePage: React.FC = () => {
                   <h4 className="font-medium">Nettoyage automatique</h4>
                   <div className="flex items-center justify-between">
                     <Label className="text-sm">Activer</Label>
-                    <Switch defaultChecked />
+                    <Switch checked />
                   </div>
                   <div>
                     <Label className="text-sm">Seuil de nettoyage</Label>
@@ -714,7 +714,7 @@ const OfflineModePage: React.FC = () => {
                     <Label>Détection automatique</Label>
                     <p className="text-sm text-[var(--color-text-secondary)]">Basculer automatiquement entre online/offline</p>
                   </div>
-                  <Switch defaultChecked />
+                  <Switch checked />
                 </div>
 
                 <div>
@@ -741,7 +741,7 @@ const OfflineModePage: React.FC = () => {
                     <Label>Notifications de statut</Label>
                     <p className="text-sm text-[var(--color-text-secondary)]">Alertes lors des changements de connexion</p>
                   </div>
-                  <Switch defaultChecked />
+                  <Switch checked />
                 </div>
               </CardContent>
             </Card>
@@ -787,7 +787,7 @@ const OfflineModePage: React.FC = () => {
                     <Label>Optimisation mémoire</Label>
                     <p className="text-sm text-[var(--color-text-secondary)]">Libérer la mémoire après synchronisation</p>
                   </div>
-                  <Switch defaultChecked />
+                  <Switch checked />
                 </div>
               </CardContent>
             </Card>
@@ -805,7 +805,7 @@ const OfflineModePage: React.FC = () => {
                     <Label>Chiffrement en transit</Label>
                     <p className="text-sm text-[var(--color-text-secondary)]">TLS 1.3 pour toutes les communications</p>
                   </div>
-                  <Switch defaultChecked disabled />
+                  <Switch checked disabled />
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -813,7 +813,7 @@ const OfflineModePage: React.FC = () => {
                     <Label>Validation des certificats</Label>
                     <p className="text-sm text-[var(--color-text-secondary)]">Vérifier l'authenticité du serveur</p>
                   </div>
-                  <Switch defaultChecked />
+                  <Switch checked />
                 </div>
 
                 <div>
@@ -871,8 +871,8 @@ const OfflineModePage: React.FC = () => {
                         <div className="flex items-center space-x-4">
                           <Checkbox
                             checked={selectedConflicts.includes(conflict.id)}
-                            onCheckedChange={(checked) => {
-                              if (checked) {
+                            onChange={(e) => {
+                              if (e.target.checked) {
                                 setSelectedConflicts([...selectedConflicts, conflict.id]);
                               } else {
                                 setSelectedConflicts(selectedConflicts.filter(id => id !== conflict.id));
@@ -1030,7 +1030,7 @@ const OfflineModePage: React.FC = () => {
                       <Label>Notification des conflits</Label>
                       <p className="text-sm text-[var(--color-text-secondary)]">Alerter lors de nouveaux conflits</p>
                     </div>
-                    <Switch defaultChecked />
+                    <Switch checked />
                   </div>
 
                   <div className="flex items-center justify-between">
@@ -1038,7 +1038,7 @@ const OfflineModePage: React.FC = () => {
                       <Label>Sauvegarde avant résolution</Label>
                       <p className="text-sm text-[var(--color-text-secondary)]">Conserver une copie de sécurité</p>
                     </div>
-                    <Switch defaultChecked />
+                    <Switch checked />
                   </div>
 
                   <div>

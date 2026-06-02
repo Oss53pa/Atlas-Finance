@@ -864,7 +864,7 @@ const AccountingSettingsPage: React.FC = () => {
             break;
           case 'f':
             event.preventDefault();
-            document.querySelector('input[placeholder*="Rechercher"]')?.focus();
+            (document.querySelector('input[placeholder*="Rechercher"]') as HTMLElement | null)?.focus();
             break;
           case 'r':
             event.preventDefault();
@@ -1123,7 +1123,7 @@ const AccountingSettingsPage: React.FC = () => {
       avance: { title: 'Paramètres avancés', icon: Zap },
       normes: { title: 'Normes & Conformité', icon: FileCheck }
     };
-    return configs[category];
+    return (configs as Record<string, { title: string; icon: typeof Settings }>)[category];
   };
 
   const renderSetting = (setting: AccountingSetting, category: string) => {
@@ -1134,7 +1134,7 @@ const AccountingSettingsPage: React.FC = () => {
         return (
           <div>
             <select
-              value={setting.value}
+              value={setting.value as string | number}
               onChange={(e) => handleSettingChange(category, setting.id, e.target.value)}
               className={cn(
                 "w-full px-3 py-2 border rounded-lg bg-[var(--color-surface)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2",
@@ -1164,7 +1164,7 @@ const AccountingSettingsPage: React.FC = () => {
           <div>
             <input
               type="number"
-              value={setting.value}
+              value={setting.value as string | number}
               onChange={(e) => handleSettingChange(category, setting.id, parseFloat(e.target.value))}
               min={setting.min}
               max={setting.max}
@@ -1190,7 +1190,7 @@ const AccountingSettingsPage: React.FC = () => {
           <label className="flex items-center cursor-pointer">
             <input
               type="checkbox"
-              checked={setting.value}
+              checked={setting.value as boolean}
               onChange={(e) => handleSettingChange(category, setting.id, e.target.checked)}
               className="w-5 h-5 text-[var(--color-primary)] border-[var(--color-border)] rounded focus:ring-[var(--color-primary)]"
             />
@@ -1205,7 +1205,7 @@ const AccountingSettingsPage: React.FC = () => {
           <div>
             <input
               type="text"
-              value={setting.value}
+              value={setting.value as string | number}
               onChange={(e) => handleSettingChange(category, setting.id, e.target.value)}
               className={cn(
                 "w-full px-3 py-2 border rounded-lg bg-[var(--color-surface)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2",
@@ -1374,7 +1374,7 @@ const AccountingSettingsPage: React.FC = () => {
       ) : (
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           {(() => {
-            let categoriesToShow = [];
+            let categoriesToShow: string[] = [];
 
             if (activeTab === 'base') {
               categoriesToShow = ['general', 'saisie', 'affichage', 'cloture', 'taxes'];

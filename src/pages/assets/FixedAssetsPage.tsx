@@ -186,8 +186,8 @@ const FixedAssetsPage: React.FC = () => {
   const { data: assetsData, isLoading } = useQuery({
     queryKey: ['fixed-assets', 'list', page, filters],
     queryFn: async () => {
-      const all = await adapter.getAll('assets');
-      let filtered = all as Array<Record<string, unknown>>;
+      const all = await adapter.getAll<any>('assets');
+      let filtered = all as any[];
       if (filters.search) {
         const s = filters.search.toLowerCase();
         filtered = filtered.filter(a =>
@@ -908,7 +908,6 @@ const FixedAssetsPage: React.FC = () => {
                       <Select
                         value={formData.categorie}
                         onValueChange={(value) => handleInputChange('categorie', value)}
-                        disabled={isSubmitting}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Sélectionner une catégorie" />
@@ -991,7 +990,6 @@ const FixedAssetsPage: React.FC = () => {
                       <Select
                         value={formData.methode_amortissement}
                         onValueChange={(value) => handleInputChange('methode_amortissement', value)}
-                        disabled={isSubmitting}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Sélectionner la méthode" />
@@ -1043,7 +1041,6 @@ const FixedAssetsPage: React.FC = () => {
                       <Select
                         value={formData.statut}
                         onValueChange={(value) => handleInputChange('statut', value)}
-                        disabled={isSubmitting}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Sélectionner le statut" />
@@ -1151,7 +1148,6 @@ const FixedAssetsPage: React.FC = () => {
                     <Select
                       value={editFormData.categorie}
                       onValueChange={(value) => handleEditInputChange('categorie', value)}
-                      disabled={isEditSubmitting}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Sélectionner une catégorie" />

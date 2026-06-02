@@ -65,8 +65,8 @@ const EcheancesFiscalesPage: React.FC = () => {
     queryKey: ['fiscal-deadlines', currentYear],
     queryFn: async (): Promise<FiscalDeadline[]> => {
       const [declarations, registries] = await Promise.all([
-        adapter.getAll<Record<string, unknown>>('taxDeclarations'),
-        adapter.getAll<Record<string, unknown>>('taxRegistry'),
+        adapter.getAll<Record<string, any>>('taxDeclarations'),
+        adapter.getAll<Record<string, any>>('taxRegistry'),
       ]);
 
       const todayStr = new Date().toISOString().split('T')[0];

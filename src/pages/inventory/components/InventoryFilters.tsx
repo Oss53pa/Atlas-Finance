@@ -82,12 +82,12 @@ const InventoryFilters: React.FC<InventoryFiltersProps> = ({
     });
   };
 
-  const handlePeriodSelect = (period: { startDate: string; endDate: string }) => {
+  const handlePeriodSelect = (period: { start: string; end: string }) => {
     onFiltersChange({
       ...filters,
       dateRange: {
-        from: period.startDate,
-        to: period.endDate
+        from: period.start,
+        to: period.end
       }
     });
   };
@@ -168,7 +168,7 @@ const InventoryFilters: React.FC<InventoryFiltersProps> = ({
           <PeriodSelectorModal
             isOpen={showPeriodModal}
             onClose={() => setShowPeriodModal(false)}
-            onPeriodSelect={(period) => {
+            onApply={(period) => {
               handlePeriodSelect(period);
               setShowPeriodModal(false);
             }}

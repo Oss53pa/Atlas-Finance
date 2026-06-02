@@ -120,6 +120,9 @@ const CashFlowPage: React.FC = () => {
       evolution_percentage: 0,
       rotation_moyenne: 0,
       jours_couverture: totalSorties > 0 ? Math.round((fluxNet / (totalSorties / 30))) : 0,
+      periods: undefined as any[] | undefined,
+      categories: undefined as { entrees?: any[]; sorties?: any[] } | undefined,
+      accounts: undefined as any[] | undefined,
     };
   }, [cfEntries]);
 
@@ -600,7 +603,7 @@ const CashFlowPage: React.FC = () => {
                 <SelectItem value="">Tous les comptes</SelectItem>
                 {bankAccounts?.results?.map((account) => (
                   <SelectItem key={account.id} value={account.id}>
-                    {account.numero_compte} - {account.libelle_compte}
+                    {(account as any).numero_compte} - {(account as any).libelle_compte}
                   </SelectItem>
                 ))}
               </SelectContent>

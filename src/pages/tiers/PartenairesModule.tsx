@@ -20,7 +20,7 @@ import { z } from 'zod';
 import { toast } from 'react-hot-toast';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  PieChart as RechartsPieChart, Cell, LineChart, Line, ResponsiveContainer,
+  PieChart as RechartsPieChart, Pie, Cell, LineChart, Line, ResponsiveContainer,
   AreaChart, Area, RadialBarChart, RadialBar
 } from 'recharts';
 
@@ -128,7 +128,8 @@ const PartenairesModule: React.FC = () => {
 
   // Create partenaire mutation
   const createMutation = useMutation({
-    mutationFn: tiersService.createPartenaire,
+    mutationFn: (data: z.infer<typeof createPartenaireSchema>) =>
+      tiersService.create(data as any),
     onSuccess: () => {
       toast.success('Partenaire créé avec succès');
       queryClient.invalidateQueries({ queryKey: ['partenaires'] });
@@ -678,7 +679,7 @@ const PartenairesModule: React.FC = () => {
                   cy="50%"
                   outerRadius={100}
                   fill="#235A6E"
-                  label={({ type, nombre }) => `${type}: ${nombre}`}
+                  label={({ type, nombre }: any) => `${type}: ${nombre}`}
                 >
                   {analytics.repartitionParType.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />

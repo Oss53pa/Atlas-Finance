@@ -72,6 +72,14 @@ interface InventoryItem {
   categorie: string;
   localisation_theorique: string;
   localisation_reelle?: string;
+  code?: string;
+  designation?: string;
+  localisation?: string;
+  ecart?: {
+    type: string;
+    valeur: number;
+    description: string;
+  };
   responsable: string;
   statut_comptage: 'non_compte' | 'en_cours' | 'compte' | 'ecart' | 'valide';
   date_comptage?: string;

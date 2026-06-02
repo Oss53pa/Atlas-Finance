@@ -214,8 +214,8 @@ const FundCallDetails: React.FC = () => {
     const supplierEntries = journalEntries
       .filter(e => (e.status === 'validated' || e.status === 'posted'))
       .flatMap(e => e.lines
-        .filter(l => l.accountCode.startsWith('401') || l.accountCode.startsWith('404'))
-        .map(l => ({ ...l, entryId: e.id, date: e.date, entryRef: e.reference }))
+        .filter((l: any) => l.accountCode.startsWith('401') || l.accountCode.startsWith('404'))
+        .map((l: any) => ({ ...l, entryId: e.id, date: e.date, entryRef: e.reference }))
       );
     if (supplierEntries.length === 0) return null;
     const vendors: Record<string, { invoices: Array<{ id: string; date_piece: string; numero_piece: string; reference: string; libelle: string; montant_du: number; montant_impaye: number; age_jours: number }> }> = {};
@@ -589,13 +589,13 @@ const FundCallDetails: React.FC = () => {
                       <p className="text-xs text-gray-600">
                         Source: Grand Livre Comptable - Comptes Classe 4 (Fournisseurs)
                         {accountPayableData && (
-                          <> • Extraction du {new Date(accountPayableData.date_extraction).toLocaleDateString('fr-FR')}</>
+                          <> • Extraction du {new Date(accountPayableData.date_extraction ?? Date.now()).toLocaleDateString('fr-FR')}</>
                         )}
                       </p>
                     </div>
                     <div className="bg-[var(--color-text-secondary)] text-white px-3 py-1 rounded-lg text-sm font-medium">
                       Total Outstanding: {accountPayableData ?
-                        new Intl.NumberFormat('fr-FR').format(accountPayableData.total_outstanding) :
+                        new Intl.NumberFormat('fr-FR').format(accountPayableData.total_outstanding ?? 0) :
                         '...'
                       } FCFA
                     </div>

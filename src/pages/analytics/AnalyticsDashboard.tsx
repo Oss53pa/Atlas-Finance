@@ -33,7 +33,7 @@ const AnalyticsDashboard: React.FC = () => {
   const [period, setPeriod] = useState<'month' | 'quarter' | 'year'>('year');
   const [axeFilter, setAxeFilter] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
-  const [journalEntries, setJournalEntries] = useState<{ date: string; lines: Array<{ accountCode: string; debit: number; credit: number; thirdPartyCode?: string; thirdPartyId?: string }> }[]>([]);
+  const [journalEntries, setJournalEntries] = useState<{ date: string; lines: Array<{ accountCode: string; debit: number; credit: number; thirdPartyCode?: string; thirdPartyId?: string; analyticalCode?: string }> }[]>([]);
 
   useEffect(() => {
     const load = async () => {

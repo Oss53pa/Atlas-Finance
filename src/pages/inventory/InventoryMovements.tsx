@@ -1,4 +1,4 @@
-import { formatCurrency } from '@/utils/formatters';
+import { formatCurrency, formatDate } from '@/utils/formatters';
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import {
@@ -190,18 +190,18 @@ const MovementDetailsModal: React.FC<MovementDetailsModalProps> = ({
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-gray-600">Created by:</span>
-                <span className="font-medium">{movement.createdBy} on {formatCurrency(new Date(movement.createdAt))}</span>
+                <span className="font-medium">{movement.createdBy} on {formatDate(new Date(movement.createdAt))}</span>
               </div>
               {movement.approvedBy && movement.approvedAt && (
                 <div className="flex justify-between">
                   <span className="text-gray-600">Approved by:</span>
-                  <span className="font-medium">{movement.approvedBy} on {formatCurrency(new Date(movement.approvedAt))}</span>
+                  <span className="font-medium">{movement.approvedBy} on {formatDate(new Date(movement.approvedAt))}</span>
                 </div>
               )}
               {movement.postedBy && movement.postedAt && (
                 <div className="flex justify-between">
                   <span className="text-gray-600">Posted by:</span>
-                  <span className="font-medium">{movement.postedBy} on {formatCurrency(new Date(movement.postedAt))}</span>
+                  <span className="font-medium">{movement.postedBy} on {formatDate(new Date(movement.postedAt))}</span>
                 </div>
               )}
             </div>
@@ -414,7 +414,7 @@ const InventoryMovements: React.FC = () => {
 
         <div className="flex gap-4 mt-4 lg:mt-0">
           <ExportButton
-            data={filteredAndSortedData}
+            data={filteredAndSortedData as unknown as Record<string, unknown>[]}
             filename="inventory_movements"
             title="Inventory Movements Report"
           />

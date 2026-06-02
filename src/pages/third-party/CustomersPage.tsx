@@ -69,7 +69,7 @@ const CustomersPage: React.FC = () => {
   const [showDetailModal, setShowDetailModal] = useState(false);
 
   // Utilisation des nouveaux hooks
-  const { data: customersData, isLoading } = useClients({
+  const { data: customersDataRaw, isLoading } = useClients({
     page,
     page_size: 20,
     search: filters.search || undefined,
@@ -78,6 +78,16 @@ const CustomersPage: React.FC = () => {
     segment: filters.segment || undefined,
     commercial: filters.commercial || undefined,
   });
+
+  const customersData = customersDataRaw as
+    | {
+        count?: number;
+        active_count?: number;
+        total_ca?: number;
+        total_unpaid?: number;
+        results?: any[];
+      }
+    | undefined;
 
   const deleteCustomer = useDeleteThirdParty();
 
@@ -482,11 +492,11 @@ const CustomersPage: React.FC = () => {
               </div>
 
               {/* Pagination */}
-              {customersData && customersData.count > 0 && (
+              {customersData && (customersData.count ?? 0) > 0 && (
                 <div className="mt-6">
                   <Pagination
                     currentPage={page}
-                    totalPages={Math.ceil(customersData.count / 20)}
+                    totalPages={Math.ceil((customersData.count ?? 0) / 20)}
                     onPageChange={setPage}
                   />
                 </div>
@@ -525,14 +535,14 @@ const CustomersPage: React.FC = () => {
       <EditCustomerModal
         isOpen={showEditModal}
         onClose={() => setShowEditModal(false)}
-        customer={selectedCustomer}
+        customer={selectedCustomer as any}
         onSuccess={handleRefreshData}
       />
 
       <CustomerDetailModal
         isOpen={showDetailModal}
         onClose={() => setShowDetailModal(false)}
-        customer={selectedCustomer}
+        customer={selectedCustomer as any}
         onEdit={() => {
           setShowDetailModal(false);
           setShowEditModal(true);

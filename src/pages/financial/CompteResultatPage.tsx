@@ -41,7 +41,7 @@ const CompteResultatPage: React.FC = () => {
   // Données mensuelles calculées depuis Dexie — drafts exclus des calculs financiers
   const { data: rawAllEntries = [] } = useQuery({
     queryKey: ['compte-resultat-entries'],
-    queryFn: () => adapter.getAll('journalEntries'),
+    queryFn: () => adapter.getAll<any>('journalEntries'),
   });
   const allEntries = useMemo(() => rawAllEntries.filter((e: any) => e.status !== 'draft'), [rawAllEntries]);
 
@@ -1488,7 +1488,7 @@ const CompteResultatPage: React.FC = () => {
                   </div>
                   <div>
                     <p className="text-sm text-[var(--color-text-tertiary)]">Montant total</p>
-                    <p className="font-bold text-[var(--color-text-secondary)] text-lg">{formatCurrency(selectedDetail.amount)}</p>
+                    <p className="font-bold text-[var(--color-text-secondary)] text-lg">{formatCurrency(selectedDetail.amount ?? 0)}</p>
                   </div>
                 </div>
               </div>
@@ -1587,7 +1587,7 @@ const CompteResultatPage: React.FC = () => {
                     }
                   </span>
                   <span className="font-bold text-[var(--color-text-secondary)] text-lg">
-                    {formatCurrency(selectedDetail.amount)}
+                    {formatCurrency(selectedDetail.amount ?? 0)}
                   </span>
                 </div>
               </div>

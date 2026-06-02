@@ -35,7 +35,8 @@ import {
   BarChart3,
   Target,
   Calendar,
-  Database
+  Database,
+  History
 } from 'lucide-react';
 import {
   Card,
@@ -95,7 +96,7 @@ interface Restriction {
   id: string;
   type: 'time' | 'ip' | 'amount' | 'period' | 'data';
   description: string;
-  value: string | number | boolean | string[];
+  value: string | number | boolean | string[] | Record<string, unknown>;
   is_active: boolean;
 }
 

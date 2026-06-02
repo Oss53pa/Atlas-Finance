@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  PieChart as RechartsPieChart, Cell, LineChart, Line, ResponsiveContainer,
+  PieChart as RechartsPieChart, Pie, Cell, LineChart, Line, ResponsiveContainer,
   AreaChart, Area, FunnelChart, Funnel, LabelList
 } from 'recharts';
 
@@ -552,7 +552,7 @@ const ProspectsModule: React.FC = () => {
                   cy="50%"
                   outerRadius={100}
                   fill="#235A6E"
-                  label={({ stade, nombre }) => `${stade}: ${nombre}`}
+                  label={({ stade, nombre }: any) => `${stade}: ${nombre}`}
                 >
                   {analytics.repartitionParStade.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />

@@ -59,7 +59,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   Checkbox,
   Alert,
   AlertDescription,
@@ -157,9 +156,9 @@ const FundCallsPage: React.FC = () => {
       .filter(e => e.status === 'validated' || e.status === 'posted')
       .forEach(entry => {
         entry.lines
-          .filter(line => line.accountCode.startsWith('401') || line.accountCode.startsWith('404'))
-          .filter(line => line.credit > 0)
-          .forEach(line => {
+          .filter((line: any) => line.accountCode.startsWith('401') || line.accountCode.startsWith('404'))
+          .filter((line: any) => line.credit > 0)
+          .forEach((line: any) => {
             supplierLines.push({
               id: line.id,
               vendor: line.thirdPartyName || line.accountName,
@@ -385,7 +384,7 @@ const FundCallsPage: React.FC = () => {
               <Checkbox
                 id="futureTransactions"
                 checked={showFutureTransactions}
-                onCheckedChange={(checked) => setShowFutureTransactions(checked as boolean)}
+                onChange={(e) => setShowFutureTransactions(e.target.checked)}
               />
               <Label htmlFor="futureTransactions" className="text-sm">
                 Inclure transactions futures
@@ -411,8 +410,8 @@ const FundCallsPage: React.FC = () => {
                   <TableHead className="w-8">
                     <Checkbox
                       checked={selectedItems.size === payables?.length}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
+                      onChange={(e) => {
+                        if (e.target.checked) {
                           setSelectedItems(new Set(payables?.map(p => p.id) || []));
                           setProposedPayments(payables || []);
                         } else {
@@ -462,7 +461,7 @@ const FundCallsPage: React.FC = () => {
                         <TableCell>
                           <Checkbox
                             checked={selectedItems.has(item.id)}
-                            onCheckedChange={() => handleItemSelect(item.id)}
+                            onChange={() => handleItemSelect(item.id)}
                           />
                         </TableCell>
                         <TableCell>
@@ -560,7 +559,7 @@ const FundCallsPage: React.FC = () => {
                         value={item.recommendation} 
                         onValueChange={(value: string) => {
                           setProposedPayments(prev =>
-                            prev.map(p => p.id === item.id ? { ...p, recommendation: value } : p)
+                            prev.map(p => p.id === item.id ? { ...p, recommendation: value as PayableItem['recommendation'] } : p)
                           );
                         }}
                       >

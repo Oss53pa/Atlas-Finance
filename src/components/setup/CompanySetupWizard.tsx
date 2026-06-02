@@ -20,7 +20,8 @@ import {
   UserGroupIcon,
   CurrencyDollarIcon,
   Cog6ToothIcon,
-  SparklesIcon
+  SparklesIcon,
+  ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
 
 // Schémas de validation
@@ -48,7 +49,7 @@ const companyInfoSchema = z.object({
 const accountingConfigSchema = z.object({
   referentiel: z.enum(['SYSCOHADA_NORMAL', 'SYSCOHADA_ALLEGE', 'SYSCOHADA_MINIMAL']),
   planComptableSectoriel: z.enum(['GENERAL', 'BANQUE', 'ASSURANCE', 'MICROFINANCE', 'COMMERCE', 'INDUSTRIE']),
-  longueurComptes: z.enum([6, 7, 8, 9]),
+  longueurComptes: z.union([z.literal(6), z.literal(7), z.literal(8), z.literal(9)]),
   activerAnalytique: z.boolean().default(false),
   nombreAxes: z.number().min(1).max(10).default(3),
   devisePrincipale: z.enum(['XOF', 'XAF', 'EUR', 'USD']),
@@ -1396,7 +1397,7 @@ const ImportDataStep: React.FC<{ control: any; errors: any; watchedValues: any }
                 },
                 {
                   key: 'immobilisations',
-                  title: t('navigation.assets'),
+                  title: 'Immobilisations',
                   description: 'Actifs et amortissements',
                   formats: 'Excel, CSV',
                   mapping: true
@@ -1425,7 +1426,7 @@ const ImportDataStep: React.FC<{ control: any; errors: any; watchedValues: any }
                     </div>
                   </div>
 
-                  {(watchedValues as Record<string, Record<string, unknown>>)[importOption.key]?.importer && (
+                  {Boolean((watchedValues as Record<string, Record<string, unknown>>)[importOption.key]?.importer) && (
                     <div className="space-y-3">
                       <div>
                         <label className="block text-xs font-medium text-gray-700 mb-1">

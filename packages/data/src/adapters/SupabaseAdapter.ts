@@ -424,7 +424,7 @@ export class SupabaseAdapter implements DataAdapter {
         timestamp: new Date().toISOString(),
         action: 'CREATE',
         entityType: table,
-        entityId: (record as { id?: string }).id ?? data?.id,
+        entityId: (record as any).id ?? data?.id,
         details: JSON.stringify(record),
         previousHash: '',
         initiatedBy,

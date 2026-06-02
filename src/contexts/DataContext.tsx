@@ -120,7 +120,7 @@ export function DataProvider({ children, forceMode, forceAdapter }: DataProvider
         .from('profiles')
         .select('company_id')
         .eq('id', userId)
-        .maybeSingle()
+        .maybeSingle() as { data: { company_id?: string } | null }
       if (profile?.company_id) {
         tenantAware.setTenantId(profile.company_id)
         localStorage.setItem('atlas-tenant-id', profile.company_id)

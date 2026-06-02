@@ -13,6 +13,7 @@ import {
 import DataTableRaw from '../../components/ui/DataTable';
 const DataTable = DataTableRaw as unknown as React.ComponentType<Record<string, unknown>>;
 import { useDataTable } from '../../hooks/useDataTable';
+import type { QueryParams, PaginatedResponse } from '../../services/api.service';
 import { z } from 'zod';
 
 // Schema correct pour un compte SYSCOHADA (distinct du schéma Journal)
@@ -689,16 +690,18 @@ const PlanSYSCOHADAPage: React.FC = () => {
   // Helper: get balance for a given code prefix
   const getSolde = useCallback((code: string) => computedBalances[code] ?? 0, [computedBalances]);
 
-  const fetchData = useCallback(async (params: { search?: string; page?: number; pageSize?: number }) => {
+  const fetchData = useCallback(async (params: QueryParams): Promise<PaginatedResponse<Compte>> => {
     const currentClass = planComptable[selectedClasse as keyof typeof planComptable];
-    if (!currentClass) return { data: [], total: 0, page: 1, pageSize: 10 };
+    if (!currentClass) return { data: [], total: 0, page: 1, pageSize: 10, totalPages: 0 };
 
-    const allComptes = currentClass.comptes.map(c => ({
+    const allComptes: Compte[] = currentClass.comptes.map((c) => ({
       ...c,
       id: c.code,
       classe: selectedClasse,
       solde: getSolde(c.code),
-      sousComptes: c.sousComptes?.map(sc => ({ ...sc, solde: getSolde(sc.code) }))
+      sousComptes: ('sousComptes' in c ? c.sousComptes : undefined)?.map(
+        (sc: { code: string; libelle: string; solde: number }) => ({ ...sc, solde: getSolde(sc.code) })
+      ),
     }));
 
       // Filtrer par recherche
@@ -732,11 +735,13 @@ const PlanSYSCOHADAPage: React.FC = () => {
       const end = start + (params.pageSize || 10);
       const paginatedData = filteredData.slice(start, end);
 
+    const resolvedPageSize = params.pageSize || 10;
     return {
       data: paginatedData,
       total: filteredData.length,
       page: params.page || 1,
-      pageSize: params.pageSize || 10
+      pageSize: resolvedPageSize,
+      totalPages: Math.ceil(filteredData.length / resolvedPageSize)
     };
   }, [selectedClasse, getSolde]);
 
@@ -869,7 +874,7 @@ const PlanSYSCOHADAPage: React.FC = () => {
     }
   };
 
-  const currentClass = planComptable[selectedClasse];
+  const currentClass = planComptable[selectedClasse as keyof typeof planComptable];
 
   // ── Export / Import helpers ───────────────────────────────────────────────
   const importFileRef = React.useRef<HTMLInputElement>(null);
@@ -881,7 +886,7 @@ const PlanSYSCOHADAPage: React.FC = () => {
       for (const compte of currentClass.comptes) {
         const solde = getSolde(compte.code);
         rows.push(`"${compte.code}","${compte.libelle}",${solde},"${compte.status}"`);
-        for (const sc of compte.sousComptes ?? []) {
+        for (const sc of (compte as any).sousComptes ?? []) {
           rows.push(`"${sc.code}","${sc.libelle}",${getSolde(sc.code)},"actif"`);
         }
       }

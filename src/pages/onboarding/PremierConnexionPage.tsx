@@ -45,7 +45,7 @@ const PremierConnexionPage: React.FC = () => {
     if (token_hash) {
       // ── Flow 1 : token_hash anti-prefetch ─────────────────────────────────
       // verifyOtp échange le token côté client (JS requis, scanners ≠ peuvent pas)
-      supabase.auth.verifyOtp({ token_hash, type: type as Parameters<typeof supabase.auth.verifyOtp>[0]['type'] })
+      supabase.auth.verifyOtp({ token_hash, type: type as 'signup' | 'invite' | 'magiclink' | 'recovery' | 'email_change' | 'email' })
         .then(({ data, error: verifyErr }) => {
           if (verifyErr || !data.session?.user) {
             setStep('error');

@@ -88,7 +88,7 @@ const ContactsPage: React.FC = () => {
   // Fetch contacts
   const { data: contactsData, isLoading } = useQuery({
     queryKey: ['contacts', 'list', page, filters],
-    queryFn: () => thirdPartyService.getContacts({ 
+    queryFn: () => (thirdPartyService as any).getContacts({
       page, 
       search: filters.search,
       type_tiers: filters.type_tiers,
@@ -101,12 +101,12 @@ const ContactsPage: React.FC = () => {
   // Fetch companies for selection
   const { data: companies } = useQuery({
     queryKey: ['companies', 'list'],
-    queryFn: () => thirdPartyService.getCompanies({ page: 1, limit: 1000 }),
+    queryFn: () => (thirdPartyService as any).getCompanies({ page: 1, limit: 1000 }),
   });
 
   // Delete contact mutation
   const deleteContactMutation = useMutation({
-    mutationFn: thirdPartyService.deleteContact,
+    mutationFn: (contactId: string) => (thirdPartyService as any).deleteContact(contactId),
     onSuccess: () => {
       toast.success('Contact supprimé avec succès');
       queryClient.invalidateQueries({ queryKey: ['contacts'] });
@@ -336,7 +336,7 @@ const ContactsPage: React.FC = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">Toutes les entreprises</SelectItem>
-                {companies?.results?.map((company) => (
+                {(companies as any)?.results?.map((company: any) => (
                   <SelectItem key={company.id} value={company.id}>
                     {company.denomination}
                   </SelectItem>
@@ -412,7 +412,7 @@ const ContactsPage: React.FC = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {contactsData?.results?.map((contact) => (
+                    {contactsData?.results?.map((contact: any) => (
                       <TableRow key={contact.id} className="hover:bg-gray-50">
                         <TableCell>
                           <div className="flex items-center space-x-3">
@@ -589,14 +589,14 @@ const ContactsPage: React.FC = () => {
       <EditContactModal
         isOpen={showEditModal}
         onClose={() => setShowEditModal(false)}
-        contact={selectedContact}
+        contact={selectedContact as any}
         onSuccess={handleRefreshData}
       />
 
       <ContactDetailModal
         isOpen={showDetailModal}
         onClose={() => setShowDetailModal(false)}
-        contact={selectedContact}
+        contact={selectedContact as any}
         onEdit={() => {
           setShowDetailModal(false);
           setShowEditModal(true);

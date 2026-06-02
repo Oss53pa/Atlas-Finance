@@ -2,7 +2,7 @@
  * General Ledger Service — Connected to Dexie IndexedDB.
  * Queries real journal entries from the local database.
  */
-import type { DataAdapter, TableName } from '@atlas/data';
+import type { DataAdapter, TableName, PagedResult } from '@atlas/data';
 import type { DBJournalEntry } from '../../../lib/db';
 import { money } from '../../../utils/money';
 import {
@@ -360,7 +360,7 @@ class GeneralLedgerService {
     const out: T[] = [];
     let cursor: string | number | null = null;
     for (let i = 0; i < 1000; i++) { // garde-fou : 1000 pages max
-      const { rows, nextCursor, hasMore } = await adapter.getPage<T>(table, { pageSize, sortField: 'id', cursor });
+      const { rows, nextCursor, hasMore }: PagedResult<T> = await adapter.getPage!<T>(table, { pageSize, sortField: 'id', cursor });
       out.push(...rows);
       if (!hasMore || nextCursor == null) break;
       cursor = nextCursor;

@@ -13,6 +13,7 @@ import * as XLSX from 'xlsx';
 import { planComptableService } from '../../services/accounting/planComptableService';
 import { aliasTiersService } from '../../services/accounting/aliasTiersService';
 import { isAliasEligible, getPrefixForSousCompte } from '../../data/alias-tiers-config';
+import { useData } from '../../contexts/DataContext';
 
 // ============================================================================
 // TYPES
@@ -132,6 +133,7 @@ function validateRow(row: ParsedAccount): ParsedAccount {
 // ============================================================================
 
 export function ImportPlanComptable({ onClose, onSuccess }: Props) {
+  const { adapter } = useData();
   const [step, setStep] = useState<ImportStep>('upload');
   const [fileName, setFileName] = useState('');
   const [rawData, setRawData] = useState<RawRow[]>([]);
@@ -242,7 +244,7 @@ export function ImportPlanComptable({ onClose, onSuccess }: Props) {
         const normalBalance: 'debit' | 'credit' =
           row.sens?.toUpperCase() === 'CREDITEUR' ? 'credit' : 'debit';
 
-        await planComptableService.createAccount({
+        await planComptableService.createAccount(adapter, {
           code: row.code,
           name: row.libelle,
           accountClass: classCode,
@@ -260,7 +262,7 @@ export function ImportPlanComptable({ onClose, onSuccess }: Props) {
           const prefix = getPrefixForSousCompte(sousCompteCode)!;
           if (row.alias) {
             // Explicit alias from file
-            await aliasTiersService.createAlias({
+            await aliasTiersService.createAlias(adapter, {
               alias: row.alias,
               prefix,
               label: row.libelle,
@@ -270,8 +272,8 @@ export function ImportPlanComptable({ onClose, onSuccess }: Props) {
             details.push({ row: row.rowIndex, code: row.code, libelle: row.libelle, result: 'alias', message: `Alias ${row.alias} cree` });
           } else {
             // Auto-generate alias
-            const nextAlias = await aliasTiersService.getNextAlias(prefix);
-            await aliasTiersService.createAlias({
+            const nextAlias = await aliasTiersService.getNextAlias(adapter, prefix);
+            await aliasTiersService.createAlias(adapter, {
               alias: nextAlias,
               prefix,
               label: row.libelle,

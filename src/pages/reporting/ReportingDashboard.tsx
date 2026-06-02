@@ -67,12 +67,12 @@ const ReportingDashboard: React.FC = () => {
   const { data: fiscalYears = [], isLoading: fyLoading, isError: fyError } = useQuery({
     queryKey: ['dashboard-fiscal-years', selectedPeriod],
     queryFn: async () => {
-      const all = await adapter.getAll('fiscalYears');
+      const all = await adapter.getAll<any>('fiscalYears');
       if (selectedPeriod === 'all') return all;
       const now = new Date();
       const cutoffDays = selectedPeriod === '7d' ? 7 : selectedPeriod === '30d' ? 30 : 90;
       const cutoff = new Date(now.getTime() - cutoffDays * 24 * 60 * 60 * 1000).toISOString().substring(0, 10);
-      return (all as Array<{ endDate?: string; startDate?: string }>).filter(fy =>
+      return (all as Array<any>).filter(fy =>
         (fy.endDate ?? fy.startDate ?? '') >= cutoff
       );
     },
@@ -82,11 +82,11 @@ const ReportingDashboard: React.FC = () => {
   const { data: journalEntries = [], isLoading: jeLoading, isError: jeError } = useQuery({
     queryKey: ['dashboard-journal-entries', selectedPeriod],
     queryFn: async () => {
-      const all = await adapter.getAll('journalEntries');
+      const all = await adapter.getAll<any>('journalEntries');
       const now = new Date();
       const cutoffDays = selectedPeriod === '7d' ? 7 : selectedPeriod === '30d' ? 30 : 90;
       const cutoff = new Date(now.getTime() - cutoffDays * 24 * 60 * 60 * 1000).toISOString().substring(0, 10);
-      return (all as Array<{ date?: string }>).filter(e => (e.date ?? '') >= cutoff);
+      return (all as Array<any>).filter(e => (e.date ?? '') >= cutoff);
     },
   });
 

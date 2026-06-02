@@ -205,7 +205,7 @@ const FiscalDashboard: React.FC = () => {
   const chartData = useMemo(() => {
     const byCategory: Record<string, number> = {};
     for (const r of triggeredResults) {
-      const cat = r.tax.category || 'INDIRECT';
+      const cat = r.tax.taxCategory || 'INDIRECT';
       byCategory[cat] = (byCategory[cat] || 0) + (r.amounts?.net || 0);
     }
     const data = Object.entries(byCategory).map(([cat, val]) => ({
@@ -362,7 +362,7 @@ const FiscalDashboard: React.FC = () => {
                 <AlertTriangle className="h-5 w-5 text-red-600 flex-shrink-0" />
                 <div className="flex-1">
                   <p className="text-sm font-semibold text-red-800">
-                    {r.tax.taxCode} — {r.tax.name} est en retard
+                    {r.tax.taxCode} — {r.tax.taxName} est en retard
                   </p>
                   <p className="text-xs text-red-600">
                     Echeance depassee de {Math.abs(r.daysUntilDeadline || 0)} jour(s) — Montant du : {formatCurrency(r.amounts?.net || 0)}
@@ -380,7 +380,7 @@ const FiscalDashboard: React.FC = () => {
                 <Clock className="h-5 w-5 text-orange-600 flex-shrink-0" />
                 <div className="flex-1">
                   <p className="text-sm font-semibold text-orange-800">
-                    {r.tax.taxCode} — {r.tax.name} a declarer dans {r.daysUntilDeadline} jour(s)
+                    {r.tax.taxCode} — {r.tax.taxName} a declarer dans {r.daysUntilDeadline} jour(s)
                   </p>
                   <p className="text-xs text-orange-600">
                     Echeance : {r.declarationDeadline} — Montant du : {formatCurrency(r.amounts?.net || 0)}
@@ -398,7 +398,7 @@ const FiscalDashboard: React.FC = () => {
                 <AlertCircle className="h-5 w-5 text-yellow-600 flex-shrink-0" />
                 <div className="flex-1">
                   <p className="text-sm font-semibold text-yellow-800">
-                    {r.tax.taxCode} — {r.tax.name} en attente de calcul
+                    {r.tax.taxCode} — {r.tax.taxName} en attente de calcul
                   </p>
                   <p className="text-xs text-yellow-600">
                     Cliquez sur "Calculer" pour determiner le montant du
@@ -500,7 +500,7 @@ const FiscalDashboard: React.FC = () => {
                             <td className="py-3 px-4">
                               <div className="flex flex-col">
                                 <span className="font-medium text-neutral-800">{r.tax.taxCode}</span>
-                                <span className="text-xs text-neutral-500">{r.tax.name}</span>
+                                <span className="text-xs text-neutral-500">{r.tax.taxName}</span>
                               </div>
                             </td>
 

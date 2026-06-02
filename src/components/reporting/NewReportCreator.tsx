@@ -21,7 +21,11 @@ interface ReportSection {
   content?: Array<{
     id: string;
     type: 'text' | 'table' | 'dashboard' | 'comment';
-    data?: unknown;
+    data?: string;
+    sourceId?: string;
+    description?: string;
+    periodStart?: string;
+    periodEnd?: string;
   }>;
   isExpanded?: boolean;
 }
@@ -1614,6 +1618,7 @@ const NewReportCreator: React.FC<NewReportCreatorProps> = ({ isOpen, onClose }) 
                                   </button>
                                   <button
                                     onClick={() => {
+                                      if (!selectedSectionId || !contentSelectorType) return;
                                       const contentWithPeriod = {
                                         ...item,
                                         periodStart: selectedContentPeriod.start || reportStartDate,

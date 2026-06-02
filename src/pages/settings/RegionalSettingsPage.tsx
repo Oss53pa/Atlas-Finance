@@ -440,7 +440,7 @@ const RegionalSettingsPage: React.FC = () => {
                 <div>
                   <Label>Mise à jour automatique</Label>
                   <div className="flex items-center space-x-2 mt-2">
-                    <Switch defaultChecked />
+                    <Switch checked />
                     <span className="text-sm text-gray-600">Actualiser quotidiennement</span>
                   </div>
                 </div>
@@ -560,7 +560,7 @@ const RegionalSettingsPage: React.FC = () => {
                   </Select>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Switch defaultChecked />
+                  <Switch checked />
                   <Label>TVA sur encaissements</Label>
                 </div>
               </CardContent>
@@ -596,7 +596,7 @@ const RegionalSettingsPage: React.FC = () => {
                   </Select>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Switch defaultChecked />
+                  <Switch checked />
                   <Label>Calcul automatique des provisions</Label>
                 </div>
               </CardContent>
@@ -644,7 +644,7 @@ const RegionalSettingsPage: React.FC = () => {
                   </Select>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Switch defaultChecked />
+                  <Switch checked />
                   <Label>Comptes auxiliaires obligatoires</Label>
                 </div>
               </CardContent>
@@ -662,27 +662,27 @@ const RegionalSettingsPage: React.FC = () => {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-sm">Journal Achats (AC)</span>
-                    <Switch defaultChecked />
+                    <Switch checked />
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm">Journal Ventes (VE)</span>
-                    <Switch defaultChecked />
+                    <Switch checked />
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm">Journal Banque (BQ)</span>
-                    <Switch defaultChecked />
+                    <Switch checked />
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm">Journal Caisse (CA)</span>
-                    <Switch defaultChecked />
+                    <Switch checked />
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm">Journal OD (OD)</span>
-                    <Switch defaultChecked />
+                    <Switch checked />
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm">Journal Paie (PA)</span>
-                    <Switch defaultChecked />
+                    <Switch checked />
                   </div>
                 </div>
               </CardContent>
@@ -767,7 +767,7 @@ const RegionalSettingsPage: React.FC = () => {
                   </Select>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Switch defaultChecked />
+                  <Switch checked />
                   <Label>Calcul automatique mensuel</Label>
                 </div>
               </CardContent>
@@ -785,27 +785,27 @@ const RegionalSettingsPage: React.FC = () => {
             <CardContent>
               <div className="grid gap-4 md:grid-cols-3">
                 <div className="flex items-center space-x-2">
-                  <Switch defaultChecked />
+                  <Switch checked />
                   <Label>Conformité SYSCOHADA</Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Switch defaultChecked />
+                  <Switch checked />
                   <Label>FEC (Fichier des Écritures Comptables)</Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Switch defaultChecked />
+                  <Switch checked />
                   <Label>Piste d'audit fiable</Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Switch defaultChecked />
+                  <Switch checked />
                   <Label>Archivage légal (10 ans)</Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Switch defaultChecked />
+                  <Switch checked />
                   <Label>Signature électronique</Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Switch defaultChecked />
+                  <Switch checked />
                   <Label>Coffre-fort numérique</Label>
                 </div>
               </div>

@@ -231,17 +231,18 @@ export const analytiqueTools: Record<string, ToolDefinition> = {
           }
         } catch (_) { /* fallback aux paramètres fournis */ }
       }
-      const imputations = calculerImputations(montant, centres, donnees_prorata);
+      const montantNum = Number(montant) || 0;
+      const imputations = calculerImputations(montantNum, centres as CentreCout[], donnees_prorata as Parameters<typeof calculerImputations>[2]);
       const totalPct = imputations.reduce((a, i) => a + i.pourcentage, 0);
       const totalMontant = imputations.reduce((a, i) => a + i.montant, 0);
-      const valide = Math.abs(totalPct - 100) < 0.5 && totalMontant === montant;
+      const valide = Math.abs(totalPct - 100) < 0.5 && totalMontant === montantNum;
 
       const ecritures: EcritureAnalytique[] = imputations.map(imp => ({
         compte_analytique: `9${compte}`,
         centre_cout: imp.centre_code,
         libelle: `${libelle || compte} — ${imp.centre_libelle}`,
         montant: imp.montant,
-        sens: sens || 'debit',
+        sens: (sens as 'debit' | 'credit') || 'debit',
       }));
 
       return JSON.stringify({
@@ -251,7 +252,7 @@ export const analytiqueTools: Record<string, ToolDefinition> = {
         total_montant: totalMontant,
         valide,
         message: valide
-          ? `Ventilation analytique de ${montant.toLocaleString('fr-FR')} FCFA sur ${imputations.length} centres — 100% réparti`
+          ? `Ventilation analytique de ${montantNum.toLocaleString('fr-FR')} FCFA sur ${imputations.length} centres — 100% réparti`
           : `Attention : répartition incomplète (${totalPct.toFixed(1)}%) — ajustement nécessaire`,
       });
     },
@@ -277,13 +278,15 @@ export const analytiqueTools: Record<string, ToolDefinition> = {
       },
     },
     execute: async (args, adapter) => {
-      const { periode, dimension, afficher, centres } = args as Record<string, unknown>;
-      let { donnees } = args as Record<string, unknown>;
+      const { dimension, afficher } = args as Record<string, unknown>;
+      const periode = (args as Record<string, any>).periode as { debut?: string; fin?: string } | undefined;
+      const centres = (args as Record<string, any>).centres as string[] | undefined;
+      let donnees = (args as Record<string, any>).donnees as Parameters<typeof genererRapportAnalytique>[0] | undefined;
 
       // Construire les données analytiques depuis la balance réelle si non fournies
       if ((!donnees || donnees.length === 0) && adapter && periode) {
         try {
-          const rows = await adapter.getTrialBalance({ start: periode.debut, end: periode.fin });
+          const rows = await adapter.getTrialBalance({ start: periode.debut as string, end: periode.fin as string });
           // Générer des données analytiques à partir des comptes de charges (6) et produits (7)
           donnees = rows
             .filter((r: any) => r.accountCode?.startsWith('6') || r.accountCode?.startsWith('7'))
@@ -296,7 +299,7 @@ export const analytiqueTools: Record<string, ToolDefinition> = {
             }));
         } catch (_) { /* fallback */ }
       }
-      const rapport = genererRapportAnalytique(donnees || [], centres || [], afficher || ['budget', 'realise', 'ecart', 'ecart_pct']);
+      const rapport = genererRapportAnalytique(donnees || [], (centres as string[] | undefined) || [], (afficher as string[] | undefined) || ['budget', 'realise', 'ecart', 'ecart_pct']);
 
       const alertes: string[] = [];
       for (const [centre, totaux] of Object.entries(rapport.totaux_par_centre)) {

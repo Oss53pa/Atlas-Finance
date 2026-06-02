@@ -79,8 +79,8 @@ const BudgetControlPage: React.FC = () => {
   const { data: budgetControls = [], isLoading } = useQuery({
     queryKey: ['budget-controls', selectedPeriod, selectedDepartment, selectedStatus, searchTerm],
     queryFn: async () => {
-      const budgetLines = await adapter.getAll('budgetLines');
-      const entries = await adapter.getAll('journalEntries');
+      const budgetLines = await adapter.getAll<any>('budgetLines');
+      const entries = await adapter.getAll<any>('journalEntries');
 
       // Group budget lines by fiscal year
       const budgetByAccount: Record<string, { budgeted: number; accountCode: string; fiscalYear: string }> = {};
@@ -146,8 +146,8 @@ const BudgetControlPage: React.FC = () => {
   const { data: monthlyData = [] } = useQuery({
     queryKey: ['monthly-budget-data', selectedPeriod],
     queryFn: async () => {
-      const budgetLines = await adapter.getAll('budgetLines');
-      const entries = await adapter.getAll('journalEntries');
+      const budgetLines = await adapter.getAll<any>('budgetLines');
+      const entries = await adapter.getAll<any>('journalEntries');
       const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
 
       const result: MonthlyData[] = months.map((month, idx) => {
@@ -162,7 +162,7 @@ const BudgetControlPage: React.FC = () => {
         // Sum actual from entries for this month (charge accounts 6x)
         const actual = entries
           .filter(e => e.date.startsWith(prefix))
-          .reduce((s, e) => s + e.lines.filter(l => l.accountCode.startsWith('6')).reduce((ls, l) => ls + l.debit - l.credit, 0), 0);
+          .reduce((s, e) => s + e.lines.filter((l: any) => l.accountCode.startsWith('6')).reduce((ls: number, l: any) => ls + l.debit - l.credit, 0), 0);
 
         return { month, budgeted, actual, variance: actual - budgeted };
       });

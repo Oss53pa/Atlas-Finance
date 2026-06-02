@@ -287,7 +287,7 @@ const RevisionsModule: React.FC = () => {
 
   // Charge la matrice depuis l'adapter (table auditRisks si disponible)
   useEffect(() => {
-    adapter.getAll<any>('auditRisks').then(data => {
+    adapter.getAll<any>('auditRisks' as any).then(data => {
       if (Array.isArray(data) && data.length > 0) setRisquesControles(data);
     }).catch(() => {/* table non encore créée */});
   }, [adapter]);
@@ -310,7 +310,7 @@ const RevisionsModule: React.FC = () => {
     };
     setRisquesControles(prev => [...prev, newRisk]);
     try {
-      await adapter.add<RisqueControle>('auditRisks' as any, newRisk);
+      await adapter.create<RisqueControle>('auditRisks' as any, newRisk as Omit<RisqueControle, 'id'>);
     } catch {
       // persiste en mémoire uniquement si la table n'existe pas encore
     }

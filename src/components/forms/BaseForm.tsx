@@ -137,7 +137,7 @@ const BaseForm: React.FC<FormProps> = ({
   const renderField = (field: FormField) => {
     const value = (formData[field.name] ?? '') as string;
     const error = errors[field.name];
-    const hasError = touched[field.name] && error;
+    const hasError = Boolean(touched[field.name] && error);
 
     const baseClasses = `w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent ${
       hasError ? 'border-red-500' : 'border-gray-300'

@@ -74,13 +74,13 @@ const AtlasFnANavigation: React.FC<NavigationProps> = ({
   // Queries pour données de navigation
   const { data: navigationAlerts } = useQuery({
     queryKey: ['navigation-alerts', companyId],
-    queryFn: () => dashboardService.getCriticalAlerts({ companyId }),
+    queryFn: () => dashboardService.getCriticalAlerts({ company_id: companyId }),
     refetchInterval: 60000, // 1 minute
   });
 
   const { data: recentActivities } = useQuery({
     queryKey: ['recent-activities', companyId],
-    queryFn: () => dashboardService.getRecentActivities({ companyId, limit: 5 }),
+    queryFn: () => (dashboardService as any).getRecentActivities({ companyId, limit: 5 }),
   });
 
   // Structure de navigation Atlas FnA
@@ -106,7 +106,7 @@ const AtlasFnANavigation: React.FC<NavigationProps> = ({
           icon: FileText,
           href: '/accounting/entries',
           module: 'accounting',
-          badge: navigationAlerts?.by_module?.accounting || 0
+          badge: (navigationAlerts as any)?.by_module?.accounting || 0
         },
         {
           id: 'journals',
@@ -211,7 +211,7 @@ const AtlasFnANavigation: React.FC<NavigationProps> = ({
       icon: Users,
       href: '/tiers/clients',
       module: 'customers',
-      badge: navigationAlerts?.by_module?.customers || 0,
+      badge: (navigationAlerts as any)?.by_module?.customers || 0,
       children: [
         {
           id: 'customer-dashboard',
@@ -249,7 +249,7 @@ const AtlasFnANavigation: React.FC<NavigationProps> = ({
       icon: Truck,
       href: '/tiers/fournisseurs',
       module: 'suppliers',
-      badge: navigationAlerts?.by_module?.suppliers || 0,
+      badge: (navigationAlerts as any)?.by_module?.suppliers || 0,
       children: [
         {
           id: 'supplier-dashboard',
@@ -287,7 +287,7 @@ const AtlasFnANavigation: React.FC<NavigationProps> = ({
       icon: DollarSign,
       href: '/treasury',
       module: 'treasury',
-      badge: navigationAlerts?.by_module?.treasury || 0,
+      badge: (navigationAlerts as any)?.by_module?.treasury || 0,
       children: [
         {
           id: 'treasury-dashboard',
@@ -434,7 +434,7 @@ const AtlasFnANavigation: React.FC<NavigationProps> = ({
   };
 
   const getModuleAlertCount = (module: string) => {
-    return navigationAlerts?.by_module?.[module] || 0;
+    return (navigationAlerts as any)?.by_module?.[module] || 0;
   };
 
   return (

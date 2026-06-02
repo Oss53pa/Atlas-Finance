@@ -104,7 +104,7 @@ const ReportingIFRS: React.FC = () => {
   // Load fiscal years from Dexie to generate IFRS reports
   const { data: fiscalYears = [] } = useQuery({
     queryKey: ['ifrs-fiscal-years'],
-    queryFn: () => adapter.getAll('fiscalYears'),
+    queryFn: () => adapter.getAll<any>('fiscalYears'),
   });
 
   // Load journal entries to compute revenue/assets for consolidation view
@@ -423,8 +423,6 @@ const ReportingIFRS: React.FC = () => {
                 <ColorfulBarChart
                   data={chartData}
                   height={160}
-                  showValues={true}
-                  valueFormatter={(value) => `${value} rapport${value !== 1 ? 's' : ''}`}
                 />
               </ModernChartCard>
             </motion.div>

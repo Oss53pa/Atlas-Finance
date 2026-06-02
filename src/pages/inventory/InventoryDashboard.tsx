@@ -396,8 +396,8 @@ const InventoryDashboard: React.FC = () => {
       <PeriodSelectorModal
         isOpen={showPeriodModal}
         onClose={() => setShowPeriodModal(false)}
-        onPeriodSelect={(period) => {
-          setDateRange(period);
+        onApply={(period) => {
+          setDateRange({ startDate: period.start, endDate: period.end });
           setShowPeriodModal(false);
         }}
       />

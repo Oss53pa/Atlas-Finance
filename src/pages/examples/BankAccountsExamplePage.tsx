@@ -304,7 +304,7 @@ const BankAccountsExamplePage: React.FC = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {accountsData?.results?.map((account) => (
+                {accountsData?.results?.map((account: any) => (
                   <TableRow key={account.id} className="hover:bg-gray-50">
                     <TableCell>
                       <span className="font-mono font-semibold">{account.numero_compte}</span>
@@ -404,16 +404,16 @@ const BankAccountsExamplePage: React.FC = () => {
       </Card>
 
       {/* Selected Account Balance (if any) */}
-      {selectedAccountId && accountBalance && (
+      {selectedAccountId && (accountBalance as any) && (
         <Card className="border-blue-200 bg-blue-50">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Solde du compte sélectionné</p>
                 <p className="text-lg font-bold text-blue-700">
-                  {formatCurrency(accountBalance.solde)}
+                  {formatCurrency((accountBalance as any).solde)}
                 </p>
-                <p className="text-xs text-gray-700">Au {accountBalance.date}</p>
+                <p className="text-xs text-gray-700">Au {(accountBalance as any).date}</p>
               </div>
               <Button
                 variant="ghost"

@@ -74,17 +74,17 @@ const DashboardsPage: React.FC = () => {
   // Load fiscal years and journal entries from Dexie
   const { data: fiscalYears = [] } = useQuery({
     queryKey: ['dashboards-fiscal-years'],
-    queryFn: () => adapter.getAll('fiscalYears'),
+    queryFn: () => adapter.getAll<any>('fiscalYears'),
   });
 
   const { data: journalEntries = [] } = useQuery({
     queryKey: ['dashboards-journal-entries'],
-    queryFn: () => adapter.getAll('journalEntries'),
+    queryFn: () => adapter.getAll<any>('journalEntries'),
   });
 
   const { data: accounts = [] } = useQuery({
     queryKey: ['dashboards-accounts'],
-    queryFn: () => adapter.getAll('accounts'),
+    queryFn: () => adapter.getAll<any>('accounts'),
   });
 
   const isLoading = fiscalYears === undefined;

@@ -395,7 +395,7 @@ const SetupWizardPage: React.FC = () => {
               className="space-y-4"
             >
               <div className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-gray-50">
-                <RadioGroupItem value="SYSCOHADA_NORMAL" id="normal" className="mt-1" />
+                <RadioGroupItem value="SYSCOHADA_NORMAL" id="normal" />
                 <div className="flex-1">
                   <Label htmlFor="normal" className="font-medium">Système Normal</Label>
                   <p className="text-sm text-gray-600 mt-1">
@@ -406,7 +406,7 @@ const SetupWizardPage: React.FC = () => {
               </div>
 
               <div className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-gray-50">
-                <RadioGroupItem value="SYSCOHADA_ALLEGE" id="allege" className="mt-1" />
+                <RadioGroupItem value="SYSCOHADA_ALLEGE" id="allege" />
                 <div className="flex-1">
                   <Label htmlFor="allege" className="font-medium">Système Allégé</Label>
                   <p className="text-sm text-gray-600 mt-1">
@@ -416,7 +416,7 @@ const SetupWizardPage: React.FC = () => {
               </div>
 
               <div className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-gray-50">
-                <RadioGroupItem value="SYSCOHADA_MINIMAL" id="minimal" className="mt-1" />
+                <RadioGroupItem value="SYSCOHADA_MINIMAL" id="minimal" />
                 <div className="flex-1">
                   <Label htmlFor="minimal" className="font-medium">Système Minimal</Label>
                   <p className="text-sm text-gray-600 mt-1">

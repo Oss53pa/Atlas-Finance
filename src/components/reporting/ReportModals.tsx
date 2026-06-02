@@ -143,7 +143,7 @@ export const ViewReportModal: React.FC<ViewReportModalProps> = ({ isOpen, onClos
                     'bg-gray-100 text-gray-800'
                   }`}>
                     {rapport.priorite === 'critique' && <Flag className="w-3 h-3" />}
-                    {rapport.priorite?.charAt(0).toUpperCase() + rapport.priorite?.slice(1) || 'Normale'}
+                    {rapport.priorite ? rapport.priorite.charAt(0).toUpperCase() + rapport.priorite.slice(1) : 'Normale'}
                   </span>
                 </div>
               </div>

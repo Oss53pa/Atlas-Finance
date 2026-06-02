@@ -8,7 +8,12 @@ const BankMovementsPage: React.FC = () => {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('movements');
   const [showOperationsModal, setShowOperationsModal] = useState(false);
-  const [selectedOperations, setSelectedOperations] = useState(null);
+  const [selectedOperations, setSelectedOperations] = useState<{
+    date: string;
+    type: 'daily' | 'monthly';
+    data: Record<string, unknown>;
+    operations: unknown[];
+  } | null>(null);
   const [selectedAccount, setSelectedAccount] = useState('all');
   const [selectedScenario, setSelectedScenario] = useState('realiste');
   const [autoRefresh, setAutoRefresh] = useState(true);
@@ -29,7 +34,7 @@ const BankMovementsPage: React.FC = () => {
 
   // Comptes de trésorerie dynamiques depuis les écritures comptables
   const { adapter } = useData();
-  const { data: bankPositions = [], isLoading: loadingPositions } = useAdapterQuery(
+  const { data: bankPositions = [], loading: loadingPositions } = useAdapterQuery(
     () => getSoldesBancaires(adapter),
     [adapter],
     []
@@ -647,25 +652,25 @@ const BankMovementsPage: React.FC = () => {
               <div className="bg-[var(--color-primary)]/5 border border-[var(--color-primary)]/20 rounded-lg p-3 text-center">
                 <div className="text-sm text-[var(--color-text-secondary)]">Opening</div>
                 <div className="font-bold text-[var(--color-text-primary)]">
-                  {new Intl.NumberFormat('fr-FR').format(selectedOperations.data.opening)}
+                  {new Intl.NumberFormat('fr-FR').format(selectedOperations.data.opening as number)}
                 </div>
               </div>
               <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
                 <div className="text-sm text-green-700">Cash In</div>
                 <div className="font-bold text-green-600">
-                  {new Intl.NumberFormat('fr-FR').format(selectedOperations.data.cashIn)}
+                  {new Intl.NumberFormat('fr-FR').format(selectedOperations.data.cashIn as number)}
                 </div>
               </div>
               <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-center">
                 <div className="text-sm text-red-700">Cash Out</div>
                 <div className="font-bold text-red-600">
-                  {new Intl.NumberFormat('fr-FR').format(selectedOperations.data.cashOut)}
+                  {new Intl.NumberFormat('fr-FR').format(selectedOperations.data.cashOut as number)}
                 </div>
               </div>
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-center">
                 <div className="text-sm text-[var(--color-text-secondary)]">Closing</div>
                 <div className="font-bold text-[var(--color-text-primary)]">
-                  {new Intl.NumberFormat('fr-FR').format(selectedOperations.data.closing)}
+                  {new Intl.NumberFormat('fr-FR').format(selectedOperations.data.closing as number)}
                 </div>
               </div>
             </div>

@@ -245,7 +245,7 @@ const ManagerWorkspace: React.FC = () => {
                 setNotifPrefs(next);
                 // W17: log + toast si la persistance échoue
                 try {
-                  await adapter.upsert?.('settings' as any, { key: `notif_manager_${n}`, value: String(e.target.checked), updatedAt: new Date().toISOString() });
+                  await (adapter as any).upsert?.('settings' as any, { key: `notif_manager_${n}`, value: String(e.target.checked), updatedAt: new Date().toISOString() });
                 } catch (err) {
                   console.error('[ManagerWorkspace] Erreur persistance préférence notif:', err);
                   toast.error('Impossible de sauvegarder la préférence de notification');

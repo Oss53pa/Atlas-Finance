@@ -258,9 +258,9 @@ const MultiCurrency: React.FC = () => {
     if (exchangeRates.length === 0) return [];
     const grouped: Record<string, Record<string, number>> = {};
     for (const r of exchangeRates) {
-      const d = r.date || 'unknown';
+      const d = r.lastUpdate || 'unknown';
       if (!grouped[d]) grouped[d] = {};
-      grouped[d][r.to_currency] = r.rate;
+      grouped[d][r.to] = r.rate;
     }
     return Object.entries(grouped).slice(-7).map(([date, rates]) => ({
       label: date.slice(-5),
@@ -394,8 +394,6 @@ const MultiCurrency: React.FC = () => {
                 <ColorfulBarChart
                   data={chartData}
                   height={160}
-                  showValues={true}
-                  valueFormatter={(value) => `${value.toFixed(1)}M ${selectedBaseCurrency}`}
                 />
               </ModernChartCard>
             </motion.div>

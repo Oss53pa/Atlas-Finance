@@ -12,6 +12,7 @@ import {
   Mail,
   MapPin,
   Building,
+  Users,
   Package,
   AlertCircle,
   CheckCircle,
@@ -55,6 +56,14 @@ interface SuppliersFilters {
   evaluation: string;
 }
 
+interface SuppliersData {
+  count: number;
+  active_count?: number;
+  total_purchases?: number;
+  total_debt?: number;
+  results?: any[];
+}
+
 const SuppliersPage: React.FC = () => {
   const { t } = useLanguage();
   const [filters, setFilters] = useState<SuppliersFilters>({
@@ -71,7 +80,7 @@ const SuppliersPage: React.FC = () => {
   const [showDetailModal, setShowDetailModal] = useState(false);
 
   // Utilisation des nouveaux hooks
-  const { data: suppliersData, isLoading } = useSuppliers({
+  const { data: suppliersDataRaw, isLoading } = useSuppliers({
     page,
     page_size: 20,
     search: filters.search || undefined,
@@ -80,6 +89,8 @@ const SuppliersPage: React.FC = () => {
     categorie: filters.categorie || undefined,
     evaluation: filters.evaluation || undefined,
   });
+
+  const suppliersData = suppliersDataRaw as SuppliersData | undefined;
 
   const deleteSupplier = useDeleteThirdParty();
 
@@ -563,14 +574,14 @@ const SuppliersPage: React.FC = () => {
       <EditSupplierModal
         isOpen={showEditModal}
         onClose={() => setShowEditModal(false)}
-        supplier={selectedSupplier}
+        supplier={selectedSupplier as any}
         onSuccess={handleRefreshData}
       />
 
       <SupplierDetailModal
         isOpen={showDetailModal}
         onClose={() => setShowDetailModal(false)}
-        supplier={selectedSupplier}
+        supplier={selectedSupplier as any}
         onEdit={() => {
           setShowDetailModal(false);
           setShowEditModal(true);

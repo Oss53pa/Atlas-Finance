@@ -182,7 +182,8 @@ interface DossierContentieux {
   notes?: string;
   dernierContact?: string;
   prochainContact?: string;
-  [key: string]: unknown;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any;
 }
 
 interface DossierWorkflow {
@@ -238,6 +239,9 @@ interface AnalyticsData {
   repartitionNiveaux: Array<{ niveau: string; count: number; montant: number }>;
   anciennete: Array<{ periode: string; nombre: number; montant: number }>;
 }
+
+// Module-level chart color palette (shared by sub-components)
+const COLORS = ['#235A6E', '#E89A2E', '#15803D', '#2D7D9A', '#F4A228', '#6B9E6E', '#8BBCCC'];
 
 // ─── AnalyticsTab (module level — was nested, caused focus loss) ─────────────
 interface AnalyticsTabProps { analyticsData: AnalyticsData; }
@@ -990,8 +994,23 @@ const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
 interface ContentieuxTabProps {
   allJournalEntries: any[];
   getStatutColor: (statut: string) => string;
+  setShowRapportMensuelModal: React.Dispatch<React.SetStateAction<boolean>>;
+  setShowAnalyseROIModal: React.Dispatch<React.SetStateAction<boolean>>;
+  setShowPerformanceEquipeModal: React.Dispatch<React.SetStateAction<boolean>>;
+  setShowPrevisionTresorerieModal: React.Dispatch<React.SetStateAction<boolean>>;
+  setShowDossiersRisqueModal: React.Dispatch<React.SetStateAction<boolean>>;
+  setShowExportPersonnaliseModal: React.Dispatch<React.SetStateAction<boolean>>;
 }
-const ContentieuxTab = ({ allJournalEntries, getStatutColor }: ContentieuxTabProps) => {
+const ContentieuxTab = ({
+  allJournalEntries,
+  getStatutColor,
+  setShowRapportMensuelModal,
+  setShowAnalyseROIModal,
+  setShowPerformanceEquipeModal,
+  setShowPrevisionTresorerieModal,
+  setShowDossiersRisqueModal,
+  setShowExportPersonnaliseModal,
+}: ContentieuxTabProps) => {
   const { t } = useLanguage();
   const { adapter } = useData();
   const { user } = useAuth();
@@ -1336,11 +1355,11 @@ const ContentieuxTab = ({ allJournalEntries, getStatutColor }: ContentieuxTabPro
   // Fonction pour ouvrir la modal d'édition avec les données du dossier
   const openEditContentieuxModal = (dossier: DossierContentieux) => {
     setEditContentieuxFormData({
-      id: dossier.id,
-      numeroRef: dossier.numeroRef,
+      id: dossier.id ?? '',
+      numeroRef: dossier.numeroRef ?? '',
       client: dossier.client,
-      statutJuridique: dossier.statutJuridique,
-      typeProcedure: dossier.typeProcedure,
+      statutJuridique: dossier.statutJuridique ?? '',
+      typeProcedure: dossier.typeProcedure ?? '',
       // Intervenants
       avocat: dossier.avocat || '',
       avocatTel: dossier.avocatTel || '',
@@ -1393,23 +1412,23 @@ const ContentieuxTab = ({ allJournalEntries, getStatutColor }: ContentieuxTabPro
         notes: 'Créance principale'
       });
     }
-    if (dossier.interetsRetard > 0) {
+    if ((dossier.interetsRetard ?? 0) > 0) {
       depensesInitiales.push({
         id: 2,
         type: 'interets_retard',
         date: dossier.dateTransfert || new Date().toISOString().split('T')[0],
-        montant: dossier.interetsRetard,
+        montant: dossier.interetsRetard ?? 0,
         destinataire: dossier.client,
         reference: '',
         notes: 'Intérêts de retard'
       });
     }
-    if (dossier.fraisProcedure > 0) {
+    if ((dossier.fraisProcedure ?? 0) > 0) {
       depensesInitiales.push({
         id: 3,
         type: 'frais_procedure',
         date: dossier.dateTransfert || new Date().toISOString().split('T')[0],
-        montant: dossier.fraisProcedure,
+        montant: dossier.fraisProcedure ?? 0,
         destinataire: 'Greffe',
         reference: '',
         notes: 'Frais de procédure'
@@ -1963,11 +1982,11 @@ const ContentieuxTab = ({ allJournalEntries, getStatutColor }: ContentieuxTabPro
                   </div>
                   <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
                     <span className="text-sm">Intérêts de retard</span>
-                    <span className="font-medium">{selectedContentieux ? formatCurrency(selectedContentieux.interetsRetard) : ''}</span>
+                    <span className="font-medium">{selectedContentieux ? formatCurrency(selectedContentieux.interetsRetard ?? 0) : ''}</span>
                   </div>
                   <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
                     <span className="text-sm">Frais de procédure</span>
-                    <span className="font-medium">{selectedContentieux ? formatCurrency(selectedContentieux.fraisProcedure) : ''}</span>
+                    <span className="font-medium">{selectedContentieux ? formatCurrency(selectedContentieux.fraisProcedure ?? 0) : ''}</span>
                   </div>
                 </div>
               </div>
@@ -3850,7 +3869,7 @@ const ContentieuxTab = ({ allJournalEntries, getStatutColor }: ContentieuxTabPro
                       <div>
                         <h4 className="font-medium text-gray-900 mb-2">Comptes saisis</h4>
                         <div className="space-y-2">
-                          {selectedExecutionDossier.comptesSaisis?.map((compte, index) => (
+                          {selectedExecutionDossier.comptesSaisis?.map((compte: string, index: number) => (
                             <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
                               <span className="text-sm">{compte}</span>
                               <span className="text-xs text-green-600">Actif</span>
@@ -3872,7 +3891,7 @@ const ContentieuxTab = ({ allJournalEntries, getStatutColor }: ContentieuxTabPro
                       <div>
                         <h4 className="font-medium text-gray-900 mb-2">Biens saisis</h4>
                         <div className="space-y-2">
-                          {selectedExecutionDossier.biensSaisis?.map((bien, index) => (
+                          {selectedExecutionDossier.biensSaisis?.map((bien: string, index: number) => (
                             <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
                               <span className="text-sm">{bien}</span>
                               <span className="text-xs text-blue-600">En cours d'évaluation</span>
@@ -3941,6 +3960,7 @@ const ContentieuxTab = ({ allJournalEntries, getStatutColor }: ContentieuxTabPro
   );
 
   function renderContentieuxDetailPage() {
+    if (!selectedContentieuxDetail) return null;
     return (
       <div className="space-y-6">
         {/* En-tête avec bouton retour */}
@@ -4046,6 +4066,7 @@ const ContentieuxTab = ({ allJournalEntries, getStatutColor }: ContentieuxTabPro
   }
 
   function renderGeneralTab() {
+    if (!selectedContentieuxDetail) return null;
     return (
       <div className="space-y-6">
         {/* Informations générales */}
@@ -4083,11 +4104,11 @@ const ContentieuxTab = ({ allJournalEntries, getStatutColor }: ContentieuxTabPro
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Intérêts de retard:</span>
-                <span className="font-medium text-orange-600">{formatCurrency(selectedContentieuxDetail.interetsRetard)}</span>
+                <span className="font-medium text-orange-600">{formatCurrency(selectedContentieuxDetail.interetsRetard ?? 0)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Frais de procédure:</span>
-                <span className="font-medium text-red-600">{formatCurrency(selectedContentieuxDetail.fraisProcedure)}</span>
+                <span className="font-medium text-red-600">{formatCurrency(selectedContentieuxDetail.fraisProcedure ?? 0)}</span>
               </div>
               <div className="flex justify-between border-t pt-2">
                 <span className="text-gray-600 font-semibold">Montant total:</span>
@@ -4135,6 +4156,7 @@ const ContentieuxTab = ({ allJournalEntries, getStatutColor }: ContentieuxTabPro
   }
 
   function renderProcedureTab() {
+    if (!selectedContentieuxDetail) return null;
     const etapesProcedure = [
       {
         id: 1,
@@ -4268,6 +4290,7 @@ const ContentieuxTab = ({ allJournalEntries, getStatutColor }: ContentieuxTabPro
   }
 
   function renderChronologieTab() {
+    if (!selectedContentieuxDetail) return null;
     return (
       <div className="space-y-6">
         <h3 className="text-lg font-semibold text-gray-900">Chronologie Complète du Dossier</h3>
@@ -4320,7 +4343,7 @@ const ContentieuxTab = ({ allJournalEntries, getStatutColor }: ContentieuxTabPro
                 <div className="flex items-center justify-between mb-1">
                   <h4 className="font-semibold text-gray-900">{event.titre}</h4>
                   <div className="text-right">
-                    <div className="text-sm text-gray-700">{new Date(event.date).toLocaleDateString()}</div>
+                    <div className="text-sm text-gray-700">{new Date(event.date ?? '').toLocaleDateString()}</div>
                     <div className="text-xs text-gray-700">{event.utilisateur}</div>
                   </div>
                 </div>
@@ -4505,7 +4528,7 @@ const ContentieuxTab = ({ allJournalEntries, getStatutColor }: ContentieuxTabPro
                     <tr key={doc.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4">
                         <div className="flex items-center space-x-3">
-                          {typeIcons[doc.type]}
+                          {typeIcons[doc.type as keyof typeof typeIcons]}
                           <div>
                             <div className="text-sm font-medium text-gray-900">{doc.nom}</div>
                             <div className="text-sm text-gray-700">{doc.description}</div>
@@ -4514,7 +4537,7 @@ const ContentieuxTab = ({ allJournalEntries, getStatutColor }: ContentieuxTabPro
                       </td>
                       <td className="px-6 py-4">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                          {typeLabels[doc.type]}
+                          {typeLabels[doc.type as keyof typeof typeLabels]}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-900">{doc.auteur}</td>
@@ -4660,7 +4683,7 @@ const ContentieuxTab = ({ allJournalEntries, getStatutColor }: ContentieuxTabPro
     );
   }
 
-  function renderFraisTab() {
+  function renderFraisTabDetailed() {
 
     const fraisContentieux = [
       {
@@ -4856,7 +4879,7 @@ const ContentieuxTab = ({ allJournalEntries, getStatutColor }: ContentieuxTabPro
                     <tr key={frais.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4">
                         <div className="flex items-center space-x-3">
-                          {typeIcons[frais.type]}
+                          {typeIcons[frais.type as keyof typeof typeIcons]}
                           <div>
                             <div className="text-sm font-medium text-gray-900">{frais.description}</div>
                             <div className="text-sm text-gray-700">Engagé le {frais.dateEngagement}</div>
@@ -4873,8 +4896,8 @@ const ContentieuxTab = ({ allJournalEntries, getStatutColor }: ContentieuxTabPro
                         <div className="text-sm font-bold text-gray-900">{formatCurrency(frais.montant)}</div>
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statutColors[frais.statut]}`}>
-                          {statutLabels[frais.statut]}
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statutColors[frais.statut as keyof typeof statutColors]}`}>
+                          {statutLabels[frais.statut as keyof typeof statutLabels]}
                         </span>
                       </td>
                       <td className="px-6 py-4">
@@ -5216,17 +5239,17 @@ const ContentieuxTab = ({ allJournalEntries, getStatutColor }: ContentieuxTabPro
                   <div className="flex items-start justify-between">
                     <div className="flex items-start space-x-4 flex-1">
                       <div className="flex-shrink-0">
-                        {typeIcons[corresp.type]}
+                        {typeIcons[corresp.type as keyof typeof typeIcons]}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center space-x-3 mb-2">
                           <h4 className="text-sm font-semibold text-gray-900 truncate">
                             {corresp.correspondant}
                           </h4>
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${prioriteColors[corresp.priorite]}`}>
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${prioriteColors[corresp.priorite as keyof typeof prioriteColors]}`}>
                             {corresp.priorite}
                           </span>
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statutColors[corresp.statut]}`}>
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statutColors[corresp.statut as keyof typeof statutColors]}`}>
                             {corresp.statut}
                           </span>
                           {corresp.direction === 'envoye' && (
@@ -5628,7 +5651,7 @@ const ContentieuxTab = ({ allJournalEntries, getStatutColor }: ContentieuxTabPro
                     <tr key={mesure.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4">
                         <div className="flex items-center space-x-3">
-                          {typeIcons[mesure.type]}
+                          {typeIcons[mesure.type as keyof typeof typeIcons]}
                           <div>
                             <div className="text-sm font-medium text-gray-900">{mesure.nom}</div>
                             <div className="text-sm text-gray-700">{mesure.lieu || mesure.etablissement || mesure.organisme}</div>
@@ -5637,7 +5660,7 @@ const ContentieuxTab = ({ allJournalEntries, getStatutColor }: ContentieuxTabPro
                       </td>
                       <td className="px-6 py-4">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                          {typeLabels[mesure.type]}
+                          {typeLabels[mesure.type as keyof typeof typeLabels]}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-900">{mesure.huissier}</td>
@@ -5653,8 +5676,8 @@ const ContentieuxTab = ({ allJournalEntries, getStatutColor }: ContentieuxTabPro
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statutColors[mesure.statut]}`}>
-                          {statutLabels[mesure.statut]}
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statutColors[mesure.statut as keyof typeof statutColors]}`}>
+                          {statutLabels[mesure.statut as keyof typeof statutLabels]}
                         </span>
                       </td>
                       <td className="px-6 py-4">
@@ -5784,6 +5807,7 @@ const ContentieuxTab = ({ allJournalEntries, getStatutColor }: ContentieuxTabPro
   }
 
   function renderResultatsTab() {
+    if (!selectedContentieuxDetail) return null;
 
     // Métriques dérivées des dossiers contentieux réels (statut juridique).
     const montantInitial = dossiersContentieux.reduce((s: number, d: any) => s + Number(d.montantTotal || 0), 0);
@@ -7180,8 +7204,8 @@ const ContentieuxTab = ({ allJournalEntries, getStatutColor }: ContentieuxTabPro
                 </h2>
               </div>
               <div className="flex items-center space-x-4 mt-4">
-                <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getProcedureStatutColor(selectedContentieux.statutJuridique)}`}>
-                  {selectedContentieux.statutJuridique.replace('_', ' ').toUpperCase()}
+                <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getProcedureStatutColor(selectedContentieux.statutJuridique ?? '')}`}>
+                  {selectedContentieux.statutJuridique?.replace('_', ' ').toUpperCase()}
                 </span>
                 <span className="text-sm text-gray-600">
                   Transféré le {selectedContentieux.dateTransfert}
@@ -7352,13 +7376,13 @@ const ContentieuxTab = ({ allJournalEntries, getStatutColor }: ContentieuxTabPro
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600">Intérêts de retard</span>
                   <span className="text-sm font-semibold text-[var(--color-primary)]">
-                    {formatCurrency(selectedContentieux.interetsRetard)}
+                    {formatCurrency(selectedContentieux.interetsRetard ?? 0)}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600">Frais de procédure</span>
                   <span className="text-sm font-semibold text-[var(--color-primary)]">
-                    {formatCurrency(selectedContentieux.fraisProcedure)}
+                    {formatCurrency(selectedContentieux.fraisProcedure ?? 0)}
                   </span>
                 </div>
                 <hr />
@@ -7869,6 +7893,8 @@ Service Contentieux
         statut: string;
         assigneA: string;
         commentaires: string;
+        crmData?: CrmData;
+        commercialData?: CommercialData;
       }>;
   }, [allJournalEntries, customerThirdParties]);
 
@@ -8534,7 +8560,7 @@ Service Contentieux
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex items-center space-x-2 justify-end">
                           <button
-                            onClick={() => setSelectedCreance(creance)}
+                            onClick={() => setSelectedCreance(creance as unknown as CreanceEnrichie)}
                             className="p-1 text-[var(--color-primary)] hover:text-[var(--color-primary)]/80 relative"
                             title="Voir détails"
                           >
@@ -8545,7 +8571,7 @@ Service Contentieux
                           </button>
                           <button
                             onClick={() => {
-                              setSelectedCreance(creance);
+                              setSelectedCreance(creance as unknown as CreanceEnrichie);
                               setShowActionModal(true);
                             }}
                             className="p-1 text-orange-600 hover:text-orange-900 relative"
@@ -8588,7 +8614,7 @@ Service Contentieux
                           </button>
                           {creance.commercialData?.litigesActifs && creance.commercialData.litigesActifs > 0 && (
                             <div className="flex items-center space-x-1">
-                              <AlertTriangle className="w-4 h-4 text-red-500" title={`${creance.commercialData.litigesActifs} litige(s) actif(s)`} />
+                              <AlertTriangle className="w-4 h-4 text-red-500" {...({ title: `${creance.commercialData.litigesActifs} litige(s) actif(s)` } as Record<string, unknown>)} />
                             </div>
                           )}
                         </div>
@@ -11469,7 +11495,7 @@ Service Contentieux
                           <CartesianGrid strokeDasharray="3 3" />
                           <XAxis dataKey="mois" />
                           <YAxis />
-                          <Tooltip formatter={(value) => [`${formatCurrency(value)}`, 'Montant']} />
+                          <Tooltip formatter={(value) => [`${formatCurrency(Number(value))}`, 'Montant']} />
                           <Area type="monotone" dataKey="montant" stroke="#15803D" fill="#15803D" fillOpacity={0.1} />
                         </AreaChart>
                       </ResponsiveContainer>
@@ -11496,7 +11522,7 @@ Service Contentieux
                               dataKey="value"
                               label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                             />
-                            <Tooltip formatter={(value) => [`${formatCurrency(value)}`, 'Montant']} />
+                            <Tooltip formatter={(value) => [`${formatCurrency(Number(value))}`, 'Montant']} />
                           </RechartsPieChart>
                         </ResponsiveContainer>
                       </div>
@@ -13057,7 +13083,16 @@ Service Contentieux
       )}
 
       {activeTab === 'contentieux' && (
-        <ContentieuxTab allJournalEntries={allJournalEntries} getStatutColor={getStatutColor} />
+        <ContentieuxTab
+          allJournalEntries={allJournalEntries}
+          getStatutColor={getStatutColor}
+          setShowRapportMensuelModal={setShowRapportMensuelModal}
+          setShowAnalyseROIModal={setShowAnalyseROIModal}
+          setShowPerformanceEquipeModal={setShowPerformanceEquipeModal}
+          setShowPrevisionTresorerieModal={setShowPrevisionTresorerieModal}
+          setShowDossiersRisqueModal={setShowDossiersRisqueModal}
+          setShowExportPersonnaliseModal={setShowExportPersonnaliseModal}
+        />
       )}
 
       {/* Modal de création de dossier de recouvrement */}
@@ -14488,8 +14523,8 @@ Service Contentieux
                       {selectedPlan.mensualite > 0 && Array.from({ length: Math.round(selectedPlan.montantTotal / selectedPlan.mensualite) }, (_, i) => {
                         const echeanceDate = new Date();
                         echeanceDate.setMonth(echeanceDate.getMonth() + i);
-                        const isPaid = i < selectedPlan.echeancesPayees;
-                        const isCurrentMonth = i === selectedPlan.echeancesPayees;
+                        const isPaid = i < Number(selectedPlan.echeancesPayees);
+                        const isCurrentMonth = i === Number(selectedPlan.echeancesPayees);
 
                         return (
                           <tr key={i} className={isCurrentMonth ? 'bg-yellow-50' : ''}>
@@ -14497,7 +14532,7 @@ Service Contentieux
                             <td className="px-4 py-3 text-sm">{echeanceDate.toLocaleDateString()}</td>
                             <td className="px-4 py-3 text-sm font-medium">{formatCurrency(selectedPlan.mensualite)}</td>
                             <td className="px-4 py-3 text-sm">
-                              {isPaid ? new Date(Date.now() - (selectedPlan.echeancesPayees - i) * 30 * 24 * 60 * 60 * 1000).toLocaleDateString() : '-'}
+                              {isPaid ? new Date(Date.now() - (Number(selectedPlan.echeancesPayees) - i) * 30 * 24 * 60 * 60 * 1000).toLocaleDateString() : '-'}
                             </td>
                             <td className="px-4 py-3 text-sm">
                               <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
@@ -14862,7 +14897,7 @@ L'équipe recouvrement`}
                 </h2>
                 {selectedCreance && (
                   <p className="text-gray-600 mt-1">
-                    Client: {selectedCreance.client} - {formatCurrency(selectedCreance.montantTotal)}
+                    Client: {(selectedCreance as { client?: string }).client} - {formatCurrency(selectedCreance.montantTotal)}
                   </p>
                 )}
               </div>
@@ -14905,7 +14940,7 @@ L'équipe recouvrement`}
                       <button
                         key={type.value}
                         type="button"
-                        onClick={() => setActionFormData({ ...actionFormData, typeAction: type.value as ActionTypeRecouvrement })}
+                        onClick={() => setActionFormData({ ...actionFormData, typeAction: type.value as typeof actionFormData.typeAction })}
                         className={`p-3 rounded-lg border-2 transition-all ${
                           actionFormData.typeAction === type.value
                             ? 'border-orange-600 bg-orange-50 text-orange-900'
@@ -15075,234 +15110,6 @@ L'équipe recouvrement`}
                   <CheckCircle className="w-4 h-4" />
                   <span>Enregistrer l'action</span>
                 </div>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Transfer Contentieux Modal */}
-      {false && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col">
-            {/* Sticky header */}
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-lg flex justify-between items-center">
-              <div className="flex items-center space-x-3">
-                <div className="bg-red-100 text-red-600 p-2 rounded-lg">
-                  <Gavel className="w-5 h-5" />
-                </div>
-                <h2 className="text-lg font-bold text-gray-900">Transfert Contentieux</h2>
-              </div>
-              <button
-                onClick={() => {
-                  setShowTransferContentieuxModal(false);
-                  resetForm();
-                }}
-                className="text-gray-700 hover:text-gray-700"
-                disabled={isSubmitting}
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-
-            {/* Scrollable content */}
-            <div className="flex-1 overflow-y-auto px-6 py-4">
-              <div className="space-y-6">
-                {/* Info alert */}
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                  <div className="flex items-start space-x-2">
-                    <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <h4 className="text-sm font-medium text-red-900 mb-1">Transfert vers Contentieux</h4>
-                      <p className="text-sm text-red-800">Basculez un dossier de recouvrement vers une procédure judiciaire ou contentieuse.</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Créances Selection */}
-                <div>
-                  <h3 className="text-md font-medium text-gray-900 mb-3">Sélection des Créances *</h3>
-                  <div className="grid grid-cols-1 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Créances à transférer (UUID) *</label>
-                      <div className="space-y-2">
-                        <div className="flex items-center space-x-2">
-                          <input
-                            type="checkbox"
-                            id="creance1"
-                            className="rounded border-gray-300 text-red-500"
-                            onChange={(e) => {
-                              const creanceId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
-                              if (e.target.checked) {
-                                handleInputChange('creance_ids', [...formData.creance_ids, creanceId]);
-                              } else {
-                                handleInputChange('creance_ids', formData.creance_ids.filter(id => id !== creanceId));
-                              }
-                            }}
-                            disabled={isSubmitting}
-                          />
-                          <label htmlFor="creance1" className="text-sm text-gray-700">SARL CONGO BUSINESS - 2,500,000 FCFA</label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <input
-                            type="checkbox"
-                            id="creance2"
-                            className="rounded border-gray-300 text-red-500"
-                            onChange={(e) => {
-                              const creanceId = 'f47ac10b-58cc-4372-a567-0e02b2c3d480';
-                              if (e.target.checked) {
-                                handleInputChange('creance_ids', [...formData.creance_ids, creanceId]);
-                              } else {
-                                handleInputChange('creance_ids', formData.creance_ids.filter(id => id !== creanceId));
-                              }
-                            }}
-                            disabled={isSubmitting}
-                          />
-                          <label htmlFor="creance2" className="text-sm text-gray-700">CEMAC SUPPLIES - 1,800,000 FCFA</label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <input
-                            type="checkbox"
-                            id="creance3"
-                            className="rounded border-gray-300 text-red-500"
-                            onChange={(e) => {
-                              const creanceId = 'f47ac10b-58cc-4372-a567-0e02b2c3d481';
-                              if (e.target.checked) {
-                                handleInputChange('creance_ids', [...formData.creance_ids, creanceId]);
-                              } else {
-                                handleInputChange('creance_ids', formData.creance_ids.filter(id => id !== creanceId));
-                              }
-                            }}
-                            disabled={isSubmitting}
-                          />
-                          <label htmlFor="creance3" className="text-sm text-gray-700">AFRICA TRADE - 3,200,000 FCFA</label>
-                        </div>
-                      </div>
-                      {errors.creance_ids && (
-                        <p className="mt-1 text-sm text-red-600">{errors.creance_ids}</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Transfer Details */}
-                <div>
-                  <h3 className="text-md font-medium text-gray-900 mb-3">Détails du Transfert</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Service de recouvrement *</label>
-                      <select
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
-                        value={formData.service_recouvrement}
-                        onChange={(e) => handleInputChange('service_recouvrement', e.target.value)}
-                        disabled={isSubmitting}
-                      >
-                        <option value="">-- Sélectionner le service --</option>
-                        <option value="huissier">Huissier de Justice</option>
-                        <option value="avocat">Cabinet d'Avocat</option>
-                        <option value="contentieux">Service Contentieux</option>
-                        <option value="tribunal">Tribunal de Commerce</option>
-                      </select>
-                      {errors.service_recouvrement && (
-                        <p className="mt-1 text-sm text-red-600">{errors.service_recouvrement}</p>
-                      )}
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Date de transfert *</label>
-                      <input
-                        type="date"
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
-                        value={formData.date_transfert}
-                        onChange={(e) => handleInputChange('date_transfert', e.target.value)}
-                        disabled={isSubmitting}
-                      />
-                      {errors.date_transfert && (
-                        <p className="mt-1 text-sm text-red-600">{errors.date_transfert}</p>
-                      )}
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Montant de provision (optionnel)</label>
-                      <input
-                        type="number"
-                        min="0"
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
-                        placeholder="Montant en FCFA"
-                        value={formData.provision_montant}
-                        onChange={(e) => handleInputChange('provision_montant', e.target.value)}
-                        disabled={isSubmitting}
-                      />
-                      {errors.provision_montant && (
-                        <p className="mt-1 text-sm text-red-600">{errors.provision_montant}</p>
-                      )}
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Documents (optionnel)</label>
-                      <input
-                        type="text"
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
-                        placeholder="Noms des documents (séparés par des virgules)"
-                        value={formData.documents.join(', ')}
-                        onChange={(e) => handleInputChange('documents', e.target.value.split(',').map(doc => doc.trim()).filter(doc => doc))}
-                        disabled={isSubmitting}
-                      />
-                      {errors.documents && (
-                        <p className="mt-1 text-sm text-red-600">{errors.documents}</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Motif */}
-                <div>
-                  <h3 className="text-md font-medium text-gray-900 mb-3">Motif du Transfert *</h3>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Motif détaillé (min. 10 caractères) *</label>
-                    <textarea
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
-                      rows={4}
-                      placeholder="Décrivez les raisons du transfert vers le contentieux (échec du recouvrement amiable, client insolvable, contestation, etc.)"
-                      value={formData.motif}
-                      onChange={(e) => handleInputChange('motif', e.target.value)}
-                      disabled={isSubmitting}
-                      minLength={10}
-                    />
-                    {errors.motif && (
-                      <p className="mt-1 text-sm text-red-600">{errors.motif}</p>
-                    )}
-                    <p className="mt-1 text-xs text-gray-700">{formData.motif.length}/500 caractères</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Sticky footer */}
-            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 rounded-b-lg flex justify-end space-x-3">
-              <button
-                onClick={() => {
-                  setShowTransferContentieuxModal(false);
-                  resetForm();
-                }}
-                disabled={isSubmitting}
-                className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Annuler
-              </button>
-              <button
-                onClick={handleSubmit}
-                disabled={isSubmitting}
-                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isSubmitting ? (
-                  <>
-                    <LoadingSpinner size="sm" />
-                    <span>Création...</span>
-                  </>
-                ) : (
-                  <>
-                    <Gavel className="w-4 h-4" />
-                    <span>{t('actions.create')}</span>
-                  </>
-                )}
               </button>
             </div>
           </div>

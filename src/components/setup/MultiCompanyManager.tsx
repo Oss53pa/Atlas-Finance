@@ -7,7 +7,7 @@ import {
   PlusIcon,
   PencilIcon,
   TrashIcon,
-  CopyIcon,
+  DocumentDuplicateIcon as CopyIcon,
   Cog6ToothIcon,
   UsersIcon,
   DocumentTextIcon,
@@ -89,7 +89,7 @@ const MultiCompanyManager: React.FC = () => {
     queryFn: async (): Promise<Company[]> => {
       // Load from adapter settings — companies stored as JSON
       try {
-        const setting = await adapter.getById('settings', 'companies_hierarchy');
+        const setting = await adapter.getById<any>('settings', 'companies_hierarchy');
         if (setting?.value) return JSON.parse(setting.value);
       } catch (err) { /* silent */}
       // Default: return current company info
@@ -278,7 +278,7 @@ const MultiCompanyManager: React.FC = () => {
   const createCompanyMutation = useMutation({
     mutationFn: async (companyData: Partial<Company>) => {
       // Save to adapter settings
-      const existing = await adapter.getById('settings', 'companies_hierarchy');
+      const existing = await adapter.getById<any>('settings', 'companies_hierarchy');
       const list = existing?.value ? JSON.parse(existing.value) : companies;
       const newCompany = { ...companyData, id: `company-${Date.now()}`, status: 'ACTIVE' };
       list.push(newCompany);

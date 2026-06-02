@@ -570,7 +570,7 @@ const PhysicalInventory: React.FC = () => {
               <p className="text-lg font-bold text-gray-900">
                 {counts.filter(c => c.status === 'in_progress').length}
               </p>
-              <p className="text-xs text-gray-600">{t('status.inProgress')}</p>
+              <p className="text-xs text-gray-600">En cours</p>
             </div>
           </div>
         </div>
@@ -752,13 +752,13 @@ const PhysicalInventory: React.FC = () => {
                             <td className="py-2 px-3 text-xs">{item.name}</td>
                             <td className="py-2 px-3 text-xs text-right font-mono">{item.bookQuantity}</td>
                             <td className="py-2 px-3 text-xs text-right font-mono">{item.countedQuantity ?? '—'}</td>
-                            <td className={`py-2 px-3 text-xs text-right font-mono ${item.variance < 0 ? 'text-red-600' : 'text-green-600'}`}>{item.variance}</td>
+                            <td className={`py-2 px-3 text-xs text-right font-mono ${(item.variance ?? 0) < 0 ? 'text-red-600' : 'text-green-600'}`}>{item.variance}</td>
                             <td className="py-2 px-3 text-xs text-right text-red-600">
-                              <CurrencyDisplay amount={item.varianceValue} currency="USD" size="sm" />
+                              <CurrencyDisplay amount={item.varianceValue ?? 0} currency="USD" size="sm" />
                             </td>
                             <td className="py-2 px-3 text-center">
                               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-50 text-orange-700 border border-orange-200">
-                                {item.variance < 0 ? 'Manquant' : 'Surplus'}
+                                {(item.variance ?? 0) < 0 ? 'Manquant' : 'Surplus'}
                               </span>
                             </td>
                           </tr>
@@ -899,8 +899,8 @@ const PhysicalInventory: React.FC = () => {
       <PeriodSelectorModal
         isOpen={showPeriodModal}
         onClose={() => setShowPeriodModal(false)}
-        onPeriodSelect={(period) => {
-          setDateRange(period);
+        onApply={(period: { start: string; end: string }) => {
+          setDateRange({ startDate: period.start, endDate: period.end });
           setShowPeriodModal(false);
         }}
       />

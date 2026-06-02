@@ -128,11 +128,11 @@ const BudgetsPage: React.FC = () => {
   const { data: budgets = [], isLoading } = useQuery({
     queryKey: ['budgets', searchTerm, selectedType, selectedStatus, selectedDepartment],
     queryFn: async () => {
-      const budgetLines = await adapter.getAll('budgetLines');
-      const fiscalYears = await adapter.getAll('fiscalYears');
+      const budgetLines = await adapter.getAll<any>('budgetLines');
+      const fiscalYears = await adapter.getAll<any>('fiscalYears');
 
       // Group budget lines by fiscalYear to build Budget summaries
-      const byFY = new Map<string, typeof budgetLines>();
+      const byFY = new Map<string, any[]>();
       for (const bl of budgetLines) {
         const list = byFY.get(bl.fiscalYear) || [];
         list.push(bl);

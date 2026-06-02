@@ -133,10 +133,10 @@ const ValuationComparison: React.FC<ValuationComparisonProps> = ({
 
 interface LCMTestResult {
   itemId: string;
-  itemName: string;
+  itemName?: string;
   cost: number;
   marketValue: number;
-  writeDown: number;
+  writeDown?: number;
   status: string;
   [key: string]: unknown;
 }
@@ -147,12 +147,12 @@ interface LCMTestingProps {
 
 const LCMTesting: React.FC<LCMTestingProps> = ({ onTestComplete }) => {
   const { adapter } = useData();
-  const [inventoryItems, setInventoryItems] = useState<Record<string, unknown>[]>([]);
+  const [inventoryItems, setInventoryItems] = useState<any[]>([]);
 
   useEffect(() => {
     const load = async () => {
-      const items = await adapter.getAll('inventoryItems');
-      setInventoryItems(items as Record<string, unknown>[]);
+      const items = await adapter.getAll<any>('inventoryItems');
+      setInventoryItems(items as any[]);
     };
     load();
   }, [adapter]);
@@ -196,7 +196,7 @@ const LCMTesting: React.FC<LCMTestingProps> = ({ onTestComplete }) => {
     onTestComplete(results);
   };
 
-  const totalImpairment = testResults.reduce((sum, item) => sum + item.totalImpairment, 0);
+  const totalImpairment = testResults.reduce((sum, item) => sum + (item.totalImpairment as number), 0);
   const impairedItems = testResults.filter(item => item.status === 'impaired').length;
 
   return (
@@ -305,8 +305,8 @@ const LCMTesting: React.FC<LCMTestingProps> = ({ onTestComplete }) => {
                   <tr key={result.itemId} className="hover:bg-gray-50">
                     <td className="py-4 px-4">
                       <div>
-                        <div className="font-medium text-gray-900">{result.name}</div>
-                        <div className="text-sm text-gray-700">{result.sku}</div>
+                        <div className="font-medium text-gray-900">{result.name as React.ReactNode}</div>
+                        <div className="text-sm text-gray-700">{result.sku as React.ReactNode}</div>
                       </div>
                     </td>
                     <td className="py-4 px-4 text-right">
@@ -316,17 +316,17 @@ const LCMTesting: React.FC<LCMTestingProps> = ({ onTestComplete }) => {
                       <CurrencyDisplay amount={result.marketValue} currency="USD" size="sm" />
                     </td>
                     <td className="py-4 px-4 text-right">
-                      <CurrencyDisplay amount={result.nrv} currency="USD" size="sm" />
+                      <CurrencyDisplay amount={result.nrv as number} currency="USD" size="sm" />
                     </td>
                     <td className="py-4 px-4 text-right font-semibold">
-                      <CurrencyDisplay amount={result.lcmValue} currency="USD" size="sm" />
+                      <CurrencyDisplay amount={result.lcmValue as number} currency="USD" size="sm" />
                     </td>
                     <td className="py-4 px-4 text-right">
                       <CurrencyDisplay
-                        amount={result.totalImpairment}
+                        amount={result.totalImpairment as number}
                         currency="USD"
                         size="sm"
-                        className={result.totalImpairment > 0 ? 'text-red-600' : 'text-green-600'}
+                        className={(result.totalImpairment as number) > 0 ? 'text-red-600' : 'text-green-600'}
                       />
                     </td>
                     <td className="py-4 px-4 text-center">
@@ -355,12 +355,12 @@ const LCMTesting: React.FC<LCMTestingProps> = ({ onTestComplete }) => {
 
 const InventoryValuation: React.FC = () => {
   const { adapter } = useData();
-  const [inventoryItems, setInventoryItems] = useState<Record<string, unknown>[]>([]);
+  const [inventoryItems, setInventoryItems] = useState<any[]>([]);
 
   useEffect(() => {
     const load = async () => {
-      const items = await adapter.getAll('inventoryItems');
-      setInventoryItems(items as Record<string, unknown>[]);
+      const items = await adapter.getAll<any>('inventoryItems');
+      setInventoryItems(items as any[]);
     };
     load();
   }, [adapter]);
@@ -416,8 +416,8 @@ const InventoryValuation: React.FC = () => {
   const runValuation = async () => {
     setIsLoading(true);
     // Re-read data via adapter
-    const items = await adapter.getAll('inventoryItems');
-    setInventoryItems(items as Record<string, unknown>[]);
+    const items = await adapter.getAll<any>('inventoryItems');
+    setInventoryItems(items as any[]);
     setIsLoading(false);
   };
 
@@ -524,8 +524,8 @@ const InventoryValuation: React.FC = () => {
       <PeriodSelectorModal
         isOpen={showPeriodModal}
         onClose={() => setShowPeriodModal(false)}
-        onPeriodSelect={(period) => {
-          setDateRange(period);
+        onApply={(period) => {
+          setDateRange({ startDate: period.start, endDate: period.end });
           setShowPeriodModal(false);
         }}
       />

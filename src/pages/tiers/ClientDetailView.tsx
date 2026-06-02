@@ -221,8 +221,8 @@ const ClientDetailView: React.FC = () => {
       setLoading(true);
       try {
         const [allThirdParties, allEntries] = await Promise.all([
-          adapter.getAll('thirdParties'),
-          adapter.getAll('journalEntries')
+          adapter.getAll<any>('thirdParties'),
+          adapter.getAll<any>('journalEntries')
         ]);
 
         const tp = allThirdParties.find((t: any) => t.id === clientId);
@@ -1923,13 +1923,15 @@ const ClientDetailView: React.FC = () => {
 
       {/* Period Selector Modal */}
       <PeriodSelectorModal
-        isOpen={showPeriodModal}
-        onClose={() => setShowPeriodModal(false)}
-        currentRange={dateRange}
-        onPeriodChange={(newRange) => {
-          setDateRange(newRange);
-          setShowPeriodModal(false);
-        }}
+        {...({
+          isOpen: showPeriodModal,
+          onClose: () => setShowPeriodModal(false),
+          currentRange: dateRange,
+          onPeriodChange: (newRange: any) => {
+            setDateRange(newRange);
+            setShowPeriodModal(false);
+          },
+        } as any)}
       />
 
       {/* Modal Édition Client avec Onglets */}

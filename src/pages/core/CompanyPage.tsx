@@ -144,7 +144,7 @@ const CompanyPage: React.FC = () => {
                 </label>
                 {isEditMode ? (
                   <Input
-                    value={formData.nom || ''}
+                    value={(formData.nom as string) || ''}
                     onChange={(e) => handleChange('nom', e.target.value)}
                     placeholder="Nom de la société"
                   />
@@ -159,7 +159,7 @@ const CompanyPage: React.FC = () => {
                 </label>
                 {isEditMode ? (
                   <Input
-                    value={formData.forme_juridique || ''}
+                    value={(formData.forme_juridique as string) || ''}
                     onChange={(e) => handleChange('forme_juridique', e.target.value)}
                     placeholder="SARL, SA, SAS..."
                   />
@@ -174,7 +174,7 @@ const CompanyPage: React.FC = () => {
                 </label>
                 {isEditMode ? (
                   <Input
-                    value={formData.numero_rccm || ''}
+                    value={(formData.numero_rccm as string) || ''}
                     onChange={(e) => handleChange('numero_rccm', e.target.value)}
                     placeholder="Numéro RCCM"
                   />
@@ -189,7 +189,7 @@ const CompanyPage: React.FC = () => {
                 </label>
                 {isEditMode ? (
                   <Input
-                    value={formData.numero_fiscal || ''}
+                    value={(formData.numero_fiscal as string) || ''}
                     onChange={(e) => handleChange('numero_fiscal', e.target.value)}
                     placeholder="Numéro d'identification fiscale"
                   />
@@ -205,7 +205,7 @@ const CompanyPage: React.FC = () => {
                 </label>
                 {isEditMode ? (
                   <Textarea
-                    value={formData.adresse || ''}
+                    value={(formData.adresse as string) || ''}
                     onChange={(e) => handleChange('adresse', e.target.value)}
                     placeholder="Adresse complète de la société"
                     rows={3}
@@ -222,7 +222,7 @@ const CompanyPage: React.FC = () => {
                 </label>
                 {isEditMode ? (
                   <Input
-                    value={formData.telephone || ''}
+                    value={(formData.telephone as string) || ''}
                     onChange={(e) => handleChange('telephone', e.target.value)}
                     placeholder="Numéro de téléphone"
                   />
@@ -239,7 +239,7 @@ const CompanyPage: React.FC = () => {
                 {isEditMode ? (
                   <Input
                     type="email"
-                    value={formData.email || ''}
+                    value={(formData.email as string) || ''}
                     onChange={(e) => handleChange('email', e.target.value)}
                     placeholder="Adresse email"
                   />
@@ -255,7 +255,7 @@ const CompanyPage: React.FC = () => {
                 </label>
                 {isEditMode ? (
                   <Input
-                    value={formData.site_web || ''}
+                    value={(formData.site_web as string) || ''}
                     onChange={(e) => handleChange('site_web', e.target.value)}
                     placeholder="https://www.exemple.com"
                   />

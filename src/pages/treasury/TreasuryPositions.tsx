@@ -293,8 +293,6 @@ const TreasuryPositions: React.FC = () => {
             <ColorfulBarChart
               data={chartData}
               height={160}
-              showValues={true}
-              valueFormatter={(value) => `${value.toFixed(1)}M €`}
             />
           </ModernChartCard>
         </motion.div>

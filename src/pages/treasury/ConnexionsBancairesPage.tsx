@@ -110,7 +110,7 @@ const ConnexionsBancairesPage: React.FC = () => {
     queryKey: ['bank-accounts'],
     queryFn: async () => {
       const accounts = await bankAccountsService.getActiveAccounts();
-      return accounts.map((acc: Record<string, unknown>) => ({
+      return accounts.map((acc: any) => ({
         id: acc.id as string,
         nom_banque: (acc.banque as string) || 'Banque',
         nom_compte: (acc.libelle as string) || (acc.numero_compte as string),
@@ -138,10 +138,10 @@ const ConnexionsBancairesPage: React.FC = () => {
     queryKey: ['bank-transactions', selectedAccount],
     queryFn: async () => {
       if (!selectedAccount) {
-        const allTransactions = await bankTransactionsService.getAll({ page_size: 50 });
+        const allTransactions = await (bankTransactionsService as any).getAll({ page_size: 50 });
         return allTransactions.results || [];
       }
-      const accountTransactions = await bankTransactionsService.getByAccount(selectedAccount, { page_size: 50 });
+      const accountTransactions = await (bankTransactionsService as any).getByAccount(selectedAccount, { page_size: 50 });
       return accountTransactions;
     },
     enabled: true,
@@ -165,7 +165,7 @@ const ConnexionsBancairesPage: React.FC = () => {
     queryKey: ['reconciliation-status'],
     queryFn: async () => {
       const companyId = localStorage.getItem('atlas-tenant-id') || '';
-      return await treasuryAdvancedService.getReconciliationStatus(companyId);
+      return await (treasuryAdvancedService as any).getReconciliationStatus(companyId);
     },
     enabled: !!localStorage.getItem('atlas-tenant-id'),
   });
@@ -243,7 +243,7 @@ const ConnexionsBancairesPage: React.FC = () => {
       const account = connections.find(c => c.id === accountId);
 
       if (account) {
-        await treasuryAdvancedService.autoReconcile({
+        await (treasuryAdvancedService as any).autoReconcile({
           company_id: companyId,
           account_id: accountId,
           statement_date: new Date().toISOString().split('T')[0],
@@ -595,7 +595,7 @@ const ConnexionsBancairesPage: React.FC = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {transactions.map((transaction) => {
+                      {transactions.map((transaction: any) => {
                         const account = connections.find(c => c.id === transaction.compte_id);
                         return (
                           <TableRow key={transaction.id} className="hover:bg-gray-50">
@@ -659,7 +659,7 @@ const ConnexionsBancairesPage: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {syncLogs.map((log) => {
+                  {syncLogs.map((log: any) => {
                     const account = connections.find(c => c.id === log.compte_id);
                     return (
                       <div key={log.id} className="flex items-center justify-between p-4 border rounded-lg">

@@ -5,6 +5,7 @@
 import type { DataAdapter } from '@atlas/data';
 import {
   Report,
+  ReportType,
   ReportStats,
   ReportFilters,
   ReportTemplate,
@@ -736,7 +737,7 @@ const TEMPLATES: ReportTemplate[] = [
 class ReportingService {
   async getReports(adapter: DataAdapter, filters?: ReportFilters): Promise<Report[]> {
     // Get the latest entry date to determine lastGenerated
-    const allEntries = await adapter.getAll('journalEntries', { orderBy: { field: 'date', direction: 'desc' } });
+    const allEntries = await adapter.getAll<any>('journalEntries', { orderBy: { field: 'date', direction: 'desc' } });
     const lastDate = allEntries[0]?.date || new Date().toISOString().split('T')[0];
     const entryCount = allEntries.length;
 
@@ -828,8 +829,8 @@ class ReportingService {
       }
       case 'fec': {
         try {
-          const { fecExportService } = await import('../../../services/export/fecExportService');
-          return fecExportService.exportFEC(adapter, exercice);
+          const fecMod = await import('../../../services/export/fecExportService') as any;
+          return fecMod.fecExportService.exportFEC(adapter, exercice);
         } catch (err) { /* silent */
           throw new Error('Service FEC non disponible');
         }
@@ -851,14 +852,16 @@ class ReportingService {
       id: `custom-${Date.now()}`,
       name: data.name,
       description: data.description || '',
-      type: data.type as string,
+      type: data.type as ReportType,
       category: data.category || 'Personnalisé',
       format: data.format || 'pdf',
       frequency: 'on_demand',
       status: 'active',
-      lastGenerated: undefined,
+      lastGenerated: '',
       tags: data.tags || [],
       isPublic: data.isPublic || false,
+      generatedBy: data.generatedBy || '',
+      views: data.views ?? 0,
     };
     // Persist in settings
     const key = `report_${report.id}`;

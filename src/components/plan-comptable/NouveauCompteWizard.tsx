@@ -274,8 +274,8 @@ export function NouveauCompteWizard({ onClose, onSuccess }: Props) {
 
     const loadAliasData = async () => {
       const [nextAlias, aliases] = await Promise.all([
-        aliasTiersService.getNextAlias(prefix),
-        aliasTiersService.getAliasesByPrefix(prefix),
+        aliasTiersService.getNextAlias(adapter, prefix),
+        aliasTiersService.getAliasesByPrefix(adapter, prefix),
       ]);
       setAutoAlias(nextAlias);
       setExistingAliases(aliases);
@@ -362,7 +362,7 @@ export function NouveauCompteWizard({ onClose, onSuccess }: Props) {
         return;
       }
 
-      await planComptableService.createAccount({
+      await planComptableService.createAccount(adapter, {
         code: suggestedCode,
         name: libelle.trim(),
         accountClass: selectedClasse.code.toString(),
@@ -378,7 +378,7 @@ export function NouveauCompteWizard({ onClose, onSuccess }: Props) {
       let aliasLabel = '';
       if (prefix && isAliasEligible(selectedSousCompte.code)) {
         if (aliasMode === 'auto') {
-          await aliasTiersService.createAlias({
+          await aliasTiersService.createAlias(adapter, {
             alias: autoAlias,
             prefix,
             label: libelle.trim(),
@@ -386,7 +386,7 @@ export function NouveauCompteWizard({ onClose, onSuccess }: Props) {
           });
           aliasLabel = autoAlias;
         } else if (aliasMode === 'custom' && customAlias.trim()) {
-          await aliasTiersService.createAlias({
+          await aliasTiersService.createAlias(adapter, {
             alias: customAlias.trim(),
             prefix,
             label: libelle.trim(),
@@ -394,7 +394,7 @@ export function NouveauCompteWizard({ onClose, onSuccess }: Props) {
           });
           aliasLabel = customAlias.trim();
         } else if (aliasMode === 'attach' && selectedAliasId) {
-          await aliasTiersService.attachAccountToAlias(selectedAliasId, suggestedCode);
+          await aliasTiersService.attachAccountToAlias(adapter, selectedAliasId, suggestedCode);
           const attached = existingAliases.find(a => a.id === selectedAliasId);
           aliasLabel = attached?.alias || '';
         }

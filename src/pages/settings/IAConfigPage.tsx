@@ -462,7 +462,7 @@ const IAConfigPage: React.FC = () => {
                 ? "text-[var(--color-primary)] hover:bg-[var(--color-primary-light)]"
                 : "text-[var(--color-text-tertiary)] cursor-not-allowed"
             )}
-            icon={<Eye className="w-4 h-4" />}
+            leftIcon={<Eye className="w-4 h-4" />}
           >
             Voir Algorithme
           </ModernButton>
@@ -557,7 +557,7 @@ const IAConfigPage: React.FC = () => {
                     disabled={!isActive}
                     variant="outline"
                     size="sm"
-                    icon={<Eye className="w-4 h-4" />}
+                    leftIcon={<Eye className="w-4 h-4" />}
                   >
                     Détails
                   </ModernButton>
@@ -1848,13 +1848,13 @@ const IAConfigPage: React.FC = () => {
                 <div className="flex gap-3 pt-4">
                   <ModernButton
                     className="bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-dark)]"
-                    icon={<Download className="w-4 h-4" />}
+                    leftIcon={<Download className="w-4 h-4" />}
                   >
                     Exporter Modèle
                   </ModernButton>
                   <ModernButton
                     variant="outline"
-                    icon={<Activity className="w-4 h-4" />}
+                    leftIcon={<Activity className="w-4 h-4" />}
                   >
                     Voir Performances
                   </ModernButton>

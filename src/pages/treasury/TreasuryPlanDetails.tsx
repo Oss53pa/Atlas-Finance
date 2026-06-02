@@ -17,7 +17,7 @@ const TreasuryPlanDetails: React.FC = () => {
     title: string;
     type: 'client' | 'fournisseur';
     category: string;
-    invoices: Array<Record<string, unknown>>;
+    invoices: any[];
   } | null>(null);
   const [transactionType, setTransactionType] = useState('encaissement');
   const [expandedEncaissements, setExpandedEncaissements] = useState(false);
@@ -52,7 +52,7 @@ const TreasuryPlanDetails: React.FC = () => {
     const loadPlanData = async () => {
       try {
         // Charger la position de trésorerie initiale depuis les écritures
-        const entries = await adapter.getAll('journalEntries') as Record<string, unknown>[];
+        const entries = await adapter.getAll<any>('journalEntries') as any[];
         let treasuryBalance = 0;
         for (const e of entries) {
           if (new Date(e.date) <= new Date(dateDebut)) {
@@ -981,7 +981,7 @@ const TreasuryPlanDetails: React.FC = () => {
                           <td className="px-3 py-2 text-center"><span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">Défavorable</span></td>
                         </tr>
                         <tr className="bg-green-100 font-bold">
-                          <td colSpan="4" className="px-3 py-2 text-sm font-bold text-green-800">TOTAL SCÉNARIO OPTIMISTE</td>
+                          <td colSpan={4} className="px-3 py-2 text-sm font-bold text-green-800">TOTAL SCÉNARIO OPTIMISTE</td>
                           <td className="px-3 py-2 text-right text-sm font-bold">35,400,000</td>
                           <td className="px-3 py-2 text-right text-sm font-bold text-green-600">46,020,000</td>
                           <td className="px-3 py-2 text-right text-sm font-bold text-green-700">+10,620,000</td>
@@ -1070,7 +1070,7 @@ const TreasuryPlanDetails: React.FC = () => {
                           <td className="px-3 py-2 text-center"><span className="px-2 py-1 bg-[var(--color-primary)]/10 text-[var(--color-primary)] text-xs rounded-full">95%</span></td>
                         </tr>
                         <tr className="bg-[var(--color-primary)]/10 font-bold">
-                          <td colSpan="4" className="px-3 py-2 text-sm font-bold text-[var(--color-primary)]">TOTAL SCÉNARIO RÉALISTE</td>
+                          <td colSpan={4} className="px-3 py-2 text-sm font-bold text-[var(--color-primary)]">TOTAL SCÉNARIO RÉALISTE</td>
                           <td className="px-3 py-2 text-right text-sm font-bold">35,400,000</td>
                           <td className="px-3 py-2 text-right text-sm font-bold text-[var(--color-primary)]">35,400,000</td>
                           <td className="px-3 py-2 text-right text-sm font-bold">±0</td>
@@ -1159,7 +1159,7 @@ const TreasuryPlanDetails: React.FC = () => {
                           <td className="px-3 py-2 text-center"><span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Favorable</span></td>
                         </tr>
                         <tr className="bg-red-100 font-bold">
-                          <td colSpan="4" className="px-3 py-2 text-sm font-bold text-red-800">TOTAL SCÉNARIO PESSIMISTE</td>
+                          <td colSpan={4} className="px-3 py-2 text-sm font-bold text-red-800">TOTAL SCÉNARIO PESSIMISTE</td>
                           <td className="px-3 py-2 text-right text-sm font-bold">35,400,000</td>
                           <td className="px-3 py-2 text-right text-sm font-bold text-red-600">24,780,000</td>
                           <td className="px-3 py-2 text-right text-sm font-bold text-red-700">-10,620,000</td>
@@ -1644,9 +1644,9 @@ const TreasuryPlanDetails: React.FC = () => {
                     >
                       <option value="">Sélectionner une sous-catégorie</option>
                       {selectedCategory && Object.entries(
-                        (transactionType === 'encaissement' ? encaissementCategories : decaissementCategories)[selectedCategory]?.subCategories || {}
+                        ((transactionType === 'encaissement' ? encaissementCategories : decaissementCategories) as Record<string, any>)[selectedCategory]?.subCategories || {}
                       ).map(([key, label]) => (
-                        <option key={key} value={key}>{label}</option>
+                        <option key={key} value={key}>{String(label)}</option>
                       ))}
                     </select>
                   </div>

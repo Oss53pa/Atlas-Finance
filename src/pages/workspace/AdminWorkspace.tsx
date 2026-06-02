@@ -350,7 +350,7 @@ const AdminWorkspace: React.FC = () => {
                 ].map(item => (
                   <button key={item.id} onClick={() => changeSection(item.id)} className={`${activeSection===item.id?'bg-[var(--color-accent)]/10 text-[var(--color-accent)]':'text-gray-600 hover:bg-gray-50'} w-full flex items-center justify-between px-3 py-2 rounded-lg`}>
                     <div className="flex items-center space-x-3"><item.icon className="w-4 h-4" /><span className="text-sm font-medium">{item.label}</span></div>
-                    {'badge' in item && item.badge && <span className="px-2 py-0.5 text-xs rounded-full bg-[var(--color-accent-light)] text-[var(--color-error)]">{String(item.badge)}</span>}
+                    {'badge' in item && Boolean((item as { badge?: unknown }).badge) && <span className="px-2 py-0.5 text-xs rounded-full bg-[var(--color-accent-light)] text-[var(--color-error)]">{String((item as { badge?: unknown }).badge)}</span>}
                   </button>
                 ))}
               </div>

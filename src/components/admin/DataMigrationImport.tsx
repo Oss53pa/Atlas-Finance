@@ -1389,6 +1389,19 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
         return col ? (row as Record<string, any>)[col] : '';
       };
 
+      // Montants d'une ligne, NORMALISÉS. Les exports comptables expriment souvent
+      // les corrections/contre-passations par un montant NÉGATIF dans débit ou
+      // crédit. Math.abs() les gonfle et DÉSÉQUILIBRE l'écriture (ex. À-Nouveau
+      // faussé de +130 M). On bascule plutôt un montant négatif du côté opposé,
+      // ce qui préserve l'équilibre (D − C de la ligne inchangé).
+      const lineAmounts = (line: any): { debit: number; credit: number } => {
+        let d = parseNumber(getEcrVal(line, 'debit') || getEcrVal(line, 'Debit'));
+        let c = parseNumber(getEcrVal(line, 'credit') || getEcrVal(line, 'Credit'));
+        if (d < 0) { c = money(c).add(money(-d)).toNumber(); d = 0; }
+        if (c < 0) { d = money(d).add(money(-c)).toNumber(); c = 0; }
+        return { debit: d, credit: c };
+      };
+
       // ── Regroupement des lignes en écritures équilibrées (A2/A3) ──────────
       // Certaines sources (ex. colonne « NUMERO DE SAISIE ») numérotent les
       // lignes SANS reconstituer des pièces équilibrées : la même valeur peut
@@ -1480,11 +1493,13 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
             getEcrVal(lines[0], 'libelle') || getEcrVal(lines[0], 'EcritureLib') ||
             getEcrVal(lines[0], 'label') || piece
           );
-          // Somme via money() — aucune dérive flottante (A5)
+          // Somme via money() sur les montants NORMALISÉS (cohérents avec les
+          // lignes stockées) — aucune dérive flottante (A5).
           let totalDebit = 0; let totalCredit = 0;
           lines.forEach((line: any) => {
-            totalDebit  = money(totalDebit).add(money(parseNumber(getEcrVal(line, 'debit')  || getEcrVal(line, 'Debit')))).toNumber();
-            totalCredit = money(totalCredit).add(money(parseNumber(getEcrVal(line, 'credit') || getEcrVal(line, 'Credit')))).toNumber();
+            const { debit, credit } = lineAmounts(line);
+            totalDebit  = money(totalDebit).add(money(debit)).toNumber();
+            totalCredit = money(totalCredit).add(money(credit)).toNumber();
           });
           const entryBalanced = money(totalDebit).subtract(money(totalCredit)).abs().toNumber() <= 0.01;
 
@@ -1517,12 +1532,11 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
             migration_batch_id: migrationBatchId, // A7
           });
           lines.forEach((line: any) => {
-            const debitAliases2 = ['debit','Debit','montantDebit','debitAmount'];
-            const creditAliases2 = ['credit','Credit','montantCredit','creditAmount'];
             const accountCode = String(
               getEcrVal(line, 'compte') || getEcrVal(line, 'CompteNum') ||
               getEcrVal(line, 'accountCode') || ''
             ).replace(/\s/g, '');
+            const { debit, credit } = lineAmounts(line);
             batchLines.push({
               id: crypto.randomUUID(),
               _entry_number: piece, // clé temporaire pour remapping post-insert
@@ -1532,8 +1546,8 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
               // pour ne JAMAIS retomber sur « code = nom » quand le libellé est dispo.
               account_name: String(getEcrVal(line, 'libelleCompte') || getEcrVal(line, 'compteLib') || getEcrVal(line, 'CompteLib') || accountCode),
               label: String(getEcrVal(line, 'libelleEcriture') || getEcrVal(line, 'libelle') || entryLabel),
-              debit: Math.abs(parseNumber(findCol(line, debitAliases2))),
-              credit: Math.abs(parseNumber(findCol(line, creditAliases2))),
+              debit,
+              credit,
               migration_batch_id: migrationBatchId, // A7
             });
           });

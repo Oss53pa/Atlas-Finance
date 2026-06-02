@@ -62,6 +62,50 @@ interface ReconciliationFilters {
   reconciliationStatus: string;
 }
 
+interface UnreconciledLine {
+  id: string;
+  entry_date: string;
+  piece_number: string;
+  account_code: string;
+  label: string;
+  third_party_code?: string;
+  debit_amount: number;
+  credit_amount: number;
+}
+
+interface ReconciliationData {
+  unreconciled_lines: UnreconciledLine[];
+}
+
+interface ReconciliationSuggestion {
+  type: string;
+  suggestion: string;
+  confidenceScore: number;
+  lineDetails?: unknown[];
+  difference?: number;
+  lines: string[];
+}
+
+interface ReconciliationStats {
+  automationRate?: number;
+  totalUnreconciled?: number;
+  todayReconciled?: number;
+  unreconciledAmount?: number;
+  averageProcessingTime?: number;
+  algorithmsAvailable?: number;
+  globalReconciliationRate?: number;
+  aiAccuracy?: number;
+}
+
+interface AutoReconcileResult {
+  statistics: { automatic_matches: number };
+  performance: { automation_rate: number };
+}
+
+interface ManualReconcileResult {
+  lines_count: number;
+}
+
 const ReconciliationManager: React.FC<ReconciliationManagerProps> = ({
   companyId,
   fiscalYearId,
@@ -90,7 +134,7 @@ const ReconciliationManager: React.FC<ReconciliationManagerProps> = ({
       fiscalYearId,
       accountId,
       filters
-    }),
+    }) as Promise<ReconciliationData>,
   });
 
   const { data: autoSuggestions, isLoading: suggestionsLoading } = useQuery({
@@ -98,7 +142,7 @@ const ReconciliationManager: React.FC<ReconciliationManagerProps> = ({
     queryFn: () => reconciliationService.getAutoSuggestions({
       companyId,
       accountId
-    }),
+    }) as Promise<ReconciliationSuggestion[]>,
     enabled: !!accountId,
   });
 
@@ -107,13 +151,14 @@ const ReconciliationManager: React.FC<ReconciliationManagerProps> = ({
     queryFn: () => reconciliationService.getReconciliationStats({
       companyId,
       fiscalYearId
-    }),
+    }) as Promise<ReconciliationStats>,
   });
 
   // Mutations
   const autoReconcileMutation = useMutation({
     mutationFn: reconciliationService.processAutomaticReconciliation,
-    onSuccess: (result) => {
+    onSuccess: (rawResult) => {
+      const result = rawResult as AutoReconcileResult;
       toast.success(
         `Lettrage automatique: ${result.statistics.automatic_matches} lignes lettrées ` +
         `(${result.performance.automation_rate.toFixed(1)}% automatisation)`
@@ -128,7 +173,8 @@ const ReconciliationManager: React.FC<ReconciliationManagerProps> = ({
 
   const manualReconcileMutation = useMutation({
     mutationFn: reconciliationService.manualReconcile,
-    onSuccess: (result) => {
+    onSuccess: (rawResult) => {
+      const result = rawResult as ManualReconcileResult;
       toast.success(`${result.lines_count} lignes lettrées manuellement`);
       setSelectedLines([]);
       refetch();
@@ -333,17 +379,17 @@ const ReconciliationManager: React.FC<ReconciliationManagerProps> = ({
       </Card>
 
       {/* Suggestions automatiques */}
-      {autoSuggestions?.length > 0 && (
+      {(autoSuggestions?.length ?? 0) > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
               <Target className="h-5 w-5 mr-2" />
-              Suggestions de Lettrage IA ({autoSuggestions.length})
+              Suggestions de Lettrage IA ({(autoSuggestions ?? []).length})
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {autoSuggestions.slice(0, 5).map((suggestion, index) => (
+              {(autoSuggestions ?? []).slice(0, 5).map((suggestion, index) => (
                 <div key={index} className="flex items-center justify-between p-3 border rounded-lg bg-blue-50 border-blue-200">
                   <div className="flex items-center space-x-3">
                     <Badge className="bg-blue-100 text-blue-800">
@@ -425,9 +471,9 @@ const ReconciliationManager: React.FC<ReconciliationManagerProps> = ({
                   <Checkbox
                     checked={
                       selectedLines.length === reconciliationData?.unreconciled_lines?.length &&
-                      reconciliationData?.unreconciled_lines?.length > 0
+                      (reconciliationData?.unreconciled_lines?.length ?? 0) > 0
                     }
-                    onCheckedChange={handleSelectAll}
+                    onChange={(e) => handleSelectAll(e.target.checked)}
                   />
                   <span className="text-sm text-gray-600">
                     Tout sélectionner ({reconciliationData?.unreconciled_lines?.length || 0})
@@ -475,7 +521,7 @@ const ReconciliationManager: React.FC<ReconciliationManagerProps> = ({
                           <TableCell>
                             <Checkbox
                               checked={isSelected}
-                              onCheckedChange={(checked) => handleLineSelection(line.id, checked)}
+                              onChange={(e) => handleLineSelection(line.id, e.target.checked)}
                             />
                           </TableCell>
                           <TableCell>{formatDate(line.entry_date)}</TableCell>

@@ -160,10 +160,11 @@ export const CreateCustomerModal: React.FC<CreateCustomerModalProps> = ({
     }
 
     try {
-      await createCustomer.mutateAsync({
+      const createPayload = {
         ...formData,
         type_tiers: 'client'
-      });
+      };
+      await createCustomer.mutateAsync(createPayload);
 
       toast.success('Client créé avec succès');
       onSuccess?.();
@@ -733,6 +734,10 @@ export const EditCustomerModal: React.FC<EditCustomerModalProps> = ({
 
     if (!validateForm()) {
       toast.error('Veuillez corriger les erreurs dans le formulaire');
+      return;
+    }
+
+    if (!customer) {
       return;
     }
 

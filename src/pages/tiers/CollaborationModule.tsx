@@ -318,7 +318,7 @@ const CollaborationModule: React.FC = () => {
                     <div>
                       <h3 className="font-semibold text-gray-900">{selectedChat.name}</h3>
                       <div className="flex items-center space-x-2 text-sm text-gray-700">
-                        {selectedChat.participants.map((participant, index) => (
+                        {selectedChat.participants.map((participant: any, index: number) => (
                           <span key={participant.id}>
                             {participant.name}
                             {index < selectedChat.participants.length - 1 && ', '}

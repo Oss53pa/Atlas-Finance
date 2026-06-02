@@ -336,7 +336,7 @@ const DepreciationPage: React.FC = () => {
       };
 
       // Enregistrer dans le journal
-      await adapter.add('journalEntries', entry);
+      await adapter.create('journalEntries', entry as any);
 
       return { entryIds: [entry.id], count: 1, total: montant };
     },
@@ -392,7 +392,7 @@ const DepreciationPage: React.FC = () => {
           updatedAt: new Date().toISOString(),
         };
 
-        await adapter.add('journalEntries', entry);
+        await adapter.create('journalEntries', entry as any);
         entryIds.push(entry.id);
         total += montant;
       }
@@ -615,7 +615,7 @@ const DepreciationPage: React.FC = () => {
               )}
             </Button>
             <ExportMenu
-              data={depreciationData?.results || []}
+              data={(depreciationData?.results || []) as unknown as Record<string, unknown>[]}
               filename="amortissements"
               columns={{
                 date_amortissement: 'Date',
@@ -1100,7 +1100,6 @@ const DepreciationPage: React.FC = () => {
                       <Select
                         value={formData.immobilisation_id}
                         onValueChange={(value) => handleInputChange('immobilisation_id', value)}
-                        disabled={isSubmitting}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Sélectionner une immobilisation" />
@@ -1165,7 +1164,6 @@ const DepreciationPage: React.FC = () => {
                       <Select
                         value={formData.methode}
                         onValueChange={(value) => handleInputChange('methode', value)}
-                        disabled={isSubmitting}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Sélectionner la méthode" />
@@ -1485,7 +1483,6 @@ const DepreciationPage: React.FC = () => {
                   <Select
                     value={formData.methode}
                     onValueChange={(value) => handleInputChange('methode', value)}
-                    disabled={isSubmitting}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Sélectionner la méthode" />

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useData } from '../../contexts/DataContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Calendar,
@@ -56,6 +57,7 @@ const createExerciceSchema = z.object({
 
 const ExercicePage: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showPeriodModal, setShowPeriodModal] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
@@ -77,7 +79,8 @@ const ExercicePage: React.FC = () => {
 
   // Create exercice mutation
   const createExerciceMutation = useMutation({
-    mutationFn: exerciceService.createExercice,
+    mutationFn: (data: Parameters<typeof exerciceService.createExercice>[1]) =>
+      exerciceService.createExercice(adapter, data),
     onSuccess: () => {
       toast.success('Exercice créé avec succès');
       queryClient.invalidateQueries({ queryKey: ['exercices'] });
@@ -92,18 +95,18 @@ const ExercicePage: React.FC = () => {
   // Fetch exercices list
   const { data: exercices, isLoading } = useQuery({
     queryKey: ['exercices', 'list'],
-    queryFn: exerciceService.getExercices,
+    queryFn: () => exerciceService.getExercices(adapter),
   });
 
   // Fetch current exercice
   const { data: currentExercice } = useQuery({
     queryKey: ['exercices', 'current'],
-    queryFn: exerciceService.getCurrentExercice,
+    queryFn: () => exerciceService.getCurrentExercice(adapter),
   });
 
   // Close exercice mutation
   const closeExerciceMutation = useMutation({
-    mutationFn: exerciceService.closeExercice,
+    mutationFn: (id: string) => exerciceService.closeExercice(adapter, id),
     onSuccess: () => {
       toast.success('Exercice clôturé avec succès');
       queryClient.invalidateQueries({ queryKey: ['exercices'] });
@@ -115,7 +118,7 @@ const ExercicePage: React.FC = () => {
 
   // Reopen exercice mutation
   const reopenExerciceMutation = useMutation({
-    mutationFn: exerciceService.reopenExercice,
+    mutationFn: (id: string) => exerciceService.reopenExercice(adapter, id),
     onSuccess: () => {
       toast.success('Exercice réouvert avec succès');
       queryClient.invalidateQueries({ queryKey: ['exercices'] });
@@ -162,7 +165,7 @@ const ExercicePage: React.FC = () => {
       const headers = Object.keys(exportData[0]);
       const csvContent = [
         headers.join(';'),
-        ...exportData.map(row => headers.map(header => row[header]).join(';'))
+        ...exportData.map((row: Record<string, unknown>) => headers.map(header => row[header]).join(';'))
       ].join('\n');
 
       const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -180,7 +183,7 @@ const ExercicePage: React.FC = () => {
       const headers = Object.keys(exportData[0]);
       const excelContent = [
         headers.join('\t'),
-        ...exportData.map(row => headers.map(header => row[header]).join('\t'))
+        ...exportData.map((row: Record<string, unknown>) => headers.map(header => row[header]).join('\t'))
       ].join('\n');
 
       const blob = new Blob([excelContent], { type: 'application/vnd.ms-excel' });
@@ -710,7 +713,6 @@ const ExercicePage: React.FC = () => {
                       <Select
                         value={formData.type}
                         onValueChange={(value) => handleInputChange('type', value)}
-                        disabled={isSubmitting}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Sélectionner le type" />
@@ -750,7 +752,6 @@ const ExercicePage: React.FC = () => {
                       <Select
                         value={formData.plan_comptable}
                         onValueChange={(value) => handleInputChange('plan_comptable', value)}
-                        disabled={isSubmitting}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Sélectionner le référentiel" />

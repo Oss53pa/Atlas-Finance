@@ -644,7 +644,7 @@ const SageMigrationWizard: React.FC<SageMigrationWizardProps> = ({
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {accountMappingSuggestions.automatic_mappings?.slice(0, 20).map((mapping, index) => (
+                      {accountMappingSuggestions.automatic_mappings?.slice(0, 20).map((mapping: any, index: number) => (
                         <TableRow key={index}>
                           <TableCell className="font-mono">{mapping.sage_code}</TableCell>
                           <TableCell>{mapping.sage_name}</TableCell>
@@ -676,7 +676,7 @@ const SageMigrationWizard: React.FC<SageMigrationWizardProps> = ({
               </TabsContent>
 
               <TabsContent value="conflicts" className="space-y-4">
-                {accountMappingSuggestions.conflicts?.map((conflict, index) => (
+                {accountMappingSuggestions.conflicts?.map((conflict: any, index: number) => (
                   <Card key={index} className="border-orange-200 bg-orange-50">
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
@@ -692,7 +692,7 @@ const SageMigrationWizard: React.FC<SageMigrationWizardProps> = ({
                               <SelectValue placeholder="Choisir mapping" />
                             </SelectTrigger>
                             <SelectContent>
-                              {conflict.suggestions?.map((suggestion, idx) => (
+                              {conflict.suggestions?.map((suggestion: any, idx: number) => (
                                 <SelectItem key={idx} value={suggestion.syscohada_code}>
                                   {suggestion.syscohada_code} - {suggestion.syscohada_name}
                                 </SelectItem>
@@ -754,7 +754,7 @@ const SageMigrationWizard: React.FC<SageMigrationWizardProps> = ({
             <div className="space-y-3">
               <h4 className="font-medium">Contrôles de Cohérence</h4>
               
-              {validationResults.coherence_checks?.map((check, index) => (
+              {validationResults.coherence_checks?.map((check: any, index: number) => (
                 <div key={index} className={`flex items-center justify-between p-3 rounded border ${
                   check.status === 'OK' ? 'bg-green-50 border-green-200' :
                   check.status === 'WARNING' ? 'bg-yellow-50 border-yellow-200' :
@@ -800,7 +800,7 @@ const SageMigrationWizard: React.FC<SageMigrationWizardProps> = ({
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {validationResults.preview_sample.slice(0, 10).map((item, index) => (
+                      {validationResults.preview_sample.slice(0, 10).map((item: any, index: number) => (
                         <TableRow key={index}>
                           <TableCell className="font-mono">{item.source_code}</TableCell>
                           <TableCell>{item.source_name}</TableCell>

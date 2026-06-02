@@ -43,9 +43,9 @@ const BudgetRecapPage: React.FC = () => {
       setLoading(true);
       try {
         // Load budget lines from adapter
-        const budgetLines = await adapter.getAll('budgetLines').catch(() => [] as Record<string, unknown>[]);
+        const budgetLines = await adapter.getAll<any>('budgetLines').catch(() => [] as any[]);
         // Load journal entries for actual amounts
-        const entries = await adapter.getAll('journalEntries').catch(() => [] as Record<string, unknown>[]);
+        const entries = await adapter.getAll<any>('journalEntries').catch(() => [] as any[]);
 
         if (!mounted) return;
 

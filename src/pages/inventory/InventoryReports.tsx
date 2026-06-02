@@ -143,8 +143,8 @@ const ReportTemplate: React.FC<ReportTemplateProps> = ({
               <PeriodSelectorModal
                 isOpen={showPeriodModal}
                 onClose={() => setShowPeriodModal(false)}
-                onPeriodSelect={(period) => {
-                  setDateRange(period);
+                onApply={(period) => {
+                  setDateRange({ startDate: period.start, endDate: period.end });
                   setShowPeriodModal(false);
                 }}
               />
@@ -417,7 +417,7 @@ const InventoryReports: React.FC = () => {
       data: generateMockReportData(type),
       generatedAt: new Date().toISOString(),
       generatedBy: 'current.user',
-      format: params.format
+      format: params.format as InventoryReport['format']
     };
 
     setGeneratedReports(prev => [newReport, ...prev]);

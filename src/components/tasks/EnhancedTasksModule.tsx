@@ -420,7 +420,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
                     <select
                       value={selectedTask.status}
                       onChange={(e) => {
-                        const newStatus = e.target.value;
+                        const newStatus = e.target.value as Task['status'];
                         setSelectedTask({...selectedTask, status: newStatus});
                         setTasks(prev => prev.map(t => {
                           if (t.id === selectedTask.id) {
@@ -666,7 +666,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
                         url: URL.createObjectURL(file),
                         uploadedAt: new Date(),
                         uploadedBy: currentUser
-                      }));
+                      })) as unknown as Attachment[];
 
                       setTasks(prev => prev.map(t => {
                         if (t.id === selectedTask.id) {
@@ -1130,7 +1130,8 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
       totalBudget: visibleTasks.reduce((sum, t) => sum + (t.budget || 0), 0),
       totalCost: visibleTasks.reduce((sum, t) => sum + (t.actualCost || 0), 0),
       totalHours: visibleTasks.reduce((sum, t) => sum + (t.actualHours || 0), 0),
-      avgProgress: Math.round(visibleTasks.reduce((sum, t) => sum + (t.progress || 0), 0) / visibleTasks.length) || 0
+      avgProgress: Math.round(visibleTasks.reduce((sum, t) => sum + (t.progress || 0), 0) / visibleTasks.length) || 0,
+      completionRate: 0
     };
 
     stats.completionRate = stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
@@ -1367,7 +1368,7 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
 
           return {
             ...task,
-            status: newStatus,
+            status: newStatus as Task['status'],
             modifiedAt: new Date(),
             modifiedBy: currentUser,
             history: [...(task.history || []), historyEntry]
@@ -1585,7 +1586,7 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
             isRecurrent: data.isRecurrent,
             recurrencePattern: data.recurrencePattern,
           };
-          setTasks(prev => [...prev, newTaskData]);
+          setTasks(prev => [...prev, newTaskData as unknown as Task]);
           setShowNewTask(false);
           // Notification de succès
           toast.success('Tâche créée avec succès!');

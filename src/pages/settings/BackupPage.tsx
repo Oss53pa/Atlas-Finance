@@ -423,19 +423,19 @@ const BackupPage: React.FC = () => {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-[var(--color-text-secondary)]">Sauvegarde automatique</span>
-                    <Switch defaultChecked />
+                    <Switch checked />
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-[var(--color-text-secondary)]">Chiffrement AES-256</span>
-                    <Switch defaultChecked />
+                    <Switch checked />
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-[var(--color-text-secondary)]">Réplication cloud</span>
-                    <Switch defaultChecked />
+                    <Switch checked />
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-[var(--color-text-secondary)]">Vérification intégrité</span>
-                    <Switch defaultChecked />
+                    <Switch checked />
                   </div>
                 </div>
               </CardContent>
@@ -818,11 +818,11 @@ const BackupPage: React.FC = () => {
 
                 <div className="space-y-2">
                   <div className="flex items-center space-x-2">
-                    <Switch defaultChecked />
+                    <Switch checked />
                     <Label>Vérifier l'intégrité après sauvegarde</Label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Switch defaultChecked />
+                    <Switch checked />
                     <Label>Notification email en cas d'échec</Label>
                   </div>
                   <div className="flex items-center space-x-2">
@@ -1197,7 +1197,7 @@ const BackupPage: React.FC = () => {
             </div>
 
             <div className="flex items-center space-x-2">
-              <Switch defaultChecked={showScheduleConfigModal?.active} />
+              <Switch checked={showScheduleConfigModal?.active} />
               <Label>Planification active</Label>
             </div>
           </div>

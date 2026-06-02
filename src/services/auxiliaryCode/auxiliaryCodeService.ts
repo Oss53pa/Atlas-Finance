@@ -21,10 +21,10 @@ const SETTINGS_KEY = 'auxiliary_code_mappings';
  */
 export async function loadMappings(adapter: any): Promise<AuxiliaryCodeMapping[]> {
   try {
-    const record = await adapter.getById<{ key: string; value: string; updatedAt: string }>(
+    const record = (await adapter.getById(
       'settings',
       SETTINGS_KEY
-    );
+    )) as { key: string; value: string; updatedAt: string } | undefined;
     if (record?.value) {
       const parsed = JSON.parse(record.value) as AuxiliaryCodeMapping[];
       if (Array.isArray(parsed) && parsed.length > 0) {
@@ -44,19 +44,19 @@ export async function saveMappings(adapter: any, mappings: AuxiliaryCodeMapping[
   const now = new Date().toISOString();
   const serialized = JSON.stringify(mappings);
 
-  const existing = await adapter.getById<{ key: string; value: string; updatedAt: string }>(
+  const existing = (await adapter.getById(
     'settings',
     SETTINGS_KEY
-  );
+  )) as { key: string; value: string; updatedAt: string } | undefined;
 
   if (existing) {
-    await adapter.update<{ key: string; value: string; updatedAt: string }>(
+    await adapter.update(
       'settings',
       SETTINGS_KEY,
       { value: serialized, updatedAt: now }
     );
   } else {
-    await adapter.create<{ key: string; value: string; updatedAt: string }>(
+    await adapter.create(
       'settings',
       { key: SETTINGS_KEY, value: serialized, updatedAt: now } as any
     );

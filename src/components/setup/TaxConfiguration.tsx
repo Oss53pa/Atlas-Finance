@@ -149,7 +149,7 @@ const TaxConfiguration: React.FC = () => {
       declarationType: 'MENSUELLE' as const,
       seuil: 0
     };
-    append(newTax);
+    append(newTax as TaxFormData['taxes'][number]);
   };
 
   const importZoneTaxes = () => {

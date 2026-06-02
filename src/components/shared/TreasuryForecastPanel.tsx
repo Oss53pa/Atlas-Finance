@@ -78,7 +78,7 @@ const TreasuryForecastPanel: React.FC<TreasuryForecastPanelProps> = ({
   const [showWhatIf, setShowWhatIf] = useState(false);
 
   // Queries
-  const { data: cashFlowForecast, isLoading: forecastLoading, refetch } = useQuery({
+  const { data: cashFlowForecast, isLoading: forecastLoading, refetch } = useQuery<any>({
     queryKey: ['cash-flow-forecast', companyId, forecastPeriod],
     queryFn: () => reconciliationService.getCashFlowForecast({
       companyId,
@@ -88,7 +88,7 @@ const TreasuryForecastPanel: React.FC<TreasuryForecastPanelProps> = ({
     refetchInterval: 300000, // 5 minutes
   });
 
-  const { data: whatIfScenarios, isLoading: scenariosLoading } = useQuery({
+  const { data: whatIfScenarios, isLoading: scenariosLoading } = useQuery<any>({
     queryKey: ['what-if-scenarios', companyId, selectedScenario],
     queryFn: () => reconciliationService.runWhatIfScenario({
       companyId,
@@ -102,7 +102,7 @@ const TreasuryForecastPanel: React.FC<TreasuryForecastPanelProps> = ({
     enabled: showWhatIf,
   });
 
-  const { data: treasuryAlerts } = useQuery({
+  const { data: treasuryAlerts } = useQuery<any>({
     queryKey: ['treasury-alerts', companyId],
     queryFn: () => reconciliationService.getTreasuryAlerts({ companyId }),
     refetchInterval: 60000, // 1 minute pour alertes
@@ -204,7 +204,7 @@ const TreasuryForecastPanel: React.FC<TreasuryForecastPanelProps> = ({
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {treasuryAlerts.criticalAlerts.map((alert, index) => (
+              {treasuryAlerts.criticalAlerts.map((alert: any, index: number) => (
                 <div key={index} className="flex items-center justify-between p-3 bg-white border border-red-200 rounded">
                   <div className="flex items-center space-x-3">
                     <Badge className="bg-red-100 text-red-800">
@@ -345,7 +345,7 @@ const TreasuryForecastPanel: React.FC<TreasuryForecastPanelProps> = ({
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {cashFlowForecast?.receivables_breakdown?.map((item, index) => (
+                  {cashFlowForecast?.receivables_breakdown?.map((item: any, index: number) => (
                     <div key={index} className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
                       <div>
                         <p className="font-medium text-green-900">{item.customer_name}</p>
@@ -383,7 +383,7 @@ const TreasuryForecastPanel: React.FC<TreasuryForecastPanelProps> = ({
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {cashFlowForecast?.payables_breakdown?.map((item, index) => (
+                  {cashFlowForecast?.payables_breakdown?.map((item: any, index: number) => (
                     <div key={index} className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
                       <div>
                         <p className="font-medium text-red-900">{item.supplier_name}</p>
@@ -413,7 +413,7 @@ const TreasuryForecastPanel: React.FC<TreasuryForecastPanelProps> = ({
         <TabsContent value="scenarios" className="space-y-4">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold">Analyse de Scénarios</h3>
-            <Select value={selectedScenario} onValueChange={(v: string) => setSelectedScenario(v)}>
+            <Select value={selectedScenario} onValueChange={(v: string) => setSelectedScenario(v as 'optimistic' | 'realistic' | 'pessimistic')}>
               <SelectTrigger className="w-48">
                 <SelectValue />
               </SelectTrigger>
@@ -486,7 +486,7 @@ const TreasuryForecastPanel: React.FC<TreasuryForecastPanelProps> = ({
                 {/* Risques clients */}
                 <div className="space-y-3">
                   <h4 className="font-medium text-gray-800">Risques Encaissements</h4>
-                  {cashFlowForecast?.receivables_risks?.map((risk, index) => (
+                  {cashFlowForecast?.receivables_risks?.map((risk: any, index: number) => (
                     <div key={index} className="flex items-center justify-between p-3 border rounded">
                       <div>
                         <p className="font-medium">{risk.customer_name}</p>
@@ -507,7 +507,7 @@ const TreasuryForecastPanel: React.FC<TreasuryForecastPanelProps> = ({
                 {/* Risques fournisseurs */}
                 <div className="space-y-3">
                   <h4 className="font-medium text-gray-800">Risques Décaissements</h4>
-                  {cashFlowForecast?.payables_risks?.map((risk, index) => (
+                  {cashFlowForecast?.payables_risks?.map((risk: any, index: number) => (
                     <div key={index} className="flex items-center justify-between p-3 border rounded">
                       <div>
                         <p className="font-medium">{risk.supplier_name}</p>
@@ -544,7 +544,7 @@ const TreasuryForecastPanel: React.FC<TreasuryForecastPanelProps> = ({
                 <div>
                   <h4 className="font-medium text-green-800 mb-3">Accélération Encaissements</h4>
                   <div className="space-y-3">
-                    {cashFlowForecast?.recommended_actions?.customer_actions?.map((action, index) => (
+                    {cashFlowForecast?.recommended_actions?.customer_actions?.map((action: any, index: number) => (
                       <div key={index} className="p-3 bg-green-50 border border-green-200 rounded-lg">
                         <div className="flex items-center justify-between">
                           <div>
@@ -569,7 +569,7 @@ const TreasuryForecastPanel: React.FC<TreasuryForecastPanelProps> = ({
                 <div>
                   <h4 className="font-medium text-blue-800 mb-3">Optimisation Décaissements</h4>
                   <div className="space-y-3">
-                    {cashFlowForecast?.recommended_actions?.supplier_actions?.map((action, index) => (
+                    {cashFlowForecast?.recommended_actions?.supplier_actions?.map((action: any, index: number) => (
                       <div key={index} className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
                         <div className="flex items-center justify-between">
                           <div>

@@ -246,7 +246,7 @@ const ComptableWorkspaceFinal: React.FC = () => {
                 setNotifPrefs(next);
                 // W7: log + toast si la persistance échoue
                 try {
-                  await adapter.upsert?.('settings' as any, { key: `notif_comptable_${n}`, value: String(e.target.checked), updatedAt: new Date().toISOString() });
+                  await (adapter as { upsert?: (table: any, data: any) => Promise<any> }).upsert?.('settings' as any, { key: `notif_comptable_${n}`, value: String(e.target.checked), updatedAt: new Date().toISOString() });
                 } catch (err) {
                   console.error('[ComptableWorkspace] Erreur persistance préférence notif:', err);
                   toast.error('Impossible de sauvegarder la préférence de notification');
