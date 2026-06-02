@@ -998,16 +998,37 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       totalCredit = money(totalCredit).add(money(c)).toNumber();
     });
 
-    // Approximate actif/passif from accounts (AN file)
+    // Actif/Passif estimés à partir des SOLDES NETS par compte (classes 1-5).
+    // En Mode 1 (Bascule en cours d'exercice) il n'existe PAS de fichier « Reports
+    // à Nouveau » séparé : le bilan se déduit du Grand Livre (journal RAN +
+    // mouvements). On agrège donc le solde net (débit - crédit) de chaque compte
+    // depuis le GL ET l'éventuel fichier AN (Mode 2/3), puis on ventile :
+    // solde débiteur → Actif, solde créditeur → Passif.
+    const glNumCol = ecrMapping.find(m => m.target === 'compte')?.source ||
+                     ecrMapping.find(m => m.target === 'numeroCompte')?.source;
+    const anNumCol = anMapping.find(m => m.target === 'numeroCompte')?.source ||
+                     anMapping.find(m => m.target === 'compte')?.source;
+    const soldesParCompte = new Map<string, number>();
+    const cumulSoldes = (rows: any[], numCol?: string, dCol?: string, cCol?: string) => {
+      if (!numCol) return;
+      rows.forEach((row: any) => {
+        const num = String((row as Record<string, any>)[numCol] ?? '').trim();
+        if (!num) return;
+        const d = dCol ? parseNumber((row as Record<string, any>)[dCol]) : 0;
+        const c = cCol ? parseNumber((row as Record<string, any>)[cCol]) : 0;
+        const prev = soldesParCompte.get(num) ?? 0;
+        soldesParCompte.set(num, money(prev).add(money(d)).subtract(money(c)).toNumber());
+      });
+    };
+    cumulSoldes(ecr, glNumCol, debCol, credCol);
+    cumulSoldes(an, anNumCol, anDebCol, anCredCol);
+
     let totalActif = 0, totalPassif = 0;
-    const anNumCol = anMapping.find(m => m.target === 'numeroCompte')?.source;
-    an.forEach((row: any) => {
-      const num = String(anNumCol ? (row as Record<string, any>)[anNumCol] : '');
-      const d = anDebCol ? parseNumber((row as Record<string, any>)[anDebCol]) : 0;
-      const c = anCredCol ? parseNumber((row as Record<string, any>)[anCredCol]) : 0;
-      const solde = money(d).subtract(money(c)).toNumber();
-      if (['2', '3', '4', '5'].includes(num[0]) && solde > 0) totalActif = money(totalActif).add(money(solde)).toNumber();
-      else if (['1', '4', '5'].includes(num[0]) && solde < 0) totalPassif = money(totalPassif).add(money(solde).abs()).toNumber();
+    soldesParCompte.forEach((solde, num) => {
+      const classe = num[0];
+      if (!['1', '2', '3', '4', '5'].includes(classe)) return; // hors bilan (classes 6-9)
+      if (solde > 0) totalActif = money(totalActif).add(money(solde)).toNumber();
+      else if (solde < 0) totalPassif = money(totalPassif).add(money(solde).abs()).toNumber();
     });
 
     let assetVNC = 0;
