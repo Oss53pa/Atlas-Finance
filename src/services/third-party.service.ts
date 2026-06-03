@@ -11,6 +11,8 @@ import {
   contactTiersService as backendContactService,
 } from './backend-services.index';
 import type { QueryParams as BackendQueryParams } from '../types/backend.types';
+import type { DataAdapter } from '@atlas/data';
+import type { DBThirdParty } from '../lib/db';
 
 /**
  * Types Frontend (à adapter selon votre structure existante)
@@ -147,6 +149,110 @@ export interface ThirdPartyStatistics {
 }
 
 /**
+ * ============================================================================
+ * GESTION DES CONTACTS (écrans Contacts) — adossée à la table `thirdParties`
+ * ============================================================================
+ *
+ * Ces méthodes opèrent directement sur le DataAdapter (local/saas/hybrid) et la
+ * table `thirdParties`, conformément au pattern WiseBook (adapter en 1er param).
+ * Un « contact » est modélisé comme un tiers ; une « entreprise » l'est aussi.
+ */
+
+/** Type de tiers tel qu'affiché par les écrans Contacts */
+export type ContactTypeTiers = 'client' | 'fournisseur' | 'prospect' | 'partenaire';
+
+/** Données de formulaire d'un contact (aligné sur ContactFormData côté UI) */
+export interface ContactInput {
+  civilite?: string;
+  prenom?: string;
+  nom: string;
+  fonction?: string;
+  entreprise_id?: string;
+  type_tiers?: ContactTypeTiers;
+  telephone_fixe?: string;
+  telephone_mobile?: string;
+  email?: string;
+  email_secondaire?: string;
+  adresse?: string;
+  code_postal?: string;
+  ville?: string;
+  pays?: string;
+  date_naissance?: string;
+  linkedin?: string;
+  notes?: string;
+}
+
+/** Enregistrement contact renvoyé aux écrans (dérivé d'un tiers) */
+export interface ContactRecord {
+  id: string;
+  code: string;
+  nom: string;
+  prenom: string;
+  email: string;
+  telephone: string;
+  telephone_mobile: string;
+  fonction: string;
+  type_tiers: ContactTypeTiers;
+  entreprise_id: string;
+  entreprise_nom: string;
+  ville: string;
+  pays: string;
+  actif: boolean;
+}
+
+/** Liste paginée de contacts + compteurs affichés dans les cartes de stats */
+export interface ContactsListResult {
+  results: ContactRecord[];
+  count: number;
+  clients_count: number;
+  suppliers_count: number;
+  prospects_count: number;
+}
+
+/** Entreprise renvoyée pour les sélecteurs (id + dénomination) */
+export interface CompanyRecord {
+  id: string;
+  denomination: string;
+  code: string;
+}
+
+/** Liste paginée d'entreprises */
+export interface CompaniesListResult {
+  results: CompanyRecord[];
+  count: number;
+}
+
+/** Paramètres de requête des listes Contacts/Entreprises */
+export interface ContactQueryParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  type_tiers?: string;
+  [key: string]: string | number | boolean | undefined;
+}
+
+/** Mapping type tiers stocké (DB) → libellé UI */
+const TYPE_TO_UI: Record<DBThirdParty['type'], ContactTypeTiers> = {
+  customer: 'client',
+  supplier: 'fournisseur',
+  both: 'partenaire',
+};
+
+/** Mapping libellé UI → type tiers stocké (DB) */
+function uiTypeToDb(type?: string): DBThirdParty['type'] {
+  switch (type) {
+    case 'fournisseur':
+      return 'supplier';
+    case 'partenaire':
+      return 'both';
+    case 'client':
+    case 'prospect':
+    default:
+      return 'customer';
+  }
+}
+
+/**
  * SERVICE TIERS
  */
 class ThirdPartyService {
@@ -277,6 +383,154 @@ class ThirdPartyService {
    */
   async getStatistics(): Promise<ThirdPartyStatistics> {
     return backendTiersService.getStatistics();
+  }
+
+  // ==========================================================================
+  // CONTACTS / ENTREPRISES (DataAdapter — table `thirdParties`)
+  // ==========================================================================
+
+  /**
+   * Liste paginée des contacts (tiers), avec filtre recherche/type.
+   */
+  async getContacts(
+    adapter: DataAdapter,
+    params: ContactQueryParams = {},
+  ): Promise<ContactsListResult> {
+    const all = await adapter.getAll<DBThirdParty>('thirdParties');
+
+    const search = String(params.search ?? '').trim().toLowerCase();
+    const typeFilter = params.type_tiers ? uiTypeToDb(String(params.type_tiers)) : undefined;
+
+    let filtered = all;
+    if (search) {
+      filtered = filtered.filter((tp) =>
+        `${tp.name} ${tp.email ?? ''} ${tp.code}`.toLowerCase().includes(search),
+      );
+    }
+    if (typeFilter) {
+      filtered = filtered.filter((tp) => tp.type === typeFilter);
+    }
+
+    const count = filtered.length;
+    const clients_count = filtered.filter((tp) => tp.type === 'customer').length;
+    const suppliers_count = filtered.filter((tp) => tp.type === 'supplier').length;
+    const prospects_count = 0;
+
+    const limit = params.limit && params.limit > 0 ? params.limit : 20;
+    const page = params.page && params.page > 0 ? params.page : 1;
+    const start = (page - 1) * limit;
+    const results = filtered.slice(start, start + limit).map(this.toContactRecord);
+
+    return { results, count, clients_count, suppliers_count, prospects_count };
+  }
+
+  /**
+   * Liste paginée des entreprises (tiers) pour les sélecteurs.
+   */
+  async getCompanies(
+    adapter: DataAdapter,
+    params: ContactQueryParams = {},
+  ): Promise<CompaniesListResult> {
+    const all = await adapter.getAll<DBThirdParty>('thirdParties');
+
+    const search = String(params.search ?? '').trim().toLowerCase();
+    let filtered = all;
+    if (search) {
+      filtered = filtered.filter((tp) => `${tp.name} ${tp.code}`.toLowerCase().includes(search));
+    }
+
+    const count = filtered.length;
+    const limit = params.limit && params.limit > 0 ? params.limit : 1000;
+    const page = params.page && params.page > 0 ? params.page : 1;
+    const start = (page - 1) * limit;
+    const results = filtered.slice(start, start + limit).map(
+      (tp): CompanyRecord => ({ id: tp.id, denomination: tp.name, code: tp.code }),
+    );
+
+    return { results, count };
+  }
+
+  /**
+   * Crée un contact (tiers).
+   */
+  async createContact(adapter: DataAdapter, data: ContactInput): Promise<ContactRecord> {
+    const payload = this.toThirdPartyData(data);
+    const created = await adapter.create<DBThirdParty>('thirdParties', payload);
+    return this.toContactRecord(created);
+  }
+
+  /**
+   * Met à jour un contact (tiers).
+   */
+  async updateContact(
+    adapter: DataAdapter,
+    id: string,
+    data: ContactInput,
+  ): Promise<ContactRecord> {
+    const patch = this.toThirdPartyPatch(data);
+    const updated = await adapter.update<DBThirdParty>('thirdParties', id, patch);
+    return this.toContactRecord(updated);
+  }
+
+  /**
+   * Supprime un contact (tiers).
+   */
+  async deleteContact(adapter: DataAdapter, id: string): Promise<void> {
+    await adapter.delete('thirdParties', id);
+  }
+
+  /** Dérive un enregistrement contact à partir d'un tiers stocké. */
+  private toContactRecord(tp: DBThirdParty): ContactRecord {
+    return {
+      id: tp.id,
+      code: tp.code,
+      nom: tp.name,
+      prenom: '',
+      email: tp.email ?? '',
+      telephone: tp.phone ?? '',
+      telephone_mobile: '',
+      fonction: '',
+      type_tiers: TYPE_TO_UI[tp.type] ?? 'client',
+      entreprise_id: '',
+      entreprise_nom: tp.name,
+      ville: '',
+      pays: '',
+      actif: tp.isActive,
+    };
+  }
+
+  /** Construit un tiers complet à insérer à partir des données de formulaire. */
+  private toThirdPartyData(data: ContactInput): Omit<DBThirdParty, 'id'> {
+    const name = [data.prenom, data.nom].filter(Boolean).join(' ').trim() || (data.nom ?? '');
+    const address = [data.adresse, data.code_postal, data.ville, data.pays]
+      .filter(Boolean)
+      .join(', ');
+    return {
+      code: `CONT-${crypto.randomUUID().slice(0, 8)}`,
+      name,
+      type: uiTypeToDb(data.type_tiers),
+      email: data.email ?? '',
+      phone: data.telephone_fixe || data.telephone_mobile || '',
+      address,
+      balance: 0,
+      isActive: true,
+    };
+  }
+
+  /** Construit le patch partiel d'un tiers à partir des données de formulaire. */
+  private toThirdPartyPatch(data: ContactInput): Partial<DBThirdParty> {
+    const patch: Partial<DBThirdParty> = {};
+    const name = [data.prenom, data.nom].filter(Boolean).join(' ').trim();
+    if (name) patch.name = name;
+    if (data.type_tiers) patch.type = uiTypeToDb(data.type_tiers);
+    if (data.email !== undefined) patch.email = data.email;
+    const phone = data.telephone_fixe || data.telephone_mobile;
+    if (phone) patch.phone = phone;
+    const address = [data.adresse, data.code_postal, data.ville, data.pays]
+      .filter(Boolean)
+      .join(', ');
+    if (address) patch.address = address;
+    return patch;
   }
 
   /**

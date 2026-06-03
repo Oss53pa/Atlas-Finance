@@ -42,6 +42,7 @@ import {
   SelectValue
 } from '../../components/ui';
 import { thirdPartyService } from '../../services/thirdparty.service';
+import { useData } from '../../contexts/DataContext';
 import { formatDate } from '../../lib/utils';
 import { toast } from 'react-hot-toast';
 import { CreateContactModal, EditContactModal, ContactDetailModal } from '../../features/contacts/components';
@@ -84,12 +85,13 @@ const ContactsPage: React.FC = () => {
   const [showDetailModal, setShowDetailModal] = useState(false);
 
   const queryClient = useQueryClient();
+  const { adapter } = useData();
 
   // Fetch contacts
   const { data: contactsData, isLoading } = useQuery({
     queryKey: ['contacts', 'list', page, filters],
-    queryFn: () => (thirdPartyService as any).getContacts({
-      page, 
+    queryFn: () => thirdPartyService.getContacts(adapter, {
+      page,
       search: filters.search,
       type_tiers: filters.type_tiers,
       entreprise: filters.entreprise,
@@ -101,12 +103,12 @@ const ContactsPage: React.FC = () => {
   // Fetch companies for selection
   const { data: companies } = useQuery({
     queryKey: ['companies', 'list'],
-    queryFn: () => (thirdPartyService as any).getCompanies({ page: 1, limit: 1000 }),
+    queryFn: () => thirdPartyService.getCompanies(adapter, { page: 1, limit: 1000 }),
   });
 
   // Delete contact mutation
   const deleteContactMutation = useMutation({
-    mutationFn: (contactId: string) => (thirdPartyService as any).deleteContact(contactId),
+    mutationFn: (contactId: string) => thirdPartyService.deleteContact(adapter, contactId),
     onSuccess: () => {
       toast.success('Contact supprimé avec succès');
       queryClient.invalidateQueries({ queryKey: ['contacts'] });
@@ -336,7 +338,7 @@ const ContactsPage: React.FC = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">Toutes les entreprises</SelectItem>
-                {(companies as any)?.results?.map((company: any) => (
+                {companies?.results?.map((company) => (
                   <SelectItem key={company.id} value={company.id}>
                     {company.denomination}
                   </SelectItem>

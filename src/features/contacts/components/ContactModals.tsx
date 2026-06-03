@@ -30,6 +30,7 @@ import {
 } from '../../../components/ui';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { thirdPartyService } from '../../../services/thirdparty.service';
+import { useData } from '../../../contexts/DataContext';
 import { toast } from 'react-hot-toast';
 import { formatDate } from '../../../lib/utils';
 
@@ -100,15 +101,16 @@ export const CreateContactModal: React.FC<CreateContactModalProps> = ({
   const [activeTab, setActiveTab] = useState<'general' | 'coordonnees' | 'professionnel'>('general');
 
   const queryClient = useQueryClient();
+  const { adapter } = useData();
 
   const { data: companiesData } = useQuery({
     queryKey: ['companies', 'list'],
-    queryFn: () => (thirdPartyService as any).getCompanies({ page: 1, limit: 1000 }),
+    queryFn: () => thirdPartyService.getCompanies(adapter, { page: 1, limit: 1000 }),
     enabled: isOpen
   });
 
   const createContact = useMutation({
-    mutationFn: (data: ContactFormData) => (thirdPartyService as any).createContact(data),
+    mutationFn: (data: ContactFormData) => thirdPartyService.createContact(adapter, data),
     onSuccess: () => {
       toast.success('Contact créé avec succès');
       queryClient.invalidateQueries({ queryKey: ['contacts'] });
@@ -589,16 +591,17 @@ export const EditContactModal: React.FC<EditContactModalProps> = ({
   const [activeTab, setActiveTab] = useState<'general' | 'coordonnees' | 'professionnel'>('general');
 
   const queryClient = useQueryClient();
+  const { adapter } = useData();
 
   const { data: companiesData } = useQuery({
     queryKey: ['companies', 'list'],
-    queryFn: () => (thirdPartyService as any).getCompanies({ page: 1, limit: 1000 }),
+    queryFn: () => thirdPartyService.getCompanies(adapter, { page: 1, limit: 1000 }),
     enabled: isOpen
   });
 
   const updateContact = useMutation({
     mutationFn: ({ id, data }: { id: string; data: ContactFormData }) =>
-      (thirdPartyService as any).updateContact(id, data),
+      thirdPartyService.updateContact(adapter, id, data),
     onSuccess: () => {
       toast.success('Contact modifié avec succès');
       queryClient.invalidateQueries({ queryKey: ['contacts'] });
