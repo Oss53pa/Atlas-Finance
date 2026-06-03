@@ -1,2 +1,0 @@
-
-export { devisesTools } from './MultiDeviseEngine';
