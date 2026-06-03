@@ -30,7 +30,19 @@ import { safeAddEntry } from '../../services/entryGuard';
 // ─── Types ───────────────────────────────────────────────
 
 type MigrationMode = 1 | 2 | 3;
-type StepId = 'mode' | 'upload' | 'analysis' | 'mapping' | 'parameters' | 'simulation' | 'importing';
+type StepId = 'mode' | 'upload' | 'analysis' | 'mapping' | 'journaux' | 'parameters' | 'simulation' | 'importing';
+
+/** Types de journaux standards SYSCOHADA (+ IPE pour les paiements électroniques). */
+const JOURNAL_TYPES: { code: string; label: string }[] = [
+  { code: 'VE', label: 'Ventes' },
+  { code: 'AC', label: 'Achats' },
+  { code: 'BQ', label: 'Banque' },
+  { code: 'CA', label: 'Caisse' },
+  { code: 'IPE', label: 'Paiement électronique (cartes)' },
+  { code: 'OD', label: 'Opérations diverses' },
+  { code: 'AN', label: 'À-Nouveau' },
+  { code: 'SAL', label: 'Paie / Salaires' },
+];
 
 interface UploadedFile {
   file: File;
@@ -134,6 +146,7 @@ const STEPS: { id: StepId; label: string }[] = [
   { id: 'upload', label: 'Fichiers' },
   { id: 'analysis', label: 'Analyse' },
   { id: 'mapping', label: 'Mapping' },
+  { id: 'journaux', label: 'Journaux' },
   { id: 'parameters', label: 'Parametres' },
   { id: 'simulation', label: 'Simulation' },
   { id: 'importing', label: 'Import' },
@@ -470,6 +483,10 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
   const [mappings, setMappings] = useState<Record<string, MappedColumn[]>>({});
   const [accountMappings, setAccountMappings] = useState<AccountMapping[]>([]);
   const [excludedEntries, setExcludedEntries] = useState<string[]>([]);
+  /** Rapprochement journaux : code source → type standard, validé par l'utilisateur. */
+  const [journalMapping, setJournalMapping] = useState<Record<string, string>>({});
+  /** Métadonnées d'affichage des journaux détectés (nb écritures, comptes échantillon). */
+  const [detectedJournals, setDetectedJournals] = useState<{ code: string; count: number; sampleAccounts: string[]; proposed: string }[]>([]);
 
   // Step 5 state
   const [params, setParams] = useState<MigrationParams>({
@@ -997,6 +1014,44 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
     }));
   }, [uploadedFiles]);
 
+  // ─── Étape Journaux : détection + rapprochement ────────
+  // Détecte les codes journaux SOURCE du Grand Livre, propose un type standard
+  // (classifyJournal) et alimente le tableau de validation. On préserve les choix
+  // déjà faits par l'utilisateur (re-passage sur l'étape).
+  const detectJournals = useCallback(() => {
+    const ecrMapping = mappings.grandLivre || mappings.ecritures || mappings.fec || [];
+    const ecr = uploadedFiles.grandLivre?.data || uploadedFiles.ecritures?.data || uploadedFiles.fec?.data || [];
+    const jCol = ecrMapping.find(m => m.target === 'journal')?.source;
+    const cCol = ecrMapping.find(m => m.target === 'compte')?.source
+      || ecrMapping.find(m => m.target === 'numeroCompte')?.source;
+    if (!jCol) { setDetectedJournals([]); return; }
+
+    const agg = new Map<string, { count: number; accounts: Set<string> }>();
+    for (const row of ecr as Record<string, any>[]) {
+      const code = String(row[jCol] ?? '').trim();
+      if (!code) continue;
+      if (!agg.has(code)) agg.set(code, { count: 0, accounts: new Set() });
+      const g = agg.get(code)!;
+      g.count++;
+      const acc = cCol ? String(row[cCol] ?? '').replace(/\s/g, '') : '';
+      if (acc && g.accounts.size < 12) g.accounts.add(acc);
+    }
+
+    const detected = [...agg.entries()]
+      .map(([code, g]) => {
+        const accounts = [...g.accounts];
+        return { code, count: g.count, sampleAccounts: accounts.slice(0, 6), proposed: classifyJournal(code, accounts) };
+      })
+      .sort((a, b) => b.count - a.count);
+
+    setDetectedJournals(detected);
+    setJournalMapping(prev => {
+      const next = { ...prev };
+      for (const d of detected) if (!next[d.code]) next[d.code] = d.proposed; // ne pas écraser un choix utilisateur
+      return next;
+    });
+  }, [mappings, uploadedFiles]);
+
   // ─── Step 6: Simulation ────────────────────────────────
 
   const runSimulation = useCallback(() => {
@@ -1511,8 +1566,10 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
 
         for (const [piece, lines] of groups) {
           const rawJournal = String(getEcrVal(lines[0], 'journal') || getEcrVal(lines[0], 'JournalCode') || 'OD');
-          // Rapprochement vers un type standard (le code source reste tracé dans entry_number).
-          const journalCode = classifyJournal(
+          // Rapprochement vers un type standard : priorité au choix validé par
+          // l'utilisateur (étape Journaux), repli sur la classification auto.
+          // Le code source reste tracé dans entry_number.
+          const journalCode = journalMapping[rawJournal.trim()] || classifyJournal(
             rawJournal,
             lines.map((l: any) => String(getEcrVal(l, 'compte') || getEcrVal(l, 'CompteNum') || getEcrVal(l, 'accountCode') || ''))
           );
@@ -1658,7 +1715,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
         // ── Mode local (Dexie) : insertion une par une avec hash chain ─────
       for (const [piece, lines] of groups) {
         const rawJournal = String(getEcrVal(lines[0], 'journal') || getEcrVal(lines[0], 'JournalCode') || 'OD');
-        const journalCode = classifyJournal(
+        const journalCode = journalMapping[rawJournal.trim()] || classifyJournal(
           rawJournal,
           lines.map((l: any) => String(getEcrVal(l, 'compte') || getEcrVal(l, 'numeroCompte') || getEcrVal(l, 'CompteNum') || ''))
         );
@@ -1973,7 +2030,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
     } finally {
       setImporting(false);
     }
-  }, [adapter, uploadedFiles, mappings, params, excludedEntries, simulation, sourceSystem, migrationMode]);
+  }, [adapter, uploadedFiles, mappings, params, excludedEntries, simulation, sourceSystem, migrationMode, journalMapping]);
 
   // ─── A7 — Annuler/écraser un lot de migration (purge bornée + pré-flight) ───
   const handlePurgeBatch = useCallback(async (batchId: string) => {
@@ -2023,11 +2080,13 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       }
       case 'analysis': return analysisReport ? analysisReport.errors.length === 0 : false;
       case 'mapping': return Object.keys(mappings).length > 0;
+      // Tous les journaux détectés doivent avoir un type assigné (pré-rempli automatiquement).
+      case 'journaux': return detectedJournals.every(j => !!journalMapping[j.code]);
       case 'parameters': return !!params.dateBascule && !!params.exerciceStart && !!params.exerciceEnd;
       case 'simulation': return simulation?.balanced ?? false;
       default: return false;
     }
-  }, [currentStep, migrationMode, sourceSystem, uploadedFiles, analysisReport, mappings, params, simulation]);
+  }, [currentStep, migrationMode, sourceSystem, uploadedFiles, analysisReport, mappings, params, simulation, detectedJournals, journalMapping]);
 
   const goNext = async () => {
     if (navBusy) return;
@@ -2039,6 +2098,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       // le bouton « Suivant » sans effet et sans message (cf. ticket import).
       if (currentStep === 'upload') await runAnalysis();
       if (currentStep === 'analysis') initMappings();
+      if (currentStep === 'mapping') detectJournals();
       if (currentStep === 'parameters') runSimulation();
       const next = STEPS[stepIndex + 1];
       if (next) setCurrentStep(next.id);
@@ -2851,6 +2911,81 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* ─── Step : Journaux (rapprochement source → type standard) ─── */}
+      {currentStep === 'journaux' && (
+        <div className="space-y-4">
+          <div className="bg-white border rounded-xl p-6">
+            <h2 className="text-lg font-semibold mb-1">Rapprochement des journaux</h2>
+            <p className="text-sm text-gray-500 mb-4">
+              Chaque entreprise nomme ses journaux librement. Nous proposons un type standard pour chaque
+              journal détecté (d'après son nom et les comptes mouvementés). Vérifiez et ajustez si besoin —
+              le code d'origine reste conservé dans le numéro de pièce.
+            </p>
+
+            {detectedJournals.length === 0 ? (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-800">
+                Aucun journal détecté. Vérifiez que la colonne « Journal » est bien mappée à l'étape précédente.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-left text-gray-500 border-b">
+                      <th className="py-2 pr-4">Journal source</th>
+                      <th className="py-2 pr-4 text-center">Écritures</th>
+                      <th className="py-2 pr-4">Comptes (échantillon)</th>
+                      <th className="py-2 pr-4">Type standard</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {detectedJournals.map(j => {
+                      const isAuto = journalMapping[j.code] === j.proposed;
+                      return (
+                        <tr key={j.code} className="border-b last:border-0">
+                          <td className="py-2 pr-4 font-mono font-medium text-gray-900">{j.code}</td>
+                          <td className="py-2 pr-4 text-center text-gray-600">{j.count}</td>
+                          <td className="py-2 pr-4 text-xs text-gray-400 font-mono">{j.sampleAccounts.join(', ') || '—'}</td>
+                          <td className="py-2 pr-4">
+                            <div className="flex items-center gap-2">
+                              <select
+                                value={journalMapping[j.code] ?? j.proposed}
+                                onChange={e => setJournalMapping(prev => ({ ...prev, [j.code]: e.target.value }))}
+                                className="border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                              >
+                                {JOURNAL_TYPES.map(t => (
+                                  <option key={t.code} value={t.code}>{t.code} — {t.label}</option>
+                                ))}
+                              </select>
+                              {isAuto && (
+                                <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                  auto
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+
+                <div className="mt-4 flex flex-wrap gap-2 text-xs">
+                  {JOURNAL_TYPES.map(t => {
+                    const n = detectedJournals.filter(j => (journalMapping[j.code] ?? j.proposed) === t.code).length;
+                    if (n === 0) return null;
+                    return (
+                      <span key={t.code} className="px-2 py-1 rounded-full bg-gray-50 border border-gray-200 text-gray-600">
+                        {t.label} : <strong>{n}</strong>
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
