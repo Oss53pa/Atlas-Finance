@@ -80,7 +80,7 @@ const AtlasFnANavigation: React.FC<NavigationProps> = ({
 
   const { data: recentActivities } = useQuery({
     queryKey: ['recent-activities', companyId],
-    queryFn: () => (dashboardService as any).getRecentActivities({ companyId, limit: 5 }),
+    queryFn: () => dashboardService.getRecentActivities({ companyId, limit: 5 }),
   });
 
   // Structure de navigation Atlas FnA
@@ -106,7 +106,7 @@ const AtlasFnANavigation: React.FC<NavigationProps> = ({
           icon: FileText,
           href: '/accounting/entries',
           module: 'accounting',
-          badge: (navigationAlerts as any)?.by_module?.accounting || 0
+          badge: navigationAlerts?.by_module?.accounting || 0
         },
         {
           id: 'journals',
@@ -211,7 +211,7 @@ const AtlasFnANavigation: React.FC<NavigationProps> = ({
       icon: Users,
       href: '/tiers/clients',
       module: 'customers',
-      badge: (navigationAlerts as any)?.by_module?.customers || 0,
+      badge: navigationAlerts?.by_module?.customers || 0,
       children: [
         {
           id: 'customer-dashboard',
@@ -249,7 +249,7 @@ const AtlasFnANavigation: React.FC<NavigationProps> = ({
       icon: Truck,
       href: '/tiers/fournisseurs',
       module: 'suppliers',
-      badge: (navigationAlerts as any)?.by_module?.suppliers || 0,
+      badge: navigationAlerts?.by_module?.suppliers || 0,
       children: [
         {
           id: 'supplier-dashboard',
@@ -287,7 +287,7 @@ const AtlasFnANavigation: React.FC<NavigationProps> = ({
       icon: DollarSign,
       href: '/treasury',
       module: 'treasury',
-      badge: (navigationAlerts as any)?.by_module?.treasury || 0,
+      badge: navigationAlerts?.by_module?.treasury || 0,
       children: [
         {
           id: 'treasury-dashboard',
@@ -434,7 +434,7 @@ const AtlasFnANavigation: React.FC<NavigationProps> = ({
   };
 
   const getModuleAlertCount = (module: string) => {
-    return (navigationAlerts as any)?.by_module?.[module] || 0;
+    return navigationAlerts?.by_module?.[module] || 0;
   };
 
   return (
@@ -613,7 +613,7 @@ const AtlasFnANavigation: React.FC<NavigationProps> = ({
         </div>
 
         <div className="space-y-2">
-          {recentActivities?.slice(0, 3).map((activity: { description?: string; timestamp?: string }, index: number) => (
+          {recentActivities?.slice(0, 3).map((activity, index: number) => (
             <div key={index} className="text-xs text-gray-600 p-2 bg-white rounded border">
               <p className="font-medium">{activity.description ?? ''}</p>
               <p className="text-gray-700">{activity.timestamp ? new Date(activity.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : ''}</p>

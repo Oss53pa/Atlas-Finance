@@ -66,12 +66,11 @@ export class Proph3tMLManager {
    */
   private async recommendAccount(params: Record<string, unknown>): Promise<string> {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const recommendations = (await (mlService as any).getAccountRecommendations({
+      const recommendations = await mlService.getAccountRecommendations({
         libelle: String(params.libelle ?? 'Transaction'),
         montant: Number(params.montant ?? 0),
         tiers: params.tiers != null ? String(params.tiers) : undefined
-      })) as Array<{ account: string; confidence: number }>;
+      });
 
       let response = "Super ! Proph3t a analysé votre transaction avec son IA Random Forest !\n\n";
       response += "**Recommandations de comptes:**\n\n";
@@ -103,8 +102,7 @@ export class Proph3tMLManager {
       const historical = (params.historicalData as Array<{ date: string; solde: number; entrees: number; sorties: number }> | undefined) || this.generateMockHistorical();
       const periods = Number(params.periods ?? 30);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const forecasts = (await (mlService as any).getTreasuryForecast(historical, periods)) as Array<{ date: string; predicted_amount: number }>;
+      const forecasts = await mlService.getTreasuryForecast(historical, periods);
 
       let response = "Génial ! Proph3t a prédit votre trésorerie avec son réseau LSTM !\n\n";
       response += `**Prévisions sur ${periods} jours:**\n\n`;
@@ -155,8 +153,7 @@ export class Proph3tMLManager {
         anciennete: 0
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const riskScore = (await (mlService as any).analyzeClientRisk(clientData)) as unknown as { risk_probability: number; risk_category: 'Faible' | 'Moyen' | 'Élevé' | 'Critique' };
+      const riskScore = await mlService.analyzeClientRisk(clientData);
 
       let response = "Analyse terminée ! Proph3t a évalué le risque avec XGBoost !\n\n";
       response += `**Client ${client_name || client_id}:**\n\n`;
@@ -212,8 +209,7 @@ export class Proph3tMLManager {
   private async detectAnomalies(params: Record<string, unknown>): Promise<string> {
     try {
       const days = Number(params.days ?? 7);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const anomalies = (await (mlService as any).getRecentAnomalies(days)) as Array<{ severite: string; titre: string; score: number }>;
+      const anomalies = await mlService.getRecentAnomalies(days);
 
       if (anomalies.length === 0) {
         return `Parfait ! Aucune anomalie détectée sur les ${days} derniers jours.\n\nProph3t veille sur vos données ! 🛡️`;

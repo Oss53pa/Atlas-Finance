@@ -138,16 +138,16 @@ const ConnexionsBancairesPage: React.FC = () => {
     queryKey: ['bank-transactions', selectedAccount],
     queryFn: async () => {
       if (!selectedAccount) {
-        const allTransactions = await (bankTransactionsService as any).getAll({ page_size: 50 });
+        const allTransactions = await bankTransactionsService.getAll({ page_size: 50 });
         return allTransactions.results || [];
       }
-      const accountTransactions = await (bankTransactionsService as any).getByAccount(selectedAccount, { page_size: 50 });
+      const accountTransactions = await bankTransactionsService.getByAccount(selectedAccount, { page_size: 50 });
       return accountTransactions;
     },
     enabled: true,
   });
 
-  const transactions = (transactionsData || []).map((tx: Record<string, unknown>) => ({
+  const transactions = ((transactionsData || []) as unknown as Record<string, unknown>[]).map((tx) => ({
     id: tx.id as string,
     date: tx.date as string,
     libelle: (tx.libelle as string) || (tx.memo as string) || 'Transaction',
@@ -165,12 +165,12 @@ const ConnexionsBancairesPage: React.FC = () => {
     queryKey: ['reconciliation-status'],
     queryFn: async () => {
       const companyId = localStorage.getItem('atlas-tenant-id') || '';
-      return await (treasuryAdvancedService as any).getReconciliationStatus(companyId);
+      return await treasuryAdvancedService.getReconciliationStatus(companyId);
     },
     enabled: !!localStorage.getItem('atlas-tenant-id'),
   });
 
-  const syncLogs = (reconciliationData?.reconciliations || []).map((rec: Record<string, unknown>) => ({
+  const syncLogs = (reconciliationData?.reconciliations || []).map((rec) => ({
     id: rec.reconciliation_id as string,
     compte_id: rec.account_id as string,
     date_sync: rec.created_at as string,
@@ -243,7 +243,7 @@ const ConnexionsBancairesPage: React.FC = () => {
       const account = connections.find(c => c.id === accountId);
 
       if (account) {
-        await (treasuryAdvancedService as any).autoReconcile({
+        await treasuryAdvancedService.autoReconcile({
           company_id: companyId,
           account_id: accountId,
           statement_date: new Date().toISOString().split('T')[0],

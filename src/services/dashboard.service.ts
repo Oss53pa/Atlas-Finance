@@ -138,6 +138,42 @@ export interface CriticalAlert {
 }
 
 /**
+ * Synthèse des alertes critiques (réponse agrégée du backend)
+ *
+ * Le endpoint `critical-alerts/` renvoie un objet agrégé — et non un simple
+ * tableau — afin d'alimenter les compteurs de badges par module/sévérité
+ * affichés dans la navigation et le dashboard exécutif.
+ */
+export interface CriticalAlertsSummary {
+  /** Nombre total d'alertes actives */
+  count: number;
+
+  /** Liste détaillée des alertes */
+  alerts: CriticalAlert[];
+
+  /** Compteur d'alertes par module (accounting, customers, suppliers, treasury, …) */
+  by_module: Record<string, number>;
+
+  /** Compteur d'alertes par sévérité (low, medium, high, critical) */
+  by_severity?: Record<string, number>;
+}
+
+/**
+ * Activité récente (écriture, paiement, opération…)
+ */
+export interface RecentActivity {
+  id: string;
+  type: 'entry' | 'payment' | 'invoice' | 'reconciliation' | 'closing' | 'system' | 'other';
+  title: string;
+  description: string;
+  module?: string;
+  user?: string;
+  timestamp: string;
+  amount?: number;
+  action_url?: string;
+}
+
+/**
  * Benchmarking de performance
  */
 export interface PerformanceBenchmark {
@@ -238,16 +274,30 @@ class DashboardService {
   // ==========================================================================
 
   /**
-   * Récupère les alertes critiques
+   * Récupère les alertes critiques (synthèse agrégée)
+   *
+   * Retourne un objet `{ count, alerts, by_module, by_severity }` consommé par
+   * la navigation (compteurs par module) et le dashboard exécutif (liste + total).
    */
   async getCriticalAlerts(params?: {
     company_id?: string;
     severity?: 'low' | 'medium' | 'high' | 'critical';
     type?: string;
     is_acknowledged?: boolean;
-  }): Promise<CriticalAlert[]> {
-    const response = await apiService.get<CriticalAlert[]>(`${BASE_PATH}/critical-alerts/`, { params: params as Record<string, unknown> });
-    return response.data as CriticalAlert[];
+  }): Promise<CriticalAlertsSummary> {
+    const response = await apiService.get<CriticalAlertsSummary>(`${BASE_PATH}/critical-alerts/`, { params: params as Record<string, unknown> });
+    return response.data as CriticalAlertsSummary;
+  }
+
+  /**
+   * Récupère les N dernières activités (écritures / opérations récentes)
+   */
+  async getRecentActivities(params?: {
+    companyId?: string;
+    limit?: number;
+  }): Promise<RecentActivity[]> {
+    const response = await apiService.get<RecentActivity[]>(`${BASE_PATH}/recent-activities/`, { params: params as Record<string, unknown> });
+    return response.data as RecentActivity[];
   }
 
   /**
