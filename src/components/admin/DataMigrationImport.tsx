@@ -3372,10 +3372,30 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
                   const GREEN:  [number,number,number] = [22, 101, 52];
                   const AMBER:  [number,number,number] = [146, 64, 14];
                   const RED:    [number,number,number] = [153, 27, 27];
-                  const allOk = importReport.balanceOk && importReport.bilanOk && importReport.tiersOk && importReport.vncOk;
                   const db = importReport.dbCounts;
-                  const fmt = (n: number) => n.toLocaleString('fr-FR');
-                  const fmtF = (n: number) => n.toLocaleString('fr-FR', { minimumFractionDigits: 2 }) + ' FCFA';
+                  // Assainit les chaînes pour la police WinAnsi de jsPDF : ✓ ✗ ⚠ ≠ − — • → guillemets
+                  // typographiques ET l'espace insécable des nombres fr-FR (U+202F/U+00A0) sortent du charset
+                  // → charabia ("1 0 / 3 1 9", "&B&a&s..."). On remplace par des équivalents ASCII/Latin-1.
+                  const clean = (s: unknown): string => String(s ?? '')
+                    .replace(/[✓✔]/g, 'OK').replace(/[✕✖✗✘]/g, 'X')
+                    .replace(/[⚠⚡]/g, '(!)').replace(/[−–—]/g, '-')
+                    .replace(/≠/g, '!=').replace(/[•●▪]/g, '-')
+                    .replace(/[→➙➡]/g, '->').replace(/[‘’‛]/g, "'")
+                    .replace(/[“”]/g, '"').replace(/…/g, '...').replace(/[  ]/g, ' ')
+                    .replace(/[^\x09\x0A\x0D\x20-\xFF]/g, '');
+                  const fmt = (n: number) => clean(n.toLocaleString('fr-FR'));
+                  const fmtF = (n: number) => clean(n.toLocaleString('fr-FR', { minimumFractionDigits: 2 })) + ' FCFA';
+                  // Anomalies réelles (hors note d'équilibre bilan en cours d'exercice, qui est normale).
+                  const realWarnings = importReport.warnings.filter(w => !w.startsWith('Déséquilibre bilan'));
+                  // Perte de données : moins d'enregistrements confirmés en base qu'importés.
+                  const countLoss = !!db && (
+                    db.accounts < importReport.accounts || db.tiers < importReport.tiers ||
+                    db.entries < importReport.entries || db.lines < importReport.lines ||
+                    db.assets < importReport.assets
+                  );
+                  // « VALIDÉE » UNIQUEMENT si les 4 contrôles passent ET zéro anomalie ET zéro perte de données.
+                  const allOk = importReport.balanceOk && importReport.bilanOk && importReport.tiersOk
+                    && importReport.vncOk && realWarnings.length === 0 && !countLoss;
 
                   // Humaniser les messages techniques
                   const humanize = (w: string): { msg: string; action: string } => {
@@ -3396,7 +3416,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
                   doc.text('RAPPORT DE MIGRATION COMPTABLE', M, 11);
                   doc.setFontSize(9); doc.setFont('helvetica', 'normal');
                   doc.text(`Logiciel : Atlas Finance & Accounting  |  Norme : SYSCOHADA révisé 2017  |  Généré le ${now}`, M, 18);
-                  doc.text(`Statut : ${allOk ? '✓ MIGRATION VALIDÉE — Données enregistrées dans les livres comptables' : '⚠ MIGRATION AVEC RÉSERVES — Corrections requises avant production des états financiers'}`, M, 24);
+                  doc.text(clean(`Statut : ${allOk ? '✓ MIGRATION VALIDÉE — Données enregistrées dans les livres comptables' : '⚠ MIGRATION AVEC RÉSERVES — Corrections requises avant production des états financiers'}`), M, 24);
                   doc.setTextColor(0, 0, 0);
 
                   // ── DONNÉES EN BASE (vrais counts) ───────────────────────
@@ -3439,13 +3459,13 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
                   autoTable(doc, {
                     startY: y,
                     head: [['Contrôle', 'Résultat', 'Détail', 'Action requise']],
-                    body: controls.map(c => [c.label, c.ok ? '✓ Validé' : '✗ Anomalie', c.detail, c.action]),
+                    body: controls.map(c => [clean(c.label), c.ok ? 'Valide' : 'Anomalie', clean(c.detail), clean(c.action)]),
                     styles: { fontSize: 8, cellPadding: 2.5, overflow: 'linebreak' },
                     headStyles: { fillColor: PETROL, textColor: [255,255,255], fontStyle: 'bold' },
                     columnStyles: { 0: { cellWidth: 42 }, 1: { cellWidth: 18, halign: 'center' }, 2: { cellWidth: 68 }, 3: { cellWidth: 50 } },
                     didParseCell: (data: any) => {
                       if (data.column.index === 1) {
-                        data.cell.styles.textColor = data.cell.text[0]?.startsWith('✓') ? GREEN : RED;
+                        data.cell.styles.textColor = data.cell.text[0] === 'Valide' ? GREEN : RED;
                         data.cell.styles.fontStyle = 'bold';
                       }
                     },
@@ -3454,7 +3474,6 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
                   });
 
                   // ── ANOMALIES & ACTIONS ──────────────────────────────────
-                  const realWarnings = importReport.warnings.filter(w => !w.startsWith('Déséquilibre bilan'));
                   if (realWarnings.length > 0) {
                     y = (doc as any).lastAutoTable.finalY + 8;
                     if (y > 250) { doc.addPage(); y = 14; }
@@ -3463,7 +3482,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
                     autoTable(doc, {
                       startY: y,
                       head: [['#', 'Anomalie constatée', 'Action corrective']],
-                      body: realWarnings.map((w, i) => { const h = humanize(w); return [String(i+1), h.msg, h.action]; }),
+                      body: realWarnings.map((w, i) => { const h = humanize(w); return [String(i+1), clean(h.msg), clean(h.action)]; }),
                       styles: { fontSize: 8, cellPadding: 2.5, overflow: 'linebreak' },
                       headStyles: { fillColor: [146, 64, 14], textColor: [255,255,255], fontStyle: 'bold' },
                       columnStyles: { 0: { cellWidth: 8 }, 1: { cellWidth: 95 }, 2: { cellWidth: 75 } },
@@ -3481,7 +3500,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
                     ? ['Accéder au Grand Livre pour consulter les écritures importées.', 'Consulter la Balance générale pour vérifier les soldes par compte.', 'Générer le Bilan et le Compte de Résultat pour valider les états financiers.', 'Procéder à la clôture de l\'exercice si toutes les vérifications sont satisfaisantes.']
                     : ['Corriger les anomalies listées dans la section 3 ci-dessus.', 'Une fois les corrections effectuées, vérifier la Balance pour confirmer l\'équilibre.', 'Ne pas produire d\'états financiers (Bilan, CDR, TAFIRE) avant résolution complète des anomalies.', 'En cas de doute, contacter votre expert-comptable avant toute validation définitive.'];
                   doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor(0, 0, 0);
-                  steps.forEach((s, i) => { doc.text(`${i+1}.  ${s}`, M + 3, y); y += 6; });
+                  steps.forEach((s, i) => { doc.text(clean(`${i+1}.  ${s}`), M + 3, y); y += 6; });
 
                   // ── PIED DE PAGE ─────────────────────────────────────────
                   const pages = doc.getNumberOfPages();
