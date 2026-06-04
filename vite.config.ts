@@ -111,9 +111,12 @@ export default defineConfig({
           if (id.includes('node_modules/xlsx')) return 'vendor-xlsx';
           // Router
           if (id.includes('node_modules/react-router')) return 'vendor-router';
-          // React core
-          if (id.includes('node_modules/react-dom')) return 'vendor-react';
-          if (id.includes('node_modules/react/')) return 'vendor-react';
+          // React core — VOLONTAIREMENT NON isolé. Isolé dans un chunk 'vendor-react'
+          // séparé, celui-ci pouvait s'évaluer APRÈS un chunk lazy (charts) qui appelle
+          // React.forwardRef au chargement → "Cannot read properties of undefined
+          // (reading 'forwardRef')". En laissant react/react-dom dans le chunk d'entrée
+          // (chargé en premier), React est toujours prêt pour les chunks lazy.
+          // (pas de return ici pour react/react-dom)
         },
       },
     },
