@@ -1526,21 +1526,46 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
         return unbal / m.size;
       };
 
+      // Regroupement par SOLDE COURANT : parcourt les lignes dans l'ordre source et
+      // ferme une pièce dès que débit cumulé = crédit cumulé. Reconstitue des pièces
+      // équilibrées SANS dépendre d'une colonne n° de pièce (utile quand celle-ci est
+      // absente/mal mappée, ce qui découpait les vraies pièces par « journal + date »).
+      const buildGroupsByRunningBalance = () => {
+        const m = new Map<string, any[]>();
+        let cur: any[] = [];
+        let d = 0, c = 0, gi = 0;
+        ecrData.forEach((row: any, i: number) => {
+          if (excludedEntries.includes(pieceKeyOf(row, i))) return;
+          const { debit, credit } = lineAmounts(row);
+          cur.push(row);
+          d = money(d).add(money(debit)).toNumber();
+          c = money(c).add(money(credit)).toNumber();
+          if (cur.length > 0 && money(d).subtract(money(c)).abs().toNumber() < 0.01) {
+            m.set(`SEQ_${gi++}`, cur); cur = []; d = 0; c = 0;
+          }
+        });
+        if (cur.length > 0) m.set(`SEQ_${gi++}`, cur); // reliquat éventuel
+        return m;
+      };
+
       const UNBAL_THRESHOLD = 0.10; // au-delà de 10% de pièces déséquilibrées, la clé est jugée non fiable
       let groups = buildGroups(pieceKeyOf);
       let groupingMode = 'pièce';
       if (unbalancedRatio(groups) > UNBAL_THRESHOLD) {
-        const byJournalDate = buildGroups((row: any) => `${journalKeyOf(row)}|${dateKeyOf(row)}`);
-        if (unbalancedRatio(byJournalDate) <= UNBAL_THRESHOLD) {
-          groups = byJournalDate; groupingMode = 'journal + date';
-        } else {
-          const byJournal = buildGroups((row: any) => journalKeyOf(row));
-          if (unbalancedRatio(byJournal) < unbalancedRatio(groups)) {
-            groups = byJournal; groupingMode = 'journal';
-          }
-        }
+        // On évalue TOUTES les stratégies et on retient celle au plus BAS taux de
+        // déséquilibre (au lieu de basculer aveuglément sur « journal + date », qui
+        // découpait les pièces équilibrées en deux moitiés déséquilibrées).
+        const candidates = [
+          { g: groups, mode: 'pièce' },
+          { g: buildGroupsByRunningBalance(), mode: 'solde courant' },
+          { g: buildGroups((row: any) => `${journalKeyOf(row)}|${dateKeyOf(row)}`), mode: 'journal + date' },
+          { g: buildGroups((row: any) => journalKeyOf(row)), mode: 'journal' },
+        ].map(c => ({ ...c, r: unbalancedRatio(c.g) }))
+         .sort((a, b) => a.r - b.r);
+        const best = candidates[0];
+        groups = best.g; groupingMode = best.mode;
         report.warnings.push(
-          `Regroupement des écritures par « ${groupingMode} » : la colonne n° de pièce/saisie ne reconstituait pas des écritures équilibrées.`
+          `Regroupement des écritures par « ${groupingMode} » (taux de déséquilibre ${(best.r * 100).toFixed(1)}%) : la colonne n° de pièce/saisie ne reconstituait pas seule des écritures équilibrées.`
         );
       }
 
