@@ -1526,46 +1526,45 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
         return unbal / m.size;
       };
 
-      // Regroupement par SOLDE COURANT : parcourt les lignes dans l'ordre source et
-      // ferme une pièce dès que débit cumulé = crédit cumulé. Reconstitue des pièces
-      // équilibrées SANS dépendre d'une colonne n° de pièce (utile quand celle-ci est
-      // absente/mal mappée, ce qui découpait les vraies pièces par « journal + date »).
-      const buildGroupsByRunningBalance = () => {
-        const m = new Map<string, any[]>();
-        let cur: any[] = [];
-        let d = 0, c = 0, gi = 0;
-        ecrData.forEach((row: any, i: number) => {
-          if (excludedEntries.includes(pieceKeyOf(row, i))) return;
-          const { debit, credit } = lineAmounts(row);
-          cur.push(row);
-          d = money(d).add(money(debit)).toNumber();
-          c = money(c).add(money(credit)).toNumber();
-          if (cur.length > 0 && money(d).subtract(money(c)).abs().toNumber() < 0.01) {
-            m.set(`SEQ_${gi++}`, cur); cur = []; d = 0; c = 0;
-          }
+      // Équilibre d'un groupe de lignes (somme débits == somme crédits, tolérance 1 cent).
+      const groupBalanced = (lines: any[]) => {
+        let d = 0, c = 0;
+        lines.forEach((l: any) => {
+          const a = lineAmounts(l);
+          d = money(d).add(money(a.debit)).toNumber();
+          c = money(c).add(money(a.credit)).toNumber();
         });
-        if (cur.length > 0) m.set(`SEQ_${gi++}`, cur); // reliquat éventuel
-        return m;
+        return money(d).subtract(money(c)).abs().toNumber() < 0.01;
       };
 
       const UNBAL_THRESHOLD = 0.10; // au-delà de 10% de pièces déséquilibrées, la clé est jugée non fiable
       let groups = buildGroups(pieceKeyOf);
       let groupingMode = 'pièce';
       if (unbalancedRatio(groups) > UNBAL_THRESHOLD) {
-        // On évalue TOUTES les stratégies et on retient celle au plus BAS taux de
-        // déséquilibre (au lieu de basculer aveuglément sur « journal + date », qui
-        // découpait les pièces équilibrées en deux moitiés déséquilibrées).
-        const candidates = [
-          { g: groups, mode: 'pièce' },
-          { g: buildGroupsByRunningBalance(), mode: 'solde courant' },
-          { g: buildGroups((row: any) => `${journalKeyOf(row)}|${dateKeyOf(row)}`), mode: 'journal + date' },
-          { g: buildGroups((row: any) => journalKeyOf(row)), mode: 'journal' },
-        ].map(c => ({ ...c, r: unbalancedRatio(c.g) }))
-         .sort((a, b) => a.r - b.r);
-        const best = candidates[0];
-        groups = best.g; groupingMode = best.mode;
+        // Le n° de pièce/saisie n'est pas fiable (ex. « NUMERO DE SAISIE » = compteur
+        // de lignes). On regroupe par « journal + date » (pièces fines), PUIS on
+        // CONSOLIDE les reliquats déséquilibrés au sein de leur journal : comme chaque
+        // journal s'équilibre globalement, le reliquat par journal s'équilibre aussi.
+        // Évite de découper une opération inter-dates en moitiés déséquilibrées.
+        const byJournalDate = buildGroups((row: any) => `${journalKeyOf(row)}|${dateKeyOf(row)}`);
+        const consolidated = new Map<string, any[]>();
+        const unbalByJournal = new Map<string, any[]>();
+        for (const [k, lines] of byJournalDate) {
+          if (groupBalanced(lines)) {
+            consolidated.set(k, lines);
+          } else {
+            const j = journalKeyOf(lines[0]);
+            if (!unbalByJournal.has(j)) unbalByJournal.set(j, []);
+            unbalByJournal.get(j)!.push(...lines);
+          }
+        }
+        // Chaque reliquat journal = une pièce (équilibrée si le journal s'équilibre ;
+        // sinon le contrôle A3 en aval la passera en brouillon, jamais en validé).
+        for (const [j, lines] of unbalByJournal) consolidated.set(`${j}|regroupé`, lines);
+        groups = consolidated;
+        groupingMode = 'journal + date (reliquats consolidés par journal)';
         report.warnings.push(
-          `Regroupement des écritures par « ${groupingMode} » (taux de déséquilibre ${(best.r * 100).toFixed(1)}%) : la colonne n° de pièce/saisie ne reconstituait pas seule des écritures équilibrées.`
+          `Regroupement par « ${groupingMode} » : la colonne n° de pièce/saisie est un compteur de lignes, pas un identifiant de pièce. Les opérations inter-dates d'un même journal ont été consolidées pour rester équilibrées.`
         );
       }
 
