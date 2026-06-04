@@ -161,6 +161,26 @@ const AdvancedGeneralLedger: React.FC = () => {
     },
   });
 
+  // Plan comptable complet — pour distinguer les comptes sans mouvement (réel).
+  const { data: allAccounts = [] } = useQuery<DBAccount[]>({
+    queryKey: ['advanced-general-ledger-accounts'],
+    queryFn: () => adapter.getAll<DBAccount>('accounts'),
+  });
+
+  // Stats réelles du tableau de bord (remplacent les anciennes valeurs en dur).
+  const dashboardStats = useMemo(() => {
+    const activeCodes = new Set(accountsData.map(a => a.compte));
+    const sansMouvement = allAccounts.filter(a => !activeCodes.has(a.code)).length;
+    const topMouvements = [...accountsData]
+      .sort((a, b) => b.nombreEcritures - a.nombreEcritures)
+      .slice(0, 3);
+    const abs = (n: number) => Math.abs(n || 0);
+    const plus10M = accountsData.filter(a => abs(a.soldeFermeture) >= 10_000_000).length;
+    const plus5M = accountsData.filter(a => abs(a.soldeFermeture) >= 5_000_000).length;
+    const plus1M = accountsData.filter(a => abs(a.soldeFermeture) >= 1_000_000).length;
+    return { sansMouvement, totalComptes: allAccounts.length, topMouvements, plus10M, plus5M, plus1M };
+  }, [accountsData, allAccounts]);
+
   // Données évolution — vide sans données
   const evolutionData = useMemo(() => {
     if (!accountsData.length) return [];
@@ -1262,7 +1282,7 @@ const AdvancedGeneralLedger: React.FC = () => {
           {/* Alertes et notifications */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             
-            {/* Comptes sans mouvement */}
+            {/* Comptes sans mouvement — réel (plan comptable vs comptes mouvementés) */}
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
               <div className="flex items-center justify-between mb-4">
                 <h4 className="text-md font-semibold text-gray-900">Comptes Inactifs</h4>
@@ -1270,47 +1290,45 @@ const AdvancedGeneralLedger: React.FC = () => {
               </div>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Depuis 30 jours</span>
-                  <span className="text-sm font-medium text-orange-600">12 comptes</span>
+                  <span className="text-sm text-gray-600">Sans mouvement (période)</span>
+                  <span className="text-sm font-medium text-orange-600">{dashboardStats.sansMouvement} comptes</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Depuis 90 jours</span>
-                  <span className="text-sm font-medium text-red-600">5 comptes</span>
+                  <span className="text-sm text-gray-600">Comptes mouvementés</span>
+                  <span className="text-sm font-medium text-green-600">{indicators.comptesActifs} comptes</span>
                 </div>
                 <div className="pt-2 border-t">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-gray-900">Total inactifs</span>
-                    <span className="text-sm font-bold text-orange-600">17</span>
+                    <span className="text-sm font-medium text-gray-900">Plan comptable</span>
+                    <span className="text-sm font-bold text-orange-600">{dashboardStats.totalComptes}</span>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Mouvements importants */}
+            {/* Mouvements importants — réel (top comptes par nombre d'écritures) */}
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
               <div className="flex items-center justify-between mb-4">
                 <h4 className="text-md font-semibold text-gray-900">Mouvements Majeurs</h4>
                 <TrendingUp className="w-5 h-5 text-blue-500" />
               </div>
               <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <span className="text-sm font-medium text-gray-900">512100</span>
-                    <p className="text-xs text-gray-700">Banque BNP</p>
+                {dashboardStats.topMouvements.length === 0 && (
+                  <p className="text-sm text-gray-500">Aucun mouvement sur la période.</p>
+                )}
+                {dashboardStats.topMouvements.map((acc) => (
+                  <div key={acc.compte} className="flex justify-between items-center">
+                    <div>
+                      <span className="text-sm font-medium text-gray-900">{acc.compte}</span>
+                      <p className="text-xs text-gray-700">{(acc.libelle || '').substring(0, 28)}</p>
+                    </div>
+                    <span className="text-sm font-medium text-blue-600">{acc.nombreEcritures} mvts</span>
                   </div>
-                  <span className="text-sm font-medium text-blue-600">89 mvts</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <div>
-                    <span className="text-sm font-medium text-gray-900">607000</span>
-                    <p className="text-xs text-gray-700">Achats</p>
-                  </div>
-                  <span className="text-sm font-medium text-green-600">45 mvts</span>
-                </div>
+                ))}
               </div>
             </div>
 
-            {/* Soldes significatifs */}
+            {/* Soldes significatifs — réel (buckets sur soldes de clôture) */}
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
               <div className="flex items-center justify-between mb-4">
                 <h4 className="text-md font-semibold text-gray-900">Soldes Importants</h4>
@@ -1319,15 +1337,15 @@ const AdvancedGeneralLedger: React.FC = () => {
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Plus de 10M</span>
-                  <span className="text-sm font-medium text-green-600">3 comptes</span>
+                  <span className="text-sm font-medium text-green-600">{dashboardStats.plus10M} comptes</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Plus de 5M</span>
-                  <span className="text-sm font-medium text-blue-600">7 comptes</span>
+                  <span className="text-sm font-medium text-blue-600">{dashboardStats.plus5M} comptes</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Plus de 1M</span>
-                  <span className="text-sm font-medium text-gray-600">15 comptes</span>
+                  <span className="text-sm font-medium text-gray-600">{dashboardStats.plus1M} comptes</span>
                 </div>
               </div>
             </div>

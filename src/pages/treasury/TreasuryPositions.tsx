@@ -136,40 +136,30 @@ const TreasuryPositions: React.FC = () => {
     });
   }, [searchTerm, filterCurrency, filterStatus, filterBank, positions]);
 
-  // Calculate aggregated metrics
+  // Calculate aggregated metrics — devise de référence = FCFA (XAF, OHADA).
   const aggregatedData = useMemo(() => {
-    const totalEUR = filteredPositions
-      .filter(p => p.currency === 'EUR')
-      .reduce((sum, p) => sum + p.balance, 0);
+    const isBase = (c: string) => c === 'XAF' || c === 'FCFA';
+    // Total en FCFA : positions déjà en FCFA + éventuelles devises converties si
+    // un taux est disponible (sinon la position est comptée telle quelle).
+    const totalBase = filteredPositions.reduce((sum, p) =>
+      sum + (isBase(p.currency) ? p.balance : p.balance * (exchangeRateLookup[p.currency] || 1)), 0);
 
-    const totalUSD = filteredPositions
-      .filter(p => p.currency === 'USD')
-      .reduce((sum, p) => sum + p.balance, 0);
-
-    const totalGBP = filteredPositions
-      .filter(p => p.currency === 'GBP')
-      .reduce((sum, p) => sum + p.balance, 0);
-
-    const totalCHF = filteredPositions
-      .filter(p => p.currency === 'CHF')
-      .reduce((sum, p) => sum + p.balance, 0);
-
-    const totalEquivalentEUR = totalEUR +
-      (totalUSD * (exchangeRateLookup['USD'] || 0.92)) +
-      (totalGBP * (exchangeRateLookup['GBP'] || 1.15)) +
-      (totalCHF * (exchangeRateLookup['CHF'] || 1.08));
+    // Répartition par devise réellement présente (pas de devises figées).
+    const byCurrency: Record<string, number> = {};
+    for (const p of filteredPositions) {
+      byCurrency[p.currency] = (byCurrency[p.currency] || 0) + p.balance;
+    }
+    const devisesCount = Object.keys(byCurrency).length;
 
     return {
       totalPositions: filteredPositions.length,
-      totalEUR,
-      totalUSD,
-      totalGBP,
-      totalCHF,
-      totalEquivalentEUR,
+      totalBase,
+      byCurrency,
+      devisesCount,
       activeAccounts: filteredPositions.filter(p => p.status === 'active').length,
       highRiskAccounts: filteredPositions.filter(p => p.riskLevel === 'high').length
     };
-  }, [filteredPositions]);
+  }, [filteredPositions, exchangeRateLookup]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -191,6 +181,8 @@ const TreasuryPositions: React.FC = () => {
 
   const getCurrencySymbol = (currency: string) => {
     switch (currency) {
+      case 'XAF':
+      case 'FCFA': return 'FCFA';
       case 'EUR': return '€';
       case 'USD': return '$';
       case 'GBP': return '£';
@@ -202,12 +194,13 @@ const TreasuryPositions: React.FC = () => {
   const uniqueCurrencies = [...new Set(positions.map(p => p.currency))];
   const uniqueBanks = [...new Set(positions.map(p => p.bankName))];
 
-  const chartData = [
-    { label: 'EUR', value: aggregatedData.totalEUR / 1000000, color: 'bg-[var(--color-primary)]' },
-    { label: 'USD', value: (aggregatedData.totalUSD * (exchangeRateLookup['USD'] || 0.92)) / 1000000, color: 'bg-green-500' },
-    { label: 'GBP', value: (aggregatedData.totalGBP * (exchangeRateLookup['GBP'] || 1.15)) / 1000000, color: 'bg-[var(--color-text-secondary)]' },
-    { label: 'CHF', value: (aggregatedData.totalCHF * (exchangeRateLookup['CHF'] || 1.08)) / 1000000, color: 'bg-orange-500' }
-  ];
+  // Répartition par devise réellement présente (en millions), couleurs cycliques.
+  const CHART_COLORS = ['bg-[var(--color-primary)]', 'bg-green-500', 'bg-orange-500', 'bg-[var(--color-text-secondary)]', 'bg-blue-500'];
+  const chartData = Object.entries(aggregatedData.byCurrency).map(([label, value], i) => ({
+    label,
+    value: value / 1000000,
+    color: CHART_COLORS[i % CHART_COLORS.length],
+  }));
 
   return (
     <PageContainer background="warm" padding="lg">
@@ -239,8 +232,8 @@ const TreasuryPositions: React.FC = () => {
         {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <KPICard
-            title="Position Totale (EUR équivalent)"
-            value={formatCurrency(aggregatedData.totalEquivalentEUR)}
+            title="Position Totale (FCFA)"
+            value={formatCurrency(aggregatedData.totalBase)}
             subtitle={`${aggregatedData.totalPositions} comptes actifs`}
             icon={Wallet}
             color="primary"
@@ -286,8 +279,8 @@ const TreasuryPositions: React.FC = () => {
           transition={{ delay: 0.5 }}
         >
           <ModernChartCard
-            title="Répartition par Devise (EUR équivalent)"
-            subtitle="Exposition par devise principale"
+            title="Répartition par Devise (FCFA)"
+            subtitle="Exposition par devise présente"
             icon={PieChart}
           >
             <ColorfulBarChart

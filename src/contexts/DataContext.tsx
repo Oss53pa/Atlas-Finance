@@ -15,6 +15,7 @@ import React, { createContext, useContext, useMemo, useRef, useState, useEffect,
 import type { DataAdapter, DataMode } from '@atlas/data'
 import { DexieAdapter, SupabaseAdapter, HybridAdapter } from '@atlas/data'
 import { supabase as globalSupabaseClient } from '@/lib/supabase'
+import { queryClient } from '@/lib/react-query'
 
 // ============================================================================
 // CONTEXT
@@ -167,6 +168,22 @@ export function DataProvider({ children, forceMode, forceAdapter }: DataProvider
     // resolvedTenantId via state). Re-souscrire à chaque recréation d'adapter
     // serait inutile. mode suffit (et reste stable tant que VITE_DATA_MODE l'est).
   }, [mode])
+
+  // -------------------------------------------------------------------------
+  // Invalidation du cache React Query à la résolution du tenant.
+  //
+  // La recréation de l'adapter (ci-dessus) relance les consommateurs en
+  // useEffect([adapter]). MAIS les composants en useQuery ont une queryKey qui
+  // n'inclut PAS le tenant : s'ils ont chargé au montage avec le tenant
+  // 'default' (race), React Query a mis EN CACHE un résultat vide et ne
+  // refetchera jamais (clé inchangée). On invalide donc tout le cache dès que
+  // le tenant certifié est connu → refetch avec l'adapter recréé (bon tenant).
+  // -------------------------------------------------------------------------
+  useEffect(() => {
+    if (mode !== 'saas' && mode !== 'hybrid') return
+    if (resolvedTenantId === 'default') return
+    queryClient.invalidateQueries()
+  }, [resolvedTenantId, mode])
 
   // Poll online status
   useEffect(() => {
