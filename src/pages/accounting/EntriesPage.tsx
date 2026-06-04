@@ -143,8 +143,11 @@ const EntriesPage: React.FC = () => {
 
   useEffect(() => { loadEntries(); }, [loadEntries]);
 
-  // Nombre d'écritures en attente (brouillons) — compteur réel.
-  const draftCount = ecrituresData.filter(e => e.statut === 'draft').length;
+  // Onglet « Brouillard » = écritures en brouillon UNIQUEMENT. Les écritures validées
+  // appartiennent au Grand Livre, pas à cet écran. Sans ce filtre, les brouillons étaient
+  // noyés parmi toutes les écritures importées (pagination sur tout) → non consultables.
+  const draftEntries = React.useMemo(() => ecrituresData.filter(e => e.statut === 'draft'), [ecrituresData]);
+  const draftCount = draftEntries.length;
 
   // Configuration des colonnes pour DataTable
   const ecrituresColumns: Column<EcritureBrouillard>[] = [
@@ -570,7 +573,7 @@ const EntriesPage: React.FC = () => {
                 {/* Liste des écritures avec DataTable - Pleine largeur */}
                 {!isLoading && <DataTable
                   columns={ecrituresColumns as unknown as import('../../components/ui/DataTable').Column<Record<string, unknown>>[]}
-                  data={ecrituresData as unknown as Record<string, unknown>[]}
+                  data={draftEntries as unknown as Record<string, unknown>[]}
                   pageSize={15}
                   searchable={true}
                   exportable={true}
@@ -799,7 +802,7 @@ const EntriesPage: React.FC = () => {
                         ? <span className="animate-spin">⏳</span>
                         : <CheckCircle className="w-4 h-4" />
                       }
-                      <span>{t('actions.validate')}</span>
+                      <span>{t('accounting.validateEntry')}</span>
                     </button>
                   </div>
                 </div>
