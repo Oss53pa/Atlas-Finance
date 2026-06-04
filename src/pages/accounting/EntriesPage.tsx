@@ -802,7 +802,7 @@ const EntriesPage: React.FC = () => {
                         ? <span className="animate-spin">⏳</span>
                         : <CheckCircle className="w-4 h-4" />
                       }
-                      <span>{t('actions.validate')}</span>
+                      <span>{t('accounting.validateEntry')}</span>
                     </button>
                   </div>
                 </div>
