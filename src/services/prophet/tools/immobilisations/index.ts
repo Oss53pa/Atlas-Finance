@@ -1,2 +1,0 @@
-
-export { immobilisationsCompletTools } from './ImmobilisationsComplet';

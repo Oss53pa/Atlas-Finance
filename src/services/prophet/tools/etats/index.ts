@@ -1,2 +1,0 @@
-
-export { etatsFinanciersTools } from './GenerateurEtatsFinanciers';

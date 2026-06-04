@@ -159,6 +159,41 @@ class BankTransactionsService {
       return [];
     }
   }
+
+  /** Liste paginée de toutes les transactions (mouvements de trésorerie). */
+  async getAll(params?: { page?: number; page_size?: number; status?: string }): Promise<{ results: CashMovement[]; count: number }> {
+    try {
+      const filters: Record<string, string> = {};
+      if (params?.status) filters.execution_status = params.status;
+
+      const result = await queryTable<CashMovement>('treasury_cash_movements', {
+        page: params?.page || 1,
+        pageSize: params?.page_size || 50,
+        filters,
+        sortBy: 'scheduled_date',
+        sortOrder: 'desc',
+      });
+      return { results: result.data, count: result.total };
+    } catch (err) { /* silent */
+      return { results: [], count: 0 };
+    }
+  }
+
+  /** Transactions d'un compte bancaire donné. */
+  async getByAccount(accountId: string, params?: { page?: number; page_size?: number }): Promise<CashMovement[]> {
+    try {
+      const result = await queryTable<CashMovement>('treasury_cash_movements', {
+        page: params?.page || 1,
+        pageSize: params?.page_size || 50,
+        filters: { bank_account_id: accountId },
+        sortBy: 'scheduled_date',
+        sortOrder: 'desc',
+      });
+      return result.data;
+    } catch (err) { /* silent */
+      return [];
+    }
+  }
 }
 
 // Payments Service

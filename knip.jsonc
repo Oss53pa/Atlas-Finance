@@ -1,0 +1,11 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  // Ces fichiers sont référencés par un test via un CHEMIN STRING
+  // (fs.readFileSync / import dynamique), pas par un import statique — knip
+  // ne peut donc pas voir la référence et les croit morts (faux positifs).
+  // Ils sont bien vivants (test-guardés). On les ignore pour que knip soit à 0.
+  "ignore": [
+    "src/features/periodic-closures/services/periodicClosuresService.ts",
+    "src/features/periodic-closures/types/periodic-closures.types.ts"
+  ]
+}
