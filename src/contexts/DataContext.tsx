@@ -43,6 +43,20 @@ interface DataProviderProps {
 export function DataProvider({ children, forceMode, forceAdapter }: DataProviderProps) {
   const [online, setOnline] = useState(true)
 
+  // tenantId résolu depuis la session authentifiée. Initialisé depuis
+  // localStorage (rechargements), remplacé par la valeur certifiée du profil dès
+  // que la session est disponible. Le garder dans un STATE — au lieu de muter
+  // l'adapter via setTenantId — garantit que l'adapter est RECRÉÉ quand le tenant
+  // se résout, ce qui relance TOUS les effets consommateurs (clés sur [adapter])
+  // avec le bon tenant. Sans ça, les requêtes lancées au montage (ex. le
+  // dashboard qui appelle adapter.count) partent avec 'default' → 0 ligne, et ne
+  // se rafraîchissent jamais. Race FATALE en navigation privée (localStorage vide
+  // → 'default' systématique → toutes les tables affichent 0 alors que les
+  // données existent côté Supabase).
+  const [resolvedTenantId, setResolvedTenantId] = useState<string>(
+    () => localStorage.getItem('atlas-tenant-id') || 'default',
+  )
+
   const adapter = useMemo<DataAdapter>(() => {
     if (forceAdapter) return forceAdapter
 
@@ -56,7 +70,7 @@ export function DataProvider({ children, forceMode, forceAdapter }: DataProvider
           return new DexieAdapter()
         }
         // tenantId synchronise depuis le profile par AuthContext apres login
-        const tenantId = localStorage.getItem('atlas-tenant-id') || 'default'
+        const tenantId = resolvedTenantId
         // CRITICAL : passer le client supabase global (avec session authentifiee
         // dans sessionStorage cle 'atlas-fna-auth'). Sinon l'adapter cree son
         // propre client sans session -> toutes les operations tournent en anon
@@ -70,7 +84,7 @@ export function DataProvider({ children, forceMode, forceAdapter }: DataProvider
           // Supabase non configuré → local pur (offline only), pas de sync possible
           return new DexieAdapter()
         }
-        const tenantId = localStorage.getItem('atlas-tenant-id') || 'default'
+        const tenantId = resolvedTenantId
         // Même client global authentifié que le mode saas (voir note CRITICAL ci-dessus)
         return new HybridAdapter(
           undefined,
@@ -84,7 +98,7 @@ export function DataProvider({ children, forceMode, forceAdapter }: DataProvider
       default:
         return new DexieAdapter()
     }
-  }, [forceMode, forceAdapter])
+  }, [forceMode, forceAdapter, resolvedTenantId])
 
   const mode = adapter.getMode()
 
@@ -103,15 +117,23 @@ export function DataProvider({ children, forceMode, forceAdapter }: DataProvider
   useEffect(() => {
     // saas ET hybrid disposent tous deux d'un remote Supabase à recibler.
     if (mode !== 'saas' && mode !== 'hybrid') return
-    const tenantAware = adapter as unknown as { setTenantId(id: string): void }
+
+    // Persiste le tenant certifié et déclenche la recréation de l'adapter
+    // UNIQUEMENT si le tenant change réellement (évite le churn sur les refresh
+    // de token, qui conservent le même tenant). Le setState fonctionnel évite de
+    // dépendre de resolvedTenantId dans les deps de l'effet.
+    const commitTenant = (companyId?: string | null) => {
+      if (!companyId) return
+      localStorage.setItem('atlas-tenant-id', companyId)
+      setResolvedTenantId(prev => (prev === companyId ? prev : companyId))
+    }
 
     const applyAuthenticatedTenant = async (userId: string) => {
       // Priorité 1 : user_metadata.company_id (set côté serveur via Auth hook)
       const { data: { user } } = await globalSupabaseClient.auth.getUser()
       const metaCompanyId: string | undefined = user?.user_metadata?.company_id
       if (metaCompanyId) {
-        tenantAware.setTenantId(metaCompanyId)
-        localStorage.setItem('atlas-tenant-id', metaCompanyId)
+        commitTenant(metaCompanyId)
         return
       }
 
@@ -121,10 +143,7 @@ export function DataProvider({ children, forceMode, forceAdapter }: DataProvider
         .select('company_id')
         .eq('id', userId)
         .maybeSingle() as { data: { company_id?: string } | null }
-      if (profile?.company_id) {
-        tenantAware.setTenantId(profile.company_id)
-        localStorage.setItem('atlas-tenant-id', profile.company_id)
-      }
+      commitTenant(profile?.company_id)
     }
 
     // Vérifier la session courante au montage (session déjà restaurée)
@@ -144,7 +163,10 @@ export function DataProvider({ children, forceMode, forceAdapter }: DataProvider
     )
 
     return () => { subscription.unsubscribe() }
-  }, [adapter, mode])
+    // Pas de dépendance [adapter] : l'effet ne touche plus l'adapter (il pilote
+    // resolvedTenantId via state). Re-souscrire à chaque recréation d'adapter
+    // serait inutile. mode suffit (et reste stable tant que VITE_DATA_MODE l'est).
+  }, [mode])
 
   // Poll online status
   useEffect(() => {
