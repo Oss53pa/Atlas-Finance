@@ -200,11 +200,33 @@ const PartenairesModule: React.FC = () => {
   // Data from DataContext
   const { adapter } = useData();
   const [thirdParties, setThirdParties] = useState<any[]>([]);
+  // Écritures par tiers (third_party_code) — pour la fiche partenaire (œil).
+  const [partnerLinesMap, setPartnerLinesMap] = useState<Record<string, { date: string; piece: string; libelle: string; debit: number; credit: number }[]>>({});
 
   useEffect(() => {
     const load = async () => {
-      const tps = await adapter.getAll('thirdParties');
+      const [tps, entries] = await Promise.all([
+        adapter.getAll('thirdParties'),
+        adapter.getAll<any>('journalEntries'),
+      ]);
       setThirdParties(tps as Record<string, unknown>[]);
+      const byCode: Record<string, { date: string; piece: string; libelle: string; debit: number; credit: number }[]> = {};
+      for (const e of entries) {
+        if (e.status === 'draft') continue;
+        for (const l of (e.lines || [])) {
+          const tpc = l.thirdPartyCode || l.third_party_code;
+          if (!tpc) continue;
+          (byCode[tpc] ||= []).push({
+            date: e.date,
+            piece: e.reference || e.entryNumber || e.entry_number || '',
+            libelle: l.label || e.label || '',
+            debit: l.debit || 0,
+            credit: l.credit || 0,
+          });
+        }
+      }
+      for (const k in byCode) byCode[k].sort((a, b) => String(b.date).localeCompare(String(a.date)));
+      setPartnerLinesMap(byCode);
     };
     load();
   }, [adapter]);
@@ -1022,6 +1044,56 @@ const PartenairesModule: React.FC = () => {
                   </>
                 )}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Fiche Partenaire (lecture seule + écritures) — bouton œil */}
+      {selectedPartenaire && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between p-5 border-b">
+              <div>
+                <h3 className="text-lg font-bold text-[var(--color-primary)]">{selectedPartenaire.nom}</h3>
+                <p className="text-sm text-gray-500 font-mono">{selectedPartenaire.code} · {selectedPartenaire.type}</p>
+              </div>
+              <button onClick={() => setSelectedPartenaire(null)} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
+            </div>
+            <div className="p-5 space-y-4 overflow-auto">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                <div><span className="text-gray-500">Statut</span><p className="font-medium">{selectedPartenaire.statut}</p></div>
+                <div><span className="text-gray-500">Téléphone</span><p className="font-medium">{selectedPartenaire.contact?.telephone || '—'}</p></div>
+                <div><span className="text-gray-500">Email</span><p className="font-medium">{selectedPartenaire.contact?.email || '—'}</p></div>
+                <div><span className="text-gray-500">CA annuel</span><p className="font-semibold text-[var(--color-primary)]">{formatCurrency(selectedPartenaire.chiffreAffairesAnnuel)}</p></div>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-700 mb-2">Écritures ({(partnerLinesMap[selectedPartenaire.code] || []).length})</h4>
+                <div className="border rounded-lg overflow-auto max-h-[40vh]">
+                  <table className="w-full text-xs">
+                    <thead className="bg-gray-50 text-gray-600 sticky top-0">
+                      <tr><th className="text-left px-3 py-2">Date</th><th className="text-left px-3 py-2">Pièce</th><th className="text-left px-3 py-2">Libellé</th><th className="text-right px-3 py-2">Débit</th><th className="text-right px-3 py-2">Crédit</th></tr>
+                    </thead>
+                    <tbody>
+                      {(partnerLinesMap[selectedPartenaire.code] || []).length === 0 && (
+                        <tr><td colSpan={5} className="px-3 py-4 text-center text-gray-500">Aucune écriture attribuée à ce partenaire.</td></tr>
+                      )}
+                      {(partnerLinesMap[selectedPartenaire.code] || []).slice(0, 300).map((l, i) => (
+                        <tr key={i} className="border-t hover:bg-gray-50">
+                          <td className="px-3 py-1.5 whitespace-nowrap">{l.date}</td>
+                          <td className="px-3 py-1.5 whitespace-nowrap">{l.piece}</td>
+                          <td className="px-3 py-1.5">{l.libelle}</td>
+                          <td className="px-3 py-1.5 text-right text-red-600 whitespace-nowrap">{l.debit ? formatCurrency(l.debit) : ''}</td>
+                          <td className="px-3 py-1.5 text-right text-green-600 whitespace-nowrap">{l.credit ? formatCurrency(l.credit) : ''}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            <div className="p-4 border-t flex justify-end">
+              <button onClick={() => setSelectedPartenaire(null)} className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm">Fermer</button>
             </div>
           </div>
         </div>
