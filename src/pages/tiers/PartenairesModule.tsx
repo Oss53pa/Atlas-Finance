@@ -271,43 +271,41 @@ const PartenairesModule: React.FC = () => {
     };
   });
 
-  // Mock Analytics
-  const analytics: PartenaireAnalytics = {
-    performanceGlobale: 89,
-    croissanceChiffre: 18.5,
-    satisfactionMoyenne: 4.4,
-    tauxRenouvellement: 94,
-    repartitionParType: [
-      { type: 'INTEGRATEUR', nombre: 8, ca: 4200000 },
-      { type: 'CONSULTANT', nombre: 12, ca: 3800000 },
-      { type: 'DISTRIBUTEUR', nombre: 6, ca: 2100000 },
-      { type: 'REVENDEUR', nombre: 15, ca: 1900000 },
-      { type: 'TECHNOLOGIQUE', nombre: 4, ca: 1500000 },
-      { type: 'STRATEGIQUE', nombre: 2, ca: 1200000 }
-    ],
-    evolutionPerformance: [
-      { mois: 'Jan', ventes: 1200000, satisfaction: 4.2 },
-      { mois: 'Fév', ventes: 1350000, satisfaction: 4.3 },
-      { mois: 'Mar', ventes: 1480000, satisfaction: 4.4 },
-      { mois: 'Avr', ventes: 1520000, satisfaction: 4.4 },
-      { mois: 'Mai', ventes: 1650000, satisfaction: 4.5 },
-      { mois: 'Juin', ventes: 1780000, satisfaction: 4.6 }
-    ],
-    topPartenaires: [
-      { nom: 'CEMAC TECH SOLUTIONS', ca: 2450000, score: 94, niveau: 'PLATINUM' },
-      { nom: 'AFRICA BUSINESS CONSULTING', ca: 1850000, score: 88, niveau: 'GOLD' },
-      { nom: 'CENTRAL AFRICA INTEGRATORS', ca: 1650000, score: 86, niveau: 'GOLD' },
-      { nom: 'DOUALA TECH PARTNERS', ca: 1420000, score: 82, niveau: 'SILVER' }
-    ],
-    zonesCouverte: [
-      { zone: 'Cameroun', partenaires: 12, ca: 6200000 },
-      { zone: 'Congo', partenaires: 8, ca: 3800000 },
-      { zone: 'Gabon', partenaires: 6, ca: 2900000 },
-      { zone: 'Guinée Équatoriale', partenaires: 4, ca: 1800000 },
-      { zone: 'Tchad', partenaires: 5, ca: 1500000 },
-      { zone: 'RCA', partenaires: 3, ca: 800000 }
-    ]
-  };
+  // Analytics calculées sur les partenaires RÉELS (issus de thirdParties).
+  const analytics: PartenaireAnalytics = (() => {
+    const list = mockPartenaires;
+    const n = list.length;
+    const avg = (f: (p: Partenaire) => number) => (n ? list.reduce((s, p) => s + f(p), 0) / n : 0);
+    const byType = new Map<string, { type: Partenaire['type']; nombre: number; ca: number }>();
+    for (const p of list) {
+      const t = byType.get(p.type) || { type: p.type, nombre: 0, ca: 0 };
+      t.nombre += 1;
+      t.ca += p.chiffreAffairesAnnuel || 0;
+      byType.set(p.type, t);
+    }
+    const byZone = new Map<string, { zone: string; partenaires: number; ca: number }>();
+    for (const p of list) {
+      const zone = p.adresse?.region || p.adresse?.pays || '—';
+      const z = byZone.get(zone) || { zone, partenaires: 0, ca: 0 };
+      z.partenaires += 1;
+      z.ca += p.chiffreAffairesAnnuel || 0;
+      byZone.set(zone, z);
+    }
+    const top = [...list]
+      .sort((a, b) => (b.chiffreAffairesAnnuel || 0) - (a.chiffreAffairesAnnuel || 0))
+      .slice(0, 5)
+      .map(p => ({ nom: p.nom, ca: p.chiffreAffairesAnnuel || 0, score: p.scorePerformance || 0, niveau: p.niveau }));
+    return {
+      performanceGlobale: Math.round(avg(p => p.scorePerformance || 0)),
+      croissanceChiffre: 0,
+      satisfactionMoyenne: Number(avg(p => p.indicateursPerformance?.satisfactionClients || 0).toFixed(1)),
+      tauxRenouvellement: n ? Math.round((list.filter(p => p.statut === 'ACTIF').length / n) * 100) : 0,
+      repartitionParType: Array.from(byType.values()),
+      evolutionPerformance: [],
+      topPartenaires: top,
+      zonesCouverte: Array.from(byZone.values()),
+    };
+  })();
 
   const tabs = [
     { id: 'reseau', label: 'Réseau Partenaires', icon: Handshake },

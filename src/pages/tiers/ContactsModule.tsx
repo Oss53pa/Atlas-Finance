@@ -138,36 +138,31 @@ const ContactsModule: React.FC = () => {
     return matchSearch && matchStatut;
   });
 
-  // Mock Analytics Data
-  const analyticsData = {
-    repartitionTiers: [
-      { type: 'Clients', count: 145, pourcentage: 62 },
-      { type: 'Fournisseurs', count: 67, pourcentage: 29 },
-      { type: 'Prospects', count: 22, pourcentage: 9 }
-    ],
-    interactionsParMois: [
-      { mois: 'Jan', appels: 45, emails: 78, rencontres: 12 },
-      { mois: 'Fév', appels: 52, emails: 85, rencontres: 15 },
-      { mois: 'Mar', appels: 48, emails: 92, rencontres: 18 },
-      { mois: 'Avr', appels: 55, emails: 88, rencontres: 14 },
-      { mois: 'Mai', appels: 60, emails: 95, rencontres: 20 },
-      { mois: 'Juin', appels: 58, emails: 102, rencontres: 22 }
-    ],
-    topInteracteurs: [
-      { nom: 'Jean MAMBOU', entreprise: 'CONGO BUSINESS', interactions: 25, derniere: '2024-09-18' },
-      { nom: 'Sophie NDONG', entreprise: 'AFRICAINE TECH', interactions: 18, derniere: '2024-09-17' },
-      { nom: '', entreprise: 'CEMAC SUPPLIES', interactions: 15, derniere: '2024-09-16' },
-      { nom: 'Christine OBIANG', entreprise: 'AFRICA MATERIALS', interactions: 12, derniere: '2024-09-15' }
-    ],
-    repartitionFonctions: [
-      { fonction: 'Direction', count: 45 },
-      { fonction: 'Commercial', count: 67 },
-      { fonction: 'Achats', count: 34 },
-      { fonction: 'Technique', count: 28 },
-      { fonction: 'Qualité', count: 15 },
-      { fonction: 'Finance', count: 25 }
-    ]
-  };
+  // Analytics calculées sur les tiers RÉELS (répartition par type / département).
+  const analyticsData = (() => {
+    const list = mockContacts;
+    const total = list.length;
+    const types: Record<string, number> = { Clients: 0, Fournisseurs: 0, 'Client/Fournisseur': 0 };
+    for (const c of list) {
+      const key = c.fonction === 'Client' ? 'Clients' : c.fonction === 'Fournisseur' ? 'Fournisseurs' : 'Client/Fournisseur';
+      types[key] = (types[key] || 0) + 1;
+    }
+    const repartitionTiers = Object.entries(types)
+      .filter(([, n]) => n > 0)
+      .map(([type, count]) => ({ type, count, pourcentage: total ? Math.round((count / total) * 100) : 0 }));
+    const byDept = new Map<string, number>();
+    for (const c of list) {
+      const dept = c.departement || '—';
+      byDept.set(dept, (byDept.get(dept) || 0) + 1);
+    }
+    const repartitionFonctions = Array.from(byDept.entries()).map(([fonction, count]) => ({ fonction, count }));
+    return {
+      repartitionTiers,
+      interactionsParMois: [] as { mois: string; appels: number; emails: number; rencontres: number }[],
+      topInteracteurs: [] as { nom: string; entreprise: string; interactions: number; derniere: string }[],
+      repartitionFonctions,
+    };
+  })();
 
   // Récupérer toutes les interactions de tous les contacts
   const allInteractions = mockContacts.flatMap(contact =>

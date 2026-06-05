@@ -102,16 +102,6 @@ async function generateCode(
   }
 }
 
-// Mock monthly data for analytics chart
-const MONTHLY_MOCK = [
-  { mois: 'Jan', masse: 4200000 },
-  { mois: 'Fév', masse: 4350000 },
-  { mois: 'Mar', masse: 4150000 },
-  { mois: 'Avr', masse: 4500000 },
-  { mois: 'Mai', masse: 4600000 },
-  { mois: 'Jun', masse: 4400000 },
-];
-
 // ─── Component ────────────────────────────────────────────────────────────────
 
 const PersonnelModule: React.FC = () => {
@@ -126,6 +116,10 @@ const PersonnelModule: React.FC = () => {
   const [filterStatut, setFilterStatut] = useState<'all' | 'actifs' | 'inactifs'>('all');
   const [filterCompte, setFilterCompte] = useState<string>('all');
   const [loading, setLoading] = useState(true);
+
+  // Masse salariale mensuelle RÉELLE (charges de personnel, classe 66), calculée
+  // depuis les écritures — remplace les anciennes données mensuelles fictives.
+  const [monthlyMasse, setMonthlyMasse] = useState<{ mois: string; masse: number }[]>([]);
 
   // Modal state — creation
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -240,6 +234,25 @@ const PersonnelModule: React.FC = () => {
           montant: Math.max(soldesMap[c].montant, 0),
           count: soldesMap[c].count,
         }))
+      );
+
+      // Masse salariale mensuelle réelle = charges de personnel (comptes 66) par mois.
+      const MOIS = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+      const masseByMonth = new Map<string, number>();
+      for (const entry of allEntries) {
+        if (entry.status === 'draft') continue;
+        const ym = String(entry.date || '').slice(0, 7);
+        if (ym.length < 7) continue;
+        for (const line of (entry.lines || [])) {
+          if (String(line.accountCode || '').startsWith('66')) {
+            masseByMonth.set(ym, (masseByMonth.get(ym) || 0) + ((line.debit || 0) - (line.credit || 0)));
+          }
+        }
+      }
+      setMonthlyMasse(
+        Array.from(masseByMonth.entries())
+          .sort(([a], [b]) => a.localeCompare(b))
+          .map(([ym, masse]) => ({ mois: MOIS[parseInt(ym.slice(5, 7), 10) - 1] || ym, masse }))
       );
     } catch {
       setSoldes(COLLECTIF_OPTIONS.map(c => ({
@@ -918,7 +931,7 @@ const PersonnelModule: React.FC = () => {
                     Évolution mensuelle masse salariale
                   </h3>
                   <ResponsiveContainer width="100%" height={220}>
-                    <AreaChart data={MONTHLY_MOCK}>
+                    <AreaChart data={monthlyMasse}>
                       <defs>
                         <linearGradient id="gradMasse" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="5%" stopColor={AMBER} stopOpacity={0.3} />
