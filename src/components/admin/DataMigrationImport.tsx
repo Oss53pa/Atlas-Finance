@@ -1435,6 +1435,44 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
         pct => setImportProgress(15 + Math.round(pct * 0.15)));
       report.tiers += tiersCreated || 0;
 
+      // ── Rapprochement libellé → fiche tiers ────────────────────────────────
+      // Pour les Grands Livres où le tiers n'apparaît QUE dans la description
+      // (compte = collectif 411100/401100, pas de colonne code tiers), on tente
+      // d'attribuer chaque ligne au bon client/fournisseur depuis son libellé.
+      // Conservateur : match univoque seulement, type selon le compte (41x=client,
+      // 40x=fournisseur), mots génériques exclus.
+      const TPM_STOP = new Set(['ACTIVATION', 'COMMERCE', 'SERVICE', 'SERVICES', 'TRADING', 'HOLDING', 'GROUPE', 'GROUP', 'STORE', 'AFRIQUE', 'AFRICA', 'GENERAL', 'GENERALE', 'INTERNATIONAL', 'SOCIETE', 'ENTREPRISE', 'BUSINESS', 'MARKET', 'CENTER', 'CENTRE', 'PARTAGE', 'REVENU', 'REVENUS', 'LOCATIVE', 'SARL', 'GROUPEMENT', 'PRESTATION', 'PRESTATIONS']);
+      const tpmNorm = (s: string) => (s || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+      const tpmNormSp = (s: string) => ' ' + (s || '').toUpperCase().replace(/[^A-Z0-9]/g, ' ').replace(/\s+/g, ' ').trim() + ' ';
+      const tpmIdx = (tiersRecords as Record<string, any>[])
+        .map(t => ({
+          code: String(t.code || ''),
+          name: String(t.name || ''),
+          type: String(t.type || ''),
+          full: tpmNorm(String(t.name || '')),
+          tokens: String(t.name || '').toUpperCase().split(/[^A-Z0-9]+/).filter(w => w.length >= 5 && !TPM_STOP.has(w)),
+        }))
+        .filter(t => t.code && t.full.length >= 5);
+      const tpmTokCount: Record<string, number> = {};
+      for (const t of tpmIdx) for (const w of new Set(t.tokens)) tpmTokCount[w] = (tpmTokCount[w] || 0) + 1;
+      const matchTiers = (label: string, accountCode: string): { code: string; name: string } | null => {
+        const side = /^41/.test(accountCode) ? 'C' : /^40/.test(accountCode) ? 'S' : null;
+        if (!side) return null;
+        const okType = (ty: string) => (side === 'C' ? (ty === 'customer' || ty === 'both') : (ty === 'supplier' || ty === 'both'));
+        const nl = tpmNorm(label);
+        const nlsp = tpmNormSp(label);
+        // 1) nom complet de la fiche contenu dans le libellé
+        let hits = tpmIdx.filter(t => okType(t.type) && nl.includes(t.full));
+        let uniq = Array.from(new Map(hits.map(h => [h.code, h])).values());
+        if (uniq.length === 1) return uniq[0];
+        if (uniq.length > 1) return null;
+        // 2) mot distinctif (rare) de la fiche présent comme mot entier
+        hits = tpmIdx.filter(t => okType(t.type) && t.tokens.some(w => (tpmTokCount[w] || 0) <= 2 && nlsp.includes(' ' + w + ' ')));
+        uniq = Array.from(new Map(hits.map(h => [h.code, h])).values());
+        if (uniq.length === 1) return uniq[0];
+        return null;
+      };
+
       // 3. Assets — batch insert
       const assetMapping = mappings.immobilisations || [];
       const assetData = uploadedFiles.immobilisations?.data || [];
@@ -1651,6 +1689,14 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
               getEcrVal(line, 'accountCode') || ''
             ).replace(/\s/g, '');
             const { debit, credit } = lineAmounts(line);
+            const lineLabel = String(getEcrVal(line, 'libelleEcriture') || getEcrVal(line, 'libelle') || entryLabel);
+            // Tiers : colonne explicite « Code tiers » si présente, sinon
+            // rapprochement depuis le libellé (GL où le tiers n'est que dans la
+            // description et le compte est le collectif).
+            const tiersExplicit = String(getEcrVal(line, 'tiers') || '').trim();
+            const tpm = tiersExplicit
+              ? { code: tiersExplicit, name: String(getEcrVal(line, 'tiersNom') || getEcrVal(line, 'tiersName') || '').trim() }
+              : matchTiers(lineLabel, accountCode);
             batchLines.push({
               id: crypto.randomUUID(),
               _entry_number: piece, // clé temporaire pour remapping post-insert
@@ -1659,14 +1705,11 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
               // A4 — privilégier le libellé de compte (colonne LIBELLE → libelleCompte)
               // pour ne JAMAIS retomber sur « code = nom » quand le libellé est dispo.
               account_name: String(getEcrVal(line, 'libelleCompte') || getEcrVal(line, 'compteLib') || getEcrVal(line, 'CompteLib') || accountCode),
-              label: String(getEcrVal(line, 'libelleEcriture') || getEcrVal(line, 'libelle') || entryLabel),
+              label: lineLabel,
               debit,
               credit,
-              // Code/nom tiers (colonne "Code tiers" du GL source) — indispensable
-              // pour l'attribution par client/fournisseur (balance auxiliaire,
-              // encours). Auparavant LU dans le mapping mais jamais ÉCRIT en base.
-              third_party_code: (String(getEcrVal(line, 'tiers') || '').trim() || null) as string | null,
-              third_party_name: (String(getEcrVal(line, 'tiersNom') || getEcrVal(line, 'tiersName') || '').trim() || null) as string | null,
+              third_party_code: tpm?.code || null,
+              third_party_name: tpm?.name || null,
               migration_batch_id: migrationBatchId, // A7
             });
           });
