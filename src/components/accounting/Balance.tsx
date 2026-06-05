@@ -81,6 +81,12 @@ const Balance: React.FC = () => {
   // Load real data from adapter
   const [accounts, setAccounts] = useState<BalanceAccount[]>([]);
   const [agedReceivables, setAgedReceivables] = useState<AgedReceivable[]>([]);
+  // Balance auxiliaire PAR TIERS (groupée sur third_party_code des lignes) —
+  // possible depuis que les codes tiers sont attribués. Vide si aucun code tiers.
+  const [tiersBalances, setTiersBalances] = useState<{
+    clients: { code: string; libelle: string; debit: number; credit: number; solde: number }[];
+    fournisseurs: { code: string; libelle: string; debit: number; credit: number; solde: number }[];
+  }>({ clients: [], fournisseurs: [] });
 
   // Balance âgée des créances — calculée depuis les écritures (comptes 411)
   useEffect(() => {
@@ -223,6 +229,33 @@ const Balance: React.FC = () => {
         // Expand first class by default
         if (result.length > 0) result[0].isExpanded = true;
         setAccounts(result);
+
+        // ── Balance auxiliaire PAR TIERS (regroupée sur third_party_code) ──────
+        const tiersMap = new Map<string, { code: string; libelle: string; debit: number; credit: number; isClient: boolean }>();
+        for (const entry of dbEntries) {
+          if ((entry as any).status === 'draft') continue;
+          for (const line of ((entry as any).lines || [])) {
+            const tpc = line.thirdPartyCode || line.third_party_code;
+            if (!tpc) continue;
+            const acc = String(line.accountCode || line.account_code || '');
+            const isClient = acc.startsWith('41');
+            const isSupplier = acc.startsWith('40');
+            if (!isClient && !isSupplier) continue;
+            const t = tiersMap.get(tpc) || {
+              code: tpc,
+              libelle: line.thirdPartyName || line.third_party_name || tpc,
+              debit: 0, credit: 0, isClient,
+            };
+            t.debit += Number(line.debit || 0);
+            t.credit += Number(line.credit || 0);
+            tiersMap.set(tpc, t);
+          }
+        }
+        const toRows = (clientSide: boolean) => Array.from(tiersMap.values())
+          .filter(t => t.isClient === clientSide)
+          .map(t => ({ code: t.code, libelle: t.libelle, debit: t.debit, credit: t.credit, solde: t.debit - t.credit }))
+          .sort((a, b) => Math.abs(b.solde) - Math.abs(a.solde));
+        setTiersBalances({ clients: toRows(true), fournisseurs: toRows(false) });
       } catch (err) {
         /* ignored */
       }
@@ -234,31 +267,37 @@ const Balance: React.FC = () => {
   // fournisseurs 40x) calculés depuis les écritures. Remplace les anciennes
   // données fictives (Client A SARL, etc.).
   const auxiliaryRows = useMemo(() => {
-    const leaves: BalanceAccount[] = [];
-    const walk = (nodes?: BalanceAccount[]) => (nodes || []).forEach(n => {
-      if (n.children && n.children.length) walk(n.children);
-      else leaves.push(n);
-    });
-    walk(accounts);
-    const mk = (prefix: string) => leaves
-      .filter(l => l.code.startsWith(prefix) && l.code.length > 2)
-      .map(l => ({
-        code: l.code,
-        libelle: l.libelle,
-        debit: l.mouvementsDebit || 0,
-        credit: l.mouvementsCredit || 0,
-        solde: (l.soldeDebiteur || 0) - (l.soldeCrediteur || 0),
-      }))
-      .sort((a, b) => a.code.localeCompare(b.code));
-    const clients = mk('41');
-    const fournisseurs = mk('40');
+    // 1) Détail PAR TIERS si les codes tiers sont disponibles (third_party_code).
+    let clients = tiersBalances.clients;
+    let fournisseurs = tiersBalances.fournisseurs;
+    // 2) Sinon repli sur les comptes collectifs (par code de compte).
+    if (clients.length === 0 && fournisseurs.length === 0) {
+      const leaves: BalanceAccount[] = [];
+      const walk = (nodes?: BalanceAccount[]) => (nodes || []).forEach(n => {
+        if (n.children && n.children.length) walk(n.children);
+        else leaves.push(n);
+      });
+      walk(accounts);
+      const mk = (prefix: string) => leaves
+        .filter(l => l.code.startsWith(prefix) && l.code.length > 2)
+        .map(l => ({
+          code: l.code,
+          libelle: l.libelle,
+          debit: l.mouvementsDebit || 0,
+          credit: l.mouvementsCredit || 0,
+          solde: (l.soldeDebiteur || 0) - (l.soldeCrediteur || 0),
+        }))
+        .sort((a, b) => a.code.localeCompare(b.code));
+      clients = mk('41');
+      fournisseurs = mk('40');
+    }
     return {
       clients,
       fournisseurs,
       totalClients: clients.reduce((s, c) => s + c.solde, 0),
       totalFournisseurs: fournisseurs.reduce((s, c) => s + c.solde, 0),
     };
-  }, [accounts]);
+  }, [accounts, tiersBalances]);
 
   // Résultat de l'exercice RÉEL : produits (classe 7) − charges (classe 6).
   const resultatExercice = useMemo(() => {
