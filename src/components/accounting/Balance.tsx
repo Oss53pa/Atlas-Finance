@@ -270,6 +270,31 @@ const Balance: React.FC = () => {
     return produits - charges;
   }, [accounts]);
 
+  // Synthèse de clôture RÉELLE par grande masse (bilan 1-5, charges 6, produits 7).
+  const clotureSummary = useMemo(() => {
+    const get = (c: string) => accounts.find(a => a.code === c);
+    const masse = (codes: string[]) => {
+      let md = 0, mc = 0, sd = 0, sc = 0;
+      for (const c of codes) {
+        const n = get(c);
+        if (!n) continue;
+        md += n.mouvementsDebit || 0; mc += n.mouvementsCredit || 0;
+        sd += n.soldeDebiteur || 0; sc += n.soldeCrediteur || 0;
+      }
+      return { md, mc, sd, sc };
+    };
+    const bilan = masse(['1', '2', '3', '4', '5']);
+    const charges = masse(['6']);
+    const produits = masse(['7']);
+    return {
+      bilan, charges, produits,
+      totMvtD: bilan.md + charges.md + produits.md,
+      totMvtC: bilan.mc + charges.mc + produits.mc,
+      totCloD: bilan.sd + charges.sd + produits.sd,
+      totCloC: bilan.sc + charges.sc + produits.sc,
+    };
+  }, [accounts]);
+
   const toggleAccount = (code: string, accounts: BalanceAccount[]): BalanceAccount[] => {
     return accounts.map(account => {
       if (account.code === code) {
@@ -1338,7 +1363,7 @@ const Balance: React.FC = () => {
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold text-[var(--color-primary)]">Balance de Clôture</h3>
               <div className="flex items-center space-x-4">
-                <span className="text-sm text-gray-600">Exercice: 2024</span>
+                <span className="text-sm text-gray-600">Exercice: {(dateRange.start || '').slice(0, 4)}</span>
                 <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-md text-sm">État: En cours</span>
               </div>
             </div>
@@ -1376,12 +1401,12 @@ const Balance: React.FC = () => {
                 <tr className="hover:bg-gray-50 border-b bg-blue-50">
                   <td className="px-4 py-2 font-mono text-[var(--color-primary)] font-bold">1-5</td>
                   <td className="px-4 py-2 font-semibold">BILAN</td>
-                  <td className="px-4 py-2 text-right">15 000 000,00</td>
-                  <td className="px-4 py-2 text-right">10 000 000,00</td>
-                  <td className="px-4 py-2 text-right text-red-600">5 000 000,00</td>
-                  <td className="px-4 py-2 text-right text-green-600">3 500 000,00</td>
-                  <td className="px-4 py-2 text-right font-semibold">18 000 000,00</td>
-                  <td className="px-4 py-2 text-right font-semibold">11 500 000,00</td>
+                  <td className="px-4 py-2 text-right">{formatCurrency(0)}</td>
+                  <td className="px-4 py-2 text-right">{formatCurrency(0)}</td>
+                  <td className="px-4 py-2 text-right text-red-600">{formatCurrency(clotureSummary.bilan.md)}</td>
+                  <td className="px-4 py-2 text-right text-green-600">{formatCurrency(clotureSummary.bilan.mc)}</td>
+                  <td className="px-4 py-2 text-right font-semibold">{formatCurrency(clotureSummary.bilan.sd)}</td>
+                  <td className="px-4 py-2 text-right font-semibold">{formatCurrency(clotureSummary.bilan.sc)}</td>
                   <td className="px-4 py-2 text-center">
                     <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">{t('accounting.balanceSheet')}</span>
                   </td>
@@ -1389,12 +1414,12 @@ const Balance: React.FC = () => {
                 <tr className="hover:bg-gray-50 border-b bg-green-50">
                   <td className="px-4 py-2 font-mono text-[var(--color-primary)] font-bold">6</td>
                   <td className="px-4 py-2 font-semibold">CHARGES</td>
-                  <td className="px-4 py-2 text-right">0,00</td>
-                  <td className="px-4 py-2 text-right">0,00</td>
-                  <td className="px-4 py-2 text-right text-red-600">23 500 000,00</td>
-                  <td className="px-4 py-2 text-right text-green-600">0,00</td>
-                  <td className="px-4 py-2 text-right font-semibold text-red-600">23 500 000,00</td>
-                  <td className="px-4 py-2 text-right font-semibold">0,00</td>
+                  <td className="px-4 py-2 text-right">{formatCurrency(0)}</td>
+                  <td className="px-4 py-2 text-right">{formatCurrency(0)}</td>
+                  <td className="px-4 py-2 text-right text-red-600">{formatCurrency(clotureSummary.charges.md)}</td>
+                  <td className="px-4 py-2 text-right text-green-600">{formatCurrency(clotureSummary.charges.mc)}</td>
+                  <td className="px-4 py-2 text-right font-semibold text-red-600">{formatCurrency(clotureSummary.charges.sd)}</td>
+                  <td className="px-4 py-2 text-right font-semibold">{formatCurrency(clotureSummary.charges.sc)}</td>
                   <td className="px-4 py-2 text-center">
                     <span className="px-2 py-1 bg-red-100 text-red-800 rounded text-xs">Résultat</span>
                   </td>
@@ -1402,12 +1427,12 @@ const Balance: React.FC = () => {
                 <tr className="hover:bg-gray-50 border-b bg-green-50">
                   <td className="px-4 py-2 font-mono text-[var(--color-primary)] font-bold">7</td>
                   <td className="px-4 py-2 font-semibold">PRODUITS</td>
-                  <td className="px-4 py-2 text-right">0,00</td>
-                  <td className="px-4 py-2 text-right">0,00</td>
-                  <td className="px-4 py-2 text-right text-red-600">0,00</td>
-                  <td className="px-4 py-2 text-right text-green-600">37 500 000,00</td>
-                  <td className="px-4 py-2 text-right font-semibold">0,00</td>
-                  <td className="px-4 py-2 text-right font-semibold text-green-600">37 500 000,00</td>
+                  <td className="px-4 py-2 text-right">{formatCurrency(0)}</td>
+                  <td className="px-4 py-2 text-right">{formatCurrency(0)}</td>
+                  <td className="px-4 py-2 text-right text-red-600">{formatCurrency(clotureSummary.produits.md)}</td>
+                  <td className="px-4 py-2 text-right text-green-600">{formatCurrency(clotureSummary.produits.mc)}</td>
+                  <td className="px-4 py-2 text-right font-semibold">{formatCurrency(clotureSummary.produits.sd)}</td>
+                  <td className="px-4 py-2 text-right font-semibold text-green-600">{formatCurrency(clotureSummary.produits.sc)}</td>
                   <td className="px-4 py-2 text-center">
                     <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">Résultat</span>
                   </td>
@@ -1429,12 +1454,12 @@ const Balance: React.FC = () => {
               <tfoot className="bg-[var(--color-text-secondary)]/20 font-bold">
                 <tr className="border-t-2 border-[var(--color-text-secondary)]">
                   <td colSpan={2} className="px-4 py-3 text-[var(--color-primary)]">TOTAUX</td>
-                  <td className="px-4 py-3 text-right">15 000 000,00</td>
-                  <td className="px-4 py-3 text-right">10 000 000,00</td>
-                  <td className="px-4 py-3 text-right text-red-600">28 500 000,00</td>
-                  <td className="px-4 py-3 text-right text-green-600">41 000 000,00</td>
-                  <td className="px-4 py-3 text-right text-red-600">41 500 000,00</td>
-                  <td className="px-4 py-3 text-right text-green-600">63 000 000,00</td>
+                  <td className="px-4 py-3 text-right">{formatCurrency(0)}</td>
+                  <td className="px-4 py-3 text-right">{formatCurrency(0)}</td>
+                  <td className="px-4 py-3 text-right text-red-600">{formatCurrency(clotureSummary.totMvtD)}</td>
+                  <td className="px-4 py-3 text-right text-green-600">{formatCurrency(clotureSummary.totMvtC)}</td>
+                  <td className="px-4 py-3 text-right text-red-600">{formatCurrency(clotureSummary.totCloD)}</td>
+                  <td className="px-4 py-3 text-right text-green-600">{formatCurrency(clotureSummary.totCloC)}</td>
                   <td className="px-4 py-3"></td>
                 </tr>
               </tfoot>
@@ -1478,16 +1503,22 @@ const Balance: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    <tr className="hover:bg-gray-50 border-b">
-                      <td className="px-4 py-2 font-mono text-[var(--color-primary)]">1-5</td>
-                      <td className="px-4 py-2">BILAN</td>
-                      <td className="px-4 py-2 text-right">5 000 000,00</td>
-                      <td className="px-4 py-2 text-right">1 500 000,00</td>
-                      <td className="px-4 py-2 text-right font-semibold">6 500 000,00</td>
-                      <td className="px-4 py-2 text-center">
-                        <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">{t('accounting.balanceSheet')}</span>
-                      </td>
-                    </tr>
+                    {[
+                      { code: '1-5', label: 'BILAN', m: clotureSummary.bilan, aff: t('accounting.balanceSheet') },
+                      { code: '6', label: 'CHARGES', m: clotureSummary.charges, aff: 'Résultat' },
+                      { code: '7', label: 'PRODUITS', m: clotureSummary.produits, aff: 'Résultat' },
+                    ].map((r) => (
+                      <tr key={r.code} className="hover:bg-gray-50 border-b">
+                        <td className="px-4 py-2 font-mono text-[var(--color-primary)]">{r.code}</td>
+                        <td className="px-4 py-2">{r.label}</td>
+                        <td className="px-4 py-2 text-right">{formatCurrency(0)}</td>
+                        <td className="px-4 py-2 text-right">{formatCurrency(r.m.md + r.m.mc)}</td>
+                        <td className="px-4 py-2 text-right font-semibold">{formatCurrency(r.m.sd - r.m.sc)}</td>
+                        <td className="px-4 py-2 text-center">
+                          <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">{r.aff}</span>
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
@@ -1516,20 +1547,20 @@ const Balance: React.FC = () => {
                     <div className="space-y-2 text-xs">
                       <div className="flex justify-between items-center p-2 bg-blue-50 rounded">
                         <span className="text-gray-600">Solde AN:</span>
-                        <span className="text-red-600 font-semibold">D: 15 000 000 | C: 10 000 000</span>
+                        <span className="text-gray-700 font-semibold">—</span>
                       </div>
 
                       <div className="flex justify-between items-center p-2 bg-orange-50 rounded">
                         <span className="text-gray-600">Mouvements:</span>
                         <div className="text-right">
-                          <div className="text-red-600">D: +5 000 000</div>
-                          <div className="text-green-600">C: +3 500 000</div>
+                          <div className="text-red-600">D: {formatCurrency(clotureSummary.bilan.md)}</div>
+                          <div className="text-green-600">C: {formatCurrency(clotureSummary.bilan.mc)}</div>
                         </div>
                       </div>
 
                       <div className="flex justify-between items-center p-2 bg-green-50 rounded">
                         <span className="text-gray-600 font-semibold">Solde Final:</span>
-                        <span className="text-blue-600 font-bold">D: 18 000 000 | C: 11 500 000</span>
+                        <span className="text-blue-600 font-bold">D: {formatCurrency(clotureSummary.bilan.sd)} | C: {formatCurrency(clotureSummary.bilan.sc)}</span>
                       </div>
                     </div>
                   </div>
@@ -1554,14 +1585,14 @@ const Balance: React.FC = () => {
                       <div className="flex justify-between items-center p-2 bg-orange-50 rounded">
                         <span className="text-gray-600">Mouvements:</span>
                         <div className="text-right">
-                          <div className="text-red-600">D: +23 500 000</div>
-                          <div className="text-gray-700">C: —</div>
+                          <div className="text-red-600">D: {formatCurrency(clotureSummary.charges.md)}</div>
+                          <div className="text-gray-700">C: {formatCurrency(clotureSummary.charges.mc)}</div>
                         </div>
                       </div>
 
                       <div className="flex justify-between items-center p-2 bg-green-50 rounded">
                         <span className="text-gray-600 font-semibold">Solde Final:</span>
-                        <span className="text-red-600 font-bold">D: 23 500 000</span>
+                        <span className="text-red-600 font-bold">D: {formatCurrency(clotureSummary.charges.sd)}</span>
                       </div>
                     </div>
                   </div>
@@ -1586,14 +1617,14 @@ const Balance: React.FC = () => {
                       <div className="flex justify-between items-center p-2 bg-orange-50 rounded">
                         <span className="text-gray-600">Mouvements:</span>
                         <div className="text-right">
-                          <div className="text-gray-700">D: —</div>
-                          <div className="text-green-600">C: +37 500 000</div>
+                          <div className="text-gray-700">D: {formatCurrency(clotureSummary.produits.md)}</div>
+                          <div className="text-green-600">C: {formatCurrency(clotureSummary.produits.mc)}</div>
                         </div>
                       </div>
 
                       <div className="flex justify-between items-center p-2 bg-green-50 rounded">
                         <span className="text-gray-600 font-semibold">Solde Final:</span>
-                        <span className="text-green-600 font-bold">C: 37 500 000</span>
+                        <span className="text-green-600 font-bold">C: {formatCurrency(clotureSummary.produits.sc)}</span>
                       </div>
                     </div>
                   </div>
@@ -1612,17 +1643,17 @@ const Balance: React.FC = () => {
                     <div className="space-y-2 text-xs">
                       <div className="flex justify-between items-center p-2 bg-blue-50 rounded">
                         <span className="text-gray-600">Exercice:</span>
-                        <span className="text-green-600 font-semibold">14 000 000</span>
+                        <span className={`font-semibold ${resultatExercice >= 0 ? 'text-green-600' : 'text-red-600'}`}>{formatCurrency(Math.abs(resultatExercice))}</span>
                       </div>
 
                       <div className="flex justify-between items-center p-2 bg-green-50 rounded">
                         <span className="text-gray-600">Type:</span>
-                        <span className="text-green-600 font-bold">BÉNÉFICE</span>
+                        <span className={`font-bold ${resultatExercice >= 0 ? 'text-green-600' : 'text-red-600'}`}>{resultatExercice >= 0 ? 'BÉNÉFICE' : 'PERTE'}</span>
                       </div>
 
                       <div className="flex justify-between items-center p-2 bg-orange-50 rounded">
-                        <span className="text-gray-600">Taux:</span>
-                        <span className="text-orange-600 font-bold">+59.6%</span>
+                        <span className="text-gray-600">Marge nette:</span>
+                        <span className="text-orange-600 font-bold">{(() => { const p = clotureSummary.produits.mc - clotureSummary.produits.md; return p > 0 ? ((resultatExercice / p) * 100).toFixed(1) : '0'; })()}%</span>
                       </div>
                     </div>
                   </div>
@@ -1641,17 +1672,17 @@ const Balance: React.FC = () => {
                     <div className="space-y-2 text-xs">
                       <div className="flex justify-between items-center p-2 bg-blue-50 rounded">
                         <span className="text-gray-600">Total Débit:</span>
-                        <span className="text-red-600 font-semibold">41 500 000</span>
+                        <span className="text-red-600 font-semibold">{formatCurrency(clotureSummary.totCloD)}</span>
                       </div>
 
                       <div className="flex justify-between items-center p-2 bg-orange-50 rounded">
                         <span className="text-gray-600">Total Crédit:</span>
-                        <span className="text-green-600 font-semibold">63 000 000</span>
+                        <span className="text-green-600 font-semibold">{formatCurrency(clotureSummary.totCloC)}</span>
                       </div>
 
                       <div className="flex justify-between items-center p-2 bg-green-50 rounded">
                         <span className="text-gray-600 font-semibold">État:</span>
-                        <span className="text-green-600 font-bold">BÉNÉFICIAIRE +59.6%</span>
+                        <span className={`font-bold ${resultatExercice >= 0 ? 'text-green-600' : 'text-red-600'}`}>{resultatExercice >= 0 ? 'BÉNÉFICIAIRE' : 'DÉFICITAIRE'}</span>
                       </div>
                     </div>
 
