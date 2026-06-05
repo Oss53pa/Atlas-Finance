@@ -103,6 +103,9 @@ const FournisseursModule: React.FC = () => {
   const [compareMode, setCompareMode] = useState(false);
   const [showNewFournisseurModal, setShowNewFournisseurModal] = useState(false);
   const [editingFournisseur, setEditingFournisseur] = useState<Fournisseur | null>(null);
+  // Fiche fournisseur en consultation (bouton œil) + écritures par fournisseur.
+  const [viewingFournisseur, setViewingFournisseur] = useState<Fournisseur | null>(null);
+  const [fournisseurLinesMap, setFournisseurLinesMap] = useState<Record<string, { date: string; piece: string; libelle: string; debit: number; credit: number }[]>>({});
   const [editForm, setEditForm] = useState<{
     raisonSociale: string;
     nif: string;
@@ -151,16 +154,27 @@ const FournisseursModule: React.FC = () => {
           (tp: any) => tp.type === 'supplier' || tp.type === 'both' || /^40/.test(tp.code || '')
         );
 
+        const linesBySupplier: Record<string, { date: string; piece: string; libelle: string; debit: number; credit: number }[]> = {};
+
         const fournisseursData: Fournisseur[] = suppliers.map((tp: any) => {
           const relatedLines: { debit: number; credit: number }[] = [];
+          const detailLines: { date: string; piece: string; libelle: string; debit: number; credit: number }[] = [];
           allEntries.forEach((entry: any) => {
             if (entry.status === 'draft') return;
             (entry.lines || []).forEach((line: any) => {
-              if (line.thirdPartyCode === tp.code || line.accountCode === tp.accountCode) {
+              if (line.thirdPartyCode === tp.code || (tp.accountCode && line.accountCode === tp.accountCode)) {
                 relatedLines.push({ debit: line.debit || 0, credit: line.credit || 0 });
+                detailLines.push({
+                  date: entry.date,
+                  piece: entry.reference || entry.entryNumber || entry.entry_number || '',
+                  libelle: line.label || entry.label || '',
+                  debit: line.debit || 0,
+                  credit: line.credit || 0,
+                });
               }
             });
           });
+          linesBySupplier[tp.id] = detailLines.sort((a, b) => String(b.date).localeCompare(String(a.date)));
 
           const totalDebit = relatedLines.reduce((s, l) => s + l.debit, 0);
           const totalCredit = relatedLines.reduce((s, l) => s + l.credit, 0);
@@ -202,6 +216,7 @@ const FournisseursModule: React.FC = () => {
 
         if (mounted) {
           setFournisseurs(fournisseursData);
+          setFournisseurLinesMap(linesBySupplier);
         }
       } catch (err) {
         /* ignored */
@@ -671,7 +686,7 @@ const FournisseursModule: React.FC = () => {
                   <td className="p-3">
                     <div className="flex items-center justify-center space-x-2">
                       <button
-                        onClick={() => setEditingFournisseur(fournisseur)}
+                        onClick={() => setViewingFournisseur(fournisseur)}
                         className="p-1 text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 rounded"
                       >
                         <Eye className="w-4 h-4" />
@@ -1898,6 +1913,63 @@ const FournisseursModule: React.FC = () => {
       )}
 
       {/* Modal Édition Fournisseur */}
+      {/* Fiche Fournisseur (lecture seule + écritures) — bouton œil */}
+      {viewingFournisseur && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between p-5 border-b">
+              <div>
+                <h3 className="text-lg font-bold text-[var(--color-primary)]">{viewingFournisseur.raisonSociale}</h3>
+                <p className="text-sm text-gray-500 font-mono">{viewingFournisseur.code}</p>
+              </div>
+              <button onClick={() => setViewingFournisseur(null)} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
+            </div>
+            <div className="p-5 space-y-4 overflow-auto">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                <div><span className="text-gray-500">Statut</span><p className="font-medium">{viewingFournisseur.statut}</p></div>
+                <div><span className="text-gray-500">Téléphone</span><p className="font-medium">{viewingFournisseur.telephoneComptable || '—'}</p></div>
+                <div><span className="text-gray-500">Email</span><p className="font-medium">{viewingFournisseur.emailComptable || '—'}</p></div>
+                <div><span className="text-gray-500">Encours</span><p className="font-semibold text-[var(--color-primary)]">{formatCurrency(viewingFournisseur.encoursActuel)}</p></div>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-700 mb-2">Écritures ({(fournisseurLinesMap[viewingFournisseur.id] || []).length})</h4>
+                <div className="border rounded-lg overflow-auto max-h-[40vh]">
+                  <table className="w-full text-xs">
+                    <thead className="bg-gray-50 text-gray-600 sticky top-0">
+                      <tr>
+                        <th className="text-left px-3 py-2">Date</th>
+                        <th className="text-left px-3 py-2">Pièce</th>
+                        <th className="text-left px-3 py-2">Libellé</th>
+                        <th className="text-right px-3 py-2">Débit</th>
+                        <th className="text-right px-3 py-2">Crédit</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(fournisseurLinesMap[viewingFournisseur.id] || []).length === 0 && (
+                        <tr><td colSpan={5} className="px-3 py-4 text-center text-gray-500">Aucune écriture attribuée à ce fournisseur (tiers non rattaché dans les libellés).</td></tr>
+                      )}
+                      {(fournisseurLinesMap[viewingFournisseur.id] || []).slice(0, 300).map((l, i) => (
+                        <tr key={i} className="border-t hover:bg-gray-50">
+                          <td className="px-3 py-1.5 whitespace-nowrap">{l.date}</td>
+                          <td className="px-3 py-1.5 whitespace-nowrap">{l.piece}</td>
+                          <td className="px-3 py-1.5">{l.libelle}</td>
+                          <td className="px-3 py-1.5 text-right text-red-600 whitespace-nowrap">{l.debit ? formatCurrency(l.debit) : ''}</td>
+                          <td className="px-3 py-1.5 text-right text-green-600 whitespace-nowrap">{l.credit ? formatCurrency(l.credit) : ''}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            <div className="p-4 border-t flex justify-end gap-3">
+              <button onClick={() => { const f = viewingFournisseur; setViewingFournisseur(null); setEditingFournisseur(f); }} className="px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50">Modifier</button>
+              <button onClick={() => setViewingFournisseur(null)} className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm">Fermer</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {editingFournisseur && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
