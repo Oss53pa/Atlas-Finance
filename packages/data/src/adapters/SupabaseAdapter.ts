@@ -135,6 +135,14 @@ export class SupabaseAdapter implements DataAdapter {
   private client: SupabaseClient
   private tenantId: string
 
+  // Cache mémoire court des lectures getAll (par table+tenant+filtres). Évite de
+  // re-fetcher/re-traiter les 10k+ lignes à chaque montage de composant
+  // (Personnel, Autres Tiers, balances…). Invalidé à chaque écriture et au
+  // changement de tenant ; TTL de sécurité pour les modifs externes.
+  private static readonly CACHE_TTL = 60000
+  private cache = new Map<string, { data: unknown[]; ts: number; tenant: string }>()
+  private invalidateCache() { this.cache.clear() }
+
   /**
    * Tables racines (tables "tenant" elles-mêmes) qui n'ont PAS de colonne
    * tenant_id — elles SONT l'entité tenant. Toute requête sur ces tables
@@ -192,6 +200,7 @@ export class SupabaseAdapter implements DataAdapter {
    */
   setTenantId(id: string): void {
     this.tenantId = id
+    this.invalidateCache()
   }
 
   getMode(): DataMode { return 'saas' }
@@ -255,6 +264,11 @@ export class SupabaseAdapter implements DataAdapter {
 
   async getAll<T>(table: TableName, filters?: QueryFilters): Promise<T[]> {
     const pg = this.pgTable(table)
+    const cacheKey = `${pg}:${this.tenantId}:${JSON.stringify(filters || {})}`
+    const cached = this.cache.get(cacheKey)
+    if (cached && cached.tenant === this.tenantId && (Date.now() - cached.ts) < SupabaseAdapter.CACHE_TTL) {
+      return cached.data.slice() as T[]
+    }
     try {
       // ROOT_TABLES (ex: societes) : pas de colonne tenant_id.
       // getAll('companies') = "donne-moi MA société" → filtrer par id = tenantId.
@@ -318,6 +332,7 @@ export class SupabaseAdapter implements DataAdapter {
         } catch { /* journalLines indisponible — lines reste [] */ }
       }
 
+      this.cache.set(cacheKey, { data: rows, ts: Date.now(), tenant: this.tenantId })
       return rows as T[]
     } catch (_e) {
       return []
@@ -385,6 +400,7 @@ export class SupabaseAdapter implements DataAdapter {
    */
   async createMany<T>(table: TableName, items: any[]): Promise<T[]> {
     if (!items || items.length === 0) return []
+    this.invalidateCache()
     const pg = this.pgTable(table)
     const now = new Date().toISOString()
     const records = items.map(item => ({
@@ -402,6 +418,7 @@ export class SupabaseAdapter implements DataAdapter {
   }
 
   async create<T>(table: TableName, data: any, initiatedBy?: string): Promise<T> {
+    this.invalidateCache()
     const pg = this.pgTable(table)
     // Normalisation camelCase → snake_case avant envoi à Supabase
     const snake = SupabaseAdapter.toSnake(data)
@@ -438,6 +455,7 @@ export class SupabaseAdapter implements DataAdapter {
   }
 
   async update<T>(table: TableName, id: string, data: any, initiatedBy?: string): Promise<T> {
+    this.invalidateCache()
     // A-02 : immuabilité SYSCOHADA Art.19 — une écriture `posted` est intangible.
     // On lit le statut actuel avant d'autoriser la mise à jour.
     if (table === 'journalEntries') {
@@ -483,6 +501,7 @@ export class SupabaseAdapter implements DataAdapter {
   }
 
   async delete(table: TableName, id: string, initiatedBy?: string): Promise<void> {
+    this.invalidateCache()
     // A-03 : SYSCOHADA Art.19 — interdire la suppression physique d'une écriture validée/postée.
     if (table === 'journalEntries') {
       const { data: existing } = await this.client
@@ -592,6 +611,7 @@ export class SupabaseAdapter implements DataAdapter {
     // (le trigger DEFERRABLE valide l'équilibre au commit), et qui dérive le
     // tenant côté serveur via get_user_company_id() (cf. migration de sécurité).
     const { lines, ...header } = entry as any
+    this.invalidateCache()
     const { data, error } = await this.client.rpc('save_journal_entry', {
       p_entry: header,
       p_lines: lines ?? [],
