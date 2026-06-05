@@ -245,6 +245,36 @@ const ClientsModule: React.FC = () => {
 
         const linesByClient: Record<string, { date: string; piece: string; libelle: string; debit: number; credit: number }[]> = {};
 
+        // Ancienneté RÉELLE (FIFO) : les règlements (crédits) soldent les factures
+        // (débits) les plus anciennes ; le reliquat ouvert est ventilé par âge à
+        // la date d'arrêté. Remplace l'ancien « tout en non-échu ».
+        const asOf = new Date();
+        const DAY_MS = 86400000;
+        const ageReceivable = (lns: { debit: number; credit: number; date: string }[]) => {
+          const sorted = [...lns].sort((a, b) => String(a.date).localeCompare(String(b.date)));
+          const invoices: { date: string; amount: number }[] = [];
+          let pool = 0;
+          for (const l of sorted) {
+            if ((l.debit || 0) > 0) invoices.push({ date: l.date, amount: l.debit });
+            pool += l.credit || 0;
+          }
+          const open: { date: string; amount: number }[] = [];
+          for (const inv of invoices) {
+            if (pool >= inv.amount) { pool -= inv.amount; }
+            else { open.push({ date: inv.date, amount: inv.amount - pool }); pool = 0; }
+          }
+          let nonEchu = 0, e030 = 0, e3160 = 0, e6190 = 0, e90 = 0;
+          for (const o of open) {
+            const days = Math.floor((asOf.getTime() - new Date(o.date).getTime()) / DAY_MS);
+            if (days < 0) nonEchu += o.amount;
+            else if (days <= 30) e030 += o.amount;
+            else if (days <= 60) e3160 += o.amount;
+            else if (days <= 90) e6190 += o.amount;
+            else e90 += o.amount;
+          }
+          return { nonEchu, echu0_30: e030, echu31_60: e3160, echu61_90: e6190, echuPlus90: e90 };
+        };
+
         const clientsData: Client[] = customers.map((tp: any) => {
           const relatedLines: { debit: number; credit: number; date: string }[] = [];
           const detailLines: { date: string; piece: string; libelle: string; debit: number; credit: number }[] = [];
@@ -309,11 +339,7 @@ const ClientsModule: React.FC = () => {
             telephone: tp.phone || '',
             statut: tp.isActive ? 'ACTIF' as const : 'INACTIF' as const,
             alertes: 0,
-            nonEchu: Math.max(encours, 0),
-            echu0_30: 0,
-            echu31_60: 0,
-            echu61_90: 0,
-            echuPlus90: 0
+            ...ageReceivable(relatedLines),
           };
         });
 
