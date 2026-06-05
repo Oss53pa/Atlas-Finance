@@ -81,6 +81,10 @@ function normalizeJournalLine(r: any): any {
     accountCode: r.account_code || r.accountCode || '',
     accountName: r.account_name || r.accountName || '',
     tiersCode:   r.tiers_code   || r.tiersCode   || '',
+    // Code/nom tiers : indispensable pour l'attribution par client/fournisseur
+    // (encours, balance auxiliaire). Mappé depuis third_party_code (SaaS).
+    thirdPartyCode: r.third_party_code || r.thirdPartyCode || r.tiers_code || '',
+    thirdPartyName: r.third_party_name || r.thirdPartyName || '',
     debit:       Number(r.debit  ?? 0),
     credit:      Number(r.credit ?? 0),
   }
