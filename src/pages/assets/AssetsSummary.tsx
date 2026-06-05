@@ -154,7 +154,7 @@ const AssetsSummary: React.FC = () => {
     {
       id: 'total_value',
       title: 'Valeur Totale des Actifs',
-      value: `${formatCurrency(totalAcquisitionValue)} \u20AC`,
+      value: `${formatCurrency(totalAcquisitionValue)}`,
       change: 0,
       changeLabel: 'cette année',
       icon: <DollarSign className="w-6 h-6" />,
@@ -165,7 +165,7 @@ const AssetsSummary: React.FC = () => {
     {
       id: 'net_book_value',
       title: 'Valeur Nette Comptable',
-      value: `${formatCurrency(totalResidualValue)} \u20AC`,
+      value: `${formatCurrency(totalResidualValue)}`,
       change: 0,
       changeLabel: 'cette année',
       icon: <Building2 className="w-6 h-6" />,
@@ -187,7 +187,7 @@ const AssetsSummary: React.FC = () => {
     {
       id: 'maintenance_cost',
       title: 'Coûts de Maintenance',
-      value: `${formatCurrency((totalAcquisitionValue * 0.02))} \u20AC`,
+      value: `${formatCurrency((totalAcquisitionValue * 0.02))}`,
       change: 0,
       changeLabel: 'estimation',
       icon: <Wrench className="w-6 h-6" />,
@@ -348,7 +348,7 @@ const AssetsSummary: React.FC = () => {
       'Type': item.type,
       'Statut': item.status,
       'Date d\'échéance': item.dueDate,
-      'Coût': `${item.cost} €`,
+      'Coût': `${formatCurrency(item.cost)}`,
       'Priorité': item.priority
     }));
     const maintenanceSheet = XLSX.utils.json_to_sheet(maintenanceExportData);
@@ -909,7 +909,7 @@ const AssetsSummary: React.FC = () => {
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-sm font-medium text-primary-900">{item.cost} €</p>
+                <p className="text-sm font-medium text-primary-900">{formatCurrency(item.cost)}</p>
                 <span className={`text-xs px-2 py-1 rounded-full ${
                   item.priority === 'critical' ? 'bg-red-100 text-red-800' :
                   item.priority === 'high' ? 'bg-orange-100 text-orange-800' :
@@ -977,7 +977,7 @@ const AssetsSummary: React.FC = () => {
                   {item.priority}
                 </span>
                 <div className="text-right">
-                  <p className="font-medium text-primary-900">{item.cost} €</p>
+                  <p className="font-medium text-primary-900">{formatCurrency(item.cost)}</p>
                 </div>
               </div>
             </motion.div>
