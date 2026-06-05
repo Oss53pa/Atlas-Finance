@@ -187,6 +187,9 @@ const ClientsModule: React.FC = () => {
   // tiers), mais le total des créances et le CA restent calculables.
   const [aggReceivables, setAggReceivables] = useState(0);
   const [aggCA, setAggCA] = useState(0);
+  // Fiche client en consultation (bouton œil) + écritures par client.
+  const [viewingClient, setViewingClient] = useState<Client | null>(null);
+  const [clientLinesMap, setClientLinesMap] = useState<Record<string, { date: string; piece: string; libelle: string; debit: number; credit: number }[]>>({});
 
   // État formulaire nouveau client
   const [newClient, setNewClient] = useState<NewClientForm>({
@@ -240,16 +243,27 @@ const ClientsModule: React.FC = () => {
           (tp: any) => tp.type === 'customer' || tp.type === 'both' || /^41/.test(tp.code || '')
         );
 
+        const linesByClient: Record<string, { date: string; piece: string; libelle: string; debit: number; credit: number }[]> = {};
+
         const clientsData: Client[] = customers.map((tp: any) => {
           const relatedLines: { debit: number; credit: number; date: string }[] = [];
+          const detailLines: { date: string; piece: string; libelle: string; debit: number; credit: number }[] = [];
           allEntries.forEach((entry: any) => {
             if (entry.status === 'draft') return;
             (entry.lines || []).forEach((line: any) => {
-              if (line.thirdPartyCode === tp.code || line.accountCode === tp.accountCode) {
+              if (line.thirdPartyCode === tp.code || (tp.accountCode && line.accountCode === tp.accountCode)) {
                 relatedLines.push({ debit: line.debit || 0, credit: line.credit || 0, date: entry.date });
+                detailLines.push({
+                  date: entry.date,
+                  piece: entry.reference || entry.entryNumber || entry.entry_number || '',
+                  libelle: line.label || entry.label || '',
+                  debit: line.debit || 0,
+                  credit: line.credit || 0,
+                });
               }
             });
           });
+          linesByClient[tp.id] = detailLines.sort((a, b) => String(b.date).localeCompare(String(a.date)));
 
           const totalDebit = relatedLines.reduce((s, l) => s + l.debit, 0);
           const totalCredit = relatedLines.reduce((s, l) => s + l.credit, 0);
@@ -317,6 +331,7 @@ const ClientsModule: React.FC = () => {
 
         if (mounted) {
           setClients(clientsData);
+          setClientLinesMap(linesByClient);
           setAggReceivables(Math.max(aggD - aggC, 0));
           setAggCA(aggD);
         }
@@ -540,12 +555,9 @@ const ClientsModule: React.FC = () => {
   };
 
   const handleViewClient = (clientId: string) => {
-    // La route /tiers/clients/:id ne rend qu'à nouveau la liste (pas de vue
-    // détail dédiée) : on ouvre le panneau de fiche client (détails + édition)
-    // avec les données déjà chargées, pour que le bouton « œil » affiche
-    // réellement quelque chose.
+    // Bouton « œil » → fiche détail en lecture seule (infos + écritures du tiers).
     const client = clients.find(c => c.id === clientId);
-    if (client) setEditingClient(client);
+    if (client) setViewingClient(client);
   };
 
   const handleEditClient = (clientId: string) => {
@@ -2228,6 +2240,65 @@ const ClientsModule: React.FC = () => {
                   </button>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Fiche Client (lecture seule + écritures) — bouton œil */}
+      {viewingClient && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between p-5 border-b">
+              <div>
+                <h3 className="text-lg font-bold text-[var(--color-primary)]">{viewingClient.raisonSociale}</h3>
+                <p className="text-sm text-gray-500 font-mono">{viewingClient.code} · {viewingClient.compteComptable}</p>
+              </div>
+              <button onClick={() => setViewingClient(null)} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
+            </div>
+            <div className="p-5 space-y-4 overflow-auto">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                <div><span className="text-gray-500">NIU</span><p className="font-medium">{viewingClient.niu || '—'}</p></div>
+                <div><span className="text-gray-500">Téléphone</span><p className="font-medium">{viewingClient.telephone || '—'}</p></div>
+                <div><span className="text-gray-500">Email</span><p className="font-medium">{viewingClient.email || '—'}</p></div>
+                <div><span className="text-gray-500">Statut</span><p className="font-medium">{viewingClient.statut}</p></div>
+                <div><span className="text-gray-500">Encours</span><p className="font-semibold text-[var(--color-primary)]">{formatCurrency(viewingClient.encoursActuel)}</p></div>
+                <div className="col-span-2 md:col-span-3"><span className="text-gray-500">Adresse</span><p className="font-medium">{viewingClient.adresse || '—'}</p></div>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-700 mb-2">Écritures ({(clientLinesMap[viewingClient.id] || []).length})</h4>
+                <div className="border rounded-lg overflow-auto max-h-[40vh]">
+                  <table className="w-full text-xs">
+                    <thead className="bg-gray-50 text-gray-600 sticky top-0">
+                      <tr>
+                        <th className="text-left px-3 py-2">Date</th>
+                        <th className="text-left px-3 py-2">Pièce</th>
+                        <th className="text-left px-3 py-2">Libellé</th>
+                        <th className="text-right px-3 py-2">Débit</th>
+                        <th className="text-right px-3 py-2">Crédit</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(clientLinesMap[viewingClient.id] || []).length === 0 && (
+                        <tr><td colSpan={5} className="px-3 py-4 text-center text-gray-500">Aucune écriture attribuée à ce client (tiers non rattaché dans les libellés).</td></tr>
+                      )}
+                      {(clientLinesMap[viewingClient.id] || []).slice(0, 300).map((l, i) => (
+                        <tr key={i} className="border-t hover:bg-gray-50">
+                          <td className="px-3 py-1.5 whitespace-nowrap">{l.date}</td>
+                          <td className="px-3 py-1.5 whitespace-nowrap">{l.piece}</td>
+                          <td className="px-3 py-1.5">{l.libelle}</td>
+                          <td className="px-3 py-1.5 text-right text-red-600 whitespace-nowrap">{l.debit ? formatCurrency(l.debit) : ''}</td>
+                          <td className="px-3 py-1.5 text-right text-green-600 whitespace-nowrap">{l.credit ? formatCurrency(l.credit) : ''}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            <div className="p-4 border-t flex justify-end gap-3">
+              <button onClick={() => { const c = viewingClient; setViewingClient(null); setEditingClient(c); }} className="px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50">Modifier</button>
+              <button onClick={() => setViewingClient(null)} className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm">Fermer</button>
             </div>
           </div>
         </div>
