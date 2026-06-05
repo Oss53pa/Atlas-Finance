@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { useNavigate } from 'react-router-dom';
 import { useData } from '../../contexts/DataContext';
 import { generateNextCode, loadMappings } from '../../services/auxiliaryCode/auxiliaryCodeService';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
@@ -85,7 +84,6 @@ interface BalanceAgeeFournisseurItem {
 
 const FournisseursModule: React.FC = () => {
   const { t } = useLanguage();
-  const navigate = useNavigate();
   const { adapter } = useData();
   const [isLoading, setIsLoading] = useState(true);
   const [fournisseurs, setFournisseurs] = useState<Fournisseur[]>([]);
@@ -673,7 +671,7 @@ const FournisseursModule: React.FC = () => {
                   <td className="p-3">
                     <div className="flex items-center justify-center space-x-2">
                       <button
-                        onClick={() => navigate(`/tiers/fournisseurs/${fournisseur.id}`)}
+                        onClick={() => setEditingFournisseur(fournisseur)}
                         className="p-1 text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 rounded"
                       >
                         <Eye className="w-4 h-4" />
