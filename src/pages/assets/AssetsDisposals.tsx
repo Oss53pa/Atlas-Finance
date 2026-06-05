@@ -110,11 +110,14 @@ const AssetsDisposals: React.FC = () => {
 
   // Disposed/scrapped assets from DataContext
   const [dbDisposedAssets, setDbDisposedAssets] = useState<DBAsset[]>([]);
+  // Actifs encore en service — alimentent le sélecteur du formulaire de cession.
+  const [activeAssets, setActiveAssets] = useState<DBAsset[]>([]);
 
   useEffect(() => {
     const load = async () => {
       const allAssets = await adapter.getAll('assets') as DBAsset[];
       setDbDisposedAssets(allAssets.filter(a => a.status === 'disposed' || a.status === 'scrapped'));
+      setActiveAssets(allAssets.filter(a => a.status !== 'disposed' && a.status !== 'scrapped'));
     };
     load();
   }, [adapter]);
@@ -1129,10 +1132,17 @@ const AssetsDisposals: React.FC = () => {
                           </label>
                           <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]">
                             <option value="">-- Choisir un actif --</option>
-                            <option value="1">ORD-001 - Ordinateur Dell XPS</option>
-                            <option value="2">VEH-002 - Véhicule Toyota</option>
-                            <option value="3">MOB-003 - Mobilier Bureau</option>
-                            <option value="4">MAC-004 - Machine industrielle</option>
+                            {activeAssets.length === 0 && (
+                              <option value="" disabled>Aucun actif en service</option>
+                            )}
+                            {activeAssets.map((a) => {
+                              const asset = a as unknown as Record<string, unknown>;
+                              const ref = (asset.reference || asset.code || asset.id) as string;
+                              const name = (asset.name || asset.designation || '') as string;
+                              return (
+                                <option key={a.id} value={a.id}>{ref} - {name}</option>
+                              );
+                            })}
                           </select>
                         </div>
 

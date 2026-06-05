@@ -245,7 +245,7 @@ const InventairePhysiquePage: React.FC = () => {
   const discrepancies: InventoryDiscrepancy[] = useMemo(() => {
     return allInventoryItems
       .filter(item => item.statut_comptage === 'ecart')
-      .map((item, idx) => ({
+      .map((item) => ({
         id: `disc-${item.id}`,
         session_id: 'current',
         item_id: item.id,
@@ -253,10 +253,12 @@ const InventairePhysiquePage: React.FC = () => {
                      item.etat_physique === 'mauvais' ? 'etat' : 'valeur') as InventoryDiscrepancy['type_ecart'],
         description: `Écart détecté pour ${item.nom}`,
         impact_financier: item.valeur_nette_comptable,
-        statut_resolution: (idx % 2 === 0 ? 'en_cours' : 'resolu') as InventoryDiscrepancy['statut_resolution'],
+        // Pas de suivi de résolution réel : tout écart est ouvert par défaut
+        // (au lieu d'un statut fabriqué par parité d'index).
+        statut_resolution: 'en_cours' as InventoryDiscrepancy['statut_resolution'],
         responsable_resolution: item.responsable,
-        date_resolution: idx % 2 !== 0 ? new Date().toISOString().slice(0, 10) : undefined,
-        action_corrective: idx % 2 !== 0 ? 'Action corrective appliquée' : undefined
+        date_resolution: undefined,
+        action_corrective: undefined
       }));
   }, [allInventoryItems]);
 
