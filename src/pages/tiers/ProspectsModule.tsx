@@ -149,31 +149,33 @@ const ProspectsModule: React.FC = () => {
       tempsVentePrevue: 90,
     }));
 
-  // Mock Analytics
-  const analytics: ProspectAnalytics = {
-    conversionRate: 23.5,
-    tempsConversionMoyen: 85,
-    valeurMoyenneProspect: 385000,
-    sourcesMeilleurTaux: [
-      { source: 'REFERRAL', taux: 35, nombre: 12 },
-      { source: 'SALON', taux: 28, nombre: 8 },
-      { source: 'SITE_WEB', taux: 15, nombre: 25 },
-      { source: 'COLD_CALLING', taux: 8, nombre: 45 }
-    ],
-    evolutionPipeline: [
-      { mois: 'Juin', nouveaux: 15, convertis: 3, perdus: 5 },
-      { mois: 'Juillet', nouveaux: 18, convertis: 4, perdus: 7 },
-      { mois: 'Août', nouveaux: 22, convertis: 5, perdus: 6 },
-      { mois: 'Sept', nouveaux: 19, convertis: 6, perdus: 4 }
-    ],
-    repartitionParStade: [
-      { stade: 'DECOUVERTE', nombre: 25, valeur: 3200000 },
-      { stade: 'QUALIFICATION', nombre: 18, valeur: 4500000 },
-      { stade: 'PROPOSITION', nombre: 12, valeur: 6800000 },
-      { stade: 'NEGOCIATION', nombre: 8, valeur: 5200000 },
-      { stade: 'CLOSURE', nombre: 5, valeur: 2800000 }
-    ]
-  };
+  // Analytics calculées sur les prospects RÉELS (issus de thirdParties).
+  const analytics: ProspectAnalytics = (() => {
+    const list = mockProspects;
+    const n = list.length;
+    const avg = (f: (p: Prospect) => number) => (n ? list.reduce((s, p) => s + f(p), 0) / n : 0);
+    const bySource = new Map<string, { source: Prospect['source']; taux: number; nombre: number }>();
+    for (const p of list) {
+      const s = bySource.get(p.source) || { source: p.source, taux: 0, nombre: 0 };
+      s.nombre += 1;
+      bySource.set(p.source, s);
+    }
+    const byStade = new Map<string, { stade: Prospect['stadeEntonnoir']; nombre: number; valeur: number }>();
+    for (const p of list) {
+      const st = byStade.get(p.stadeEntonnoir) || { stade: p.stadeEntonnoir, nombre: 0, valeur: 0 };
+      st.nombre += 1;
+      st.valeur += p.valeurPotentielle || 0;
+      byStade.set(p.stadeEntonnoir, st);
+    }
+    return {
+      conversionRate: n ? Math.round((list.filter(p => p.statut === 'QUALIFIE').length / n) * 100) : 0,
+      tempsConversionMoyen: Math.round(avg(p => p.tempsVentePrevue || 0)),
+      valeurMoyenneProspect: Math.round(avg(p => p.valeurPotentielle || 0)),
+      sourcesMeilleurTaux: Array.from(bySource.values()),
+      evolutionPipeline: [],
+      repartitionParStade: Array.from(byStade.values()),
+    };
+  })();
 
   const tabs = [
     { id: 'pipeline', label: 'Pipeline Commercial', icon: TrendingUp },
