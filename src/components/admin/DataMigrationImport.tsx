@@ -1662,6 +1662,11 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
               label: String(getEcrVal(line, 'libelleEcriture') || getEcrVal(line, 'libelle') || entryLabel),
               debit,
               credit,
+              // Code/nom tiers (colonne "Code tiers" du GL source) — indispensable
+              // pour l'attribution par client/fournisseur (balance auxiliaire,
+              // encours). Auparavant LU dans le mapping mais jamais ÉCRIT en base.
+              third_party_code: (String(getEcrVal(line, 'tiers') || '').trim() || null) as string | null,
+              third_party_name: (String(getEcrVal(line, 'tiersNom') || getEcrVal(line, 'tiersName') || '').trim() || null) as string | null,
               migration_batch_id: migrationBatchId, // A7
             });
           });

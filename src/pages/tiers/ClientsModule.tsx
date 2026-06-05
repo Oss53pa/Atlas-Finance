@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { useNavigate } from 'react-router-dom';
 import { useData } from '../../contexts/DataContext';
 import { generateNextCode, loadMappings } from '../../services/auxiliaryCode/auxiliaryCodeService';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
@@ -10,7 +9,7 @@ import ExportMenu from '../../components/shared/ExportMenu';
 import {
   Search, Plus, Filter, Eye, Edit, Trash2, X,
   Building, TrendingUp, AlertTriangle, CheckCircle, Clock,
-  Euro, Calendar, FileText, Mail, Phone, MapPin,
+  Calendar, FileText, Mail, Phone, MapPin,
   Users, Target, Activity, BarChart3, PieChart,
   DollarSign, TrendingDown, RefreshCw, ChevronUp, ChevronDown,
   Info, Database, Globe, Shield, Zap, Award, AlertCircle,
@@ -161,7 +160,6 @@ interface BalanceAgeeItem {
 
 const ClientsModule: React.FC = () => {
   const { t } = useLanguage();
-  const navigate = useNavigate();
   const { adapter } = useData();
 
   // États
@@ -184,6 +182,11 @@ const ClientsModule: React.FC = () => {
   });
   const [compareMode, setCompareMode] = useState<boolean>(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
+  // Agrégats RÉELS des comptes clients (41x) — le détail par client n'est pas
+  // attribuable (la migration a consolidé sur un compte collectif, sans code
+  // tiers), mais le total des créances et le CA restent calculables.
+  const [aggReceivables, setAggReceivables] = useState(0);
+  const [aggCA, setAggCA] = useState(0);
 
   // État formulaire nouveau client
   const [newClient, setNewClient] = useState<NewClientForm>({
@@ -300,8 +303,22 @@ const ClientsModule: React.FC = () => {
           };
         });
 
+        // Agrégat réel des comptes clients (41x) sur toutes les écritures.
+        let aggD = 0, aggC = 0;
+        allEntries.forEach((entry: any) => {
+          if (entry.status === 'draft') return;
+          (entry.lines || []).forEach((line: any) => {
+            if (String(line.accountCode || '').startsWith('41')) {
+              aggD += line.debit || 0;
+              aggC += line.credit || 0;
+            }
+          });
+        });
+
         if (mounted) {
           setClients(clientsData);
+          setAggReceivables(Math.max(aggD - aggC, 0));
+          setAggCA(aggD);
         }
       } catch (err) {
         /* ignored */
@@ -523,7 +540,12 @@ const ClientsModule: React.FC = () => {
   };
 
   const handleViewClient = (clientId: string) => {
-    navigate(`/tiers/clients/${clientId}`);
+    // La route /tiers/clients/:id ne rend qu'à nouveau la liste (pas de vue
+    // détail dédiée) : on ouvre le panneau de fiche client (détails + édition)
+    // avec les données déjà chargées, pour que le bouton « œil » affiche
+    // réellement quelque chose.
+    const client = clients.find(c => c.id === clientId);
+    if (client) setEditingClient(client);
   };
 
   const handleEditClient = (clientId: string) => {
@@ -549,10 +571,8 @@ const ClientsModule: React.FC = () => {
   };
 
   // Calcul des statistiques
-  const { totalEncours, totalCA, moyenneDSO, clientsActifs } = useMemo(() => ({
-    totalEncours: clients.reduce((sum, c) => sum + c.encoursActuel, 0),
-    totalCA: clients.reduce((sum, c) => sum + c.chiffreAffaires, 0),
-    moyenneDSO: Math.round(clients.reduce((sum, c) => sum + c.dso, 0) / clients.length),
+  const { moyenneDSO, clientsActifs } = useMemo(() => ({
+    moyenneDSO: clients.length ? Math.round(clients.reduce((sum, c) => sum + c.dso, 0) / clients.length) : 0,
     clientsActifs: clients.filter(c => c.statut === 'ACTIF').length,
   }), [clients]);
 
@@ -643,10 +663,10 @@ const ClientsModule: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-primary-600 font-medium">Total Encours</p>
-                  <p className="text-lg font-bold text-primary-800">{formatCurrency(totalEncours)}</p>
+                  <p className="text-lg font-bold text-primary-800">{formatCurrency(aggReceivables)}</p>
                   <p className="text-xs text-primary-600 mt-1">Sur {clientsActifs} clients actifs</p>
                 </div>
-                <Euro className="w-8 h-8 text-primary-400" />
+                <Wallet className="w-8 h-8 text-primary-400" />
               </div>
             </div>
 
@@ -654,7 +674,7 @@ const ClientsModule: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-blue-600 font-medium">Chiffre d'Affaires</p>
-                  <p className="text-lg font-bold text-blue-800">{formatCurrency(totalCA)}</p>
+                  <p className="text-lg font-bold text-blue-800">{formatCurrency(aggCA)}</p>
                   <p className="text-xs text-blue-600 mt-1">Année en cours</p>
                 </div>
                 <TrendingUp className="w-8 h-8 text-blue-400" />
