@@ -230,6 +230,46 @@ const Balance: React.FC = () => {
     loadBalance();
   }, [adapter]);
 
+  // Balance auxiliaire RÉELLE — dérivée des comptes de tiers (clients 41x,
+  // fournisseurs 40x) calculés depuis les écritures. Remplace les anciennes
+  // données fictives (Client A SARL, etc.).
+  const auxiliaryRows = useMemo(() => {
+    const leaves: BalanceAccount[] = [];
+    const walk = (nodes?: BalanceAccount[]) => (nodes || []).forEach(n => {
+      if (n.children && n.children.length) walk(n.children);
+      else leaves.push(n);
+    });
+    walk(accounts);
+    const mk = (prefix: string) => leaves
+      .filter(l => l.code.startsWith(prefix) && l.code.length > 2)
+      .map(l => ({
+        code: l.code,
+        libelle: l.libelle,
+        debit: l.mouvementsDebit || 0,
+        credit: l.mouvementsCredit || 0,
+        solde: (l.soldeDebiteur || 0) - (l.soldeCrediteur || 0),
+      }))
+      .sort((a, b) => a.code.localeCompare(b.code));
+    const clients = mk('41');
+    const fournisseurs = mk('40');
+    return {
+      clients,
+      fournisseurs,
+      totalClients: clients.reduce((s, c) => s + c.solde, 0),
+      totalFournisseurs: fournisseurs.reduce((s, c) => s + c.solde, 0),
+    };
+  }, [accounts]);
+
+  // Résultat de l'exercice RÉEL : produits (classe 7) − charges (classe 6).
+  const resultatExercice = useMemo(() => {
+    const find = (c: string) => accounts.find(a => a.code === c);
+    const c7 = find('7');
+    const c6 = find('6');
+    const produits = c7 ? (c7.mouvementsCredit || 0) - (c7.mouvementsDebit || 0) : 0;
+    const charges = c6 ? (c6.mouvementsDebit || 0) - (c6.mouvementsCredit || 0) : 0;
+    return produits - charges;
+  }, [accounts]);
+
   const toggleAccount = (code: string, accounts: BalanceAccount[]): BalanceAccount[] => {
     return accounts.map(account => {
       if (account.code === code) {
@@ -953,28 +993,40 @@ const Balance: React.FC = () => {
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center space-x-2">
                         <ChevronDown className="w-4 h-4 text-[var(--color-primary)]" />
-                        <span className="font-bold text-[var(--color-primary)]">411 - CLIENTS</span>
+                        <span className="font-bold text-[var(--color-primary)]">41 - CLIENTS</span>
                       </div>
-                      <span className="font-semibold">Solde Total: 3 300 000,00 FCFA</span>
+                      <span className="font-semibold">Solde Total: {formatCurrency(auxiliaryRows.totalClients)}</span>
                     </div>
                     <div className="ml-6 space-y-2">
-                      <div className="flex items-center justify-between p-2 bg-white rounded">
-                        <span className="text-sm">411001 - Client A SARL</span>
-                        <span className="text-sm font-semibold">2 200 000,00</span>
-                      </div>
-                      <div className="flex items-center justify-between p-2 bg-white rounded">
-                        <span className="text-sm">411002 - Client B SAS</span>
-                        <span className="text-sm font-semibold">1 100 000,00</span>
-                      </div>
+                      {auxiliaryRows.clients.length === 0 && (
+                        <p className="text-sm text-gray-500">Aucun compte client mouvementé sur la période.</p>
+                      )}
+                      {auxiliaryRows.clients.map(c => (
+                        <div key={c.code} className="flex items-center justify-between p-2 bg-white rounded">
+                          <span className="text-sm">{c.code} - {c.libelle}</span>
+                          <span className="text-sm font-semibold">{formatCurrency(c.solde)}</span>
+                        </div>
+                      ))}
                     </div>
                   </div>
                   <div className="border rounded-lg p-4 bg-orange-50">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center space-x-2">
                         <ChevronRight className="w-4 h-4 text-[var(--color-primary)]" />
-                        <span className="font-bold text-[var(--color-primary)]">401 - FOURNISSEURS</span>
+                        <span className="font-bold text-[var(--color-primary)]">40 - FOURNISSEURS</span>
                       </div>
-                      <span className="font-semibold">Solde Total: 1 400 000,00 FCFA</span>
+                      <span className="font-semibold">Solde Total: {formatCurrency(auxiliaryRows.totalFournisseurs)}</span>
+                    </div>
+                    <div className="ml-6 space-y-2">
+                      {auxiliaryRows.fournisseurs.length === 0 && (
+                        <p className="text-sm text-gray-500">Aucun compte fournisseur mouvementé sur la période.</p>
+                      )}
+                      {auxiliaryRows.fournisseurs.map(c => (
+                        <div key={c.code} className="flex items-center justify-between p-2 bg-white rounded">
+                          <span className="text-sm">{c.code} - {c.libelle}</span>
+                          <span className="text-sm font-semibold">{formatCurrency(c.solde)}</span>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -1010,74 +1062,33 @@ const Balance: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                <tr className="hover:bg-gray-50 border-b">
-                  <td className="px-4 py-2 font-mono text-[var(--color-primary)]">411001</td>
-                  <td className="px-4 py-2">Client A SARL</td>
-                  <td className="px-4 py-2 text-right">1 500 000,00</td>
-                  <td className="px-4 py-2 text-right text-red-600">2 500 000,00</td>
-                  <td className="px-4 py-2 text-right text-green-600">1 800 000,00</td>
-                  <td className="px-4 py-2 text-right font-semibold">2 200 000,00</td>
-                  <td className="px-4 py-2 text-center">
-                    <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">87%</span>
-                  </td>
-                  <td className="px-4 py-2 text-center">
-                    <button
-                      className="text-blue-600 hover:text-blue-900 mr-2"
-                      onClick={() => toast('Consultation des détails du compte')}
-                      title="Voir détails"
-                    >
-                      <Eye className="w-4 h-4" />
-                    </button>
-                    <button
-                      className="text-green-600 hover:text-green-800 mr-2"
-                      onClick={() => toast.success('Export Excel généré avec succès!')}
-                      title="Exporter Excel"
-                    >
-                      <Download className="w-4 h-4" />
-                    </button>
-                    <button
-                      className="text-orange-600 hover:text-orange-800"
-                      onClick={() => toast('Impression en cours...')}
-                      title={t('common.print')}
-                    >
-                      <Printer className="w-4 h-4" />
-                    </button>
-                  </td>
-                </tr>
-                <tr className="hover:bg-gray-50 border-b">
-                  <td className="px-4 py-2 font-mono text-[var(--color-primary)]">411002</td>
-                  <td className="px-4 py-2">Client B SAS</td>
-                  <td className="px-4 py-2 text-right">800 000,00</td>
-                  <td className="px-4 py-2 text-right text-red-600">1 200 000,00</td>
-                  <td className="px-4 py-2 text-right text-green-600">900 000,00</td>
-                  <td className="px-4 py-2 text-right font-semibold">1 100 000,00</td>
-                  <td className="px-4 py-2 text-center">
-                    <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">94%</span>
-                  </td>
-                  <td className="px-4 py-2 text-center">
-                    <button
-                      className="text-blue-600 hover:text-blue-900 mr-2"
-                      onClick={() => toast('Consultation des détails du compte')}
-                      title="Voir détails"
-                    >
-                      <Eye className="w-4 h-4" />
-                    </button>
-                    <button
-                      className="text-green-600 hover:text-green-800 mr-2"
-                      onClick={() => toast.success('Export Excel généré avec succès!')}
-                      title="Exporter Excel"
-                    >
-                      <Download className="w-4 h-4" />
-                    </button>
-                    <button
-                      className="text-orange-600 hover:text-orange-800"
-                      onClick={() => toast('Impression en cours...')}
-                      title={t('common.print')}
-                    >
-                      <Printer className="w-4 h-4" />
-                    </button>
-                  </td>
-                </tr>
+                {[...auxiliaryRows.clients, ...auxiliaryRows.fournisseurs].length === 0 && (
+                  <tr>
+                    <td colSpan={8} className="px-4 py-6 text-center text-gray-500">
+                      Aucun compte auxiliaire mouvementé sur la période.
+                    </td>
+                  </tr>
+                )}
+                {[...auxiliaryRows.clients, ...auxiliaryRows.fournisseurs].map((row) => (
+                  <tr key={row.code} className="hover:bg-gray-50 border-b">
+                    <td className="px-4 py-2 font-mono text-[var(--color-primary)]">{row.code}</td>
+                    <td className="px-4 py-2">{row.libelle}</td>
+                    <td className="px-4 py-2 text-right">{formatCurrency(0)}</td>
+                    <td className="px-4 py-2 text-right text-red-600">{formatCurrency(row.debit)}</td>
+                    <td className="px-4 py-2 text-right text-green-600">{formatCurrency(row.credit)}</td>
+                    <td className="px-4 py-2 text-right font-semibold">{formatCurrency(row.solde)}</td>
+                    <td className="px-4 py-2 text-center">—</td>
+                    <td className="px-4 py-2 text-center">
+                      <button
+                        className="text-blue-600 hover:text-blue-900 mr-2"
+                        onClick={() => toast('Consultation des détails du compte')}
+                        title="Voir détails"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
@@ -1091,133 +1102,43 @@ const Balance: React.FC = () => {
               </div>
               <div className="overflow-auto flex-1 p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {/* Client A SARL */}
-                  <div className="bg-white border-2 border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center space-x-2">
-                        <Users className="w-5 h-5 text-[var(--color-text-secondary)]" />
-                        <span className="font-mono text-sm text-[var(--color-text-secondary)] font-bold">411001</span>
-                      </div>
-                    </div>
+                  {[...auxiliaryRows.clients, ...auxiliaryRows.fournisseurs].length === 0 && (
+                    <p className="text-sm text-gray-500 col-span-full">Aucun compte auxiliaire mouvementé sur la période.</p>
+                  )}
+                  {[...auxiliaryRows.clients, ...auxiliaryRows.fournisseurs].map((row) => {
+                    const isClient = row.code.startsWith('41');
+                    return (
+                      <div key={row.code} className="bg-white border-2 border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-center space-x-2">
+                            {isClient
+                              ? <Users className="w-5 h-5 text-[var(--color-text-secondary)]" />
+                              : <Building className="w-5 h-5 text-[var(--color-primary)]" />}
+                            <span className="font-mono text-sm text-[var(--color-primary)] font-bold">{row.code}</span>
+                          </div>
+                        </div>
 
-                    <h4 className="text-sm mb-3 font-semibold">Client A SARL</h4>
+                        <h4 className="text-sm mb-3 font-semibold">{row.libelle}</h4>
 
-                    <div className="space-y-2 text-xs">
-                      <div className="flex justify-between items-center p-2 bg-blue-50 rounded">
-                        <span className="text-gray-600">Solde AN:</span>
-                        <span className="text-red-600 font-semibold">D: 1 500 000</span>
-                      </div>
+                        <div className="space-y-2 text-xs">
+                          <div className="flex justify-between items-center p-2 bg-orange-50 rounded">
+                            <span className="text-gray-600">Mouvements:</span>
+                            <div className="text-right">
+                              <div className="text-red-600">D: {formatCurrency(row.debit)}</div>
+                              <div className="text-green-600">C: {formatCurrency(row.credit)}</div>
+                            </div>
+                          </div>
 
-                      <div className="flex justify-between items-center p-2 bg-orange-50 rounded">
-                        <span className="text-gray-600">Mouvements:</span>
-                        <div className="text-right">
-                          <div className="text-red-600">D: 2 500 000</div>
-                          <div className="text-green-600">C: 1 800 000</div>
+                          <div className="flex justify-between items-center p-2 bg-green-50 rounded">
+                            <span className="text-gray-600 font-semibold">Solde Final:</span>
+                            <span className={`font-bold ${row.solde >= 0 ? 'text-red-600' : 'text-green-600'}`}>
+                              {row.solde >= 0 ? 'D' : 'C'}: {formatCurrency(Math.abs(row.solde))}
+                            </span>
+                          </div>
                         </div>
                       </div>
-
-                      <div className="flex justify-between items-center p-2 bg-green-50 rounded">
-                        <span className="text-gray-600 font-semibold">Solde Final:</span>
-                        <span className="text-red-600 font-bold">D: 2 200 000</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Client B SAS */}
-                  <div className="bg-white border-2 border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center space-x-2">
-                        <Users className="w-5 h-5 text-[var(--color-text-secondary)]" />
-                        <span className="font-mono text-sm text-[var(--color-text-secondary)] font-bold">411002</span>
-                      </div>
-                    </div>
-
-                    <h4 className="text-sm mb-3 font-semibold">Client B SAS</h4>
-
-                    <div className="space-y-2 text-xs">
-                      <div className="flex justify-between items-center p-2 bg-blue-50 rounded">
-                        <span className="text-gray-600">Solde AN:</span>
-                        <span className="text-red-600 font-semibold">D: 800 000</span>
-                      </div>
-
-                      <div className="flex justify-between items-center p-2 bg-orange-50 rounded">
-                        <span className="text-gray-600">Mouvements:</span>
-                        <div className="text-right">
-                          <div className="text-red-600">D: 1 200 000</div>
-                          <div className="text-green-600">C: 900 000</div>
-                        </div>
-                      </div>
-
-                      <div className="flex justify-between items-center p-2 bg-green-50 rounded">
-                        <span className="text-gray-600 font-semibold">Solde Final:</span>
-                        <span className="text-red-600 font-bold">D: 1 100 000</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Fournisseur auxiliaire */}
-                  <div className="bg-white border-2 border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center space-x-2">
-                        <Building className="w-5 h-5 text-[var(--color-primary)]" />
-                        <span className="font-mono text-sm text-[var(--color-primary)] font-bold">401001</span>
-                      </div>
-                    </div>
-
-                    <h4 className="text-sm mb-3 font-semibold">Fournisseur auxiliaire</h4>
-
-                    <div className="space-y-2 text-xs">
-                      <div className="flex justify-between items-center p-2 bg-blue-50 rounded">
-                        <span className="text-gray-600">Solde AN:</span>
-                        <span className="text-green-600 font-semibold">C: 800 000</span>
-                      </div>
-
-                      <div className="flex justify-between items-center p-2 bg-orange-50 rounded">
-                        <span className="text-gray-600">Mouvements:</span>
-                        <div className="text-right">
-                          <div className="text-red-600">D: 600 000</div>
-                          <div className="text-green-600">C: 1 200 000</div>
-                        </div>
-                      </div>
-
-                      <div className="flex justify-between items-center p-2 bg-green-50 rounded">
-                        <span className="text-gray-600 font-semibold">Solde Final:</span>
-                        <span className="text-green-600 font-bold">C: 1 400 000</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Personnel */}
-                  <div className="bg-white border-2 border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center space-x-2">
-                        <Users className="w-5 h-5 text-[var(--color-primary)]" />
-                        <span className="font-mono text-sm text-[var(--color-primary)] font-bold">421001</span>
-                      </div>
-                    </div>
-
-                    <h4 className="text-sm mb-3 font-semibold">Salaires à payer</h4>
-
-                    <div className="space-y-2 text-xs">
-                      <div className="flex justify-between items-center p-2 bg-blue-50 rounded">
-                        <span className="text-gray-600">Solde AN:</span>
-                        <span className="text-gray-700 font-semibold">—</span>
-                      </div>
-
-                      <div className="flex justify-between items-center p-2 bg-orange-50 rounded">
-                        <span className="text-gray-600">Mouvements:</span>
-                        <div className="text-right">
-                          <div className="text-red-600">D: 200 000</div>
-                          <div className="text-green-600">C: 650 000</div>
-                        </div>
-                      </div>
-
-                      <div className="flex justify-between items-center p-2 bg-green-50 rounded">
-                        <span className="text-gray-600 font-semibold">Solde Final:</span>
-                        <span className="text-green-600 font-bold">C: 450 000</span>
-                      </div>
-                    </div>
-                  </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -1499,7 +1420,7 @@ const Balance: React.FC = () => {
                   <td className="px-4 py-2 text-right">0,00</td>
                   <td className="px-4 py-2 text-right">0,00</td>
                   <td className="px-4 py-2 text-right font-semibold">0,00</td>
-                  <td className="px-4 py-2 text-right font-semibold text-green-600">14 000 000,00</td>
+                  <td className={`px-4 py-2 text-right font-semibold ${resultatExercice >= 0 ? 'text-green-600' : 'text-red-600'}`}>{formatCurrency(resultatExercice)}</td>
                   <td className="px-4 py-2 text-center">
                     <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs">Calculé</span>
                   </td>
@@ -1522,8 +1443,8 @@ const Balance: React.FC = () => {
           <div className="p-4 bg-gray-50 border-t">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
-                <span className="text-sm font-semibold text-green-600">
-                  Résultat de l'exercice: 14 000 000 FCFA (Bénéfice)
+                <span className={`text-sm font-semibold ${resultatExercice >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  Résultat de l'exercice: {formatCurrency(Math.abs(resultatExercice))} ({resultatExercice >= 0 ? 'Bénéfice' : 'Perte'})
                 </span>
               </div>
               <div className="flex space-x-2">

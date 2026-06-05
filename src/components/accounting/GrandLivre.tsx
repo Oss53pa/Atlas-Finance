@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useData } from '../../contexts/DataContext';
 import { formatCurrency } from '@/utils/formatters';
 import PeriodSelectorModal from '../shared/PeriodSelectorModal';
 import {
@@ -38,100 +39,95 @@ const GrandLivre: React.FC = () => {
   const [viewMode, setViewMode] = useState<'grouped' | 'list'>('grouped');
   const [sortBy, setSortBy] = useState<'date' | 'compte' | 'montant'>('date');
 
-  // Données mockées pour la démo
-  const [accounts, setAccounts] = useState<Account[]>([
-    {
-      code: '401',
-      libelle: t('navigation.suppliers'),
-      entries: [
-        { date: '01/01/2024', piece: 'FAC001', journal: 'AC', libelle: 'Achat marchandises SUPPLIER A', debit: 0, credit: 15000, solde: -15000 },
-        { date: '05/01/2024', piece: 'REG001', journal: 'BQ', libelle: 'Règlement SUPPLIER A', debit: 15000, credit: 0, solde: 0 },
-        { date: '10/01/2024', piece: 'FAC002', journal: 'AC', libelle: 'Achat fournitures SUPPLIER B', debit: 0, credit: 8500, solde: -8500 },
-        { date: '15/01/2024', piece: 'REG002', journal: 'BQ', libelle: 'Règlement partiel SUPPLIER B', debit: 5000, credit: 0, solde: -3500 },
-        { date: '20/01/2024', piece: 'FAC003', journal: 'AC', libelle: 'Achat services SUPPLIER C', debit: 0, credit: 12000, solde: -15500 }
-      ],
-      totalDebit: 20000,
-      totalCredit: 35500,
-      soldeDebiteur: 0,
-      soldeCrediteur: 15500,
-      isExpanded: true
-    },
-    {
-      code: '411',
-      libelle: t('navigation.clients'),
-      entries: [
-        { date: '02/01/2024', piece: 'FCT001', journal: 'VT', libelle: 'Vente CLIENT X', debit: 25000, credit: 0, solde: 25000 },
-        { date: '07/01/2024', piece: 'ENC001', journal: 'BQ', libelle: 'Encaissement CLIENT X', debit: 0, credit: 25000, solde: 0 },
-        { date: '12/01/2024', piece: 'FCT002', journal: 'VT', libelle: 'Vente CLIENT Y', debit: 18000, credit: 0, solde: 18000 },
-        { date: '18/01/2024', piece: 'FCT003', journal: 'VT', libelle: 'Vente CLIENT Z', debit: 32000, credit: 0, solde: 50000 },
-        { date: '22/01/2024', piece: 'ENC002', journal: 'BQ', libelle: 'Encaissement CLIENT Y', debit: 0, credit: 18000, solde: 32000 }
-      ],
-      totalDebit: 75000,
-      totalCredit: 43000,
-      soldeDebiteur: 32000,
-      soldeCrediteur: 0,
-      isExpanded: false
-    },
-    {
-      code: '512',
-      libelle: 'Banques',
-      entries: [
-        { date: '01/01/2024', piece: 'SD', journal: 'OD', libelle: 'Solde à nouveau', debit: 150000, credit: 0, solde: 150000 },
-        { date: '05/01/2024', piece: 'REG001', journal: 'BQ', libelle: 'Paiement fournisseur', debit: 0, credit: 15000, solde: 135000 },
-        { date: '07/01/2024', piece: 'ENC001', journal: 'BQ', libelle: 'Encaissement client', debit: 25000, credit: 0, solde: 160000 },
-        { date: '15/01/2024', piece: 'REG002', journal: 'BQ', libelle: 'Paiement partiel', debit: 0, credit: 5000, solde: 155000 },
-        { date: '22/01/2024', piece: 'ENC002', journal: 'BQ', libelle: 'Encaissement client', debit: 18000, credit: 0, solde: 173000 }
-      ],
-      totalDebit: 193000,
-      totalCredit: 20000,
-      soldeDebiteur: 173000,
-      soldeCrediteur: 0,
-      isExpanded: false
-    },
-    {
-      code: '601',
-      libelle: 'Achats de marchandises',
-      entries: [
-        { date: '01/01/2024', piece: 'FAC001', journal: 'AC', libelle: 'Achat marchandises', debit: 12500, credit: 0, solde: 12500 },
-        { date: '10/01/2024', piece: 'FAC002', journal: 'AC', libelle: 'Achat fournitures', debit: 7083, credit: 0, solde: 19583 },
-        { date: '20/01/2024', piece: 'FAC003', journal: 'AC', libelle: 'Achat services', debit: 10000, credit: 0, solde: 29583 }
-      ],
-      totalDebit: 29583,
-      totalCredit: 0,
-      soldeDebiteur: 29583,
-      soldeCrediteur: 0,
-      isExpanded: false
-    },
-    {
-      code: '701',
-      libelle: 'Ventes de marchandises',
-      entries: [
-        { date: '02/01/2024', piece: 'FCT001', journal: 'VT', libelle: 'Vente produits', debit: 0, credit: 20833, solde: -20833 },
-        { date: '12/01/2024', piece: 'FCT002', journal: 'VT', libelle: 'Vente produits', debit: 0, credit: 15000, solde: -35833 },
-        { date: '18/01/2024', piece: 'FCT003', journal: 'VT', libelle: 'Vente produits', debit: 0, credit: 26667, solde: -62500 }
-      ],
-      totalDebit: 0,
-      totalCredit: 62500,
-      soldeDebiteur: 0,
-      soldeCrediteur: 62500,
-      isExpanded: false
+  // Écritures réelles chargées via l'adapter (plus de données mockées).
+  const { adapter } = useData();
+  const [rawEntries, setRawEntries] = useState<any[]>([]);
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const entries = await adapter.getAll<any>('journalEntries');
+        // En SaaS l'adapter injecte déjà entry.lines ; sinon on recolle depuis journalLines.
+        let withLines = entries;
+        if (entries.some((e: any) => !Array.isArray(e.lines) || e.lines.length === 0)) {
+          try {
+            const lines = await adapter.getAll<any>('journalLines');
+            const byEntry = new Map<string, any[]>();
+            for (const l of lines) {
+              const k = l.entryId || l.entry_id;
+              if (!k) continue;
+              if (!byEntry.has(k)) byEntry.set(k, []);
+              byEntry.get(k)!.push(l);
+            }
+            withLines = entries.map((e: any) => ({
+              ...e,
+              lines: byEntry.get(e.id) ?? (Array.isArray(e.lines) ? e.lines : []),
+            }));
+          } catch { /* garder entry.lines */ }
+        }
+        if (alive) setRawEntries(withLines);
+      } catch {
+        if (alive) setRawEntries([]);
+      }
+    })();
+    return () => { alive = false; };
+  }, [adapter]);
+
+  // Comptes du Grand Livre construits à partir des écritures réelles.
+  const accounts: Account[] = useMemo(() => {
+    const map = new Map<string, Account>();
+    for (const e of rawEntries) {
+      const d: string = e.date || '';
+      if (dateRange.start && d < dateRange.start) continue;
+      if (dateRange.end && d > dateRange.end) continue;
+      const lines = Array.isArray(e.lines) ? e.lines : [];
+      for (const l of lines) {
+        const code = l.accountCode || l.account_code;
+        if (!code) continue;
+        let a = map.get(code);
+        if (!a) {
+          a = { code, libelle: l.accountName || l.account_name || code, entries: [], totalDebit: 0, totalCredit: 0, soldeDebiteur: 0, soldeCrediteur: 0, isExpanded: false };
+          map.set(code, a);
+        }
+        const debit = Number(l.debit ?? 0);
+        const credit = Number(l.credit ?? 0);
+        a.totalDebit += debit;
+        a.totalCredit += credit;
+        let dateAff = d;
+        try { dateAff = d ? new Date(d + 'T00:00:00').toLocaleDateString('fr-FR') : ''; } catch { dateAff = d; }
+        a.entries.push({
+          date: dateAff,
+          piece: e.reference || e.entryNumber || e.entry_number || '',
+          journal: (e.journal || '').toString().toUpperCase(),
+          libelle: l.label || e.label || '',
+          debit,
+          credit,
+          solde: a.totalDebit - a.totalCredit,
+        });
+      }
     }
-  ]);
+    const list = Array.from(map.values());
+    for (const a of list) {
+      const solde = a.totalDebit - a.totalCredit;
+      a.soldeDebiteur = solde > 0 ? solde : 0;
+      a.soldeCrediteur = solde < 0 ? -solde : 0;
+      a.isExpanded = expanded.has(a.code);
+    }
+    return list.sort((x, y) => x.code.localeCompare(y.code));
+  }, [rawEntries, dateRange, expanded]);
 
   const toggleAccount = (code: string) => {
-    setAccounts(prev =>
-      prev.map(account =>
-        account.code === code
-          ? { ...account, isExpanded: !account.isExpanded }
-          : account
-      )
-    );
+    setExpanded(prev => {
+      const next = new Set(prev);
+      if (next.has(code)) next.delete(code); else next.add(code);
+      return next;
+    });
   };
 
   const toggleAllAccounts = (expand: boolean) => {
-    setAccounts(prev =>
-      prev.map(account => ({ ...account, isExpanded: expand }))
-    );
+    setExpanded(expand ? new Set(accounts.map(a => a.code)) : new Set<string>());
   };
 
   const filteredAccounts = accounts.filter(account => {
