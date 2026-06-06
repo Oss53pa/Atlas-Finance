@@ -1435,6 +1435,26 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
         pct => setImportProgress(15 + Math.round(pct * 0.15)));
       report.tiers += tiersCreated || 0;
 
+      // ── Exercice fiscal ─────────────────────────────────────────────────────
+      // La migration doit CRÉER l'exercice (sinon fiscal_years vide → Bilan,
+      // clôtures, get_trial_balance(fy) sans exercice à sélectionner → tout à 0).
+      try {
+        const { data: existingFY } = await supabaseClient
+          .from('fiscal_years').select('id').eq('tenant_id', tenantId).limit(1);
+        if (!existingFY || existingFY.length === 0) {
+          const fyCode = (params.exerciceStart || '').slice(0, 4) || String(new Date().getFullYear());
+          await supabaseClient.from('fiscal_years').insert({
+            tenant_id: tenantId,
+            code: fyCode,
+            name: `Exercice ${fyCode}`,
+            start_date: params.exerciceStart || `${fyCode}-01-01`,
+            end_date: params.exerciceEnd || `${fyCode}-12-31`,
+            is_active: true,
+            is_closed: false,
+          });
+        }
+      } catch { /* exercice deja present ou colonne absente — non bloquant */ }
+
       // ── Rapprochement libellé → fiche tiers ────────────────────────────────
       // Pour les Grands Livres où le tiers n'apparaît QUE dans la description
       // (compte = collectif 411100/401100, pas de colonne code tiers), on tente
