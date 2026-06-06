@@ -123,12 +123,28 @@ function normalizeThirdParty(r: any): any {
   }
 }
 
+function normalizeAsset(r: any): any {
+  return {
+    ...r,
+    accountCode:        r.account_code        || r.accountCode || '',
+    acquisitionValue:   Number(r.acquisition_value  ?? r.acquisitionValue ?? 0),
+    residualValue:      Number(r.residual_value     ?? r.residualValue ?? 0),
+    acquisitionDate:    r.acquisition_date    || r.acquisitionDate || '',
+    usefulLife:         Number(r.useful_life_years  ?? r.usefulLife ?? r.usefulLifeYears ?? 0),
+    usefulLifeYears:    Number(r.useful_life_years  ?? r.usefulLifeYears ?? 0),
+    cumulDepreciation:  Number(r.cumul_depreciation ?? r.cumulDepreciation ?? 0),
+    depreciationMethod: r.depreciation_method || r.depreciationMethod || 'linear',
+    depreciationAccountCode: r.depreciation_account_code || r.depreciationAccountCode || '',
+  }
+}
+
 const TABLE_NORMALIZERS: Record<string, (r: any) => any> = {
   journal_entries: normalizeJournalEntry,
   journal_lines:   normalizeJournalLine,
   fiscal_years:    normalizeFiscalYear,
   accounts:        normalizeAccount,
   third_parties:   normalizeThirdParty,
+  assets:          normalizeAsset,
 }
 
 export class SupabaseAdapter implements DataAdapter {
