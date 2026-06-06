@@ -165,7 +165,7 @@ const PrevisionsTresoreriePage: React.FC = () => {
     if (treasurySettingRaw) {
       return JSON.parse(treasurySettingRaw.value) as Array<{ number: string; description: string; iban: string; swift: string; amount: number; bank: string }>;
     }
-    const treasuryAccts = dbAccounts.filter(a => a.code.startsWith('52') || a.code.startsWith('57'));
+    const treasuryAccts = dbAccounts.filter(a => /^5/.test(String(a.code || '')) && !/^59/.test(String(a.code || '')));
     return treasuryAccts.map(acct => {
       let balance = 0;
       journalEntries

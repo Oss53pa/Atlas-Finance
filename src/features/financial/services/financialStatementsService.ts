@@ -599,9 +599,10 @@ class FinancialStatementsService {
     // Try RPC first
     const rpcBilan = await tryRPC(adapter, 'generate_bilan', { p_fiscal_year_id: exercice });
     if (rpcBilan) {
-      return mapRPCToBilan(rpcBilan, exercice);
+      const mapped = mapRPCToBilan(rpcBilan, exercice);
+      if ((mapped.actif.totalActif || 0) !== 0 || (mapped.passif.totalPassif || 0) !== 0) return mapped;
     }
-    // Fallback: JS calculation
+    // Fallback: JS calculation (RPC absent ou vide — ex. écritures sans fiscal_year_id)
     const entries = await loadEntriesForExercice(adapter, exercice);
     return computeBilan(entries, exercice);
   }
@@ -610,9 +611,10 @@ class FinancialStatementsService {
     // Try RPC first
     const rpcCdr = await tryRPC(adapter, 'generate_cdr', { p_fiscal_year_id: exercice });
     if (rpcCdr) {
-      return mapRPCToCompteResultat(rpcCdr, exercice);
+      const mapped = mapRPCToCompteResultat(rpcCdr, exercice);
+      if ((mapped.totalProduitsExploitation || 0) !== 0 || (mapped.chiffreAffaires || 0) !== 0 || (mapped.resultatNet || 0) !== 0) return mapped;
     }
-    // Fallback: JS calculation
+    // Fallback: JS calculation (RPC absent ou vide)
     const entries = await loadEntriesForExercice(adapter, exercice);
     return computeCompteResultat(entries, exercice);
   }
@@ -692,6 +694,11 @@ class FinancialStatementsService {
 
     const bilan = mapRPCToBilan(rpcBilan, exercice);
     const compteResultat = mapRPCToCompteResultat(rpcCdr, exercice);
+
+    // Le RPC peut renvoyer un objet NON-null mais VIDE (ex. écritures importées
+    // non rattachées à un fiscal_year_id côté serveur) → on bascule alors sur le
+    // calcul JS depuis le Grand Livre (filtré par dates de l'exercice), fiable.
+    if ((bilan.actif.totalActif || 0) === 0 && (bilan.passif.totalPassif || 0) === 0) return null;
 
     // SIG, ratios, and bilan fonctionnel are derived from bilan + CDR
     // computeSIG normally needs raw entries for sub-breakdowns (701, 601, etc.)

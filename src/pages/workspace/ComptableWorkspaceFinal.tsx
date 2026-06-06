@@ -102,19 +102,16 @@ const ComptableWorkspaceFinal: React.FC = () => {
     const loadStats = async () => {
       setStatsLoading(true);
       try {
-        const [entries, accounts] = await Promise.all([
-          adapter.getAll<any>('journalEntries'),
-          adapter.getAll<any>('accounts'),
-        ]);
+        const entries = await adapter.getAll<any>('journalEntries');
         const drafts = entries.filter((e: any) => e.status === 'draft').length;
         const posted = entries.filter((e: any) => e.status === 'posted' || e.status === 'validated').length;
+        // Trésorerie = solde des comptes classe 5, lu directement sur le code de
+        // compte de la ligne (les lignes portent accountCode, pas accountId).
         let treasury = 0;
         for (const entry of entries) {
           if (!entry.lines) continue;
           for (const line of entry.lines) {
-            const acc = accounts.find((a: any) => a.id === line.accountId || a.number === line.accountNumber);
-            if (!acc) continue;
-            if (String(acc.number || '').startsWith('5')) {
+            if (String(line.accountCode || '').startsWith('5')) {
               treasury += (line.debit || 0) - (line.credit || 0);
             }
           }

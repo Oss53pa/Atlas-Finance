@@ -77,15 +77,40 @@ const TreasuryPositions: React.FC = () => {
 
   const [exchangeRatesData, setExchangeRatesData] = useState<any[]>([]);
   const [hedgingPositionsData, setHedgingPositionsData] = useState<any[]>([]);
+  // Positions bancaires RÉELLES dérivées du Grand Livre : soldes des comptes de
+  // trésorerie (classe 5 SYSCOHADA : 52 banques, 53 ét. financiers, 57 caisse…),
+  // car le registre des comptes bancaires dédié n'est pas saisi.
+  const [glTreasury, setGlTreasury] = useState<{ code: string; name: string; balance: number }[]>([]);
 
   useEffect(() => {
     const load = async () => {
-      const [er, hp] = await Promise.all([
+      const [er, hp, entries, accounts] = await Promise.all([
         adapter.getAll('exchangeRates'),
         adapter.getAll('hedgingPositions'),
+        adapter.getAll<any>('journalEntries'),
+        adapter.getAll<any>('accounts'),
       ]);
       setExchangeRatesData(er as Record<string, unknown>[]);
       setHedgingPositionsData(hp as Record<string, unknown>[]);
+
+      const nameByCode = new Map<string, string>();
+      for (const a of accounts) nameByCode.set(String(a.code), a.name || a.code);
+      const bal: Record<string, number> = {};
+      for (const e of entries) {
+        if (e.status === 'draft') continue;
+        for (const l of (e.lines || [])) {
+          const code = String(l.accountCode || '');
+          if (/^5/.test(code) && !/^59/.test(code)) {
+            bal[code] = (bal[code] || 0) + (l.debit || 0) - (l.credit || 0);
+          }
+        }
+      }
+      setGlTreasury(
+        Object.entries(bal)
+          .filter(([, v]) => Math.abs(v) > 0.001)
+          .map(([code, balance]) => ({ code, name: nameByCode.get(code) || code, balance }))
+          .sort((a, b) => b.balance - a.balance),
+      );
     };
     load();
   }, [adapter]);
@@ -101,9 +126,26 @@ const TreasuryPositions: React.FC = () => {
     return lookup;
   }, [exchangeRatesData]);
 
-  // Build bank positions from hedging positions data
+  // Positions = comptes de trésorerie réels du Grand Livre (classe 5) + éventuelles
+  // positions de couverture (hedging) si la table dédiée est renseignée.
   const positions: BankPosition[] = useMemo(() => {
-    return hedgingPositionsData.map((hp) => ({
+    const fromGL: BankPosition[] = glTreasury.map((a) => ({
+      id: a.code,
+      bankName: a.name,
+      accountNumber: a.code,
+      accountType: 'current' as const,
+      currency: 'XAF',
+      balance: a.balance,
+      availableBalance: a.balance,
+      lastUpdate: new Date().toISOString(),
+      status: 'active' as const,
+      iban: '',
+      bic: '',
+      branch: '',
+      country: '',
+      riskLevel: a.balance < 0 ? 'high' as const : 'low' as const,
+    }));
+    const fromHedging: BankPosition[] = hedgingPositionsData.map((hp) => ({
       id: hp.id,
       bankName: hp.type.charAt(0).toUpperCase() + hp.type.slice(1) + ' - ' + hp.currency,
       accountNumber: hp.id,
@@ -119,7 +161,8 @@ const TreasuryPositions: React.FC = () => {
       country: '',
       riskLevel: hp.unrealizedPnL < 0 ? 'high' as const : 'low' as const
     }));
-  }, [hedgingPositionsData]);
+    return [...fromGL, ...fromHedging];
+  }, [glTreasury, hedgingPositionsData]);
 
   // Filter positions based on search and filters
   const filteredPositions = useMemo(() => {
