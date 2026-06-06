@@ -155,9 +155,20 @@ export class SupabaseAdapter implements DataAdapter {
   // re-fetcher/re-traiter les 10k+ lignes à chaque montage de composant
   // (Personnel, Autres Tiers, balances…). Invalidé à chaque écriture et au
   // changement de tenant ; TTL de sécurité pour les modifs externes.
-  private static readonly CACHE_TTL = 60000
-  private cache = new Map<string, { data: unknown[]; ts: number; tenant: string }>()
-  private invalidateCache() { this.cache.clear() }
+  // TTL 5 min : les données financières ne changent pas hors écriture (qui invalide).
+  private static readonly CACHE_TTL = 300000
+  // STATIQUE (partagé entre instances) : le fix "course au tenant" RECRÉE l'adapter
+  // quand le vrai tenant se résout. Avec un cache par instance, chaque recréation
+  // repartait à froid (re-fetch des 10k+ lignes). Un cache statique survit à la
+  // recréation ET est partagé par tous les composants/queries. Clés préfixées par
+  // tenant → pas de fuite inter-tenant.
+  private static cache = new Map<string, { data: unknown[]; ts: number; tenant: string }>()
+  private get cache() { return SupabaseAdapter.cache }
+  // Coalescence des requêtes en vol : si N composants montent en même temps et
+  // demandent la même clé, une SEULE requête réseau part ; les autres attendent
+  // la même promesse au lieu de refetcher 10k+ lignes chacun.
+  private static inflight = new Map<string, Promise<unknown[]>>()
+  private invalidateCache() { SupabaseAdapter.cache.clear() }
 
   /**
    * Tables racines (tables "tenant" elles-mêmes) qui n'ont PAS de colonne
@@ -216,7 +227,9 @@ export class SupabaseAdapter implements DataAdapter {
    */
   setTenantId(id: string): void {
     this.tenantId = id
-    this.invalidateCache()
+    // NE PAS invalider : les clés de cache sont préfixées par tenantId, donc aucune
+    // fuite inter-tenant. Vider ici détruisait le cache pile à la résolution du
+    // vrai tenant (cause majeure de lenteur). Les écritures invalident toujours.
   }
 
   getMode(): DataMode { return 'saas' }
@@ -285,7 +298,13 @@ export class SupabaseAdapter implements DataAdapter {
     if (cached && cached.tenant === this.tenantId && (Date.now() - cached.ts) < SupabaseAdapter.CACHE_TTL) {
       return cached.data.slice() as T[]
     }
-    try {
+    // Coalescence in-flight : réutilise une requête déjà en cours pour la même clé
+    // au lieu de lancer N fetchs parallèles de 10k+ lignes au montage d'une page.
+    const pending = SupabaseAdapter.inflight.get(cacheKey)
+    if (pending) return (await pending).slice() as T[]
+
+    const fetchPromise: Promise<unknown[]> = (async () => {
+     try {
       // ROOT_TABLES (ex: societes) : pas de colonne tenant_id.
       // getAll('companies') = "donne-moi MA société" → filtrer par id = tenantId.
       let query = this.isRootTable(pg)
@@ -349,9 +368,17 @@ export class SupabaseAdapter implements DataAdapter {
       }
 
       this.cache.set(cacheKey, { data: rows, ts: Date.now(), tenant: this.tenantId })
-      return rows as T[]
-    } catch (_e) {
-      return []
+      return rows
+     } catch (_e) {
+       return []
+     }
+    })()
+    SupabaseAdapter.inflight.set(cacheKey, fetchPromise)
+    try {
+      const result = await fetchPromise
+      return result.slice() as T[]
+    } finally {
+      SupabaseAdapter.inflight.delete(cacheKey)
     }
   }
 
