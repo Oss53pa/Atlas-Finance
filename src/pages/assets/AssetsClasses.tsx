@@ -20,7 +20,7 @@ const CLASS_DEFS = [
     accountDefs: [{ code: '221', name: 'Terrains en concession' }, { code: '223', name: 'Constructions en concession' }, { code: '225', name: 'Installations en concession' }] },
   { code: '23', name: 'Immobilisations en cours', description: 'Actifs en cours de production/acquisition', icon: Package, color: 'orange',
     accountDefs: [{ code: '231', name: 'Corporelles en cours' }, { code: '232', name: 'Incorporelles en cours' }, { code: '237', name: 'Avances et acomptes' }] },
-  { code: '24', name: 'Matériel de transport', description: 'Véhicules et moyens de transport', icon: Car, color: 'red',
+  { code: '24', name: 'Matériel, mobilier & transport', description: 'Matériel et outillage industriel, mobilier, véhicules', icon: Car, color: 'red',
     accountDefs: [{ code: '241', name: 'Véhicules industriels' }, { code: '242', name: 'Véhicules de tourisme' }, { code: '244', name: 'Matériel de manutention' }] },
   { code: '25', name: 'Matériel informatique', description: 'Équipements informatiques et technologiques', icon: Computer, color: 'primary',
     accountDefs: [{ code: '251', name: 'Serveurs et infrastructure' }, { code: '252', name: 'Postes de travail' }, { code: '253', name: 'Périphériques' }, { code: '254', name: 'Logiciels' }] },
@@ -48,27 +48,31 @@ const AssetsClasses: React.FC = () => {
 
   // Build classes from real data
   const assetClasses = useMemo(() => {
-    return CLASS_DEFS.map(def => {
-      // Calculate balances from journal entries on class 2 accounts
-      const accounts = def.accountDefs.map(accDef => {
-        let balance = 0;
-        for (const entry of dbEntries) {
-          for (const line of (entry.lines || [])) {
-            if (line.accountCode?.startsWith(accDef.code)) {
-              balance += (line.debit || 0) - (line.credit || 0);
-            }
-          }
-        }
-        return { code: accDef.code, name: accDef.name, balance };
-      });
+    // Solde RÉEL par compte de classe 2 (TOUS les sous-comptes, pas une liste
+    // figée) — sinon des comptes comme 235xxx (STRUCTURE, CHARPENTE…) étaient
+    // ignorés et la valeur de la classe était fortement sous-évaluée.
+    const balByCode: Record<string, { balance: number; name: string }> = {};
+    for (const entry of dbEntries) {
+      if ((entry as any).status === 'draft') continue;
+      for (const line of ((entry as any).lines || [])) {
+        const code = String(line.accountCode || '');
+        if (!/^2/.test(code)) continue;
+        if (!balByCode[code]) balByCode[code] = { balance: 0, name: line.accountName || code };
+        balByCode[code].balance += (line.debit || 0) - (line.credit || 0);
+      }
+    }
 
-      // Count assets matching this class
-      const classAssets = dbAssets.filter(a => {
-        const code = a.accountCode || a.category || '';
-        return code.startsWith(def.code);
-      });
+    return CLASS_DEFS.map(def => {
+      // Détail = sous-comptes RÉELS de la classe (drill-down), triés par solde.
+      const accounts = Object.entries(balByCode)
+        .filter(([code]) => code.startsWith(def.code))
+        .map(([code, v]) => ({ code, name: v.name, balance: v.balance }))
+        .sort((a, b) => b.balance - a.balance);
+
+      const classAssets = dbAssets.filter(a => String((a as any).accountCode || (a as any).category || '').startsWith(def.code));
 
       const totalValue = accounts.reduce((s, a) => s + a.balance, 0);
+      const count = accounts.filter(a => Math.abs(a.balance) > 0.001).length;
       const avgRate = classAssets.length > 0
         ? classAssets.reduce((s, a) => s + (a.usefulLife > 0 ? 100 / a.usefulLife : 0), 0) / classAssets.length
         : 0;
@@ -79,7 +83,7 @@ const AssetsClasses: React.FC = () => {
         description: def.description,
         accounts,
         totalValue: totalValue || classAssets.reduce((s, a) => s + (a.acquisitionValue || 0), 0),
-        count: classAssets.length,
+        count: count || classAssets.length,
         depreciationRate: avgRate > 0 ? `${avgRate.toFixed(0)}%` : '—',
         icon: def.icon,
         color: def.color,
