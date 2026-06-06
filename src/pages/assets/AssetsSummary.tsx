@@ -134,18 +134,47 @@ const AssetsSummary: React.FC = () => {
 
   // Assets from DataContext
   const [dbAssets, setDbAssets] = useState<DBAsset[]>([]);
+  // Agrégats RÉELS depuis le Grand Livre (classe 2) : valeur brute (immo 20-27)
+  // et amortissements cumulés (28), utilisés tant que le registre des biens est
+  // vide. Permet d'afficher le patrimoine immobilisé issu de la comptabilité.
+  const [glAssets, setGlAssets] = useState<{ gross: number; amort: number; count: number }>({ gross: 0, amort: 0, count: 0 });
 
   useEffect(() => {
     const load = async () => {
-      const assets = await adapter.getAll('assets') as DBAsset[];
+      const [assets, entries] = await Promise.all([
+        adapter.getAll('assets') as Promise<DBAsset[]>,
+        adapter.getAll<any>('journalEntries'),
+      ]);
       setDbAssets(assets);
+      const byCode: Record<string, number> = {};
+      for (const e of entries) {
+        if (e.status === 'draft') continue;
+        for (const l of (e.lines || [])) {
+          const code = String(l.accountCode || '');
+          if (/^2/.test(code) && !/^29/.test(code)) {
+            byCode[code] = (byCode[code] || 0) + (l.debit || 0) - (l.credit || 0);
+          }
+        }
+      }
+      let gross = 0, amort = 0, count = 0;
+      for (const [code, solde] of Object.entries(byCode)) {
+        if (/^28/.test(code)) amort += -solde; // amortissements : solde créditeur
+        else { gross += solde; if (Math.abs(solde) > 0.001) count += 1; }
+      }
+      setGlAssets({ gross, amort, count });
     };
     load();
   }, [adapter]);
 
-  // Compute KPIs from Dexie data
-  const totalAcquisitionValue = useMemo(() => dbAssets.reduce((sum, a) => sum + a.acquisitionValue, 0), [dbAssets]);
-  const totalResidualValue = useMemo(() => dbAssets.reduce((sum, a) => sum + a.residualValue, 0), [dbAssets]);
+  // KPIs : registre des biens si renseigné, sinon agrégats Grand Livre (classe 2).
+  const totalAcquisitionValue = useMemo(
+    () => (dbAssets.length ? dbAssets.reduce((sum, a) => sum + a.acquisitionValue, 0) : glAssets.gross),
+    [dbAssets, glAssets],
+  );
+  const totalResidualValue = useMemo(
+    () => (dbAssets.length ? dbAssets.reduce((sum, a) => sum + a.residualValue, 0) : Math.max(glAssets.gross - glAssets.amort, 0)),
+    [dbAssets, glAssets],
+  );
   const activeAssets = useMemo(() => dbAssets.filter(a => a.status === 'active'), [dbAssets]);
   const depreciationRate = totalAcquisitionValue > 0 ? ((totalAcquisitionValue - totalResidualValue) / totalAcquisitionValue) * 100 : 0;
   const utilizationRate = dbAssets.length > 0 ? (activeAssets.length / dbAssets.length) * 100 : 0;
@@ -198,7 +227,7 @@ const AssetsSummary: React.FC = () => {
     {
       id: 'asset_count',
       title: 'Nombre d\'Actifs',
-      value: String(dbAssets.length),
+      value: String(dbAssets.length || glAssets.count),
       change: 0,
       changeLabel: 'cette année',
       icon: <Package className="w-6 h-6" />,
