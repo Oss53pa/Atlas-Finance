@@ -180,26 +180,53 @@ function creditByPrefix(entries: DBJournalEntry[], ...prefixes: string[]): numbe
  * brouillon fausserait bilan, compte de résultat et SIG.
  */
 async function loadEntriesForExercice(adapter: DataAdapter, exercice: string): Promise<DBJournalEntry[]> {
-  const allEntries = (await adapter.getAll('journalEntries') as DBJournalEntry[])
-    .filter((e) => e.status !== 'draft');
-
-  // Try to find fiscal year by ID or code
+  // Résoudre la plage de dates de l'exercice (par ID, par code, ou année "YYYY").
   let fy = await adapter.getById('fiscalYears', exercice) as DBFiscalYear | undefined;
   if (!fy) {
     const allFY = await adapter.getAll('fiscalYears', { where: { code: exercice } }) as DBFiscalYear[];
     fy = allFY[0] || undefined;
   }
+  let start: string | undefined;
+  let end: string | undefined;
+  if (fy) {
+    start = fy.startDate; end = fy.endDate;
+  } else if (/^\d{4}$/.test(exercice)) {
+    start = `${exercice}-01-01`; end = `${exercice}-12-31`;
+  }
+
+  // ── PERF (saas) : balance pré-agrégée côté serveur ────────────────────────
+  // get_trial_balance agrège les soldes par compte côté Postgres (~234 lignes)
+  // au lieu de transférer + ré-agréger 10 319 lignes en JS à chaque calcul d'état.
+  // Les sommes par préfixe (debit/credit/net) sont IDENTIQUES — l'addition est
+  // associative, donc Bilan/CdR/SIG sont inchangés au centime près. Le RPC exclut
+  // déjà les brouillons (status IN validated/posted). On construit une seule
+  // "pseudo-écriture" dont les lignes = les soldes par compte ; les fonctions de
+  // calcul (netByPrefix/debitByPrefix/creditByPrefix) la consomment sans rien changer.
+  // Gardé au mode saas : Dexie/Hybrid/tests conservent EXACTEMENT l'ancien chemin.
+  if (adapter.getMode() === 'saas') {
+    try {
+      const tb = await adapter.getTrialBalance(start && end ? { start, end } : undefined);
+      if (tb && tb.length > 0) {
+        const pseudoLines = tb.map((r) => ({
+          accountCode: r.accountCode,
+          debit: r.debitMouvement,
+          credit: r.creditMouvement,
+        }));
+        return [{ lines: pseudoLines } as unknown as DBJournalEntry];
+      }
+    } catch { /* RPC indisponible → fallback agrégation JS ci-dessous */ }
+  }
+
+  // ── Fallback : agrégation JS (local/hybride/tests, ou RPC vide) ────────────
+  const allEntries = (await adapter.getAll('journalEntries') as DBJournalEntry[])
+    .filter((e) => e.status !== 'draft');
 
   if (fy) {
     return allEntries.filter((e) => e.date >= fy!.startDate && e.date <= fy!.endDate);
   }
-
-  // Fallback: treat as year string (e.g. "2025") → Jan 1 to Dec 31
   if (/^\d{4}$/.test(exercice)) {
     return allEntries.filter((e) => e.date >= `${exercice}-01-01` && e.date <= `${exercice}-12-31`);
   }
-
-  // Last resort: all (non-draft) entries
   return allEntries;
 }
 

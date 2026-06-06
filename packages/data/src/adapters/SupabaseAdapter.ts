@@ -600,6 +600,11 @@ export class SupabaseAdapter implements DataAdapter {
   }
 
   async getAccountBalance(prefixes: string[], dateRange?: { start: string; end: string }): Promise<AccountBalance> {
+    const cacheKey = `rpc:get_account_balance:${this.tenantId}:${prefixes.join(',')}:${dateRange?.start || ''}:${dateRange?.end || ''}`
+    const cached = this.cache.get(cacheKey)
+    if (cached && cached.tenant === this.tenantId && (Date.now() - cached.ts) < SupabaseAdapter.CACHE_TTL) {
+      return cached.data[0] as AccountBalance
+    }
     const { data, error } = await this.client.rpc('get_account_balance', {
       p_prefixes: prefixes,
       p_tenant_id: this.tenantId,
@@ -607,10 +612,20 @@ export class SupabaseAdapter implements DataAdapter {
       p_end_date: dateRange?.end || null,
     })
     if (error) throw new Error(error.message)
+    this.cache.set(cacheKey, { data: [data], ts: Date.now(), tenant: this.tenantId })
     return data as AccountBalance
   }
 
   async getTrialBalance(dateRange?: { start: string; end: string }): Promise<TrialBalanceRow[]> {
+    // RPC serveur : agrégation des soldes par compte (validated/posted, hors brouillon)
+    // côté Postgres → ~234 lignes au lieu de transférer + ré-agréger 10k+ lignes en JS.
+    // Mis en cache statique (même TTL) : balance instantanée sur tous les écrans qui
+    // affichent des soldes (Balance, Bilan, CdR, dashboards, trésorerie, immo).
+    const cacheKey = `rpc:get_trial_balance:${this.tenantId}:${dateRange?.start || ''}:${dateRange?.end || ''}`
+    const cached = this.cache.get(cacheKey)
+    if (cached && cached.tenant === this.tenantId && (Date.now() - cached.ts) < SupabaseAdapter.CACHE_TTL) {
+      return cached.data.slice() as TrialBalanceRow[]
+    }
     const { data, error } = await this.client.rpc('get_trial_balance', {
       p_tenant_id: this.tenantId,
       p_start_date: dateRange?.start || null,
@@ -619,7 +634,7 @@ export class SupabaseAdapter implements DataAdapter {
     if (error) throw new Error(error.message)
     // B1 : la RPC renvoie du snake_case PostgreSQL ; TrialBalanceRow attend du camelCase.
     // Sans ce mapping, toutes les colonnes sont undefined → balance vide en mode SaaS.
-    return ((data as any[]) || []).map(row => ({
+    const mapped = ((data as any[]) || []).map(row => ({
       accountCode:      row.account_code   ?? row.accountCode   ?? '',
       accountName:      row.account_name   ?? row.accountName   ?? '',
       debitOuverture:   row.debit_ouverture  ?? row.debitOuverture  ?? 0,
@@ -629,6 +644,8 @@ export class SupabaseAdapter implements DataAdapter {
       debitSolde:       row.solde_debiteur ?? row.debitSolde        ?? 0,
       creditSolde:      row.solde_crediteur ?? row.creditSolde      ?? 0,
     })) as TrialBalanceRow[]
+    this.cache.set(cacheKey, { data: mapped, ts: Date.now(), tenant: this.tenantId })
+    return mapped
   }
 
   async getBalanceByAccount(dateRange?: { start: string; end: string }): Promise<Map<string, AccountBalance>> {
