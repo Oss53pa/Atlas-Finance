@@ -319,15 +319,12 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
               <option value="PCG">PCG</option>
             </select>
             
-            <select 
-              value={dateRange.startDate || '2025'}
+            <select
+              value={dateRange.startDate || '2026'}
               onChange={(e) => setDateRange({ startDate: e.target.value, endDate: dateRange.endDate })}
               className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
             >
-              <option value="2025">Exercice 2025</option>
-              <option value="2024">Exercice 2024</option>
-              <option value="Q4-2025">T4 2025</option>
-              <option value="Q3-2025">T3 2025</option>
+              <option value="2026">Exercice 2026</option>
             </select>
             
             <button 
@@ -1373,29 +1370,12 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
             </div>
           </div>
 
-          {/* Graphique évolution ratios */}
+          {/* Graphique évolution ratios — nécessite un historique pluri-exercices absent de l'import */}
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
             <h3 className="text-lg font-semibold text-gray-900 mb-6">Évolution des Ratios Clés</h3>
-            <ResponsiveContainer width="100%" height={350}>
-              <LineChart data={[
-                { periode: 'T1 2024', roa: 8.2, roe: 15.6, liquidite: 1.8, autonomie: 62 },
-                { periode: 'T2 2024', roa: 9.1, roe: 16.8, liquidite: 1.9, autonomie: 64 },
-                { periode: 'T3 2024', roa: 8.8, roe: 15.2, liquidite: 1.7, autonomie: 61 },
-                { periode: 'T4 2024', roa: 9.5, roe: 17.1, liquidite: 2.1, autonomie: 66 },
-                { periode: 'T1 2025', roa: 10.2, roe: 18.4, liquidite: 2.3, autonomie: 68 },
-                { periode: 'T2 2025', roa: 9.8, roe: 17.8, liquidite: 2.0, autonomie: 65 }
-              ]}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="periode" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="roa" stroke="#235A6E" strokeWidth={2} name="ROA (%)" />
-                <Line type="monotone" dataKey="roe" stroke="#4E7E8D" strokeWidth={2} name="ROE (%)" />
-                <Line type="monotone" dataKey="liquidite" stroke="#E8B4B8" strokeWidth={2} name="Liquidité Générale" />
-                <Line type="monotone" dataKey="autonomie" stroke="#A8C8EC" strokeWidth={2} name="Autonomie Financière (%)" />
-              </LineChart>
-            </ResponsiveContainer>
+            <div className="flex items-center justify-center h-[200px] text-center text-sm text-gray-400 italic">
+              Aucune donnée — l'historique pluri-exercices n'est pas alimenté par l'import (un seul exercice disponible).
+            </div>
           </div>
         </div>
       )}
@@ -1487,7 +1467,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                   </div>
                 </div>
                 <h1 className="text-lg font-bold text-gray-900">ÉTATS FINANCIERS</h1>
-                <p className="text-gray-600">Exercice {dateRange.startDate || '2025'} - Conforme {config.norme}</p>
+                <p className="text-gray-600">Exercice {dateRange.startDate || '2026'} - Conforme {config.norme}</p>
                 <p className="text-gray-700 text-sm">Généré le {new Date().toLocaleDateString('fr-FR')}</p>
               </div>
 

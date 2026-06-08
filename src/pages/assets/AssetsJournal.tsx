@@ -45,12 +45,33 @@ const AssetsJournal: React.FC = () => {
   // Load real journal entries related to assets (class 2, 28, 681) from DataAdapter
   const { adapter } = useData();
   const [dbEntries, setDbEntries] = useState<any[]>([]);
+  const [companyName, setCompanyName] = useState<string>('');
+  const [activeFiscalYear, setActiveFiscalYear] = useState<{ startDate?: string; endDate?: string; code?: string } | null>(null);
 
   useEffect(() => {
     if (!adapter) return;
     adapter.getAll('journalEntries').then((entries: any[]) => {
       setDbEntries(entries || []);
     }).catch(() => setDbEntries([]));
+
+    // Nom entreprise réel (source canonique: settings.admin_company_legal)
+    adapter.getById<any>('settings', 'admin_company_legal').then((row: any) => {
+      try {
+        const raison = row?.value ? JSON.parse(row.value)?.raisonSociale : undefined;
+        if (raison) setCompanyName(raison);
+      } catch { /* ignore */ }
+    }).catch(() => { /* ignore */ });
+
+    // Exercice fiscal actif réel (dates de période)
+    adapter.getAll('fiscalYears').then((years: any[]) => {
+      const list = years || [];
+      const active = list.find((y: any) => y.isActive && !y.isClosed)
+        || list.find((y: any) => y.isActive)
+        || list.find((y: any) => !y.isClosed)
+        || list[0]
+        || null;
+      setActiveFiscalYear(active);
+    }).catch(() => setActiveFiscalYear(null));
   }, [adapter]);
 
   // Filter and map journal entries related to immobilisations
@@ -97,6 +118,63 @@ const AssetsJournal: React.FC = () => {
       });
   }, [dbEntries]);
 
+  // Agrégats RÉELS par catégorie, calculés depuis les écritures (GL) par préfixe de compte.
+  // - additions  = débits sur le compte d'actif (classe 2) de la catégorie
+  // - cessions   = crédits sur ce même compte d'actif (sortie d'immo)
+  // - amort. cumulé = solde créditeur du compte d'amortissement (28x) de la catégorie, si connu
+  // - provisions = solde du compte de dépréciation (29x) de la catégorie, si connu
+  // - balance    = additions − cessions (mouvement net de l'actif sur l'exercice)
+  // Colonnes non rattachables de façon fiable au niveau catégorie → null (affiché « — »).
+  const categoryAggregates = useMemo(() => {
+    const allLines: any[] = dbEntries.flatMap((e: any) => e.lines || []);
+    const sumBy = (predicate: (code: string) => boolean, side: 'debit' | 'credit') =>
+      allLines.reduce((s: number, l: any) =>
+        l.accountCode && predicate(l.accountCode) ? s + (l[side] || 0) : s, 0);
+
+    const map: Record<string, {
+      additions: number; cessions: number;
+      amortCumule: number | null; provisions: number | null; balance: number;
+    }> = {};
+
+    for (const category of assetJournalConfig.categories) {
+      const assetAccount = category.accounts.revaluationsAccumulated?.account || '';
+      const isRealAccount = (acc: string) => /^[0-9]{3,}$/.test(acc) && acc !== '0';
+
+      let additions = 0;
+      let cessions = 0;
+      let balance = 0;
+      if (isRealAccount(assetAccount)) {
+        additions = sumBy((c) => c.startsWith(assetAccount), 'debit');
+        cessions = sumBy((c) => c.startsWith(assetAccount), 'credit');
+        balance = additions - cessions;
+      }
+
+      // Amort. cumulé : compte 28x propre à la catégorie (solde créditeur)
+      const amortAccount = category.accounts.depreciationRevaluations?.account || '';
+      let amortCumule: number | null = null;
+      if (amortAccount.startsWith('28') && isRealAccount(amortAccount)) {
+        amortCumule = sumBy((c) => c.startsWith(amortAccount), 'credit')
+          - sumBy((c) => c.startsWith(amortAccount), 'debit');
+      }
+
+      // Provisions : compte 29x propre à la catégorie (solde créditeur)
+      const provAccount = (category.accounts as any).impairmentProvision?.account || '';
+      let provisions: number | null = null;
+      if (provAccount.startsWith('29') && isRealAccount(provAccount)) {
+        provisions = sumBy((c) => c.startsWith(provAccount), 'credit')
+          - sumBy((c) => c.startsWith(provAccount), 'debit');
+      }
+
+      map[category.code] = { additions, cessions, amortCumule, provisions, balance };
+    }
+    return map;
+  }, [dbEntries]);
+
+  const totalYtdReal = useMemo(
+    () => Object.values(categoryAggregates).reduce((s, a) => s + a.balance, 0),
+    [categoryAggregates]
+  );
+
   const getTypeConfig = (type: string) => {
     const configs = {
       acquisition: { label: 'Acquisition', icon: Plus, color: 'green' },
@@ -137,10 +215,12 @@ const AssetsJournal: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-lg font-bold text-[var(--color-text-primary)]">
-            Journal des Immobilisations - {assetJournalConfig.company}
+            Journal des Immobilisations{companyName ? ` - ${companyName}` : ''}
           </h1>
           <p className="text-sm text-[var(--color-text-secondary)] mt-1">
-            Période: {new Date(assetJournalConfig.period.from).toLocaleDateString('fr-FR')} - {new Date(assetJournalConfig.period.to).toLocaleDateString('fr-FR')}
+            Période: {activeFiscalYear?.startDate && activeFiscalYear?.endDate
+              ? `${new Date(activeFiscalYear.startDate).toLocaleDateString('fr-FR')} - ${new Date(activeFiscalYear.endDate).toLocaleDateString('fr-FR')}`
+              : (activeFiscalYear?.code || '—')}
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -311,6 +391,7 @@ const AssetsJournal: React.FC = () => {
                     .filter(cat => selectedCategory === 'all' || cat.code === selectedCategory)
                     .map((category) => {
                       const Icon = categoryIcons[category.code] || FileText;
+                      const agg = categoryAggregates[category.code];
                       return (
                         <tr key={category.code} className="border-b border-[var(--color-border)] hover:bg-[var(--color-hover)]">
                           <td className="p-2">
@@ -320,37 +401,38 @@ const AssetsJournal: React.FC = () => {
                             </div>
                           </td>
                           <td className="p-2 text-sm">{category.description}</td>
+                          {/* Compte d'amortissement (référence config) */}
                           <td className="p-2 text-center font-mono text-xs">
                             {category.accounts.depreciationHistorical.account}
                           </td>
-                          <td className="p-2 text-center font-mono text-xs">
-                            {category.accounts.depreciationRevaluations.account !== '0'
-                              ? category.accounts.depreciationRevaluations.account
-                              : '-'}
+                          {/* Amort. cumulé (montant réel GL, sinon —) */}
+                          <td className="p-2 text-right text-xs">
+                            {agg?.amortCumule != null ? formatCurrency(agg.amortCumule) : '—'}
                           </td>
-                          <td className="p-2 text-center font-mono text-xs">
-                            {category.accounts.additions.account}
+                          {/* Additions (débits réels classe 2) */}
+                          <td className="p-2 text-right text-xs">
+                            {agg && agg.additions !== 0 ? formatCurrency(agg.additions) : '—'}
                           </td>
-                          <td className="p-2 text-center font-mono text-xs">
-                            {category.accounts.disposalsProceeds.account}
+                          {/* Cessions (crédits réels classe 2) */}
+                          <td className="p-2 text-right text-xs">
+                            {agg && agg.cessions !== 0 ? formatCurrency(agg.cessions) : '—'}
                           </td>
+                          {/* Compte de réévaluation (référence config) */}
                           <td className="p-2 text-center font-mono text-xs">
                             {category.accounts.revaluationsAccumulated.account}
                           </td>
-                          <td className="p-2 text-center font-mono text-xs">
-                            {category.accounts.impairmentProvision?.account !== '0'
-                              ? category.accounts.impairmentProvision?.account
-                              : '-'}
+                          {/* Provisions (montant réel GL 29x, sinon —) */}
+                          <td className="p-2 text-right text-xs">
+                            {agg?.provisions != null ? formatCurrency(agg.provisions) : '—'}
                           </td>
+                          {/* Solde net (additions − cessions) */}
                           <td className="p-2 text-right">
-                            {category.code === '234-SS' ? (
-                              <div>
-                                <span className="text-green-500 font-semibold">
-                                  {formatCurrency(category.accounts.balanceSheet750.amount)}
-                                </span>
-                              </div>
+                            {agg && agg.balance !== 0 ? (
+                              <span className={`font-semibold ${agg.balance >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                                {formatCurrency(agg.balance)}
+                              </span>
                             ) : (
-                              <span className="text-[var(--color-text-secondary)]">-</span>
+                              <span className="text-[var(--color-text-secondary)]">—</span>
                             )}
                           </td>
                         </tr>
@@ -361,13 +443,8 @@ const AssetsJournal: React.FC = () => {
                   <tr className="border-t-2 border-[var(--color-border)] font-semibold">
                     <td colSpan={8} className="p-2 text-right">Total YTD:</td>
                     <td className="p-2 text-right">
-                      <div>
-                        <div className="text-green-500">
-                          {formatCurrency(assetJournalConfig.totals.ytd)}
-                        </div>
-                        <div className="text-red-500 text-sm">
-                          ({formatCurrency(Math.abs(assetJournalConfig.totals.adjustment))})
-                        </div>
+                      <div className={totalYtdReal >= 0 ? 'text-green-500' : 'text-red-500'}>
+                        {formatCurrency(totalYtdReal)}
                       </div>
                     </td>
                   </tr>
@@ -454,10 +531,10 @@ const AssetsJournal: React.FC = () => {
                               <td className="py-2 text-sm font-mono">{line.account}</td>
                               <td className="py-2 text-sm">{line.label}</td>
                               <td className="py-2 text-sm text-right font-medium">
-                                {line.debit > 0 && `€${formatCurrency(line.debit)}`}
+                                {line.debit > 0 && formatCurrency(line.debit)}
                               </td>
                               <td className="py-2 text-sm text-right font-medium">
-                                {line.credit > 0 && `€${formatCurrency(line.credit)}`}
+                                {line.credit > 0 && formatCurrency(line.credit)}
                               </td>
                             </tr>
                           ))}

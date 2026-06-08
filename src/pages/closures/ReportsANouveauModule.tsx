@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { toast } from 'react-hot-toast';
 import {
-  Calendar, AlertCircle, CheckCircle, Clock, FileText,
+  AlertCircle, CheckCircle, Clock, FileText,
   TrendingUp, TrendingDown, Minus, ChevronRight, Download,
   Eye, Settings, RefreshCw, Filter, Search, X, Check,
   AlertTriangle, DollarSign, Archive, Send, Save, Loader2
@@ -270,8 +270,8 @@ const ReportsANouveauModule: React.FC = () => {
           </div>
           <div>
             <p className="text-xs text-[var(--color-text-tertiary)] mb-1">Résultat N-1</p>
-            <p className="font-semibold text-[var(--color-success)]">
-              {formatCurrency(exerciceInfo.resultatN1)}
+            <p className="font-semibold text-[var(--color-text-tertiary)]" title="Le résultat (classes 6/7) n'est pas dérivé des soldes de report (classes 1-5)">
+              —
             </p>
           </div>
           <div>
@@ -515,15 +515,20 @@ const ReportsANouveauModule: React.FC = () => {
             <div className="max-w-2xl mx-auto">
               <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Processus de validation</h3>
               
-              {/* Étapes de validation */}
+              {/* Étapes de validation — statut dérivé de l'état réel (soldes calculés, écart, à-nouveau généré, exercice clôturé) */}
               <div className="space-y-4">
-                {[
-                  { nom: 'Vérification des équilibres', statut: 'complete' },
-                  { nom: 'Contrôle des écarts', statut: 'complete' },
-                  { nom: 'Validation des reports', statut: 'en_cours' },
-                  { nom: 'Génération des écritures', statut: 'en_attente' },
-                  { nom: 'Ouverture de l\'exercice', statut: 'en_attente' }
-                ].map((etape, index) => (
+                {(() => {
+                  const aDesComptes = reportComptes.length > 0;
+                  const equilibre = aDesComptes && exerciceInfo.ecartGlobal === 0;
+                  const closed = selectedFY?.isClosed === true;
+                  return [
+                    { nom: 'Vérification des équilibres', statut: aDesComptes ? 'complete' : 'en_attente' },
+                    { nom: 'Contrôle des écarts', statut: equilibre ? 'complete' : aDesComptes ? 'en_cours' : 'en_attente' },
+                    { nom: 'Validation des reports', statut: alreadyExists ? 'complete' : equilibre ? 'en_cours' : 'en_attente' },
+                    { nom: 'Génération des écritures', statut: alreadyExists ? 'complete' : 'en_attente' },
+                    { nom: 'Ouverture de l\'exercice', statut: closed ? 'complete' : 'en_attente' },
+                  ];
+                })().map((etape, index) => (
                   <div key={index} className="flex items-center space-x-4">
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
                       etape.statut === 'complete' ? 'bg-[var(--color-success-lighter)]' :
@@ -579,26 +584,28 @@ const ReportsANouveauModule: React.FC = () => {
         {activeTab === 'historique' && (
           <div className="p-6">
             <div className="space-y-4">
-              {fiscalYears.filter(fy => fy.isClosed).map(fy => ({
-                date: fy.endDate, exercice: fy.name || fy.code, statut: 'complete', montant: 0
-              })).map((report, index) => (
-                <div key={index} className="border border-[var(--color-border)] rounded-lg p-4 hover:bg-[var(--color-background-secondary)]">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-semibold text-[var(--color-primary)]">Exercice {report.exercice}</p>
-                      <p className="text-sm text-[var(--color-text-tertiary)]">Report effectué le {report.date}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-semibold text-[var(--color-primary)]">
-                        {formatCurrency(report.montant)}
-                      </p>
+              {fiscalYears.filter(fy => fy.isClosed).length === 0 ? (
+                <div className="text-center py-12">
+                  <Clock className="w-10 h-10 text-[var(--color-text-tertiary)] mx-auto mb-3" />
+                  <p className="text-[var(--color-text-tertiary)]">Aucun exercice clôturé</p>
+                </div>
+              ) : (
+                fiscalYears.filter(fy => fy.isClosed).map(fy => ({
+                  date: fy.endDate, exercice: fy.name || fy.code
+                })).map((report, index) => (
+                  <div key={index} className="border border-[var(--color-border)] rounded-lg p-4 hover:bg-[var(--color-background-secondary)]">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-semibold text-[var(--color-primary)]">Exercice {report.exercice}</p>
+                        <p className="text-sm text-[var(--color-text-tertiary)]">Clôturé le {report.date}</p>
+                      </div>
                       <span className="text-xs bg-[var(--color-success-lighter)] text-[var(--color-success-dark)] px-2 py-1 rounded-full">
-                        Complété
+                        Clôturé
                       </span>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         )}
@@ -684,13 +691,13 @@ const ReportsANouveauModule: React.FC = () => {
                   <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
                     <p className="text-xs text-blue-700 mb-1">Solde Exercice N-1 (Clôture)</p>
                     <p className="text-lg font-bold text-blue-900 font-mono">
-                      {formatCurrency(selectedCompte.soldeN1)} <span className="text-sm font-normal">FCFA</span>
+                      {formatCurrency(selectedCompte.soldeN1)}
                     </p>
                   </div>
                   <div className="bg-green-50 p-4 rounded-lg border border-green-200">
                     <p className="text-xs text-green-700 mb-1">Solde Exercice N (Ouverture)</p>
                     <p className="text-lg font-bold text-green-900 font-mono">
-                      {formatCurrency(selectedCompte.soldeN)} <span className="text-sm font-normal">FCFA</span>
+                      {formatCurrency(selectedCompte.soldeN)}
                     </p>
                   </div>
                 </div>
@@ -848,22 +855,6 @@ const ReportsANouveauModule: React.FC = () => {
                             {selectedCompte.mouvementCredit > 0 ? formatCurrency(selectedCompte.mouvementCredit) : '-'}
                           </td>
                         </tr>
-                        {(selectedCompte.mouvementDebit > 0 || selectedCompte.mouvementCredit > 0) && (
-                          <tr>
-                            <td className="py-1 font-mono">
-                              {selectedCompte.mouvementDebit > 0 ? '120000' : '121000'}
-                            </td>
-                            <td className="py-1">
-                              {selectedCompte.mouvementDebit > 0 ? 'Résultat de l\'exercice' : 'Report à nouveau'}
-                            </td>
-                            <td className="py-1 text-right font-mono">
-                              {selectedCompte.mouvementCredit > 0 ? formatCurrency(selectedCompte.mouvementCredit) : '-'}
-                            </td>
-                            <td className="py-1 text-right font-mono">
-                              {selectedCompte.mouvementDebit > 0 ? formatCurrency(selectedCompte.mouvementDebit) : '-'}
-                            </td>
-                          </tr>
-                        )}
                       </tbody>
                     </table>
                   </div>
@@ -896,26 +887,10 @@ const ReportsANouveauModule: React.FC = () => {
                   <span className="w-1 h-4 bg-primary-500 rounded"></span>
                   Historique des Reports
                 </h4>
-                <div className="space-y-2">
-                  {fiscalYears.filter(fy => fy.isClosed).slice(0, 3).map(fy => ({
-                    exercice: fy.name || fy.code, solde: selectedCompte.soldeN1, date: fy.startDate, statut: 'complete'
-                  })).map((hist, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
-                          <Calendar className="w-4 h-4 text-primary-600" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-[var(--color-primary)]">Exercice {hist.exercice}</p>
-                          <p className="text-xs text-[var(--color-text-tertiary)]">Report effectué le {hist.date}</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-mono font-semibold">{formatCurrency(hist.solde)}</p>
-                        <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">Complété</span>
-                      </div>
-                    </div>
-                  ))}
+                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 text-center">
+                  <p className="text-sm text-[var(--color-text-tertiary)]">
+                    Aucun historique par compte — module non alimenté par l'import (pas de soldes annuels antérieurs).
+                  </p>
                 </div>
               </div>
             </div>

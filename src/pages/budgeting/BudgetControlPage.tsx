@@ -220,6 +220,12 @@ const BudgetControlPage: React.FC = () => {
 
   const COLORS = ['#235A6E', '#E89A2E', '#15803D', '#4E7E8D', '#C77E2C', '#7FA3AF'];
 
+  // Le contrôle budgétaire repose entièrement sur les tables `budgetLines` / `budgets`,
+  // qui ne sont PAS alimentées par l'import (aucun budget en base). Sans budget de
+  // référence, aucun écart ne peut être calculé honnêtement : on affiche un état vide
+  // explicite plutôt que des KPI/graphiques à 0 ou fabriqués.
+  const hasBudgetData = !isLoading && budgetControls.length > 0;
+
   return (
     <div className="space-y-6">
       {/* En-tête */}
@@ -228,21 +234,37 @@ const BudgetControlPage: React.FC = () => {
           <h1 className="text-lg font-bold text-gray-900">Contrôle Budgétaire</h1>
           <p className="text-gray-600">Suivi des écarts et analyse des performances</p>
         </div>
-        <div className="flex space-x-3">
-          <button
-            onClick={() => setViewMode(viewMode === 'table' ? 'charts' : 'table')}
-            className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
-          >
-            <ChartBarIcon className="h-5 w-5" />
-            <span>{viewMode === 'table' ? 'Vue Graphiques' : 'Vue Tableau'}</span>
-          </button>
-          <button className="bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/90 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors" aria-label="Télécharger">
-            <DocumentArrowDownIcon className="h-5 w-5" />
-            <span>{t('common.export')}</span>
-          </button>
-        </div>
+        {hasBudgetData && (
+          <div className="flex space-x-3">
+            <button
+              onClick={() => setViewMode(viewMode === 'table' ? 'charts' : 'table')}
+              className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+            >
+              <ChartBarIcon className="h-5 w-5" />
+              <span>{viewMode === 'table' ? 'Vue Graphiques' : 'Vue Tableau'}</span>
+            </button>
+            <button className="bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/90 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors" aria-label="Télécharger">
+              <DocumentArrowDownIcon className="h-5 w-5" />
+              <span>{t('common.export')}</span>
+            </button>
+          </div>
+        )}
       </div>
 
+      {!isLoading && !hasBudgetData && (
+        <div className="bg-white p-12 rounded-lg shadow-sm border border-gray-200 text-center">
+          <ChartBarIcon className="h-12 w-12 mx-auto text-gray-300" />
+          <h3 className="mt-4 text-lg font-medium text-gray-900">Aucune donnée budgétaire</h3>
+          <p className="mt-2 text-sm text-gray-600 max-w-xl mx-auto">
+            Module non alimenté par l'import : aucun budget de référence n'a été enregistré.
+            Le contrôle budgétaire (écarts budgété / réalisé) sera disponible une fois les
+            budgets saisis ou importés.
+          </p>
+        </div>
+      )}
+
+      {hasBudgetData && (
+      <>
       {/* Indicateurs globaux */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
@@ -583,6 +605,8 @@ const BudgetControlPage: React.FC = () => {
             </table>
           </div>
         </div>
+      )}
+      </>
       )}
 
       {/* Modal de sélection de période */}

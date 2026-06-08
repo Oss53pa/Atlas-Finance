@@ -171,11 +171,14 @@ const BilanSYSCOHADAPage: React.FC = () => {
     actif: [
       { code: '20', libelle: 'Charges immobilisées', exerciceN: Math.max(0, net(['20'])), exerciceN1: Math.max(0, netN1(['20'])) },
       { code: '21', libelle: 'Immobilisations incorporelles', exerciceN: Math.max(0, net(['21'])), exerciceN1: Math.max(0, netN1(['21'])) },
-      { code: '22/23', libelle: 'Terrains', exerciceN: Math.max(0, net(['22', '23'])), exerciceN1: Math.max(0, netN1(['22', '23'])) },
-      { code: '24', libelle: 'Bâtiments et installations', exerciceN: Math.max(0, net(['24'])), exerciceN1: Math.max(0, netN1(['24'])) },
-      { code: '245', libelle: 'Matériel et outillage', exerciceN: Math.max(0, net(['245'])), exerciceN1: Math.max(0, netN1(['245'])) },
-      { code: '246', libelle: 'Matériel de transport', exerciceN: Math.max(0, net(['246'])), exerciceN1: Math.max(0, netN1(['246'])) },
-      { code: '247', libelle: 'Matériel et mobilier', exerciceN: Math.max(0, net(['247'])), exerciceN1: Math.max(0, netN1(['247'])) },
+      { code: '22', libelle: 'Terrains', exerciceN: Math.max(0, net(['22'])), exerciceN1: Math.max(0, netN1(['22'])) },
+      { code: '23', libelle: 'Bâtiments, installations et agencements', exerciceN: Math.max(0, net(['23'])), exerciceN1: Math.max(0, netN1(['23'])) },
+      // '24' couvre déjà 245/246/247 → une seule ligne (évite le double comptage)
+      { code: '24', libelle: 'Matériel, mobilier et transport', exerciceN: Math.max(0, net(['24'])), exerciceN1: Math.max(0, netN1(['24'])) },
+      { code: '25', libelle: 'Avances et acomptes sur immobilisations', exerciceN: Math.max(0, net(['25'])), exerciceN1: Math.max(0, netN1(['25'])) },
+      { code: '26/27', libelle: 'Immobilisations financières', exerciceN: Math.max(0, net(['26', '27'])), exerciceN1: Math.max(0, netN1(['26', '27'])) },
+      // Amortissements et dépréciations (classes 28/29) déduits → actif immobilisé NET (VNC)
+      { code: '28/29', libelle: 'Amortissements et dépréciations (à déduire)', exerciceN: -Math.max(0, creditNet(['28', '29'])), exerciceN1: -Math.max(0, creditNetN1(['28', '29'])) },
       { code: '31', libelle: 'Stocks de marchandises', exerciceN: Math.max(0, net(['31'])), exerciceN1: Math.max(0, netN1(['31'])) },
       { code: '32', libelle: 'Stocks de matières premières', exerciceN: Math.max(0, net(['32'])), exerciceN1: Math.max(0, netN1(['32'])) },
       { code: '41', libelle: 'Clients et comptes rattachés', exerciceN: Math.max(0, net(['41'])), exerciceN1: Math.max(0, netN1(['41'])) },
@@ -189,7 +192,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
       { code: '10', libelle: 'Capital social', exerciceN: creditNet(['10']), exerciceN1: creditNetN1(['10']) },
       { code: '11', libelle: 'Réserves', exerciceN: creditNet(['11']), exerciceN1: creditNetN1(['11']) },
       { code: '12', libelle: 'Report à nouveau', exerciceN: creditNet(['12']), exerciceN1: creditNetN1(['12']) },
-      { code: '13', libelle: 'Résultat de l\'exercice', exerciceN: creditNet(['7']) - (net(['6']) > 0 ? net(['6']) : 0), exerciceN1: creditNetN1(['12']) },
+      { code: '13', libelle: 'Résultat de l\'exercice', exerciceN: creditNet(['7']) - net(['6']), exerciceN1: creditNetN1(['13']) },
       { code: '16', libelle: 'Emprunts et dettes financières', exerciceN: creditNet(['16']), exerciceN1: creditNetN1(['16']) },
       { code: '40', libelle: 'Fournisseurs et comptes rattachés', exerciceN: creditNet(['40']), exerciceN1: creditNetN1(['40']) },
       { code: '42', libelle: 'Personnel', exerciceN: creditNet(['42']), exerciceN1: creditNetN1(['42']) },
@@ -290,7 +293,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
         { code: 'FO8', libelle: 'Variation autres créances et dettes', montant: 0 },
       ],
       activitesInvestissement: [
-        { code: 'FI1', libelle: 'Acquisitions d\'immobilisations corporelles', montant: -Math.max(0, net(['24', '245', '246', '247'])) },
+        { code: 'FI1', libelle: 'Acquisitions d\'immobilisations corporelles', montant: -Math.max(0, net(['22', '23', '24', '25'])) },
         { code: 'FI2', libelle: 'Acquisitions d\'immobilisations incorporelles', montant: -Math.max(0, net(['21'])) },
         { code: 'FI3', libelle: 'Cessions d\'immobilisations', montant: 0 },
         { code: 'FI4', libelle: 'Acquisitions de participations', montant: -Math.max(0, net(['26'])) },

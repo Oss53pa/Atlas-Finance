@@ -10,14 +10,10 @@ import {
   CheckCircle,
   AlertTriangle,
   Zap,
-  BarChart3,
   Calendar,
   DollarSign,
-  FileText,
   Target,
-  TrendingUp,
-  Clock,
-  Users
+  Clock
 } from 'lucide-react';
 
 interface LettrageMatch {
@@ -43,19 +39,6 @@ interface MLFactor {
   factor: string;
   weight: number;
   contribution: number;
-  description: string;
-}
-
-interface MLAlgorithm {
-  name: string;
-  type: 'supervised' | 'unsupervised' | 'reinforcement';
-  accuracy: number;
-  precision: number;
-  recall: number;
-  f1_score: number;
-  training_samples: number;
-  last_training: string;
-  is_active: boolean;
   description: string;
 }
 
@@ -312,49 +295,29 @@ const LettrageAutomatiquePage: React.FC = () => {
 
         {/* Algorithmes de lettrage */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-          <h2 className="text-lg font-bold text-gray-900 mb-6">Algorithmes de Lettrage</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <h2 className="text-lg font-bold text-gray-900 mb-6">Méthodes de rapprochement</h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="p-4 border border-blue-200 rounded-lg bg-blue-50">
               <div className="flex items-center mb-3">
                 <Target className="h-5 w-5 text-blue-600 mr-2" />
-                <h3 className="font-semibold text-blue-900">Montant Exact</h3>
+                <h3 className="font-semibold text-blue-900">Montant exact</h3>
               </div>
-              <p className="text-sm text-blue-700 mb-3">
-                Rapprochement par montant identique et date compatible
+              <p className="text-sm text-blue-700">
+                Rapprochement d'un débit et d'un crédit de montant identique sur
+                le même compte tiers (classes 40 et 41).
               </p>
-              <div className="text-xs text-blue-600">
-                Fiabilité: 100%<br />
-                Vitesse: Instantanée
-              </div>
             </div>
 
-            <div className="p-4 border border-green-200 rounded-lg bg-green-50">
+            <div className="p-4 border border-yellow-200 rounded-lg bg-yellow-50">
               <div className="flex items-center mb-3">
-                <FileText className="h-5 w-5 text-green-600 mr-2" />
-                <h3 className="font-semibold text-green-900">Référence Facture</h3>
+                <AlertTriangle className="h-5 w-5 text-yellow-600 mr-2" />
+                <h3 className="font-semibold text-yellow-900">Rapprochement partiel</h3>
               </div>
-              <p className="text-sm text-green-700 mb-3">
-                Matching par numéro de facture dans libellé
+              <p className="text-sm text-yellow-700">
+                Suggestion lorsqu'un débit et un crédit du même compte présentent
+                un écart inférieur à 5 % (à valider manuellement).
               </p>
-              <div className="text-xs text-green-600">
-                Fiabilité: 95%<br />
-                OCR intégré
-              </div>
-            </div>
-
-            <div className="p-4 border border-primary-200 rounded-lg bg-primary-50">
-              <div className="flex items-center mb-3">
-                <Zap className="h-5 w-5 text-primary-600 mr-2" />
-                <h3 className="font-semibold text-primary-900">Machine Learning</h3>
-              </div>
-              <p className="text-sm text-primary-700 mb-3">
-                Suggestions basées sur l'historique et patterns
-              </p>
-              <div className="text-xs text-primary-600">
-                Apprentissage continu<br />
-                Confiance variable
-              </div>
             </div>
           </div>
         </div>
@@ -409,7 +372,7 @@ const LettrageAutomatiquePage: React.FC = () => {
                       <div className="flex items-center space-x-4 text-sm text-gray-600">
                         <span className="flex items-center">
                           <DollarSign className="h-4 w-4 mr-1" />
-                          {formatCurrency(match.amount)} XOF
+                          {formatCurrency(match.amount)}
                         </span>
                         <span className="flex items-center">
                           <Calendar className="h-4 w-4 mr-1" />

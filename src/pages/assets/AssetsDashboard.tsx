@@ -1,10 +1,9 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { useData } from '../../contexts/DataContext';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
+import {
   Building,
   TrendingUp,
   TrendingDown,
@@ -19,7 +18,7 @@ import {
   Monitor,
   Wrench
 } from 'lucide-react';
-import { 
+import {
   UnifiedCard,
   KPICard,
   SectionHeader,
@@ -28,52 +27,126 @@ import {
   ModernChartCard,
   ColorfulBarChart
 } from '../../components/ui/DesignSystem';
-import { assetsService } from '../../services/assets.service';
 import { formatCurrency, formatDate, formatPercentage } from '../../lib/utils';
+
+const CLASS_NAME_MAP: Record<string, string> = {
+  '20': 'Incorporelles', '21': 'Immobilier', '22': 'Terrains',
+  '23': 'Bâtiments / Constructions', '24': 'Matériel & Mobilier',
+  '25': 'Avances / Acomptes', '26': 'Titres de participation', '27': 'Autres immo. financières',
+  '28': 'Amortissements',
+};
 
 const AssetsDashboard: React.FC = () => {
   const { adapter } = useData();
   const [period, setPeriod] = useState<'month' | 'quarter' | 'year'>('year');
   const [dbAssets, setDbAssets] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Load real assets from DataAdapter
+  // Load real assets from DataAdapter (table `assets` — données réelles importées)
   useEffect(() => {
     if (!adapter) return;
-    adapter.getAll('assets').then((a: any[]) => setDbAssets(a || [])).catch(() => setDbAssets([]));
+    setIsLoading(true);
+    adapter.getAll('assets')
+      .then((a: any[]) => setDbAssets(a || []))
+      .catch(() => setDbAssets([]))
+      .finally(() => setIsLoading(false));
   }, [adapter]);
 
-  // Fetch dashboard data
-  const { data: dashboardData, isLoading } = useQuery({
-    queryKey: ['assets', 'dashboard', period],
-    queryFn: () => (assetsService as unknown as { getDashboardData: (p: Record<string, unknown>) => Promise<Record<string, unknown>> }).getDashboardData({ period }),
-  });
+  // KPIs dérivés des immobilisations réelles
+  const metrics = useMemo(() => {
+    let valeurBrute = 0;
+    let amortissements = 0;
+    let dotationsAnnuelles = 0;
+    let totalAgeYears = 0;
+    let agedCount = 0;
+    const now = new Date();
+    for (const a of dbAssets) {
+      const brute = Number(a.acquisitionValue) || 0;
+      const cumul = Number(a.cumulDepreciation) || 0;
+      const residuel = Number(a.residualValue) || 0;
+      const duree = Number(a.usefulLifeYears ?? a.usefulLife) || 0;
+      valeurBrute += brute;
+      amortissements += cumul;
+      // Dotation linéaire annuelle = (brut - résiduel) / durée (méthode SYSCOHADA par défaut)
+      if (duree > 0) dotationsAnnuelles += Math.max(0, (brute - residuel) / duree);
+      if (a.acquisitionDate) {
+        const acq = new Date(a.acquisitionDate);
+        if (!isNaN(acq.getTime())) {
+          totalAgeYears += (now.getTime() - acq.getTime()) / (365.25 * 24 * 3600 * 1000);
+          agedCount += 1;
+        }
+      }
+    }
+    const valeurNette = valeurBrute - amortissements;
+    return {
+      valeurBrute,
+      amortissements,
+      valeurNette,
+      dotationsAnnuelles,
+      nombreActifs: dbAssets.length,
+      tauxAmortissement: valeurBrute > 0 ? (amortissements / valeurBrute) * 100 : 0,
+      ageMoyen: agedCount > 0 ? totalAgeYears / agedCount : null,
+    };
+  }, [dbAssets]);
+
+  // Répartition par classe de compte (préfixe 2 chiffres) — valeurs réelles
+  const repartition = useMemo(() => {
+    const cats: Record<string, { code: string; nom: string; nombre: number; valeurNette: number }> = {};
+    for (const a of dbAssets) {
+      const code = String(a.accountCode || a.category || '').substring(0, 2) || '21';
+      if (!cats[code]) cats[code] = { code, nom: CLASS_NAME_MAP[code] || `Classe ${code}`, nombre: 0, valeurNette: 0 };
+      cats[code].nombre += 1;
+      cats[code].valeurNette += (Number(a.acquisitionValue) || 0) - (Number(a.cumulDepreciation) || 0);
+    }
+    const totalVN = Object.values(cats).reduce((s, c) => s + c.valeurNette, 0);
+    return Object.values(cats)
+      .map((c) => ({ ...c, pourcentage: totalVN > 0 ? (c.valeurNette / totalVN) * 100 : 0 }))
+      .sort((a, b) => b.valeurNette - a.valeurNette);
+  }, [dbAssets]);
+
+  // Liste détaillée des actifs (top par valeur brute)
+  const actifsPrincipaux = useMemo(() => {
+    return [...dbAssets]
+      .map((a) => {
+        const brute = Number(a.acquisitionValue) || 0;
+        const cumul = Number(a.cumulDepreciation) || 0;
+        const code = String(a.accountCode || a.category || '').substring(0, 2);
+        return {
+          id: a.id,
+          designation: a.name || a.designation || a.label || '—',
+          numeroSerie: a.serialNumber || a.numeroSerie || '',
+          categorie: CLASS_NAME_MAP[code] || a.category || `Classe ${code}`,
+          dateAcquisition: a.acquisitionDate || '',
+          valeurBrute: brute,
+          amortissements: cumul,
+          valeurNette: brute - cumul,
+          pourcentageAmortissement: brute > 0 ? (cumul / brute) * 100 : 0,
+        };
+      })
+      .sort((a, b) => b.valeurBrute - a.valeurBrute)
+      .slice(0, 20);
+  }, [dbAssets]);
 
   // Build chart data from real assets
   const categoryChartData = useMemo(() => {
-    const cats: Record<string, { label: string; value: number; color: string }> = {};
     const colorMap: Record<string, string> = {
       '24': 'bg-blue-400', '22': 'bg-primary-400', '23': 'bg-orange-400',
       '21': 'bg-yellow-400', '20': 'bg-primary-400',
     };
-    const nameMap: Record<string, string> = {
-      '24': 'Informatique', '22': 'Véhicules', '23': 'Mobilier',
-      '21': 'Immobilier', '20': 'Incorporelles',
-    };
-    for (const asset of dbAssets) {
-      const code = (asset.accountCode || asset.category || '21').substring(0, 2);
-      if (!cats[code]) cats[code] = { label: nameMap[code] || `Classe ${code}`, value: 0, color: colorMap[code] || 'bg-neutral-400' };
-      cats[code].value += asset.acquisitionValue || 0;
-    }
-    const result = Object.values(cats);
+    const result = repartition.map((c) => ({
+      label: c.nom,
+      value: c.valeurNette,
+      color: colorMap[c.code] || 'bg-neutral-400',
+    }));
     return result.length > 0 ? result : [{ label: 'Aucun actif', value: 0, color: 'bg-neutral-300' }];
-  }, [dbAssets]);
+  }, [repartition]);
 
-  const getCategoryIcon = (categorie: string) => {
-    switch (categorie) {
-      case 'materiel_informatique': return <Monitor className="h-5 w-5" />;
-      case 'vehicules': return <Truck className="h-5 w-5" />;
-      case 'mobilier': return <Package className="h-5 w-5" />;
-      case 'equipements': return <Wrench className="h-5 w-5" />;
+  const getCategoryIcon = (code: string) => {
+    switch (code) {
+      case '24': return <Monitor className="h-5 w-5" />;
+      case '22': return <Truck className="h-5 w-5" />;
+      case '23': return <Package className="h-5 w-5" />;
+      case '25': return <Wrench className="h-5 w-5" />;
       default: return <Building className="h-5 w-5" />;
     }
   };
@@ -126,7 +199,7 @@ const AssetsDashboard: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <KPICard
             title="Valeur Brute"
-            value={formatCurrency((dashboardData?.valeur_brute_totale as number) || 0)}
+            value={formatCurrency(metrics.valeurBrute)}
             subtitle="Valeur d'acquisition"
             icon={Building}
             color="primary"
@@ -135,7 +208,7 @@ const AssetsDashboard: React.FC = () => {
           />
           <KPICard
             title="Amortissements"
-            value={formatCurrency((dashboardData?.amortissements_cumules as number) || 0)}
+            value={formatCurrency(metrics.amortissements)}
             subtitle="Cumul des dotations"
             icon={TrendingDown}
             color="warning"
@@ -144,7 +217,7 @@ const AssetsDashboard: React.FC = () => {
           />
           <KPICard
             title="Valeur Nette"
-            value={formatCurrency((dashboardData?.valeur_nette_totale as number) || 0)}
+            value={formatCurrency(metrics.valeurNette)}
             subtitle="Valeur comptable actuelle"
             icon={DollarSign}
             color="success"
@@ -153,8 +226,8 @@ const AssetsDashboard: React.FC = () => {
           />
           <KPICard
             title="Dotations Annuelles"
-            value={formatCurrency((dashboardData?.dotations_annuelles as number) || 0)}
-            subtitle="Amortissements annuels"
+            value={formatCurrency(metrics.dotationsAnnuelles)}
+            subtitle="Dotation linéaire estimée"
             icon={TrendingUp}
             color="neutral"
             delay={0.4}
@@ -174,7 +247,7 @@ const AssetsDashboard: React.FC = () => {
                 <div>
                   <p className="text-sm font-medium text-neutral-600">Nombre d'Actifs</p>
                   <p className="text-lg font-bold text-neutral-900">
-                    {(dashboardData?.nombre_actifs as number) || 0}
+                    {metrics.nombreActifs}
                   </p>
                 </div>
                 <div className="p-3 bg-[var(--color-primary-lighter)] rounded-2xl">
@@ -194,7 +267,7 @@ const AssetsDashboard: React.FC = () => {
                 <div>
                   <p className="text-sm font-medium text-neutral-600">Taux d'Amortissement</p>
                   <p className="text-lg font-bold text-neutral-900">
-                    {formatPercentage((dashboardData?.taux_amortissement_moyen as number) || 0)}
+                    {formatPercentage(metrics.tauxAmortissement)}
                   </p>
                 </div>
                 <div className="p-3 bg-primary-100 rounded-2xl">
@@ -214,7 +287,7 @@ const AssetsDashboard: React.FC = () => {
                 <div>
                   <p className="text-sm font-medium text-neutral-600">Âge Moyen</p>
                   <p className="text-lg font-bold text-neutral-900">
-                    {(dashboardData?.age_moyen as number) || 0} ans
+                    {metrics.ageMoyen != null ? `${metrics.ageMoyen.toFixed(1)} ans` : '—'}
                   </p>
                 </div>
                 <div className="p-3 bg-[var(--color-info-lighter)] rounded-2xl">
@@ -256,9 +329,11 @@ const AssetsDashboard: React.FC = () => {
               </div>
             </div>
             <div className="space-y-6">
-              {(dashboardData as any)?.repartition_categories?.map((category: any, index: number) => (
+              {repartition.length === 0 ? (
+                <p className="text-sm text-neutral-500 py-8 text-center">Aucune immobilisation.</p>
+              ) : repartition.map((category, index) => (
                 <motion.div
-                  key={index}
+                  key={category.code}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.1 }}
@@ -275,14 +350,14 @@ const AssetsDashboard: React.FC = () => {
                   </div>
                   <div className="text-right">
                     <p className="font-bold text-neutral-900 text-lg">
-                      {formatCurrency(category.valeur_nette)}
+                      {formatCurrency(category.valeurNette)}
                     </p>
                     <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[var(--color-info-lighter)] text-[var(--color-info-dark)]">
                       {formatPercentage(category.pourcentage)}
                     </span>
                   </div>
                 </motion.div>
-              )) || []}
+              ))}
             </div>
           </UnifiedCard>
 
@@ -298,27 +373,14 @@ const AssetsDashboard: React.FC = () => {
               </div>
             </div>
             <div className="space-y-6">
-              {(dashboardData as any)?.derniers_amortissements?.map((amortissement: any, index: number) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="p-6 border border-neutral-200 rounded-2xl hover:border-orange-300 hover:shadow-lg transition-all duration-300"
-                >
-                  <div className="flex justify-between items-start mb-2">
-                    <p className="font-semibold text-neutral-900">{amortissement.nom_actif}</p>
-                    <p className="font-bold text-[var(--color-warning-dark)] text-lg">
-                      {formatCurrency(amortissement.montant)}
-                    </p>
-                  </div>
-                  <div className="flex justify-between items-center text-sm text-neutral-600">
-                    <span>{formatDate(amortissement.date)} - {amortissement.periode}</span>
-                    <span className="font-medium">{amortissement.methode}</span>
-                  </div>
-                </motion.div>
-              )) || []}
-              <motion.div 
+              {/* Pas de registre d'écritures d'amortissement daté dans les données importées
+                  (seul le cumul par immobilisation est disponible) → état vide honnête. */}
+              <div className="p-6 border border-dashed border-neutral-200 rounded-2xl text-center">
+                <p className="text-sm text-neutral-500">
+                  Aucune dotation périodique — module non alimenté par l'import
+                </p>
+              </div>
+              <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
@@ -367,9 +429,15 @@ const AssetsDashboard: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {(dashboardData as any)?.actifs_principaux?.map((actif: any, index: number) => (
+                {actifsPrincipaux.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="py-8 text-center text-sm text-neutral-500">
+                      Aucune immobilisation.
+                    </td>
+                  </tr>
+                ) : actifsPrincipaux.map((actif, index) => (
                   <motion.tr
-                    key={actif.id}
+                    key={actif.id ?? index}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
@@ -378,50 +446,50 @@ const AssetsDashboard: React.FC = () => {
                     <td className="py-4 px-2">
                       <div>
                         <p className="font-semibold text-neutral-900">{actif.designation}</p>
-                        {actif.numero_serie && (
-                          <p className="text-sm text-neutral-600">S/N: {actif.numero_serie}</p>
+                        {actif.numeroSerie && (
+                          <p className="text-sm text-neutral-600">S/N: {actif.numeroSerie}</p>
                         )}
                       </div>
                     </td>
                     <td className="py-4 px-2">
                       <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[var(--color-primary-lighter)] text-[var(--color-primary-dark)]">
-                        {actif.nom_categorie}
+                        {actif.categorie}
                       </span>
                     </td>
                     <td className="py-4 px-2">
                       <div className="flex items-center text-sm">
                         <Calendar className="h-4 w-4 text-neutral-400 mr-2" />
-                        {formatDate(actif.date_acquisition)}
+                        {actif.dateAcquisition ? formatDate(actif.dateAcquisition) : '—'}
                       </div>
                     </td>
                     <td className="py-4 px-2 text-right">
                       <span className="font-semibold text-neutral-900">
-                        {formatCurrency(actif.valeur_acquisition)}
+                        {formatCurrency(actif.valeurBrute)}
                       </span>
                     </td>
                     <td className="py-4 px-2 text-right">
                       <span className="font-semibold text-[var(--color-warning-dark)]">
-                        {formatCurrency(actif.amortissements_cumules)}
+                        {formatCurrency(actif.amortissements)}
                       </span>
                     </td>
                     <td className="py-4 px-2 text-right">
                       <span className="font-semibold text-primary-700">
-                        {formatCurrency(actif.valeur_nette)}
+                        {formatCurrency(actif.valeurNette)}
                       </span>
                     </td>
                     <td className="py-4 px-2 text-center">
                       <span className="font-medium text-neutral-900">
-                        {formatPercentage(actif.pourcentage_amortissement)}
+                        {formatPercentage(actif.pourcentageAmortissement)}
                       </span>
                     </td>
                     <td className="py-4 px-2 text-center">
                       <div className="flex items-center justify-center space-x-2">
-                        {actif.pourcentage_amortissement >= 100 ? (
+                        {actif.pourcentageAmortissement >= 100 ? (
                           <>
                             <CheckCircle className="h-4 w-4 text-neutral-600" />
                             <span className="text-sm font-medium text-neutral-600">Amorti</span>
                           </>
-                        ) : actif.pourcentage_amortissement >= 80 ? (
+                        ) : actif.pourcentageAmortissement >= 80 ? (
                           <>
                             <AlertCircle className="h-4 w-4 text-[var(--color-warning)]" />
                             <span className="text-sm font-medium text-[var(--color-warning-dark)]">Fin de vie</span>
@@ -435,7 +503,7 @@ const AssetsDashboard: React.FC = () => {
                       </div>
                     </td>
                   </motion.tr>
-                )) || []}
+                ))}
               </tbody>
             </table>
           </div>

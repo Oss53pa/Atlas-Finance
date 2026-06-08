@@ -43,7 +43,7 @@ import {
 } from '../../components/ui';
 import { createAxeSchema } from '../../services/modules/analytics.service';
 import { z } from 'zod';
-import { formatCurrency, formatDate } from '../../lib/utils';
+import { formatDate } from '../../lib/utils';
 import { toast } from 'react-hot-toast';
 
 interface AxeData {
@@ -153,8 +153,6 @@ const AnalyticalAxesPage: React.FC = () => {
     return {
       count: filtered.length,
       active_count: activeItems.length,
-      total_centers: allAxes.reduce((sum: number, a: AxeData) => sum + (Number(a.nb_centres) || 0), 0),
-      total_allocations: allAxes.reduce((sum: number, a: AxeData) => sum + (Number(a.nb_ventilations) || 0), 0),
       results,
       type_distribution: Object.entries(
         allAxes.reduce((acc: Record<string, number>, a: AxeData) => {
@@ -163,10 +161,6 @@ const AnalyticalAxesPage: React.FC = () => {
           return acc;
         }, {})
       ).map(([type, count]) => ({ type, count })),
-      top_axes: [...allAxes]
-        .sort((a, b) => (Number(b.montant_total) || 0) - (Number(a.montant_total) || 0))
-        .slice(0, 5)
-        .map(a => ({ libelle: a.libelle as string, montant_total: Number(a.montant_total) || 0 })),
     };
   }, [allAxes, filters, page]);
 
@@ -447,8 +441,9 @@ const AnalyticalAxesPage: React.FC = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">Centres Associés</p>
                 <p className="text-lg font-bold text-primary-700">
-                  {axesData?.total_centers || 0}
+                  —
                 </p>
+                <p className="text-xs text-gray-500">Non alimenté par l'import</p>
               </div>
             </div>
           </CardContent>
@@ -463,8 +458,9 @@ const AnalyticalAxesPage: React.FC = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">Ventilations</p>
                 <p className="text-lg font-bold text-orange-700">
-                  {axesData?.total_allocations || 0}
+                  —
                 </p>
+                <p className="text-xs text-gray-500">Comptabilité analytique non alimentée</p>
               </div>
             </div>
           </CardContent>
@@ -608,16 +604,12 @@ const AnalyticalAxesPage: React.FC = () => {
                         <TableCell>
                           <div className="flex items-center space-x-2">
                             <Users className="h-4 w-4 text-gray-700" />
-                            <span className="font-medium">{axe.nb_centres || 0}</span>
-                            <span className="text-sm text-gray-700">centre(s)</span>
+                            <span className="text-sm text-gray-500">—</span>
                           </div>
                         </TableCell>
                         <TableCell>
                           <div className="text-sm">
-                            <p className="font-medium">{axe.nb_ventilations || 0} ventilation(s)</p>
-                            <p className="text-gray-600">
-                              {formatCurrency(axe.montant_total || 0)}
-                            </p>
+                            <p className="text-gray-500">—</p>
                           </div>
                         </TableCell>
                         <TableCell>
@@ -766,17 +758,8 @@ const AnalyticalAxesPage: React.FC = () => {
               
               <div>
                 <h4 className="font-medium text-[var(--color-text-primary)] mb-3">Top Axes par Volume</h4>
-                <div className="space-y-2">
-                  {axesData.top_axes?.map((axe, index) => (
-                    <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-sm font-medium">{axe.libelle}</span>
-                      </div>
-                      <span className="text-sm font-semibold text-green-700">
-                        {formatCurrency(axe.montant_total)}
-                      </span>
-                    </div>
-                  ))}
+                <div className="p-4 bg-gray-50 rounded text-center text-sm text-gray-500">
+                  Aucune donnée — comptabilité analytique non alimentée par l'import
                 </div>
               </div>
             </div>

@@ -184,6 +184,15 @@ const AssetsTransactions: React.FC = () => {
     );
   };
 
+  // Summary stats derived from real asset data (no fabricated counts)
+  const summaryStats = useMemo(() => {
+    const acquisitions = transactions.filter(t => t.typeTransaction === 'Acquisition').length;
+    const cessions = transactions.filter(t => t.typeTransaction === 'Cession').length;
+    const vncTotale = transactions.reduce((sum, t) => sum + (t.valeurNetteComptableActuelle || 0), 0);
+    const amortCumule = transactions.reduce((sum, t) => sum + (t.amortissementCumuleActuel || 0), 0);
+    return { acquisitions, cessions, vncTotale, amortCumule };
+  }, [transactions]);
+
   const filteredTransactions = transactions.filter(t => {
     const matchesType = filterType === 'all' || t.typeTransaction === filterType;
     const matchesSearch =
@@ -361,7 +370,7 @@ const AssetsTransactions: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-[var(--color-text-secondary)]">Acquisitions</p>
-                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">12</p>
+                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">{summaryStats.acquisitions}</p>
                 <p className="text-xs text-green-500 mt-1">Acquisitions</p>
               </div>
               <Plus className="w-8 h-8 text-green-500 opacity-20" />
@@ -374,7 +383,7 @@ const AssetsTransactions: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-[var(--color-text-secondary)]">Cessions</p>
-                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">5</p>
+                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">{summaryStats.cessions}</p>
                 <p className="text-xs text-red-500 mt-1">Cessions</p>
               </div>
               <TrendingDown className="w-8 h-8 text-red-500 opacity-20" />
@@ -387,8 +396,8 @@ const AssetsTransactions: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-[var(--color-text-secondary)]">Réévaluations</p>
-                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">3</p>
-                <p className="text-xs text-primary-500 mt-1">Réévaluations</p>
+                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">—</p>
+                <p className="text-xs text-primary-500 mt-1">Non suivi à l'import</p>
               </div>
               <TrendingUp className="w-8 h-8 text-primary-500 opacity-20" />
             </div>
@@ -400,7 +409,7 @@ const AssetsTransactions: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-[var(--color-text-secondary)]">VNC totale</p>
-                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">—</p>
+                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">{transactions.length ? formatCurrency(summaryStats.vncTotale) : '—'}</p>
                 <p className="text-xs text-blue-500 mt-1">VNC calculée</p>
               </div>
               <DollarSign className="w-8 h-8 text-blue-500 opacity-20" />
@@ -413,7 +422,7 @@ const AssetsTransactions: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-[var(--color-text-secondary)]">Amort. cumulé</p>
-                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">—</p>
+                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">{transactions.length ? formatCurrency(summaryStats.amortCumule) : '—'}</p>
                 <p className="text-xs text-orange-500 mt-1">Calculé dynamiquement</p>
               </div>
               <Clock className="w-8 h-8 text-orange-500 opacity-20" />

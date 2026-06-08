@@ -220,7 +220,7 @@ const Immobilisations: React.FC = () => {
     const amortissementsCumules = immobilisations.reduce((sum, immo) => sum + immo.amortissementsCumules, 0);
     const valeurNetteTotale = immobilisations.reduce((sum, immo) => sum + immo.valeurNette, 0);
     const dotationsAnnuelles = immobilisations.reduce((sum, immo) => sum + immo.amortissementAnnuel, 0);
-    const tauxAmortissementMoyen = amortissementsCumules / valeurBruteTotale * 100;
+    const tauxAmortissementMoyen = valeurBruteTotale > 0 ? amortissementsCumules / valeurBruteTotale * 100 : 0;
     const immobilisationsObsoletes = immobilisations.filter(immo =>
       immo.etatPhysique === 'hors_service' || immo.statutComptable === 'totalement_amorti'
     ).length;
@@ -236,6 +236,53 @@ const Immobilisations: React.FC = () => {
       valeurAssuranceTotale: immobilisations.reduce((sum, immo) => sum + (immo.valeurAssurance || 0), 0)
     };
   }, [immobilisations]);
+
+  // Répartition par catégorie (dérivée du réel)
+  const repartitionCategorie = useMemo(() => {
+    const make = (cat: 'corporelle' | 'incorporelle' | 'financiere') => {
+      const items = immobilisations.filter(i => i.categorie === cat);
+      const valeur = items.reduce((s, i) => s + i.valeurBrute, 0);
+      return { count: items.length, valeur };
+    };
+    const corporelle = make('corporelle');
+    const incorporelle = make('incorporelle');
+    const financiere = make('financiere');
+    const total = corporelle.valeur + incorporelle.valeur + financiere.valeur;
+    const pct = (v: number) => (total > 0 ? (v / total) * 100 : 0);
+    return {
+      corporelle: { ...corporelle, pct: pct(corporelle.valeur) },
+      incorporelle: { ...incorporelle, pct: pct(incorporelle.valeur) },
+      financiere: { ...financiere, pct: pct(financiere.valeur) },
+    };
+  }, [immobilisations]);
+
+  // Répartition par durée d'amortissement (dérivée du réel)
+  const repartitionDuree = useMemo(() => {
+    const map = new Map<number, number>();
+    immobilisations.forEach(i => {
+      map.set(i.dureeAmortissement, (map.get(i.dureeAmortissement) || 0) + 1);
+    });
+    return Array.from(map.entries())
+      .sort((a, b) => a[0] - b[0])
+      .map(([duree, nb]) => ({ duree, nb }));
+  }, [immobilisations]);
+
+  // Répartition par méthode d'amortissement (dérivée du réel)
+  const repartitionMethode = useMemo(() => {
+    const total = immobilisations.length;
+    const lineaire = immobilisations.filter(i => i.methodeAmortissement === 'lineaire').length;
+    const degressive = immobilisations.filter(i => i.methodeAmortissement === 'degressive').length;
+    const uniteOeuvre = immobilisations.filter(i => i.methodeAmortissement === 'unite_oeuvre').length;
+    const pct = (n: number) => (total > 0 ? Math.round((n / total) * 100) : 0);
+    return {
+      lineaire: { nb: lineaire, pct: pct(lineaire) },
+      degressive: { nb: degressive, pct: pct(degressive) },
+      uniteOeuvre: { nb: uniteOeuvre, pct: pct(uniteOeuvre) },
+    };
+  }, [immobilisations]);
+
+  // Helper format FCFA (millions)
+  const fmtM = (v: number) => `${(v / 1000000).toFixed(1)}M FCFA`;
 
   // Filtrage des immobilisations
   const immobilisationsFiltrees = useMemo(() => {
@@ -388,7 +435,7 @@ const Immobilisations: React.FC = () => {
               <div>
                 <p className="text-sm text-[var(--color-text-primary)]">Dotations Annuelles</p>
                 <p className="text-lg font-bold">{(kpis.dotationsAnnuelles / 1000000).toFixed(1)}M FCFA</p>
-                <p className="text-xs text-[var(--color-text-primary)] mt-1">Exercice 2024</p>
+                <p className="text-xs text-[var(--color-text-primary)] mt-1">Dotation annuelle théorique</p>
               </div>
               <Calendar className="w-8 h-8 text-primary-500" />
             </div>
@@ -396,24 +443,6 @@ const Immobilisations: React.FC = () => {
         </Card>
       </div>
 
-      {/* Alertes IA et Conformité */}
-      <div className="space-y-4">
-        <Alert className="border-l-4 border-l-green-500">
-          <CheckCircle className="h-4 w-4" />
-          <AlertDescription>
-            <strong>Conformité SYSCOHADA:</strong> Toutes les immobilisations respectent les règles d'amortissement.
-            Méthodes linéaire et dégressive correctement appliquées.
-          </AlertDescription>
-        </Alert>
-
-        <Alert className="border-l-4 border-l-orange-500">
-          <Brain className="h-4 w-4" />
-          <AlertDescription>
-            <strong>Recommandation IA:</strong> 2 véhicules approchent de la fin de leur période d'amortissement.
-            Planifier leur renouvellement ou réviser leur valeur résiduelle.
-          </AlertDescription>
-        </Alert>
-      </div>
 
       {/* Tabs principaux */}
       <Tabs value={selectedTab} onValueChange={setSelectedTab}>
@@ -440,12 +469,12 @@ const Immobilisations: React.FC = () => {
                       <Building className="w-5 h-5 text-[var(--color-primary)]" />
                       <div>
                         <p className="font-medium">Immobilisations Corporelles</p>
-                        <p className="text-sm text-[var(--color-text-primary)]">3 éléments</p>
+                        <p className="text-sm text-[var(--color-text-primary)]">{repartitionCategorie.corporelle.count} élément(s)</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-lg font-bold text-[var(--color-primary)]">510M</p>
-                      <p className="text-sm text-[var(--color-text-secondary)]">85% du total</p>
+                      <p className="text-lg font-bold text-[var(--color-primary)]">{fmtM(repartitionCategorie.corporelle.valeur)}</p>
+                      <p className="text-sm text-[var(--color-text-secondary)]">{repartitionCategorie.corporelle.pct.toFixed(0)}% du total</p>
                     </div>
                   </div>
                   <div className="flex items-center justify-between p-3 bg-orange-50 rounded">
@@ -453,12 +482,12 @@ const Immobilisations: React.FC = () => {
                       <HardDrive className="w-5 h-5 text-[var(--color-warning)]" />
                       <div>
                         <p className="font-medium">Immobilisations Incorporelles</p>
-                        <p className="text-sm text-[var(--color-text-primary)]">1 élément</p>
+                        <p className="text-sm text-[var(--color-text-primary)]">{repartitionCategorie.incorporelle.count} élément(s)</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-lg font-bold text-[var(--color-warning)]">85M</p>
-                      <p className="text-sm text-[var(--color-text-secondary)]">14% du total</p>
+                      <p className="text-lg font-bold text-[var(--color-warning)]">{fmtM(repartitionCategorie.incorporelle.valeur)}</p>
+                      <p className="text-sm text-[var(--color-text-secondary)]">{repartitionCategorie.incorporelle.pct.toFixed(0)}% du total</p>
                     </div>
                   </div>
                   <div className="flex items-center justify-between p-3 bg-[var(--color-warning-lightest)] rounded">
@@ -466,12 +495,12 @@ const Immobilisations: React.FC = () => {
                       <PiggyBank className="w-5 h-5 text-[var(--color-warning)]" />
                       <div>
                         <p className="font-medium">Immobilisations Financières</p>
-                        <p className="text-sm text-[var(--color-text-primary)]">0 élément</p>
+                        <p className="text-sm text-[var(--color-text-primary)]">{repartitionCategorie.financiere.count} élément(s)</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-lg font-bold text-[var(--color-warning)]">0M</p>
-                      <p className="text-sm text-[var(--color-text-secondary)]">0% du total</p>
+                      <p className="text-lg font-bold text-[var(--color-warning)]">{fmtM(repartitionCategorie.financiere.valeur)}</p>
+                      <p className="text-sm text-[var(--color-text-secondary)]">{repartitionCategorie.financiere.pct.toFixed(0)}% du total</p>
                     </div>
                   </div>
                 </div>
@@ -496,7 +525,7 @@ const Immobilisations: React.FC = () => {
                       <p className="text-lg font-bold">{(kpis.amortissementsCumules / 1000000).toFixed(1)}M</p>
                     </div>
                     <div className="text-center p-3 bg-[var(--color-background-secondary)] rounded">
-                      <p className="text-sm text-[var(--color-text-primary)]">Dotations 2024</p>
+                      <p className="text-sm text-[var(--color-text-primary)]">Dotation annuelle</p>
                       <p className="text-lg font-bold">{(kpis.dotationsAnnuelles / 1000000).toFixed(1)}M</p>
                     </div>
                   </div>
@@ -510,22 +539,22 @@ const Immobilisations: React.FC = () => {
               <CardTitle>Immobilisations par Durée d'Amortissement</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-5 gap-4">
-                {[
-                  { duree: '3 ans', nb: 1, categorie: 'Logiciels', color: 'bg-primary-500' },
-                  { duree: '4 ans', nb: 1, categorie: 'Informatique', color: 'bg-[var(--color-primary)]' },
-                  { duree: '5 ans', nb: 1, categorie: 'Véhicules', color: 'bg-[var(--color-success)]' },
-                  { duree: '10 ans', nb: 0, categorie: 'Mobilier', color: 'bg-[var(--color-warning)]' },
-                  { duree: '25 ans', nb: 1, categorie: 'Bâtiments', color: 'bg-[var(--color-error)]' }
-                ].map((item, index) => (
-                  <div key={index} className="text-center p-3 border rounded">
-                    <div className={`w-full h-2 ${item.color} rounded mb-2`} />
-                    <p className="font-medium">{item.duree}</p>
-                    <p className="text-lg font-bold">{item.nb}</p>
-                    <p className="text-xs text-[var(--color-text-secondary)]">{item.categorie}</p>
-                  </div>
-                ))}
-              </div>
+              {repartitionDuree.length === 0 ? (
+                <p className="text-sm text-[var(--color-text-secondary)] text-center py-6">
+                  Aucune donnée — module non alimenté par l'import
+                </p>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                  {repartitionDuree.map((item) => (
+                    <div key={item.duree} className="text-center p-3 border rounded">
+                      <div className="w-full h-2 bg-[var(--color-primary)] rounded mb-2" />
+                      <p className="font-medium">{item.duree} ans</p>
+                      <p className="text-lg font-bold">{item.nb}</p>
+                      <p className="text-xs text-[var(--color-text-secondary)]">immobilisation(s)</p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -675,8 +704,8 @@ const Immobilisations: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[var(--color-text-primary)]">Méthode Linéaire</p>
-                    <p className="text-lg font-bold">3</p>
-                    <p className="text-xs text-[var(--color-success)] mt-1">75% des immobilisations</p>
+                    <p className="text-lg font-bold">{repartitionMethode.lineaire.nb}</p>
+                    <p className="text-xs text-[var(--color-success)] mt-1">{repartitionMethode.lineaire.pct}% des immobilisations</p>
                   </div>
                   <Calculator className="w-8 h-8 text-[var(--color-success)]" />
                 </div>
@@ -687,8 +716,8 @@ const Immobilisations: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[var(--color-text-primary)]">Méthode Dégressive</p>
-                    <p className="text-lg font-bold">1</p>
-                    <p className="text-xs text-[var(--color-primary)] mt-1">25% des immobilisations</p>
+                    <p className="text-lg font-bold">{repartitionMethode.degressive.nb}</p>
+                    <p className="text-xs text-[var(--color-primary)] mt-1">{repartitionMethode.degressive.pct}% des immobilisations</p>
                   </div>
                   <TrendingDown className="w-8 h-8 text-[var(--color-primary)]" />
                 </div>
@@ -699,8 +728,8 @@ const Immobilisations: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[var(--color-text-primary)]">Unité d'Œuvre</p>
-                    <p className="text-lg font-bold">0</p>
-                    <p className="text-xs text-[var(--color-text-primary)] mt-1">0% des immobilisations</p>
+                    <p className="text-lg font-bold">{repartitionMethode.uniteOeuvre.nb}</p>
+                    <p className="text-xs text-[var(--color-text-primary)] mt-1">{repartitionMethode.uniteOeuvre.pct}% des immobilisations</p>
                   </div>
                   <Settings className="w-8 h-8 text-[var(--color-text-secondary)]" />
                 </div>
@@ -711,12 +740,14 @@ const Immobilisations: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>Plan d'Amortissement - IMM002</CardTitle>
+                <CardTitle>
+                  Plan d'Amortissement{immobilisations[0] ? ` - ${immobilisations[0].code}` : ''}
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 {(() => {
-                  const logiciel = immobilisations.find(i => i.code === 'IMM002');
-                  if (!logiciel) return <p>Immobilisation non trouvée</p>;
+                  const logiciel = immobilisations[0];
+                  if (!logiciel) return <p className="text-sm text-[var(--color-text-secondary)] py-4">Aucune immobilisation disponible</p>;
 
                   const plan = genererPlanAmortissement(logiciel);
                   return (
@@ -773,27 +804,9 @@ const Immobilisations: React.FC = () => {
                 <CardTitle>Dotations par Exercice</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {['2022', '2023', '2024', '2025'].map(annee => {
-                    const dotation = annee === '2024' ? 60.5 : annee === '2023' ? 58.2 : annee === '2022' ? 45.0 : 62.1;
-                    return (
-                      <div key={annee} className="flex items-center justify-between p-3 border rounded">
-                        <div>
-                          <p className="font-medium">Exercice {annee}</p>
-                          <p className="text-sm text-[var(--color-text-primary)]">
-                            {annee === '2025' ? 'Prévisionnel' : 'Réalisé'}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-lg font-bold">{dotation}M FCFA</p>
-                          <p className="text-sm text-[var(--color-text-secondary)]">
-                            {annee === '2024' ? '4 immobilisations' : '3 immobilisations'}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                <p className="text-sm text-[var(--color-text-secondary)] text-center py-6">
+                  Aucune donnée — l'historique des dotations par exercice n'est pas alimenté par l'import
+                </p>
               </CardContent>
             </Card>
           </div>
@@ -809,52 +822,58 @@ const Immobilisations: React.FC = () => {
 
         {/* Mouvements */}
         <TabsContent value="mouvements" className="space-y-4">
-          <div className="grid grid-cols-4 gap-4">
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-[var(--color-text-primary)]">Acquisitions 2024</p>
-                    <p className="text-lg font-bold text-[var(--color-success)]">0</p>
-                  </div>
-                  <ArrowUpRight className="w-6 h-6 text-[var(--color-success)]" />
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-[var(--color-text-primary)]">Cessions 2024</p>
-                    <p className="text-lg font-bold text-[var(--color-error)]">0</p>
-                  </div>
-                  <ArrowDownRight className="w-6 h-6 text-[var(--color-error)]" />
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-[var(--color-text-primary)]">Dotations 2024</p>
-                    <p className="text-lg font-bold text-[var(--color-primary)]">4</p>
-                  </div>
-                  <TrendingDown className="w-6 h-6 text-[var(--color-primary)]" />
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-[var(--color-text-primary)]">Réévaluations</p>
-                    <p className="text-lg font-bold text-primary-600">0</p>
-                  </div>
-                  <TrendingUp className="w-6 h-6 text-primary-500" />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          {(() => {
+            const countByType = (type: MouvementImmobilisation['type']) =>
+              mouvementsImmo.filter(m => m.type === type).length;
+            return (
+              <div className="grid grid-cols-4 gap-4">
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-[var(--color-text-primary)]">Acquisitions</p>
+                        <p className="text-lg font-bold text-[var(--color-success)]">{countByType('acquisition')}</p>
+                      </div>
+                      <ArrowUpRight className="w-6 h-6 text-[var(--color-success)]" />
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-[var(--color-text-primary)]">Cessions</p>
+                        <p className="text-lg font-bold text-[var(--color-error)]">{countByType('cession')}</p>
+                      </div>
+                      <ArrowDownRight className="w-6 h-6 text-[var(--color-error)]" />
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-[var(--color-text-primary)]">Dotations</p>
+                        <p className="text-lg font-bold text-[var(--color-primary)]">{countByType('amortissement')}</p>
+                      </div>
+                      <TrendingDown className="w-6 h-6 text-[var(--color-primary)]" />
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-[var(--color-text-primary)]">Réévaluations</p>
+                        <p className="text-lg font-bold text-primary-600">{countByType('reevaluation')}</p>
+                      </div>
+                      <TrendingUp className="w-6 h-6 text-primary-500" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            );
+          })()}
 
           <Card>
             <CardHeader>
@@ -874,6 +893,13 @@ const Immobilisations: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
+                  {mouvementsImmo.length === 0 && (
+                    <tr>
+                      <td colSpan={7} className="px-4 py-8 text-center text-sm text-[var(--color-text-secondary)]">
+                        Aucune donnée — module non alimenté par l'import
+                      </td>
+                    </tr>
+                  )}
                   {mouvementsImmo.map(mouvement => (
                     <tr key={mouvement.id} className="border-t hover:bg-[var(--color-background-secondary)]">
                       <td className="px-4 py-3">
@@ -936,7 +962,9 @@ const Immobilisations: React.FC = () => {
                       <span className="text-sm text-[var(--color-text-secondary)]">Conformes</span>
                     </div>
                     <p className="font-medium">Aucune Dépréciation</p>
-                    <p className="text-lg font-bold text-[var(--color-success)]">4</p>
+                    <p className="text-lg font-bold text-[var(--color-success)]">
+                      {testsDepreciation.filter(t => t.resultatTest === 'aucune_depreciation').length}
+                    </p>
                     <p className="text-sm text-[var(--color-text-primary)]">immobilisations testées</p>
                   </div>
                   <div className="p-4 bg-[var(--color-warning-lightest)] rounded-lg">
@@ -944,8 +972,10 @@ const Immobilisations: React.FC = () => {
                       <AlertTriangle className="w-5 h-5 text-[var(--color-warning)]" />
                       <span className="text-sm text-[var(--color-text-secondary)]">À surveiller</span>
                     </div>
-                    <p className="font-medium">Risque Modéré</p>
-                    <p className="text-lg font-bold text-[var(--color-warning)]">0</p>
+                    <p className="font-medium">Reprise Possible</p>
+                    <p className="text-lg font-bold text-[var(--color-warning)]">
+                      {testsDepreciation.filter(t => t.resultatTest === 'reprise_possible').length}
+                    </p>
                     <p className="text-sm text-[var(--color-text-primary)]">immobilisations</p>
                   </div>
                   <div className="p-4 bg-[var(--color-error-lightest)] rounded-lg">
@@ -954,13 +984,20 @@ const Immobilisations: React.FC = () => {
                       <span className="text-sm text-[var(--color-text-secondary)]">Dépréciées</span>
                     </div>
                     <p className="font-medium">Dépréciation Requise</p>
-                    <p className="text-lg font-bold text-[var(--color-error)]">0</p>
+                    <p className="text-lg font-bold text-[var(--color-error)]">
+                      {testsDepreciation.filter(t => t.resultatTest === 'depreciation_requise').length}
+                    </p>
                     <p className="text-sm text-[var(--color-text-primary)]">immobilisations</p>
                   </div>
                 </div>
 
                 <div className="mt-6">
                   <h4 className="font-medium mb-3">Résultats des Tests</h4>
+                  {testsDepreciation.length === 0 && (
+                    <p className="text-sm text-[var(--color-text-secondary)] text-center py-6">
+                      Aucune donnée — aucun test de dépréciation n'est alimenté par l'import
+                    </p>
+                  )}
                   <div className="space-y-3">
                     {testsDepreciation.map(test => {
                       const immo = immobilisations.find(i => i.id === test.immobilisationId);
@@ -1092,15 +1129,15 @@ const Immobilisations: React.FC = () => {
 
                 <div className="grid grid-cols-3 gap-4 mt-6">
                   <div className="text-center p-4 bg-[var(--color-background-secondary)] rounded">
-                    <p className="text-lg font-bold text-[var(--color-success)]">98%</p>
+                    <p className="text-lg font-bold text-[var(--color-success)]">—</p>
                     <p className="text-sm text-[var(--color-text-primary)]">Taux de Conformité Global</p>
                   </div>
                   <div className="text-center p-4 bg-[var(--color-background-secondary)] rounded">
-                    <p className="text-lg font-bold text-[var(--color-primary)]">0</p>
+                    <p className="text-lg font-bold text-[var(--color-primary)]">—</p>
                     <p className="text-sm text-[var(--color-text-primary)]">Non-conformités Critiques</p>
                   </div>
                   <div className="text-center p-4 bg-[var(--color-background-secondary)] rounded">
-                    <p className="text-lg font-bold text-[var(--color-warning)]">1</p>
+                    <p className="text-lg font-bold text-[var(--color-warning)]">—</p>
                     <p className="text-sm text-[var(--color-text-primary)]">Points d'Amélioration</p>
                   </div>
                 </div>
@@ -1405,10 +1442,9 @@ const Immobilisations: React.FC = () => {
                   </label>
                   <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent">
                     <option value="">Sélectionner une immobilisation</option>
-                    <option value="1">Bâtiment Principal - IMM-001</option>
-                    <option value="2">Véhicule Utilitaire - IMM-015</option>
-                    <option value="3">Matériel Informatique - IMM-089</option>
-                    <option value="4">Mobilier Bureau - IMM-125</option>
+                    {immobilisations.map(immo => (
+                      <option key={immo.id} value={immo.id}>{immo.designation} - {immo.code}</option>
+                    ))}
                   </select>
                 </div>
 
@@ -1417,19 +1453,19 @@ const Immobilisations: React.FC = () => {
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div>
                       <p className="text-[var(--color-text-primary)]">Date d'acquisition:</p>
-                      <p className="font-semibold">15/01/2020</p>
+                      <p className="font-semibold">—</p>
                     </div>
                     <div>
                       <p className="text-[var(--color-text-primary)]">Valeur d'origine:</p>
-                      <p className="font-semibold">50 000,00 €</p>
+                      <p className="font-semibold">—</p>
                     </div>
                     <div>
                       <p className="text-[var(--color-text-primary)]">Durée d'amortissement:</p>
-                      <p className="font-semibold">10 ans</p>
+                      <p className="font-semibold">—</p>
                     </div>
                     <div>
                       <p className="text-[var(--color-text-primary)]">Méthode:</p>
-                      <p className="font-semibold">Linéaire</p>
+                      <p className="font-semibold">—</p>
                     </div>
                   </div>
                 </div>
@@ -1440,9 +1476,9 @@ const Immobilisations: React.FC = () => {
                       Exercice comptable <span className="text-[var(--color-error)]">*</span>
                     </label>
                     <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                      <option value="2026">2026</option>
                       <option value="2025">2025</option>
                       <option value="2024">2024</option>
-                      <option value="2023">2023</option>
                     </select>
                   </div>
 
@@ -1462,19 +1498,19 @@ const Immobilisations: React.FC = () => {
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-[var(--color-text-primary)]">Dotation annuelle:</span>
-                      <span className="font-semibold">5 000,00 €</span>
+                      <span className="font-semibold">—</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-[var(--color-text-primary)]">Dotation prorata (365 jours):</span>
-                      <span className="font-semibold">5 000,00 €</span>
+                      <span className="font-semibold">—</span>
                     </div>
                     <div className="flex justify-between pt-2 border-t border-primary-200">
                       <span className="text-primary-900 font-medium">Amortissements cumulés:</span>
-                      <span className="font-bold text-primary-900">25 000,00 €</span>
+                      <span className="font-bold text-primary-900">—</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-primary-900 font-medium">Valeur nette comptable:</span>
-                      <span className="font-bold text-primary-900">25 000,00 €</span>
+                      <span className="font-bold text-primary-900">—</span>
                     </div>
                   </div>
                 </div>
@@ -1601,9 +1637,9 @@ const Immobilisations: React.FC = () => {
                   </label>
                   <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent">
                     <option value="">Sélectionner</option>
-                    <option value="1">Véhicule Utilitaire - IMM-015</option>
-                    <option value="2">Matériel Ancien - IMM-045</option>
-                    <option value="3">Mobilier Bureau - IMM-088</option>
+                    {immobilisations.map(immo => (
+                      <option key={immo.id} value={immo.id}>{immo.designation} - {immo.code}</option>
+                    ))}
                   </select>
                 </div>
 
@@ -1612,15 +1648,15 @@ const Immobilisations: React.FC = () => {
                   <div className="grid grid-cols-3 gap-3 text-sm">
                     <div>
                       <p className="text-[var(--color-text-primary)]">Valeur d'origine:</p>
-                      <p className="font-semibold">30 000,00 €</p>
+                      <p className="font-semibold">—</p>
                     </div>
                     <div>
                       <p className="text-[var(--color-text-primary)]">Amortissements:</p>
-                      <p className="font-semibold text-[var(--color-warning)]">18 000,00 €</p>
+                      <p className="font-semibold text-[var(--color-warning)]">—</p>
                     </div>
                     <div>
                       <p className="text-[var(--color-text-primary)]">Valeur nette:</p>
-                      <p className="font-semibold text-[var(--color-primary)]">12 000,00 €</p>
+                      <p className="font-semibold text-[var(--color-primary)]">—</p>
                     </div>
                   </div>
                 </div>
@@ -1654,7 +1690,7 @@ const Immobilisations: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
-                      Prix de cession (€)
+                      Prix de cession (FCFA)
                     </label>
                     <input
                       type="number"
@@ -1681,15 +1717,15 @@ const Immobilisations: React.FC = () => {
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-[var(--color-text-primary)]">Prix de cession:</span>
-                      <span className="font-semibold">10 000,00 €</span>
+                      <span className="font-semibold">—</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-[var(--color-text-primary)]">Valeur nette comptable:</span>
-                      <span className="font-semibold">12 000,00 €</span>
+                      <span className="font-semibold">—</span>
                     </div>
                     <div className="flex justify-between pt-2 border-t border-[var(--color-border-dark)]">
                       <span className="font-medium text-[var(--color-text-primary)]">Résultat de cession:</span>
-                      <span className="font-bold text-[var(--color-error)]">- 2 000,00 € (Moins-value)</span>
+                      <span className="font-bold text-[var(--color-error)]">—</span>
                     </div>
                   </div>
                 </div>

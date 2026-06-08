@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { useToast } from '../../hooks/useToast';
 import { runAllCrossControls, type CrossControlReport, type ControlResult } from '../../services/crossControlsService';
@@ -22,11 +22,46 @@ export default function CrossControlsPage() {
   const { toast } = useToast();
   const [report, setReport] = useState<CrossControlReport | null>(null);
   const [loading, setLoading] = useState(false);
-  const [fiscalYear, setFiscalYear] = useState({
-    code: '2025',
-    start: '2025-01-01',
-    end: '2025-12-31',
+  // Defaults to the current calendar year; overwritten by the real active
+  // fiscal year resolved from the data on mount (the books are dated 2026,
+  // so hardcoding 2025 here would query an empty period and report fake "OK").
+  const [fiscalYear, setFiscalYear] = useState(() => {
+    const y = String(new Date().getFullYear());
+    return { code: y, start: `${y}-01-01`, end: `${y}-12-31` };
   });
+
+  // Resolve the active fiscal year from real data so the controls run on the
+  // period that actually contains the écritures.
+  useEffect(() => {
+    if (!adapter) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const fys = await adapter.getAll<{
+          code?: string;
+          startDate?: string;
+          endDate?: string;
+          isActive?: boolean;
+        }>('fiscalYears');
+        if (cancelled || !fys.length) return;
+        const active = fys.find((f) => f.isActive) ?? fys[fys.length - 1];
+        const code =
+          active.code ??
+          (active.startDate ? active.startDate.slice(0, 4) : undefined);
+        if (!code) return;
+        setFiscalYear({
+          code,
+          start: active.startDate || `${code}-01-01`,
+          end: active.endDate || `${code}-12-31`,
+        });
+      } catch {
+        // keep the calendar-year fallback
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [adapter]);
 
   const runControls = useCallback(async () => {
     if (!adapter) return;

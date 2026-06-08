@@ -198,7 +198,7 @@ const StockMovementModal: React.FC<StockMovementModalProps> = ({
                   Total Value
                 </label>
                 <p className="text-lg font-semibold text-gray-900">
-                  <CurrencyDisplay amount={stockLevel.totalValue} currency="USD" />
+                  <CurrencyDisplay amount={stockLevel.totalValue} currency="XOF" />
                 </p>
               </div>
 
@@ -495,6 +495,28 @@ const StockManagement: React.FC = () => {
     );
   }
 
+  // Honest empty state: la table inventory_items n'est pas alimentée par l'import.
+  // On n'affiche aucun chiffre fabriqué (alertes/valeurs) tant qu'il n'y a pas de données réelles.
+  if (inventoryItems.length === 0) {
+    return (
+      <div className="p-6 bg-gray-50 min-h-screen">
+        <div className="mb-8">
+          <h1 className="text-lg font-bold text-gray-900 mb-2">Gestion des stocks</h1>
+          <p className="text-gray-600">
+            Niveaux de stock et mouvements d'inventaire par emplacement
+          </p>
+        </div>
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 flex flex-col items-center justify-center text-center">
+          <Package className="w-12 h-12 text-gray-400 mb-4" />
+          <p className="text-base font-medium text-gray-900 mb-1">Aucune donnée</p>
+          <p className="text-sm text-gray-600">
+            Module non alimenté par l'import.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       {/* Header */}
@@ -637,7 +659,7 @@ const StockManagement: React.FC = () => {
                     {formatCurrency(stock.quantityOnOrder)}
                   </td>
                   <td className="py-4 px-4 text-right">
-                    <CurrencyDisplay amount={stock.totalValue} currency="USD" size="sm" />
+                    <CurrencyDisplay amount={stock.totalValue} currency="XOF" size="sm" />
                   </td>
                   <td className="py-4 px-4 text-center">
                     <StockStatusBadge

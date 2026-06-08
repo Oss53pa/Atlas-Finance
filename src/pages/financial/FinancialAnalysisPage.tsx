@@ -203,7 +203,9 @@ const FinancialAnalysisPage: React.FC = () => {
 
     // TAFIRE
     const operatingCashFlow = selfFinancingCapacity;
-    const investmentCashFlow = -Math.abs(net(['21', '22', '23', '24', '25']));
+    // Flux d'investissement = variation brute des immobilisations (classe 2, préfixes 20 à 27),
+    // amortissements (28) et dépréciations (29) exclus pour un flux brut.
+    const investmentCashFlow = -Math.abs(net(['20', '21', '22', '23', '24', '25', '26', '27']));
     const financingCashFlow = creditNet(['16']) - net(['16']);
     const netCashFlow = operatingCashFlow + investmentCashFlow + financingCashFlow;
 

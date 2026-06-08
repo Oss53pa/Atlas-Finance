@@ -57,7 +57,7 @@ const RapprochementBancaire: React.FC = () => {
   const { t } = useLanguage();
   const { adapter } = useData();
   const [selectedBank, setSelectedBank] = useState('001');
-  const [selectedPeriod, setSelectedPeriod] = useState('2025-01');
+  const [selectedPeriod, setSelectedPeriod] = useState('—');
   const [filterStatus, setFilterStatus] = useState('tous');
   const [autoRapprochement, setAutoRapprochement] = useState(true);
   const [showImportModal, setShowImportModal] = useState(false);
@@ -82,7 +82,11 @@ const RapprochementBancaire: React.FC = () => {
   const [bankEntries, setBankEntries] = useState<RapprochementItem[]>([]);
 
   useEffect(() => {
-    adapter.getAll<DBFiscalYear>('fiscalYears').then(fys => setFiscalYears(fys));
+    adapter.getAll<DBFiscalYear>('fiscalYears').then(fys => {
+      setFiscalYears(fys);
+      const fy = fys.find(f => f.isActive) || fys[0];
+      if (fy?.startDate) setSelectedPeriod(String(fy.startDate).slice(0, 7));
+    });
   }, [adapter]);
 
   useEffect(() => {
@@ -161,262 +165,18 @@ const RapprochementBancaire: React.FC = () => {
   // Moyens de paiement — initialisés vides (configurés par l'utilisateur)
   const moyensPaiement: MoyenPaiement[] = [];
 
-  // Opérations bancaires depuis les écritures réelles
-  const operations: RapprochementItem[] = bankEntries.length > 0 ? bankEntries : [];
-  const _legacyOps = [
-    {
-      id: '1',
-      date: '2025-01-15',
-      libelle: 'Virement Client ABC',
-      reference: 'VIR-2025-001',
-      montantBanque: 250000,
-      montantCompta: 250000,
-      statut: 'rapproche',
-      typeOperation: 'credit',
-      moyenPaiement: 'virement',
-      compteBancaire: '521100',
-      compteContrepartie: '411100',
-      pieceComptable: 'BQ-2025-00145',
-      journalCode: 'BQ',
-      dateComptabilisation: '2025-01-15',
-      tiers: 'Client ABC SARL',
-      tierCode: 'CLI-001'
-    },
-    {
-      id: '2',
-      date: '2025-01-14',
-      libelle: 'Paiement Fournisseur XYZ',
-      reference: 'CHQ-2025-045',
-      montantBanque: -85000,
-      montantCompta: -85000,
-      statut: 'rapproche',
-      typeOperation: 'debit',
-      moyenPaiement: 'cheque',
-      compteBancaire: '521100',
-      compteContrepartie: '401100',
-      pieceComptable: 'BQ-2025-00142',
-      journalCode: 'BQ',
-      dateComptabilisation: '2025-01-14',
-      tiers: 'Fournisseur XYZ SA',
-      tierCode: 'FRN-045'
-    },
-    {
-      id: '3',
-      date: '2025-01-13',
-      libelle: 'Commission bancaire',
-      reference: 'COM-2025-01',
-      montantBanque: -2500,
-      statut: 'en_attente',
-      typeOperation: 'debit',
-      moyenPaiement: 'virement',
-      compteBancaire: '521100'
-    },
-    {
-      id: '4',
-      date: '2025-01-12',
-      libelle: 'Remise chèques',
-      reference: 'REM-2025-008',
-      montantBanque: 456000,
-      montantCompta: 458000,
-      statut: 'ecart',
-      typeOperation: 'credit',
-      confidence: 85,
-      moyenPaiement: 'cheque',
-      compteBancaire: '521100',
-      compteContrepartie: '411000',
-      pieceComptable: 'BQ-2025-00138',
-      journalCode: 'BQ',
-      dateComptabilisation: '2025-01-12',
-      tiers: 'Clients divers',
-      tierCode: 'CLI-DIV'
-    },
-    {
-      id: '5',
-      date: '2025-01-11',
-      libelle: 'Virement salaires',
-      reference: 'SAL-2025-01',
-      montantBanque: -1250000,
-      statut: 'suggere',
-      typeOperation: 'debit',
-      confidence: 92,
-      moyenPaiement: 'virement',
-      compteBancaire: '521100',
-      compteContrepartie: '421000',
-      pieceComptable: 'SA-2025-00012',
-      journalCode: 'SA'
-    },
-    // Opérations Mobile Money
-    {
-      id: '6',
-      date: '2025-01-15',
-      libelle: 'Paiement Orange Money Client #2341',
-      reference: 'OM-2025-1234',
-      montantBanque: 75000,
-      montantCompta: 74625,
-      statut: 'rapproche',
-      typeOperation: 'credit',
-      moyenPaiement: 'mobile',
-      commission: 375,
-      compteBancaire: '521200',
-      compteContrepartie: '411100',
-      pieceComptable: 'MM-2025-00234',
-      journalCode: 'MM',
-      dateComptabilisation: '2025-01-15',
-      tiers: 'Client #2341',
-      tierCode: 'CLI-2341'
-    },
-    {
-      id: '7',
-      date: '2025-01-15',
-      libelle: 'Réception MTN Money #5678',
-      reference: 'MTN-2025-5678',
-      montantBanque: 125000,
-      montantCompta: 124375,
-      statut: 'rapproche',
-      typeOperation: 'credit',
-      moyenPaiement: 'mobile',
-      commission: 625,
-      compteBancaire: '521300',
-      compteContrepartie: '411100',
-      pieceComptable: 'MM-2025-00235',
-      journalCode: 'MM',
-      dateComptabilisation: '2025-01-15',
-      tiers: 'Client #5678',
-      tierCode: 'CLI-5678'
-    },
-    {
-      id: '8',
-      date: '2025-01-14',
-      libelle: 'Transfert Wave Money #3456',
-      reference: 'WAVE-2025-3456',
-      montantBanque: 230000,
-      montantCompta: 230000,
-      statut: 'rapproche',
-      typeOperation: 'credit',
-      moyenPaiement: 'mobile',
-      commission: 0
-    },
-    {
-      id: '9',
-      date: '2025-01-14',
-      libelle: 'Paiement Moov Money #7890',
-      reference: 'MOOV-2025-7890',
-      montantBanque: 45000,
-      statut: 'en_attente',
-      typeOperation: 'credit',
-      moyenPaiement: 'mobile'
-    },
-    // Opérations Cartes Bancaires
-    {
-      id: '10',
-      date: '2025-01-15',
-      libelle: 'Transaction CB VISA #4567',
-      reference: 'CB-2025-0089',
-      montantBanque: 45000,
-      montantCompta: 44325,
-      statut: 'rapproche',
-      typeOperation: 'credit',
-      moyenPaiement: 'cb',
-      commission: 675
-    },
-    {
-      id: '11',
-      date: '2025-01-14',
-      libelle: 'Paiement MasterCard #8901',
-      reference: 'CB-2025-0090',
-      montantBanque: 89000,
-      montantCompta: 87398,
-      statut: 'rapproche',
-      typeOperation: 'credit',
-      moyenPaiement: 'cb',
-      commission: 1602
-    },
-    {
-      id: '12',
-      date: '2025-01-13',
-      libelle: 'Transaction CB VISA #4567',
-      reference: 'CB-2025-0091',
-      montantBanque: 156000,
-      statut: 'suggere',
-      typeOperation: 'credit',
-      moyenPaiement: 'cb',
-      confidence: 89
-    },
-    // Opérations TPE
-    {
-      id: '13',
-      date: '2025-01-15',
-      libelle: 'Encaissement TPE Magasin #001',
-      reference: 'TPE-2025-0567',
-      montantBanque: 125000,
-      montantCompta: 122500,
-      statut: 'rapproche',
-      typeOperation: 'credit',
-      moyenPaiement: 'tpe',
-      commission: 2500
-    },
-    {
-      id: '14',
-      date: '2025-01-14',
-      libelle: 'Terminal Plateau Batch #234',
-      reference: 'TPE-2025-0568',
-      montantBanque: 340000,
-      montantCompta: 333200,
-      statut: 'rapproche',
-      typeOperation: 'credit',
-      moyenPaiement: 'tpe',
-      commission: 6800
-    },
-    {
-      id: '15',
-      date: '2025-01-13',
-      libelle: 'TPE Cocody Transaction #456',
-      reference: 'TPE-2025-0569',
-      montantBanque: 78000,
-      statut: 'ecart',
-      typeOperation: 'credit',
-      moyenPaiement: 'tpe',
-      confidence: 95
-    },
-    // Opérations espèces
-    {
-      id: '16',
-      date: '2025-01-15',
-      libelle: 'Versement espèces caisse',
-      reference: 'ESP-2025-001',
-      montantBanque: 500000,
-      montantCompta: 500000,
-      statut: 'rapproche',
-      typeOperation: 'credit',
-      moyenPaiement: 'especes'
-    },
-    {
-      id: '17',
-      date: '2025-01-14',
-      libelle: 'Retrait espèces',
-      reference: 'ESP-2025-002',
-      montantBanque: -200000,
-      montantCompta: -200000,
-      statut: 'rapproche',
-      typeOperation: 'debit',
-      moyenPaiement: 'especes'
-    }
-  ];
+  // Opérations bancaires depuis les écritures réelles (GL classe 5)
+  const operations: RapprochementItem[] = bankEntries;
 
-  // Filtrer les opérations selon l'onglet sélectionné
+  // Filtrer les opérations selon l'onglet sélectionné.
+  // Seul l'onglet "banques" est alimenté par l'import (écritures GL classe 5).
+  // Les onglets CB / Mobile Money / TPE / Espèces n'ont AUCUNE source de données
+  // dans l'import (pas de registre dédié) → état vide honnête.
   const getFilteredOperations = () => {
     if (selectedTab === 'banques') {
-      return operations.filter(op => ['virement', 'cheque', 'prelevement'].includes(op.moyenPaiement || ''));
-    } else if (selectedTab === 'cb') {
-      return operations.filter(op => op.moyenPaiement === 'cb');
-    } else if (selectedTab === 'mobile') {
-      return operations.filter(op => op.moyenPaiement === 'mobile');
-    } else if (selectedTab === 'tpe') {
-      return operations.filter(op => op.moyenPaiement === 'tpe');
-    } else if (selectedTab === 'especes') {
-      return operations.filter(op => op.moyenPaiement === 'especes');
+      return operations;
     }
-    return operations;
+    return [];
   };
 
   const filteredOperations = getFilteredOperations();
@@ -493,20 +253,19 @@ const RapprochementBancaire: React.FC = () => {
     especes: { numero: '571', libelle: 'Caisse' }
   };
 
-  // Statistiques consolidées
+  // Statistiques consolidées.
+  // Seules les opérations bancaires (GL classe 5) sont réelles.
+  // Les canaux Mobile Money / CB / TPE / Espèces ne sont alimentés par aucune
+  // source de l'import → null (affiché "—"), jamais un chiffre fabriqué.
   const getConsolidationStats = () => {
-    const totalBanques = operations.filter(op => ['virement', 'cheque', 'prelevement'].includes(op.moyenPaiement || ''))
-      .reduce((sum, op) => sum + (op.montantBanque || 0), 0);
-    const totalMobile = operations.filter(op => op.moyenPaiement === 'mobile')
-      .reduce((sum, op) => sum + (op.montantBanque || 0), 0);
-    const totalCB = operations.filter(op => op.moyenPaiement === 'cb')
-      .reduce((sum, op) => sum + (op.montantBanque || 0), 0);
-    const totalTPE = operations.filter(op => op.moyenPaiement === 'tpe')
-      .reduce((sum, op) => sum + (op.montantBanque || 0), 0);
-    const totalEspeces = operations.filter(op => op.moyenPaiement === 'especes')
-      .reduce((sum, op) => sum + (op.montantBanque || 0), 0);
-
-    return { totalBanques, totalMobile, totalCB, totalTPE, totalEspeces };
+    const totalBanques = operations.reduce((sum, op) => sum + (op.montantBanque || 0), 0);
+    return {
+      totalBanques,
+      totalMobile: null as number | null,
+      totalCB: null as number | null,
+      totalTPE: null as number | null,
+      totalEspeces: null as number | null,
+    };
   };
 
   return (
@@ -568,8 +327,11 @@ const RapprochementBancaire: React.FC = () => {
                       <item.icon className={`w-4 h-4 text-${item.color}-600`} />
                     </div>
                     <p className="text-lg font-bold">
-                      {formatCurrency(item.value)}
+                      {item.value === null ? '—' : formatCurrency(item.value)}
                     </p>
+                    {item.value === null && (
+                      <p className="text-[10px] text-[var(--color-text-tertiary)] mt-1">Non alimenté par l&apos;import</p>
+                    )}
                   </div>
                 ))}
               </div>
@@ -583,7 +345,7 @@ const RapprochementBancaire: React.FC = () => {
                       {operations.filter(o => o.statut === 'rapproche').length} / {operations.length}
                     </span>
                   </div>
-                  <Progress value={(operations.filter(o => o.statut === 'rapproche').length / operations.length) * 100} className="h-2" />
+                  <Progress value={operations.length > 0 ? (operations.filter(o => o.statut === 'rapproche').length / operations.length) * 100 : 0} className="h-2" />
                 </div>
               </div>
             </CardContent>
@@ -658,44 +420,29 @@ const RapprochementBancaire: React.FC = () => {
               </div>
             </div>
 
-            {/* Statistiques pour moyens de paiement électroniques */}
+            {/* Statistiques pour moyens de paiement électroniques —
+                aucune source de données dans l'import → état vide honnête */}
             {(selectedTab === 'mobile' || selectedTab === 'cb' || selectedTab === 'tpe') && (
               <div className="mb-4 p-4 bg-[var(--color-primary)]/10 rounded-lg border border-[var(--color-primary)]/20">
                 <div className="grid grid-cols-4 gap-4">
                   <div>
                     <p className="text-xs text-[var(--color-text-tertiary)]">Volume Jour</p>
-                    <p className="text-lg font-bold text-[var(--color-primary)]">
-                      {formatCurrency(moyensPaiement
-                        .filter(mp => mp.type === selectedTab)
-                        .reduce((sum, mp) => sum + mp.montantJour, 0))}
-                    </p>
+                    <p className="text-lg font-bold text-[var(--color-primary)]">—</p>
                   </div>
                   <div>
                     <p className="text-xs text-[var(--color-text-tertiary)]">Volume Mois</p>
-                    <p className="text-lg font-bold text-[var(--color-primary)]">
-                      {formatCurrency(moyensPaiement
-                        .filter(mp => mp.type === selectedTab)
-                        .reduce((sum, mp) => sum + mp.montantMois, 0))}
-                    </p>
+                    <p className="text-lg font-bold text-[var(--color-primary)]">—</p>
                   </div>
                   <div>
                     <p className="text-xs text-[var(--color-text-tertiary)]">Transactions</p>
-                    <p className="text-lg font-bold text-[var(--color-primary)]">
-                      {moyensPaiement
-                        .filter(mp => mp.type === selectedTab)
-                        .reduce((sum, mp) => sum + mp.nombreTransactions, 0)}
-                    </p>
+                    <p className="text-lg font-bold text-[var(--color-primary)]">—</p>
                   </div>
                   <div>
                     <p className="text-xs text-[var(--color-text-tertiary)]">Commission Moyenne</p>
-                    <p className="text-lg font-bold text-[#E89A2E]">
-                      {(moyensPaiement
-                        .filter(mp => mp.type === selectedTab)
-                        .reduce((sum, mp, _, arr) => sum + (mp.tauxCommission || 0), 0) /
-                        moyensPaiement.filter(mp => mp.type === selectedTab).length || 0).toFixed(1)}%
-                    </p>
+                    <p className="text-lg font-bold text-[#E89A2E]">—</p>
                   </div>
                 </div>
+                <p className="text-xs text-[var(--color-text-tertiary)] mt-2">Aucune donnée — module non alimenté par l&apos;import.</p>
               </div>
             )}
 
@@ -808,6 +555,18 @@ const RapprochementBancaire: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
+                  {filteredOperations.length === 0 && (
+                    <tr>
+                      <td
+                        colSpan={(selectedTab === 'cb' || selectedTab === 'mobile' || selectedTab === 'tpe') ? 8 : 7}
+                        className="py-10 text-center text-sm text-[var(--color-text-tertiary)]"
+                      >
+                        {selectedTab === 'banques'
+                          ? 'Aucune opération bancaire pour l’exercice actif.'
+                          : 'Aucune donnée — module non alimenté par l’import.'}
+                      </td>
+                    </tr>
+                  )}
                   {filteredOperations.map((op) => (
                     <tr key={op.id} className="border-b border-[var(--color-border)] hover:bg-[var(--color-background-secondary)]">
                       <td className="py-3 px-4">
@@ -980,20 +739,20 @@ const RapprochementBancaire: React.FC = () => {
             <div className="grid grid-cols-3 gap-4">
               <div className="bg-white/50 rounded-lg p-3">
                 <p className="text-xs text-[var(--color-text-tertiary)] mb-1">Taux de matching</p>
-                <p className="font-semibold">94%</p>
-                <p className="text-xs text-[var(--color-success)]">+2% vs mois dernier</p>
+                <p className="font-semibold">—</p>
               </div>
               <div className="bg-white/50 rounded-lg p-3">
                 <p className="text-xs text-[var(--color-text-tertiary)] mb-1">Suggestions validées</p>
-                <p className="font-semibold">127/135</p>
-                <p className="text-xs text-[var(--color-primary)]">Précision: 94%</p>
+                <p className="font-semibold">—</p>
               </div>
               <div className="bg-white/50 rounded-lg p-3">
                 <p className="text-xs text-[var(--color-text-tertiary)] mb-1">Temps économisé</p>
-                <p className="font-semibold">3h 45min</p>
-                <p className="text-xs text-primary-600">Ce mois</p>
+                <p className="font-semibold">—</p>
               </div>
             </div>
+            <p className="text-xs text-[var(--color-text-tertiary)] mt-3">
+              Aucune statistique — moteur de rapprochement automatique non alimenté par l&apos;import.
+            </p>
           </div>
         </>
       )}

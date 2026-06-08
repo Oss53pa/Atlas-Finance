@@ -54,8 +54,8 @@ interface CurrencyPosition {
   hedgeRatio: number;
 }
 
-// SYSCOHADA base currency
-const BASE_CURRENCY = 'XAF';
+// SYSCOHADA base currency (tenant UEMOA = XOF / FCFA)
+const BASE_CURRENCY = 'XOF';
 
 interface ExchangeRate {
   from: string;
@@ -93,7 +93,7 @@ const MultiCurrency: React.FC = () => {
   const [filterHedged, setFilterHedged] = useState('all');
   const [viewMode, setViewMode] = useState<'overview' | 'rates' | 'hedging'>('overview');
   const [currencyModal, setCurrencyModal] = useState<CurrencyModal>({ isOpen: false, mode: 'view' });
-  const [selectedBaseCurrency, setSelectedBaseCurrency] = useState('XAF');
+  const [selectedBaseCurrency, setSelectedBaseCurrency] = useState(BASE_CURRENCY);
 
   const [dbExchangeRates, setDbExchangeRates] = useState<any[]>([]);
   const [dbHedgingPositions, setDbHedgingPositions] = useState<any[]>([]);
@@ -218,9 +218,13 @@ const MultiCurrency: React.FC = () => {
       hedgedPositions,
       highExposurePositions,
       totalHedgingPnL,
-      hedgingEffectiveness: hedgedPositions / filteredCurrencies.length
+      hedgingEffectiveness: filteredCurrencies.length > 0 ? hedgedPositions / filteredCurrencies.length : 0
     };
   }, [filteredCurrencies, hedgingPositions]);
+
+  // Module alimenté uniquement par les registres dédiés exchangeRates / hedgingPositions.
+  // Le grand livre du tenant est mono-devise (XOF) : aucune exposition devise n'est dérivable du GL.
+  const hasData = dbExchangeRates.length > 0 || dbHedgingPositions.length > 0;
 
   const getCurrencyIcon = (currency: string) => {
     switch (currency) {
@@ -301,8 +305,8 @@ const MultiCurrency: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <KPICard
             title={`Exposition Totale (${selectedBaseCurrency})`}
-            value={formatCurrency(aggregatedData.totalEquivalentBase)}
-            subtitle={`${filteredCurrencies.length} devises actives`}
+            value={hasData ? formatCurrency(aggregatedData.totalEquivalentBase) : '—'}
+            subtitle={hasData ? `${filteredCurrencies.length} devises actives` : 'Module non alimenté'}
             icon={Globe}
             color="primary"
             delay={0.1}
@@ -311,8 +315,8 @@ const MultiCurrency: React.FC = () => {
 
           <KPICard
             title="Positions Couvertes"
-            value={`${aggregatedData.hedgedPositions}/${filteredCurrencies.length}`}
-            subtitle={`${formatPercentage(aggregatedData.hedgingEffectiveness)} du portefeuille`}
+            value={hasData ? `${aggregatedData.hedgedPositions}/${filteredCurrencies.length}` : '—'}
+            subtitle={hasData ? `${formatPercentage(aggregatedData.hedgingEffectiveness)} du portefeuille` : 'Module non alimenté'}
             icon={Shield}
             color="success"
             delay={0.2}
@@ -321,8 +325,8 @@ const MultiCurrency: React.FC = () => {
 
           <KPICard
             title="Exposition Haute"
-            value={aggregatedData.highExposurePositions.toString()}
-            subtitle="Positions à surveiller"
+            value={hasData ? aggregatedData.highExposurePositions.toString() : '—'}
+            subtitle={hasData ? 'Positions à surveiller' : 'Module non alimenté'}
             icon={AlertTriangle}
             color="warning"
             delay={0.3}
@@ -331,8 +335,8 @@ const MultiCurrency: React.FC = () => {
 
           <KPICard
             title="P&L Couverture"
-            value={formatCurrency(aggregatedData.totalHedgingPnL)}
-            subtitle="Plus-values latentes"
+            value={hasData ? formatCurrency(aggregatedData.totalHedgingPnL) : '—'}
+            subtitle={hasData ? 'Plus-values latentes' : 'Module non alimenté'}
             icon={TrendingUp}
             color={aggregatedData.totalHedgingPnL >= 0 ? "success" : "error"}
             delay={0.4}
@@ -461,6 +465,13 @@ const MultiCurrency: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody>
+                      {filteredCurrencies.length === 0 && (
+                        <tr>
+                          <td colSpan={8} className="py-10 text-center text-neutral-500">
+                            Aucune donnée — module non alimenté par l'import
+                          </td>
+                        </tr>
+                      )}
                       {filteredCurrencies.map((currency, index) => (
                         <motion.tr
                           key={currency.currency}
@@ -492,7 +503,7 @@ const MultiCurrency: React.FC = () => {
                           </td>
                           <td className="py-4 px-4 text-right">
                             <p className="font-medium text-neutral-800">
-                              {currency.averageRate.toFixed(4)}
+                              {(currency.averageRate ?? 0).toFixed(4)}
                             </p>
                           </td>
                           <td className="py-4 px-4 text-right">
@@ -561,6 +572,12 @@ const MultiCurrency: React.FC = () => {
             <div className="space-y-6">
               <h3 className="text-lg font-semibold text-neutral-800">Taux de Change en Temps Réel</h3>
 
+              {exchangeRates.length === 0 && (
+                <div className="py-10 text-center text-neutral-500">
+                  Aucune donnée — module non alimenté par l'import
+                </div>
+              )}
+
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {exchangeRates.map((rate, index) => (
                   <motion.div
@@ -578,7 +595,7 @@ const MultiCurrency: React.FC = () => {
 
                       <div className="space-y-2">
                         <div className="flex justify-between items-end">
-                          <span className="text-lg font-bold text-neutral-800">{rate.rate.toFixed(4)}</span>
+                          <span className="text-lg font-bold text-neutral-800">{(rate.rate ?? 0).toFixed(4)}</span>
                           <div className="flex items-center space-x-1">
                             {rate.change24h > 0 ? (
                               <ArrowUpRight className="h-4 w-4 text-green-600" />
@@ -639,6 +656,13 @@ const MultiCurrency: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody>
+                    {hedgingPositions.length === 0 && (
+                      <tr>
+                        <td colSpan={8} className="py-10 text-center text-neutral-500">
+                          Aucune donnée — module non alimenté par l'import
+                        </td>
+                      </tr>
+                    )}
                     {hedgingPositions.map((position, index) => (
                       <motion.tr
                         key={position.id}
@@ -667,12 +691,12 @@ const MultiCurrency: React.FC = () => {
                         </td>
                         <td className="py-4 px-4 text-right">
                           <span className="font-mono text-sm text-neutral-800">
-                            {position.strikeRate.toFixed(4)}
+                            {(position.strikeRate ?? 0).toFixed(4)}
                           </span>
                         </td>
                         <td className="py-4 px-4 text-right">
                           <span className="font-mono text-sm text-neutral-800">
-                            {position.currentRate.toFixed(4)}
+                            {(position.currentRate ?? 0).toFixed(4)}
                           </span>
                         </td>
                         <td className="py-4 px-4 text-center">

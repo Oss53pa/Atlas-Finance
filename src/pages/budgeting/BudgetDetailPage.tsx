@@ -222,13 +222,23 @@ const BudgetDetailPage: React.FC = () => {
           <div className="text-right">
             <p className="text-sm text-[var(--color-text-tertiary)]">Total annuel</p>
             <p className="text-lg font-bold text-[var(--color-text-secondary)]">
-              {formatAmount(grandTotal)} FCFA
+              {detailData.length > 0 ? formatAmount(grandTotal) : '—'}
             </p>
           </div>
         </div>
       </div>
 
       {/* Tableau des détails */}
+      {detailData.length === 0 ? (
+        <div className="bg-white rounded-lg border border-[var(--color-border)] p-12 text-center">
+          <p className="text-sm text-[var(--color-text-tertiary)]">
+            Aucune donnée — module non alimenté par l'import
+          </p>
+          <p className="text-xs text-[var(--color-text-tertiary)] mt-2">
+            Aucune ligne budgétaire n'existe pour cet exercice. Utilisez « Ajouter ligne » pour saisir un budget.
+          </p>
+        </div>
+      ) : (
       <div className="bg-white rounded-lg border border-[var(--color-border)] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -511,9 +521,10 @@ const BudgetDetailPage: React.FC = () => {
           </table>
         </div>
       </div>
+      )}
 
-      {/* Graphique ou statistiques supplémentaires */}
-      {(() => {
+      {/* Statistiques — affichées uniquement si des lignes budgétaires existent */}
+      {detailData.length > 0 && (() => {
         const quarters = [
           { label: 'Q1', months: [0, 1, 2], name: 'Janvier - Mars' },
           { label: 'Q2', months: [3, 4, 5], name: 'Avril - Juin' },
@@ -527,6 +538,11 @@ const BudgetDetailPage: React.FC = () => {
           },
           { label: 'Q1', months: [0, 1, 2], name: 'Janvier - Mars', total: -Infinity }
         );
+        const minMonthly = Math.min(...monthlyTotals);
+        const maxMonthly = Math.max(...monthlyTotals);
+        // Garde-fou : variation indéfinie si le min mensuel est nul (division par 0)
+        const variationLabel =
+          minMonthly > 0 ? `+${Math.round(((maxMonthly - minMonthly) / minMonthly) * 100)}%` : '—';
         return (
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
         <div className="bg-white rounded-lg p-4 border border-[var(--color-border)]">
@@ -540,7 +556,7 @@ const BudgetDetailPage: React.FC = () => {
         <div className="bg-white rounded-lg p-4 border border-[var(--color-border)]">
           <p className="text-xs text-[var(--color-text-tertiary)] mb-2">Variation max</p>
           <p className="text-lg font-bold text-[var(--color-text-secondary)]">
-            +{Math.round(((Math.max(...monthlyTotals) - Math.min(...monthlyTotals)) / Math.min(...monthlyTotals)) * 100)}%
+            {variationLabel}
           </p>
           <p className="text-xs text-[var(--color-text-tertiary)] mt-1">Entre min et max mensuel</p>
         </div>
@@ -922,7 +938,7 @@ const BudgetDetailPage: React.FC = () => {
                         (editValues.apr || 0) + (editValues.may || 0) + (editValues.jun || 0) +
                         (editValues.jul || 0) + (editValues.aug || 0) + (editValues.sep || 0) +
                         (editValues.oct || 0) + (editValues.nov || 0) + (editValues.dec || 0)
-                      )} FCFA
+                      )}
                     </span>
                   </div>
                 </div>

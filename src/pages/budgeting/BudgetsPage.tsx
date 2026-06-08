@@ -327,8 +327,10 @@ const BudgetsPage: React.FC = () => {
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Montant Total</p>
-              <p className="text-lg font-bold text-gray-900">{formatCurrency(totalBudgetAmount)}</p>
+              <p className="text-sm font-medium text-gray-600">Montant Total (FCFA)</p>
+              <p className="text-lg font-bold text-gray-900">
+                {activeBudgets.length > 0 ? formatCurrency(totalBudgetAmount) : '—'}
+              </p>
             </div>
             <div className="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center">
               <BanknotesIcon className="h-6 w-6 text-green-600" />
@@ -339,8 +341,10 @@ const BudgetsPage: React.FC = () => {
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Montant Consommé</p>
-              <p className="text-lg font-bold text-gray-900">{formatCurrency(totalConsumed)}</p>
+              <p className="text-sm font-medium text-gray-600">Montant Consommé (FCFA)</p>
+              <p className="text-lg font-bold text-gray-900">
+                {activeBudgets.length > 0 ? formatCurrency(totalConsumed) : '—'}
+              </p>
             </div>
             <div className="h-12 w-12 bg-orange-100 rounded-lg flex items-center justify-center">
               <ChartBarIcon className="h-6 w-6 text-orange-600" />
@@ -353,7 +357,7 @@ const BudgetsPage: React.FC = () => {
             <div>
               <p className="text-sm font-medium text-gray-600">Taux Moyen</p>
               <p className={`text-lg font-bold ${getConsumptionColor(averageConsumption)}`}>
-                {averageConsumption.toFixed(1)}%
+                {activeBudgets.length > 0 ? `${averageConsumption.toFixed(1)}%` : '—'}
               </p>
             </div>
             <div className="h-12 w-12 bg-[var(--color-text-secondary)]/10 rounded-lg flex items-center justify-center">
@@ -506,7 +510,9 @@ const BudgetsPage: React.FC = () => {
               ) : filteredBudgets.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="px-6 py-12 text-center text-gray-700">
-                    Aucun budget trouvé
+                    {budgets.length === 0
+                      ? 'Aucune donnée — module non alimenté par l\'import'
+                      : 'Aucun budget trouvé'}
                   </td>
                 </tr>
               ) : (

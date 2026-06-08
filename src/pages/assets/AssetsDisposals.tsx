@@ -6,7 +6,6 @@ import { motion } from 'framer-motion';
 import {
   Trash2,
   TrendingUp,
-  TrendingDown,
   Search,
   Filter,
   Eye,
@@ -64,8 +63,10 @@ interface AssetDisposal {
   completedDate?: string;
   originalCost: number;
   bookValue: number;
-  disposalValue: number;
-  gainLoss: number;
+  // Produit de cession / plus-moins-value : aucune donnée source (assets ne stocke
+  // pas le prix de vente). null = non renseigné → affiché "—", jamais un chiffre inventé.
+  disposalValue: number | null;
+  gainLoss: number | null;
   buyer?: string;
   recipient?: string;
   method: string;
@@ -74,7 +75,8 @@ interface AssetDisposal {
   approvedBy?: string;
   responsiblePerson?: string;
   documentation: string[];
-  environmentalCompliance: boolean;
+  // Conformité environnementale : non alimentée par l'import → null = inconnu.
+  environmentalCompliance: boolean | null;
   dataWiping?: boolean;
   certificateNumber?: string;
   notes?: string;
@@ -125,9 +127,8 @@ const AssetsDisposals: React.FC = () => {
   // Map Dexie assets to AssetDisposal shape
   const disposals: AssetDisposal[] = useMemo(() => {
     return dbDisposedAssets.map((asset: DBAsset) => {
+      // Valeur comptable nette = VNC réelle (residualValue) issue de la table assets.
       const bookValue = asset.residualValue;
-      const disposalValue = asset.status === 'disposed' ? asset.residualValue : 0;
-      const gainLoss = disposalValue - bookValue;
 
       return {
         id: asset.id,
@@ -143,14 +144,16 @@ const AssetsDisposals: React.FC = () => {
         completedDate: asset.acquisitionDate,
         originalCost: asset.acquisitionValue,
         bookValue,
-        disposalValue,
-        gainLoss,
+        // Pas de prix de cession stocké dans assets → non dérivable, on n'invente pas.
+        disposalValue: null,
+        gainLoss: null,
         method: asset.status === 'disposed' ? 'Vente' : 'Mise au rebut',
         location: '',
         initiatedBy: '',
         responsiblePerson: '',
         documentation: [],
-        environmentalCompliance: true,
+        // Pas de donnée de conformité environnementale dans l'import.
+        environmentalCompliance: null,
         notes: `Méthode amortissement: ${asset.depreciationMethod}`
       };
     });
@@ -205,10 +208,10 @@ const AssetsDisposals: React.FC = () => {
 
     const totalOriginalValue = filteredDisposals.reduce((sum, d) => sum + d.originalCost, 0);
     const totalBookValue = filteredDisposals.reduce((sum, d) => sum + d.bookValue, 0);
-    const totalDisposalValue = filteredDisposals.reduce((sum, d) => sum + d.disposalValue, 0);
-    const totalGainLoss = filteredDisposals.reduce((sum, d) => sum + d.gainLoss, 0);
+    // Produit de cession et plus/moins-value : aucune donnée source → non agrégeables.
+    const totalDisposalValue: number | null = null;
+    const totalGainLoss: number | null = null;
 
-    const environmentalCompliant = filteredDisposals.filter(d => d.environmentalCompliance).length;
     const pendingApprovals = approvals.filter(a => a.status === 'pending').length;
 
     return {
@@ -220,9 +223,7 @@ const AssetsDisposals: React.FC = () => {
       totalBookValue,
       totalDisposalValue,
       totalGainLoss,
-      environmentalCompliant,
-      pendingApprovals,
-      complianceRate: environmentalCompliant / totalDisposals
+      pendingApprovals
     };
   }, [filteredDisposals, approvals]);
 
@@ -375,29 +376,29 @@ const AssetsDisposals: React.FC = () => {
 
           <KPICard
             title="Plus/Moins-Value"
-            value={formatCurrency(aggregatedData.totalGainLoss)}
-            subtitle={aggregatedData.totalGainLoss >= 0 ? 'Plus-value réalisée' : 'Moins-value constatée'}
-            icon={aggregatedData.totalGainLoss >= 0 ? TrendingUp : TrendingDown}
-            color={aggregatedData.totalGainLoss >= 0 ? "success" : "error"}
+            value="—"
+            subtitle="Produit de cession non renseigné"
+            icon={TrendingUp}
+            color="neutral"
             delay={0.2}
-            withChart={true}
+            withChart={false}
           />
 
           <KPICard
             title="Valeur de Cession"
-            value={formatCurrency(aggregatedData.totalDisposalValue)}
+            value="—"
             subtitle={`VNC: ${formatCurrency(aggregatedData.totalBookValue)}`}
             icon={DollarSign}
-            color="success"
+            color="neutral"
             delay={0.3}
-            withChart={true}
+            withChart={false}
           />
 
           <KPICard
-            title="Conformité Environnementale"
-            value={formatPercentage(aggregatedData.complianceRate)}
-            subtitle={`${aggregatedData.environmentalCompliant}/${aggregatedData.totalDisposals} conformes`}
-            icon={Recycle}
+            title="Valeur d'Origine"
+            value={formatCurrency(aggregatedData.totalOriginalValue)}
+            subtitle={`${aggregatedData.totalDisposals} actif(s) sorti(s)`}
+            icon={DollarSign}
             color="neutral"
             delay={0.4}
             withChart={true}
@@ -629,12 +630,16 @@ const AssetsDisposals: React.FC = () => {
                           </div>
                           <div>
                             <p className="text-sm text-gray-600">Valeur de cession:</p>
-                            <p className="font-medium text-gray-900">{formatCurrency(disposal.disposalValue)}</p>
+                            <p className="font-medium text-gray-900">
+                              {disposal.disposalValue != null ? formatCurrency(disposal.disposalValue) : '—'}
+                            </p>
                           </div>
                           <div>
                             <p className="text-sm text-gray-600">Plus/Moins-value:</p>
-                            <p className={`font-medium ${disposal.gainLoss >= 0 ? 'text-[var(--color-primary)]' : 'text-var(--color-red-primary)'}`}>
-                              {disposal.gainLoss >= 0 ? '+' : ''}{formatCurrency(disposal.gainLoss)}
+                            <p className="font-medium text-gray-900">
+                              {disposal.gainLoss != null
+                                ? `${disposal.gainLoss >= 0 ? '+' : ''}${formatCurrency(disposal.gainLoss)}`
+                                : '—'}
                             </p>
                           </div>
                           <div>
@@ -692,7 +697,7 @@ const AssetsDisposals: React.FC = () => {
                                   {typeLabels[disposal.disposalType]}
                                 </span>
                                 <span className="text-sm text-gray-600">
-                                  Valeur: {formatCurrency(disposal.disposalValue)}
+                                  Valeur: {disposal.disposalValue != null ? formatCurrency(disposal.disposalValue) : '—'}
                                 </span>
                               </div>
                             </div>
@@ -768,30 +773,20 @@ const AssetsDisposals: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="p-4 bg-[var(--color-primary)]/10 rounded-lg">
+                  <div className="p-4 bg-gray-50 rounded-lg">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-[var(--color-primary)]">Valeur de Cession</span>
-                      <span className="text-lg font-bold text-var(--color-green-dark)">
-                        {formatCurrency(aggregatedData.totalDisposalValue)}
-                      </span>
+                      <span className="text-sm font-medium text-gray-600">Valeur de Cession</span>
+                      <span className="text-lg font-bold text-gray-900">—</span>
                     </div>
+                    <p className="text-xs text-gray-500 mt-1">Produit de cession non renseigné dans les fiches d'immobilisation</p>
                   </div>
 
-                  <div className={`p-4 rounded-lg ${
-                    aggregatedData.totalGainLoss >= 0 ? 'bg-[var(--color-primary)]/10' : 'bg-red-50'
-                  }`}>
+                  <div className="p-4 bg-gray-50 rounded-lg">
                     <div className="flex justify-between items-center">
-                      <span className={`text-sm font-medium ${
-                        aggregatedData.totalGainLoss >= 0 ? 'text-[var(--color-primary)]' : 'text-var(--color-red-primary)'
-                      }`}>
-                        {aggregatedData.totalGainLoss >= 0 ? 'Plus-value Totale' : 'Moins-value Totale'}
-                      </span>
-                      <span className={`text-lg font-bold ${
-                        aggregatedData.totalGainLoss >= 0 ? 'text-var(--color-green-dark)' : 'text-var(--color-red-dark)'
-                      }`}>
-                        {aggregatedData.totalGainLoss >= 0 ? '+' : ''}{formatCurrency(aggregatedData.totalGainLoss)}
-                      </span>
+                      <span className="text-sm font-medium text-gray-600">Plus/Moins-value Totale</span>
+                      <span className="text-lg font-bold text-gray-900">—</span>
                     </div>
+                    <p className="text-xs text-gray-500 mt-1">Non calculable sans valeur de cession</p>
                   </div>
                 </div>
               </div>
@@ -802,32 +797,27 @@ const AssetsDisposals: React.FC = () => {
                 <h3 className="text-lg font-semibold text-gray-900">Conformité et Processus</h3>
 
                 <div className="space-y-4">
-                  <div className="p-4 bg-[var(--color-primary)]/10 rounded-lg">
+                  <div className="p-4 bg-gray-50 rounded-lg">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-[var(--color-primary)]">Conformité Environnementale</span>
-                      <span className="text-lg font-bold text-var(--color-green-dark)">
-                        {formatPercentage(aggregatedData.complianceRate)}
-                      </span>
+                      <span className="text-sm font-medium text-gray-600">Conformité Environnementale</span>
+                      <span className="text-lg font-bold text-gray-900">—</span>
                     </div>
-                    <div className="w-full bg-[var(--color-primary)]/30 rounded-full h-2 mt-2">
-                      <div
-                        className="bg-green-600 h-2 rounded-full"
-                        style={{ width: `${aggregatedData.complianceRate * 100}%` }}
-                      ></div>
-                    </div>
+                    <p className="text-xs text-gray-500 mt-1">Aucune donnée — module non alimenté par l'import</p>
                   </div>
 
                   <div className="p-4 bg-[var(--color-text-tertiary)]/10 rounded-lg">
                     <div className="flex justify-between items-center">
                       <span className="text-sm font-medium text-[var(--color-text-tertiary)]">Taux de Finalisation</span>
                       <span className="text-lg font-bold text-var(--color-blue-dark)">
-                        {formatPercentage(aggregatedData.completedDisposals / aggregatedData.totalDisposals)}
+                        {aggregatedData.totalDisposals > 0
+                          ? formatPercentage(aggregatedData.completedDisposals / aggregatedData.totalDisposals)
+                          : '—'}
                       </span>
                     </div>
                     <div className="w-full bg-[var(--color-text-tertiary)]/30 rounded-full h-2 mt-2">
                       <div
                         className="bg-[var(--color-text-tertiary)] h-2 rounded-full"
-                        style={{ width: `${(aggregatedData.completedDisposals / aggregatedData.totalDisposals) * 100}%` }}
+                        style={{ width: `${aggregatedData.totalDisposals > 0 ? (aggregatedData.completedDisposals / aggregatedData.totalDisposals) * 100 : 0}%` }}
                       ></div>
                     </div>
                   </div>
@@ -950,7 +940,9 @@ const AssetsDisposals: React.FC = () => {
                           Valeur de Cession
                         </label>
                         <p className="text-gray-900">
-                          {formatCurrency(disposalModal.disposal.disposalValue)}
+                          {disposalModal.disposal.disposalValue != null
+                            ? formatCurrency(disposalModal.disposal.disposalValue)
+                            : '—'}
                         </p>
                       </div>
 
@@ -958,10 +950,10 @@ const AssetsDisposals: React.FC = () => {
                         <label className="block text-sm font-medium text-gray-900 mb-1">
                           Plus/Moins-Value
                         </label>
-                        <p className={`font-semibold ${
-                          disposalModal.disposal.gainLoss >= 0 ? 'text-[var(--color-primary)]' : 'text-red-600'
-                        }`}>
-                          {disposalModal.disposal.gainLoss >= 0 ? '+' : ''}{formatCurrency(disposalModal.disposal.gainLoss)}
+                        <p className="font-semibold text-gray-900">
+                          {disposalModal.disposal.gainLoss != null
+                            ? `${disposalModal.disposal.gainLoss >= 0 ? '+' : ''}${formatCurrency(disposalModal.disposal.gainLoss)}`
+                            : '—'}
                         </p>
                       </div>
                     </div>
@@ -1015,7 +1007,7 @@ const AssetsDisposals: React.FC = () => {
                           </label>
                           <input
                             type="number"
-                            defaultValue={disposalModal.disposal.disposalValue}
+                            defaultValue={disposalModal.disposal.disposalValue ?? undefined}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
                           />
                         </div>
@@ -1098,10 +1090,10 @@ const AssetsDisposals: React.FC = () => {
                             <label className="block text-sm font-medium text-gray-900 mb-2">
                               Plus/Moins-value
                             </label>
-                            <div className={`p-2 bg-gray-50 rounded text-sm font-semibold ${
-                              disposalModal.disposal.gainLoss >= 0 ? 'text-[var(--color-primary)]' : 'text-red-600'
-                            }`}>
-                              {disposalModal.disposal.gainLoss >= 0 ? '+' : ''}{formatCurrency(disposalModal.disposal.gainLoss)}
+                            <div className="p-2 bg-gray-50 rounded text-sm font-semibold text-gray-900">
+                              {disposalModal.disposal.gainLoss != null
+                                ? `${disposalModal.disposal.gainLoss >= 0 ? '+' : ''}${formatCurrency(disposalModal.disposal.gainLoss)}`
+                                : '—'}
                             </div>
                           </div>
                         </div>

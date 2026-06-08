@@ -15,8 +15,8 @@ import {
 import { toast } from 'sonner';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  PieChart as RechartsPieChart, Pie, Cell, LineChart, Line,
-  ResponsiveContainer, AreaChart, Area
+  PieChart as RechartsPieChart, Pie, Cell,
+  ResponsiveContainer
 } from 'recharts';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -308,16 +308,6 @@ const AutresTiersModule: React.FC = () => {
       })),
     [balanceByClasse]
   );
-
-  // Données évolution mensuelle simulée (6 derniers mois) — à brancher sur vraies données si dispo
-  const evolutionData = useMemo(() => {
-    const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun'];
-    return months.map((m, i) => ({
-      mois: m,
-      'Charges sociales (43x)': kpis.chargesSociales * (0.7 + i * 0.06),
-      'Dettes fiscales (44x)': kpis.dettesFiscales * (0.65 + i * 0.07),
-    }));
-  }, [kpis]);
 
   // ── Création ───────────────────────────────────────────────────────────────
   const handleCreate = async () => {
@@ -919,46 +909,30 @@ const AutresTiersModule: React.FC = () => {
               )}
             </div>
 
-            {/* Évolution mensuelle — Area */}
+            {/* Débit / Crédit par classe — Bar (données réelles GL) */}
             <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
               <h3 className="text-sm font-semibold text-gray-900 mb-1 flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-blue-600" />
-                Évolution des obligations (6 mois)
+                Mouvements par classe SYSCOHADA
               </h3>
-              <p className="text-xs text-gray-400 mb-4">Charges sociales (43x) et dettes fiscales (44x)</p>
-              <ResponsiveContainer width="100%" height={240}>
-                <AreaChart data={evolutionData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
-                  <defs>
-                    <linearGradient id="colorSocial" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.2} />
-                      <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient id="colorFiscal" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.2} />
-                      <stop offset="95%" stopColor="#F59E0B" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis dataKey="mois" tick={{ fontSize: 12 }} />
-                  <YAxis tick={{ fontSize: 11 }} tickFormatter={v => formatCurrency(v)} />
-                  <Tooltip formatter={(v: number) => formatCurrency(v)} />
-                  <Legend iconSize={10} wrapperStyle={{ fontSize: '11px' }} />
-                  <Area
-                    type="monotone"
-                    dataKey="Charges sociales (43x)"
-                    stroke="#3B82F6"
-                    strokeWidth={2}
-                    fill="url(#colorSocial)"
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="Dettes fiscales (44x)"
-                    stroke="#F59E0B"
-                    strokeWidth={2}
-                    fill="url(#colorFiscal)"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
+              <p className="text-xs text-gray-400 mb-4">Débit / Crédit cumulés (43x, 44x, 46x, 47x)</p>
+              {barData.some(d => d.Débit > 0 || d.Crédit > 0) ? (
+                <ResponsiveContainer width="100%" height={240}>
+                  <BarChart data={barData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis dataKey="classe" tick={{ fontSize: 12 }} />
+                    <YAxis tick={{ fontSize: 11 }} tickFormatter={v => formatCurrency(v)} />
+                    <Tooltip formatter={(v: number) => formatCurrency(v)} />
+                    <Legend iconSize={10} wrapperStyle={{ fontSize: '11px' }} />
+                    <Bar dataKey="Débit" fill="#3B82F6" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="Crédit" fill="#F59E0B" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-48 flex items-center justify-center text-center text-gray-400 text-sm px-4">
+                  Aucune donnée — module non alimenté par l'import
+                </div>
+              )}
             </div>
           </div>
 
