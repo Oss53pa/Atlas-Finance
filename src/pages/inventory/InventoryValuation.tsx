@@ -47,86 +47,89 @@ interface ValuationComparisonProps {
 }
 
 const ValuationComparison: React.FC<ValuationComparisonProps> = ({
-  methods,
-  onMethodSelect,
   selectedMethod,
+  onMethodSelect,
   totalValue,
   totalItems
 }) => {
-  // Valuation comparison — only show the selected method with real data
+  // Le module de stocks n'est PAS alimenté par l'import (tables inventoryItems /
+  // stockMovements vides). Sans mouvements par lot, aucun recalcul FIFO/LIFO/CUMP
+  // ne peut être dérivé honnêtement : on n'affiche QUE la valeur réelle disponible.
   const valuationData = useMemo(() => {
-    // Without actual movement-level FIFO/LIFO recalculation, we show only CUMP (real)
-    // Other methods show "—" until stock movements are recorded per-lot
+    if (totalItems === 0) return [];
     return [
       { method: 'WEIGHTED_AVERAGE', value: totalValue, variance: 0, items: totalItems },
-      { method: 'FIFO', value: totalValue, variance: 0, items: totalItems },
     ];
   }, [totalValue, totalItems]);
-
-  const COLORS = ['#235A6E', '#E89A2E', '#15803D', '#4E7E8D', '#C77E2C', '#7FA3AF'];
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
       <h3 className="text-lg font-semibold text-gray-900 mb-6">
-        Valuation Methods Comparison
+        Comparaison des méthodes de valorisation (FCFA)
       </h3>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Chart */}
-        <div>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={valuationData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="method" />
-              <YAxis tickFormatter={(value) => `$${(value / 1000000).toFixed(1)}M`} />
-              <Tooltip
-                formatter={(value: number) => [`$${formatCurrency(value)}`, 'Inventory Value']}
-              />
-              <Bar radius={[6,6,0,0]} dataKey="value" fill="url(#gradPetrol)" />
-            </BarChart>
-          </ResponsiveContainer>
+      {valuationData.length === 0 ? (
+        <div className="text-center py-10 text-gray-500">
+          Aucune donnée — module non alimenté par l'import
         </div>
-
-        {/* Method Cards */}
-        <div className="space-y-4">
-          {valuationData.map((data, index) => (
-            <div
-              key={data.method}
-              className={`p-4 rounded-lg border-2 cursor-pointer transition-colors ${
-                selectedMethod === data.method
-                  ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/10'
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
-              onClick={() => onMethodSelect(data.method as ValuationMethod)}
-            >
-              <div className="flex items-center justify-between mb-2">
-                <ValuationMethodBadge
-                  method={data.method as ValuationMethod}
-                  showDescription={false}
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Chart */}
+          <div>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={valuationData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="method" />
+                <YAxis tickFormatter={(value) => formatCurrency(value)} />
+                <Tooltip
+                  formatter={(value: number) => [formatCurrency(value), 'Valeur du stock']}
                 />
-                {selectedMethod === data.method && (
-                  <CheckCircle className="w-5 h-5 text-[var(--color-primary)]" />
-                )}
-              </div>
+                <Bar radius={[6,6,0,0]} dataKey="value" fill="url(#gradPetrol)" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
 
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="text-gray-600">Total Value:</span>
-                  <div className="font-semibold">
-                    <CurrencyDisplay amount={data.value} currency="USD" size="sm" />
-                  </div>
+          {/* Method Cards */}
+          <div className="space-y-4">
+            {valuationData.map((data) => (
+              <div
+                key={data.method}
+                className={`p-4 rounded-lg border-2 cursor-pointer transition-colors ${
+                  selectedMethod === data.method
+                    ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/10'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+                onClick={() => onMethodSelect(data.method as ValuationMethod)}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <ValuationMethodBadge
+                    method={data.method as ValuationMethod}
+                    showDescription={false}
+                  />
+                  {selectedMethod === data.method && (
+                    <CheckCircle className="w-5 h-5 text-[var(--color-primary)]" />
+                  )}
                 </div>
-                <div>
-                  <span className="text-gray-600">Variance:</span>
-                  <div className={`font-semibold ${data.variance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    <CurrencyDisplay amount={data.variance} currency="USD" size="sm" />
+
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-600">Valeur totale :</span>
+                    <div className="font-semibold">
+                      <CurrencyDisplay amount={data.value} currency="XOF" size="sm" />
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Écart :</span>
+                    <div className={`font-semibold ${data.variance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      <CurrencyDisplay amount={data.variance} currency="XOF" size="sm" />
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
@@ -205,31 +208,40 @@ const LCMTesting: React.FC<LCMTestingProps> = ({ onTestComplete }) => {
         <h3 className="text-lg font-semibold text-gray-900">
           Lower of Cost or Market (LCM) Testing
         </h3>
-        <div className="flex items-center gap-4">
-          <select
-            value={complianceStandard}
-            onChange={(e) => setComplianceStandard(e.target.value as 'IFRS_IAS2' | 'US_GAAP_ASC330')}
-            className="border border-gray-300 rounded-md px-3 py-2 text-sm"
-          >
-            <option value="IFRS_IAS2">IFRS IAS 2</option>
-            <option value="US_GAAP_ASC330">US GAAP ASC 330</option>
-          </select>
-          <button
-            onClick={runLCMTest}
-            disabled={isRunning}
-            className="flex items-center gap-2 px-4 py-2 bg-[var(--color-primary)] text-white rounded-md hover:bg-[var(--color-primary-hover)] disabled:opacity-50"
-          >
-            {isRunning ? (
-              <LoadingSpinner size="sm" />
-            ) : (
-              <Calculator className="w-4 h-4" />
-            )}
-            {isRunning ? 'Running Test...' : 'Run LCM Test'}
-          </button>
-        </div>
+        {inventoryItems.length > 0 && (
+          <div className="flex items-center gap-4">
+            <select
+              value={complianceStandard}
+              onChange={(e) => setComplianceStandard(e.target.value as 'IFRS_IAS2' | 'US_GAAP_ASC330')}
+              className="border border-gray-300 rounded-md px-3 py-2 text-sm"
+            >
+              <option value="IFRS_IAS2">IFRS IAS 2</option>
+              <option value="US_GAAP_ASC330">US GAAP ASC 330</option>
+            </select>
+            <button
+              onClick={runLCMTest}
+              disabled={isRunning}
+              className="flex items-center gap-2 px-4 py-2 bg-[var(--color-primary)] text-white rounded-md hover:bg-[var(--color-primary-hover)] disabled:opacity-50"
+            >
+              {isRunning ? (
+                <LoadingSpinner size="sm" />
+              ) : (
+                <Calculator className="w-4 h-4" />
+              )}
+              {isRunning ? 'Test en cours...' : 'Lancer le test LCM'}
+            </button>
+          </div>
+        )}
       </div>
 
+      {inventoryItems.length === 0 && (
+        <div className="text-center py-10 text-gray-500">
+          Aucune donnée — module non alimenté par l'import
+        </div>
+      )}
+
       {/* Compliance Information */}
+      {inventoryItems.length > 0 && (
       <div className="bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20 rounded-lg p-4 mb-6">
         <div className="flex items-start gap-3">
           <Info className="w-5 h-5 text-[var(--color-primary)] mt-0.5" />
@@ -246,6 +258,7 @@ const LCMTesting: React.FC<LCMTestingProps> = ({ onTestComplete }) => {
           </div>
         </div>
       </div>
+      )}
 
       {testResults.length > 0 && (
         <>
@@ -266,7 +279,7 @@ const LCMTesting: React.FC<LCMTestingProps> = ({ onTestComplete }) => {
                 <DollarSign className="w-5 h-5 text-yellow-600" />
                 <div>
                   <p className="text-lg font-semibold text-yellow-800">
-                    <CurrencyDisplay amount={totalImpairment} currency="USD" size="sm" />
+                    <CurrencyDisplay amount={totalImpairment} currency="XOF" size="sm" />
                   </p>
                   <p className="text-sm text-yellow-600">Total Impairment Loss</p>
                 </div>
@@ -310,21 +323,21 @@ const LCMTesting: React.FC<LCMTestingProps> = ({ onTestComplete }) => {
                       </div>
                     </td>
                     <td className="py-4 px-4 text-right">
-                      <CurrencyDisplay amount={result.cost} currency="USD" size="sm" />
+                      <CurrencyDisplay amount={result.cost} currency="XOF" size="sm" />
                     </td>
                     <td className="py-4 px-4 text-right">
-                      <CurrencyDisplay amount={result.marketValue} currency="USD" size="sm" />
+                      <CurrencyDisplay amount={result.marketValue} currency="XOF" size="sm" />
                     </td>
                     <td className="py-4 px-4 text-right">
-                      <CurrencyDisplay amount={result.nrv as number} currency="USD" size="sm" />
+                      <CurrencyDisplay amount={result.nrv as number} currency="XOF" size="sm" />
                     </td>
                     <td className="py-4 px-4 text-right font-semibold">
-                      <CurrencyDisplay amount={result.lcmValue as number} currency="USD" size="sm" />
+                      <CurrencyDisplay amount={result.lcmValue as number} currency="XOF" size="sm" />
                     </td>
                     <td className="py-4 px-4 text-right">
                       <CurrencyDisplay
                         amount={result.totalImpairment as number}
-                        currency="USD"
+                        currency="XOF"
                         size="sm"
                         className={(result.totalImpairment as number) > 0 ? 'text-red-600' : 'text-green-600'}
                       />
@@ -557,30 +570,30 @@ const InventoryValuation: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <div className="text-center p-4 bg-[var(--color-primary)]/10 rounded-lg">
               <div className="text-lg font-bold text-[var(--color-primary)] mb-1">
-                <CurrencyDisplay amount={valuationData.totalInventoryValue} currency="USD" size="lg" />
+                <CurrencyDisplay amount={valuationData.totalInventoryValue} currency="XOF" size="lg" />
               </div>
               <div className="text-sm text-[var(--color-primary)]">Total Inventory Value</div>
             </div>
 
             <div className="text-center p-4 bg-green-50 rounded-lg">
               <div className="text-lg font-bold text-green-600 mb-1">
-                <CurrencyDisplay amount={valuationData.totalMarketValue || 0} currency="USD" size="lg" />
+                <CurrencyDisplay amount={valuationData.totalMarketValue || 0} currency="XOF" size="lg" />
               </div>
               <div className="text-sm text-green-800">Market Value</div>
             </div>
 
             <div className="text-center p-4 bg-red-50 rounded-lg">
               <div className="text-lg font-bold text-red-600 mb-1">
-                <CurrencyDisplay amount={valuationData.totalImpairment || 0} currency="USD" size="lg" />
+                <CurrencyDisplay amount={valuationData.totalImpairment || 0} currency="XOF" size="lg" />
               </div>
               <div className="text-sm text-red-800">Impairment Loss</div>
             </div>
 
             <div className="text-center p-4 bg-gray-50 rounded-lg">
               <div className="text-lg font-bold text-gray-600 mb-1">
-                {formatCurrency(valuationData.items.length)}
+                {valuationData.items.length}
               </div>
-              <div className="text-sm text-gray-800">Items Valued</div>
+              <div className="text-sm text-gray-800">Articles valorisés</div>
             </div>
           </div>
 
@@ -598,13 +611,13 @@ const InventoryValuation: React.FC = () => {
                       cx="50%"
                       cy="50%"
                       outerRadius={100}
-                      label={({ category, value }) => `${category}: $${(value / 1000).toFixed(0)}K`}
+                      label={({ category, value }) => `${category}: ${formatCurrency(value)}`}
                     >
                       {categoryBreakdown.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(value: number) => [`$${formatCurrency(value)}`, 'Value']} />
+                    <Tooltip formatter={(value: number) => [formatCurrency(value), 'Valeur']} />
                     <Legend />
                   </PieChart>
                 </ResponsiveContainer>
@@ -617,7 +630,7 @@ const InventoryValuation: React.FC = () => {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="category" />
                     <YAxis />
-                    <Tooltip formatter={(value: number) => [`$${formatCurrency(value)}`, 'Impairment']} />
+                    <Tooltip formatter={(value: number) => [formatCurrency(value), 'Dépréciation']} />
                     <Bar radius={[6,6,0,0]} dataKey="impairment" fill="url(#gradRed)" />
                   </BarChart>
                 </ResponsiveContainer>
@@ -650,24 +663,24 @@ const InventoryValuation: React.FC = () => {
                       </div>
                     </td>
                     <td className="py-4 px-4 text-right font-mono">
-                      {formatCurrency(item.quantity)}
+                      {item.quantity}
                     </td>
                     <td className="py-4 px-4 text-right">
-                      <CurrencyDisplay amount={item.unitCost} currency="USD" size="sm" />
+                      <CurrencyDisplay amount={item.unitCost} currency="XOF" size="sm" />
                     </td>
                     <td className="py-4 px-4 text-right font-semibold">
-                      <CurrencyDisplay amount={item.totalCost} currency="USD" size="sm" />
+                      <CurrencyDisplay amount={item.totalCost} currency="XOF" size="sm" />
                     </td>
                     <td className="py-4 px-4 text-right">
-                      <CurrencyDisplay amount={item.marketValue || 0} currency="USD" size="sm" />
+                      <CurrencyDisplay amount={item.marketValue || 0} currency="XOF" size="sm" />
                     </td>
                     <td className="py-4 px-4 text-right">
-                      <CurrencyDisplay amount={item.lcm || 0} currency="USD" size="sm" />
+                      <CurrencyDisplay amount={item.lcm || 0} currency="XOF" size="sm" />
                     </td>
                     <td className="py-4 px-4 text-right">
                       <CurrencyDisplay
                         amount={item.impairmentLoss || 0}
-                        currency="USD"
+                        currency="XOF"
                         size="sm"
                         className={item.impairmentLoss ? 'text-red-600' : 'text-green-600'}
                       />

@@ -57,7 +57,7 @@ const KPICard: React.FC<KPICardProps> = ({
   color,
   trend = 'neutral',
   format = 'number',
-  currency = 'USD'
+  currency = 'XOF'
 }) => {
   const formatValue = (val: string | number) => {
     if (format === 'currency' && typeof val === 'number') {
@@ -303,13 +303,14 @@ const InventoryDashboard: React.FC = () => {
   }, [stockMovementsData]);
 
   const valuationComparison = useMemo(() => {
+    // Only FIFO is derivable from the (currently empty) inventory data.
+    // LIFO / Weighted Avg / Specific ID require lot-level cost layers and
+    // movement history (stockMovements) which are not imported — do NOT
+    // fabricate them with arbitrary factors. With no inventoryItems this is
+    // an empty dataset and the section renders an honest empty state.
+    if (inventoryItems.length === 0) return [];
     const totalValue = inventoryItems.reduce((sum, i) => sum + i.quantity * i.unitCost, 0);
-    return [
-      { method: 'FIFO', value: totalValue },
-      { method: 'LIFO', value: Math.round(totalValue * 0.978) },
-      { method: 'Weighted Avg', value: Math.round(totalValue * 0.989) },
-      { method: 'Specific ID', value: Math.round(totalValue * 0.998) },
-    ];
+    return [{ method: 'FIFO', value: totalValue }];
   }, [inventoryItems]);
 
   const COLORS = ['#235A6E', '#E89A2E', '#15803D', '#4E7E8D', '#C77E2C', '#7FA3AF'];
@@ -464,7 +465,7 @@ const InventoryDashboard: React.FC = () => {
             <div className="flex justify-between">
               <span className="text-sm text-[var(--color-warning-dark)]">Dead Stock Value</span>
               <span className="text-sm font-medium text-[var(--color-warning-dark)]">
-                <CurrencyDisplay amount={kpis.deadStockValue} currency="USD" size="sm" />
+                <CurrencyDisplay amount={kpis.deadStockValue} currency="XOF" size="sm" />
               </span>
             </div>
           </div>
@@ -512,9 +513,9 @@ const InventoryDashboard: React.FC = () => {
               <AreaChart data={inventoryValueTrend}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
-                <YAxis tickFormatter={(value) => `$${(value / 1000000).toFixed(1)}M`} />
+                <YAxis tickFormatter={(value) => `${(value / 1000000).toFixed(1)}M`} />
                 <Tooltip
-                  formatter={(value: number) => [`$${formatCurrency(value)}`, 'Value']}
+                  formatter={(value: number) => [formatCurrency(value), 'Value']}
                   labelFormatter={(label) => `Month: ${label}`}
                 />
                 <Area
@@ -540,7 +541,7 @@ const InventoryDashboard: React.FC = () => {
               <YAxis />
               <Tooltip
                 formatter={(value: number, name: string) => [
-                  name === 'turnover' ? `${value}x` : `$${formatCurrency(value)}`,
+                  name === 'turnover' ? `${value}x` : formatCurrency(value),
                   name === 'turnover' ? 'Turnover Ratio' : 'Inventory Value'
                 ]}
               />
@@ -570,7 +571,7 @@ const InventoryDashboard: React.FC = () => {
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip formatter={(value: number) => [`$${formatCurrency(value)}`, 'Value']} />
+              <Tooltip formatter={(value: number) => [formatCurrency(value), 'Value']} />
             </RechartsPieChart>
           </ResponsiveContainer>
         </div>
@@ -581,9 +582,9 @@ const InventoryDashboard: React.FC = () => {
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={agingAnalysis} layout="horizontal">
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis type="number" tickFormatter={(value) => `$${(value / 1000).toFixed(0)}K`} />
+              <XAxis type="number" tickFormatter={(value) => `${(value / 1000).toFixed(0)}K`} />
               <YAxis type="category" dataKey="period" width={80} />
-              <Tooltip formatter={(value: number) => [`$${formatCurrency(value)}`, 'Value']} />
+              <Tooltip formatter={(value: number) => [formatCurrency(value), 'Value']} />
               <Bar radius={[6,6,0,0]} dataKey="value" fill="url(#gradAmber)" />
             </BarChart>
           </ResponsiveContainer>
@@ -593,29 +594,39 @@ const InventoryDashboard: React.FC = () => {
       {/* Valuation Methods Comparison */}
       <div className="bg-white rounded-lg shadow-sm border border-[var(--color-border)] p-6 mb-8">
         <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-6">Valuation Methods Comparison</h3>
+        {valuationComparison.length === 0 ? (
+          <div className="flex items-center justify-center h-[200px] text-gray-400">
+            <div className="text-center">
+              <BarChart3 className="w-10 h-10 mx-auto mb-2 opacity-30" />
+              <p className="text-sm">Aucune donnée — module non alimenté par l'import</p>
+            </div>
+          </div>
+        ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={valuationComparison}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="method" />
-              <YAxis tickFormatter={(value) => `$${(value / 1000000).toFixed(1)}M`} />
-              <Tooltip formatter={(value: number) => [`$${formatCurrency(value)}`, 'Inventory Value']} />
+              <YAxis tickFormatter={(value) => `${(value / 1000000).toFixed(1)}M`} />
+              <Tooltip formatter={(value: number) => [formatCurrency(value), 'Inventory Value']} />
               <Bar radius={[6,6,0,0]} dataKey="value" fill="url(#gradPetrolLight)" />
             </BarChart>
           </ResponsiveContainer>
 
           <div className="space-y-4">
             <h4 className="font-medium text-[var(--color-text-primary)]">Impact Analysis</h4>
-            {valuationComparison.map((method, index) => {
+            {valuationComparison.map((method) => {
               const difference = method.value - valuationComparison[0].value;
-              const percentage = (difference / valuationComparison[0].value) * 100;
+              const percentage = valuationComparison[0].value !== 0
+                ? (difference / valuationComparison[0].value) * 100
+                : 0;
 
               return (
                 <div key={method.method} className="flex items-center justify-between p-3 bg-[var(--color-background-secondary)] rounded-lg">
                   <span className="font-medium">{method.method}</span>
                   <div className="text-right">
                     <div className="font-semibold">
-                      <CurrencyDisplay amount={method.value} currency="USD" size="sm" />
+                      <CurrencyDisplay amount={method.value} currency="XOF" size="sm" />
                     </div>
                     <div className={`text-xs ${difference >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'}`}>
                       {difference >= 0 ? '+' : ''}{percentage.toFixed(1)}%
@@ -626,6 +637,7 @@ const InventoryDashboard: React.FC = () => {
             })}
           </div>
         </div>
+        )}
       </div>
 
       {/* ABC Analysis Summary */}

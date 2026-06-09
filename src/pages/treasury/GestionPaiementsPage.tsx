@@ -1,14 +1,11 @@
 import { formatCurrency } from '@/utils/formatters';
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
-// TODO: rewire — treasury-complete.service uses dead Supabase direct calls
-// import { bankTransactionsService } from '../../services/treasury-complete.service';
-// TODO: rewire — treasury-advanced.service.forecastOutflows/Inflows not yet implemented
-// import treasuryAdvancedService from '../../services/treasury-advanced.service';
-import treasuryMLService from '../../services/treasury-ml.service';
+// Module non alimenté par l'import : il n'existe AUCUNE table d'ordres de paiement
+// dans les données. Le statut/méthode/circuit de validation d'un paiement ne sont pas
+// dérivables du grand livre — la page reste donc en état vide honnête (pas de chiffre inventé).
 import { toast } from 'react-hot-toast';
 import {
   CreditCard,
@@ -21,8 +18,6 @@ import {
   Building2,
   Smartphone,
   Globe,
-  Shield,
-  Target,
   BarChart3
 } from 'lucide-react';
 
@@ -40,17 +35,8 @@ interface Payment {
   maxValidationLevel: number;
 }
 
-interface PaymentStats {
-  todayPayments: number;
-  pendingValidation: number;
-  executedToday: number;
-  failedPayments: number;
-  totalAmount: number;
-}
-
 const GestionPaiementsPage: React.FC = () => {
   const { t } = useLanguage();
-  const queryClient = useQueryClient();
   const [selectedMethod, setSelectedMethod] = useState<string>('all');
   const [showPeriodModal, setShowPeriodModal] = useState(false);
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
@@ -74,85 +60,13 @@ const GestionPaiementsPage: React.FC = () => {
     description: ''
   });
 
-  const companyId = localStorage.getItem('atlas-tenant-id') || '';
-
-  // TODO: rewire to real data — forecastOutflows not yet implemented
-  const { data: outflowsData, isLoading: loadingOutflows } = useQuery({
-    queryKey: ['treasury-outflows', dateRange],
-    queryFn: async () => {
-      // Stub: return empty forecasts until treasury advanced service is wired
-      return { forecasts: [] as Array<{ date: string; obligations: Array<{ type: string; amount: number; supplier_name?: string; bill_id?: string; is_mandatory?: boolean; priority?: string }> }> };
-    },
-    enabled: !!companyId,
-  });
-
-  // TODO: rewire to real data — forecastInflows not yet implemented
-  const { data: inflowsData, isLoading: loadingInflows } = useQuery({
-    queryKey: ['treasury-inflows', dateRange],
-    queryFn: async () => {
-      // Stub: return empty forecasts until treasury advanced service is wired
-      return { forecasts: [] as Array<{ date: string; sources: Array<{ type: string; amount: number; customer_name?: string; invoice_id?: string; probability: number }> }> };
-    },
-    enabled: !!companyId,
-  });
-
-  // Real API: Get AI recommendations for cash optimization
-  const { data: aiRecommendations } = useQuery({
-    queryKey: ['ai-recommendations'],
-    queryFn: async () => {
-      return await treasuryMLService.getAIRecommendations(companyId);
-    },
-    enabled: !!companyId,
-  });
-
-  const loading = loadingOutflows || loadingInflows;
-
-  // Map forecasts to payments
-  const outgoingPayments: Payment[] = (outflowsData?.forecasts || []).flatMap(forecast =>
-    forecast.obligations.map((obl, idx) => ({
-      id: `out-${forecast.date}-${idx}`,
-      type: 'outgoing' as const,
-      method: obl.type === 'bill' ? 'sepa' as const : obl.type === 'payroll' ? 'check' as const : 'swift' as const,
-      amount: obl.amount,
-      currency: 'XOF',
-      beneficiary: obl.supplier_name || 'Bénéficiaire',
-      reference: obl.bill_id || `PAY-${forecast.date}`,
-      scheduledDate: new Date(forecast.date),
-      status: obl.is_mandatory ? 'pending' as const : 'draft' as const,
-      validationLevel: obl.priority === 'high' ? 2 : 1,
-      maxValidationLevel: 2
-    }))
-  );
-
-  const incomingPayments: Payment[] = (inflowsData?.forecasts || []).flatMap(forecast =>
-    forecast.sources.map((src, idx) => ({
-      id: `in-${forecast.date}-${idx}`,
-      type: 'incoming' as const,
-      method: src.type === 'invoice' ? 'sepa' as const : 'mobile_money' as const,
-      amount: src.amount,
-      currency: 'XOF',
-      beneficiary: src.customer_name || 'Client',
-      reference: src.invoice_id || `REC-${forecast.date}`,
-      scheduledDate: new Date(forecast.date),
-      status: src.probability > 80 ? 'validated' as const : 'pending' as const,
-      validationLevel: 2,
-      maxValidationLevel: 2
-    }))
-  );
-
-  const payments = [...outgoingPayments, ...incomingPayments].slice(0, 20); // Limit display
-
-  // Calculate stats from real data
-  const stats: PaymentStats = {
-    todayPayments: payments.filter(p => {
-      const today = new Date().toDateString();
-      return p.scheduledDate.toDateString() === today;
-    }).length,
-    pendingValidation: payments.filter(p => p.status === 'pending').length,
-    executedToday: payments.filter(p => p.status === 'executed').length,
-    failedPayments: payments.filter(p => p.status === 'failed').length,
-    totalAmount: payments.reduce((sum, p) => sum + (p.type === 'outgoing' ? p.amount : 0), 0)
-  };
+  // Aucune source d'ordres de paiement dans les données importées : pas de table
+  // d'ordres de paiement, et le statut / la méthode / le circuit de validation ne sont
+  // pas dérivables du grand livre. On affiche donc une liste vide honnête plutôt que
+  // des chiffres fabriqués (anciens stubs `{ forecasts: [] }` + faux mapping supprimés).
+  const payments: Payment[] = [];
+  // Pas de KPI inventé : tous les indicateurs affichent "—" tant que le module
+  // n'est pas alimenté (état vide honnête, voir l'affichage ci-dessous).
 
   const getMethodIcon = (method: string) => {
     switch (method) {
@@ -197,24 +111,10 @@ const GestionPaiementsPage: React.FC = () => {
   };
 
   // Handler functions
+  // Le module n'est relié à aucune table d'ordres de paiement : l'enregistrement
+  // n'écrit nulle part. On le signale honnêtement au lieu d'afficher un faux succès.
   const handleCreatePayment = () => {
-    if (!newPayment.beneficiary || !newPayment.amount || !newPayment.reference) {
-      toast.error('Veuillez remplir tous les champs obligatoires');
-      return;
-    }
-    toast.success('Paiement créé avec succès');
-    setShowNewPaymentModal(false);
-    setNewPayment({
-      type: 'outgoing',
-      method: 'sepa',
-      amount: '',
-      currency: 'XOF',
-      beneficiary: '',
-      reference: '',
-      scheduledDate: new Date().toISOString().split('T')[0],
-      description: ''
-    });
-    queryClient.invalidateQueries({ queryKey: ['treasury-outflows'] });
+    toast.error("Module non connecté : aucun ordre de paiement n'est enregistré (en attente de la couche de persistance).");
   };
 
   const handleValidatePayment = (payment: Payment) => {
@@ -223,12 +123,9 @@ const GestionPaiementsPage: React.FC = () => {
   };
 
   const confirmValidation = () => {
-    if (selectedPayment) {
-      toast.success(`Paiement ${selectedPayment.reference} validé avec succès`);
-      setShowValidateModal(false);
-      setSelectedPayment(null);
-      queryClient.invalidateQueries({ queryKey: ['treasury-outflows'] });
-    }
+    toast.error('Module non connecté : la validation des paiements n\'est pas encore persistée.');
+    setShowValidateModal(false);
+    setSelectedPayment(null);
   };
 
   const handleRetryPayment = (payment: Payment) => {
@@ -237,26 +134,15 @@ const GestionPaiementsPage: React.FC = () => {
   };
 
   const confirmRetry = () => {
-    if (selectedPayment) {
-      toast.success(`Relance du paiement ${selectedPayment.reference} initiée`);
-      setShowRetryModal(false);
-      setSelectedPayment(null);
-      queryClient.invalidateQueries({ queryKey: ['treasury-outflows'] });
-    }
+    toast.error('Module non connecté : la relance des paiements n\'est pas encore persistée.');
+    setShowRetryModal(false);
+    setSelectedPayment(null);
   };
 
   const handleViewPaymentDetail = (payment: Payment) => {
     setSelectedPayment(payment);
     setShowViewDetailModal(true);
   };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-primary-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--color-primary)]"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-primary-50">
@@ -297,7 +183,7 @@ const GestionPaiementsPage: React.FC = () => {
               </div>
             </div>
             <div>
-              <p className="text-lg font-bold text-gray-900">{stats.todayPayments}</p>
+              <p className="text-lg font-bold text-gray-900">—</p>
               <p className="text-gray-600 text-sm">{t('common.today')}</p>
             </div>
           </motion.div>
@@ -314,7 +200,7 @@ const GestionPaiementsPage: React.FC = () => {
               </div>
             </div>
             <div>
-              <p className="text-lg font-bold text-gray-900">{stats.pendingValidation}</p>
+              <p className="text-lg font-bold text-gray-900">—</p>
               <p className="text-gray-600 text-sm">En validation</p>
             </div>
           </motion.div>
@@ -331,7 +217,7 @@ const GestionPaiementsPage: React.FC = () => {
               </div>
             </div>
             <div>
-              <p className="text-lg font-bold text-gray-900">{stats.executedToday}</p>
+              <p className="text-lg font-bold text-gray-900">—</p>
               <p className="text-gray-600 text-sm">Exécutés</p>
             </div>
           </motion.div>
@@ -348,7 +234,7 @@ const GestionPaiementsPage: React.FC = () => {
               </div>
             </div>
             <div>
-              <p className="text-lg font-bold text-gray-900">{stats.failedPayments}</p>
+              <p className="text-lg font-bold text-gray-900">—</p>
               <p className="text-gray-600 text-sm">Échecs</p>
             </div>
           </motion.div>
@@ -365,10 +251,8 @@ const GestionPaiementsPage: React.FC = () => {
               </div>
             </div>
             <div>
-              <p className="text-lg font-bold text-gray-900">
-                {formatCurrency(stats.totalAmount)}
-              </p>
-              <p className="text-gray-600 text-sm">XOF traités</p>
+              <p className="text-lg font-bold text-gray-900">—</p>
+              <p className="text-gray-600 text-sm">Montant traité (FCFA)</p>
             </div>
           </motion.div>
         </div>
@@ -433,6 +317,17 @@ const GestionPaiementsPage: React.FC = () => {
           </div>
 
           <div className="p-6">
+            {payments.length === 0 && (
+              <div className="text-center py-12">
+                <Send className="h-10 w-10 text-gray-300 mx-auto mb-3" />
+                <p className="text-gray-500 text-sm">
+                  Aucune donnée — module non alimenté par l'import
+                </p>
+                <p className="text-gray-400 text-xs mt-1">
+                  Aucun ordre de paiement n'est enregistré pour le moment.
+                </p>
+              </div>
+            )}
             <div className="space-y-4">
               {payments.map((payment, index) => (
                 <motion.div

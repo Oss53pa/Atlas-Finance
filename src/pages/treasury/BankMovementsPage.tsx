@@ -2,20 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useData, useAdapterQuery } from '../../contexts/DataContext';
 import { getSoldesBancaires } from '../../services/treasury/positionService';
+import { formatCurrency } from '../../utils/formatters';
 import { CreditCard, Banknote, TrendingUp, RefreshCw } from 'lucide-react';
 
 const BankMovementsPage: React.FC = () => {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('movements');
-  const [showOperationsModal, setShowOperationsModal] = useState(false);
-  const [selectedOperations, setSelectedOperations] = useState<{
-    date: string;
-    type: 'daily' | 'monthly';
-    data: Record<string, unknown>;
-    operations: unknown[];
-  } | null>(null);
   const [selectedAccount, setSelectedAccount] = useState('all');
-  const [selectedScenario, setSelectedScenario] = useState('realiste');
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [lastUpdate, setLastUpdate] = useState(new Date());
 
@@ -23,13 +16,6 @@ const BankMovementsPage: React.FC = () => {
     { id: 'movements', label: 'Mouvements', icon: CreditCard },
     { id: 'journal', label: t('accounting.journal'), icon: Banknote },
     { id: 'banking_sums_up', label: 'Banking Sums-up', icon: TrendingUp },
-  ];
-
-  // Scénarios de prévision
-  const forecastScenarios = [
-    { id: 'optimiste', name: 'Optimiste', multiplier: 1.3, color: 'text-green-600' },
-    { id: 'realiste', name: 'Réaliste', multiplier: 1.0, color: 'text-[var(--color-primary)]' },
-    { id: 'pessimiste', name: 'Pessimiste', multiplier: 0.7, color: 'text-red-600' }
   ];
 
   // Comptes de trésorerie dynamiques depuis les écritures comptables
@@ -50,46 +36,22 @@ const BankMovementsPage: React.FC = () => {
     })),
   ];
 
-  const getSelectedScenarioData = () => {
-    const scenario = forecastScenarios.find(s => s.id === selectedScenario);
-    return scenario || forecastScenarios[1]; // Default to 'realiste'
-  };
-
-  const getForecastData = (baseValue: number) => {
-    const scenarioData = getSelectedScenarioData();
-    return Math.round(baseValue * scenarioData.multiplier);
-  };
-
+  // Seul le solde comptable est dérivable du Grand Livre (classe 5).
+  // Les flux (cash in/out) et prévisions ne sont pas alimentés par l'import => non affichés.
   const getSelectedAccountData = () => {
     if (selectedAccount === 'all') {
       return {
         name: 'Tous les comptes de trésorerie',
         balance: totalBalance,
-        rib: '•••• •••• •••• 1290',
         accountNumber: 'CONSOLIDATED-VIEW',
-        cashIn: 0,
-        cashOut: 0,
-        forecastIncoming: 0,
-        forecastOutcoming: 0,
-        landingForecast: getForecastData(totalBalance)
       };
     }
 
     const account = treasuryAccounts.find(acc => acc.id === selectedAccount);
-    const balance = account?.balance || 0;
-    const baseIncoming = Math.abs(balance) * 0.4;
-    const baseOutcoming = Math.abs(balance) * 0.3;
-
     return {
       name: account?.name || 'Compte sélectionné',
-      balance: balance,
-      rib: '•••• •••• •••• ' + selectedAccount.slice(-4),
+      balance: account?.balance || 0,
       accountNumber: selectedAccount,
-      cashIn: 0,
-      cashOut: 0,
-      forecastIncoming: 0,
-      forecastOutcoming: 0,
-      landingForecast: getForecastData(balance)
     };
   };
 
@@ -114,11 +76,6 @@ const BankMovementsPage: React.FC = () => {
   const manualRefresh = () => {
     setLastUpdate(new Date());
     // Simulation du rafraîchissement
-  };
-
-  const showOperationsDetail = (date: string, type: 'daily' | 'monthly', data: Record<string, unknown>) => {
-    setSelectedOperations({ date, type, data, operations: [] });
-    setShowOperationsModal(true);
   };
 
   return (
@@ -279,7 +236,7 @@ const BankMovementsPage: React.FC = () => {
                       {/* Montant principal */}
                       <div className="mb-6">
                         <div className="text-lg font-bold text-white mb-1">
-                          {new Intl.NumberFormat('fr-FR').format(getSelectedAccountData().balance)}
+                          {formatCurrency(getSelectedAccountData().balance)}
                         </div>
                         <div className="text-xs text-white/70">{getSelectedAccountData().name}</div>
                       </div>
@@ -287,11 +244,7 @@ const BankMovementsPage: React.FC = () => {
                       {/* Informations bancaires */}
                       <div className="space-y-3">
                         <div className="flex justify-between items-center">
-                          <span className="text-sm text-white/70">RIB</span>
-                          <span className="font-mono text-sm text-white tracking-wider">{getSelectedAccountData().rib}</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm text-white/70">Account Number</span>
+                          <span className="text-sm text-white/70">Compte</span>
                           <span className="text-sm text-white/90">{getSelectedAccountData().accountNumber}</span>
                         </div>
                       </div>
@@ -300,80 +253,19 @@ const BankMovementsPage: React.FC = () => {
                   </div>
 
                   <div className="space-y-3">
-                    <div className="flex justify-between items-center p-3 bg-[var(--color-primary)]/5 rounded-lg">
+                    <div className="flex justify-between items-center p-3 bg-[var(--color-primary)]/5 rounded-lg border-l-4 border-[var(--color-primary)]">
                       <div className="flex items-center space-x-2">
                         <div className="w-3 h-3 bg-[var(--color-primary)] rounded-full"></div>
-                        <span className="text-sm text-[#404040]">Opening</span>
+                        <span className="text-sm font-medium text-[#404040]">Solde comptable (FCFA)</span>
                       </div>
-                      <span className="font-semibold text-[var(--color-primary)]">0</span>
-                    </div>
-
-                    {/* Cash In et Cash Out côte à côte */}
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
-                        <div className="flex items-center space-x-2">
-                          <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                          <span className="text-xs text-[#404040]">Cash In</span>
-                        </div>
-                        <span className="font-semibold text-green-600 text-sm">
-                          {new Intl.NumberFormat('fr-FR').format(getSelectedAccountData().cashIn)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center p-3 bg-red-50 rounded-lg">
-                        <div className="flex items-center space-x-2">
-                          <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                          <span className="text-xs text-[#404040]">Cash Out</span>
-                        </div>
-                        <span className="font-semibold text-red-600 text-sm">
-                          {new Intl.NumberFormat('fr-FR').format(getSelectedAccountData().cashOut)}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex justify-between items-center p-3 bg-red-100 rounded-lg border-l-4 border-red-500">
-                      <div className="flex items-center space-x-2">
-                        <div className="w-3 h-3 bg-red-600 rounded-full"></div>
-                        <span className="text-sm font-medium text-[#404040]">Actual Balance</span>
-                      </div>
-                      <span className="font-bold text-red-600">
-                        {new Intl.NumberFormat('fr-FR').format(getSelectedAccountData().balance)}
+                      <span className="font-bold text-[var(--color-primary)]">
+                        {formatCurrency(getSelectedAccountData().balance)}
                       </span>
                     </div>
 
-                    {/* Incoming et Outcoming côte à côte avec prévisions par scénario */}
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg border-l-2 border-green-400">
-                        <div className="flex items-center space-x-2">
-                          <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                          <span className="text-xs text-[#404040]">Incoming</span>
-                        </div>
-                        <span className={`font-semibold text-sm ${getSelectedScenarioData().color}`}>
-                          {new Intl.NumberFormat('fr-FR').format(getSelectedAccountData().forecastIncoming)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center p-3 bg-red-50 rounded-lg border-l-2 border-red-400">
-                        <div className="flex items-center space-x-2">
-                          <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                          <span className="text-xs text-[#404040]">Outcoming</span>
-                        </div>
-                        <span className={`font-semibold text-sm ${getSelectedScenarioData().color}`}>
-                          {new Intl.NumberFormat('fr-FR').format(getSelectedAccountData().forecastOutcoming)}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex justify-between items-center p-3 bg-[var(--color-text-secondary)]/10 rounded-lg border-l-4 border-[var(--color-text-secondary)]">
-                      <div className="flex items-center space-x-2">
-                        <div className="w-3 h-3 bg-[var(--color-text-secondary)] rounded-full"></div>
-                        <span className="text-sm font-bold text-[var(--color-primary)]">Landing Forecast</span>
-                        <span className="text-xs px-2 py-1 rounded-full bg-white/80 text-[var(--color-text-secondary)] font-medium">
-                          {getSelectedScenarioData().name.replace(/📈|📊|📉/, '').trim()}
-                        </span>
-                      </div>
-                      <span className={`font-bold ${getSelectedScenarioData().color}`}>
-                        {new Intl.NumberFormat('fr-FR').format(getSelectedAccountData().landingForecast)}
-                      </span>
-                    </div>
+                    <p className="text-xs text-[var(--color-text-secondary)] text-center py-2">
+                      Flux entrants/sortants et prévisions : aucune donnée — module non alimenté par l'import.
+                    </p>
                   </div>
                 </div>
               </div>
@@ -383,110 +275,16 @@ const BankMovementsPage: React.FC = () => {
           {/* Prévision de Trésorerie Globale */}
           <div className="bg-white rounded-lg border border-[var(--color-border)] shadow-sm">
             <div className="border-b border-[var(--color-border)] p-4 bg-gradient-to-r from-[var(--color-text-secondary)]/10 to-[var(--color-text-tertiary)]/10">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-[var(--color-primary)]">Prévision de Trésorerie Globale</h3>
-                <div>
-                  <label className="block text-xs text-[#404040] mb-1">Scénario de prévision :</label>
-                  <select
-                    value={selectedScenario}
-                    onChange={(e) => setSelectedScenario(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded text-sm bg-white text-gray-900 focus:ring-2 focus:ring-[var(--color-text-secondary)] focus:border-[var(--color-text-secondary)]"
-                  >
-                    {forecastScenarios.map(scenario => (
-                      <option key={scenario.id} value={scenario.id}>
-                        {scenario.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
+              <h3 className="text-lg font-semibold text-[var(--color-primary)]">Prévision de Trésorerie Globale</h3>
             </div>
 
             <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Prévisions Entrées */}
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <div className="flex items-center space-x-3 mb-3">
-                    <div className="w-4 h-4 bg-green-500 rounded-full"></div>
-                    <h4 className="font-medium text-green-800">Prévisions Entrées</h4>
-                  </div>
-                  <div className={`text-lg font-bold ${getSelectedScenarioData().color}`}>
-                    {new Intl.NumberFormat('fr-FR').format(getSelectedAccountData().forecastIncoming)}
-                  </div>
-                  <div className="text-sm text-green-700 mt-1">
-                    Scénario {getSelectedScenarioData().name.replace(/📈|📊|📉/, '').trim()}
-                  </div>
-                </div>
-
-                {/* Prévisions Sorties */}
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                  <div className="flex items-center space-x-3 mb-3">
-                    <div className="w-4 h-4 bg-red-500 rounded-full"></div>
-                    <h4 className="font-medium text-red-800">Prévisions Sorties</h4>
-                  </div>
-                  <div className={`text-lg font-bold ${getSelectedScenarioData().color}`}>
-                    {new Intl.NumberFormat('fr-FR').format(getSelectedAccountData().forecastOutcoming)}
-                  </div>
-                  <div className="text-sm text-red-700 mt-1">
-                    Scénario {getSelectedScenarioData().name.replace(/📈|📊|📉/, '').trim()}
-                  </div>
-                </div>
-
-                {/* Balance Prévisionnelle */}
-                <div className="bg-[var(--color-text-secondary)]/10 border border-[var(--color-text-secondary)]/30 rounded-lg p-4">
-                  <div className="flex items-center space-x-3 mb-3">
-                    <div className="w-4 h-4 bg-[var(--color-text-secondary)] rounded-full"></div>
-                    <h4 className="font-medium text-[var(--color-text-secondary)]">Balance Prévisionnelle</h4>
-                  </div>
-                  <div className={`text-lg font-bold ${getSelectedScenarioData().color}`}>
-                    {new Intl.NumberFormat('fr-FR').format(getSelectedAccountData().landingForecast)}
-                  </div>
-                  <div className="text-sm text-[var(--color-text-secondary)] mt-1">
-                    Projection {getSelectedScenarioData().name.replace(/📈|📊|📉/, '').trim()}
-                  </div>
-                </div>
-              </div>
-
-              {/* Détail par scénario */}
-              <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-4">
-                {forecastScenarios.map(scenario => {
-                  const baseIncoming = selectedAccount === 'all' ? 50000000 : Math.abs(getSelectedAccountData().balance) * 0.4;
-                  const baseOutcoming = selectedAccount === 'all' ? 45000000 : Math.abs(getSelectedAccountData().balance) * 0.3;
-                  const baseBalance = selectedAccount === 'all' ? totalBalance + 50000000 - 45000000 : getSelectedAccountData().balance + baseIncoming - baseOutcoming;
-
-                  const scenarioIncoming = Math.round(baseIncoming * scenario.multiplier);
-                  const scenarioOutcoming = Math.round(baseOutcoming * scenario.multiplier);
-                  const scenarioBalance = Math.round(baseBalance * scenario.multiplier);
-
-                  return (
-                    <div
-                      key={scenario.id}
-                      className={`border rounded-lg p-3 ${selectedScenario === scenario.id ? 'border-[var(--color-text-secondary)] bg-[var(--color-text-secondary)]/5' : 'border-gray-200'}`}
-                    >
-                      <h5 className={`font-medium mb-2 ${scenario.color}`}>{scenario.name}</h5>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Entrées:</span>
-                          <span className={scenario.color}>
-                            {new Intl.NumberFormat('fr-FR').format(scenarioIncoming)}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Sorties:</span>
-                          <span className={scenario.color}>
-                            {new Intl.NumberFormat('fr-FR').format(scenarioOutcoming)}
-                          </span>
-                        </div>
-                        <div className="flex justify-between border-t pt-2">
-                          <span className="font-medium text-gray-800">Balance:</span>
-                          <span className={`font-bold ${scenario.color}`}>
-                            {new Intl.NumberFormat('fr-FR').format(scenarioBalance)}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+              <div className="text-center py-8 text-[var(--color-text-secondary)]">
+                <p className="font-medium">Aucune donnée — module non alimenté par l'import</p>
+                <p className="text-sm mt-1">
+                  Les prévisions de flux nécessitent un échéancier de trésorerie (encaissements/décaissements
+                  prévus) non disponible dans les données importées.
+                </p>
               </div>
             </div>
           </div>
@@ -531,43 +329,12 @@ const BankMovementsPage: React.FC = () => {
                   <div style={{maxHeight: '400px', overflowY: 'auto', overflowX: 'auto'}}>
                     <table className="w-full">
                       <tbody className="divide-y divide-gray-200">
-                        {Array.from({length: 30}, (_, i) => {
-                          const day = String(i + 1).padStart(2, '0');
-                          const opening = Math.round(totalBalance / 30 * (30 - i));
-                          const cashIn = 0;
-                          const cashOut = 0;
-                          const closing = opening + cashIn - cashOut;
-
-                          return (
-                            <tr key={i} className="hover:bg-gray-50">
-                              <td className="px-4 py-3 font-medium">{day}/09/2025</td>
-                              <td className="px-4 py-3 text-right text-red-600 font-medium">
-                                {new Intl.NumberFormat('fr-FR').format(opening)}
-                              </td>
-                              <td className="px-4 py-3 text-right text-green-600 font-medium">
-                                <button
-                                  onClick={() => cashIn > 0 && showOperationsDetail(`${day}/09/2025`, 'daily', {cashIn, cashOut, opening, closing})}
-                                  className={`hover:underline ${cashIn > 0 ? 'cursor-pointer' : ''}`}
-                                  disabled={cashIn === 0}
-                                >
-                                  {new Intl.NumberFormat('fr-FR').format(cashIn)}
-                                </button>
-                              </td>
-                              <td className="px-4 py-3 text-right text-red-600 font-medium">
-                                <button
-                                  onClick={() => cashOut > 0 && showOperationsDetail(`${day}/09/2025`, 'daily', {cashIn, cashOut, opening, closing})}
-                                  className={`hover:underline ${cashOut > 0 ? 'cursor-pointer' : ''}`}
-                                  disabled={cashOut === 0}
-                                >
-                                  {new Intl.NumberFormat('fr-FR').format(cashOut)}
-                                </button>
-                              </td>
-                              <td className="px-4 py-3 text-right font-bold text-[var(--color-text-primary)]">
-                                {new Intl.NumberFormat('fr-FR').format(closing)}
-                              </td>
-                            </tr>
-                          );
-                        })}
+                        {/* Aucun échéancier journalier de trésorerie dans les données importées. */}
+                        <tr>
+                          <td colSpan={5} className="px-4 py-8 text-center text-[var(--color-text-secondary)]">
+                            Aucune donnée — module non alimenté par l'import
+                          </td>
+                        </tr>
                       </tbody>
                     </table>
                   </div>
@@ -592,124 +359,17 @@ const BankMovementsPage: React.FC = () => {
                   <div style={{maxHeight: '400px', overflowY: 'auto', overflowX: 'auto'}}>
                     <table className="w-full">
                       <tbody className="divide-y divide-gray-200">
-                        {/* TODO: Load from real journal entries via adapter */}
-                        {([] as { month: string; opening: number; cashIn: number; cashOut: number; closing: number }[]).map((row, index) => (
-                          <tr key={index} className="hover:bg-gray-50">
-                            <td className="px-4 py-3 font-medium">{row.month}</td>
-                            <td className="px-4 py-3 text-right text-[var(--color-text-primary)] font-medium">
-                              {new Intl.NumberFormat('fr-FR').format(row.opening)}
-                            </td>
-                            <td className="px-4 py-3 text-right text-green-600 font-medium">
-                              <button
-                                onClick={() => row.cashIn > 0 && showOperationsDetail(row.month, 'monthly', row)}
-                                className={`hover:underline ${row.cashIn > 0 ? 'cursor-pointer' : ''}`}
-                                disabled={row.cashIn === 0}
-                              >
-                                {new Intl.NumberFormat('fr-FR').format(row.cashIn)}
-                              </button>
-                            </td>
-                            <td className="px-4 py-3 text-right text-red-600 font-medium">
-                              <button
-                                onClick={() => row.cashOut > 0 && showOperationsDetail(row.month, 'monthly', row)}
-                                className={`hover:underline ${row.cashOut > 0 ? 'cursor-pointer' : ''}`}
-                                disabled={row.cashOut === 0}
-                              >
-                                {new Intl.NumberFormat('fr-FR').format(row.cashOut)}
-                              </button>
-                            </td>
-                            <td className="px-4 py-3 text-right font-bold text-[var(--color-text-primary)]">
-                              {new Intl.NumberFormat('fr-FR').format(row.closing)}
-                            </td>
-                          </tr>
-                        ))}
+                        {/* Aucun échéancier mensuel de trésorerie dans les données importées. */}
+                        <tr>
+                          <td colSpan={5} className="px-4 py-8 text-center text-[var(--color-text-secondary)]">
+                            Aucune donnée — module non alimenté par l'import
+                          </td>
+                        </tr>
                       </tbody>
                     </table>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal détail des opérations */}
-      {showOperationsModal && selectedOperations && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-4xl mx-4 max-h-[80vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
-                Détail des Opérations - {selectedOperations.date}
-              </h3>
-              <button
-                onClick={() => setShowOperationsModal(false)}
-                className="text-gray-700 hover:text-gray-600 text-xl"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-              <div className="bg-[var(--color-primary)]/5 border border-[var(--color-primary)]/20 rounded-lg p-3 text-center">
-                <div className="text-sm text-[var(--color-text-secondary)]">Opening</div>
-                <div className="font-bold text-[var(--color-text-primary)]">
-                  {new Intl.NumberFormat('fr-FR').format(selectedOperations.data.opening as number)}
-                </div>
-              </div>
-              <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
-                <div className="text-sm text-green-700">Cash In</div>
-                <div className="font-bold text-green-600">
-                  {new Intl.NumberFormat('fr-FR').format(selectedOperations.data.cashIn as number)}
-                </div>
-              </div>
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-center">
-                <div className="text-sm text-red-700">Cash Out</div>
-                <div className="font-bold text-red-600">
-                  {new Intl.NumberFormat('fr-FR').format(selectedOperations.data.cashOut as number)}
-                </div>
-              </div>
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-center">
-                <div className="text-sm text-[var(--color-text-secondary)]">Closing</div>
-                <div className="font-bold text-[var(--color-text-primary)]">
-                  {new Intl.NumberFormat('fr-FR').format(selectedOperations.data.closing as number)}
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-              <div className="p-4 border-b border-gray-200 bg-gray-50">
-                <h4 className="font-medium text-[var(--color-text-primary)]">Opérations de la période</h4>
-              </div>
-
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Heure</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Type</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Référence</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Tiers</th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase">Montant</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Sens</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-[var(--color-text-secondary)]">
-                      Détail des opérations pour {selectedOperations.date}
-                      <br />
-                      <span className="text-sm">Fonctionnalité à connecter avec les données réelles</span>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <div className="flex justify-end mt-6">
-              <button
-                onClick={() => setShowOperationsModal(false)}
-                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Fermer
-              </button>
             </div>
           </div>
         </div>

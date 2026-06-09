@@ -1,7 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { toast } from 'sonner';
-import { useData } from '../../contexts/DataContext';
-import { type DBAsset } from '../../lib/db';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { motion } from 'framer-motion';
 import {
@@ -99,7 +97,6 @@ interface MaintenanceModal {
 
 const AssetsMaintenance: React.FC = () => {
   const { t } = useLanguage();
-  const { adapter } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterType, setFilterType] = useState('all');
@@ -130,64 +127,15 @@ const AssetsMaintenance: React.FC = () => {
 
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
-  // Load assets via DataContext adapter
-  const [dbAssets, setDbAssets] = useState<DBAsset[]>([]);
+  // NOTE: il n'existe AUCUNE table de maintenance dans la base (pas de
+  // maintenance_records / maintenance_schedule, et l'import ne fournit pas
+  // de plan de maintenance). On n'invente PAS d'interventions à partir des
+  // immobilisations (coût = valeur × 2 %, dates et durées fictives) : ces
+  // chiffres seraient faux. Le module reste donc en état vide honnête tant
+  // qu'aucune donnée de maintenance n'est saisie.
+  const maintenanceRecords: MaintenanceRecord[] = useMemo(() => [], []);
 
-  useEffect(() => {
-    const load = async () => {
-      const assets = await adapter.getAll('assets');
-      setDbAssets(assets as DBAsset[]);
-    };
-    load();
-  }, [adapter]);
-
-  // Map assets to maintenance records
-  const maintenanceRecords: MaintenanceRecord[] = useMemo(() => {
-    return dbAssets.map((asset: DBAsset) => ({
-      id: asset.id,
-      assetId: asset.code,
-      assetName: asset.name,
-      assetTag: asset.code,
-      category: asset.category,
-      maintenanceType: 'preventive' as const,
-      status: asset.status === 'active' ? 'scheduled' as const : 'completed' as const,
-      priority: 'medium' as const,
-      scheduledDate: asset.acquisitionDate,
-      estimatedDuration: 2,
-      cost: 0,
-      estimatedCost: asset.acquisitionValue * 0.02,
-      assignedTo: '',
-      description: `Maintenance de ${asset.name}`,
-      location: '',
-      notes: `Méthode: ${asset.depreciationMethod}, Durée de vie: ${asset.usefulLifeYears} ans`
-    }));
-  }, [dbAssets]);
-
-  // Map assets to maintenance schedule
-  const maintenanceSchedule: MaintenanceSchedule[] = useMemo(() => {
-    return dbAssets.filter((a: DBAsset) => a.status === 'active').map((asset: DBAsset) => {
-      const nextDate = new Date(asset.acquisitionDate);
-      nextDate.setFullYear(nextDate.getFullYear() + 1);
-      const now = new Date();
-      const daysUntilDue = Math.floor((nextDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-
-      return {
-        assetId: asset.code,
-        assetName: asset.name,
-        assetTag: asset.code,
-        category: asset.category,
-        location: '',
-        maintenanceType: 'Maintenance préventive',
-        frequency: 'annually' as const,
-        lastMaintenance: asset.acquisitionDate,
-        nextMaintenance: nextDate.toISOString().split('T')[0],
-        daysUntilDue,
-        isOverdue: daysUntilDue < 0,
-        estimatedCost: asset.acquisitionValue * 0.02,
-        assignedTo: ''
-      };
-    });
-  }, [dbAssets]);
+  const maintenanceSchedule: MaintenanceSchedule[] = useMemo(() => [], []);
 
   // Filter maintenance records
   const filteredRecords = useMemo(() => {
@@ -643,6 +591,18 @@ const AssetsMaintenance: React.FC = () => {
                 </h3>
 
                 <div className="space-y-4">
+                  {filteredRecords.length === 0 && (
+                    <div className="flex flex-col items-center justify-center py-12 text-center">
+                      <Archive className="h-10 w-10 text-neutral-300 mb-3" />
+                      <p className="text-sm font-medium text-neutral-700">
+                        Aucune donnée — module non alimenté par l'import
+                      </p>
+                      <p className="text-xs text-neutral-500 mt-1 max-w-md">
+                        Aucun historique de maintenance n'est présent en base. Utilisez
+                        « Nouvelle Maintenance » pour saisir une intervention.
+                      </p>
+                    </div>
+                  )}
                   {filteredRecords.map((record, index) => (
                     <motion.div
                       key={record.id}
@@ -762,6 +722,21 @@ const AssetsMaintenance: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody>
+                    {maintenanceSchedule.length === 0 && (
+                      <tr>
+                        <td colSpan={8} className="py-12 text-center">
+                          <div className="flex flex-col items-center justify-center">
+                            <Archive className="h-10 w-10 text-neutral-300 mb-3" />
+                            <p className="text-sm font-medium text-neutral-700">
+                              Aucune donnée — module non alimenté par l'import
+                            </p>
+                            <p className="text-xs text-neutral-500 mt-1">
+                              Aucun plan de maintenance n'est présent en base.
+                            </p>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
                     {maintenanceSchedule.map((schedule, index) => (
                       <motion.tr
                         key={schedule.assetId}
@@ -855,76 +830,19 @@ const AssetsMaintenance: React.FC = () => {
         )}
 
         {viewMode === 'analytics' && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <UnifiedCard variant="elevated" size="lg">
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-neutral-800">Métriques de Performance</h3>
-
-                {(() => {
-                  const totalAssets = dbAssets.length;
-                  const activeAssets = dbAssets.filter((a: DBAsset) => a.status === 'active').length;
-                  const withDepreciation = dbAssets.filter((a: DBAsset) => a.depreciationMethod && a.usefulLifeYears > 0).length;
-                  const preventiveRate = totalAssets > 0 ? Math.round((activeAssets / totalAssets) * 100) : 0;
-                  const complianceRate = totalAssets > 0 ? Math.round((withDepreciation / totalAssets) * 100) : 0;
-                  const budgetRate = totalAssets > 0 ? Math.min(100, Math.round((activeAssets / Math.max(totalAssets, 1)) * 100 * 1.1)) : 0;
-
-                  const metrics = [
-                    { label: 'Taux de Maintenance Préventive', value: preventiveRate, bg: 'bg-blue-50', text: 'text-blue-700', bold: 'text-blue-800', barBg: 'bg-blue-200', barFill: 'bg-blue-600' },
-                    { label: 'Conformité Planning', value: complianceRate, bg: 'bg-green-50', text: 'text-green-700', bold: 'text-green-800', barBg: 'bg-green-200', barFill: 'bg-green-600' },
-                    { label: 'Respect Budget', value: budgetRate, bg: 'bg-yellow-50', text: 'text-yellow-700', bold: 'text-yellow-800', barBg: 'bg-yellow-200', barFill: 'bg-yellow-600' },
-                  ];
-
-                  return (
-                    <div className="space-y-4">
-                      {metrics.map(m => (
-                        <div key={m.label} className={`p-4 ${m.bg} rounded-lg`}>
-                          <div className="flex justify-between items-center">
-                            <span className={`text-sm font-medium ${m.text}`}>{m.label}</span>
-                            <span className={`text-lg font-bold ${m.bold}`}>{m.value}%</span>
-                          </div>
-                          <div className={`w-full ${m.barBg} rounded-full h-2 mt-2`}>
-                            <div className={`${m.barFill} h-2 rounded-full`} style={{ width: `${m.value}%` }}></div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  );
-                })()}
-              </div>
-            </UnifiedCard>
-
-            <UnifiedCard variant="elevated" size="lg">
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-neutral-800">Alertes et Actions</h3>
-
-                <div className="space-y-3">
-                  <div className="p-3 border-l-4 border-red-400 bg-red-50">
-                    <div className="flex items-center space-x-2">
-                      <AlertTriangle className="h-4 w-4 text-red-600" />
-                      <span className="text-sm font-medium text-red-800">3 maintenances en retard</span>
-                    </div>
-                    <p className="text-sm text-red-700 mt-1">Action requise immédiatement</p>
-                  </div>
-
-                  <div className="p-3 border-l-4 border-yellow-400 bg-yellow-50">
-                    <div className="flex items-center space-x-2">
-                      <Clock className="h-4 w-4 text-yellow-600" />
-                      <span className="text-sm font-medium text-yellow-800">5 maintenances à venir cette semaine</span>
-                    </div>
-                    <p className="text-sm text-yellow-700 mt-1">Planification recommandée</p>
-                  </div>
-
-                  <div className="p-3 border-l-4 border-blue-400 bg-blue-50">
-                    <div className="flex items-center space-x-2">
-                      <Bell className="h-4 w-4 text-blue-600" />
-                      <span className="text-sm font-medium text-blue-800">2 nouveaux rapports disponibles</span>
-                    </div>
-                    <p className="text-sm text-blue-700 mt-1">Révision des procédures</p>
-                  </div>
-                </div>
-              </div>
-            </UnifiedCard>
-          </div>
+          <UnifiedCard variant="elevated" size="lg">
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <Archive className="h-12 w-12 text-neutral-300 mb-4" />
+              <h3 className="text-lg font-semibold text-neutral-800">
+                Aucune donnée — module non alimenté par l'import
+              </h3>
+              <p className="text-sm text-neutral-500 mt-2 max-w-md">
+                Les métriques et alertes de maintenance nécessitent un historique
+                d'interventions, absent de la base. Aucun indicateur n'est calculé
+                pour éviter d'afficher des chiffres fabriqués.
+              </p>
+            </div>
+          </UnifiedCard>
         )}
 
         {/* Maintenance Modal */}
@@ -1147,7 +1065,7 @@ const AssetsMaintenance: React.FC = () => {
 
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-2">
-                          Coût Estimé (€) <span className="text-red-500">*</span>
+                          Coût Estimé (FCFA) <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="number"

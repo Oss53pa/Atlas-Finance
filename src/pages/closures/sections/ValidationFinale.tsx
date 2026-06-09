@@ -317,6 +317,15 @@ const ValidationFinale: React.FC = () => {
     approbations: [],
   }));
 
+  // Période active (exercice en cours) — utilisée par les onglets Étapes/Contrôles/Approbations.
+  // Garde contre periodes vide (avant résolution async des fiscalYears ou tenant sans exercice).
+  const periodeActive = periodes.find(p => p.statut === 'en_cours') ?? periodes[0] ?? null;
+
+  // Historique réel : exercices clôturés (aucune table d'audit de clôture disponible).
+  const historiqueClotures = fiscalYears
+    .filter(fy => fy.isClosed)
+    .map(fy => ({ periode: fy.code || fy.name, dateValidation: fy.endDate }));
+
   // Calculs des KPIs
   const kpis = useMemo(() => {
     const periodeEnCours = periodes.find(p => p.statut === 'en_cours');
@@ -392,7 +401,7 @@ const ValidationFinale: React.FC = () => {
               <div>
                 <p className="text-sm text-[var(--color-text-primary)]">Étapes Complètes</p>
                 <p className="text-lg font-bold">{kpis.etapesCompletes}/{kpis.totalEtapes}</p>
-                <p className="text-xs text-[var(--color-success)]">{Math.round((kpis.etapesCompletes / kpis.totalEtapes) * 100)}% terminées</p>
+                <p className="text-xs text-[var(--color-success)]">{kpis.totalEtapes > 0 ? Math.round((kpis.etapesCompletes / kpis.totalEtapes) * 100) : 0}% terminées</p>
               </div>
               <CheckSquare className="w-8 h-8 text-[var(--color-success)]" />
             </div>
@@ -645,7 +654,12 @@ const ValidationFinale: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {periodes[0].etapes.map(etape => (
+                {(periodeActive?.etapes ?? []).length === 0 && (
+                  <p className="text-sm text-[var(--color-text-secondary)] py-8 text-center">
+                    Aucun exercice / clôture à valider
+                  </p>
+                )}
+                {(periodeActive?.etapes ?? []).map(etape => (
                   <div key={etape.id} className="border rounded-lg p-4">
                     <div className="flex justify-between items-start mb-3">
                       <div>
@@ -735,27 +749,32 @@ const ValidationFinale: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="grid grid-cols-4 gap-4 text-center">
-                  <div className="p-3 bg-[var(--color-success-lightest)] rounded-lg">
-                    <p className="text-lg font-bold text-[var(--color-success)]">12</p>
-                    <p className="text-sm text-[var(--color-text-primary)]">Réussis</p>
-                  </div>
-                  <div className="p-3 bg-[var(--color-error-lightest)] rounded-lg">
-                    <p className="text-lg font-bold text-[var(--color-error)]">2</p>
-                    <p className="text-sm text-[var(--color-text-primary)]">Échecs</p>
-                  </div>
-                  <div className="p-3 bg-[var(--color-warning-lightest)] rounded-lg">
-                    <p className="text-lg font-bold text-[var(--color-warning)]">3</p>
-                    <p className="text-sm text-[var(--color-text-primary)]">Alertes</p>
-                  </div>
-                  <div className="p-3 bg-[var(--color-primary-lightest)] rounded-lg">
-                    <p className="text-lg font-bold text-[var(--color-primary)]">5</p>
-                    <p className="text-sm text-[var(--color-text-primary)]">{t('status.inProgress')}</p>
-                  </div>
-                </div>
+                {(() => {
+                  const allControles = (periodeActive?.etapes ?? []).flatMap(e => e.controles);
+                  return (
+                    <div className="grid grid-cols-4 gap-4 text-center">
+                      <div className="p-3 bg-[var(--color-success-lightest)] rounded-lg">
+                        <p className="text-lg font-bold text-[var(--color-success)]">{allControles.filter(c => c.statut === 'reussi').length}</p>
+                        <p className="text-sm text-[var(--color-text-primary)]">Réussis</p>
+                      </div>
+                      <div className="p-3 bg-[var(--color-error-lightest)] rounded-lg">
+                        <p className="text-lg font-bold text-[var(--color-error)]">{allControles.filter(c => c.statut === 'echec').length}</p>
+                        <p className="text-sm text-[var(--color-text-primary)]">Échecs</p>
+                      </div>
+                      <div className="p-3 bg-[var(--color-warning-lightest)] rounded-lg">
+                        <p className="text-lg font-bold text-[var(--color-warning)]">{allControles.filter(c => c.statut === 'alerte').length}</p>
+                        <p className="text-sm text-[var(--color-text-primary)]">Alertes</p>
+                      </div>
+                      <div className="p-3 bg-[var(--color-primary-lightest)] rounded-lg">
+                        <p className="text-lg font-bold text-[var(--color-primary)]">{allControles.filter(c => c.statut === 'en_cours' || c.statut === 'non_execute').length}</p>
+                        <p className="text-sm text-[var(--color-text-primary)]">{t('status.inProgress')}</p>
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 <div className="space-y-3">
-                  {periodes[0].etapes.flatMap(etape =>
+                  {(periodeActive?.etapes ?? []).flatMap(etape =>
                     etape.controles.map(controle => (
                       <div key={`${etape.id}-${controle.id}`} className="border rounded-lg p-4">
                         <div className="flex justify-between items-start">
@@ -820,25 +839,25 @@ const ValidationFinale: React.FC = () => {
               <div className="space-y-6">
                 <div className="grid grid-cols-3 gap-4">
                   <div className="p-4 bg-[var(--color-success-lightest)] rounded-lg text-center">
-                    <p className="text-lg font-bold text-[var(--color-success)]">1</p>
+                    <p className="text-lg font-bold text-[var(--color-success)]">{(periodeActive?.approbations ?? []).filter(a => a.statut === 'approuve').length}</p>
                     <p className="text-sm text-[var(--color-text-primary)]">Approuvées</p>
                   </div>
                   <div className="p-4 bg-orange-50 rounded-lg text-center">
-                    <p className="text-lg font-bold text-[var(--color-warning)]">2</p>
+                    <p className="text-lg font-bold text-[var(--color-warning)]">{(periodeActive?.approbations ?? []).filter(a => a.statut === 'en_attente').length}</p>
                     <p className="text-sm text-[var(--color-text-primary)]">{t('status.pending')}</p>
                   </div>
                   <div className="p-4 bg-[var(--color-error-lightest)] rounded-lg text-center">
-                    <p className="text-lg font-bold text-[var(--color-error)]">0</p>
+                    <p className="text-lg font-bold text-[var(--color-error)]">{(periodeActive?.approbations ?? []).filter(a => a.statut === 'refuse').length}</p>
                     <p className="text-sm text-[var(--color-text-primary)]">Refusées</p>
                   </div>
                 </div>
 
                 <div className="space-y-4">
                   <h4 className="font-medium">Approbations requises</h4>
-                  {periodes[0].etapes
+                  {(periodeActive?.etapes ?? [])
                     .filter(etape => etape.statut === 'complete')
                     .map(etape => {
-                      const approbation = periodes[0].approbations.find(a => a.etapeId === etape.id);
+                      const approbation = (periodeActive?.approbations ?? []).find(a => a.etapeId === etape.id);
                       return (
                         <div key={etape.id} className="border rounded-lg p-4">
                           <div className="flex justify-between items-center">
@@ -889,7 +908,7 @@ const ValidationFinale: React.FC = () => {
                     </div>
                     <button
                       className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center gap-2"
-                      disabled={periodes[0].etapes.some(e => e.statut !== 'complete')}
+                      disabled={(periodeActive?.etapes ?? []).length === 0 || (periodeActive?.etapes ?? []).some(e => e.statut !== 'complete')}
                       onClick={() => setShowValidationModal(true)}
                     >
                       <Shield className="w-5 h-5" />
@@ -919,8 +938,13 @@ const ValidationFinale: React.FC = () => {
                       <option value="annuelle">Annuelles</option>
                     </select>
                     <select className="px-3 py-2 border rounded-lg text-sm">
-                      <option value="2024">2024</option>
-                      <option value="2023">2023</option>
+                      {fiscalYears.length === 0 ? (
+                        <option value="">—</option>
+                      ) : (
+                        fiscalYears.map(fy => (
+                          <option key={fy.id} value={fy.code}>{fy.code || fy.name}</option>
+                        ))
+                      )}
                     </select>
                   </div>
                   <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center gap-2">
@@ -930,36 +954,32 @@ const ValidationFinale: React.FC = () => {
                 </div>
 
                 <div className="space-y-3">
-                  {[
-                    { periode: '2024-11', statut: 'cloturee', dateValidation: '2024-12-15', delai: 'Dans les temps' },
-                    { periode: '2024-10', statut: 'cloturee', dateValidation: '2024-11-12', delai: 'Dans les temps' },
-                    { periode: '2024-09', statut: 'cloturee', dateValidation: '2024-10-18', delai: 'Retard 3j' },
-                    { periode: '2024-Q3', statut: 'cloturee', dateValidation: '2024-10-25', delai: 'Dans les temps' }
-                  ].map((item, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg hover:bg-[var(--color-background-secondary)]">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 bg-[var(--color-success-lighter)] rounded-full flex items-center justify-center">
-                          <Award className="w-5 h-5 text-[var(--color-success)]" />
+                  {historiqueClotures.length === 0 ? (
+                    <p className="text-sm text-[var(--color-text-secondary)] py-8 text-center">
+                      Aucune clôture validée
+                    </p>
+                  ) : (
+                    historiqueClotures.map((item, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 border rounded-lg hover:bg-[var(--color-background-secondary)]">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 bg-[var(--color-success-lighter)] rounded-full flex items-center justify-center">
+                            <Award className="w-5 h-5 text-[var(--color-success)]" />
+                          </div>
+                          <div>
+                            <p className="font-medium">Période {item.periode}</p>
+                            <p className="text-sm text-[var(--color-text-primary)]">
+                              Validée le {new Date(item.dateValidation).toLocaleDateString()}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-medium">Période {item.periode}</p>
-                          <p className="text-sm text-[var(--color-text-primary)]">
-                            Validée le {new Date(item.dateValidation).toLocaleDateString()}
-                          </p>
+                        <div className="text-right">
+                          <Badge className="bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]">
+                            cloturee
+                          </Badge>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <Badge className="bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]">
-                          {item.statut}
-                        </Badge>
-                        <p className={`text-xs mt-1 ${
-                          item.delai.includes('Retard') ? 'text-[var(--color-error)]' : 'text-[var(--color-success)]'
-                        }`}>
-                          {item.delai}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </div>
               </div>
             </CardContent>

@@ -41,7 +41,7 @@ import {
   AreaChart
 } from 'recharts';
 import { InventoryMovement, InventoryFilters, SortOption } from './types';
-import { mockInventoryMovements, mockInventoryItems, mockLocations, generateMockMovements } from './utils/mockData';
+import { mockLocations } from './utils/mockData';
 import CurrencyDisplay from './components/CurrencyDisplay';
 import LoadingSpinner from './components/LoadingSpinner';
 import Pagination from './components/Pagination';
@@ -246,19 +246,12 @@ const InventoryMovements: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(25);
 
-  // Initialize data
+  // Le module Mouvements de stock n'est pas alimenté par l'import :
+  // les tables stock_movements / inventory_items sont vides.
+  // On n'affiche donc AUCUN mouvement fabriqué — état vide honnête.
   useEffect(() => {
-    const loadData = async () => {
-      setIsLoading(true);
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Generate more mock movements
-      const additionalMovements = generateMockMovements(20);
-      setMovements([...mockInventoryMovements, ...additionalMovements]);
-      setIsLoading(false);
-    };
-
-    loadData();
+    setMovements([]);
+    setIsLoading(false);
   }, []);
 
   // Filter and sort data
@@ -475,67 +468,73 @@ const InventoryMovements: React.FC = () => {
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-        {/* Movement Types Distribution */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-6">Movement Types</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={Object.entries(movementsByType).map(([type, count]) => ({
-                  name: type.charAt(0).toUpperCase() + type.slice(1),
-                  value: count
-                }))}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                outerRadius={100}
-                label={({ name, value }) => `${name}: ${value}`}
-              >
-                {Object.entries(movementsByType).map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
+      {movements.length === 0 ? (
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 mb-8 text-center text-gray-500">
+          Aucune donnée — module non alimenté par l'import
         </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          {/* Movement Types Distribution */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-6">Movement Types</h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={Object.entries(movementsByType).map(([type, count]) => ({
+                    name: type.charAt(0).toUpperCase() + type.slice(1),
+                    value: count
+                  }))}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={100}
+                  label={({ name, value }) => `${name}: ${value}`}
+                >
+                  {Object.entries(movementsByType).map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
 
-        {/* Daily Activity */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-6">Daily Activity (Last 7 Days)</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" tickFormatter={(date) => new Date(date).toLocaleDateString()} />
-              <YAxis />
-              <Tooltip
-                labelFormatter={(date) => new Date(date).toLocaleDateString()}
-                formatter={(value: number, name: string) => [
-                  name === 'value' ? `$${formatCurrency(value)}` : value,
-                  name === 'value' ? 'Total Value' : 'Movement Count'
-                ]}
-              />
-              <Area
-                type="monotone"
-                dataKey="count"
-                stroke="#235A6E"
-                fill="#235A6E"
-                fillOpacity={0.1}
-              />
-              <Area
-                type="monotone"
-                dataKey="value"
-                stroke="#15803D"
-                fill="#15803D"
-                fillOpacity={0.1}
-                yAxisId="value"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+          {/* Daily Activity */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-6">Daily Activity (Last 7 Days)</h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <AreaChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" tickFormatter={(date) => new Date(date).toLocaleDateString()} />
+                <YAxis />
+                <Tooltip
+                  labelFormatter={(date) => new Date(date).toLocaleDateString()}
+                  formatter={(value: number, name: string) => [
+                    name === 'value' ? formatCurrency(value) : value,
+                    name === 'value' ? 'Total Value (FCFA)' : 'Movement Count'
+                  ]}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="count"
+                  stroke="#235A6E"
+                  fill="#235A6E"
+                  fillOpacity={0.1}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="value"
+                  stroke="#15803D"
+                  fill="#15803D"
+                  fillOpacity={0.1}
+                  yAxisId="value"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Filters */}
       <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
@@ -666,6 +665,13 @@ const InventoryMovements: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
+              {paginatedData.length === 0 && (
+                <tr>
+                  <td colSpan={9} className="py-12 px-4 text-center text-gray-500">
+                    Aucune donnée — module non alimenté par l'import
+                  </td>
+                </tr>
+              )}
               {paginatedData.map((movement) => (
                 <tr key={movement.id} className="hover:bg-gray-50">
                   <td className="py-4 px-4">

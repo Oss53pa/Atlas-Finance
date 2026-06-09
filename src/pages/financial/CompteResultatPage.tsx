@@ -140,8 +140,9 @@ const CompteResultatPage: React.FC = () => {
     const m = parseInt(month);
     return {
       actif: bilanStructure.actif.map(item => {
-        const prefix = item.code.split('/')[0];
-        return Math.round(soldeCumulByPrefix(prefix, m));
+        // '22/23' etc. : sommer TOUS les préfixes (sinon 23 = constructions PLAZA, 12,4 Mrd, est ignoré)
+        const v = item.code.split('/').reduce((s, p) => s + soldeCumulByPrefix(p, m), 0);
+        return Math.round(v);
       }),
       passif: bilanStructure.passif.map(item => {
         return Math.round(soldeCreditCumulByPrefix(item.code, m));
@@ -433,7 +434,8 @@ const CompteResultatPage: React.FC = () => {
                     <tbody>
                       {bilanStructure.actif.map((item, index) => {
                         const monthlyValues = months.map(month => generateMonthlyBilan(month).actif[index]);
-                        const total = monthlyValues.reduce((sum, value) => sum + value, 0);
+                        // Bilan = solde CUMULÉ : total annuel = dernier mois (déc.), PAS la somme des 12 cumuls (= ~12× le solde).
+                        const total = monthlyValues.length ? monthlyValues[monthlyValues.length - 1] : 0;
 
                         return (
                           <tr key={index} className="border-b border-[var(--color-border)] hover:bg-gray-50">
@@ -471,7 +473,8 @@ const CompteResultatPage: React.FC = () => {
                           const data = generateMonthlyBilan(month);
                           return data.actif.reduce((sum, value) => sum + value, 0);
                         });
-                        const grandTotal = monthlyTotals.reduce((sum, value) => sum + value, 0);
+                        // Cumulé : TOTAL ACTIF = dernier mois, pas la somme des cumuls mensuels.
+                        const grandTotal = monthlyTotals.length ? monthlyTotals[monthlyTotals.length - 1] : 0;
 
                         return (
                           <tr className="bg-[var(--color-text-secondary)]/10 font-bold border-t-2 border-[var(--color-text-secondary)]">
@@ -515,7 +518,8 @@ const CompteResultatPage: React.FC = () => {
                     <tbody>
                       {bilanStructure.passif.map((item, index) => {
                         const monthlyValues = months.map(month => generateMonthlyBilan(month).passif[index]);
-                        const total = monthlyValues.reduce((sum, value) => sum + value, 0);
+                        // Bilan = solde CUMULÉ : total annuel = dernier mois, PAS la somme des 12 cumuls.
+                        const total = monthlyValues.length ? monthlyValues[monthlyValues.length - 1] : 0;
 
                         return (
                           <tr key={index} className="border-b border-[var(--color-border)] hover:bg-gray-50">
@@ -553,7 +557,8 @@ const CompteResultatPage: React.FC = () => {
                           const data = generateMonthlyBilan(month);
                           return data.passif.reduce((sum, value) => sum + value, 0);
                         });
-                        const grandTotal = monthlyTotals.reduce((sum, value) => sum + value, 0);
+                        // Cumulé : TOTAL PASSIF = dernier mois, pas la somme des cumuls mensuels.
+                        const grandTotal = monthlyTotals.length ? monthlyTotals[monthlyTotals.length - 1] : 0;
 
                         return (
                           <tr className="bg-[var(--color-primary)]/10 font-bold border-t-2 border-[var(--color-primary)]">
@@ -1360,7 +1365,7 @@ const CompteResultatPage: React.FC = () => {
                       {[
                         { code: 'A1', nom: 'Charges/CA', calcul: (month: string) => { const d = monthlyData[month as keyof typeof monthlyData]; return d.ca === 0 ? 0 : (d.charges / d.ca) * 100; }, format: '%' },
                         { code: 'A2', nom: 'Croissance', calcul: (month: string) => monthlyData[month as keyof typeof monthlyData].evolution, format: '%' },
-                        { code: 'A3', nom: 'CA/jour', calcul: (month: string) => (monthlyData[month as keyof typeof monthlyData].ca / 30), format: '€' }
+                        { code: 'A3', nom: 'CA/jour', calcul: (month: string) => (monthlyData[month as keyof typeof monthlyData].ca / 30), format: 'FCFA' }
                       ].map((ratio, index) => {
                         const monthlyValues = months.map(month => ratio.calcul(month));
                         const moyenne = monthlyValues.reduce((sum, value) => sum + value, 0) / monthlyValues.length;

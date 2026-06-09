@@ -253,8 +253,8 @@ const TreasuryDashboard: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <KPICard
             title="Position de Trésorerie"
-            value={formatCurrency(stats.totalCashPosition)}
-            subtitle={stats.total_accounts > 0 ? `${stats.total_accounts} compte(s)` : 'Aucun compte trouvé'}
+            value={stats.total_accounts > 0 ? formatCurrency(stats.totalCashPosition) : '—'}
+            subtitle={stats.total_accounts > 0 ? `${stats.total_accounts} compte(s)` : 'Aucune donnée — module non alimenté par l\'import'}
             icon={Wallet}
             color="success"
             delay={0.1}
@@ -263,8 +263,8 @@ const TreasuryDashboard: React.FC = () => {
 
           <KPICard
             title="Connexions Bancaires"
-            value={stats.activeBankConnections.toString()}
-            subtitle="EBICS • SWIFT • PSD2 • Temps réel"
+            value={stats.total_accounts > 0 ? stats.activeBankConnections.toString() : '—'}
+            subtitle={stats.total_accounts > 0 ? 'EBICS • SWIFT • PSD2 • Temps réel' : 'Aucune connexion bancaire enregistrée'}
             icon={Shield}
             color="neutral"
             delay={0.2}
@@ -273,8 +273,12 @@ const TreasuryDashboard: React.FC = () => {
 
           <KPICard
             title="Rapprochement IA"
-            value={formatPercentage(stats.reconciliationRate)}
-            subtitle={`Taux de matching${stats.pendingReconciliation > 0 ? ` • ${stats.pendingReconciliation} en attente` : ''}`}
+            value={stats.total_accounts > 0 ? formatPercentage(stats.reconciliationRate) : '—'}
+            subtitle={
+              stats.total_accounts > 0
+                ? `Taux de matching${stats.pendingReconciliation > 0 ? ` • ${stats.pendingReconciliation} en attente` : ''}`
+                : 'Aucune donnée — module non alimenté par l\'import'
+            }
             icon={Brain}
             color="primary"
             delay={0.3}

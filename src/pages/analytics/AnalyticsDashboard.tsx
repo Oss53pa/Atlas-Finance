@@ -22,8 +22,7 @@ import {
   SectionHeader,
   ElegantButton,
   PageContainer,
-  ModernChartCard,
-  ColorfulBarChart
+  ModernChartCard
 } from '../../components/ui/DesignSystem';
 import { formatCurrency, formatDate, formatPercentage } from '../../lib/utils';
 
@@ -73,7 +72,6 @@ const AnalyticsDashboard: React.FC = () => {
   const dashboardData = useMemo(() => {
     let chiffre_affaires = 0;
     let couts_directs = 0;
-    const costByPrefix: Record<string, number> = {};
     const analyticalCodes = new Set<string>();
     let ecritures_ventilees = 0;
 
@@ -88,10 +86,7 @@ const AnalyticsDashboard: React.FC = () => {
           chiffre_affaires += (line.credit || 0) - (line.debit || 0);
         }
         if (line.accountCode?.startsWith('6')) {
-          const amount = (line.debit || 0) - (line.credit || 0);
-          couts_directs += amount;
-          const prefix = line.accountCode?.substring(0, 2) || '6X';
-          costByPrefix[prefix] = (costByPrefix[prefix] || 0) + amount;
+          couts_directs += (line.debit || 0) - (line.credit || 0);
         }
       }
     }
@@ -103,37 +98,27 @@ const AnalyticsDashboard: React.FC = () => {
     const totalLines = filteredEntries.reduce((s, e) => s + (e.lines?.length || 0), 0);
     const taux_efficacite = totalLines > 0 ? (ecritures_ventilees / totalLines) * 100 : 0;
 
-    const costCenterColors = ['bg-green-400', 'bg-[var(--color-text-secondary)]', 'bg-gray-400', 'bg-orange-400', 'bg-yellow-400', 'bg-red-400', 'bg-primary-400'];
-    const accountLabels: Record<string, string> = {
-      '60': 'Achats', '61': 'Services ext.', '62': 'Autres services', '63': 'Impots',
-      '64': 'Personnel', '65': 'Autres charges', '66': 'Charges fin.', '67': 'Charges except.',
-      '68': 'Dotations', '69': 'Participation',
-    };
-    const costCenterChart = Object.entries(costByPrefix)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 7)
-      .map(([prefix, value], i) => ({
-        label: accountLabels[prefix] || `Compte ${prefix}x`,
-        value: Math.round(Math.abs(value) / 1000),
-        color: costCenterColors[i % costCenterColors.length],
-      }));
+    // La comptabilite analytique n'est PAS alimentee par l'import :
+    // analyticalCode est 100% NULL et la table cost_centers est vide.
+    // On n'affiche donc AUCUN chiffre analytique fabrique (axes, centres,
+    // ventilations, performance par centre) -> etat vide honnete.
+    const hasAnalytical = analyticalCodes.size > 0;
 
     return {
       chiffre_affaires,
       couts_directs,
       marge_brute,
       taux_marge,
+      hasAnalytical,
       nombre_axes: analyticalCodes.size,
       nombre_centres: analyticalCodes.size,
       ecritures_ventilees,
       rentabilite_globale,
-      evolution_rentabilite: 0,
       indice_productivite: chiffre_affaires > 0 && couts_directs > 0 ? +(chiffre_affaires / couts_directs).toFixed(2) : 0,
-      taux_efficacite: +taux_efficacite.toFixed(1),
+      taux_efficacite: hasAnalytical ? +taux_efficacite.toFixed(1) : null,
       top_centres: [] as { label: string; value: number }[],
       repartition_couts: [] as { label: string; value: number }[],
       dernieres_ventilations: [] as { label: string; value: number }[],
-      costCenterChart: costCenterChart.length > 0 ? costCenterChart : [{ label: '\u2014', value: 0, color: 'bg-neutral-300' }],
     };
   }, [filteredEntries]);
 
@@ -235,7 +220,7 @@ const AnalyticsDashboard: React.FC = () => {
                 <div>
                   <p className="text-sm font-medium text-neutral-600">Axes Analytiques</p>
                   <p className="text-lg font-bold text-neutral-900">
-                    {dashboardData.nombre_axes}
+                    {dashboardData.hasAnalytical ? dashboardData.nombre_axes : '—'}
                   </p>
                 </div>
                 <div className="p-3 bg-[var(--color-primary-lighter)] rounded-2xl">
@@ -255,7 +240,7 @@ const AnalyticsDashboard: React.FC = () => {
                 <div>
                   <p className="text-sm font-medium text-neutral-600">Centres de Couts</p>
                   <p className="text-lg font-bold text-neutral-900">
-                    {dashboardData.nombre_centres}
+                    {dashboardData.hasAnalytical ? dashboardData.nombre_centres : '—'}
                   </p>
                 </div>
                 <div className="p-3 bg-green-100 rounded-2xl">
@@ -275,7 +260,7 @@ const AnalyticsDashboard: React.FC = () => {
                 <div>
                   <p className="text-sm font-medium text-neutral-600">Ecritures Ventilees</p>
                   <p className="text-lg font-bold text-neutral-900">
-                    {dashboardData.ecritures_ventilees}
+                    {dashboardData.hasAnalytical ? dashboardData.ecritures_ventilees : '—'}
                   </p>
                 </div>
                 <div className="p-3 bg-[var(--color-info-lighter)] rounded-2xl">
@@ -297,10 +282,9 @@ const AnalyticsDashboard: React.FC = () => {
             subtitle="Repartition de la rentabilite par centre analytique"
             icon={PieChart}
           >
-            <ColorfulBarChart
-              data={dashboardData.costCenterChart}
-              height={200}
-            />
+            <div className="flex items-center justify-center h-[200px] text-neutral-500 text-sm text-center px-4">
+              Aucune donnee — module analytique non alimente par l'import
+            </div>
           </ModernChartCard>
         </motion.div>
 
@@ -589,7 +573,7 @@ const AnalyticsDashboard: React.FC = () => {
                 {formatPercentage(dashboardData.rentabilite_globale)}
               </p>
               <p className="text-sm text-green-600 mt-1">
-                +{formatPercentage(dashboardData.evolution_rentabilite)} vs periode precedente
+                Taux de marge sur l'exercice
               </p>
             </motion.div>
 
@@ -622,10 +606,10 @@ const AnalyticsDashboard: React.FC = () => {
                 <Target className="h-4 w-4 text-[var(--color-info)]" />
               </div>
               <p className="text-lg font-bold text-[var(--color-info-dark)]">
-                {formatPercentage(dashboardData.taux_efficacite)}
+                {dashboardData.taux_efficacite !== null ? formatPercentage(dashboardData.taux_efficacite) : '—'}
               </p>
               <p className="text-sm text-[var(--color-info)] mt-1">
-                Objectifs atteints
+                Taux de ventilation analytique
               </p>
             </motion.div>
           </div>

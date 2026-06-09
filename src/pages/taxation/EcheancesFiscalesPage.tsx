@@ -242,6 +242,22 @@ const EcheancesFiscalesPage: React.FC = () => {
         </div>
       </div>
 
+      {/* État vide honnête — aucune donnée fiscale importée */}
+      {!isLoading && deadlines.length === 0 && (
+        <div className="bg-amber-50 border-l-4 border-amber-500 rounded-r-lg p-4 flex items-start gap-3">
+          <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="font-semibold text-amber-800">
+              Aucune donnée — module non alimenté par l'import
+            </p>
+            <p className="text-sm text-amber-700 mt-1">
+              Le registre fiscal et les déclarations ne sont pas alimentés par les données importées.
+              Programmez une échéance ou renseignez le registre fiscal pour suivre vos obligations.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* KPI Cards — 5 statuts */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         {(Object.entries(STATUS_CONFIG) as [DeadlineStatus, typeof STATUS_CONFIG[DeadlineStatus]][]).map(([key, cfg]) => (

@@ -942,7 +942,8 @@ const TaxReportingPage: React.FC = () => {
 
   const taxStats = useMemo(() => {
     let tvaCollectee = 0, tvaDeductible = 0, chargesPersonnel = 0, resultatNet = 0;
-    for (const e of allEntries) {
+    // Exclure les brouillons des KPI fiscaux (cohérence états financiers)
+    for (const e of allEntries.filter(en => (en as { status?: string }).status !== 'draft')) {
       for (const l of e.lines || []) {
         if (l.accountCode.startsWith('4431') || l.accountCode.startsWith('4432') || l.accountCode.startsWith('4433') || l.accountCode.startsWith('4434') || l.accountCode.startsWith('4436')) {
           tvaCollectee += l.credit - l.debit;
@@ -1988,7 +1989,11 @@ const TaxReportingPage: React.FC = () => {
                                 const col = tvaResult?.amounts?.base || 0;
                                 if (col > 0) return `${(ded / col * 100).toFixed(0)}% du potentiel récupéré`;
                               }
-                              return '+15% vs année précédente';
+                              // Fallback réel : ratio TVA déductible / collectée issu du GL
+                              if (taxStats.tvaCollectee > 0) {
+                                return `${(taxStats.tvaDeductible / taxStats.tvaCollectee * 100).toFixed(0)}% du potentiel récupéré`;
+                              }
+                              return '—';
                             })()}
                           </p>
                         </div>
@@ -2006,7 +2011,11 @@ const TaxReportingPage: React.FC = () => {
                                 const totalCredits = triggeredTaxes.reduce((s, r) => s + (r.amounts?.credit || 0), 0);
                                 if (totalCredits > 0) return `${formatCurrency(totalCredits)} de crédits disponibles`;
                               }
-                              return '85% du potentiel';
+                              // Fallback réel : crédit de TVA (déductible − collectée) calculé sur le GL
+                              if (taxStats.creditTVA > 0) {
+                                return `${formatCurrency(taxStats.creditTVA)} de crédit de TVA`;
+                              }
+                              return 'Aucun crédit d\'impôt disponible';
                             })()}
                           </p>
                         </div>
@@ -2025,7 +2034,7 @@ const TaxReportingPage: React.FC = () => {
                                 if (manualCount > 0) return `${manualCount} taxe(s) nécessitent une saisie manuelle`;
                                 return `${triggeredTaxes.length} taxe(s) détectée(s) automatiquement`;
                               }
-                              return '3 nouvelles déductions possibles';
+                              return 'Registre fiscal non initialisé';
                             })()}
                           </p>
                         </div>

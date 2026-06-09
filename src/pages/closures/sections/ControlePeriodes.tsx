@@ -56,7 +56,7 @@ interface RegleCloture {
 const ControlePeriodes: React.FC = () => {
   const { t } = useLanguage();
   const { adapter } = useData();
-  const [selectedPeriode, setSelectedPeriode] = useState<string>('2025-01');
+  const [selectedPeriode, setSelectedPeriode] = useState<string>('');
   const [showClotureModal, setShowClotureModal] = useState(false);
   const [showForceClotureModal, setShowForceClotureModal] = useState(false);
   const [fiscalYears, setFiscalYears] = useState<DBFiscalYear[]>([]);
@@ -66,7 +66,11 @@ const ControlePeriodes: React.FC = () => {
   // Load fiscal years from adapter
   useEffect(() => {
     adapter.getAll<DBFiscalYear>('fiscalYears').then(fys => {
-      setFiscalYears(fys.sort((a, b) => b.startDate.localeCompare(a.startDate)));
+      const sorted = fys.sort((a, b) => b.startDate.localeCompare(a.startDate));
+      setFiscalYears(sorted);
+      // Sélectionner par défaut l'exercice ACTIF réel (sinon le 1er), pas une période figée inexistante
+      const defaut = sorted.find(fy => fy.isActive) ?? sorted[0];
+      if (defaut) setSelectedPeriode(defaut.code || defaut.name);
     });
   }, [adapter]);
 
@@ -646,68 +650,73 @@ const ControlePeriodes: React.FC = () => {
                   <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
                     Période à clôturer <span className="text-[var(--color-error)]">*</span>
                   </label>
-                  <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="2025-01">Janvier 2025</option>
-                    <option value="2024-12">Décembre 2024</option>
-                    <option value="2024-11">Novembre 2024</option>
+                  <select
+                    value={selectedPeriode}
+                    onChange={(e) => setSelectedPeriode(e.target.value)}
+                    className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    {periodes.length === 0 && <option value="">Aucun exercice disponible</option>}
+                    {periodes.map(p => (
+                      <option key={p.id} value={p.periode}>{p.periode}</option>
+                    ))}
                   </select>
                 </div>
 
                 <div className="border border-[var(--color-border)] rounded-lg p-4 space-y-3">
                   <h4 className="font-semibold text-sm text-[var(--color-text-primary)] mb-3">Validations obligatoires</h4>
 
-                  <div className="flex items-center justify-between p-3 bg-[var(--color-success-lightest)] rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="w-5 h-5 text-[var(--color-success)]" />
-                      <span className="text-sm font-medium text-[var(--color-text-primary)]">Validation comptable</span>
-                    </div>
-                    <Badge variant="default" className="bg-green-100 text-green-800">{t('accounting.validated')}</Badge>
-                  </div>
-
-                  <div className="flex items-center justify-between p-3 bg-[var(--color-success-lightest)] rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="w-5 h-5 text-[var(--color-success)]" />
-                      <span className="text-sm font-medium text-[var(--color-text-primary)]">Validation fiscale</span>
-                    </div>
-                    <Badge variant="default" className="bg-green-100 text-green-800">{t('accounting.validated')}</Badge>
-                  </div>
-
-                  <div className="flex items-center justify-between p-3 bg-[var(--color-warning-lightest)] rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-5 h-5 text-[var(--color-warning)]" />
-                      <span className="text-sm font-medium text-[var(--color-text-primary)]">Validation audit</span>
-                    </div>
-                    <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">{t('status.pending')}</Badge>
-                  </div>
-
-                  <div className="flex items-center justify-between p-3 bg-[var(--color-success-lightest)] rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="w-5 h-5 text-[var(--color-success)]" />
-                      <span className="text-sm font-medium text-[var(--color-text-primary)]">Validation direction</span>
-                    </div>
-                    <Badge variant="default" className="bg-green-100 text-green-800">{t('accounting.validated')}</Badge>
-                  </div>
-                </div>
-
-                <div className="border border-[var(--color-border)] rounded-lg p-4">
-                  <h4 className="font-semibold text-sm text-[var(--color-text-primary)] mb-3">Progression des étapes</h4>
-                  <div className="space-y-3">
-                    <div>
-                      <div className="flex justify-between text-sm mb-1">
-                        <span className="text-[var(--color-text-primary)]">Étapes complétées</span>
-                        <span className="font-medium">8/10 (80%)</span>
+                  {selectedPeriodeData ? (
+                    (Object.entries(selectedPeriodeData.validations) as [string, boolean][]).map(([key, value]) => (
+                      <div
+                        key={key}
+                        className={`flex items-center justify-between p-3 rounded-lg ${value ? 'bg-[var(--color-success-lightest)]' : 'bg-[var(--color-warning-lightest)]'}`}
+                      >
+                        <div className="flex items-center gap-2">
+                          {value ? (
+                            <CheckCircle className="w-5 h-5 text-[var(--color-success)]" />
+                          ) : (
+                            <Clock className="w-5 h-5 text-[var(--color-warning)]" />
+                          )}
+                          <span className="text-sm font-medium text-[var(--color-text-primary)] capitalize">Validation {key}</span>
+                        </div>
+                        {value ? (
+                          <Badge variant="default" className="bg-green-100 text-green-800">{t('accounting.validated')}</Badge>
+                        ) : (
+                          <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">{t('status.pending')}</Badge>
+                        )}
                       </div>
-                      <Progress value={80} className="h-2" />
-                    </div>
-                    <div className="text-xs text-[var(--color-text-secondary)]">
-                      <p>Saisie des écritures</p>
-                      <p>Lettrage des comptes</p>
-                      <p>Rapprochements bancaires</p>
-                      <p className="text-[var(--color-warning)]">⏳ Contrôles de cohérence (90%)</p>
-                      <p className="text-[var(--color-warning)]">⏳ Validation des provisions (50%)</p>
-                    </div>
-                  </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-[var(--color-text-tertiary)]">Aucun exercice sélectionné.</p>
+                  )}
                 </div>
+
+                {selectedPeriodeData && (() => {
+                  const etapes = selectedPeriodeData.etapesObligatoires;
+                  const completes = etapes.filter(e => e.statut === 'complete').length;
+                  const pct = etapes.length > 0 ? Math.round((completes / etapes.length) * 100) : 0;
+                  return (
+                    <div className="border border-[var(--color-border)] rounded-lg p-4">
+                      <h4 className="font-semibold text-sm text-[var(--color-text-primary)] mb-3">Progression des étapes</h4>
+                      <div className="space-y-3">
+                        <div>
+                          <div className="flex justify-between text-sm mb-1">
+                            <span className="text-[var(--color-text-primary)]">Étapes complétées</span>
+                            <span className="font-medium">{completes}/{etapes.length} ({pct}%)</span>
+                          </div>
+                          <Progress value={pct} className="h-2" />
+                        </div>
+                        <div className="text-xs text-[var(--color-text-secondary)] space-y-1">
+                          {etapes.map(e => (
+                            <p key={e.id} className={e.statut === 'complete' ? '' : 'text-[var(--color-warning)]'}>
+                              {e.statut === 'complete' ? '✓ ' : '⏳ '}{e.nom}
+                            </p>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 <div>
                   <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
@@ -805,9 +814,15 @@ const ControlePeriodes: React.FC = () => {
                   <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
                     Période à clôturer <span className="text-[var(--color-error)]">*</span>
                   </label>
-                  <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent">
-                    <option value="2025-01">Janvier 2025</option>
-                    <option value="2024-12">Décembre 2024</option>
+                  <select
+                    value={selectedPeriode}
+                    onChange={(e) => setSelectedPeriode(e.target.value)}
+                    className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  >
+                    {periodes.length === 0 && <option value="">Aucun exercice disponible</option>}
+                    {periodes.map(p => (
+                      <option key={p.id} value={p.periode}>{p.periode}</option>
+                    ))}
                   </select>
                 </div>
 
@@ -816,20 +831,18 @@ const ControlePeriodes: React.FC = () => {
                     <XCircle className="w-4 h-4" />
                     Blocages identifiés
                   </h4>
-                  <ul className="space-y-2 text-sm">
-                    <li className="flex items-start gap-2">
-                      <span className="text-[var(--color-error)]">•</span>
-                      <span className="text-red-800">Validation audit non complétée</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-[var(--color-error)]">•</span>
-                      <span className="text-red-800">2 étapes obligatoires en attente</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-[var(--color-error)]">•</span>
-                      <span className="text-red-800">Provisions non validées (50% complété)</span>
-                    </li>
-                  </ul>
+                  {clotureCheck.reasons.length > 0 ? (
+                    <ul className="space-y-2 text-sm">
+                      {clotureCheck.reasons.map((reason, index) => (
+                        <li key={index} className="flex items-start gap-2">
+                          <span className="text-[var(--color-error)]">•</span>
+                          <span className="text-red-800">{reason}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm text-red-800">Aucun blocage identifié pour cette période.</p>
+                  )}
                 </div>
 
                 <div>

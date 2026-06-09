@@ -81,8 +81,10 @@ const AssetsCategories: React.FC = () => {
         return code.startsWith(catDef.code);
       });
       const totalValue = catAssets.reduce((s, a) => s + (a.acquisitionValue || 0), 0);
-      const avgRate = catAssets.length > 0
-        ? (catAssets.reduce((s, a) => s + (a.depreciationRate || (a.usefulLife > 0 ? 100 / a.usefulLife : 0)), 0) / catAssets.length)
+      // Taux d'amortissement linéaire SYSCOHADA = 100 / durée d'utilité.
+      const ratedCatAssets = catAssets.filter(a => (a.usefulLifeYears || a.usefulLife || 0) > 0);
+      const avgRate = ratedCatAssets.length > 0
+        ? (ratedCatAssets.reduce((s, a) => s + 100 / (a.usefulLifeYears || a.usefulLife), 0) / ratedCatAssets.length)
         : 0;
 
       const children: SubCategory[] = catDef.subcategories.map((sub, si) => {
@@ -96,9 +98,12 @@ const AssetsCategories: React.FC = () => {
           code: sub.code,
           count: subAssets.length,
           value: subAssets.reduce((s, a) => s + (a.acquisitionValue || 0), 0),
-          depreciationRate: subAssets.length > 0
-            ? `${(subAssets.reduce((s, a) => s + (a.depreciationRate || 0), 0) / subAssets.length).toFixed(0)}%`
-            : '—',
+          depreciationRate: (() => {
+            const rated = subAssets.filter(a => (a.usefulLifeYears || a.usefulLife || 0) > 0);
+            if (rated.length === 0) return '—';
+            const r = rated.reduce((s, a) => s + 100 / (a.usefulLifeYears || a.usefulLife), 0) / rated.length;
+            return `${r.toFixed(0)}%`;
+          })(),
         };
       });
 
@@ -151,6 +156,13 @@ const AssetsCategories: React.FC = () => {
   const totalAssets = categories.reduce((sum, c) => sum + c.count, 0);
   const totalValue = categories.reduce((sum, c) => sum + c.value, 0);
   const totalSubCategories = categories.reduce((sum, c) => sum + c.children.length, 0);
+
+  // Taux d'amortissement moyen réel (linéaire SYSCOHADA = 100 / durée d'utilité)
+  // calculé sur les immobilisations dont la durée d'utilité est renseignée.
+  const ratedAssets = dbAssets.filter(a => (a.usefulLifeYears || a.usefulLife || 0) > 0);
+  const avgDepreciationRate = ratedAssets.length > 0
+    ? ratedAssets.reduce((s, a) => s + 100 / (a.usefulLifeYears || a.usefulLife), 0) / ratedAssets.length
+    : null;
 
   const handleSaveSettings = () => {
     toast.success('Paramètres des catégories sauvegardés');
@@ -279,7 +291,9 @@ const AssetsCategories: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-secondary)]">Taux moyen</p>
-                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">18.5%</p>
+                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">
+                  {avgDepreciationRate !== null ? `${avgDepreciationRate.toFixed(1)}%` : '—'}
+                </p>
               </div>
               <TrendingUp className="w-8 h-8 text-[var(--color-text-secondary)] opacity-20" />
             </div>

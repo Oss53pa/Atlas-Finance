@@ -118,15 +118,6 @@ interface RatioFinancier {
   formuleCalcul: string;
 }
 
-interface IndicateurSectoriel {
-  nom: string;
-  valeurEntreprise: number;
-  moyenneSectorielle: number;
-  quartileSup: number;
-  quartileInf: number;
-  position: 'excellent' | 'bon' | 'moyen' | 'faible';
-  secteurReference: string;
-}
 
 interface DocumentReglementaire {
   nom: string;
@@ -209,8 +200,17 @@ const EtatsSYSCOHADA: React.FC = () => {
   };
 
   // --- Computed from real Dexie data via useEtatsFinanciers hook ---
-  const { getSolde, getSoldeDebiteur, getSoldeCrediteur, totalActif: realTotalActif, totalPassif: realTotalPassif, resultatNet: realResultat, isBalanced, totalEntries } = etatsData;
+  const { getSolde, getSoldeDebiteur, getSoldeCrediteur, totalActif: realTotalActif, totalPassif: realTotalPassif, resultatNet: realResultat, isBalanced, totalEntries, fiscalYear } = etatsData;
 
+  // Libellé de l'exercice actif (réel). Pas de données N-1 disponibles à l'import.
+  const exerciceLabel = fiscalYear?.startDate
+    ? new Date(fiscalYear.startDate).getFullYear().toString()
+    : (fiscalYear?.code ?? '—');
+  const dateClotureLabel = fiscalYear?.endDate
+    ? new Date(fiscalYear.endDate).toLocaleDateString('fr-FR')
+    : (exerciceLabel !== '—' ? `31/12/${exerciceLabel}` : '—');
+
+  // Pas de comparatif N-1 (l'import ne fournit pas l'exercice précédent) → exercicePrecedent laissé à 0, affiché "—".
   const p = (val: number) => ({ exerciceActuel: val, exercicePrecedent: 0, variation: val, variationPourcentage: val !== 0 ? 100 : 0 });
 
   const etatsFinanciers: EtatFinancier[] = [
@@ -370,11 +370,6 @@ const EtatsSYSCOHADA: React.FC = () => {
     ];
   }, [etatsData.balances]);
 
-  // Indicateurs sectoriels — static reference data (no real data to compare)
-  const indicateursSectoriels: IndicateurSectoriel[] = [
-    { nom: 'Marge commerciale', valeurEntreprise: CA > 0 ? new Money(margeCommerciale).divide(CA).multiply(100).round(1).toNumber() : 0, moyenneSectorielle: 35.8, quartileSup: 42.1, quartileInf: 28.5, position: 'bon', secteurReference: 'Commerce' },
-  ];
-
   // Documents réglementaires — static
   const documentsReglementaires: DocumentReglementaire[] = [
     { nom: 'Déclaration statistique et fiscale (DSF)', description: 'Déclaration annuelle obligatoire', obligatoire: true, frequence: 'Annuelle', dateLimite: `${new Date().getFullYear() + 1}-04-30`, statut: totalEntries > 0 ? 'en_cours' : 'non_commence', autoriteDestinataire: 'Direction Générale des Impôts', sanctions: 'Amende de 50 000 à 500 000 FCFA' },
@@ -463,7 +458,7 @@ const EtatsSYSCOHADA: React.FC = () => {
               <div>
                 <p className="text-sm text-[var(--color-text-primary)]">Total Actif</p>
                 <p className="text-lg font-bold">{(kpis.totalActif / 1000000).toFixed(1)}M FCFA</p>
-                <p className="text-xs text-[var(--color-primary)] mt-1">+57% vs N-1</p>
+                <p className="text-xs text-[var(--color-text-secondary)] mt-1">Exercice {exerciceLabel}</p>
               </div>
               <Building className="w-8 h-8 text-[var(--color-primary)]" />
             </div>
@@ -476,7 +471,7 @@ const EtatsSYSCOHADA: React.FC = () => {
               <div>
                 <p className="text-sm text-[var(--color-text-primary)]">Résultat Net</p>
                 <p className="text-lg font-bold text-[var(--color-success)]">{(kpis.resultatNet / 1000000).toFixed(1)}M FCFA</p>
-                <p className="text-xs text-[var(--color-success)] mt-1">+34.7% vs N-1</p>
+                <p className="text-xs text-[var(--color-text-secondary)] mt-1">Exercice {exerciceLabel}</p>
               </div>
               <TrendingUp className="w-8 h-8 text-[var(--color-success)]" />
             </div>
@@ -523,8 +518,7 @@ const EtatsSYSCOHADA: React.FC = () => {
         <Alert className="border-l-4 border-l-blue-500">
           <Info className="h-4 w-4" />
           <AlertDescription>
-            <strong>Échéances:</strong> DSF à transmettre avant le 30 avril 2025.
-            Rapport de gestion en cours de finalisation.
+            <strong>Échéances:</strong> DSF à transmettre avant le 30 avril {exerciceLabel !== '—' ? Number(exerciceLabel) + 1 : 'N+1'}.
           </AlertDescription>
         </Alert>
       </div>
@@ -647,7 +641,7 @@ const EtatsSYSCOHADA: React.FC = () => {
         {/* Bilan */}
         <TabsContent value="bilan" className="space-y-4">
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">Bilan SYSCOHADA au 31 décembre 2024</h3>
+            <h3 className="text-lg font-semibold">Bilan SYSCOHADA au {dateClotureLabel}</h3>
             <div className="flex gap-2">
               <select
                 className="px-4 py-2 border rounded-lg"
@@ -677,8 +671,8 @@ const EtatsSYSCOHADA: React.FC = () => {
                     <tr>
                       <th className="px-3 py-2 text-left font-medium">{t('accounting.label')}</th>
                       <th className="px-3 py-2 text-right font-medium">Note</th>
-                      <th className="px-3 py-2 text-right font-medium">2024</th>
-                      <th className="px-3 py-2 text-right font-medium">2023</th>
+                      <th className="px-3 py-2 text-right font-medium">{exerciceLabel}</th>
+                      <th className="px-3 py-2 text-right font-medium">N-1</th>
                       <th className="px-3 py-2 text-right font-medium">Var %</th>
                     </tr>
                   </thead>
@@ -701,17 +695,11 @@ const EtatsSYSCOHADA: React.FC = () => {
                         <td className="px-3 py-2 text-right">
                           {formatNumber(poste.exerciceActuel)}
                         </td>
-                        <td className="px-3 py-2 text-right">
-                          {formatNumber(poste.exercicePrecedent)}
+                        <td className="px-3 py-2 text-right text-[var(--color-text-secondary)]">
+                          —
                         </td>
-                        <td className={`px-3 py-2 text-right ${
-                          poste.variationPourcentage > 0 ? 'text-[var(--color-success)]' :
-                          poste.variationPourcentage < 0 ? 'text-[var(--color-error)]' : 'text-[var(--color-text-primary)]'
-                        }`}>
-                          {poste.variationPourcentage !== 0 && (
-                            poste.variationPourcentage > 0 ? '+' : ''
-                          )}
-                          {poste.variationPourcentage.toFixed(1)}%
+                        <td className="px-3 py-2 text-right text-[var(--color-text-secondary)]">
+                          —
                         </td>
                       </tr>
                     ))}
@@ -731,8 +719,8 @@ const EtatsSYSCOHADA: React.FC = () => {
                     <tr>
                       <th className="px-3 py-2 text-left font-medium">{t('accounting.label')}</th>
                       <th className="px-3 py-2 text-right font-medium">Note</th>
-                      <th className="px-3 py-2 text-right font-medium">2024</th>
-                      <th className="px-3 py-2 text-right font-medium">2023</th>
+                      <th className="px-3 py-2 text-right font-medium">{exerciceLabel}</th>
+                      <th className="px-3 py-2 text-right font-medium">N-1</th>
                       <th className="px-3 py-2 text-right font-medium">Var %</th>
                     </tr>
                   </thead>
@@ -755,17 +743,11 @@ const EtatsSYSCOHADA: React.FC = () => {
                         <td className="px-3 py-2 text-right">
                           {formatNumber(poste.exerciceActuel)}
                         </td>
-                        <td className="px-3 py-2 text-right">
-                          {formatNumber(poste.exercicePrecedent)}
+                        <td className="px-3 py-2 text-right text-[var(--color-text-secondary)]">
+                          —
                         </td>
-                        <td className={`px-3 py-2 text-right ${
-                          poste.variationPourcentage > 0 ? 'text-[var(--color-success)]' :
-                          poste.variationPourcentage < 0 ? 'text-[var(--color-error)]' : 'text-[var(--color-text-primary)]'
-                        }`}>
-                          {poste.variationPourcentage !== 0 && (
-                            poste.variationPourcentage > 0 ? '+' : ''
-                          )}
-                          {poste.variationPourcentage.toFixed(1)}%
+                        <td className="px-3 py-2 text-right text-[var(--color-text-secondary)]">
+                          —
                         </td>
                       </tr>
                     ))}
@@ -778,9 +760,8 @@ const EtatsSYSCOHADA: React.FC = () => {
           <Alert className="border-l-4 border-l-blue-500">
             <Info className="h-4 w-4" />
             <AlertDescription>
-              <strong>Analyse:</strong> Croissance significative de l'actif (+57%) portée par les investissements
-              en immobilisations incorporelles et corporelles. Financement équilibré entre capitaux propres
-              et endettement.
+              <strong>Bilan {exerciceLabel} :</strong> {isBalanced ? 'Actif = Passif, le bilan est équilibré.' : 'Déséquilibre Actif/Passif détecté.'}
+              {' '}Comparatif N-1 non disponible (l'exercice précédent n'est pas alimenté par l'import).
             </AlertDescription>
           </Alert>
         </TabsContent>
@@ -788,7 +769,7 @@ const EtatsSYSCOHADA: React.FC = () => {
         {/* Compte de Résultat */}
         <TabsContent value="compte-resultat" className="space-y-4">
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">Compte de Résultat - Exercice 2024</h3>
+            <h3 className="text-lg font-semibold">Compte de Résultat - Exercice {exerciceLabel}</h3>
             <div className="flex gap-2">
               <button className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-dark)] flex items-center gap-2">
                 <BarChart3 className="w-4 h-4" />
@@ -808,8 +789,8 @@ const EtatsSYSCOHADA: React.FC = () => {
                   <tr>
                     <th className="px-4 py-3 text-left font-medium">{t('accounting.label')}</th>
                     <th className="px-4 py-3 text-right font-medium">Note</th>
-                    <th className="px-4 py-3 text-right font-medium">2024</th>
-                    <th className="px-4 py-3 text-right font-medium">2023</th>
+                    <th className="px-4 py-3 text-right font-medium">{exerciceLabel}</th>
+                    <th className="px-4 py-3 text-right font-medium">N-1</th>
                     <th className="px-4 py-3 text-right font-medium">Variation</th>
                     <th className="px-4 py-3 text-right font-medium">%</th>
                   </tr>
@@ -835,31 +816,14 @@ const EtatsSYSCOHADA: React.FC = () => {
                       }`}>
                         {formatNumber(poste.exerciceActuel)}
                       </td>
-                      <td className={`px-4 py-3 text-right ${
-                        poste.exercicePrecedent > 0 ? 'text-black' : 'text-[var(--color-error)]'
-                      }`}>
-                        {formatNumber(poste.exercicePrecedent)}
+                      <td className="px-4 py-3 text-right text-[var(--color-text-secondary)]">
+                        —
                       </td>
-                      <td className={`px-4 py-3 text-right ${
-                        poste.variation > 0 ? 'text-[var(--color-success)]' :
-                        poste.variation < 0 ? 'text-[var(--color-error)]' : 'text-[var(--color-text-primary)]'
-                      }`}>
-                        {poste.variation !== 0 && (
-                          poste.variation > 0 ? '+' : ''
-                        )}
-                        {formatNumber(poste.variation)}
+                      <td className="px-4 py-3 text-right text-[var(--color-text-secondary)]">
+                        —
                       </td>
-                      <td className={`px-4 py-3 text-right ${
-                        poste.variationPourcentage > 0 ? 'text-[var(--color-success)]' :
-                        poste.variationPourcentage < 0 ? 'text-[var(--color-error)]' : 'text-[var(--color-text-primary)]'
-                      }`}>
-                        {Math.abs(poste.variationPourcentage) !== Infinity &&
-                         !isNaN(poste.variationPourcentage) && (
-                          <>
-                            {poste.variationPourcentage > 0 ? '+' : ''}
-                            {poste.variationPourcentage.toFixed(1)}%
-                          </>
-                        )}
+                      <td className="px-4 py-3 text-right text-[var(--color-text-secondary)]">
+                        —
                       </td>
                     </tr>
                   ))}
@@ -877,23 +841,23 @@ const EtatsSYSCOHADA: React.FC = () => {
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between items-center p-2 bg-[var(--color-primary-lightest)] rounded">
                     <span>Marge Commerciale</span>
-                    <span className="font-bold">176.5M</span>
+                    <span className="font-bold">{formatNumber(margeCommerciale)}</span>
                   </div>
                   <div className="flex justify-between items-center p-2 bg-primary-50 rounded">
                     <span>Valeur Ajoutée</span>
-                    <span className="font-bold">90.5M</span>
+                    <span className="font-bold">{formatNumber(VA)}</span>
                   </div>
                   <div className="flex justify-between items-center p-2 bg-[var(--color-success-lightest)] rounded">
                     <span>EBE</span>
-                    <span className="font-bold">55.5M</span>
+                    <span className="font-bold">{formatNumber(EBE)}</span>
                   </div>
                   <div className="flex justify-between items-center p-2 bg-[var(--color-error-lightest)] rounded">
                     <span>Résultat d'Exploitation</span>
-                    <span className="font-bold text-[var(--color-error)]">-19.5M</span>
+                    <span className={`font-bold ${resultatExploit < 0 ? 'text-[var(--color-error)]' : 'text-[var(--color-success)]'}`}>{formatNumber(resultatExploit)}</span>
                   </div>
                   <div className="flex justify-between items-center p-2 bg-[var(--color-background-secondary)] rounded">
                     <span>Résultat HAO</span>
-                    <span className="font-bold text-[var(--color-success)]">83.0M</span>
+                    <span className={`font-bold ${resultatHAO < 0 ? 'text-[var(--color-error)]' : 'text-[var(--color-success)]'}`}>{formatNumber(resultatHAO)}</span>
                   </div>
                 </div>
               </CardContent>
@@ -907,23 +871,23 @@ const EtatsSYSCOHADA: React.FC = () => {
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between items-center">
                     <span>Taux de Marge Commerciale</span>
-                    <span className="font-bold">39.2%</span>
+                    <span className="font-bold">{CA > 0 ? `${(margeCommerciale / CA * 100).toFixed(1)}%` : '—'}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span>Taux de Valeur Ajoutée</span>
-                    <span className="font-bold">20.1%</span>
+                    <span className="font-bold">{CA > 0 ? `${(VA / CA * 100).toFixed(1)}%` : '—'}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span>Taux d'EBE</span>
-                    <span className="font-bold">12.3%</span>
+                    <span className="font-bold">{CA > 0 ? `${(EBE / CA * 100).toFixed(1)}%` : '—'}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span>Charges Personnel/VA</span>
-                    <span className="font-bold">38.7%</span>
+                    <span className="font-bold">{VA > 0 ? `${(chargesPersonnel / VA * 100).toFixed(1)}%` : '—'}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span>Taux de Résultat Net</span>
-                    <span className="font-bold text-[var(--color-success)]">10.8%</span>
+                    <span className="font-bold">{CA > 0 ? `${(realResultat / CA * 100).toFixed(1)}%` : '—'}</span>
                   </div>
                 </div>
               </CardContent>
@@ -934,27 +898,8 @@ const EtatsSYSCOHADA: React.FC = () => {
                 <CardTitle className="text-center text-sm">Évolution Annuelle</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3 text-sm">
-                  <div className="flex justify-between items-center">
-                    <span>Chiffre d'Affaires</span>
-                    <span className="font-bold text-[var(--color-success)]">+18.4%</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span>Charges d'Exploitation</span>
-                    <span className="font-bold text-[var(--color-error)]">+28.1%</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span>Charges Financières</span>
-                    <span className="font-bold text-[var(--color-error)]">+50.0%</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span>Produits HAO</span>
-                    <span className="font-bold text-[var(--color-success)]">+70.0%</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span>Résultat Net</span>
-                    <span className="font-bold text-[var(--color-success)]">+34.7%</span>
-                  </div>
+                <div className="py-8 text-center text-sm text-[var(--color-text-secondary)]">
+                  Aucune donnée — l'exercice précédent (N-1) n'est pas alimenté par l'import.
                 </div>
               </CardContent>
             </Card>
@@ -1020,72 +965,18 @@ const EtatsSYSCOHADA: React.FC = () => {
                 <CardTitle>Analyse Sectorielle</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {indicateursSectoriels.map((indicateur, index) => (
-                    <div key={index} className="p-4 border rounded-lg">
-                      <div className="flex justify-between items-start mb-3">
-                        <div>
-                          <h4 className="font-medium">{indicateur.nom}</h4>
-                          <p className="text-sm text-[var(--color-text-primary)]">Secteur: {indicateur.secteurReference}</p>
-                        </div>
-                        <Badge className={
-                          indicateur.position === 'excellent' ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]' :
-                          indicateur.position === 'bon' ? 'bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)]' :
-                          indicateur.position === 'moyen' ? 'bg-[var(--color-warning-lighter)] text-yellow-800' :
-                          'bg-[var(--color-error-lighter)] text-red-800'
-                        }>
-                          {indicateur.position}
-                        </Badge>
-                      </div>
-
-                      <div className="space-y-2">
-                        <div className="flex justify-between">
-                          <span className="text-sm">Notre valeur</span>
-                          <span className="font-bold">{indicateur.valeurEntreprise}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-sm">Moyenne sectorielle</span>
-                          <span>{indicateur.moyenneSectorielle}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-sm">Quartile supérieur</span>
-                          <span className="text-[var(--color-success)]">{indicateur.quartileSup}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-sm">Quartile inférieur</span>
-                          <span className="text-[var(--color-error)]">{indicateur.quartileInf}</span>
-                        </div>
-                      </div>
-
-                      <div className="mt-3">
-                        <div className="relative h-2 bg-[var(--color-border)] rounded">
-                          <div
-                            className="absolute h-2 bg-[var(--color-primary)] rounded"
-                            style={{
-                              left: `${Math.max(0, Math.min(100, ((indicateur.valeurEntreprise - indicateur.quartileInf) / (indicateur.quartileSup - indicateur.quartileInf)) * 100))}%`,
-                              width: '4px'
-                            }}
-                          />
-                        </div>
-                        <div className="flex justify-between text-xs text-[var(--color-text-secondary)] mt-1">
-                          <span>Q3</span>
-                          <span>Moyenne</span>
-                          <span>Q1</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                <div className="py-8 text-center text-sm text-[var(--color-text-secondary)]">
+                  Aucune donnée — aucun référentiel sectoriel (moyennes / quartiles) n'est alimenté.
                 </div>
               </CardContent>
             </Card>
           </div>
 
           <Alert className="border-l-4 border-l-primary-500">
-            <Brain className="h-4 w-4" />
+            <Info className="h-4 w-4" />
             <AlertDescription>
-              <strong>Analyse IA:</strong> Performance financière solide avec une rentabilité supérieure
-              à la moyenne sectorielle. Attention à l'évolution du ratio d'endettement qui s'approche
-              du seuil d'alerte. Optimiser la gestion du BFR pour améliorer la liquidité.
+              <strong>Ratios :</strong> calculés sur les soldes de l'exercice {exerciceLabel}. La colonne
+              « Valeur N-1 » reste vide tant que l'exercice précédent n'est pas alimenté par l'import.
             </AlertDescription>
           </Alert>
         </TabsContent>
@@ -1098,61 +989,9 @@ const EtatsSYSCOHADA: React.FC = () => {
                 <CardTitle>TAFIRE - Tableau de Financement</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="p-3 bg-[var(--color-primary-lightest)] rounded">
-                    <h4 className="font-medium mb-2">I. RESSOURCES DURABLES</h4>
-                    <div className="space-y-1 text-sm">
-                      <div className="flex justify-between">
-                        <span>Autofinancement</span>
-                        <span className="font-medium">109M</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Cessions d'immobilisations</span>
-                        <span className="font-medium">0M</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Augmentation capitaux propres</span>
-                        <span className="font-medium">0M</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Emprunts nouveaux</span>
-                        <span className="font-medium">60M</span>
-                      </div>
-                      <div className="flex justify-between font-bold border-t pt-1">
-                        <span>Total Ressources</span>
-                        <span>169M</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-3 bg-[var(--color-error-lightest)] rounded">
-                    <h4 className="font-medium mb-2">II. EMPLOIS DURABLES</h4>
-                    <div className="space-y-1 text-sm">
-                      <div className="flex justify-between">
-                        <span>Investissements</span>
-                        <span className="font-medium">193M</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Remboursements emprunts</span>
-                        <span className="font-medium">0M</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Dividendes versés</span>
-                        <span className="font-medium">0M</span>
-                      </div>
-                      <div className="flex justify-between font-bold border-t pt-1">
-                        <span>Total Emplois</span>
-                        <span>193M</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-3 bg-[var(--color-background-secondary)] rounded">
-                    <div className="flex justify-between font-bold">
-                      <span>Variation du FDR</span>
-                      <span className="text-[var(--color-error)]">-24M</span>
-                    </div>
-                  </div>
+                <div className="py-8 text-center text-sm text-[var(--color-text-secondary)]">
+                  Aucune donnée — le TAFIRE nécessite les variations de bilan N/N-1, non disponibles
+                  (l'exercice précédent n'est pas alimenté par l'import).
                 </div>
               </CardContent>
             </Card>
@@ -1162,75 +1001,9 @@ const EtatsSYSCOHADA: React.FC = () => {
                 <CardTitle>État des Flux de Trésorerie</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="p-3 bg-[var(--color-success-lightest)] rounded">
-                    <h4 className="font-medium mb-2">Flux de Trésorerie d'Exploitation</h4>
-                    <div className="space-y-1 text-sm">
-                      <div className="flex justify-between">
-                        <span>Résultat net</span>
-                        <span className="font-medium">48.5M</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Amortissements</span>
-                        <span className="font-medium">60.5M</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Provisions</span>
-                        <span className="font-medium">14.5M</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Variation BFR</span>
-                        <span className="font-medium text-[var(--color-error)]">-25M</span>
-                      </div>
-                      <div className="flex justify-between font-bold border-t pt-1">
-                        <span>Flux Exploitation</span>
-                        <span className="text-[var(--color-success)]">98.5M</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-3 bg-[var(--color-primary-lightest)] rounded">
-                    <h4 className="font-medium mb-2">Flux d'Investissement</h4>
-                    <div className="space-y-1 text-sm">
-                      <div className="flex justify-between">
-                        <span>Acquisitions immobilisations</span>
-                        <span className="font-medium text-[var(--color-error)]">-193M</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Cessions d'actifs</span>
-                        <span className="font-medium">0M</span>
-                      </div>
-                      <div className="flex justify-between font-bold border-t pt-1">
-                        <span>Flux Investissement</span>
-                        <span className="text-[var(--color-error)]">-193M</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-3 bg-primary-50 rounded">
-                    <h4 className="font-medium mb-2">Flux de Financement</h4>
-                    <div className="space-y-1 text-sm">
-                      <div className="flex justify-between">
-                        <span>Nouveaux emprunts</span>
-                        <span className="font-medium">60M</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Remboursements</span>
-                        <span className="font-medium">0M</span>
-                      </div>
-                      <div className="flex justify-between font-bold border-t pt-1">
-                        <span>Flux Financement</span>
-                        <span className="text-[var(--color-primary)]">60M</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-3 bg-[var(--color-background-hover)] rounded">
-                    <div className="flex justify-between font-bold text-lg">
-                      <span>Variation Trésorerie</span>
-                      <span className="text-[var(--color-error)]">-34.5M</span>
-                    </div>
-                  </div>
+                <div className="py-8 text-center text-sm text-[var(--color-text-secondary)]">
+                  Aucune donnée — le tableau des flux nécessite les variations de bilan N/N-1, non
+                  disponibles (l'exercice précédent n'est pas alimenté par l'import).
                 </div>
               </CardContent>
             </Card>
@@ -1255,12 +1028,8 @@ const EtatsSYSCOHADA: React.FC = () => {
 
                 <div>
                   <h4 className="font-medium mb-3">Événements Significatifs</h4>
-                  <div className="space-y-2 text-sm">
-                    <p><strong>Investissements:</strong> Acquisition ERP Atlas FnA (85M FCFA)</p>
-                    <p><strong>Financement:</strong> Emprunt bancaire SGBCI (60M FCFA)</p>
-                    <p><strong>Provisionnement:</strong> Provision litige commercial (8M FCFA)</p>
-                    <p><strong>HAO:</strong> Subvention FDFP comptabilisée (15M FCFA)</p>
-                    <p><strong>Perspectives:</strong> Croissance CA prévue +20% en 2025</p>
+                  <div className="py-4 text-sm text-[var(--color-text-secondary)]">
+                    Aucun événement significatif saisi — module non alimenté par l'import.
                   </div>
                 </div>
               </div>
@@ -1342,24 +1111,20 @@ const EtatsSYSCOHADA: React.FC = () => {
               <CardContent>
                 <div className="space-y-3">
                   {[
-                    { tache: 'Inventaire physique des stocks', statut: 'complete' },
-                    { tache: 'Rapprochements bancaires', statut: 'complete' },
-                    { tache: 'Contrôle des créances clients', statut: 'complete' },
-                    { tache: 'Calcul des amortissements', statut: 'complete' },
-                    { tache: 'Provisions pour risques', statut: 'complete' },
-                    { tache: 'Charges et produits à payer/recevoir', statut: 'complete' },
-                    { tache: 'Génération des états SYSCOHADA', statut: 'complete' },
-                    { tache: 'Contrôles de cohérence', statut: 'complete' },
-                    { tache: 'Validation expert-comptable', statut: 'complete' },
-                    { tache: 'Préparation rapport de gestion', statut: 'en_cours' }
-                  ].map((item, index) => (
+                    'Inventaire physique des stocks',
+                    'Rapprochements bancaires',
+                    'Contrôle des créances clients',
+                    'Calcul des amortissements',
+                    'Provisions pour risques',
+                    'Charges et produits à payer/recevoir',
+                    'Génération des états SYSCOHADA',
+                    'Contrôles de cohérence',
+                    'Validation expert-comptable',
+                    'Préparation rapport de gestion'
+                  ].map((tache, index) => (
                     <div key={index} className="flex items-center justify-between p-2 border rounded">
-                      <span className="text-sm">{item.tache}</span>
-                      {item.statut === 'complete' ? (
-                        <CheckCircle className="w-5 h-5 text-[var(--color-success)]" />
-                      ) : (
-                        <Clock className="w-5 h-5 text-[var(--color-warning)]" />
-                      )}
+                      <span className="text-sm">{tache}</span>
+                      <span className="text-xs text-[var(--color-text-secondary)]">Non renseigné</span>
                     </div>
                   ))}
                 </div>
@@ -1375,37 +1140,33 @@ const EtatsSYSCOHADA: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <Alert className="border-l-4 border-l-green-500">
-                    <CheckCircle className="h-4 w-4" />
+                  <Alert className={`border-l-4 ${isBalanced ? 'border-l-green-500' : 'border-l-red-500'}`}>
+                    {isBalanced ? <CheckCircle className="h-4 w-4" /> : <AlertTriangle className="h-4 w-4" />}
                     <AlertDescription>
-                      <strong>Conformité:</strong> Tous les états financiers sont conformes au référentiel
-                      SYSCOHADA. Aucune anomalie critique détectée.
+                      <strong>Équilibre du bilan :</strong> {isBalanced
+                        ? `Actif = Passif sur l'exercice ${exerciceLabel}.`
+                        : 'Déséquilibre Actif/Passif détecté — à corriger avant arrêté des comptes.'}
                     </AlertDescription>
                   </Alert>
 
                   <Alert className="border-l-4 border-l-blue-500">
                     <Info className="h-4 w-4" />
                     <AlertDescription>
-                      <strong>Actions:</strong> Finaliser le rapport de gestion et planifier
-                      la transmission de la DSF avant le 30 avril 2025.
-                    </AlertDescription>
-                  </Alert>
-
-                  <Alert className="border-l-4 border-l-orange-500">
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertDescription>
-                      <strong>Vigilance:</strong> Surveiller l'évolution du ratio d'endettement
-                      et optimiser la gestion du besoin en fonds de roulement.
+                      <strong>Échéance DSF :</strong> transmission à la DGI avant le 30 avril {exerciceLabel !== '—' ? Number(exerciceLabel) + 1 : 'N+1'}.
                     </AlertDescription>
                   </Alert>
 
                   <div className="p-3 bg-gradient-to-r from-primary-50 to-blue-50 rounded-lg">
-                    <h4 className="font-medium mb-2">Prochaines Échéances</h4>
-                    <ul className="text-sm space-y-1">
-                      <li>• 30 janvier: Assemblée générale ordinaire</li>
-                      <li>• 30 avril: Transmission DSF</li>
-                      <li>• 30 juin: Dépôt états financiers certifiés</li>
-                    </ul>
+                    <h4 className="font-medium mb-2">Prochaines Échéances réglementaires</h4>
+                    {documentsReglementaires.length > 0 ? (
+                      <ul className="text-sm space-y-1">
+                        {documentsReglementaires.map((doc, i) => (
+                          <li key={i}>• {new Date(doc.dateLimite).toLocaleDateString('fr-FR')} : {doc.nom}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-sm text-[var(--color-text-secondary)]">Aucune échéance enregistrée.</p>
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -1533,9 +1294,7 @@ const EtatsSYSCOHADA: React.FC = () => {
                     <div>
                       <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Exercice</label>
                       <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500">
-                        <option value="2024">2024</option>
-                        <option value="2023">2023</option>
-                        <option value="2022">2022</option>
+                        <option value={exerciceLabel}>{exerciceLabel}</option>
                       </select>
                     </div>
                     <div>

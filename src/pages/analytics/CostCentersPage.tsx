@@ -311,7 +311,7 @@ const CostCentersPage: React.FC = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Centres</p>
                 <p className="text-lg font-bold text-gray-900">
-                  {centersData?.count || 0}
+                  {centersData?.count ? centersData.count : '—'}
                 </p>
               </div>
             </div>
@@ -327,7 +327,7 @@ const CostCentersPage: React.FC = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">Centres Actifs</p>
                 <p className="text-lg font-bold text-green-700">
-                  {centersData?.active_count || 0}
+                  {centersData?.active_count ? centersData.active_count : '—'}
                 </p>
               </div>
             </div>
@@ -343,7 +343,7 @@ const CostCentersPage: React.FC = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">Coûts Totaux</p>
                 <p className="text-lg font-bold text-[var(--color-text-secondary)]">
-                  {formatCurrency(centersData?.total_costs || 0)}
+                  {centersData?.total_costs ? formatCurrency(centersData.total_costs) : '—'}
                 </p>
               </div>
             </div>
@@ -359,7 +359,7 @@ const CostCentersPage: React.FC = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">Performance Moy.</p>
                 <p className="text-lg font-bold text-orange-700">
-                  {formatPercentage(centersData?.average_performance || 0)}
+                  {centersData?.average_performance ? formatPercentage(centersData.average_performance) : '—'}
                 </p>
               </div>
             </div>
@@ -655,7 +655,7 @@ const CostCentersPage: React.FC = () => {
                   <p className="text-gray-700 mb-6">
                     {filters.search || filters.axe || filters.type || filters.statut || filters.responsable
                       ? 'Aucun centre ne correspond aux critères de recherche.'
-                      : 'Commencez par créer votre premier centre de coût.'}
+                      : 'Aucune donnée — module non alimenté par l\'import. Créez un centre de coût pour démarrer.'}
                   </p>
                   <Button 
                     className="bg-[var(--color-primary)] hover:bg-[var(--color-secondary)] text-white"
@@ -848,7 +848,7 @@ const CostCentersPage: React.FC = () => {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Budget annuel (XAF)
+                        Budget annuel (FCFA)
                       </label>
                       <input
                         type="number"

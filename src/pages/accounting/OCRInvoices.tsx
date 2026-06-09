@@ -122,7 +122,13 @@ const OCRInvoices: React.FC = () => {
       ? Math.round(scannedInvoices.reduce((sum, i) => sum + i.confidence, 0) / scannedInvoices.length)
       : 0,
     processingTime: '-',
-    successRate: 0
+    // Taux de succès = part des documents extraits sans erreur (review/validated) sur le total scanné.
+    successRate: scannedInvoices.length > 0
+      ? Math.round(
+          (scannedInvoices.filter(i => i.status === 'review' || i.status === 'validated').length /
+            scannedInvoices.length) * 100
+        )
+      : 0
   };
 
   const handleDrag = useCallback((e: React.DragEvent) => {
@@ -796,18 +802,8 @@ const OCRInvoices: React.FC = () => {
                     {formatCurrency(stats.totalAmount)}
                   </div>
                   <p className="text-sm text-[var(--color-text-secondary)] mt-2">
-                    Ce mois-ci
+                    Factures validées
                   </p>
-                  <div className="mt-4 space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-[var(--color-text-secondary)]">Achats</span>
-                      <span className="text-[var(--color-text-primary)] font-medium">65%</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-[var(--color-text-secondary)]">Services</span>
-                      <span className="text-[var(--color-text-primary)] font-medium">35%</span>
-                    </div>
-                  </div>
                 </div>
 
                 <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-6">
@@ -992,7 +988,7 @@ const OCRInvoices: React.FC = () => {
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-sm text-[var(--color-text-secondary)]">TVA (19.25%)</span>
+                        <span className="text-sm text-[var(--color-text-secondary)]">TVA</span>
                         <span className="text-sm font-medium text-[var(--color-text-primary)]">
                           {formatCurrency(selectedInvoice.extractedData.taxAmount, selectedInvoice.extractedData.currency)}
                         </span>

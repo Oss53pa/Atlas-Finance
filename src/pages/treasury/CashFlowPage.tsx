@@ -40,7 +40,6 @@ import {
   SelectTrigger,
   SelectValue
 } from '../../components/ui';
-import { useBankAccounts } from '../../hooks';
 import { formatCurrency, formatDate, formatPercentage } from '../../lib/utils';
 import { toast } from 'react-hot-toast';
 
@@ -71,11 +70,6 @@ const CashFlowPage: React.FC = () => {
   const [dateRange, setDateRange] = useState({
     start: filters.periode_debut,
     end: filters.periode_fin
-  });
-
-  const { data: bankAccounts } = useBankAccounts({
-    page: 1,
-    page_size: 100,
   });
 
   const [cfEntries, setCfEntries] = useState<any[]>([]);
@@ -124,6 +118,25 @@ const CashFlowPage: React.FC = () => {
       categories: undefined as { entrees?: any[]; sorties?: any[] } | undefined,
       accounts: undefined as any[] | undefined,
     };
+  }, [cfEntries]);
+
+  // Comptes de trésorerie dérivés du Grand Livre (classe 5), pas d'un registre dédié vide
+  const treasuryAccounts = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const entry of cfEntries) {
+      if (!entry.lines) continue;
+      for (const line of entry.lines) {
+        const code = String(line.accountCode || '');
+        if (code.startsWith('5')) {
+          if (!map.has(code)) {
+            map.set(code, String(line.accountName || line.accountLabel || ''));
+          }
+        }
+      }
+    }
+    return Array.from(map.entries())
+      .map(([code, name]) => ({ code, name }))
+      .sort((a, b) => a.code.localeCompare(b.code));
   }, [cfEntries]);
 
   const handleFilterChange = (key: keyof CashFlowFilters, value: string) => {
@@ -601,9 +614,9 @@ const CashFlowPage: React.FC = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">Tous les comptes</SelectItem>
-                {bankAccounts?.results?.map((account) => (
-                  <SelectItem key={account.id} value={account.id}>
-                    {(account as any).numero_compte} - {(account as any).libelle_compte}
+                {treasuryAccounts.map((account) => (
+                  <SelectItem key={account.code} value={account.code}>
+                    {account.name ? `${account.code} - ${account.name}` : account.code}
                   </SelectItem>
                 ))}
               </SelectContent>

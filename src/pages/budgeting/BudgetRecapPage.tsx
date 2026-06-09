@@ -42,53 +42,17 @@ const BudgetRecapPage: React.FC = () => {
     const loadBudgetData = async () => {
       setLoading(true);
       try {
-        // Load budget lines from adapter
+        // Source REELLE du budget : la table budgetLines (alimentee par l'import).
+        // NOTE: dans ce tenant la table budget est VIDE — aucun budget n'a ete importe.
+        // On ne fabrique donc PAS de chiffres budgetaires a partir des ecritures du
+        // grand livre (ce seraient des realises presentes comme du budget = trompeur).
         const budgetLines = await adapter.getAll<any>('budgetLines').catch(() => [] as any[]);
-        // Load journal entries for actual amounts
-        const entries = await adapter.getAll<any>('journalEntries').catch(() => [] as any[]);
 
         if (!mounted) return;
 
-        // Build monthly totals from journal entries per account
         const accountMonthly = new Map<string, { description: string; months: number[] }>();
 
-        for (const entry of entries) {
-          const entryDate = new Date(entry.date as string);
-          if (entryDate.getFullYear().toString() !== selectedYear) continue;
-          const monthIdx = entryDate.getMonth();
-
-          const lines = (entry.lines || []) as Array<{
-            accountCode?: string;
-            accountName?: string;
-            debit?: number;
-            credit?: number;
-          }>;
-
-          for (const line of lines) {
-            const code = line.accountCode || '';
-            // Revenue = class 7, Expense = class 6
-            const isRevenue = code.startsWith('7');
-            const isExpense = code.startsWith('6');
-
-            if ((type === 'revenue' && !isRevenue) || (type === 'expense' && !isExpense)) continue;
-
-            if (!accountMonthly.has(code)) {
-              accountMonthly.set(code, {
-                description: line.accountName || code,
-                months: new Array(12).fill(0),
-              });
-            }
-            const acc = accountMonthly.get(code)!;
-            // For revenue accounts, use credit; for expense accounts, use debit
-            if (isRevenue) {
-              acc.months[monthIdx] += (line.credit || 0) - (line.debit || 0);
-            } else {
-              acc.months[monthIdx] += (line.debit || 0) - (line.credit || 0);
-            }
-          }
-        }
-
-        // Also integrate budget lines if they exist
+        // Integrer uniquement les vraies lignes de budget si elles existent.
         for (const bl of budgetLines) {
           const code = (bl.accountCode || bl.compte || '') as string;
           if (!code) continue;
@@ -256,7 +220,7 @@ const BudgetRecapPage: React.FC = () => {
               ) : data.length === 0 ? (
                 <tr>
                   <td colSpan={16} className="p-8 text-center text-sm text-[var(--color-text-tertiary)]">
-                    Aucune donnee budgetaire
+                    Aucune donnee — module budgetaire non alimente par l'import
                   </td>
                 </tr>
               ) : null}
@@ -360,7 +324,7 @@ const BudgetRecapPage: React.FC = () => {
         <div className="bg-white rounded-lg p-4 border border-[var(--color-border)]">
           <p className="text-xs text-[var(--color-text-tertiary)] mb-2">Moyenne mensuelle</p>
           <p className="text-lg font-bold text-[var(--color-text-secondary)]">
-            {formatAmount(data.length > 0 ? Math.round(data.reduce((sum, row) => sum + row.total, 0) / 12) : 0)}
+            {data.length > 0 ? formatAmount(Math.round(data.reduce((sum, row) => sum + row.total, 0) / 12)) : '—'}
           </p>
         </div>
         <div className="bg-white rounded-lg p-4 border border-[var(--color-border)]">
@@ -410,7 +374,7 @@ const BudgetRecapPage: React.FC = () => {
         <div className="bg-white rounded-lg p-4 border border-[var(--color-border)]">
           <p className="text-xs text-[var(--color-text-tertiary)] mb-2">Nombre de comptes</p>
           <p className="text-lg font-bold text-[var(--color-primary)]">
-            {data.length}
+            {data.length > 0 ? data.length : '—'}
           </p>
         </div>
       </div>

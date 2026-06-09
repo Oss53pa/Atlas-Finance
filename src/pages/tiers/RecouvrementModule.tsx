@@ -425,7 +425,7 @@ const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
               </div>
             </div>
 
-            {/* Tableau de bord activités récentes */}
+            {/* Tableau de bord activités récentes — pas de suivi journalier en base -> "—" */}
             <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
               <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Activités du jour</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -433,7 +433,7 @@ const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-blue-800">Nouvelles créances</p>
-                      <p className="text-lg font-bold text-blue-900">8</p>
+                      <p className="text-lg font-bold text-blue-900">—</p>
                     </div>
                     <Plus className="w-6 h-6 text-blue-600" />
                   </div>
@@ -442,7 +442,7 @@ const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-green-800">Recouvrements réalisés</p>
-                      <p className="text-lg font-bold text-green-900">12</p>
+                      <p className="text-lg font-bold text-green-900">—</p>
                     </div>
                     <CheckCircle className="w-6 h-6 text-green-600" />
                   </div>
@@ -451,7 +451,7 @@ const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-orange-800">Actions en attente</p>
-                      <p className="text-lg font-bold text-orange-900">5</p>
+                      <p className="text-lg font-bold text-orange-900">—</p>
                     </div>
                     <Clock className="w-6 h-6 text-orange-600" />
                   </div>
@@ -502,25 +502,9 @@ const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
 
               <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
                 <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Répartition du Temps</h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <RechartsPieChart>
-                    <Pie
-                      dataKey="value"
-                      data={[
-                        { name: 'Appels clients', value: 40, fill: '#235A6E' },
-                        { name: 'Relances email', value: 25, fill: '#525252' },
-                        { name: 'Dossiers juridiques', value: 20, fill: '#525252' },
-                        { name: 'Administration', value: 15, fill: '#404040' }
-                      ]}
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={100}
-                      label={({ name, value }) => `${name}: ${value}%`}
-                    >
-                    </Pie>
-                    <Tooltip />
-                  </RechartsPieChart>
-                </ResponsiveContainer>
+                <div className="flex items-center justify-center h-[300px] text-sm text-gray-500">
+                  Aucune donnée — module non alimenté par l'import
+                </div>
               </div>
             </div>
           </div>
@@ -533,22 +517,9 @@ const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
                 <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Répartition Géographique</h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={[
-                    { zone: 'Abidjan', creances: 450000, recouvre: 380000 },
-                    { zone: 'Bouaké', creances: 180000, recouvre: 140000 },
-                    { zone: 'San Pedro', creances: 120000, recouvre: 95000 },
-                    { zone: 'Yamoussoukro', creances: 95000, recouvre: 75000 },
-                    { zone: 'Korhogo', creances: 85000, recouvre: 60000 }
-                  ]}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="zone" />
-                    <YAxis tickFormatter={(value) => `${value / 1000}k`} />
-                    <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                    <Bar radius={[6,6,0,0]} dataKey="creances" fill="url(#gradRed)" name="Créances" />
-                    <Bar radius={[6,6,0,0]} dataKey="recouvre" fill="url(#gradGreen)" name="Recouvré" />
-                  </BarChart>
-                </ResponsiveContainer>
+                <div className="flex items-center justify-center h-[300px] text-sm text-gray-500">
+                  Données géographiques non disponibles — les tiers ne portent pas d'information de localisation.
+                </div>
               </div>
 
               <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
@@ -651,52 +622,8 @@ const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
 
               <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
                 <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Facteurs de Réussite</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Contact dans les 24h</span>
-                    <div className="flex items-center">
-                      <div className="w-24 bg-gray-200 rounded-full h-2 mr-2">
-                        <div className="bg-green-600 h-2 rounded-full" style={{width: '92%'}}></div>
-                      </div>
-                      <span className="text-sm font-semibold text-green-600">92%</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Appel téléphonique direct</span>
-                    <div className="flex items-center">
-                      <div className="w-24 bg-gray-200 rounded-full h-2 mr-2">
-                        <div className="bg-green-600 h-2 rounded-full" style={{width: '85%'}}></div>
-                      </div>
-                      <span className="text-sm font-semibold text-green-600">85%</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Proposition d'échéancier</span>
-                    <div className="flex items-center">
-                      <div className="w-24 bg-gray-200 rounded-full h-2 mr-2">
-                        <div className="bg-blue-600 h-2 rounded-full" style={{width: '78%'}}></div>
-                      </div>
-                      <span className="text-sm font-semibold text-blue-600">78%</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Relance par email</span>
-                    <div className="flex items-center">
-                      <div className="w-24 bg-gray-200 rounded-full h-2 mr-2">
-                        <div className="bg-yellow-600 h-2 rounded-full" style={{width: '65%'}}></div>
-                      </div>
-                      <span className="text-sm font-semibold text-yellow-600">65%</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Courrier recommandé</span>
-                    <div className="flex items-center">
-                      <div className="w-24 bg-gray-200 rounded-full h-2 mr-2">
-                        <div className="bg-orange-600 h-2 rounded-full" style={{width: '45%'}}></div>
-                      </div>
-                      <span className="text-sm font-semibold text-orange-600">45%</span>
-                    </div>
-                  </div>
+                <div className="flex items-center justify-center py-12 text-sm text-gray-500">
+                  Aucune donnée — module non alimenté par l'import
                 </div>
               </div>
             </div>
@@ -719,93 +646,24 @@ const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="text-center">
-                  <div className="text-lg font-bold text-[var(--color-primary)] mb-2">{formatCurrency(1250000)}</div>
-                  <div className="text-sm text-gray-600 mb-1">Créances ce mois</div>
-                  <div className="flex items-center justify-center text-sm">
-                    <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
-                    <span className="text-green-600 font-medium">+12.5%</span>
-                    <span className="text-gray-700 ml-1">vs mois précédent</span>
-                  </div>
-                </div>
-                <div className="text-center">
-                  <div className="text-lg font-bold text-[var(--color-primary)] mb-2">{formatCurrency(980000)}</div>
-                  <div className="text-sm text-gray-600 mb-1">Montant recouvré</div>
-                  <div className="flex items-center justify-center text-sm">
-                    <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
-                    <span className="text-green-600 font-medium">+8.3%</span>
-                    <span className="text-gray-700 ml-1">vs mois précédent</span>
-                  </div>
-                </div>
-                <div className="text-center">
-                  <div className="text-lg font-bold text-[var(--color-primary)] mb-2">78.4%</div>
-                  <div className="text-sm text-gray-600 mb-1">Taux de succès</div>
-                  <div className="flex items-center justify-center text-sm">
-                    <TrendingDown className="w-4 h-4 text-red-600 mr-1" />
-                    <span className="text-red-600 font-medium">-2.1%</span>
-                    <span className="text-gray-700 ml-1">vs mois précédent</span>
-                  </div>
-                </div>
+              <div className="flex items-center justify-center py-12 text-sm text-gray-500">
+                Comparaison indisponible — aucun historique N-1 / mensuel n'est tracé en base.
               </div>
             </div>
 
-            {/* Comparaison détaillée */}
+            {/* Comparaison détaillée — pas d'historique N-1 disponible */}
             <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
               <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Évolution Comparative</h3>
-              <ResponsiveContainer width="100%" height={400}>
-                <LineChart data={[
-                  { mois: 'Jan', anneeActuelle: 180000, anneePrecedente: 165000 },
-                  { mois: 'Fév', anneeActuelle: 195000, anneePrecedente: 178000 },
-                  { mois: 'Mar', anneeActuelle: 210000, anneePrecedente: 185000 },
-                  { mois: 'Avr', anneeActuelle: 225000, anneePrecedente: 198000 },
-                  { mois: 'Mai', anneeActuelle: 240000, anneePrecedente: 205000 },
-                  { mois: 'Juin', anneeActuelle: 220000, anneePrecedente: 210000 }
-                ]}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="mois" />
-                  <YAxis tickFormatter={(value) => `${value / 1000}k`} />
-                  <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                  <Line type="monotone" dataKey="anneeActuelle" stroke="#235A6E" strokeWidth={3} name="2024" />
-                  <Line type="monotone" dataKey="anneePrecedente" stroke="#B0BEC5" strokeWidth={2} strokeDasharray="5 5" name="2023" />
-                </LineChart>
-              </ResponsiveContainer>
+              <div className="flex items-center justify-center h-[300px] text-sm text-gray-500">
+                Aucune donnée comparative disponible (exercice antérieur non importé).
+              </div>
             </div>
 
-            {/* Benchmark secteur */}
+            {/* Benchmark secteur — pas de référentiel sectoriel en base */}
             <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
               <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Benchmark Sectoriel</h3>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
-                  <div>
-                    <div className="font-semibold text-gray-900">Taux de recouvrement</div>
-                    <div className="text-sm text-gray-600">Notre performance vs secteur</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-lg font-bold text-green-600">78.4%</div>
-                    <div className="text-sm text-gray-600">Secteur: 72.1%</div>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
-                  <div>
-                    <div className="font-semibold text-gray-900">Délai moyen de recouvrement</div>
-                    <div className="text-sm text-gray-600">Notre performance vs secteur</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-lg font-bold text-blue-600">18j</div>
-                    <div className="text-sm text-gray-600">Secteur: 24j</div>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between p-4 bg-yellow-50 rounded-lg">
-                  <div>
-                    <div className="font-semibold text-gray-900">Coût par dossier</div>
-                    <div className="text-sm text-gray-600">Notre performance vs secteur</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-lg font-bold text-yellow-600">{formatCurrency(15000)}</div>
-                    <div className="text-sm text-gray-600">Secteur: {formatCurrency(18500)}</div>
-                  </div>
-                </div>
+              <div className="flex items-center justify-center py-12 text-sm text-gray-500">
+                Aucune donnée — module non alimenté par l'import
               </div>
             </div>
           </div>
@@ -814,144 +672,36 @@ const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
       case 'previsions':
         return (
           <div className="space-y-6">
-            {/* Prévisions financières */}
+            {/* Prévisions financières — aucune projection fiable sans historique / scénarios paramétrés */}
             <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
               <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Prévisions de Recouvrement - 6 prochains mois</h3>
-              <ResponsiveContainer width="100%" height={350}>
-                <AreaChart data={[
-                  { mois: 'Juil', prevision: 260000, optimiste: 285000, pessimiste: 230000, realise: null },
-                  { mois: 'Août', prevision: 275000, optimiste: 300000, pessimiste: 245000, realise: null },
-                  { mois: 'Sep', prevision: 280000, optimiste: 310000, pessimiste: 250000, realise: null },
-                  { mois: 'Oct', prevision: 290000, optimiste: 320000, pessimiste: 260000, realise: null },
-                  { mois: 'Nov', prevision: 295000, optimiste: 325000, pessimiste: 265000, realise: null },
-                  { mois: 'Déc', prevision: 310000, optimiste: 340000, pessimiste: 280000, realise: null }
-                ]}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="mois" />
-                  <YAxis tickFormatter={(value) => `${value / 1000}k`} />
-                  <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                  <Area type="monotone" dataKey="pessimiste" stackId="1" stroke="#C0322B" fill="#C0322B" fillOpacity={0.2} name="Scénario pessimiste" />
-                  <Area type="monotone" dataKey="prevision" stackId="2" stroke="#235A6E" fill="#235A6E" fillOpacity={0.4} name="Prévision réaliste" />
-                  <Area type="monotone" dataKey="optimiste" stackId="3" stroke="#15803D" fill="#15803D" fillOpacity={0.2} name="Scénario optimiste" />
-                </AreaChart>
-              </ResponsiveContainer>
+              <div className="flex items-center justify-center h-[350px] text-sm text-gray-500">
+                Aucune prévision disponible — l'historique nécessaire à une projection n'est pas tracé en base.
+              </div>
             </div>
 
-            {/* Facteurs de risque */}
+            {/* Facteurs de risque / opportunités — non dérivables des données importées */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
                 <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Facteurs de Risque Identifiés</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200">
-                    <div className="flex items-center">
-                      <AlertTriangle className="w-5 h-5 text-red-600 mr-3" />
-                      <div>
-                        <div className="font-medium text-red-800">Secteur BTP en difficulté</div>
-                        <div className="text-sm text-red-600">12 dossiers à risque</div>
-                      </div>
-                    </div>
-                    <span className="text-xs font-semibold bg-red-100 text-red-800 px-2 py-1 rounded">ÉLEVÉ</span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                    <div className="flex items-center">
-                      <AlertTriangle className="w-5 h-5 text-yellow-600 mr-3" />
-                      <div>
-                        <div className="font-medium text-yellow-800">Saisonnalité agriculture</div>
-                        <div className="text-sm text-yellow-600">8 dossiers affectés</div>
-                      </div>
-                    </div>
-                    <span className="text-xs font-semibold bg-yellow-100 text-yellow-800 px-2 py-1 rounded">MOYEN</span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg border border-orange-200">
-                    <div className="flex items-center">
-                      <AlertTriangle className="w-5 h-5 text-orange-600 mr-3" />
-                      <div>
-                        <div className="font-medium text-orange-800">Clients récidivistes</div>
-                        <div className="text-sm text-orange-600">5 dossiers surveillés</div>
-                      </div>
-                    </div>
-                    <span className="text-xs font-semibold bg-orange-100 text-orange-800 px-2 py-1 rounded">MOYEN</span>
-                  </div>
+                <div className="flex items-center justify-center py-12 text-sm text-gray-500">
+                  Aucune donnée — module non alimenté par l'import
                 </div>
               </div>
 
               <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
                 <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Opportunités d'Amélioration</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
-                    <div className="flex items-center">
-                      <TrendingUp className="w-5 h-5 text-green-600 mr-3" />
-                      <div>
-                        <div className="font-medium text-green-800">Automatisation relances</div>
-                        <div className="text-sm text-green-600">Gain estimé: +15%</div>
-                      </div>
-                    </div>
-                    <span className="text-xs font-semibold bg-green-100 text-green-800 px-2 py-1 rounded">FORT</span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
-                    <div className="flex items-center">
-                      <Target className="w-5 h-5 text-blue-600 mr-3" />
-                      <div>
-                        <div className="font-medium text-blue-800">Scoring clients amélioré</div>
-                        <div className="text-sm text-blue-600">Gain estimé: +8%</div>
-                      </div>
-                    </div>
-                    <span className="text-xs font-semibold bg-blue-100 text-blue-800 px-2 py-1 rounded">MOYEN</span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-primary-50 rounded-lg border border-primary-200">
-                    <div className="flex items-center">
-                      <Users className="w-5 h-5 text-primary-600 mr-3" />
-                      <div>
-                        <div className="font-medium text-primary-800">Formation équipe</div>
-                        <div className="text-sm text-primary-600">Gain estimé: +5%</div>
-                      </div>
-                    </div>
-                    <span className="text-xs font-semibold bg-primary-100 text-primary-800 px-2 py-1 rounded">FAIBLE</span>
-                  </div>
+                <div className="flex items-center justify-center py-12 text-sm text-gray-500">
+                  Aucune donnée — module non alimenté par l'import
                 </div>
               </div>
             </div>
 
-            {/* Simulation scenarios */}
+            {/* Simulation scenarios — pas de modèle de projection alimenté */}
             <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
               <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Simulation de Scénarios</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                  <div className="text-center">
-                    <div className="text-lg font-semibold text-green-800 mb-2">Scénario Optimiste</div>
-                    <div className="text-lg font-bold text-green-900 mb-1">{formatCurrency(1850000)}</div>
-                    <div className="text-sm text-green-600">Recouvrement 6 mois</div>
-                    <div className="mt-3 text-xs text-green-700">
-                      • Taux succès: 85%<br/>
-                      • Nouveaux outils IA<br/>
-                      • Équipe renforcée
-                    </div>
-                  </div>
-                </div>
-                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                  <div className="text-center">
-                    <div className="text-lg font-semibold text-blue-800 mb-2">Scénario Réaliste</div>
-                    <div className="text-lg font-bold text-blue-900 mb-1">{formatCurrency(1650000)}</div>
-                    <div className="text-sm text-blue-600">Recouvrement 6 mois</div>
-                    <div className="mt-3 text-xs text-blue-700">
-                      • Taux succès: 78%<br/>
-                      • Maintien performance<br/>
-                      • Croissance modérée
-                    </div>
-                  </div>
-                </div>
-                <div className="p-4 bg-red-50 rounded-lg border border-red-200">
-                  <div className="text-center">
-                    <div className="text-lg font-semibold text-red-800 mb-2">Scénario Pessimiste</div>
-                    <div className="text-lg font-bold text-red-900 mb-1">{formatCurrency(1420000)}</div>
-                    <div className="text-sm text-red-600">Recouvrement 6 mois</div>
-                    <div className="mt-3 text-xs text-red-700">
-                      • Taux succès: 68%<br/>
-                      • Crise économique<br/>
-                      • Difficultés sectorielles
-                    </div>
-                  </div>
-                </div>
+              <div className="flex items-center justify-center py-12 text-sm text-gray-500">
+                Aucune donnée — module non alimenté par l'import
               </div>
             </div>
           </div>
@@ -7907,9 +7657,11 @@ Service Contentieux
         numeroRef: `REC-${new Date().getFullYear()}-${String(idx + 1).padStart(3, '0')}`,
         client: c.clientNom,
         montantPrincipal: c.montantTotal,
-        interets: Math.round(c.montantTotal * 0.05),
-        frais: Math.round(c.montantTotal * 0.02),
-        montantTotal: Math.round(c.montantTotal * 1.07),
+        // Intérêts de retard et frais de procédure non calculables : aucune source réelle
+        // (table recovery_cases vide, pas de barème en base) -> 0 plutôt qu'un % inventé.
+        interets: 0,
+        frais: 0,
+        montantTotal: c.montantTotal,
         montantPaye: 0,
         nombreFactures: c.factures.length,
         dsoMoyen: c.joursRetard,
@@ -8937,31 +8689,40 @@ Service Contentieux
       {/* Onglet Relances avec sous-onglets */}
       {activeTab === 'relances' && (
         <div className="space-y-6">
-          {/* KPIs des relances */}
+          {/* KPIs des relances — dérivés des actions réelles des dossiers (relancesData).
+              Les compteurs sans source (en attente / sans réponse) restent "—". */}
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
             <div className="bg-blue-50 rounded-lg p-4">
               <div className="text-sm text-blue-600 font-medium">Total Relances</div>
-              <div className="text-lg font-bold text-blue-900">248</div>
-              <div className="text-xs text-blue-600 mt-1">Ce mois</div>
+              <div className="text-lg font-bold text-blue-900">
+                {relancesData.length > 0 ? relancesData.reduce((s, r) => s + r.nombreRelances, 0) : '—'}
+              </div>
+              <div className="text-xs text-blue-600 mt-1">Toutes périodes</div>
             </div>
             <div className="bg-yellow-50 rounded-lg p-4">
               <div className="text-sm text-yellow-600 font-medium">En Attente</div>
-              <div className="text-lg font-bold text-yellow-900">32</div>
+              <div className="text-lg font-bold text-yellow-900">—</div>
               <div className="text-xs text-yellow-600 mt-1">À envoyer</div>
             </div>
             <div className="bg-green-50 rounded-lg p-4">
               <div className="text-sm text-green-600 font-medium">Taux de Réponse</div>
-              <div className="text-lg font-bold text-green-900">65%</div>
-              <div className="text-xs text-green-600 mt-1">Sur 7 jours</div>
+              <div className="text-lg font-bold text-green-900">
+                {relancesData.length > 0
+                  ? `${Math.round(relancesData.reduce((s, r) => s + r.tauxReponse, 0) / relancesData.length)}%`
+                  : '—'}
+              </div>
+              <div className="text-xs text-green-600 mt-1">Moyenne dossiers</div>
             </div>
             <div className="bg-primary-50 rounded-lg p-4">
               <div className="text-sm text-primary-600 font-medium">Clients Relancés</div>
-              <div className="text-lg font-bold text-primary-900">87</div>
-              <div className="text-xs text-primary-600 mt-1">Ce mois</div>
+              <div className="text-lg font-bold text-primary-900">
+                {relancesData.length > 0 ? relancesData.length : '—'}
+              </div>
+              <div className="text-xs text-primary-600 mt-1">Toutes périodes</div>
             </div>
             <div className="bg-red-50 rounded-lg p-4">
               <div className="text-sm text-red-600 font-medium">Sans Réponse</div>
-              <div className="text-lg font-bold text-red-900">15</div>
+              <div className="text-lg font-bold text-red-900">—</div>
               <div className="text-xs text-red-600 mt-1">+3 relances</div>
             </div>
           </div>
@@ -11905,26 +11666,26 @@ Service Contentieux
                     </button>
                   </div>
 
-                  {/* Statistiques des plans */}
+                  {/* Statistiques des plans — dérivées des plans réels (recoveryCases). Aucune donnée -> "—". */}
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="bg-blue-50 rounded-lg p-4">
                       <div className="text-sm text-blue-600 font-medium">Plans Actifs</div>
-                      <div className="text-lg font-bold text-blue-900">2</div>
+                      <div className="text-lg font-bold text-blue-900">{repaymentPlans.length > 0 ? repaymentKpis.actifs : '—'}</div>
                       <div className="text-xs text-blue-600 mt-1">{t('status.inProgress')}</div>
                     </div>
                     <div className="bg-green-50 rounded-lg p-4">
                       <div className="text-sm text-green-600 font-medium">Montant Total</div>
-                      <div className="text-lg font-bold text-green-900">18,500 FCFA</div>
+                      <div className="text-lg font-bold text-green-900">{repaymentPlans.length > 0 ? formatCurrency(repaymentKpis.montantTotal) : '—'}</div>
                       <div className="text-xs text-green-600 mt-1">À rembourser</div>
                     </div>
                     <div className="bg-orange-50 rounded-lg p-4">
-                      <div className="text-sm text-orange-600 font-medium">Paiements Mensuels</div>
-                      <div className="text-lg font-bold text-orange-900">3,200 FCFA</div>
-                      <div className="text-xs text-orange-600 mt-1">Moyenne</div>
+                      <div className="text-sm text-orange-600 font-medium">En retard</div>
+                      <div className="text-lg font-bold text-orange-900">{repaymentPlans.length > 0 ? repaymentKpis.enRetard : '—'}</div>
+                      <div className="text-xs text-orange-600 mt-1">Plans en retard</div>
                     </div>
                     <div className="bg-primary-50 rounded-lg p-4">
                       <div className="text-sm text-primary-600 font-medium">Taux Respect</div>
-                      <div className="text-lg font-bold text-primary-900">85%</div>
+                      <div className="text-lg font-bold text-primary-900">{repaymentPlans.length > 0 ? `${repaymentKpis.tauxRespect}%` : '—'}</div>
                       <div className="text-xs text-primary-600 mt-1">Paiements à temps</div>
                     </div>
                   </div>
@@ -11977,117 +11738,44 @@ Service Contentieux
                           </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                          {[
-                            {
-                              ref: 'PLN-2024-001',
-                              montantInitial: 14000,
-                              interetsPenalites: 700,
-                              dureeMois: 6,
-                              dateDebut: '2024-03-01',
-                              dateFin: '2024-08-31',
-                              montantMensuel: 2450,
-                              interetTotal: 700,
-                              montantTotal: 14700,
-                              commentaire: 'Plan négocié suite à difficultés temporaires',
-                              statut: 'Actif'
-                            },
-                            {
-                              ref: 'PLN-2024-002',
-                              montantInitial: 8000,
-                              interetsPenalites: 400,
-                              dureeMois: 4,
-                              dateDebut: '2024-02-15',
-                              dateFin: '2024-06-15',
-                              montantMensuel: 2100,
-                              interetTotal: 400,
-                              montantTotal: 8400,
-                              commentaire: 'Plan court avec engagement client',
-                              statut: 'En cours'
-                            },
-                            {
-                              ref: 'PLN-2023-015',
-                              montantInitial: 12000,
-                              interetsPenalites: 600,
-                              dureeMois: 8,
-                              dateDebut: '2023-10-01',
-                              dateFin: '2024-05-31',
-                              montantMensuel: 1575,
-                              interetTotal: 600,
-                              montantTotal: 12600,
-                              commentaire: 'Plan étalé sur 8 mois, paiements réguliers',
-                              statut: 'Terminé'
-                            },
-                            {
-                              ref: 'PLN-2023-008',
-                              montantInitial: 5000,
-                              interetsPenalites: 250,
-                              dureeMois: 3,
-                              dateDebut: '2023-11-01',
-                              dateFin: '2024-01-31',
-                              montantMensuel: 1750,
-                              interetTotal: 250,
-                              montantTotal: 5250,
-                              commentaire: 'Plan d\'urgence, client en redressement',
-                              statut: 'Suspendu'
-                            }
-                          ].map((plan, index) => (
-                            <tr key={index} className="hover:bg-gray-50">
+                          {repaymentPlans.length === 0 ? (
+                            <tr>
+                              <td colSpan={11} className="px-6 py-10 text-center text-sm text-gray-500">
+                                Aucune donnée — module non alimenté par l'import
+                              </td>
+                            </tr>
+                          ) : repaymentPlans.map((plan, index) => (
+                            <tr key={plan.id ?? index} className="hover:bg-gray-50">
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="text-sm font-medium text-blue-600">
-                                  {plan.ref}
+                                  {plan.reference}
                                 </div>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="text-sm font-medium text-gray-900">
-                                  {formatCurrency(plan.montantInitial)}
+                                  {formatCurrency(plan.montantTotal)}
                                 </div>
                               </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm font-medium text-orange-600">
-                                  {formatCurrency(plan.interetsPenalites)}
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm font-medium text-gray-900">
-                                  {plan.dureeMois} mois
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm text-gray-900">
-                                  {new Date(plan.dateDebut).toLocaleDateString()}
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm text-gray-900">
-                                  {new Date(plan.dateFin).toLocaleDateString()}
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm font-bold text-green-600">
-                                  {formatCurrency(plan.montantMensuel)}
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm font-medium text-red-600">
-                                  {formatCurrency(plan.interetTotal)}
-                                </div>
-                              </td>
+                              {/* Intérêts/pénalités, durée, échéancier : pas de source réelle -> "—" */}
+                              <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm text-gray-400">—</div></td>
+                              <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm text-gray-400">—</div></td>
+                              <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm text-gray-400">—</div></td>
+                              <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm text-gray-400">—</div></td>
+                              <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm text-gray-400">—</div></td>
+                              <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm text-gray-400">—</div></td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="text-sm font-bold text-primary-600">
                                   {formatCurrency(plan.montantTotal)}
                                 </div>
                               </td>
                               <td className="px-6 py-4">
-                                <div className="text-sm text-gray-600 max-w-xs truncate" title={plan.commentaire}>
-                                  {plan.commentaire}
-                                </div>
+                                <div className="text-sm text-gray-400">—</div>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                  plan.statut === 'Actif' ? 'bg-green-100 text-green-800' :
-                                  plan.statut === 'En cours' ? 'bg-blue-100 text-blue-800' :
-                                  plan.statut === 'Terminé' ? 'bg-gray-100 text-gray-800' :
-                                  plan.statut === 'Suspendu' ? 'bg-red-100 text-red-800' :
+                                  plan.statut === 'Respecté' ? 'bg-green-100 text-green-800' :
+                                  plan.statut === 'Partiel' ? 'bg-blue-100 text-blue-800' :
+                                  plan.statut === 'En retard' ? 'bg-red-100 text-red-800' :
                                   'bg-yellow-100 text-yellow-800'
                                 }`}>
                                   {plan.statut}
@@ -12159,22 +11847,23 @@ Service Contentieux
 
                     <div className="mt-6 p-4 bg-gray-50 rounded-lg">
                       <h5 className="font-medium text-gray-900 mb-3">Simulation du Plan</h5>
+                      {/* Résultats affichés après calcul — pas de valeurs fabriquées */}
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                         <div>
                           <span className="text-gray-600">Capital:</span>
-                          <div className="font-medium">14,000 FCFA</div>
+                          <div className="font-medium text-gray-400">—</div>
                         </div>
                         <div>
                           <span className="text-gray-600">Intérêts totaux:</span>
-                          <div className="font-medium text-orange-600">420 FCFA</div>
+                          <div className="font-medium text-gray-400">—</div>
                         </div>
                         <div>
                           <span className="text-gray-600">Montant total:</span>
-                          <div className="font-bold text-primary-600">14,420 FCFA</div>
+                          <div className="font-bold text-gray-400">—</div>
                         </div>
                         <div>
                           <span className="text-gray-600">Mensualité:</span>
-                          <div className="font-bold text-green-600">2,403 FCFA</div>
+                          <div className="font-bold text-gray-400">—</div>
                         </div>
                       </div>
                     </div>
@@ -12189,9 +11878,9 @@ Service Contentieux
                     </div>
                   </div>
 
-                  {/* Échéancier du plan actif */}
+                  {/* Échéancier du plan actif — aucun échéancier mensuel n'est stocké en base */}
                   <div className="bg-white rounded-lg shadow p-6">
-                    <h4 className="text-lg font-semibold text-gray-900 mb-4">Échéancier - Plan PLN-2024-001</h4>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-4">Échéancier</h4>
                     <div className="overflow-x-auto">
                       <table className="w-full">
                         <thead className="bg-gray-50">
@@ -12206,32 +11895,11 @@ Service Contentieux
                           </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200 text-sm">
-                          {[
-                            { echeance: 1, date: '2024-03-31', capital: 2333, interets: 117, mensualite: 2450, restant: 11667, statut: 'Payé' },
-                            { echeance: 2, date: '2024-04-30', capital: 2345, interets: 105, mensualite: 2450, restant: 9322, statut: 'Payé' },
-                            { echeance: 3, date: '2024-05-31', capital: 2357, interets: 93, mensualite: 2450, restant: 6965, statut: 'En retard' },
-                            { echeance: 4, date: '2024-06-30', capital: 2369, interets: 81, mensualite: 2450, restant: 4596, statut: 'À venir' },
-                            { echeance: 5, date: '2024-07-31', capital: 2381, interets: 69, mensualite: 2450, restant: 2215, statut: 'À venir' },
-                            { echeance: 6, date: '2024-08-31', capital: 2215, interets: 35, mensualite: 2250, restant: 0, statut: 'À venir' }
-                          ].map((echeance, index) => (
-                            <tr key={index} className="hover:bg-gray-50">
-                              <td className="px-4 py-3 font-medium">{echeance.echeance}</td>
-                              <td className="px-4 py-3">{echeance.date}</td>
-                              <td className="px-4 py-3 font-medium">{formatCurrency(echeance.capital)}</td>
-                              <td className="px-4 py-3 text-orange-600">{formatCurrency(echeance.interets)}</td>
-                              <td className="px-4 py-3 font-bold text-green-600">{formatCurrency(echeance.mensualite)}</td>
-                              <td className="px-4 py-3">{formatCurrency(echeance.restant)}</td>
-                              <td className="px-4 py-3">
-                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                  echeance.statut === 'Payé' ? 'bg-green-100 text-green-800' :
-                                  echeance.statut === 'En retard' ? 'bg-red-100 text-red-800' :
-                                  'bg-gray-100 text-gray-800'
-                                }`}>
-                                  {echeance.statut}
-                                </span>
-                              </td>
-                            </tr>
-                          ))}
+                          <tr>
+                            <td colSpan={7} className="px-4 py-10 text-center text-sm text-gray-500">
+                              Aucune donnée — module non alimenté par l'import
+                            </td>
+                          </tr>
                         </tbody>
                       </table>
                     </div>
@@ -12258,26 +11926,26 @@ Service Contentieux
                     </div>
                   </div>
 
-                  {/* Statistiques des actions */}
+                  {/* Statistiques des actions — aucun historique d'actions stocké en base */}
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="bg-blue-50 rounded-lg p-4">
                       <div className="text-sm text-blue-600 font-medium">Total Actions</div>
-                      <div className="text-lg font-bold text-blue-900">23</div>
+                      <div className="text-lg font-bold text-blue-900">—</div>
                       <div className="text-xs text-blue-600 mt-1">Depuis ouverture</div>
                     </div>
                     <div className="bg-green-50 rounded-lg p-4">
                       <div className="text-sm text-green-600 font-medium">Actions Réussies</div>
-                      <div className="text-lg font-bold text-green-900">18</div>
-                      <div className="text-xs text-green-600 mt-1">78% de réussite</div>
+                      <div className="text-lg font-bold text-green-900">—</div>
+                      <div className="text-xs text-green-600 mt-1">Taux de réussite</div>
                     </div>
                     <div className="bg-orange-50 rounded-lg p-4">
                       <div className="text-sm text-orange-600 font-medium">Dernière Action</div>
-                      <div className="text-lg font-bold text-orange-900">20/03/2024</div>
-                      <div className="text-xs text-orange-600 mt-1">Paiement reçu</div>
+                      <div className="text-lg font-bold text-orange-900">—</div>
+                      <div className="text-xs text-orange-600 mt-1">—</div>
                     </div>
                     <div className="bg-primary-50 rounded-lg p-4">
                       <div className="text-sm text-primary-600 font-medium">Temps Moyen</div>
-                      <div className="text-lg font-bold text-primary-900">3.2j</div>
+                      <div className="text-lg font-bold text-primary-900">—</div>
                       <div className="text-xs text-primary-600 mt-1">Entre actions</div>
                     </div>
                   </div>
@@ -12286,184 +11954,9 @@ Service Contentieux
                   <div className="bg-white rounded-lg shadow p-6">
                     <h4 className="text-lg font-semibold text-gray-900 mb-6">Chronologie des Actions</h4>
                     <div className="flow-root">
-                      <ul className="-mb-8">
-                        {[
-                          {
-                            id: 1,
-                            date: '2024-03-20',
-                            time: '14:30',
-                            type: 'Paiement',
-                            action: 'Paiement partiel reçu',
-                            description: 'Paiement de 2,000 FCFA reçu par virement bancaire pour la facture FAC003',
-                            user: '',
-                            statut: 'Succès',
-                            icon: DollarSign,
-                            iconColor: 'text-green-500',
-                            bgColor: 'bg-green-100'
-                          },
-                          {
-                            id: 2,
-                            date: '2024-03-15',
-                            time: '09:15',
-                            type: 'Relance',
-                            action: 'Email de relance envoyé',
-                            description: 'Envoi d\'une relance amiable par email concernant la facture FAC001 en retard de 45 jours',
-                            user: '',
-                            statut: 'Envoyé',
-                            icon: Mail,
-                            iconColor: 'text-blue-500',
-                            bgColor: 'bg-blue-100'
-                          },
-                          {
-                            id: 3,
-                            date: '2024-03-10',
-                            time: '16:45',
-                            type: 'Appel',
-                            action: 'Appel téléphonique client',
-                            description: 'Contact téléphonique avec le client pour négocier un plan de remboursement. Client réceptif.',
-                            user: '',
-                            statut: 'Terminé',
-                            icon: Phone,
-                            iconColor: 'text-green-500',
-                            bgColor: 'bg-green-100'
-                          },
-                          {
-                            id: 4,
-                            date: '2024-03-05',
-                            time: '11:20',
-                            type: 'Pénalité',
-                            action: 'Pénalité créée',
-                            description: 'Création d\'une pénalité de 250 FCFA pour retard de paiement sur FAC001 (5% sur 45 jours)',
-                            user: '',
-                            statut: 'En attente',
-                            icon: AlertTriangle,
-                            iconColor: 'text-yellow-500',
-                            bgColor: 'bg-yellow-100'
-                          },
-                          {
-                            id: 5,
-                            date: '2024-03-01',
-                            time: '08:30',
-                            type: 'Plan',
-                            action: 'Plan de remboursement créé',
-                            description: 'Création du plan PLN-2024-001 : 14,700 FCFA sur 6 mois, mensualité de 2,450 FCFA',
-                            user: '',
-                            statut: 'Actif',
-                            icon: Calendar,
-                            iconColor: 'text-primary-500',
-                            bgColor: 'bg-primary-100'
-                          },
-                          {
-                            id: 6,
-                            date: '2024-02-28',
-                            time: '15:10',
-                            type: 'Courrier',
-                            action: 'Mise en demeure envoyée',
-                            description: 'Envoi d\'une mise en demeure par courrier recommandé avec AR pour factures impayées',
-                            user: '',
-                            statut: 'Accusé reçu',
-                            icon: FileText,
-                            iconColor: 'text-red-500',
-                            bgColor: 'bg-red-100'
-                          },
-                          {
-                            id: 7,
-                            date: '2024-02-20',
-                            time: '10:00',
-                            type: 'SMS',
-                            action: 'SMS de rappel',
-                            description: 'Envoi d\'un SMS de rappel courtois concernant l\'échéance dépassée',
-                            user: '',
-                            statut: 'Échec',
-                            icon: MessageSquare,
-                            iconColor: 'text-red-500',
-                            bgColor: 'bg-red-100'
-                          },
-                          {
-                            id: 8,
-                            date: '2024-02-15',
-                            time: '14:20',
-                            type: 'Paiement',
-                            action: 'Paiement groupé',
-                            description: 'Paiement de 8,000 FCFA par chèque pour les factures FAC001 et FAC002',
-                            user: '',
-                            statut: 'Validé',
-                            icon: Banknote,
-                            iconColor: 'text-green-500',
-                            bgColor: 'bg-green-100'
-                          },
-                          {
-                            id: 9,
-                            date: '2024-01-15',
-                            time: '09:00',
-                            type: 'Ouverture',
-                            action: 'Dossier de recouvrement ouvert',
-                            description: 'Ouverture du dossier REC-2024-001 pour un montant total de 16,000 FCFA',
-                            user: '',
-                            statut: 'Ouvert',
-                            icon: FileText,
-                            iconColor: 'text-blue-500',
-                            bgColor: 'bg-blue-100'
-                          }
-                        ].map((action, actionIdx) => (
-                          <li key={action.id}>
-                            <div className="relative pb-8">
-                              {actionIdx !== 8 ? (
-                                <span className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true" />
-                              ) : null}
-                              <div className="relative flex space-x-3">
-                                <div>
-                                  <span className={`${action.bgColor} h-8 w-8 rounded-full flex items-center justify-center ring-8 ring-white`}>
-                                    <action.icon className={`h-4 w-4 ${action.iconColor}`} aria-hidden="true" />
-                                  </span>
-                                </div>
-                                <div className="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
-                                  <div className="min-w-0 flex-1">
-                                    <div className="flex items-center gap-3 mb-1">
-                                      <p className="text-sm font-medium text-gray-900">{action.action}</p>
-                                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                        action.statut === 'Succès' || action.statut === 'Terminé' || action.statut === 'Validé' || action.statut === 'Accusé reçu' ? 'bg-green-100 text-green-800' :
-                                        action.statut === 'Envoyé' || action.statut === 'Ouvert' || action.statut === 'Actif' ? 'bg-blue-100 text-blue-800' :
-                                        action.statut === 'En attente' ? 'bg-yellow-100 text-yellow-800' :
-                                        action.statut === 'Échec' ? 'bg-red-100 text-red-800' :
-                                        'bg-gray-100 text-gray-800'
-                                      }`}>
-                                        {action.statut}
-                                      </span>
-                                    </div>
-                                    <p className="text-sm text-gray-700 mb-2">{action.description}</p>
-                                    <div className="flex items-center gap-4 text-xs text-gray-700">
-                                      <span className="flex items-center gap-1">
-                                        <Users className="w-3 h-3" />
-                                        {action.user}
-                                      </span>
-                                      <span className="flex items-center gap-1">
-                                        <Clock className="w-3 h-3" />
-                                        {action.time}
-                                      </span>
-                                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                        action.type === 'Paiement' ? 'bg-green-50 text-green-700' :
-                                        action.type === 'Relance' ? 'bg-blue-50 text-blue-700' :
-                                        action.type === 'Appel' ? 'bg-green-50 text-green-700' :
-                                        action.type === 'Pénalité' ? 'bg-yellow-50 text-yellow-700' :
-                                        action.type === 'Plan' ? 'bg-primary-50 text-primary-700' :
-                                        action.type === 'Courrier' ? 'bg-red-50 text-red-700' :
-                                        action.type === 'SMS' ? 'bg-orange-50 text-orange-700' :
-                                        'bg-gray-50 text-gray-700'
-                                      }`}>
-                                        {action.type}
-                                      </span>
-                                    </div>
-                                  </div>
-                                  <div className="whitespace-nowrap text-right text-sm text-gray-700">
-                                    <time dateTime={action.date}>{new Date(action.date).toLocaleDateString()}</time>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
+                      <div className="py-10 text-center text-sm text-gray-500">
+                        Aucune donnée — module non alimenté par l'import
+                      </div>
                     </div>
                   </div>
 
@@ -12500,69 +11993,21 @@ Service Contentieux
                           </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                          {[
-                            { type: 'Paiements', total: 3, reussies: 3, encours: 0, echecs: 0, taux: 100, derniere: '20/03/2024' },
-                            { type: 'Relances Email', total: 5, reussies: 4, encours: 1, echecs: 0, taux: 80, derniere: '15/03/2024' },
-                            { type: 'Appels téléphoniques', total: 4, reussies: 4, encours: 0, echecs: 0, taux: 100, derniere: '10/03/2024' },
-                            { type: 'Pénalités', total: 2, reussies: 1, encours: 1, echecs: 0, taux: 50, derniere: '05/03/2024' },
-                            { type: 'Plans de remboursement', total: 1, reussies: 0, encours: 1, echecs: 0, taux: 0, derniere: '01/03/2024' },
-                            { type: 'Courriers recommandés', total: 2, reussies: 2, encours: 0, echecs: 0, taux: 100, derniere: '28/02/2024' },
-                            { type: 'SMS', total: 3, reussies: 2, encours: 0, echecs: 1, taux: 67, derniere: '20/02/2024' }
-                          ].map((stat, index) => (
-                            <tr key={index} className="hover:bg-gray-50">
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm font-medium text-gray-900">{stat.type}</div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm font-bold text-blue-600">{stat.total}</div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm font-medium text-green-600">{stat.reussies}</div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm font-medium text-yellow-600">{stat.encours}</div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm font-medium text-red-600">{stat.echecs}</div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className={`text-sm font-bold ${
-                                  stat.taux >= 80 ? 'text-green-600' :
-                                  stat.taux >= 60 ? 'text-yellow-600' :
-                                  'text-red-600'
-                                }`}>
-                                  {stat.taux}%
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm text-gray-900">{stat.derniere}</div>
-                              </td>
-                            </tr>
-                          ))}
+                          <tr>
+                            <td colSpan={7} className="px-6 py-10 text-center text-sm text-gray-500">
+                              Aucune donnée — module non alimenté par l'import
+                            </td>
+                          </tr>
                         </tbody>
                       </table>
                     </div>
                   </div>
 
-                  {/* Graphique d'activité */}
+                  {/* Graphique d'activité — pas d'historique d'actions en base */}
                   <div className="bg-white rounded-lg shadow p-6">
                     <h4 className="text-lg font-semibold text-gray-900 mb-4">Activité du Dossier</h4>
-                    <div className="h-64">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={[
-                          { mois: 'Jan 2024', actions: 3, reussites: 3 },
-                          { mois: 'Fév 2024', actions: 8, reussites: 7 },
-                          { mois: 'Mar 2024', actions: 12, reussites: 8 }
-                        ]}>
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="mois" />
-                          <YAxis />
-                          <Tooltip />
-                          <Legend />
-                          <Line type="monotone" dataKey="actions" stroke="#235A6E" name="Total Actions" strokeWidth={2} />
-                          <Line type="monotone" dataKey="reussites" stroke="#15803D" name="Actions Réussies" strokeWidth={2} />
-                        </LineChart>
-                      </ResponsiveContainer>
+                    <div className="h-64 flex items-center justify-center text-sm text-gray-500">
+                      Aucune donnée — module non alimenté par l'import
                     </div>
                   </div>
                 </div>
@@ -12589,26 +12034,26 @@ Service Contentieux
                     </div>
                   </div>
 
-                  {/* Statistiques des documents */}
+                  {/* Statistiques des documents — aucune pièce jointe stockée en base */}
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="bg-blue-50 rounded-lg p-4">
                       <div className="text-sm text-blue-600 font-medium">Total Documents</div>
-                      <div className="text-lg font-bold text-blue-900">15</div>
+                      <div className="text-lg font-bold text-blue-900">—</div>
                       <div className="text-xs text-blue-600 mt-1">Tous types</div>
                     </div>
                     <div className="bg-green-50 rounded-lg p-4">
                       <div className="text-sm text-green-600 font-medium">Factures</div>
-                      <div className="text-lg font-bold text-green-900">6</div>
+                      <div className="text-lg font-bold text-green-900">—</div>
                       <div className="text-xs text-green-600 mt-1">Documents officiels</div>
                     </div>
                     <div className="bg-orange-50 rounded-lg p-4">
                       <div className="text-sm text-orange-600 font-medium">Correspondances</div>
-                      <div className="text-lg font-bold text-orange-900">7</div>
+                      <div className="text-lg font-bold text-orange-900">—</div>
                       <div className="text-xs text-orange-600 mt-1">Emails, courriers</div>
                     </div>
                     <div className="bg-primary-50 rounded-lg p-4">
                       <div className="text-sm text-primary-600 font-medium">Taille Totale</div>
-                      <div className="text-lg font-bold text-primary-900">23 MB</div>
+                      <div className="text-lg font-bold text-primary-900">—</div>
                       <div className="text-xs text-primary-600 mt-1">Espace utilisé</div>
                     </div>
                   </div>
@@ -12659,131 +12104,11 @@ Service Contentieux
                           </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                          {[
-                            {
-                              nom: 'Facture_FAC001.pdf',
-                              type: 'Facture',
-                              taille: '245 KB',
-                              dateAjout: '2024-03-20',
-                              ajoutePar: '',
-                              description: 'Facture originale FAC001 - Prestation janvier',
-                              extension: 'pdf'
-                            },
-                            {
-                              nom: 'Contrat_Location_2024.pdf',
-                              type: 'Contrat',
-                              taille: '1.2 MB',
-                              dateAjout: '2024-03-15',
-                              ajoutePar: '',
-                              description: 'Contrat de location signé - CTR-2024-001',
-                              extension: 'pdf'
-                            },
-                            {
-                              nom: 'Email_relance_15032024.eml',
-                              type: 'Correspondance',
-                              taille: '45 KB',
-                              dateAjout: '2024-03-15',
-                              ajoutePar: '',
-                              description: 'Email de relance envoyé au client',
-                              extension: 'eml'
-                            },
-                            {
-                              nom: 'Mise_en_demeure.pdf',
-                              type: 'Juridique',
-                              taille: '890 KB',
-                              dateAjout: '2024-02-28',
-                              ajoutePar: '',
-                              description: 'Mise en demeure envoyée par courrier recommandé',
-                              extension: 'pdf'
-                            },
-                            {
-                              nom: 'Virement_2000_FCFA.jpg',
-                              type: 'Paiement',
-                              taille: '1.8 MB',
-                              dateAjout: '2024-03-20',
-                              ajoutePar: '',
-                              description: 'Justificatif de virement bancaire 2000 FCFA',
-                              extension: 'jpg'
-                            },
-                            {
-                              nom: 'Plan_remboursement_PLN001.xlsx',
-                              type: 'Plan',
-                              taille: '156 KB',
-                              dateAjout: '2024-03-01',
-                              ajoutePar: '',
-                              description: 'Échéancier détaillé du plan PLN-2024-001',
-                              extension: 'xlsx'
-                            }
-                          ].map((doc, index) => (
-                            <tr key={index} className="hover:bg-gray-50">
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="flex items-center">
-                                  <div className="flex-shrink-0 h-8 w-8">
-                                    {doc.extension === 'pdf' && <FileText className="h-8 w-8 text-red-500" />}
-                                    {doc.extension === 'xlsx' && <FileText className="h-8 w-8 text-green-500" />}
-                                    {doc.extension === 'jpg' && <FileText className="h-8 w-8 text-blue-500" />}
-                                    {doc.extension === 'eml' && <Mail className="h-8 w-8 text-primary-500" />}
-                                  </div>
-                                  <div className="ml-3">
-                                    <div className="text-sm font-medium text-gray-900">{doc.nom}</div>
-                                  </div>
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                  doc.type === 'Facture' ? 'bg-green-100 text-green-800' :
-                                  doc.type === 'Contrat' ? 'bg-blue-100 text-blue-800' :
-                                  doc.type === 'Correspondance' ? 'bg-primary-100 text-primary-800' :
-                                  doc.type === 'Juridique' ? 'bg-red-100 text-red-800' :
-                                  doc.type === 'Paiement' ? 'bg-yellow-100 text-yellow-800' :
-                                  'bg-gray-100 text-gray-800'
-                                }`}>
-                                  {doc.type}
-                                </span>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm text-gray-900">{doc.taille}</div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm text-gray-900">
-                                  {new Date(doc.dateAjout).toLocaleDateString()}
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm text-gray-900">{doc.ajoutePar}</div>
-                              </td>
-                              <td className="px-6 py-4">
-                                <div className="text-sm text-gray-600 max-w-xs truncate" title={doc.description}>
-                                  {doc.description}
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="flex gap-2">
-                                  <button
-                                    className="text-blue-600 hover:text-blue-900 p-1 rounded"
-                                    title={t('actions.download')} aria-label="Télécharger">
-                                    <Download className="w-4 h-4" />
-                                  </button>
-                                  <button
-                                    className="text-green-600 hover:text-green-900 p-1 rounded"
-                                    title="Prévisualiser" aria-label="Voir les détails">
-                                    <Eye className="w-4 h-4" />
-                                  </button>
-                                  <button
-                                    className="text-orange-600 hover:text-orange-900 p-1 rounded"
-                                    title="Partager" aria-label="Partager">
-                                    <Share className="w-4 h-4" />
-                                  </button>
-                                  <button
-                                    className="text-red-600 hover:text-red-900 p-1 rounded"
-                                    title={t('common.delete')}
-                                  >
-                                    <Trash className="w-4 h-4" />
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
+                          <tr>
+                            <td colSpan={7} className="px-6 py-10 text-center text-sm text-gray-500">
+                              Aucune donnée — module non alimenté par l'import
+                            </td>
+                          </tr>
                         </tbody>
                       </table>
                     </div>
@@ -12793,46 +12118,9 @@ Service Contentieux
                   <div className="bg-white rounded-lg shadow p-6">
                     <h4 className="text-lg font-semibold text-gray-900 mb-4">Historique des Documents</h4>
                     <div className="space-y-4">
-                      {[
-                        {
-                          action: 'Document ajouté',
-                          document: 'Virement_2000_FCFA.jpg',
-                          user: '',
-                          date: '2024-03-20 14:30',
-                          description: 'Justificatif de paiement ajouté au dossier'
-                        },
-                        {
-                          action: 'Document téléchargé',
-                          document: 'Facture_FAC001.pdf',
-                          user: '',
-                          date: '2024-03-18 10:15',
-                          description: 'Document téléchargé pour vérification'
-                        },
-                        {
-                          action: 'Document modifié',
-                          document: 'Plan_remboursement_PLN001.xlsx',
-                          user: '',
-                          date: '2024-03-02 16:45',
-                          description: 'Échéancier mis à jour avec nouveaux montants'
-                        }
-                      ].map((item, index) => (
-                        <div key={index} className="flex items-start space-x-3 p-3 rounded-lg bg-gray-50">
-                          <div className="flex-shrink-0">
-                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                              <FileText className="w-4 h-4 text-blue-600" />
-                            </div>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="text-sm font-medium text-gray-900">
-                              {item.action}: {item.document}
-                            </div>
-                            <div className="text-sm text-gray-600">{item.description}</div>
-                            <div className="text-xs text-gray-700 mt-1">
-                              Par {item.user} • {item.date}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
+                      <div className="py-10 text-center text-sm text-gray-500">
+                        Aucune donnée — module non alimenté par l'import
+                      </div>
                     </div>
                   </div>
                 </div>

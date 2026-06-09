@@ -361,32 +361,32 @@ const BudgetingDashboard: React.FC = () => {
             <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
               <KPICard
                 title="Budget Total"
-                value={formatValue(ecartsData.reduce((s, d) => s + d.budget, 0))}
-                subtitle="Toutes categories"
+                value={ecartsData.length > 0 ? formatValue(ecartsData.reduce((s, d) => s + d.budget, 0)) : '—'}
+                subtitle={ecartsData.length > 0 ? 'Toutes categories' : 'Budget non alimente'}
                 icon={Target}
                 color="primary"
                 delay={0.1}
               />
               <KPICard
                 title="Realise Total"
-                value={formatValue(ecartsData.reduce((s, d) => s + d.actual, 0))}
-                subtitle="Consomme"
+                value={ecartsData.length > 0 ? formatValue(ecartsData.reduce((s, d) => s + d.actual, 0)) : '—'}
+                subtitle={ecartsData.length > 0 ? 'Consomme' : 'Budget non alimente'}
                 icon={BarChart3}
                 color="success"
                 delay={0.2}
               />
               <KPICard
                 title="Ecart Total"
-                value={formatValue(ecartsData.reduce((s, d) => s + d.ecart, 0))}
-                subtitle={ecartsData.reduce((s, d) => s + d.ecart, 0) >= 0 ? 'Sous-consommation' : 'Depassement'}
+                value={ecartsData.length > 0 ? formatValue(ecartsData.reduce((s, d) => s + d.ecart, 0)) : '—'}
+                subtitle={ecartsData.length > 0 ? (ecartsData.reduce((s, d) => s + d.ecart, 0) >= 0 ? 'Sous-consommation' : 'Depassement') : 'Budget non alimente'}
                 icon={ArrowUpDown}
                 color="warning"
                 delay={0.3}
               />
               <KPICard
                 title="Postes en Depassement"
-                value={`${ecartsData.filter(d => d.ecartPct > 0).length}`}
-                subtitle={`sur ${ecartsData.length} postes`}
+                value={ecartsData.length > 0 ? `${ecartsData.filter(d => d.ecartPct > 0).length}` : '—'}
+                subtitle={ecartsData.length > 0 ? `sur ${ecartsData.length} postes` : 'Budget non alimente'}
                 icon={AlertCircle}
                 color="neutral"
                 delay={0.4}
@@ -490,16 +490,17 @@ const BudgetingDashboard: React.FC = () => {
 
         {/* KPIs */}
         {(() => {
+          const hasBudget = dashboardData.totalBudgeted > 0;
           const budgetTotal = dashboardData.totalBudgeted;
           const realise = dashboardData.totalActual;
           const ecart = budgetTotal - realise;
-          const performance = budgetTotal > 0 ? Math.round((realise / budgetTotal) * 100) : 0;
+          const performance = hasBudget ? Math.round((realise / budgetTotal) * 100) : 0;
           return (
             <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
               <KPICard
                 title="Budget Total"
-                value={formatValue(budgetTotal)}
-                subtitle={`Periode: ${period === 'month' ? 'Mois' : period === 'quarter' ? 'Trimestre' : 'Annee'}`}
+                value={hasBudget ? formatValue(budgetTotal) : '—'}
+                subtitle={hasBudget ? `Periode: ${period === 'month' ? 'Mois' : period === 'quarter' ? 'Trimestre' : 'Annee'}` : 'Aucun budget — module non alimente par l’import'}
                 icon={DollarSign}
                 color="primary"
                 delay={0.1}
@@ -507,11 +508,10 @@ const BudgetingDashboard: React.FC = () => {
               />
 
               <KPICard
-                title="Realise"
+                title="Charges realisees"
                 value={formatValue(realise)}
-                subtitle={`${performance}% du budget`}
+                subtitle="Comptes classe 6 (reel)"
                 icon={BarChart3}
-                trend={budgetTotal > 0 ? { value: `${performance}%`, isPositive: performance >= 80 } : undefined}
                 color="success"
                 delay={0.2}
                 withChart={true}
@@ -519,10 +519,10 @@ const BudgetingDashboard: React.FC = () => {
 
               <KPICard
                 title="Ecart"
-                value={formatValue(ecart)}
-                subtitle={ecart > 0 ? 'Sous-realisation' : ecart < 0 ? 'Depassement' : "A l'equilibre"}
+                value={hasBudget ? formatValue(ecart) : '—'}
+                subtitle={hasBudget ? (ecart > 0 ? 'Sous-realisation' : ecart < 0 ? 'Depassement' : "A l'equilibre") : 'Budget non alimente'}
                 icon={Target}
-                trend={budgetTotal > 0 ? { value: `${ecart > 0 ? '-' : '+'}${Math.round(Math.abs(ecart) / budgetTotal * 100)}%`, isPositive: ecart <= 0 } : undefined}
+                trend={hasBudget ? { value: `${ecart > 0 ? '-' : '+'}${Math.round(Math.abs(ecart) / budgetTotal * 100)}%`, isPositive: ecart <= 0 } : undefined}
                 color="warning"
                 delay={0.3}
                 withChart={true}
@@ -530,8 +530,8 @@ const BudgetingDashboard: React.FC = () => {
 
               <KPICard
                 title="Performance"
-                value={`${performance}%`}
-                subtitle="Objectif: 85%"
+                value={hasBudget ? `${performance}%` : '—'}
+                subtitle={hasBudget ? 'Objectif: 85%' : 'Budget non alimente'}
                 icon={TrendingUp}
                 color="neutral"
                 delay={0.4}
@@ -552,17 +552,20 @@ const BudgetingDashboard: React.FC = () => {
             subtitle="Comparaison Budget vs Realise par mois"
             icon={BarChart3}
           >
-            <ColorfulBarChart
-              data={dashboardData.monthlyPerformance.length > 0
-                ? dashboardData.monthlyPerformance.map(d => ({
-                    label: d.label,
-                    value: d.value,
-                    color: d.value >= 90 ? 'bg-[var(--color-success)]' : d.value >= 75 ? 'bg-green-400' : d.value >= 60 ? 'bg-yellow-400' : 'bg-orange-400',
-                  }))
-                : [{ label: '\u2014', value: 0, color: 'bg-neutral-300' }]
-              }
-              height={180}
-            />
+            {dashboardData.monthlyPerformance.length > 0 ? (
+              <ColorfulBarChart
+                data={dashboardData.monthlyPerformance.map(d => ({
+                  label: d.label,
+                  value: d.value,
+                  color: d.value >= 90 ? 'bg-[var(--color-success)]' : d.value >= 75 ? 'bg-green-400' : d.value >= 60 ? 'bg-yellow-400' : 'bg-orange-400',
+                }))}
+                height={180}
+              />
+            ) : (
+              <p className="text-center text-[var(--color-text-tertiary)] py-12">
+                Aucune donnee \u2014 budget non alimente par l'import
+              </p>
+            )}
           </ModernChartCard>
         </motion.div>
 
@@ -589,7 +592,7 @@ const BudgetingDashboard: React.FC = () => {
                 </ElegantButton>
               </div>
 
-              {(() => {
+              {dashboardData.totalBudgeted > 0 ? (() => {
                 // Compute per-category budget totals from account code prefix
                 const revenueBudget = budgetLines
                   .filter(l => l.accountCode?.startsWith('7'))
@@ -613,7 +616,7 @@ const BudgetingDashboard: React.FC = () => {
                     </div>
                   </div>
                   <div className="space-y-3">
-                    <p className="text-lg font-bold text-[var(--color-text-primary)]">{dashboardData.totalBudgeted > 0 ? `${revPct}%` : 'N/A'}</p>
+                    <p className="text-lg font-bold text-[var(--color-text-primary)]">{`${revPct}%`}</p>
                     <p className="text-sm text-neutral-600">{revPct > 100 ? `Objectif depasse de ${revPct - 100}%` : revPct > 0 ? `${100 - revPct}% restant` : 'Aucune donnee'}</p>
                     <div className="w-full bg-neutral-100 rounded-full h-2">
                       <div className="bg-[var(--color-primary)] h-2 rounded-full" style={{ width: `${Math.min(revPct, 100)}%` }}></div>
@@ -629,7 +632,7 @@ const BudgetingDashboard: React.FC = () => {
                     </div>
                   </div>
                   <div className="space-y-3">
-                    <p className="text-lg font-bold text-[var(--color-text-primary)]">{dashboardData.totalBudgeted > 0 ? `${chgPct}%` : 'N/A'}</p>
+                    <p className="text-lg font-bold text-[var(--color-text-primary)]">{`${chgPct}%`}</p>
                     <p className="text-sm text-neutral-600">{chgPct <= 100 ? 'Sous controle' : 'Depassement'}</p>
                     <div className="w-full bg-neutral-100 rounded-full h-2">
                       <div className="bg-[var(--color-primary)] h-2 rounded-full" style={{ width: `${Math.min(chgPct, 100)}%` }}></div>
@@ -645,7 +648,7 @@ const BudgetingDashboard: React.FC = () => {
                     </div>
                   </div>
                   <div className="space-y-3">
-                    <p className="text-lg font-bold text-[var(--color-text-primary)]">{dashboardData.totalBudgeted > 0 ? `${invPct}%` : 'N/A'}</p>
+                    <p className="text-lg font-bold text-[var(--color-text-primary)]">{`${invPct}%`}</p>
                     <p className="text-sm text-neutral-600">{invPct < 80 ? 'En retard' : invPct <= 100 ? 'En bonne voie' : 'Depassement'}</p>
                     <div className="w-full bg-neutral-100 rounded-full h-2">
                       <div className="bg-[var(--color-primary)] h-2 rounded-full" style={{ width: `${Math.min(invPct, 100)}%` }}></div>
@@ -654,7 +657,11 @@ const BudgetingDashboard: React.FC = () => {
                 </div>
               </div>
                 );
-              })()}
+              })() : (
+                <p className="text-center text-[var(--color-text-tertiary)] py-12">
+                  Aucune donnee — budget non alimente par l'import (impossible de comparer realise et budget)
+                </p>
+              )}
             </div>
           </UnifiedCard>
         </motion.div>

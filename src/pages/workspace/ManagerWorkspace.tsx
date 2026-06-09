@@ -100,18 +100,15 @@ const ManagerWorkspace: React.FC = () => {
     const loadStats = async () => {
       setStatsLoading(true);
       try {
-        const [entries, accounts] = await Promise.all([
-          adapter.getAll<any>('journalEntries'),
-          adapter.getAll<any>('accounts'),
-        ]);
+        const entries = await adapter.getAll<any>('journalEntries');
         let ca = 0, charges = 0, treasury = 0;
         for (const entry of entries) {
           if (!entry.lines) continue;
           if (entry.status === 'draft') continue;
           for (const line of entry.lines) {
-            const acc = accounts.find((a: any) => a.id === line.accountId || a.number === line.accountNumber);
-            if (!acc) continue;
-            const accNum = String(acc.number || '');
+            // Classement SYSCOHADA direct sur le code de compte de la ligne (accountCode)
+            const accNum = String(line.accountCode || '');
+            if (!accNum) continue;
             if (accNum.startsWith('7')) ca += (line.credit || 0);
             if (accNum.startsWith('6')) charges += (line.debit || 0);
             if (accNum.startsWith('5')) treasury += (line.debit || 0) - (line.credit || 0);
@@ -298,7 +295,7 @@ const ManagerWorkspace: React.FC = () => {
               </div>
             ))
           /* W25: clés stables basées sur le titre */
-          : [{title:'CA du mois',value:formatCurrency(stats.ca),icon:DollarSign,color:'var(--color-secondary)',change:'',up:true},{title:'Marge',value:`${stats.marge.toFixed(1)}%`,icon:Target,color:'var(--color-primary)',change:'',up:stats.marge >= 0},{title:'Charges',value:formatCurrency(stats.charges),icon:Layers,color:'var(--color-text-tertiary)',change:'',up:false},{title:'Tresorerie',value:formatCurrency(stats.treasury),icon:DollarSign,color:'var(--color-secondary)',change:'',up:stats.treasury >= 0}].map((m) => (
+          : [{title:"Chiffre d'affaires",value:formatCurrency(stats.ca),icon:DollarSign,color:'var(--color-secondary)',change:'',up:true},{title:'Marge',value:`${stats.marge.toFixed(1)}%`,icon:Target,color:'var(--color-primary)',change:'',up:stats.marge >= 0},{title:'Charges',value:formatCurrency(stats.charges),icon:Layers,color:'var(--color-text-tertiary)',change:'',up:false},{title:'Tresorerie',value:formatCurrency(stats.treasury),icon:DollarSign,color:'var(--color-secondary)',change:'',up:stats.treasury >= 0}].map((m) => (
             <div key={m.title} className="bg-white rounded-lg p-4 border hover:shadow-md">
               <div className="flex justify-between mb-3"><div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{backgroundColor:`color-mix(in srgb, ${m.color} 12%, transparent)`}}><m.icon className="w-5 h-5" style={{color:m.color}} /></div><span className={m.up?'text-green-600 text-xs':'text-red-600 text-xs'}>{m.change}</span></div>
               <h3 className="text-lg font-bold">{m.value}</h3><p className="text-sm text-gray-600">{m.title}</p>

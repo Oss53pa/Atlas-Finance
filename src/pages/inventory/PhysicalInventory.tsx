@@ -25,8 +25,7 @@ import {
   Settings,
   Clock,
   Package,
-  BarChart3,
-  UserCheck
+  BarChart3
 } from 'lucide-react';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import {
@@ -410,19 +409,19 @@ const CountDetailsModal: React.FC<CountDetailsModalProps> = ({
                 <div>
                   <span className="text-gray-600">Total Book Value:</span>
                   <div className="font-semibold">
-                    <CurrencyDisplay amount={count.totalBookValue} currency="USD" size="sm" />
+                    <CurrencyDisplay amount={count.totalBookValue} currency="XOF" size="sm" />
                   </div>
                 </div>
                 <div>
                   <span className="text-gray-600">Total Count Value:</span>
                   <div className="font-semibold">
-                    <CurrencyDisplay amount={count.totalCountValue} currency="USD" size="sm" />
+                    <CurrencyDisplay amount={count.totalCountValue} currency="XOF" size="sm" />
                   </div>
                 </div>
                 <div>
                   <span className="text-gray-600">Total Variance:</span>
                   <div className={`font-semibold ${count.totalVariance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    <CurrencyDisplay amount={count.totalVariance} currency="USD" size="sm" />
+                    <CurrencyDisplay amount={count.totalVariance} currency="XOF" size="sm" />
                   </div>
                 </div>
               </div>
@@ -515,10 +514,7 @@ const PhysicalInventory: React.FC = () => {
         <div>
           <h1 className="text-lg font-bold text-gray-900 mb-1">Inventaire Physique</h1>
           <div className="text-sm text-gray-600 flex items-center gap-4">
-            <span>Inventaire Annuel 2024</span>
-            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
-              Progression: 75%
-            </span>
+            <span>Aucune donnée — module non alimenté par l'import</span>
           </div>
         </div>
 
@@ -754,7 +750,7 @@ const PhysicalInventory: React.FC = () => {
                             <td className="py-2 px-3 text-xs text-right font-mono">{item.countedQuantity ?? '—'}</td>
                             <td className={`py-2 px-3 text-xs text-right font-mono ${(item.variance ?? 0) < 0 ? 'text-red-600' : 'text-green-600'}`}>{item.variance}</td>
                             <td className="py-2 px-3 text-xs text-right text-red-600">
-                              <CurrencyDisplay amount={item.varianceValue ?? 0} currency="USD" size="sm" />
+                              <CurrencyDisplay amount={item.varianceValue ?? 0} currency="XOF" size="sm" />
                             </td>
                             <td className="py-2 px-3 text-center">
                               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-50 text-orange-700 border border-orange-200">
@@ -779,39 +775,10 @@ const PhysicalInventory: React.FC = () => {
               <div className="py-2 px-3 border-b border-gray-200">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-medium">Équipes de Comptage</h3>
-                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary-50 text-primary-700 border border-primary-200">
-                    4 équipes actives
-                  </span>
                 </div>
               </div>
-              <div className="p-3 space-y-2">
-                {[
-                  { id: 1, name: 'Équipe A', leader: 'John Counter', members: 3, zone: 'Entrepôt Principal', progress: 85 },
-                  { id: 2, name: 'Équipe B', leader: 'Jane Counter', members: 2, zone: 'Entrepôt Secondaire', progress: 72 },
-                  { id: 3, name: 'Équipe C', leader: 'Mike Auditor', members: 4, zone: 'Zone Réception', progress: 95 },
-                  { id: 4, name: 'Équipe D', leader: 'Sarah Inspector', members: 2, zone: 'Zone Expédition', progress: 60 }
-                ].map((team) => (
-                  <div key={team.id} className="border rounded p-2 bg-gray-50">
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="flex items-center gap-2">
-                        <UserCheck className="w-4 h-4 text-[var(--color-primary)]" />
-                        <span className="text-sm font-medium">{team.name}</span>
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-50 text-gray-700 border border-gray-200">{team.members} membres</span>
-                      </div>
-                      <div className="text-xs text-gray-600">{team.progress}%</div>
-                    </div>
-                    <div className="flex items-center justify-between text-xs text-gray-600">
-                      <span>Chef: {team.leader}</span>
-                      <span>Zone: {team.zone}</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
-                      <div
-                        className="bg-[var(--color-primary)] h-1.5 rounded-full"
-                        style={{ width: `${team.progress}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                ))}
+              <div className="p-6 text-center text-xs text-gray-500">
+                Aucune donnée — module non alimenté par l'import
               </div>
             </div>
           </div>
