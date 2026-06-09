@@ -3907,7 +3907,9 @@ const ContentieuxTab = ({
 
   function renderProcedureTab() {
     if (!selectedContentieuxDetail) return null;
-    const etapesProcedure = [
+    // Étapes de procédure : aucune source réelle (recovery_cases vide) → état vide.
+    const etapesProcedure: any[] = [];
+    const _etapesProcedureSample = [
       {
         id: 1,
         titre: 'Mise en Demeure',
@@ -4012,7 +4014,7 @@ const ContentieuxTab = ({
 
                   {etape.documents.length > 0 && (
                     <div className="flex flex-wrap gap-2">
-                      {etape.documents.map((doc, idx) => (
+                      {etape.documents.map((doc: string, idx: number) => (
                         <span key={idx} className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded">
                           {doc}
                         </span>
@@ -4117,7 +4119,9 @@ const ContentieuxTab = ({
   // Placeholder functions pour les autres onglets
   function renderDocumentsTab() {
 
-    const documentsContentieux = [
+    // Documents contentieux : aucune source réelle (recovery_cases vide) → état vide.
+    const documentsContentieux: any[] = [];
+    const _documentsContentieuxSample = [
       {
         id: 1,
         type: 'procedure',
@@ -4748,7 +4752,9 @@ const ContentieuxTab = ({
 
   function renderCorrespondanceTab() {
 
-    const correspondances = [
+    // Correspondances contentieux : aucune source réelle (recovery_cases vide) → état vide.
+    const correspondances: any[] = [];
+    const _correspondancesSample = [
       {
         id: 1,
         type: 'avocat',
@@ -5126,7 +5132,9 @@ const ContentieuxTab = ({
 
   function renderExecutionTab() {
 
-    const mesuresExecution = [
+    // Mesures d'exécution : aucune source réelle (recovery_cases vide) → état vide.
+    const mesuresExecution: any[] = [];
+    const _mesuresExecutionSample = [
       {
         id: 1,
         type: 'saisie_attribution',
@@ -11184,14 +11192,8 @@ Service Contentieux
                     <h4 className="text-lg font-semibold text-gray-900 mb-4">Évolution des Paiements</h4>
                     <div className="h-64">
                       <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={[
-                          { mois: 'Oct 2023', montant: 0 },
-                          { mois: 'Nov 2023', montant: 0 },
-                          { mois: 'Déc 2023', montant: 4500 },
-                          { mois: 'Jan 2024', montant: 4500 },
-                          { mois: 'Fév 2024', montant: 8000 },
-                          { mois: 'Mar 2024', montant: 2000 }
-                        ]}>
+                        {/* Données réelles d'échéancier de paiement non disponibles (recovery_cases vide) */}
+                        <AreaChart data={[]}>
                           <CartesianGrid strokeDasharray="3 3" />
                           <XAxis dataKey="mois" />
                           <YAxis />
