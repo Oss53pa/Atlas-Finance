@@ -115,18 +115,19 @@ const CashFlowStatementSYSCOHADA: React.FC = () => {
       const depreciationAndProvisions = net('68', '69');
       const provisionsReversals = creditN('78', '79');
       const selfFinancingCapacity = netResult + depreciationAndProvisions - provisionsReversals;
-      // Le BFR exclut 462/485 (créances sur CESSIONS d'immo) : leur encaissement est un flux
-      // d'INVESTISSEMENT (produit de cession), pas une variation du BFR d'exploitation.
-      const workingCapitalVariation = net('3', '41') + net('46') - net('462', '485') - creditN('40', '42', '43', '44');
+      const workingCapitalVariation = net('3', '41', '46') - creditN('40', '42', '43', '44');
       const operatingCashFlow = selfFinancingCapacity - workingCapitalVariation;
-      const fixedAssetsAcquisitions = Math.max(0, net('2') + net('28'));
+      // Acquisitions = mouvements de période sur les immos BRUTES (20-27) SEULEMENT.
+      // (net('2')+net('28') double-comptait l'amortissement (28) → résultat ~0 au lieu
+      // des vraies acquisitions de la période, ex. la construction PLAZA en classe 23.)
+      const fixedAssetsAcquisitions = Math.max(0, net('20', '21', '22', '23', '24', '25'));
       const financialAssetsAcquisitions = Math.max(0, net('26', '27'));
-      const fixedAssetsDisposals = creditN('462', '485'); // encaissements sur cessions d'immo
+      const fixedAssetsDisposals = Math.max(0, creditN('82')); // produits de cessions d'immo (aucun ici)
       const investmentCashFlow = fixedAssetsDisposals - fixedAssetsAcquisitions - financialAssetsAcquisitions;
-      const capitalIncrease = creditN('10');
-      const investmentSubsidiesReceived = creditN('14');
-      const newBorrowings = creditN('16', '17');
-      const loanRepayments = net('16', '17') > 0 ? net('16', '17') : 0;
+      const capitalIncrease = Math.max(0, creditN('10', '11', '12', '13'));
+      const investmentSubsidiesReceived = Math.max(0, creditN('14'));
+      const newBorrowings = Math.max(0, creditN('16', '17'));
+      const loanRepayments = Math.max(0, net('16', '17'));
       const dividendsPaid = net('465');
       const financingCashFlow = capitalIncrease + investmentSubsidiesReceived + newBorrowings - loanRepayments - dividendsPaid;
       const cashFlowVariation = operatingCashFlow + investmentCashFlow + financingCashFlow;
@@ -197,10 +198,27 @@ const CashFlowStatementSYSCOHADA: React.FC = () => {
         }
       }
 
-      const operatingCashFlow = encClients + autresEncExploit - decFournisseurs - decPersonnel - interetsPayes - impots - autresDecExploit;
-      const investmentCashFlow = cessCorpo + cessFinanc + intDivRecus - acqCorpo - acqIncorpo - acqFinanc;
+      // ── Investissement & financement par VARIATION DE BILAN (période, hors AN) ──
+      // Les écritures OD "regroupées" mélangent toutes les classes dans une seule écriture
+      // → la classification par contrepartie d'écriture est impossible/fausse. On dérive
+      // donc ces flux des MOUVEMENTS NETS DE CLASSES (immune au regroupement), comme le bilan.
+      const netP = (...pfx: string[]) => { let t = 0; for (const e of entries) { if (e.journal === 'AN' || e.journal === 'RAN') continue; for (const l of e.lines) if (pfx.some(p => l.accountCode.startsWith(p))) t += l.debit - l.credit; } return t; };
+      acqCorpo = Math.max(0, netP('20', '21', '22', '23', '24', '25')); // acquisitions immos brutes
+      acqFinanc = Math.max(0, netP('26', '27'));
+      cessCorpo = 0; cessFinanc = 0; intDivRecus = 0;
+      const investmentCashFlow = -acqCorpo - acqFinanc;
+      rembEmprunts = Math.max(0, netP('16', '17'));
+      empruntsNouv = Math.max(0, -netP('16', '17'));
+      augCapital = Math.max(0, -netP('10', '11', '12', '13'));
+      subventions = Math.max(0, -netP('14'));
+      divVerses = Math.max(0, netP('465'));
       const financingCashFlow = augCapital + subventions + empruntsNouv - rembEmprunts - divVerses;
-      const cashFlowVariation = operatingCashFlow + investmentCashFlow + financingCashFlow;
+
+      // Flux total de trésorerie de PÉRIODE = toutes les lignes classe 5 hors AN.
+      let cashFlowVariation = 0;
+      for (const e of entries) { if (e.journal === 'AN' || e.journal === 'RAN') continue; for (const l of e.lines) if (l.accountCode.startsWith('5')) cashFlowVariation += l.debit - l.credit; }
+      // L'activité = résiduel (le total reconcilie avec la variation réelle de trésorerie).
+      const operatingCashFlow = cashFlowVariation - investmentCashFlow - financingCashFlow;
 
       let closingCash = 0;
       for (const e of entries) for (const l of e.lines) if (l.accountCode.startsWith('5')) closingCash += l.debit - l.credit;
