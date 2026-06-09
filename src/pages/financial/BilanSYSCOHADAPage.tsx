@@ -277,33 +277,37 @@ const BilanSYSCOHADAPage: React.FC = () => {
     ];
   }, [rawEntries]);
 
-  // Flux de trésorerie
+  // Flux de trésorerie (TFT méthode indirecte)
   const fluxTresorerieData = useMemo(() => {
-    const rn = creditNet(['7']) - net(['6']);
-    const dotAmort = net(['68']);
+    // Flux de PÉRIODE : exclure l'À Nouveau (soldes d'OUVERTURE), sinon les immos/
+    // capitaux/créances d'ouverture sont comptés à tort comme des flux de l'exercice.
+    const netP = (pfx: string[]) => { let t = 0; for (const e of rawEntries) { if ((e as any).journal === 'AN' || (e as any).journal === 'RAN' || e.status === 'draft') continue; for (const l of (e.lines || [])) if (pfx.some(p => (l.accountCode || '').startsWith(p))) t += (l.debit || 0) - (l.credit || 0); } return t; };
+    const creditNetP = (pfx: string[]) => -netP(pfx);
+    const rn = creditNetP(['7']) - netP(['6']);
+    const dotAmort = netP(['68']);
     return {
       activitesOperationnelles: [
         { code: 'FO1', libelle: 'Résultat net de l\'exercice', montant: rn },
         { code: 'FO2', libelle: 'Dotations aux amortissements', montant: dotAmort },
-        { code: 'FO3', libelle: 'Dotations aux provisions', montant: net(['69']) },
+        { code: 'FO3', libelle: 'Dotations aux provisions', montant: netP(['69']) },
         { code: 'FO4', libelle: 'Plus/moins-values de cessions', montant: 0 },
-        { code: 'FO5', libelle: 'Variation des créances clients', montant: -net(['41']) },
-        { code: 'FO6', libelle: 'Variation des stocks', montant: -net(['3']) },
-        { code: 'FO7', libelle: 'Variation des dettes fournisseurs', montant: creditNet(['40']) },
+        { code: 'FO5', libelle: 'Variation des créances clients', montant: -netP(['41']) },
+        { code: 'FO6', libelle: 'Variation des stocks', montant: -netP(['3']) },
+        { code: 'FO7', libelle: 'Variation des dettes fournisseurs', montant: creditNetP(['40']) },
         { code: 'FO8', libelle: 'Variation autres créances et dettes', montant: 0 },
       ],
       activitesInvestissement: [
-        { code: 'FI1', libelle: 'Acquisitions d\'immobilisations corporelles', montant: -Math.max(0, net(['22', '23', '24', '25'])) },
-        { code: 'FI2', libelle: 'Acquisitions d\'immobilisations incorporelles', montant: -Math.max(0, net(['21'])) },
-        { code: 'FI3', libelle: 'Cessions d\'immobilisations', montant: 0 },
-        { code: 'FI4', libelle: 'Acquisitions de participations', montant: -Math.max(0, net(['26'])) },
+        { code: 'FI1', libelle: 'Acquisitions d\'immobilisations corporelles', montant: -Math.max(0, netP(['22', '23', '24', '25'])) },
+        { code: 'FI2', libelle: 'Acquisitions d\'immobilisations incorporelles', montant: -Math.max(0, netP(['20', '21'])) },
+        { code: 'FI3', libelle: 'Cessions d\'immobilisations', montant: Math.max(0, creditNetP(['82'])) },
+        { code: 'FI4', libelle: 'Acquisitions de participations', montant: -Math.max(0, netP(['26', '27'])) },
       ],
       activitesFinancement: [
-        { code: 'FF1', libelle: 'Augmentation de capital', montant: creditNet(['10']) },
-        { code: 'FF2', libelle: 'Nouveaux emprunts contractés', montant: creditNet(['16']) },
-        { code: 'FF3', libelle: 'Remboursements d\'emprunts', montant: -net(['16']) },
-        { code: 'FF4', libelle: 'Dividendes versés', montant: -net(['465']) },
-        { code: 'FF5', libelle: 'Intérêts versés', montant: -net(['67']) },
+        { code: 'FF1', libelle: 'Augmentation de capital', montant: Math.max(0, creditNetP(['10', '11', '12', '13'])) },
+        { code: 'FF2', libelle: 'Nouveaux emprunts contractés', montant: Math.max(0, creditNetP(['16', '17'])) },
+        { code: 'FF3', libelle: 'Remboursements d\'emprunts', montant: -Math.max(0, netP(['16', '17'])) },
+        { code: 'FF4', libelle: 'Dividendes versés', montant: -Math.max(0, netP(['465'])) },
+        { code: 'FF5', libelle: 'Intérêts versés', montant: -Math.max(0, netP(['67'])) },
       ],
     };
   }, [rawEntries]);
@@ -1426,11 +1430,26 @@ const BilanSYSCOHADAPage: React.FC = () => {
                   else if (has('465')) { if (nc < 0) decDividendes += Math.abs(nc); }
                   else { if (nc > 0) autresEnc += nc; else autresDec += Math.abs(nc); }
                 }
-                const dFluxExploit = encClients + autresEnc - decFournisseurs - decPersonnel - decImpots - autresDec;
+                // Investissement & financement par VARIATION DE CLASSES de période (hors AN) :
+                // les écritures OD "regroupées" mélangent toutes les classes dans une seule
+                // écriture → la classification par contrepartie d'écriture est impossible (tout
+                // tombait en exploitation → investissement à 0 à tort). On dérive ces flux des
+                // mouvements nets de classes de la période, comme un bilan (immune au regroupement).
+                const netPeriod = (pfx: string[]) => { let tt = 0; for (const e of rawEntries) { if (e.journal === 'AN' || e.journal === 'RAN' || e.status === 'draft') continue; for (const l of (e.lines || [])) if (pfx.some(p => (l.accountCode || '').startsWith(p))) tt += (l.debit || 0) - (l.credit || 0); } return tt; };
+                decAcqImmos = Math.max(0, netPeriod(['20', '21', '22', '23', '24', '25'])); // acquisitions immos brutes
+                decAcqFinanc = Math.max(0, netPeriod(['26', '27']));
+                encCessions = Math.max(0, -netPeriod(['82'])); // produits de cessions (classe 82)
+                decRembEmprunts = Math.max(0, netPeriod(['16', '17']));
+                encEmprunts = Math.max(0, -netPeriod(['16', '17']));
+                encCapital = Math.max(0, -netPeriod(['10', '11', '12', '13']));
+                decDividendes = Math.max(0, netPeriod(['465']));
                 const dFluxInvest = encCessions - decAcqImmos - decAcqFinanc;
                 const dFluxFinanc = encCapital + encEmprunts - decRembEmprunts - decDividendes;
-                const dVariation = dFluxExploit + dFluxInvest + dFluxFinanc;
-                const tresoFin = net(['52', '53']) - net(['564']); // 53=Caisses, 52=Banques
+                // Variation réelle de trésorerie de période = tous les mouvements classe 5 (hors AN).
+                const dVariation = netPeriod(['5']);
+                // Activité = résiduel → le total reconcilie avec la variation réelle de trésorerie.
+                const dFluxExploit = dVariation - dFluxInvest - dFluxFinanc;
+                const tresoFin = net(['52', '53']) - net(['564']); // 53=Caisses, 52=Banques (solde de clôture, AN inclus)
                 const tresoDebut = tresoFin - dVariation;
 
                 const directPrefixMap: Record<string, string[]> = {
