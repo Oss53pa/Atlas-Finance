@@ -352,8 +352,12 @@ export class SupabaseAdapter implements DataAdapter {
         if (error) return []
         rows = (data || []) as any[]
       } else {
-        // Tables tenant : pagination par tranches (contourne le plafond max-rows).
-        rows = await this.fetchAllPaginated(() => buildBase().order('id', { ascending: true }))
+        // Une seule requête large : les datasets réels tiennent en < 200k lignes et le
+        // serveur Supabase ne plafonne pas en deçà (vérifié : la classe 7 = 1735 lignes
+        // se chargeait intégralement). Évite des allers-retours séquentiels lents.
+        const { data, error } = await buildBase().range(0, 199999)
+        if (error) return []
+        rows = (data || []) as any[]
       }
 
       // ── Normalisation snake_case → camelCase ────────────────────────────
@@ -363,12 +367,12 @@ export class SupabaseAdapter implements DataAdapter {
       }
 
       // ── Injection automatique des lignes pour journal_entries ───────────
-      // journal_lines (10 319) DOIT être paginé sinon il est tronqué → lines vides → états à 0.
+      // journal_lines en une seule requête large (toutes les lignes du tenant).
       if (pg === 'journal_entries' && rows.length > 0) {
         try {
-          const linesData = await this.fetchAllPaginated(() =>
-            this.client.from('journal_lines').select('*').eq('tenant_id', this.tenantId).order('id', { ascending: true })
-          )
+          const { data: linesRaw } = await this.client
+            .from('journal_lines').select('*').eq('tenant_id', this.tenantId).range(0, 199999)
+          const linesData = linesRaw || []
           const linesByEntry = new Map<string, any[]>()
           for (const l of linesData) {
             const norm = normalizeJournalLine(l)
@@ -384,7 +388,14 @@ export class SupabaseAdapter implements DataAdapter {
         } catch { /* journalLines indisponible — lines reste [] */ }
       }
 
-      this.cache.set(cacheKey, { data: rows, ts: Date.now(), tenant: this.tenantId })
+      // Ne JAMAIS cacher un résultat VIDE : un vide TRANSITOIRE (session/tenant pas encore
+      // prêt → RLS renvoie 0 ligne) serait servi pendant tout le TTL et obligerait à
+      // rafraîchir la page. On ne cache que des résultats non vides → réessai automatique
+      // au prochain rendu une fois l'auth prête. (Coût : une table vraiment vide se
+      // re-fetch — négligeable, petite charge.)
+      if (rows.length > 0) {
+        this.cache.set(cacheKey, { data: rows, ts: Date.now(), tenant: this.tenantId })
+      }
       return rows
      } catch (_e) {
        return []
@@ -629,8 +640,12 @@ export class SupabaseAdapter implements DataAdapter {
       p_end_date: dateRange?.end || null,
     })
     if (error) throw new Error(error.message)
-    this.cache.set(cacheKey, { data: [data], ts: Date.now(), tenant: this.tenantId })
-    return data as AccountBalance
+    const ab = data as AccountBalance
+    // Ne pas cacher un solde vide/transitoire (auth pas prête) → réessai au prochain rendu.
+    if (ab && (ab.debit || ab.credit || ab.solde || ab.lignes)) {
+      this.cache.set(cacheKey, { data: [ab], ts: Date.now(), tenant: this.tenantId })
+    }
+    return ab
   }
 
   async getTrialBalance(dateRange?: { start: string; end: string }): Promise<TrialBalanceRow[]> {
@@ -661,7 +676,9 @@ export class SupabaseAdapter implements DataAdapter {
       debitSolde:       row.solde_debiteur ?? row.debitSolde        ?? 0,
       creditSolde:      row.solde_crediteur ?? row.creditSolde      ?? 0,
     })) as TrialBalanceRow[]
-    this.cache.set(cacheKey, { data: mapped, ts: Date.now(), tenant: this.tenantId })
+    if (mapped.length > 0) {
+      this.cache.set(cacheKey, { data: mapped, ts: Date.now(), tenant: this.tenantId })
+    }
     return mapped
   }
 

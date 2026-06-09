@@ -58,6 +58,16 @@ export function DataProvider({ children, forceMode, forceAdapter }: DataProvider
     () => localStorage.getItem('atlas-tenant-id') || 'default',
   )
 
+  // Nonce incrémenté quand la session Supabase devient PRÊTE. Force la recréation de
+  // l'adapter (→ refetch des consommateurs en useEffect([adapter])) ET l'invalidation
+  // React Query, MÊME si le tenant ne change pas. Cas critique : le tenant est déjà en
+  // localStorage (donc resolvedTenantId correct dès le 1er rendu) mais la session
+  // d'auth est restaurée APRÈS → les 1res requêtes partent sans session → RLS renvoie
+  // 0 ligne → il fallait rafraîchir la page. Avec ce nonce, dès que l'auth est prête on
+  // rejoue tout automatiquement.
+  const [authReadyNonce, setAuthReadyNonce] = useState(0)
+  const authReadyUserRef = useRef<string | null>(null)
+
   const adapter = useMemo<DataAdapter>(() => {
     if (forceAdapter) return forceAdapter
 
@@ -99,7 +109,7 @@ export function DataProvider({ children, forceMode, forceAdapter }: DataProvider
       default:
         return new DexieAdapter()
     }
-  }, [forceMode, forceAdapter, resolvedTenantId])
+  }, [forceMode, forceAdapter, resolvedTenantId, authReadyNonce])
 
   const mode = adapter.getMode()
 
@@ -129,6 +139,13 @@ export function DataProvider({ children, forceMode, forceAdapter }: DataProvider
       setResolvedTenantId(prev => (prev === companyId ? prev : companyId))
     }
 
+    // Signale que l'auth est PRÊTE (une fois par utilisateur) → rejoue les requêtes.
+    const markAuthReady = (userId: string) => {
+      if (authReadyUserRef.current === userId) return
+      authReadyUserRef.current = userId
+      setAuthReadyNonce(n => n + 1)
+    }
+
     const applyAuthenticatedTenant = async (userId: string) => {
       // Priorité 1 : user_metadata.company_id (set côté serveur via Auth hook)
       const { data: { user } } = await globalSupabaseClient.auth.getUser()
@@ -151,6 +168,7 @@ export function DataProvider({ children, forceMode, forceAdapter }: DataProvider
     globalSupabaseClient.auth.getSession().then(({ data: { session } }) => {
       if (session?.user?.id) {
         applyAuthenticatedTenant(session.user.id)
+        markAuthReady(session.user.id)
       }
     })
 
@@ -159,6 +177,7 @@ export function DataProvider({ children, forceMode, forceAdapter }: DataProvider
       (_event, session) => {
         if (session?.user?.id) {
           applyAuthenticatedTenant(session.user.id)
+          markAuthReady(session.user.id)
         }
       }
     )
@@ -182,8 +201,9 @@ export function DataProvider({ children, forceMode, forceAdapter }: DataProvider
   useEffect(() => {
     if (mode !== 'saas' && mode !== 'hybrid') return
     if (resolvedTenantId === 'default') return
+    // Rejoue à la résolution du tenant ET à la mise à disposition de l'auth (nonce).
     queryClient.invalidateQueries()
-  }, [resolvedTenantId, mode])
+  }, [resolvedTenantId, authReadyNonce, mode])
 
   // Poll online status
   useEffect(() => {
