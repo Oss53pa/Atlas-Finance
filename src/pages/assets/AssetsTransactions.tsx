@@ -18,6 +18,7 @@ interface Transaction {
   id: number;
   dateTransaction: string;
   typeTransaction: string;
+  designation: string;
   numeroImmobilisation: string;
   fournisseur: string;
   numeroDocument: string;
@@ -82,6 +83,7 @@ const AssetsTransactions: React.FC = () => {
   const [visibleColumns, setVisibleColumns] = useState({
     dateTransaction: true,
     typeTransaction: true,
+    designation: true,
     numeroImmobilisation: true,
     fournisseur: true,
     numeroDocument: true,
@@ -111,6 +113,7 @@ const AssetsTransactions: React.FC = () => {
       id: idx + 1,
       dateTransaction: asset.acquisitionDate || asset.dateAcquisition || '',
       typeTransaction: asset.disposalDate ? 'Cession' : 'Acquisition',
+      designation: asset.name || asset.designation || asset.code || '—',
       numeroImmobilisation: asset.code || asset.id?.substring(0, 12) || `IMM-${idx + 1}`,
       fournisseur: asset.supplier || asset.fournisseur || '—',
       numeroDocument: asset.invoiceNumber || asset.documentNumber || '—',
@@ -212,6 +215,7 @@ const AssetsTransactions: React.FC = () => {
   const columnDefinitions = [
     { key: 'dateTransaction', label: 'Date transaction', width: 'w-24' },
     { key: 'typeTransaction', label: 'Type', width: 'w-32' },
+    { key: 'designation', label: 'Désignation', width: 'w-48' },
     { key: 'numeroImmobilisation', label: 'N° Immobilisation', width: 'w-36' },
     { key: 'fournisseur', label: 'Fournisseur', width: 'w-32' },
     { key: 'numeroDocument', label: 'N° Document', width: 'w-28' },
