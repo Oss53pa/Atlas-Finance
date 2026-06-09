@@ -148,7 +148,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
   });
 
   // Compute bilan & compte de résultat from real entries
-  const { bilanData, compteResultatData } = useMemo(() => {
+  const { bilanData, compteResultatData, resultatNetReal } = useMemo(() => {
     const net = (prefix: string | string[]) => {
       const prefixes = Array.isArray(prefix) ? prefix : [prefix];
       let debit = 0, credit = 0;
@@ -209,7 +209,13 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
       },
     };
 
-    return { bilanData: bilan, compteResultatData: cr };
+    // Résultat net CANONIQUE = produits (TOUTE la classe 7) − charges (TOUTE la classe 6).
+    // Les regroupements par préfixe ci-dessus oubliaient 65 et 69 (→ +12,3M d'écart vs la
+    // Balance/Bilan). On calcule sur les classes entières pour garantir la COHÉRENCE
+    // avec le tableau de bord comptable et le Bilan (qui font aussi classe7 − classe6).
+    const resultatNetReal = money(creditNet('7')).subtract(money(net('6'))).toNumber();
+
+    return { bilanData: bilan, compteResultatData: cr, resultatNetReal };
   }, [entries]);
 
   // Calculs des SIG
@@ -222,7 +228,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
     const excedentBrutExploitation = valeurAjoutee - compteResultatData.charges.personnel;
     const resultatExploitation = excedentBrutExploitation - compteResultatData.charges.amortissements;
     const resultatCourant = resultatExploitation - compteResultatData.charges.chargesFinancieres + compteResultatData.produits.produitsFinanciers;
-    const resultatNet = totalProduits - totalCharges;
+    const resultatNet = resultatNetReal;
     const capaciteAutofinancement = resultatNet + compteResultatData.charges.amortissements;
     
     return {
@@ -234,7 +240,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
       resultatNet,
       capaciteAutofinancement
     };
-  }, [compteResultatData]);
+  }, [compteResultatData, resultatNetReal]);
 
   // Calculs des ratios
   const ratiosData: RatiosData = useMemo(() => {
