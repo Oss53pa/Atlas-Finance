@@ -64,38 +64,54 @@ export interface CashMovement {
 
 // Bank Accounts Service
 class BankAccountsService {
-  async getActiveAccounts(): Promise<BankAccount[]> {
+  // La table `treasury_bank_accounts` n'existe pas (import = Grand Livre seul).
+  // On DÉRIVE les positions bancaires de la classe 5 du GL (52x banques, 53x/57x
+  // caisses), via le RPC serveur get_trial_balance (soldes agrégés, hors brouillons).
+  private async deriveAccountsFromGL(): Promise<BankAccount[]> {
     try {
-      const { data, error } = await supabase
-        .from('treasury_bank_accounts')
-        .select('*, bank:treasury_banks(code, name, short_name)')
-        .eq('status', 'ACTIVE')
-        .order('label', { ascending: true });
-
-      if (error) throw error;
-      return (data || []) as BankAccount[];
-    } catch (err) { /* silent */
+      const { data, error } = await (supabase.rpc as any)('get_trial_balance', { p_tenant_id: null });
+      if (error || !data) return [];
+      return (data as any[])
+        .filter((r) => /^5/.test(r.account_code || '') && !/^59/.test(r.account_code || ''))
+        .map((r) => {
+          const code = String(r.account_code || '');
+          const balance = Number(r.solde_debiteur || 0) - Number(r.solde_crediteur || 0);
+          const isCaisse = code.startsWith('57') || code.startsWith('53');
+          return {
+            id: code,
+            company_id: '',
+            bank_id: '',
+            accounting_account_id: code,
+            account_number: code,
+            iban: '',
+            label: r.account_name || code,
+            account_type: isCaisse ? 'CAISSE' : 'BANQUE',
+            currency: 'XOF',
+            initial_balance: 0,
+            current_balance: balance,
+            minimum_balance: 0,
+            overdraft_limit: 0,
+            opening_date: '',
+            status: 'ACTIVE',
+            is_main_account: false,
+            bank: { code: code.substring(0, 2), name: r.account_name || code, short_name: '' },
+            created_at: '',
+            updated_at: '',
+          } as BankAccount;
+        })
+        .sort((a, b) => b.current_balance - a.current_balance);
+    } catch {
       return [];
     }
   }
 
-  async getAll(params?: { page?: number; page_size?: number; status?: string }): Promise<{ results: BankAccount[]; count: number }> {
-    try {
-      const filters: Record<string, string> = {};
-      if (params?.status) filters.status = params.status;
+  async getActiveAccounts(): Promise<BankAccount[]> {
+    return this.deriveAccountsFromGL();
+  }
 
-      const result = await queryTable<BankAccount>('treasury_bank_accounts', {
-        select: '*, bank:treasury_banks(code, name, short_name)',
-        page: params?.page || 1,
-        pageSize: params?.page_size || 50,
-        filters,
-        sortBy: 'label',
-        sortOrder: 'asc',
-      });
-      return { results: result.data, count: result.total };
-    } catch (err) { /* silent */
-      return { results: [], count: 0 };
-    }
+  async getAll(params?: { page?: number; page_size?: number; status?: string }): Promise<{ results: BankAccount[]; count: number }> {
+    const all = await this.deriveAccountsFromGL();
+    return { results: all, count: all.length };
   }
 
   async getById(id: string): Promise<BankAccount | null> {

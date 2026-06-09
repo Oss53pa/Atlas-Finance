@@ -32,24 +32,17 @@ interface Category {
   children: SubCategory[];
 }
 
-// SYSCOHADA category definitions (reference data — structure only, no values)
+// Classes SYSCOHADA d'immobilisations (libellés OFFICIELS). Les sous-catégories
+// sont dérivées DYNAMIQUEMENT des comptes réels (pas de liste figée).
 const SYSCOHADA_CATEGORIES = [
-  { code: '21', name: 'Immobilisations corporelles', icon: Building, color: 'blue', subcategories: [
-    { code: '211', name: 'Terrains' }, { code: '213', name: 'Bâtiments' },
-    { code: '214', name: 'Aménagements' }, { code: '215', name: 'Installations techniques' },
-  ]},
-  { code: '24', name: 'Matériel informatique', icon: Computer, color: 'primary', subcategories: [
-    { code: '241', name: 'Serveurs' }, { code: '244', name: 'Ordinateurs' }, { code: '245', name: 'Périphériques' },
-  ]},
-  { code: '22', name: 'Matériel de transport', icon: Car, color: 'green', subcategories: [
-    { code: '221', name: 'Véhicules légers' }, { code: '222', name: 'Véhicules utilitaires' },
-  ]},
-  { code: '23', name: 'Mobilier et équipement', icon: Package, color: 'orange', subcategories: [
-    { code: '231', name: 'Mobilier de bureau' }, { code: '232', name: 'Équipement industriel' },
-  ]},
-  { code: '20', name: 'Immobilisations incorporelles', icon: FileText, color: 'red', subcategories: [
-    { code: '201', name: 'Logiciels' }, { code: '205', name: 'Brevets et licences' }, { code: '207', name: 'Fonds de commerce' },
-  ]},
+  { code: '20', name: 'Charges immobilisées', icon: FileText, color: 'red' },
+  { code: '21', name: 'Immobilisations incorporelles', icon: FileText, color: 'red' },
+  { code: '22', name: 'Terrains', icon: Building, color: 'green' },
+  { code: '23', name: 'Bâtiments, installations et agencements', icon: Building, color: 'blue' },
+  { code: '24', name: 'Matériel, mobilier et transport', icon: Package, color: 'orange' },
+  { code: '25', name: 'Avances et acomptes sur immobilisations', icon: DollarSign, color: 'primary' },
+  { code: '26', name: 'Titres de participation', icon: TrendingUp, color: 'primary' },
+  { code: '27', name: 'Autres immobilisations financières', icon: TrendingUp, color: 'primary' },
 ];
 
 const AssetsCategories: React.FC = () => {
@@ -87,15 +80,18 @@ const AssetsCategories: React.FC = () => {
         ? (ratedCatAssets.reduce((s, a) => s + 100 / (a.usefulLifeYears || a.usefulLife), 0) / ratedCatAssets.length)
         : 0;
 
-      const children: SubCategory[] = catDef.subcategories.map((sub, si) => {
-        const subAssets = dbAssets.filter(a => {
-          const code = a.accountCode || a.category || '';
-          return code.startsWith(sub.code);
-        });
-        return {
-          id: (idx + 1) * 10 + si + 1,
-          name: sub.name,
-          code: sub.code,
+      // Sous-catégories = comptes RÉELS (préfixe 3 chiffres) présents dans la classe.
+      const bySub: Record<string, any[]> = {};
+      for (const a of catAssets) {
+        const sub = String(a.accountCode || '').substring(0, 3) || catDef.code;
+        (bySub[sub] = bySub[sub] || []).push(a);
+      }
+      const children: SubCategory[] = Object.entries(bySub)
+        .sort((x, y) => x[0].localeCompare(y[0]))
+        .map(([code, subAssets], si) => ({
+          id: (idx + 1) * 100 + si + 1,
+          name: subAssets[0]?.name || subAssets[0]?.designation || code,
+          code,
           count: subAssets.length,
           value: subAssets.reduce((s, a) => s + (a.acquisitionValue || 0), 0),
           depreciationRate: (() => {
@@ -104,8 +100,7 @@ const AssetsCategories: React.FC = () => {
             const r = rated.reduce((s, a) => s + 100 / (a.usefulLifeYears || a.usefulLife), 0) / rated.length;
             return `${r.toFixed(0)}%`;
           })(),
-        };
-      });
+        }));
 
       return {
         id: idx + 1,
