@@ -105,8 +105,11 @@ const CashFlowStatementSYSCOHADA: React.FC = () => {
     queryKey: ['tft-indirect'],
     queryFn: async (): Promise<CashFlowIndirectData> => {
       const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
-      const net = (...pfx: string[]) => { let t = 0; for (const e of entries) for (const l of e.lines) if (pfx.some(p => l.accountCode.startsWith(p))) t += l.debit - l.credit; return t; };
-      const creditN = (...pfx: string[]) => { let t = 0; for (const e of entries) for (const l of e.lines) if (pfx.some(p => l.accountCode.startsWith(p))) t += l.credit - l.debit; return t; };
+      // Flux de PÉRIODE : exclure l'À Nouveau (soldes d'OUVERTURE). Sinon les 13,5 Mrd
+      // d'immos d'ouverture + le BFR/capital d'ouverture seraient comptés à tort comme
+      // des flux de trésorerie de l'exercice.
+      const net = (...pfx: string[]) => { let t = 0; for (const e of entries) { if (e.journal === 'AN' || e.journal === 'RAN') continue; for (const l of e.lines) if (pfx.some(p => l.accountCode.startsWith(p))) t += l.debit - l.credit; } return t; };
+      const creditN = (...pfx: string[]) => { let t = 0; for (const e of entries) { if (e.journal === 'AN' || e.journal === 'RAN') continue; for (const l of e.lines) if (pfx.some(p => l.accountCode.startsWith(p))) t += l.credit - l.debit; } return t; };
 
       const netResult = creditN('7') - net('6');
       const depreciationAndProvisions = net('68', '69');
@@ -119,12 +122,14 @@ const CashFlowStatementSYSCOHADA: React.FC = () => {
       const investmentCashFlow = -fixedAssetsAcquisitions - financialAssetsAcquisitions;
       const capitalIncrease = creditN('10');
       const investmentSubsidiesReceived = creditN('14');
-      const newBorrowings = creditN('16');
-      const loanRepayments = net('16') > 0 ? net('16') : 0;
+      const newBorrowings = creditN('16', '17');
+      const loanRepayments = net('16', '17') > 0 ? net('16', '17') : 0;
       const dividendsPaid = net('465');
       const financingCashFlow = capitalIncrease + investmentSubsidiesReceived + newBorrowings - loanRepayments - dividendsPaid;
       const cashFlowVariation = operatingCashFlow + investmentCashFlow + financingCashFlow;
-      const closingCashBalance = net('5');
+      // Solde de trésorerie de CLÔTURE = TOUS les mouvements classe 5 (À Nouveau INCLUS).
+      let closingCashBalance = 0;
+      for (const e of entries) for (const l of e.lines) if (l.accountCode.startsWith('5')) closingCashBalance += l.debit - l.credit;
       const openingCashBalance = closingCashBalance - cashFlowVariation;
       return { netResult, depreciationAndProvisions, provisionsReversals, valueAdjustments: 0, selfFinancingCapacity, workingCapitalVariation, operatingCashFlow, fixedAssetsAcquisitions, fixedAssetsDisposals: 0, financialAssetsAcquisitions, financialAssetsDisposals: 0, investmentCashFlow, capitalIncrease, investmentSubsidiesReceived, newBorrowings, loanRepayments, dividendsPaid, financingCashFlow, cashFlowVariation, openingCashBalance, closingCashBalance, isCashFlowBalanced: Math.abs(cashFlowVariation - (closingCashBalance - openingCashBalance)) < 1 };
     }
@@ -175,7 +180,7 @@ const CashFlowStatementSYSCOHADA: React.FC = () => {
           if (netCash > 0) augCapital += netCash;
         } else if (has('14')) { // Subventions
           if (netCash > 0) subventions += netCash;
-        } else if (has('16')) { // Emprunts
+        } else if (has('16') || has('17')) { // Emprunts et dettes financières (16, 17)
           if (netCash > 0) empruntsNouv += netCash; else rembEmprunts += Math.abs(netCash);
         } else if (has('465')) { // Dividendes
           if (netCash < 0) divVerses += Math.abs(netCash);
