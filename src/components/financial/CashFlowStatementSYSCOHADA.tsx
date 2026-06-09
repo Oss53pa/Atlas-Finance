@@ -115,11 +115,14 @@ const CashFlowStatementSYSCOHADA: React.FC = () => {
       const depreciationAndProvisions = net('68', '69');
       const provisionsReversals = creditN('78', '79');
       const selfFinancingCapacity = netResult + depreciationAndProvisions - provisionsReversals;
-      const workingCapitalVariation = net('3', '41', '46') - creditN('40', '42', '43', '44');
+      // Le BFR exclut 462/485 (créances sur CESSIONS d'immo) : leur encaissement est un flux
+      // d'INVESTISSEMENT (produit de cession), pas une variation du BFR d'exploitation.
+      const workingCapitalVariation = net('3', '41') + net('46') - net('462', '485') - creditN('40', '42', '43', '44');
       const operatingCashFlow = selfFinancingCapacity - workingCapitalVariation;
       const fixedAssetsAcquisitions = Math.max(0, net('2') + net('28'));
       const financialAssetsAcquisitions = Math.max(0, net('26', '27'));
-      const investmentCashFlow = -fixedAssetsAcquisitions - financialAssetsAcquisitions;
+      const fixedAssetsDisposals = creditN('462', '485'); // encaissements sur cessions d'immo
+      const investmentCashFlow = fixedAssetsDisposals - fixedAssetsAcquisitions - financialAssetsAcquisitions;
       const capitalIncrease = creditN('10');
       const investmentSubsidiesReceived = creditN('14');
       const newBorrowings = creditN('16', '17');
@@ -131,7 +134,7 @@ const CashFlowStatementSYSCOHADA: React.FC = () => {
       let closingCashBalance = 0;
       for (const e of entries) for (const l of e.lines) if (l.accountCode.startsWith('5')) closingCashBalance += l.debit - l.credit;
       const openingCashBalance = closingCashBalance - cashFlowVariation;
-      return { netResult, depreciationAndProvisions, provisionsReversals, valueAdjustments: 0, selfFinancingCapacity, workingCapitalVariation, operatingCashFlow, fixedAssetsAcquisitions, fixedAssetsDisposals: 0, financialAssetsAcquisitions, financialAssetsDisposals: 0, investmentCashFlow, capitalIncrease, investmentSubsidiesReceived, newBorrowings, loanRepayments, dividendsPaid, financingCashFlow, cashFlowVariation, openingCashBalance, closingCashBalance, isCashFlowBalanced: Math.abs(cashFlowVariation - (closingCashBalance - openingCashBalance)) < 1 };
+      return { netResult, depreciationAndProvisions, provisionsReversals, valueAdjustments: 0, selfFinancingCapacity, workingCapitalVariation, operatingCashFlow, fixedAssetsAcquisitions, fixedAssetsDisposals, financialAssetsAcquisitions, financialAssetsDisposals: 0, investmentCashFlow, capitalIncrease, investmentSubsidiesReceived, newBorrowings, loanRepayments, dividendsPaid, financingCashFlow, cashFlowVariation, openingCashBalance, closingCashBalance, isCashFlowBalanced: Math.abs(cashFlowVariation - (closingCashBalance - openingCashBalance)) < 1 };
     }
   });
 
@@ -166,15 +169,19 @@ const CashFlowStatementSYSCOHADA: React.FC = () => {
           if (netCash < 0) decFournisseurs += Math.abs(netCash); else autresEncExploit += netCash;
         } else if (has('42') || has('43')) { // Personnel / Organismes sociaux
           if (netCash < 0) decPersonnel += Math.abs(netCash); else autresEncExploit += netCash;
-        } else if (has('66')) { // Charges financières
+        } else if (has('67')) { // Frais financiers (intérêts payés)
           if (netCash < 0) interetsPayes += Math.abs(netCash);
         } else if (has('44') || has('89')) { // Etat - Impôts
           if (netCash < 0) impots += Math.abs(netCash); else autresEncExploit += netCash;
-        } else if (has('21') || has('22') || has('23') || has('24') || has('25')) { // Immos corporelles/incorporelles
+        } else if (has('481') || has('482') || has('404')) { // Fournisseurs d'IMMOBILISATIONS → investissement
+          if (netCash < 0) acqCorpo += Math.abs(netCash); else cessCorpo += netCash;
+        } else if (has('462') || has('485') || has('414')) { // Créances sur CESSIONS d'immo → investissement
+          if (netCash > 0) cessCorpo += netCash; else acqCorpo += Math.abs(netCash);
+        } else if (has('21') || has('22') || has('23') || has('24') || has('25') || has('20')) { // Immos corporelles/incorporelles
           if (netCash < 0) acqCorpo += Math.abs(netCash); else cessCorpo += netCash;
         } else if (has('26') || has('27')) { // Immos financières
           if (netCash < 0) acqFinanc += Math.abs(netCash); else cessFinanc += netCash;
-        } else if (has('76')) { // Produits financiers (intérêts/dividendes reçus)
+        } else if (has('76') || has('77')) { // Produits financiers (intérêts/dividendes reçus)
           if (netCash > 0) intDivRecus += netCash;
         } else if (has('10') || has('11') || has('12') || has('13')) { // Capital
           if (netCash > 0) augCapital += netCash;
