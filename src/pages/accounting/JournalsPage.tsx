@@ -54,6 +54,7 @@ const JournalsPage: React.FC = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showRecapTable, setShowRecapTable] = useState(false);
   const [showEditEntryModal, setShowEditEntryModal] = useState(false);
+  const [entryReadOnly, setEntryReadOnly] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState<EcritureJournal | null>(null);
   const [selectedEntryLines, setSelectedEntryLines] = useState<EcritureJournal[]>([]);
   const [showSubJournals, setShowSubJournals] = useState<{[key: string]: boolean}>({});
@@ -448,11 +449,12 @@ const JournalsPage: React.FC = () => {
   };
 
   const handleDoubleClickEntry = (entry: Record<string, unknown>) => {
-    // Prevent editing validated/posted entries
-    if (entry.status === 'validated' || entry.status === 'posted') {
-      toast.error(t('messages.entryNotEditable') || 'Les écritures validées ne peuvent pas être modifiées');
-      return;
-    }
+    // Les écritures validées/comptabilisées sont intangibles (SYSCOHADA Art.19) :
+    // on les ouvre en LECTURE SEULE pour consulter le détail des lignes (au lieu de
+    // bloquer toute consultation, ce qui rendait le détail invisible — toutes les
+    // écritures importées étant 'validated').
+    const isLocked = entry.status === 'validated' || entry.status === 'posted';
+    setEntryReadOnly(isLocked);
 
     setSelectedEntry(entry as unknown as EcritureJournal);
 
@@ -1365,8 +1367,8 @@ const JournalsPage: React.FC = () => {
           <div className="bg-white rounded-lg p-6 w-full max-w-6xl mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-semibold text-[var(--color-text-primary)] flex items-center space-x-2">
-                <Edit className="w-5 h-5" />
-                <span>Modifier l'écriture {selectedEntry.piece}</span>
+                {entryReadOnly ? <Eye className="w-5 h-5" /> : <Edit className="w-5 h-5" />}
+                <span>{entryReadOnly ? "Détail de l'écriture" : "Modifier l'écriture"} {selectedEntry.piece}</span>
               </h3>
               <button
                 onClick={() => setShowEditEntryModal(false)}
@@ -1375,6 +1377,12 @@ const JournalsPage: React.FC = () => {
                 ✕
               </button>
             </div>
+
+            {entryReadOnly && (
+              <div className="mb-4 px-4 py-2 rounded-lg bg-amber-50 border border-amber-200 text-sm text-amber-800 flex items-center gap-2">
+                <Eye className="w-4 h-4" /> Écriture validée — consultation en lecture seule (intangible, SYSCOHADA Art.19).
+              </div>
+            )}
 
             {/* Informations de l'écriture */}
             <div className="bg-[var(--color-surface-hover)] rounded-lg p-4 mb-6">
@@ -1636,8 +1644,9 @@ const JournalsPage: React.FC = () => {
                   onClick={() => setShowEditEntryModal(false)}
                   className="px-4 py-2 text-[var(--color-text-secondary)] border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-surface-hover)] transition-colors"
                 >
-                  Annuler
+                  {entryReadOnly ? 'Fermer' : 'Annuler'}
                 </button>
+                {!entryReadOnly && (
                 <button
                   onClick={handleSaveEntry}
                   disabled={isSaving}
@@ -1645,8 +1654,9 @@ const JournalsPage: React.FC = () => {
                 >
                   {isSaving ? 'Enregistrement...' : 'Enregistrer les modifications'}
                 </button>
+                )}
                 <button
-                  disabled={isValidatingFromModal}
+                  disabled={isValidatingFromModal || entryReadOnly}
                   onClick={async () => {
                     if (!selectedEntry?.id) return;
                     if (isValidatingFromModal) return;
