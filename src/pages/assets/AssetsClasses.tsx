@@ -72,6 +72,14 @@ const AssetsClasses: React.FC = () => {
       const classAssets = dbAssets.filter(a => String((a as any).accountCode || (a as any).category || '').startsWith(def.code));
 
       const totalValue = accounts.reduce((s, a) => s + a.balance, 0);
+      // Amortissements cumulés de la classe : comptes 28X (28 + 2e chiffre de la classe),
+      // ex. classe 23 -> 283x. Solde créditeur => montant positif d'amortissement.
+      const amortPrefix = '28' + def.code.charAt(1);
+      let cumulAmort = 0;
+      for (const [code, v] of Object.entries(balByCode)) {
+        if (code.startsWith(amortPrefix)) cumulAmort += -v.balance;
+      }
+      const netValue = totalValue - cumulAmort; // VNC = brut - amortissements
       const count = accounts.filter(a => Math.abs(a.balance) > 0.001).length;
       const avgRate = classAssets.length > 0
         ? classAssets.reduce((s, a) => s + (a.usefulLife > 0 ? 100 / a.usefulLife : 0), 0) / classAssets.length
@@ -83,6 +91,8 @@ const AssetsClasses: React.FC = () => {
         description: def.description,
         accounts,
         totalValue: totalValue || classAssets.reduce((s, a) => s + (a.acquisitionValue || 0), 0),
+        cumulAmort,
+        netValue: (totalValue ? netValue : classAssets.reduce((s, a) => s + ((a.acquisitionValue || 0) - (a.cumulDepreciation || 0)), 0)),
         count: count || classAssets.length,
         depreciationRate: avgRate > 0 ? `${avgRate.toFixed(0)}%` : '—',
         icon: def.icon,
@@ -269,7 +279,7 @@ const AssetsClasses: React.FC = () => {
                     {/* Stats */}
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <p className="text-xs text-[var(--color-text-secondary)]">Valeur totale</p>
+                        <p className="text-xs text-[var(--color-text-secondary)]">Valeur brute</p>
                         <p className="font-semibold text-[var(--color-text-primary)]">
                           {formatCompactCurrency(assetClass.totalValue)}
                         </p>
@@ -278,6 +288,22 @@ const AssetsClasses: React.FC = () => {
                         <p className="text-xs text-[var(--color-text-secondary)]">Actifs</p>
                         <p className="font-semibold text-[var(--color-text-primary)]">
                           {assetClass.count}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Amortissements cumulés + Valeur Nette Comptable */}
+                    <div className="grid grid-cols-2 gap-4 pt-3 border-t border-[var(--color-border)]">
+                      <div>
+                        <p className="text-xs text-[var(--color-text-secondary)]">Amort. cumulés</p>
+                        <p className="font-medium text-red-500">
+                          {formatCompactCurrency(assetClass.cumulAmort)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-[var(--color-text-secondary)]">Valeur nette (VNC)</p>
+                        <p className={`font-semibold ${colors.text}`}>
+                          {formatCompactCurrency(assetClass.netValue)}
                         </p>
                       </div>
                     </div>

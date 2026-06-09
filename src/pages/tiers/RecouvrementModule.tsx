@@ -4435,74 +4435,13 @@ const ContentieuxTab = ({
 
   function renderFraisTabDetailed() {
 
-    const fraisContentieux = [
-      {
-        id: 1,
-        type: 'avocat',
-        description: 'Honoraires Me — - Phase instruction',
-        montant: 450000,
-        dateEngagement: '2024-01-15',
-        dateFacturation: '2024-01-30',
-        statut: 'facture',
-        fournisseur: 'SCP Avocats DELTA',
-        imputable: true
-      },
-      {
-        id: 2,
-        type: 'huissier',
-        description: 'Signification assignation',
-        montant: 85000,
-        dateEngagement: '2024-01-20',
-        dateFacturation: '2024-01-25',
-        statut: 'paye',
-        fournisseur: 'SCP Huissiers ALPHA',
-        imputable: true
-      },
-      {
-        id: 3,
-        type: 'tribunal',
-        description: 'Droits de plaidoirie',
-        montant: 35000,
-        dateEngagement: '2024-02-01',
-        dateFacturation: '2024-02-01',
-        statut: 'paye',
-        fournisseur: 'Tribunal de Commerce',
-        imputable: false
-      },
-      {
-        id: 4,
-        type: 'expertise',
-        description: 'Expertise comptable préjudices',
-        montant: 180000,
-        dateEngagement: '2024-01-25',
-        dateFacturation: '2024-02-10',
-        statut: 'facture',
-        fournisseur: 'Cabinet EXPERTISE+',
-        imputable: true
-      },
-      {
-        id: 5,
-        type: 'avocat',
-        description: 'Honoraires conclusions principales',
-        montant: 320000,
-        dateEngagement: '2024-02-01',
-        dateFacturation: null,
-        statut: 'prevu',
-        fournisseur: 'SCP Avocats DELTA',
-        imputable: true
-      },
-      {
-        id: 6,
-        type: 'divers',
-        description: 'Frais de déplacement audience',
-        montant: 25000,
-        dateEngagement: '2024-02-15',
-        dateFacturation: null,
-        statut: 'prevu',
-        fournisseur: 'Frais internes',
-        imputable: false
-      }
-    ];
+    // Frais de contentieux : aucune source réelle (table recovery_cases vide, pas de
+    // registre de frais en base) → liste vide plutôt que des frais fabriqués.
+    const fraisContentieux: Array<{
+      id: number; type: string; description: string; montant: number;
+      dateEngagement: string; dateFacturation: string | null; statut: string;
+      fournisseur: string; imputable: boolean;
+    }> = [];
 
     const totalFrais = fraisContentieux.reduce((sum, f) => sum + f.montant, 0);
     const fraisPayes = fraisContentieux.filter(f => f.statut === 'paye').reduce((sum, f) => sum + f.montant, 0);

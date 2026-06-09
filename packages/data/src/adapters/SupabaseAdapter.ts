@@ -291,6 +291,23 @@ export class SupabaseAdapter implements DataAdapter {
     return data as T | null
   }
 
+  // Pagination par tranches pour contourner le plafond `max-rows` de PostgREST
+  // (souvent 1000). Sans cette boucle, journal_lines (10 319) est TRONQUÉ silencieusement
+  // → écritures sans lignes → états financiers à 0. Ordonne par une colonne stable.
+  private async fetchAllPaginated(build: () => any, chunk = 1000): Promise<any[]> {
+    const all: any[] = []
+    let from = 0
+    for (;;) {
+      const { data, error } = await build().range(from, from + chunk - 1)
+      if (error) throw error
+      const batch = (data || []) as any[]
+      all.push(...batch)
+      if (batch.length < chunk) break
+      from += chunk
+    }
+    return all
+  }
+
   async getAll<T>(table: TableName, filters?: QueryFilters): Promise<T[]> {
     const pg = this.pgTable(table)
     const cacheKey = `${pg}:${this.tenantId}:${JSON.stringify(filters || {})}`
@@ -305,35 +322,39 @@ export class SupabaseAdapter implements DataAdapter {
 
     const fetchPromise: Promise<unknown[]> = (async () => {
      try {
-      // ROOT_TABLES (ex: societes) : pas de colonne tenant_id.
-      // getAll('companies') = "donne-moi MA société" → filtrer par id = tenantId.
-      let query = this.isRootTable(pg)
-        ? this.client.from(pg).select('*').eq('id', this.tenantId)
-        : this.client.from(pg).select('*').eq('tenant_id', this.tenantId)
-
-      if (filters?.where) {
-        for (const [k, v] of Object.entries(filters.where)) {
-          query = query.eq(k, v)
+      // ROOT_TABLES (ex: societes) : pas de colonne tenant_id → filtrer par id = tenantId.
+      // Factory : reconstruit une requête fraîche à chaque page (un builder ne se réutilise pas après await).
+      const buildBase = () => {
+        let q = this.isRootTable(pg)
+          ? this.client.from(pg).select('*').eq('id', this.tenantId)
+          : this.client.from(pg).select('*').eq('tenant_id', this.tenantId)
+        if (filters?.where) {
+          for (const [k, v] of Object.entries(filters.where)) q = q.eq(k, v)
         }
+        if (filters?.startsWith) {
+          q = q.like(filters.startsWith.field, `${filters.startsWith.prefix}%`)
+        }
+        if (filters?.orderBy) {
+          q = q.order(filters.orderBy.field, { ascending: filters.orderBy.direction === 'asc' })
+        }
+        return q
       }
-      if (filters?.startsWith) {
-        query = query.like(filters.startsWith.field, `${filters.startsWith.prefix}%`)
-      }
-      if (filters?.orderBy) {
-        query = query.order(filters.orderBy.field, { ascending: filters.orderBy.direction === 'asc' })
-      }
-      if (filters?.limit) {
-        query = query.limit(filters.limit)
-      } else {
-        // PostgREST plafonne à 1000 lignes par défaut.
-        // Sans limite explicite on demande jusqu'à 100 000 lignes (couvre tout dataset raisonnable).
-        query = query.range(0, 99999)
-      }
-      if (filters?.offset) query = query.range(filters.offset, filters.offset + (filters.limit || 100) - 1)
 
-      const { data, error } = await query
-      if (error) return []
-      let rows = (data || []) as any[]
+      let rows: any[]
+      if (filters?.limit) {
+        const start = filters?.offset || 0
+        const { data, error } = await buildBase().range(start, start + filters.limit - 1)
+        if (error) return []
+        rows = (data || []) as any[]
+      } else if (this.isRootTable(pg) || this.isKeyPkTable(pg)) {
+        // Tables racines/clé (1 à quelques lignes) : un seul appel suffit.
+        const { data, error } = await buildBase().range(0, 9999)
+        if (error) return []
+        rows = (data || []) as any[]
+      } else {
+        // Tables tenant : pagination par tranches (contourne le plafond max-rows).
+        rows = await this.fetchAllPaginated(() => buildBase().order('id', { ascending: true }))
+      }
 
       // ── Normalisation snake_case → camelCase ────────────────────────────
       const normalizer = TABLE_NORMALIZERS[pg]
@@ -342,18 +363,14 @@ export class SupabaseAdapter implements DataAdapter {
       }
 
       // ── Injection automatique des lignes pour journal_entries ───────────
-      // En SaaS, les lignes d'écriture sont dans journal_lines (table séparée).
-      // Tous les consommateurs de getAll('journalEntries') reçoivent ainsi
-      // des entrées avec entry.lines[] correctement peuplées.
+      // journal_lines (10 319) DOIT être paginé sinon il est tronqué → lines vides → états à 0.
       if (pg === 'journal_entries' && rows.length > 0) {
         try {
-          const { data: linesData } = await this.client
-            .from('journal_lines')
-            .select('*')
-            .eq('tenant_id', this.tenantId)
-            .range(0, 99999)
+          const linesData = await this.fetchAllPaginated(() =>
+            this.client.from('journal_lines').select('*').eq('tenant_id', this.tenantId).order('id', { ascending: true })
+          )
           const linesByEntry = new Map<string, any[]>()
-          for (const l of (linesData || [])) {
+          for (const l of linesData) {
             const norm = normalizeJournalLine(l)
             const key = norm.entryId
             if (!key) continue

@@ -180,11 +180,14 @@ const AutresTiersModule: React.FC = () => {
         adapter.getAll<any>('journalEntries'),
       ]);
 
-      const autres = allThirdParties.filter(
-        (tp: any) =>
-          tp.type === 'other' ||
-          /^4[34567]/.test(tp.code || '')
-      );
+      // Fiches "autres" RÉELLES : EXCLURE fournisseurs/clients/personnel (codes 40/41/42).
+      // ⚠️ Les fiches type 'other' importées sont en réalité du PERSONNEL (code 42x) ;
+      // sans cette exclusion elles apparaissent en double (Personnel + Autres Tiers).
+      const autres = allThirdParties.filter((tp: any) => {
+        const code = tp.code || '';
+        if (/^4[012]/.test(code)) return false;
+        return tp.type === 'other' || /^4[3467]/.test(code);
+      });
 
       const mapped: AutreTiers[] = autres.map((tp: any) => {
         const rawCode: string = tp.code || '';
@@ -230,6 +233,42 @@ const AutresTiersModule: React.FC = () => {
           solde: totalCredit - totalDebit,
         };
       });
+
+      // ── Dérivation Grand Livre : classes 43/44/46/47 (organismes sociaux, État,
+      // débiteurs/créditeurs divers, associés). Ces tiers n'ont PAS de fiche dans
+      // l'import → une ligne par COMPTE, soldes agrégés depuis le GL (hors brouillons).
+      const dejaVus = new Set(mapped.map(m => m.code));
+      const glByAccount = new Map<string, { name: string; debit: number; credit: number }>();
+      allEntries.forEach((entry: any) => {
+        if (entry.status === 'draft') return;
+        (entry.lines || []).forEach((line: any) => {
+          const code = String(line.accountCode || '');
+          if (!/^4[3467]/.test(code)) return;
+          const cur = glByAccount.get(code) || { name: line.accountName || code, debit: 0, credit: 0 };
+          cur.debit += line.debit || 0;
+          cur.credit += line.credit || 0;
+          if ((!cur.name || cur.name === code) && line.accountName) cur.name = line.accountName;
+          glByAccount.set(code, cur);
+        });
+      });
+      for (const [code, v] of glByAccount.entries()) {
+        if (dejaVus.has(code)) continue;
+        const classe = code.substring(0, 2) as '43' | '44' | '46' | '47';
+        mapped.push({
+          id: `gl-${code}`,
+          code,
+          name: v.name || code,
+          type: 'other',
+          classe,
+          collectif_account: code.substring(0, 3),
+          is_active: true,
+          email: '',
+          phone: '',
+          totalDebit: v.debit,
+          totalCredit: v.credit,
+          solde: v.credit - v.debit,
+        });
+      }
 
       setTiers(mapped);
     } catch {

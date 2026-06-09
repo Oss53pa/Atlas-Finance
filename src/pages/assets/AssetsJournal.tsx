@@ -80,7 +80,10 @@ const AssetsJournal: React.FC = () => {
 
     return dbEntries
       .filter(entry => {
-        // Keep entries that have at least one line touching asset accounts
+        // Exclure les À Nouveau / Report À Nouveau : ce sont les soldes d'OUVERTURE
+        // (qui contiennent toute la classe 2), PAS des mouvements d'immobilisation.
+        if (entry.journal === 'AN' || entry.journal === 'RAN') return false;
+        // Garder les écritures touchant au moins un compte d'immobilisation
         return (entry.lines || []).some((line: any) =>
           assetAccountPrefixes.some(prefix => line.accountCode?.startsWith(prefix))
         );
@@ -330,7 +333,7 @@ const AssetsJournal: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-secondary)]">Total débit</p>
-                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">{formatCurrency(journalEntries.reduce((s, e) => s + e.totalDebit, 0))} FCFA</p>
+                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">{formatCurrency(journalEntries.reduce((s, e) => s + e.totalDebit, 0))}</p>
               </div>
               <ArrowUpRight className="w-8 h-8 text-green-500 opacity-50" />
             </div>
@@ -342,7 +345,7 @@ const AssetsJournal: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-secondary)]">Total crédit</p>
-                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">{formatCurrency(journalEntries.reduce((s, e) => s + e.totalCredit, 0))} FCFA</p>
+                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">{formatCurrency(journalEntries.reduce((s, e) => s + e.totalCredit, 0))}</p>
               </div>
               <ArrowDownLeft className="w-8 h-8 text-red-500 opacity-50" />
             </div>
