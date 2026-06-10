@@ -322,6 +322,11 @@ export class SupabaseAdapter implements DataAdapter {
 
     const fetchPromise: Promise<unknown[]> = (async () => {
      try {
+      // FIX RACINE "données vides jusqu'à un refresh" : ATTENDRE que la session d'auth
+      // soit restaurée AVANT de requêter. Sinon la 1re requête part non authentifiée →
+      // RLS renvoie 0 ligne → vide affiché jusqu'à un hard-refresh. getSession() résout
+      // dès que le client a restauré la session depuis le storage (rapide, mémoïsé).
+      try { await (this.client as any).auth.getSession() } catch { /* pas d'auth → requête anon */ }
       // ROOT_TABLES (ex: societes) : pas de colonne tenant_id → filtrer par id = tenantId.
       // Factory : reconstruit une requête fraîche à chaque page (un builder ne se réutilise pas après await).
       const buildBase = () => {
