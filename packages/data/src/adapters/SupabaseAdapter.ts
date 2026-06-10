@@ -357,12 +357,22 @@ export class SupabaseAdapter implements DataAdapter {
         if (error) return []
         rows = (data || []) as any[]
       } else {
-        // Une seule requête large : les datasets réels tiennent en < 200k lignes et le
-        // serveur Supabase ne plafonne pas en deçà (vérifié : la classe 7 = 1735 lignes
-        // se chargeait intégralement). Évite des allers-retours séquentiels lents.
-        const { data, error } = await buildBase().range(0, 199999)
-        if (error) return []
-        rows = (data || []) as any[]
+        // Pagination par tranches OBLIGATOIRE : le serveur PostgREST PLAFONNE la réponse
+        // (preuve terrain : sur 10 319 lignes, les classes 6/7 — en fin de données — étaient
+        // COUPÉES → résultat net et CdR à 0). On récupère TOUTES les lignes en bouclant,
+        // ordonnées par id (stable). Le cache statique amortit le coût (1 fois / 5 min).
+        rows = await this.fetchAllPaginated(() => buildBase().order('id', { ascending: true }))
+      }
+
+      // RÉESSAI si journal_entries revient VIDE : pour un vrai tenant il y a toujours des
+      // écritures → un vide = la session d'auth n'était pas encore prête (course). On
+      // réattend la session et on refait, jusqu'à 3 fois. Auto-réparation timing-indépendante.
+      if (pg === 'journal_entries' && rows.length === 0) {
+        for (let attempt = 0; attempt < 3 && rows.length === 0; attempt++) {
+          await new Promise(r => setTimeout(r, 500))
+          try { await (this.client as any).auth.getSession() } catch { /* noop */ }
+          rows = await this.fetchAllPaginated(() => buildBase().order('id', { ascending: true }))
+        }
       }
 
       // ── Normalisation snake_case → camelCase ────────────────────────────
@@ -372,12 +382,13 @@ export class SupabaseAdapter implements DataAdapter {
       }
 
       // ── Injection automatique des lignes pour journal_entries ───────────
-      // journal_lines en une seule requête large (toutes les lignes du tenant).
+      // journal_lines PAGINÉ (10 319 lignes > plafond serveur) : sans ça les dernières
+      // classes (6/7) étaient tronquées → états financiers à 0. On boucle par tranches.
       if (pg === 'journal_entries' && rows.length > 0) {
         try {
-          const { data: linesRaw } = await this.client
-            .from('journal_lines').select('*').eq('tenant_id', this.tenantId).range(0, 199999)
-          const linesData = linesRaw || []
+          const linesData = await this.fetchAllPaginated(() =>
+            this.client.from('journal_lines').select('*').eq('tenant_id', this.tenantId).order('id', { ascending: true })
+          )
           const linesByEntry = new Map<string, any[]>()
           for (const l of linesData) {
             const norm = normalizeJournalLine(l)
