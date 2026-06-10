@@ -219,8 +219,10 @@ const BilanSYSCOHADAPage: React.FC = () => {
       { code: '62', libelle: 'Services extérieurs A', exerciceN: net(['62']), exerciceN1: 0 },
       { code: '63', libelle: 'Services extérieurs B', exerciceN: net(['63']), exerciceN1: 0 },
       { code: '64', libelle: 'Impôts et taxes', exerciceN: net(['64']), exerciceN1: 0 },
+      { code: '65', libelle: 'Autres charges', exerciceN: net(['65']), exerciceN1: 0 },
       { code: '66', libelle: 'Charges de personnel', exerciceN: net(['66']), exerciceN1: 0 },
       { code: '68', libelle: 'Dotations aux amortissements', exerciceN: net(['68']), exerciceN1: 0 },
+      { code: '69', libelle: 'Dotations aux provisions', exerciceN: net(['69']), exerciceN1: 0 },
       { code: '67', libelle: 'Charges financières', exerciceN: net(['67']), exerciceN1: 0 },
     ],
   }), [rawEntries]);
