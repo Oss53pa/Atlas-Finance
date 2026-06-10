@@ -717,11 +717,15 @@ const ReconciliationPage: React.FC = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">Tous les comptes</SelectItem>
-                {bankAccounts?.results?.map((account) => (
-                  <SelectItem key={account.id} value={account.id}>
-                    {(account as unknown as { numero_compte?: string }).numero_compte || account.id} - {(account as unknown as { libelle_compte?: string }).libelle_compte || ''}
-                  </SelectItem>
-                ))}
+                {bankAccounts?.results?.map((account) => {
+                  const code = (account as any).account_number || (account as any).numero_compte || account.id;
+                  const nom = (account as any).label || (account as any).bank?.name || (account as any).libelle_compte || '';
+                  return (
+                    <SelectItem key={account.id} value={account.id}>
+                      {nom ? `${code} — ${nom}` : code}
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
 
