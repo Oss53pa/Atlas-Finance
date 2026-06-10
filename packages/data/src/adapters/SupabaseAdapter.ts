@@ -364,10 +364,11 @@ export class SupabaseAdapter implements DataAdapter {
         rows = await this.fetchAllPaginated(() => buildBase().order('id', { ascending: true }))
       }
 
-      // RÉESSAI si journal_entries revient VIDE : pour un vrai tenant il y a toujours des
-      // écritures → un vide = la session d'auth n'était pas encore prête (course). On
-      // réattend la session et on refait, jusqu'à 3 fois. Auto-réparation timing-indépendante.
-      if (pg === 'journal_entries' && rows.length === 0) {
+      // RÉESSAI si une table À DONNÉES revient VIDE : pour un vrai tenant ces tables ont
+      // toujours des lignes → un vide = la session d'auth n'était pas encore prête (course).
+      // On réattend la session et on refait, jusqu'à 3 fois. Auto-réparation timing-indépendante.
+      // (Couvre journal_entries, assets, third_parties — cause des pages d'immo/tiers à 0.)
+      if (['journal_entries', 'assets', 'third_parties'].includes(pg) && rows.length === 0) {
         for (let attempt = 0; attempt < 3 && rows.length === 0; attempt++) {
           await new Promise(r => setTimeout(r, 500))
           try { await (this.client as any).auth.getSession() } catch { /* noop */ }

@@ -5,6 +5,7 @@
  * IMPORTANT: Ne pas dupliquer ces fonctions localement dans les composants.
  * Importer depuis '@/utils/formatters' ou '../utils/formatters'.
  */
+import { useMoneyFormatStore } from '../stores/moneyFormatStore';
 
 /**
  * Format a number as currency.
@@ -34,6 +35,14 @@ export function formatCurrency(amount: number, currency = 'XOF', locale = 'fr-FR
  * Utile pour les badges, KPIs, graphiques.
  */
 export function formatCompactCurrency(amount: number, currency = 'FCFA'): string {
+  // Respecte le toggle GLOBAL « Entier / K-M » : en mode 'full', on affiche le nombre
+  // complet au lieu de l'abréger. (Le ré-rendu au changement de mode est assuré par
+  // l'abonnement au store dans le layout.)
+  try {
+    if (useMoneyFormatStore.getState().mode === 'full') {
+      return `${formatNumber(amount, 0)} ${currency}`;
+    }
+  } catch { /* hors store (tests) → abrégé par défaut */ }
   const absAmount = Math.abs(amount);
   const sign = amount < 0 ? '-' : '';
   let value: string;

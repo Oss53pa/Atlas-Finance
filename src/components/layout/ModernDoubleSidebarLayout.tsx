@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '../../lib/utils';
+import { useMoneyFormatStore } from '../../stores/moneyFormatStore';
 import {
   LayoutDashboard, FileText, Users, CreditCard, TrendingUp,
   Settings, ChevronLeft, ChevronRight, Search, Bell, User,
@@ -60,6 +61,10 @@ const ModernDoubleSidebarLayout: React.FC = () => {
   const { plan: tenantPlan, isStarter } = useTenantPlan();
   const { allowed: hasDedicatedSupport } = useFeatureAccess('support_dedie');
   const { adapter } = useData();
+  // Abonnement au mode d'affichage des montants (Entier / K-M) : re-rend le layout et,
+  // via <Outlet/>, les pages enfants quand l'utilisateur bascule le toggle → les montants
+  // formatés avec formatCompactCurrency reflètent immédiatement le choix.
+  useMoneyFormatStore((s) => s.mode);
   const [companyName, setCompanyName] = useState<string>('');
   useInvalidateOnEntryChange();
   useKeyboardShortcuts();
