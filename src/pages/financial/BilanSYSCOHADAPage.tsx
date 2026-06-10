@@ -1,4 +1,5 @@
 import { formatCurrency } from '@/utils/formatters';
+import { makeGLHelpers } from '@/features/financial/glHelpers';
 import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
@@ -126,25 +127,12 @@ const BilanSYSCOHADAPage: React.FC = () => {
     return entries.filter(e => e.date?.startsWith(fiscalYear));
   };
 
-  // Helper: net balance (debit - credit) for account prefixes — excludes drafts
-  const net = (prefixes: string[]) => {
-    let t = 0;
-    for (const e of filterByPeriode(rawEntries)) {
-      if (e.status === 'draft') continue;
-      for (const l of e.lines)
-        if (prefixes.some(p => l.accountCode.startsWith(p))) t += l.debit - l.credit;
-    }
-    return t;
-  };
-  const creditNet = (prefixes: string[]) => {
-    let t = 0;
-    for (const e of filterByPeriode(rawEntries)) {
-      if (e.status === 'draft') continue;
-      for (const l of e.lines)
-        if (prefixes.some(p => l.accountCode.startsWith(p))) t += l.credit - l.debit;
-    }
-    return t;
-  };
+  // Moteur d'agrégation CANONIQUE partagé (glHelpers) : UNE seule implémentation de
+  // net/creditNet/netP pour toutes les pages d'états financiers → fin des divergences.
+  // Entrées filtrées par période sélectionnée + hors brouillons.
+  const glH = makeGLHelpers(filterByPeriode(rawEntries).filter((e: any) => e.status !== 'draft'));
+  const net = (prefixes: string[]) => glH.net(...prefixes);
+  const creditNet = (prefixes: string[]) => glH.creditNet(...prefixes);
 
   // N-1 helpers: use AN (À Nouveau) journal entries — they carry previous-year closing balances
   const netN1 = (prefixes: string[]) => {
@@ -281,10 +269,9 @@ const BilanSYSCOHADAPage: React.FC = () => {
 
   // Flux de trésorerie (TFT méthode indirecte)
   const fluxTresorerieData = useMemo(() => {
-    // Flux de PÉRIODE : exclure l'À Nouveau (soldes d'OUVERTURE), sinon les immos/
-    // capitaux/créances d'ouverture sont comptés à tort comme des flux de l'exercice.
-    const netP = (pfx: string[]) => { let t = 0; for (const e of rawEntries) { if ((e as any).journal === 'AN' || (e as any).journal === 'RAN' || e.status === 'draft') continue; for (const l of (e.lines || [])) if (pfx.some(p => (l.accountCode || '').startsWith(p))) t += (l.debit || 0) - (l.credit || 0); } return t; };
-    const creditNetP = (pfx: string[]) => -netP(pfx);
+    // Flux de PÉRIODE (hors À Nouveau) via le moteur canonique partagé.
+    const netP = (pfx: string[]) => glH.netP(...pfx);
+    const creditNetP = (pfx: string[]) => glH.creditNetP(...pfx);
     const rn = creditNetP(['7']) - netP(['6']);
     const dotAmort = netP(['68']);
     return {
@@ -1438,7 +1425,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                 // écriture → la classification par contrepartie d'écriture est impossible (tout
                 // tombait en exploitation → investissement à 0 à tort). On dérive ces flux des
                 // mouvements nets de classes de la période, comme un bilan (immune au regroupement).
-                const netPeriod = (pfx: string[]) => { let tt = 0; for (const e of rawEntries) { if (e.journal === 'AN' || e.journal === 'RAN' || e.status === 'draft') continue; for (const l of (e.lines || [])) if (pfx.some(p => (l.accountCode || '').startsWith(p))) tt += (l.debit || 0) - (l.credit || 0); } return tt; };
+                const netPeriod = (pfx: string[]) => glH.netP(...pfx);
                 decAcqImmos = Math.max(0, netPeriod(['20', '21', '22', '23', '24', '25'])); // acquisitions immos brutes
                 decAcqFinanc = Math.max(0, netPeriod(['26', '27']));
                 encCessions = Math.max(0, -netPeriod(['82'])); // produits de cessions (classe 82)
