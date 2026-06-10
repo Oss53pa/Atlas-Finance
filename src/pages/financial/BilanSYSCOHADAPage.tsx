@@ -307,7 +307,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
         { code: 'FF2', libelle: 'Nouveaux emprunts contractés', montant: Math.max(0, creditNetP(['16', '17'])) },
         { code: 'FF3', libelle: 'Remboursements d\'emprunts', montant: -Math.max(0, netP(['16', '17'])) },
         { code: 'FF4', libelle: 'Dividendes versés', montant: -Math.max(0, netP(['465'])) },
-        { code: 'FF5', libelle: 'Intérêts versés', montant: -Math.max(0, netP(['67'])) },
+        { code: 'FF5', libelle: 'Intérêts versés (déjà en résultat — non recompté)', montant: 0 },
       ],
     };
   }, [rawEntries]);
@@ -1382,7 +1382,8 @@ const BilanSYSCOHADAPage: React.FC = () => {
                     const fluxInv = fluxTresorerieData.activitesInvestissement.reduce((s, i) => s + i.montant, 0);
                     const fluxFin = fluxTresorerieData.activitesFinancement.reduce((s, i) => s + i.montant, 0);
                     const variation = fluxOp + fluxInv + fluxFin;
-                    const tresoFin = net(['52', '53']) - net(['564']); // 52=Banques, 53=Caisses
+                    // Trésorerie = TOUTE la classe 5 (banques 52x, cartes 554, caisses 57x) hors 59.
+                    const tresoFin = net(['50', '51', '52', '53', '54', '55', '56', '57', '58']);
                     const tresoDebut = tresoFin - variation;
                     return (
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
@@ -1449,7 +1450,9 @@ const BilanSYSCOHADAPage: React.FC = () => {
                 const dVariation = netPeriod(['5']);
                 // Activité = résiduel → le total reconcilie avec la variation réelle de trésorerie.
                 const dFluxExploit = dVariation - dFluxInvest - dFluxFinanc;
-                const tresoFin = net(['52', '53']) - net(['564']); // 53=Caisses, 52=Banques (solde de clôture, AN inclus)
+                // Trésorerie = TOUTE la classe 5 (banques 52x, cartes 554, caisses 57x…) hors
+                // dépréciations 59. Solde de clôture (À Nouveau inclus).
+                const tresoFin = net(['50', '51', '52', '53', '54', '55', '56', '57', '58']);
                 const tresoDebut = tresoFin - dVariation;
 
                 const directPrefixMap: Record<string, string[]> = {
