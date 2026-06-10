@@ -12,11 +12,14 @@
  */
 export function formatCurrency(amount: number, currency = 'XOF', locale = 'fr-FR'): string {
   if (currency === 'FCFA' || currency === 'XOF' || currency === 'XAF') {
+    // Pas de suffixe « FCFA » : la devise est contextuelle (titre de page / en-tête de
+    // colonne). Dans les tables ça allégeait inutilement chaque cellule. Les KPIs/badges
+    // compacts utilisent formatCompactCurrency qui conserve « FCFA ».
     return new Intl.NumberFormat(locale, {
       style: 'decimal',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(amount) + ' FCFA';
+    }).format(amount);
   }
   return new Intl.NumberFormat(locale, {
     style: 'currency',

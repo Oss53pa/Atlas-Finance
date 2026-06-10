@@ -64,14 +64,14 @@ const CompteResultatPage: React.FC = () => {
       const mStr = String(m);
       const padded = mStr.padStart(2, '0');
       const monthEntries = allEntries.filter(e => {
-        const parts = e.date.split('-');
+        const parts = (e.date || '').split('-');
         return parts.length >= 2 && parseInt(parts[1]) === m;
       });
       let ca = 0, charges = 0;
       for (const e of monthEntries) {
-        for (const l of e.lines) {
-          if (l.accountCode.startsWith('7')) ca += l.credit - l.debit;
-          if (l.accountCode.startsWith('6')) charges += l.debit - l.credit;
+        for (const l of (e.lines || [])) {
+          if (l.accountCode?.startsWith('7')) ca += l.credit - l.debit;
+          if (l.accountCode?.startsWith('6')) charges += l.debit - l.credit;
         }
       }
       const resultat = ca - charges;
@@ -1076,11 +1076,61 @@ const CompteResultatPage: React.FC = () => {
             const rows = tftMethod === 'indirect' ? indirectRows : directRows;
             const totalVar = tftMethod === 'indirect' ? variation : dVariation;
 
+            // ── Cash-flow MENSUEL (variation de classes du mois, hors À Nouveau) ──
+            const monthFlux = (m: number) => {
+              const me = allEntries.filter(e => { const p = (e.date || '').split('-'); return p.length >= 2 && parseInt(p[1]) === m && e.journal !== 'AN' && e.journal !== 'RAN'; });
+              const sp = (prefixes: string[]) => { let t = 0; for (const e of me) for (const l of (e.lines || [])) if (prefixes.some(p => (l.accountCode || '').startsWith(p))) t += (l.debit || 0) - (l.credit || 0); return t; };
+              const varTreso = sp(['50', '51', '52', '53', '54', '55', '56', '57', '58']);
+              const inv = -Math.max(0, sp(['20', '21', '22', '23', '24', '25'])) - Math.max(0, sp(['26', '27']));
+              const fin = Math.max(0, -sp(['16', '17'])) - Math.max(0, sp(['16', '17']));
+              return { activite: varTreso - inv - fin, inv, fin, varTreso };
+            };
+            const cf = months.map(ms => ({ ms, ...monthFlux(parseInt(ms)) }));
+            let cfCumul = tresoOuverture;
+            const cfTreso = cf.map(d => { cfCumul += d.varTreso; return cfCumul; });
+            const cfRows: Array<{ label: string; vals: number[]; last: boolean; bold?: boolean }> = [
+              { label: "Flux net lié à l'activité (A)", vals: cf.map(d => d.activite), last: false },
+              { label: 'Flux net lié aux investissements (B)', vals: cf.map(d => d.inv), last: false },
+              { label: 'Flux net lié au financement (C)', vals: cf.map(d => d.fin), last: false },
+              { label: 'Variation de trésorerie (A+B+C)', vals: cf.map(d => d.varTreso), last: false, bold: true },
+              { label: 'Trésorerie en fin de mois', vals: cfTreso, last: true, bold: true },
+            ];
+
             return (
             <div className="space-y-6">
               <div className="text-center mb-4">
-                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">TABLEAU DES FLUX DE TRÉSORERIE - Exercice {year}</h2>
-                <p className="text-[var(--color-text-tertiary)]">Flux de trésorerie par activité selon SYSCOHADA</p>
+                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">FLUX DE TRÉSORERIE MENSUELS — Exercice {fiscalYear}</h2>
+                <p className="text-sm text-[var(--color-text-tertiary)]">Cash-flow mensuel : activité, investissement, financement (SYSCOHADA)</p>
+              </div>
+
+              {/* TABLE CASH-FLOW MENSUEL (colonnes par mois + TOTAL, comme les autres états) */}
+              <div className="bg-white rounded-lg border border-[var(--color-border)] overflow-x-auto">
+                <table className="w-full text-sm border-collapse">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="text-left p-3 border-b border-[var(--color-border)] min-w-[200px] text-[var(--color-primary)] font-semibold">Flux</th>
+                      {months.map(ms => (<th key={ms} className="text-right p-2 border-b border-[var(--color-border)] text-xs min-w-[78px] text-[var(--color-primary)]">{monthlyData[ms as keyof typeof monthlyData].name.substring(0, 3)}</th>))}
+                      <th className="text-right p-3 border-b border-[var(--color-border)] bg-gray-100 font-bold min-w-[100px] text-[var(--color-primary)]">TOTAL</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {cfRows.map((ln, i) => {
+                      const total = ln.last ? (ln.vals[ln.vals.length - 1] || 0) : ln.vals.reduce((s, v) => s + v, 0);
+                      return (
+                        <tr key={i} className={ln.bold ? 'bg-gray-100 font-bold border-t-2 border-gray-300' : 'border-b border-[var(--color-border)] hover:bg-gray-50'}>
+                          <td className="p-3 text-[var(--color-primary)]">{ln.label}</td>
+                          {ln.vals.map((v, j) => (<td key={j} className={`p-2 text-right font-mono text-xs ${v < 0 ? 'text-red-600' : ''}`}>{formatCurrency(Math.round(v))}</td>))}
+                          <td className={`p-3 text-right font-mono font-bold ${total < 0 ? 'text-red-600' : 'text-[var(--color-primary)]'}`}>{formatCurrency(Math.round(total))}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Détail annuel (méthodes indirecte / directe) ci-dessous */}
+              <div className="text-center mt-4">
+                <h3 className="text-base font-bold text-[var(--color-primary)]">Détail annuel — Exercice {fiscalYear}</h3>
               </div>
 
               {/* Sous-onglets Méthode */}
