@@ -147,7 +147,10 @@ export interface OCRConfig {
 }
 
 export const DEFAULT_OCR_CONFIG: OCRConfig = {
-  provider: 'none',
+  // IA Vision active PAR DÉFAUT : le moteur serveur (edge function `ocr-extract`)
+  // résout Claude (clé Anthropic) ou Groq/Llama 4 vision (clé déjà en place) —
+  // l'extraction fonctionne d'origine, sans configuration admin préalable.
+  provider: 'ai-vision',
   aiVisionBackend: 'auto',
   ollamaVisionModel: 'llama3.2-vision',
   mindeeApiKey: '',

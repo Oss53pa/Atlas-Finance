@@ -106,47 +106,39 @@ async function callAnthropic(
 ): Promise<ExtractionResult> {
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
   if (!supabaseUrl) {
-    return { success: false, confidence: 0, provider: 'ai-vision:anthropic', error: 'Supabase non configuré.' };
+    return { success: false, confidence: 0, provider: 'ai-vision:serveur', error: 'Supabase non configuré.' };
   }
   const { data: { session } } = await supabase.auth.getSession();
   if (!session?.access_token) {
-    return { success: false, confidence: 0, provider: 'ai-vision:anthropic', error: 'Session expirée — reconnectez-vous pour utiliser l\'IA Vision.' };
+    return { success: false, confidence: 0, provider: 'ai-vision:serveur', error: 'Session expirée — reconnectez-vous pour utiliser l\'IA Vision.' };
   }
 
+  // Edge function dédiée `ocr-extract` : le SERVEUR résout le moteur disponible
+  // (Claude si une clé Anthropic est configurée — images + PDF — sinon Groq/Llama 4
+  // vision — images). La clé ne quitte jamais le serveur ; aucun secret côté client.
   const { system, user } = buildPrompt(config);
-  const mediaBlock =
-    mediaType === 'application/pdf'
-      ? { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: base64 } }
-      : { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } };
-
-  const response = await fetch(`${supabaseUrl}/functions/v1/ai-proxy`, {
+  const response = await fetch(`${supabaseUrl}/functions/v1/ocr-extract`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${session.access_token}`,
     },
-    body: JSON.stringify({
-      model: import.meta.env.VITE_ANTHROPIC_MODEL || 'claude-sonnet-4-20250514',
-      max_tokens: 2048,
-      temperature: 0.1,
-      system,
-      messages: [{ role: 'user', content: [mediaBlock, { type: 'text', text: user }] }],
-    }),
+    body: JSON.stringify({ base64, mediaType, system, user, maxTokens: 2048 }),
   });
 
   if (!response.ok) {
-    const text = await response.text().catch(() => '');
-    return { success: false, confidence: 0, provider: 'ai-vision:anthropic', error: `Claude ${response.status}: ${text.slice(0, 200)}` };
+    let message = '';
+    try { message = (await response.json())?.error || ''; } catch { /* texte brut ci-dessous */ }
+    if (!message) message = await response.text().catch(() => '') || `Erreur serveur ${response.status}`;
+    return { success: false, confidence: 0, provider: 'ai-vision:serveur', error: message.slice(0, 300) };
   }
   const json = await response.json();
-  let content = '';
-  for (const block of json?.content ?? []) {
-    if (block.type === 'text') content += block.text;
-  }
+  const content: string = json?.content ?? '';
+  const engine: string = json?.engine || 'serveur';
   const raw = extractJSON(content);
   const data = buildExtractedData(raw, config);
   const confidence = Math.min(100, Math.max(0, Math.round(Number(raw._confidence) || 80)));
-  return { success: true, data, confidence, rawText: content, provider: 'ai-vision:anthropic' };
+  return { success: true, data, confidence, rawText: content, provider: `ai-vision:${engine}` };
 }
 
 export async function extractWithAIVision(file: File, config: OCRConfig): Promise<ExtractionResult> {
@@ -185,8 +177,8 @@ export async function testAIVision(config: OCRConfig): Promise<{ ok: boolean; me
       return { ok: false, message: 'Ollama injoignable sur ' + baseUrl };
     }
   }
-  // anthropic
+  // serveur (ocr-extract) : Claude si clé Anthropic configurée, sinon Groq/Llama 4 vision.
   const { data: { session } } = await supabase.auth.getSession();
   if (!session?.access_token) return { ok: false, message: 'Reconnectez-vous : aucune session Supabase active.' };
-  return { ok: true, message: 'Claude (ai-proxy) prêt. La clé Anthropic doit être configurée côté serveur.' };
+  return { ok: true, message: 'Moteur IA Vision serveur (ocr-extract) prêt — Claude (images + PDF) si clé Anthropic configurée, sinon Groq/Llama 4 (images).' };
 }
