@@ -7,6 +7,7 @@ import {
   RotateCcw, X, CheckCircle, AlertTriangle
 } from 'lucide-react';
 import JournalDashboard from '../../components/accounting/JournalDashboard';
+import JournalEntryModal from '../../components/accounting/JournalEntryModal';
 import DataTable, { Column } from '../../components/ui/DataTable';
 import PrintableArea from '../../components/ui/PrintableArea';
 import { usePrintReport } from '../../hooks/usePrint';
@@ -55,6 +56,9 @@ const JournalsPage: React.FC = () => {
   const [showRecapTable, setShowRecapTable] = useState(false);
   const [showEditEntryModal, setShowEditEntryModal] = useState(false);
   const [entryReadOnly, setEntryReadOnly] = useState(false);
+  // Écriture ouverte dans le WIZARD à onglets (Détails/Ventilation/Attachements/Notes/
+  // Validation) — même formulaire que la saisie ; il se verrouille seul si validée.
+  const [wizardEntry, setWizardEntry] = useState<any | null>(null);
   const [selectedEntry, setSelectedEntry] = useState<EcritureJournal | null>(null);
   const [selectedEntryLines, setSelectedEntryLines] = useState<EcritureJournal[]>([]);
   const [showSubJournals, setShowSubJournals] = useState<{[key: string]: boolean}>({});
@@ -449,12 +453,22 @@ const JournalsPage: React.FC = () => {
   };
 
   const handleDoubleClickEntry = (entry: Record<string, unknown>) => {
-    // Les écritures validées/comptabilisées sont intangibles (SYSCOHADA Art.19) :
-    // on les ouvre en LECTURE SEULE pour consulter le détail des lignes (au lieu de
-    // bloquer toute consultation, ce qui rendait le détail invisible — toutes les
-    // écritures importées étant 'validated').
+    // Les écritures validées/comptabilisées sont intangibles (SYSCOHADA Art.19).
+    // CONSULTATION : on les ouvre dans le MÊME formulaire à onglets que la saisie
+    // (JournalEntryModal : Détails / Ventilation / Attachements / Notes / Validation),
+    // qui se verrouille de lui-même pour une écriture validée.
     const isLocked = entry.status === 'validated' || entry.status === 'posted';
-    setEntryReadOnly(isLocked);
+    if (isLocked) {
+      const raw = dbEntries.find((e: any) => e.id === entry.id);
+      if (raw) {
+        setWizardEntry(raw);
+        return;
+      }
+      // Écriture brute introuvable (ne devrait pas arriver) → repli modale simple.
+      setEntryReadOnly(true);
+    } else {
+      setEntryReadOnly(false);
+    }
 
     setSelectedEntry(entry as unknown as EcritureJournal);
 
@@ -1363,6 +1377,18 @@ const JournalsPage: React.FC = () => {
         </div>
       )}
 
+      {/* Consultation d'une écriture VALIDÉE : même wizard à onglets que la saisie
+          (Détails / Ventilation / Attachements / Notes / Validation), verrouillé
+          automatiquement par son garde d'intangibilité SYSCOHADA. */}
+      {wizardEntry && (
+        <JournalEntryModal
+          isOpen={!!wizardEntry}
+          mode="edit"
+          initialData={wizardEntry}
+          onClose={() => setWizardEntry(null)}
+        />
+      )}
+
       {/* Modal Édition Écriture */}
       {showEditEntryModal && selectedEntry && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -1498,11 +1524,12 @@ const JournalsPage: React.FC = () => {
                           <td className="px-3 py-2 text-sm text-[var(--color-text-secondary)]">{line.compteLib || '—'}</td>
                           <td className="px-3 py-2 text-sm">{line.libelle}</td>
                           <td className="px-3 py-2 text-sm text-[var(--color-text-tertiary)]">{(line as any).centreAnalytique || '—'}</td>
+                          {/* les montants arrivent en CHAÎNES formatées ("1 530 612") → parser comme le tfoot */}
                           <td className="px-3 py-2 text-right font-mono text-sm text-[var(--color-error)]">
-                            {Number(line.debit) > 0 ? formatCurrency(Number(line.debit)) : ''}
+                            {(() => { const v = parseFloat(String(line.debit ?? '').replace(/\s/g, '') || '0'); return v > 0 ? formatCurrency(v) : ''; })()}
                           </td>
                           <td className="px-3 py-2 text-right font-mono text-sm text-[var(--color-success)]">
-                            {Number(line.credit) > 0 ? formatCurrency(Number(line.credit)) : ''}
+                            {(() => { const v = parseFloat(String(line.credit ?? '').replace(/\s/g, '') || '0'); return v > 0 ? formatCurrency(v) : ''; })()}
                           </td>
                           <td className="px-2 py-2"></td>
                           <td className="px-2 py-2"></td>
