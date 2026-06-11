@@ -725,26 +725,9 @@ const JournalsPage: React.FC = () => {
                         <span className="text-xs text-[var(--color-text-tertiary)]">Consolidation en temps réel</span>
                         <div className="flex items-center space-x-2">
                           <button
-                            onClick={() => {
-                              const totalDebit = journaux.reduce((sum, j) => sum + j.totalDebit, 0);
-                              const totalCredit = journaux.reduce((sum, j) => sum + j.totalCredit, 0);
-                              const lastEntry = journaux.reduce((latest, j) => j.lastEntry > latest ? j.lastEntry : latest, '');
-                              const journalTousMovements = {
-                                id: 'tous',
-                                code: 'TOUS',
-                                libelle: 'Journal tous mouvements',
-                                type: 'OD' as const,
-                                entries: journaux.reduce((sum, j) => sum + j.entries, 0),
-                                totalDebit,
-                                totalCredit,
-                                lastEntry,
-                                color: '#737373'
-                              };
-                              setSelectedJournal(journalTousMovements);
-                              setActiveTab('journal-view');
-                            }}
+                            onClick={() => navigate('/accounting/journals/TOUS')}
                             className="text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] transition-colors"
-                            title="Voir le journal consolidé"
+                            title="Voir le journal consolidé (détail filtrable)"
                           >
                             <Eye className="w-4 h-4" />
                           </button>
@@ -813,12 +796,9 @@ const JournalsPage: React.FC = () => {
                           <span className="text-xs text-[var(--color-text-tertiary)]">Dernière écriture: {journal.lastEntry}</span>
                           <div className="flex items-center space-x-2">
                             <button
-                              onClick={() => {
-                                setSelectedJournal(journal);
-                                setActiveTab('journal-view');
-                              }}
+                              onClick={() => navigate(`/accounting/journals/${encodeURIComponent(journal.code)}`)}
                               className="text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] transition-colors"
-                              title="Voir le journal"
+                              title="Voir le journal (détail filtrable)"
                             >
                               <Eye className="w-4 h-4" />
                             </button>
@@ -972,19 +952,9 @@ const JournalsPage: React.FC = () => {
                                 <td className="px-4 py-3 text-center">
                                   <div className="flex items-center justify-center space-x-2">
                                     <button
-                                      onClick={() => {
-                                        const sousJournalAsJournal = {
-                                          ...journal,
-                                          id: sousJournal.id,
-                                          code: sousJournal.code,
-                                          libelle: sousJournal.libelle,
-                                          entries: sousJournal.entries
-                                        };
-                                        setSelectedJournal(sousJournalAsJournal);
-                                        setActiveTab('journal-view');
-                                      }}
+                                      onClick={() => navigate(`/accounting/journals/${encodeURIComponent(journal.code)}?compte=${encodeURIComponent(sousJournal.code)}`)}
                                       className="text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] transition-colors"
-                                      title="Voir le sous-journal"
+                                      title="Voir le sous-journal (détail filtrable)"
                                     >
                                       <Eye className="w-3 h-3" />
                                     </button>

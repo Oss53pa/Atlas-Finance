@@ -116,6 +116,7 @@ const OCRInvoices = lazyRetry(() => import('./pages/accounting/OCRInvoices'));
 const ElectronicSignature = lazyRetry(() => import('./pages/accounting/ElectronicSignature'));
 const FinancialStatementsPage = lazyRetry(() => import('./pages/accounting/FinancialStatementsPage'));
 const IncomeStatementPage = lazyRetry(() => import('./pages/accounting/IncomeStatementPage'));
+const JournalDetailPage = lazyRetry(() => import('./pages/accounting/JournalDetailPage'));
 const BalanceSheetPage = lazyRetry(() => import('./pages/accounting/BalanceSheetPage'));
 const CashFlowPageAccounting = lazyRetry(() => import('./pages/accounting/CashFlowPage'));
 const FinancialRatiosPage = lazyRetry(() => import('./pages/accounting/FinancialRatiosPage'));
@@ -378,6 +379,7 @@ function App() {
                         <Route element={<RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant']}><FeatureErrorBoundary feature="Comptabilité" /></RBACGuard>}>
                           <Route path="/accounting" element={<AccountingDashboard />} />
                           <Route path="/accounting/journals" element={<JournalsPage />} />
+                          <Route path="/accounting/journals/:journalCode" element={<JournalDetailPage />} />
                           <Route path="/accounting/entries" element={<EntriesPage />} />
                           <Route path="/accounting/balance" element={<BalancePage />} />
                           <Route path="/accounting/chart-of-accounts" element={<ChartOfAccountsPage />} />
