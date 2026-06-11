@@ -56,14 +56,16 @@ const PremiumOverview: React.FC = () => {
   useEffect(() => {
     const load = async () => {
       try {
-        const [entries, accounts, tiers, immo, fiscalYears, lines] = await Promise.all([
+        const [entries, accounts, tiers, immo, fiscalYears] = await Promise.all([
           adapter.getAll<any>('journalEntries'),
           adapter.getAll<any>('accounts'),
           adapter.getAll<any>('thirdParties'),
           adapter.getAll<any>('assets'),
           adapter.getAll<any>('fiscalYears'),
-          adapter.getAll<any>('journalLines').catch(() => []),
         ]);
+        // Les lignes sont DÉJÀ injectées dans chaque écriture (entry.lines) par
+        // l'adaptateur — pas besoin d'un second fetch de 10k+ lignes.
+        const lines: any[] = (entries as any[]).flatMap((e: any) => e.lines || []);
 
         const activeFY = (fiscalYears as any[]).find((fy: any) => fy.isActive);
         const exercice = activeFY
@@ -98,10 +100,12 @@ const PremiumOverview: React.FC = () => {
           ecrituresMensuelles.push(count);
         }
 
-        // Journaux ouverts (count distinct journal_id sur entries de l'exercice)
+        // Journaux ouverts = codes journaux DISTINCTS réellement mouvementés (BQ, OD, VE…).
+        // (journal_id/journalId n'existent pas sur les écritures normalisées → comptait 0.)
         const journauxSet = new Set<string>();
         (entries as any[]).forEach((e: any) => {
-          if (e.journal_id || e.journalId) journauxSet.add(e.journal_id || e.journalId);
+          const j = e.journal || e.journalId || e.journal_id;
+          if (j) journauxSet.add(String(j));
         });
 
         setStats({

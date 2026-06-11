@@ -700,7 +700,9 @@ const JournalsPage: React.FC = () => {
                             {formatCurrency(journaux.reduce((sum, j) => sum + j.totalDebit, 0))}
                           </p>
                           <p className="text-xs text-[var(--color-text-tertiary)]">
-                            {journaux.reduce((sum, j) => sum + j.totalDebit, 0) === journaux.reduce((sum, j) => sum + j.totalCredit, 0) ? 'Équilibré' : 'Déséquilibré'}
+                            {/* tolérance 1 FCFA : l'égalité stricte sur des sommes flottantes affichait
+                                « Déséquilibré » pour un écart d'arrondi de quelques centimes */}
+                            {Math.abs(journaux.reduce((sum, j) => sum + j.totalDebit, 0) - journaux.reduce((sum, j) => sum + j.totalCredit, 0)) < 1 ? 'Équilibré' : 'Déséquilibré'}
                           </p>
                         </div>
                       </div>
@@ -1487,6 +1489,25 @@ const JournalsPage: React.FC = () => {
                           Aucune ligne trouvée pour cette écriture
                         </td>
                       </tr>
+                    ) : entryReadOnly ? (
+                      /* LECTURE SEULE : même mise en page que le formulaire de saisie,
+                         mais en texte propre (pas d'inputs grisés). */
+                      selectedEntryLines.map((line, index) => (
+                        <tr key={index} className="hover:bg-[var(--color-surface-hover)]">
+                          <td className="px-3 py-2 font-mono text-sm text-[var(--color-primary)]">{line.compte}</td>
+                          <td className="px-3 py-2 text-sm text-[var(--color-text-secondary)]">{line.compteLib || '—'}</td>
+                          <td className="px-3 py-2 text-sm">{line.libelle}</td>
+                          <td className="px-3 py-2 text-sm text-[var(--color-text-tertiary)]">{(line as any).centreAnalytique || '—'}</td>
+                          <td className="px-3 py-2 text-right font-mono text-sm text-[var(--color-error)]">
+                            {Number(line.debit) > 0 ? formatCurrency(Number(line.debit)) : ''}
+                          </td>
+                          <td className="px-3 py-2 text-right font-mono text-sm text-[var(--color-success)]">
+                            {Number(line.credit) > 0 ? formatCurrency(Number(line.credit)) : ''}
+                          </td>
+                          <td className="px-2 py-2"></td>
+                          <td className="px-2 py-2"></td>
+                        </tr>
+                      ))
                     ) : (
                       selectedEntryLines.map((line, index) => (
                       <tr key={index}>

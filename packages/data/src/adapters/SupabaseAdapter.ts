@@ -375,8 +375,9 @@ export class SupabaseAdapter implements DataAdapter {
       // RÉESSAI si une table À DONNÉES revient VIDE : pour un vrai tenant ces tables ont
       // toujours des lignes → un vide = la session d'auth n'était pas encore prête (course).
       // On réattend la session et on refait, jusqu'à 3 fois. Auto-réparation timing-indépendante.
-      // (Couvre journal_entries, assets, third_parties — cause des pages d'immo/tiers à 0.)
-      if (['journal_entries', 'assets', 'third_parties'].includes(pg) && rows.length === 0) {
+      // (Couvre les tables qui ne sont JAMAIS vides pour un vrai tenant — écritures,
+      // comptes, immos, tiers, exercices : un vide = course d'auth, pas une réalité.)
+      if (['journal_entries', 'accounts', 'assets', 'third_parties', 'fiscal_years'].includes(pg) && rows.length === 0) {
         for (let attempt = 0; attempt < 3 && rows.length === 0; attempt++) {
           await new Promise(r => setTimeout(r, 500))
           // getSession coursé avec timeout (jamais d'await nu — risque de deadlock, cf. plus haut)
