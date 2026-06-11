@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { formatCurrency } from '@/utils/formatters';
+import { askProph3t, isProph3tCoreConfigured } from '../../lib/proph3t';
 import { LineChart as RechartsLineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ScatterChart, Scatter, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
 
 interface Prediction {
@@ -62,6 +63,11 @@ const AIInsights: React.FC = () => {
   const [timeHorizon, setTimeHorizon] = useState('3months');
   const [refreshing, setRefreshing] = useState(false);
   const [refreshTick, setRefreshTick] = useState(0);
+  // Analyse narrative par le CORE IA Atlas Studio (Proph3t, mode B hébergé).
+  const [proph3tAnswer, setProph3tAnswer] = useState<string | null>(null);
+  const [proph3tLoading, setProph3tLoading] = useState(false);
+  const [proph3tError, setProph3tError] = useState<string | null>(null);
+  const [metricsSummary, setMetricsSummary] = useState<string>('');
   const [selectedInsight, setSelectedInsight] = useState<Insight | null>(null);
 
   const [predictions, setPredictions] = useState<Prediction[]>([]);
@@ -369,6 +375,16 @@ const AIInsights: React.FC = () => {
         }
         setInsights(builtInsights);
 
+        // Résumé compact des métriques RÉELLES — contexte envoyé à Proph3t (IA Core).
+        setMetricsSummary([
+          `CA période: ${Math.round(totalCA)} FCFA sur ${months.length} mois (${months[0] || '?'} → ${months[months.length - 1] || '?'})`,
+          `Charges: ${Math.round(totalCharges)} FCFA — marge nette ${marge.toFixed(1)}%`,
+          `Trésorerie: ${Math.round(totalTresorerie)} FCFA — encours clients: ${Math.round(encoursClients)} FCFA`,
+          `Top charges: ${topCharges.map(([p, v]) => `${CHARGE_LABELS[p] || p}=${Math.round(v)}`).join(', ')}`,
+          series.length >= 3 ? `Tendance CA: ${Math.round(slope)}/mois (R²=${(r2 * 100).toFixed(0)}%), prévision mois prochain: ${Math.round(nextMonthForecast)}` : 'Historique insuffisant pour la tendance',
+          `Anomalies détectées: ${builtAnomalies.length} (déséquilibres, montants atypiques, doublons potentiels, dates week-end)`,
+        ].join('\n'));
+
         // Scoring based on data quality
         const balancedPct = posted.length > 0
           ? Math.round((posted.filter((e: any) => {
@@ -399,6 +415,30 @@ const AIInsights: React.FC = () => {
     setRefreshTick(t => t + 1); // relance l'analyse réelle (deps de l'effet)
     await new Promise(resolve => setTimeout(resolve, 600));
     setRefreshing(false);
+  };
+
+  // Analyse narrative par le CORE IA Atlas Studio (Proph3t) : on lui envoie les
+  // métriques réelles déjà calculées (sensibilité 'confidential' → routage core
+  // confiné aux providers sans rétention).
+  const handleProph3tAnalysis = async () => {
+    if (!metricsSummary || proph3tLoading) return;
+    setProph3tLoading(true);
+    setProph3tError(null);
+    try {
+      const res = await askProph3t({
+        message:
+          `Tu es l'analyste financier d'un ERP SYSCOHADA (zone OHADA, FCFA). Voici les métriques réelles ` +
+          `calculées sur le Grand Livre de l'entreprise :\n\n${metricsSummary}\n\n` +
+          `Donne une analyse stratégique CONCISE en français : 1) lecture de la santé financière, ` +
+          `2) les 2 risques prioritaires, 3) les 3 actions concrètes recommandées. Pas de généralités.`,
+        sensitivity: 'confidential',
+      });
+      setProph3tAnswer(res.answer);
+    } catch (err) {
+      setProph3tError(err instanceof Error ? err.message : 'Analyse Proph3t indisponible');
+    } finally {
+      setProph3tLoading(false);
+    }
   };
 
   const getConfidenceColor = (confidence: number) => {
@@ -602,6 +642,45 @@ const AIInsights: React.FC = () => {
   const renderInsightsTab = () => (
     <div className="space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Analyse stratégique par le CORE IA Atlas Studio (Proph3t, mode B) */}
+        {isProph3tCoreConfigured() && (
+          <div className="bg-white rounded-lg shadow p-6 border-l-4 border-[var(--color-primary)]">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-[var(--color-primary)]" />
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Analyse stratégique <span className="atlas-brand">Proph3t</span> · IA Core Atlas Studio
+                </h2>
+              </div>
+              <button
+                onClick={handleProph3tAnalysis}
+                disabled={proph3tLoading || !metricsSummary}
+                className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50 flex items-center gap-2"
+              >
+                {proph3tLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Brain className="w-4 h-4" />}
+                {proph3tLoading ? 'Analyse en cours…' : proph3tAnswer ? 'Relancer l\'analyse' : 'Lancer l\'analyse'}
+              </button>
+            </div>
+            <p className="text-xs text-gray-500 mb-3">
+              Les métriques réelles calculées (CA, marge, trésorerie, encours, anomalies) sont envoyées au core IA
+              en sensibilité « confidentiel » (providers sans rétention uniquement).
+            </p>
+            {proph3tError && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">{proph3tError}</div>
+            )}
+            {proph3tAnswer && (
+              <div className="p-4 bg-[var(--color-primary)]/5 rounded-lg text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
+                {proph3tAnswer}
+              </div>
+            )}
+            {!proph3tAnswer && !proph3tError && !proph3tLoading && (
+              <div className="text-sm text-gray-400 italic">
+                Cliquez sur « Lancer l'analyse » pour obtenir la lecture stratégique de Proph3t sur vos chiffres réels.
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Insights Actionnables</h2>
           <div className="space-y-3">
