@@ -121,10 +121,15 @@ const ReconciliationPage: React.FC = () => {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState<ReconciliationItem | null>(null);
 
+  // Onglet principal : Rapprochement / Journal des relevés / Historique rapprochés validés
+  const [mainTab, setMainTab] = useState<'rapprochement' | 'releves' | 'historique'>('rapprochement');
+
   // Journal des relevés bancaires importés
   const [statements, setStatements] = useState<DBBankStatement[]>([]);
   const [expandedStatementId, setExpandedStatementId] = useState<string | null>(null);
   const [statementLines, setStatementLines] = useState<DBBankStatementLine[]>([]);
+  // Historique : toutes les lignes de relevé RAPPROCHÉES (validées), tous relevés confondus.
+  const [reconciledHistory, setReconciledHistory] = useState<Array<DBBankStatementLine & { _stmt?: string }>>([]);
   const [showImportSetup, setShowImportSetup] = useState(false);
   const emptySetup: BankStatementSetupInfo = {
     accountCode: '521',
@@ -148,6 +153,27 @@ const ReconciliationPage: React.FC = () => {
   }, [adapter]);
 
   useEffect(() => { refreshStatements(); }, [refreshStatements]);
+
+  // Historique : charge toutes les lignes RAPPROCHÉES de tous les relevés (onglet actif).
+  useEffect(() => {
+    if (mainTab !== 'historique') return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const all: Array<DBBankStatementLine & { _stmt?: string }> = [];
+        for (const st of statements) {
+          const lines = await getBankStatementLines(adapter, st.id);
+          for (const ln of lines) {
+            if (ln.reconciled) all.push({ ...ln, _stmt: st.fileName || st.id });
+          }
+        }
+        if (!cancelled) setReconciledHistory(all.sort((a, b) => String(b.date || '').localeCompare(String(a.date || ''))));
+      } catch (error) {
+        console.error('[ReconciliationPage] Erreur chargement historique rapproché:', error);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [mainTab, statements, adapter]);
 
   const toggleStatementDetail = useCallback(async (id: string) => {
     if (expandedStatementId === id) {
@@ -601,6 +627,24 @@ const ReconciliationPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Onglets : Rapprochement / Journal des relevés / Historique rapprochés validés */}
+      <div className="flex gap-1 border-b border-[var(--color-border)] mb-2 overflow-x-auto">
+        {([
+          { id: 'rapprochement', label: 'Rapprochement' },
+          { id: 'releves', label: 'Journal des relevés bancaires' },
+          { id: 'historique', label: 'Historique rapprochés (validés)' },
+        ] as const).map(tb => (
+          <button
+            key={tb.id}
+            onClick={() => setMainTab(tb.id)}
+            className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px whitespace-nowrap transition-colors ${mainTab === tb.id ? 'border-[var(--color-primary)] text-[var(--color-primary)]' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+          >
+            {tb.label}
+          </button>
+        ))}
+      </div>
+
+      {mainTab === 'rapprochement' && (<>
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
@@ -1292,7 +1336,9 @@ const ReconciliationPage: React.FC = () => {
           </div>
         </div>
       )}
+      </>)}
 
+      {mainTab === 'releves' && (<>
       {/* Journal des relevés bancaires importés */}
       <Card>
         <CardHeader>
@@ -1404,6 +1450,55 @@ const ReconciliationPage: React.FC = () => {
           )}
         </CardContent>
       </Card>
+      </>)}
+
+      {mainTab === 'historique' && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Check className="h-5 w-5 text-green-600" />
+              Historique des rapprochements validés
+              <span className="ml-2 text-sm font-normal text-gray-500">({reconciledHistory.length} ligne{reconciledHistory.length !== 1 ? 's' : ''} rapprochée{reconciledHistory.length !== 1 ? 's' : ''})</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {reconciledHistory.length === 0 ? (
+              <div className="py-8 text-center text-gray-500 text-sm">
+                Aucune ligne rapprochée validée. Les lignes de relevé pointées (rapprochées) apparaîtront ici comme historique à consulter.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-50 text-left text-gray-500">
+                    <tr>
+                      <th className="px-3 py-2">Date</th>
+                      <th className="px-3 py-2">Relevé</th>
+                      <th className="px-3 py-2">Libellé</th>
+                      <th className="px-3 py-2">Référence</th>
+                      <th className="px-3 py-2 text-right">Débit</th>
+                      <th className="px-3 py-2 text-right">Crédit</th>
+                      <th className="px-3 py-2 text-center">Statut</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {reconciledHistory.map((ln) => (
+                      <tr key={ln.id} className="hover:bg-gray-50">
+                        <td className="px-3 py-2 whitespace-nowrap">{formatDate(ln.date)}</td>
+                        <td className="px-3 py-2 text-gray-500">{ln._stmt || '—'}</td>
+                        <td className="px-3 py-2">{ln.label}</td>
+                        <td className="px-3 py-2 font-mono text-gray-500">{ln.reference || '—'}</td>
+                        <td className="px-3 py-2 text-right text-red-600">{ln.debit > 0 ? formatCurrency(ln.debit) : '—'}</td>
+                        <td className="px-3 py-2 text-right text-green-600">{ln.credit > 0 ? formatCurrency(ln.credit) : '—'}</td>
+                        <td className="px-3 py-2 text-center"><span className="inline-flex items-center gap-1 text-green-700 text-xs font-medium"><Check className="w-3.5 h-3.5" /> Rapproché</span></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Modal de setup avant import d'un relevé */}
       {showImportSetup && (
