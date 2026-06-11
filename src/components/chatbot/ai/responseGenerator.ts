@@ -76,7 +76,7 @@ export class AdvancedResponseGenerator {
         {
           type: 'navigate',
           label: 'Guide de démarrage',
-          payload: { route: '/help/getting-started' },
+          payload: { route: '/help' },
           icon: 'book'
         },
         {
@@ -113,13 +113,13 @@ export class AdvancedResponseGenerator {
         {
           type: 'navigate',
           label: 'Créer un budget',
-          payload: { route: '/finance/budget/create' },
+          payload: { route: '/budgeting' },
           icon: 'plus'
         },
         {
           type: 'navigate',
           label: 'Voir les budgets existants',
-          payload: { route: '/finance/budget' },
+          payload: { route: '/budgeting' },
           icon: 'list'
         }
       ],
@@ -141,7 +141,7 @@ export class AdvancedResponseGenerator {
         {
           type: 'navigate',
           label: 'Tableau d\'analyse',
-          payload: { route: '/finance/budget/analysis' },
+          payload: { route: '/budgeting/control' },
           icon: 'chart'
         }
       ]
@@ -157,13 +157,13 @@ export class AdvancedResponseGenerator {
         {
           type: 'navigate',
           label: 'Nouvelle écriture',
-          payload: { route: '/finance/accounting/entry/new' },
+          payload: { route: '/accounting/entries' },
           icon: 'plus'
         },
         {
           type: 'navigate',
           label: 'Plan comptable',
-          payload: { route: '/finance/accounting/chart' },
+          payload: { route: '/accounting/chart-of-accounts' },
           icon: 'list'
         }
       ],
@@ -185,7 +185,7 @@ export class AdvancedResponseGenerator {
         {
           type: 'navigate',
           label: 'Créer une écriture',
-          payload: { route: '/finance/accounting/entry/new' },
+          payload: { route: '/accounting/entries' },
           icon: 'edit'
         }
       ]
@@ -201,13 +201,13 @@ export class AdvancedResponseGenerator {
         {
           type: 'navigate',
           label: 'Voir les créances',
-          payload: { route: '/finance/recovery/debts' },
+          payload: { route: '/tiers/recouvrement' },
           icon: 'list'
         },
         {
           type: 'navigate',
           label: 'Lancer des relances',
-          payload: { route: '/finance/recovery/reminders' },
+          payload: { route: '/tiers/recouvrement' },
           icon: 'send'
         }
       ]
@@ -229,7 +229,7 @@ export class AdvancedResponseGenerator {
         {
           type: 'navigate',
           label: 'Nouvelle commande',
-          payload: { route: '/inventory/purchase/new' },
+          payload: { route: '/inventory/movements' },
           icon: 'shopping-cart'
         }
       ],
@@ -251,7 +251,7 @@ export class AdvancedResponseGenerator {
         {
           type: 'navigate',
           label: 'Nouvelle commande',
-          payload: { route: '/inventory/purchase/new' },
+          payload: { route: '/inventory/movements' },
           icon: 'plus'
         }
       ]
@@ -267,13 +267,13 @@ export class AdvancedResponseGenerator {
         {
           type: 'navigate',
           label: 'Gérer les utilisateurs',
-          payload: { route: '/settings/users' },
+          payload: { route: '/security/users' },
           icon: 'users'
         },
         {
           type: 'navigate',
           label: 'Configurer les rôles',
-          payload: { route: '/settings/roles' },
+          payload: { route: '/security/roles' },
           icon: 'shield'
         }
       ]
@@ -289,7 +289,7 @@ export class AdvancedResponseGenerator {
         {
           type: 'navigate',
           label: 'Changer le mot de passe',
-          payload: { route: '/profile/password' },
+          payload: { route: '/settings' },
           icon: 'key'
         }
       ]
@@ -1011,7 +1011,7 @@ export class AdvancedResponseGenerator {
       budget_help: [{
         type: 'navigate',
         label: 'Créer un budget',
-        payload: { route: '/finance/budget/create' },
+        payload: { route: '/budgeting' },
         icon: 'plus'
       }],
       technical_issue: [{

@@ -132,21 +132,57 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
   ];
   const [planComptable, setPlanComptable] = useState<Array<{ code: string; libelle: string }>>(PLAN_COMPTABLE_FALLBACK);
 
-  /** Fournisseur options (comptes 401xxx) derived from the loaded plan comptable */
-  const fournisseurOptions = useMemo(() =>
-    planComptable
-      .filter(a => a.code.startsWith('401'))
-      .map(a => ({ value: a.code, label: `${a.code} – ${a.libelle}` })),
-    [planComptable]
-  );
+  // FICHES TIERS RÉELLES (third_parties) — la liste des fournisseurs/clients vient des
+  // fiches, PAS des comptes du plan (un compte collectif 401100 n'est pas un fournisseur).
+  const [thirdPartiesList, setThirdPartiesList] = useState<Array<{ code: string; name: string; type?: string; accountCode?: string }>>([]);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const tiers = await adapter.getAll<any>('thirdParties');
+        if (cancelled) return;
+        setThirdPartiesList((tiers || []).map((t: any) => ({
+          code: String(t.code || ''),
+          name: String(t.name || t.raisonSociale || t.code || ''),
+          type: t.type ? String(t.type) : undefined,
+          accountCode: t.accountCode || t.account_code || undefined,
+        })).filter((t: any) => t.code));
+      } catch { /* fiches indisponibles → repli comptes du plan */ }
+    })();
+    return () => { cancelled = true; };
+  }, [adapter]);
 
-  /** Client options (comptes 411xxx) derived from the loaded plan comptable */
-  const clientOptions = useMemo(() =>
-    planComptable
+  /** Fournisseurs = fiches tiers type supplier (repli : comptes 401xxx du plan). */
+  const fournisseurOptions = useMemo(() => {
+    const fiches = thirdPartiesList
+      .filter(t => t.type === 'supplier' || (!t.type && /^(40|F|V)/i.test(t.code)))
+      .map(t => ({ value: t.code, label: `${t.code} – ${t.name}` }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+    if (fiches.length > 0) return fiches;
+    return planComptable
+      .filter(a => a.code.startsWith('401'))
+      .map(a => ({ value: a.code, label: `${a.code} – ${a.libelle}` }));
+  }, [thirdPartiesList, planComptable]);
+
+  /** Clients = fiches tiers type customer (repli : comptes 411xxx du plan). */
+  const clientOptions = useMemo(() => {
+    const fiches = thirdPartiesList
+      .filter(t => t.type === 'customer' || (!t.type && /^41/.test(t.code)))
+      .map(t => ({ value: t.code, label: `${t.code} – ${t.name}` }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+    if (fiches.length > 0) return fiches;
+    return planComptable
       .filter(a => a.code.startsWith('411'))
-      .map(a => ({ value: a.code, label: `${a.code} – ${a.libelle}` })),
-    [planComptable]
-  );
+      .map(a => ({ value: a.code, label: `${a.code} – ${a.libelle}` }));
+  }, [thirdPartiesList, planComptable]);
+
+  /** Compte tiers (collectif) de la fiche sélectionnée — affiché sous le sélecteur. */
+  const compteTiersFor = useCallback((tiersCode: string, fallback: string) => {
+    const fiche = thirdPartiesList.find(t => t.code === tiersCode);
+    if (fiche?.accountCode) return fiche.accountCode;
+    if (/^4/.test(tiersCode)) return tiersCode; // repli : un compte a été sélectionné
+    return fallback;
+  }, [thirdPartiesList]);
 
   // Portal position for the inline compte/analytique dropdowns in the ventilation table
   const [compteDropdownPos, setCompteDropdownPos] = useState<{ top: number; left: number; width: number } | null>(null);
@@ -1239,6 +1275,11 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                           clearable
                           usePortal
                         />
+                        {factureInfo.fournisseur && (
+                          <p className="mt-1 text-xs text-gray-500">
+                            Compte tiers : <span className="font-mono font-medium">{compteTiersFor(factureInfo.fournisseur, '401100')}</span>
+                          </p>
+                        )}
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Date facture *</label>
@@ -1281,6 +1322,11 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                           clearable
                           usePortal
                         />
+                        {venteInfo.client && (
+                          <p className="mt-1 text-xs text-gray-500">
+                            Compte tiers : <span className="font-mono font-medium">{compteTiersFor(venteInfo.client, '411100')}</span>
+                          </p>
+                        )}
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Date facture *</label>
