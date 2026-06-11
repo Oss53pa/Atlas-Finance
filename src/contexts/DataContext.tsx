@@ -205,6 +205,34 @@ export function DataProvider({ children, forceMode, forceAdapter }: DataProvider
     queryClient.invalidateQueries()
   }, [resolvedTenantId, authReadyNonce, mode])
 
+  // -------------------------------------------------------------------------
+  // PRÉCHAUFFAGE DU CACHE (perf) : dès que l'auth est prête, charger en arrière-plan
+  // les tables lourdes (écritures+lignes, comptes, immos, tiers, exercices) UNE seule
+  // fois. Le cache statique de l'adapter (TTL 5 min) + la coalescence in-flight font
+  // que TOUTES les pages qui montent ensuite lisent en mémoire → navigation instantanée
+  // au lieu de re-télécharger 10k+ lignes au premier montage de chaque module.
+  // -------------------------------------------------------------------------
+  useEffect(() => {
+    if (mode !== 'saas' && mode !== 'hybrid') return
+    if (resolvedTenantId === 'default' || authReadyNonce === 0) return
+    let cancelled = false
+    const warm = async () => {
+      try {
+        // journalEntries d'abord (la plus lourde, inclut l'injection des lignes)
+        await adapter.getAll('journalEntries')
+        if (cancelled) return
+        await Promise.all([
+          adapter.getAll('accounts').catch(() => []),
+          adapter.getAll('assets').catch(() => []),
+          adapter.getAll('thirdParties').catch(() => []),
+          adapter.getAll('fiscalYears').catch(() => []),
+        ])
+      } catch { /* préchauffage best-effort — les pages rechargeront au besoin */ }
+    }
+    warm()
+    return () => { cancelled = true }
+  }, [adapter, resolvedTenantId, authReadyNonce, mode])
+
   // Poll online status
   useEffect(() => {
     let mounted = true

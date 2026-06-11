@@ -155,8 +155,8 @@ const FundCallsPage: React.FC = () => {
     journalEntries
       .filter(e => e.status === 'validated' || e.status === 'posted')
       .forEach(entry => {
-        entry.lines
-          .filter((line: any) => line.accountCode.startsWith('401') || line.accountCode.startsWith('404'))
+        ((entry.lines as any[]) || [])
+          .filter((line: any) => line.accountCode?.startsWith('401') || line.accountCode?.startsWith('404'))
           .filter((line: any) => line.credit > 0)
           .forEach((line: any) => {
             supplierLines.push({

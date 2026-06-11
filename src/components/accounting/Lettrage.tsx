@@ -21,6 +21,7 @@ import {
 interface LettrageEntry {
   id: string;
   compte: string;
+  compteLib?: string;
   libelle: string;
   date: string;
   piece: string;
@@ -117,6 +118,7 @@ const Lettrage: React.FC = () => {
           result.push({
             id: `${entry.id}-${line.id}`,
             compte: line.accountCode,
+            compteLib: (line as any).accountName || '',
             libelle: line.label || entry.label,
             date: entry.date,
             piece: entry.reference || entry.entryNumber,
@@ -144,6 +146,7 @@ const Lettrage: React.FC = () => {
 
     type GroupedAccount = {
       compte: string;
+      compteLib: string;
       entries: LettrageEntry[];
       totalDebit: number;
       totalCredit: number;
@@ -154,6 +157,7 @@ const Lettrage: React.FC = () => {
       if (!acc[entry.compte]) {
         acc[entry.compte] = {
           compte: entry.compte,
+          compteLib: entry.compteLib || '',
           entries: [],
           totalDebit: 0,
           totalCredit: 0,
@@ -161,6 +165,7 @@ const Lettrage: React.FC = () => {
           nonLettres: 0
         };
       }
+      if (!acc[entry.compte].compteLib && entry.compteLib) acc[entry.compte].compteLib = entry.compteLib;
       acc[entry.compte].entries.push(entry);
       acc[entry.compte].totalDebit = money(acc[entry.compte].totalDebit).add(money(entry.debit)).toNumber();
       acc[entry.compte].totalCredit = money(acc[entry.compte].totalCredit).add(money(entry.credit)).toNumber();
@@ -584,9 +589,10 @@ const Lettrage: React.FC = () => {
                       <div>
                         <span className="font-mono font-bold text-[var(--color-primary)]">{group.compte}</span>
                         <span className="ml-2 text-gray-700">
-                          {group.compte.startsWith('411') ? t('thirdParty.customers') :
-                           group.compte.startsWith('401') ? t('thirdParty.suppliers') :
-                           'Compte tiers'}
+                          {group.compteLib ||
+                           (group.compte.startsWith('411') ? t('thirdParty.customers') :
+                            group.compte.startsWith('401') ? t('thirdParty.suppliers') :
+                            'Compte tiers')}
                         </span>
                       </div>
                     </div>
@@ -851,7 +857,10 @@ const Lettrage: React.FC = () => {
                     <div key={group.compte} className="flex items-center justify-between">
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-1">
-                          <span className="text-sm font-mono text-gray-700">{group.compte}</span>
+                          <span className="text-sm text-gray-700">
+                            <span className="font-mono">{group.compte}</span>
+                            {group.compteLib && <span className="ml-2 text-gray-500">{group.compteLib}</span>}
+                          </span>
                           <span className="text-sm text-gray-600">
                             {lettrees}/{total} ({Math.round(percentage)}%)
                           </span>
