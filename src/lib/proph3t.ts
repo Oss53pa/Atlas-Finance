@@ -29,8 +29,19 @@ import { supabase } from './supabase';
 /** Id de WiseBook au catalogue Atlas Studio (le core normalise atlas-compta→atlas-fa). */
 const PRODUCT = 'atlas-compta';
 
-const ATLAS_CORE_URL = (import.meta.env.VITE_ATLAS_SUPABASE_URL as string | undefined) ?? '';
-const ATLAS_CORE_ANON = (import.meta.env.VITE_ATLAS_SUPABASE_ANON_KEY as string | undefined) ?? '';
+// URL/clé du core : VITE_ATLAS_* si fournis, sinon FALLBACK sur le Supabase de l'app.
+// Vérifié en prod : l'app tourne sur le MÊME projet que le core Atlas Studio
+// (vgtmljfayiysuvrcmunt, où `proph3t-ask` est déployée) → le fallback rend Proph3t
+// opérationnel sans aucune variable d'environnement supplémentaire. Si un jour le
+// core est séparé de l'app, définir VITE_ATLAS_SUPABASE_URL/ANON_KEY reprend la main.
+const ATLAS_CORE_URL =
+  (import.meta.env.VITE_ATLAS_SUPABASE_URL as string | undefined) ||
+  (import.meta.env.VITE_SUPABASE_URL as string | undefined) ||
+  '';
+const ATLAS_CORE_ANON =
+  (import.meta.env.VITE_ATLAS_SUPABASE_ANON_KEY as string | undefined) ||
+  (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined) ||
+  '';
 
 export type Sensitivity = 'confidential' | 'internal' | 'public';
 
