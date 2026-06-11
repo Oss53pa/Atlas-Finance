@@ -192,12 +192,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     });
 
+    // ⚠️ DEADLOCK supabase-js : ne JAMAIS exécuter d'appel auth/DB (loadUserProfile
+    // fait une requête profiles + getUser en fallback) DANS le callback
+    // onAuthStateChange — l'auth est sérialisée derrière un verrou (navigator.locks)
+    // tenu pendant la notification → tous les getSession() de l'app (y compris ceux
+    // que postgrest fait en interne pour attacher le token) restent suspendus →
+    // données à 0 partout + lenteur extrême. On défère via setTimeout(0).
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, newSession) => {
+      (event, newSession) => {
         setSession(newSession);
 
         if (event === 'SIGNED_IN' && newSession) {
-          await loadUserProfile();
+          setTimeout(() => { loadUserProfile(); }, 0);
         } else if (event === 'SIGNED_OUT') {
           setUser(null);
         }
