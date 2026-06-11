@@ -56,7 +56,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { theme, themeType, setTheme } = useTheme();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const badgeCounts = useBadgeCounts();
   const { plan: tenantPlan, isStarter } = useTenantPlan();
   const { allowed: hasDedicatedSupport } = useFeatureAccess('support_dedie');
@@ -829,13 +829,9 @@ const ModernDoubleSidebarLayout: React.FC = () => {
             <button
               type="button"
               onClick={() => {
-                if (hasDedicatedSupport) {
-                  // Plan Premium : ouvrir le chat dédié (HelpDrawer / PROPH3T)
-                  navigate('/help');
-                } else {
-                  // Plan Starter : rediriger vers le support standard (centre d'aide)
-                  navigate('/help');
-                }
+                // Centre d'aide en MODALE (HelpDrawer) — pas de navigation pleine page.
+                const openDrawer = (window as any).openHelpDrawer as (() => void) | undefined;
+                if (openDrawer) openDrawer(); else navigate('/help');
               }}
               className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-[var(--color-surface)] rounded-lg border border-[var(--color-border)] hover:bg-[var(--color-surface-hover)] transition-colors"
               title={hasDedicatedSupport ? 'Support dédié (chat prioritaire)' : 'Support standard (email / centre d\'aide)'}
@@ -963,6 +959,12 @@ const ModernDoubleSidebarLayout: React.FC = () => {
                     )}
                     <button
                       type="button"
+                      onClick={() => {
+                        // Centre d'aide en MODALE (HelpDrawer), pas de navigation pleine page.
+                        setShowUserMenu(false);
+                        const openDrawer = (window as any).openHelpDrawer as (() => void) | undefined;
+                        if (openDrawer) openDrawer(); else navigate('/help');
+                      }}
                       className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[var(--color-surface-hover)] transition-colors"
                       role="menuitem"
                     >
@@ -971,6 +973,11 @@ const ModernDoubleSidebarLayout: React.FC = () => {
                     </button>
                     <hr className="my-2 border-[var(--color-border)]" />
                     <button
+                      onClick={async () => {
+                        setShowUserMenu(false);
+                        try { await logout(); } catch { /* session déjà close */ }
+                        navigate('/login');
+                      }}
                       className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[var(--color-surface-hover)] text-[var(--color-error)] transition-colors"
                       role="menuitem"
                     >

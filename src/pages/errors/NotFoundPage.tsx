@@ -65,13 +65,15 @@ export default function NotFoundPage() {
             <p>Code d'erreur · 404</p>
             <p className="mt-1">
               Besoin d'aide ?{' '}
-              <a
-                href="/support"
+              {/* /support n'existe pas (404 en boucle) → centre d'aide réel */}
+              <button
+                type="button"
+                onClick={() => navigate('/help')}
                 style={{ color: 'var(--color-accent-deep)' }}
                 className="hover:underline"
               >
                 Contactez le support
-              </a>
+              </button>
             </p>
           </div>
         </div>
