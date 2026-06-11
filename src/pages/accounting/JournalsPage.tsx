@@ -897,12 +897,9 @@ const JournalsPage: React.FC = () => {
                               <td className="px-4 py-4 text-center">
                                 <div className="flex items-center justify-center space-x-2">
                                   <button
-                                    onClick={() => {
-                                      setSelectedJournal(journal);
-                                      setActiveTab('journal-view');
-                                    }}
+                                    onClick={() => navigate(`/accounting/journals/${encodeURIComponent(journal.code)}`)}
                                     className="text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] transition-colors"
-                                    title="Voir le journal"
+                                    title="Voir le journal (détail filtrable)"
                                   >
                                     <Eye className="w-4 h-4" />
                                   </button>
@@ -1107,8 +1104,9 @@ const JournalsPage: React.FC = () => {
                     </div>
                   }
                 >
-                  {/* Totaux d'impression */}
-                  <div className="print-only mb-4 flex justify-center space-x-6">
+                  {/* Totaux d'impression — UNIQUEMENT sur le papier (la classe `print-only`
+                      n'existait pas en CSS → le bloc doublonnait les pastilles à l'écran). */}
+                  <div className="hidden print:flex mb-4 justify-center space-x-6">
                     <div className="text-center">
                       <span className="text-sm font-medium">Total Débit:</span>
                       <span className="ml-2 font-bold">{selectedJournalTotals.totalDebit.toFixed(2).replace('.', ',')}</span>
