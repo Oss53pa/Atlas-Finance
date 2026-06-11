@@ -172,12 +172,19 @@ export function DataProvider({ children, forceMode, forceAdapter }: DataProvider
       }
     })
 
-    // Écouter les changements de session ultérieurs (login, token refresh, logout)
+    // Écouter les changements de session ultérieurs (login, token refresh, logout).
+    // ⚠️ AUCUN appel auth (getUser, requête...) ne doit s'exécuter DANS le callback :
+    // supabase-js sérialise l'auth derrière un verrou et un appel auth dans le callback
+    // le retient → DEADLOCK de tous les getSession() de l'app (toutes les données à 0).
+    // On défère via setTimeout(0) pour sortir du callback avant tout appel auth.
     const { data: { subscription } } = globalSupabaseClient.auth.onAuthStateChange(
       (_event, session) => {
-        if (session?.user?.id) {
-          applyAuthenticatedTenant(session.user.id)
-          markAuthReady(session.user.id)
+        const userId = session?.user?.id
+        if (userId) {
+          setTimeout(() => {
+            applyAuthenticatedTenant(userId)
+            markAuthReady(userId)
+          }, 0)
         }
       }
     )

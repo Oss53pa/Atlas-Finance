@@ -322,11 +322,19 @@ export class SupabaseAdapter implements DataAdapter {
 
     const fetchPromise: Promise<unknown[]> = (async () => {
      try {
-      // FIX RACINE "données vides jusqu'à un refresh" : ATTENDRE que la session d'auth
-      // soit restaurée AVANT de requêter. Sinon la 1re requête part non authentifiée →
-      // RLS renvoie 0 ligne → vide affiché jusqu'à un hard-refresh. getSession() résout
-      // dès que le client a restauré la session depuis le storage (rapide, mémoïsé).
-      try { await (this.client as any).auth.getSession() } catch { /* pas d'auth → requête anon */ }
+      // Attendre (BRIÈVEMENT) que la session d'auth soit restaurée avant de requêter,
+      // sinon la 1re requête part non authentifiée → RLS renvoie 0 ligne.
+      // ⚠️ JAMAIS un await nu sur auth.getSession() : supabase-js sérialise les appels
+      // auth derrière un verrou (navigator.locks) et un appel auth exécuté DANS le
+      // callback onAuthStateChange peut le retenir → DEADLOCK → tous les getAll
+      // suspendus → app entière à 0 sans erreur. On course donc avec un timeout court :
+      // si le verrou est occupé, on requête quand même (le réessai-si-vide couvre le cas).
+      try {
+        await Promise.race([
+          (this.client as any).auth.getSession(),
+          new Promise((resolve) => setTimeout(resolve, 1200)),
+        ])
+      } catch { /* pas d'auth → requête anon */ }
       // ROOT_TABLES (ex: societes) : pas de colonne tenant_id → filtrer par id = tenantId.
       // Factory : reconstruit une requête fraîche à chaque page (un builder ne se réutilise pas après await).
       const buildBase = () => {
@@ -371,7 +379,13 @@ export class SupabaseAdapter implements DataAdapter {
       if (['journal_entries', 'assets', 'third_parties'].includes(pg) && rows.length === 0) {
         for (let attempt = 0; attempt < 3 && rows.length === 0; attempt++) {
           await new Promise(r => setTimeout(r, 500))
-          try { await (this.client as any).auth.getSession() } catch { /* noop */ }
+          // getSession coursé avec timeout (jamais d'await nu — risque de deadlock, cf. plus haut)
+          try {
+            await Promise.race([
+              (this.client as any).auth.getSession(),
+              new Promise((resolve) => setTimeout(resolve, 800)),
+            ])
+          } catch { /* noop */ }
           rows = await this.fetchAllPaginated(() => buildBase().order('id', { ascending: true }))
         }
       }
