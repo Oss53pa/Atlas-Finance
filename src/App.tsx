@@ -368,6 +368,9 @@ function App() {
                           <Route path="/dashboard/kpis" element={<KPIsRealTime />} />
                           <Route path="/dashboard/alerts" element={<AlertsSystem />} />
                           <Route path="/dashboard/ai-insights" element={<AIInsights />} />
+                          {/* /proph3t : cible du raccourci clavier et des liens Atlas Studio
+                              (404 sinon) → module IA (analyses réelles + analyse Proph3t). */}
+                          <Route path="/proph3t" element={<AIInsights />} />
                           <Route path="/dashboard/workflows" element={<WorkflowsManager />} />
                         </Route>
 
