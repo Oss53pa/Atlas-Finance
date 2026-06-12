@@ -501,14 +501,14 @@ const PhysicalInventory: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="p-6 bg-gray-50 min-h-screen flex items-center justify-center">
+      <div className="p-6 bg-gray-50 min-h-full flex items-center justify-center">
         <LoadingSpinner size="lg" text="Loading physical counts..." />
       </div>
     );
   }
 
   return (
-    <div className="p-3 bg-gray-50 min-h-screen">
+    <div className="p-3 bg-gray-50 min-h-full">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4">
         <div>

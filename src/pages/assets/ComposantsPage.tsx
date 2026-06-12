@@ -65,7 +65,7 @@ const ComposantsPage: React.FC = () => {
 
   return (
     <FeatureGuard module="approche_composants">
-      <div className="p-6 bg-[var(--color-border)] min-h-screen">
+      <div className="p-6 bg-[var(--color-border)] min-h-full">
         <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm mb-6">
           <div className="flex items-center space-x-4">
             <button onClick={() => navigate('/assets')} className="flex items-center px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200">

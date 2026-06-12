@@ -489,7 +489,7 @@ const StockManagement: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="p-6 bg-gray-50 min-h-screen flex items-center justify-center">
+      <div className="p-6 bg-gray-50 min-h-full flex items-center justify-center">
         <LoadingSpinner size="lg" text="Loading stock levels..." />
       </div>
     );
@@ -499,7 +499,7 @@ const StockManagement: React.FC = () => {
   // On n'affiche aucun chiffre fabriqué (alertes/valeurs) tant qu'il n'y a pas de données réelles.
   if (inventoryItems.length === 0) {
     return (
-      <div className="p-6 bg-gray-50 min-h-screen">
+      <div className="p-6 bg-gray-50 min-h-full">
         <div className="mb-8">
           <h1 className="text-lg font-bold text-gray-900 mb-2">Gestion des stocks</h1>
           <p className="text-gray-600">
@@ -518,7 +518,7 @@ const StockManagement: React.FC = () => {
   }
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-6 bg-gray-50 min-h-full">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
         <div>

@@ -390,7 +390,7 @@ function App() {
                           <Route path="/accounting/journals/:journalCode" element={<JournalDetailPage />} />
                           <Route path="/accounting/entries" element={<EntriesPage />} />
                           <Route path="/accounting/balance" element={<BalancePage />} />
-                          <Route path="/accounting/chart-of-accounts" element={<ChartOfAccountsPage />} />
+                          <Route path="/accounting/chart-of-accounts" element={work(<ChartOfAccountsPage />)} />
                           <Route path="/accounting/general-ledger" element={<GeneralLedgerPage />} />
                           <Route path="/accounting/lettrage" element={<LettragePage />} />
                           <Route path="/accounting/lettrage-auto" element={<LettrageAutomatiquePage />} />
@@ -402,7 +402,7 @@ function App() {
                           <Route path="/accounting/cash-flow" element={<CashFlowPageAccounting />} />
                           <Route path="/accounting/ratios" element={<FinancialRatiosPage />} />
                           <Route path="/accounting/reports" element={<ReportsPageAccounting />} />
-                          <Route path="/accounting/cross-controls" element={<CrossControlsPage />} />
+                          <Route path="/accounting/cross-controls" element={work(<CrossControlsPage />)} />
                         </Route>
 
                         {/* Tiers */}
@@ -431,36 +431,36 @@ function App() {
                           <Route path="/treasury/cash-flow" element={<CashFlowPage />} />
                           <Route path="/treasury/reconciliation" element={work(<ReconciliationPage />)} />
                           <Route path="/treasury/financing" element={<TreasuryDashboard />} />
-                          <Route path="/treasury/multi-currency" element={<MultiCurrency />} />
+                          <Route path="/treasury/multi-currency" element={work(<MultiCurrency />)} />
                           <Route path="/treasury/movements" element={work(<BankMovementsPage />)} />
                           <Route path="/treasury/connections" element={<ConnexionsBancairesPage />} />
                           <Route path="/treasury/payments" element={<GestionPaiementsPage />} />
-                          <Route path="/treasury/forecast" element={<PrevisionsTresoreriePage />} />
-                          <Route path="/treasury/position" element={<PositionTresoreriePage />} />
-                          <Route path="/treasury/payment-orders" element={<PaymentOrdersPage />} />
-                          <Route path="/treasury/cash-register" element={<CashRegisterPage />} />
-                          <Route path="/treasury/loan-schedule" element={<LoanSchedulePage />} />
-                          <Route path="/treasury/checks" element={<ChecksRegisterPage />} />
-                          <Route path="/treasury/effets-commerce" element={<EffetsCommercePage />} />
+                          <Route path="/treasury/forecast" element={work(<PrevisionsTresoreriePage />)} />
+                          <Route path="/treasury/position" element={work(<PositionTresoreriePage />)} />
+                          <Route path="/treasury/payment-orders" element={work(<PaymentOrdersPage />)} />
+                          <Route path="/treasury/cash-register" element={work(<CashRegisterPage />)} />
+                          <Route path="/treasury/loan-schedule" element={work(<LoanSchedulePage />)} />
+                          <Route path="/treasury/checks" element={work(<ChecksRegisterPage />)} />
+                          <Route path="/treasury/effets-commerce" element={work(<EffetsCommercePage />)} />
                         </Route>
 
                         {/* Immobilisations */}
                         <Route element={<RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant', 'user', 'viewer']}><FeatureErrorBoundary feature="Immobilisations" /></RBACGuard>}>
                           <Route path="/assets" element={<AssetsDashboard />} />
                           <Route path="/assets/fixed" element={<FixedAssetsPage />} />
-                          <Route path="/assets/depreciation" element={<DepreciationPage />} />
+                          <Route path="/assets/depreciation" element={work(<DepreciationPage />)} />
                           <Route path="/assets/summary" element={<AssetsSummary />} />
                           <Route path="/assets/registry" element={work(<AssetsRegistry />)} />
                           <Route path="/assets/transactions" element={work(<AssetsTransactions />)} />
-                          <Route path="/assets/categories" element={<AssetsCategories />} />
-                          <Route path="/assets/classes" element={<AssetsClasses />} />
-                          <Route path="/assets/journal" element={<AssetsJournal />} />
-                          <Route path="/assets/disposals" element={<AssetsDisposals />} />
+                          <Route path="/assets/categories" element={work(<AssetsCategories />)} />
+                          <Route path="/assets/classes" element={work(<AssetsClasses />)} />
+                          <Route path="/assets/journal" element={work(<AssetsJournal />)} />
+                          <Route path="/assets/disposals" element={work(<AssetsDisposals />)} />
                           <Route path="/assets/inventory" element={work(<AssetsRegistry />)} />
-                          <Route path="/assets/maintenance" element={<AssetsMaintenance />} />
-                          <Route path="/assets/physical-inventory" element={<InventairePhysiquePage />} />
-                          <Route path="/assets/reevaluation" element={<ReevaluationPage />} />
-                          <Route path="/assets/composants" element={<ComposantsPage />} />
+                          <Route path="/assets/maintenance" element={work(<AssetsMaintenance />)} />
+                          <Route path="/assets/physical-inventory" element={work(<InventairePhysiquePage />)} />
+                          <Route path="/assets/reevaluation" element={work(<ReevaluationPage />)} />
+                          <Route path="/assets/composants" element={work(<ComposantsPage />)} />
                         </Route>
 
                         {/* Budget */}
@@ -513,10 +513,10 @@ function App() {
                         {/* Inventory */}
                         <Route element={<RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant', 'user', 'viewer']}><Outlet /></RBACGuard>}>
                           <Route path="/inventory" element={<InventoryDashboard />} />
-                          <Route path="/inventory/stock" element={<StockManagement />} />
-                          <Route path="/inventory/movements" element={<InventoryMovements />} />
-                          <Route path="/inventory/physical" element={<PhysicalInventory />} />
-                          <Route path="/inventory/valuation" element={<InventoryValuation />} />
+                          <Route path="/inventory/stock" element={work(<StockManagement />)} />
+                          <Route path="/inventory/movements" element={work(<InventoryMovements />)} />
+                          <Route path="/inventory/physical" element={work(<PhysicalInventory />)} />
+                          <Route path="/inventory/valuation" element={work(<InventoryValuation />)} />
                         </Route>
 
                         {/* Fiscalite */}
