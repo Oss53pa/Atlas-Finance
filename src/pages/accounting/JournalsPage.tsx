@@ -660,7 +660,9 @@ const JournalsPage: React.FC = () => {
         </div>
 
         {/* Contenu des onglets */}
-        <div className="p-3 flex-1 min-h-0 overflow-y-auto">
+        {/* journal-view : pane verrouillé (la zone table gère son propre défilement) ;
+            autres onglets : défilement normal du pane. */}
+        <div className={`p-3 flex-1 min-h-0 ${activeTab === 'journal-view' ? 'overflow-hidden flex flex-col' : 'overflow-y-auto'}`}>
           {/* Dashboard */}
           {activeTab === 'dashboard' && <JournalDashboard />}
 
@@ -1032,12 +1034,12 @@ const JournalsPage: React.FC = () => {
 
           {/* Journal sélectionné avec reproduction de l'image */}
           {activeTab === 'journal-view' && selectedJournal && (
-            <div className="flex gap-0 items-stretch">
-            <div className="flex-1 min-w-0 space-y-2">
-              <div className="bg-white rounded-lg border border-[var(--color-border)]">
-                {/* Header du journal — COLLANT en haut de la zone défilante : la page ne
-                    scrolle plus, le titre/dates/totaux restent visibles, la table défile. */}
-                <div className="bg-[var(--color-surface-hover)] border-b border-[var(--color-border)] sticky top-0 z-20">
+            <div className="flex gap-0 items-stretch flex-1 min-h-0">
+            <div className="flex-1 min-w-0 flex flex-col min-h-0">
+              <div className="bg-white rounded-lg border border-[var(--color-border)] flex-1 min-h-0 flex flex-col overflow-hidden">
+                {/* Header du journal — zone FIXE du layout (pas de sticky : la table ne
+                    glisse plus derrière). Seule la zone en dessous défile. */}
+                <div className="bg-[var(--color-surface-hover)] border-b border-[var(--color-border)] flex-shrink-0">
                   {/* Ligne 1: Titre + Actions principales */}
                   <div className="flex items-center justify-between px-3 py-2">
                     <div className="flex items-center space-x-4">
@@ -1132,6 +1134,8 @@ const JournalsPage: React.FC = () => {
                   </div>
                 </div>
 
+                {/* ZONE DÉFILANTE : table + récapitulatif (l'en-tête au-dessus reste fixe). */}
+                <div className="flex-1 min-h-0 overflow-y-auto">
                 <PrintableArea
                   documentTitle={`Journal ${selectedJournal?.code || 'TOUS'} - ${new Date().toLocaleDateString('fr-FR')}`}
                   orientation="landscape"
@@ -1269,8 +1273,10 @@ const JournalsPage: React.FC = () => {
                   )}
                 </div>
 
-                {/* Footer avec clôture comptable */}
-                <div className="p-2 bg-[var(--color-surface-hover)] border-t border-[var(--color-border)] text-right">
+                </div>{/* fin zone défilante */}
+
+                {/* Footer avec clôture comptable (fixe, sous la zone défilante) */}
+                <div className="p-2 bg-[var(--color-surface-hover)] border-t border-[var(--color-border)] text-right flex-shrink-0">
                   <span className="text-xs text-[var(--color-text-secondary)]">Clôture comptable au 31/12</span>
                 </div>
               </div>
