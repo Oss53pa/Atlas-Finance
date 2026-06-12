@@ -456,7 +456,7 @@ const PrevisionsTresoreriePage: React.FC = () => {
   // ──────────── RENDER ────────────
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* Header */}
       <div className="border-b border-gray-200 pb-4">
         <h1 className="text-lg font-bold text-[var(--color-text-primary)]">Prévisions de Trésorerie</h1>
@@ -487,24 +487,24 @@ const PrevisionsTresoreriePage: React.FC = () => {
 
       {/* ═══════════ TAB: Account Management ═══════════ */}
       {activeTab === 'account_management' && (
-        <div className="space-y-6">
+        <div className="space-y-3">
           {/* KPI Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-white border border-gray-200 rounded-lg p-4">
-              <div className="text-sm text-gray-500">Solde total</div>
-              <div className="text-xl font-bold text-[var(--color-text-primary)] mt-1">{formatCurrency(getTotalAmount())}</div>
+            <div className="bg-white border border-gray-200 rounded-lg p-3">
+              <div className="text-xs text-gray-500">Solde total</div>
+              <div className="text-lg font-bold text-[var(--color-text-primary)] mt-1">{formatCurrency(getTotalAmount())}</div>
             </div>
-            <div className="bg-white border border-gray-200 rounded-lg p-4">
-              <div className="text-sm text-gray-500">Nb comptes</div>
-              <div className="text-xl font-bold text-[var(--color-text-primary)] mt-1">{allTreasuryAccounts.length}</div>
+            <div className="bg-white border border-gray-200 rounded-lg p-3">
+              <div className="text-xs text-gray-500">Nb comptes</div>
+              <div className="text-lg font-bold text-[var(--color-text-primary)] mt-1">{allTreasuryAccounts.length}</div>
             </div>
-            <div className="bg-white border border-gray-200 rounded-lg p-4">
-              <div className="text-sm text-gray-500">Total entrant</div>
-              <div className="text-xl font-bold text-green-600 mt-1">{formatCurrency(totalIncoming)}</div>
+            <div className="bg-white border border-gray-200 rounded-lg p-3">
+              <div className="text-xs text-gray-500">Total entrant</div>
+              <div className="text-lg font-bold text-green-600 mt-1">{formatCurrency(totalIncoming)}</div>
             </div>
-            <div className="bg-white border border-gray-200 rounded-lg p-4">
-              <div className="text-sm text-gray-500">Total sortant</div>
-              <div className="text-xl font-bold text-red-600 mt-1">{formatCurrency(totalOutgoing)}</div>
+            <div className="bg-white border border-gray-200 rounded-lg p-3">
+              <div className="text-xs text-gray-500">Total sortant</div>
+              <div className="text-lg font-bold text-red-600 mt-1">{formatCurrency(totalOutgoing)}</div>
             </div>
           </div>
 
@@ -513,7 +513,7 @@ const PrevisionsTresoreriePage: React.FC = () => {
             <div className="p-4 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Account Management</h3>
             </div>
-            <div style={{ maxHeight: '400px', overflowY: 'auto' }} className="overflow-x-auto">
+            <div style={{ maxHeight: '62vh', overflowY: 'auto' }} className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50 sticky top-0">
                   <tr>
@@ -570,7 +570,7 @@ const PrevisionsTresoreriePage: React.FC = () => {
             <div className="p-4 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Future transaction</h3>
             </div>
-            <div style={{ maxHeight: '400px', overflowY: 'auto' }} className="overflow-x-auto mb-4">
+            <div style={{ maxHeight: '62vh', overflowY: 'auto' }} className="overflow-x-auto mb-4">
               <table className="w-full">
                 <thead className="bg-gray-50 sticky top-0">
                   <tr>
@@ -664,20 +664,20 @@ const PrevisionsTresoreriePage: React.FC = () => {
 
       {/* ═══════════ TAB: Prévision de trésorerie ═══════════ */}
       {activeTab === 'prevision_tresorerie' && (
-        <div className="space-y-6">
+        <div className="space-y-3">
           {/* KPI Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-white border border-gray-200 rounded-lg p-4">
-              <div className="text-sm text-gray-500">Solde actuel</div>
-              <div className="text-xl font-bold text-[var(--color-text-primary)] mt-1">{formatCurrency(kpiSoldeActuel)}</div>
+            <div className="bg-white border border-gray-200 rounded-lg p-3">
+              <div className="text-xs text-gray-500">Solde actuel</div>
+              <div className="text-lg font-bold text-[var(--color-text-primary)] mt-1">{formatCurrency(kpiSoldeActuel)}</div>
             </div>
-            <div className="bg-white border border-gray-200 rounded-lg p-4">
-              <div className="text-sm text-gray-500">Encaissements prévus</div>
-              <div className="text-xl font-bold text-green-600 mt-1">{formatCurrency(kpiEncaissements)}</div>
+            <div className="bg-white border border-gray-200 rounded-lg p-3">
+              <div className="text-xs text-gray-500">Encaissements prévus</div>
+              <div className="text-lg font-bold text-green-600 mt-1">{formatCurrency(kpiEncaissements)}</div>
             </div>
-            <div className="bg-white border border-gray-200 rounded-lg p-4">
-              <div className="text-sm text-gray-500">Décaissements prévus</div>
-              <div className="text-xl font-bold text-red-600 mt-1">{formatCurrency(kpiDecaissements)}</div>
+            <div className="bg-white border border-gray-200 rounded-lg p-3">
+              <div className="text-xs text-gray-500">Décaissements prévus</div>
+              <div className="text-lg font-bold text-red-600 mt-1">{formatCurrency(kpiDecaissements)}</div>
             </div>
             <div className="bg-white border border-gray-200 rounded-lg p-4 border-l-4 border-l-[var(--color-primary)]">
               <div className="text-sm text-gray-500">Solde projeté</div>

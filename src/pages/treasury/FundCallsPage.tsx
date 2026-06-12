@@ -287,11 +287,11 @@ const FundCallsPage: React.FC = () => {
   };
 
   const renderPayablesTable = () => (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* Résumé et filtres */}
-      <div className="grid md:grid-cols-4 gap-6">
+      <div className="grid md:grid-cols-4 gap-3">
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-3">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Total à Payer</p>
@@ -300,13 +300,13 @@ const FundCallsPage: React.FC = () => {
                 </p>
                 <p className="text-sm text-gray-700">{payables?.length} factures</p>
               </div>
-              <CreditCard className="h-8 w-8 text-red-600" />
+              <CreditCard className="h-5 w-5 text-red-600" />
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-3">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Sélectionné</p>
@@ -315,13 +315,13 @@ const FundCallsPage: React.FC = () => {
                 </p>
                 <p className="text-sm text-gray-700">{proposedPayments.length} éléments</p>
               </div>
-              <ArrowDownToLine className="h-8 w-8 text-[var(--color-primary)]" />
+              <ArrowDownToLine className="h-5 w-5 text-[var(--color-primary)]" />
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-3">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">En Retard</p>
@@ -333,13 +333,13 @@ const FundCallsPage: React.FC = () => {
                     .reduce((sum, p) => sum + p.outstanding, 0) || 0)}
                 </p>
               </div>
-              <Clock className="h-8 w-8 text-orange-600" />
+              <Clock className="h-5 w-5 text-orange-600" />
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-3">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Critiques</p>
@@ -348,7 +348,7 @@ const FundCallsPage: React.FC = () => {
                 </p>
                 <p className="text-sm text-gray-700">Paiement urgent</p>
               </div>
-              <AlertCircle className="h-8 w-8 text-red-600" />
+              <AlertCircle className="h-5 w-5 text-red-600" />
             </div>
           </CardContent>
         </Card>
@@ -356,7 +356,7 @@ const FundCallsPage: React.FC = () => {
 
       {/* Filtres et contrôles */}
       <Card>
-        <CardContent className="p-6">
+        <CardContent className="p-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="relative">
@@ -665,7 +665,7 @@ const FundCallsPage: React.FC = () => {
   );
 
   const renderWorkflow = () => (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Alert>
         <Send className="h-4 w-4" />
         <AlertDescription>
@@ -827,16 +827,16 @@ const FundCallsPage: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-primary-100 p-8">
+    <div className="min-h-screen bg-primary-100 p-4">
       {/* Header */}
-      <div className="bg-gradient-to-br from-primary-800 to-primary-700 rounded-xl p-8 mb-8 shadow-lg">
+      <div className="bg-gradient-to-br from-primary-800 to-primary-700 rounded-lg px-5 py-3 mb-3 shadow">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-lg font-bold text-white flex items-center gap-3">
-              <CreditCard className="h-10 w-10" />
+              <CreditCard className="h-6 w-6" />
               Appels de Fonds
             </h1>
-            <p className="text-white/85 text-lg mt-2">
+            <p className="text-white/85 text-xs mt-0.5">
               Gestion des demandes de paiement avec workflow de validation
             </p>
           </div>
@@ -854,7 +854,7 @@ const FundCallsPage: React.FC = () => {
       </div>
 
       {/* Navigation */}
-      <div className="bg-white rounded-xl shadow-sm mb-8 p-1">
+      <div className="bg-white rounded-lg shadow-sm mb-3 p-1">
         <div className="flex gap-1">
           {[
             { key: 'payables', label: 'Comptes à Payer', icon: FileText },
@@ -866,7 +866,7 @@ const FundCallsPage: React.FC = () => {
               <button
                 key={tab.key}
                 onClick={() => setViewMode(tab.key as 'payables' | 'fund-calls' | 'workflow')}
-                className={`flex-1 flex items-center justify-center gap-2 py-3 px-6 rounded-lg font-medium transition-all ${
+                className={`flex-1 flex items-center justify-center gap-2 py-1.5 px-4 rounded-lg font-medium transition-all ${
                   viewMode === tab.key
                     ? 'bg-primary-800 text-white shadow-md'
                     : 'text-primary-600 hover:bg-primary-50'

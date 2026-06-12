@@ -120,37 +120,37 @@ const PeriodSelectorModal: React.FC<PeriodSelectorModalProps> = ({
             <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={() => handleQuickPeriod('thisMonth')}
-                className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-[var(--color-primary)]/5 hover:border-[var(--color-primary)] transition-colors"
+                className="px-3 py-2 text-sm font-medium text-[var(--color-text-primary)] bg-white border border-gray-300 rounded-lg hover:bg-[var(--color-primary)]/5 hover:border-[var(--color-primary)] transition-colors"
               >
                 Ce mois
               </button>
               <button
                 onClick={() => handleQuickPeriod('lastMonth')}
-                className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-[var(--color-primary)]/5 hover:border-[var(--color-primary)] transition-colors"
+                className="px-3 py-2 text-sm font-medium text-[var(--color-text-primary)] bg-white border border-gray-300 rounded-lg hover:bg-[var(--color-primary)]/5 hover:border-[var(--color-primary)] transition-colors"
               >
                 Mois dernier
               </button>
               <button
                 onClick={() => handleQuickPeriod('thisQuarter')}
-                className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-[var(--color-text-tertiary)]/5 hover:border-[var(--color-text-tertiary)] transition-colors"
+                className="px-3 py-2 text-sm font-medium text-[var(--color-text-primary)] bg-white border border-gray-300 rounded-lg hover:bg-[var(--color-text-tertiary)]/5 hover:border-[var(--color-text-tertiary)] transition-colors"
               >
                 Ce trimestre
               </button>
               <button
                 onClick={() => handleQuickPeriod('lastQuarter')}
-                className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-[var(--color-text-tertiary)]/5 hover:border-[var(--color-text-tertiary)] transition-colors"
+                className="px-3 py-2 text-sm font-medium text-[var(--color-text-primary)] bg-white border border-gray-300 rounded-lg hover:bg-[var(--color-text-tertiary)]/5 hover:border-[var(--color-text-tertiary)] transition-colors"
               >
                 Trimestre dernier
               </button>
               <button
                 onClick={() => handleQuickPeriod('thisYear')}
-                className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-[var(--color-text-secondary)]/5 hover:border-[var(--color-text-secondary)] transition-colors"
+                className="px-3 py-2 text-sm font-medium text-[var(--color-text-primary)] bg-white border border-gray-300 rounded-lg hover:bg-[var(--color-text-secondary)]/5 hover:border-[var(--color-text-secondary)] transition-colors"
               >
                 Cette année
               </button>
               <button
                 onClick={() => handleQuickPeriod('lastYear')}
-                className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-[var(--color-text-secondary)]/5 hover:border-[var(--color-text-secondary)] transition-colors"
+                className="px-3 py-2 text-sm font-medium text-[var(--color-text-primary)] bg-white border border-gray-300 rounded-lg hover:bg-[var(--color-text-secondary)]/5 hover:border-[var(--color-text-secondary)] transition-colors"
               >
                 Année dernière
               </button>

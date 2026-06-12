@@ -248,9 +248,10 @@ const JournalDetailPage: React.FC = () => {
               </button>
             </div>
           ) : (
-            <div className="bg-white border border-[var(--color-border)] rounded-xl overflow-x-auto">
+            /* Scroll PROPRE à la table (pas le scroll de page) + en-tête FIGÉ (sticky). */
+            <div className="bg-white border border-[var(--color-border)] rounded-xl overflow-auto max-h-[68vh]">
               <table className="w-full text-sm">
-                <thead className="bg-[var(--color-surface-hover)]">
+                <thead className="bg-[var(--color-surface-hover)] sticky top-0 z-10 shadow-[0_1px_0_var(--color-border)]">
                   <tr>
                     <th className="text-left px-4 py-2.5 font-medium text-[var(--color-text-secondary)]">Pièce</th>
                     <th className="text-left px-4 py-2.5 font-medium text-[var(--color-text-secondary)]">Date</th>

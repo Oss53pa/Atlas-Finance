@@ -564,7 +564,7 @@ const ReconciliationPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* Header */}
       <div className="border-b border-gray-200 pb-4">
         <div className="flex items-center justify-between">
@@ -648,7 +648,7 @@ const ReconciliationPage: React.FC = () => {
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
-          <CardContent className="flex items-center p-6">
+          <CardContent className="flex items-center p-3">
             <div className="flex items-center space-x-4">
               <div className="p-2 bg-green-100 rounded-full">
                 <CheckCircle className="h-6 w-6 text-green-600" />
@@ -664,7 +664,7 @@ const ReconciliationPage: React.FC = () => {
         </Card>
         
         <Card>
-          <CardContent className="flex items-center p-6">
+          <CardContent className="flex items-center p-3">
             <div className="flex items-center space-x-4">
               <div className="p-2 bg-red-100 rounded-full">
                 <X className="h-6 w-6 text-red-600" />
@@ -680,7 +680,7 @@ const ReconciliationPage: React.FC = () => {
         </Card>
 
         <Card>
-          <CardContent className="flex items-center p-6">
+          <CardContent className="flex items-center p-3">
             <div className="flex items-center space-x-4">
               <div className="p-2 bg-yellow-100 rounded-full">
                 <AlertCircle className="h-6 w-6 text-yellow-600" />
@@ -696,7 +696,7 @@ const ReconciliationPage: React.FC = () => {
         </Card>
 
         <Card>
-          <CardContent className="flex items-center p-6">
+          <CardContent className="flex items-center p-3">
             <div className="flex items-center space-x-4">
               <div className="p-2 bg-[var(--color-primary)]/10 rounded-full">
                 <GitCompare className="h-6 w-6 text-[var(--color-primary)]" />

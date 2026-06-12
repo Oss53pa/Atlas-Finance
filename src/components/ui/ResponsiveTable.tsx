@@ -250,10 +250,10 @@ export function ResponsiveTable<T extends Record<string, unknown>>({
         </div>
       )}
 
-      {/* Table desktop avec scroll horizontal */}
-      <div className="overflow-x-auto border border-gray-200 rounded-lg" ref={tableRef}>
+      {/* Table desktop — scroll PROPRE (vertical + horizontal) avec en-tête FIGÉ */}
+      <div className="overflow-auto max-h-[65vh] border border-gray-200 rounded-lg" ref={tableRef}>
         <table className={`min-w-full ${sizeClasses[size]} ${variantClasses[variant]}`}>
-          <thead className="bg-gray-50 border-b border-gray-200">
+          <thead className="bg-gray-50 border-b border-gray-200 sticky top-0 z-10 shadow-[0_1px_0_#e5e7eb]">
             <tr>
               {expandable && <th className="w-12 px-4 py-3"></th>}
               {columns.map((column) => (

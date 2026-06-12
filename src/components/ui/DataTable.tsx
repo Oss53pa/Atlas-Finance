@@ -347,10 +347,11 @@ function DataTable<T extends Record<string, unknown>>({
         )}
       </div>
 
-      {/* Table */}
-      <div className="overflow-x-auto">
+      {/* Table — scroll PROPRE (vertical + horizontal) avec en-tête FIGÉ :
+          le tableau défile dans sa zone, pas avec la page. */}
+      <div className="overflow-auto max-h-[65vh]">
         <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-200">
+          <thead className="bg-gray-50 border-b border-gray-200 sticky top-0 z-10 shadow-[0_1px_0_#e5e7eb]">
             <tr>
               {selectable && (
                 <th className="px-4 py-3 text-left">
