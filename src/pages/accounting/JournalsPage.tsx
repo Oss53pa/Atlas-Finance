@@ -732,26 +732,9 @@ const JournalsPage: React.FC = () => {
                             <Eye className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => {
-                              const totalDebit = journaux.reduce((sum, j) => sum + j.totalDebit, 0);
-                              const totalCredit = journaux.reduce((sum, j) => sum + j.totalCredit, 0);
-                              const lastEntry = journaux.reduce((latest, j) => j.lastEntry > latest ? j.lastEntry : latest, '');
-                              const journalTousMovements = {
-                                id: 'tous',
-                                code: 'TOUS',
-                                libelle: 'Journal tous mouvements',
-                                type: 'OD' as const,
-                                entries: journaux.reduce((sum, j) => sum + j.entries, 0),
-                                totalDebit,
-                                totalCredit,
-                                lastEntry,
-                                color: '#737373'
-                              };
-                              setSelectedJournal(journalTousMovements);
-                              setActiveTab('journal-view');
-                            }}
+                            onClick={() => navigate('/accounting/journals/TOUS')}
                             className="text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] transition-colors"
-                            title="Modifier les écritures"
+                            title="Ouvrir le journal consolidé"
                           >
                             <Edit className="w-4 h-4" />
                           </button>
@@ -803,12 +786,9 @@ const JournalsPage: React.FC = () => {
                               <Eye className="w-4 h-4" />
                             </button>
                             <button
-                              onClick={() => {
-                                setSelectedJournal(journal);
-                                setActiveTab('journal-view');
-                              }}
+                              onClick={() => navigate(`/accounting/journals/${encodeURIComponent(journal.code)}`)}
                               className="text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] transition-colors"
-                              title="Modifier les écritures"
+                              title="Ouvrir le journal"
                             >
                               <Edit className="w-4 h-4" />
                             </button>
@@ -904,12 +884,9 @@ const JournalsPage: React.FC = () => {
                                     <Eye className="w-4 h-4" />
                                   </button>
                                   <button
-                                    onClick={() => {
-                                      setSelectedJournal(journal);
-                                      setActiveTab('journal-view');
-                                    }}
+                                    onClick={() => navigate(`/accounting/journals/${encodeURIComponent(journal.code)}`)}
                                     className="text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] transition-colors"
-                                    title="Modifier les écritures"
+                                    title="Ouvrir le journal"
                                   >
                                     <Edit className="w-4 h-4" />
                                   </button>
@@ -956,19 +933,9 @@ const JournalsPage: React.FC = () => {
                                       <Eye className="w-3 h-3" />
                                     </button>
                                     <button
-                                      onClick={() => {
-                                        const sousJournalAsJournal = {
-                                          ...journal,
-                                          id: sousJournal.id,
-                                          code: sousJournal.code,
-                                          libelle: sousJournal.libelle,
-                                          entries: sousJournal.entries
-                                        };
-                                        setSelectedJournal(sousJournalAsJournal);
-                                        setActiveTab('journal-view');
-                                      }}
+                                      onClick={() => navigate(`/accounting/journals/${encodeURIComponent(journal.code)}?compte=${encodeURIComponent(sousJournal.code)}`)}
                                       className="text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] transition-colors"
-                                      title="Modifier le sous-journal"
+                                      title="Ouvrir le sous-journal"
                                     >
                                       <Edit className="w-3 h-3" />
                                     </button>
