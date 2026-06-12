@@ -827,7 +827,7 @@ const FundCallsPage: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-primary-100 p-4">
+    <div className="min-h-full bg-primary-100 p-4">
       {/* Header */}
       <div className="bg-gradient-to-br from-primary-800 to-primary-700 rounded-lg px-5 py-3 mb-3 shadow">
         <div className="flex items-center justify-between">

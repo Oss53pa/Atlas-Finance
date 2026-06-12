@@ -7978,7 +7978,7 @@ Service Contentieux
   const COLORS = ['#235A6E', '#E89A2E', '#15803D', '#2D7D9A', '#F4A228', '#6B9E6E', '#8BBCCC'];
 
   return (
-    <div className="p-6 bg-[var(--color-border)] min-h-screen ">
+    <div className="p-6 bg-[var(--color-border)] min-h-full ">
       {/* Header */}
       <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm mb-6">
         <div className="flex items-center justify-between">

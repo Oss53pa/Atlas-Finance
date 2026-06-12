@@ -530,7 +530,7 @@ const AutresTiersModule: React.FC = () => {
   // ─── Rendu ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="p-6 space-y-5 bg-gray-50 min-h-screen">
+    <div className="p-6 space-y-5 bg-gray-50 min-h-full">
 
       {/* ── En-tête ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">

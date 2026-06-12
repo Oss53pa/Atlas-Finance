@@ -10,6 +10,7 @@ import { LanguageProvider } from './contexts/LanguageContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { WorkspaceProvider } from './contexts/WorkspaceContext';
 import ModernDoubleSidebarLayout from './components/layout/ModernDoubleSidebarLayout';
+import DataPageLayout from './components/layout/DataPageLayout';
 import { NavigationProvider } from './contexts/NavigationContext';
 import { ToastProvider } from './hooks/useToast';
 import { ChatbotProvider } from './components/layout/ChatbotProvider';
@@ -273,6 +274,13 @@ const HelpArticlePage = lazyRetry(() => import('./pages/help/HelpArticlePage'));
 const LoadingFallback = () => <div className="flex items-center justify-center min-h-screen"><LoadingSpinner size="lg" /></div>;
 
 
+/**
+ * Écrans de TRAVAIL sur données (grosses tables) : enveloppés dans le gabarit
+ * standard DataPageLayout — la fenêtre ne défile pas, la page défile dans son
+ * unique zone. Les pages « document » (dashboards, rapports) restent telles quelles.
+ */
+const work = (page: React.ReactElement) => <DataPageLayout>{page}</DataPageLayout>;
+
 function App() {
   const location = useLocation();
   return (
@@ -400,17 +408,17 @@ function App() {
                         {/* Tiers */}
                         <Route element={<RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant', 'user', 'viewer']}><FeatureErrorBoundary feature="Tiers" /></RBACGuard>}>
                           <Route path="/tiers" element={<TiersDashboard />} />
-                          <Route path="/tiers/clients" element={<ClientsModule />} />
-                          <Route path="/tiers/clients/:id" element={<ClientsModule />} />
-                          <Route path="/tiers/fournisseurs" element={<FournisseursModule />} />
-                          <Route path="/tiers/fournisseurs/:id" element={<FournisseursModule />} />
-                          <Route path="/tiers/personnel" element={<PersonnelModule />} />
-                          <Route path="/tiers/autres" element={<AutresTiersModule />} />
-                          <Route path="/tiers/recouvrement" element={<RecouvrementModule />} />
-                          <Route path="/tiers/contacts" element={<ContactsModule />} />
-                          <Route path="/tiers/lettrage" element={<LettrageModule />} />
-                          <Route path="/tiers/partenaires" element={<PartenairesModule />} />
-                          <Route path="/tiers/prospects" element={<ProspectsModule />} />
+                          <Route path="/tiers/clients" element={work(<ClientsModule />)} />
+                          <Route path="/tiers/clients/:id" element={work(<ClientsModule />)} />
+                          <Route path="/tiers/fournisseurs" element={work(<FournisseursModule />)} />
+                          <Route path="/tiers/fournisseurs/:id" element={work(<FournisseursModule />)} />
+                          <Route path="/tiers/personnel" element={work(<PersonnelModule />)} />
+                          <Route path="/tiers/autres" element={work(<AutresTiersModule />)} />
+                          <Route path="/tiers/recouvrement" element={work(<RecouvrementModule />)} />
+                          <Route path="/tiers/contacts" element={work(<ContactsModule />)} />
+                          <Route path="/tiers/lettrage" element={work(<LettrageModule />)} />
+                          <Route path="/tiers/partenaires" element={work(<PartenairesModule />)} />
+                          <Route path="/tiers/prospects" element={work(<ProspectsModule />)} />
                           <Route path="/third-party" element={<ThirdPartyDashboard />} />
                         </Route>
 
@@ -418,13 +426,13 @@ function App() {
                         <Route element={<RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant']}><FeatureErrorBoundary feature="Trésorerie" /></RBACGuard>}>
                           <Route path="/treasury" element={<TreasuryDashboard />} />
                           <Route path="/treasury/accounts" element={<BankAccountsPage />} />
-                          <Route path="/treasury/fund-calls" element={<FundCallsPage />} />
-                          <Route path="/treasury/positions" element={<TreasuryPositions />} />
+                          <Route path="/treasury/fund-calls" element={work(<FundCallsPage />)} />
+                          <Route path="/treasury/positions" element={work(<TreasuryPositions />)} />
                           <Route path="/treasury/cash-flow" element={<CashFlowPage />} />
-                          <Route path="/treasury/reconciliation" element={<ReconciliationPage />} />
+                          <Route path="/treasury/reconciliation" element={work(<ReconciliationPage />)} />
                           <Route path="/treasury/financing" element={<TreasuryDashboard />} />
                           <Route path="/treasury/multi-currency" element={<MultiCurrency />} />
-                          <Route path="/treasury/movements" element={<BankMovementsPage />} />
+                          <Route path="/treasury/movements" element={work(<BankMovementsPage />)} />
                           <Route path="/treasury/connections" element={<ConnexionsBancairesPage />} />
                           <Route path="/treasury/payments" element={<GestionPaiementsPage />} />
                           <Route path="/treasury/forecast" element={<PrevisionsTresoreriePage />} />
@@ -442,13 +450,13 @@ function App() {
                           <Route path="/assets/fixed" element={<FixedAssetsPage />} />
                           <Route path="/assets/depreciation" element={<DepreciationPage />} />
                           <Route path="/assets/summary" element={<AssetsSummary />} />
-                          <Route path="/assets/registry" element={<AssetsRegistry />} />
-                          <Route path="/assets/transactions" element={<AssetsTransactions />} />
+                          <Route path="/assets/registry" element={work(<AssetsRegistry />)} />
+                          <Route path="/assets/transactions" element={work(<AssetsTransactions />)} />
                           <Route path="/assets/categories" element={<AssetsCategories />} />
                           <Route path="/assets/classes" element={<AssetsClasses />} />
                           <Route path="/assets/journal" element={<AssetsJournal />} />
                           <Route path="/assets/disposals" element={<AssetsDisposals />} />
-                          <Route path="/assets/inventory" element={<AssetsRegistry />} />
+                          <Route path="/assets/inventory" element={work(<AssetsRegistry />)} />
                           <Route path="/assets/maintenance" element={<AssetsMaintenance />} />
                           <Route path="/assets/physical-inventory" element={<InventairePhysiquePage />} />
                           <Route path="/assets/reevaluation" element={<ReevaluationPage />} />

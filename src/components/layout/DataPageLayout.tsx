@@ -32,7 +32,7 @@
  *     <MaTable />
  *   </DataPageLayout>
  */
-import React from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
 
 export interface DataPageLayoutProps {
   /** Zone fixe du haut : titre de page + actions principales. */
@@ -46,8 +46,9 @@ export interface DataPageLayoutProps {
   /** LA zone défilante (la table). */
   children: React.ReactNode;
   /**
-   * Décalage vertical (px) si un bandeau d'app fixe existe au-dessus de la page.
-   * 0 par défaut (la page occupe toute la hauteur de la fenêtre).
+   * Décalage vertical (px) FORCÉ. Par défaut (undefined), le gabarit MESURE
+   * sa position réelle dans la fenêtre (header d'app + paddings du layout)
+   * et occupe exactement la hauteur restante — aucun ascenseur parasite.
    */
   viewportOffset?: number;
   className?: string;
@@ -59,26 +60,51 @@ export const DataPageLayout: React.FC<DataPageLayoutProps> = ({
   footer,
   sidebar,
   children,
-  viewportOffset = 0,
+  viewportOffset,
   className = '',
-}) => (
-  <div
-    className={`flex flex-col overflow-hidden ${className}`}
-    style={{ height: `calc(100dvh - ${viewportOffset}px)` }}
-  >
-    {header && <div className="flex-shrink-0">{header}</div>}
-    {toolbar && <div className="flex-shrink-0">{toolbar}</div>}
+}) => {
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [autoOffset, setAutoOffset] = useState(0);
 
-    <div className="flex flex-1 min-h-0 items-stretch">
-      {/* LA zone défilante — l'unique ascenseur vertical de l'écran. */}
-      <div className="flex-1 min-w-0 min-h-0 overflow-auto">
-        {children}
+  useLayoutEffect(() => {
+    if (viewportOffset !== undefined) return;
+    const el = rootRef.current;
+    if (!el) return;
+    const measure = () => {
+      // Position réelle du gabarit dans la fenêtre (header d'app, marges…)
+      const top = el.getBoundingClientRect().top + (el.closest('main')?.scrollTop ?? 0);
+      // + padding bas du conteneur parent (ex. wrapper p-3/p-4 du layout d'app)
+      const parent = el.parentElement;
+      const padBottom = parent ? parseFloat(getComputedStyle(parent).paddingBottom) || 0 : 0;
+      setAutoOffset(Math.max(0, Math.round(top + padBottom)));
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [viewportOffset]);
+
+  const offset = viewportOffset !== undefined ? viewportOffset : autoOffset;
+
+  return (
+    <div
+      ref={rootRef}
+      className={`flex flex-col overflow-hidden ${className}`}
+      style={{ height: `calc(100dvh - ${offset}px)` }}
+    >
+      {header && <div className="flex-shrink-0">{header}</div>}
+      {toolbar && <div className="flex-shrink-0">{toolbar}</div>}
+
+      <div className="flex flex-1 min-h-0 items-stretch">
+        {/* LA zone défilante — l'unique ascenseur vertical de l'écran. */}
+        <div className="flex-1 min-w-0 min-h-0 overflow-auto">
+          {children}
+        </div>
+        {sidebar}
       </div>
-      {sidebar}
-    </div>
 
-    {footer && <div className="flex-shrink-0">{footer}</div>}
-  </div>
-);
+      {footer && <div className="flex-shrink-0">{footer}</div>}
+    </div>
+  );
+};
 
 export default DataPageLayout;

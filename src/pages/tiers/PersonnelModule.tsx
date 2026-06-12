@@ -461,7 +461,7 @@ const PersonnelModule: React.FC = () => {
   ] as const;
 
   return (
-    <div className="p-6 space-y-5" style={{ background: CREAM, minHeight: '100vh' }}>
+    <div className="p-6 space-y-5" style={{ background: CREAM, minHeight: '100%' }}>
 
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between">
