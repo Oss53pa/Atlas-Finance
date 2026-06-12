@@ -599,9 +599,9 @@ const JournalsPage: React.FC = () => {
   };
 
   return (
-    <div className="p-6 bg-[var(--color-border)] min-h-screen ">
+    <div className="p-3 bg-[var(--color-border)] h-screen overflow-hidden flex flex-col">
       {/* Header avec navigation */}
-      <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm mb-6">
+      <div className="bg-white rounded-lg p-3 border border-[var(--color-border)] shadow-sm mb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button
@@ -636,8 +636,8 @@ const JournalsPage: React.FC = () => {
       </div>
 
       {/* Navigation par onglets */}
-      <div className="bg-white rounded-lg border border-[var(--color-border)] shadow-sm">
-        <div className="px-6 border-b border-[var(--color-border)]">
+      <div className="bg-white rounded-lg border border-[var(--color-border)] shadow-sm flex-1 min-h-0 flex flex-col overflow-hidden">
+        <div className="px-6 border-b border-[var(--color-border)] flex-shrink-0">
           <nav className="flex space-x-8">
             {tabs.map((tab) => {
               const IconComponent = tab.icon;
@@ -645,7 +645,7 @@ const JournalsPage: React.FC = () => {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center space-x-2 py-4 border-b-2 font-medium text-sm transition-colors ${
+                  className={`flex items-center space-x-2 py-2.5 border-b-2 font-medium text-sm transition-colors ${
                     activeTab === tab.id
                       ? 'border-[var(--color-primary)] text-[var(--color-primary)]'
                       : 'border-transparent text-[var(--color-text-tertiary)] hover:text-[#404040]'
@@ -660,7 +660,7 @@ const JournalsPage: React.FC = () => {
         </div>
 
         {/* Contenu des onglets */}
-        <div className="p-6">
+        <div className="p-3 flex-1 min-h-0 overflow-y-auto">
           {/* Dashboard */}
           {activeTab === 'dashboard' && <JournalDashboard />}
 
@@ -1033,12 +1033,13 @@ const JournalsPage: React.FC = () => {
           {/* Journal sélectionné avec reproduction de l'image */}
           {activeTab === 'journal-view' && selectedJournal && (
             <div className="flex gap-0 items-stretch">
-            <div className="flex-1 min-w-0 space-y-4">
+            <div className="flex-1 min-w-0 space-y-2">
               <div className="bg-white rounded-lg border border-[var(--color-border)]">
-                {/* Header du journal réorganisé */}
-                <div className="bg-[var(--color-surface-hover)] border-b border-[var(--color-border)]">
+                {/* Header du journal — COLLANT en haut de la zone défilante : la page ne
+                    scrolle plus, le titre/dates/totaux restent visibles, la table défile. */}
+                <div className="bg-[var(--color-surface-hover)] border-b border-[var(--color-border)] sticky top-0 z-20">
                   {/* Ligne 1: Titre + Actions principales */}
-                  <div className="flex items-center justify-between p-4 pb-3">
+                  <div className="flex items-center justify-between px-3 py-2">
                     <div className="flex items-center space-x-4">
                       <h3 className="text-lg font-bold text-[var(--color-primary)]">
                         <Archive className="w-5 h-5 mr-2" />
@@ -1066,7 +1067,7 @@ const JournalsPage: React.FC = () => {
                   </div>
 
                   {/* Ligne 2: Filtres + Totaux */}
-                  <div className="flex items-center justify-between px-4 pb-4 border-t border-[var(--color-border)] pt-3">
+                  <div className="flex items-center justify-between px-3 pb-2 border-t border-[var(--color-border)] pt-2">
                     {/* Filtres à gauche */}
                     <div className="flex items-center space-x-4">
                       <div className="flex items-center space-x-2">
@@ -1778,7 +1779,7 @@ const JournalsPage: React.FC = () => {
             </div>
 
             {/* Détails de l'écriture */}
-            <div className="p-6">
+            <div className="p-3">
               {/* Informations principales */}
               <div className="bg-gray-50 rounded-lg p-4 mb-4">
                 <div className="grid grid-cols-2 gap-4">
