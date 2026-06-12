@@ -48,11 +48,15 @@ const AssetsJournal: React.FC = () => {
   const [companyName, setCompanyName] = useState<string>('');
   const [activeFiscalYear, setActiveFiscalYear] = useState<{ startDate?: string; endDate?: string; code?: string } | null>(null);
 
+  const [dbAssets, setDbAssets] = useState<any[]>([]);
   useEffect(() => {
     if (!adapter) return;
     adapter.getAll('journalEntries').then((entries: any[]) => {
       setDbEntries(entries || []);
     }).catch(() => setDbEntries([]));
+    // Biens réels (registre des immobilisations) — source des colonnes Valeur
+    // d'acquisition / Dotation / Amort. cumulé / VNC de la vue Table.
+    adapter.getAll('assets').then((a: any[]) => setDbAssets(a || [])).catch(() => setDbAssets([]));
 
     // Nom entreprise réel (source canonique: settings.admin_company_legal)
     adapter.getById<any>('settings', 'admin_company_legal').then((row: any) => {
@@ -137,6 +141,7 @@ const AssetsJournal: React.FC = () => {
     const map: Record<string, {
       additions: number; cessions: number;
       amortCumule: number | null; provisions: number | null; balance: number;
+      valeurAcquisition: number; dotationAnnuelle: number; vnc: number;
     }> = {};
 
     for (const category of assetJournalConfig.categories) {
@@ -151,6 +156,21 @@ const AssetsJournal: React.FC = () => {
         cessions = sumBy((c) => c.startsWith(assetAccount), 'credit');
         balance = additions - cessions;
       }
+
+      // ── BIENS RÉELS de la catégorie (registre, par préfixe de compte 3 chiffres) ──
+      // Valeur d'acquisition (Σ brut), Amortissement = DOTATION annuelle linéaire
+      // (Σ brut/durée), Amort. cumulé réel, Balance = VNC (brut − amort cumulé).
+      const prefix = assetAccount.slice(0, 3);
+      const catAssets = isRealAccount(assetAccount)
+        ? dbAssets.filter((a: any) => String(a.accountCode || '').startsWith(prefix))
+        : [];
+      const valeurAcquisition = catAssets.reduce((s: number, a: any) => s + (a.acquisitionValue || 0), 0);
+      const dotationAnnuelle = catAssets.reduce((s: number, a: any) => {
+        const duree = a.usefulLifeYears || a.usefulLife || 0;
+        return s + (duree > 0 ? (a.acquisitionValue || 0) / duree : 0);
+      }, 0);
+      const amortAssets = catAssets.reduce((s: number, a: any) => s + (a.cumulDepreciation || 0), 0);
+      const vnc = valeurAcquisition - amortAssets;
 
       // Amort. cumulé : compte 28x propre à la catégorie (solde créditeur)
       const amortAccount = category.accounts.depreciationRevaluations?.account || '';
@@ -168,13 +188,19 @@ const AssetsJournal: React.FC = () => {
           - sumBy((c) => c.startsWith(provAccount), 'debit');
       }
 
-      map[category.code] = { additions, cessions, amortCumule, provisions, balance };
+      // Amort. cumulé : priorité au registre des biens (renseigné à l'import), sinon GL 28x.
+      map[category.code] = {
+        additions, cessions, provisions, balance,
+        amortCumule: amortAssets > 0 ? amortAssets : amortCumule,
+        valeurAcquisition, dotationAnnuelle, vnc,
+      };
     }
     return map;
-  }, [dbEntries]);
+  }, [dbEntries, dbAssets]);
 
+  // Total = Σ VNC des catégories (la « Balance » de la table est la VNC).
   const totalYtdReal = useMemo(
-    () => Object.values(categoryAggregates).reduce((s, a) => s + a.balance, 0),
+    () => Object.values(categoryAggregates).reduce((s, a) => s + a.vnc, 0),
     [categoryAggregates]
   );
 
@@ -380,13 +406,13 @@ const AssetsJournal: React.FC = () => {
                   <tr className="border-b border-[var(--color-border)]">
                     <th className="text-left p-2">Catégorie</th>
                     <th className="text-left p-2">Description</th>
-                    <th className="text-center p-2">Amortissement</th>
-                    <th className="text-center p-2">Amort. Cumulé</th>
-                    <th className="text-center p-2">Additions</th>
-                    <th className="text-center p-2">Cessions</th>
-                    <th className="text-center p-2">Réévaluations</th>
-                    <th className="text-center p-2">Provisions</th>
-                    <th className="text-right p-2">{t('accounting.balance')}</th>
+                    <th className="text-right p-2">Valeur d'acquisition</th>
+                    <th className="text-right p-2">Dotation annuelle</th>
+                    <th className="text-right p-2">Amort. cumulé</th>
+                    <th className="text-right p-2">Additions</th>
+                    <th className="text-right p-2">Cessions</th>
+                    <th className="text-right p-2">Provisions</th>
+                    <th className="text-right p-2">VNC</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -404,35 +430,35 @@ const AssetsJournal: React.FC = () => {
                             </div>
                           </td>
                           <td className="p-2 text-sm">{category.description}</td>
-                          {/* Compte d'amortissement (référence config) */}
-                          <td className="p-2 text-center font-mono text-xs">
-                            {category.accounts.depreciationHistorical.account}
+                          {/* Valeur d'acquisition (Σ brut des biens réels de la catégorie) */}
+                          <td className="p-2 text-right text-xs font-medium">
+                            {agg && agg.valeurAcquisition > 0 ? formatCurrency(Math.round(agg.valeurAcquisition)) : '—'}
                           </td>
-                          {/* Amort. cumulé (montant réel GL, sinon —) */}
+                          {/* Dotation annuelle (Σ brut/durée — amortissement linéaire) */}
                           <td className="p-2 text-right text-xs">
-                            {agg?.amortCumule != null ? formatCurrency(agg.amortCumule) : '—'}
+                            {agg && agg.dotationAnnuelle > 0 ? formatCurrency(Math.round(agg.dotationAnnuelle)) : '—'}
                           </td>
-                          {/* Additions (débits réels classe 2) */}
+                          {/* Amort. cumulé (registre des biens, sinon GL 28x) */}
                           <td className="p-2 text-right text-xs">
-                            {agg && agg.additions !== 0 ? formatCurrency(agg.additions) : '—'}
+                            {agg?.amortCumule != null && agg.amortCumule !== 0 ? formatCurrency(Math.round(agg.amortCumule)) : '—'}
                           </td>
-                          {/* Cessions (crédits réels classe 2) */}
+                          {/* Additions (débits réels classe 2, période) */}
                           <td className="p-2 text-right text-xs">
-                            {agg && agg.cessions !== 0 ? formatCurrency(agg.cessions) : '—'}
+                            {agg && agg.additions !== 0 ? formatCurrency(Math.round(agg.additions)) : '—'}
                           </td>
-                          {/* Compte de réévaluation (référence config) */}
-                          <td className="p-2 text-center font-mono text-xs">
-                            {category.accounts.revaluationsAccumulated.account}
-                          </td>
-                          {/* Provisions (montant réel GL 29x, sinon —) */}
+                          {/* Cessions (crédits réels classe 2, période) */}
                           <td className="p-2 text-right text-xs">
-                            {agg?.provisions != null ? formatCurrency(agg.provisions) : '—'}
+                            {agg && agg.cessions !== 0 ? formatCurrency(Math.round(agg.cessions)) : '—'}
                           </td>
-                          {/* Solde net (additions − cessions) */}
+                          {/* Provisions (GL 29x) */}
+                          <td className="p-2 text-right text-xs">
+                            {agg?.provisions != null && agg.provisions !== 0 ? formatCurrency(Math.round(agg.provisions)) : '—'}
+                          </td>
+                          {/* VNC = valeur d'acquisition − amortissements cumulés */}
                           <td className="p-2 text-right">
-                            {agg && agg.balance !== 0 ? (
-                              <span className={`font-semibold ${agg.balance >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                                {formatCurrency(agg.balance)}
+                            {agg && agg.valeurAcquisition > 0 ? (
+                              <span className={`font-semibold ${agg.vnc >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                                {formatCurrency(Math.round(agg.vnc))}
                               </span>
                             ) : (
                               <span className="text-[var(--color-text-secondary)]">—</span>
@@ -444,10 +470,10 @@ const AssetsJournal: React.FC = () => {
                 </tbody>
                 <tfoot>
                   <tr className="border-t-2 border-[var(--color-border)] font-semibold">
-                    <td colSpan={8} className="p-2 text-right">Total YTD:</td>
+                    <td colSpan={8} className="p-2 text-right">VNC totale :</td>
                     <td className="p-2 text-right">
                       <div className={totalYtdReal >= 0 ? 'text-green-500' : 'text-red-500'}>
-                        {formatCurrency(totalYtdReal)}
+                        {formatCurrency(Math.round(totalYtdReal))}
                       </div>
                     </td>
                   </tr>

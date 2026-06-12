@@ -1897,7 +1897,33 @@ const AssetsRegistry: React.FC = () => {
           }}
           onSubmit={handleSaveAsset}
           mode={modalMode}
-          initialData={assetToEdit ? (assetToEdit as unknown as Record<string, string>) : undefined}
+          // Mapper le bien (camelCase adaptateur) vers les clés attendues par AssetForm
+          // (snake_case) — l'objet brut ne matchait AUCUN champ → formulaire vide alors
+          // que les données existent (date/valeur d'acquisition, durée, amortissements…).
+          initialData={assetToEdit ? (() => {
+            const a: any = assetToEdit;
+            const brut = Number(a.acquisitionValue ?? a.acquisition_value ?? 0);
+            const cumul = Number(a.cumulDepreciation ?? a.cumul_depreciation ?? 0);
+            const duree = a.usefulLifeYears ?? a.usefulLife ?? a.useful_life_years ?? '';
+            return {
+              description: String(a.name ?? a.designation ?? ''),
+              asset_number: String(a.code ?? ''),
+              category: String(a.category ?? ''),
+              asset_class: String(a.accountCode ?? '').substring(0, 2),
+              acquisition_cost: String(brut || ''),
+              current_value: String(Math.max(0, brut - cumul) || ''),
+              residual_value: String(a.residualValue ?? a.residual_value ?? 0),
+              acquisition_date: String(a.acquisitionDate ?? a.acquisition_date ?? ''),
+              date_mise_en_service: String(a.acquisitionDate ?? a.acquisition_date ?? ''),
+              commissioning_date: String(a.acquisitionDate ?? a.acquisition_date ?? ''),
+              account_code: String(a.accountCode ?? ''),
+              depreciation_account: String(a.depreciationAccountCode ?? a.depreciation_account_code ?? ''),
+              depreciation_method: String(a.depreciationMethod ?? a.depreciation_method ?? 'lineaire'),
+              useful_life_years: String(duree || ''),
+              cumulative_depreciation: String(cumul || 0),
+              status: a.status === 'active' ? 'en_service' : String(a.status ?? 'en_service'),
+            } as Record<string, string>;
+          })() : undefined}
         />
       </div>
     </PageContainer>

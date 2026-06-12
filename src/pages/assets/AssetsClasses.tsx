@@ -11,19 +11,18 @@ import { useData } from '../../contexts/DataContext';
 import { formatCompactCurrency } from '../../utils/formatters';
 
 // SYSCOHADA class definitions (reference structure — values come from data)
+// Classes SYSCOHADA OFFICIELLES (les anciens libellés étaient faux : 21≠corporelles,
+// 22≠concession, 23=Bâtiments — c'est là que vit la construction PLAZA, 25≠informatique).
+// Les sous-comptes affichés sont dérivés DYNAMIQUEMENT des écritures réelles.
 const CLASS_DEFS = [
-  { code: '20', name: 'Immobilisations incorporelles', description: 'Actifs non monétaires sans substance physique', icon: FileText, color: 'primary',
-    accountDefs: [{ code: '201', name: 'Frais d\'établissement' }, { code: '203', name: 'Frais de R&D' }, { code: '205', name: 'Concessions et droits' }, { code: '207', name: 'Fonds commercial' }, { code: '208', name: 'Autres incorporelles' }] },
-  { code: '21', name: 'Immobilisations corporelles', description: 'Actifs physiques détenus pour l\'usage', icon: Building, color: 'blue',
-    accountDefs: [{ code: '211', name: 'Terrains' }, { code: '212', name: 'Agencements terrains' }, { code: '213', name: 'Constructions' }, { code: '215', name: 'Installations techniques' }, { code: '218', name: 'Autres corporelles' }] },
-  { code: '22', name: 'Immobilisations en concession', description: 'Actifs mis à disposition en concession', icon: Shield, color: 'green',
-    accountDefs: [{ code: '221', name: 'Terrains en concession' }, { code: '223', name: 'Constructions en concession' }, { code: '225', name: 'Installations en concession' }] },
-  { code: '23', name: 'Immobilisations en cours', description: 'Actifs en cours de production/acquisition', icon: Package, color: 'orange',
-    accountDefs: [{ code: '231', name: 'Corporelles en cours' }, { code: '232', name: 'Incorporelles en cours' }, { code: '237', name: 'Avances et acomptes' }] },
-  { code: '24', name: 'Matériel, mobilier & transport', description: 'Matériel et outillage industriel, mobilier, véhicules', icon: Car, color: 'red',
-    accountDefs: [{ code: '241', name: 'Véhicules industriels' }, { code: '242', name: 'Véhicules de tourisme' }, { code: '244', name: 'Matériel de manutention' }] },
-  { code: '25', name: 'Matériel informatique', description: 'Équipements informatiques et technologiques', icon: Computer, color: 'primary',
-    accountDefs: [{ code: '251', name: 'Serveurs et infrastructure' }, { code: '252', name: 'Postes de travail' }, { code: '253', name: 'Périphériques' }, { code: '254', name: 'Logiciels' }] },
+  { code: '20', name: 'Charges immobilisées', description: 'Frais d\'établissement et charges à répartir', icon: FileText, color: 'primary', accountDefs: [] as Array<{ code: string; name: string }> },
+  { code: '21', name: 'Immobilisations incorporelles', description: 'Brevets, licences, logiciels, fonds commercial', icon: FileText, color: 'blue', accountDefs: [] },
+  { code: '22', name: 'Terrains', description: 'Terrains bâtis et non bâtis', icon: Building, color: 'green', accountDefs: [] },
+  { code: '23', name: 'Bâtiments, installations et agencements', description: 'Constructions, installations techniques, agencements', icon: Building, color: 'orange', accountDefs: [] },
+  { code: '24', name: 'Matériel, mobilier et transport', description: 'Matériel et outillage industriel, mobilier, véhicules', icon: Car, color: 'red', accountDefs: [] },
+  { code: '25', name: 'Avances et acomptes sur immobilisations', description: 'Avances et acomptes versés sur commandes d\'immobilisations', icon: Package, color: 'primary', accountDefs: [] },
+  { code: '26', name: 'Titres de participation', description: 'Participations et créances rattachées', icon: Shield, color: 'blue', accountDefs: [] },
+  { code: '27', name: 'Autres immobilisations financières', description: 'Prêts, dépôts et cautionnements', icon: Computer, color: 'green', accountDefs: [] },
 ];
 
 const AssetsClasses: React.FC = () => {
@@ -93,7 +92,10 @@ const AssetsClasses: React.FC = () => {
         totalValue: totalValue || classAssets.reduce((s, a) => s + (a.acquisitionValue || 0), 0),
         cumulAmort,
         netValue: (totalValue ? netValue : classAssets.reduce((s, a) => s + ((a.acquisitionValue || 0) - (a.cumulDepreciation || 0)), 0)),
-        count: count || classAssets.length,
+        // Comptes = comptes GL mouvementés de la classe ; Actifs = NOMBRE DE BIENS du
+        // registre (la confusion des deux faisait afficher 39 "actifs" au lieu de 333).
+        count,
+        assetCount: classAssets.length,
         depreciationRate: avgRate > 0 ? `${avgRate.toFixed(0)}%` : '—',
         icon: def.icon,
         color: def.color,
@@ -266,9 +268,7 @@ const AssetsClasses: React.FC = () => {
                           </p>
                         </div>
                       </div>
-                      <button className="p-1 hover:bg-[var(--color-background-subtle)] rounded" aria-label="Modifier">
-                        <Edit2 className="w-4 h-4 text-[var(--color-text-secondary)]" />
-                      </button>
+                      {/* Crayon sans fonction retiré — classes SYSCOHADA normatives. */}
                     </div>
 
                     {/* Description */}
@@ -287,7 +287,7 @@ const AssetsClasses: React.FC = () => {
                       <div>
                         <p className="text-xs text-[var(--color-text-secondary)]">Actifs</p>
                         <p className="font-semibold text-[var(--color-text-primary)]">
-                          {assetClass.count}
+                          {assetClass.assetCount}
                         </p>
                       </div>
                     </div>
@@ -392,7 +392,7 @@ const AssetsClasses: React.FC = () => {
                           {assetClass.description}
                         </td>
                         <td className="py-3 px-4 text-sm text-center">{assetClass.accounts.length}</td>
-                        <td className="py-3 px-4 text-sm text-center">{assetClass.count}</td>
+                        <td className="py-3 px-4 text-sm text-center font-medium">{assetClass.assetCount}</td>
                         <td className="py-3 px-4 text-sm text-right font-medium">
                           {formatCompactCurrency(assetClass.totalValue)}
                         </td>
@@ -403,11 +403,15 @@ const AssetsClasses: React.FC = () => {
                         </td>
                         <td className="py-3 px-4">
                           <div className="flex items-center justify-center gap-1">
-                            <button className="p-1 hover:bg-[var(--color-background)] rounded" aria-label="Information">
+                            {/* Action réelle : afficher le détail des sous-comptes (le crayon
+                                sans fonction a été retiré — classes SYSCOHADA normatives). */}
+                            <button
+                              className="p-1 hover:bg-[var(--color-background)] rounded"
+                              aria-label="Voir le détail des comptes"
+                              title="Voir le détail des comptes"
+                              onClick={(e) => { e.stopPropagation(); setSelectedClass(selectedClass === assetClass.code ? null : assetClass.code); setActiveView('grid'); }}
+                            >
                               <Info className="w-4 h-4 text-[var(--color-text-secondary)]" />
-                            </button>
-                            <button className="p-1 hover:bg-[var(--color-background)] rounded" aria-label="Modifier">
-                              <Edit2 className="w-4 h-4 text-[var(--color-text-secondary)]" />
                             </button>
                           </div>
                         </td>

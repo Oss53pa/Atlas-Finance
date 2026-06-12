@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import JournalDashboard from '../../components/accounting/JournalDashboard';
 import JournalEntryModal from '../../components/accounting/JournalEntryModal';
+import FilterSidebar, { type ComptaFilters, DEFAULT_COMPTA_FILTERS, loadPersistedFilters } from '../../components/accounting/FilterSidebar';
 import DataTable, { Column } from '../../components/ui/DataTable';
 import PrintableArea from '../../components/ui/PrintableArea';
 import { usePrintReport } from '../../hooks/usePrint';
@@ -56,6 +57,30 @@ const JournalsPage: React.FC = () => {
   const [showRecapTable, setShowRecapTable] = useState(false);
   const [showEditEntryModal, setShowEditEntryModal] = useState(false);
   const [entryReadOnly, setEntryReadOnly] = useState(false);
+  // Barre latérale de filtres de la vue journal — GREFFÉE à droite du tableau d'origine
+  // (le tableau et ses colonnes restent inchangés ; seules les données sont filtrées).
+  const [jvFilters, setJvFilters] = useState<ComptaFilters>(() => loadPersistedFilters('journal-view', DEFAULT_COMPTA_FILTERS));
+  const jvNorm = (s: string) => (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  const jvMatch = (e: EcritureJournal): boolean => {
+    const iso = e.date ? e.date.split('/').reverse().join('-') : '';
+    if (jvFilters.dateFrom && iso && iso < jvFilters.dateFrom) return false;
+    if (jvFilters.dateTo && iso && iso > jvFilters.dateTo) return false;
+    if (jvFilters.journals.length > 0 && !jvFilters.journals.includes(e.jnl)) return false;
+    if (jvFilters.accountPrefix.trim() && !(e.compte || '').startsWith(jvFilters.accountPrefix.trim())) return false;
+    const d = parseFloat((e.debit || '0').replace(/\s/g, '').replace(',', '.')) || 0;
+    const c = parseFloat((e.credit || '0').replace(/\s/g, '').replace(',', '.')) || 0;
+    const min = parseFloat(String(jvFilters.amountMin).replace(/\s/g, '').replace(',', '.')) || 0;
+    if (min > 0 && Math.max(d, c) < min) return false;
+    if (jvFilters.sens === 'debit' && !(d > 0)) return false;
+    if (jvFilters.sens === 'credit' && !(c > 0)) return false;
+    if (jvFilters.statut !== 'all' && (e.status || 'validated') !== jvFilters.statut) return false;
+    if (jvFilters.tiers.trim() && !jvNorm(`${e.compteLib} ${e.libelle}`).includes(jvNorm(jvFilters.tiers))) return false;
+    if (jvFilters.search.trim()) {
+      const q = jvNorm(jvFilters.search);
+      if (!jvNorm(`${e.piece} ${e.mvt} ${e.compte} ${e.compteLib} ${e.libelle} ${e.debit} ${e.credit}`).includes(q)) return false;
+    }
+    return true; // lettrage : pas de donnée par ligne dans cette vue → critère ignoré
+  };
   // Écriture ouverte dans le WIZARD à onglets (Détails/Ventilation/Attachements/Notes/
   // Validation) — même formulaire que la saisie ; il se verrouille seul si validée.
   const [wizardEntry, setWizardEntry] = useState<any | null>(null);
@@ -725,16 +750,36 @@ const JournalsPage: React.FC = () => {
                         <span className="text-xs text-[var(--color-text-tertiary)]">Consolidation en temps réel</span>
                         <div className="flex items-center space-x-2">
                           <button
-                            onClick={() => navigate('/accounting/journals/TOUS')}
+                            onClick={() => {
+                              const totalDebit = journaux.reduce((sum, j) => sum + j.totalDebit, 0);
+                              const totalCredit = journaux.reduce((sum, j) => sum + j.totalCredit, 0);
+                              const lastEntry = journaux.reduce((latest, j) => j.lastEntry > latest ? j.lastEntry : latest, '');
+                              setSelectedJournal({
+                                id: 'tous', code: 'TOUS', libelle: 'Journal tous mouvements', type: 'OD' as const,
+                                entries: journaux.reduce((sum, j) => sum + j.entries, 0),
+                                totalDebit, totalCredit, lastEntry, color: '#737373'
+                              });
+                              setActiveTab('journal-view');
+                            }}
                             className="text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] transition-colors"
-                            title="Voir le journal consolidé (détail filtrable)"
+                            title="Voir le journal consolidé"
                           >
                             <Eye className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => navigate('/accounting/journals/TOUS')}
+                            onClick={() => {
+                              const totalDebit = journaux.reduce((sum, j) => sum + j.totalDebit, 0);
+                              const totalCredit = journaux.reduce((sum, j) => sum + j.totalCredit, 0);
+                              const lastEntry = journaux.reduce((latest, j) => j.lastEntry > latest ? j.lastEntry : latest, '');
+                              setSelectedJournal({
+                                id: 'tous', code: 'TOUS', libelle: 'Journal tous mouvements', type: 'OD' as const,
+                                entries: journaux.reduce((sum, j) => sum + j.entries, 0),
+                                totalDebit, totalCredit, lastEntry, color: '#737373'
+                              });
+                              setActiveTab('journal-view');
+                            }}
                             className="text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] transition-colors"
-                            title="Ouvrir le journal consolidé"
+                            title="Modifier les écritures"
                           >
                             <Edit className="w-4 h-4" />
                           </button>
@@ -779,16 +824,22 @@ const JournalsPage: React.FC = () => {
                           <span className="text-xs text-[var(--color-text-tertiary)]">Dernière écriture: {journal.lastEntry}</span>
                           <div className="flex items-center space-x-2">
                             <button
-                              onClick={() => navigate(`/accounting/journals/${encodeURIComponent(journal.code)}`)}
+                              onClick={() => {
+                                setSelectedJournal(journal);
+                                setActiveTab('journal-view');
+                              }}
                               className="text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] transition-colors"
-                              title="Voir le journal (détail filtrable)"
+                              title="Voir le journal"
                             >
                               <Eye className="w-4 h-4" />
                             </button>
                             <button
-                              onClick={() => navigate(`/accounting/journals/${encodeURIComponent(journal.code)}`)}
+                              onClick={() => {
+                                setSelectedJournal(journal);
+                                setActiveTab('journal-view');
+                              }}
                               className="text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] transition-colors"
-                              title="Ouvrir le journal"
+                              title="Modifier les écritures"
                             >
                               <Edit className="w-4 h-4" />
                             </button>
@@ -877,16 +928,22 @@ const JournalsPage: React.FC = () => {
                               <td className="px-4 py-4 text-center">
                                 <div className="flex items-center justify-center space-x-2">
                                   <button
-                                    onClick={() => navigate(`/accounting/journals/${encodeURIComponent(journal.code)}`)}
+                                    onClick={() => {
+                                      setSelectedJournal(journal);
+                                      setActiveTab('journal-view');
+                                    }}
                                     className="text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] transition-colors"
-                                    title="Voir le journal (détail filtrable)"
+                                    title="Voir le journal"
                                   >
                                     <Eye className="w-4 h-4" />
                                   </button>
                                   <button
-                                    onClick={() => navigate(`/accounting/journals/${encodeURIComponent(journal.code)}`)}
+                                    onClick={() => {
+                                      setSelectedJournal(journal);
+                                      setActiveTab('journal-view');
+                                    }}
                                     className="text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] transition-colors"
-                                    title="Ouvrir le journal"
+                                    title="Modifier les écritures"
                                   >
                                     <Edit className="w-4 h-4" />
                                   </button>
@@ -926,16 +983,36 @@ const JournalsPage: React.FC = () => {
                                 <td className="px-4 py-3 text-center">
                                   <div className="flex items-center justify-center space-x-2">
                                     <button
-                                      onClick={() => navigate(`/accounting/journals/${encodeURIComponent(journal.code)}?compte=${encodeURIComponent(sousJournal.code)}`)}
+                                      onClick={() => {
+                                        const sousJournalAsJournal = {
+                                          ...journal,
+                                          id: sousJournal.id,
+                                          code: sousJournal.code,
+                                          libelle: sousJournal.libelle,
+                                          entries: sousJournal.entries
+                                        };
+                                        setSelectedJournal(sousJournalAsJournal);
+                                        setActiveTab('journal-view');
+                                      }}
                                       className="text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] transition-colors"
-                                      title="Voir le sous-journal (détail filtrable)"
+                                      title="Voir le sous-journal"
                                     >
                                       <Eye className="w-3 h-3" />
                                     </button>
                                     <button
-                                      onClick={() => navigate(`/accounting/journals/${encodeURIComponent(journal.code)}?compte=${encodeURIComponent(sousJournal.code)}`)}
+                                      onClick={() => {
+                                        const sousJournalAsJournal = {
+                                          ...journal,
+                                          id: sousJournal.id,
+                                          code: sousJournal.code,
+                                          libelle: sousJournal.libelle,
+                                          entries: sousJournal.entries
+                                        };
+                                        setSelectedJournal(sousJournalAsJournal);
+                                        setActiveTab('journal-view');
+                                      }}
                                       className="text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] transition-colors"
-                                      title="Ouvrir le sous-journal"
+                                      title="Modifier le sous-journal"
                                     >
                                       <Edit className="w-3 h-3" />
                                     </button>
@@ -955,7 +1032,8 @@ const JournalsPage: React.FC = () => {
 
           {/* Journal sélectionné avec reproduction de l'image */}
           {activeTab === 'journal-view' && selectedJournal && (
-            <div className="space-y-4">
+            <div className="flex gap-0 items-stretch">
+            <div className="flex-1 min-w-0 space-y-4">
               <div className="bg-white rounded-lg border border-[var(--color-border)]">
                 {/* Header du journal réorganisé */}
                 <div className="bg-[var(--color-surface-hover)] border-b border-[var(--color-border)]">
@@ -1096,7 +1174,7 @@ const JournalsPage: React.FC = () => {
                     data={(journalViewFilter
                       ? getEcrituresJournal(journalViewFilter)
                       : getEcrituresJournal(selectedJournal?.code || 'TOUS')
-                    ) as unknown as Record<string, unknown>[]}
+                    ).filter(jvMatch) as unknown as Record<string, unknown>[]}
                     pageSize={15}
                     searchable={true}
                     exportable={true}
@@ -1195,6 +1273,15 @@ const JournalsPage: React.FC = () => {
                   <span className="text-xs text-[var(--color-text-secondary)]">Clôture comptable au 31/12</span>
                 </div>
               </div>
+            </div>
+            {/* Barre latérale de filtres (repliable) — le tableau d'origine reste intact. */}
+            <FilterSidebar
+              screenKey="journal-view"
+              filters={jvFilters}
+              onChange={setJvFilters}
+              journalOptions={journaux.map(j => ({ code: j.code, label: j.libelle }))}
+              exercice={{ start: `${new Date().getFullYear()}-01-01`, end: `${new Date().getFullYear()}-12-31` }}
+            />
             </div>
           )}
         </div>
