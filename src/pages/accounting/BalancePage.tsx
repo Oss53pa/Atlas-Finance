@@ -1,4 +1,5 @@
 import React, { Suspense, Component, ErrorInfo, ReactNode } from 'react';
+import DataPageLayout from '../../components/layout/DataPageLayout';
 
 // Lazy load AdvancedBalance component
 const AdvancedBalance = React.lazy(() => import('../../components/accounting/AdvancedBalance'));
@@ -38,22 +39,28 @@ class BalanceErrorBoundary extends Component<{ children: ReactNode }, ErrorBound
 
 const BalancePage: React.FC = () => {
   return (
-    <div className="h-full p-6 bg-[var(--color-background)]">
-      <div className="mb-6">
-        <h1 className="text-lg font-bold text-[var(--color-text-primary)]">Balance Comptable</h1>
-        <p className="text-[var(--color-text-secondary)] mt-1">Consultez et analysez la balance des comptes</p>
+    // Gabarit standard des écrans de travail : titre FIXE, contenu = seule zone défilante.
+    <DataPageLayout
+      className="bg-[var(--color-background)]"
+      header={
+        <div className="px-4 pt-3 pb-2">
+          <h1 className="text-lg font-bold text-[var(--color-text-primary)]">Balance Comptable</h1>
+          <p className="text-sm text-[var(--color-text-secondary)]">Consultez et analysez la balance des comptes</p>
+        </div>
+      }
+    >
+      <div className="px-4 pb-4">
+        <BalanceErrorBoundary>
+          <Suspense fallback={
+            <div className="flex items-center justify-center h-64">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--color-primary)]"></div>
+            </div>
+          }>
+            <AdvancedBalance />
+          </Suspense>
+        </BalanceErrorBoundary>
       </div>
-
-      <BalanceErrorBoundary>
-        <Suspense fallback={
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--color-primary)]"></div>
-          </div>
-        }>
-          <AdvancedBalance />
-        </Suspense>
-      </BalanceErrorBoundary>
-    </div>
+    </DataPageLayout>
   );
 };
 

@@ -14,6 +14,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Search, Download, CheckCircle2, Circle, CheckCircle } from 'lucide-react';
 import { useData } from '../../contexts/DataContext';
 import { formatCurrency } from '@/utils/formatters';
+import DataPageLayout from '../../components/layout/DataPageLayout';
 import FilterSidebar, {
   type ComptaFilters,
   type ComptaRow,
@@ -166,9 +167,11 @@ const JournalDetailPage: React.FC = () => {
   };
 
   return (
-    <div className="h-full flex flex-col">
-      {/* En-tête */}
-      <div className="flex flex-wrap items-center gap-3 px-6 py-4 border-b border-[var(--color-border)] bg-white">
+    // Gabarit standard des écrans de travail : en-tête FIXE, table = seule zone
+    // défilante, barre de filtres à droite hors de la zone défilante.
+    <DataPageLayout
+      header={
+      <div className="flex flex-wrap items-center gap-3 px-6 py-3 border-b border-[var(--color-border)] bg-white">
         <button
           type="button"
           onClick={() => navigate('/accounting/journals')}
@@ -198,10 +201,18 @@ const JournalDetailPage: React.FC = () => {
           <Download className="w-4 h-4" /> Exporter
         </button>
       </div>
-
-      {/* Corps : résultats à gauche + barre latérale filtres à droite */}
-      <div className="flex flex-1 min-h-0">
-        <div className="flex-1 min-w-0 p-6 overflow-y-auto">
+      }
+      sidebar={
+        <FilterSidebar
+          screenKey={screenKey}
+          filters={filters}
+          onChange={setFilters}
+          journalOptions={journalOptions}
+          exercice={exercice}
+        />
+      }
+    >
+        <div className="p-4">
           {/* Chips des filtres actifs */}
           <div className="flex flex-wrap gap-2 mb-4">
             {chips.map((chip) => (
@@ -248,8 +259,9 @@ const JournalDetailPage: React.FC = () => {
               </button>
             </div>
           ) : (
-            /* Scroll PROPRE à la table (pas le scroll de page) + en-tête FIGÉ (sticky). */
-            <div className="bg-white border border-[var(--color-border)] rounded-xl overflow-auto max-h-[68vh]">
+            /* UN SEUL ascenseur : la zone du DataPageLayout défile ; l'en-tête de
+               colonnes reste figé (sticky) dans cette zone. */
+            <div className="bg-white border border-[var(--color-border)] rounded-xl">
               <table className="w-full text-sm">
                 <thead className="bg-[var(--color-surface-hover)] sticky top-0 z-10 shadow-[0_1px_0_var(--color-border)]">
                   <tr>
@@ -301,17 +313,7 @@ const JournalDetailPage: React.FC = () => {
             </div>
           )}
         </div>
-
-        {/* Barre latérale filtres (repliable, persistée) */}
-        <FilterSidebar
-          screenKey={screenKey}
-          filters={filters}
-          onChange={setFilters}
-          journalOptions={journalOptions}
-          exercice={exercice}
-        />
-      </div>
-    </div>
+    </DataPageLayout>
   );
 };
 
