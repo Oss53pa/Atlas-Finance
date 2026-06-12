@@ -365,12 +365,13 @@ const AssetsCategories: React.FC = () => {
                             <span className="text-sm text-[var(--color-text-secondary)]">{category.children.length}</span>
                           </td>
                           <td className="p-3 text-center">
+                            {/* Classes SYSCOHADA normatives : pas d'édition — action réelle = déplier */}
                             <button
-                              onClick={() => toast.success(`Modifier: ${category.name}`)}
+                              onClick={() => toggleCategory(category.id)}
                               className="p-1.5 text-[var(--color-text-secondary)] hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                              title="Modifier"
+                              title={isExpanded ? 'Replier les sous-catégories' : 'Voir les sous-catégories'}
                             >
-                              <Edit2 className="w-4 h-4" />
+                              <ChevronRight className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
                             </button>
                           </td>
                         </tr>
@@ -404,13 +405,7 @@ const AssetsCategories: React.FC = () => {
                               <span className="text-sm text-[var(--color-text-secondary)]">—</span>
                             </td>
                             <td className="p-3 text-center">
-                              <button
-                                onClick={() => toast.success(`Modifier: ${child.name}`)}
-                                className="p-1.5 text-[var(--color-text-secondary)] hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                                title="Modifier"
-                              >
-                                <Edit2 className="w-3.5 h-3.5" />
-                              </button>
+                              <span className="text-sm text-[var(--color-text-secondary)]">—</span>
                             </td>
                           </tr>
                         ))}
@@ -461,13 +456,7 @@ const AssetsCategories: React.FC = () => {
                             }`}
                           />
                         </button>
-                        <button
-                          onClick={() => toast.success(`Modifier catégorie: ${category.name}`)}
-                          className="p-1 hover:bg-[var(--color-background-subtle)] rounded transition-colors"
-                          title="Modifier la catégorie"
-                        >
-                          <Edit2 className="w-4 h-4 text-[var(--color-text-secondary)]" />
-                        </button>
+                        {/* Classes SYSCOHADA normatives : pas d'édition (faux bouton retiré). */}
                       </div>
                     </div>
 

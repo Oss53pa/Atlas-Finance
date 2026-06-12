@@ -288,7 +288,12 @@ export class SupabaseAdapter implements DataAdapter {
     let q = this.client.from(pg).select('*').eq(pkCol, id)
     if (!this.isRootTable(pg)) q = q.eq('tenant_id', this.tenantId)
     const { data } = await q.maybeSingle()
-    return data as T | null
+    if (!data) return null
+    // Normalisation snake→camel comme getAll : sans elle, les consommateurs de getById
+    // lisaient des champs undefined (ex. asset.acquisitionValue) → calculs faussés
+    // (la mise à jour d'amortissement écrasait le cumul à 0).
+    const normalizer = TABLE_NORMALIZERS[pg]
+    return (normalizer ? normalizer(data) : data) as T | null
   }
 
   // Pagination par tranches pour contourner le plafond `max-rows` de PostgREST

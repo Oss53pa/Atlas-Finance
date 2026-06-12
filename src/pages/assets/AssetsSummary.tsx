@@ -248,26 +248,34 @@ const AssetsSummary: React.FC = () => {
     }
   ], [dbAssets, totalAcquisitionValue, totalResidualValue, depreciationRate, utilizationRate]);
 
-  // Compute categories from Dexie data
+  // Catégories = CLASSES SYSCOHADA réelles (préfixe 2 chiffres du compte d'immobilisation).
+  // Le champ `category` n'a qu'UNE valeur à l'import (« Autre ») → inutilisable.
   const assetCategories: AssetCategory[] = useMemo(() => {
+    const CLASS_LABELS: Record<string, string> = {
+      '20': 'Charges immobilisées', '21': 'Immobilisations incorporelles', '22': 'Terrains',
+      '23': 'Bâtiments et installations', '24': 'Matériel, mobilier & transport',
+      '25': 'Avances sur immobilisations', '26': 'Titres de participation', '27': 'Autres immo. financières',
+    };
     const catMap: Record<string, { count: number; value: number }> = {};
     for (const asset of dbAssets) {
-      if (!catMap[asset.category]) catMap[asset.category] = { count: 0, value: 0 };
-      catMap[asset.category].count++;
-      catMap[asset.category].value += asset.acquisitionValue;
+      const cls = String((asset as any).accountCode || '').substring(0, 2) || '2?';
+      if (!catMap[cls]) catMap[cls] = { count: 0, value: 0 };
+      catMap[cls].count++;
+      catMap[cls].value += asset.acquisitionValue;
     }
     const totalVal = dbAssets.reduce((s, a) => s + a.acquisitionValue, 0) || 1;
-    const icons: Record<string, React.ReactNode> = {};
-    const colors = ['#171717', '#15803D', '#E89A2E', '#525252', '#C0322B'];
-    return Object.entries(catMap).map(([name, data], index) => ({
-      id: name,
-      name,
-      icon: <Package className="w-6 h-6" />,
-      count: data.count,
-      value: data.value,
-      percentage: Math.round((data.value / totalVal) * 1000) / 10,
-      color: colors[index % colors.length]
-    }));
+    const colors = ['#235A6E', '#15803D', '#E89A2E', '#525252', '#C0322B', '#2D7D9A', '#6B9E6E'];
+    return Object.entries(catMap)
+      .sort((a, b) => b[1].value - a[1].value)
+      .map(([cls, data], index) => ({
+        id: cls,
+        name: `${cls} — ${CLASS_LABELS[cls] || 'Autres immobilisations'}`,
+        icon: <Package className="w-6 h-6" />,
+        count: data.count,
+        value: data.value,
+        percentage: Math.round((data.value / totalVal) * 1000) / 10,
+        color: colors[index % colors.length]
+      }));
   }, [dbAssets]);
 
   // Geographic data - group by category as proxy (no location field in DBAsset)
@@ -293,22 +301,43 @@ const AssetsSummary: React.FC = () => {
     }).catch(() => setMaintenanceData([]));
   }, [adapter]);
 
-  // Depreciation data computed per month (simplified)
+  // Évolution financière RÉELLE par ANNÉE : acquisitions réelles (acquisitionDate) et
+  // VNC fin d'année par amortissement linéaire SYSCOHADA exact par bien
+  // (dotation = brut/durée à partir de l'année d'acquisition, plafonnée à la durée).
+  // (L'ancien graphe simulait brut/12 sur Jan→Oct : données fabriquées.)
   const depreciationChartData: DepreciationData[] = useMemo(() => {
-    const months = ['Jan', 'Fev', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aou', 'Sep', 'Oct'];
-    const monthlyDep = totalAcquisitionValue > 0 ? (totalAcquisitionValue - totalResidualValue) / 12 : 0;
-    let netValue = totalAcquisitionValue;
-    return months.map((month) => {
-      netValue = netValue - monthlyDep;
-      return {
-        month,
-        acquisition: 0,
-        depreciation: Math.round(monthlyDep),
-        netValue: Math.round(Math.max(netValue, 0)),
-        disposal: 0
-      };
-    });
-  }, [totalAcquisitionValue, totalResidualValue]);
+    if (dbAssets.length === 0) return [];
+    const years = dbAssets
+      .map((a) => parseInt(String(a.acquisitionDate || '').slice(0, 4)))
+      .filter((y) => y > 1990);
+    if (years.length === 0) return [];
+    const minYear = Math.min(...years);
+    const maxYear = new Date().getFullYear();
+    const out: DepreciationData[] = [];
+    for (let y = minYear; y <= maxYear; y++) {
+      let acquisition = 0, depCumul = 0, brutCumul = 0;
+      for (const a of dbAssets) {
+        const acqYear = parseInt(String(a.acquisitionDate || '').slice(0, 4)) || 0;
+        if (acqYear > y || acqYear <= 1990) continue;
+        const brut = a.acquisitionValue || 0;
+        brutCumul += brut;
+        if (acqYear === y) acquisition += brut;
+        const duree = (a as any).usefulLifeYears || (a as any).usefulLife || 0;
+        if (duree > 0) {
+          const annees = Math.min(y - acqYear + 1, duree);
+          depCumul += (brut / duree) * annees;
+        }
+      }
+      out.push({
+        month: String(y),
+        acquisition: Math.round(acquisition),
+        depreciation: Math.round(depCumul),
+        netValue: Math.round(Math.max(brutCumul - depCumul, 0)),
+        disposal: 0,
+      });
+    }
+    return out;
+  }, [dbAssets]);
 
   // Tab configuration
   const tabs: Tab[] = [

@@ -85,8 +85,10 @@ const AssetsTransactions: React.FC = () => {
     typeTransaction: true,
     designation: true,
     numeroImmobilisation: true,
-    fournisseur: true,
-    numeroDocument: true,
+    // Fournisseur / N° document : non fournis par l'import (toujours « — ») →
+    // masqués par défaut, réactivables via le sélecteur de colonnes.
+    fournisseur: false,
+    numeroDocument: false,
     montant: true,
     categorieActifs: true,
     dureeVieAnnees: false,
@@ -141,9 +143,11 @@ const AssetsTransactions: React.FC = () => {
       coutEstimePrecedent: 0,
       valeurResiduellePrecedente: 0,
       dureeViePrecedente: 0,
-      amortissementCumuleActuel: (asset.acquisitionValue || 0) - (asset.residualValue || 0),
-      valeurNetteComptableActuelle: asset.residualValue || 0,
-      amortissementCumuleCout: (asset.acquisitionValue || 0) - (asset.residualValue || 0),
+      // VNC = brut − amortissements CUMULÉS (cumulDepreciation, renseigné à l'import).
+      // (residualValue=0 partout → l'ancien calcul donnait VNC=0 et amort=brut, FAUX.)
+      amortissementCumuleActuel: asset.cumulDepreciation || 0,
+      valeurNetteComptableActuelle: (asset.acquisitionValue || 0) - (asset.cumulDepreciation || 0),
+      amortissementCumuleCout: asset.cumulDepreciation || 0,
       amortissementCumuleReevaluation: 0,
       amortissementCumuleReevalExercPrec: 0,
       reevaluationPrecedente: 0,
@@ -491,21 +495,16 @@ const AssetsTransactions: React.FC = () => {
                       })}
                       <td className="py-3 px-2">
                         <div className="flex items-center justify-center gap-1">
+                          {/* Œil = ouvrir/fermer le détail de la ligne (le kebab sans action a été retiré). */}
                           <button
                             className="p-1 hover:bg-[var(--color-background)] rounded"
+                            title={expandedRow === transaction.id ? 'Fermer le détail' : 'Voir le détail'}
                             onClick={(e) => {
                               e.stopPropagation();
+                              setExpandedRow(expandedRow === transaction.id ? null : transaction.id);
                             }}
                           >
                             <Eye className="w-4 h-4 text-[var(--color-text-secondary)]" />
-                          </button>
-                          <button
-                            className="p-1 hover:bg-[var(--color-background)] rounded"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                            }}
-                          >
-                            <MoreVertical className="w-4 h-4 text-[var(--color-text-secondary)]" />
                           </button>
                         </div>
                       </td>

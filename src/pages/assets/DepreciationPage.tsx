@@ -1472,7 +1472,8 @@ const DepreciationPage: React.FC = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Exercice *</label>
                   <Input
-                    placeholder="2024"
+                    placeholder="2026"
+                    className="text-gray-900"
                     value={formData.exercice}
                     onChange={(e) => handleInputChange('exercice', e.target.value)}
                     disabled={isSubmitting}
@@ -1484,7 +1485,7 @@ const DepreciationPage: React.FC = () => {
                     value={formData.methode}
                     onValueChange={(value) => handleInputChange('methode', value)}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="text-gray-900">
                       <SelectValue placeholder="Sélectionner la méthode" />
                     </SelectTrigger>
                     <SelectContent>
@@ -1539,7 +1540,7 @@ const DepreciationPage: React.FC = () => {
                   setDepreciationToEdit(null);
                   resetForm();
                 }}
-                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 font-medium"
                 disabled={isSubmitting}
               >
                 Annuler
