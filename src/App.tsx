@@ -466,7 +466,7 @@ function App() {
                         {/* Budget */}
                         <Route element={<RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant', 'user', 'viewer']}><FeatureErrorBoundary feature="Budget" /></RBACGuard>}>
                           <Route path="/budgeting" element={<BudgetingDashboard />} />
-                          <Route path="/budgeting/list" element={<BudgetsPage />} />
+                          <Route path="/budgeting/list" element={work(<BudgetsPage />)} />
                           <Route path="/budgeting/control" element={<BudgetControlPage />} />
                           <Route path="/budgeting/detail/:id" element={<BudgetDetailPage />} />
                         </Route>
@@ -522,9 +522,9 @@ function App() {
                         {/* Fiscalite */}
                         <Route element={<RBACGuard allowedRoles={['admin', 'comptable', 'accountant']}><FeatureErrorBoundary feature="Fiscalité" /></RBACGuard>}>
                           <Route path="/taxation" element={<TaxationDashboard />} />
-                          <Route path="/taxation/declarations" element={<TaxDeclarationsPage />} />
+                          <Route path="/taxation/declarations" element={work(<TaxDeclarationsPage />)} />
                           <Route path="/taxation/liasse" element={<LiasseFiscalePage />} />
-                          <Route path="/taxation/echeances" element={<EcheancesFiscalesPage />} />
+                          <Route path="/taxation/echeances" element={work(<EcheancesFiscalesPage />)} />
                           <Route path="/taxation/fiscal-dashboard" element={<FiscalDashboard />} />
                         </Route>
 
