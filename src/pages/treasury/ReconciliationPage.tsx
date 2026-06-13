@@ -11,6 +11,7 @@ import {
 } from '../../services/rapprochementBancaireService';
 import type {
   RapprochementResult,
+  RapprochementMatch,
   BankTransaction,
   EtatRapprochement,
 } from '../../services/rapprochementBancaireService';
@@ -109,6 +110,10 @@ const ReconciliationPage: React.FC = () => {
   const [page, setPage] = useState(1);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [reconciliationMode, setReconciliationMode] = useState<'manual' | 'auto'>('manual');
+  // Appariement MANUEL LIBRE : on choisit 1 ligne de relevé (gauche) + 1 écriture
+  // (droite) parmi les non-rapprochés, puis « Rapprocher ».
+  const [pairBank, setPairBank] = useState<ReconciliationItem | null>(null);
+  const [pairCompta, setPairCompta] = useState<ReconciliationItem | null>(null);
 
   // États pour le modal de sélection de période
   const [showPeriodModal, setShowPeriodModal] = useState(false);
@@ -436,6 +441,46 @@ const ReconciliationPage: React.FC = () => {
     }
   };
 
+  // Rapproche LIBREMENT la ligne de relevé choisie à gauche avec l'écriture
+  // choisie à droite (lettrage de la ligne comptable via appliquerRapprochement).
+  const handlePairManual = async () => {
+    if (!pairBank || !pairCompta) return;
+    const entryId = pairCompta.reference_comptable;
+    if (!entryId) { toast.error('Écriture comptable invalide'); return; }
+    const ecart = pairBank.montant_banque - pairCompta.montant_comptable;
+    if (Math.abs(ecart) > 0.01 && !confirm(
+      `Les montants diffèrent (écart ${formatCurrency(Math.abs(ecart))}). Rapprocher quand même ?`
+    )) return;
+    const match: RapprochementMatch = {
+      bankTransactionId: pairBank.id,
+      entryIds: [entryId],
+      lineIds: [pairCompta.id],
+      method: 'manual',
+      bankAmount: pairBank.montant_banque,
+      comptaAmount: pairCompta.montant_comptable,
+      ecart,
+      confidence: 1,
+    };
+    try {
+      const applied = await appliquerRapprochement(adapter, [match]);
+      toast.success(`Rapprochement manuel appliqué (${applied} écriture(s))`);
+      setPairBank(null);
+      setPairCompta(null);
+      if (bankTransactions.length > 0) {
+        const result = await rapprochementAutomatique(adapter, bankTransactions);
+        setRapprochementResult(result);
+        const compte = filters.compte || setupInfo.accountCode || '';
+        if (compte) {
+          const etat = await genererEtatRapprochement(compte, bankTransactions, result);
+          setEtatRapprochement(etat);
+        }
+      }
+    } catch (error) {
+      console.error('[ReconciliationPage] Erreur rapprochement manuel libre:', error);
+      toast.error('Erreur lors du rapprochement manuel');
+    }
+  };
+
   const getStatusColor = (statut: string) => {
     switch (statut) {
       case 'rapproche': return 'bg-green-100 text-green-800';
@@ -575,13 +620,27 @@ const ReconciliationPage: React.FC = () => {
     const montant = side === 'bank' ? item.montant_banque : item.montant_comptable;
     const ref = side === 'bank' ? item.reference_banque : item.reference_comptable;
     const matched = item.statut === 'rapproche';
+    const picked = side === 'bank' ? pairBank?.id === item.id : pairCompta?.id === item.id;
+    // Non rapproché → cliquer la ligne la choisit pour l'appariement manuel (son côté).
+    const onPick = () => {
+      if (matched) return;
+      if (side === 'bank') setPairBank(prev => (prev?.id === item.id ? null : item));
+      else setPairCompta(prev => (prev?.id === item.id ? null : item));
+    };
+    const stop = (fn: () => void) => (e: React.MouseEvent) => { e.stopPropagation(); fn(); };
     return (
-      <div key={`${side}-${item.id}`} className={`px-3 py-2 border-b border-[var(--color-border)] ${
-        matched ? 'bg-green-50/50' : ''
-      } ${selectedItems.has(item.id) ? 'bg-[var(--color-primary)]/5' : ''}`}>
+      <div
+        key={`${side}-${item.id}`}
+        onClick={onPick}
+        className={`px-3 py-2 border-b border-[var(--color-border)] ${matched ? 'bg-green-50/50' : 'cursor-pointer hover:bg-gray-50'} ${
+          picked ? 'ring-2 ring-inset ring-[var(--color-primary)] bg-[var(--color-primary)]/5' : ''
+        }`}
+      >
         <div className="flex items-center gap-2">
-          {reconciliationMode === 'manual' && (
-            <input type="checkbox" checked={selectedItems.has(item.id)} onChange={() => handleItemSelect(item.id)} className="h-4 w-4 rounded border-gray-300 shrink-0" />
+          {!matched && (
+            <span className={`h-4 w-4 rounded-full border shrink-0 flex items-center justify-center ${picked ? 'bg-[var(--color-primary)] border-[var(--color-primary)]' : 'border-gray-300'}`}>
+              {picked && <Check className="h-3 w-3 text-white" />}
+            </span>
           )}
           <div className="flex-1 min-w-0">
             <div className="text-sm font-medium truncate">{item.libelle || '—'}</div>
@@ -593,9 +652,8 @@ const ReconciliationPage: React.FC = () => {
           <span className={`text-sm font-mono font-semibold whitespace-nowrap shrink-0 ${montant >= 0 ? 'text-green-700' : 'text-red-700'}`}>{formatCurrency(montant)}</span>
           <span className={`text-[10px] px-1.5 py-0.5 rounded shrink-0 ${matched ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'}`}>{matched ? 'Rapproché' : 'À rapprocher'}</span>
           <div className="flex items-center shrink-0">
-            <Button variant="ghost" size="sm" aria-label="Voir les détails" onClick={() => handleViewDetail(item)}><Eye className="h-4 w-4" /></Button>
-            {!matched && <Button variant="ghost" size="sm" className="text-green-600 hover:text-green-700" aria-label="Rapprocher" onClick={() => handleReconcileSingle(item)}><Check className="h-4 w-4" /></Button>}
-            {matched && <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700" aria-label="Annuler rapprochement" onClick={() => handleCancelReconciliation(item)}><X className="h-4 w-4" /></Button>}
+            <Button variant="ghost" size="sm" aria-label="Voir les détails" onClick={stop(() => handleViewDetail(item))}><Eye className="h-4 w-4" /></Button>
+            {matched && <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700" aria-label="Annuler rapprochement" onClick={stop(() => handleCancelReconciliation(item))}><X className="h-4 w-4" /></Button>}
           </div>
         </div>
       </div>
@@ -868,17 +926,9 @@ const ReconciliationPage: React.FC = () => {
           <CardTitle className="flex items-center justify-between">
             <span>Éléments de Rapprochement</span>
             <div className="flex items-center space-x-4">
-              {reconciliationMode === 'manual' && (
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={selectedItems.size === (reconciliationData?.results?.length || 0) && selectedItems.size > 0}
-                    onChange={handleSelectAll}
-                    className="h-4 w-4 rounded border-gray-300"
-                  />
-                  <span className="text-sm text-gray-600">Tout sélectionner</span>
-                </div>
-              )}
+              <span className="text-xs text-gray-500 hidden md:inline">
+                Cliquez une ligne à gauche et une à droite pour les rapprocher
+              </span>
               <span className="text-sm text-gray-600">
                 Du {formatDate(filters.periode_debut)} au {formatDate(filters.periode_fin)}
               </span>
@@ -897,6 +947,28 @@ const ReconciliationPage: React.FC = () => {
             </div>
           ) : (
             <>
+              {/* Barre d'appariement MANUEL : apparaît dès qu'une ligne est choisie. */}
+              {(pairBank || pairCompta) && (
+                <div className="mb-3 flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-[var(--color-primary)]/5 border border-[var(--color-primary)]/30">
+                  <div className="text-sm flex items-center gap-2 flex-wrap min-w-0">
+                    <span className="truncate">Relevé : {pairBank
+                      ? <span className="font-medium">{pairBank.libelle} <span className="font-mono">({formatCurrency(pairBank.montant_banque)})</span></span>
+                      : <em className="text-gray-400">à choisir à gauche</em>}</span>
+                    <GitCompare className="h-4 w-4 text-[var(--color-primary)] shrink-0" />
+                    <span className="truncate">Écriture : {pairCompta
+                      ? <span className="font-medium">{pairCompta.libelle} <span className="font-mono">({formatCurrency(pairCompta.montant_comptable)})</span></span>
+                      : <em className="text-gray-400">à choisir à droite</em>}</span>
+                    {pairBank && pairCompta && (() => {
+                      const ecart = Math.abs(pairBank.montant_banque - pairCompta.montant_comptable);
+                      return <span className={`font-semibold shrink-0 ${ecart > 0.01 ? 'text-orange-600' : 'text-green-600'}`}>écart {formatCurrency(ecart)}</span>;
+                    })()}
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Button variant="outline" size="sm" onClick={() => { setPairBank(null); setPairCompta(null); }}>Annuler</Button>
+                    <Button size="sm" disabled={!pairBank || !pairCompta} onClick={handlePairManual}><Check className="h-4 w-4 mr-1" />Rapprocher</Button>
+                  </div>
+                </div>
+              )}
               {/* Vue CÔTE À CÔTE : relevé bancaire (gauche) ⇄ écritures comptables
                   (droite), séparateur centré. Chaque colonne défile seule. Les actions
                   (sélection, détail, rapprocher/annuler) sont identiques à l'ancienne vue. */}

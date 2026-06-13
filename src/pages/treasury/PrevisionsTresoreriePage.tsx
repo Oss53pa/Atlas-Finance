@@ -1027,61 +1027,74 @@ const PrevisionsTresoreriePage: React.FC = () => {
             </div>
 
             {/* Lines table */}
-            <div className="border border-gray-200 rounded-lg mb-4">
-              <div className="p-3 border-b border-gray-200 bg-gray-50">
-                <h4 className="font-medium text-[var(--color-text-primary)]">Lignes du plan</h4>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">Libellé</th>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">Catégorie</th>
-                      <th className="px-3 py-2 text-right text-xs font-medium text-gray-700 uppercase">Montant</th>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">Date</th>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">Récurrence</th>
-                      <th className="px-3 py-2 text-center text-xs font-medium text-gray-700 uppercase">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {detailPlan.lines.length === 0 ? (
-                      <tr>
-                        <td colSpan={6} className="px-3 py-6 text-center text-gray-500 text-sm">
-                          Aucune ligne. Ajoutez des encaissements et décaissements ci-dessous.
-                        </td>
-                      </tr>
-                    ) : (
-                      detailPlan.lines.map(line => (
-                        <tr key={line.id} className="hover:bg-gray-50">
-                          <td className="px-3 py-2">{line.label}</td>
-                          <td className="px-3 py-2">
-                            <span className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded-full ${
-                              line.category === 'encaissement' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                            }`}>
-                              {line.category === 'encaissement' ? 'Encaissement' : 'Décaissement'}
-                            </span>
-                          </td>
-                          <td className={`px-3 py-2 text-right font-medium ${line.category === 'encaissement' ? 'text-green-600' : 'text-red-600'}`}>
-                            {line.category === 'encaissement' ? '+' : '-'}{formatCurrency(line.amount)}
-                          </td>
-                          <td className="px-3 py-2 text-sm">{new Date(line.date).toLocaleDateString('fr-FR')}</td>
-                          <td className="px-3 py-2 text-sm">{line.recurrent ? line.frequency : '—'}</td>
-                          <td className="px-3 py-2 text-center">
-                            <button
-                              onClick={() => handleDeleteLine(line.id)}
-                              className="p-1 text-gray-400 hover:text-red-600 rounded transition-colors"
-                              title="Supprimer"
-                            >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                            </button>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            {/* Lignes du plan CÔTE À CÔTE : Encaissements (gauche) | Décaissements
+                (droite), séparateur centré, total par colonne. */}
+            {(() => {
+              const encs = detailPlan.lines.filter(l => l.category === 'encaissement');
+              const decs = detailPlan.lines.filter(l => l.category === 'decaissement');
+              const totalEnc = encs.reduce((s, l) => s + l.amount, 0);
+              const totalDec = decs.reduce((s, l) => s + l.amount, 0);
+              const renderLine = (line: TreasuryPlanLine, positive: boolean) => (
+                <div key={line.id} className="px-3 py-2 flex items-center gap-2 hover:bg-gray-50">
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium truncate">{line.label}</div>
+                    <div className="text-xs text-gray-500">
+                      {new Date(line.date).toLocaleDateString('fr-FR')}{line.recurrent ? ` · ${line.frequency}` : ''}
+                    </div>
+                  </div>
+                  <span className={`text-sm font-mono font-medium whitespace-nowrap shrink-0 ${positive ? 'text-green-600' : 'text-red-600'}`}>
+                    {positive ? '+' : '-'}{formatCurrency(line.amount)}
+                  </span>
+                  <button onClick={() => handleDeleteLine(line.id)} className="p-1 text-gray-400 hover:text-red-600 rounded shrink-0" title="Supprimer">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                  </button>
+                </div>
+              );
+              return (
+                <div className="mb-4">
+                  <div className="flex items-stretch gap-0">
+                    {/* Encaissements */}
+                    <div className="flex-1 min-w-0 border border-green-200 rounded-lg overflow-hidden">
+                      <div className="px-3 py-2 bg-green-50 border-b border-green-200 flex items-center justify-between">
+                        <span className="text-sm font-semibold text-green-700">Encaissements (+)</span>
+                        <span className="text-sm font-mono font-semibold text-green-700">{formatCurrency(totalEnc)}</span>
+                      </div>
+                      <div className="max-h-[42vh] overflow-y-auto divide-y divide-gray-100">
+                        {encs.length === 0
+                          ? <div className="p-4 text-center text-sm text-gray-400">Aucun encaissement.</div>
+                          : encs.map(l => renderLine(l, true))}
+                      </div>
+                    </div>
+
+                    {/* Séparateur centré */}
+                    <div className="flex-none w-12 relative flex items-center justify-center">
+                      <div className="absolute top-4 bottom-4 w-px bg-gray-200" />
+                      <div className="z-10 w-8 h-8 rounded-full bg-white border border-gray-300 flex items-center justify-center text-[10px] font-semibold text-gray-500">vs</div>
+                    </div>
+
+                    {/* Décaissements */}
+                    <div className="flex-1 min-w-0 border border-red-200 rounded-lg overflow-hidden">
+                      <div className="px-3 py-2 bg-red-50 border-b border-red-200 flex items-center justify-between">
+                        <span className="text-sm font-semibold text-red-700">Décaissements (−)</span>
+                        <span className="text-sm font-mono font-semibold text-red-700">{formatCurrency(totalDec)}</span>
+                      </div>
+                      <div className="max-h-[42vh] overflow-y-auto divide-y divide-gray-100">
+                        {decs.length === 0
+                          ? <div className="p-4 text-center text-sm text-gray-400">Aucun décaissement.</div>
+                          : decs.map(l => renderLine(l, false))}
+                      </div>
+                    </div>
+                  </div>
+                  {/* Solde net prévisionnel */}
+                  <div className="mt-2 flex items-center justify-end gap-2 text-sm">
+                    <span className="text-gray-600">Solde net prévisionnel :</span>
+                    <span className={`font-mono font-bold ${totalEnc - totalDec >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                      {totalEnc - totalDec >= 0 ? '+' : ''}{formatCurrency(totalEnc - totalDec)}
+                    </span>
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Add line form */}
             <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
