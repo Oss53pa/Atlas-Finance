@@ -944,18 +944,26 @@ const TaxReportingPage: React.FC = () => {
 
   const taxStats = useMemo(() => {
     let tvaCollectee = 0, tvaDeductible = 0, chargesPersonnel = 0, resultatNet = 0;
+    // Soldes créditeurs (montant DÛ) d'autres natures fiscales/sociales :
+    let socialAPayer = 0;        // classe 43 — CNPS / organismes sociaux
+    let autresImpots = 0;        // 44x hors TVA (443/445) et IS (442) — patente, retenues, autres
     // Exclure les brouillons des KPI fiscaux (cohérence états financiers)
     for (const e of allEntries.filter(en => (en as { status?: string }).status !== 'draft')) {
       for (const l of e.lines || []) {
-        if (l.accountCode.startsWith('4431') || l.accountCode.startsWith('4432') || l.accountCode.startsWith('4433') || l.accountCode.startsWith('4434') || l.accountCode.startsWith('4436')) {
+        const code = l.accountCode || '';
+        if (code.startsWith('4431') || code.startsWith('4432') || code.startsWith('4433') || code.startsWith('4434') || code.startsWith('4436')) {
           tvaCollectee += l.credit - l.debit;
         }
-        if (l.accountCode.startsWith('4451') || l.accountCode.startsWith('4452') || l.accountCode.startsWith('4453') || l.accountCode.startsWith('4454') || l.accountCode.startsWith('4455') || l.accountCode.startsWith('4456')) {
+        if (code.startsWith('4451') || code.startsWith('4452') || code.startsWith('4453') || code.startsWith('4454') || code.startsWith('4455') || code.startsWith('4456')) {
           tvaDeductible += l.debit - l.credit;
         }
-        if (l.accountCode.startsWith('66')) chargesPersonnel += l.debit - l.credit;
-        if (l.accountCode.startsWith('7')) resultatNet += l.credit - l.debit;
-        if (l.accountCode.startsWith('6')) resultatNet -= l.debit - l.credit;
+        if (code.startsWith('66')) chargesPersonnel += l.debit - l.credit;
+        if (code.startsWith('7')) resultatNet += l.credit - l.debit;
+        if (code.startsWith('6')) resultatNet -= l.debit - l.credit;
+        // CNPS / organismes sociaux (classe 43) — solde créditeur = à payer.
+        if (/^43/.test(code)) socialAPayer += l.credit - l.debit;
+        // Autres impôts & taxes État : classe 44 SAUF 442 (IS), 443/445 (TVA).
+        if (/^44/.test(code) && !/^44[235]/.test(code)) autresImpots += l.credit - l.debit;
       }
     }
     const tvaAPayer = Math.max(0, tvaCollectee - tvaDeductible);
@@ -970,6 +978,8 @@ const TaxReportingPage: React.FC = () => {
       tvaAPayer: Math.round(tvaAPayer),
       irpp: irppEstime,
       is: isEstime,
+      cnps: Math.round(Math.max(0, socialAPayer)),
+      autresImpots: Math.round(Math.max(0, autresImpots)),
       totalTaxes,
       creditTVA,
       economiesFiscales,
@@ -1113,17 +1123,36 @@ const TaxReportingPage: React.FC = () => {
     const dbDeclaredTypes = new Set(
       declarations.filter(d => d.statut === 'en_cours' || d.statut === 'payee').map(d => d.type.toUpperCase()),
     );
-    const items = [
-      { key: 'TVA', label: 'TVA à payer', montant: taxStats.tvaAPayer, periode: moisLabel, echeance: ech(2, 15) },
-      { key: 'IRPP', label: 'IRPP (salaires)', montant: taxStats.irpp, periode: `T${Math.ceil((now.getMonth() + 1) / 3)} ${now.getFullYear()}`, echeance: ech(2, 20) },
-      { key: 'IS', label: 'Impôt sur les sociétés', montant: taxStats.is, periode: `${now.getFullYear()}`, echeance: `${now.getFullYear()}-03-15` },
-    ].filter(t => t.montant > 0);
+
+    // 1. Registre fiscal configuré → toutes les taxes détectées (couverture complète).
+    let items: { key: string; label: string; montant: number; periode: string; echeance: string }[];
+    if (hasRegistry && triggeredTaxes.length > 0) {
+      items = triggeredTaxes
+        .map(r => ({
+          key: r.tax.taxCode,
+          label: r.tax.taxShortName || r.tax.taxName || r.tax.taxCode,
+          montant: Math.round(r.amounts?.net || 0),
+          periode: moisLabel,
+          echeance: r.declarationDeadline || '',
+        }))
+        .filter(t => t.montant > 0);
+    } else {
+      // 2. Sinon, dérivation du Grand Livre — natures étendues.
+      items = [
+        { key: 'TVA', label: 'TVA à payer', montant: taxStats.tvaAPayer, periode: moisLabel, echeance: ech(2, 15) },
+        { key: 'IRPP', label: 'IRPP (retenues salaires)', montant: taxStats.irpp, periode: `T${Math.ceil((now.getMonth() + 1) / 3)} ${now.getFullYear()}`, echeance: ech(2, 20) },
+        { key: 'IS', label: 'Impôt sur les sociétés', montant: taxStats.is, periode: `${now.getFullYear()}`, echeance: `${now.getFullYear()}-03-15` },
+        { key: 'CNPS', label: 'CNPS / Organismes sociaux', montant: taxStats.cnps, periode: moisLabel, echeance: ech(2, 15) },
+        { key: 'AUTRES', label: 'Autres impôts & taxes (État)', montant: taxStats.autresImpots, periode: moisLabel, echeance: ech(2, 15) },
+      ].filter(t => t.montant > 0);
+    }
+
     return items.map(t => {
       const mark = declMarks[t.key];
       const declared = !!mark || dbDeclaredTypes.has(t.key) || dbDeclaredTypes.has(t.label.toUpperCase());
       return { ...t, declared, declaredAt: mark?.declaredAt || null };
     });
-  }, [taxStats, declMarks, declarations]);
+  }, [taxStats, declMarks, declarations, hasRegistry, triggeredTaxes]);
 
   const aDeclarer = taxesParNature.filter(t => !t.declared);
   const dejaDeclarees = taxesParNature.filter(t => t.declared);
