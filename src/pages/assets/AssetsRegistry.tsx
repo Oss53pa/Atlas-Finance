@@ -375,9 +375,11 @@ const AssetsRegistry: React.FC = () => {
         category: a.category,
         subcategory: '',
         acquisition_value: a.acquisitionValue,
-        current_value: a.acquisitionValue - a.residualValue,
-        cumulated_depreciation: a.residualValue,
-        net_value: a.acquisitionValue - a.residualValue,
+        // VNC = brut − amortissements cumulés. `residualValue` vaut 0 en base ;
+        // c'est `cumulDepreciation` qui porte l'amortissement cumulé réel.
+        current_value: Math.max(0, (a.acquisitionValue || 0) - (a.cumulDepreciation || 0)),
+        cumulated_depreciation: a.cumulDepreciation || 0,
+        net_value: Math.max(0, (a.acquisitionValue || 0) - (a.cumulDepreciation || 0)),
         responsible: ''
       }));
     }
@@ -603,7 +605,7 @@ const AssetsRegistry: React.FC = () => {
       const code = (asset.asset_class || '').substring(0, 2) || '21';
       if (!catMap[code]) catMap[code] = { count: 0, totalValue: 0, totalAge: 0, totalRate: 0 };
       catMap[code].count++;
-      catMap[code].totalValue += asset.acquisition_cost || 0;
+      catMap[code].totalValue += asset.current_value || asset.acquisition_cost || 0;
       const acqDate = new Date(asset.acquisition_date || now);
       catMap[code].totalAge += (now.getTime() - acqDate.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
       catMap[code].totalRate += asset.depreciation_rate || 0;

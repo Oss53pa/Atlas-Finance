@@ -510,26 +510,30 @@ export const ColorfulBarChart: React.FC<ColorfulBarChartProps> = ({
           const barHeight = (item.value / maxValue) * 100;
           const c = BAR_SERIES[index % BAR_SERIES.length];
           return (
-            <motion.div
+            <div
               key={index}
-              initial={{ scaleY: 0 }}
-              animate={{ scaleY: 1 }}
-              transition={{ delay: index * 0.1, duration: 0.5 }}
-              className="flex-1 flex flex-col items-center"
+              className="flex-1 h-full flex flex-col items-center justify-end min-w-0"
             >
-              <motion.div
-                className="w-full rounded-t-lg origin-bottom"
-                style={{
-                  height: `${barHeight}%`,
-                  background: `linear-gradient(180deg, ${c} 0%, ${c}D9 60%, ${c}A6 100%)`,
-                  boxShadow: `0 6px 14px -6px ${c}66`,
-                }}
-                whileHover={{ scale: 1.04 }}
-              />
-              <span className="text-xs text-neutral-600 mt-2 font-medium">
+              {/* zone de barre à hauteur fixe : le % de la barre se calcule sur CETTE
+                  zone (sinon un % sur un parent auto-hauteur = 0 → barres invisibles). */}
+              <div className="w-full flex-1 flex items-end justify-center min-h-0">
+                <motion.div
+                  initial={{ scaleY: 0 }}
+                  animate={{ scaleY: 1 }}
+                  transition={{ delay: index * 0.08, duration: 0.5 }}
+                  className="w-full max-w-[64px] rounded-t-lg origin-bottom"
+                  style={{
+                    height: `${Math.max(barHeight, item.value > 0 ? 2 : 0)}%`,
+                    background: `linear-gradient(180deg, ${c} 0%, ${c}D9 60%, ${c}A6 100%)`,
+                    boxShadow: `0 6px 14px -6px ${c}66`,
+                  }}
+                  whileHover={{ scale: 1.04 }}
+                />
+              </div>
+              <span className="text-xs text-neutral-600 mt-2 font-medium text-center truncate w-full" title={item.label}>
                 {item.label}
               </span>
-            </motion.div>
+            </div>
           );
         })}
       </div>

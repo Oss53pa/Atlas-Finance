@@ -134,19 +134,19 @@ const ReevaluationPage: React.FC = () => {
             <div className="grid grid-cols-4 gap-4 mb-6">
               <div className="bg-gray-50 rounded-lg p-4">
                 <p className="text-xs text-[var(--color-text-tertiary)]">VNC actuelle</p>
-                <p className="text-lg font-bold text-[var(--color-primary)]">{formatCurrency(preview.ancienneVNC || 0)}</p>
+                <p className="text-lg font-bold text-[var(--color-primary)]">{formatCurrency(preview.vnc || 0)}</p>
               </div>
               <div className="bg-gray-50 rounded-lg p-4">
                 <p className="text-xs text-[var(--color-text-tertiary)]">Nouvelle valeur</p>
-                <p className="text-lg font-bold text-[var(--color-primary)]">{formatCurrency(parseFloat(nouvelleValeur))}</p>
+                <p className="text-lg font-bold text-[var(--color-primary)]">{formatCurrency(preview.nouvelleValeurBrute || parseFloat(nouvelleValeur) || 0)}</p>
               </div>
               <div className="bg-green-50 rounded-lg p-4">
                 <p className="text-xs text-[var(--color-text-tertiary)]">Écart de réévaluation</p>
-                <p className="text-lg font-bold text-green-700">{formatCurrency(preview.ecart || 0)}</p>
+                <p className="text-lg font-bold text-green-700">{formatCurrency(preview.ecartReevaluation || 0)}</p>
               </div>
               <div className="bg-blue-50 rounded-lg p-4">
                 <p className="text-xs text-[var(--color-text-tertiary)]">Nouvelle dotation annuelle</p>
-                <p className="text-lg font-bold text-blue-700">{formatCurrency(preview.nouvelleDotation || 0)}</p>
+                <p className="text-lg font-bold text-blue-700">{formatCurrency(preview.nouvelleDotationAnnuelle || 0)}</p>
               </div>
             </div>
 
@@ -154,8 +154,8 @@ const ReevaluationPage: React.FC = () => {
               <table className="w-full text-sm">
                 <thead><tr className="bg-gray-50"><th className="p-3 text-left">Compte</th><th className="p-3 text-left">Libellé</th><th className="p-3 text-right">Débit</th><th className="p-3 text-right">Crédit</th></tr></thead>
                 <tbody>
-                  <tr className="border-t"><td className="p-3 font-mono">{selectedAsset?.compteImmobilisation || '2xxx'}</td><td className="p-3">Augmentation valeur brute</td><td className="p-3 text-right font-medium">{formatCurrency(preview.ecart || 0)}</td><td className="p-3 text-right">—</td></tr>
-                  <tr className="border-t"><td className="p-3 font-mono">105x</td><td className="p-3">Écart de réévaluation</td><td className="p-3 text-right">—</td><td className="p-3 text-right font-medium">{formatCurrency(preview.ecart || 0)}</td></tr>
+                  <tr className="border-t"><td className="p-3 font-mono">{selectedAsset?.compteImmobilisation || '2xxx'}</td><td className="p-3">Augmentation valeur brute</td><td className="p-3 text-right font-medium">{formatCurrency(preview.ecartReevaluation || 0)}</td><td className="p-3 text-right">—</td></tr>
+                  <tr className="border-t"><td className="p-3 font-mono">105x</td><td className="p-3">Écart de réévaluation</td><td className="p-3 text-right">—</td><td className="p-3 text-right font-medium">{formatCurrency(preview.ecartReevaluation || 0)}</td></tr>
                 </tbody>
               </table>
             </div>
