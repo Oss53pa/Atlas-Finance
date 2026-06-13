@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { toast } from 'sonner';
 import { useData } from '../../contexts/DataContext';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
@@ -190,28 +191,36 @@ const PrevisionsTresoreriePage: React.FC = () => {
     }
     const treasuryCodes = new Set(allTreasuryAccounts.map(a => a.number));
     const txns: Array<{ codeJournal: string; numFacture: string; numPiece: string; docDate: string; transDate: string; glAccount: string; glDescription: string; cashTransaction: string; amount: number; collectionDate: string; accountant: string; bank: string }> = [];
+    // Flux EN ATTENTE = mouvements de trésorerie NON encore rapprochés (non lettrés,
+    // hors À-Nouveau) + éventuels brouillons. Les DÉBITS = encaissements à venir
+    // (reçus non crédités → Incoming), les CRÉDITS = paiements à venir (émis non
+    // débités → Outcoming). Cohérent avec le cockpit Positions : Solde Final =
+    // solde réel + reçus − émis = solde théorique.
     journalEntries
-      .filter(e => e.status === 'draft')
+      .filter(e => e.status === 'validated' || e.status === 'posted' || e.status === 'draft')
       .forEach(entry => {
+        if (entry.journal === 'AN' || entry.journal === 'RAN') return;
         entry.lines.forEach((line: any) => {
-          if (treasuryCodes.has(line.accountCode)) {
-            const amount = line.debit > 0 ? line.debit : -line.credit;
-            const matchingAcct = allTreasuryAccounts.find(a => a.number === line.accountCode);
-            txns.push({
-              codeJournal: entry.journal,
-              numFacture: entry.reference,
-              numPiece: entry.entryNumber,
-              docDate: new Date(entry.date).toLocaleDateString('fr-FR'),
-              transDate: new Date(entry.date).toLocaleDateString('fr-FR'),
-              glAccount: line.accountCode,
-              glDescription: line.label || entry.label,
-              cashTransaction: amount >= 0 ? 'IN' : 'OUT',
-              amount,
-              collectionDate: new Date(entry.date).toLocaleDateString('fr-FR'),
-              accountant: entry.createdBy || '',
-              bank: matchingAcct?.bank || '',
-            });
-          }
+          if (!treasuryCodes.has(line.accountCode)) return;
+          // Déjà rapproché (lettré) → ce n'est plus un flux en attente.
+          if (line.lettrageCode || line.lettrage_code) return;
+          const amount = line.debit > 0 ? line.debit : -(line.credit || 0);
+          if (amount === 0) return;
+          const matchingAcct = allTreasuryAccounts.find(a => a.number === line.accountCode);
+          txns.push({
+            codeJournal: entry.journal,
+            numFacture: entry.reference,
+            numPiece: entry.entryNumber,
+            docDate: entry.date ? new Date(entry.date).toLocaleDateString('fr-FR') : '',
+            transDate: entry.date ? new Date(entry.date).toLocaleDateString('fr-FR') : '',
+            glAccount: line.accountCode,
+            glDescription: line.label || entry.label,
+            cashTransaction: amount >= 0 ? 'IN' : 'OUT',
+            amount,
+            collectionDate: entry.date ? new Date(entry.date).toLocaleDateString('fr-FR') : '',
+            accountant: entry.createdBy || '',
+            bank: matchingAcct?.bank || '',
+          });
         });
       });
     return txns;
@@ -458,9 +467,12 @@ const PrevisionsTresoreriePage: React.FC = () => {
   return (
     <div className="space-y-3">
       {/* Header */}
-      <div className="border-b border-gray-200 pb-4">
-        <h1 className="text-lg font-bold text-[var(--color-text-primary)]">Prévisions de Trésorerie</h1>
-        <p className="mt-2 text-[var(--color-text-secondary)]">Gestion des comptes et planification de trésorerie</p>
+      <div className="border-b border-gray-200 pb-4 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-lg font-bold text-[var(--color-text-primary)]">Prévisions de Trésorerie</h1>
+          <p className="mt-2 text-[var(--color-text-secondary)]">Gestion des comptes et planification de trésorerie</p>
+        </div>
+        <PageHeaderActions />
       </div>
 
       {/* Tabs */}
