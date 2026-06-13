@@ -881,6 +881,8 @@ const TaxReportingPage: React.FC = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('current-month');
   const [selectedTaxType, setSelectedTaxType] = useState('all');
   const [activeTab, setActiveTab] = useState('overview');
+  // Sélection de taxes à déclarer (panneau côte à côte « à déclarer ⇄ déjà déclarées »).
+  const [selectedTaxKeys, setSelectedTaxKeys] = useState<Set<string>>(new Set());
 
   // Modal states
   const [showImportModal, setShowImportModal] = useState(false);
@@ -1022,6 +1024,22 @@ const TaxReportingPage: React.FC = () => {
     queryFn: () => adapter.getById<{ key: string; value: string }>('settings', 'tax_declarations'),
   });
 
+  // Marques « déclarée » par taxe (panneau côte à côte) — persistées en settings.
+  const { data: declMarksSetting } = useQuery({
+    queryKey: ['tax-decl-marks'],
+    queryFn: () => adapter.getById<{ key: string; value: string }>('settings', 'tax_decl_marks'),
+  });
+  const declMarks: Record<string, { declaredAt: string; periode: string }> = useMemo(() => {
+    try { return declMarksSetting?.value ? JSON.parse(declMarksSetting.value) : {}; } catch { return {}; }
+  }, [declMarksSetting]);
+
+  const saveDeclMarks = useCallback(async (next: Record<string, { declaredAt: string; periode: string }>) => {
+    const payload = { key: 'tax_decl_marks', value: JSON.stringify(next), updatedAt: new Date().toISOString() };
+    if (declMarksSetting) await adapter.update('settings', 'tax_decl_marks', payload);
+    else await adapter.create('settings', payload);
+    queryClient.invalidateQueries({ queryKey: ['tax-decl-marks'] });
+  }, [adapter, declMarksSetting, queryClient]);
+
   const declarations: TaxDeclaration[] = useMemo(() => {
     const result: TaxDeclaration[] = [];
     const seenIds = new Set<string>();
@@ -1084,6 +1102,54 @@ const TaxReportingPage: React.FC = () => {
 
     return result;
   }, [dbTaxDeclarations, taxRegistry, taxStats, declSetting]);
+
+  // ─── Taxes à déclarer PAR NATURE (panneau côte à côte) ────────────────────
+  // Source = montants réels (taxStats). Une taxe est « déclarée » si une marque
+  // existe OU si une déclaration DB de ce type est déjà déclarée/payée.
+  const taxesParNature = useMemo(() => {
+    const now = new Date();
+    const moisLabel = now.toLocaleString('fr-FR', { month: 'long', year: 'numeric' });
+    const ech = (m: number, d: number) => `${now.getFullYear()}-${String(now.getMonth() + m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const dbDeclaredTypes = new Set(
+      declarations.filter(d => d.statut === 'en_cours' || d.statut === 'payee').map(d => d.type.toUpperCase()),
+    );
+    const items = [
+      { key: 'TVA', label: 'TVA à payer', montant: taxStats.tvaAPayer, periode: moisLabel, echeance: ech(2, 15) },
+      { key: 'IRPP', label: 'IRPP (salaires)', montant: taxStats.irpp, periode: `T${Math.ceil((now.getMonth() + 1) / 3)} ${now.getFullYear()}`, echeance: ech(2, 20) },
+      { key: 'IS', label: 'Impôt sur les sociétés', montant: taxStats.is, periode: `${now.getFullYear()}`, echeance: `${now.getFullYear()}-03-15` },
+    ].filter(t => t.montant > 0);
+    return items.map(t => {
+      const mark = declMarks[t.key];
+      const declared = !!mark || dbDeclaredTypes.has(t.key) || dbDeclaredTypes.has(t.label.toUpperCase());
+      return { ...t, declared, declaredAt: mark?.declaredAt || null };
+    });
+  }, [taxStats, declMarks, declarations]);
+
+  const aDeclarer = taxesParNature.filter(t => !t.declared);
+  const dejaDeclarees = taxesParNature.filter(t => t.declared);
+  const selectedTaxAmount = aDeclarer.filter(t => selectedTaxKeys.has(t.key)).reduce((s, t) => s + t.montant, 0);
+
+  const toggleTaxKey = (key: string) => setSelectedTaxKeys(prev => {
+    const n = new Set(prev); n.has(key) ? n.delete(key) : n.add(key); return n;
+  });
+
+  const declarerSelection = async () => {
+    if (selectedTaxKeys.size === 0) { toast.error('Sélectionnez au moins une taxe à déclarer'); return; }
+    const next = { ...declMarks };
+    const at = new Date().toISOString();
+    for (const t of aDeclarer) {
+      if (selectedTaxKeys.has(t.key)) next[t.key] = { declaredAt: at, periode: t.periode };
+    }
+    await saveDeclMarks(next);
+    setSelectedTaxKeys(new Set());
+    toast.success('Taxe(s) marquée(s) comme déclarée(s)');
+  };
+
+  const annulerDeclaration = async (key: string) => {
+    const next = { ...declMarks }; delete next[key];
+    await saveDeclMarks(next);
+    toast.success('Déclaration annulée');
+  };
 
   // ─── Alert bar data: overdue + due soon taxes ──────────────────────────────
 
@@ -1740,6 +1806,78 @@ const TaxReportingPage: React.FC = () => {
                 </Button>
               </div>
             )}
+
+            {/* Côte à côte : Taxes à déclarer ⇄ Déjà déclarées (principe « comptes à payer »). */}
+            <div className="flex items-stretch gap-0">
+              <Card className="flex-1 min-w-0">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <CardTitle className="text-base">Taxes à déclarer</CardTitle>
+                    <span className="text-sm font-semibold text-[var(--color-primary)]">{formatCurrency(aDeclarer.reduce((s, t) => s + t.montant, 0))}</span>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-0.5">Par nature — cochez celles à déclarer →</p>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="divide-y divide-[var(--color-border)]">
+                    {aDeclarer.length === 0 ? (
+                      <div className="p-6 text-center text-sm text-gray-500">Toutes les taxes dues sont déclarées.</div>
+                    ) : aDeclarer.map(t => (
+                      <label key={t.key} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer">
+                        <input type="checkbox" checked={selectedTaxKeys.has(t.key)} onChange={() => toggleTaxKey(t.key)} className="h-4 w-4" />
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium">{t.label}</div>
+                          <div className="text-xs text-gray-500">{t.periode} · échéance {t.echeance}</div>
+                        </div>
+                        <span className="text-sm font-mono font-semibold whitespace-nowrap">{formatCurrency(t.montant)}</span>
+                      </label>
+                    ))}
+                  </div>
+                  {aDeclarer.length > 0 && (
+                    <div className="p-3 border-t border-[var(--color-border)] flex items-center justify-between gap-2">
+                      <span className="text-xs text-gray-500">{selectedTaxKeys.size} sélectionnée(s) · {formatCurrency(selectedTaxAmount)}</span>
+                      <Button size="sm" onClick={declarerSelection} disabled={selectedTaxKeys.size === 0}>
+                        <CheckCircle className="h-4 w-4 mr-1" /> Déclarer la sélection
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <div className="flex-none w-14 relative flex flex-col items-center justify-center">
+                <div className="absolute top-6 bottom-6 w-px bg-[var(--color-border)]" />
+                <div className="z-10 w-8 h-8 rounded-full bg-[var(--color-primary)] text-white flex items-center justify-center text-sm font-bold">→</div>
+                <span className="z-10 mt-1 text-[10px] text-gray-500 bg-[var(--color-background,#fff)] px-1">déclarer</span>
+              </div>
+
+              <Card className="flex-1 min-w-0 border-2 border-green-200">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <CardTitle className="text-base">Déjà déclarées</CardTitle>
+                    <span className="text-sm font-semibold text-green-700">{formatCurrency(dejaDeclarees.reduce((s, t) => s + t.montant, 0))}</span>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-0.5">Marquées comme déclarées</p>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="divide-y divide-[var(--color-border)]">
+                    {dejaDeclarees.length === 0 ? (
+                      <div className="p-6 text-center text-sm text-gray-500">Aucune taxe déclarée pour l'instant.</div>
+                    ) : dejaDeclarees.map(t => (
+                      <div key={t.key} className="flex items-center gap-3 px-4 py-3 bg-green-50/40">
+                        <CheckCircle className="h-4 w-4 text-green-600 shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium">{t.label}</div>
+                          <div className="text-xs text-gray-500">{t.periode}{t.declaredAt ? ` · déclarée le ${new Date(t.declaredAt).toLocaleDateString('fr-FR')}` : ''}</div>
+                        </div>
+                        <span className="text-sm font-mono font-semibold whitespace-nowrap">{formatCurrency(t.montant)}</span>
+                        {t.declaredAt && (
+                          <button type="button" onClick={() => annulerDeclaration(t.key)} title="Annuler la déclaration" className="p-1 text-gray-400 hover:text-red-600 text-sm">✕</button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
 
             <Card>
               <CardHeader>
