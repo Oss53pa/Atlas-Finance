@@ -85,6 +85,12 @@ function normalizeJournalLine(r: any): any {
     // (encours, balance auxiliaire). Mappé depuis third_party_code (SaaS).
     thirdPartyCode: r.third_party_code || r.thirdPartyCode || r.tiers_code || '',
     thirdPartyName: r.third_party_name || r.thirdPartyName || '',
+    // Exposés en camelCase pour les modules (lettrage par tiers, effets/échéances,
+    // analytique). Sans ça, Lettrage.tsx lisait `line.lettrageCode` = undefined
+    // même quand la colonne DB était remplie → tout apparaissait « non lettré ».
+    lettrageCode:   r.lettrage_code   || r.lettrageCode   || undefined,
+    dateEcheance:   r.date_echeance   || r.dateEcheance   || undefined,
+    analyticalCode: r.analytical_code || r.analyticalCode || undefined,
     debit:       Number(r.debit  ?? 0),
     credit:      Number(r.credit ?? 0),
   }

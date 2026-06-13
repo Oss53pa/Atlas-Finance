@@ -26,6 +26,7 @@ import {
   type MigrationModeId,
 } from '../../services/import';
 import { safeAddEntry } from '../../services/entryGuard';
+import { hashEntry } from '../../utils/integrity';
 
 // ─── Types ───────────────────────────────────────────────
 
@@ -264,6 +265,7 @@ const TARGET_FIELDS: Record<string, { field: string; label: string; required: bo
     { field: 'numeroEcriture', label: 'N° écriture / saisie', required: false },
     { field: 'lettrage', label: 'Lettrage', required: false },
     { field: 'echeance', label: 'Échéance', required: false },
+    { field: 'analytique', label: 'Code analytique', required: false },
   ],
   // Alias conservés pour compatibilité
   ecritures: [
@@ -314,6 +316,28 @@ function parseNumber(val: any): number {
   const s = String(val).replace(/[\s   ]/g, '').replace(',', '.');
   const n = parseFloat(s);
   return isNaN(n) ? 0 : n;
+}
+
+/**
+ * UUID DÉTERMINISTE à partir d'une graine texte (B4 — idempotence des lignes).
+ * Quatre hachages 32 bits (FNV-1a salé) concaténés → 128 bits formatés en UUID.
+ * Le même contenu source produit toujours le même id : un ré-import via
+ * `onConflict:'id'` dédoublonne réellement les journal_lines au lieu d'en créer
+ * de nouvelles (l'ancien `crypto.randomUUID()` régénérait un id à chaque run).
+ */
+function deterministicUuid(seed: string): string {
+  const fnv = (str: string, salt: number): number => {
+    let h = (2166136261 ^ salt) >>> 0;
+    for (let i = 0; i < str.length; i++) {
+      h ^= str.charCodeAt(i);
+      h = Math.imul(h, 16777619) >>> 0;
+    }
+    return h >>> 0;
+  };
+  const hex = (n: number) => n.toString(16).padStart(8, '0');
+  const all = hex(fnv(seed, 0x9e3779b1)) + hex(fnv(seed, 0x85ebca77)) + hex(fnv(seed, 0xc2b2ae3d)) + hex(fnv(seed, 0x27d4eb2f));
+  // Format 8-4-4-4-12 ; version 5 + variant RFC 4122
+  return `${all.slice(0, 8)}-${all.slice(8, 12)}-5${all.slice(13, 16)}-8${all.slice(17, 20)}-${all.slice(20, 32)}`;
 }
 
 /**
@@ -1166,6 +1190,44 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
   // ─── Step 7: Import ────────────────────────────────────
 
   const runImport = useCallback(async () => {
+    // B2 — mode « Annuler » : ne RIEN écrire (auparavant l'option ne faisait rien
+    // et un import en fusion partait quand même).
+    if (params.existingDataAction === 'cancel') {
+      toast.info('Import annulé : action « Annuler » sélectionnée — aucune donnée écrite.');
+      return;
+    }
+    // B1/B3 — confirmation explicite avant toute écriture en base (production).
+    {
+      const isSaas = adapter.getMode() === 'saas';
+      const sbClient = isSaas ? (adapter as any).client : null;
+      const tId = isSaas ? (adapter as any).tenantId : null;
+      let replaceLine = 'AJOUTER aux données existantes (fusion, non destructif)';
+      if (params.existingDataAction === 'replace') {
+        // B3 — rendre la suppression DÉLIBÉRÉE : compter ce qui sera supprimé.
+        let nbToDelete: number | null = null;
+        if (sbClient && tId) {
+          try {
+            const { count } = await sbClient.from('journal_entries')
+              .select('id', { count: 'exact', head: true })
+              .eq('tenant_id', tId).not('migration_batch_id', 'is', null);
+            nbToDelete = count ?? null;
+          } catch { /* count indisponible — on affiche sans le chiffre */ }
+        }
+        replaceLine = `⚠️ REMPLACER : SUPPRIMER ${nbToDelete != null ? nbToDelete + ' écriture(s)' : 'les écritures'} issues de migrations précédentes (vos saisies MANUELLES sont préservées)`;
+      }
+      const vol = simulation?.counts
+        ? `≈ ${simulation.counts.ecritures} écritures, ${simulation.counts.comptes} comptes, ${simulation.counts.tiers} tiers, ${simulation.counts.immobilisations} immos`
+        : 'volume inconnu';
+      const statut = params.entryStatus === 'validated' ? 'VALIDÉES (verrouillées)' : 'en brouillon';
+      const msg =
+        `Lancer l'import RÉEL ?\n\n` +
+        `• Cible : ${isSaas ? 'base CLOUD (production)' : 'base locale'}\n` +
+        `• Données existantes : ${replaceLine}\n` +
+        `• Volume à importer : ${vol}\n` +
+        `• Écritures importées : ${statut}\n\n` +
+        `Cette opération écrit en base. En cas d'erreur, vous pourrez purger ce lot. Continuer ?`;
+      if (!window.confirm(msg)) return;
+    }
     setImporting(true);
     setImportProgress(0);
     const sessionId = generateId();
@@ -1415,6 +1477,9 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       const nomCol     = tiersMapping.find(m => m.target === 'nom')?.source;
       const typeCol    = tiersMapping.find(m => m.target === 'type')?.source;
       const compteCol  = tiersMapping.find(m => m.target === 'compte')?.source;
+      const nifCol     = tiersMapping.find(m => m.target === 'nif')?.source;
+      const adresseCol = tiersMapping.find(m => m.target === 'adresse')?.source;
+      const telCol     = tiersMapping.find(m => m.target === 'telephone')?.source;
       for (const row of tiersData as Record<string, any>[]) {
         if (!codeCol || !nomCol) continue;
         const rawType    = typeCol   ? String(row[typeCol]   || '') : '';
@@ -1424,11 +1489,18 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
           normalizeTiersType(rawType) !== 'customer' || rawType.toLowerCase().trim() === 'customer' || rawType.toLowerCase().trim() === 'c'
             ? normalizeTiersType(rawType)
             : normalizeTiersTypeFromAccount(rawCompte) ?? normalizeTiersType(rawType);
+        // A — NIF/RCCM, adresse, téléphone (mentions légales factures + déclarations)
+        const taxId   = nifCol     ? String(row[nifCol]     || '').trim() : '';
+        const address = adresseCol ? String(row[adresseCol] || '').trim() : '';
+        const phone   = telCol     ? String(row[telCol]     || '').trim() : '';
         tiersRecords.push({
           code: String(row[codeCol] || ''),
           name: String(row[nomCol]  || ''),
           type: resolvedType,
           is_active: true,
+          ...(taxId   ? { tax_id: taxId } : {}),
+          ...(address ? { address } : {}),
+          ...(phone   ? { phone } : {}),
         });
       }
       const tiersCreated = await batchUpsert('third_parties', tiersRecords, 'tenant_id,code',
@@ -1643,8 +1715,11 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
         // on agrège au niveau journal + global, et on n'autorise JAMAIS une écriture
         // déséquilibrée à passer en 'validated' (downgrade silencieux → 'draft' + log).
         let imbalancedDowngraded = 0;
+        let outOfPeriod = 0; // C3 — écritures hors exercice
         let gDebit = 0, gCredit = 0;
         const journalSums = new Map<string, { d: number; c: number }>();
+        const fyStart = params.exerciceStart || '';
+        const fyEnd = params.exerciceEnd || '';
 
         for (const [piece, lines] of groups) {
           const rawJournal = String(getEcrVal(lines[0], 'journal') || getEcrVal(lines[0], 'JournalCode') || 'OD');
@@ -1665,6 +1740,11 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
             getEcrVal(lines[0], 'libelle') || getEcrVal(lines[0], 'EcritureLib') ||
             getEcrVal(lines[0], 'label') || piece
           );
+          // C3 — date hors exercice ouvert : on n'écrit JAMAIS dans une période
+          // hors [exerciceStart, exerciceEnd] sans le signaler (compta clôturée).
+          if (fyStart && fyEnd && entryDate && (entryDate < fyStart || entryDate > fyEnd)) {
+            outOfPeriod++;
+          }
           // Somme via money() sur les montants NORMALISÉS (cohérents avec les
           // lignes stockées) — aucune dérive flottante (A5).
           let totalDebit = 0; let totalCredit = 0;
@@ -1703,7 +1783,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
             created_at: new Date().toISOString(),
             migration_batch_id: migrationBatchId, // A7
           });
-          lines.forEach((line: any) => {
+          lines.forEach((line: any, lineIdx: number) => {
             const accountCode = String(
               getEcrVal(line, 'compte') || getEcrVal(line, 'CompteNum') ||
               getEcrVal(line, 'accountCode') || ''
@@ -1717,8 +1797,15 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
             const tpm = tiersExplicit
               ? { code: tiersExplicit, name: String(getEcrVal(line, 'tiersNom') || getEcrVal(line, 'tiersName') || '').trim() }
               : matchTiers(lineLabel, accountCode);
+            // A — champs métier indispensables aux modules (lettrage par tiers,
+            // effets/échéances, comptabilité analytique).
+            const lettrageCode = String(getEcrVal(line, 'lettrage') || '').trim() || null;
+            const dateEcheance = parseDate(getEcrVal(line, 'echeance') || getEcrVal(line, 'dateEcheance') || '') || null;
+            const analyticalCode = String(getEcrVal(line, 'analytique') || getEcrVal(line, 'analytical') || getEcrVal(line, 'codeAnalytique') || '').trim() || null;
             batchLines.push({
-              id: crypto.randomUUID(),
+              // B4 — id DÉTERMINISTE : un même fichier réimporté produit le même id
+              // → onConflict:'id' dédoublonne réellement (plus de lignes en double).
+              id: deterministicUuid(`${tenantId}|${piece}|${accountCode}|${debit}|${credit}|${lineIdx}`),
               _entry_number: piece, // clé temporaire pour remapping post-insert
               entry_id: entryId, tenant_id: tenantId,
               account_code: accountCode,
@@ -1730,6 +1817,9 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
               credit,
               third_party_code: tpm?.code || null,
               third_party_name: tpm?.name || null,
+              lettrage_code: lettrageCode,
+              date_echeance: dateEcheance,
+              analytical_code: analyticalCode,
               migration_batch_id: migrationBatchId, // A7
             });
           });
@@ -1748,6 +1838,33 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
           }
           if (imbalancedDowngraded > 0) {
             report.warnings.push(`${imbalancedDowngraded} pièce(s) déséquilibrée(s) importée(s) en brouillon (statut 'draft', jamais 'validated').`);
+          }
+          if (outOfPeriod > 0) {
+            report.warnings.push(`⚠️ ${outOfPeriod} écriture(s) datée(s) HORS de l'exercice [${fyStart} → ${fyEnd}] ont été importées. Vérifiez le périmètre du fichier source.`);
+          }
+        }
+
+        // ── C1 — Hash d'intégrité SHA-256 sur les écritures migrées ────────
+        // Avant : le chemin SaaS écrivait hash = NULL → chaîne d'immuabilité
+        // SYSCOHADA rompue dès la bascule. On calcule une chaîne séquentielle
+        // (même algorithme que entryGuard/integrity) sur le lot migré.
+        {
+          const linesByPiece = new Map<string, any[]>();
+          for (const l of batchLines) {
+            const arr = linesByPiece.get(l._entry_number) || [];
+            arr.push(l); linesByPiece.set(l._entry_number, arr);
+          }
+          let prevHash = '';
+          for (const e of batchEntries) {
+            const ls = (linesByPiece.get(e.entry_number) || []).map((l: any) => ({
+              accountCode: l.account_code, debit: l.debit, credit: l.credit, label: l.label,
+            }));
+            e.previous_hash = prevHash;
+            e.hash = await hashEntry({
+              entryNumber: e.entry_number, journal: e.journal, date: e.date,
+              lines: ls, totalDebit: e.total_debit, totalCredit: e.total_credit,
+            }, prevHash);
+            prevHash = e.hash;
           }
         }
 
@@ -1863,13 +1980,23 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
             );
             // camelCase — requis par save_journal_entry (RPC Supabase) ET par Dexie
             const { debit, credit } = lineAmounts(line);
+            // A — tiers (regroupement lettrage), lettrage, échéance, analytique
+            const tiersExplicit = String(getEcrVal(line, 'tiers') || '').trim();
+            const tpm = tiersExplicit
+              ? { code: tiersExplicit, name: String(getEcrVal(line, 'tiersNom') || getEcrVal(line, 'tiersName') || '').trim() }
+              : matchTiers(lineLabel, accountCode);
             return {
-              id: crypto.randomUUID(),
+              id: deterministicUuid(`${tenantId}|${piece}|${accountCode}|${debit}|${credit}|${lineLabel}`),
               accountCode,
               accountName,
               label: lineLabel,
               debit,
               credit,
+              thirdPartyCode: tpm?.code || undefined,
+              thirdPartyName: tpm?.name || undefined,
+              lettrageCode: String(getEcrVal(line, 'lettrage') || '').trim() || undefined,
+              dateEcheance: parseDate(getEcrVal(line, 'echeance') || getEcrVal(line, 'dateEcheance') || '') || undefined,
+              analyticalCode: String(getEcrVal(line, 'analytique') || getEcrVal(line, 'analytical') || getEcrVal(line, 'codeAnalytique') || '').trim() || undefined,
             };
           });
 
@@ -1956,7 +2083,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
           if (debit < 0) { credit = money(credit).add(money(-debit)).toNumber(); debit = 0; }
           if (credit < 0) { debit = money(debit).add(money(-credit)).toNumber(); credit = 0; }
           return {
-            id: crypto.randomUUID(),
+            id: deterministicUuid(`${tenantId}|AN|${accountCode}|${debit}|${credit}`),
             accountCode,
             accountName: String(libCol ? row[libCol] : '') || accountCode,
             label: String(libCol ? row[libCol] : 'Report AN'),
@@ -2031,7 +2158,9 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       // Post-import checks
       setImportLabel('Controles post-import...');
       report.journals = journals.size;
-      report.balanceOk = simulation?.balanced ?? true;
+      // C2 — l'« équilibré » ne repose plus seulement sur la simulation PRÉ-import :
+      // un échec d'insertion (batch en erreur) rend le résultat non fiable.
+      report.balanceOk = (simulation?.balanced ?? true) && entryErrors.length === 0;
       if (simulation) {
         const diff = money(simulation.totalActif).subtract(money(simulation.totalPassif)).abs().toNumber();
         if (migrationMode === 1) {
@@ -2078,6 +2207,12 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
           tiers:    counts[3].count ?? 0,
           assets:   counts[4].count ?? 0,
         };
+        // C2 — détection d'insertion partielle : si une erreur de batch est survenue,
+        // la base peut contenir moins que prévu → on le signale franchement.
+        if (entryErrors.length > 0) {
+          report.balanceOk = false;
+          report.warnings.unshift(`⚠️ ${entryErrors.length} lot(s) en erreur lors de l'insertion — la base peut être incomplète. Vérifiez puis purgez ce lot avant de relancer.`);
+        }
       }
 
       setImportProgress(100);
