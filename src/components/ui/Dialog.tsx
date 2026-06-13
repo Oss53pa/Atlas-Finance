@@ -6,6 +6,8 @@ export interface DialogProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   children: React.ReactNode;
+  /** Largeur du conteneur (Tailwind max-w-*). Défaut: max-w-lg. */
+  containerClassName?: string;
 }
 
 export interface DialogContentProps {
@@ -33,7 +35,7 @@ export interface DialogFooterProps {
   children: React.ReactNode;
 }
 
-const Dialog: React.FC<DialogProps> = ({ open, onOpenChange, children }) => {
+const Dialog: React.FC<DialogProps> = ({ open, onOpenChange, children, containerClassName }) => {
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget && onOpenChange) {
       onOpenChange(false);
@@ -51,7 +53,7 @@ const Dialog: React.FC<DialogProps> = ({ open, onOpenChange, children }) => {
       />
 
       {/* Dialog container */}
-      <div className="relative z-[10000] w-full max-w-lg mx-4">
+      <div className={cn("relative z-[10000] w-full mx-4", containerClassName || "max-w-lg")}>
         {children}
       </div>
     </div>

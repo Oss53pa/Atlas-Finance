@@ -133,6 +133,7 @@ const FundCallsPage: React.FC = () => {
   const [fundCallsSetting, setFundCallsSetting] = useState<any>(undefined);
   const [payablesSetting, setPayablesSetting] = useState<any>(undefined);
   const [dataLoaded, setDataLoaded] = useState(false);
+  const [chargeAccounts, setChargeAccounts] = useState<{ code: string; name: string }[]>([]);
 
   // ── Dépenses PRÉVISIONNELLES (non encore comptabilisées) ──────────────────
   // Saisies à la main par l'utilisateur pour préparer un appel de fonds avant
@@ -170,7 +171,7 @@ const FundCallsPage: React.FC = () => {
   }, []);
 
   const [showAddExpense, setShowAddExpense] = useState(false);
-  const emptyForm = { vendor: '', description: '', amount: '', invoiceType: 'ACHAT' as PayableItem['invoiceType'], dueDate: '', priority: 'MEDIUM' as PayableItem['priority'] };
+  const emptyForm = { vendor: '', description: '', amount: '', invoiceType: 'ACHAT' as PayableItem['invoiceType'], dueDate: '', priority: 'MEDIUM' as PayableItem['priority'], chargeAccount: '' };
   const [expenseForm, setExpenseForm] = useState(emptyForm);
 
   const addProvisionalExpense = () => {
@@ -178,10 +179,12 @@ const FundCallsPage: React.FC = () => {
     if (!expenseForm.vendor.trim() || amount <= 0) return;
     const now = new Date();
     const due = expenseForm.dueDate ? new Date(expenseForm.dueDate) : new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+    // Compte de charge choisi (indicatif) → devient le n° de compte de la ligne.
+    const charge = chargeAccounts.find(c => c.code === expenseForm.chargeAccount);
     const item: PayableItem = {
       id: `prov-${now.getTime()}`,
       vendor: expenseForm.vendor.trim(),
-      vendorCode: '—',
+      vendorCode: charge ? charge.name : '—',
       documentDate: now,
       documentNumber: 'PRÉV.',
       reference: '—',
@@ -193,7 +196,7 @@ const FundCallsPage: React.FC = () => {
       dueDate: due,
       paymentTerms: 'Prévisionnel',
       priority: expenseForm.priority,
-      account: 'PRÉVISIONNEL',
+      account: expenseForm.chargeAccount || 'PRÉV.',
       provisional: true,
     };
     setProvisionalExpenses(prev => [...prev, item]);
@@ -211,14 +214,22 @@ const FundCallsPage: React.FC = () => {
 
   useEffect(() => {
     const load = async () => {
-      const [entries, fcSetting, pSetting] = await Promise.all([
+      const [entries, fcSetting, pSetting, accounts] = await Promise.all([
         adapter.getAll('journalEntries'),
         adapter.getById('settings', 'fund_calls'),
         adapter.getById('settings', 'fund_call_payables'),
+        adapter.getAll('accounts').catch(() => []),
       ]);
       setJournalEntries(entries as Record<string, unknown>[]);
       setFundCallsSetting(fcSetting);
       setPayablesSetting(pSetting);
+      // Comptes de CHARGE (classe 6) du plan comptable — pour rattacher une
+      // dépense prévisionnelle à un compte « à titre indicatif ».
+      const charges = ((accounts as any[]) || [])
+        .map(a => ({ code: String(a.code || a.account_code || a.accountCode || ''), name: String(a.name || a.label || a.libelle || '') }))
+        .filter(a => a.code.startsWith('6'))
+        .sort((a, b) => a.code.localeCompare(b.code));
+      setChargeAccounts(charges);
       setDataLoaded(true);
     };
     load();
@@ -534,7 +545,7 @@ const FundCallsPage: React.FC = () => {
                           <div className="text-xs text-gray-500 truncate">{item.description}</div>
                         </div>
                         <span className="font-mono text-[11px] px-1.5 py-0.5 bg-gray-100 text-gray-700 rounded shrink-0" title="Numéro de compte">{item.account}</span>
-                        <span className="text-sm font-mono font-semibold whitespace-nowrap shrink-0">{formatCurrency(item.outstanding)}</span>
+                        <span className={`text-sm font-mono font-semibold whitespace-nowrap shrink-0 ${item.provisional ? 'text-amber-700' : ''}`}>{formatCurrency(item.outstanding)}</span>
                       </button>
                     </div>
                     {expanded && (
@@ -610,7 +621,7 @@ const FundCallsPage: React.FC = () => {
                           <div className="text-xs text-gray-500 truncate">{item.description}</div>
                         </div>
                         <span className="font-mono text-[11px] px-1.5 py-0.5 bg-gray-100 text-gray-700 rounded shrink-0" title="Numéro de compte">{item.account}</span>
-                        <span className="text-sm font-mono font-semibold whitespace-nowrap shrink-0">{formatCurrency(item.outstanding)}</span>
+                        <span className={`text-sm font-mono font-semibold whitespace-nowrap shrink-0 ${item.provisional ? 'text-amber-700' : ''}`}>{formatCurrency(item.outstanding)}</span>
                       </button>
                       <button type="button" onClick={() => item.provisional ? removeProvisionalExpense(item.id) : handleItemSelect(item.id)} title="Retirer de la sélection" className="p-1 text-red-500 hover:bg-red-50 rounded shrink-0">
                         <Trash2 className="h-3.5 w-3.5" />
@@ -945,40 +956,60 @@ const FundCallsPage: React.FC = () => {
       {viewMode === 'workflow' && renderWorkflow()}
 
       {/* Modale : ajouter une dépense PRÉVISIONNELLE (non comptabilisée) */}
-      <Dialog open={showAddExpense} onOpenChange={setShowAddExpense}>
+      <Dialog open={showAddExpense} onOpenChange={setShowAddExpense} containerClassName="max-w-2xl">
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Ajouter une dépense non comptabilisée</DialogTitle>
             <DialogDescription>
               Dépense <span className="font-semibold">prévisionnelle</span> à inclure dans un
               appel de fonds avant son enregistrement comptable. Elle n'est PAS écrite au
-              Grand Livre et reste distinguée des dettes réelles (badge « Prévisionnel »).
+              Grand Livre et reste distinguée des dettes réelles.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-3 py-2">
+          {/* Repère couleur : tout ce qui est saisi ici est « Prévisionnel » (ambre). */}
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-xs">
+            <span className="text-[10px] uppercase tracking-wide bg-amber-100 border border-amber-300 rounded px-1.5 py-0.5 font-semibold">Prévisionnel</span>
+            <span>Enregistré et affiché en <span className="font-semibold">ambre</span>, distinct des dettes comptabilisées.</span>
+          </div>
+
+          <div className="space-y-3.5 py-2">
             <div>
               <Label htmlFor="exp-vendor">Bénéficiaire / Fournisseur *</Label>
-              <Input id="exp-vendor" value={expenseForm.vendor}
+              <Input id="exp-vendor" className="w-full" value={expenseForm.vendor}
                 onChange={(e) => setExpenseForm(f => ({ ...f, vendor: e.target.value }))}
                 placeholder="Ex. ENTREPRISE BTP SARL" />
             </div>
             <div>
               <Label htmlFor="exp-desc">Description</Label>
-              <Input id="exp-desc" value={expenseForm.description}
+              <Input id="exp-desc" className="w-full" value={expenseForm.description}
                 onChange={(e) => setExpenseForm(f => ({ ...f, description: e.target.value }))}
                 placeholder="Ex. Acompte travaux toiture niveau 3" />
+            </div>
+            <div>
+              <Label htmlFor="exp-charge">Compte de charge (à titre indicatif)</Label>
+              <select id="exp-charge" value={expenseForm.chargeAccount}
+                onChange={(e) => setExpenseForm(f => ({ ...f, chargeAccount: e.target.value }))}
+                className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm bg-white">
+                <option value="">— Aucun (à imputer plus tard) —</option>
+                {chargeAccounts.map(c => (
+                  <option key={c.code} value={c.code}>{c.code} — {c.name}</option>
+                ))}
+              </select>
+              <p className="text-[11px] text-[var(--color-text-tertiary)] mt-1">
+                Classe 6 du plan comptable. Sert de repère pour l'imputation — aucune écriture n'est générée.
+              </p>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label htmlFor="exp-amount">Montant (FCFA) *</Label>
-                <Input id="exp-amount" inputMode="decimal" value={expenseForm.amount}
+                <Input id="exp-amount" className="w-full" inputMode="decimal" value={expenseForm.amount}
                   onChange={(e) => setExpenseForm(f => ({ ...f, amount: e.target.value }))}
                   placeholder="0" />
               </div>
               <div>
                 <Label htmlFor="exp-due">Échéance prévue</Label>
-                <Input id="exp-due" type="date" value={expenseForm.dueDate}
+                <Input id="exp-due" className="w-full" type="date" value={expenseForm.dueDate}
                   onChange={(e) => setExpenseForm(f => ({ ...f, dueDate: e.target.value }))} />
               </div>
             </div>
