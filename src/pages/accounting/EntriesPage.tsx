@@ -578,7 +578,7 @@ const EntriesPage: React.FC = () => {
                   searchable={true}
                   exportable={true}
                   refreshable={true}
-                  printable={false}
+                  printable={true}
                   selectable={false}
                   actions={(item) => {
                     const entry = item as unknown as EcritureBrouillard;

@@ -96,6 +96,10 @@
     display: block !important;
     width: 100% !important;
     max-width: 100% !important;
+    /* Lever toute contrainte de hauteur/scroll : imprimer TOUTES les lignes
+       (les tables défilantes utilisent max-h-[65vh] overflow-auto à l'écran). */
+    max-height: none !important;
+    overflow: visible !important;
     margin: 0 !important;
     padding: 0 !important;
     border: none !important;

@@ -49,6 +49,10 @@ export interface DataTableProps<T> {
   exportable?: boolean;
   refreshable?: boolean;
   printable?: boolean;
+  /** Affiche le bouton/​panneau de filtres par colonne intégré (entonnoir).
+   *  Mettre à false quand une FilterSidebar externe gère déjà le filtrage,
+   *  pour éviter le doublon d'entonnoirs. Défaut: true. */
+  showColumnFilter?: boolean;
   selectable?: boolean;
   onSelectionChange?: (selectedItems: T[]) => void;
   actions?: ((item: T) => React.ReactNode) | Array<{icon?: React.ComponentType<{ className?: string }>; label: string; onClick: (item: T) => void}>;
@@ -74,7 +78,8 @@ function DataTable<T extends Record<string, unknown>>({
   searchable = true,
   exportable = true,
   refreshable = true,
-  printable = false,
+  printable = true,
+  showColumnFilter = true,
   selectable = false,
   onSelectionChange,
   actions,
@@ -85,6 +90,7 @@ function DataTable<T extends Record<string, unknown>>({
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState<Record<string, unknown>>({});
   const [showFilters, setShowFilters] = useState(false);
+  const [printing, setPrinting] = useState(false);
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
@@ -130,6 +136,9 @@ function DataTable<T extends Record<string, unknown>>({
       });
     }
 
+    // Impression : afficher TOUTES les lignes filtrées (sans pagination).
+    if (printing) return filtered;
+
     // Pagination locale si pas de totalCount
     if (!totalCount) {
       const start = (localCurrentPage - 1) * localPageSize;
@@ -138,7 +147,7 @@ function DataTable<T extends Record<string, unknown>>({
     }
 
     return filtered;
-  }, [data, searchTerm, filters, sortKey, sortDirection, localCurrentPage, localPageSize, onSearch, onFilter, onSort, totalCount]);
+  }, [data, searchTerm, filters, sortKey, sortDirection, localCurrentPage, localPageSize, onSearch, onFilter, onSort, totalCount, printing]);
 
   const totalPages = Math.ceil((totalCount || data.length) / localPageSize);
 
@@ -189,6 +198,22 @@ function DataTable<T extends Record<string, unknown>>({
       onPageSizeChange(size);
     }
   };
+
+  // Impression intégrée : si aucun onPrint n'est fourni, on imprime la table
+  // elle-même — TOUTES les lignes filtrées (sans pagination) — en réutilisant le
+  // CSS @media print global (chrome masqué, .print-area visible).
+  useEffect(() => {
+    if (!printing) return;
+    document.body.classList.add('printing');
+    const id = window.setTimeout(() => {
+      window.print();
+      document.body.classList.remove('printing');
+      setPrinting(false);
+    }, 150);
+    return () => { window.clearTimeout(id); document.body.classList.remove('printing'); };
+  }, [printing]);
+
+  const handlePrint = onPrint || (() => setPrinting(true));
 
   // Gestion de la sélection
   const handleSelectAll = () => {
@@ -264,7 +289,7 @@ function DataTable<T extends Record<string, unknown>>({
   return (
     <div className={`bg-white rounded-lg shadow ${className}`}>
       {/* Barre d'outils */}
-      <div className="p-4 border-b border-gray-200">
+      <div className="p-4 border-b border-gray-200 print-hide">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
           {/* Recherche */}
           {searchable && (
@@ -282,16 +307,19 @@ function DataTable<T extends Record<string, unknown>>({
 
           {/* Actions */}
           <div className="flex items-center space-x-2">
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className={`px-3 py-2 rounded-lg border ${showFilters ? 'bg-blue-50 border-blue-300 text-blue-600' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
-            >
-              <Filter className="w-4 h-4" />
-            </button>
-
-            {printable && onPrint && (
+            {showColumnFilter && (
               <button
-                onClick={onPrint}
+                onClick={() => setShowFilters(!showFilters)}
+                className={`px-3 py-2 rounded-lg border ${showFilters ? 'bg-blue-50 border-blue-300 text-blue-600' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+                aria-label="Filtres par colonne"
+              >
+                <Filter className="w-4 h-4" />
+              </button>
+            )}
+
+            {printable && (
+              <button
+                onClick={handlePrint}
                 className="px-3 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 print-hide"
                 title={t('common.print')} aria-label="Imprimer">
                 <Printer className="w-4 h-4" />
@@ -348,8 +376,9 @@ function DataTable<T extends Record<string, unknown>>({
       </div>
 
       {/* Table — scroll PROPRE (vertical + horizontal) avec en-tête FIGÉ :
-          le tableau défile dans sa zone, pas avec la page. */}
-      <div className="overflow-auto max-h-[65vh]">
+          le tableau défile dans sa zone, pas avec la page. À l'impression,
+          .print-area enlève la contrainte de hauteur (toutes les lignes). */}
+      <div className="overflow-auto max-h-[65vh] print-area">
         <table className="w-full">
           <thead className="bg-gray-50 border-b border-gray-200 sticky top-0 z-10 shadow-[0_1px_0_#e5e7eb]">
             <tr>
@@ -470,7 +499,7 @@ function DataTable<T extends Record<string, unknown>>({
       </div>
 
       {/* Pagination */}
-      <div className="px-4 py-3 border-t border-gray-200">
+      <div className="px-4 py-3 border-t border-gray-200 print-hide">
         <div className="flex flex-col sm:flex-row justify-between items-center space-y-2 sm:space-y-0">
           <div className="flex items-center space-x-2">
             <span className="text-sm text-gray-700">
