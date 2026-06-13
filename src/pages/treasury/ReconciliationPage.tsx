@@ -269,6 +269,12 @@ const ReconciliationPage: React.FC = () => {
     match_rate: rapprochementResult?.tauxRapprochement ? Math.round(rapprochementResult.tauxRapprochement) : 0,
   };
 
+  // Vue CÔTE À CÔTE : relevé bancaire (gauche) vs écritures comptables (droite).
+  // Un match (rapproché) lie une ligne banque ET une ligne compta → il apparaît
+  // des DEUX côtés. Les non-rapprochés n'apparaissent que de leur côté.
+  const bankItems = filteredItems.filter(i => i.type_ecart !== 'absent_banque');
+  const comptaItems = filteredItems.filter(i => i.type_ecart !== 'absent_comptable');
+
   // CSV Import handler
   const handleImportCSV = useCallback(async (csvContent: string) => {
     const transactions = parseBankStatementCSV(csvContent);
@@ -561,6 +567,39 @@ const ReconciliationPage: React.FC = () => {
       console.error('[ReconciliationPage] Erreur annulation rapprochement:', error);
       toast.error('Erreur lors de l\'annulation du rapprochement');
     }
+  };
+
+  // Une ligne de la vue côte à côte (relevé OU écritures). Réutilise les handlers
+  // existants (sélection, détail, rapprocher/annuler). `side` choisit le montant.
+  const renderReconRow = (item: ReconciliationItem, side: 'bank' | 'compta') => {
+    const montant = side === 'bank' ? item.montant_banque : item.montant_comptable;
+    const ref = side === 'bank' ? item.reference_banque : item.reference_comptable;
+    const matched = item.statut === 'rapproche';
+    return (
+      <div key={`${side}-${item.id}`} className={`px-3 py-2 border-b border-[var(--color-border)] ${
+        matched ? 'bg-green-50/50' : ''
+      } ${selectedItems.has(item.id) ? 'bg-[var(--color-primary)]/5' : ''}`}>
+        <div className="flex items-center gap-2">
+          {reconciliationMode === 'manual' && (
+            <input type="checkbox" checked={selectedItems.has(item.id)} onChange={() => handleItemSelect(item.id)} className="h-4 w-4 rounded border-gray-300 shrink-0" />
+          )}
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-medium truncate">{item.libelle || '—'}</div>
+            <div className="text-xs text-gray-500 flex items-center gap-2">
+              <span className="shrink-0">{formatDate(item.date)}</span>
+              {ref && <span className="font-mono truncate">{ref}</span>}
+            </div>
+          </div>
+          <span className={`text-sm font-mono font-semibold whitespace-nowrap shrink-0 ${montant >= 0 ? 'text-green-700' : 'text-red-700'}`}>{formatCurrency(montant)}</span>
+          <span className={`text-[10px] px-1.5 py-0.5 rounded shrink-0 ${matched ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'}`}>{matched ? 'Rapproché' : 'À rapprocher'}</span>
+          <div className="flex items-center shrink-0">
+            <Button variant="ghost" size="sm" aria-label="Voir les détails" onClick={() => handleViewDetail(item)}><Eye className="h-4 w-4" /></Button>
+            {!matched && <Button variant="ghost" size="sm" className="text-green-600 hover:text-green-700" aria-label="Rapprocher" onClick={() => handleReconcileSingle(item)}><Check className="h-4 w-4" /></Button>}
+            {matched && <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700" aria-label="Annuler rapprochement" onClick={() => handleCancelReconciliation(item)}><X className="h-4 w-4" /></Button>}
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -858,183 +897,45 @@ const ReconciliationPage: React.FC = () => {
             </div>
           ) : (
             <>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      {reconciliationMode === 'manual' && <TableHead className="w-12">Sél.</TableHead>}
-                      <TableHead>{t('common.date')}</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>{t('accounting.label')}</TableHead>
-                      <TableHead>Référence</TableHead>
-                      <TableHead>{t('accounting.title')}</TableHead>
-                      <TableHead>Banque</TableHead>
-                      <TableHead>Écart</TableHead>
-                      <TableHead>Statut</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {reconciliationData?.results?.map((item) => (
-                      <TableRow 
-                        key={item.id} 
-                        className={`hover:bg-gray-50 ${
-                          selectedItems.has(item.id) ? 'bg-[var(--color-primary)]/5' : ''
-                        }`}
-                      >
-                        {reconciliationMode === 'manual' && (
-                          <TableCell>
-                            <input
-                              type="checkbox"
-                              checked={selectedItems.has(item.id)}
-                              onChange={() => handleItemSelect(item.id)}
-                              className="h-4 w-4 rounded border-gray-300"
-                            />
-                          </TableCell>
-                        )}
-                        <TableCell>
-                          <div className="flex items-center text-sm">
-                            <Calendar className="h-4 w-4 text-gray-700 mr-2" />
-                            {formatDate(item.date)}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center space-x-2">
-                            {item.montant_comptable > 0 ? (
-                              <ArrowUpRight className="h-4 w-4 text-green-600" />
-                            ) : (
-                              <ArrowDownLeft className="h-4 w-4 text-red-600" />
-                            )}
-                            <span className="text-sm">
-                              {item.type_mouvement}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div>
-                            <p className="font-medium text-[var(--color-text-primary)] text-sm">
-                              {item.libelle}
-                            </p>
-                            {item.description && (
-                              <p className="text-xs text-[var(--color-text-secondary)]">
-                                {item.description}
-                              </p>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="space-y-1">
-                            {item.reference_comptable && (
-                              <p className="font-mono text-xs">
-                                Compta: {item.reference_comptable}
-                              </p>
-                            )}
-                            {item.reference_banque && (
-                              <p className="font-mono text-xs">
-                                Banque: {item.reference_banque}
-                              </p>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {item.montant_comptable !== null ? (
-                            <span className={`font-semibold ${
-                              item.montant_comptable >= 0 ? 'text-green-700' : 'text-red-700'
-                            }`}>
-                              {formatCurrency(item.montant_comptable)}
-                            </span>
-                          ) : (
-                            <span className="text-gray-700">-</span>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {item.montant_banque !== null ? (
-                            <span className={`font-semibold ${
-                              item.montant_banque >= 0 ? 'text-green-700' : 'text-red-700'
-                            }`}>
-                              {formatCurrency(item.montant_banque)}
-                            </span>
-                          ) : (
-                            <span className="text-gray-700">-</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {item.ecart_montant !== null && Math.abs(item.ecart_montant) > 0.01 ? (
-                            <div className="flex items-center space-x-1">
-                              <AlertCircle className="h-4 w-4 text-red-500" />
-                              <div>
-                                <span className="font-semibold text-red-700 text-sm">
-                                  {formatCurrency(Math.abs(item.ecart_montant))}
-                                </span>
-                                {item.type_ecart && (
-                                  <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getEcartTypeColor(item.type_ecart)}`}>
-                                    {item.type_ecart}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="flex items-center space-x-1">
-                              <CheckCircle className="h-4 w-4 text-green-500" />
-                              <span className="text-green-700 text-sm">OK</span>
-                            </div>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={getStatusColor(item.statut)}>
-                            {getStatusLabel(item.statut)}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end space-x-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              aria-label="Voir les détails"
-                              onClick={() => handleViewDetail(item)}
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            {item.statut === 'non_rapproche' && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-green-600 hover:text-green-700"
-                                aria-label="Rapprocher"
-                                onClick={() => handleReconcileSingle(item)}
-                              >
-                                <Check className="h-4 w-4" />
-                              </Button>
-                            )}
-                            {item.statut === 'rapproche' && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-red-600 hover:text-red-700"
-                                aria-label="Annuler rapprochement"
-                                onClick={() => handleCancelReconciliation(item)}
-                              >
-                                <X className="h-4 w-4" />
-                              </Button>
-                            )}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-
-              {/* Pagination fonctionnelle sur les données filtrées */}
-              {filteredItems.length > PAGE_SIZE && (
-                <div className="mt-6">
-                  <Pagination
-                    currentPage={page}
-                    totalPages={Math.ceil(filteredItems.length / PAGE_SIZE)}
-                    onPageChange={setPage}
-                  />
+              {/* Vue CÔTE À CÔTE : relevé bancaire (gauche) ⇄ écritures comptables
+                  (droite), séparateur centré. Chaque colonne défile seule. Les actions
+                  (sélection, détail, rapprocher/annuler) sont identiques à l'ancienne vue. */}
+              <div className="flex items-stretch gap-0">
+                {/* GAUCHE : Relevé bancaire */}
+                <div className="flex-1 min-w-0 border border-[var(--color-border)] rounded-lg overflow-hidden">
+                  <div className="px-3 py-2 bg-gray-50 border-b border-[var(--color-border)] flex items-center justify-between">
+                    <span className="text-sm font-semibold text-[var(--color-primary)]">Relevé bancaire</span>
+                    <span className="text-xs text-gray-500">{bankItems.length} ligne{bankItems.length > 1 ? 's' : ''}</span>
+                  </div>
+                  <div className="max-h-[55vh] overflow-y-auto">
+                    {bankItems.length === 0
+                      ? <div className="p-6 text-center text-sm text-gray-500">Aucune opération bancaire.</div>
+                      : bankItems.map(item => renderReconRow(item, 'bank'))}
+                  </div>
                 </div>
-              )}
+
+                {/* SÉPARATEUR centré : banque ⇄ comptabilité */}
+                <div className="flex-none w-16 relative flex flex-col items-center justify-center">
+                  <div className="absolute top-6 bottom-6 w-px bg-[var(--color-border)]" />
+                  <div className="z-10 w-9 h-9 rounded-full bg-[var(--color-primary)] text-white flex items-center justify-center shadow-sm" title="Rapprochement banque ⇄ comptabilité">
+                    <GitCompare className="h-4 w-4" />
+                  </div>
+                  <span className="z-10 mt-1.5 text-[10px] text-gray-500 bg-[var(--color-background)] px-1">rapprocher</span>
+                </div>
+
+                {/* DROITE : Écritures comptables */}
+                <div className="flex-1 min-w-0 border border-[var(--color-border)] rounded-lg overflow-hidden">
+                  <div className="px-3 py-2 bg-gray-50 border-b border-[var(--color-border)] flex items-center justify-between">
+                    <span className="text-sm font-semibold text-[var(--color-primary)]">Écritures comptables</span>
+                    <span className="text-xs text-gray-500">{comptaItems.length} ligne{comptaItems.length > 1 ? 's' : ''}</span>
+                  </div>
+                  <div className="max-h-[55vh] overflow-y-auto">
+                    {comptaItems.length === 0
+                      ? <div className="p-6 text-center text-sm text-gray-500">Aucune écriture comptable.</div>
+                      : comptaItems.map(item => renderReconRow(item, 'compta'))}
+                  </div>
+                </div>
+              </div>
 
               {(!reconciliationData?.results || reconciliationData.results.length === 0) && (
                 <div className="text-center py-12">

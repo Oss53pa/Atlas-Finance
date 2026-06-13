@@ -874,13 +874,16 @@ const PrevisionsTresoreriePage: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setShowPeriodModal(true)}
-                      className="w-full flex items-center justify-center space-x-2 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-[var(--color-primary)]"
+                      className="w-full flex items-center justify-between gap-2 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-[var(--color-primary)] text-left"
                     >
-                      <span>
+                      <span className={dateRange.start && dateRange.end ? 'text-gray-900 font-medium' : 'text-gray-400'}>
                         {dateRange.start && dateRange.end
                           ? `Du ${new Date(dateRange.start).toLocaleDateString('fr-FR')} au ${new Date(dateRange.end).toLocaleDateString('fr-FR')}`
                           : 'Sélectionner une période'}
                       </span>
+                      <svg className="h-4 w-4 text-gray-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
                     </button>
                   </div>
                   <div>
