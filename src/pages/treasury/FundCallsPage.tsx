@@ -31,6 +31,7 @@ import {
   TrendingUp,
   ArrowDownToLine,
   ArrowUpFromLine,
+  ChevronRight,
   Calculator
 } from 'lucide-react';
 import {
@@ -111,6 +112,14 @@ interface FundCall {
   bankAccount?: string;
 }
 
+/** Une paire libellé/valeur dans le détail dépliable d'une ligne payable. */
+const Detail: React.FC<{ label: string; value: React.ReactNode; mono?: boolean; span?: boolean }> = ({ label, value, mono, span }) => (
+  <div className={span ? 'col-span-2' : ''}>
+    <span className="text-gray-500">{label} : </span>
+    <span className={mono ? 'font-mono' : ''}>{value}</span>
+  </div>
+);
+
 const FundCallsPage: React.FC = () => {
   const { t } = useLanguage();
   const { adapter } = useData();
@@ -146,6 +155,20 @@ const FundCallsPage: React.FC = () => {
     try { localStorage.setItem(PROVISIONAL_KEY, JSON.stringify(provisionalExpenses)); } catch { /* quota/private mode */ }
   }, [provisionalExpenses]);
 
+  // Ligne dépliée (détail) — id pour la table de gauche, `p-${id}` pour la droite.
+  const [expandedPayable, setExpandedPayable] = useState<string | null>(null);
+
+  // Au montage : les dépenses prévisionnelles persistées rejoignent la sélection
+  // (elles s'affichent dans « Paiements proposés », pas dans « Comptes à payer »).
+  useEffect(() => {
+    setProposedPayments(prev => {
+      const have = new Set(prev.map(p => p.id));
+      const seed = provisionalExpenses.filter(p => !have.has(p.id));
+      return seed.length ? [...seed, ...prev] : prev;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const [showAddExpense, setShowAddExpense] = useState(false);
   const emptyForm = { vendor: '', description: '', amount: '', invoiceType: 'ACHAT' as PayableItem['invoiceType'], dueDate: '', priority: 'MEDIUM' as PayableItem['priority'] };
   const [expenseForm, setExpenseForm] = useState(emptyForm);
@@ -174,6 +197,8 @@ const FundCallsPage: React.FC = () => {
       provisional: true,
     };
     setProvisionalExpenses(prev => [...prev, item]);
+    // La dépense rejoint DIRECTEMENT la sélection (table de droite).
+    setProposedPayments(prev => [...prev, item]);
     setExpenseForm(emptyForm);
     setShowAddExpense(false);
   };
@@ -279,7 +304,7 @@ const FundCallsPage: React.FC = () => {
       setProposedPayments(prev => prev.filter(p => p.id !== itemId));
     } else {
       newSelected.add(itemId);
-      const item = combinedPayables.find(p => p.id === itemId);
+      const item = (payables || []).find(p => p.id === itemId);
       if (item) {
         setProposedPayments(prev => [...prev, item]);
       }
@@ -315,8 +340,8 @@ const FundCallsPage: React.FC = () => {
   }, [combinedPayables, groupBy]);
 
   const totalOutstanding = useMemo(() => {
-    return combinedPayables.reduce((sum, item) => sum + item.outstanding, 0);
-  }, [combinedPayables]);
+    return (payables || []).reduce((sum, item) => sum + item.outstanding, 0);
+  }, [payables]);
 
   const selectedAmount = useMemo(() => {
     return proposedPayments.reduce((sum, item) => sum + item.outstanding, 0);
@@ -436,17 +461,6 @@ const FundCallsPage: React.FC = () => {
                 />
               </div>
               
-              <Select value={groupBy} onValueChange={(value: string) => setGroupBy(value as 'vendor' | 'type' | 'priority' | 'none')}>
-                <SelectTrigger className="w-48">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="vendor">Grouper par fournisseur</SelectItem>
-                  <SelectItem value="type">Grouper par type</SelectItem>
-                  <SelectItem value="priority">Grouper par priorité</SelectItem>
-                  <SelectItem value="none">Pas de groupement</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
             
             <div className="flex items-center gap-2">
@@ -463,235 +477,178 @@ const FundCallsPage: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Tableau 1: Comptes à payer */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between gap-2">
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              Comptes à Payer (Total Outstanding)
-            </CardTitle>
-            <Button size="sm" variant="outline" onClick={() => setShowAddExpense(true)} className="flex items-center gap-1.5">
-              <Plus className="h-4 w-4" />
-              Dépense non comptabilisée
-            </Button>
-          </div>
-          <p className="text-xs text-[var(--color-text-tertiary)] mt-1">
-            Les dettes réelles proviennent du Grand Livre. Vous pouvez ajouter des
-            dépenses <span className="font-semibold">prévisionnelles</span> (pas encore
-            comptabilisées) pour les inclure dans un appel de fonds — elles sont signalées
-            par un badge <span className="font-semibold text-amber-700">Prévisionnel</span>.
-          </p>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="max-h-96 overflow-y-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-8">
-                    <Checkbox
-                      checked={combinedPayables.length > 0 && selectedItems.size === combinedPayables.length}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedItems(new Set(combinedPayables.map(p => p.id)));
-                          setProposedPayments(combinedPayables);
-                        } else {
-                          setSelectedItems(new Set());
-                          setProposedPayments([]);
-                        }
-                      }}
-                    />
-                  </TableHead>
-                  <TableHead>Fournisseur</TableHead>
-                  <TableHead>Date Document</TableHead>
-                  <TableHead>N° Document</TableHead>
-                  <TableHead>Référence</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead className="text-right">Montant Dû</TableHead>
-                  <TableHead className="text-right">{t('accounting.balance')}</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead className="text-right">Retard (jours)</TableHead>
-                  <TableHead>Priorité</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {Object.entries(groupedPayables).map(([groupName, items]) => (
-                  <React.Fragment key={groupName}>
-                    {groupBy !== 'none' && (
-                      <TableRow className="bg-primary-50 border-t-2">
-                        <TableCell colSpan={11}>
-                          <div className="flex items-center justify-between font-semibold">
-                            <span>{groupName}</span>
-                            <span>
-                              {items.length} facture{items.length > 1 ? 's' : ''} • {' '}
-                              {formatCurrency(items.reduce((sum, item) => sum + item.outstanding, 0))}
-                            </span>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    )}
-                    
-                    {items.map((item) => (
-                      <TableRow
-                        key={item.id}
-                        className={`hover:bg-primary-50 ${
-                          item.provisional ? 'bg-amber-50/70 border-l-4 border-amber-400' :
-                          item.priority === 'CRITICAL' ? 'bg-red-50' :
-                          item.arrearsAging > 30 ? 'bg-yellow-50' : ''
-                        }`}
-                      >
-                        <TableCell>
-                          <Checkbox
-                            checked={selectedItems.has(item.id)}
-                            onChange={() => handleItemSelect(item.id)}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium">{item.vendor}</span>
-                            {item.provisional && (
-                              <Badge className="bg-amber-100 text-amber-800 border border-amber-300 text-[10px] uppercase tracking-wide">Prévisionnel</Badge>
-                            )}
-                          </div>
-                          <div className="text-sm text-gray-700">{item.vendorCode}</div>
-                        </TableCell>
-                        <TableCell>{item.documentDate.toLocaleDateString('fr-FR')}</TableCell>
-                        <TableCell className="font-mono text-sm">{item.documentNumber}</TableCell>
-                        <TableCell className="font-mono text-sm">{item.reference}</TableCell>
-                        <TableCell className="max-w-48 truncate">{item.description}</TableCell>
-                        <TableCell className="text-right font-mono">
-                          {formatCurrency(item.dueAmount)}
-                        </TableCell>
-                        <TableCell className="text-right font-mono font-semibold">
-                          {formatCurrency(item.outstanding)}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{item.invoiceType}</Badge>
-                        </TableCell>
-                        <TableCell className={`text-right ${
-                          item.provisional ? 'text-gray-400' :
-                          item.arrearsAging > 60 ? 'text-red-600 font-bold' :
-                          item.arrearsAging > 30 ? 'text-orange-600 font-semibold' :
-                          item.arrearsAging > 0 ? 'text-yellow-600' : 'text-green-600'
-                        }`}>
-                          {item.provisional ? '—' : (item.arrearsAging > 0 ? `+${item.arrearsAging}` : '0')}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1">
-                            {getPriorityBadge(item.priority)}
-                            {item.provisional && (
-                              <button
-                                type="button"
-                                onClick={() => removeProvisionalExpense(item.id)}
-                                title="Supprimer cette dépense prévisionnelle"
-                                className="p-1 text-red-500 hover:bg-red-50 rounded"
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </button>
-                            )}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </React.Fragment>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Deux tables CÔTE À CÔTE : on pioche à GAUCHE (comptabilisé) pour alimenter
+          la sélection à DROITE. Chacune a son propre défilement → les deux restent
+          visibles en même temps ; séparateur centré (flèche) au milieu. */}
+      <div className="flex items-stretch gap-0">
 
-      {/* Tableau 2: Paiements proposés */}
-      {proposedPayments.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <ArrowUpFromLine className="h-5 w-5" />
-                Paiements Proposés (Amount Required)
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-lg font-bold text-[var(--color-primary)]">
-                  {formatCurrency(selectedAmount)}
-                </span>
-                <Button onClick={() => setViewMode('workflow')}>
-                  <Send className="h-4 w-4 mr-2" />
-                  Créer Appel de Fonds
-                </Button>
-              </div>
-            </CardTitle>
+        {/* ── GAUCHE : Comptes à payer (dettes RÉELLES, Grand Livre) ── */}
+        <Card className="flex-1 min-w-0">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between gap-2">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <FileText className="h-5 w-5" />
+                Comptes à Payer
+              </CardTitle>
+              <span className="text-xs text-[var(--color-text-tertiary)]">
+                {(payables || []).length} dette{(payables || []).length > 1 ? 's' : ''} · {formatCurrency(totalOutstanding)}
+              </span>
+            </div>
+            <p className="text-xs text-[var(--color-text-tertiary)] mt-0.5">
+              Comptabilisé · Grand Livre — cochez pour alimenter la sélection →
+            </p>
           </CardHeader>
           <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Fournisseur</TableHead>
-                  <TableHead>Document</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead className="text-right">Montant</TableHead>
-                  <TableHead className="text-right">Retard</TableHead>
-                  <TableHead>Recommandation</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {proposedPayments.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell>
-                      <div className="font-medium">{item.vendor}</div>
-                      <div className="text-sm text-gray-700">{item.vendorCode}</div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="font-mono text-sm">{item.documentNumber}</div>
-                      <div className="text-xs text-gray-700">{item.documentDate.toLocaleDateString('fr-FR')}</div>
-                    </TableCell>
-                    <TableCell className="max-w-48 truncate">{item.description}</TableCell>
-                    <TableCell className="text-right font-mono font-semibold">
-                      {formatCurrency(item.outstanding)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {item.arrearsAging > 0 ? (
-                        <span className="text-red-600 font-semibold">+{item.arrearsAging}j</span>
-                      ) : (
-                        <span className="text-green-600">À jour</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Select 
-                        value={item.recommendation} 
-                        onValueChange={(value: string) => {
-                          setProposedPayments(prev =>
-                            prev.map(p => p.id === item.id ? { ...p, recommendation: value as PayableItem['recommendation'] } : p)
-                          );
-                        }}
-                      >
-                        <SelectTrigger className="w-40">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="PAIEMENT_COMPLET">Paiement complet</SelectItem>
-                          <SelectItem value="PAIEMENT_PARTIEL">Paiement partiel</SelectItem>
-                          <SelectItem value="REPORTER">Reporter</SelectItem>
-                          <SelectItem value="URGENT">Urgent</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => handleItemSelect(item.id)}
-                      >
-                        <Trash2 className="h-4 w-4 text-red-600" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <div className="max-h-[55vh] overflow-y-auto">
+              {/* Tout sélectionner (figé en haut) */}
+              <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 sticky top-0 z-10 text-xs text-gray-600 border-b border-[var(--color-border)]">
+                <Checkbox
+                  checked={(payables || []).length > 0 && (payables || []).every(p => selectedItems.has(p.id))}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setSelectedItems(new Set((payables || []).map(p => p.id)));
+                      setProposedPayments([...provisionalExpenses, ...(payables || [])]);
+                    } else {
+                      setSelectedItems(new Set());
+                      setProposedPayments(prev => prev.filter(p => p.provisional));
+                    }
+                  }}
+                />
+                <span>Tout sélectionner</span>
+              </div>
+
+              {(payables || []).length === 0 ? (
+                <div className="p-6 text-center text-sm text-gray-500">Aucune dette comptabilisée.</div>
+              ) : (payables || []).map((item) => {
+                const expanded = expandedPayable === item.id;
+                return (
+                  <div key={item.id} className={`px-3 py-2 border-b border-[var(--color-border)] ${
+                    item.priority === 'CRITICAL' ? 'bg-red-50/60' : item.arrearsAging > 30 ? 'bg-yellow-50/60' : ''
+                  }`}>
+                    <div className="flex items-center gap-2">
+                      <Checkbox checked={selectedItems.has(item.id)} onChange={() => handleItemSelect(item.id)} />
+                      <button type="button" onClick={() => setExpandedPayable(expanded ? null : item.id)} className="flex-1 min-w-0 flex items-center gap-2 text-left">
+                        <ChevronRight className={`h-3.5 w-3.5 text-gray-400 shrink-0 transition-transform ${expanded ? 'rotate-90' : ''}`} />
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium truncate">{item.vendor}</div>
+                          <div className="text-xs text-gray-500 truncate">{item.description}</div>
+                        </div>
+                        <span className="font-mono text-[11px] px-1.5 py-0.5 bg-gray-100 text-gray-700 rounded shrink-0" title="Numéro de compte">{item.account}</span>
+                        <span className="text-sm font-mono font-semibold whitespace-nowrap shrink-0">{formatCurrency(item.outstanding)}</span>
+                      </button>
+                    </div>
+                    {expanded && (
+                      <div className="mt-2 ml-7 grid grid-cols-2 gap-x-4 gap-y-1 text-xs bg-gray-50 rounded p-2">
+                        <Detail label="Date document" value={item.documentDate.toLocaleDateString('fr-FR')} />
+                        <Detail label="N° document" value={item.documentNumber || '—'} mono />
+                        <Detail label="Référence" value={item.reference || '—'} mono />
+                        <Detail label="Compte" value={item.account} mono />
+                        <Detail label="Description" value={item.description} span />
+                        <Detail label="Montant dû" value={formatCurrency(item.dueAmount)} mono />
+                        <Detail label="Balance" value={formatCurrency(item.outstanding)} mono />
+                        <Detail label="Retard (jours)" value={item.arrearsAging > 0 ? `+${item.arrearsAging}` : '0'} />
+                        <div className="flex items-center gap-1"><span className="text-gray-500">Priorité :</span> {getPriorityBadge(item.priority)}</div>
+                        <div><Badge variant="outline">{item.invoiceType}</Badge></div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </CardContent>
         </Card>
-      )}
+
+        {/* ── SÉPARATEUR centré : pioché à gauche → alimente à droite ── */}
+        <div className="flex-none w-16 relative flex flex-col items-center justify-center">
+          <div className="absolute top-6 bottom-6 w-px bg-[var(--color-border)]" />
+          <div className="z-10 w-9 h-9 rounded-full bg-[var(--color-primary)] text-white flex items-center justify-center shadow-sm" title="Alimente la sélection">
+            <ArrowUpFromLine className="h-4 w-4 rotate-90" />
+          </div>
+          <span className="z-10 mt-1.5 text-[10px] text-gray-500 bg-[var(--color-background)] px-1">alimente</span>
+        </div>
+
+        {/* ── DROITE : Paiements proposés (sélection pour l'appel de fonds) ── */}
+        <Card className="flex-1 min-w-0 border-2 border-[var(--color-primary)]/40">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between gap-2">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <ArrowUpFromLine className="h-5 w-5" />
+                Paiements Proposés
+              </CardTitle>
+              <span className="text-base font-bold font-mono text-[var(--color-primary)]">{formatCurrency(selectedAmount)}</span>
+            </div>
+            <div className="flex items-center gap-2 mt-2">
+              <Button size="sm" variant="outline" onClick={() => setShowAddExpense(true)} className="flex-1 flex items-center justify-center gap-1.5">
+                <Plus className="h-4 w-4" />
+                Dépense non comptabilisée
+              </Button>
+              <Button size="sm" onClick={() => setViewMode('workflow')} disabled={proposedPayments.length === 0} className="flex items-center gap-1.5">
+                <Send className="h-4 w-4" />
+                Créer Appel de Fonds
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="max-h-[55vh] overflow-y-auto">
+              {proposedPayments.length === 0 ? (
+                <div className="p-6 text-center text-sm text-gray-500">
+                  Cochez des dettes à gauche, ou ajoutez une{' '}
+                  <span className="font-semibold">dépense non comptabilisée</span>.
+                </div>
+              ) : proposedPayments.map((item) => {
+                const expanded = expandedPayable === `p-${item.id}`;
+                return (
+                  <div key={item.id} className={`px-3 py-2 border-b border-[var(--color-border)] ${item.provisional ? 'bg-amber-50/70 border-l-4 border-amber-400' : ''}`}>
+                    <div className="flex items-center gap-2">
+                      <button type="button" onClick={() => setExpandedPayable(expanded ? null : `p-${item.id}`)} className="flex-1 min-w-0 flex items-center gap-2 text-left">
+                        <ChevronRight className={`h-3.5 w-3.5 text-gray-400 shrink-0 transition-transform ${expanded ? 'rotate-90' : ''}`} />
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium truncate flex items-center gap-1.5">
+                            {item.vendor}
+                            {item.provisional && <span className="text-[9px] uppercase tracking-wide bg-amber-100 text-amber-800 border border-amber-300 rounded px-1 shrink-0">Prévisionnel</span>}
+                          </div>
+                          <div className="text-xs text-gray-500 truncate">{item.description}</div>
+                        </div>
+                        <span className="font-mono text-[11px] px-1.5 py-0.5 bg-gray-100 text-gray-700 rounded shrink-0" title="Numéro de compte">{item.account}</span>
+                        <span className="text-sm font-mono font-semibold whitespace-nowrap shrink-0">{formatCurrency(item.outstanding)}</span>
+                      </button>
+                      <button type="button" onClick={() => item.provisional ? removeProvisionalExpense(item.id) : handleItemSelect(item.id)} title="Retirer de la sélection" className="p-1 text-red-500 hover:bg-red-50 rounded shrink-0">
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                    {expanded && (
+                      <div className="mt-2 ml-7 grid grid-cols-2 gap-x-4 gap-y-1 text-xs bg-white rounded p-2 border border-[var(--color-border)]">
+                        <Detail label="Date document" value={item.documentDate.toLocaleDateString('fr-FR')} />
+                        <Detail label="N° document" value={item.documentNumber || '—'} mono />
+                        <Detail label="Référence" value={item.reference || '—'} mono />
+                        <Detail label="Compte" value={item.account} mono />
+                        <Detail label="Description" value={item.description} span />
+                        <Detail label="Montant" value={formatCurrency(item.outstanding)} mono />
+                        <Detail label="Retard (jours)" value={item.provisional ? '—' : (item.arrearsAging > 0 ? `+${item.arrearsAging}` : '0')} />
+                        <div className="flex items-center gap-1"><span className="text-gray-500">Priorité :</span> {getPriorityBadge(item.priority)}</div>
+                        <div className="col-span-2 flex items-center gap-2 mt-1">
+                          <span className="text-gray-500">Recommandation :</span>
+                          <select
+                            value={item.recommendation || ''}
+                            onChange={(e) => setProposedPayments(prev => prev.map(p => p.id === item.id ? { ...p, recommendation: (e.target.value || undefined) as PayableItem['recommendation'] } : p))}
+                            className="border border-[var(--color-border)] rounded px-2 py-1 text-xs bg-white"
+                          >
+                            <option value="">—</option>
+                            <option value="PAIEMENT_COMPLET">Paiement complet</option>
+                            <option value="PAIEMENT_PARTIEL">Paiement partiel</option>
+                            <option value="REPORTER">Reporter</option>
+                            <option value="URGENT">Urgent</option>
+                          </select>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 
