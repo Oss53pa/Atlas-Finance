@@ -117,23 +117,31 @@ const PrevisionsTresoreriePage: React.FC = () => {
   const [treasurySettingRaw, setTreasurySettingRaw] = useState<any>(undefined);
   const [forecastSettingRaw, setForecastSettingRaw] = useState<any>(undefined);
   const [treasuryPlansSetting, setTreasuryPlansSetting] = useState<any>(undefined);
+  // Métadonnées bancaires par compte (RIB / IBAN / SWIFT) saisies à la main et
+  // persistées (settings treasury_account_meta), fusionnées dans les comptes.
+  const [accountMetaRaw, setAccountMetaRaw] = useState<any>(undefined);
+  // Modale d'édition RIB/IBAN/SWIFT d'un compte.
+  const [editAccount, setEditAccount] = useState<{ number: string; description: string } | null>(null);
+  const [metaForm, setMetaForm] = useState<{ rib: string; iban: string; swift: string }>({ rib: '', iban: '', swift: '' });
 
   // ──────── Data loading ────────
 
   const loadData = useCallback(async () => {
     try {
-      const [accts, entries, tSetting, fSetting, pSetting] = await Promise.all([
+      const [accts, entries, tSetting, fSetting, pSetting, mSetting] = await Promise.all([
         adapter.getAll('accounts'),
         adapter.getAll('journalEntries'),
         adapter.getById('settings', 'treasury_accounts'),
         adapter.getById('settings', 'treasury_forecasts'),
         adapter.getById('settings', 'treasury_plans'),
+        adapter.getById('settings', 'treasury_account_meta').catch(() => undefined),
       ]);
       setDbAccounts(accts as Record<string, unknown>[]);
       setJournalEntries(entries as Record<string, unknown>[]);
       setTreasurySettingRaw(tSetting);
       setForecastSettingRaw(fSetting);
       setTreasuryPlansSetting(pSetting);
+      setAccountMetaRaw(mSetting);
     } catch (err) {
       /* ignored */
     }
@@ -145,6 +153,20 @@ const PrevisionsTresoreriePage: React.FC = () => {
     () => (treasuryPlansSetting ? JSON.parse(treasuryPlansSetting.value) : []),
     [treasuryPlansSetting],
   );
+
+  // Métadonnées par compte : { [numéro]: { rib, iban, swift } }.
+  const accountMeta: Record<string, { rib?: string; iban?: string; swift?: string }> = useMemo(() => {
+    try { return accountMetaRaw ? JSON.parse(accountMetaRaw.value) : {}; } catch { return {}; }
+  }, [accountMetaRaw]);
+
+  const saveAccountMeta = useCallback(async (number: string, meta: { rib: string; iban: string; swift: string }) => {
+    const current = accountMetaRaw ? JSON.parse(accountMetaRaw.value) : {};
+    current[number] = meta;
+    const payload = { key: 'treasury_account_meta', value: JSON.stringify(current), updatedAt: new Date().toISOString() };
+    if (accountMetaRaw) await adapter.update('settings', 'treasury_account_meta', payload);
+    else await adapter.create('settings', payload);
+    await loadData();
+  }, [adapter, accountMetaRaw, loadData]);
 
   // ──────── Persistence ────────
 
@@ -166,25 +188,38 @@ const PrevisionsTresoreriePage: React.FC = () => {
   // ──────── Treasury accounts ────────
 
   const allTreasuryAccounts = useMemo(() => {
+    type Acct = { number: string; description: string; rib: string; iban: string; swift: string; amount: number; bank: string };
+    let base: Acct[];
     if (treasurySettingRaw) {
-      return JSON.parse(treasurySettingRaw.value) as Array<{ number: string; description: string; iban: string; swift: string; amount: number; bank: string }>;
-    }
-    const treasuryAccts = dbAccounts.filter(a => /^5/.test(String(a.code || '')) && !/^59/.test(String(a.code || '')));
-    return treasuryAccts.map(acct => {
-      let balance = 0;
-      journalEntries
-        .filter(e => e.status === 'validated' || e.status === 'posted')
-        .forEach(entry => {
-          entry.lines.forEach((line: any) => {
-            if (line.accountCode === acct.code) {
-              balance += line.debit - line.credit;
-            }
+      base = (JSON.parse(treasurySettingRaw.value) as any[]).map(a => ({ rib: '', ...a }));
+    } else {
+      const treasuryAccts = dbAccounts.filter(a => /^5/.test(String(a.code || '')) && !/^59/.test(String(a.code || '')));
+      base = treasuryAccts.map(acct => {
+        let balance = 0;
+        journalEntries
+          .filter(e => e.status === 'validated' || e.status === 'posted')
+          .forEach(entry => {
+            entry.lines.forEach((line: any) => {
+              if (line.accountCode === acct.code) {
+                balance += line.debit - line.credit;
+              }
+            });
           });
-        });
-      const bankName = acct.code.startsWith('57') ? 'CAISSE' : acct.name.split(' ')[0]?.toUpperCase() || 'BANQUE';
-      return { number: acct.code, description: acct.name, iban: '-', swift: '-', amount: balance, bank: bankName };
+        const bankName = acct.code.startsWith('57') ? 'CAISSE' : acct.name.split(' ')[0]?.toUpperCase() || 'BANQUE';
+        return { number: acct.code, description: acct.name, rib: '', iban: '-', swift: '-', amount: balance, bank: bankName };
+      });
+    }
+    // Fusion des métadonnées saisies (RIB / IBAN / SWIFT) par numéro de compte.
+    return base.map(a => {
+      const m = accountMeta[a.number];
+      return {
+        ...a,
+        rib: m?.rib || a.rib || '',
+        iban: m?.iban || a.iban || '-',
+        swift: m?.swift || a.swift || '-',
+      };
     });
-  }, [treasurySettingRaw, dbAccounts, journalEntries]);
+  }, [treasurySettingRaw, dbAccounts, journalEntries, accountMeta]);
 
   // Présélection : avec « Toutes les banques » par défaut, sélectionner tous les
   // comptes dès qu'ils sont chargés → cartes Cash + transactions futures remplies.
@@ -554,9 +589,12 @@ const PrevisionsTresoreriePage: React.FC = () => {
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Account number</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Account description</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Banque</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">RIB</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">IBAN number</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Code SWIFT / BIC</th>
                     <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase">Amount</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
@@ -572,19 +610,32 @@ const PrevisionsTresoreriePage: React.FC = () => {
                       </td>
                       <td className="px-4 py-3 font-medium">{account.number}</td>
                       <td className="px-4 py-3">{account.description}</td>
+                      <td className="px-4 py-3 text-sm">{account.bank}</td>
+                      <td className="px-4 py-3 font-mono text-sm">{account.rib || '—'}</td>
                       <td className="px-4 py-3 font-mono text-sm">{account.iban}</td>
                       <td className="px-4 py-3 font-mono text-sm">{account.swift}</td>
                       <td className={`px-4 py-3 text-right font-bold ${account.amount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                         {formatCurrency(account.amount)}
                       </td>
+                      <td className="px-4 py-3 text-center">
+                        <button
+                          type="button"
+                          onClick={() => { setEditAccount({ number: account.number, description: account.description }); setMetaForm({ rib: account.rib || '', iban: account.iban === '-' ? '' : account.iban, swift: account.swift === '-' ? '' : account.swift }); }}
+                          className="p-1.5 text-gray-400 hover:text-[var(--color-primary)] rounded transition-colors"
+                          title="Modifier RIB / IBAN / SWIFT"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                        </button>
+                      </td>
                     </tr>
                   ))}
                   <tr className="bg-gray-50 border-t-2 border-gray-300">
                     <td className="px-4 py-3"></td>
-                    <td colSpan={4} className="px-4 py-3 font-bold text-[var(--color-text-primary)]">Total général :</td>
+                    <td colSpan={6} className="px-4 py-3 font-bold text-[var(--color-text-primary)]">Total général :</td>
                     <td className={`px-4 py-3 text-right font-bold text-lg ${getTotalAmount() >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                       {formatCurrency(getTotalAmount())}
                     </td>
+                    <td className="px-4 py-3"></td>
                   </tr>
                 </tbody>
               </table>
@@ -597,9 +648,11 @@ const PrevisionsTresoreriePage: React.FC = () => {
       {/* ═══════════ TAB: Transactions futures ═══════════ */}
       {activeTab === 'future' && (
         <div className="space-y-3">
-          {/* Sélecteur de banque : filtre les transactions et alimente les cartes Cash. */}
+          {/* Sélecteur de COMPTE (groupé par banque, avec n° + description + RIB pour
+              distinguer plusieurs comptes d'une même banque) — filtre les transactions
+              et alimente les cartes Cash. */}
           <div className="bg-white border border-gray-200 rounded-lg p-4 flex flex-wrap items-center gap-3">
-            <label className="text-sm font-medium text-[var(--color-text-primary)]">Banque</label>
+            <label className="text-sm font-medium text-[var(--color-text-primary)]">Compte</label>
             <select
               value={futureBank}
               onChange={(e) => {
@@ -607,15 +660,24 @@ const PrevisionsTresoreriePage: React.FC = () => {
                 setFutureBank(v);
                 if (v === 'all') setSelectedAccounts(allTreasuryAccounts.map(a => a.number));
                 else if (v === '') setSelectedAccounts([]);
-                else setSelectedAccounts(allTreasuryAccounts.filter(a => a.bank === v).map(a => a.number));
+                else setSelectedAccounts([v]);
               }}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-[var(--color-primary)]"
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-[var(--color-primary)] min-w-[320px]"
             >
-              <option value="">— Choisir une banque —</option>
               <option value="all">Toutes les banques</option>
-              {[...new Set(allTreasuryAccounts.map(a => a.bank))].sort().map(b => <option key={b} value={b}>{b}</option>)}
+              {Object.entries(
+                allTreasuryAccounts.reduce((acc, a) => { (acc[a.bank] ||= []).push(a); return acc; }, {} as Record<string, typeof allTreasuryAccounts>)
+              ).map(([bank, accts]) => (
+                <optgroup key={bank} label={bank}>
+                  {accts.map(a => (
+                    <option key={a.number} value={a.number}>
+                      {a.number} · {a.description}{a.rib ? ` · RIB ${a.rib}` : ''}
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
             </select>
-            <span className="text-xs text-gray-500">Affiche les transactions futures de la banque et alimente les cartes Cash ci-dessous.</span>
+            <span className="text-xs text-gray-500">Sélectionnez un compte (groupé par banque) ou « Toutes les banques ».</span>
           </div>
 
           {/* Cartes Cash (alimentées par la sélection) */}
@@ -1245,6 +1307,55 @@ const PrevisionsTresoreriePage: React.FC = () => {
         onApply={(newDateRange) => setDateRange(newDateRange)}
         initialDateRange={dateRange}
       />
+
+      {/* Modale d'édition des coordonnées bancaires (RIB / IBAN / SWIFT) d'un compte. */}
+      {editAccount && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+            <div className="p-4 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Coordonnées bancaires</h3>
+              <p className="text-xs text-gray-500 mt-0.5">
+                <span className="font-mono">{editAccount.number}</span> · {editAccount.description}
+              </p>
+            </div>
+            <div className="p-4 space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">RIB</label>
+                <input type="text" value={metaForm.rib}
+                  onChange={(e) => setMetaForm(f => ({ ...f, rib: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono focus:ring-2 focus:ring-[var(--color-primary)]"
+                  placeholder="Ex. CI93 CI008 01234 567890123456 78" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">IBAN number</label>
+                <input type="text" value={metaForm.iban}
+                  onChange={(e) => setMetaForm(f => ({ ...f, iban: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono focus:ring-2 focus:ring-[var(--color-primary)]"
+                  placeholder="Ex. CI93CI0080123456789012345678" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Code SWIFT / BIC</label>
+                <input type="text" value={metaForm.swift}
+                  onChange={(e) => setMetaForm(f => ({ ...f, swift: e.target.value.toUpperCase() }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono focus:ring-2 focus:ring-[var(--color-primary)]"
+                  placeholder="Ex. ECOCCIAB" />
+              </div>
+              <p className="text-xs text-gray-400">Seuls le RIB, l'IBAN et le code SWIFT/BIC sont modifiables — le solde provient du Grand Livre.</p>
+            </div>
+            <div className="p-4 border-t border-gray-200 flex justify-end gap-2">
+              <button type="button" onClick={() => setEditAccount(null)}
+                className="px-4 py-2 text-sm border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                Annuler
+              </button>
+              <button type="button"
+                onClick={async () => { await saveAccountMeta(editAccount.number, metaForm); setEditAccount(null); }}
+                className="px-4 py-2 text-sm bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)]">
+                Enregistrer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
