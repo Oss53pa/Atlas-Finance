@@ -78,6 +78,7 @@ const AnalyticalAxesPage: React.FC = () => {
     niveau: ''
   });
   const [page, setPage] = useState(1);
+  const [showFilters, setShowFilters] = useState(false);
   const [selectedAxe, setSelectedAxe] = useState<AxeData | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [formData, setFormData] = useState({
@@ -380,7 +381,11 @@ const AnalyticalAxesPage: React.FC = () => {
             </p>
           </div>
           <div className="flex space-x-3">
-            <PageHeaderActions />
+            <PageHeaderActions
+              onToggleFilters={() => setShowFilters((v) => !v)}
+              filtersOpen={showFilters}
+              activeFilters={[filters.search, filters.type, filters.statut, filters.niveau].filter(Boolean).length}
+            />
             <Button variant="outline" onClick={() => toast('Fonctionnalité d\'export en cours de développement.', { icon: '⏳' })}>
               <Download className="mr-2 h-4 w-4" />
               Exporter
@@ -469,7 +474,8 @@ const AnalyticalAxesPage: React.FC = () => {
         </Card>
       </div>
 
-      {/* Filters */}
+      {/* Filters (repliable via l'entonnoir de l'en-tête) */}
+      {showFilters && (
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
@@ -537,6 +543,7 @@ const AnalyticalAxesPage: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+      )}
 
       {/* Axes Table */}
       <Card>

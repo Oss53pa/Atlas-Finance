@@ -8,7 +8,6 @@ import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import {
   PlusIcon,
   MagnifyingGlassIcon,
-  FunnelIcon,
   EyeIcon,
   PencilIcon,
   TrashIcon,
@@ -200,7 +199,11 @@ const RolesPage: React.FC = () => {
           <p className="text-gray-600">Définition des rôles et attribution des permissions</p>
         </div>
         <div className="flex items-center gap-2">
-          <PageHeaderActions />
+          <PageHeaderActions
+            onToggleFilters={() => setShowFilters(!showFilters)}
+            filtersOpen={showFilters}
+            activeFilters={[searchTerm !== '', selectedCategory !== 'all'].filter(Boolean).length}
+          />
           <button
             onClick={() => setShowCreateModal(true)}
             className="bg-primary hover:bg-primary-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
@@ -276,13 +279,6 @@ const RolesPage: React.FC = () => {
                 className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
             </div>
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <FunnelIcon className="h-5 w-5" />
-              <span>Filtres</span>
-            </button>
           </div>
         </div>
 

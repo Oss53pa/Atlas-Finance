@@ -68,6 +68,7 @@ const CostCentersPage: React.FC = () => {
     responsable: ''
   });
   const [page, setPage] = useState(1);
+  const [showFilters, setShowFilters] = useState(false);
   const [selectedCenter, setSelectedCenter] = useState<Record<string, unknown> | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [formData, setFormData] = useState({
@@ -282,7 +283,11 @@ const CostCentersPage: React.FC = () => {
             </p>
           </div>
           <div className="flex space-x-3">
-            <PageHeaderActions />
+            <PageHeaderActions
+              onToggleFilters={() => setShowFilters((v) => !v)}
+              filtersOpen={showFilters}
+              activeFilters={[filters.search, filters.axe, filters.type, filters.statut, filters.responsable].filter(Boolean).length}
+            />
             <Button variant="outline">
               <Download className="mr-2 h-4 w-4" />
               Exporter
@@ -369,7 +374,8 @@ const CostCentersPage: React.FC = () => {
         </Card>
       </div>
 
-      {/* Filters */}
+      {/* Filters (repliable via l'entonnoir de l'en-tête) */}
+      {showFilters && (
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
@@ -448,6 +454,7 @@ const CostCentersPage: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+      )}
 
       {/* Cost Centers Table */}
       <Card>
