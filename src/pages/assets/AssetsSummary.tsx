@@ -616,10 +616,13 @@ const AssetsSummary: React.FC = () => {
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, percentage }) => `${name} (${percentage}%)`}
-                  outerRadius={80}
+                  /* % uniquement sur les parts ≥ 6 % (sinon les libellés des fines
+                     tranches se chevauchent) ; les noms sont dans la légende. */
+                  label={({ percentage }) => (Number(percentage) >= 6 ? `${percentage}%` : '')}
+                  outerRadius={90}
                   fill="#235A6E"
                   dataKey="value"
+                  nameKey="name"
                 >
                   {assetCategories.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
@@ -628,6 +631,8 @@ const AssetsSummary: React.FC = () => {
                 <Tooltip
                   formatter={(value: number) => [`${formatCurrency(value)}`, 'Valeur']}
                 />
+                <Legend layout="vertical" align="right" verticalAlign="middle"
+                  formatter={(value: string) => <span style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>{value}</span>} />
               </RechartsPieChart>
             </ResponsiveContainer>
           </div>
