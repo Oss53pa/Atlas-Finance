@@ -1,4 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../contexts/LanguageContext';
 import {
@@ -213,6 +214,7 @@ const BankAccountsPage: React.FC = () => {
             </p>
           </div>
           <div className="flex space-x-3">
+            <PageHeaderActions />
             <Button variant="outline" onClick={() => {
               const csvContent = accountsData?.results?.map(acc =>
                 `${acc.account_number ?? (acc as any).numero_compte ?? ''};${acc.bank?.name ?? (acc as any).nom_banque ?? ''};${acc.account_type ?? (acc as any).type_compte ?? ''};${acc.currency ?? (acc as any).devise ?? ''};${acc.current_balance ?? (acc as any).solde_comptable ?? 0}`

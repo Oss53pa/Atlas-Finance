@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -474,6 +475,7 @@ const FixedAssetsPage: React.FC = () => {
             </p>
           </div>
           <div className="flex space-x-3">
+            <PageHeaderActions />
             <ExportMenu
               data={assetsData?.results || []}
               filename="immobilisations"
