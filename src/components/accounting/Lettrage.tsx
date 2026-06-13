@@ -34,6 +34,7 @@ interface LettrageEntry {
   lettragePartiel?: boolean;
   selected?: boolean;
   tiers?: string;
+  tiersCode?: string;
   echeance?: string;
   reference?: string;
   devise?: string;
@@ -133,6 +134,8 @@ const Lettrage: React.FC = () => {
             solde: soldesByCompte[line.accountCode],
             lettrage: line.lettrageCode,
             tiers: line.thirdPartyName,
+            tiersCode: line.thirdPartyCode,
+            echeance: line.dateEcheance,
           });
         }
       }
@@ -140,21 +143,35 @@ const Lettrage: React.FC = () => {
     },
   });
 
-  // Grouper les écritures par compte
+  // Clé d'identité du TIERS (et non du compte collectif) : code tiers > nom tiers > compte (sans tiers)
+  const tiersKeyOf = (e: LettrageEntry) =>
+    (e.tiersCode && e.tiersCode.trim()) || (e.tiers && e.tiers.trim().toUpperCase()) || `cpt:${e.compte}`;
+  const tiersLabelOf = (e: LettrageEntry) =>
+    (e.tiers && e.tiers.trim()) || (e.tiersCode && e.tiersCode.trim()) || `${e.compte} — sans tiers détaillé`;
+
+  // Grouper les écritures par TIERS
   const groupedEntries = useMemo(() => {
     const filtered = lettrageEntries.filter(entry => {
       if (showOnlyNonLettrage && entry.lettrage) return false;
       if (compteFilter !== 'all' && !entry.compte.startsWith(compteFilter)) return false;
-      if (searchTerm && !entry.libelle.toLowerCase().includes(searchTerm.toLowerCase()) &&
-          !entry.piece.toLowerCase().includes(searchTerm.toLowerCase()) &&
-          !(entry.tiers || '').toLowerCase().includes(searchTerm.toLowerCase()) &&
-          !entry.compte.includes(searchTerm)) return false;
+      if (searchTerm) {
+        const q = searchTerm.toLowerCase();
+        if (!entry.libelle.toLowerCase().includes(q) &&
+            !entry.piece.toLowerCase().includes(q) &&
+            !(entry.tiers || '').toLowerCase().includes(q) &&
+            !(entry.tiersCode || '').toLowerCase().includes(q) &&
+            !entry.compte.includes(searchTerm)) return false;
+      }
       return true;
     });
 
-    type GroupedAccount = {
+    type GroupedTiers = {
+      key: string;
+      tiers: string;
+      tiersCode: string;
       compte: string;
       compteLib: string;
+      comptes: Set<string>;
       entries: LettrageEntry[];
       totalDebit: number;
       totalCredit: number;
@@ -162,36 +179,43 @@ const Lettrage: React.FC = () => {
       nonLettres: number;
     };
     const grouped = filtered.reduce((acc, entry) => {
-      if (!acc[entry.compte]) {
-        acc[entry.compte] = {
+      const key = tiersKeyOf(entry);
+      if (!acc[key]) {
+        acc[key] = {
+          key,
+          tiers: tiersLabelOf(entry),
+          tiersCode: entry.tiersCode || '',
           compte: entry.compte,
           compteLib: entry.compteLib || '',
+          comptes: new Set<string>(),
           entries: [],
           totalDebit: 0,
           totalCredit: 0,
           solde: 0,
-          nonLettres: 0
+          nonLettres: 0,
         };
       }
-      if (!acc[entry.compte].compteLib && entry.compteLib) acc[entry.compte].compteLib = entry.compteLib;
-      acc[entry.compte].entries.push(entry);
-      acc[entry.compte].totalDebit = money(acc[entry.compte].totalDebit).add(money(entry.debit)).toNumber();
-      acc[entry.compte].totalCredit = money(acc[entry.compte].totalCredit).add(money(entry.credit)).toNumber();
-      acc[entry.compte].solde = money(acc[entry.compte].totalDebit).subtract(money(acc[entry.compte].totalCredit)).toNumber();
-      if (!entry.lettrage) acc[entry.compte].nonLettres++;
+      const g = acc[key];
+      if (!g.compteLib && entry.compteLib) g.compteLib = entry.compteLib;
+      g.comptes.add(entry.compte);
+      g.entries.push(entry);
+      g.totalDebit = money(g.totalDebit).add(money(entry.debit)).toNumber();
+      g.totalCredit = money(g.totalCredit).add(money(entry.credit)).toNumber();
+      g.solde = money(g.totalDebit).subtract(money(g.totalCredit)).toNumber();
+      if (!entry.lettrage) g.nonLettres++;
       return acc;
-    }, {} as Record<string, GroupedAccount>);
+    }, {} as Record<string, GroupedTiers>);
 
-    return Object.values(grouped).sort((a, b) => b.nonLettres - a.nonLettres || a.compte.localeCompare(b.compte));
+    return Object.values(grouped).sort((a, b) => b.nonLettres - a.nonLettres || a.tiers.localeCompare(b.tiers));
   }, [lettrageEntries, showOnlyNonLettrage, searchTerm, compteFilter]);
 
-  // Détail d'un compte ouvert dans la modale (toutes les écritures du compte, indép. du filtre liste)
+  // Détail d'un TIERS ouvert dans la modale (toutes ses écritures, indép. du filtre liste)
   const detailEntries = useMemo(() => {
     if (!detailCompte) return [] as LettrageEntry[];
     const q = modalSearch.trim().toLowerCase();
     const qNum = q.replace(/[\s.,]/g, '');
     return lettrageEntries
-      .filter(e => e.compte === detailCompte && (!modalOnlyNonLettre || !e.lettrage))
+      .filter(e => tiersKeyOf(e) === detailCompte && (!modalOnlyNonLettre || !e.lettrage))
       .filter(e => {
         if (!q) return true;
         const montant = String(Math.max(e.debit, e.credit));
@@ -214,7 +238,7 @@ const Lettrage: React.FC = () => {
 
   // Compteur vivant de la sélection (Débit / Crédit / Écart)
   const selDetail = useMemo(() => {
-    const sel = lettrageEntries.filter(e => e.compte === detailCompte && selectedEntries.has(e.id));
+    const sel = lettrageEntries.filter(e => tiersKeyOf(e) === detailCompte && selectedEntries.has(e.id));
     const debit = sel.reduce((s, e) => money(s).add(money(e.debit)).toNumber(), 0);
     const credit = sel.reduce((s, e) => money(s).add(money(e.credit)).toNumber(), 0);
     return { count: sel.length, debit, credit, ecart: money(debit).subtract(money(credit)).toNumber() };
@@ -240,13 +264,17 @@ const Lettrage: React.FC = () => {
 
   const detailMeta = useMemo(() => {
     if (!detailCompte) return null;
-    const all = lettrageEntries.filter(e => e.compte === detailCompte);
+    const all = lettrageEntries.filter(e => tiersKeyOf(e) === detailCompte);
+    if (all.length === 0) return null;
     const totalDebit = all.reduce((s, e) => money(s).add(money(e.debit)).toNumber(), 0);
     const totalCredit = all.reduce((s, e) => money(s).add(money(e.credit)).toNumber(), 0);
+    const comptes = Array.from(new Set(all.map(e => e.compte)));
     return {
-      compte: detailCompte,
+      tiers: tiersLabelOf(all[0]),
+      tiersCode: all.find(e => e.tiersCode)?.tiersCode || '',
+      compte: comptes[0],
+      comptes,
       compteLib: all.find(e => e.compteLib)?.compteLib || '',
-      tiers: all.find(e => e.tiers)?.tiers || '',
       solde: money(totalDebit).subtract(money(totalCredit)).toNumber(),
       nonLettres: all.filter(e => !e.lettrage).length,
       lettrees: all.filter(e => e.lettrage).length,
@@ -532,7 +560,7 @@ const Lettrage: React.FC = () => {
 
               <span className="ml-auto text-xs text-gray-500 flex items-center gap-1">
                 <Info className="w-3.5 h-3.5" />
-                Cliquez sur un compte pour lettrer ses écritures
+                Cliquez sur un tiers pour lettrer ses écritures
               </span>
             </div>
           </div>
@@ -609,8 +637,8 @@ const Lettrage: React.FC = () => {
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Compte</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Libellé / Tiers</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Tiers</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Compte(s)</th>
                   <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700">Solde</th>
                   <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700">Lettrées</th>
                   <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700">Non lettrées</th>
@@ -619,24 +647,29 @@ const Lettrage: React.FC = () => {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {groupedEntries.length === 0 && (
-                  <tr><td colSpan={6} className="px-4 py-10 text-center text-sm text-gray-500">Aucun compte à afficher pour ces critères.</td></tr>
+                  <tr><td colSpan={6} className="px-4 py-10 text-center text-sm text-gray-500">Aucun tiers à afficher pour ces critères.</td></tr>
                 )}
                 {groupedEntries.map((group) => {
                   const lettrees = group.entries.filter((e: LettrageEntry) => e.lettrage).length;
+                  const comptesArr = Array.from(group.comptes);
                   return (
                     <tr
-                      key={group.compte}
+                      key={group.key}
                       className="hover:bg-gray-50 cursor-pointer"
-                      onClick={() => { setSelectedEntries(new Set()); setModalOnlyNonLettre(true); setModalSearch(''); setDetailCompte(group.compte); }}
+                      onClick={() => { setSelectedEntries(new Set()); setModalOnlyNonLettre(true); setModalSearch(''); setDetailCompte(group.key); }}
                     >
                       <td className="px-4 py-3">
-                        <span className="font-mono font-bold text-[var(--color-primary)]">{group.compte}</span>
+                        <div className="flex items-center gap-2">
+                          <Users className="w-4 h-4 text-gray-400 shrink-0" />
+                          <div>
+                            <div className="font-semibold text-gray-900 text-sm">{group.tiers}</div>
+                            {group.tiersCode && <div className="text-xs text-gray-400 font-mono">{group.tiersCode}</div>}
+                          </div>
+                        </div>
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-700">
-                        {group.compteLib ||
-                         (group.compte.startsWith('411') ? t('thirdParty.customers') :
-                          group.compte.startsWith('401') ? t('thirdParty.suppliers') :
-                          'Compte tiers')}
+                      <td className="px-4 py-3 text-sm text-gray-600">
+                        <span className="font-mono">{comptesArr.join(', ')}</span>
+                        {group.compteLib && <span className="ml-2 text-xs text-gray-400">{group.compteLib}</span>}
                       </td>
                       <td className="px-4 py-3 text-right text-sm">
                         <span className={`font-bold ${group.solde > 0 ? 'text-red-600' : group.solde < 0 ? 'text-green-600' : 'text-gray-900'}`}>
@@ -1283,15 +1316,12 @@ const Lettrage: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-gray-900">
-                    <span className="font-mono">{detailMeta.compte}</span>
-                    <span className="ml-2 font-normal text-gray-600">
-                      {detailMeta.compteLib ||
-                       (detailMeta.compte.startsWith('411') ? t('thirdParty.customers') :
-                        detailMeta.compte.startsWith('401') ? t('thirdParty.suppliers') : 'Compte tiers')}
-                    </span>
+                    {detailMeta.tiers}
+                    {detailMeta.tiersCode && <span className="ml-2 font-mono text-xs text-gray-400">{detailMeta.tiersCode}</span>}
                   </h3>
                   <p className="text-xs text-gray-500 mt-0.5">
-                    Solde&nbsp;
+                    <span className="font-mono">Compte {detailMeta.comptes.join(', ')}</span>
+                    {' · '}Solde&nbsp;
                     <span className={`font-semibold ${detailMeta.solde > 0 ? 'text-red-600' : detailMeta.solde < 0 ? 'text-green-600' : 'text-gray-700'}`}>
                       {fmt(Math.abs(detailMeta.solde))} {detailMeta.solde > 0 ? '(Débiteur)' : detailMeta.solde < 0 ? '(Créditeur)' : '(Soldé)'}
                     </span>
@@ -1400,7 +1430,7 @@ const Lettrage: React.FC = () => {
                     <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700">{t('common.date')}</th>
                     <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700">{t('accounting.piece')}</th>
                     <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700">{t('accounting.label')}</th>
-                    <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700">Tiers</th>
+                    <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700">Compte</th>
                     <th className="px-4 py-2 text-center text-xs font-semibold text-gray-700">{t('accounting.journal')}</th>
                     <th className="px-4 py-2 text-right text-xs font-semibold text-gray-700">{t('accounting.debit')}</th>
                     <th className="px-4 py-2 text-right text-xs font-semibold text-gray-700">{t('accounting.credit')}</th>
@@ -1410,7 +1440,7 @@ const Lettrage: React.FC = () => {
                 <tbody>
                   {detailEntries.length === 0 && (
                     <tr><td colSpan={9} className="px-4 py-10 text-center text-sm text-gray-500">
-                      {modalOnlyNonLettre ? 'Toutes les écritures de ce compte sont lettrées.' : 'Aucune écriture.'}
+                      {modalOnlyNonLettre ? 'Toutes les écritures de ce tiers sont lettrées.' : 'Aucune écriture.'}
                     </td></tr>
                   )}
                   {detailEntries.map((entry) => (
@@ -1436,7 +1466,7 @@ const Lettrage: React.FC = () => {
                       <td className="px-4 py-2 text-sm text-gray-600 whitespace-nowrap">{new Date(entry.date).toLocaleDateString('fr-FR')}</td>
                       <td className="px-4 py-2 text-sm font-mono text-gray-800">{entry.piece}</td>
                       <td className="px-4 py-2 text-sm text-gray-900">{entry.libelle}</td>
-                      <td className="px-4 py-2 text-sm text-gray-600">{entry.tiers}</td>
+                      <td className="px-4 py-2 text-sm font-mono text-gray-600">{entry.compte}</td>
                       <td className="px-4 py-2 text-center">
                         <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-mono">{entry.journal}</span>
                       </td>

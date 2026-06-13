@@ -1001,6 +1001,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
           id="main-content"
           className="flex-1 overflow-y-auto bg-[var(--color-background)]"
           role="main"
+          data-company-name={companyName || undefined}
         >
           <div className="p-3 lg:p-4">
             {/* Pas de `key={location.pathname}` : il remontait tout le sous-arbre
