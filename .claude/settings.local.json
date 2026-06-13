@@ -318,7 +318,9 @@
       "Bash(sed -n '740,748p' src/pages/treasury/TreasuryPositions.tsx)",
       "Bash(echo \"TSC=$?\")",
       "Bash(python3 -)",
-      "Bash(xargs grep -li \"Bell\\\\|unread\\\\|markAsRead\\\\|NotificationPanel\\\\|notifications.map\\\\|mock\\\\|setNotifications\")"
+      "Bash(xargs grep -li \"Bell\\\\|unread\\\\|markAsRead\\\\|NotificationPanel\\\\|notifications.map\\\\|mock\\\\|setNotifications\")",
+      "Bash(grep -n \"^import\\\\|from '\\\\.\\\\./\\\\.\\\\./utils\\\\|from '@/utils\" src/pages/accounting/JournalsPage.tsx)",
+      "Bash(grep -n \"^import .* from '\\\\.\\\\./\\\\.\\\\./utils\\\\|^import React\" src/components/accounting/GrandLivre.tsx)"
     ],
     "deny": [],
     "ask": []

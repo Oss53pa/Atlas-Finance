@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
 import { formatCurrency } from '@/utils/formatters';
+import { buildPieceNumbers, pieceNumberOf } from '../../utils/pieceNumber';
 import PeriodSelectorModal from '../shared/PeriodSelectorModal';
 import {
   ChevronDown, ChevronRight, FileText, Calendar, Filter,
@@ -77,6 +78,7 @@ const GrandLivre: React.FC = () => {
 
   // Comptes du Grand Livre construits à partir des écritures réelles.
   const accounts: Account[] = useMemo(() => {
+    const pieceNumbers = buildPieceNumbers(rawEntries);
     const map = new Map<string, Account>();
     for (const e of rawEntries) {
       const d: string = e.date || '';
@@ -99,7 +101,7 @@ const GrandLivre: React.FC = () => {
         try { dateAff = d ? new Date(d + 'T00:00:00').toLocaleDateString('fr-FR') : ''; } catch { dateAff = d; }
         a.entries.push({
           date: dateAff,
-          piece: e.reference || e.entryNumber || e.entry_number || '',
+          piece: pieceNumberOf(e, pieceNumbers),
           journal: (e.journal || '').toString().toUpperCase(),
           libelle: l.label || e.label || '',
           debit,

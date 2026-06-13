@@ -1,4 +1,5 @@
 import { formatCurrency } from '@/utils/formatters';
+import { buildPieceNumbers, pieceNumberOf } from '../../utils/pieceNumber';
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useData } from '../../contexts/DataContext';
@@ -84,6 +85,7 @@ const LettrageAutomatiquePage: React.FC = () => {
       thirdPartyName?: string;
     }> = [];
 
+    const pieceNumbers = buildPieceNumbers(allEntries as any);
     for (const entry of allEntries) {
       if (entry.date < dateRange.start || entry.date > dateRange.end) continue;
       for (const line of entry.lines) {
@@ -93,7 +95,7 @@ const LettrageAutomatiquePage: React.FC = () => {
           accountCode: line.accountCode,
           label: line.label || entry.label,
           date: entry.date,
-          reference: entry.reference || entry.entryNumber,
+          reference: pieceNumberOf(entry as any, pieceNumbers),
           debit: line.debit,
           credit: line.credit,
           lettrageCode: line.lettrageCode,

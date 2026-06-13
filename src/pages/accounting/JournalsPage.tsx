@@ -6,6 +6,7 @@ import {
   Archive, Printer, FileSpreadsheet, ChevronUp, ChevronDown, ChevronRight,
   RotateCcw, X, CheckCircle, AlertTriangle
 } from 'lucide-react';
+import { buildPieceNumbers } from '../../utils/pieceNumber';
 import JournalDashboard from '../../components/accounting/JournalDashboard';
 import JournalEntryModal from '../../components/accounting/JournalEntryModal';
 import FilterSidebar, { type ComptaFilters, DEFAULT_COMPTA_FILTERS, loadPersistedFilters } from '../../components/accounting/FilterSidebar';
@@ -368,27 +369,9 @@ const JournalsPage: React.FC = () => {
     });
   }, [dbEntries, t]);
 
-  // N° de pièce INCRÉMENTAL par journal (SYSCOHADA : numérotation continue par
-  // journal, classée par date). Remplace le « JOURNAL|date » issu de la bascule.
-  // Calculé sur TOUTES les écritures (indépendant du filtre de date) → numéro
-  // stable quand on filtre/pagine. Une pièce = une écriture (toutes ses lignes
-  // partagent le même numéro).
-  const pieceNumbers = useMemo(() => {
-    const byJournal = new Map<string, any[]>();
-    for (const e of dbEntries) {
-      const j = String(e.journal || 'OD').toUpperCase().trim();
-      if (!byJournal.has(j)) byJournal.set(j, []);
-      byJournal.get(j)!.push(e);
-    }
-    const map = new Map<string, string>();
-    for (const [j, list] of byJournal) {
-      list.sort((a, b) =>
-        String(a.date || '').localeCompare(String(b.date || '')) ||
-        String(a.entryNumber || a.entry_number || a.id).localeCompare(String(b.entryNumber || b.entry_number || b.id)));
-      list.forEach((e, i) => map.set(e.id, `${j}-${String(i + 1).padStart(6, '0')}`));
-    }
-    return map;
-  }, [dbEntries]);
+  // N° de pièce INCRÉMENTAL par journal (utilitaire partagé, identique dans tous
+  // les écrans). Calculé sur TOUTES les écritures → stable au filtrage/pagination.
+  const pieceNumbers = useMemo(() => buildPieceNumbers(dbEntries), [dbEntries]);
 
   // Écritures par journal — depuis données réelles, avec filtre de date appliqué
   const getEcrituresJournal = (journalCode: string): EcritureJournal[] => {

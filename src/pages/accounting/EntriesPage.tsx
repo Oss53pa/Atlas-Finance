@@ -13,6 +13,7 @@ import JournalEntryModal from '../../components/accounting/JournalEntryModal';
 import DataTable, { Column } from '../../components/ui/DataTable';
 import SearchableDropdown from '../../components/ui/SearchableDropdown';
 import { formatCurrency } from '@/utils/formatters';
+import { buildPieceNumbers, pieceNumberOf } from '../../utils/pieceNumber';
 
 interface EcritureBrouillard {
   id: string;
@@ -97,6 +98,7 @@ const EntriesPage: React.FC = () => {
         /* pas de journalLines — utiliser entry.lines */
       }
 
+      const pieceNumbers = buildPieceNumbers(entries as any);
       const mapped: EcritureBrouillard[] = (entries as any[])
         .slice()
         .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')))
@@ -118,7 +120,7 @@ const EntriesPage: React.FC = () => {
             : Math.abs(debit - credit) < 1;
           return {
             id: e.id,
-            numero: e.entryNumber || e.entry_number || '',
+            numero: pieceNumberOf(e, pieceNumbers),
             journal: e.journal || '',
             date: e.date || '',
             source: (e.createdBy === 'system' || e.created_by === 'system' || e.nature) ? 'API' : 'Manuel',

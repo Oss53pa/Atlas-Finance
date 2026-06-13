@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { toast } from 'sonner';
 import { formatCurrency } from '../../utils/formatters';
+import { buildPieceNumbers, pieceNumberOf } from '../../utils/pieceNumber';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
 import { generateNextCode, loadMappings } from '../../services/auxiliaryCode/auxiliaryCodeService';
@@ -241,6 +242,7 @@ const ClientsModule: React.FC = () => {
           adapter.getAll('journalEntries')
         ]);
 
+        const pieceNumbers = buildPieceNumbers(allEntries as any);
         const customers = allThirdParties.filter(
           (tp: any) => tp.type === 'customer' || tp.type === 'both' || /^41/.test(tp.code || '')
         );
@@ -287,7 +289,7 @@ const ClientsModule: React.FC = () => {
                 relatedLines.push({ debit: line.debit || 0, credit: line.credit || 0, date: entry.date });
                 detailLines.push({
                   date: entry.date,
-                  piece: entry.reference || entry.entryNumber || entry.entry_number || '',
+                  piece: pieceNumberOf(entry, pieceNumbers),
                   libelle: line.label || entry.label || '',
                   debit: line.debit || 0,
                   credit: line.credit || 0,

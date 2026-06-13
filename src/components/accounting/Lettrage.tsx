@@ -10,6 +10,7 @@ import { formatCurrency } from '@/utils/formatters';
 import { useMoneyFormat } from '@/hooks/useMoneyFormat';
 import { money } from '../../utils/money';
 import PeriodSelectorModal from '../shared/PeriodSelectorModal';
+import { buildPieceNumbers, pieceNumberOf } from '../../utils/pieceNumber';
 import {
   Search, Filter, Save, RefreshCw, CheckCircle, XCircle,
   Link2, Unlink, Calendar, Download, Eye, AlertTriangle,
@@ -109,6 +110,7 @@ const Lettrage: React.FC = () => {
     queryKey: ['lettrage-entries', dateRange.start, dateRange.end],
     queryFn: async () => {
       const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
+      const pieceNumbers = buildPieceNumbers(entries as any);
       const result: LettrageEntry[] = [];
       const soldesByCompte: Record<string, number> = {};
 
@@ -127,7 +129,7 @@ const Lettrage: React.FC = () => {
             compteLib: (line as any).accountName || '',
             libelle: line.label || entry.label,
             date: entry.date,
-            piece: entry.reference || entry.entryNumber,
+            piece: pieceNumberOf(entry as any, pieceNumbers),
             journal: entry.journal,
             debit: line.debit,
             credit: line.credit,

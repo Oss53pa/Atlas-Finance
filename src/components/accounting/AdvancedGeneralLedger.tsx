@@ -21,6 +21,7 @@ import {
 import PrintableArea from '../ui/PrintableArea';
 import './AdvancedBalance.css';
 import { formatCurrency } from '@/utils/formatters';
+import { buildPieceNumbers, pieceNumberOf } from '../../utils/pieceNumber';
 import { useMoneyFormat } from '@/hooks/useMoneyFormat';
 import { money } from '../../utils/money';
 
@@ -124,6 +125,7 @@ const AdvancedGeneralLedger: React.FC = () => {
       const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
       const accounts = await adapter.getAll<DBAccount>('accounts');
       const accountNames = new Map(accounts.map(a => [a.code, a.name]));
+      const pieceNumbers = buildPieceNumbers(entries as any);
 
       const accountMap = new Map<string, AccountData>();
       for (const entry of entries) {
@@ -146,7 +148,7 @@ const AdvancedGeneralLedger: React.FC = () => {
           acc.entries.push({
             id: `${entry.id}-${line.id}`,
             date: entry.date,
-            piece: entry.reference || entry.entryNumber,
+            piece: pieceNumberOf(entry as any, pieceNumbers),
             libelle: line.label || entry.label,
             debit: line.debit,
             credit: line.credit,

@@ -1,5 +1,6 @@
 
 import { formatCurrency } from '@/utils/formatters';
+import { buildPieceNumbers, pieceNumberOf } from '../../../utils/pieceNumber';
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../../contexts/LanguageContext';
 import { toast } from 'react-hot-toast';
@@ -95,6 +96,7 @@ const RapprochementBancaire: React.FC = () => {
       if (!fy) return;
 
       const allEntries = await adapter.getAll<any>('journalEntries');
+      const pieceNumbers = buildPieceNumbers(allEntries as any);
       const entries = allEntries.filter(
         (e: any) => e.date >= fy.startDate && e.date <= fy.endDate
       );
@@ -107,7 +109,7 @@ const RapprochementBancaire: React.FC = () => {
               id: `${entry.id}-${line.accountCode}`,
               date: entry.date,
               libelle: entry.label || line.accountName,
-              reference: entry.reference || entry.entryNumber || '',
+              reference: pieceNumberOf(entry, pieceNumbers),
               montantBanque: (line.debit || 0) - (line.credit || 0),
               montantCompta: (line.debit || 0) - (line.credit || 0),
               statut: line.lettrageCode ? 'rapproche' : 'en_attente',

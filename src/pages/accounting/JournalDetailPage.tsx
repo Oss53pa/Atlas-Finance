@@ -14,6 +14,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Search, Download, CheckCircle2, Circle, CheckCircle } from 'lucide-react';
 import { useData } from '../../contexts/DataContext';
 import { formatCurrency } from '@/utils/formatters';
+import { buildPieceNumbers, pieceNumberOf } from '../../utils/pieceNumber';
 import DataPageLayout from '../../components/layout/DataPageLayout';
 import FilterSidebar, {
   type ComptaFilters,
@@ -75,12 +76,13 @@ const JournalDetailPage: React.FC = () => {
       try {
         const entries = await adapter.getAll<any>('journalEntries');
         if (cancelled) return;
+        const pieceNumbers = buildPieceNumbers(entries);
         const flat: ComptaRow[] = [];
         for (const e of entries) {
           if (e.status === 'draft') {
             // les brouillons restent accessibles via le filtre Statut
           }
-          const piece = String(e.entryNumber || e.reference || e.id || '');
+          const piece = pieceNumberOf(e, pieceNumbers);
           for (let i = 0; i < (e.lines || []).length; i++) {
             const l = e.lines[i];
             flat.push({

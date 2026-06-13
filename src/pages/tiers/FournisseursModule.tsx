@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { formatCurrency } from '../../utils/formatters';
+import { buildPieceNumbers, pieceNumberOf } from '../../utils/pieceNumber';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
 import { generateNextCode, loadMappings } from '../../services/auxiliaryCode/auxiliaryCodeService';
@@ -152,6 +153,7 @@ const FournisseursModule: React.FC = () => {
           adapter.getAll('journalEntries')
         ]);
 
+        const pieceNumbers = buildPieceNumbers(allEntries as any);
         const suppliers = allThirdParties.filter(
           (tp: any) => tp.type === 'supplier' || tp.type === 'both' || /^40/.test(tp.code || '')
         );
@@ -198,7 +200,7 @@ const FournisseursModule: React.FC = () => {
                 relatedLines.push({ debit: line.debit || 0, credit: line.credit || 0 });
                 detailLines.push({
                   date: entry.date,
-                  piece: entry.reference || entry.entryNumber || entry.entry_number || '',
+                  piece: pieceNumberOf(entry, pieceNumbers),
                   libelle: line.label || entry.label || '',
                   debit: line.debit || 0,
                   credit: line.credit || 0,

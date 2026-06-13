@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { formatCurrency } from '../../utils/formatters';
+import { buildPieceNumbers, pieceNumberOf } from '../../utils/pieceNumber';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../../contexts/DataContext';
@@ -212,6 +213,7 @@ const PartenairesModule: React.FC = () => {
         adapter.getAll<any>('journalEntries'),
       ]);
       setThirdParties(tps as Record<string, unknown>[]);
+      const pieceNumbers = buildPieceNumbers(entries as any);
       const byCode: Record<string, { date: string; piece: string; libelle: string; debit: number; credit: number }[]> = {};
       for (const e of entries) {
         if (e.status === 'draft') continue;
@@ -220,7 +222,7 @@ const PartenairesModule: React.FC = () => {
           if (!tpc) continue;
           (byCode[tpc] ||= []).push({
             date: e.date,
-            piece: e.reference || e.entryNumber || e.entry_number || '',
+            piece: pieceNumberOf(e, pieceNumbers),
             libelle: l.label || e.label || '',
             debit: l.debit || 0,
             credit: l.credit || 0,
