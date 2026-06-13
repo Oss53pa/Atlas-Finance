@@ -114,7 +114,7 @@ const TreasuryPositions: React.FC = () => {
   const [glPosition, setGlPosition] = useState<{
     code: string; name: string; solde: number; rappro: number; recus: number; emis: number;
   }[]>([]);
-  const [posTab, setPosTab] = useState<'temps-reel' | 'comptes'>('temps-reel');
+  const [posTab, setPosTab] = useState<'temps-reel' | 'cockpit' | 'comptes'>('cockpit');
   // Flux EN CIRCULATION (lignes de trésorerie non lettrées, hors À-Nouveau) — réel.
   const [glFloat, setGlFloat] = useState<{ id: string; code: string; accountName: string; libelle: string; date: string; montant: number; sens: 'emis' | 'recu' }[]>([]);
   // Lignes de prévision (module Prévisions de trésorerie) pour l'atterrissage.
@@ -408,6 +408,7 @@ const TreasuryPositions: React.FC = () => {
         {/* Onglets : Position temps réel | Comptes bancaires (table) */}
         <div className="flex gap-1 border-b border-neutral-200">
           {([
+            { key: 'cockpit', label: 'Cockpit trésorerie' },
             { key: 'temps-reel', label: 'Position temps réel' },
             { key: 'comptes', label: 'Comptes bancaires' },
           ] as const).map(tb => (
@@ -423,8 +424,91 @@ const TreasuryPositions: React.FC = () => {
           ))}
         </div>
 
-        {/* ── ONGLET : Position TEMPS RÉEL (cockpit, données réelles) ────── */}
+        {/* ── ONGLET : Position TEMPS RÉEL (tableau simple par compte) ───── */}
         {posTab === 'temps-reel' && (() => {
+          const tot = glPosition.reduce(
+            (a, p) => ({ solde: a.solde + p.solde, rappro: a.rappro + p.rappro, recus: a.recus + p.recus, emis: a.emis + p.emis }),
+            { solde: 0, rappro: 0, recus: 0, emis: 0 },
+          );
+          return (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="p-4 rounded-xl bg-white border border-[var(--color-border)]">
+                  <p className="text-xs text-[var(--color-text-secondary)] uppercase tracking-wide">Solde comptable (réel)</p>
+                  <p className="text-2xl font-bold text-[var(--color-text-primary)] mt-1">{formatCurrency(tot.solde)}</p>
+                  <p className="text-xs text-[var(--color-text-tertiary)] mt-1">Ce qui est dans les comptes (classe 5)</p>
+                </div>
+                <div className="p-4 rounded-xl bg-white border border-green-200">
+                  <p className="text-xs text-green-700 uppercase tracking-wide">Reçus non crédités (+)</p>
+                  <p className="text-2xl font-bold text-green-700 mt-1">{formatCurrency(tot.recus)}</p>
+                  <p className="text-xs text-[var(--color-text-tertiary)] mt-1">Encaissements en instance</p>
+                </div>
+                <div className="p-4 rounded-xl bg-white border border-red-200">
+                  <p className="text-xs text-red-700 uppercase tracking-wide">Émis non débités (−)</p>
+                  <p className="text-2xl font-bold text-red-700 mt-1">{formatCurrency(tot.emis)}</p>
+                  <p className="text-xs text-[var(--color-text-tertiary)] mt-1">Paiements en instance</p>
+                </div>
+                <div className="p-4 rounded-xl bg-white border border-[var(--color-border)]">
+                  <p className="text-xs text-[var(--color-text-secondary)] uppercase tracking-wide">Rapproché (lettré + À-nouveau)</p>
+                  <p className="text-2xl font-bold text-[var(--color-text-primary)] mt-1">{formatCurrency(tot.rappro)}</p>
+                  <p className="text-xs text-[var(--color-text-tertiary)] mt-1">Confirmé vs banque</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-xs">
+                <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+                <span>
+                  « En circulation » = mouvements de trésorerie <span className="font-semibold">non encore rapprochés</span> (non
+                  lettrés, hors à-nouveau). Le <span className="font-semibold">Cockpit trésorerie</span> propose une vue de pilotage
+                  (alertes, atterrissage, conseils). Rapprochez vos relevés (module Rapprochement) pour n'y laisser que les vrais règlements en attente.
+                </span>
+              </div>
+
+              <UnifiedCard variant="elevated" size="lg">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-[var(--color-border)] text-[var(--color-text-secondary)]">
+                        <th className="text-left py-2 px-3 font-medium">Compte</th>
+                        <th className="text-right py-2 px-3 font-medium">Solde comptable</th>
+                        <th className="text-right py-2 px-3 font-medium">Reçus non crédités (+)</th>
+                        <th className="text-right py-2 px-3 font-medium">Émis non débités (−)</th>
+                        <th className="text-right py-2 px-3 font-medium">Rapproché</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {glPosition.length === 0 ? (
+                        <tr><td colSpan={5} className="py-6 text-center text-[var(--color-text-tertiary)]">Aucun compte de trésorerie mouvementé.</td></tr>
+                      ) : glPosition.map(p => (
+                        <tr key={p.code} className="border-b border-[var(--color-border)] hover:bg-[var(--color-surface-hover)]">
+                          <td className="py-2 px-3"><span className="font-mono text-xs text-[var(--color-primary)] mr-2">{p.code}</span>{p.name}</td>
+                          <td className="py-2 px-3 text-right font-mono font-semibold">{formatCurrency(p.solde)}</td>
+                          <td className="py-2 px-3 text-right font-mono text-green-600">{p.recus > 0 ? formatCurrency(p.recus) : '—'}</td>
+                          <td className="py-2 px-3 text-right font-mono text-red-600">{p.emis > 0 ? formatCurrency(p.emis) : '—'}</td>
+                          <td className="py-2 px-3 text-right font-mono text-[var(--color-text-secondary)]">{formatCurrency(p.rappro)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    {glPosition.length > 0 && (
+                      <tfoot>
+                        <tr className="border-t-2 border-[var(--color-border)] font-bold">
+                          <td className="py-2 px-3">TOTAL</td>
+                          <td className="py-2 px-3 text-right font-mono">{formatCurrency(tot.solde)}</td>
+                          <td className="py-2 px-3 text-right font-mono text-green-700">{formatCurrency(tot.recus)}</td>
+                          <td className="py-2 px-3 text-right font-mono text-red-700">{formatCurrency(tot.emis)}</td>
+                          <td className="py-2 px-3 text-right font-mono">{formatCurrency(tot.rappro)}</td>
+                        </tr>
+                      </tfoot>
+                    )}
+                  </table>
+                </div>
+              </UnifiedCard>
+            </div>
+          );
+        })()}
+
+        {/* ── ONGLET : Cockpit trésorerie (pilotage, données réelles) ───── */}
+        {posTab === 'cockpit' && (() => {
           const PETROL = '#235A6E', AMBER = '#E89A2E', VERT = '#1D9E75', ROUGE = '#E24B4A';
           const fmtCourt = (n: number) => {
             const a = Math.abs(n), s = n < 0 ? '−' : '';
@@ -491,30 +575,26 @@ const TreasuryPositions: React.FC = () => {
 
           return (
             <div className="space-y-5">
-              {/* Sélecteur de banque/compte (chips) — filtre KPIs, détail et flux. */}
-              <div className="flex flex-wrap gap-2">
-                {[{ code: 'all', name: 'Toutes les banques' }, ...glPosition.map(p => ({ code: p.code, name: p.name }))].map(b => (
-                  <button
-                    key={b.code}
-                    onClick={() => setSelectedPosBank(b.code)}
-                    className="text-sm px-3.5 py-1.5 rounded-full border transition-colors"
-                    style={{
-                      borderColor: selectedPosBank === b.code ? AMBER : 'var(--color-border)',
-                      background: selectedPosBank === b.code ? 'rgba(232,154,46,0.12)' : 'var(--color-surface)',
-                      color: selectedPosBank === b.code ? AMBER : 'var(--color-text-secondary)',
-                    }}
-                  >
-                    {b.code === 'all' ? b.name : `${b.code} · ${b.name}`}
-                  </button>
-                ))}
+              {/* Sélecteur de banque/compte — filtre KPIs, détail et flux. */}
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-[var(--color-text-secondary)]">Banque / compte</label>
+                <select
+                  value={selectedPosBank}
+                  onChange={(e) => setSelectedPosBank(e.target.value)}
+                  className="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm bg-white max-w-md focus:ring-2 focus:ring-[var(--color-primary)]"
+                >
+                  <option value="all">Toutes les banques</option>
+                  {glPosition.map(p => <option key={p.code} value={p.code}>{p.code} · {p.name}</option>)}
+                </select>
               </div>
 
-              {/* KPIs */}
-              <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))' }}>
-                <KpiCard label="Solde réel" value={tot.solde} sub="Ce qui est dans les comptes" color={PETROL} />
-                <KpiCard label="Émis non débités" value={-tot.emis} sub="Décaissements en attente" color={ROUGE} />
-                <KpiCard label="Reçus non crédités" value={tot.recus} sub="Encaissements en attente" color={VERT} prefixPlus />
-                <KpiCard label="Solde théorique" value={theorique} sub="Flottant dénoué" color={AMBER} highlight />
+              {/* KPIs — modèle de carte du projet (KPICard riche). */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                <KPICard title="Solde réel" value={formatCurrency(tot.solde)} subtitle="Ce qui est dans les comptes" icon={Wallet} color="primary" withChart />
+                <KPICard title="Émis non débités" value={formatCurrency(-tot.emis)} subtitle="Décaissements en attente" icon={ArrowDownRight} color="error" withChart />
+                <KPICard title="Reçus non crédités" value={`+ ${formatCurrency(tot.recus)}`} subtitle="Encaissements en attente" icon={ArrowUpRight} color="success" withChart />
+                <KPICard title="Solde théorique" value={formatCurrency(theorique)} subtitle="Flottant dénoué" icon={TrendingUp} color="primary" withChart />
+                <KPICard title="Liquidité disponible" value={formatCurrency(theorique)} subtitle="+ découvert autorisé (non renseigné)" icon={ShieldCheck} color="neutral" withChart />
               </div>
 
               {/* Proph3t — conseil de trésorerie (déterministe) */}
