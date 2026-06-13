@@ -171,18 +171,23 @@ const JournalsPage: React.FC = () => {
   // Hook pour reverser une écriture
   const reverseEntryMutation = useReverseEntry();
 
-  // Configuration des colonnes pour DataTable
+  // Configuration des colonnes pour DataTable.
+  // La DATE est TOUJOURS la 1re colonne d'un journal (et d'un grand livre).
+  // La colonne « Mouvement » a été retirée : elle affichait le même n° que la
+  // colonne « Pièce » (doublon). Le champ `mvt` reste présent dans les données
+  // (regroupement des lignes d'une écriture, recherche), il n'est juste plus
+  // rendu comme colonne.
   const ecrituresColumns: Column<EcritureJournal>[] = [
     {
-      key: 'mvt',
-      label: t('accounting.movement'),
+      key: 'date',
+      label: t('common.date'),
       sortable: true,
       filterable: true,
-      filterType: 'text',
-      width: '60px',
+      filterType: 'date',
+      width: '90px',
       align: 'center',
       render: (item) => (
-        <span className="text-xs font-mono">{item.mvt}</span>
+        <span className="text-xs">{item.date}</span>
       )
     },
     {
@@ -203,18 +208,6 @@ const JournalsPage: React.FC = () => {
       align: 'center',
       render: (item) => (
         <span className="text-xs font-bold text-[var(--color-primary)]">{item.jnl}</span>
-      )
-    },
-    {
-      key: 'date',
-      label: t('common.date'),
-      sortable: true,
-      filterable: true,
-      filterType: 'date',
-      width: '80px',
-      align: 'center',
-      render: (item) => (
-        <span className="text-xs">{item.date}</span>
       )
     },
     {

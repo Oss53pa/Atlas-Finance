@@ -3,6 +3,7 @@ import { useMoneyFormat } from '../../hooks/useMoneyFormat';
 import { useQuery } from '@tanstack/react-query';
 import type { DBJournalEntry } from '../../lib/db';
 import { useData } from '../../contexts/DataContext';
+import { makeGLHelpers, type GLEntry } from '../../features/financial/glHelpers';
 import {
   CurrencyDollarIcon,
   CheckCircleIcon,
@@ -104,14 +105,16 @@ const CashFlowStatementSYSCOHADA: React.FC = () => {
   const { data: indirectData, isLoading: loadingIndirect } = useQuery({
     queryKey: ['tft-indirect'],
     queryFn: async (): Promise<CashFlowIndirectData> => {
-      const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
-      // Flux de PÉRIODE : exclure l'À Nouveau (soldes d'OUVERTURE). Sinon les 13,5 Mrd
-      // d'immos d'ouverture + le BFR/capital d'ouverture seraient comptés à tort comme
-      // des flux de trésorerie de l'exercice.
-      const net = (...pfx: string[]) => { let t = 0; for (const e of entries) { if (e.journal === 'AN' || e.journal === 'RAN') continue; for (const l of e.lines) if (pfx.some(p => l.accountCode.startsWith(p))) t += l.debit - l.credit; } return t; };
-      const creditN = (...pfx: string[]) => { let t = 0; for (const e of entries) { if (e.journal === 'AN' || e.journal === 'RAN') continue; for (const l of e.lines) if (pfx.some(p => l.accountCode.startsWith(p))) t += l.credit - l.debit; } return t; };
+      const all = await adapter.getAll<DBJournalEntry>('journalEntries');
+      const entries = all.filter((e) => (e as { status?: string }).status !== 'draft');
+      // Helpers canoniques (glHelpers = source unique). Flux de PÉRIODE : netP/creditNetP
+      // excluent l'À Nouveau (soldes d'OUVERTURE). Sinon les 13,5 Mrd d'immos d'ouverture
+      // + le BFR/capital d'ouverture seraient comptés à tort comme des flux de l'exercice.
+      const h = makeGLHelpers(entries as unknown as GLEntry[]);
+      const net = (...pfx: string[]) => h.netP(...pfx);
+      const creditN = (...pfx: string[]) => h.creditNetP(...pfx);
 
-      const netResult = creditN('7') - net('6');
+      const netResult = creditN('7') - net('6') - net('89'); // résultat NET d'impôt (IS/IMF cl.89)
       const depreciationAndProvisions = net('68', '69');
       const provisionsReversals = creditN('78', '79');
       const selfFinancingCapacity = netResult + depreciationAndProvisions - provisionsReversals;
@@ -132,8 +135,7 @@ const CashFlowStatementSYSCOHADA: React.FC = () => {
       const financingCashFlow = capitalIncrease + investmentSubsidiesReceived + newBorrowings - loanRepayments - dividendsPaid;
       const cashFlowVariation = operatingCashFlow + investmentCashFlow + financingCashFlow;
       // Solde de trésorerie de CLÔTURE = TOUS les mouvements classe 5 (À Nouveau INCLUS).
-      let closingCashBalance = 0;
-      for (const e of entries) for (const l of e.lines) if (l.accountCode.startsWith('5')) closingCashBalance += l.debit - l.credit;
+      const closingCashBalance = h.net('5');
       const openingCashBalance = closingCashBalance - cashFlowVariation;
       return { netResult, depreciationAndProvisions, provisionsReversals, valueAdjustments: 0, selfFinancingCapacity, workingCapitalVariation, operatingCashFlow, fixedAssetsAcquisitions, fixedAssetsDisposals, financialAssetsAcquisitions, financialAssetsDisposals: 0, investmentCashFlow, capitalIncrease, investmentSubsidiesReceived, newBorrowings, loanRepayments, dividendsPaid, financingCashFlow, cashFlowVariation, openingCashBalance, closingCashBalance, isCashFlowBalanced: Math.abs(cashFlowVariation - (closingCashBalance - openingCashBalance)) < 1 };
     }
@@ -143,7 +145,9 @@ const CashFlowStatementSYSCOHADA: React.FC = () => {
   const { data: directData, isLoading: loadingDirect } = useQuery({
     queryKey: ['tft-direct'],
     queryFn: async (): Promise<CashFlowDirectData> => {
-      const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
+      const all = await adapter.getAll<DBJournalEntry>('journalEntries');
+      const entries = all.filter((e) => (e as { status?: string }).status !== 'draft');
+      const h = makeGLHelpers(entries as unknown as GLEntry[]);
 
       // Helpers pour classer les mouvements de trésorerie par contrepartie
       let encClients = 0, autresEncExploit = 0, decFournisseurs = 0, decPersonnel = 0, interetsPayes = 0, impots = 0, autresDecExploit = 0;
@@ -202,7 +206,7 @@ const CashFlowStatementSYSCOHADA: React.FC = () => {
       // Les écritures OD "regroupées" mélangent toutes les classes dans une seule écriture
       // → la classification par contrepartie d'écriture est impossible/fausse. On dérive
       // donc ces flux des MOUVEMENTS NETS DE CLASSES (immune au regroupement), comme le bilan.
-      const netP = (...pfx: string[]) => { let t = 0; for (const e of entries) { if (e.journal === 'AN' || e.journal === 'RAN') continue; for (const l of e.lines) if (pfx.some(p => l.accountCode.startsWith(p))) t += l.debit - l.credit; } return t; };
+      const netP = h.netP; // canonique (glHelpers) : mouvements nets de période, hors AN
       acqCorpo = Math.max(0, netP('20', '21', '22', '23', '24', '25')); // acquisitions immos brutes
       acqFinanc = Math.max(0, netP('26', '27'));
       cessCorpo = 0; cessFinanc = 0; intDivRecus = 0;
@@ -215,13 +219,11 @@ const CashFlowStatementSYSCOHADA: React.FC = () => {
       const financingCashFlow = augCapital + subventions + empruntsNouv - rembEmprunts - divVerses;
 
       // Flux total de trésorerie de PÉRIODE = toutes les lignes classe 5 hors AN.
-      let cashFlowVariation = 0;
-      for (const e of entries) { if (e.journal === 'AN' || e.journal === 'RAN') continue; for (const l of e.lines) if (l.accountCode.startsWith('5')) cashFlowVariation += l.debit - l.credit; }
+      const cashFlowVariation = h.netP('5');
       // L'activité = résiduel (le total reconcilie avec la variation réelle de trésorerie).
       const operatingCashFlow = cashFlowVariation - investmentCashFlow - financingCashFlow;
 
-      let closingCash = 0;
-      for (const e of entries) for (const l of e.lines) if (l.accountCode.startsWith('5')) closingCash += l.debit - l.credit;
+      const closingCash = h.net('5');
       const openingCash = closingCash - cashFlowVariation;
 
       return {

@@ -87,6 +87,9 @@ interface PayableItem {
   recommendation?: 'PAIEMENT_COMPLET' | 'PAIEMENT_PARTIEL' | 'REPORTER' | 'URGENT';
   priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
   account: string;
+  /** true = dépense PRÉVISIONNELLE saisie à la main, PAS encore comptabilisée
+   *  (pas d'écriture au Grand Livre). Distinguée visuellement des dettes réelles. */
+  provisional?: boolean;
 }
 
 interface FundCall {
@@ -121,6 +124,65 @@ const FundCallsPage: React.FC = () => {
   const [fundCallsSetting, setFundCallsSetting] = useState<any>(undefined);
   const [payablesSetting, setPayablesSetting] = useState<any>(undefined);
   const [dataLoaded, setDataLoaded] = useState(false);
+
+  // ── Dépenses PRÉVISIONNELLES (non encore comptabilisées) ──────────────────
+  // Saisies à la main par l'utilisateur pour préparer un appel de fonds avant
+  // que la facture ne soit enregistrée au Grand Livre. Persistées en local
+  // (pas de table dédiée ; ce sont des prévisions, pas des écritures).
+  const PROVISIONAL_KEY = 'wb_fund_call_provisional';
+  const [provisionalExpenses, setProvisionalExpenses] = useState<PayableItem[]>(() => {
+    try {
+      const raw = localStorage.getItem(PROVISIONAL_KEY);
+      if (!raw) return [];
+      return (JSON.parse(raw) as PayableItem[]).map(it => ({
+        ...it,
+        documentDate: new Date(it.documentDate),
+        dueDate: new Date(it.dueDate),
+        provisional: true,
+      }));
+    } catch { return []; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem(PROVISIONAL_KEY, JSON.stringify(provisionalExpenses)); } catch { /* quota/private mode */ }
+  }, [provisionalExpenses]);
+
+  const [showAddExpense, setShowAddExpense] = useState(false);
+  const emptyForm = { vendor: '', description: '', amount: '', invoiceType: 'ACHAT' as PayableItem['invoiceType'], dueDate: '', priority: 'MEDIUM' as PayableItem['priority'] };
+  const [expenseForm, setExpenseForm] = useState(emptyForm);
+
+  const addProvisionalExpense = () => {
+    const amount = parseFloat(String(expenseForm.amount).replace(/\s/g, '').replace(',', '.')) || 0;
+    if (!expenseForm.vendor.trim() || amount <= 0) return;
+    const now = new Date();
+    const due = expenseForm.dueDate ? new Date(expenseForm.dueDate) : new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+    const item: PayableItem = {
+      id: `prov-${now.getTime()}`,
+      vendor: expenseForm.vendor.trim(),
+      vendorCode: '—',
+      documentDate: now,
+      documentNumber: 'PRÉV.',
+      reference: '—',
+      description: expenseForm.description.trim() || expenseForm.vendor.trim(),
+      dueAmount: amount,
+      outstanding: amount,
+      invoiceType: expenseForm.invoiceType,
+      arrearsAging: Math.max(0, Math.floor((now.getTime() - due.getTime()) / (1000 * 60 * 60 * 24))),
+      dueDate: due,
+      paymentTerms: 'Prévisionnel',
+      priority: expenseForm.priority,
+      account: 'PRÉVISIONNEL',
+      provisional: true,
+    };
+    setProvisionalExpenses(prev => [...prev, item]);
+    setExpenseForm(emptyForm);
+    setShowAddExpense(false);
+  };
+
+  const removeProvisionalExpense = (id: string) => {
+    setProvisionalExpenses(prev => prev.filter(p => p.id !== id));
+    setSelectedItems(prev => { const n = new Set(prev); n.delete(id); return n; });
+    setProposedPayments(prev => prev.filter(p => p.id !== id));
+  };
 
   useEffect(() => {
     const load = async () => {
@@ -181,6 +243,13 @@ const FundCallsPage: React.FC = () => {
     return supplierLines;
   }, [payablesSetting, journalEntries]);
 
+  // Liste affichée = dettes RÉELLES (issues du GL) + dépenses PRÉVISIONNELLES
+  // (saisies, non comptabilisées). Les prévisionnelles sont placées en tête.
+  const combinedPayables: PayableItem[] = useMemo(
+    () => [...provisionalExpenses, ...(payables || [])],
+    [provisionalExpenses, payables],
+  );
+
   // Load fund calls from Dexie settings
   const fundCalls: FundCall[] = useMemo(() => {
     if (!fundCallsSetting) return [];
@@ -210,7 +279,7 @@ const FundCallsPage: React.FC = () => {
       setProposedPayments(prev => prev.filter(p => p.id !== itemId));
     } else {
       newSelected.add(itemId);
-      const item = payables?.find(p => p.id === itemId);
+      const item = combinedPayables.find(p => p.id === itemId);
       if (item) {
         setProposedPayments(prev => [...prev, item]);
       }
@@ -219,9 +288,9 @@ const FundCallsPage: React.FC = () => {
   };
 
   const groupedPayables = useMemo(() => {
-    if (!payables || groupBy === 'none') return { 'Tous': payables || [] };
-    
-    return payables.reduce((groups, item) => {
+    if (groupBy === 'none') return { 'Tous': combinedPayables };
+
+    return combinedPayables.reduce((groups, item) => {
       let groupKey = '';
       switch (groupBy) {
         case 'vendor':
@@ -243,11 +312,11 @@ const FundCallsPage: React.FC = () => {
       groups[groupKey].push(item);
       return groups;
     }, {} as Record<string, PayableItem[]>);
-  }, [payables, groupBy]);
+  }, [combinedPayables, groupBy]);
 
   const totalOutstanding = useMemo(() => {
-    return payables?.reduce((sum, item) => sum + item.outstanding, 0) || 0;
-  }, [payables]);
+    return combinedPayables.reduce((sum, item) => sum + item.outstanding, 0);
+  }, [combinedPayables]);
 
   const selectedAmount = useMemo(() => {
     return proposedPayments.reduce((sum, item) => sum + item.outstanding, 0);
@@ -397,10 +466,22 @@ const FundCallsPage: React.FC = () => {
       {/* Tableau 1: Comptes à payer */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Comptes à Payer (Total Outstanding)
-          </CardTitle>
+          <div className="flex items-center justify-between gap-2">
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Comptes à Payer (Total Outstanding)
+            </CardTitle>
+            <Button size="sm" variant="outline" onClick={() => setShowAddExpense(true)} className="flex items-center gap-1.5">
+              <Plus className="h-4 w-4" />
+              Dépense non comptabilisée
+            </Button>
+          </div>
+          <p className="text-xs text-[var(--color-text-tertiary)] mt-1">
+            Les dettes réelles proviennent du Grand Livre. Vous pouvez ajouter des
+            dépenses <span className="font-semibold">prévisionnelles</span> (pas encore
+            comptabilisées) pour les inclure dans un appel de fonds — elles sont signalées
+            par un badge <span className="font-semibold text-amber-700">Prévisionnel</span>.
+          </p>
         </CardHeader>
         <CardContent className="p-0">
           <div className="max-h-96 overflow-y-auto">
@@ -409,11 +490,11 @@ const FundCallsPage: React.FC = () => {
                 <TableRow>
                   <TableHead className="w-8">
                     <Checkbox
-                      checked={selectedItems.size === payables?.length}
+                      checked={combinedPayables.length > 0 && selectedItems.size === combinedPayables.length}
                       onChange={(e) => {
                         if (e.target.checked) {
-                          setSelectedItems(new Set(payables?.map(p => p.id) || []));
-                          setProposedPayments(payables || []);
+                          setSelectedItems(new Set(combinedPayables.map(p => p.id)));
+                          setProposedPayments(combinedPayables);
                         } else {
                           setSelectedItems(new Set());
                           setProposedPayments([]);
@@ -451,9 +532,10 @@ const FundCallsPage: React.FC = () => {
                     )}
                     
                     {items.map((item) => (
-                      <TableRow 
-                        key={item.id} 
+                      <TableRow
+                        key={item.id}
                         className={`hover:bg-primary-50 ${
+                          item.provisional ? 'bg-amber-50/70 border-l-4 border-amber-400' :
                           item.priority === 'CRITICAL' ? 'bg-red-50' :
                           item.arrearsAging > 30 ? 'bg-yellow-50' : ''
                         }`}
@@ -465,7 +547,12 @@ const FundCallsPage: React.FC = () => {
                           />
                         </TableCell>
                         <TableCell>
-                          <div className="font-medium">{item.vendor}</div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">{item.vendor}</span>
+                            {item.provisional && (
+                              <Badge className="bg-amber-100 text-amber-800 border border-amber-300 text-[10px] uppercase tracking-wide">Prévisionnel</Badge>
+                            )}
+                          </div>
                           <div className="text-sm text-gray-700">{item.vendorCode}</div>
                         </TableCell>
                         <TableCell>{item.documentDate.toLocaleDateString('fr-FR')}</TableCell>
@@ -482,13 +569,28 @@ const FundCallsPage: React.FC = () => {
                           <Badge variant="outline">{item.invoiceType}</Badge>
                         </TableCell>
                         <TableCell className={`text-right ${
+                          item.provisional ? 'text-gray-400' :
                           item.arrearsAging > 60 ? 'text-red-600 font-bold' :
                           item.arrearsAging > 30 ? 'text-orange-600 font-semibold' :
                           item.arrearsAging > 0 ? 'text-yellow-600' : 'text-green-600'
                         }`}>
-                          {item.arrearsAging > 0 ? `+${item.arrearsAging}` : '0'}
+                          {item.provisional ? '—' : (item.arrearsAging > 0 ? `+${item.arrearsAging}` : '0')}
                         </TableCell>
-                        <TableCell>{getPriorityBadge(item.priority)}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            {getPriorityBadge(item.priority)}
+                            {item.provisional && (
+                              <button
+                                type="button"
+                                onClick={() => removeProvisionalExpense(item.id)}
+                                title="Supprimer cette dépense prévisionnelle"
+                                className="p-1 text-red-500 hover:bg-red-50 rounded"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </React.Fragment>
@@ -884,6 +986,85 @@ const FundCallsPage: React.FC = () => {
       {viewMode === 'payables' && renderPayablesTable()}
       {viewMode === 'fund-calls' && renderFundCallsList()}
       {viewMode === 'workflow' && renderWorkflow()}
+
+      {/* Modale : ajouter une dépense PRÉVISIONNELLE (non comptabilisée) */}
+      <Dialog open={showAddExpense} onOpenChange={setShowAddExpense}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Ajouter une dépense non comptabilisée</DialogTitle>
+            <DialogDescription>
+              Dépense <span className="font-semibold">prévisionnelle</span> à inclure dans un
+              appel de fonds avant son enregistrement comptable. Elle n'est PAS écrite au
+              Grand Livre et reste distinguée des dettes réelles (badge « Prévisionnel »).
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3 py-2">
+            <div>
+              <Label htmlFor="exp-vendor">Bénéficiaire / Fournisseur *</Label>
+              <Input id="exp-vendor" value={expenseForm.vendor}
+                onChange={(e) => setExpenseForm(f => ({ ...f, vendor: e.target.value }))}
+                placeholder="Ex. ENTREPRISE BTP SARL" />
+            </div>
+            <div>
+              <Label htmlFor="exp-desc">Description</Label>
+              <Input id="exp-desc" value={expenseForm.description}
+                onChange={(e) => setExpenseForm(f => ({ ...f, description: e.target.value }))}
+                placeholder="Ex. Acompte travaux toiture niveau 3" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="exp-amount">Montant (FCFA) *</Label>
+                <Input id="exp-amount" inputMode="decimal" value={expenseForm.amount}
+                  onChange={(e) => setExpenseForm(f => ({ ...f, amount: e.target.value }))}
+                  placeholder="0" />
+              </div>
+              <div>
+                <Label htmlFor="exp-due">Échéance prévue</Label>
+                <Input id="exp-due" type="date" value={expenseForm.dueDate}
+                  onChange={(e) => setExpenseForm(f => ({ ...f, dueDate: e.target.value }))} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="exp-type">Type</Label>
+                <select id="exp-type" value={expenseForm.invoiceType}
+                  onChange={(e) => setExpenseForm(f => ({ ...f, invoiceType: e.target.value as PayableItem['invoiceType'] }))}
+                  className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm bg-white">
+                  <option value="ACHAT">Achat</option>
+                  <option value="PRESTATION">Prestation</option>
+                  <option value="IMMOBILISATION">Immobilisation</option>
+                  <option value="AUTRE">Autre</option>
+                </select>
+              </div>
+              <div>
+                <Label htmlFor="exp-prio">Priorité</Label>
+                <select id="exp-prio" value={expenseForm.priority}
+                  onChange={(e) => setExpenseForm(f => ({ ...f, priority: e.target.value as PayableItem['priority'] }))}
+                  className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm bg-white">
+                  <option value="LOW">Basse</option>
+                  <option value="MEDIUM">Moyenne</option>
+                  <option value="HIGH">Haute</option>
+                  <option value="CRITICAL">Critique</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setExpenseForm(emptyForm); setShowAddExpense(false); }}>
+              Annuler
+            </Button>
+            <Button
+              onClick={addProvisionalExpense}
+              disabled={!expenseForm.vendor.trim() || !(parseFloat(String(expenseForm.amount).replace(/\s/g, '').replace(',', '.')) > 0)}
+            >
+              <Plus className="h-4 w-4 mr-1.5" />
+              Ajouter la dépense
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

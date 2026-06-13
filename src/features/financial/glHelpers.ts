@@ -76,8 +76,24 @@ export function makeGLHelpers(entries: GLEntry[]): GLHelpers {
   };
 }
 
-/** Résultat net SYSCOHADA canonique = produits (classe 7) − charges (classe 6). */
+/**
+ * Résultat net SYSCOHADA canonique = produits (cl.7) − charges (cl.6) − impôts (cl.89).
+ *
+ * L'impôt sur le résultat (89 : IS / Impôt Minimum Forfaitaire) DOIT être déduit :
+ *  1. présentation SYSCOHADA — le résultat NET est après impôt (le résultat AVANT
+ *     impôt, lui, est creditNet('7') − net('6')) ;
+ *  2. ÉQUILIBRE DU BILAN — la contrepartie du 89 (charge, débit) est une dette
+ *     fiscale en classe 44 (passif) ; si le résultat porté en capitaux propres
+ *     n'est pas net d'impôt, Actif ≠ Passif de exactement net('89').
+ * (Pour ce référentiel la classe 8 ne contient que le 89 ; les résultats HAO
+ *  81-88 sont nuls. Si des comptes HAO apparaissent, étendre à − net('8').)
+ */
 export function resultatNet(h: GLHelpers): number {
+  return h.creditNet('7') - h.net('6') - h.net('89');
+}
+
+/** Résultat AVANT impôt (utile pour la présentation : « résultat courant avant impôt »). */
+export function resultatAvantImpot(h: GLHelpers): number {
   return h.creditNet('7') - h.net('6');
 }
 

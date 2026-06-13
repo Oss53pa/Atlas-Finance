@@ -218,7 +218,9 @@ const CompteResultatPage: React.FC = () => {
 
     const produitsFinanciers = soldeCreditByPrefix('77', m);
     const chargesFinancieres = soldeByPrefix('67', m);
-    const resultatNet = resultatExploitation + produitsFinanciers - chargesFinancieres;
+    // Résultat NET = après impôt sur le résultat (classe 89 : IS / Impôt Minimum Forfaitaire).
+    const impotResultat = soldeByPrefix('89', m);
+    const resultatNet = resultatExploitation + produitsFinanciers - chargesFinancieres - impotResultat;
 
     return [
       Math.round(margeCommerciale),
@@ -972,8 +974,8 @@ const CompteResultatPage: React.FC = () => {
             // Écritures détaillées par préfixe
             const entriesForPrefixes = (...pfx: string[]) => allEntries.filter(e => e.lines?.some((l: any) => pfx.some(p => l.accountCode.startsWith(p)))).map(e => ({ ref: e.entryNumber || e.reference || e.id?.substring(0, 8), date: e.date, label: e.label, journal: e.journal, amount: e.lines.filter((l: any) => pfx.some(p => l.accountCode.startsWith(p))).reduce((s: number, l: any) => s + l.debit - l.credit, 0) }));
 
-            // Données méthode indirecte
-            const resultatNet = creditN('7') - net('6');
+            // Données méthode indirecte — résultat NET d'impôt (− cl.89 : IS/IMF)
+            const resultatNet = creditN('7') - net('6') - net('89');
             const dotations = net('68', '69');
             const reprises = creditN('78', '79');
             const plusMoinsValues = creditN('82') - net('81');
@@ -1088,12 +1090,18 @@ const CompteResultatPage: React.FC = () => {
             const cf = months.map(ms => ({ ms, ...monthFlux(parseInt(ms)) }));
             let cfCumul = tresoOuverture;
             const cfTreso = cf.map(d => { cfCumul += d.varTreso; return cfCumul; });
-            const cfRows: Array<{ label: string; vals: number[]; last: boolean; bold?: boolean }> = [
+            // Trésorerie d'OUVERTURE de chaque mois = clôture du mois précédent
+            // (le 1er mois part de la trésorerie d'ouverture de l'exercice).
+            const cfOuverture = cf.map((_, i) => (i === 0 ? tresoOuverture : cfTreso[i - 1]));
+            // `first` : la colonne TOTAL (YTD) affiche le solde D'OUVERTURE DE L'EXERCICE
+            // (1er mois), pas la somme. `last` : elle affiche le solde de CLÔTURE (dernier mois).
+            const cfRows: Array<{ label: string; vals: number[]; last: boolean; bold?: boolean; first?: boolean }> = [
+              { label: "Trésorerie d'ouverture (début de mois)", vals: cfOuverture, last: false, first: true, bold: true },
               { label: "Flux net lié à l'activité (A)", vals: cf.map(d => d.activite), last: false },
               { label: 'Flux net lié aux investissements (B)', vals: cf.map(d => d.inv), last: false },
               { label: 'Flux net lié au financement (C)', vals: cf.map(d => d.fin), last: false },
               { label: 'Variation de trésorerie (A+B+C)', vals: cf.map(d => d.varTreso), last: false, bold: true },
-              { label: 'Trésorerie en fin de mois', vals: cfTreso, last: true, bold: true },
+              { label: 'Trésorerie de clôture (fin de mois)', vals: cfTreso, last: true, bold: true },
             ];
 
             return (
@@ -1110,12 +1118,16 @@ const CompteResultatPage: React.FC = () => {
                     <tr>
                       <th className="text-left p-3 border-b border-[var(--color-border)] min-w-[200px] text-[var(--color-primary)] font-semibold">Flux</th>
                       {months.map(ms => (<th key={ms} className="text-right p-2 border-b border-[var(--color-border)] text-xs min-w-[78px] text-[var(--color-primary)]">{monthlyData[ms as keyof typeof monthlyData].name.substring(0, 3)}</th>))}
-                      <th className="text-right p-3 border-b border-[var(--color-border)] bg-gray-100 font-bold min-w-[100px] text-[var(--color-primary)]">TOTAL</th>
+                      <th className="text-right p-3 border-b border-[var(--color-border)] bg-gray-100 font-bold min-w-[100px] text-[var(--color-primary)]">TOTAL (YTD)</th>
                     </tr>
                   </thead>
                   <tbody>
                     {cfRows.map((ln, i) => {
-                      const total = ln.last ? (ln.vals[ln.vals.length - 1] || 0) : ln.vals.reduce((s, v) => s + v, 0);
+                      // TOTAL (YTD) : clôture → dernier mois ; ouverture → 1er mois ;
+                      // flux/variation → cumul de l'exercice (somme des mois).
+                      const total = ln.last ? (ln.vals[ln.vals.length - 1] || 0)
+                        : ln.first ? (ln.vals[0] || 0)
+                        : ln.vals.reduce((s, v) => s + v, 0);
                       return (
                         <tr key={i} className={ln.bold ? 'bg-gray-100 font-bold border-t-2 border-gray-300' : 'border-b border-[var(--color-border)] hover:bg-gray-50'}>
                           <td className="p-3 text-[var(--color-primary)]">{ln.label}</td>

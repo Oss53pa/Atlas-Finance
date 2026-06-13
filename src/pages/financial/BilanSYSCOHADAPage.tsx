@@ -180,7 +180,10 @@ const BilanSYSCOHADAPage: React.FC = () => {
       { code: '10', libelle: 'Capital social', exerciceN: creditNet(['10']), exerciceN1: creditNetN1(['10']) },
       { code: '11', libelle: 'Réserves', exerciceN: creditNet(['11']), exerciceN1: creditNetN1(['11']) },
       { code: '12', libelle: 'Report à nouveau', exerciceN: creditNet(['12']), exerciceN1: creditNetN1(['12']) },
-      { code: '13', libelle: 'Résultat de l\'exercice', exerciceN: creditNet(['7']) - net(['6']), exerciceN1: creditNetN1(['13']) },
+      // Résultat NET d'impôt (− cl.89) : sans cette déduction le passif est
+      // surévalué de net('89') et le bilan ne s'équilibre pas (la dette d'IMF
+      // est portée en 44). Cohérent avec le SIG « Résultat net » ci-dessous.
+      { code: '13', libelle: 'Résultat de l\'exercice', exerciceN: creditNet(['7']) - net(['6']) - net(['89']), exerciceN1: creditNetN1(['13']) },
       { code: '16', libelle: 'Emprunts et dettes financières', exerciceN: creditNet(['16']), exerciceN1: creditNetN1(['16']) },
       { code: '40', libelle: 'Fournisseurs et comptes rattachés', exerciceN: creditNet(['40']), exerciceN1: creditNetN1(['40']) },
       { code: '42', libelle: 'Personnel', exerciceN: creditNet(['42']), exerciceN1: creditNetN1(['42']) },
@@ -272,7 +275,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
     // Flux de PÉRIODE (hors À Nouveau) via le moteur canonique partagé.
     const netP = (pfx: string[]) => glH.netP(...pfx);
     const creditNetP = (pfx: string[]) => glH.creditNetP(...pfx);
-    const rn = creditNetP(['7']) - netP(['6']);
+    const rn = creditNetP(['7']) - netP(['6']) - netP(['89']); // résultat NET d'impôt (FO1)
     const dotAmort = netP(['68']);
     return {
       activitesOperationnelles: [

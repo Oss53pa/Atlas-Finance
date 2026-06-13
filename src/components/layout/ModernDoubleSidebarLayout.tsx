@@ -459,6 +459,11 @@ const ModernDoubleSidebarLayout: React.FC = () => {
               role="menuitem"
               aria-label={item.ariaLabel || item.label}
               aria-current={isModuleActive(item.id) ? 'page' : undefined}
+              /* Sidebar repliée : le tooltip stylé ci-dessous est clippé par le
+                 conteneur `overflow-y-auto` du <nav> (l'axe horizontal devient
+                 auto et masque l'élément en `left-full`). On garantit donc
+                 l'affichage du libellé au survol via le `title` natif. */
+              title={primaryCollapsed ? (item.ariaLabel || item.label) : undefined}
             >
               <div className={cn(
                 'transition-colors',

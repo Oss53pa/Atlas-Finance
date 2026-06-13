@@ -77,11 +77,14 @@ const KPIsRealTime: React.FC = () => {
     const computeKPIs = async () => {
       try {
         const entries = await adapter.getAll<any>('journalEntries');
-        const posted = entries.filter((e: any) => e.status === 'posted');
+        // Écritures comptabilisées : 'validated' OU 'posted' (sur ce référentiel les
+        // 529 écritures sont toutes 'validated' — filtrer 'posted' seul renvoyait 0).
+        const posted = entries.filter((e: any) => e.status === 'validated' || e.status === 'posted');
 
         // CA = class 7 credits (revenue)
         let totalCA = 0;
         let totalCharges = 0;
+        let totalImpot = 0; // impôt sur le résultat (classe 89 : IS / IMF)
         let totalTresorerie = 0;
         let creancesClients = 0;
         let dettesFournisseurs = 0;
@@ -101,6 +104,9 @@ const KPIsRealTime: React.FC = () => {
             }
             if (code.startsWith('6')) {
               totalCharges += (line.debit || 0) - (line.credit || 0);
+            }
+            if (code.startsWith('89')) {
+              totalImpot += (line.debit || 0) - (line.credit || 0);
             }
             if (code.startsWith('5')) {
               totalTresorerie += (line.debit || 0) - (line.credit || 0);
@@ -163,7 +169,8 @@ const KPIsRealTime: React.FC = () => {
           sortedMonths.slice(-6).map(m => ({ time: m, value: Math.round(monthMap[m] || 0) }));
 
         const marge = totalCA > 0 ? ((totalCA - totalCharges) / totalCA) * 100 : 0;
-        const resultatNet = totalCA - totalCharges;
+        // Résultat NET = après impôt sur le résultat (classe 89), cohérent avec le Bilan/CdR.
+        const resultatNet = totalCA - totalCharges - totalImpot;
         const margeCommerciale = venteMarchandises - achatsMarchandises;
 
         const caHistory = buildHistory(monthlyCA);

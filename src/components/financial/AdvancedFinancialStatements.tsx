@@ -209,11 +209,12 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
       },
     };
 
-    // Résultat net CANONIQUE = produits (TOUTE la classe 7) − charges (TOUTE la classe 6).
+    // Résultat NET CANONIQUE = produits (cl.7) − charges (cl.6) − impôts (cl.89 : IS/IMF).
     // Les regroupements par préfixe ci-dessus oubliaient 65 et 69 (→ +12,3M d'écart vs la
-    // Balance/Bilan). On calcule sur les classes entières pour garantir la COHÉRENCE
-    // avec le tableau de bord comptable et le Bilan (qui font aussi classe7 − classe6).
-    const resultatNetReal = money(creditNet('7')).subtract(money(net('6'))).toNumber();
+    // Balance/Bilan). On calcule sur les classes entières + déduction de l'impôt 89 pour
+    // garantir la COHÉRENCE avec le Bilan (résultat net d'impôt = condition d'équilibre
+    // Actif = Passif, la dette d'IMF étant portée en classe 44).
+    const resultatNetReal = money(creditNet('7')).subtract(money(net('6'))).subtract(money(net('89'))).toNumber();
 
     return { bilanData: bilan, compteResultatData: cr, resultatNetReal };
   }, [entries]);
@@ -1029,8 +1030,10 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
         const creditN = (...pfx: string[]) => { let t = 0; for (const e of entries) for (const l of e.lines) if (pfx.some(p => l.accountCode.startsWith(p))) t = money(t).add(money(l.credit).subtract(money(l.debit))).toNumber(); return t; };
         const detailEntries = (...pfx: string[]) => entries.filter(e => e.lines?.some((l: any) => pfx.some(p => l.accountCode.startsWith(p)))).map(e => ({ ref: e.entryNumber || e.reference || e.id?.substring(0, 8), date: e.date, label: e.label, journal: e.journal, amount: e.lines.filter((l: any) => pfx.some(p => l.accountCode.startsWith(p))).reduce((s: number, l: any) => money(s).add(money(l.debit).subtract(money(l.credit))).toNumber(), 0) }));
 
-        // Méthode indirecte
-        const rn = money(creditN('7')).subtract(money(net('6'))).toNumber();
+        // Méthode indirecte — résultat NET d'impôt (− cl.89). La contrepartie de
+        // l'impôt (dette en 44) est reprise dans la variation du BFR (vFis sur '44'),
+        // donc le flux d'exploitation se reconcilie toujours avec la variation de tréso.
+        const rn = money(creditN('7')).subtract(money(net('6'))).subtract(money(net('89'))).toNumber();
         const dot = net('68', '69');
         const rep = creditN('78', '79');
         const pmv = money(creditN('82')).subtract(money(net('81'))).toNumber();
