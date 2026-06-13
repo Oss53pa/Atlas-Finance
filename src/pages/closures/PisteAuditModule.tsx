@@ -1,6 +1,7 @@
 
 import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useEffect, useCallback } from 'react';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
@@ -198,6 +199,7 @@ const PisteAuditModule: React.FC = () => {
             <p className="text-[var(--color-text-tertiary)]">Traçabilité complète des actions et modifications</p>
           </div>
           <div className="flex items-center space-x-3">
+            <PageHeaderActions />
             <select
               value={selectedPeriode}
               onChange={(e) => setSelectedPeriode(e.target.value as typeof selectedPeriode)}

@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { toast } from 'react-hot-toast';
 import {
@@ -219,6 +220,7 @@ const ReportsANouveauModule: React.FC = () => {
             <p className="text-[var(--color-text-tertiary)]">Gestion des reports et ouverture d'exercice</p>
           </div>
           <div className="flex items-center space-x-3">
+            <PageHeaderActions />
             <select
               value={selectedExercice}
               onChange={(e) => setSelectedExercice(e.target.value)}

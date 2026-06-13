@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useData } from '../../contexts/DataContext';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { useToast } from '../../hooks/useToast';
 import Decimal from 'decimal.js';
 import type { DBOffBalanceCommitment } from '../../lib/db';
@@ -62,9 +63,12 @@ export default function OffBalanceCommitmentsPage() {
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Engagements Hors Bilan</h1>
           <p className="text-sm text-gray-500 mt-1">Cautions, nantissements, hypothèques, crédit-bail, garanties</p>
         </div>
-        <button onClick={() => setShowForm(true)} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-          Nouvel engagement
-        </button>
+        <div className="flex items-center gap-2">
+          <PageHeaderActions />
+          <button onClick={() => setShowForm(true)} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+            Nouvel engagement
+          </button>
+        </div>
       </div>
 
       {/* Summary Cards */}

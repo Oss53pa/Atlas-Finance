@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { useData } from '../../contexts/DataContext';
 import { useToast } from '../../hooks/useToast';
 import FeatureGuard from '../../components/auth/FeatureGuard';
@@ -85,6 +86,7 @@ const EcartsConversionPage: React.FC = () => {
               </div>
             </div>
             <div className="flex items-center gap-3">
+              <PageHeaderActions />
               <div>
                 <label className="text-xs text-[var(--color-text-tertiary)]">Date d'extourne</label>
                 <input type="date" value={dateExtourne} onChange={e => setDateExtourne(e.target.value)}
