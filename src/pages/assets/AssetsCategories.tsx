@@ -16,7 +16,9 @@ interface SubCategory {
   name: string;
   code: string;
   count: number;
-  value: number;
+  value: number;        // valeur brute (acquisition)
+  amort: number;        // amortissements cumulés
+  vnc: number;          // valeur nette comptable = value − amort
   depreciationRate: string;
 }
 
@@ -26,7 +28,9 @@ interface Category {
   code: string;
   parent: null;
   count: number;
-  value: number;
+  value: number;        // valeur brute
+  amort: number;        // amortissements cumulés
+  vnc: number;          // valeur nette comptable
   depreciationRate: string;
   icon: React.FC<{ className?: string }>;
   color: string;
@@ -50,6 +54,8 @@ const AssetsCategories: React.FC = () => {
   const { adapter } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedCategories, setExpandedCategories] = useState<Set<number>>(new Set());
+  // Catégorie ouverte en MODALE détaillée (au lieu d'un dépliage en ligne).
+  const [detailCategory, setDetailCategory] = useState<Category | null>(null);
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [dbAssets, setDbAssets] = useState<any[]>([]);
@@ -89,20 +95,27 @@ const AssetsCategories: React.FC = () => {
       }
       const children: SubCategory[] = Object.entries(bySub)
         .sort((x, y) => x[0].localeCompare(y[0]))
-        .map(([code, subAssets], si) => ({
-          id: (idx + 1) * 100 + si + 1,
-          name: subAssets[0]?.name || subAssets[0]?.designation || code,
-          code,
-          count: subAssets.length,
-          value: subAssets.reduce((s, a) => s + (a.acquisitionValue || 0), 0),
-          depreciationRate: (() => {
-            const rated = subAssets.filter(a => (a.usefulLifeYears || a.usefulLife || 0) > 0);
-            if (rated.length === 0) return '—';
-            const r = rated.reduce((s, a) => s + 100 / (a.usefulLifeYears || a.usefulLife), 0) / rated.length;
-            return `${r.toFixed(0)}%`;
-          })(),
-        }));
+        .map(([code, subAssets], si) => {
+          const value = subAssets.reduce((s, a) => s + (a.acquisitionValue || 0), 0);
+          const amort = subAssets.reduce((s, a) => s + (a.cumulDepreciation || 0), 0);
+          return {
+            id: (idx + 1) * 100 + si + 1,
+            name: subAssets[0]?.name || subAssets[0]?.designation || code,
+            code,
+            count: subAssets.length,
+            value,
+            amort,
+            vnc: Math.max(0, value - amort),
+            depreciationRate: (() => {
+              const rated = subAssets.filter(a => (a.usefulLifeYears || a.usefulLife || 0) > 0);
+              if (rated.length === 0) return '—';
+              const r = rated.reduce((s, a) => s + 100 / (a.usefulLifeYears || a.usefulLife), 0) / rated.length;
+              return `${r.toFixed(0)}%`;
+            })(),
+          };
+        });
 
+      const totalAmort = catAssets.reduce((s, a) => s + (a.cumulDepreciation || 0), 0);
       return {
         id: idx + 1,
         name: catDef.name,
@@ -110,6 +123,8 @@ const AssetsCategories: React.FC = () => {
         parent: null,
         count: catAssets.length,
         value: totalValue,
+        amort: totalAmort,
+        vnc: Math.max(0, totalValue - totalAmort),
         depreciationRate: avgRate > 0 ? `${avgRate.toFixed(0)}%` : '—',
         icon: catDef.icon,
         color: catDef.color,
@@ -326,91 +341,48 @@ const AssetsCategories: React.FC = () => {
                     const isExpanded = expandedCategories.has(category.id);
 
                     return (
-                      <React.Fragment key={category.id}>
-                        <tr className="border-b border-[var(--color-border)] hover:bg-[var(--color-hover)] transition-colors">
-                          <td className="p-3">
-                            <div className="flex items-center gap-3">
-                              <button
-                                onClick={() => toggleCategory(category.id)}
-                                className="p-0.5"
-                              >
-                                <ChevronRight
-                                  className={`w-4 h-4 text-[var(--color-text-secondary)] transition-transform ${
-                                    isExpanded ? 'rotate-90' : ''
-                                  }`}
-                                />
-                              </button>
-                              <div className={`w-8 h-8 rounded-lg ${colors.bg} flex items-center justify-center`}>
-                                <Icon className={`w-4 h-4 ${colors.text}`} />
-                              </div>
-                              <span className="font-semibold text-sm text-[var(--color-text-primary)]">
-                                {category.name}
-                              </span>
+                      <tr
+                        key={category.id}
+                        onClick={() => setDetailCategory(category)}
+                        className="border-b border-[var(--color-border)] hover:bg-[var(--color-hover)] transition-colors cursor-pointer"
+                      >
+                        <td className="p-3">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-8 h-8 rounded-lg ${colors.bg} flex items-center justify-center`}>
+                              <Icon className={`w-4 h-4 ${colors.text}`} />
                             </div>
-                          </td>
-                          <td className="p-3">
-                            <span className="text-sm font-mono text-[var(--color-text-secondary)]">{category.code}</span>
-                          </td>
-                          <td className="p-3 text-right">
-                            <span className="text-sm font-semibold text-[var(--color-text-primary)]">{category.count}</span>
-                          </td>
-                          <td className="p-3 text-right">
-                            <span className="text-sm font-semibold text-[var(--color-text-primary)]">
-                              {formatCurrency(category.value)}
+                            <span className="font-semibold text-sm text-[var(--color-text-primary)]">
+                              {category.name}
                             </span>
-                          </td>
-                          <td className="p-3 text-center">
-                            <span className="text-sm text-[var(--color-text-primary)]">{category.depreciationRate}</span>
-                          </td>
-                          <td className="p-3 text-center">
-                            <span className="text-sm text-[var(--color-text-secondary)]">{category.children.length}</span>
-                          </td>
-                          <td className="p-3 text-center">
-                            {/* Classes SYSCOHADA normatives : pas d'édition — action réelle = déplier */}
-                            <button
-                              onClick={() => toggleCategory(category.id)}
-                              className="p-1.5 text-[var(--color-text-secondary)] hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                              title={isExpanded ? 'Replier les sous-catégories' : 'Voir les sous-catégories'}
-                            >
-                              <ChevronRight className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
-                            </button>
-                          </td>
-                        </tr>
-                        {/* Sub-categories rows */}
-                        {isExpanded && category.children.map((child) => (
-                          <tr
-                            key={child.id}
-                            className="border-b border-[var(--color-border)] hover:bg-[var(--color-hover)] transition-colors bg-[var(--color-background-subtle)]"
+                          </div>
+                        </td>
+                        <td className="p-3">
+                          <span className="text-sm font-mono text-[var(--color-text-secondary)]">{category.code}</span>
+                        </td>
+                        <td className="p-3 text-right">
+                          <span className="text-sm font-semibold text-[var(--color-text-primary)]">{category.count}</span>
+                        </td>
+                        <td className="p-3 text-right">
+                          <span className="text-sm font-semibold text-[var(--color-text-primary)]">
+                            {formatCurrency(category.value)}
+                          </span>
+                        </td>
+                        <td className="p-3 text-center">
+                          <span className="text-sm text-[var(--color-text-primary)]">{category.depreciationRate}</span>
+                        </td>
+                        <td className="p-3 text-center">
+                          <span className="text-sm text-[var(--color-text-secondary)]">{category.children.length}</span>
+                        </td>
+                        <td className="p-3 text-center">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setDetailCategory(category); }}
+                            className="p-1.5 text-[var(--color-text-secondary)] hover:text-blue-600 hover:bg-blue-50 rounded transition-colors inline-flex items-center gap-1 text-xs"
+                            title="Voir le détail de la catégorie"
                           >
-                            <td className="p-3 pl-16">
-                              <div className="flex items-center gap-2">
-                                <div className={`w-1.5 h-1.5 rounded-full ${colors.bg}`} />
-                                <span className="text-sm text-[var(--color-text-primary)]">{child.name}</span>
-                              </div>
-                            </td>
-                            <td className="p-3">
-                              <span className="text-sm font-mono text-[var(--color-text-secondary)]">{child.code}</span>
-                            </td>
-                            <td className="p-3 text-right">
-                              <span className="text-sm text-[var(--color-text-primary)]">{child.count}</span>
-                            </td>
-                            <td className="p-3 text-right">
-                              <span className="text-sm text-[var(--color-text-primary)]">
-                                {formatCurrency(child.value)}
-                              </span>
-                            </td>
-                            <td className="p-3 text-center">
-                              <span className="text-sm text-[var(--color-text-primary)]">{child.depreciationRate}</span>
-                            </td>
-                            <td className="p-3 text-center">
-                              <span className="text-sm text-[var(--color-text-secondary)]">—</span>
-                            </td>
-                            <td className="p-3 text-center">
-                              <span className="text-sm text-[var(--color-text-secondary)]">—</span>
-                            </td>
-                          </tr>
-                        ))}
-                      </React.Fragment>
+                            Détail <ChevronRight className="w-4 h-4" />
+                          </button>
+                        </td>
+                      </tr>
                     );
                   })}
                 </tbody>
@@ -446,31 +418,27 @@ const AssetsCategories: React.FC = () => {
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => toggleCategory(category.id)}
-                          className="p-1 hover:bg-[var(--color-background-subtle)] rounded transition-colors"
-                        >
-                          <ChevronRight
-                            className={`w-4 h-4 text-[var(--color-text-secondary)] transition-transform ${
-                              isExpanded ? 'rotate-90' : ''
-                            }`}
-                          />
-                        </button>
-                        {/* Classes SYSCOHADA normatives : pas d'édition (faux bouton retiré). */}
-                      </div>
+                      <button
+                        onClick={() => setDetailCategory(category)}
+                        className="p-1.5 text-[var(--color-text-secondary)] hover:text-blue-600 hover:bg-blue-50 rounded transition-colors inline-flex items-center gap-1 text-xs"
+                        title="Voir le détail de la catégorie"
+                      >
+                        Détail <ChevronRight className="w-4 h-4" />
+                      </button>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                       <div>
                         <p className="text-xs text-[var(--color-text-secondary)]">Actifs</p>
                         <p className="font-semibold text-[var(--color-text-primary)]">{category.count}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-[var(--color-text-secondary)]">Valeur</p>
-                        <p className="font-semibold text-[var(--color-text-primary)]">
-                          {formatCurrency(category.value)}
-                        </p>
+                        <p className="text-xs text-[var(--color-text-secondary)]">Valeur brute</p>
+                        <p className="font-semibold text-[var(--color-text-primary)]">{formatCurrency(category.value)}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-[var(--color-text-secondary)]">VNC</p>
+                        <p className="font-semibold text-green-600">{formatCurrency(category.vnc)}</p>
                       </div>
                       <div>
                         <p className="text-xs text-[var(--color-text-secondary)]">Taux amort.</p>
@@ -478,36 +446,12 @@ const AssetsCategories: React.FC = () => {
                       </div>
                     </div>
 
-                    {isExpanded && category.children && (
-                      <div className="pt-3 border-t border-[var(--color-border)] space-y-2">
-                        {category.children.map((child) => (
-                          <div
-                            key={child.id}
-                            className="flex items-center justify-between p-2 rounded-lg hover:bg-[var(--color-background-subtle)] transition-colors cursor-pointer"
-                          >
-                            <div className="flex items-center gap-3">
-                              <div className={`w-1 h-4 rounded-full ${colors.bg}`} />
-                              <div>
-                                <p className="text-sm font-medium text-[var(--color-text-primary)]">
-                                  {child.name}
-                                </p>
-                                <p className="text-xs text-[var(--color-text-secondary)]">
-                                  {child.code} • {child.count} actifs
-                                </p>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-sm font-medium text-[var(--color-text-primary)]">
-                                {formatCurrency(child.value)}
-                              </p>
-                              <p className="text-xs text-[var(--color-text-secondary)]">
-                                {child.depreciationRate}
-                              </p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                    <button
+                      onClick={() => setDetailCategory(category)}
+                      className="w-full text-sm text-[var(--color-primary)] hover:underline text-left"
+                    >
+                      {category.children.length} sous-catégorie{category.children.length > 1 ? 's' : ''} — voir le détail →
+                    </button>
                   </div>
                 </CardBody>
               </ModernCard>
@@ -515,6 +459,91 @@ const AssetsCategories: React.FC = () => {
           })}
         </div>
       )}
+
+      {/* ========== DÉTAIL CATÉGORIE (MODALE) ========== */}
+      {detailCategory && (() => {
+        const c = detailCategory;
+        const colors = getColorClasses(c.color);
+        const Icon = c.icon;
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/50" onClick={() => setDetailCategory(null)} />
+            <div className="relative bg-[var(--color-surface)] rounded-xl shadow-xl w-full max-w-3xl mx-4 max-h-[90vh] overflow-y-auto">
+              {/* En-tête */}
+              <div className="flex items-center justify-between p-5 border-b border-[var(--color-border)]">
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-lg ${colors.bg} flex items-center justify-center`}>
+                    <Icon className={`w-5 h-5 ${colors.text}`} />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-[var(--color-text-primary)]">{c.name}</h2>
+                    <p className="text-sm text-[var(--color-text-secondary)]">Classe SYSCOHADA {c.code} · {c.children.length} sous-catégorie(s)</p>
+                  </div>
+                </div>
+                <button onClick={() => setDetailCategory(null)} className="p-2 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] rounded-lg hover:bg-[var(--color-background-subtle)]">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Synthèse de la classe */}
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 p-5 border-b border-[var(--color-border)]">
+                <div><p className="text-xs text-[var(--color-text-secondary)]">Actifs</p><p className="font-bold text-[var(--color-text-primary)]">{c.count}</p></div>
+                <div><p className="text-xs text-[var(--color-text-secondary)]">Valeur brute</p><p className="font-bold text-[var(--color-text-primary)]">{formatCurrency(c.value)}</p></div>
+                <div><p className="text-xs text-[var(--color-text-secondary)]">Amort. cumulé</p><p className="font-bold text-red-600">{formatCurrency(c.amort)}</p></div>
+                <div><p className="text-xs text-[var(--color-text-secondary)]">VNC</p><p className="font-bold text-green-600">{formatCurrency(c.vnc)}</p></div>
+                <div><p className="text-xs text-[var(--color-text-secondary)]">Taux amort.</p><p className="font-bold text-[var(--color-text-primary)]">{c.depreciationRate}</p></div>
+              </div>
+
+              {/* Détail des sous-catégories */}
+              <div className="p-5">
+                <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">Sous-catégories (comptes)</h3>
+                {c.children.length === 0 ? (
+                  <p className="text-sm text-[var(--color-text-tertiary)]">Aucune sous-catégorie.</p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-[var(--color-border)] text-[var(--color-text-secondary)]">
+                          <th className="text-left py-2 pr-3 font-medium">Compte</th>
+                          <th className="text-left py-2 px-3 font-medium">Libellé</th>
+                          <th className="text-right py-2 px-3 font-medium">Actifs</th>
+                          <th className="text-right py-2 px-3 font-medium">Valeur brute</th>
+                          <th className="text-right py-2 px-3 font-medium">Amort. cumulé</th>
+                          <th className="text-right py-2 px-3 font-medium">VNC</th>
+                          <th className="text-center py-2 pl-3 font-medium">Taux</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {c.children.map(child => (
+                          <tr key={child.id} className="border-b border-[var(--color-border)] hover:bg-[var(--color-background-subtle)]">
+                            <td className="py-2 pr-3 font-mono text-xs text-[var(--color-primary)]">{child.code}</td>
+                            <td className="py-2 px-3 max-w-[260px] truncate" title={child.name}>{child.name}</td>
+                            <td className="py-2 px-3 text-right">{child.count}</td>
+                            <td className="py-2 px-3 text-right font-mono">{formatCurrency(child.value)}</td>
+                            <td className="py-2 px-3 text-right font-mono text-red-600">{formatCurrency(child.amort)}</td>
+                            <td className="py-2 px-3 text-right font-mono text-green-600">{formatCurrency(child.vnc)}</td>
+                            <td className="py-2 pl-3 text-center">{child.depreciationRate}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                      <tfoot>
+                        <tr className="border-t-2 border-[var(--color-border)] font-bold">
+                          <td className="py-2 pr-3" colSpan={2}>Total {c.code}</td>
+                          <td className="py-2 px-3 text-right">{c.count}</td>
+                          <td className="py-2 px-3 text-right font-mono">{formatCurrency(c.value)}</td>
+                          <td className="py-2 px-3 text-right font-mono text-red-700">{formatCurrency(c.amort)}</td>
+                          <td className="py-2 px-3 text-right font-mono text-green-700">{formatCurrency(c.vnc)}</td>
+                          <td className="py-2 pl-3 text-center">{c.depreciationRate}</td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ========== SETTINGS MODAL ========== */}
       {showSettingsModal && (

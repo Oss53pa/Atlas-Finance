@@ -2,13 +2,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   Layers, Search, Plus, Edit2, Settings, BarChart3,
-  TrendingUp, DollarSign, Activity, Info, ChevronDown,
+  TrendingUp, DollarSign, Activity, Info, ChevronDown, X,
   Building, Computer, Car, Package, FileText, Shield
 } from 'lucide-react';
 import { ModernCard, CardHeader, CardBody } from '../../components/ui/ModernCard';
 import ModernButton from '../../components/ui/ModernButton';
 import { useData } from '../../contexts/DataContext';
-import { formatCompactCurrency } from '../../utils/formatters';
+import { formatCompactCurrency, formatCurrency } from '../../utils/formatters';
 
 // SYSCOHADA class definitions (reference structure — values come from data)
 // Classes SYSCOHADA OFFICIELLES (les anciens libellés étaient faux : 21≠corporelles,
@@ -316,35 +316,14 @@ const AssetsClasses: React.FC = () => {
                       </span>
                     </div>
 
-                    {/* Accounts Preview */}
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-between text-xs text-[var(--color-text-secondary)]">
-                        <span>Comptes ({assetClass.accounts.length})</span>
-                        <ChevronDown className="w-3 h-3" />
-                      </div>
-                      {selectedClass === assetClass.code && (
-                        <div className="mt-2 space-y-1">
-                          {assetClass.accounts.slice(0, 3).map((account) => (
-                            <div
-                              key={account.code}
-                              className="flex items-center justify-between p-2 bg-[var(--color-background-subtle)] rounded text-xs"
-                            >
-                              <span className="text-[var(--color-text-secondary)]">
-                                {account.code} - {account.name}
-                              </span>
-                              <span className="font-medium text-[var(--color-text-primary)]">
-                                {formatCompactCurrency(account.balance)}
-                              </span>
-                            </div>
-                          ))}
-                          {assetClass.accounts.length > 3 && (
-                            <p className="text-xs text-center text-[var(--color-text-secondary)] pt-1">
-                              +{assetClass.accounts.length - 3} autres comptes
-                            </p>
-                          )}
-                        </div>
-                      )}
-                    </div>
+                    {/* Comptes : voir le détail en modale */}
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setSelectedClass(assetClass.code); }}
+                      className="w-full flex items-center justify-between text-xs text-[var(--color-primary)] hover:underline pt-1"
+                    >
+                      <span>{assetClass.accounts.length} compte(s) — voir le détail</span>
+                      <ChevronDown className="w-3 h-3 -rotate-90" />
+                    </button>
                   </div>
                 </CardBody>
               </ModernCard>
@@ -409,7 +388,7 @@ const AssetsClasses: React.FC = () => {
                               className="p-1 hover:bg-[var(--color-background)] rounded"
                               aria-label="Voir le détail des comptes"
                               title="Voir le détail des comptes"
-                              onClick={(e) => { e.stopPropagation(); setSelectedClass(selectedClass === assetClass.code ? null : assetClass.code); setActiveView('grid'); }}
+                              onClick={(e) => { e.stopPropagation(); setSelectedClass(assetClass.code); }}
                             >
                               <Info className="w-4 h-4 text-[var(--color-text-secondary)]" />
                             </button>
@@ -424,6 +403,77 @@ const AssetsClasses: React.FC = () => {
           </CardBody>
         </ModernCard>
       )}
+
+      {/* ========== DÉTAIL CLASSE (MODALE) ========== */}
+      {selectedClass && (() => {
+        const cls = assetClasses.find(c => c.code === selectedClass);
+        if (!cls) return null;
+        const colors = getColorClasses(cls.color);
+        const Icon = cls.icon;
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/50" onClick={() => setSelectedClass(null)} />
+            <div className="relative bg-[var(--color-surface)] rounded-xl shadow-xl w-full max-w-3xl mx-4 max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between p-5 border-b border-[var(--color-border)]">
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-lg ${colors.bg} flex items-center justify-center`}>
+                    <Icon className={`w-5 h-5 ${colors.text}`} />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-[var(--color-text-primary)]">Classe {cls.code} — {cls.name}</h2>
+                    <p className="text-sm text-[var(--color-text-secondary)]">{cls.description}</p>
+                  </div>
+                </div>
+                <button onClick={() => setSelectedClass(null)} className="p-2 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] rounded-lg hover:bg-[var(--color-background-subtle)]">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 p-5 border-b border-[var(--color-border)]">
+                <div><p className="text-xs text-[var(--color-text-secondary)]">Biens</p><p className="font-bold text-[var(--color-text-primary)]">{cls.assetCount}</p></div>
+                <div><p className="text-xs text-[var(--color-text-secondary)]">Valeur brute</p><p className="font-bold text-[var(--color-text-primary)]">{formatCurrency(cls.totalValue)}</p></div>
+                <div><p className="text-xs text-[var(--color-text-secondary)]">Amort. cumulé</p><p className="font-bold text-red-600">{formatCurrency(cls.cumulAmort)}</p></div>
+                <div><p className="text-xs text-[var(--color-text-secondary)]">VNC</p><p className="font-bold text-green-600">{formatCurrency(cls.netValue)}</p></div>
+                <div><p className="text-xs text-[var(--color-text-secondary)]">Taux amort.</p><p className="font-bold text-[var(--color-text-primary)]">{cls.depreciationRate}</p></div>
+              </div>
+
+              <div className="p-5">
+                <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">Comptes de la classe ({cls.accounts.length})</h3>
+                {cls.accounts.length === 0 ? (
+                  <p className="text-sm text-[var(--color-text-tertiary)]">Aucun compte mouvementé.</p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-[var(--color-border)] text-[var(--color-text-secondary)]">
+                          <th className="text-left py-2 pr-3 font-medium">Compte</th>
+                          <th className="text-left py-2 px-3 font-medium">Libellé</th>
+                          <th className="text-right py-2 pl-3 font-medium">Solde (brut)</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {cls.accounts.map(acc => (
+                          <tr key={acc.code} className="border-b border-[var(--color-border)] hover:bg-[var(--color-background-subtle)]">
+                            <td className="py-2 pr-3 font-mono text-xs text-[var(--color-primary)]">{acc.code}</td>
+                            <td className="py-2 px-3 max-w-[320px] truncate" title={acc.name}>{acc.name}</td>
+                            <td className="py-2 pl-3 text-right font-mono">{formatCurrency(acc.balance)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                      <tfoot>
+                        <tr className="border-t-2 border-[var(--color-border)] font-bold">
+                          <td className="py-2 pr-3" colSpan={2}>Total brut classe {cls.code}</td>
+                          <td className="py-2 pl-3 text-right font-mono">{formatCurrency(cls.totalValue)}</td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 };
