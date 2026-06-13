@@ -545,15 +545,14 @@ const TreasuryPositions: React.FC = () => {
                 </select>
               </div>
 
-              {/* KPIs — modèle de carte du projet (KPICard). Montants ABRÉGÉS (M/Md)
-                  pour tenir sur une ligne ; le détail exact est dans le tableau « Position
-                  temps réel » et le détail par compte ci-dessous. */}
+              {/* KPIs — modèle de carte du projet (KPICard), montants COMPLETS avec
+                  une police réduite (valueFontSize) pour tenir sur une ligne. */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                <KPICard title="Solde réel" value={fmtCourt(tot.solde)} subtitle="Ce qui est dans les comptes" icon={Wallet} color="primary" withChart />
-                <KPICard title="Émis non débités" value={fmtCourt(-tot.emis)} subtitle="Décaissements en attente" icon={ArrowDownRight} color="error" withChart />
-                <KPICard title="Reçus non crédités" value={`+ ${fmtCourt(tot.recus)}`} subtitle="Encaissements en attente" icon={ArrowUpRight} color="success" withChart />
-                <KPICard title="Solde théorique" value={fmtCourt(theorique)} subtitle="Flottant dénoué" icon={TrendingUp} color="primary" withChart />
-                <KPICard title="Liquidité disponible" value={fmtCourt(theorique)} subtitle="+ découvert autorisé (non renseigné)" icon={ShieldCheck} color="neutral" withChart />
+                <KPICard title="Solde réel" value={formatCurrency(tot.solde)} subtitle="Ce qui est dans les comptes" icon={Wallet} color="primary" withChart valueFontSize="1.125rem" />
+                <KPICard title="Émis non débités" value={formatCurrency(-tot.emis)} subtitle="Décaissements en attente" icon={ArrowDownRight} color="error" withChart valueFontSize="1.125rem" />
+                <KPICard title="Reçus non crédités" value={`+ ${formatCurrency(tot.recus)}`} subtitle="Encaissements en attente" icon={ArrowUpRight} color="success" withChart valueFontSize="1.125rem" />
+                <KPICard title="Solde théorique" value={formatCurrency(theorique)} subtitle="Flottant dénoué" icon={TrendingUp} color="primary" withChart valueFontSize="1.125rem" />
+                <KPICard title="Liquidité disponible" value={formatCurrency(theorique)} subtitle="+ découvert autorisé (non renseigné)" icon={ShieldCheck} color="neutral" withChart valueFontSize="1.125rem" />
               </div>
 
               {/* Proph3t — conseil de trésorerie (déterministe) */}

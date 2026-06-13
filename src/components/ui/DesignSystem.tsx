@@ -170,6 +170,9 @@ interface KPICardProps {
   color?: 'primary' | 'success' | 'warning' | 'error' | 'neutral';
   delay?: number;
   withChart?: boolean;
+  /** Override la taille de police de la valeur (ex. '1.125rem') pour les
+   *  montants longs qui déborderaient à la taille par défaut. */
+  valueFontSize?: string;
 }
 
 export const KPICard: React.FC<KPICardProps> = ({
@@ -180,7 +183,8 @@ export const KPICard: React.FC<KPICardProps> = ({
   trend,
   color = 'primary',
   delay = 0,
-  withChart = false
+  withChart = false,
+  valueFontSize
 }) => {
   const TONE: Record<NonNullable<KPICardProps['color']>, { stroke: string; tileBg: string; tileColor: string; trendBg: string; trendColor: string }> = {
     primary: { stroke: '#235A6E', tileBg: 'var(--color-accent-light)',  tileColor: 'var(--color-accent-deep)', trendBg: 'rgba(21,128,61,0.10)', trendColor: '#15803D' },
@@ -211,7 +215,7 @@ export const KPICard: React.FC<KPICardProps> = ({
           </h6>
           <p
             className="display-md num-display"
-            style={{ color: 'var(--color-text-primary)', marginBottom: 0 }}
+            style={{ color: 'var(--color-text-primary)', marginBottom: 0, ...(valueFontSize ? { fontSize: valueFontSize } : {}) }}
           >
             {value}
           </p>
