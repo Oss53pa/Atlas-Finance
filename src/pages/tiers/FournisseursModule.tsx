@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
@@ -93,6 +94,7 @@ const FournisseursModule: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedStatut, setSelectedStatut] = useState<string>('all');
+  const [showFilters, setShowFilters] = useState<boolean>(false);
   const [selectedFournisseurs, setSelectedFournisseurs] = useState<string[]>([]);
   const [showPeriodModal, setShowPeriodModal] = useState(false);
   const [dateRange, setDateRange] = useState({
@@ -536,6 +538,8 @@ const FournisseursModule: React.FC = () => {
             />
           </div>
 
+          {showFilters && (
+          <>
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
@@ -559,6 +563,14 @@ const FournisseursModule: React.FC = () => {
             <option value="SUSPENDU">Suspendu</option>
             <option value="INACTIF">Inactif</option>
           </select>
+          </>
+          )}
+
+          <PageHeaderActions
+            onToggleFilters={() => setShowFilters((v) => !v)}
+            filtersOpen={showFilters}
+            activeFilters={[searchTerm !== '', selectedCategory !== 'all', selectedStatut !== 'all'].filter(Boolean).length}
+          />
 
           <button
             onClick={async () => {

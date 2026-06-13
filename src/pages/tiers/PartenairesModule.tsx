@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
@@ -103,6 +104,7 @@ const PartenairesModule: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('tous');
   const [filterNiveau, setFilterNiveau] = useState('tous');
+  const [showFilters, setShowFilters] = useState(false);
   const [selectedPartenaire, setSelectedPartenaire] = useState<Partenaire | null>(null);
   const [showPartenaireModal, setShowPartenaireModal] = useState(false);
   const [formData, setFormData] = useState({
@@ -435,6 +437,8 @@ const PartenairesModule: React.FC = () => {
               />
             </div>
 
+            {showFilters && (
+            <>
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
@@ -454,6 +458,14 @@ const PartenairesModule: React.FC = () => {
                 <option key={niveau.value} value={niveau.value}>{niveau.label}</option>
               ))}
             </select>
+            </>
+            )}
+
+            <PageHeaderActions
+              onToggleFilters={() => setShowFilters((v) => !v)}
+              filtersOpen={showFilters}
+              activeFilters={[searchTerm !== '', filterType !== 'tous', filterNiveau !== 'tous'].filter(Boolean).length}
+            />
 
             <button className="flex items-center space-x-2 px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 transition-colors" aria-label="Télécharger">
               <Download className="w-4 h-4" />

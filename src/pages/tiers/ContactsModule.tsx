@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { formatDate } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
@@ -24,6 +25,7 @@ const ContactsModule: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterTiers, setFilterTiers] = useState('tous');
   const [filterStatut, setFilterStatut] = useState('tous');
+  const [showFilters, setShowFilters] = useState(false);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [showContactModal, setShowContactModal] = useState(false);
   const [showInteractionModal, setShowInteractionModal] = useState(false);
@@ -202,6 +204,11 @@ const ContactsModule: React.FC = () => {
           </div>
 
           <div className="flex items-center space-x-3">
+            <PageHeaderActions
+              onToggleFilters={() => setShowFilters((v) => !v)}
+              filtersOpen={showFilters}
+              activeFilters={[searchTerm !== '', filterTiers !== 'tous', filterStatut !== 'tous'].filter(Boolean).length}
+            />
             <button
               onClick={() => setShowContactModal(true)}
               className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
@@ -253,6 +260,8 @@ const ContactsModule: React.FC = () => {
                 />
               </div>
 
+              {showFilters && (
+              <>
               <select
                 value={filterTiers}
                 onChange={(e) => setFilterTiers(e.target.value)}
@@ -272,6 +281,8 @@ const ContactsModule: React.FC = () => {
                   <option key={option.value} value={option.value}>{option.label}</option>
                 ))}
               </select>
+              </>
+              )}
 
               <button className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50" aria-label="Filtrer">
                 <Filter className="w-5 h-5 text-gray-600" />

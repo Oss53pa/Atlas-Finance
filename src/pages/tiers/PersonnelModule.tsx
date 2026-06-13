@@ -3,6 +3,7 @@
  * Onglets : Liste | Soldes Comptes 42 | Analytics (IAS 19)
  */
 import React, { useState, useEffect, useMemo } from 'react';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { useData } from '../../contexts/DataContext';
 import { formatCurrency } from '../../utils/formatters';
 import {
@@ -115,6 +116,7 @@ const PersonnelModule: React.FC = () => {
   const [search, setSearch] = useState('');
   const [filterStatut, setFilterStatut] = useState<'all' | 'actifs' | 'inactifs'>('all');
   const [filterCompte, setFilterCompte] = useState<string>('all');
+  const [showFilters, setShowFilters] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
 
   // Masse salariale mensuelle RÉELLE (charges de personnel, classe 66), calculée
@@ -476,14 +478,21 @@ const PersonnelModule: React.FC = () => {
             </p>
           </div>
         </div>
-        <button
-          onClick={openCreateModal}
-          className="flex items-center gap-2 px-4 py-2 text-white text-sm font-semibold rounded-xl shadow hover:opacity-90 transition-opacity"
-          style={{ background: PETROL }}
-        >
-          <Plus className="w-4 h-4" />
-          Nouveau membre
-        </button>
+        <div className="flex items-center gap-2">
+          <PageHeaderActions
+            onToggleFilters={() => setShowFilters((v) => !v)}
+            filtersOpen={showFilters}
+            activeFilters={[search !== '', filterStatut !== 'all', filterCompte !== 'all'].filter(Boolean).length}
+          />
+          <button
+            onClick={openCreateModal}
+            className="flex items-center gap-2 px-4 py-2 text-white text-sm font-semibold rounded-xl shadow hover:opacity-90 transition-opacity"
+            style={{ background: PETROL }}
+          >
+            <Plus className="w-4 h-4" />
+            Nouveau membre
+          </button>
+        </div>
       </div>
 
       {/* ── KPI Cards ──────────────────────────────────────────────────────── */}
@@ -590,6 +599,8 @@ const PersonnelModule: React.FC = () => {
                   )}
                 </div>
 
+                {showFilters && (
+                <>
                 {/* Statut filter */}
                 <div className="flex rounded-xl border border-gray-200 overflow-hidden text-sm">
                   {(['all', 'actifs', 'inactifs'] as const).map(s => (
@@ -619,6 +630,8 @@ const PersonnelModule: React.FC = () => {
                     <option key={c} value={c}>{COLLECTIF_LABELS[c]}</option>
                   ))}
                 </select>
+                </>
+                )}
               </div>
 
               {/* Table */}

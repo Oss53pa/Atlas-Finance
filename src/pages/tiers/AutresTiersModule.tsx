@@ -4,6 +4,7 @@
  * Conforme SYSCOHADA Art. 27 · IAS 12 · IAS 19
  */
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { useData } from '../../contexts/DataContext';
 import { formatCurrency } from '../../utils/formatters';
 import {
@@ -160,6 +161,7 @@ const AutresTiersModule: React.FC = () => {
   // Navigation
   const [mainTab, setMainTab] = useState<MainTab>('liste');
   const [classeFilter, setClasseFilter] = useState<ClasseFilter>('all');
+  const [showFilters, setShowFilters] = useState<boolean>(false);
   const [search, setSearch] = useState('');
 
   // Modales
@@ -546,6 +548,11 @@ const AutresTiersModule: React.FC = () => {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <PageHeaderActions
+            onToggleFilters={() => setShowFilters((v) => !v)}
+            filtersOpen={showFilters}
+            activeFilters={[search !== '', classeFilter !== 'all'].filter(Boolean).length}
+          />
           <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full font-medium flex items-center gap-1">
             <ShieldCheck className="w-3 h-3" />
             Conforme SYSCOHADA Art. 27 · IAS 12 · IAS 19
@@ -627,6 +634,7 @@ const AutresTiersModule: React.FC = () => {
         <div className="space-y-4">
           {/* Filtres classe + recherche */}
           <div className="flex flex-col sm:flex-row gap-3">
+            {showFilters && (
             <div className="flex gap-1 bg-gray-100 rounded-lg p-1 overflow-x-auto flex-shrink-0">
               {CLASSE_FILTERS.map(f => (
                 <button
@@ -647,6 +655,7 @@ const AutresTiersModule: React.FC = () => {
                 </button>
               ))}
             </div>
+            )}
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
