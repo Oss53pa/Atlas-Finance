@@ -210,7 +210,7 @@ const ReportsANouveauModule: React.FC = () => {
   // lancerReportANouveau and validerReport are defined above with real Dexie logic
 
   return (
-    <div className="p-6 bg-[var(--color-border)] min-h-screen ">
+    <div className="p-6 bg-[var(--color-border)] min-h-full ">
       {/* Header */}
       <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm mb-6">
         <div className="flex items-center justify-between mb-4">

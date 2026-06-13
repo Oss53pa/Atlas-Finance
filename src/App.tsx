@@ -393,8 +393,8 @@ function App() {
                           <Route path="/accounting/chart-of-accounts" element={work(<ChartOfAccountsPage />)} />
                           <Route path="/accounting/general-ledger" element={<GeneralLedgerPage />} />
                           <Route path="/accounting/lettrage" element={<LettragePage />} />
-                          <Route path="/accounting/lettrage-auto" element={<LettrageAutomatiquePage />} />
-                          <Route path="/accounting/ocr" element={<OCRInvoices />} />
+                          <Route path="/accounting/lettrage-auto" element={work(<LettrageAutomatiquePage />)} />
+                          <Route path="/accounting/ocr" element={work(<OCRInvoices />)} />
                           <Route path="/accounting/signature" element={<ElectronicSignature />} />
                           <Route path="/accounting/financial-statements" element={<FinancialStatementsPage />} />
                           <Route path="/accounting/income-statement" element={<IncomeStatementPage />} />
@@ -425,7 +425,7 @@ function App() {
                         {/* Tresorerie */}
                         <Route element={<RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant']}><FeatureErrorBoundary feature="Trésorerie" /></RBACGuard>}>
                           <Route path="/treasury" element={<TreasuryDashboard />} />
-                          <Route path="/treasury/accounts" element={<BankAccountsPage />} />
+                          <Route path="/treasury/accounts" element={work(<BankAccountsPage />)} />
                           <Route path="/treasury/fund-calls" element={work(<FundCallsPage />)} />
                           <Route path="/treasury/positions" element={work(<TreasuryPositions />)} />
                           <Route path="/treasury/cash-flow" element={<CashFlowPage />} />
@@ -433,7 +433,7 @@ function App() {
                           <Route path="/treasury/financing" element={<TreasuryDashboard />} />
                           <Route path="/treasury/multi-currency" element={work(<MultiCurrency />)} />
                           <Route path="/treasury/movements" element={work(<BankMovementsPage />)} />
-                          <Route path="/treasury/connections" element={<ConnexionsBancairesPage />} />
+                          <Route path="/treasury/connections" element={work(<ConnexionsBancairesPage />)} />
                           <Route path="/treasury/payments" element={<GestionPaiementsPage />} />
                           <Route path="/treasury/forecast" element={work(<PrevisionsTresoreriePage />)} />
                           <Route path="/treasury/position" element={work(<PositionTresoreriePage />)} />
@@ -447,7 +447,7 @@ function App() {
                         {/* Immobilisations */}
                         <Route element={<RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant', 'user', 'viewer']}><FeatureErrorBoundary feature="Immobilisations" /></RBACGuard>}>
                           <Route path="/assets" element={<AssetsDashboard />} />
-                          <Route path="/assets/fixed" element={<FixedAssetsPage />} />
+                          <Route path="/assets/fixed" element={work(<FixedAssetsPage />)} />
                           <Route path="/assets/depreciation" element={work(<DepreciationPage />)} />
                           <Route path="/assets/summary" element={<AssetsSummary />} />
                           <Route path="/assets/registry" element={work(<AssetsRegistry />)} />
@@ -467,19 +467,19 @@ function App() {
                         <Route element={<RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant', 'user', 'viewer']}><FeatureErrorBoundary feature="Budget" /></RBACGuard>}>
                           <Route path="/budgeting" element={<BudgetingDashboard />} />
                           <Route path="/budgeting/list" element={work(<BudgetsPage />)} />
-                          <Route path="/budgeting/control" element={<BudgetControlPage />} />
-                          <Route path="/budgeting/detail/:id" element={<BudgetDetailPage />} />
+                          <Route path="/budgeting/control" element={work(<BudgetControlPage />)} />
+                          <Route path="/budgeting/detail/:id" element={work(<BudgetDetailPage />)} />
                         </Route>
 
                         {/* Clotures */}
                         <Route element={<RBACGuard allowedRoles={['admin', 'comptable', 'accountant']}><FeatureErrorBoundary feature="Clôtures" /></RBACGuard>}>
                           <Route path="/closures" element={<ClosureModulesIndex />} />
                           <Route path="/closures/periodic" element={<PeriodicClosuresModule />} />
-                          <Route path="/closures/revisions" element={<RevisionsModule />} />
-                          <Route path="/closures/carry-forward" element={<ReportsANouveauModule />} />
-                          <Route path="/closures/audit-trail" element={<PisteAuditModule />} />
-                          <Route path="/closures/off-balance" element={<OffBalanceCommitmentsPage />} />
-                          <Route path="/closures/ecarts-conversion" element={<EcartsConversionPage />} />
+                          <Route path="/closures/revisions" element={work(<RevisionsModule />)} />
+                          <Route path="/closures/carry-forward" element={work(<ReportsANouveauModule />)} />
+                          <Route path="/closures/audit-trail" element={work(<PisteAuditModule />)} />
+                          <Route path="/closures/off-balance" element={work(<OffBalanceCommitmentsPage />)} />
+                          <Route path="/closures/ecarts-conversion" element={work(<EcartsConversionPage />)} />
                         </Route>
 
                         {/* Etats financiers */}
@@ -505,8 +505,8 @@ function App() {
                         {/* Analytics */}
                         <Route element={<RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant', 'user', 'viewer']}><Outlet /></RBACGuard>}>
                           <Route path="/analytics" element={<AnalyticsDashboard />} />
-                          <Route path="/analytics/axes" element={<AnalyticalAxesPage />} />
-                          <Route path="/analytics/cost-centers" element={<CostCentersPage />} />
+                          <Route path="/analytics/axes" element={work(<AnalyticalAxesPage />)} />
+                          <Route path="/analytics/cost-centers" element={work(<CostCentersPage />)} />
                           <Route path="/financial-analysis-advanced" element={<FinancialAnalysisDashboard />} />
                         </Route>
 
@@ -531,8 +531,8 @@ function App() {
                         {/* Securite — admin only */}
                         <Route element={<RBACGuard allowedRoles={['admin']}><FeatureErrorBoundary feature="Sécurité" /></RBACGuard>}>
                           <Route path="/security" element={<SecurityDashboard />} />
-                          <Route path="/security/users" element={<UsersPage />} />
-                          <Route path="/security/roles" element={<RolesPage />} />
+                          <Route path="/security/users" element={work(<UsersPage />)} />
+                          <Route path="/security/roles" element={work(<RolesPage />)} />
                           <Route path="/security/permissions" element={<PermissionsPage />} />
                         </Route>
 

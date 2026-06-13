@@ -69,7 +69,7 @@ const EcartsConversionPage: React.FC = () => {
 
   return (
     <FeatureGuard module="ecarts_conversion">
-      <div className="p-6 bg-[var(--color-border)] min-h-screen">
+      <div className="p-6 bg-[var(--color-border)] min-h-full">
         <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm mb-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
