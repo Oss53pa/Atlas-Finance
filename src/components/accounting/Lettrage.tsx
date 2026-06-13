@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import PageHeaderActions from '../ui/PageHeaderActions';
 import type { DBJournalEntry } from '../../lib/db';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -351,6 +352,7 @@ const Lettrage: React.FC = () => {
           </div>
 
           <div className="flex items-center space-x-3">
+            <PageHeaderActions />
             <button className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">
               <Calendar className="w-4 h-4 mr-2 inline" />
               Période

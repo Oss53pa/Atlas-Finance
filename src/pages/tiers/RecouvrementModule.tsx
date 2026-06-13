@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { formatCurrency, formatDate } from '../../utils/formatters';
@@ -8003,6 +8004,7 @@ Service Contentieux
           </div>
 
           <div className="flex items-center space-x-3">
+            <PageHeaderActions />
             <button className="flex items-center space-x-2 px-4 py-2 bg-[var(--color-text-tertiary)] text-white rounded-lg hover:bg-[var(--color-text-secondary)] transition-colors" aria-label="Télécharger">
               <Download className="w-4 h-4" />
               <span className="text-sm font-semibold">{t('common.export')}</span>
