@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { useData } from '../../contexts/DataContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { motion } from 'framer-motion';
@@ -25,8 +26,16 @@ import {
   CheckCircle,
   Clock,
   ArrowUpRight,
-  ArrowDownRight
+  ArrowDownRight,
+  Lightbulb,
+  ShieldCheck,
+  PiggyBank,
+  ArrowRightLeft,
+  Layers
 } from 'lucide-react';
+import {
+  AreaChart, Area, XAxis, YAxis, Tooltip as RTooltip, ResponsiveContainer, ReferenceLine, CartesianGrid,
+} from 'recharts';
 import {
   UnifiedCard,
   KPICard,
@@ -61,6 +70,23 @@ interface PositionModal {
   position?: BankPosition;
 }
 
+// Carte KPI du cockpit temps réel (couleurs projet : clair, petrol/ambre).
+const KpiCard: React.FC<{ label: string; value: number; sub: string; color: string; highlight?: boolean; prefixPlus?: boolean }> = ({ label, value, sub, color, highlight, prefixPlus }) => (
+  <div className="bg-white rounded-xl border p-3.5" style={{ borderColor: highlight ? color : 'var(--color-border)', background: highlight ? 'rgba(232,154,46,0.06)' : undefined }}>
+    <div className="text-xs uppercase tracking-wide mb-1.5" style={{ color: highlight ? color : 'var(--color-text-secondary)' }}>{label}</div>
+    <div className="font-mono font-bold" style={{ fontSize: 19, color }}>{prefixPlus && value > 0 ? '+' : ''}{formatCurrency(value)}</div>
+    <div className="text-xs mt-1 text-[var(--color-text-secondary)]">{sub}</div>
+  </div>
+);
+const PosLigne: React.FC<{ label: string; value: number; color?: string; bold?: boolean; prefixPlus?: boolean }> = ({ label, value, color, bold, prefixPlus }) => (
+  <div className="flex items-center justify-between py-1">
+    <span className="text-sm" style={{ color: bold ? 'var(--color-text-primary)' : 'var(--color-text-secondary)', fontWeight: bold ? 600 : 400 }}>{label}</span>
+    <span className="font-mono" style={{ fontSize: 13, color: color || 'var(--color-text-primary)', fontWeight: bold ? 700 : 500 }}>
+      {prefixPlus && value > 0 ? '+ ' : value < 0 ? '− ' : ''}{formatCurrency(Math.abs(value))}
+    </span>
+  </div>
+);
+
 const TreasuryPositions: React.FC = () => {
   const { t } = useLanguage();
   const { adapter } = useData();
@@ -69,6 +95,7 @@ const TreasuryPositions: React.FC = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterBank, setFilterBank] = useState('all');
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
+  const [showFilters, setShowFilters] = useState<boolean>(false);
   const [positionModal, setPositionModal] = useState<PositionModal>({ isOpen: false, mode: 'view' });
   const [newPosition, setNewPosition] = useState({
     bankName: '', iban: '', bic: '', branch: '', currency: 'XAF',
@@ -88,14 +115,20 @@ const TreasuryPositions: React.FC = () => {
     code: string; name: string; solde: number; rappro: number; recus: number; emis: number;
   }[]>([]);
   const [posTab, setPosTab] = useState<'temps-reel' | 'comptes'>('temps-reel');
+  // Flux EN CIRCULATION (lignes de trésorerie non lettrées, hors À-Nouveau) — réel.
+  const [glFloat, setGlFloat] = useState<{ id: string; code: string; accountName: string; libelle: string; date: string; montant: number; sens: 'emis' | 'recu' }[]>([]);
+  // Lignes de prévision (module Prévisions de trésorerie) pour l'atterrissage.
+  const [planLines, setPlanLines] = useState<{ date: string; net: number }[]>([]);
+  const [horizon, setHorizon] = useState<7 | 30 | 90>(30);
 
   useEffect(() => {
     const load = async () => {
-      const [er, hp, entries, accounts] = await Promise.all([
+      const [er, hp, entries, accounts, plansSetting] = await Promise.all([
         adapter.getAll('exchangeRates'),
         adapter.getAll('hedgingPositions'),
         adapter.getAll<any>('journalEntries'),
         adapter.getAll<any>('accounts'),
+        adapter.getById('settings', 'treasury_plans').catch(() => undefined),
       ]);
       setExchangeRatesData(er as Record<string, unknown>[]);
       setHedgingPositionsData(hp as Record<string, unknown>[]);
@@ -106,6 +139,7 @@ const TreasuryPositions: React.FC = () => {
       // Ventilation rapproché / à rapprocher (reçus = débits, émis = crédits).
       const pos: Record<string, { solde: number; rappro: number; recus: number; emis: number }> = {};
       const ensure = (c: string) => (pos[c] ||= { solde: 0, rappro: 0, recus: 0, emis: 0 });
+      const floats: { id: string; code: string; accountName: string; libelle: string; date: string; montant: number; sens: 'emis' | 'recu' }[] = [];
       for (const e of entries) {
         if (e.status === 'draft') continue;
         const isAN = e.journal === 'AN' || e.journal === 'RAN';
@@ -124,10 +158,35 @@ const TreasuryPositions: React.FC = () => {
               // Non rapproché : débit = encaissement reçu non crédité ; crédit = paiement émis non débité.
               p.recus += d;
               p.emis += c;
+              if (d > 0 || c > 0) {
+                floats.push({
+                  id: String(l.id || `${e.id}-${code}`),
+                  code,
+                  accountName: nameByCode.get(code) || code,
+                  libelle: l.label || e.label || '—',
+                  date: e.date || '',
+                  montant: d > 0 ? d : c,
+                  sens: d > 0 ? 'recu' : 'emis',
+                });
+              }
             }
           }
         }
       }
+      setGlFloat(floats.sort((a, b) => (b.date || '').localeCompare(a.date || '')).slice(0, 200));
+
+      // Prévisions (module Prévisions de trésorerie) : net quotidien par date.
+      try {
+        const plans = plansSetting ? JSON.parse((plansSetting as any).value) : [];
+        const pls: { date: string; net: number }[] = [];
+        for (const pl of plans) {
+          for (const ln of (pl.lines || [])) {
+            const amt = Number(ln.amount) || 0;
+            pls.push({ date: ln.date, net: ln.category === 'encaissement' ? amt : -amt });
+          }
+        }
+        setPlanLines(pls);
+      } catch { setPlanLines([]); }
       setGlTreasury(
         Object.entries(bal)
           .filter(([, v]) => Math.abs(v) > 0.001)
@@ -362,116 +421,244 @@ const TreasuryPositions: React.FC = () => {
           ))}
         </div>
 
-        {/* ── ONGLET : Position TEMPS RÉEL ───────────────────────────────── */}
+        {/* ── ONGLET : Position TEMPS RÉEL (cockpit, données réelles) ────── */}
         {posTab === 'temps-reel' && (() => {
+          const PETROL = '#235A6E', AMBER = '#E89A2E', VERT = '#1D9E75', ROUGE = '#E24B4A';
+          const fmtCourt = (n: number) => {
+            const a = Math.abs(n), s = n < 0 ? '−' : '';
+            if (a >= 1e9) return s + (a / 1e9).toFixed(2).replace('.', ',') + ' Md';
+            if (a >= 1e6) return s + (a / 1e6).toFixed(0) + ' M';
+            return formatCurrency(n);
+          };
           const tot = glPosition.reduce(
-            (a, p) => ({ solde: a.solde + p.solde, rappro: a.rappro + p.rappro, recus: a.recus + p.recus, emis: a.emis + p.emis }),
-            { solde: 0, rappro: 0, recus: 0, emis: 0 },
+            (a, p) => ({ solde: a.solde + p.solde, recus: a.recus + p.recus, emis: a.emis + p.emis, rappro: a.rappro + p.rappro }),
+            { solde: 0, recus: 0, emis: 0, rappro: 0 },
           );
+          const theorique = tot.solde - tot.emis + tot.recus;
+
+          const totalReel = glPosition.reduce((s, p) => s + Math.max(0, p.solde), 0);
+          const concentration = glPosition
+            .map(p => ({ nom: p.name, code: p.code, pct: totalReel ? (Math.max(0, p.solde) / totalReel) * 100 : 0 }))
+            .sort((a, b) => b.pct - a.pct);
+
+          // Moteur déterministe (données réelles) : alertes + recommandations.
+          const alertes: { sev: 'critique' | 'attention' | 'info'; titre: string; banque: string; detail: string }[] = [];
+          glPosition.filter(p => p.solde < 0).forEach(p => alertes.push({
+            sev: 'critique', titre: 'Solde négatif', banque: `${p.code} ${p.name}`,
+            detail: `Position débitrice de ${formatCurrency(Math.abs(p.solde))}. Régulariser ou niveler.`,
+          }));
+          if (concentration[0] && concentration[0].pct > 45) alertes.push({
+            sev: 'attention', titre: 'Concentration bancaire', banque: concentration[0].nom,
+            detail: `${concentration[0].nom} concentre ${concentration[0].pct.toFixed(0)} % de la trésorerie. Diversifier les contreparties.`,
+          });
+          if (tot.emis > 0 || tot.recus > 0) alertes.push({
+            sev: 'info', titre: 'Flottant à rapprocher', banque: 'Toutes banques',
+            detail: `${formatCurrency(tot.emis)} émis non débités et ${formatCurrency(tot.recus)} reçus non crédités en attente de rapprochement.`,
+          });
+
+          const reco: { type: 'nivellement' | 'placement'; de?: string; vers?: string; banque?: string; montant: number }[] = [];
+          const surplus = [...glPosition].sort((a, b) => b.solde - a.solde)[0];
+          glPosition.filter(p => p.solde < 0).forEach(n => {
+            if (surplus && surplus.code !== n.code && surplus.solde > Math.abs(n.solde)) {
+              reco.push({ type: 'nivellement', de: `${surplus.code} ${surplus.name}`, vers: `${n.code} ${n.name}`, montant: Math.ceil(Math.abs(n.solde) / 1e6) * 1e6 });
+            }
+          });
+          glPosition.filter(p => p.solde > 100_000_000 && totalReel && p.solde / totalReel > 0.30).forEach(p =>
+            reco.push({ type: 'placement', banque: `${p.code} ${p.name}`, montant: Math.floor((p.solde * 0.5) / 1e6) * 1e6 }));
+
+          let score = 100;
+          alertes.forEach(a => { score -= a.sev === 'critique' ? 30 : a.sev === 'attention' ? 15 : 0; });
+          score = Math.max(0, Math.min(100, score));
+          const sante = score >= 80 ? { label: 'Saine', color: VERT } : score >= 50 ? { label: 'Sous surveillance', color: AMBER } : { label: 'Tendue', color: ROUGE };
+
+          // Atterrissage : solde théorique + cumul des prévisions futures par date.
+          const today = new Date(); today.setHours(0, 0, 0, 0);
+          const todayIso = today.toISOString().slice(0, 10);
+          const series: { jour: string; solde: number }[] = [];
+          for (let dday = 0; dday <= horizon; dday++) {
+            const cur = new Date(today); cur.setDate(cur.getDate() + dday);
+            const iso = cur.toISOString().slice(0, 10);
+            const cumul = planLines.filter(l => l.date && l.date >= todayIso && l.date <= iso).reduce((s, l) => s + l.net, 0);
+            series.push({ jour: cur.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }), solde: theorique + cumul });
+          }
+          const hasPlan = planLines.some(l => l.date && l.date >= todayIso);
+
           return (
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="p-4 rounded-xl bg-white border border-neutral-200">
-                  <p className="text-xs text-neutral-500 uppercase tracking-wide">Solde comptable (réel)</p>
-                  <p className="text-2xl font-bold text-neutral-800 mt-1">{formatCurrency(tot.solde)}</p>
-                  <p className="text-xs text-neutral-400 mt-1">Ce qui est dans les comptes (classe 5)</p>
+            <div className="space-y-5">
+              {/* KPIs */}
+              <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))' }}>
+                <KpiCard label="Solde réel" value={tot.solde} sub="Ce qui est dans les comptes" color={PETROL} />
+                <KpiCard label="Émis non débités" value={-tot.emis} sub="Décaissements en attente" color={ROUGE} />
+                <KpiCard label="Reçus non crédités" value={tot.recus} sub="Encaissements en attente" color={VERT} prefixPlus />
+                <KpiCard label="Solde théorique" value={theorique} sub="Flottant dénoué" color={AMBER} highlight />
+              </div>
+
+              {/* Proph3t — conseil de trésorerie (déterministe) */}
+              <div className="bg-white rounded-xl border p-4" style={{ borderColor: 'rgba(232,154,46,0.4)' }}>
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                  <div className="flex items-center gap-2">
+                    <Lightbulb className="h-4 w-4" style={{ color: AMBER }} />
+                    <span style={{ fontFamily: "'Grand Hotel', cursive", color: AMBER, fontSize: 22, lineHeight: 1 }}>Proph3t</span>
+                    <span className="text-sm font-semibold text-[var(--color-text-primary)]">— Conseil de trésorerie</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-[var(--color-text-secondary)]">Santé</span>
+                    <div style={{ width: 90, height: 7, borderRadius: 99, background: 'var(--color-surface-hover)' }}>
+                      <div style={{ width: `${score}%`, height: '100%', borderRadius: 99, background: sante.color }} />
+                    </div>
+                    <span className="font-mono text-sm" style={{ color: sante.color }}>{score}</span>
+                    <span className="text-xs" style={{ color: sante.color }}>{sante.label}</span>
+                  </div>
                 </div>
-                <div className="p-4 rounded-xl bg-white border border-green-200">
-                  <p className="text-xs text-green-700 uppercase tracking-wide">Reçus non crédités (+)</p>
-                  <p className="text-2xl font-bold text-green-700 mt-1">{formatCurrency(tot.recus)}</p>
-                  <p className="text-xs text-neutral-400 mt-1">Encaissements en instance</p>
+                {alertes.length === 0 && reco.length === 0 && (
+                  <p className="text-sm text-[var(--color-text-secondary)]">Aucune tension détectée. Trésorerie sous contrôle.</p>
+                )}
+                <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
+                  {alertes.map((a, i) => (
+                    <div key={'a' + i} className="flex gap-2 p-3 rounded-lg bg-[var(--color-surface-hover)] border" style={{ borderColor: a.sev === 'critique' ? 'rgba(226,75,74,0.4)' : 'var(--color-border)' }}>
+                      <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" style={{ color: a.sev === 'critique' ? ROUGE : AMBER }} />
+                      <div>
+                        <div className="text-sm font-medium" style={{ color: a.sev === 'critique' ? ROUGE : 'var(--color-text-primary)' }}>{a.titre} — {a.banque}</div>
+                        <div className="text-xs mt-0.5 text-[var(--color-text-secondary)]">{a.detail}</div>
+                      </div>
+                    </div>
+                  ))}
+                  {reco.map((r, i) => (
+                    <div key={'r' + i} className="flex gap-2 p-3 rounded-lg bg-[var(--color-surface-hover)] border" style={{ borderColor: 'rgba(29,158,117,0.35)' }}>
+                      {r.type === 'nivellement'
+                        ? <ArrowRightLeft className="h-4 w-4 shrink-0 mt-0.5" style={{ color: VERT }} />
+                        : <PiggyBank className="h-4 w-4 shrink-0 mt-0.5" style={{ color: VERT }} />}
+                      <div>
+                        {r.type === 'nivellement' ? (
+                          <>
+                            <div className="text-sm font-medium text-[var(--color-text-primary)]">Nivellement recommandé</div>
+                            <div className="text-xs mt-0.5 text-[var(--color-text-secondary)]">Virer <span className="font-mono" style={{ color: VERT }}>{formatCurrency(r.montant)}</span> de {r.de} → {r.vers}.</div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="text-sm font-medium text-[var(--color-text-primary)]">Excédent dormant — {r.banque}</div>
+                            <div className="text-xs mt-0.5 text-[var(--color-text-secondary)]">Jusqu'à <span className="font-mono" style={{ color: VERT }}>{formatCurrency(r.montant)}</span> mobilisables (placement / DAT court terme).</div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <div className="p-4 rounded-xl bg-white border border-red-200">
-                  <p className="text-xs text-red-700 uppercase tracking-wide">Émis non débités (−)</p>
-                  <p className="text-2xl font-bold text-red-700 mt-1">{formatCurrency(tot.emis)}</p>
-                  <p className="text-xs text-neutral-400 mt-1">Paiements en instance</p>
+                <p className="text-xs mt-3 text-[var(--color-text-tertiary)]">⚠︎ Conseils consultatifs — décision et exécution restent humaines. Calculs déterministes sur vos écritures réelles, jamais générés par IA.</p>
+              </div>
+
+              {/* Prévision d'atterrissage */}
+              <div className="bg-white rounded-xl border border-[var(--color-border)] p-4">
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+                  <h3 className="font-semibold text-[var(--color-text-primary)]">Prévision d'atterrissage</h3>
+                  <div className="flex gap-1">
+                    {[7, 30, 90].map(h => (
+                      <button key={h} onClick={() => setHorizon(h as 7 | 30 | 90)} className="text-xs px-3 py-1 rounded-lg border"
+                        style={{ borderColor: horizon === h ? AMBER : 'var(--color-border)', background: horizon === h ? 'rgba(232,154,46,0.12)' : 'transparent', color: horizon === h ? AMBER : 'var(--color-text-secondary)' }}>
+                        J+{h}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <div className="p-4 rounded-xl bg-white border border-neutral-200">
-                  <p className="text-xs text-neutral-500 uppercase tracking-wide">Rapproché (lettré + À-nouveau)</p>
-                  <p className="text-2xl font-bold text-neutral-800 mt-1">{formatCurrency(tot.rappro)}</p>
-                  <p className="text-xs text-neutral-400 mt-1">Confirmé vs banque</p>
+                <p className="text-xs mb-2 text-[var(--color-text-tertiary)]">
+                  {hasPlan
+                    ? "Solde théorique + échéancier prévisionnel (module Prévisions de trésorerie)."
+                    : "Aucune échéance future enregistrée — alimentez le module Prévisions de trésorerie. La ligne reflète le solde théorique constant."}
+                </p>
+                <div style={{ height: 240 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={series} margin={{ top: 10, right: 12, left: 4, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="atterGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor={AMBER} stopOpacity={0.3} />
+                          <stop offset="100%" stopColor={AMBER} stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid stroke="var(--color-border)" strokeDasharray="3 3" vertical={false} />
+                      <XAxis dataKey="jour" tick={{ fill: 'var(--color-text-secondary)', fontSize: 11 }} axisLine={{ stroke: 'var(--color-border)' }} tickLine={false} interval="preserveStartEnd" minTickGap={28} />
+                      <YAxis tickFormatter={fmtCourt} tick={{ fill: 'var(--color-text-secondary)', fontSize: 11 }} axisLine={false} tickLine={false} width={62} />
+                      <RTooltip formatter={(v: any) => [formatCurrency(Number(v)), 'Solde projeté']} />
+                      <ReferenceLine y={0} stroke={ROUGE} strokeDasharray="4 4" />
+                      <Area type="monotone" dataKey="solde" stroke={AMBER} strokeWidth={2} fill="url(#atterGrad)" dot={false} />
+                    </AreaChart>
+                  </ResponsiveContainer>
                 </div>
               </div>
 
-              <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-xs">
-                <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
-                <span>
-                  « En circulation » = mouvements de trésorerie <span className="font-semibold">non encore rapprochés</span> (non
-                  lettrés, hors à-nouveau). Importez et rapprochez vos relevés dans le module <span className="font-semibold">Rapprochement
-                  bancaire</span> pour ne garder que les vrais règlements en attente. Les prévisions d'atterrissage se pilotent dans
-                  <span className="font-semibold"> Prévisions de trésorerie</span>.
-                </span>
+              {/* Détail par compte */}
+              <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))' }}>
+                {glPosition.map(p => {
+                  const th = p.solde - p.emis + p.recus;
+                  const tension = p.solde < 0;
+                  return (
+                    <div key={p.code} className="bg-white rounded-xl border p-4" style={{ borderColor: tension ? 'rgba(226,75,74,0.4)' : 'var(--color-border)' }}>
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'var(--color-surface-hover)', color: PETROL }}><Building2 className="h-4 w-4" /></div>
+                          <div><div className="text-sm font-medium text-[var(--color-text-primary)]">{p.name}</div><div className="text-xs font-mono text-[var(--color-text-secondary)]">{p.code}</div></div>
+                        </div>
+                        {tension && <span className="text-xs px-2 py-0.5 rounded" style={{ background: 'rgba(226,75,74,0.12)', color: ROUGE }}>négatif</span>}
+                      </div>
+                      <PosLigne label="Solde réel" value={p.solde} />
+                      <PosLigne label="Émis non débités" value={-p.emis} color={ROUGE} />
+                      <PosLigne label="Reçus non crédités" value={p.recus} color={VERT} prefixPlus />
+                      <div className="h-px bg-[var(--color-border)] my-2" />
+                      <PosLigne label="Solde théorique" value={th} color={AMBER} bold />
+                      <PosLigne label="Rapproché" value={p.rappro} color="var(--color-text-secondary)" />
+                    </div>
+                  );
+                })}
               </div>
 
-              <UnifiedCard variant="elevated" size="lg">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-neutral-200 text-neutral-600">
-                        <th className="text-left py-2 px-3 font-medium">Compte</th>
-                        <th className="text-right py-2 px-3 font-medium">Solde comptable</th>
-                        <th className="text-right py-2 px-3 font-medium">Reçus non crédités (+)</th>
-                        <th className="text-right py-2 px-3 font-medium">Émis non débités (−)</th>
-                        <th className="text-right py-2 px-3 font-medium">Rapproché</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {glPosition.length === 0 ? (
-                        <tr><td colSpan={5} className="py-6 text-center text-neutral-400">Aucun compte de trésorerie mouvementé.</td></tr>
-                      ) : glPosition.map(p => (
-                        <tr key={p.code} className="border-b border-neutral-100 hover:bg-neutral-50">
-                          <td className="py-2 px-3"><span className="font-mono text-xs text-[var(--color-primary)] mr-2">{p.code}</span>{p.name}</td>
-                          <td className="py-2 px-3 text-right font-mono font-semibold">{formatCurrency(p.solde)}</td>
-                          <td className="py-2 px-3 text-right font-mono text-green-600">{p.recus > 0 ? formatCurrency(p.recus) : '—'}</td>
-                          <td className="py-2 px-3 text-right font-mono text-red-600">{p.emis > 0 ? formatCurrency(p.emis) : '—'}</td>
-                          <td className="py-2 px-3 text-right font-mono text-neutral-500">{formatCurrency(p.rappro)}</td>
-                        </tr>
+              {/* Concentration + Flux en circulation */}
+              <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))' }}>
+                <div className="bg-white rounded-xl border border-[var(--color-border)] p-4">
+                  <div className="flex items-center gap-2 mb-3"><Layers className="h-4 w-4" style={{ color: AMBER }} /><h3 className="font-semibold text-[var(--color-text-primary)]">Concentration bancaire</h3></div>
+                  {concentration.length === 0 ? <p className="text-sm text-[var(--color-text-tertiary)]">Aucune position.</p> : concentration.map((c, i) => (
+                    <div key={i} className="mb-2">
+                      <div className="flex justify-between text-sm mb-1"><span className="text-[var(--color-text-primary)] truncate">{c.nom}</span><span className="font-mono" style={{ color: c.pct > 45 ? ROUGE : 'var(--color-text-secondary)' }}>{c.pct.toFixed(0)} %</span></div>
+                      <div style={{ height: 6, borderRadius: 99, background: 'var(--color-surface-hover)' }}><div style={{ width: `${c.pct}%`, height: '100%', borderRadius: 99, background: c.pct > 45 ? ROUGE : AMBER }} /></div>
+                    </div>
+                  ))}
+                </div>
+                <div className="bg-white rounded-xl border border-[var(--color-border)] p-4">
+                  <h3 className="font-semibold mb-3 text-[var(--color-text-primary)]">Flux en circulation <span className="text-xs font-normal text-[var(--color-text-secondary)]">— non rapprochés</span></h3>
+                  {glFloat.length === 0 ? <p className="text-sm text-[var(--color-text-tertiary)]">Aucun flux en circulation (tout est rapproché, ou aucun mouvement).</p> : (
+                    <div className="flex flex-col gap-1" style={{ maxHeight: 280, overflowY: 'auto' }}>
+                      {glFloat.map((f, i) => (
+                        <div key={f.id + i} className="flex items-center justify-between gap-3 py-2" style={{ borderBottom: i < glFloat.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
+                          <div className="flex items-center gap-3 min-w-0">
+                            <span className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center" style={{ background: f.sens === 'emis' ? 'rgba(226,75,74,0.12)' : 'rgba(29,158,117,0.12)', color: f.sens === 'emis' ? ROUGE : VERT }}>{f.sens === 'emis' ? <ArrowDownRight className="h-4 w-4" /> : <ArrowUpRight className="h-4 w-4" />}</span>
+                            <div className="min-w-0"><div className="text-sm truncate text-[var(--color-text-primary)]">{f.libelle}</div><div className="text-xs text-[var(--color-text-secondary)]">{f.code} {f.accountName}</div></div>
+                          </div>
+                          <div className="text-right shrink-0"><div className="font-mono text-sm" style={{ color: f.sens === 'emis' ? ROUGE : VERT }}>{f.sens === 'emis' ? '− ' : '+ '}{formatCurrency(f.montant)}</div><div className="text-xs text-[var(--color-text-secondary)]">{f.date ? new Date(f.date).toLocaleDateString('fr-FR') : '—'}</div></div>
+                        </div>
                       ))}
-                    </tbody>
-                    {glPosition.length > 0 && (
-                      <tfoot>
-                        <tr className="border-t-2 border-neutral-300 font-bold">
-                          <td className="py-2 px-3">TOTAL</td>
-                          <td className="py-2 px-3 text-right font-mono">{formatCurrency(tot.solde)}</td>
-                          <td className="py-2 px-3 text-right font-mono text-green-700">{formatCurrency(tot.recus)}</td>
-                          <td className="py-2 px-3 text-right font-mono text-red-700">{formatCurrency(tot.emis)}</td>
-                          <td className="py-2 px-3 text-right font-mono">{formatCurrency(tot.rappro)}</td>
-                        </tr>
-                      </tfoot>
-                    )}
-                  </table>
+                    </div>
+                  )}
                 </div>
-              </UnifiedCard>
+              </div>
+
+              <p className="text-xs text-[var(--color-text-tertiary)]">
+                Solde théorique = Solde réel − Émis non débités + Reçus non crédités. « En circulation » = mouvements de trésorerie non lettrés (hors à-nouveau) ; rapprochez vos relevés (module Rapprochement) pour n'y laisser que les vrais règlements en attente.
+              </p>
             </div>
           );
         })()}
 
-        {/* ── ONGLET : Comptes bancaires (graphique + filtres + table) ───── */}
+        {/* ── ONGLET : Comptes bancaires (filtres + table) ──────────────── */}
         {posTab === 'comptes' && (<>
-        {/* Chart Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-        >
-          <ModernChartCard
-            title="Répartition par Devise (FCFA)"
-            subtitle="Exposition par devise présente"
-            icon={PieChart}
-          >
-            <ColorfulBarChart
-              data={chartData}
-              height={160}
-            />
-          </ModernChartCard>
-        </motion.div>
-
         {/* Filters and Search */}
         <UnifiedCard variant="elevated" size="md">
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
               <h3 className="text-lg font-semibold text-neutral-800">Filtres et Recherche</h3>
               <div className="flex gap-2">
+                <PageHeaderActions
+                  onToggleFilters={() => setShowFilters((v) => !v)}
+                  filtersOpen={showFilters}
+                  activeFilters={[searchTerm !== '', filterCurrency !== 'all', filterStatus !== 'all', filterBank !== 'all'].filter(Boolean).length}
+                />
                 <button
                   onClick={() => setViewMode('table')}
                   className={`p-2 rounded-lg transition-colors ${
@@ -503,6 +690,8 @@ const TreasuryPositions: React.FC = () => {
                 />
               </div>
 
+              {showFilters && (
+              <>
               <select
                 value={filterCurrency}
                 onChange={(e) => setFilterCurrency(e.target.value)}
@@ -535,6 +724,8 @@ const TreasuryPositions: React.FC = () => {
                   <option key={bank} value={bank}>{bank}</option>
                 ))}
               </select>
+              </>
+              )}
             </div>
           </div>
         </UnifiedCard>
