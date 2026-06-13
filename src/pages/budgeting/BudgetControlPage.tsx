@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
@@ -236,6 +237,7 @@ const BudgetControlPage: React.FC = () => {
         </div>
         {hasBudgetData && (
           <div className="flex space-x-3">
+            <PageHeaderActions />
             <button
               onClick={() => setViewMode(viewMode === 'table' ? 'charts' : 'table')}
               className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"

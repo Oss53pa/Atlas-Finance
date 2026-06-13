@@ -1,5 +1,6 @@
 import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useEffect, useMemo } from 'react';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import {
   Calculator,
   TrendingUp,
@@ -210,6 +211,7 @@ const LCMTesting: React.FC<LCMTestingProps> = ({ onTestComplete }) => {
         </h3>
         {inventoryItems.length > 0 && (
           <div className="flex items-center gap-4">
+            <PageHeaderActions />
             <select
               value={complianceStandard}
               onChange={(e) => setComplianceStandard(e.target.value as 'IFRS_IAS2' | 'US_GAAP_ASC330')}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { useLanguage } from '../../contexts/LanguageContext';
 import {
   ClipboardList,
@@ -519,6 +520,7 @@ const PhysicalInventory: React.FC = () => {
         </div>
 
         <div className="flex gap-2 mt-2 lg:mt-0">
+          <PageHeaderActions />
           <button
             onClick={() => setShowPeriodModal(true)}
             className="flex items-center gap-1 px-3 py-1 text-xs border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"

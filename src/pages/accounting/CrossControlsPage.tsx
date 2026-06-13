@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { useData } from '../../contexts/DataContext';
 import { useToast } from '../../hooks/useToast';
 import { runAllCrossControls, type CrossControlReport, type ControlResult } from '../../services/crossControlsService';
@@ -89,6 +90,7 @@ export default function CrossControlsPage() {
           <p className="text-sm text-gray-500 mt-1">20 contrôles automatisés de cohérence comptable</p>
         </div>
         <div className="flex items-center gap-4">
+          <PageHeaderActions />
           <div className="flex items-center gap-2">
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Exercice:</label>
             <input

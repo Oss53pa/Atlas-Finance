@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { useNavigate, Link } from 'react-router-dom';
 import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -10,7 +11,6 @@ import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import {
   PlusIcon,
   MagnifyingGlassIcon,
-  FunnelIcon,
   EyeIcon,
   PencilIcon,
   TrashIcon,
@@ -381,13 +381,11 @@ const BudgetsPage: React.FC = () => {
                 className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
               />
             </div>
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <FunnelIcon className="h-5 w-5" />
-              <span>Filtres</span>
-            </button>
+            <PageHeaderActions
+              onToggleFilters={() => setShowFilters(!showFilters)}
+              filtersOpen={showFilters}
+              activeFilters={[searchTerm !== '', selectedType !== 'all', selectedStatus !== 'all', selectedDepartment !== 'all'].filter(Boolean).length}
+            />
           </div>
         </div>
 

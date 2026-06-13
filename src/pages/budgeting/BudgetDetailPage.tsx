@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
 import { toast } from 'react-hot-toast';
@@ -157,6 +158,7 @@ const BudgetDetailPage: React.FC = () => {
           </div>
 
           <div className="flex items-center space-x-3">
+            <PageHeaderActions />
             {/* Sélecteur d'année */}
             <div className="flex items-center bg-white border border-[var(--color-border)] rounded-lg">
               <button

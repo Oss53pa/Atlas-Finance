@@ -1,6 +1,7 @@
 
 import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useEffect } from 'react';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import {
   Package,
   MapPin,
@@ -529,6 +530,7 @@ const StockManagement: React.FC = () => {
         </div>
 
         <div className="flex gap-4 mt-4 lg:mt-0">
+          <PageHeaderActions />
           <ExportButton
             data={filteredAndSortedData as unknown as Record<string, unknown>[]}
             filename="stock_levels"
