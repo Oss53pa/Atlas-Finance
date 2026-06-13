@@ -1093,46 +1093,57 @@ const CompteResultatPage: React.FC = () => {
             // Trésorerie d'OUVERTURE de chaque mois = clôture du mois précédent
             // (le 1er mois part de la trésorerie d'ouverture de l'exercice).
             const cfOuverture = cf.map((_, i) => (i === 0 ? tresoOuverture : cfTreso[i - 1]));
-            // `first` : la colonne TOTAL (YTD) affiche le solde D'OUVERTURE DE L'EXERCICE
-            // (1er mois), pas la somme. `last` : elle affiche le solde de CLÔTURE (dernier mois).
-            const cfRows: Array<{ label: string; vals: number[]; last: boolean; bold?: boolean; first?: boolean }> = [
-              { label: "Trésorerie d'ouverture (début de mois)", vals: cfOuverture, last: false, first: true, bold: true },
-              { label: "Flux net lié à l'activité (A)", vals: cf.map(d => d.activite), last: false },
-              { label: 'Flux net lié aux investissements (B)', vals: cf.map(d => d.inv), last: false },
-              { label: 'Flux net lié au financement (C)', vals: cf.map(d => d.fin), last: false },
-              { label: 'Variation de trésorerie (A+B+C)', vals: cf.map(d => d.varTreso), last: false, bold: true },
-              { label: 'Trésorerie de clôture (fin de mois)', vals: cfTreso, last: true, bold: true },
+            // Ordre de lecture : OUVERTURE (en haut) → flux A/B/C → VARIATION → CLÔTURE (en bas).
+            // `kind` pilote le style ET le total YTD (ouverture=1er mois, clôture=dernier
+            // mois, flux/variation=cumul de l'exercice).
+            type CfKind = 'open' | 'flux' | 'var' | 'close';
+            const cfRows: Array<{ label: string; vals: number[]; kind: CfKind }> = [
+              { label: "Trésorerie d'ouverture", vals: cfOuverture, kind: 'open' },
+              { label: "Flux net lié à l'activité (A)", vals: cf.map(d => d.activite), kind: 'flux' },
+              { label: 'Flux net lié aux investissements (B)', vals: cf.map(d => d.inv), kind: 'flux' },
+              { label: 'Flux net lié au financement (C)', vals: cf.map(d => d.fin), kind: 'flux' },
+              { label: 'Variation de trésorerie (A+B+C)', vals: cf.map(d => d.varTreso), kind: 'var' },
+              { label: 'Trésorerie de clôture', vals: cfTreso, kind: 'close' },
             ];
+            const ytdTotal = (ln: { vals: number[]; kind: CfKind }) =>
+              ln.kind === 'open' ? (ln.vals[0] || 0)
+              : ln.kind === 'close' ? (ln.vals[ln.vals.length - 1] || 0)
+              : ln.vals.reduce((s, v) => s + v, 0);
+            const cfRowBg = (kind: CfKind) =>
+              kind === 'open' ? 'bg-blue-50' : kind === 'var' ? 'bg-gray-100' : kind === 'close' ? 'bg-emerald-50' : 'bg-white';
+            const cfRowCls = (kind: CfKind) =>
+              kind === 'open' ? 'bg-blue-50 font-semibold border-b-2 border-blue-200'
+              : kind === 'var' ? 'bg-gray-100 font-bold border-t-2 border-gray-300'
+              : kind === 'close' ? 'bg-emerald-50 font-bold border-t-2 border-emerald-300'
+              : 'border-b border-[var(--color-border)] hover:bg-gray-50';
 
             return (
             <div className="space-y-6">
               <div className="text-center mb-4">
                 <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">FLUX DE TRÉSORERIE MENSUELS — Exercice {fiscalYear}</h2>
-                <p className="text-sm text-[var(--color-text-tertiary)]">Cash-flow mensuel : activité, investissement, financement (SYSCOHADA)</p>
+                <p className="text-sm text-[var(--color-text-tertiary)]">Trésorerie d'ouverture → flux du mois (activité, investissement, financement) → trésorerie de clôture (SYSCOHADA)</p>
               </div>
 
-              {/* TABLE CASH-FLOW MENSUEL (colonnes par mois + TOTAL, comme les autres états) */}
+              {/* TABLE CASH-FLOW MENSUEL — 1re colonne FIGÉE (sticky), ouverture en HAUT
+                  (bleu), clôture en BAS (vert), variation en gris. Colonnes par mois +
+                  TOTAL (YTD). */}
               <div className="bg-white rounded-lg border border-[var(--color-border)] overflow-x-auto">
-                <table className="w-full text-sm border-collapse">
+                <table className="text-sm border-collapse min-w-full">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="text-left p-3 border-b border-[var(--color-border)] min-w-[200px] text-[var(--color-primary)] font-semibold">Flux</th>
-                      {months.map(ms => (<th key={ms} className="text-right p-2 border-b border-[var(--color-border)] text-xs min-w-[78px] text-[var(--color-primary)]">{monthlyData[ms as keyof typeof monthlyData].name.substring(0, 3)}</th>))}
-                      <th className="text-right p-3 border-b border-[var(--color-border)] bg-gray-100 font-bold min-w-[100px] text-[var(--color-primary)]">TOTAL (YTD)</th>
+                      <th className="text-left p-3 border-b border-[var(--color-border)] min-w-[220px] sticky left-0 bg-gray-50 z-10 text-[var(--color-primary)] font-semibold">Trésorerie / Flux</th>
+                      {months.map(ms => (<th key={ms} className="text-right p-2 border-b border-[var(--color-border)] text-xs min-w-[84px] text-[var(--color-primary)]">{monthlyData[ms as keyof typeof monthlyData].name.substring(0, 3)}</th>))}
+                      <th className="text-right p-3 border-b border-l-2 border-[var(--color-border)] bg-gray-100 font-bold min-w-[110px] text-[var(--color-primary)]">TOTAL (YTD)</th>
                     </tr>
                   </thead>
                   <tbody>
                     {cfRows.map((ln, i) => {
-                      // TOTAL (YTD) : clôture → dernier mois ; ouverture → 1er mois ;
-                      // flux/variation → cumul de l'exercice (somme des mois).
-                      const total = ln.last ? (ln.vals[ln.vals.length - 1] || 0)
-                        : ln.first ? (ln.vals[0] || 0)
-                        : ln.vals.reduce((s, v) => s + v, 0);
+                      const total = ytdTotal(ln);
                       return (
-                        <tr key={i} className={ln.bold ? 'bg-gray-100 font-bold border-t-2 border-gray-300' : 'border-b border-[var(--color-border)] hover:bg-gray-50'}>
-                          <td className="p-3 text-[var(--color-primary)]">{ln.label}</td>
+                        <tr key={i} className={cfRowCls(ln.kind)}>
+                          <td className={`p-3 text-[var(--color-primary)] sticky left-0 z-10 ${cfRowBg(ln.kind)}`}>{ln.label}</td>
                           {ln.vals.map((v, j) => (<td key={j} className={`p-2 text-right font-mono text-xs ${v < 0 ? 'text-red-600' : ''}`}>{formatCurrency(Math.round(v))}</td>))}
-                          <td className={`p-3 text-right font-mono font-bold ${total < 0 ? 'text-red-600' : 'text-[var(--color-primary)]'}`}>{formatCurrency(Math.round(total))}</td>
+                          <td className={`p-3 text-right font-mono font-bold border-l-2 border-[var(--color-border)] ${total < 0 ? 'text-red-600' : 'text-[var(--color-primary)]'}`}>{formatCurrency(Math.round(total))}</td>
                         </tr>
                       );
                     })}
@@ -1140,117 +1151,14 @@ const CompteResultatPage: React.FC = () => {
                 </table>
               </div>
 
-              {/* Détail annuel (méthodes indirecte / directe) ci-dessous */}
-              <div className="text-center mt-4">
-                <h3 className="text-base font-bold text-[var(--color-primary)]">Détail annuel — Exercice {fiscalYear}</h3>
-              </div>
-
-              {/* Sous-onglets Méthode */}
-              <div className="flex justify-center">
-                <div className="inline-flex bg-gray-100 rounded-lg p-1">
-                  <button onClick={() => setTftMethod('indirect')} className={`px-5 py-2 text-sm font-medium rounded-md transition-all ${tftMethod === 'indirect' ? 'bg-white text-[var(--color-primary)] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>Méthode Indirecte</button>
-                  <button onClick={() => setTftMethod('direct')} className={`px-5 py-2 text-sm font-medium rounded-md transition-all ${tftMethod === 'direct' ? 'bg-white text-[var(--color-primary)] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>Méthode Directe</button>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-lg border border-[var(--color-border)] overflow-hidden">
-                <div className="bg-gray-800 text-white p-4">
-                  <h3 className="text-base font-bold">TABLEAU DES FLUX DE TRÉSORERIE — Méthode {tftMethod === 'indirect' ? 'Indirecte' : 'Directe'}</h3>
-                </div>
-                <table className="w-full text-sm">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="text-left p-3 border-b border-[var(--color-border)] w-8"></th>
-                      <th className="text-left p-3 border-b border-[var(--color-border)]">Libellé</th>
-                      <th className="text-right p-3 border-b border-[var(--color-border)] w-40">Montant (FCFA)</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rows.map((row: any, idx) => {
-                      if (row.section) {
-                        const colors: any = { blue: 'bg-blue-50 text-blue-800', orange: 'bg-orange-50 text-orange-800', purple: 'bg-purple-50 text-purple-800' };
-                        return (
-                          <tr key={`s-${idx}`} className={colors[row.color] || 'bg-gray-50'}>
-                            <td className="p-2"></td>
-                            <td colSpan={2} className="p-3 font-bold text-sm">{row.section}</td>
-                          </tr>
-                        );
-                      }
-                      if (row.subtotal) {
-                        return (
-                          <tr key={`st-${idx}`} className="bg-gray-100 font-semibold">
-                            <td className="p-2"></td>
-                            <td className="p-3">{row.label}</td>
-                            <td className={`p-3 text-right font-mono font-bold ${row.value < 0 ? 'text-red-600' : ''}`}>{formatCurrency(row.value)}</td>
-                          </tr>
-                        );
-                      }
-                      if (row.total) {
-                        return (
-                          <tr key={`t-${idx}`} className="bg-gray-200 font-bold border-t-2 border-gray-400">
-                            <td className="p-2"></td>
-                            <td className="p-3">{row.label}</td>
-                            <td className={`p-3 text-right font-mono text-base ${row.value < 0 ? 'text-red-600' : 'text-[var(--color-primary)]'}`}>{formatCurrency(row.value)}</td>
-                          </tr>
-                        );
-                      }
-                      const isExpanded = tftExpandedRows.has(row.key);
-                      const details = isExpanded && row.prefixes?.length > 0 ? entriesForPrefixes(...row.prefixes) : [];
-                      return (
-                        <React.Fragment key={row.key}>
-                          <tr className="border-b border-[var(--color-border)] hover:bg-gray-50 cursor-pointer" onClick={() => row.prefixes?.length > 0 && toggleTftRow(row.key)}>
-                            <td className="p-2 text-center text-gray-400">
-                              {row.prefixes?.length > 0 && (isExpanded ? <ChevronDown className="w-4 h-4 inline" /> : <ChevronRight className="w-4 h-4 inline" />)}
-                            </td>
-                            <td className="p-3 text-[var(--color-primary)]">{row.label}</td>
-                            <td className={`p-3 text-right font-mono ${row.value < 0 ? 'text-red-600' : ''}`}>{formatCurrency(row.value)}</td>
-                          </tr>
-                          {isExpanded && details.length > 0 && details.slice(0, 20).map((d: any, di: number) => (
-                            <tr key={`${row.key}-d-${di}`} className="bg-blue-50/50 border-b border-blue-100">
-                              <td className="p-1"></td>
-                              <td className="p-2 pl-10 text-xs text-gray-600">
-                                <span className="font-mono text-gray-400 mr-2">{d.date}</span>
-                                <span className="text-gray-500 mr-2">[{d.journal}]</span>
-                                <span className="font-mono mr-2">{d.ref}</span>
-                                {d.label}
-                              </td>
-                              <td className={`p-2 text-right font-mono text-xs ${d.amount < 0 ? 'text-red-500' : 'text-gray-700'}`}>{formatCurrency(d.amount)}</td>
-                            </tr>
-                          ))}
-                          {isExpanded && details.length === 0 && (
-                            <tr key={`${row.key}-empty`} className="bg-gray-50">
-                              <td className="p-1"></td>
-                              <td colSpan={2} className="p-2 pl-10 text-xs text-gray-400 italic">Aucune écriture</td>
-                            </tr>
-                          )}
-                          {isExpanded && details.length > 20 && (
-                            <tr key={`${row.key}-more`} className="bg-blue-50/50">
-                              <td className="p-1"></td>
-                              <td colSpan={2} className="p-2 pl-10 text-xs text-blue-600 italic">...et {details.length - 20} autres écritures</td>
-                            </tr>
-                          )}
-                        </React.Fragment>
-                      );
-                    })}
-                    {/* Variation totale */}
-                    <tr className="bg-gray-200 font-bold border-t-4 border-gray-500">
-                      <td className="p-3"></td>
-                      <td className="p-3 text-[var(--color-primary)]">VARIATION DE TRÉSORERIE NETTE (A+B+C)</td>
-                      <td className={`p-3 text-right font-mono text-lg ${totalVar < 0 ? 'text-red-600' : 'text-green-700'}`}>{totalVar >= 0 ? '+' : ''}{formatCurrency(totalVar)}</td>
-                    </tr>
-                    <tr className="border-b border-[var(--color-border)]">
-                      <td className="p-2"></td>
-                      <td className="p-3 text-gray-600">Trésorerie d'ouverture</td>
-                      <td className="p-3 text-right font-mono">{formatCurrency(tresoOuverture)}</td>
-                    </tr>
-                    <tr className="bg-gray-100 font-bold">
-                      <td className="p-2"></td>
-                      <td className="p-3">TRÉSORERIE À LA CLÔTURE</td>
-                      <td className="p-3 text-right font-mono text-lg text-[var(--color-primary)]">{formatCurrency(tresoCloture)}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
+              {/* Le TFT annuel détaillé (méthodes indirecte / directe) n'est PAS
+                  dupliqué ici : il vit dans le module États Financiers. Cet onglet
+                  ne montre QUE le cash-flow mensuel ci-dessus. */}
+              <p className="text-xs text-[var(--color-text-tertiary)] text-center mt-1">
+                Le tableau des flux de trésorerie <span className="font-semibold">annuel</span> détaillé
+                (méthodes indirecte et directe) est disponible dans le module{' '}
+                <span className="font-semibold">États Financiers</span>.
+              </p>
             </div>
             );
           })()}

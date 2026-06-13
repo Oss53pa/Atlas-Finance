@@ -1179,6 +1179,9 @@ const JournalsPage: React.FC = () => {
                     refreshable={true}
                     printable={true}
                     onPrint={handlePrint}
+                    /* La FilterSidebar (à droite) gère déjà le filtrage → on masque
+                       l'entonnoir intégré du DataTable pour éviter le doublon. */
+                    showColumnFilter={false}
                     actions={(item) => (
                       <div className="flex items-center justify-center">
                         <button
