@@ -362,49 +362,6 @@ const TreasuryPositions: React.FC = () => {
           }
         />
 
-        {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <KPICard
-            title="Position Totale (FCFA)"
-            value={formatCurrency(aggregatedData.totalBase)}
-            subtitle={`${aggregatedData.totalPositions} comptes actifs`}
-            icon={Wallet}
-            color="primary"
-            delay={0.1}
-            withChart={true}
-          />
-
-          <KPICard
-            title="Comptes Actifs"
-            value={aggregatedData.activeAccounts.toString()}
-            subtitle={`Sur ${aggregatedData.totalPositions} comptes total`}
-            icon={CheckCircle}
-            color="success"
-            delay={0.2}
-            withChart={true}
-          />
-
-          <KPICard
-            title="Exposition Multi-Devises"
-            value={uniqueCurrencies.length.toString()}
-            subtitle="Devises différentes"
-            icon={Globe}
-            color="neutral"
-            delay={0.3}
-            withChart={true}
-          />
-
-          <KPICard
-            title="Comptes à Risque"
-            value={aggregatedData.highRiskAccounts.toString()}
-            subtitle="Surveillance renforcée"
-            icon={AlertTriangle}
-            color="warning"
-            delay={0.4}
-            withChart={true}
-          />
-        </div>
-
         {/* Onglets : Position temps réel | Comptes bancaires (table) */}
         <div className="flex gap-1 border-b border-neutral-200">
           {([
