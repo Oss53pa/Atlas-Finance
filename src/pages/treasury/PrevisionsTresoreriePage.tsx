@@ -520,10 +520,13 @@ const PrevisionsTresoreriePage: React.FC = () => {
             </div>
           </div>
 
-          {/* Account table */}
+          {/* Comptes de trésorerie ⇄ Transactions futures + Cash : CÔTE À CÔTE. */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 items-start">
+          {/* Account table (gauche) */}
           <div className="bg-white border border-gray-200 rounded-lg">
             <div className="p-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Account Management</h3>
+              <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Comptes de trésorerie</h3>
+              <p className="text-xs text-gray-500 mt-0.5">Cochez des comptes pour voir leurs flux à droite →</p>
             </div>
             <div style={{ maxHeight: '62vh', overflowY: 'auto' }} className="overflow-x-auto">
               <table className="w-full">
@@ -670,6 +673,7 @@ const PrevisionsTresoreriePage: React.FC = () => {
                 </div>
               </div>
             </div>
+          </div>
           </div>
         </div>
       )}

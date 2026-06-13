@@ -881,12 +881,6 @@ const TreasuryPositions: React.FC = () => {
                             >
                               <Eye className="h-4 w-4" />
                             </button>
-                            <button
-                              onClick={() => setPositionModal({ isOpen: true, mode: 'edit', position })}
-                              className="p-2 text-neutral-400 hover:text-green-600 transition-colors"
-                            >
-                              <Edit className="h-4 w-4" />
-                            </button>
                           </div>
                         </td>
                       </motion.tr>
@@ -950,12 +944,6 @@ const TreasuryPositions: React.FC = () => {
                               className="p-2 text-neutral-400 hover:text-[var(--color-primary)] transition-colors"
                             >
                               <Eye className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={() => setPositionModal({ isOpen: true, mode: 'edit', position })}
-                              className="p-2 text-neutral-400 hover:text-green-600 transition-colors"
-                            >
-                              <Edit className="h-4 w-4" />
                             </button>
                           </div>
                         </div>
