@@ -588,13 +588,15 @@ const TreasuryPositions: React.FC = () => {
                 </select>
               </div>
 
-              {/* KPIs — modèle de carte du projet (KPICard riche). */}
+              {/* KPIs — modèle de carte du projet (KPICard). Montants ABRÉGÉS (M/Md)
+                  pour tenir sur une ligne ; le détail exact est dans le tableau « Position
+                  temps réel » et le détail par compte ci-dessous. */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                <KPICard title="Solde réel" value={formatCurrency(tot.solde)} subtitle="Ce qui est dans les comptes" icon={Wallet} color="primary" withChart />
-                <KPICard title="Émis non débités" value={formatCurrency(-tot.emis)} subtitle="Décaissements en attente" icon={ArrowDownRight} color="error" withChart />
-                <KPICard title="Reçus non crédités" value={`+ ${formatCurrency(tot.recus)}`} subtitle="Encaissements en attente" icon={ArrowUpRight} color="success" withChart />
-                <KPICard title="Solde théorique" value={formatCurrency(theorique)} subtitle="Flottant dénoué" icon={TrendingUp} color="primary" withChart />
-                <KPICard title="Liquidité disponible" value={formatCurrency(theorique)} subtitle="+ découvert autorisé (non renseigné)" icon={ShieldCheck} color="neutral" withChart />
+                <KPICard title="Solde réel" value={fmtCourt(tot.solde)} subtitle="Ce qui est dans les comptes" icon={Wallet} color="primary" withChart />
+                <KPICard title="Émis non débités" value={fmtCourt(-tot.emis)} subtitle="Décaissements en attente" icon={ArrowDownRight} color="error" withChart />
+                <KPICard title="Reçus non crédités" value={`+ ${fmtCourt(tot.recus)}`} subtitle="Encaissements en attente" icon={ArrowUpRight} color="success" withChart />
+                <KPICard title="Solde théorique" value={fmtCourt(theorique)} subtitle="Flottant dénoué" icon={TrendingUp} color="primary" withChart />
+                <KPICard title="Liquidité disponible" value={fmtCourt(theorique)} subtitle="+ découvert autorisé (non renseigné)" icon={ShieldCheck} color="neutral" withChart />
               </div>
 
               {/* Proph3t — conseil de trésorerie (déterministe) */}
@@ -651,8 +653,9 @@ const TreasuryPositions: React.FC = () => {
                 <p className="text-xs mt-3 text-[var(--color-text-tertiary)]">⚠︎ Conseils consultatifs — décision et exécution restent humaines. Calculs déterministes sur vos écritures réelles, jamais générés par IA.</p>
               </div>
 
-              {/* Prévision d'atterrissage */}
-              <div className="bg-white rounded-xl border border-[var(--color-border)] p-4">
+              {/* Prévision d'atterrissage + Concentration bancaire (côte à côte) */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <div className="lg:col-span-2 bg-white rounded-xl border border-[var(--color-border)] p-4">
                 <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
                   <h3 className="font-semibold text-[var(--color-text-primary)]">Prévision d'atterrissage</h3>
                   <div className="flex gap-1">
@@ -688,6 +691,18 @@ const TreasuryPositions: React.FC = () => {
                   </ResponsiveContainer>
                 </div>
               </div>
+              {/* Concentration bancaire — Top 5, côte à côte avec l'atterrissage. */}
+              <div className="bg-white rounded-xl border border-[var(--color-border)] p-4">
+                <div className="flex items-center gap-2 mb-1"><Layers className="h-4 w-4" style={{ color: AMBER }} /><h3 className="font-semibold text-[var(--color-text-primary)]">Concentration bancaire</h3></div>
+                <p className="text-xs text-[var(--color-text-tertiary)] mb-3">Top 5 — soldes positifs</p>
+                {concentration.length === 0 ? <p className="text-sm text-[var(--color-text-tertiary)]">Aucune position.</p> : concentration.slice(0, 5).map((c, i) => (
+                  <div key={i} className="mb-2.5">
+                    <div className="flex justify-between text-sm mb-1"><span className="text-[var(--color-text-primary)] truncate">{c.nom}</span><span className="font-mono" style={{ color: c.pct > 45 ? ROUGE : 'var(--color-text-secondary)' }}>{c.pct.toFixed(0)} %</span></div>
+                    <div style={{ height: 6, borderRadius: 99, background: 'var(--color-surface-hover)' }}><div style={{ width: `${c.pct}%`, height: '100%', borderRadius: 99, background: c.pct > 45 ? ROUGE : AMBER }} /></div>
+                  </div>
+                ))}
+              </div>
+              </div>
 
               {/* Détail par compte */}
               <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))' }}>
@@ -714,33 +729,22 @@ const TreasuryPositions: React.FC = () => {
                 })}
               </div>
 
-              {/* Concentration + Flux en circulation */}
-              <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))' }}>
-                <div className="bg-white rounded-xl border border-[var(--color-border)] p-4">
-                  <div className="flex items-center gap-2 mb-3"><Layers className="h-4 w-4" style={{ color: AMBER }} /><h3 className="font-semibold text-[var(--color-text-primary)]">Concentration bancaire</h3></div>
-                  {concentration.length === 0 ? <p className="text-sm text-[var(--color-text-tertiary)]">Aucune position.</p> : concentration.map((c, i) => (
-                    <div key={i} className="mb-2">
-                      <div className="flex justify-between text-sm mb-1"><span className="text-[var(--color-text-primary)] truncate">{c.nom}</span><span className="font-mono" style={{ color: c.pct > 45 ? ROUGE : 'var(--color-text-secondary)' }}>{c.pct.toFixed(0)} %</span></div>
-                      <div style={{ height: 6, borderRadius: 99, background: 'var(--color-surface-hover)' }}><div style={{ width: `${c.pct}%`, height: '100%', borderRadius: 99, background: c.pct > 45 ? ROUGE : AMBER }} /></div>
-                    </div>
-                  ))}
-                </div>
-                <div className="bg-white rounded-xl border border-[var(--color-border)] p-4">
-                  <h3 className="font-semibold mb-3 text-[var(--color-text-primary)]">Flux en circulation <span className="text-xs font-normal text-[var(--color-text-secondary)]">— non rapprochés</span></h3>
-                  {floatView.length === 0 ? <p className="text-sm text-[var(--color-text-tertiary)]">Aucun flux en circulation (tout est rapproché, ou aucun mouvement).</p> : (
-                    <div className="flex flex-col gap-1" style={{ maxHeight: 280, overflowY: 'auto' }}>
-                      {floatView.map((f, i) => (
-                        <div key={f.id + i} className="flex items-center justify-between gap-3 py-2" style={{ borderBottom: i < floatView.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
-                          <div className="flex items-center gap-3 min-w-0">
-                            <span className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center" style={{ background: f.sens === 'emis' ? 'rgba(226,75,74,0.12)' : 'rgba(29,158,117,0.12)', color: f.sens === 'emis' ? ROUGE : VERT }}>{f.sens === 'emis' ? <ArrowDownRight className="h-4 w-4" /> : <ArrowUpRight className="h-4 w-4" />}</span>
-                            <div className="min-w-0"><div className="text-sm truncate text-[var(--color-text-primary)]">{f.libelle}</div><div className="text-xs text-[var(--color-text-secondary)]">{f.code} {f.accountName}</div></div>
-                          </div>
-                          <div className="text-right shrink-0"><div className="font-mono text-sm" style={{ color: f.sens === 'emis' ? ROUGE : VERT }}>{f.sens === 'emis' ? '− ' : '+ '}{formatCurrency(f.montant)}</div><div className="text-xs text-[var(--color-text-secondary)]">{f.date ? new Date(f.date).toLocaleDateString('fr-FR') : '—'}</div></div>
+              {/* Flux en circulation (la Concentration bancaire est dans son propre onglet). */}
+              <div className="bg-white rounded-xl border border-[var(--color-border)] p-4">
+                <h3 className="font-semibold mb-3 text-[var(--color-text-primary)]">Flux en circulation <span className="text-xs font-normal text-[var(--color-text-secondary)]">— non rapprochés</span></h3>
+                {floatView.length === 0 ? <p className="text-sm text-[var(--color-text-tertiary)]">Aucun flux en circulation (tout est rapproché, ou aucun mouvement).</p> : (
+                  <div className="flex flex-col gap-1" style={{ maxHeight: 320, overflowY: 'auto' }}>
+                    {floatView.map((f, i) => (
+                      <div key={f.id + i} className="flex items-center justify-between gap-3 py-2" style={{ borderBottom: i < floatView.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center" style={{ background: f.sens === 'emis' ? 'rgba(226,75,74,0.12)' : 'rgba(29,158,117,0.12)', color: f.sens === 'emis' ? ROUGE : VERT }}>{f.sens === 'emis' ? <ArrowDownRight className="h-4 w-4" /> : <ArrowUpRight className="h-4 w-4" />}</span>
+                          <div className="min-w-0"><div className="text-sm truncate text-[var(--color-text-primary)]">{f.libelle}</div><div className="text-xs text-[var(--color-text-secondary)]">{f.code} {f.accountName}</div></div>
                         </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                        <div className="text-right shrink-0"><div className="font-mono text-sm" style={{ color: f.sens === 'emis' ? ROUGE : VERT }}>{f.sens === 'emis' ? '− ' : '+ '}{formatCurrency(f.montant)}</div><div className="text-xs text-[var(--color-text-secondary)]">{f.date ? new Date(f.date).toLocaleDateString('fr-FR') : '—'}</div></div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <p className="text-xs text-[var(--color-text-tertiary)]">
