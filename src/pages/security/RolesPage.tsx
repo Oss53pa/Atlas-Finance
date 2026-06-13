@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
@@ -198,13 +199,16 @@ const RolesPage: React.FC = () => {
           <h1 className="text-lg font-bold text-gray-900">Gestion des Rôles</h1>
           <p className="text-gray-600">Définition des rôles et attribution des permissions</p>
         </div>
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="bg-primary hover:bg-primary-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
-        >
-          <PlusIcon className="h-5 w-5" />
-          <span>Nouveau Rôle</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <PageHeaderActions />
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="bg-primary hover:bg-primary-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+          >
+            <PlusIcon className="h-5 w-5" />
+            <span>Nouveau Rôle</span>
+          </button>
+        </div>
       </div>
 
       {/* Statistiques */}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -240,13 +241,16 @@ const UsersPage: React.FC = () => {
           <h1 className="text-lg font-bold text-gray-900">Gestion des Utilisateurs</h1>
           <p className="text-gray-600">Administration des comptes utilisateurs et permissions</p>
         </div>
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="bg-primary hover:bg-primary-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
-        >
-          <PlusIcon className="h-5 w-5" />
-          <span>Nouvel Utilisateur</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <PageHeaderActions />
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="bg-primary hover:bg-primary-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+          >
+            <PlusIcon className="h-5 w-5" />
+            <span>Nouvel Utilisateur</span>
+          </button>
+        </div>
       </div>
 
       {/* Statistiques */}

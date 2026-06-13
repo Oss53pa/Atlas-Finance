@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
@@ -281,6 +282,7 @@ const CostCentersPage: React.FC = () => {
             </p>
           </div>
           <div className="flex space-x-3">
+            <PageHeaderActions />
             <Button variant="outline">
               <Download className="mr-2 h-4 w-4" />
               Exporter
