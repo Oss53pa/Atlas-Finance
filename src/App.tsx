@@ -395,7 +395,7 @@ function App() {
                           <Route path="/accounting/lettrage" element={<LettragePage />} />
                           <Route path="/accounting/lettrage-auto" element={work(<LettrageAutomatiquePage />)} />
                           <Route path="/accounting/ocr" element={work(<OCRInvoices />)} />
-                          <Route path="/accounting/signature" element={<ElectronicSignature />} />
+                          <Route path="/accounting/signature" element={work(<ElectronicSignature />)} />
                           <Route path="/accounting/financial-statements" element={<FinancialStatementsPage />} />
                           <Route path="/accounting/income-statement" element={<IncomeStatementPage />} />
                           <Route path="/accounting/balance-sheet" element={<BalanceSheetPage />} />
@@ -434,7 +434,7 @@ function App() {
                           <Route path="/treasury/multi-currency" element={work(<MultiCurrency />)} />
                           <Route path="/treasury/movements" element={work(<BankMovementsPage />)} />
                           <Route path="/treasury/connections" element={work(<ConnexionsBancairesPage />)} />
-                          <Route path="/treasury/payments" element={<GestionPaiementsPage />} />
+                          <Route path="/treasury/payments" element={work(<GestionPaiementsPage />)} />
                           <Route path="/treasury/forecast" element={work(<PrevisionsTresoreriePage />)} />
                           <Route path="/treasury/position" element={work(<PositionTresoreriePage />)} />
                           <Route path="/treasury/payment-orders" element={work(<PaymentOrdersPage />)} />
@@ -449,7 +449,7 @@ function App() {
                           <Route path="/assets" element={<AssetsDashboard />} />
                           <Route path="/assets/fixed" element={work(<FixedAssetsPage />)} />
                           <Route path="/assets/depreciation" element={work(<DepreciationPage />)} />
-                          <Route path="/assets/summary" element={<AssetsSummary />} />
+                          <Route path="/assets/summary" element={work(<AssetsSummary />)} />
                           <Route path="/assets/registry" element={work(<AssetsRegistry />)} />
                           <Route path="/assets/transactions" element={work(<AssetsTransactions />)} />
                           <Route path="/assets/categories" element={work(<AssetsCategories />)} />
@@ -533,7 +533,7 @@ function App() {
                           <Route path="/security" element={<SecurityDashboard />} />
                           <Route path="/security/users" element={work(<UsersPage />)} />
                           <Route path="/security/roles" element={work(<RolesPage />)} />
-                          <Route path="/security/permissions" element={<PermissionsPage />} />
+                          <Route path="/security/permissions" element={work(<PermissionsPage />)} />
                         </Route>
 
                         {/* Settings — admin only */}

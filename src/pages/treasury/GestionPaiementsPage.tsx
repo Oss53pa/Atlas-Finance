@@ -145,7 +145,7 @@ const GestionPaiementsPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-primary-50">
+    <div className="min-h-full bg-primary-50">
       <div className="container mx-auto px-4 py-6">
         {/* En-tête */}
         <div className="mb-8">

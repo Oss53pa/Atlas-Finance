@@ -1046,7 +1046,7 @@ const AssetsSummary: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-[var(--color-primary)]/10 p-6">
+    <div className="min-h-full bg-gradient-to-br from-primary-50 to-[var(--color-primary)]/10 p-6">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* En-tête */}
         <motion.div
