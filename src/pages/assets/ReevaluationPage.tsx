@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { useData } from '../../contexts/DataContext';
 import { useToast } from '../../hooks/useToast';
 import FeatureGuard from '../../components/auth/FeatureGuard';
@@ -89,6 +90,7 @@ const ReevaluationPage: React.FC = () => {
               <h1 className="text-lg font-bold text-[var(--color-primary)]">Réévaluation des Immobilisations</h1>
               <p className="text-sm text-[var(--color-text-tertiary)]">Conforme SYSCOHADA révisé — Écart au compte 105</p>
             </div>
+            <PageHeaderActions className="ml-auto" />
           </div>
         </div>
 

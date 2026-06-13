@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import {
   Layers, Search, Plus, Edit2, Settings, BarChart3,
   TrendingUp, DollarSign, Activity, Info, ChevronDown, X,
@@ -132,6 +133,7 @@ const AssetsClasses: React.FC = () => {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <PageHeaderActions />
           <ModernButton variant="outline" size="sm">
             <Settings className="w-4 h-4 mr-1" />
             Configuration

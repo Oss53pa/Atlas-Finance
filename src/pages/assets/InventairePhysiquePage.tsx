@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
 import type { DBAsset } from '../../lib/db';
@@ -416,6 +417,7 @@ const InventairePhysiquePage: React.FC = () => {
             </p>
           </div>
           <div className="flex space-x-3">
+            <PageHeaderActions />
             <Button
               onClick={handleStartScanning}
               disabled={isScanning}

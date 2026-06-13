@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { toast } from 'sonner';
 import {
   Tag, Search, Plus, Edit2, ChevronRight, X,
@@ -193,6 +194,7 @@ const AssetsCategories: React.FC = () => {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <PageHeaderActions />
           {/* View Toggle */}
           <div className="flex items-center bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg p-0.5">
             <button

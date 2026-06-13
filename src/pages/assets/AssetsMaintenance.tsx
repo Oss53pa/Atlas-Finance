@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { motion } from 'framer-motion';
@@ -465,6 +466,7 @@ const AssetsMaintenance: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-4">
+              <PageHeaderActions />
               <label className="text-sm font-medium text-neutral-700">Période:</label>
               <select
                 value={selectedPeriod}

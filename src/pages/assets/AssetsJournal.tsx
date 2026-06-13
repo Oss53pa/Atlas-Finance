@@ -1,6 +1,7 @@
 
 import { formatCurrency, formatCompactCurrency } from '@/utils/formatters';
 import React, { useState, useEffect, useMemo } from 'react';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { useData } from '../../contexts/DataContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import {
@@ -253,6 +254,7 @@ const AssetsJournal: React.FC = () => {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <PageHeaderActions />
           <ModernButton
             variant={viewMode === 'journal' ? 'primary' : 'outline'}
             size="sm"

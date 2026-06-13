@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { formatCurrency } from '../../utils/formatters';
 import {
   ArrowLeftRight, Search, Filter, Calendar,
@@ -259,6 +260,7 @@ const AssetsTransactions: React.FC = () => {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <PageHeaderActions />
           <ModernButton
             variant="outline"
             size="sm"

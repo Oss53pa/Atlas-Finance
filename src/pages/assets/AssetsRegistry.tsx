@@ -1,5 +1,6 @@
 
 import React, { useState, useMemo } from 'react'; // Palette Atlas FnA appliquée
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import type { DBAsset } from '../../lib/db';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
@@ -1657,6 +1658,7 @@ const AssetsRegistry: React.FC = () => {
           icon={Package}
           action={
             <div className="flex gap-3">
+              <PageHeaderActions />
               <ElegantButton variant="outline" icon={QrCode}>
                 Scanner QR
               </ElegantButton>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { useData } from '../../contexts/DataContext';
 import type { DBAsset } from '../../lib/db';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -426,6 +427,7 @@ const AssetsDisposals: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-4">
+              <PageHeaderActions />
               <label className="text-sm font-medium text-gray-900">Période:</label>
               <select
                 value={filterPeriod}
